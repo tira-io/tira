@@ -1,0 +1,14 @@
+users {
+  adminName: ""
+  roles: "reviewer"
+  email: "dummyUser@webis.de"
+  userPw: "password"
+  userName: "user"
+  vmName: ""
+  vmId: ""
+  portSsh: ""
+  host: ""
+  portRdp: ""
+  adminPw: ""
+  ip: ""
+}

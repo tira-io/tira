@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package tira.generated;
+import 'TiraClientWebMessages.proto';
+
+// The service definition.
+service TiraHostService {
+  rpc test (Input) returns (Output) {}
+  rpc vm_backup (Request) returns (Response) {}
+  rpc vm_create (Request) returns (Response) {}
+  rpc vm_delete (Request) returns (Response) {}
+  rpc vm_info (Request) returns (Response) {}
+  rpc vm_sandbox (Request) returns (Response) {}
+  rpc vm_shutdown (Request) returns (Response) {}
+  rpc vm_snapshot (Request) returns (Response) {}
+  rpc vm_start (Request) returns (Response) {}
+  rpc vm_stop (Request) returns (Response) {}
+  rpc vm_unsandbox (Request) returns (Response) {}
+}
+
+message Input {
+  string text = 1;
+}
+message Output {
+  string text = 1;
+}
+
+// The request message containing the VirtualMachine message
+message Request {
+  tira.generated.VirtualMachine vm = 1;
+}
+
+// The response message containing the VirtualMachineState message
+message Response {
+  tira.generated.VirtualMachineState vmstate = 1;
+}

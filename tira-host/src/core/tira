@@ -1,0 +1,25 @@
+_tira() {
+    local cur prev opts
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+    _script_commands=$($(dirname "$(readlink -f "`which tira`")")/tira-autocomplete.py )
+
+    COMPREPLY=( $(compgen -W "${_script_commands}" -- ${cur}) )
+
+    return 0
+}
+complete -F _tira tira
+
+_tira_setup() {
+    local cur prev opts
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+    _script_commands=$($(dirname "$(readlink -f "`which tira`")")/tira-autocomplete.py admin)
+
+    COMPREPLY=( $(compgen -W "${_script_commands}" -- ${cur}) )
+
+    return 0
+}
+complete -F _tira_setup tira-setup

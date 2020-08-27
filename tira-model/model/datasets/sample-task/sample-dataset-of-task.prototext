@@ -1,0 +1,5 @@
+datasetId:      "sample-dataset-of-task"
+displayName:    "Sample Dataset Task"
+evaluatorId:    "evaluator-sample-dataset"
+isConfidential: false
+isDeprecated:   false
