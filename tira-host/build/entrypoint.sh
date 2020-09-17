@@ -47,4 +47,5 @@ fi
 
 sudo ssh-keygen -A -v
 sudo service ssh start
-tail -f /dev/null
+#tail -f /dev/null
+python3 /home/tira/tira_host/TiraHostService.py

@@ -3,3 +3,6 @@ log.txt
 .DS_Store
 ._.DS_Store
 .idea
+.venv
+.project
+.pydevproject
