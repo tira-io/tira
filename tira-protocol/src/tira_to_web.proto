@@ -1,0 +1,40 @@
+syntax = "proto3";
+// -----------------------------------------------------------------------------
+// Compilation
+// -----------------------------------------------------------------------------
+
+// Install the Google Protobuf protoc compiler:
+//   Web: http://code.google.com/p/protobuf/
+//   Apt: Search your repository for 'protobuf-compiler'
+//
+// Compile the schema file to generate source code:
+//   C++ : $ protoc --cpp_out=path/to/generated/code  TiraClientWebMessages.proto
+//   Java: $ protoc --java_out=path/to/generated/code TiraClientWebMessages.proto
+
+// -----------------------------------------------------------------------------
+// Options
+// -----------------------------------------------------------------------------
+
+package tira;
+
+// import "google/protobuf/timestamp.proto";
+import "tira_messages.proto";
+
+// Becomes the package name of the generated Java code
+option java_package = "de.webis.tira.client.web.grpc";
+
+// Other options
+option optimize_for = SPEED;
+
+// -----------------------------------------------------------------------------
+// Message definitions
+// -----------------------------------------------------------------------------
+
+service TiraProtocol{
+    rpc GetDataset(DatasetRequest) returns (Dataset);
+}
+
+message DatasetRequest{
+    string datasetID = 1;
+    string taskID    = 2;
+}
