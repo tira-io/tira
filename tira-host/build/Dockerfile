@@ -16,7 +16,7 @@ RUN wget -q https://www.virtualbox.org/download/oracle_vbox.asc -O- | sudo apt-k
 RUN echo "deb [arch=amd64] http://download.virtualbox.org/virtualbox/debian $(lsb_release -cs) contrib" | \
  sudo tee -a /etc/apt/sources.list.d/virtualbox.list
 
-RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends --allow-unauthenticated virtualbox-6.1=6.1.14-140239~Ubuntu~eoan
+RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends --allow-unauthenticated virtualbox-6.1=6.1.14-140239~Ubuntu~bionic
 RUN wget https://download.virtualbox.org/virtualbox/6.1.14/Oracle_VM_VirtualBox_Extension_Pack-6.1.14.vbox-extpack
 
 RUN echo "y" | sudo VBoxManage extpack install Oracle_VM_VirtualBox_Extension_Pack-6.1.14.vbox-extpack

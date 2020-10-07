@@ -35,7 +35,7 @@ class TiraHostService(TiraHostMessages_pb2_grpc.TiraHostService):
         return run_script("vm-create", request.ovaFile, request.userName)
 
     def vm_delete(self, request, context):
-        return run_script("vm-delete", request.VirtualMachine)
+        return run_script("vm-delete", request.vmName)
 
     def vm_info(self, request, context):
         return run_script("vm-info", request.vmName)
