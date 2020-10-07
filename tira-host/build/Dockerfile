@@ -28,7 +28,7 @@ RUN mkdir -m 777 mnt/input && \
 
 # copy default tira model
 RUN mkdir -p /mnt/nfs/tira
-COPY build/initial-docker-tira-model /mnt/nfs/tira/
+#COPY build/initial-docker-tira-model /mnt/nfs/tira/
 
 # setup tira command line tools
 # mount host folder directly to /usr/lib - this way we don't have to restart the container after changes
