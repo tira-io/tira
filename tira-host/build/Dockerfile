@@ -5,7 +5,7 @@ ENV TIRA_PASSWORD=$TIRA_PASSWORD
 
 # install prerequisite packages and virtualbox
 RUN apt-get update && apt-get install -y iputils-ping net-tools ca-certificates wget tree sudo bash-completion \
-    openssh-client openssh-server sshpass iptables dkms ufw iproute2 module-init-tools \
+    openssh-client openssh-server sshpass iptables dkms ufw iproute2 module-init-tools supervisor \
 		curl dnsmasq lsb-release rdesktop python2.7 python-pip python3 python3-pip bsdmainutils rdesktop dnsutils
 
 RUN python3 -m pip install --upgrade pip && python3 -m pip install grpcio grpcio-tools
@@ -16,11 +16,14 @@ RUN wget -q https://www.virtualbox.org/download/oracle_vbox.asc -O- | sudo apt-k
 RUN echo "deb [arch=amd64] http://download.virtualbox.org/virtualbox/debian $(lsb_release -cs) contrib" | \
  sudo tee -a /etc/apt/sources.list.d/virtualbox.list
 
-RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends --allow-unauthenticated virtualbox-6.1=6.1.14-140239~Ubuntu~bionic
-RUN wget https://download.virtualbox.org/virtualbox/6.1.14/Oracle_VM_VirtualBox_Extension_Pack-6.1.14.vbox-extpack
+ENV version=$(VBoxManage -v | awk -F'r' '{print $1}')
+ENV build=$(VBoxManage -v | awk -F'r' '{print $2}')
 
-RUN echo "y" | sudo VBoxManage extpack install Oracle_VM_VirtualBox_Extension_Pack-6.1.14.vbox-extpack
-RUN	rm Oracle_VM_VirtualBox_Extension_Pack-6.1.14.vbox-extpack
+RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends --allow-unauthenticated virtualbox-6.1
+RUN wget https://download.virtualbox.org/virtualbox/$version/Oracle_VM_VirtualBox_Extension_Pack-$version.vbox-extpack
+
+RUN echo "y" | sudo VBoxManage extpack install Oracle_VM_VirtualBox_Extension_Pack-$version.vbox-extpack
+RUN	rm Oracle_VM_VirtualBox_Extension_Pack-$version.vbox-extpack
 
 RUN mkdir -m 777 mnt/input && \
     mkdir -m 777 mnt/output && \

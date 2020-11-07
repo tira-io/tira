@@ -3,7 +3,7 @@ TIRA 9
   - [Installing a TIRA Host](#installing-a-tira-host)
   - [Installing a TIRA Server](#installing-a-tira-server)
   - [Running a dockerized TIRA Host](#running-a-dockeridzed-tira-host)
-  
+  - [TIRA project Wiki](https://github.com/tira-io/tira/wiki)
 
 Installing a TIRA Host
 ---------------------
