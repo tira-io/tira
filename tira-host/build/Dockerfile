@@ -45,7 +45,7 @@ WORKDIR /usr/lib/tira
 # create tira user
 # RUN sudo python tira-setup.py user -c localhost
 RUN groupadd -r -g 1010 tira && \
-    useradd -m -u 1010 -g tira tira && echo "tira:$TIRA_PASSWORD" | chpasswd && \
+    useradd -m -u 1010 -g tira tira && usermod -p '$TIRA_PASSWORD' tira && \
     usermod -aG root tira && \
     usermod -aG vboxusers tira && \
     usermod -aG sudo tira
