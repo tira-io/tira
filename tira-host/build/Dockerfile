@@ -1,7 +1,7 @@
 FROM phusion/baseimage:bionic-1.0.0
 
-ARG TIRA_PASSWORD=tira
-ENV TIRA_PASSWORD=$TIRA_PASSWORD
+ARG TIRA_PASSWORD
+ARG VBOXVERSION
 
 # install prerequisite packages and virtualbox
 RUN apt-get update && apt-get install -y iputils-ping net-tools ca-certificates wget tree sudo bash-completion \
@@ -16,14 +16,12 @@ RUN wget -q https://www.virtualbox.org/download/oracle_vbox.asc -O- | sudo apt-k
 RUN echo "deb [arch=amd64] http://download.virtualbox.org/virtualbox/debian $(lsb_release -cs) contrib" | \
  sudo tee -a /etc/apt/sources.list.d/virtualbox.list
 
-ENV version=$(VBoxManage -v | awk -F'r' '{print $1}')
-ENV build=$(VBoxManage -v | awk -F'r' '{print $2}')
-
 RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends --allow-unauthenticated virtualbox-6.1
-RUN wget https://download.virtualbox.org/virtualbox/$version/Oracle_VM_VirtualBox_Extension_Pack-$version.vbox-extpack
+RUN wget https://download.virtualbox.org/virtualbox/$VBOXVERSION/Oracle_VM_VirtualBox_Extension_Pack-$VBOXVERSION.vbox-extpack
 
-RUN echo "y" | sudo VBoxManage extpack install Oracle_VM_VirtualBox_Extension_Pack-$version.vbox-extpack
-RUN	rm Oracle_VM_VirtualBox_Extension_Pack-$version.vbox-extpack
+RUN echo "y" | sudo VBoxManage extpack install Oracle_VM_VirtualBox_Extension_Pack-$VBOXVERSION.vbox-extpack
+RUN rm Oracle_VM_VirtualBox_Extension_Pack-$VBOXVERSION.vbox-extpack
+
 
 RUN mkdir -m 777 mnt/input && \
     mkdir -m 777 mnt/output && \
