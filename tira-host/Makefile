@@ -9,7 +9,8 @@ docker run \
     -v /dev/vboxpci:/dev/vboxpci \
     -v /dev/vboxnetctl:/dev/vboxnetctl \
     -v /mnt/nfs/tira:/mnt/nfs/tira \
-    --name="tira" \
+    -v /home/tira:/home/tira \
+    --name="tira-host" \
     --privileged \
     --cap-add=NET_ADMIN \
     --network host \
