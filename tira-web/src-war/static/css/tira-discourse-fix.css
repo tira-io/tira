@@ -1,0 +1,76 @@
+/* RULES FOR DISCOURSE ENVIRONMENT */
+
+/* fixes bootstrap.css:1090 "font-size: 14px;" */
+body {
+    font-size: 15px;
+}
+
+/* fixes bootstrap.css:5313 "box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);" for discourse hamburger menu */
+.panel {
+    box-shadow: 0 0 0 #fff;
+    margin-bottom: 0;
+}
+
+/* fix navbar getting clinched by bootstrap */
+.panel.clearfix * {
+    box-sizing: revert;
+}
+
+:not(.disraptor-content) .label {
+    font-size: revert;
+    color: revert;
+    text-align: revert;
+}
+
+/* RULES FOR DISRAPTOR CONTENT */
+
+/* all rules that should work for tira but not discourse by being more specific */
+.disraptor-content {
+    font-size: 14px;
+}
+
+.disraptor-content .form-control {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.disraptor-content .tira-panel {
+    margin-bottom: 20px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(0,0,0,.05);
+}
+
+.disraptor-content .panel-default {
+    border-color: #ddd;
+}
+
+.disraptor-content .panel-info {
+    border-color: #bce8f1;
+}
+
+/* fixes base.scss:63 "margin: 0 0 9px 25px;" */
+.disraptor-content .tira-panel ul {
+    margin-left: 0;
+    margin-bottom: 0;
+}
+
+/* fixes hover colors of dropdown menus */
+.disraptor-content .btn-default:hover {
+    color: #333;
+    background-color: #e6e6e6;
+}
+
+.disraptor-content form[role=form] {
+    margin: 0 0 0 0
+}
+.tira-panel > .list-group .list-group-item, .tira-panel > .panel-collapse > .list-group .list-group-item {
+    border-width: 1px 0;
+        border-top-width: 1px;
+    border-radius: 0;
+}
+.tira-panel > .list-group:last-child .list-group-item:last-child, .tira-panel > .panel-collapse > .list-group:last-child .list-group-item:last-child {
+	border-bottom: 0;
+	border-bottom-right-radius: 3px;
+	border-bottom-left-radius: 3px;
+}

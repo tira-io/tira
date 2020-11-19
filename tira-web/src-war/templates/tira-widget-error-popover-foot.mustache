@@ -1,0 +1,18 @@
+<script>
+function errorPopover(context, placement, message) {
+  $(context).popover({
+    template: '<div class="popover" role="tooltip"><div class="arrow"></div><div class="popover-content" style="padding:0;"></div></div>',
+    html: true,
+    container: 'body',
+    placement: placement,
+    trigger: 'manual',
+    content: "<div class='alert alert-danger' style='margin:0;'><span class='label label-danger'>{{#_}}Error{{/_}}</span> " + message + " <button class='btn btn-default btn-xs dismiss'>Dismiss</button></div>"
+  }).on('shown.bs.popover', function (eventShown) {
+    var $popup = $('#' + $(eventShown.target).attr('aria-describedby'));
+    $popup.find('button.dismiss').click(function (e) {
+      $popup.popover('destroy');
+    });
+  });
+  $(context).popover('show');
+}
+</script>

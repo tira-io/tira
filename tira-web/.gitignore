@@ -1,0 +1,4 @@
+/bin/
+conf/disraptor.properties
+*.swp
+/info/

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src-java"/>
+	<classpathentry kind="src" path="conf"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/thirdparty-servlet-api-3.0"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/thirdparty-mustache-compiler-0.8.14"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/thirdparty-apache-commons-lang3-3.1"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/thirdparty-apache-commons-io-2.4"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/thirdparty-jgravatar-2014-06-01"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/thirdparty-guacamole-common-0.9.7"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/thirdparty-google-protobuf-2.6.1"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

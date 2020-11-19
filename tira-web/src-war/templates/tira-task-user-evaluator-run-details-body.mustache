@@ -1,0 +1,40 @@
+{{#hasEvaluatorRunsNotDeleted}}
+<div class="row">
+  <div class="col-xs-12">
+    <div class="tira-panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title"><span class="glyphicon glyphicon-folder-open"></span>&nbsp;&nbsp;Evaluator Run Details</h3>
+      </div>
+      <table class="table table-striped">
+        <tbody>
+          {{#runsList}}
+          {{#evaluationRun}}
+          {{#run}}
+          {{^deleted}}
+          <thead>
+            <tr>
+              <th style="background-color:#ddd;"><strong>Evaluator Run {{> tira-widget-run-name-body}}</strong></th>
+            </tr>
+          </thead>
+          <tr>
+            <td style="white-space:pre-wrap;">Stdout</td>
+          </tr>
+          <tr>
+            <td style="white-space:pre-wrap;">{{stdout}}</td>
+          </tr>
+          <tr>
+            <td style="white-space:pre-wrap;">Stderr</td>
+          </tr>
+          <tr>
+            <td style="white-space:pre-wrap;">{{#stderr}}{{.}}{{/stderr}}{{^stderr}}&nbsp;{{/stderr}}</td>
+          </tr>
+          {{/deleted}}
+          {{/run}}
+          {{/evaluationRun}}
+          {{/runsList}}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div><!-- /.row -->
+{{/hasEvaluatorRunsNotDeleted}}

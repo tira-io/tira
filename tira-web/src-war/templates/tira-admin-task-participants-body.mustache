@@ -1,0 +1,44 @@
+<div id="runs" class="row">
+  <div class="col-xs-12">
+    <div class="tira-panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title"><span class="glyphicon glyphicon-user"></span> Participants in <em>{{task.taskName}}</em></h3>
+      </div>
+      <div class="table-responsive" style="overflow:auto;">
+        <table id="users-table" class="users-table table table-condensed table-hover">
+          <thead>
+            <tr>
+              <th class="sort-asc">User&nbsp;</th>
+              <th>Signed in&nbsp;</th>
+              <th>Softwares&nbsp;</th>
+              <th>Deleted&nbsp;</th>
+              <th>Now Running&nbsp;</th>
+              <th>Runs&nbsp;</th>
+              <th>Reviewed&nbsp;</th>
+              <th>Unreviewed&nbsp;</th>
+              <th class="no-sort">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#taskUsersList}}
+            <tr>
+              <td style="white-space:nowrap;"><img src="{{user.gravatarUrl}}" /> {{user.userName}}</td>
+              <td style="white-space:nowrap;">{{#userSignedIn}}yes{{/userSignedIn}}{{^userSignedIn}}no{{/userSignedIn}}</td>
+              <td style="white-space:nowrap;">{{softwares}}</td>
+              <td style="white-space:nowrap;">{{softwaresDeleted}}</td>
+              <td style="white-space:nowrap;">{{#softwareRunning}}{{#runningSoftware}}{{type}}, {{runId}}, {{time}}{{/runningSoftware}}{{/softwareRunning}}{{^softwareRunning}}none{{/softwareRunning}}</td>
+              <td style="white-space:nowrap;">{{runsTotal}}</td>
+              <td style="white-space:nowrap;">{{runsReviewed}}</td>
+              <td style="white-space:nowrap;"><strong>{{runsUnreviewed}}</strong></td>
+              <td style="white-space:nowrap;">
+                <a href="{{contextPath}}/tira/admin/task/{{task.taskId}}/participants/{{user.userName}}/" title="Review"><span style="font-size:larger;" class="glyphicon glyphicon-eye-open text-primary"></span></a>
+                <a href="{{contextPath}}/task/{{task.taskId}}/user/{{user.userName}}/" title="Impersonate"><span style="font-size:larger;" class="glyphicon glyphicon-eye-close text-primary"></span></a>
+              </td>
+            </tr>
+            {{/taskUsersList}}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div><!-- /.row -->

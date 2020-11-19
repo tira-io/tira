@@ -1,0 +1,50 @@
+{{#hostsList}}
+<div class="uk-container uk-margin-medium">
+    <table class="uk-table uk-table-divider uk-table-small targetable sortable">
+        <thead>
+            <tr id="{{name}}">
+                <th colspan="2">
+                    <h1>{{name}} <small>{{years}}</small></h1>
+                </th>
+            </tr>
+            <tr>
+                <th></th>
+                <th class="header uk-width-expand"><span>Task</span></th>
+                <th class="header uk-width-shrink"><span>Participants</span></th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#tasksList}}
+            {{#isSignedIn}}
+            <tr>
+                <td id="{{taskName}}"></td>
+                <td><a href="{{contextPath}}/task/{{taskId}}/">{{taskName}}</a></td>
+                <td>{{taskStatistics.participants}}</td>
+            </tr>
+            {{/tasksList}}
+            {{^isSignedIn}}
+        </tbody>
+    </table>
+</div>
+{{/hostsList}}
+<div class="uk-container uk-margin-medium">
+    <table class="uk-table uk-table-divider uk-table-small targetable sortable">
+        <thead>
+            <tr id="{{name}}">
+                <th colspan="1">
+                    <h1>YOU <small>now</small></h1>
+                </th>
+            </tr>
+            <tr>
+                <th></th>
+                <th class="header uk-width-expand"><span>Task</span></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td id="tira-apply"></td>
+                <td><a href="mailto:tira@webis.de?subject=Application to host shared task on TIRA">Apply to host your shared task at TIRA</a></td>
+            </tr>
+        </tbody>
+    </table>
+</div>

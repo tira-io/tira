@@ -1,0 +1,47 @@
+<div class="row">
+  {{#tasksList}}
+  <div id="{{taskId}}" class="col-xs-12">
+    <div class="tira-panel panel-info">
+      <div class="panel-heading">
+        {{taskName}}
+      </div>
+      <div class="panel-body">
+        <dl class="dl-horizontal">
+          <dt>Task</dt>
+          <dd>{{taskDescription}}</dd>
+          <dt>Training datasets</dt>
+          <dd>{{trainingDatasetCount}}</dd>
+          <dt>Test datasets</dt>
+          <dd>{{testDatasetCount}}</dd>
+          <dt>Measures</dt>
+          <dd>{{evaluator.measures}}</dd>
+          <dt>Web</dt>
+          <dd><a href="{{web}}" target="_blank">{{web}}</a></dd>
+        </dl>
+        {{#taskStatistics}}
+        <dl class="dl-horizontal">
+          <dt>Participants</dt>
+          <dd>{{participants}}</dd>
+          <dt>Softwares</dt>
+          <dd>{{softwares}}{{#showSoftwaresRunning}} ({{softwaresRunning}} running now){{/showSoftwaresRunning}}</dd>
+          <dt>Runs</dt>
+          <dd>{{runs}}</dd>
+        </dl>
+        {{/taskStatistics}}
+      </div>
+      <div class="panel-footer text-right">
+        {{#isSignedIn}}
+        <a class="btn btn-info" href="{{contextPath}}/task/{{taskId}}/user/{{signedInUserName}}/">Join task</a>
+        {{#isReviewer}}
+        <a class="btn btn-default" href="{{contextPath}}/tira/admin/task/{{taskId}}/">Admin</a>
+        {{/isReviewer}}
+        {{/isSignedIn}}
+        {{^isSignedIn}}
+        <a class="btn btn-default" href="{{contextPath}}/authentication/">Join task</a>
+        {{/isSignedIn}}
+        <a class="btn btn-success" href="{{contextPath}}/task/{{taskId}}/">View results</a>
+      </div>
+    </div>
+  </div>
+  {{/tasksList}}
+</div>

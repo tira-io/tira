@@ -1,0 +1,149 @@
+<div id="runs" class="row">
+  <div class="col-xs-12">
+    {{#run}}
+    {{#run}}
+    <div class="tira-panel panel-default">
+      <div class="panel-heading tira-panel-heading-for-back-button">
+        <div class="row">
+          <div class="col-xs-12">
+            <a href="#" onclick="history.back();" class="btn btn-default pull-left tira-panel-heading-back-button" title="Go back">
+              <span class="glyphicon glyphicon-chevron-left"></span>
+            </a>
+            <div class="tira-panel-heading-next-to-back-button">
+              <span class="glyphicon glyphicon-folder-open"></span>&nbsp;&nbsp;Run Review
+            </div>
+            {{#query}}
+            {{/query}}
+          </div>
+        </div><!-- /.row -->
+      </div>
+      <table class="table table-striped">
+        <tbody>
+          <tr>
+            <td style="white-space:pre-wrap;">Overview</td>
+          </tr>
+          <tr>
+            <td>
+              <dl class="dl-horizontal" style="margin-bottom:0px;">
+                <dt>Software</dt>
+                <dd >{{> tira-widget-software-name-body}}</dd>
+                <dt>Run</dt>
+                <dd>{{> tira-widget-run-name-body}}</dd>
+                <dt>Input dataset</dt>
+                <dd>{{> tira-widget-dataset-name2-body}}</dd>
+                <dt>Input run</dt>
+                <dd>{{> tira-widget-run-name2-body}}</dd>
+                <dt>Downloadable</dt>
+                <dd>{{#downloadable}}true{{/downloadable}}{{^downloadable}}false{{/downloadable}}</dd>
+                <dt>Runtime</dt>
+                <dd>{{#runtime}}{{.}} (hh:mm:ss){{/runtime}}{{^runtime}}<em class="text-warning">missing</em>{{/runtime}}</dd>
+                <dt>Runtime details</dt>
+                <dd>{{#runtimeDetails}}{{.}}{{/runtimeDetails}}{{^runtimeDetails}}<em class="text-warning">missing</em>{{/runtimeDetails}}</dd>
+                <dt>Size</dt>
+                <dd>{{#size}}{{.}} ({{sizeInBytes}} bytes){{/size}}{{^size}}<em class="text-warning">missing</em>{{/size}}</dd>
+                <dt>Lines</dt>
+                <dd>{{#numLines}}{{.}}{{/numLines}}{{^numLines}}<em class="text-warning">missing</em>{{/numLines}}</dd>
+                <dt>Files</dt>
+                <dd>{{#numFiles}}{{.}}{{/numFiles}}{{^numFiles}}<em class="text-warning">missing</em>{{/numFiles}}</dd>
+                <dt>Directories</dt>
+                <dd>{{#numDirectories}}{{.}}{{/numDirectories}}{{^numDirectories}}<em class="text-warning">missing</em>{{/numDirectories}}</dd>
+              </dl>
+            </td>
+          </tr>
+          <tr>
+            <td style="white-space:pre-wrap;">Review</td>
+          </tr>
+          <tr>
+            <td>
+              {{#hasReview}}
+              <div class="alert alert-info">This run has already been reviewed. You may update the review.</div>
+              {{/hasReview}}
+              {{^hasReview}}
+              <div class="alert alert-warning">No review for this run has been submitted, yet.</div>
+              {{/hasReview}}
+              <form class="form-horizontal" role="form" action="../save/" method="POST">
+                <div class="form-group">
+                  <label class="col-sm-2 control-label">Reviewer</label>
+                  <div class="col-sm-10" style="padding:7px 15px">
+                    {{#runReview.reviewerId}}{{.}}{{/runReview.reviewerId}}{{^runReview.reviewerId}}{{user.userName}}{{/runReview.reviewerId}}
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="col-sm-2 control-label">Errors</label>
+                  <div class="col-sm-10">
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox" name="noErrors" {{#runReview.noErrors}}checked="checked"{{/runReview.noErrors}}> No errors
+                      </label>
+                    </div>
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox" name="missingOutput" {{#runReview.missingOutput}}checked="checked"{{/runReview.missingOutput}}> Missing output
+                      </label>
+                    </div>
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox" name="extraneousOutput" {{#runReview.extraneousOutput}}checked="checked"{{/runReview.extraneousOutput}}> Extra output
+                      </label>
+                    </div>
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox" name="invalidOutput" {{#runReview.invalidOutput}}checked="checked"{{/runReview.invalidOutput}}> Invalid output
+                      </label>
+                    </div>
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox" name="hasErrorOutput" {{#runReview.hasErrorOutput}}checked="checked"{{/runReview.hasErrorOutput}}> Error messages in stdout or stderr
+                      </label>
+                    </div>
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox" name="otherErrors" {{#runReview.otherErrors}}checked="checked"{{/runReview.otherErrors}}> Other kinds of errors; please describe them in the comment below.
+                      </label>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="comment" class="col-sm-2 control-label">Comment</label>
+                  <div class="col-sm-10">
+                    <textarea id="comment" class="form-control" rows="3" name="comment">{{runReview.comment}}</textarea>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <div class="col-sm-offset-2 col-sm-10">
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                  </div>
+                </div>
+              </form>
+            </td>
+          </tr>
+          <tr>
+            <td>Stdout</td>
+          </tr>
+          <tr>
+            <td style="white-space:pre-wrap;font-family:monospace;line-height:normal;word-break:break-all;">{{#stdout}}{{.}}{{/stdout}}{{^stdout}}<span class="text-warning">No stdout recorded. Perhaps the software was never actually executed due to an initialization error in TIRA.</span>{{/stdout}}</td>
+          </tr>
+          <tr>
+            <td>Stderr</td>
+          </tr>
+          <tr>
+            <td style="white-space:pre-wrap;font-family:monospace;line-height:normal;word-break:break-all;">{{#stderr}}{{.}}{{/stderr}}{{^stderr}}&nbsp;{{/stderr}}</td>
+          </tr>
+          <tr>
+            <td>File list</td>
+          </tr>
+          <tr>
+            <td style="white-space:pre-wrap;font-family:monospace;line-height:normal;word-break:break-all;">{{#fileList}}{{.}}{{/fileList}}{{^fileList}}&nbsp;{{/fileList}}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="panel-footer">
+        <div class="text-right">
+          <a href="../../{{runId}}.zip" class="btn btn-default" target="_blank">Download</a>
+        </div>
+      </div>
+    </div>
+    {{/run}}
+    {{/run}}
+  </div>
+</div><!-- /.row -->

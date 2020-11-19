@@ -1,0 +1,69 @@
+<div id="softwares">
+{{#softwaresNotDeletedList}}
+<div class="row">
+  <div class="col-xs-12">
+    <div class="tira-panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title"><span class="glyphicon glyphicon-cog"></span> Software {{count}}</h3>
+      </div>
+      <form id="form-software" class="form-horizontal" role="form" action="{{contextPath}}/task/{{task.taskId}}/user/{{user.userName}}/software/{{id}}/" method="POST">
+        <div class="panel-body">
+          <div class="form-group">
+            <label for="command-{{count}}" class="col-sm-3 col-md-2 control-label">Command</label>
+            <div class="col-sm-9 col-md-10">
+              <input type="text" class="form-control" id="command-{{count}}" name="command" placeholder="{{task.commandPlaceholder}}" value="{{command}}">
+              <span class="help-block">{{{task.commandDescription}}}</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="dataset{{count}}" class="col-sm-3 col-md-2 control-label">{{task.datasetLabel}}</label>
+            <div class="col-sm-9 col-md-10">
+              <select class="form-control selectpicker" id="dataset{{count}}" name="dataset">
+                {{#execution.trainingDatasetsList}}
+                <option value="{{datasetId}}" data-content="{{> tira-widget-dataset-name3-body}}">{{> tira-widget-dataset-name3-body}}</option>
+                {{/execution.trainingDatasetsList}}
+                {{#execution.testDatasetsList}}
+                <option value="{{datasetId}}" data-content="{{> tira-widget-dataset-name3-body}}">{{> tira-widget-dataset-name3-body}}</option>
+                {{/execution.testDatasetsList}}
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="run{{count}}" class="col-sm-3 col-md-2 control-label">Input run</label>
+            <div class="col-sm-9 col-md-10">
+              <select class="form-control selectpicker" id="run{{count}}" name="run">
+                <option value="none">none</option>
+                {{#runsNotDeletedNotTestList}}
+                {{#run}}
+                <option value="{{runId}}" data-content="{{> tira-widget-software-name-body}}&emsp;{{> tira-widget-run-name-body}}&emsp;{{> tira-widget-dataset-name2-body}}">{{> tira-widget-software-name-body}}&emsp;{{> tira-widget-run-name-body}}&emsp;{{> tira-widget-dataset-name2-body}}</option>
+                {{/run}}
+                {{/runsNotDeletedNotTestList}}
+              </select>
+              <span class="help-block">Runs on test datasets are excluded from this list.</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="workingDirectory{{count}}" class="col-sm-3 col-md-2 control-label">Working directory</label>
+            <div class="col-sm-9 col-md-10">
+              <input type="text" class="form-control" id="workingDirectory{{count}}" name="workingDirectory" placeholder="optional; defaults to your user home directory" value="{{workingDirectory}}">
+            </div>
+          </div>
+        </div>
+        <div class="panel-footer">
+          <div class="text-right">
+            <button type="submit" class="btn btn-primary" onClick="$(this).closest('form').attr('action', function(i, val){return val + 'save/';});">Save</button>
+            <button type="submit" class="btn btn-danger" data-toggle="confirm-software-delete" data-placement="left">Delete</button>
+            {{#vmInfo.portSshOpen}}
+            <button type="submit" class="btn btn-success" onClick="$(this).closest('form').attr('action', function(i, val){return val + 'run/';});">Run</button>
+            {{/vmInfo.portSshOpen}}
+            {{^vmInfo.portSshOpen}}
+            <a class="btn btn-default active" data-toggle="tooltip" data-placement="left" title="Disabled since your virtual machine is not running.">Run</a>
+            {{/vmInfo.portSshOpen}}
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div><!-- /.row -->
+{{/softwaresNotDeletedList}}
+</div>

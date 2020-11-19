@@ -1,0 +1,27 @@
+<script src="{{contextPath}}/static/js/confirm-run-delete.js"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+	$('#runs-table').dataTable({
+		"bPaginate": false,
+		"bLengthChange": false,
+		"bFilter": false,
+		"bSort": true,
+		"bInfo": false,
+		"bAutoWidth": false,
+		"bStateSave": true,
+		"aoColumnDefs" : [{
+       "bSortable" : false,
+       "aTargets" : ["no-sort"]
+    }],
+    // TODO: Replace the fixed index with a column name once possible in a newer version of data tables.
+    "aaSorting": [[ "1", "desc" ]]
+    });
+});
+</script>
+<script type="text/javascript">
+// Ensure modal update for subsequent calls
+// http://stackoverflow.com/a/12287169
+$('body').on('hidden.bs.modal', '.modal', function () {
+  $(this).removeData('bs.modal');
+});
+</script>

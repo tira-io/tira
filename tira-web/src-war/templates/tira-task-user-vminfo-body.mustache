@@ -1,0 +1,235 @@
+<div class="row">
+  <div class="col-xs-12">
+    <div class="tira-panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title"><span class="glyphicon glyphicon-modal-window"></span> Virtual Machine</h3>
+      </div>
+      <div class="panel-body">
+        {{#hasVm}}
+        {{#vmInfo}}
+        {{#vmBooting}}
+        <div class="alert alert-success"><strong>Powering on.</strong> Your virtual machine is being powered on. Please wait until the boot sequence is completed before using it.</div>
+        <script type="text/javascript">
+          setTimeout("location.reload(true);", 2000);
+        </script>
+        {{/vmBooting}}
+        {{#vmPoweringOff}}
+        <div class="alert alert-danger"><strong>Powering off.</strong> Your virtual machine is being powered off.</div>
+        <script type="text/javascript">
+          setTimeout("location.reload(true);", 2000);
+        </script>
+        {{/vmPoweringOff}}
+        {{#vmShuttingDown}}
+        <div class="alert alert-warning"><strong>Shutting Down.</strong> Your virtual machine is being shut down.</div>
+        <script type="text/javascript">
+          setTimeout("location.reload(true);", 2000);
+        </script>
+        {{/vmShuttingDown}}
+        {{#stateSandboxing}}
+        <div class="alert alert-warning"><strong>Sandboxing.</strong> Your virtual machine is being sandboxed.</div>
+        <script type="text/javascript">
+          setTimeout("location.reload(true);", 2000);
+        </script>
+        {{/stateSandboxing}}
+        {{#stateUnsandboxing}}
+        <div class="alert alert-success"><strong>Unsandboxing.</strong> Your virtual machine is being unsandboxed.</div>
+        <script type="text/javascript">
+          setTimeout("location.reload(true);", 2000);
+        </script>
+        {{/stateUnsandboxing}}
+        {{^vmBooting}}
+        {{^vmPoweringOff}}
+        {{^vmShuttingDown}}
+        {{^stateSandboxed}}
+        {{^stateSandboxing}}
+        {{^stateUnsandboxing}}
+        {{^portSshOpen}}
+        {{#portRdpOpen}}
+        <div class="alert alert-info"><strong>Waiting.</strong> Please wait until the port states are resolved.</div>
+        <script type="text/javascript">
+          setTimeout("location.reload(true);", 2000);
+        </script>
+        {{/portRdpOpen}}
+        {{/portSshOpen}}
+        {{/stateUnsandboxing}}
+        {{/stateSandboxing}}
+        {{/stateSandboxed}}
+        {{/vmShuttingDown}}
+        {{/vmPoweringOff}}
+        {{/vmBooting}}
+        <dl class="dl-horizontal" style="margin-bottom:0px;">
+          <dt>Operating System</dt>
+          <dd>{{guestOs}}</dd>
+          <dt>RAM</dt>
+          <dd>{{memorySize}}</dd>
+          <dt>CPUs</dt>
+          <dd>{{numberOfCpus}}</dd>
+          <dt>State</dt>
+          <dd>{{state}}</dd>
+          <dt>Sandbox state</dt>
+          <dd>
+            {{^stateSandboxing}}
+            {{^stateUnsandboxing}}
+            {{#stateSandboxed}}
+            sandboxed
+            {{/stateSandboxed}}
+            {{/stateUnsandboxing}}
+            {{/stateSandboxing}}
+            {{^stateSandboxed}}
+            publicly accessible
+            {{/stateSandboxed}}
+            {{#stateSandboxing}}
+            sandboxing
+            {{/stateSandboxing}}
+            {{#stateUnsandboxing}}
+            unsandboxing
+            {{/stateUnsandboxing}}
+          </dd>
+          <dt>Host</dt>
+          <dd>{{host}}</dd>
+          <dt>SSH Port</dt>
+          <dd>
+            {{portSsh}}
+            {{#portSshOpen}}
+            {{#stateSandboxed}}
+            <span class="label label-warning">open internally</span>
+            {{/stateSandboxed}}
+            {{^stateSandboxed}}
+            <span class="label label-success">open</span>
+            {{/stateSandboxed}}
+            {{/portSshOpen}}
+            {{^portSshOpen}}
+            <span class="label label-danger">closed</span>
+            {{/portSshOpen}}
+          </dd>
+          <dt>RDP Port</dt>
+          <dd>
+            {{portRdp}}
+            {{#portRdpOpen}}
+            {{#stateSandboxed}}
+            <span class="label label-warning">open internally</span>
+            {{/stateSandboxed}}
+            {{^stateSandboxed}}
+            <span class="label label-success">open</span>
+            {{/stateSandboxed}}
+            {{/portRdpOpen}}
+            {{^portRdpOpen}}
+            <span class="label label-danger">closed</span>
+            {{/portRdpOpen}}
+          </dd>
+        </dl>
+        {{/vmInfo}}
+        {{/hasVm}}
+        {{^hasVm}}
+        <div class="alert alert-info"><strong>No Virtual Machine.</strong> Your TIRA account is currently not associated with a virtual machine. Please contact us to obtain one.</div>
+        {{/hasVm}}
+      </div>
+      {{#hasVm}}
+      <div class="panel-footer">
+        {{#vmInfo}}
+        <div class="text-right">
+          {{^processRunning}}
+          {{#isAdmin}}
+          <form class="form-inline" style="display:inline" role="form" action="{{contextPath}}/tira/admin/task/{{task.taskId}}/scorer/" method="POST">
+          {{/isAdmin}}
+          {{^isAdmin}}
+          <form class="form-inline" style="display:inline" role="form" action="{{contextPath}}/task/{{task.taskId}}/user/{{user.userName}}/software/" method="POST">
+          {{/isAdmin}}
+            <button type="submit" class="btn btn-primary" {{#isAdmin}}disabled="disabled"{{/isAdmin}}>
+              <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+              Add software
+            </button>
+          </form>
+          {{#stateRunning}}
+          <!--
+          <a class="btn btn-default" data-toggle="modal" data-target="#screenshotModal">Show screenshot</a>
+          <div class="modal fade" id="screenshotModal" tabindex="-1" role="dialog" aria-labelledby="screenshotModal" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                  <h4 class="modal-title text-left" id="screenshotModalLabel">Virtual Machine Screenshot</h4>
+                </div>
+                <div class="modal-body">
+                  {{#isAdmin}}
+                  <p><img id="screenshot" src="{{contextPath}}/tira/admin/task/{{task.taskId}}/virtual-machine/vm-screenshot.png" class="img-responsive" style="width:600px; height:400px;"></p>
+                  {{/isAdmin}}
+                  {{^isAdmin}}
+                  <p><img id="screenshot" src="{{contextPath}}/task/{{task.taskId}}/user/{{user.userName}}/vm-screenshot.png" class="img-responsive" style="width:600px; height:400px;"></p>
+                  {{/isAdmin}}
+                  <p class="text-muted">If the image is blank, the screensaver may be active.</p>
+                </div>
+                <div class="modal-footer">
+                  <button id="screenshot-reload" type="button" class="btn btn-default">Reload</button>
+                  <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          -->
+          {{#portSshOpen}}
+          {{#isAdmin}}
+          <form id="vm-shutdown" class="form-inline" style="display:inline" role="form" action="{{contextPath}}/tira/admin/task/{{task.taskId}}/virtual-machine/vm-shutdown/" method="POST">
+          {{/isAdmin}}
+          {{^isAdmin}}
+          <form id="vm-shutdown" class="form-inline" style="display:inline" role="form" action="{{contextPath}}/task/{{task.taskId}}/user/{{user.userName}}/vm-shutdown/" method="POST">
+          {{/isAdmin}}
+            <button type="submit" class="btn btn-warning" data-toggle="confirm-vm-shutdown" data-placement="left" data-btnOkLabel="Shutdown" data-btnOkClass="btn btn-sm btn-warning">
+              <span class="glyphicon glyphicon-off" aria-hidden="true"></span>
+              Shutdown
+            </button>
+          </form>
+          {{/portSshOpen}}
+          {{^portSshOpen}}
+          <button type="submit" class="btn btn-default active" data-toggle="tooltip" data-placement="left" title="Disabled since the virtual machine is inaccessible via SSH.">
+            <span class="glyphicon glyphicon-off" aria-hidden="true"></span>
+            Shutdown
+          </button>
+          {{/portSshOpen}}
+          {{#isAdmin}}
+          <form id="vm-stop" class="form-inline" style="display:inline" role="form" action="{{contextPath}}/tira/admin/task/{{task.taskId}}/virtual-machine/vm-stop/" method="POST">
+          {{/isAdmin}}
+          {{^isAdmin}}
+          <form id="vm-stop" class="form-inline" style="display:inline" role="form" action="{{contextPath}}/task/{{task.taskId}}/user/{{user.userName}}/vm-stop/" method="POST">
+          {{/isAdmin}}
+            <button type="submit" class="btn btn-danger" data-toggle="confirm-vm-stop" data-placement="left" data-btnOkLabel="Power off">
+              <span class="glyphicon glyphicon-off" aria-hidden="true"></span>
+              Power off
+            </button>
+          </form>
+          {{/stateRunning}}
+          {{^stateRunning}}
+          {{#isAdmin}}
+          <form class="form-inline" style="display:inline" role="form" action="{{contextPath}}/tira/admin/task/{{task.taskId}}/virtual-machine/vm-start/" method="POST">
+          {{/isAdmin}}
+          {{^isAdmin}}
+          <form class="form-inline" style="display:inline" role="form" action="{{contextPath}}/task/{{task.taskId}}/user/{{user.userName}}/vm-start/" method="POST">
+          {{/isAdmin}}
+            <button type="submit" class="btn btn-success">
+              <span class="glyphicon glyphicon-off" aria-hidden="true"></span>
+              Power on
+            </button>
+          </form>
+          {{/stateRunning}}
+          {{/processRunning}}
+          {{#processRunning}}
+          <button class="btn btn-default active" data-toggle="tooltip" data-placement="left" title="Disabled since a software is running.">
+            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+            Add software
+          </button>
+          <button class="btn btn-default active" data-toggle="tooltip" data-placement="left" title="Disabled since a software is running.">
+            <span class="glyphicon glyphicon-off" aria-hidden="true"></span>
+            Shutdown
+          </button>
+          <button class="btn btn-default active" data-toggle="tooltip" data-placement="left" title="Disabled since a software is running.">
+            <span class="glyphicon glyphicon-off" aria-hidden="true"></span>
+            Power off
+          </button>
+          {{/processRunning}}
+        </div>
+        {{/vmInfo}}
+      </div>
+      {{/hasVm}}
+    </div>
+  </div>
+</div><!-- /.row -->

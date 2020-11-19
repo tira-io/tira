@@ -1,0 +1,1 @@
+$('.selectpicker').selectpicker('render');
