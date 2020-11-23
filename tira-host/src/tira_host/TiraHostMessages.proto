@@ -6,15 +6,17 @@ syntax = "proto3";
 
 
 package tira.generated;
-import 'TiraClientWebMessages.proto';
+//import 'TiraClientWebMessages.proto';
 
 // The service definition.
 service TiraHostService {
   rpc test (Input) returns (Output) {}
+  rpc shell_command (Request) returns (Output) {}
   rpc vm_backup (Request) returns (Response) {}
   rpc vm_create (Request) returns (Response) {}
   rpc vm_delete (Request) returns (Response) {}
   rpc vm_info (Request) returns (Response) {}
+  rpc vm_list (Request) returns (Response) {}
   rpc vm_sandbox (Request) returns (Response) {}
   rpc vm_shutdown (Request) returns (Response) {}
   rpc vm_snapshot (Request) returns (Response) {}

@@ -18,57 +18,67 @@ import TiraHostMessages_pb2
 import TiraHostMessages_pb2_grpc
 
 
-def run_script(script_name, *args):
+def run_tira_script(script_name, *args):
     p = subprocess.Popen("tira "+script_name+" "+" ".join([a for a in args]), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     output = p.communicate()[0].decode('utf-8')
     response = TiraHostMessages_pb2.Response(output=output)
     return response
 
-def run_script_supervisor(script_name, *args):
-    p = subprocess.Popen("tira "+script_name+" "+" ".join([a for a in args]), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+def run_shell_command(command_string):
+    p = subprocess.Popen(command_string, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     output = p.communicate()[0].decode('utf-8')
     response = TiraHostMessages_pb2.Response(output=output)
     return response
-
 
 
 class TiraHostService(TiraHostMessages_pb2_grpc.TiraHostService):
     def test(self, input, context):
         return TiraHostMessages_pb2.Output(text="Server received: " + input.text)
 
+    def shell_command(self, command):
+        return run_shell_command(command)
+
     def vm_backup(self, request, context):
-        return run_script("vm-backup", request.vmName)
+        return run_tira_script("vm-backup", request.vmName)
 
     def vm_create(self, request, context):
-        return run_script("vm-create", request.ovaFile, request.userName)
+        return run_tira_script("vm-create", request.ovaFile, request.userName)
 
     def vm_delete(self, request, context):
-        return run_script("vm-delete", request.vmName)
+        return run_tira_script("vm-delete", request.vmName)
 
     def vm_info(self, request, context):
-        return run_script("vm-info", request.vmName)
+        return run_tira_script("vm-info", request.vmName)
+
+    def vm_list(self, request, context):
+        return run_tira_script("vm-list", request.vmName)
 
     def vm_sandbox(self, request, context):
-        return run_script("vm-sandbox", request.vmName)
+        return run_tira_script("vm-sandbox", request.vmName)
 
     def vm_shutdown(self, request, context):
-        return run_script("vm-shutdown", request.vmName)
+        return run_tira_script("vm-shutdown", request.vmName)
 
     def vm_snapshot(self, request, context):
-        return run_script("vm-snapshot", request.vmName)
+        return run_tira_script("vm-snapshot", request.vmName)
 
     def vm_start(self, request, context):
-        return run_script("vm-start", request.vmName)
+        return run_tira_script("vm-start", request.vmName)
 
     def vm_stop(self, request, context):
-        return run_script("vm-stop", request.vmName)
+        return run_tira_script("vm-stop", request.vmName)
 
     def vm_unsandbox(self, request, context):
-        return run_script("vm-unsandbox", request.vmName)
+        return run_tira_script("vm-unsandbox", request.vmName)
 
-    async def run_execute(self, request, context):
-        return run_script_supervisor("run-execute", request.submissionFile, request.inputDatasetName, request.inputRunPath,
-                          request.outputDirName, request.sandboxed, request.optionalParameters);
+    def run_execute(self, request, context):
+        return run_tira_script("run-execute", request.submissionFile, request.inputDatasetName, request.inputRunPath,
+                                          request.outputDirName, request.sandboxed, request.optionalParameters);
+
+    # async def run_execute(self, request, context):
+    #     return run_tira_script("run-execute", request.submissionFile, request.inputDatasetName, request.inputRunPath,
+    #                                       request.outputDirName, request.sandboxed, request.optionalParameters);
 
 
 def serve():
