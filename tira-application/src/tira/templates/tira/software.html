@@ -1,0 +1,20 @@
+{% extends 'tira/base.html' %}
+{% load static %}
+{% block title %}TIRA - My Software{% endblock %}
+{% block description %}TIRA - My Software{% endblock %}
+{% block navbar %}{% include "tira/navbar.html" with nav_active='software' %}{% endblock %}
+
+{% block content %}
+
+<main class="uk-section uk-section-default">
+<div class="uk-container">
+    <h1>My Software</h1>
+
+{#    <ul class="uk-list">#}
+{#        <li><span data-uk-icon="chevron-down"></span> <a href="#tira-tasks">Released Webis Corpora</a>#}
+{#        </li>#}
+{#    </ul>#}
+</div>
+</main>
+
+{% endblock %}

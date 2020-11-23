@@ -1,0 +1,68 @@
+{% extends 'tira/base.html' %}
+{% load static %}
+{% block title %}TIRA Datasets{% endblock %}
+{% block description %}TIRA Datasets{% endblock %}
+{% block navbar %}{% include "tira/navbar.html" with nav_active='dataset' %}{% endblock %}
+
+{% block content %}
+
+<main class="uk-section uk-section-default">
+<div class="uk-container">
+    <h1>{{ dataset.name }}<span class="uk-text-muted">{{ dataset.year }}</span></h1>
+</div>
+
+<div class="uk-container uk-margin-medium">
+    <ul class="uk-list">
+        <li><span data-uk-icon="chevron-down"></span> <a href="#tira-dataset-results">Public Results</a></li>
+    </ul>
+</div>
+
+<div class="uk-container uk-margin-medium">
+<table class="uk-margin-medium uk-table uk-table-divider uk-table-small sortable targetable">
+    <thead>
+    <tr>
+        <th id="tira-dataset-results"></th>
+        <th colspan="8">
+            Results of {{ dataset.name }}
+            <a href="#" class="uk-float-right uk-link-reset" data-uk-icon="chevron-up"></a>
+        </th>
+    </tr>
+    <tr>
+        <th></th>
+        <th class="header"><span>User</span></th>
+        <th class="header"><span>Actions</span></th>
+        <th class="header"><span>Software</span></th>
+        <th class="header"><span>Run</span></th>
+        <th class="header"><span>Input Run</span></th>
+        <th class="header"><span>Results</span></th> {# TODO needs to be generated #}
+        <th class="header">Runtime</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td id=""></td> {# TODO invent id schema #}
+        <td>Wiegmann</td>
+        <td></td> {# TODO invent schema #}
+        <td>Software</td>
+        <td>Run</td>
+        <td>Input Run</td>
+        <td>Results</td>
+        <td>Runtime</td>
+    </tr>
+    </tbody>
+</table>
+
+</div>
+
+</main>
+
+<script src="https://assets.webis.de/js/thirdparty/jquery/jquery.slim.min.js"></script>
+<script src="https://assets.webis.de/js/thirdparty/fontawesome/fontawesome.min.js"></script>
+<script src="https://assets.webis.de/js/thirdparty/fontawesome/solid.min.js"></script>
+<script src="https://assets.webis.de/js/filter.js"></script>
+<script src="https://assets.webis.de/js/selection.js"></script>
+<script src="https://assets.webis.de/js/tables.js"></script>
+<script>initWebisTableFiltering();</script>
+<script>initTableSorting();</script>
+
+{% endblock %}

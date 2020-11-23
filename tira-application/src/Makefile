@@ -8,18 +8,12 @@ PYTHON_DEST=${VENV_NAME}/lib/python3.7/site-packages
 
 .DEFAULT: help
 help:
-	@echo "make setup"
-	@echo "       setup venv, compile protobuf, give permissions to tira, and make migrations"
-	@echo "make run-dev"
-	@echo "       run server as tira user"
-	@echo "make clean"
-	@echo "       remove setup files"
+	@echo "make prepare-dev"
+	@echo "       prepare development environment, use only once"
 
-setup:
-	chmod o+x src
+prepare-dev:
 	make venv
 	make protobuf
-	make django
 
 # Requirements are in setup.py, so whenever setup.py is changed, re-run installation of dependencies.
 venv:
@@ -32,15 +26,6 @@ protobuf:
 	protoc -I=$(SRC_DIR) --python_out=$(PYTHON_DEST) $(SRC_DIR)/tira_messages.proto
 	protoc -I=$(SRC_DIR) --python_out=$(PYTHON_DEST) $(SRC_DIR)/TiraClientWebMessages.proto
 	${PYTHON} -m grpc_tools.protoc -I=$(SRC_DIR) --grpc_python_out=$(PYTHON_DEST) tira_to_web.proto
-
-django:
-	. $(VENV_NAME)/bin/activate
-	${PYTHON} src/manage.py migrate
-	${PYTHON} src/manage.py makemigrations
-
-run-dev:
-	su tira -c". $(VENV_NAME)/bin/activate && \
-	${PYTHON} src/manage.py runserver 0:8080"
 
 clean:
 	rm -r $(VENV_NAME)
