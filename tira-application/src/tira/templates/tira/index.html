@@ -1,0 +1,35 @@
+{% extends 'tira/base.html' %}
+{% load static %}
+{% block title %}title{% endblock %}
+{% block description %}tira index{% endblock %}
+{% block navbar %}{% include "tira/navbar.html" with nav_active='index' %}{% endblock %}
+
+{% block content %}
+<main class="uk-section uk-cover-container index-main-cover">
+<div class="cover-background-fade"></div>
+<div class="uk-container uk-position-bottom uk-light uk-padding">
+    <h1>TIRA &mdash; Evaluation as a Service</h1>
+    <h2>Improving the replicability of shared tasks in computer science</h2>
+{#    <div>#}
+{#        <p><a href="{{ '/research.html' | relative_url }}" class="uk-button uk-button-primary">Learn More</a></p>#}
+{#    </div>#}
+</div>
+</main>
+
+<div class="uk-section uk-section-default">
+    <div class="uk-container">
+        <img src="{% static 'tira/background.webp' %}" alt="" data-uk-cover>
+        <!-- Space for imagination -->
+    </div>
+</div>
+
+{#{% if all_users %}#}
+{#<ul>#}
+{#    {% for user in all_users %}#}
+{#    <li><a href="{%  url 'tira:dataset-detail' user.user_name %}/">{{ user.user_name }}</a></li>#}
+{#    {% endfor %}#}
+{#</ul>#}
+{#{% else %}#}
+{#    <p>Nothing here!</p>#}
+{#{% endif %}#}
+{% endblock %}
