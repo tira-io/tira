@@ -35,46 +35,27 @@
         <tr>
             <th></th>
             <th class="header"><span>Name</span></th>
-            <th class="header"><span>Publisher/Creator</span></th>
-            <th class="header uk-text-center"><span>Year</span></th>
+            <th class="header"><span>Organizer</span></th>
             <th class="header"><span>Default&nbsp;Task</span></th>
-            <th class="header uk-text-right"><span>Access</span></th>
+            <th class="header"><span>Softwares</span></th>
+            <th class="header uk-text-center"><span>Year</span></th>
         </tr>
         </thead>
         <tbody>
+        {% for id, dataset in datasets.items %}
+        {% if dataset.is_deprecated is not True %}
         <tr>
-            <td id="pan20-celebrity-profiling"></td>
-            <td><a href="{% url 'tira:dataset-detail' dataset_name='pan20-celebrity-profiling'%}">PAN20-Celebrity-Profiling</a>
-            </td>
-            <td>PAN</td>
-            <td class="uk-text-center">2020</td>
-            <td>Author Profiling</td>
-            <td class="uk-text-right">
-                <a title="Download: Zenodo" href="https://doi.org/10.5281/zenodo.3691922" class="uk-link-reset">
-                    <img src="{% static 'tira/zenodo-icon.png' %}" alt="Zenodo">
-                </a>
-                <a title="Indexed: Google"
-                   href="https://toolbox.google.com/datasetsearch/search?query=pan20-celebrity-profiling"  class="uk-link-reset">
-                    <img src="{% static 'tira/google-icon.png' %}" alt="Google Dataset Search">
-                </a>
-            </td>
+            <td id="task-{{ dataset }}"></td>
+            <td class="uk-text-truncate uk-width-1-2"><a href="{% url 'tira:dataset-detail' dataset_name=id %}">{{ dataset.name }}</a></td>
+            <td>{{ dataset.organizer }}</td> <!-- organizer -->
+            <td>{{ dataset.task }}</td> <!-- default task -->
+            <td>{{ dataset.softwares }}</td> <!-- default task -->
+            <td class="uk-text-center">{{ dataset.year }}</td>
         </tr>
-        <tr>
-            <td id="data-pan-celebrity-profiling-2019"></td>
-            <td><a href="https://pan.webis.de/publications.html#filter:bibid:wiegmann_2019">PAN19-Celebrity-Profiling</a>
-            <td>PAN</td>
-            <td class="uk-text-center">2019</td>
-            <td>Author Profiling</td>
-            <td class="uk-text-right">
-                <a title="Download: Zenodo" href="https://doi.org/10.5281/zenodo.3530252" class="uk-link-reset">
-                    <img src="{% static 'tira/zenodo-icon.png' %}" alt="Zenodo">
-                </a>
-                <a title="Indexed: Google"
-                   href="https://toolbox.google.com/datasetsearch/search?query=pan19-celebrity-profiling"  class="uk-link-reset">
-                    <img src="{% static 'tira/google-icon.png' %}" alt="Google Dataset Search">
-                </a>
-            </td>
-        </tr>
+        {% endif %}
+        {% empty %}
+            <tr><td>Sorry, we could not find any tasks.</td></tr>
+        {% endfor %}
         </tbody>
     </table>
 
