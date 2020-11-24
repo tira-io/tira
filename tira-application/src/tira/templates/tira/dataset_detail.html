@@ -7,52 +7,112 @@
 {% block content %}
 
 <main class="uk-section uk-section-default">
-<div class="uk-container">
-    <h1>Dataset: <span class="uk-text-muted">{{ name }}</span></h1>
-</div>
+    <div class="uk-container">
+        <h1>Dataset: <span class="uk-text-muted">{{ name }}</span></h1>
+    </div>
 
-<div class="uk-container uk-margin-medium">
-    <ul class="uk-list">
-        <li><span data-uk-icon="chevron-down"></span> <a href="#tira-dataset-results">Public Results</a></li>
-    </ul>
-</div>
+    <div class="uk-container uk-margin-medium">
+        <ul class="uk-list">
+            <li><span data-uk-icon="chevron-down"></span> <a href="#tira-evaluation-results">Evaluation Results</a></li>
+            <li><span data-uk-icon="chevron-down"></span> <a href="#tira-runs">Runs</a></li>
+        </ul>
+    </div>
 
-<div class="uk-container uk-margin-medium">
-<table class="uk-margin-medium uk-table uk-table-divider uk-table-small sortable targetable">
-    <thead>
-    <tr>
-        <th id="tira-dataset-results"></th>
-        <th colspan="8">
-            Results of {{ name }}
-            <a href="#" class="uk-float-right uk-link-reset" data-uk-icon="chevron-up"></a>
-        </th>
-    </tr>
-    <tr>
-        <th></th>
-        <th class="header"><span>User</span></th>
-        <th class="header"><span>Actions</span></th>
-        <th class="header"><span>Software</span></th>
-        <th class="header"><span>Run</span></th>
-        <th class="header"><span>Input Run</span></th>
-        <th class="header"><span>Results</span></th> {# TODO needs to be generated #}
-        <th class="header">Runtime</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr>
-        <td id=""></td> {# TODO invent id schema #}
-        <td>Wiegmann</td>
-        <td></td> {# TODO invent schema #}
-        <td>Software</td>
-        <td>Run</td>
-        <td>Input Run</td>
-        <td>Results</td>
-        <td>Runtime</td>
-    </tr>
-    </tbody>
-</table>
+    <div class="uk-container uk-margin-medium">
+        <table class="uk-margin-medium uk-table uk-table-divider uk-table-small sortable targetable">
+            <thead>
+            <tr>
+                <th id="tira-evaluation-results"></th>
+                <th colspan="{{ ev_keys|length|add:'7' }}">
+                    Results of {{ name }}
+                    <a href="#" class="uk-float-right uk-link-reset" data-uk-icon="chevron-up"></a>
+                </th>
+            </tr>
+            <tr>
+                <th></th>
+                <th class="header"><span>Actions</span></th>
+                <th class="header"><span>User</span></th>
+                <th class="header"><span>Software</span></th>
+                <th class="header"><span>Run</span></th>
+                <th class="header"><span>Input Run</span></th>
+                {% for key in ev_keys %}
+                <th class="header"><span>{{ key }}</span></th>
+                {% endfor %}
+                <th class="header">Runtime</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for eval in evaluations %}
+            <tr>
+                <td id="user-{{ eval.user_id }}"></td>
+                <td></td> <!-- actions -->
+                <td><a href="{% url 'tira:software-detail' user_id=eval.user_id %}">{{ eval.user_id }}</a></td>
+                <td>{{ eval.software }}</td>
+                <td>{{ eval.run_id }}</td>
+                <td>{{ eval.input_run_id }}</td>
+                {% for measure in eval.measures %}
+                <td class="uk-text-truncate">{{ measure }}</td>
+                {% endfor %}
+                <td>{{ evaluation.runtime }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
-</div>
+    <!-- Run results - TODO only show when user is reviewer  -->
+    <div class="uk-container uk-margin-medium">
+        <h2 id="tira-runs">Runs</h2>
+        <ul class="uk-list uk-list-collapse uk-list-striped" uk-accordion>
+            {% for status, runs in users %}
+            <li>
+                <a class="uk-accordion-title uk-text-small" href="#">
+                    <table class="uk-width-1-3"><tr>
+                        <td class="uk-width-1-2 uk-text-left">{{ status.user_id }} [<span class="uk-text-danger">offline</span>]</td>
+                        <td class="uk-width-1-4 uk-text-right">{{ status.runs }} Runs</td>
+                        <td class="uk-width-1-4 uk-text-right">{{ status.unreviewed }} Unreviewed</td>
+                    </tr></table>
+                </a>
+
+                <div class="uk-accordion-content">
+                    <table class="uk-margin-medium uk-table uk-table-divider uk-table-small sortable">
+                        <thead>
+                        <tr>
+                            <th></th>
+                            <th class="header"><span>Actions</span></th>
+                            <th class="header"><span>Software</span></th>
+                            <th class="header"><span>Run</span></th>
+                            <th class="header"><span>Input Run</span></th>
+                            <th class="header">Size</th>
+                            <th class="header">Lines</th>
+                            <th class="header">Files</th>
+                            <th class="header">Dirs</th>
+                            <th class="header">Review</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for run in runs %}
+                        <tr>
+                            <td></td> <!-- id? -->
+                            <td>Review</td> <!-- actions review: toggle modal? or forward to the users page? -->
+                            <td>{{ run.software }}</td>
+                            <td>{{ run.run_id }}</td>
+                            <td>{{ run.input_run_id }}</td>
+                            <td>{{ run.size }}</td>
+                            <td>{{ run.lines }}</td>
+                            <td>{{ run.files }}</td>
+                            <td>{{ run.dirs }}</td>
+                            <td>{{ run.review.reviewer }}</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
 
 </main>
 
