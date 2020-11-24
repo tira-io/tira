@@ -14,7 +14,7 @@
                     <a href="{% url 'tira:dataset' %}">Datasets</a>
                 </li>
                 <li{% if nav_active == "software" %} class="uk-active"{% endif %}>
-                    <a href="{% url 'tira:software-detail' %}">My Software</a>
+                    <a href="{% url 'tira:software-detail' user_id='None' %}">My Software</a>
                 </li>
             </ul>
         </nav>
@@ -26,7 +26,7 @@
         <div class="uk-navbar-left">
             <ul class="uk-navbar-nav">
                 <li{% if nav_active == "index" %} class="uk-active"{% endif %}>
-                    <a href="{% url "tira:index" %}"><img src="{% static 'tira/tira-logo.png' %}" alt="TIRA Logo" class="uk-logo">tira.io</a>
+                    <a href="{% url 'tira:index' %}"><img src="{% static 'tira/tira-logo.png' %}" alt="TIRA Logo" class="uk-logo">tira.io</a>
                 </li>
             </ul>
         </div>
@@ -40,14 +40,14 @@
         <!-- Desktop navigation -->
         <div class="uk-navbar-right desktop-nav">
             <ul class="uk-navbar-nav">
-                <li class="nav-group-start{% if nav_active == "task" %} uk-active{% endif %}">
+                <li class="nav-group-start{% if nav_active == 'task' %} uk-active{% endif %}">
                     <a href="{% url 'tira:task' %}">Tasks</a>
                 </li>
                 <li{% if nav_active == "datasets" %} class="uk-active"{% endif %}>
                     <a href="{% url 'tira:dataset' %}">Datasets</a>
                 </li>
-                <li class="nav-group-start{% if nav_active == "software" %} uk-active{% endif %}">
-                    <a href="{% url 'tira:software-detail' %}">My Software</a>
+                <li class="nav-group-start{% if nav_active == 'software' %} uk-active{% endif %}">
+                    <a href="{% url 'tira:software-detail' user_id='None' %}">My Software</a>
                 </li>
 
             </ul>

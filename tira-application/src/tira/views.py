@@ -25,12 +25,26 @@ def dataset_list(request):
 
 
 def dataset_detail(request, dataset_name):
+    # todo - this should differ based on user authentication
+    ev_keys, status, runs, evaluations = model.get_runs(dataset_name, only_public_results=False)
+    ev = [f for v in evaluations.values() for f in v]
+    users = [(status[user_id], runs[user_id]) for user_id in status.keys()]
     context = {
-        "name": dataset_name
+        "name": dataset_name,
+        "ev_keys": ev_keys,
+        "evaluations": ev,
+        "users": users
     }
     return render(request, 'tira/dataset_detail.html', context)
 
 
-def software_detail(request):
-    context = {}
+def software_detail(request, user_id):
+    # runs
+    # public results
+    # softwares
+    # vm information
+
+    context = {
+
+    }
     return render(request, 'tira/software.html', context)

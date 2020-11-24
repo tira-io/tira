@@ -8,5 +8,5 @@ urlpatterns = [
     path('task', views.task_list, name='task'),
     path('dataset', views.dataset_list, name='dataset'),
     path('dataset/<str:dataset_name>', views.dataset_detail, name='dataset-detail'),
-    path('software', views.software_detail, name='software-detail'),
+    path('software/<str:user_id>', views.software_detail, name='software-detail'),
 ]
