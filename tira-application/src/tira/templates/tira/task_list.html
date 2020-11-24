@@ -39,24 +39,28 @@
             <th class="header"><span>Organization</span></th>
             <th class="header uk-text-center"><span>Year</span></th>
             <th class="header uk-text-right"><span>Datasets</span></th>
-            <th class="header uk-text-right"><span>Participants</span></th>
+            <th class="header uk-text-right"><span>Softwares</span></th>
             <th class="header uk-text-right"><span>Website</span></th>
         </tr>
         </thead>
         <tbody>
+        {% for id, task in tasks.items %}
         <tr>
-            <td id="task-celebrity-profiling"></td>
-            <td><a href="{% url "tira:dataset" %}?q=celebrity-profiling+2020">Celebrity Profiling</a></td> {# TODO link should go to  #}
-            <td>PAN</td>
-            <td class="uk-text-center">2020</td>
-            <td class="uk-text-right">2</td>
-            <td class="uk-text-right">8</td>
+            <td id="task-{{ id }}"></td>
+            <td><a href="{% url 'tira:dataset' %}?q={{ id }}">{{ task.name }}</a></td>
+            <td>{{ task.organizer }}</td>
+            <td class="uk-text-center">{{ task.year }}</td>
+            <td class="uk-text-right">{{ task.dataset_count }}</td>
+            <td class="uk-text-right">?</td>
             <td class="uk-text-right">
-                <a href="https://pan.webis.de/clef20/pan20-web/celebrity-profiling.html" target="_blank">
+                <a href="{{ task.web }}" target="_blank">
                     <i class="fas fa-external-link-alt"></i>
                 </a>
             </td>
         </tr>
+        {% empty %}
+            <tr><td>Sorry, we could not find any tasks.</td></tr>
+        {% endfor %}
         </tbody>
     </table>
 
@@ -74,6 +78,7 @@
 <script src="https://assets.webis.de/js/selection.js"></script>
 <script src="https://assets.webis.de/js/tables.js"></script>
 <script>initWebisTableFiltering();</script>
+<script>initTableSorting();</script>
 
 {#{% if all_users %}#}
 {#<ul>#}
