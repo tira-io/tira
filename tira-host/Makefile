@@ -1,4 +1,5 @@
 # -v $PWD/build/initial-docker-tira-model:/mnt/nfs/tira \
+# -v $PWD/src:/usr/lib/tira \
 
 run-tira-docker: build-tira-docker
 docker run \
@@ -19,4 +20,3 @@ docker run \
 
 build-tira-docker:
 	docker build -t tira-io/tira-host --build-arg TIRA_PASSWORD=tira --build-arg VBOXVERSION=6.1.16 -f build/Dockerfile .
-

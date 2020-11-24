@@ -103,5 +103,5 @@ async def serve_async():
 
 
 if __name__ == '__main__':
-    fileConfig('/home/tira/tira_host/logging_config.ini')
+    fileConfig('/usr/lib/tira/tira_host/logging_config.ini')
     serve()
