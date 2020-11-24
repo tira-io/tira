@@ -64,7 +64,7 @@ RUN	chown -R tira:tira /usr/local && \
     ssh-keygen -q -N '' -f /home/tira/.ssh/id_rsa
 	# ln -s /usr/local/share/tira/src/tira.sh /usr/bin/tira
 
-COPY src/tira_host/* /home/tira/tira_host/
+#COPY src/tira_host/* /home/tira/tira_host/
 
 # RUN echo "# Allow tira to execute iptables without password entry #TIRABhv0S" | sudo tee -a /etc/sudoers > /dev/null && \
 #     echo "# do not modify: #TIRABhv0S" | sudo tee -a /etc/sudoers > /dev/null && \
