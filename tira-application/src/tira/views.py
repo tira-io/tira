@@ -45,6 +45,6 @@ def software_detail(request, user_id):
     # vm information
 
     context = {
-
+        "user_id": user_id
     }
     return render(request, 'tira/software.html', context)

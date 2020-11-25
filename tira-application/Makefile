@@ -40,7 +40,7 @@ django:
 
 run-dev:
 	su tira -c". $(VENV_NAME)/bin/activate && \
-	${PYTHON} src/manage.py runserver 0:8080"
+	${PYTHON} src/manage.py runserver 8080"
 
 clean:
 	rm -r $(VENV_NAME)
