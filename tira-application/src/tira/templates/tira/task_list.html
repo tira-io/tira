@@ -9,10 +9,6 @@
 <!-- Title and anchor links -->
 <div class="uk-container">
     <h1>Tasks at TIRA</h1>
-{#    <ul class="uk-list">#}
-{#        <li><span data-uk-icon="chevron-down"></span> <a href="#task-pan">PAN</a>#}
-{#        </li>#}
-{#    </ul>#}
 </div>
 
 <!-- search field -->
@@ -51,7 +47,7 @@
             <td>{{ task.organizer }}</td>
             <td class="uk-text-center">{{ task.year }}</td>
             <td class="uk-text-right">{{ task.dataset_count }}</td>
-            <td class="uk-text-right">?</td>
+            <td class="uk-text-right">{{ task.softwares_count }}</td>
             <td class="uk-text-right">
                 <a href="{{ task.web }}" target="_blank">
                     <i class="fas fa-external-link-alt"></i>
