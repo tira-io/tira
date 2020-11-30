@@ -1,0 +1,4 @@
+src/db.sqlite3
+src/venv
+src/tira/proto
+src/__init__.py
