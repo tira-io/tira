@@ -1,10 +1,10 @@
 """
 p.stat().st_mtime - change time
 """
-import TiraClientWebMessages_pb2 as modelpb
 from google.protobuf.text_format import Parse
 from pathlib import Path
 import logging
+from .proto import TiraClientWebMessages_pb2 as modelpb
 
 logger = logging.getLogger(__name__)
 
@@ -52,16 +52,16 @@ class FileDatabase(object):
             task = Parse(open(task_path, "r").read(), modelpb.Tasks.Task())
             tasks[task.taskId] = {"name": task.taskName, "description": task.taskDescription,
                                   "dataset_count": len(task.trainingDataset) + len(task.testDataset),
-                                  "softwares_count": len(self.softwares_by_task[task.taskId]),
-                                  "web": task.web, "organizer": self.organizers[task.hostId]["name"],
-                                  "year": self.organizers[task.hostId]["years"]
+                                  "softwares_count": len(self.softwares_by_task.get(task.taskId, {0})),
+                                  "web": task.web, "organizer": self.organizers.get(task.hostId, dict()).get("name", "None"),
+                                  "year": self.organizers.get(task.hostId, dict()).get("years", "None")
                                   }
             for td in task.trainingDataset:
                 default_tasks[td] = task.taskId
-                task_organizers[td] = self.organizers[task.hostId]["name"]
+                task_organizers[td] = self.organizers.get(task.hostId, dict()).get("name", "None")
             for td in task.testDataset:
                 default_tasks[td] = task.taskId
-                task_organizers[td] = self.organizers[task.hostId]["name"]
+                task_organizers[td] = self.organizers.get(task.hostId, dict()).get("name", "None")
 
         return tasks, default_tasks, task_organizers
 

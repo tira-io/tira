@@ -3,7 +3,7 @@
 .index-main-cover {
     background: #323232 url("background.webp") no-repeat center right fixed;
     background-size: cover;
-    height: 750px;
+    height: 300px;
     font-size: 1.05rem
 }
 
@@ -22,18 +22,18 @@
 
 @media (max-width: 400px) {
     .index-main-cover {
-        height: 650px
+        height: 250px
     }
 }
 
 @media (max-width: 300px) {
     .index-main-cover {
-        height: 650px
+        height: 250px
     }
 }
 
 @media (min-width: 960px) {
     .index-main-cover {
-        height: 70vh
+        height: 20vh
     }
 }
