@@ -19,6 +19,15 @@ def task_list(request):
     return redirect('tira:index')
 
 
+def task_detail(request, task_id):
+    context = {
+        "include_navigation": settings.NAVIGATION,
+        "task_id": task_id,
+        "tasks": model.get_datasets_by_task(task_id)
+    }
+    return render(request, 'tira/task_detail.html', context)
+
+
 def dataset_list(request):
     context = {
         "include_navigation": settings.NAVIGATION,
@@ -27,14 +36,14 @@ def dataset_list(request):
     return render(request, 'tira/dataset_list.html', context)
 
 
-def dataset_detail(request, dataset_name):
+def dataset_detail(request, dataset_id):
     # todo - this should differ based on user authentication
-    ev_keys, status, runs, evaluations = model.get_dataset_runs(dataset_name, only_public_results=False)
+    ev_keys, status, runs, evaluations = model.get_dataset_runs(dataset_id, only_public_results=False)
     ev = [f for v in evaluations.values() for f in v]
     users = [(status[user_id], runs[user_id]) for user_id in status.keys()]
     context = {
         "include_navigation": settings.NAVIGATION,
-        "name": dataset_name,
+        "name": dataset_id,
         "ev_keys": ev_keys,
         "evaluations": ev,
         "users": users
