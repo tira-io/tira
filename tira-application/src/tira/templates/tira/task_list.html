@@ -76,13 +76,4 @@
 <script>initWebisTableFiltering();</script>
 <script>initTableSorting();</script>
 
-{#{% if all_users %}#}
-{#<ul>#}
-{#    {% for user in all_users %}#}
-{#    <li><a href="{%  url 'tira:dataset-detail' user.user_name %}/">{{ user.user_name }}</a></li>#}
-{#    {% endfor %}#}
-{#</ul>#}
-{#{% else %}#}
-{#    <p>Nothing here!</p>#}
-{#{% endif %}#}
 {% endblock %}

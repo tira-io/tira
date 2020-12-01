@@ -1,25 +1,27 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, redirect
 from django.http import HttpResponse, Http404
 from itertools import groupby
+from django.conf import settings
 from .tira_model import FileDatabase
 
 model = FileDatabase()
 
 
 def index(request):
-    context = {}
+    context = {
+        "include_navigation": settings.NAVIGATION,
+        "tasks": model.tasks
+    }
     return render(request, 'tira/index.html', context)
 
 
 def task_list(request):
-    context = {
-        "tasks": model.tasks
-    }
-    return render(request, 'tira/task_list.html', context)
+    return redirect('tira:index')
 
 
 def dataset_list(request):
     context = {
+        "include_navigation": settings.NAVIGATION,
         "datasets": model.datasets
     }
     return render(request, 'tira/dataset_list.html', context)
@@ -31,6 +33,7 @@ def dataset_detail(request, dataset_name):
     ev = [f for v in evaluations.values() for f in v]
     users = [(status[user_id], runs[user_id]) for user_id in status.keys()]
     context = {
+        "include_navigation": settings.NAVIGATION,
         "name": dataset_name,
         "ev_keys": ev_keys,
         "evaluations": ev,
@@ -69,6 +72,7 @@ def software_detail(request, user_id):
         software["results"] = r_independent
 
     context = {
+        "include_navigation": settings.NAVIGATION,
         "user_id": user_id,
         "softwares": softwares
     }
