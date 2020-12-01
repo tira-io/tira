@@ -14,5 +14,6 @@ For local dev setup:
 ### Docker
 
 0. (optional) `tira-protocol~$ make build`
-1. `~$ docker build --tag tira-web-2:latest -f Dockerfile-application .`
-2. `~$ docker run -ti --rm -p 8080:8080 -v=/mnt/ceph/storage/data-in-progress/_TO_BE_MOVED/tira10-dev:/mnt/ceph/tira tira-web-2:latest`
+1. `make build-tira-application-docker`
+2. `make run-tira-application-docker`
+3. (optional) Publish a new version to docker hub: `make publish-tira-application-docker`
