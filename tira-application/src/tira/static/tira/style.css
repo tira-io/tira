@@ -1,9 +1,10 @@
 /* TODO make scss compatible */
 
 .index-main-cover {
-    background: #323232 url("background.webp") no-repeat center right fixed;
-    background-size: cover;
+    background: #323232 url("background.webp") no-repeat top right;
+    background-size: 100%;
     height: 300px;
+    width: 100%;
     font-size: 1.05rem
 }
 

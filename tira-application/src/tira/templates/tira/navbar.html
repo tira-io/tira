@@ -1,5 +1,5 @@
 {% load static %}
-
+{% if include_navigation %}
 <div id="offcanvas-nav" class="mobile-nav" data-uk-offcanvas="overlay: true; flip: true;">
     <div class="uk-offcanvas-bar">
         <button class="uk-offcanvas-close" type="button" data-uk-close></button>
@@ -54,3 +54,4 @@
         </div>
     </nav>
 </div>
+{% endif %}
