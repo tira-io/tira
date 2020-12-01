@@ -5,6 +5,7 @@ PYTHON=${VENV_NAME}/bin/python3
 SRC_DIR=../tira-protocol/src
 #PYTHON_DEST=${VENV_NAME}/lib/python3.7/site-packages
 BUILD_PATH=src/tira/proto
+VERSION=0.0.1
 
 
 .DEFAULT: help
@@ -51,3 +52,17 @@ run-wsgi:
 clean:
 	rm -r $(VENV_NAME)
 	rm -r $(BUILD_PATH)
+
+publish-tira-application-docker: build-tira-application-docker
+	docker login &&\
+	docker push webis/tira-web-2:${VERSION}
+
+run-tira-application-docker:
+	docker run -ti --rm \
+		-p 8080:80 \
+		-v=/mnt/ceph/storage/data-in-progress/_TO_BE_MOVED/tira10-dev:/mnt/ceph/tira \
+		webis/tira-web-2:${VERSION}
+
+build-tira-application-docker:
+	docker build --tag webis/tira-web-2:${VERSION} -f Dockerfile ..
+
