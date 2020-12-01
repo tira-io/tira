@@ -33,11 +33,10 @@ spec:
         volumeMounts:
         - mountPath: "/mnt/ceph/tira"
           name: tira-cephfs
-      nodeSelector:
-        kubernetes.io/hostname: betaweb127
+          readOnly: true
       volumes:
       - name: tira-cephfs
         hostPath:
-          path: /mnt/ceph/storage/data-in-progress/_TO_BE_MOVED/tira10-dev
+          path: /mnt/ceph/tira
           type: Directory
 
