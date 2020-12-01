@@ -6,6 +6,14 @@
 
 {% block content %}
 
+<nav class="uk-container">
+<ul class="uk-breadcrumb">
+<li><a href="{% url 'tira:index' %}">Tira.io</a></li>
+<li><a href="{% url 'tira:dataset' %}?q={{ task_id }}">{{ task_id }}</a></li>
+<li href="{% url 'tira:index' %}"><a href="#">{{ user_id }}</a></li>
+</ul>
+</nav>
+
 <main class="uk-section uk-section-default">
     <div class="uk-container">
         <h1>Software: <span class="uk-text-muted">{{ user_id }}</span></h1>

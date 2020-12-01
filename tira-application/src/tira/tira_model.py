@@ -192,6 +192,12 @@ class FileDatabase(object):
 
         return list(measure_keys), evaluations
 
+    def get_datasets_by_task(self, task_id: str) -> list:
+        """ return the list of datasets associated with this task_id
+        :return datasets: [{ }]
+        """
+        return [dataset for dataset in self.datasets.values() if dataset["task"] == task_id]
+
     def get_dataset_runs(self, dataset_id, only_public_results=True) -> tuple:
         """ return for all users on a given dataset_id: runs, evaluations, user_stats
         Its equivalent to using the individual getters, but much faster
