@@ -2,3 +2,4 @@ grpcio
 protobuf
 uwsgi
 Django
+pyyaml
