@@ -12,10 +12,13 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 
 from pathlib import Path
 import os
+import yaml
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+custom_settings = {}
+for cfg in (BASE_DIR / "config").glob("*.yml"):
+    custom_settings.update(yaml.load(open(cfg, "r").read(), Loader=yaml.FullLoader))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
@@ -24,10 +27,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = '%%b151#yd778^ch(*p$$wq^yv75=om^g0@iut^j_hi-x1#8cbc'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = custom_settings.get("debug", True)
+ALLOWED_HOSTS = custom_settings.get("allowed_hosts", [])
 
-ALLOWED_HOSTS = ["*"]
-
+TIRA_ROOT = Path(custom_settings.get("tira_root", "/mnt/ceph/tira"))
+NAVIGATION = custom_settings.get("navigation", True)
 
 # Application definition
 

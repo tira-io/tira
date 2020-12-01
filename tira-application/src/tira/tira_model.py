@@ -4,18 +4,19 @@ p.stat().st_mtime - change time
 from google.protobuf.text_format import Parse
 from pathlib import Path
 import logging
+from django.conf import settings
 from .proto import TiraClientWebMessages_pb2 as modelpb
 
 logger = logging.getLogger(__name__)
 
 
 class FileDatabase(object):
-    MODEL_ROOT = Path("/mnt/ceph/tira/model")
-    TASKS_DIR_PATH = MODEL_ROOT / Path("tasks")
-    ORGANIZERS_FILE_PATH = MODEL_ROOT / Path("organizers/organizers.prototext")
-    DATASETS_DIR_PATH = MODEL_ROOT / Path("datasets")
-    SOFTWARES_DIR_PATH = MODEL_ROOT / Path("softwares")
-    RUNS_DIR_PATH = Path("/mnt/ceph/tira/data/runs")
+    tira_root = settings.TIRA_ROOT
+    tasks_dir_path = tira_root / Path("model/tasks")
+    organizers_file_path = tira_root / Path("model/organizers/organizers.prototext")
+    datasets_dir_path = tira_root / Path("model/datasets")
+    softwares_dir_path = tira_root / Path("model/softwares")
+    RUNS_DIR_PATH = tira_root / Path("data/runs")
 
     def __init__(self):
         logger.info("Start loading dataset")
@@ -35,7 +36,7 @@ class FileDatabase(object):
         :return: a dict {hostId: {"name", "years"}
         """
         organizers = modelpb.Hosts()
-        Parse(open(self.ORGANIZERS_FILE_PATH, "r").read(), organizers)
+        Parse(open(self.organizers_file_path, "r").read(), organizers)
         return {org.hostId: {"name": org.name, "years": org.years} for org in organizers.hosts}
 
     def _parse_task_list(self):
@@ -48,7 +49,7 @@ class FileDatabase(object):
         default_tasks = {}
         task_organizers = {}
 
-        for task_path in self.TASKS_DIR_PATH.glob("*"):
+        for task_path in self.tasks_dir_path.glob("*"):
             task = Parse(open(task_path, "r").read(), modelpb.Tasks.Task())
             tasks[task.taskId] = {"name": task.taskName, "description": task.taskDescription,
                                   "dataset_count": len(task.trainingDataset) + len(task.testDataset),
@@ -79,7 +80,7 @@ class FileDatabase(object):
                 return ""
 
         datasets = {}
-        for dataset_file in self.DATASETS_DIR_PATH.rglob("*.prototext"):
+        for dataset_file in self.datasets_dir_path.rglob("*.prototext"):
             dataset = Parse(open(dataset_file, "r").read(), modelpb.Dataset())
             datasets[dataset.datasetId] = {
                 "name": dataset.datasetId, "evaluator_id": dataset.evaluatorId,
@@ -108,7 +109,7 @@ class FileDatabase(object):
 
         softwares_by_task = {}
         softwares_by_user = {}
-        for dataset_dir in self.SOFTWARES_DIR_PATH.glob("*"):
+        for dataset_dir in self.softwares_dir_path.glob("*"):
             for user_dir in dataset_dir.glob("*"):
                 _sw = parse_software_file(user_dir / "softwares.prototext")
                 _swbd = softwares_by_task.get(dataset_dir.stem, list())

@@ -42,6 +42,8 @@ django:
 	python3 src/manage.py makemigrations"
 
 run-dev:
+	mkdir -p src/config
+	cp config/settings-dev.yml src/config
 	su tira -c". $(VENV_NAME)/bin/activate && \
 	python3 src/manage.py runserver 8080"
 
@@ -66,7 +68,7 @@ docker-publish-tira-application: docker-build-tira-application
 docker-run-tira-application:
 	docker run -ti --rm \
 		-p 8080:80 \
-		-v=/mnt/ceph/storage/data-in-progress/_TO_BE_MOVED/tira10-dev:/mnt/ceph/tira \
+		-v=/mnt/ceph/tira:/mnt/ceph/tira \
 		webis/tira-web-2:${VERSION}
 
 docker-build-tira-application:

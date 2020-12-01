@@ -1,0 +1,7 @@
+# ---
+debug: false
+allowed_hosts:
+  - "*"
+# ---
+tira_root: /mnt/ceph/tira
+navigation: false
