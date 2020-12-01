@@ -31,9 +31,11 @@ RUN chown -R tira:tira /usr/local && \
 
 # 4. make the sources
 WORKDIR /tira/tira-application
-RUN python3 -m pip install -r requirements.txt
+RUN python3 -m pip install --no-cache-dir -r requirements.txt
 RUN python3 src/manage.py migrate && \
 	python3 src/manage.py makemigrations&& \
 	python3 src/manage.py collectstatic
+
+RUN apk del .build-deps
 
 CMD sh -c "nginx && uwsgi --uid 1010 --ini /tira/tira-application/src/uwsgi.ini"
