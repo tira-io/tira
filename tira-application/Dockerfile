@@ -15,7 +15,7 @@ RUN mkdir -p /mnt/ceph/tira
 RUN mkdir /etc/nginx/logs
 
 COPY tira-application /tira/tira-application
-COPY tira-protocol/build/python/* /tira/tira-application/src/tira/protoc/
+COPY tira-protocol/build/python/* /tira/tira-application/src/tira/proto/
 COPY tira-model/src/* /mnt/ceph/tira/model/
 COPY tira-application/src/tira_nginx.conf /etc/nginx/nginx.conf
 
@@ -31,9 +31,11 @@ RUN chown -R tira:tira /usr/local && \
 
 # 4. make the sources
 WORKDIR /tira/tira-application
-RUN python3 -m pip install -r requirements.txt
+RUN python3 -m pip install --no-cache-dir -r requirements.txt
 RUN python3 src/manage.py migrate && \
 	python3 src/manage.py makemigrations&& \
 	python3 src/manage.py collectstatic
+
+RUN apk del .build-deps
 
 CMD sh -c "nginx && uwsgi --uid 1010 --ini /tira/tira-application/src/uwsgi.ini"
