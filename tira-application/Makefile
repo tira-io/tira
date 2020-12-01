@@ -53,16 +53,22 @@ clean:
 	rm -r $(VENV_NAME)
 	rm -r $(BUILD_PATH)
 
-publish-tira-application-docker: build-tira-application-docker
+k8s-deploy-tira-application:
+	kubectl apply -n webisservices -f tira-application.yml
+
+k8s-undeploy-tira-application:
+	kubectl delete -n webisservices -f tira-application.yml
+
+docker-publish-tira-application: docker-build-tira-application
 	docker login &&\
 	docker push webis/tira-web-2:${VERSION}
 
-run-tira-application-docker:
+docker-run-tira-application:
 	docker run -ti --rm \
 		-p 8080:80 \
 		-v=/mnt/ceph/storage/data-in-progress/_TO_BE_MOVED/tira10-dev:/mnt/ceph/tira \
 		webis/tira-web-2:${VERSION}
 
-build-tira-application-docker:
+docker-build-tira-application:
 	docker build --tag webis/tira-web-2:${VERSION} -f Dockerfile ..
 
