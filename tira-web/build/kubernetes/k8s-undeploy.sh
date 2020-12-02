@@ -1,4 +1,4 @@
 #!/bin/bash -e
 
-kubectl delete -f tira.yml || echo "tira.yml is already deleted"
+kubectl -n webisservices delete -f tira.yml || echo "tira.yml is already deleted"
 
