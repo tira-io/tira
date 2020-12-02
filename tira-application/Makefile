@@ -5,7 +5,7 @@ PYTHON=${VENV_NAME}/bin/python3
 SRC_DIR=../tira-protocol/src
 #PYTHON_DEST=${VENV_NAME}/lib/python3.7/site-packages
 BUILD_PATH=src/tira/proto
-VERSION=0.0.1
+VERSION=0.0.2
 
 
 .DEFAULT: help
@@ -55,7 +55,7 @@ clean:
 	rm -r $(VENV_NAME)
 	rm -r $(BUILD_PATH)
 
-k8s-deploy-tira-application:
+k8s-deploy-tira-application: k8s-undeploy-tira-application
 	kubectl apply -n webisservices -f tira-application.yml
 
 k8s-undeploy-tira-application:
@@ -63,7 +63,9 @@ k8s-undeploy-tira-application:
 
 docker-publish-tira-application: docker-build-tira-application
 	docker login &&\
-	docker push webis/tira-web-2:${VERSION}
+	docker push webis/tira-web-2:${VERSION} &&\
+	docker tag webis/tira-web-2:${VERSION} webis/tira-web-2:latest &&\
+	docker push webis/tira-web-2:latest
 
 docker-run-tira-application:
 	docker run -ti --rm \
