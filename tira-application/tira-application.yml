@@ -28,7 +28,7 @@ spec:
     spec:
       containers:
       - name: tira-web-client-2
-        image: webis/tira-web-2:0.0.1
+        image: webis/tira-web-2:latest
         imagePullPolicy: Always
         volumeMounts:
         - mountPath: "/mnt/ceph/tira"
