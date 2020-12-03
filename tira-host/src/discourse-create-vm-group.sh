@@ -16,7 +16,7 @@ scriptPath=${0%/*}
 #
 #    Define and check needed tools for this script.
 #
-neededtools="curl"
+neededtools="curl jq"
 debug && check_tools "$neededtools"  # If debug, check that tools are available.
 
 #
