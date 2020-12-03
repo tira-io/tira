@@ -1,7 +1,8 @@
-# ---
+# --- Djangos Settings
 debug: false
 allowed_hosts:
   - "*"
-# ---
+# --- Tira specific settings
 tira_root: /mnt/ceph/tira
-navigation: false
+# deployment = {disraptor, standalone}
+deployment: disraptor

@@ -1,7 +1,7 @@
 {% extends 'tira/base.html' %}
 {% load static %}
-{% block title %}title{% endblock %}
-{% block description %}tira index{% endblock %}
+{% block title %}TIRA{% endblock %}
+{% block description %}TIRA List of Tasks{% endblock %}
 {% block navbar %}{% include "tira/navbar.html" with nav_active='index' %}{% endblock %}
 
 {% block content %}
@@ -37,23 +37,24 @@
                 <th class="header"><span>Organization</span></th>
                 <th class="header uk-text-center"><span>Year</span></th>
                 <th class="header uk-text-right"><span>Datasets</span></th>
-                <th class="header uk-text-right"><span>Softwares</span></th>
-                <th class="header uk-text-right"><span>Website</span></th>
+                <th class="header uk-text-right"><span>Software</span></th>
+                <th class="header uk-text-right"><span>Action</span></th>
             </tr>
             </thead>
             <tbody>
-            {% for id, task in tasks.items %}
+            {% for task in tasks %}
             <tr>
-                <td id="task-{{ id }}"></td>
-                <td><a href="{% url 'tira:dataset' %}?q={{ id }}">{{ task.name }}</a></td>
+                <td id="task-{{ task.task_id }}"></td>
+                <td>{{ task.name }}</td>
                 <td>{{ task.organizer }}</td>
                 <td class="uk-text-center">{{ task.year }}</td>
                 <td class="uk-text-right">{{ task.dataset_count }}</td>
-                <td class="uk-text-right">{{ task.softwares_count }}</td>
+                <td class="uk-text-right">{{ task.software_count }}</td>
                 <td class="uk-text-right">
-                    <a href="{{ task.web }}" target="_blank">
-                        <i class="fas fa-external-link-alt"></i>
-                    </a>
+                    <!-- if logged in -> /task/task_id/user/user_id -->
+                    <!-- if not logged in -> /task/task_id/user/user_id -->
+                    [<a href="{% url 'tira:task-detail' task_id=task.task_id %}">datasets</a>]
+                    [<a href="{% if auth == 4 %}{% url 'tira:authentication' %}{% else %}{% url 'tira:software-detail' task_id=task.task_id user_id=user_id %}{% endif %}">participate</a>]
                 </td>
             </tr>
             {% empty %}
@@ -71,7 +72,9 @@
 </div>
 </main>
 
+{% if not include_navigation %}
 <script src="https://assets.webis.de/js/thirdparty/jquery/jquery.slim.min.js"></script>
+{% endif %}
 <script src="https://assets.webis.de/js/thirdparty/fontawesome/fontawesome.min.js"></script>
 <script src="https://assets.webis.de/js/thirdparty/fontawesome/solid.min.js"></script>
 <script src="https://assets.webis.de/js/filter.js"></script>

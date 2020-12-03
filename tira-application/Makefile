@@ -43,7 +43,7 @@ django:
 
 run-dev:
 	mkdir -p src/config
-	cp config/settings-dev.yml src/config
+	cp config/settings-dev.yml src/config/settings.yml
 	su tira -c". $(VENV_NAME)/bin/activate && \
 	python3 src/manage.py runserver 8080"
 

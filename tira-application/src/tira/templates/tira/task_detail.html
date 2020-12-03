@@ -15,7 +15,7 @@
 <main class="uk-section uk-section-default">
 <!-- Title and anchor links -->
 <div class="uk-container">
-    <h1>Datasets for {{ task_id }}</h1>
+    <h1>{{ task_id }}</h1>
 </div>
 
 <!-- task table start -->
@@ -25,7 +25,7 @@
         <tr>
             <th id="tira-tasks"></th>
             <th colspan="8">
-                Tasks at TIRA
+                Datasets for {{ task_id }}
                 <a href="#" class="uk-float-right uk-link-reset" data-uk-icon="chevron-up"></a>
             </th>
         </tr>
@@ -36,22 +36,21 @@
             <th class="header uk-text-center"><span>Year</span></th>
             <th class="header uk-text-right"><span>Datasets</span></th>
             <th class="header uk-text-right"><span>Softwares</span></th>
-            <th class="header uk-text-right"><span>Website</span></th>
+            <th class="header uk-text-right"><span>Actions</span></th>
         </tr>
         </thead>
         <tbody>
         {% for dataset in tasks %}
         <tr>
             <td id="task-{{ dataset.name }}"></td>
-            <td><a href="{% url 'tira:dataset' %}?q={{ id }}">{{ dataset.name }}</a></td>
+            <td>{{ dataset.name }}</td>
             <td>{{ dataset.organizer }}</td>
             <td class="uk-text-center">{{ dataset.year }}</td>
             <td class="uk-text-right">{{ dataset.dataset_count }}</td>
             <td class="uk-text-right">{{ dataset.softwares_count }}</td>
             <td class="uk-text-right">
-                <a href="{{ dataset.web }}" target="_blank">
-                    <i class="fas fa-external-link-alt"></i>
-                </a>
+                [<a href="{% url 'tira:dataset-detail' dataset_id=dataset.dataset_id%}" target="_blank">results</a>]
+                [<a href="{{ dataset.web }}" target="_blank">web</a>]
             </td>
         </tr>
         {% empty %}
@@ -63,7 +62,9 @@
 
 </main>
 
+{% if not include_navigation %}
 <script src="https://assets.webis.de/js/thirdparty/jquery/jquery.slim.min.js"></script>
+{% endif %}
 <script src="https://assets.webis.de/js/thirdparty/fontawesome/fontawesome.min.js"></script>
 <script src="https://assets.webis.de/js/thirdparty/fontawesome/solid.min.js"></script>
 <script src="https://assets.webis.de/js/filter.js"></script>

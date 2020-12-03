@@ -8,10 +8,7 @@
         <nav class="uk-margin-large-top">
             <ul class="uk-nav uk-nav-primary uk-nav-parent-icon" data-uk-nav>
                 <li{% if nav_active == "dataset" %} class="uk-active"{% endif %}>
-                    <a href="{% url 'tira:dataset' %}">Datasets</a>
-                </li>
-                <li{% if nav_active == "software" %} class="uk-active"{% endif %}>
-                    <a href="{% url 'tira:software-detail' user_id='None' %}">My Software</a>
+                    <a href="{% url 'tira:dataset' %}">Data</a>
                 </li>
             </ul>
         </nav>
@@ -38,12 +35,8 @@
         <div class="uk-navbar-right desktop-nav">
             <ul class="uk-navbar-nav">
                 <li{% if nav_active == "datasets" %} class="uk-active"{% endif %}>
-                    <a href="{% url 'tira:dataset' %}">Datasets</a>
+                    <a href="{% url 'tira:dataset' %}">Data</a>
                 </li>
-                <li class="nav-group-start{% if nav_active == 'software' %} uk-active{% endif %}">
-                    <a href="{% url 'tira:software-detail' user_id='None' %}">My Software</a>
-                </li>
-
             </ul>
         </div>
     </nav>
