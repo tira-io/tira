@@ -1,21 +1,21 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: tira-web-client
+  name: tira-bg-web-client
 spec:
   ports:
   - port: 8080
     protocol: TCP
     targetPort: 8080
   selector:
-    app: tira-web-client
+    app: tira-bg-web-client
 
 ---
 
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
-  name: tira-web-client
+  name: tira-bg-web-client
 spec:
   rules:
   - host: www.tira.io
@@ -23,7 +23,7 @@ spec:
       paths:
       - path: /
         backend:
-          serviceName: tira-web-client
+          serviceName: tira-bg-web-client
           servicePort: 8080
 
 ---
@@ -31,20 +31,20 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: tira-web-client
+  name: tira-bg-web-client
 spec:
   selector:
     matchLabels:
-      app: tira-web-client
+      app: tira-bg-web-client
   replicas: 1
   template:
     metadata:
       labels:
-        app: tira-web-client
+        app: tira-bg-web-client
     spec:
       containers:
-      - name: tira-web-client
-        image: mam10eks/tmp-tira-mam10eks:9.0.12
+      - name: tira-bg-web-client
+        image: mam10eks/tmp-tira-mam10eks:9.0.25
         imagePullPolicy: Always
         volumeMounts:
         - mountPath: "/mnt/nfs/tira"
