@@ -18,7 +18,7 @@ COPY tira-application /tira/tira-application
 COPY tira-protocol/build/python/* /tira/tira-application/src/tira/proto/
 COPY tira-model/src/* /mnt/ceph/tira/model/
 COPY tira-application/src/tira_nginx.conf /etc/nginx/nginx.conf
-COPY tira-application/config/settings-deploy.yml /tira/tira-application/src/config/
+COPY tira-application/config/settings-deploy.yml /tira/tira-application/src/config/settings.yml
 
 RUN chown -R tira:tira /usr/local && \
 	chmod 777 /var/run/ && \

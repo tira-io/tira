@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 class FileDatabase(object):
     tira_root = settings.TIRA_ROOT
     tasks_dir_path = tira_root / Path("model/tasks")
+    users_file_path = tira_root / Path("model/users/users.prototext")
     organizers_file_path = tira_root / Path("model/organizers/organizers.prototext")
     datasets_dir_path = tira_root / Path("model/datasets")
     softwares_dir_path = tira_root / Path("model/softwares")
@@ -21,6 +22,7 @@ class FileDatabase(object):
     def __init__(self):
         logger.info("Start loading dataset")
         self.organizers = self._parse_organizer_list()
+        self.users = self._parse_users_list()
 
         self.softwares_by_task, self.softwares_by_user = self._parse_softwares_list()
         self.softwares_count_by_dataset = {}
@@ -37,7 +39,13 @@ class FileDatabase(object):
         """
         organizers = modelpb.Hosts()
         Parse(open(self.organizers_file_path, "r").read(), organizers)
-        return {org.hostId: {"name": org.name, "years": org.years} for org in organizers.hosts}
+        # return {org.hostId: {"name": org.name, "years": org.years} for org in organizers.hosts}
+        return {org.hostId: org for org in organizers.hosts}
+
+    def _parse_users_list(self):
+        users = modelpb.Users()
+        Parse(open(self.users_file_path, "r").read(), users)
+        return {user.userName: user for user in users.users}
 
     def _parse_task_list(self):
         """ Parse the PB Database and extract all tasks.
@@ -51,18 +59,18 @@ class FileDatabase(object):
 
         for task_path in self.tasks_dir_path.glob("*"):
             task = Parse(open(task_path, "r").read(), modelpb.Tasks.Task())
-            tasks[task.taskId] = {"name": task.taskName, "description": task.taskDescription,
+            tasks[task.taskId] = {"name": task.taskName, "description": task.taskDescription, "task_id": task.taskId,
                                   "dataset_count": len(task.trainingDataset) + len(task.testDataset),
-                                  "softwares_count": len(self.softwares_by_task.get(task.taskId, {0})),
-                                  "web": task.web, "organizer": self.organizers.get(task.hostId, dict()).get("name", "None"),
-                                  "year": self.organizers.get(task.hostId, dict()).get("years", "None")
+                                  "software_count": len(self.softwares_by_task.get(task.taskId, {0})),
+                                  "web": task.web, "organizer": self.organizers.get(task.hostId, modelpb.Hosts.Host()).name,
+                                  "year": self.organizers.get(task.hostId, modelpb.Hosts.Host()).years
                                   }
             for td in task.trainingDataset:
                 default_tasks[td] = task.taskId
-                task_organizers[td] = self.organizers.get(task.hostId, dict()).get("name", "None")
+                task_organizers[td] = self.organizers.get(task.hostId, modelpb.Hosts.Host()).name
             for td in task.testDataset:
                 default_tasks[td] = task.taskId
-                task_organizers[td] = self.organizers.get(task.hostId, dict()).get("name", "None")
+                task_organizers[td] = self.organizers.get(task.hostId, modelpb.Hosts.Host()).name
 
         return tasks, default_tasks, task_organizers
 
@@ -84,6 +92,7 @@ class FileDatabase(object):
             dataset = Parse(open(dataset_file, "r").read(), modelpb.Dataset())
             datasets[dataset.datasetId] = {
                 "name": dataset.datasetId, "evaluator_id": dataset.evaluatorId,
+                "dataset_id": dataset.datasetId,
                 "is_confidential": dataset.isConfidential, "is_deprecated": dataset.isDeprecated,
                 "year": extract_year_from_dataset_id(dataset.datasetId),
                 "task": self.default_tasks.get(dataset.datasetId, ""),
@@ -191,6 +200,9 @@ class FileDatabase(object):
                                 "measures": measures, "runtime": ""})
 
         return list(measure_keys), evaluations
+
+    def get_tasks(self) -> list:
+        return list(self.tasks.values())
 
     def get_datasets_by_task(self, task_id: str) -> list:
         """ return the list of datasets associated with this task_id

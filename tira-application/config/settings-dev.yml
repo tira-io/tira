@@ -4,4 +4,5 @@ allowed_hosts:
   - "127.0.0.1"
 # ---
 tira_root: /mnt/ceph/tira
-navigation: true
+# deployment = {disraptor, standalone}
+deployment: standalone

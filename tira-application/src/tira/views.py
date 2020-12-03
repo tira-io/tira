@@ -3,16 +3,26 @@ from django.http import HttpResponse, Http404
 from itertools import groupby
 from django.conf import settings
 from .tira_model import FileDatabase
+from .authentication import Authentication
 
 model = FileDatabase()
+include_navigation = True if settings.DEPLOYMENT == "standalone" else False
+auth = Authentication(authentication_source=settings.DEPLOYMENT,
+                      tira_root=settings.TIRA_ROOT)
 
 
 def index(request):
     context = {
-        "include_navigation": settings.NAVIGATION,
-        "tasks": model.tasks
+        "include_navigation": include_navigation,
+        "tasks": model.get_tasks(),
+        "user_id": auth.get_user_id(request),
+        "auth": auth.get_role(request)
     }
     return render(request, 'tira/index.html', context)
+
+
+def authentication(request):
+    return redirect('https://disraptor.tira.io/authentication')
 
 
 def task_list(request):
@@ -21,7 +31,7 @@ def task_list(request):
 
 def task_detail(request, task_id):
     context = {
-        "include_navigation": settings.NAVIGATION,
+        "include_navigation": include_navigation,
         "task_id": task_id,
         "tasks": model.get_datasets_by_task(task_id)
     }
@@ -30,7 +40,7 @@ def task_detail(request, task_id):
 
 def dataset_list(request):
     context = {
-        "include_navigation": settings.NAVIGATION,
+        "include_navigation": include_navigation,
         "datasets": model.datasets
     }
     return render(request, 'tira/dataset_list.html', context)
@@ -42,7 +52,7 @@ def dataset_detail(request, dataset_id):
     ev = [f for v in evaluations.values() for f in v]
     users = [(status[user_id], runs[user_id]) for user_id in status.keys()]
     context = {
-        "include_navigation": settings.NAVIGATION,
+        "include_navigation": settings.DEPLOYMENT,
         "name": dataset_id,
         "ev_keys": ev_keys,
         "evaluations": ev,
@@ -51,8 +61,19 @@ def dataset_detail(request, dataset_id):
     return render(request, 'tira/dataset_detail.html', context)
 
 
-def software_detail(request, user_id):
+def software_user(request, user_id):
+    # TODO show all tasks or datasets a user participated in. -> depends on the disraptor groups
+    return redirect('tira:index')
+
+
+def software_detail(request, task_id, user_id):
     """ render the detail of the user page: vm-stats, softwares, and runs """
+    if not user_id:
+        context = {
+            "include_navigation": include_navigation,
+        }
+        return render(request, 'tira/login.html', context)
+
     softwares = model.softwares_by_user[user_id]  # [{id, count, command, working_directory, dataset, run, creation_date, last_edit}]
 
     # softwares have the same id for different tasks
@@ -81,7 +102,7 @@ def software_detail(request, user_id):
         software["results"] = r_independent
 
     context = {
-        "include_navigation": settings.NAVIGATION,
+        "include_navigation": True if settings.DEPLOYMENT == "standalone" else False,
         "user_id": user_id,
         "softwares": softwares
     }

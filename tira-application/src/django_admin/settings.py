@@ -31,7 +31,7 @@ DEBUG = custom_settings.get("debug", True)
 ALLOWED_HOSTS = custom_settings.get("allowed_hosts", [])
 
 TIRA_ROOT = Path(custom_settings.get("tira_root", "/mnt/ceph/tira"))
-NAVIGATION = custom_settings.get("navigation", True)
+DEPLOYMENT = custom_settings.get("deployment", True)
 
 # Application definition
 

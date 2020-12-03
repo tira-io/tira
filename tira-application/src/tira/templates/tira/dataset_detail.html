@@ -52,8 +52,8 @@
             {% for eval in evaluations %}
             <tr>
                 <td id="user-{{ eval.user_id }}"></td>
-                <td></td> <!-- actions -->
-                <td><a href="{% url 'tira:software-detail' user_id=eval.user_id %}">{{ eval.user_id }}</a></td>
+                <td></td> <!-- TODO task_id -->
+                <td><a href="{% url 'tira:software-detail' task_id='None' user_id=eval.user_id %}">{{ eval.user_id }}</a></td>
                 <td>{{ eval.software }}</td>
                 <td>{{ eval.run_id }}</td>
                 <td>{{ eval.input_run_id }}</td>
@@ -123,7 +123,9 @@
 
 </main>
 
+{% if not include_navigation %}
 <script src="https://assets.webis.de/js/thirdparty/jquery/jquery.slim.min.js"></script>
+{% endif %}
 <script src="https://assets.webis.de/js/thirdparty/fontawesome/fontawesome.min.js"></script>
 <script src="https://assets.webis.de/js/thirdparty/fontawesome/solid.min.js"></script>
 <script src="https://assets.webis.de/js/filter.js"></script>
