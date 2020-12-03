@@ -3,13 +3,12 @@ kind: Service
 metadata:
   name: tira-web-client-2
 spec:
-  type: NodePort
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
   selector:
     app: tira-web-client-2
-  ports:
-    - nodePort: 30808
-      port: 80
-      targetPort: 80
 ---
 
 apiVersion: apps/v1
@@ -34,9 +33,15 @@ spec:
         - mountPath: "/mnt/ceph/tira"
           name: tira-cephfs
           readOnly: true
+        - mountPath: "/tira/tira-application/src/config/settings-deploy.yml"
+          name: config-yml
+          subPath: settings-deploy.yml
       volumes:
       - name: tira-cephfs
         hostPath:
           path: /mnt/ceph/tira
           type: Directory
+      - name: config-yml
+        configMap:
+          name: tira-web2-config
 
