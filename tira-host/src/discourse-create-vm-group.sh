@@ -88,6 +88,9 @@ main() {
     api_key=$(cat /etc/discourse/client-api-key)
 
     logInfo "ToDo: Do it ${user} ${pw} ${port} ${host} ${api_key}"
+
+    create_group
+    invite_users
 }
 
 #
