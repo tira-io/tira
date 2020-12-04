@@ -1,0 +1,14 @@
+users {
+  adminName: ""
+  roles: "reviewer"
+  email: "maik.froebe@does-not-exist"
+  userPw: "xy-this-password-does-not-exist"
+  userName: "froebe"
+  vmName: ""
+  vmId: ""
+  portSsh: ""
+  host: ""
+  portRdp: ""
+  adminPw: ""
+  ip: ""
+}

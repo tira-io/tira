@@ -19,17 +19,27 @@ import de.webis.tira.client.web.generated.TiraClientWebMessages.Users;
 
 public class UsersStore {
 
+	private final File usersPrototext;
+	
+	public static UsersStore DEFAULT_USERS_STORE = new UsersStore(new File(Directories.USERS, "users.prototext"));
+	
+	public static final String USERNAME_WITHOUT_VM = "no-vm-assigned";
+	
+	private static final String USER_WITHOUT_VM = 			
+			"users {\n  userPw: \"mon-existing-password\"\n  userName: \"" + USERNAME_WITHOUT_VM + "\"\n}";
+	
+	public UsersStore(File usersPrototext) {
+		this.usersPrototext = usersPrototext;
+	}
 	/**
 	 * @return Tira's "Users" object
 	 * @throws ServletException when Tira's "users" file doesn't exist.
 	 */
-	public static Users	getUsers() 
+	private Users getUsers() 
 	throws ServletException {
-		File usersPrototext = new File(Directories.USERS, "users.prototext");
-		String prototext;
 		Users.Builder ub = Users.newBuilder();
 		try {
-			prototext = FileUtils.readFileToString(usersPrototext, Charsets.UTF_8.name());
+			String prototext = FileUtils.readFileToString(usersPrototext, Charsets.UTF_8.name());
 			TextFormat.merge(prototext, ub);
 		} 
 		catch (IOException e) {
@@ -50,9 +60,13 @@ public class UsersStore {
 		return users;
 	}
 	
-	public static User getUser(String userName)
+	public User getUserWithNameOrNull(String userName)
 	throws ServletException {
-		Users us = UsersStore.getUsers();
+		if (USERNAME_WITHOUT_VM.equals(userName)) {
+			return userWithoutVM();
+		}
+		
+		Users us = getUsers();
 		User u = null;
 		for (User user : us.getUsersList()) {
 			if (user.getUserName().equals(userName)) {
@@ -60,7 +74,24 @@ public class UsersStore {
 				break;
 			}
 		}
+
 		return u;
 	}
 	
+	public static User getUser(String userName)
+	throws ServletException {
+		return DEFAULT_USERS_STORE.getUserWithNameOrNull(userName);
+	}
+	
+	public User
+	userWithoutVM() {
+		try {
+			Users.Builder ub = Users.newBuilder();
+			TextFormat.merge(USER_WITHOUT_VM, ub);
+			
+			return ub.build().getUsers(0);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
 }
