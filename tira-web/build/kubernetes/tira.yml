@@ -9,23 +9,6 @@ spec:
     targetPort: 8080
   selector:
     app: tira-bg-web-client
-
----
-
-apiVersion: networking.k8s.io/v1beta1
-kind: Ingress
-metadata:
-  name: tira-bg-web-client
-spec:
-  rules:
-  - host: www.tira.io
-    http:
-      paths:
-      - path: /
-        backend:
-          serviceName: tira-bg-web-client
-          servicePort: 8080
-
 ---
 
 apiVersion: apps/v1
@@ -44,7 +27,7 @@ spec:
     spec:
       containers:
       - name: tira-bg-web-client
-        image: mam10eks/tmp-tira-mam10eks:9.0.28
+        image: mam10eks/tmp-tira-mam10eks:9.0.29
         imagePullPolicy: Always
         volumeMounts:
         - mountPath: "/mnt/nfs/tira"
