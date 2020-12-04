@@ -9,6 +9,8 @@ RUN apk update &&\
 # If we install requirements after copying the code, the install layer has to be redone every time.
 RUN python3 -m pip install --no-cache-dir grpcio==1.36.1 protobuf uwsgi Django pyyaml grpcio-tools==1.36.1
 
+RUN python3 -m pip install --no-cache-dir grpcio protobuf uwsgi Django pyyaml
+
 RUN addgroup --gid 1010 tira && \
 	adduser --disabled-password --uid 1010 --ingroup tira tira && \
 	adduser tira root
