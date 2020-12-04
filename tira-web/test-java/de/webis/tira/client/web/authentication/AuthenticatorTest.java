@@ -28,7 +28,7 @@ public class AuthenticatorTest {
 	
 	@Test
 	public void testThatRequestWithGroupAndWithoutUserIsNotSignedIn() throws Exception {
-		HttpServletRequest request = request(null, "vm-xyz");
+		HttpServletRequest request = request(null, "tira-vm-xyz");
 		
 		Assert.assertFalse(isSignedIn(request));
 		Assert.assertNull(signedInUser(request));
@@ -47,7 +47,7 @@ public class AuthenticatorTest {
 	
 	@Test
 	public void testThatRequestWithUserAndWithGroupIsSignedIn() throws Exception {
-		HttpServletRequest request = request("foo-bar", "vm-foo-bar");
+		HttpServletRequest request = request("foo-bar", "tira-vm-foo-bar");
 		
 		Assert.assertTrue(isSignedIn(request));
 		User user = signedInUser(request);
@@ -58,7 +58,7 @@ public class AuthenticatorTest {
 	
 	@Test
 	public void testThatRequestWithUserAndWithAdminGroupUsesTheAdminGroup() throws Exception {
-		HttpServletRequest request = request("foo-bar", "vm-froebe");
+		HttpServletRequest request = request("foo-bar", "tira-vm-froebe");
 		
 		Assert.assertTrue(isSignedIn(request));
 		User user = signedInUser(request);
@@ -72,7 +72,7 @@ public class AuthenticatorTest {
 
 	@Test
 	public void testThatRequestWithUserAndMultipleGroupsGroupUsesTheAdminGroup() throws Exception {
-		HttpServletRequest request = request("foo-bar", ",,fdsa,vm-froebe");
+		HttpServletRequest request = request("foo-bar", ",,fdsa,tira-vm-froebe");
 		
 		Assert.assertTrue(isSignedIn(request));
 		User user = signedInUser(request);
@@ -86,7 +86,7 @@ public class AuthenticatorTest {
 	
 	@Test
 	public void testThatRequestWithUserAndMultipleGroupsGroupUsesTheAdminGroup2() throws Exception {
-		HttpServletRequest request = request("foo-bar", ",,fdsa,vm-froebe,fdghdf");
+		HttpServletRequest request = request("foo-bar", ",,fdsa,tira-vm-froebe,fdghdf");
 		
 		Assert.assertTrue(isSignedIn(request));
 		User user = signedInUser(request);
@@ -100,7 +100,7 @@ public class AuthenticatorTest {
 	
 	@Test
 	public void testThatRequestWithUserAndMultipleGroupsGroupUsesTheAdminGroup3() throws Exception {
-		HttpServletRequest request = request("foo-bar", ",,fdsa,vm-froebe,vm-foobar,fdghdf");
+		HttpServletRequest request = request("foo-bar", ",,fdsa,tira-vm-froebe,tira-vm-foobar,fdghdf");
 		
 		Assert.assertTrue(isSignedIn(request));
 		User user = signedInUser(request);
@@ -114,7 +114,7 @@ public class AuthenticatorTest {
 	
 	@Test
 	public void testThatRequestWithUserAndMultipleGroupsGroupUsesTheAdminGroup4() throws Exception {
-		HttpServletRequest request = request("foo-bar", ",,fdsavm-foobar,,vm-froebe,fdghdf");
+		HttpServletRequest request = request("foo-bar", ",,fdsa,tira-vm-foobar,,tira-vm-froebe,fdghdf");
 		
 		Assert.assertTrue(isSignedIn(request));
 		User user = signedInUser(request);
@@ -138,8 +138,6 @@ public class AuthenticatorTest {
 		
 		return request(headers);
 	}
-	
-	
 	
 	private static HttpServletRequest request(Map<String, String> headers) {
 		HttpServletRequest ret = Mockito.mock(HttpServletRequest.class);
