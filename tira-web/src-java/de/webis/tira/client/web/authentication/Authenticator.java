@@ -5,21 +5,21 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang.StringUtils;
 
-import com.google.protobuf.TextFormat;
-
 import de.webis.tira.client.web.generated.TiraClientWebMessages.User;
-import de.webis.tira.client.web.generated.TiraClientWebMessages.Users;
 import de.webis.tira.client.web.storage.UsersStore;
 
 public class Authenticator {
-
-	private static final String USER_WITHOUT_VM = 			
-			"users {\n  userPw: \"mon-existing-password\"\n  userName: \"no-vm-assigned\"\n}";
 	
 	public static final boolean 
 	isSignedIn(HttpServletRequest req)
 	throws ServletException {
-		return Authenticator.signedInUser(req) != null;
+		return isSignedIn(req, UsersStore.DEFAULT_USERS_STORE);
+	}
+	
+	public static final boolean 
+	isSignedIn(HttpServletRequest req, UsersStore usersStore)
+	throws ServletException {
+		return signedInUser(req, usersStore) != null;
 	}
 
 	/**
@@ -32,35 +32,26 @@ public class Authenticator {
 	public static final User
 	signedInUser(HttpServletRequest req)
 	throws ServletException {
+		return signedInUser(req, UsersStore.DEFAULT_USERS_STORE);
+	}
+	
+	public static final User
+	signedInUser(HttpServletRequest req, UsersStore usersStore)
+	throws ServletException {
 		String userName = req.getHeader("X-Disraptor-User");
-		String firstVmGroup = firstVmGroupOrNull(req);
-		User ret = null;
-		
-
-		if (userName != null && firstVmGroup != null) {
-			ret = UsersStore.getUser(firstVmGroup);
+		if(userName == null) {
+			return null;
 		}
 		
-		if(ret == null && userName != null) {
-			ret = userWithoutVM();
-		}
+		String vmName = firstVmGroupOrUserWithoutVM(req);
+		User ret = usersStore.getUserWithNameOrNull(vmName);
 		
-		return ret;
+		return ret == null ? usersStore.userWithoutVM() : ret;
 	}
 	
-	private static String firstVmGroupOrNull(HttpServletRequest req) {
-		return StringUtils.substringBetween(req.getHeader("X-Disraptor-Groups") + ",", "vm-", ",");
-	}
-	
-	private static User
-	userWithoutVM() {
-		try {
-			Users.Builder ub = Users.newBuilder();
-			TextFormat.merge(USER_WITHOUT_VM, ub);
-			
-			return ub.build().getUsers(0);
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
+	private static String firstVmGroupOrUserWithoutVM(HttpServletRequest req) {
+		String ret = StringUtils.substringBetween(req.getHeader("X-Disraptor-Groups") + ",", "vm-", ",");
+		
+		return ret == null ? UsersStore.USERNAME_WITHOUT_VM : ret;
 	}
 }
