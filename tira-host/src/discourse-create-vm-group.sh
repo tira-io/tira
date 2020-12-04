@@ -44,9 +44,9 @@ FLAGS "$@" || exit 1  # Parse command line arguments.
 eval set -- "${FLAGS_ARGV}"
 
 create_group() {
-    group_name="vm-$vmname_or_user"
+    group_name="tira-vm-$vmname_or_user"
     group_bio="Members of this group have access to the virtual machine $vmname_or_user on $host.<br><br>
-    The password for the virtual machine $vmname_or_user was sent to the participants in a separate mail.<br>The virtual machine can be accessed via SSH (host $host, port $port) or RDP (host $host, port XYZ) to install the software(s) that participate in the shared task.<br><br>You can SSH into the virtual machine with: sshpass -p $pw ssh $user@$host.medien.uni-weimar.de -p $port -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
+    The password for the virtual machine $vmname_or_user was sent to the participants in a separate mail.<br>The virtual machine can be accessed via SSH (host $host, port $port) or RDP (host $host, port $port_rdp) to install the software(s) that participate in the shared task.<br><br>You can SSH into the virtual machine with: sshpass -p $pw ssh $user@$host.medien.uni-weimar.de -p $port -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
 
     # Post form for group creation and store group id for invite
     group_info=$(curl -X POST "https://disraptor.tira.io/admin/groups" -H "Api-Key: $api_key" -H "Accept: application/json" -H "Content-Type: multipart/form-data" -F "group[name]=$group_name" -F "group[messageable_level]=2" -F "group[member_visibility_level]=2" -F "group[bio_raw]=$group_bio")
@@ -84,6 +84,7 @@ main() {
     user=$(echo "$vm_info" | grep "userName=" | sed "s|userName=||g")
     pw=$(echo "$vm_info" | grep "userPw=" | sed "s|userPw=||g")
     port=$(echo "$vm_info" | grep "portSsh=" | sed "s|portSsh=||g")
+    rdp_port=$(echo "$vm_info" | grep "portRdp=" | sed "s|portRdp=||g")
     host=$(echo "$vm_info" | grep "host=" | sed "s|host=||g")
     api_key=$(cat /etc/discourse/client-api-key)
 
