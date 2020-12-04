@@ -34,7 +34,7 @@ COPY build/initial-docker-tira-model /mnt/nfs/tira/
 # setup tira command line tools
 # todo: mount host folder directly to /usr/lib - this way we don't have to restart the container after changes
 RUN mkdir /usr/lib/tira
-COPY src /usr/lib/tira/
+COPY src/tira_scripts /usr/lib/tira/
 RUN sudo touch /usr/lib/tira/log.txt && \
     sudo chmod -x /usr/lib/tira/log.txt && \
     sudo chmod ugo+w /usr/lib/tira/log.txt && \
