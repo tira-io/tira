@@ -51,7 +51,7 @@ create_group() {
     # Post form for group creation and store group id for invite
     group_info=$(curl -X POST "https://disraptor.tira.io/admin/groups" -H "Api-Key: $api_key" -H "Accept: application/json" -H "Content-Type: multipart/form-data" -F "group[name]=$group_name" -F "group[messageable_level]=2" -F "group[member_visibility_level]=2" -F "group[bio_raw]=$group_bio")
 
-    group_id=$(group_info | jq '.basic_group.id')
+    group_id=$(echo $group_info | jq '.basic_group.id')
 }
 
 invite_users() {
