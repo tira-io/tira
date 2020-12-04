@@ -5,6 +5,8 @@ RUN apk update &&\
     apk add --no-cache --virtual .build-deps gcc linux-headers make musl-dev g++ python3-dev &&\
     apk add --update --no-cache python3 zip py3-virtualenv
 
+RUN python3 -m pip install --no-cache-dir grpcio protobuf uwsgi Django pyyaml
+
 RUN addgroup --gid 1010 tira && \
 	adduser --disabled-password --uid 1010 --ingroup tira tira && \
 	adduser tira root
@@ -24,7 +26,9 @@ RUN chown -R tira:tira /usr/local && \
 	chmod 777 /var/run/ && \
 	echo "tira ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers &&\
 	touch /var/log/tira_debug.txt &&\
+	touch /tira/tira-application/src/debug.log &&\
 	chown tira:tira /var/log/tira_debug.txt &&\
+	chown tira:tira  /tira/tira-application/src/debug.log &&\
 	mkdir -p /home/tira/.tira &&\
 	mkdir /home/tira/.ssh &&\
 	chown tira:tira -R /home/tira &&\

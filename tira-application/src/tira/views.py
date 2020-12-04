@@ -12,10 +12,12 @@ auth = Authentication(authentication_source=settings.DEPLOYMENT,
 
 
 def index(request):
+
     context = {
         "include_navigation": include_navigation,
         "tasks": model.get_tasks(),
         "user_id": auth.get_user_id(request),
+        "group_id": auth.get_user_groups(request),
         "auth": auth.get_role(request)
     }
     return render(request, 'tira/index.html', context)
