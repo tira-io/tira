@@ -69,7 +69,7 @@ spec:
             name: tira-ceph-secret
       - name: tira-src-code
         hostPath:
-          path: /usr/local/share/tira
+          path: /usr/local/share/tira/tira-host
           type: Directory
       - name: tira-discourse-api-key
         secret:
