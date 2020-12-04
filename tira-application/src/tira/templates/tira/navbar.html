@@ -1,5 +1,5 @@
 {% load static %}
-
+{% if include_navigation %}
 <div id="offcanvas-nav" class="mobile-nav" data-uk-offcanvas="overlay: true; flip: true;">
     <div class="uk-offcanvas-bar">
         <button class="uk-offcanvas-close" type="button" data-uk-close></button>
@@ -7,14 +7,8 @@
         <!-- Off-canvas mobile navigation -->
         <nav class="uk-margin-large-top">
             <ul class="uk-nav uk-nav-primary uk-nav-parent-icon" data-uk-nav>
-                <li{% if nav_active == "task" %} class="uk-active"{% endif %}>
-                    <a href="{% url 'tira:task' %}">Tasks</a>
-                </li>
                 <li{% if nav_active == "dataset" %} class="uk-active"{% endif %}>
-                    <a href="{% url 'tira:dataset' %}">Datasets</a>
-                </li>
-                <li{% if nav_active == "software" %} class="uk-active"{% endif %}>
-                    <a href="{% url 'tira:software-detail' %}">My Software</a>
+                    <a href="{% url 'tira:dataset' %}">Data</a>
                 </li>
             </ul>
         </nav>
@@ -26,7 +20,7 @@
         <div class="uk-navbar-left">
             <ul class="uk-navbar-nav">
                 <li{% if nav_active == "index" %} class="uk-active"{% endif %}>
-                    <a href="{% url "tira:index" %}"><img src="{% static 'tira/tira-logo.png' %}" alt="TIRA Logo" class="uk-logo">tira.io</a>
+                    <a href="{% url 'tira:index' %}"><img src="{% static 'tira/tira-logo.png' %}" alt="TIRA Logo" class="uk-logo">tira.io</a>
                 </li>
             </ul>
         </div>
@@ -40,17 +34,11 @@
         <!-- Desktop navigation -->
         <div class="uk-navbar-right desktop-nav">
             <ul class="uk-navbar-nav">
-                <li class="nav-group-start{% if nav_active == "task" %} uk-active{% endif %}">
-                    <a href="{% url 'tira:task' %}">Tasks</a>
-                </li>
                 <li{% if nav_active == "datasets" %} class="uk-active"{% endif %}>
-                    <a href="{% url 'tira:dataset' %}">Datasets</a>
+                    <a href="{% url 'tira:dataset' %}">Data</a>
                 </li>
-                <li class="nav-group-start{% if nav_active == "software" %} uk-active{% endif %}">
-                    <a href="{% url 'tira:software-detail' %}">My Software</a>
-                </li>
-
             </ul>
         </div>
     </nav>
 </div>
+{% endif %}

@@ -1,0 +1,38 @@
+.index-main-cover {
+    background: #323232 url("/public/tira/background.webp") no-repeat top right;
+    background-size: 100%;
+    height: 300px;
+    width: 100%;
+    font-size: 1.05rem
+}
+
+.index-main-cover h1 {
+    font-size: 2.65rem
+}
+
+.cover-background-fade {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.2) 40%, rgba(0, 0, 0, 0.85) 85%)
+}
+
+@media (max-width: 400px) {
+    .index-main-cover {
+        height: 250px
+    }
+}
+
+@media (max-width: 300px) {
+    .index-main-cover {
+        height: 250px
+    }
+}
+
+@media (min-width: 960px) {
+    .index-main-cover {
+        height: 20vh
+    }
+}
