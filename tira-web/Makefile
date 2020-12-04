@@ -5,6 +5,9 @@ publish-docker: build-tira-docker
 	docker push mam10eks/tmp-tira-mam10eks:${VERSION}
 
 run-tira-docker: build-tira-docker
+	docker run --rm -ti -p 8080:8080 mam10eks/tmp-tira-mam10eks:${VERSION}
+
+run-tira-docker-with-ceph-mount: build-tira-docker
 	docker run --rm -ti -v /mnt/ceph/tira:/mnt/nfs/tira -p 8080:8080 mam10eks/tmp-tira-mam10eks:${VERSION}
 
 k8s-deploy: k8s-undeploy

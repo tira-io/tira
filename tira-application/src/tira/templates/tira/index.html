@@ -1,35 +1,90 @@
 {% extends 'tira/base.html' %}
 {% load static %}
-{% block title %}title{% endblock %}
-{% block description %}tira index{% endblock %}
+{% block title %}TIRA{% endblock %}
+{% block description %}TIRA List of Tasks{% endblock %}
 {% block navbar %}{% include "tira/navbar.html" with nav_active='index' %}{% endblock %}
 
 {% block content %}
 <main class="uk-section uk-cover-container index-main-cover">
-<div class="cover-background-fade"></div>
-<div class="uk-container uk-position-bottom uk-light uk-padding">
-    <h1>TIRA &mdash; Evaluation as a Service</h1>
-    <h2>Improving the replicability of shared tasks in computer science</h2>
-{#    <div>#}
-{#        <p><a href="{{ '/research.html' | relative_url }}" class="uk-button uk-button-primary">Learn More</a></p>#}
-{#    </div>#}
+    <div class="cover-background-fade"></div>
+    <div class="uk-container uk-position-bottom uk-light uk-padding">
+        <h1>TIRA &mdash; Evaluation as a Service</h1>
+        <h2>Improving the replicability of shared tasks in computer science</h2>
+    </div>
+</main>
+<div class="uk-section uk-section-default">
+    <!-- search field -->
+
+
+    <div class="uk-container uk-margin-medium">
+        <h1>Shared Tasks</h1>
+        {{ user_id }} <br>
+        {{ group_id }} <br>
+        {{ auth }} <br>
+    </div>
+    <div class="uk-container uk-margin-medium">
+        <div id="search-control">
+            <input type="text" class="uk-input" id="filter-field" placeholder="Type here to filter&hellip;"/>
+        </div>
+    </div>
+
+    <!-- task table start -->
+    <div class="uk-container uk-margin-medium">
+        <table class="uk-margin-medium uk-table uk-table-divider uk-table-small sortable targetable">
+            <thead>
+<!--            <tr>-->
+<!--                <th id="tira-tasks"></th>-->
+<!--                <th colspan="8">-->
+<!--                    Tasks at TIRA-->
+<!--                    <a href="#" class="uk-float-right uk-link-reset" data-uk-icon="chevron-up"></a>-->
+<!--                </th>-->
+<!--            </tr>-->
+            <tr>
+                <th></th>
+                <th class="header"><span>Task</span></th>
+                <th class="header"></th>
+                <th class="header"><span>Organization</span></th>
+                <th class="header uk-text-center"><span>Year</span></th>
+                <th class="header uk-text-right"><span>Submissions</span></th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for task in tasks %}
+            <tr>
+                <td id="task-{{ task.task_id }}"></td>
+                <td>{{ task.name }}</td>
+                <td class="">
+                    [<a href="{{ task.web }}" target="_blank">info</a>]
+                    [<a href="{% url 'tira:task-detail' task_id=task.task_id %}">leaderboard</a>]
+                    [<a href="{% if auth == 4 %}{% url 'tira:authentication' %}{% else %}{% url 'tira:software-detail' task_id=task.task_id user_id=user_id %}{% endif %}">participate</a>]
+                </td>
+                <td>{{ task.organizer }}</td>
+                <td class="uk-text-center">{{ task.year }}</td>
+                <td class="uk-text-right">{{ task.software_count }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td>Sorry, we could not find any tasks.</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+        <div id="filtered-all-message" class="uk-hidden uk-text-muted" aria-hidden="true">
+            None of our tasks match your filter.
+        </div>
+    </div>
 </div>
 </main>
 
-<div class="uk-section uk-section-default">
-    <div class="uk-container">
-        <img src="{% static 'tira/background.webp' %}" alt="" data-uk-cover>
-        <!-- Space for imagination -->
-    </div>
-</div>
-
-{#{% if all_users %}#}
-{#<ul>#}
-{#    {% for user in all_users %}#}
-{#    <li><a href="{%  url 'tira:dataset-detail' user.user_name %}/">{{ user.user_name }}</a></li>#}
-{#    {% endfor %}#}
-{#</ul>#}
-{#{% else %}#}
-{#    <p>Nothing here!</p>#}
-{#{% endif %}#}
+{% if include_navigation %}
+<script src="https://assets.webis.de/js/thirdparty/jquery/jquery.slim.min.js"></script>
+{% endif %}
+<script src="https://assets.webis.de/js/thirdparty/fontawesome/fontawesome.min.js"></script>
+<script src="https://assets.webis.de/js/thirdparty/fontawesome/solid.min.js"></script>
+<script src="https://assets.webis.de/js/filter.js"></script>
+<script src="https://assets.webis.de/js/selection.js"></script>
+<script src="https://assets.webis.de/js/tables.js"></script>
+<script>initWebisTableFiltering();</script>
+<script>initTableSorting();</script>
 {% endblock %}

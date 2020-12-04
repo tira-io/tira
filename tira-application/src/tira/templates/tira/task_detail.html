@@ -1,0 +1,76 @@
+{% extends 'tira/base.html' %}
+{% load static %}
+{% block title %}TIRA {{ task_id }}{% endblock %}
+{% block description %}TIRA dataset for {{ task_id }}{% endblock %}
+{% block navbar %}{% include "tira/navbar.html" with nav_active='datasets' %}{% endblock %}
+
+{% block content %}
+<nav class="uk-container">
+<ul class="uk-breadcrumb">
+<li><a href="{% url 'tira:index' %}">Tira.io</a></li>
+<li class="uk-disabled"><a href="#">{{ task_id }}</a></li>
+</ul>
+</nav>
+
+<main class="uk-section uk-section-default">
+<!-- Title and anchor links -->
+<div class="uk-container">
+    <h1>{{ task_id }}</h1>
+</div>
+
+<!-- task table start -->
+<div class="uk-container uk-margin-medium">
+    <table class="uk-margin-medium uk-table uk-table-divider uk-table-small sortable targetable">
+        <thead>
+        <tr>
+            <th id="tira-tasks"></th>
+            <th colspan="8">
+                Datasets for {{ task_id }}
+                <a href="#" class="uk-float-right uk-link-reset" data-uk-icon="chevron-up"></a>
+            </th>
+        </tr>
+        <tr>
+            <th></th>
+            <th class="header"><span>Name</span></th>
+            <th class="header"><span>Organization</span></th>
+            <th class="header uk-text-center"><span>Year</span></th>
+            <th class="header uk-text-right"><span>Datasets</span></th>
+            <th class="header uk-text-right"><span>Softwares</span></th>
+            <th class="header uk-text-right"><span>Actions</span></th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for dataset in tasks %}
+        <tr>
+            <td id="task-{{ dataset.name }}"></td>
+            <td>{{ dataset.name }}</td>
+            <td>{{ dataset.organizer }}</td>
+            <td class="uk-text-center">{{ dataset.year }}</td>
+            <td class="uk-text-right">{{ dataset.dataset_count }}</td>
+            <td class="uk-text-right">{{ dataset.softwares_count }}</td>
+            <td class="uk-text-right">
+                [<a href="{% url 'tira:dataset-detail' dataset_id=dataset.dataset_id%}" target="_blank">results</a>]
+                [<a href="{{ dataset.web }}" target="_blank">web</a>]
+            </td>
+        </tr>
+        {% empty %}
+            <tr><td>Sorry, we could not find any tasks.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+</main>
+
+{% if not include_navigation %}
+<script src="https://assets.webis.de/js/thirdparty/jquery/jquery.slim.min.js"></script>
+{% endif %}
+<script src="https://assets.webis.de/js/thirdparty/fontawesome/fontawesome.min.js"></script>
+<script src="https://assets.webis.de/js/thirdparty/fontawesome/solid.min.js"></script>
+<script src="https://assets.webis.de/js/filter.js"></script>
+<script src="https://assets.webis.de/js/selection.js"></script>
+<script src="https://assets.webis.de/js/tables.js"></script>
+<script>initWebisTableFiltering();</script>
+<script>initTableSorting();</script>
+
+{% endblock %}

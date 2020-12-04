@@ -3,13 +3,29 @@ kind: Service
 metadata:
   name: tira-web-client
 spec:
-  type: NodePort
+  ports:
+  - port: 8080
+    protocol: TCP
+    targetPort: 8080
   selector:
     app: tira-web-client
-  ports:
-    - nodePort: 30800
-      port: 8080
-      targetPort: 8080
+
+---
+
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: tira-web-client
+spec:
+  rules:
+  - host: www.tira.io
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: tira-web-client
+          servicePort: 8080
+
 ---
 
 apiVersion: apps/v1
@@ -28,7 +44,7 @@ spec:
     spec:
       containers:
       - name: tira-web-client
-        image: mam10eks/tmp-tira-mam10eks:9.0.24
+        image: mam10eks/tmp-tira-mam10eks:9.0.12
         imagePullPolicy: Always
         volumeMounts:
         - mountPath: "/mnt/nfs/tira"
@@ -37,6 +53,9 @@ spec:
           name: tira-src-code
         - mountPath: "/etc/ssh-key"
           name: ssh-key
+        - mountPath: "/etc/discourse/client-api-key"
+          name: tira-discourse-api-key
+          subPath: key
       nodeSelector:
         kubernetes.io/hostname: betaweb127
       volumes:
@@ -50,8 +69,11 @@ spec:
             name: tira-ceph-secret
       - name: tira-src-code
         hostPath:
-          path: /usr/local/share/tira
+          path: /usr/local/share/tira/tira-host
           type: Directory
+      - name: tira-discourse-api-key
+        secret:
+          secretName: tira-discourse-api-key
       - name: ssh-key
         secret:
           secretName: tira-webis18-ssh-key

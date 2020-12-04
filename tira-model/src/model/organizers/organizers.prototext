@@ -4,3 +4,10 @@ hosts {
   years:  "2019"
   web:    "webis.de"
 }
+
+hosts {
+  hostId: "ir-lecture"
+  name:   "IR Lecture"
+  years:  "2019"
+  web:    "webis.de"
+}
