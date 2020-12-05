@@ -5,4 +5,4 @@ allowed_hosts:
 # ---
 tira_root: /mnt/ceph/tira
 # deployment = {disraptor, standalone}
-deployment: standalone
+deployment: disraptor
