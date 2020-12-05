@@ -27,12 +27,12 @@ spec:
     spec:
       containers:
       - name: tira-bg-web-client
-        image: mam10eks/tmp-tira-mam10eks:9.0.30
+        image: mam10eks/tmp-tira-mam10eks:9.0.31
         imagePullPolicy: Always
         volumeMounts:
         - mountPath: "/mnt/nfs/tira"
           name: tira-cephfs
-        - mountPath: "/usr/local/share/tira"
+        - mountPath: "/usr/local/share/tira/src"
           name: tira-src-code
         - mountPath: "/etc/ssh-key"
           name: ssh-key
@@ -52,7 +52,7 @@ spec:
             name: tira-ceph-secret
       - name: tira-src-code
         hostPath:
-          path: /usr/local/share/tira
+          path: /usr/local/share/tira/tira-host/src/tira_scripts
           type: Directory
       - name: tira-discourse-api-key
         secret:
