@@ -5,7 +5,7 @@ PYTHON=${VENV_NAME}/bin/python3
 SRC_DIR=../tira-protocol/src
 #PYTHON_DEST=${VENV_NAME}/lib/python3.7/site-packages
 BUILD_PATH=src/tira/proto
-VERSION=0.0.2
+VERSION=0.0.3
 
 
 .DEFAULT: help
@@ -77,4 +77,3 @@ docker-run-tira-application:
 
 docker-build-tira-application:
 	docker build --tag webis/tira-web-2:${VERSION} -f Dockerfile ..
-

@@ -16,6 +16,7 @@ import yaml
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
 custom_settings = {}
 for cfg in (BASE_DIR / "config").glob("*.yml"):
     custom_settings.update(yaml.load(open(cfg, "r").read(), Loader=yaml.FullLoader))
@@ -31,7 +32,7 @@ DEBUG = custom_settings.get("debug", True)
 ALLOWED_HOSTS = custom_settings.get("allowed_hosts", [])
 
 TIRA_ROOT = Path(custom_settings.get("tira_root", "/mnt/ceph/tira"))
-DEPLOYMENT = custom_settings.get("deployment", True)
+DEPLOYMENT = custom_settings.get("deployment", "standalone")
 
 # Application definition
 
@@ -89,6 +90,49 @@ DATABASES = {
 
 SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
 
+# Logging
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'filters': {
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'filters': ['require_debug_true'],
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple'
+        },
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'debug.log',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'propagate': True,
+            'level': 'WARNING',
+        },
+    }
+}
+
+
+
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
 
@@ -125,10 +169,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = '/public/'
 
 STATICFILES_DIRS = [
-    BASE_DIR / "static",
+    BASE_DIR / "static/",
+    BASE_DIR / "tira/static/"
 ]
 
-STATIC_ROOT = "/var/www/static"
+STATIC_ROOT = "/var/www/public"
