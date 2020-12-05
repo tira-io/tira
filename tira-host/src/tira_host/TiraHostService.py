@@ -115,6 +115,6 @@ def serve():
 
 
 if __name__ == '__main__':
-    fileConfig('../conf/logging_config.ini')
+    fileConfig('conf/logging_config.ini')
     serve()
     # asyncio.run(serve_async())
