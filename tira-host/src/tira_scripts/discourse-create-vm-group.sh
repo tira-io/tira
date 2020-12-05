@@ -52,7 +52,7 @@ create_group() {
   <li>Passwort: $pw</li>
   <li>SSH Port: $port</li>
   <li>RDP Port: $rdp_port</li>
-  <li>SSH Example: <code>sshpass -p $pw ssh $user@$host.medien.uni-weimar.de -p $port -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no</code></li>
+  <li>SSH Example: <code>sshpass -p $pw ssh $user@$host -p $port -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no</code></li>
 </ul><br><br>
 Please contact us when you have questions.
 "
