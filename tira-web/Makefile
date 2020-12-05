@@ -1,4 +1,4 @@
-VERSION=9.0.30
+VERSION=9.0.31
 
 publish-docker: build-tira-docker
 	docker login &&\
