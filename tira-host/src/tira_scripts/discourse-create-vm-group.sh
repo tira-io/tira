@@ -43,6 +43,8 @@ export FLAGS_HELP
 FLAGS "$@" || exit 1  # Parse command line arguments.
 eval set -- "${FLAGS_ARGV}"
 
+set -e
+
 create_group() {
     group_name="tira-vm-$vmname_or_user"
     group_bio="Members of this group have access to the virtual machine $vmname_or_user:<br><br>
@@ -58,7 +60,15 @@ Please contact us when you have questions.
 "
 
     # Post form for group creation and store group id for invite
-    group_info=$(curl -X POST "${_CONFIG_tira_disraptor_url}/admin/groups" -H "Api-Key: $api_key" -H "Accept: application/json" -H "Content-Type: multipart/form-data" -F "group[name]=$group_name" -F "group[messageable_level]='2'" -F "group[member_visibility_level]='2'" -F "group[bio_raw]=$group_bio")
+    group_info=$(curl -X POST "${_CONFIG_tira_disraptor_url}/admin/groups" \
+        -H "Api-Key: $api_key" \
+        -H "Accept: application/json" \
+        -H "Content-Type: multipart/form-data" \
+        -F "group[name]=$group_name" \
+        -F "group[visibility_level]=2" \
+        -F "group[members_visibility_level]=2" \
+        -F "group[bio_raw]=$group_bio"
+    )
 
     group_id=$(echo $group_info | jq '.basic_group.id')
 }
