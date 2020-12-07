@@ -19,8 +19,8 @@
     <div class="uk-container uk-margin-medium">
         <h1>Shared Tasks</h1>
         {{ user_id }} <br>
-        {{ group_id }} <br>
-        {{ auth }} <br>
+        {{ vm_id }} <br>
+        {{ role }} <br>
     </div>
     <div class="uk-container uk-margin-medium">
         <div id="search-control">
@@ -56,7 +56,7 @@
                 <td class="">
                     [<a href="{{ task.web }}" target="_blank">info</a>]
                     [<a href="{% url 'tira:task-detail' task_id=task.task_id %}">leaderboard</a>]
-                    [<a href="{% if auth == 4 %}{% url 'tira:authentication' %}{% else %}{% url 'tira:software-detail' task_id=task.task_id user_id=user_id %}{% endif %}">participate</a>]
+                    [<a href="{% if role == 'guest' %}{% url 'tira:login' %}{% else %}{% url 'tira:software-detail' task_id=task.task_id vm_id=vm_id %}{% endif %}">participate</a>]
                 </td>
                 <td>{{ task.organizer }}</td>
                 <td class="uk-text-center">{{ task.year }}</td>
@@ -79,9 +79,9 @@
 
 {% if include_navigation %}
 <script src="https://assets.webis.de/js/thirdparty/jquery/jquery.slim.min.js"></script>
-{% endif %}
 <script src="https://assets.webis.de/js/thirdparty/fontawesome/fontawesome.min.js"></script>
 <script src="https://assets.webis.de/js/thirdparty/fontawesome/solid.min.js"></script>
+{% endif %}
 <script src="https://assets.webis.de/js/filter.js"></script>
 <script src="https://assets.webis.de/js/selection.js"></script>
 <script src="https://assets.webis.de/js/tables.js"></script>

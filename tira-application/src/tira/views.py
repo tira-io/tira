@@ -12,19 +12,20 @@ auth = Authentication(authentication_source=settings.DEPLOYMENT,
 
 
 def index(request):
-
+    uid = auth.get_user_id(request)
+    vmid = auth.get_vm_id(request, uid)
     context = {
         "include_navigation": include_navigation,
         "tasks": model.get_tasks(),
-        "user_id": auth.get_user_id(request),
-        "group_id": auth.get_user_groups(request),
-        "auth": auth.get_role(request)
+        "user_id": uid,
+        "vm_id": vmid,
+        "role": auth.get_role(request)
     }
     return render(request, 'tira/index.html', context)
 
 
-def authentication(request):
-    return redirect('https://disraptor.tira.io/authentication')
+def login(request):
+    return redirect('https://disraptor.tira.io/login')
 
 
 def task_list(request):
@@ -68,22 +69,25 @@ def software_user(request, user_id):
     return redirect('tira:index')
 
 
-def software_detail(request, task_id, user_id):
-    """ render the detail of the user page: vm-stats, softwares, and runs """
-    if not user_id:
+def software_detail(request, task_id, vm_id):
+    """ render the detail of the user page: vm-stats, softwares, and runs
+    TODO handle ROLE_USER/ROLE_ADMIN
+    TODO handle ROLE_GUEST and "no-vm-assigned"
+    """
+    if not vm_id or vm_id=="no-vm-assigned":
         context = {
             "include_navigation": include_navigation,
         }
         return render(request, 'tira/login.html', context)
 
-    softwares = model.softwares_by_user[user_id]  # [{id, count, command, working_directory, dataset, run, creation_date, last_edit}]
+    softwares = model.softwares_by_user[vm_id]  # [{id, count, command, working_directory, dataset, run, creation_date, last_edit}]
 
     # softwares have the same id for different tasks
     # clarify softwares by fixing them to datasets: software1-dataset_id
     for software in softwares:
         software["name"] = f"{software['id']}-{software['dataset']}"
 
-    runs = model.get_user_runs(user_id)  # [{software, run_id, input_run_id, size, lines, files, dirs, dataset, review: {}}]
+    runs = model.get_user_runs(vm_id)  # [{software, run_id, input_run_id, size, lines, files, dirs, dataset, review: {}}]
 
     run_by_software = {sw["id"]: [r for r in runs if r["software"] == sw["id"]]
                        for sw in softwares}
@@ -105,7 +109,7 @@ def software_detail(request, task_id, user_id):
 
     context = {
         "include_navigation": True if settings.DEPLOYMENT == "standalone" else False,
-        "user_id": user_id,
+        "user_id": vm_id,
         "softwares": softwares
     }
 
