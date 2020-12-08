@@ -2,15 +2,15 @@
 {% load static %}
 {% block title %}TIRA - Login{% endblock %}
 {% block description %}TIRA - Login{% endblock %}
-{% block navbar %}{% include "tira/navbar.html" with nav_active='software' %}{% endblock %}
+{% block navbar %}{% include "tira/navbar.html" with nav_active='index' %}{% endblock %}
 
 {% block content %}
 
 <nav class="uk-container">
-<ul class="uk-breadcrumb">
-<li><a href="{% url 'tira:index' %}">Tira.io</a></li>
-<li class="uk-disabled"><a href="#">Login</a></li>
-</ul>
+    <ul class="uk-breadcrumb">
+        <li><a href="{% url 'tira:index' %}">Tira.io</a></li>
+        <li class="uk-disabled"><a href="#">Login</a></li>
+    </ul>
 </nav>
 
 <main class="uk-section uk-section-default">
@@ -19,10 +19,23 @@
     </div>
 
     <div class="uk-container uk-margin-medium">
-    <form id="login-form">
-        <input type="text" class="uk-input" id="filter-field" placeholder="Type here to filter&hellip;"/>
-    </form>
-</div>
+        {% if form_error %}
+            <span style="color: red">{{ form_error }}</span>
+        {% endif %}
+        <form action="{% url 'tira:login' %}" method="post">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            {% for field in form %}
+            <div class="uk-margin-small uk-width-1-3">
+                {{ field.errors }}
+                {{ field.label_tag }}
+                {{ field }}
+            </div>
+            {% endfor %}
+
+            <input type="submit" class="uk-button uk-button-primary" value="Login"/>
+        </form>
+    </div>
 
 </main>
 

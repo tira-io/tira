@@ -32,7 +32,8 @@ DEBUG = custom_settings.get("debug", True)
 ALLOWED_HOSTS = custom_settings.get("allowed_hosts", [])
 
 TIRA_ROOT = Path(custom_settings.get("tira_root", "/mnt/ceph/tira"))
-DEPLOYMENT = custom_settings.get("deployment", "standalone")
+DEPLOYMENT = custom_settings.get("deployment", "legacy")
+LEGACY_USER_FILE = Path(custom_settings.get("legacy_users_file", ""))
 
 # Application definition
 

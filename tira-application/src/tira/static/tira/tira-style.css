@@ -36,7 +36,10 @@
         height: 20vh
     }
 }
-/* strange disraptor hover color fix?  */
+/* strange disraptor hover fixes?  */
 .disraptor-content .sortable:hover {
     background-color: revert;
+}
+.disraptor-content .webis-data-table .sortable {
+    cursor: revert;
 }

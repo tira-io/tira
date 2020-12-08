@@ -33,31 +33,91 @@ class Authentication(object):
     def __init__(self, **kwargs):
         pass
 
-    def get_role(self, request, user_id: str = None, vm_id: str = None, task_id: str = None, dataset_id: str = None):
-        return self.ROLE_ADMIN
+    def get_role(self, request, user_id: str = None, resource_id: str = None, resource_type: str = 'vm_id'):
+        """ Determine the role of the user on the requested page (determined by the given directives).
 
-    def _get_user_id(self, request):
-        return "None"
+        @param request: djangos request object associated to the http request
+        @param user_id: id of the user requesting the resource
+        @param resource_id: to check which role user_id has on the requested resource
+        @param resource_type: the type of the resource: {vm_id, task_id, dataset_id}
+        :return ROLE_GUEST: if disraptor token is wrong or user is not logged in
+        :return ROLE_ADMIN: if user is in group 'admins'
+        :return ROLE_PARTICIPANT: if user is in the vm-group of the given :param vm_id:
+        :return ROLE_USER: if user is logged in, but not in the group of :param vm_id:
+        """
+        return self.ROLE_GUEST
 
     def get_user_id(self, request):
         return "None"
 
-    def _get_user_groups(self, request):
-        return ["1"]
-
-    def get_vm_id(self, request, user_id: str = None):
+    def get_vm_id(self, request, user_id):
         return "None"
 
+    def login(self, request, **kwargs):
+        pass
 
-class StandaloneAuthentication(Authentication):
-    _AUTH_SOURCE = "standalone"
+    def logout(self, request, **kwargs):
+        pass
+
+
+class LegacyAuthentication(Authentication):
+    _AUTH_SOURCE = "legacy"
 
     def __init__(self, **kwargs):
-        super(StandaloneAuthentication, self).__init__(**kwargs)
-        self.users_file_path = kwargs["tira_root"] / "model/users/users.prototext"
+        """ Load data from the file database to support legacy authentication
+        @param kwargs:
+        - :param users_file: path to the users.prototext that contains the user data
+        """
+        super(LegacyAuthentication, self).__init__(**kwargs)
+        # TODO file change listener
+        users = Parse(open(kwargs["users_file"], "r").read(), modelpb.Users())
+        self.users = {user.userName: user for user in users.users}
 
-    def get_role(self, request, user_id: str = None, vm_id: str = None, task_id: str = None, dataset_id: str = None):
-        return self.ROLE_ADMIN
+    def login(self, request, **kwargs):
+        """ Set a user_id cookie to the django session
+        @param kwargs:
+        - :param user_id:
+        - :param password:
+        """
+        try:
+            user = self.users.get(kwargs["user_id"])
+            if kwargs["password"] == user.userPw:
+                request.session["user_id"] = kwargs["user_id"]
+            else:
+                return False
+        except:
+            return False
+        return True
+
+    def logout(self, request, **kwargs):
+        """ Remove a user_id cookie from the django session
+        @param kwargs:
+        - :param user_id:
+        """
+        try:
+            del request.session[kwargs["user_id"]]
+        except KeyError:
+            pass
+
+    def get_role(self, request, user_id: str = None, resource_id: str = None, resource_type: str = 'vm_id'):
+        """ Determine the role of the user on the requested page (determined by the given directives).
+        This is a minimalistic implementation using the legacy account storage.
+
+        Currently only checks: (1) is user admin, (2) otherwise, is user owner of the vm (ROLE_PARTICIPANT)
+        """
+        user_id = request.session.get("user_id", None)
+        user = self.users.get(user_id, None)
+        if not user_id or not user:
+            return self.ROLE_GUEST
+
+        if 'reviewer' in {role for role in user.roles}:
+            return self.ROLE_ADMIN
+
+        # NOTE: in the old user management vm_id == user_id
+        if resource_type == 'vm_id' and user_id == resource_id:
+            return self.ROLE_PARTICIPANT
+
+        return self.ROLE_GUEST
 
     def get_user_id(self, request):
         return "None"
@@ -69,6 +129,7 @@ class StandaloneAuthentication(Authentication):
 class DisraptorAuthentication(Authentication):
     _AUTH_SOURCE = "disraptor"
 
+    @staticmethod
     def _reply_if_allowed(self, request, response, alternative="None"):
         """ Returns the :param response: if disraptor auth token is correct, otherwise returns the :param alternative:
         TODO return the response if the the disraptor secret is correct but WHERE IS THAT???
@@ -76,34 +137,39 @@ class DisraptorAuthentication(Authentication):
         # print(request.headers.get('X-Disraptor-App-Secret-Key', None))
         return response
 
-    def _get_user_id(self, request):
+    @staticmethod
+    def _get_user_id(request):
         """ Return the content of the X-Disraptor-User header set in the http request """
         user_id = request.headers.get('X-Disraptor-User', "None")
         return user_id
 
-    def _get_user_groups(self, request) -> tuple:
+    @staticmethod
+    def _is_in_group(request, group_name='admins') -> bool:
+        """ return True if the user is in the given disraptor group"""
+        return group_name in request.headers.get('X-Disraptor-Groups', "").split(",")
+
+    @staticmethod
+    def _get_user_groups(request, group_type: str = "vm") -> list:
         """ read groups from the disraptor groups header.
-        Returns a tuple:
-        - first value is a bool if the user is in the group "admins"
-        - second value is a list of vm_ids which the user has permissions the see
+        @param group_type: {"vm"}, indicate the class of groups.
         """
         all_groups = request.headers.get('X-Disraptor-Groups', "None").split(",")
-        vm_groups = [u.split("-")[2:] for u in all_groups if u.startswith("tira-vm-")]
-        return "admins" in all_groups, vm_groups
 
-    def get_role(self, request, user_id: str = None, vm_id: str = None, task_id: str = None, dataset_id: str = None):
+        if group_type == 'vm':  # if we check for groups of a virtual machine
+            return [u.split("-")[2:] for u in all_groups if u.startswith("tira-vm-")]
+
+    def get_role(self, request, user_id: str = None, resource_id: str = None, resource_type: str = 'vm_id'):
         """ Determine the role of the user on the requested page (determined by the given directives).
-        This is a minimalistic implementation that suffices for the current state of TIRA.
+        This is a minimalistic implementation that suffices for the current features of TIRA.
 
-        :return ROLE_GUEST: if disraptor token is wrong or user is not logged in
-        :return ROLE_ADMIN: if user is in group 'admins'
-        :return ROLE_PARTICIPANT: if user is in the vm-group of the given :param vm_id:
-        "return ROLE_USER: if user is logged in, but not in the group of :param vm_id:
+        Currently only checks: (1) is user admin, (2) otherwise, is user owner of the vm (ROLE_PARTICIPANT)
         """
-        is_admin, user_groups = self._get_user_groups(request)
-        if is_admin:
+
+        if self._is_in_group(request, "admins"):
             return self._reply_if_allowed(request, self.ROLE_ADMIN, self.ROLE_GUEST)
-        elif vm_id in user_groups:
+
+        user_groups = self._get_user_groups(request, group_type='vm')
+        if resource_id in user_groups:
             return self._reply_if_allowed(request, self.ROLE_PARTICIPANT, self.ROLE_GUEST)
         elif user_id:
             return self._reply_if_allowed(request, self.ROLE_USER, self.ROLE_GUEST)
@@ -117,7 +183,7 @@ class DisraptorAuthentication(Authentication):
         """ return the vm_id of the first vm_group ("tira-vm-<vm_id>") found.
          If there is no vm-group, return "no-vm-assigned"
          """
-        _, vms = self._get_user_groups(request)
+        vms = self._get_user_groups(request)
         return vms[0] if len(vms) >= 1 else "no-vm-assigned"
 
 
