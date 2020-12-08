@@ -11,6 +11,6 @@ urlpatterns = [
     path('task/<str:task_id>/user/<str:vm_id>', views.software_detail, name='software-detail'),
     path('dataset', views.dataset_list, name='dataset'),
     path('dataset/<str:dataset_id>', views.dataset_detail, name='dataset-detail'),
-    path('software/<str:vm_id>', views.software_user, name='software-user'),
+    path('software/<str:user_id>', views.software_user, name='software-user'),
     path('login', views.login, name='login'),
 ]

@@ -4,5 +4,7 @@ allowed_hosts:
   - "*"
 # --- Tira specific settings
 tira_root: /mnt/ceph/tira
-# deployment = {disraptor, standalone}
+# deployment = {disraptor, legacy}
 deployment: disraptor
+# in the legacy deployment, a path to the users file is needed
+# legacy_users_file: /mnt/ceph/tira/model/users/users.prototext

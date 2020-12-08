@@ -4,11 +4,13 @@ from itertools import groupby
 from django.conf import settings
 from .tira_model import FileDatabase
 from .authentication import Authentication
+from .forms import LoginForm
+from django import forms
 
 model = FileDatabase()
-include_navigation = True if settings.DEPLOYMENT == "standalone" else False
+include_navigation = True if settings.DEPLOYMENT == "legacy" else False
 auth = Authentication(authentication_source=settings.DEPLOYMENT,
-                      tira_root=settings.TIRA_ROOT)
+                      users_file=settings.LEGACY_USER_FILE)
 
 
 def index(request):
@@ -25,7 +27,26 @@ def index(request):
 
 
 def login(request):
-    return redirect('https://disraptor.tira.io/login')
+    """ Hand out the login form
+    Note that this is only called in legacy deployment. Disraptor is supposed to catch the route to /login
+    """
+    context = {
+        "include_navigation": include_navigation,
+    }
+    if request.method == "POST":
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            # read form data, do auth.login(request, user_id, password)
+            valid = auth.login(request, user_id=form.cleaned_data["user_id"], password=form.cleaned_data["password"])
+            if valid:
+                return redirect('tira:index')
+            else:
+                context["form_error"] = "Login Invalid"
+    else:
+        form = LoginForm()
+
+    context["form"] = form
+    return render(request, 'tira/login.html', context)
 
 
 def task_list(request):
