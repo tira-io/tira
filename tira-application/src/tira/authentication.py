@@ -95,7 +95,7 @@ class LegacyAuthentication(Authentication):
         - :param user_id:
         """
         try:
-            del request.session[kwargs["user_id"]]
+            del request.session["user_id"]
         except KeyError:
             pass
 
@@ -103,34 +103,42 @@ class LegacyAuthentication(Authentication):
         """ Determine the role of the user on the requested page (determined by the given directives).
         This is a minimalistic implementation using the legacy account storage.
 
+        This implementation ignores the request object. User get_user_id and get_vm_id
+
         Currently only checks: (1) is user admin, (2) otherwise, is user owner of the vm (ROLE_PARTICIPANT)
         """
-        user_id = request.session.get("user_id", None)
         user = self.users.get(user_id, None)
-        if not user_id or not user:
-            return self.ROLE_GUEST
+        print(user)
 
         if 'reviewer' in {role for role in user.roles}:
             return self.ROLE_ADMIN
+
+        if not user_id or not user:
+            return self.ROLE_GUEST
 
         # NOTE: in the old user management vm_id == user_id
         if resource_type == 'vm_id' and user_id == resource_id:
             return self.ROLE_PARTICIPANT
 
-        return self.ROLE_GUEST
+        return self.ROLE_USER
 
     def get_user_id(self, request):
-        return "None"
+        # TODO
+        return request.session.get("user_id", None)
 
-    def _get_user_groups(self, request):
-        return ["2"]
+    def get_vm_id(self, request, user_id):
+        """ Note: in the old schema, user_id == vm_id"""
+        user = self.users.get(user_id, None)
+        if user and user.vmName:
+            return user_id
+        return "no-vm-assigned"
 
 
 class DisraptorAuthentication(Authentication):
     _AUTH_SOURCE = "disraptor"
 
     @staticmethod
-    def _reply_if_allowed(self, request, response, alternative="None"):
+    def _reply_if_allowed(request, response, alternative="None"):
         """ Returns the :param response: if disraptor auth token is correct, otherwise returns the :param alternative:
         TODO return the response if the the disraptor secret is correct but WHERE IS THAT???
         """
@@ -161,6 +169,8 @@ class DisraptorAuthentication(Authentication):
     def get_role(self, request, user_id: str = None, resource_id: str = None, resource_type: str = 'vm_id'):
         """ Determine the role of the user on the requested page (determined by the given directives).
         This is a minimalistic implementation that suffices for the current features of TIRA.
+
+        This implementation relies only on the request object, since disraptor takes care of the rest.
 
         Currently only checks: (1) is user admin, (2) otherwise, is user owner of the vm (ROLE_PARTICIPANT)
         """
