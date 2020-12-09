@@ -13,4 +13,5 @@ urlpatterns = [
     path('dataset/<str:dataset_id>', views.dataset_detail, name='dataset-detail'),
     path('software/<str:user_id>', views.software_user, name='software-user'),
     path('login', views.login, name='login'),
+    path('logout', views.logout, name='logout'),
 ]

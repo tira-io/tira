@@ -21,7 +21,7 @@ def index(request):
         "tasks": model.get_tasks(),
         "user_id": uid,
         "vm_id": vmid,
-        "role": auth.get_role(request)
+        "role": auth.get_role(request, user_id=uid)
     }
     return render(request, 'tira/index.html', context)
 
@@ -32,6 +32,7 @@ def login(request):
     """
     context = {
         "include_navigation": include_navigation,
+        "role": auth.get_role(request)
     }
     if request.method == "POST":
         form = LoginForm(request.POST)
@@ -49,6 +50,11 @@ def login(request):
     return render(request, 'tira/login.html', context)
 
 
+def logout(request):
+    auth.logout(request)
+    return redirect('tira:index')
+
+
 def task_list(request):
     return redirect('tira:index')
 
@@ -56,6 +62,7 @@ def task_list(request):
 def task_detail(request, task_id):
     context = {
         "include_navigation": include_navigation,
+        "role": auth.get_role(request),
         "task_id": task_id,
         "tasks": model.get_datasets_by_task(task_id)
     }
@@ -65,6 +72,7 @@ def task_detail(request, task_id):
 def dataset_list(request):
     context = {
         "include_navigation": include_navigation,
+        "role": auth.get_role(request),
         "datasets": model.datasets
     }
     return render(request, 'tira/dataset_list.html', context)
@@ -77,6 +85,7 @@ def dataset_detail(request, dataset_id):
     users = [(status[user_id], runs[user_id]) for user_id in status.keys()]
     context = {
         "include_navigation": settings.DEPLOYMENT,
+        "role": auth.get_role(request),
         "name": dataset_id,
         "ev_keys": ev_keys,
         "evaluations": ev,
@@ -98,6 +107,7 @@ def software_detail(request, task_id, vm_id):
     if not vm_id or vm_id=="no-vm-assigned":
         context = {
             "include_navigation": include_navigation,
+            "role": auth.get_role(request)
         }
         return render(request, 'tira/login.html', context)
 
