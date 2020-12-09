@@ -1,9 +1,16 @@
+import asyncio
+import grpc
+from grpc import aio
+from google.protobuf.empty_pb2 import Empty
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, Http404
 from itertools import groupby
 from django.conf import settings
 from .tira_model import FileDatabase
 from .authentication import Authentication
+
+from .proto import tira_host_pb2
+from .proto import tira_host_pb2_grpc
 
 model = FileDatabase()
 include_navigation = True if settings.DEPLOYMENT == "standalone" else False
@@ -66,13 +73,53 @@ def software_user(request, user_id):
     return redirect('tira:index')
 
 
-def software_detail(request, task_id, user_id):
+def vm_info():
+    channel = grpc.insecure_channel('betaweb111.medien.uni-weimar.de:50051')
+    # channel = grpc.insecure_channel('localhost:50051')
+    stub = tira_host_pb2_grpc.TiraHostServiceStub(channel)
+    responseVmInfo = stub.vm_info(tira_host_pb2.RequestVmCommands(vmName="nik-test-u18-04-tira-ubuntu-18-04-desktop-64bit"))
+    print("Client received: " + str(responseVmInfo))
+    channel.close()
+    return responseVmInfo
+
+async def vm_start():
+    channel = aio.insecure_channel('betaweb111.medien.uni-weimar.de:50051')
+    stub = tira_host_pb2_grpc.TiraHostServiceStub(channel)
+    response = await stub.vm_start(tira_host_pb2.RequestVmCommands(vmName="nik-test-u18-04-tira-ubuntu-18-04-desktop-64bit"))
+    print("Client received: " + response.output)
+    await channel.close()
+    return response
+
+async def vm_stop():
+    channel = aio.insecure_channel('betaweb111.medien.uni-weimar.de:50051')
+    stub = tira_host_pb2_grpc.TiraHostServiceStub(channel)
+    response = await stub.vm_stop(tira_host_pb2.RequestVmCommands(vmName="nik-test-u18-04-tira-ubuntu-18-04-desktop-64bit"))
+    print("Client received: " + response.output)
+    await channel.close()
+    return response
+
+async def grpc_requests(f):
+    await asyncio.gather(f)
+
+def software_detail(request, task_id, user_id, action=None):
     """ render the detail of the user page: vm-stats, softwares, and runs """
     if not user_id:
         context = {
             "include_navigation": include_navigation,
         }
         return render(request, 'tira/login.html', context)
+
+    # request tira-host for vmInfo
+    responseVmInfo = vm_info()
+    is_running = responseVmInfo.state.startswith("running")
+
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
+    if action == "stop_vm":
+        result = loop.run_until_complete(grpc_requests(vm_stop()))
+    elif action == "start_vm":
+        result = loop.run_until_complete(grpc_requests(vm_start()))
 
     softwares = model.softwares_by_user[user_id]  # [{id, count, command, working_directory, dataset, run, creation_date, last_edit}]
 
@@ -104,7 +151,9 @@ def software_detail(request, task_id, user_id):
     context = {
         "include_navigation": True if settings.DEPLOYMENT == "standalone" else False,
         "user_id": user_id,
-        "softwares": softwares
+        "softwares": softwares,
+        "responseVmInfo": responseVmInfo,
+        "is_running": is_running
     }
 
     return render(request, 'tira/software.html', context)

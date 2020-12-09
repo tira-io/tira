@@ -25,13 +25,13 @@
             <div class="uk-card uk-card-body uk-width-1-3 uk-card-default">
                 <table>
                     <tr>
-                        <td>OS:</td>
+                        <td>OS: {{ responseVmInfo.guestOs }}</td>
                     </tr>
                     <tr>
-                        <td>RAM:</td>
+                        <td>RAM: {{ responseVmInfo.memorySize }}</td>
                     </tr>
                     <tr>
-                        <td>CPU:</td>
+                        <td>CPU: {{ responseVmInfo.numberOfCpus }}</td>
                     </tr>
                     <tr>
                         <td>&nbsp;</td>
@@ -51,7 +51,8 @@
                 <h3 class="uk-card-title">State</h3>
                 <table>
                     <tr>
-                        <td>VM is Idle | VM is executing Software 1. | Vm is shut down. | VM is being sandboxed.</td>
+{#                      <td>VM is Idle | VM is executing Software 1. | Vm is shut down. | VM is being sandboxed.</td>#}
+                        <td>{{ responseVmInfo.state }}</td>
                     </tr>
                     <tr>
                         <td>Ssh Port is (not) accessible</td>
@@ -63,7 +64,7 @@
 
                 <div class="uk-grid-small uk-margin-small" uk-grid>
                     <div>
-                        <button class="uk-button uk-button-primary uk-text-center">Start|Stop VM</button>
+                        <button onclick="location.href='{{ request.path }}/{% if is_running %}stop_vm{% else %}start_vm{% endif %}';" class="uk-button uk-button-primary uk-text-center {% if is_running %}uk-button-danger{% endif %}">{% if is_running %}Stop VM{% else %}Start VM{% endif %}</button>
                     </div>
                     <div>
                         <button class="uk-button uk-button-primary uk-text-center">Abort Run</button>

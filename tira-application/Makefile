@@ -34,6 +34,7 @@ protobuf:
 	protoc -I=$(SRC_DIR) --python_out=$(BUILD_PATH) $(SRC_DIR)/tira_messages.proto
 	protoc -I=$(SRC_DIR) --python_out=$(BUILD_PATH) $(SRC_DIR)/TiraClientWebMessages.proto
 	${PYTHON} -m grpc_tools.protoc -I=$(SRC_DIR) --grpc_python_out=$(BUILD_PATH) tira_to_web.proto
+#	${PYTHON} -m grpc_tools.protoc -I=$(SRC_DIR) --python_out=$(BUILD_PATH) --grpc_python_out=$(BUILD_PATH) tira_host.proto
 	touch $(BUILD_PATH)/__init__.py
 
 django:
