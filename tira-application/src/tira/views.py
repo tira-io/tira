@@ -15,12 +15,11 @@ auth = Authentication(authentication_source=settings.DEPLOYMENT,
 
 def index(request):
     uid = auth.get_user_id(request)
-    vmid = auth.get_vm_id(request, uid)
     context = {
         "include_navigation": include_navigation,
         "tasks": model.get_tasks(),
         "user_id": uid,
-        "vm_id": vmid,
+        "vm_id": auth.get_vm_id(request, uid),
         "role": auth.get_role(request, user_id=uid)
     }
     return render(request, 'tira/index.html', context)
@@ -55,15 +54,13 @@ def logout(request):
     return redirect('tira:index')
 
 
-def task_list(request):
-    return redirect('tira:index')
-
-
 def task_detail(request, task_id):
+    uid = auth.get_user_id(request)
     context = {
         "include_navigation": include_navigation,
-        "role": auth.get_role(request),
-        "task_id": task_id,
+        "vm_id": auth.get_vm_id(request, uid),
+        "role": auth.get_role(request, uid),
+        "task": model.get_task(task_id),
         "tasks": model.get_datasets_by_task(task_id)
     }
     return render(request, 'tira/task_detail.html', context)
@@ -78,15 +75,17 @@ def dataset_list(request):
     return render(request, 'tira/dataset_list.html', context)
 
 
-def dataset_detail(request, dataset_id):
+def dataset_detail(request, task_id, dataset_id):
     # todo - this should differ based on user authentication
     ev_keys, status, runs, evaluations = model.get_dataset_runs(dataset_id, only_public_results=False)
     ev = [f for v in evaluations.values() for f in v]
     users = [(status[user_id], runs[user_id]) for user_id in status.keys()]
+    print(model.get_task(task_id))
     context = {
-        "include_navigation": settings.DEPLOYMENT,
-        "role": auth.get_role(request),
-        "name": dataset_id,
+        "include_navigation": include_navigation,
+        "role": auth.get_role(request, auth.get_user_id(request)),
+        "dataset_id": dataset_id,
+        "task": model.get_task(task_id),
         "ev_keys": ev_keys,
         "evaluations": ev,
         "users": users
@@ -94,9 +93,9 @@ def dataset_detail(request, dataset_id):
     return render(request, 'tira/dataset_detail.html', context)
 
 
-def software_user(request, user_id):
-    # TODO show all tasks or datasets a user participated in. -> depends on the disraptor groups
-    return redirect('tira:index')
+# def software_user(request, user_id):
+#     # TODO show all tasks or datasets a user participated in. -> depends on the disraptor groups
+#     return redirect('tira:index')
 
 
 def software_detail(request, task_id, vm_id):
@@ -104,9 +103,10 @@ def software_detail(request, task_id, vm_id):
     TODO handle ROLE_USER/ROLE_ADMIN
     TODO handle ROLE_GUEST and "no-vm-assigned"
     """
-    if not vm_id or vm_id=="no-vm-assigned":
+    if not vm_id or vm_id == "no-vm-assigned":
         context = {
             "include_navigation": include_navigation,
+            "task": model.get_task(task_id),
             "role": auth.get_role(request)
         }
         return render(request, 'tira/login.html', context)
@@ -139,7 +139,8 @@ def software_detail(request, task_id, vm_id):
         software["results"] = r_independent
 
     context = {
-        "include_navigation": True if settings.DEPLOYMENT == "standalone" else False,
+        "include_navigation": include_navigation,
+        "task": model.get_task(task_id),
         "user_id": vm_id,
         "softwares": softwares
     }

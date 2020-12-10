@@ -59,12 +59,7 @@ class FileDatabase(object):
 
         for task_path in self.tasks_dir_path.glob("*"):
             task = Parse(open(task_path, "r").read(), modelpb.Tasks.Task())
-            tasks[task.taskId] = {"name": task.taskName, "description": task.taskDescription, "task_id": task.taskId,
-                                  "dataset_count": len(task.trainingDataset) + len(task.testDataset),
-                                  "software_count": len(self.softwares_by_task.get(task.taskId, {0})),
-                                  "web": task.web, "organizer": self.organizers.get(task.hostId, modelpb.Hosts.Host()).name,
-                                  "year": self.organizers.get(task.hostId, modelpb.Hosts.Host()).years
-                                  }
+            tasks[task.taskId] = task
             for td in task.trainingDataset:
                 default_tasks[td] = task.taskId
                 task_organizers[td] = self.organizers.get(task.hostId, modelpb.Hosts.Host()).name
@@ -91,13 +86,13 @@ class FileDatabase(object):
         for dataset_file in self.datasets_dir_path.rglob("*.prototext"):
             dataset = Parse(open(dataset_file, "r").read(), modelpb.Dataset())
             datasets[dataset.datasetId] = {
-                "name": dataset.datasetId, "evaluator_id": dataset.evaluatorId,
+                "display_name": dataset.displayName, "evaluator_id": dataset.evaluatorId,
                 "dataset_id": dataset.datasetId,
                 "is_confidential": dataset.isConfidential, "is_deprecated": dataset.isDeprecated,
                 "year": extract_year_from_dataset_id(dataset.datasetId),
                 "task": self.default_tasks.get(dataset.datasetId, ""),
                 'organizer': self.task_organizers.get(dataset.datasetId, ""),
-                "softwares": self.softwares_count_by_dataset.get(dataset.datasetId, 0)
+                "software_count": self.softwares_count_by_dataset.get(dataset.datasetId, 0)
             }
 
         return datasets
@@ -202,7 +197,21 @@ class FileDatabase(object):
         return list(measure_keys), evaluations
 
     def get_tasks(self) -> list:
-        return list(self.tasks.values())
+        tasks = [self.get_task(task.taskId)
+                 for task in self.tasks.values()]
+        return tasks
+
+    def get_task(self, task_id: str) -> dict:
+        t = self.tasks[task_id]
+        return {"task_name": t.taskName,
+                "description": t.taskDescription,
+                "task_id": t.taskId,
+                "dataset_count": len(t.trainingDataset) + len(t.testDataset),
+                "software_count": len(self.softwares_by_task.get(t.taskId, {0})),
+                "web": t.web,
+                "organizer": self.organizers.get(t.hostId, modelpb.Hosts.Host()).name,
+                "year": self.organizers.get(t.hostId, modelpb.Hosts.Host()).years
+                }
 
     def get_datasets_by_task(self, task_id: str) -> list:
         """ return the list of datasets associated with this task_id

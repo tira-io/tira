@@ -8,22 +8,23 @@
 <nav class="uk-container">
 <ul class="uk-breadcrumb">
 <li><a href="{% url 'tira:index' %}">Tira.io</a></li>
-<li> <a href="{% url 'tira:dataset' %}">Datasets</a></li>
-<li class="uk-disabled"><a href="#">{{ name }}</a></li>
+<li> <a href="{% url 'tira:task-detail' task_id=task.task_id %}">{{ task.task_name }}</a></li>
+<li class="uk-disabled"><a href="#">{{ dataset_id }}</a></li>
 </ul>
 </nav>
 
 <main class="uk-section uk-section-default">
     <div class="uk-container">
-        <h1>Dataset: <span class="uk-text-muted">{{ name }}</span></h1>
+        <h1>{{ task.task_name }}</h1>
+        <h2>Dataset: <span class="uk-text-muted">{{ dataset_id }}</span></h2>
     </div>
 
-    <div class="uk-container uk-margin-medium">
-        <ul class="uk-list">
-            <li><span data-uk-icon="chevron-down"></span> <a href="#tira-evaluation-results">Evaluation Results</a></li>
-            <li><span data-uk-icon="chevron-down"></span> <a href="#tira-runs">Runs</a></li>
-        </ul>
-    </div>
+<!--    <div class="uk-container uk-margin-medium">-->
+<!--        <ul class="uk-list">-->
+<!--            <li><span data-uk-icon="chevron-down"></span> <a href="#tira-evaluation-results">Evaluation Results</a></li>-->
+<!--            <li><span data-uk-icon="chevron-down"></span> <a href="#tira-runs">Runs</a></li>-->
+<!--        </ul>-->
+<!--    </div>-->
 
     <div class="uk-container uk-margin-medium">
         <table class="uk-margin-medium uk-table uk-table-divider uk-table-small sortable targetable">
@@ -31,17 +32,19 @@
             <tr>
                 <th id="tira-evaluation-results"></th>
                 <th colspan="{{ ev_keys|length|add:'7' }}">
-                    Results of {{ name }}
+                    Results of {{ dataset_id }}
                     <a href="#" class="uk-float-right uk-link-reset" data-uk-icon="chevron-up"></a>
                 </th>
             </tr>
             <tr>
                 <th></th>
+                <th class="header"><span>Virtual Machine</span></th>
+                {% if role == 'admin' %}
                 <th class="header"><span>Actions</span></th>
-                <th class="header"><span>User</span></th>
                 <th class="header"><span>Software</span></th>
-                <th class="header"><span>Run</span></th>
                 <th class="header"><span>Input Run</span></th>
+                {% endif %}
+                <th class="header"><span>Run</span></th>
                 {% for key in ev_keys %}
                 <th class="header"><span>{{ key }}</span></th>
                 {% endfor %}
@@ -51,12 +54,14 @@
             <tbody>
             {% for eval in evaluations %}
             <tr>
-                <td id="user-{{ eval.user_id }}"></td>
-                <td></td> <!-- TODO task_id -->
-                <td><a href="{% url 'tira:software-detail' task_id='None' user_id=eval.user_id %}">{{ eval.user_id }}</a></td>
+                <td id="{{ dataset_id }}-{{ eval.user_id }}"></td>
+                <td>{{ eval.user_id }}</td>
+                {% if role == 'admin' %}
+                <td>[<a href="{% url 'tira:software-detail' task_id=task.task_id vm_id=eval.user_id %}">manage</a>]</td>
                 <td>{{ eval.software }}</td>
-                <td>{{ eval.run_id }}</td>
                 <td>{{ eval.input_run_id }}</td>
+                {% endif %}
+                <td>{{ eval.run_id }}</td>
                 {% for measure in eval.measures %}
                 <td class="uk-text-truncate">{{ measure }}</td>
                 {% endfor %}
@@ -68,6 +73,7 @@
     </div>
 
     <!-- Run results - TODO only show when user is reviewer  -->
+    {% if role == 'admin' %}
     <div class="uk-container uk-margin-medium">
         <h2 id="tira-runs">Runs</h2>
         <ul class="uk-list uk-list-collapse uk-list-striped" uk-accordion>
@@ -120,6 +126,7 @@
             {% endfor %}
         </ul>
     </div>
+    {% endif %}
 
 </main>
 
