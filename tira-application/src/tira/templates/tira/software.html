@@ -16,11 +16,20 @@
 
 <main class="uk-section uk-section-default">
     <div class="uk-container">
-        <h1>Software: <span class="uk-text-muted">{{ user_id }}</span></h1>
+        <h1>Virtual Machine &mdash; <span class="uk-text-muted">{{ user_id }}</span></h1>
     </div>
+    {% if user_id == 'no-vm-assigned' %}
+     <div class="uk-container uk-margin-medium">
+        <div class="uk-grid-small uk-grid-match" uk-grid>
+            <div class="uk-card uk-card-body uk-card-default">
+                <b>No Virtual Machine.</b>
+                Your TIRA account is currently not associated with a virtual machine. Please contact us to obtain one.
+            </div>
+        </div>
+     </div>
+    {% else %}
     <!-- VM State and general options   -->
     <div class="uk-container uk-margin-medium">
-        <h2>Virtual Machine</h2>
         <div class="uk-child-width-1-3@m uk-grid-small uk-grid-match" uk-grid>
             <div class="uk-card uk-card-body uk-width-1-3 uk-card-default">
                 <table>
@@ -73,8 +82,9 @@
 
         </div>
     </div>
+
     <div class="uk-container uk-margin-small">
-        <button class="uk-button uk-button-primary uk-text-center">Add Software</button>
+        <h2>My Software</h2>
     </div>
 
     <!-- Softwares + Results   -->
@@ -176,6 +186,11 @@
             {% endfor %}
         </ul>
     </div>
+
+    <div class="uk-container uk-margin-small">
+        <button class="uk-button uk-button-primary uk-text-center">Add Software</button>
+    </div>
+    {% endif %}
 </main>
 
 {% endblock %}
