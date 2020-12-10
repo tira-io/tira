@@ -48,7 +48,7 @@ class Authentication(object):
         return self.ROLE_GUEST
 
     def get_user_id(self, request):
-        return "None"
+        return None
 
     def get_vm_id(self, request, user_id):
         return "None"
@@ -108,13 +108,12 @@ class LegacyAuthentication(Authentication):
         Currently only checks: (1) is user admin, (2) otherwise, is user owner of the vm (ROLE_PARTICIPANT)
         """
         user = self.users.get(user_id, None)
-        print(user)
-
-        if 'reviewer' in {role for role in user.roles}:
-            return self.ROLE_ADMIN
 
         if not user_id or not user:
             return self.ROLE_GUEST
+
+        if 'reviewer' in {role for role in user.roles}:
+            return self.ROLE_ADMIN
 
         # NOTE: in the old user management vm_id == user_id
         if resource_type == 'vm_id' and user_id == resource_id:
@@ -123,7 +122,6 @@ class LegacyAuthentication(Authentication):
         return self.ROLE_USER
 
     def get_user_id(self, request):
-        # TODO
         return request.session.get("user_id", None)
 
     def get_vm_id(self, request, user_id):

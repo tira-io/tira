@@ -18,9 +18,6 @@
 
     <div class="uk-container uk-margin-medium">
         <h1>Shared Tasks</h1>
-        {{ user_id }} <br>
-        {{ vm_id }} <br>
-        {{ role }} <br>
     </div>
     <div class="uk-container uk-margin-medium">
         <div id="search-control">
@@ -32,13 +29,6 @@
     <div class="uk-container uk-margin-medium">
         <table class="uk-margin-medium uk-table uk-table-divider uk-table-small sortable targetable">
             <thead>
-<!--            <tr>-->
-<!--                <th id="tira-tasks"></th>-->
-<!--                <th colspan="8">-->
-<!--                    Tasks at TIRA-->
-<!--                    <a href="#" class="uk-float-right uk-link-reset" data-uk-icon="chevron-up"></a>-->
-<!--                </th>-->
-<!--            </tr>-->
             <tr>
                 <th></th>
                 <th class="header"><span>Task</span></th>
@@ -52,7 +42,7 @@
             {% for task in tasks %}
             <tr>
                 <td id="task-{{ task.task_id }}"></td>
-                <td>{{ task.name }}</td>
+                <td>{{ task.task_name }}</td>
                 <td class="">
                     [<a href="{{ task.web }}" target="_blank">info</a>]
                     [<a href="{% url 'tira:task-detail' task_id=task.task_id %}">leaderboard</a>]
