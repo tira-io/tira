@@ -15,6 +15,7 @@ class Authentication(object):
     ROLE_ADMIN = "admin"  # is admin for the requested resource, so all permissions
     ROLE_PARTICIPANT = "participant"  # has edit but not admin permissions - user-header is set, group is set
     ROLE_USER = "user"  # is logged in, but has no edit permissions - user-header is set, group (tira-vm-vm_id) is not set
+    ROLE_FORBIDDEN = 'forbidden'
     ROLE_GUEST = "guest"  # not logged in -> user-header is not set
 
     def __init_subclass__(cls):
@@ -33,7 +34,7 @@ class Authentication(object):
     def __init__(self, **kwargs):
         pass
 
-    def get_role(self, request, user_id: str = None, resource_id: str = None, resource_type: str = 'vm_id'):
+    def get_role(self, request, user_id: str = None, vm_id: str = None, task_id: str = None):
         """ Determine the role of the user on the requested page (determined by the given directives).
 
         @param request: djangos request object associated to the http request
@@ -99,7 +100,7 @@ class LegacyAuthentication(Authentication):
         except KeyError:
             pass
 
-    def get_role(self, request, user_id: str = None, resource_id: str = None, resource_type: str = 'vm_id'):
+    def get_role(self, request, user_id: str = None, vm_id: str = None, task_id: str = None):
         """ Determine the role of the user on the requested page (determined by the given directives).
         This is a minimalistic implementation using the legacy account storage.
 
@@ -116,8 +117,11 @@ class LegacyAuthentication(Authentication):
             return self.ROLE_ADMIN
 
         # NOTE: in the old user management vm_id == user_id
-        if resource_type == 'vm_id' and user_id == resource_id:
+        if user_id == vm_id:
             return self.ROLE_PARTICIPANT
+
+        if user_id != vm_id and vm_id is not None:
+            return self.ROLE_FORBIDDEN
 
         return self.ROLE_USER
 
@@ -164,7 +168,7 @@ class DisraptorAuthentication(Authentication):
         if group_type == 'vm':  # if we check for groups of a virtual machine
             return [u.split("-")[2:] for u in all_groups if u.startswith("tira-vm-")]
 
-    def get_role(self, request, user_id: str = None, resource_id: str = None, resource_type: str = 'vm_id'):
+    def get_role(self, request, user_id: str = None, vm_id: str = None, task_id: str = None):
         """ Determine the role of the user on the requested page (determined by the given directives).
         This is a minimalistic implementation that suffices for the current features of TIRA.
 
@@ -177,7 +181,7 @@ class DisraptorAuthentication(Authentication):
             return self._reply_if_allowed(request, self.ROLE_ADMIN, self.ROLE_GUEST)
 
         user_groups = self._get_user_groups(request, group_type='vm')
-        if resource_id in user_groups:
+        if vm_id in user_groups:
             return self._reply_if_allowed(request, self.ROLE_PARTICIPANT, self.ROLE_GUEST)
         elif user_id:
             return self._reply_if_allowed(request, self.ROLE_USER, self.ROLE_GUEST)

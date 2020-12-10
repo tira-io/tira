@@ -21,31 +21,33 @@ class FileDatabase(object):
 
     def __init__(self):
         logger.info("Start loading dataset")
-        self.organizers = self._parse_organizer_list()
-        self.users = self._parse_users_list()
+        self.organizers = self.vms = self.tasks = self.datasets = self.software = None
+        self.software_by_task = self.software_by_vm = self.software_count_by_dataset = None
 
-        self.softwares_by_task, self.softwares_by_user = self._parse_softwares_list()
-        self.softwares_count_by_dataset = {}
-        for k, v in self.softwares_by_task.items():
-            for d in v:
-                self.softwares_count_by_dataset.setdefault(d["dataset"], 0) + 1
+        self._parse_organizer_list()
+        self._parse_vm_list()
+        self._parse_task_list()
+        self._parse_dataset_list()
+        self._parse_software_list()
 
-        self.tasks, self.default_tasks, self.task_organizers = self._parse_task_list()
-        self.datasets = self._parse_dataset_list()
+        self._build_task_relations()
+        self._build_software_relations()
+        self._build_software_counts()
 
+    # _parse methods parse files once on startup
     def _parse_organizer_list(self):
         """ Parse the PB Database and extract all hosts.
         :return: a dict {hostId: {"name", "years"}
         """
         organizers = modelpb.Hosts()
         Parse(open(self.organizers_file_path, "r").read(), organizers)
-        # return {org.hostId: {"name": org.name, "years": org.years} for org in organizers.hosts}
-        return {org.hostId: org for org in organizers.hosts}
 
-    def _parse_users_list(self):
+        self.organizers = {org.hostId: org for org in organizers.hosts}
+
+    def _parse_vm_list(self):
         users = modelpb.Users()
         Parse(open(self.users_file_path, "r").read(), users)
-        return {user.userName: user for user in users.users}
+        self.vms = {user.userName: user for user in users.users}
 
     def _parse_task_list(self):
         """ Parse the PB Database and extract all tasks.
@@ -54,12 +56,46 @@ class FileDatabase(object):
         2. a dict with default tasks of datasets {"dataset_id": "task_id"}
         """
         tasks = {}
-        default_tasks = {}
-        task_organizers = {}
 
         for task_path in self.tasks_dir_path.glob("*"):
             task = Parse(open(task_path, "r").read(), modelpb.Tasks.Task())
             tasks[task.taskId] = task
+
+        self.tasks = tasks
+
+    def _parse_dataset_list(self):
+        """ Load all the datasets from the Filedatabase.
+        :return: a dict {dataset_id: dataset protobuf object}
+        """
+        datasets = {}
+        for dataset_file in self.datasets_dir_path.rglob("*.prototext"):
+            dataset = Parse(open(dataset_file, "r").read(), modelpb.Dataset())
+            datasets[dataset.datasetId] = dataset
+
+        self.datasets = datasets
+
+    def _parse_software_list(self):
+        """ extract the software files. We invent a new id for the lookup since software has none:
+          - <task_name>$<user_name>
+        Afterwards sets self.software: a dict with the new key and a list of software objects as value
+        """
+        software = {}
+
+        for task_dir in self.softwares_dir_path.glob("*"):
+            for user_dir in task_dir.glob("*"):
+                s = Parse(open(user_dir / "softwares.prototext", "r").read(), modelpb.Softwares())
+                software_list = [user_software for user_software in s.softwares if not user_software.deleted]
+                software[f"{task_dir.stem}${user_dir.stem}"] = software_list
+
+        self.software = software
+
+    # _build methods reconstruct the relations once per parse. This is a shortcut for frequent joins.
+    def _build_task_relations(self):
+        """ parse the relation dicts self.default_tasks and self.task_organizers from self.tasks
+        """
+        default_tasks = {}
+        task_organizers = {}
+        for task_id, task in self.tasks.items():
             for td in task.trainingDataset:
                 default_tasks[td] = task.taskId
                 task_organizers[td] = self.organizers.get(task.hostId, modelpb.Hosts.Host()).name
@@ -67,66 +103,41 @@ class FileDatabase(object):
                 default_tasks[td] = task.taskId
                 task_organizers[td] = self.organizers.get(task.hostId, modelpb.Hosts.Host()).name
 
-        return tasks, default_tasks, task_organizers
+        self.default_tasks = default_tasks
+        self.task_organizers = task_organizers
 
-    def _parse_dataset_list(self):
-        """ Load all the datasets from the Filedatabase. Combines with information parsed from tasks
-        :return: a dict {dataset_id: {name, "evaluator_id", "is_confidential", "is_deprecated",
-                    "year", "task", 'organizer'}}
-        """
+    def _build_software_relations(self):
+        software_by_task = {}
+        software_by_vm = {}
 
-        def extract_year_from_dataset_id(dataset_id):
-            try:
-                splits = dataset_id.split("-")
-                return splits[-3] if len(splits) > 3 and (1990 <= int(splits[-3])) else ""
-            except Exception:
-                return ""
+        for software_id, software_list in self.software.items():
+            task_id = software_id.split("$")[0]
+            vm_id = software_id.split("$")[1]
+            _swbd = software_by_task.get(task_id, list())
+            _swbd.extend(software_list)
+            software_by_task[task_id] = _swbd
 
-        datasets = {}
-        for dataset_file in self.datasets_dir_path.rglob("*.prototext"):
-            dataset = Parse(open(dataset_file, "r").read(), modelpb.Dataset())
-            datasets[dataset.datasetId] = {
-                "display_name": dataset.displayName, "evaluator_id": dataset.evaluatorId,
-                "dataset_id": dataset.datasetId,
-                "is_confidential": dataset.isConfidential, "is_deprecated": dataset.isDeprecated,
-                "year": extract_year_from_dataset_id(dataset.datasetId),
-                "task": self.default_tasks.get(dataset.datasetId, ""),
-                'organizer': self.task_organizers.get(dataset.datasetId, ""),
-                "software_count": self.softwares_count_by_dataset.get(dataset.datasetId, 0)
-            }
+            _swbu = software_by_vm.get(vm_id, list())
+            _swbu.extend(software_list)
+            software_by_vm[vm_id] = _swbu
 
-        return datasets
+        self.software_by_vm = software_by_vm
+        self.software_by_task = software_by_task
 
-    def _parse_softwares_list(self):
-        """ extract the softwares: {id, count, command, working_directory, dataset, run, creation_date, last_edit}
-         :returns softwares_by_task: a dict {task_name: [{software}, ], }
-         :returns softwares_by_user: a dict {user_id: [{software}, ], }
-         """
+    def _build_software_counts(self):
+        counts = {}
 
-        def parse_software_file(path):
-            s = Parse(open(path, "r").read(), modelpb.Softwares())
-            return [{"id": software.id, "count": software.count,
-                     "command": software.command, "working_directory": software.workingDirectory,
-                     "dataset": software.dataset, "run": software.run, "creation_date": software.creationDate,
-                     "last_edit": software.lastEditDate}
-                    for software in s.softwares if not software.deleted]
+        for software_list in self.software.values():
+            for software in software_list:
+                c = counts.get(software.dataset, 0)
+                c += 1
+                counts[software.dataset] = c
 
-        softwares_by_task = {}
-        softwares_by_user = {}
-        for dataset_dir in self.softwares_dir_path.glob("*"):
-            for user_dir in dataset_dir.glob("*"):
-                _sw = parse_software_file(user_dir / "softwares.prototext")
-                _swbd = softwares_by_task.get(dataset_dir.stem, list())
-                _swbd.extend(_sw)
-                softwares_by_task[dataset_dir.stem] = _swbd
-                _swbu = softwares_by_user.get(user_dir.stem, list())
-                _swbu.extend(_sw)
-                softwares_by_user[user_dir.stem] = _swbu
+        self.software_count_by_dataset = counts
 
-        return softwares_by_task, softwares_by_user
-
-    def _load_review(self, dataset_id, user_id, run_id):
-        review_path = self.RUNS_DIR_PATH / dataset_id / user_id / run_id / "run-review.bin"
+    # _load methods parse files on the fly when pages are called
+    def _load_review(self, dataset_id, vm_id, run_id):
+        review_path = self.RUNS_DIR_PATH / dataset_id / vm_id / run_id / "run-review.bin"
         if not review_path.exists():
             return {"reviewer": None}
         review = modelpb.RunReview()
@@ -139,6 +150,7 @@ class FileDatabase(object):
             "hasNoErrors": review.hasNoErrors, "published": review.published, "blinded": review.blinded
         }
 
+    # TODO store review objects in _loads
     def _load_user_runs(self, dataset_id, user_id):
         """
         :return runs: {run_id: {}}
@@ -162,6 +174,7 @@ class FileDatabase(object):
                                    "review": self._load_review(dataset_id, user_id, run_id_dir.stem)}
         return runs
 
+    # TODO store review objects in _loads
     def _load_user_evaluations(self, dataset_id, user_id, runs, only_published=True):
         """ load all evaluations for a user on a given dataset
 
@@ -196,6 +209,7 @@ class FileDatabase(object):
 
         return list(measure_keys), evaluations
 
+    # get methods are the public interface.
     def get_tasks(self) -> list:
         tasks = [self.get_task(task.taskId)
                  for task in self.tasks.values()]
@@ -207,25 +221,51 @@ class FileDatabase(object):
                 "description": t.taskDescription,
                 "task_id": t.taskId,
                 "dataset_count": len(t.trainingDataset) + len(t.testDataset),
-                "software_count": len(self.softwares_by_task.get(t.taskId, {0})),
+                "software_count": len(self.software_by_task.get(t.taskId, {0})),
                 "web": t.web,
                 "organizer": self.organizers.get(t.hostId, modelpb.Hosts.Host()).name,
                 "year": self.organizers.get(t.hostId, modelpb.Hosts.Host()).years
                 }
 
-    def get_datasets_by_task(self, task_id: str) -> list:
-        """ return the list of datasets associated with this task_id
-        :return datasets: [{ }]
-        """
-        return [dataset for dataset in self.datasets.values() if dataset["task"] == task_id]
+    def get_dataset(self, dataset_id: str) -> dict:
 
+        def extract_year_from_dataset_id():
+            try:
+                splits = dataset_id.split("-")
+                return splits[-3] if len(splits) > 3 and (1990 <= int(splits[-3])) else ""
+            except Exception:
+                return ""
+
+        dataset = self.datasets[dataset_id]
+        return {
+            "display_name": dataset.displayName, "evaluator_id": dataset.evaluatorId,
+            "dataset_id": dataset.datasetId,
+            "is_confidential": dataset.isConfidential, "is_deprecated": dataset.isDeprecated,
+            "year": extract_year_from_dataset_id(),
+            "task": self.default_tasks.get(dataset.datasetId, ""),
+            'organizer': self.task_organizers.get(dataset.datasetId, ""),
+            "software_count": self.software_count_by_dataset.get(dataset.datasetId, 0)
+        }
+
+    def get_datasets_by_task(self, task_id: str, include_deprecated=False) -> list:
+        """ return the list of datasets associated with this task_id
+        @param task_id: id string of the task the dataset belongs to
+        @param include_deprecated: Default False. If True, also returns datasets marked as deprecated.
+        @return: a list of json-formatted datasets, as returned by get_dataset
+        """
+        return [self.get_dataset(dataset.datasetId)
+                for dataset in self.datasets.values()
+                if task_id == self.default_tasks.get(dataset.datasetId, "") and
+                not (dataset.isDeprecated and not include_deprecated)]
+
+    # TODO change accordingly with _load_runs
     def get_dataset_runs(self, dataset_id, only_public_results=True) -> tuple:
         """ return for all users on a given dataset_id: runs, evaluations, user_stats
         Its equivalent to using the individual getters, but much faster
 
-        :return ev_keys: keys of the measures used in this dataset
-        :return user: dict of users and runs
-        :return status: {user_id: {signed_in, softwares, deleted, now_running, runs, reviewed, unreviewed}}
+        @return ev_keys: keys of the measures used in this dataset
+        @return user: dict of users and runs
+        @return status: {user_id: {signed_in, softwares, deleted, now_running, runs, reviewed, unreviewed}}
         runs: {user_id: [{software, size, lines, files, dirs, review: {}}],
         evaluations: {user_id: [{software, run_id, input_run_id, measures: {}, runtime}]}
         """
@@ -256,15 +296,23 @@ class FileDatabase(object):
 
         return ev_keys, status, runs, evaluations
 
-    def get_user_runs(self, user_id):
-        """
-        returns a list of all the runs of a user over all datasets: [{software, run_id, input_run_id, size, lines, files, dirs, review: {}}]
-        """
-        relevant_datasets = {software["dataset"] for software in self.softwares_by_user[user_id]}
+    # TODO change accordingly with _load_runs
+    def get_user_runs(self, task_id, vm_id):
+        """ returns a list of all the runs of a user over all datasets in json (as returned by _load_user_runs) """
+        relevant_datasets = {software["dataset"] for software in self.get_software(task_id, vm_id)}
 
         runs = []
         for dataset_id in relevant_datasets:
-            user_runs = self._load_user_runs(dataset_id, user_id)
+            user_runs = self._load_user_runs(dataset_id, vm_id)
             runs.extend(list(user_runs.values()))
 
         return runs
+
+    def get_software(self, task_id, vm_id):
+        """ Returns the software of a vm on a task in json """
+        return [{"id": software.id, "count": software.count,
+                 "task_id": task_id, "vm_id": vm_id,
+                 "command": software.command, "working_directory": software.workingDirectory,
+                 "dataset": software.dataset, "run": software.run, "creation_date": software.creationDate,
+                 "last_edit": software.lastEditDate}
+                for software in self.software[f"{task_id}${vm_id}"]]

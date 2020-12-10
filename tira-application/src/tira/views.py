@@ -6,6 +6,7 @@ from .tira_model import FileDatabase
 from .authentication import Authentication
 from .forms import LoginForm
 from django import forms
+from django.core.exceptions import PermissionDenied
 
 model = FileDatabase()
 include_navigation = True if settings.DEPLOYMENT == "legacy" else False
@@ -76,11 +77,10 @@ def dataset_list(request):
 
 
 def dataset_detail(request, task_id, dataset_id):
-    # todo - this should differ based on user authentication
     ev_keys, status, runs, evaluations = model.get_dataset_runs(dataset_id, only_public_results=False)
     ev = [f for v in evaluations.values() for f in v]
     users = [(status[user_id], runs[user_id]) for user_id in status.keys()]
-    print(model.get_task(task_id))
+
     context = {
         "include_navigation": include_navigation,
         "role": auth.get_role(request, auth.get_user_id(request)),
@@ -107,21 +107,27 @@ def software_detail(request, task_id, vm_id):
         context = {
             "include_navigation": include_navigation,
             "task": model.get_task(task_id),
+            "user_id": "no-vm-assigned",
             "role": auth.get_role(request)
         }
-        return render(request, 'tira/login.html', context)
+        return render(request, 'tira/software.html', context)
 
-    softwares = model.softwares_by_user[vm_id]  # [{id, count, command, working_directory, dataset, run, creation_date, last_edit}]
+    # 1. check permissions
+    role = auth.get_role(request, auth.get_user_id(request), vm_id=vm_id)
 
-    # softwares have the same id for different tasks
-    # clarify softwares by fixing them to datasets: software1-dataset_id
-    for software in softwares:
-        software["name"] = f"{software['id']}-{software['dataset']}"
+    if role == 'forbidden':
+        raise PermissionDenied
+    # 2. try to load vm, if it fails, the user has no vm
+    try:
+        softwares = model.get_software(task_id, vm_id)
+        runs = model.get_user_runs(task_id, vm_id)  # [{software, run_id, input_run_id, size, lines, files, dirs, dataset, review: {}}]
+    except KeyError:
+        # TODO logging
+        return redirect('tira:software-detail', task_id=task_id, vm_id="no-vm-assigned")
 
-    runs = model.get_user_runs(vm_id)  # [{software, run_id, input_run_id, size, lines, files, dirs, dataset, review: {}}]
 
-    run_by_software = {sw["id"]: [r for r in runs if r["software"] == sw["id"]]
-                       for sw in softwares}
+
+    run_by_software = {sw["id"]: [r for r in runs if r["software"] == sw["id"]] for sw in softwares}
     all_run_ids = {r["run_id"] for r in runs}
     # dependent run: these are the run where input_run_id is the run_id of another run in the batch
     dependent_runs = {r["run_id"] for r in runs if r["input_run_id"] in all_run_ids}
