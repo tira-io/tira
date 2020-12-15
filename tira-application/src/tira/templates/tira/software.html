@@ -91,14 +91,11 @@
     <div class="uk-container uk-margin">
 <!-- {id, count, command, working_directory, dataset, run, creation_date, last_edit} -->
         <ul class="uk-list uk-list-collapse uk-list-striped" uk-accordion>
-            {% for software in softwares %}
+            {% for sw in software %}
             <li>
-                <div class="uk-child-width-1-2" uk-grid>
-                    <div>Status: running</div>
-                    <div class="uk-text-right">[delete]</div>
-                </div>
+                <div>Status: running</div>
 
-                <a class="uk-accordion-title" href="#">{{ software.id }}</a>
+                <a class="uk-accordion-title" href="#">{{ sw.software.id }}</a>
 
                 <div class="uk-accordion-content">
                     <form>
@@ -107,14 +104,14 @@
                                 <label class="uk-form-label" for="software-1-command-input">Command</label>
                                 <div class="uk-form-controls">
                                     <input class="uk-input" id="software-1-command-input" type="text"
-                                           value="{{ software.command }}" placeholder="Dummy Command">
+                                           value="{{ sw.software.command }}" placeholder="Dummy Command">
                                 </div>
                             </div>
                             <div>
                                 <label class="uk-form-label" for="software-1-working-dir">Working Directory</label>
                                 <div class="uk-form-controls">
                                     <input class="uk-input" id="software-1-working-dir" type="text"
-                                           value="{{ software.working_directory }}" placeholder="/home/{{ user_id }}/">
+                                           value="{{ sw.software.working_directory }}" placeholder="/home/{{ user_id }}/">
                                 </div>
                             </div>
                         </div>
@@ -125,7 +122,7 @@
 
                                     <select class="uk-select" id="software-1-input-dataset">
                                         <option value="None">None</option>
-                                        <option value="{{ software.dataset }}" selected>{{ software.dataset }}</option>
+                                        <option value="{{ sw.software.dataset }}" selected>{{ sw.software.dataset }}</option>
                                     </select>
                                 </div>
                             </div>
@@ -139,9 +136,12 @@
                             </div>
                         </div>
                     </form>
-                    <h2>Results</h2>
                     <table class="uk-margin-medium uk-table uk-table-divider uk-table-small targetable">
                         <thead>
+                        <tr>
+                            <th></th>
+                            <th colspan="5">Runs of {{ sw.software.id }}</th>
+                        </tr>
                         <tr>
                             <th></th>
                             <th class="header"><span>Run</span></th>
@@ -152,9 +152,9 @@
                         </tr>
                         </thead>
                         <tbody>
-                        {% for run in software.results %}
+                        {% for run in sw.runs %}
                         <tr>
-                            <td id="{{ user_id }}-{{ run.run_id }}"></td>
+                            <td id="{{ vm_id }}-{{ sw.software.id }}-{{ run.run_id }}"></td>
                             <td>{{ run.run_id }}</td>
                             <td>{{ run.dataset }}</td>
                             <td>{{ run.input_run_id }}</td>
