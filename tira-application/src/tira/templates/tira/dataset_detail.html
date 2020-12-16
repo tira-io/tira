@@ -8,59 +8,66 @@
 <nav class="uk-container">
 <ul class="uk-breadcrumb">
 <li><a href="{% url 'tira:index' %}">Tira.io</a></li>
-<li> <a href="{% url 'tira:dataset' %}">Datasets</a></li>
-<li class="uk-disabled"><a href="#">{{ name }}</a></li>
+<li> <a href="{% url 'tira:task-detail' task_id=task.task_id %}">{{ task.task_name }}</a></li>
+<li class="uk-disabled"><a href="#">{{ dataset_id }}</a></li>
 </ul>
 </nav>
 
 <main class="uk-section uk-section-default">
     <div class="uk-container">
-        <h1>Dataset: <span class="uk-text-muted">{{ name }}</span></h1>
+        <h1>{{ task.task_name }}</h1>
+        <h2>Dataset: <span class="uk-text-muted">{{ dataset_id }}</span></h2>
     </div>
 
-    <div class="uk-container uk-margin-medium">
-        <ul class="uk-list">
-            <li><span data-uk-icon="chevron-down"></span> <a href="#tira-evaluation-results">Evaluation Results</a></li>
-            <li><span data-uk-icon="chevron-down"></span> <a href="#tira-runs">Runs</a></li>
-        </ul>
-    </div>
+<!--    <div class="uk-container uk-margin-medium">-->
+<!--        <ul class="uk-list">-->
+<!--            <li><span data-uk-icon="chevron-down"></span> <a href="#tira-evaluation-results">Evaluation Results</a></li>-->
+<!--            <li><span data-uk-icon="chevron-down"></span> <a href="#tira-runs">Runs</a></li>-->
+<!--        </ul>-->
+<!--    </div>-->
 
     <div class="uk-container uk-margin-medium">
         <table class="uk-margin-medium uk-table uk-table-divider uk-table-small sortable targetable">
             <thead>
             <tr>
                 <th id="tira-evaluation-results"></th>
-                <th colspan="{{ ev_keys|length|add:'7' }}">
-                    Results of {{ name }}
+                {% if role == 'admin' %}
+                <th colspan="{{ ev_keys|length|add:'3' }}">
+                {% else %}
+                <th colspan="{{ ev_keys|length|add:'3' }}">
+                {% endif %}
+                    Results of {{ dataset_id }}
                     <a href="#" class="uk-float-right uk-link-reset" data-uk-icon="chevron-up"></a>
                 </th>
             </tr>
             <tr>
                 <th></th>
+                {% if role == 'admin' %}
                 <th class="header"><span>Actions</span></th>
-                <th class="header"><span>User</span></th>
-                <th class="header"><span>Software</span></th>
+                {% endif %}
+                <th class="header"><span>Virtual Machine</span></th>
                 <th class="header"><span>Run</span></th>
-                <th class="header"><span>Input Run</span></th>
                 {% for key in ev_keys %}
                 <th class="header"><span>{{ key }}</span></th>
                 {% endfor %}
-                <th class="header">Runtime</th>
             </tr>
             </thead>
             <tbody>
             {% for eval in evaluations %}
             <tr>
-                <td id="user-{{ eval.user_id }}"></td>
-                <td></td> <!-- TODO task_id -->
-                <td><a href="{% url 'tira:software-detail' task_id='None' user_id=eval.user_id %}">{{ eval.user_id }}</a></td>
-                <td>{{ eval.software }}</td>
+                <td id="{{ dataset_id }}-{{ eval.vm_id }}-{{ eval.run_id }}"></td>
+                {% if role == 'admin' %}
+                <td>[<a href="{% url 'tira:software-detail' task_id=task.task_id vm_id=eval.vm_id %}">manage</a>]</td>
+                {% endif %}
+                <td>{{ eval.vm_id }}</td>
+                {% if role == 'admin' %}
+                <td><a href="#run-{{ eval.vm_id }}-{{ eval.run_id }}">{{ eval.run_id }}</a></td>
+                {% else %}
                 <td>{{ eval.run_id }}</td>
-                <td>{{ eval.input_run_id }}</td>
+                {% endif %}
                 {% for measure in eval.measures %}
                 <td class="uk-text-truncate">{{ measure }}</td>
                 {% endfor %}
-                <td>{{ evaluation.runtime }}</td>
             </tr>
             {% endfor %}
             </tbody>
@@ -68,16 +75,17 @@
     </div>
 
     <!-- Run results - TODO only show when user is reviewer  -->
+    {% if role == 'admin' %}
     <div class="uk-container uk-margin-medium">
         <h2 id="tira-runs">Runs</h2>
-        <ul class="uk-list uk-list-collapse uk-list-striped" uk-accordion>
-            {% for status, runs in users %}
+        <ul id="tira-run-accordion" class="uk-list uk-list-collapse uk-list-striped" uk-accordion>
+            {% for vm in vms %}
             <li>
                 <a class="uk-accordion-title uk-text-small" href="#">
                     <table class="uk-width-1-2"><tr>
-                        <td class="uk-width-1-2 uk-text-left">{{ status.user_id }} </td>
-                        <td class="uk-width-1-4 uk-text-right">{{ status.runs }} Runs</td>
-                        <td class="uk-width-1-4 uk-text-right">{{ status.unreviewed }} Unreviewed</td>
+                        <td class="uk-width-1-2 uk-text-left">{{ vm.vm_id }} </td>
+                        <td class="uk-width-1-4 uk-text-right">{{ vm.runs|length }} Runs</td>
+                        <td class="uk-width-1-4 uk-text-right">{{ vm.unreviewed_count }} Unreviewed</td>
                     </tr></table>
                 </a>
 
@@ -90,26 +98,24 @@
                             <th class="header"><span>Software</span></th>
                             <th class="header"><span>Run</span></th>
                             <th class="header"><span>Input Run</span></th>
-                            <th class="header">Size</th>
-                            <th class="header">Lines</th>
-                            <th class="header">Files</th>
-                            <th class="header">Dirs</th>
+                            <th class="header">Reviewer</th>
                             <th class="header">Review</th>
                         </tr>
                         </thead>
                         <tbody>
-                        {% for run in runs %}
+                        {% for run in vm.runs %}
                         <tr>
                             <td></td> <!-- id? -->
-                            <td>Review</td> <!-- actions review: toggle modal? or forward to the users page? -->
-                            <td>{{ run.software }}</td>
-                            <td>{{ run.run_id }}</td>
-                            <td>{{ run.input_run_id }}</td>
-                            <td>{{ run.size }}</td>
-                            <td>{{ run.lines }}</td>
-                            <td>{{ run.files }}</td>
-                            <td>{{ run.dirs }}</td>
+                            <td>[review]</td> <!-- actions review: toggle modal? or forward to the users page? -->
+                            <td>{{ run.run.software }}</td>
+                            <td id="run-{{ vm.vm_id }}-{{ run.run.run_id }}">{{ run.run.run_id }}</td>
+                            {% if run.run.input_run_id != 'none' %}
+                            <td><a href="#run-{{ vm.vm_id }}-{{ run.run.input_run_id }}">{{ run.run.input_run_id }}</a></td>
+                            {% else %}
+                            <td>{{ run.run.input_run_id }}</td>
+                            {% endif %}
                             <td>{{ run.review.reviewer }}</td>
+                            <td>{{ run.review.review }}</td>
                         </tr>
                         {% endfor %}
                         </tbody>
@@ -120,6 +126,7 @@
             {% endfor %}
         </ul>
     </div>
+    {% endif %}
 
 </main>
 

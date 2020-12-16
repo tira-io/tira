@@ -17,7 +17,7 @@ scriptPath=${0%/*}
 #    Define and check needed tools for this script.
 #
 neededtools="VBoxManage"
-debug && check_tools "$neededtools"  # If debug, check that tools are available.
+debug && check_tools "$neededtools" # If debug, check that tools are available.
 
 #
 #    Define usage screen.
@@ -46,7 +46,6 @@ Authors:
     exit 1
 }
 
-
 #
 #    Virtual machine configuration
 #
@@ -70,11 +69,12 @@ main() {
     # Create password hash.
     pwhash=$(perl -e 'print crypt($ARGV[0], "password")' "$pw")
     pwtirahash=$(perl -e 'print crypt($ARGV[0], "password")' "$pwtira")
-    pwdstring=pwhash + '\n' + pwhash
+    #    pwstring=pwhash + '\n' + pwhash
+    pwstring="${pwhash}'\n'${pwhash}"
 
     # Add user, change admin pw, change shell to /bin/bash.
     sshpass -p "$pwtiradefault" \
-      ssh "$usertira@${ip}00" \
+        ssh "$usertira@${ip}00" \
         -o ConnectTimeout=10 \
         -o ConnectionAttempts=100 \
         -o UserKnownHostsFile=/dev/null \

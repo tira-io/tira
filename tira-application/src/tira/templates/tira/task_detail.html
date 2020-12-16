@@ -8,14 +8,15 @@
 <nav class="uk-container">
 <ul class="uk-breadcrumb">
 <li><a href="{% url 'tira:index' %}">Tira.io</a></li>
-<li class="uk-disabled"><a href="#">{{ task_id }}</a></li>
+<li class="uk-disabled"><a href="#">{{ task.task_name }}</a></li>
 </ul>
 </nav>
 
 <main class="uk-section uk-section-default">
 <!-- Title and anchor links -->
 <div class="uk-container">
-    <h1>{{ task_id }}</h1>
+    <h1>{{ task.task_name }}</h1>
+    <p>{{ task.description }}</p>
 </div>
 
 <!-- task table start -->
@@ -25,33 +26,31 @@
         <tr>
             <th id="tira-tasks"></th>
             <th colspan="8">
-                Datasets for {{ task_id }}
+                Datasets for {{ task.task_name }} [<a href="{% if role == 'guest' %}{% url 'tira:login' %}{% else %}{% url 'tira:software-detail' task_id=task.task_id vm_id=vm_id %}{% endif %}">participate</a>]
                 <a href="#" class="uk-float-right uk-link-reset" data-uk-icon="chevron-up"></a>
             </th>
         </tr>
         <tr>
             <th></th>
             <th class="header"><span>Name</span></th>
+            <th class="header"><span></span></th>
             <th class="header"><span>Organization</span></th>
             <th class="header uk-text-center"><span>Year</span></th>
-            <th class="header uk-text-right"><span>Datasets</span></th>
-            <th class="header uk-text-right"><span>Softwares</span></th>
-            <th class="header uk-text-right"><span>Actions</span></th>
+            <th class="header uk-text-right"><span>Submissions</span></th>
         </tr>
         </thead>
         <tbody>
         {% for dataset in tasks %}
         <tr>
-            <td id="task-{{ dataset.name }}"></td>
-            <td>{{ dataset.name }}</td>
+            <td id="task-{{ dataset.dataset_id }}"></td>
+            <td>{{ dataset.dataset_id }}</td>
+            <td class="uk-text-right">
+                [<a href="{{ dataset.web }}" target="_blank">info</a>]
+                [<a href="{% url 'tira:dataset-detail' task_id=task.task_id dataset_id=dataset.dataset_id %}">leaderboard</a>]
+            </td>
             <td>{{ dataset.organizer }}</td>
             <td class="uk-text-center">{{ dataset.year }}</td>
-            <td class="uk-text-right">{{ dataset.dataset_count }}</td>
-            <td class="uk-text-right">{{ dataset.softwares_count }}</td>
-            <td class="uk-text-right">
-                [<a href="{% url 'tira:dataset-detail' dataset_id=dataset.dataset_id%}" target="_blank">results</a>]
-                [<a href="{{ dataset.web }}" target="_blank">web</a>]
-            </td>
+            <td class="uk-text-right">{{ dataset.software_count }}</td>
         </tr>
         {% empty %}
             <tr><td>Sorry, we could not find any tasks.</td></tr>
