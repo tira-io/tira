@@ -25,25 +25,25 @@
             <div class="uk-card uk-card-body uk-width-1-3 uk-card-default">
                 <table>
                     <tr>
-                        <td>OS: {{ responseVmInfo.guestOs }}</td>
+                        <td>OS</td><td>{{ responseVmInfo.guestOs }}</td>
                     </tr>
                     <tr>
-                        <td>RAM: {{ responseVmInfo.memorySize }}</td>
+                        <td>RAM</td><td>{{ responseVmInfo.memorySize }}</td>
                     </tr>
                     <tr>
-                        <td>CPU: {{ responseVmInfo.numberOfCpus }}</td>
+                        <td>CPU</td><td>{{ responseVmInfo.numberOfCpus }}</td>
                     </tr>
                     <tr>
                         <td>&nbsp;</td>
                     </tr>
                     <tr>
-                        <td>Host:</td>
+                        <td>Host</td><td>{{ responseVmInfo.host }}</td>
                     </tr>
                     <tr>
-                        <td>Ssh Port:</td>
+                        <td>SSH port</td><td>{{ responseVmInfo.ssh_port }}</td>
                     </tr>
                     <tr>
-                        <td>Rdp Port:</td>
+                        <td>RDP port</td><td>{{ responseVmInfo.rdp_port }}</td>
                     </tr>
                 </table>
             </div>
@@ -55,16 +55,26 @@
                         <td>{{ responseVmInfo.state }}</td>
                     </tr>
                     <tr>
-                        <td>Ssh Port is (not) accessible</td>
+                        <td>
+                            <div class="uk-grid">
+                                <div>SSH port</div>
+                                <div>{% if responseVmInfo.ssh_status %}<div class="uk-label uk-label-success">open</div>{% else %}<div class="uk-label uk-label-danger">closed</div>{% endif %}</div>
+                            </div>
+                            </td>
                     </tr>
                     <tr>
-                        <td>Rdp Port is (not) accessible</td>
+                        <td>
+                            <div class="uk-grid">
+                                <div>RDP port</div>
+                                <div>{% if responseVmInfo.rdp_status %}<div class="uk-label uk-label-success">open</div>{% else %}<div class="uk-label uk-label-danger">closed</div>{% endif %}</div>
+                            </div>
+                        </td>
                     </tr>
                 </table>
 
-                <div class="uk-grid-small uk-margin-small" uk-grid>
+                <div class="uk-grid-small uk-margin-small uk-grid">
                     <div>
-                        <button onclick="location.href='{{ request.path }}/{% if is_running %}stop_vm{% else %}start_vm{% endif %}';" class="uk-button uk-button-primary uk-text-center {% if is_running %}uk-button-danger{% endif %}">{% if is_running %}Stop VM{% else %}Start VM{% endif %}</button>
+                        <button onclick="location.href='{{ request.path }}/{% if responseVmInfo.is_running %}stop_vm{% else %}start_vm{% endif %}';" class="uk-button uk-button-primary uk-text-center {% if responseVmInfo.is_running %}uk-button-danger{% endif %}">{% if responseVmInfo.is_running %}Stop VM{% else %}Start VM{% endif %}</button>
                     </div>
                     <div>
                         <button class="uk-button uk-button-primary uk-text-center">Abort Run</button>
