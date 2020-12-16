@@ -251,7 +251,7 @@ class FileDatabase(object):
         """
         returns a list of all the runs of a user over all datasets: [{software, run_id, input_run_id, size, lines, files, dirs, review: {}}]
         """
-        relevant_datasets = {software["dataset"] for software in self.softwares_by_user[user_id]}
+        relevant_datasets = {software["dataset"] for software in self.softwares_by_user.get(user_id, [])}
 
         runs = []
         for dataset_id in relevant_datasets:
@@ -259,3 +259,9 @@ class FileDatabase(object):
             runs.extend(list(user_runs.values()))
 
         return runs
+
+    def get_user(self, user_id):
+        """
+        return the hostname fqdn where user's vm is running
+        """
+        return self.users.get(user_id)

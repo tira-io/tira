@@ -6,3 +6,4 @@ allowed_hosts:
 tira_root: /mnt/ceph/tira
 # deployment = {disraptor, standalone}
 deployment: disraptor
+grpc_port: 50051
