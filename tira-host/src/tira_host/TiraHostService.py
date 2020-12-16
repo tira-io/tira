@@ -13,28 +13,28 @@ from grpc import aio
 import logging
 from logging.config import fileConfig
 import subprocess
+import re
 
-import TiraHostMessages_pb2
-import TiraHostMessages_pb2_grpc
-
+from proto import tira_host_pb2, tira_host_pb2_grpc
 
 def run_tira_script(script_name, *args):
-    p = subprocess.Popen("tira "+script_name+" "+" ".join([a for a in args]), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    p = subprocess.Popen("tira " + script_name + " " + " ".join([a for a in args]), shell=True, stdout=subprocess.PIPE,
+                         stderr=subprocess.STDOUT)
     output = p.communicate()[0].decode('utf-8')
-    response = TiraHostMessages_pb2.Response(output=output)
+    response = tira_host_pb2.Response(output=output)
     return response
 
 
 def run_shell_command(command_string):
     p = subprocess.Popen(command_string, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     output = p.communicate()[0].decode('utf-8')
-    response = TiraHostMessages_pb2.Response(output=output)
+    response = tira_host_pb2.Response(output=output)
     return response
 
 
-class TiraHostService(TiraHostMessages_pb2_grpc.TiraHostService):
+class TiraHostService(tira_host_pb2_grpc.TiraHostService):
     def test(self, input, context):
-        return TiraHostMessages_pb2.Output(text="Server received: " + input.text)
+        return tira_host_pb2.Output(text="Server received: " + input.text)
 
     def shell_command(self, command):
         return run_shell_command(command)
@@ -49,10 +49,22 @@ class TiraHostService(TiraHostMessages_pb2_grpc.TiraHostService):
         return run_tira_script("vm-delete", request.vmName)
 
     def vm_info(self, request, context):
-        return run_tira_script("vm-info", request.vmName)
+        response = run_tira_script("vm-info", request.vmName)
+        response_vm_info = tira_host_pb2.ResponseVmInfo()
+        for line in response.output.split("\n"):
+            if line.startswith("Guest OS:"):
+                response_vm_info.guestOs = line.split(": ")[1].strip()
+            elif line.startswith("Memory size"):
+                response_vm_info.memorySize = line.split()[2].strip()
+            elif line.startswith("Number of CPUs:"):
+                response_vm_info.numberOfCpus = line.split(": ")[1].strip()
+            elif line.startswith("State:"):
+                response_vm_info.state = re.sub(".\\d+\\)", ")", line.split(": ")[1].strip())
+
+        return response_vm_info
 
     def vm_list(self, request, context):
-        return run_tira_script("vm-list", request.vmName)
+        return run_tira_script("vm-list")
 
     def vm_sandbox(self, request, context):
         return run_tira_script("vm-sandbox", request.vmName)
@@ -74,7 +86,7 @@ class TiraHostService(TiraHostMessages_pb2_grpc.TiraHostService):
 
     def run_execute(self, request, context):
         return run_tira_script("run-execute", request.submissionFile, request.inputDatasetName, request.inputRunPath,
-                                          request.outputDirName, request.sandboxed, request.optionalParameters);
+                               request.outputDirName, request.sandboxed, request.optionalParameters);
 
     # async def run_execute(self, request, context):
     #     return run_tira_script("run-execute", request.submissionFile, request.inputDatasetName, request.inputRunPath,
@@ -84,7 +96,7 @@ class TiraHostService(TiraHostMessages_pb2_grpc.TiraHostService):
 def serve():
     logger = logging.getLogger()
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    TiraHostMessages_pb2_grpc.add_TiraHostServiceServicer_to_server(TiraHostService(), server)
+    tira_host_pb2_grpc.add_TiraHostServiceServicer_to_server(TiraHostService(), server)
     listen_addr = '[::]:50051'
     server.add_insecure_port(listen_addr)
     server.start()
@@ -92,16 +104,17 @@ def serve():
     server.wait_for_termination()
 
 
-async def serve_async():
-    server = aio.server()
-    TiraHostMessages_pb2_grpc.add_TiraHostServiceServicer_to_server(TiraHostService(), server)
-    listen_addr = '[::]:50051'
-    server.add_insecure_port(listen_addr)
-    logging.info("Starting server on %s", listen_addr)
-    await server.start()
-    await server.wait_for_termination()
+# async def serve_async():
+#     server = aio.server()
+#     tira_host_pb2_grpc.add_TiraHostServiceServicer_to_server(TiraHostService(), server)
+#     listen_addr = '[::]:50051'
+#     server.add_insecure_port(listen_addr)
+#     logging.info("Starting server on %s", listen_addr)
+#     await server.start()
+#     await server.wait_for_termination()
 
 
 if __name__ == '__main__':
-    fileConfig('/usr/lib/tira/tira_host/logging_config.ini')
+    fileConfig('conf/logging_config.ini')
     serve()
+    # asyncio.run(serve_async())

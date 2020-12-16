@@ -1,6 +1,5 @@
-{% load static %}
-
 <!doctype html>
+{% load static %}
 <html lang="en">
 <head>
     <title>{% block title %}{% endblock %}</title>
@@ -14,11 +13,11 @@
     <link rel="stylesheet" href="https://assets.webis.de/css/style.css?1605285914">
     <link rel="stylesheet" href="https://assets.webis.de/css/workshop.css?1603728332">
 
-    <link rel="stylesheet" href="{% static 'tira/style.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'tira/tira-style.css' %}">
 </head>
 <body class="uk-offcanvas-content">
 <script src="https://assets.webis.de/js/thirdparty/uikit/uikit.min.js"></script>
-<script src="https://assets.webis.de/js/thirdparty/uikit/uikit-icons.min.js"></script>
+<!--<script src="https://assets.webis.de/js/thirdparty/uikit/uikit-icons.min.js"></script>-->
 
 {% block navbar %}{% endblock %}
 

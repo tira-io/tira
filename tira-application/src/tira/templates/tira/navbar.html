@@ -10,6 +10,13 @@
                 <li{% if nav_active == "dataset" %} class="uk-active"{% endif %}>
                     <a href="{% url 'tira:dataset' %}">Data</a>
                 </li>
+                <li>
+                    {% if role != 'guest' %}
+                    <a href="{% url 'tira:logout' %}">Logout</a>
+                    {% else %}
+                    <a href="{% url 'tira:login' %}">Login</a>
+                    {% endif %}
+                </li>
             </ul>
         </nav>
     </div>
@@ -36,6 +43,13 @@
             <ul class="uk-navbar-nav">
                 <li{% if nav_active == "datasets" %} class="uk-active"{% endif %}>
                     <a href="{% url 'tira:dataset' %}">Data</a>
+                </li>
+                <li>
+                    {% if role != 'guest' %}
+                    <a href="{% url 'tira:logout' %}">Logout</a>
+                    {% else %}
+                    <a href="{% url 'tira:login' %}">Login</a>
+                    {% endif %}
                 </li>
             </ul>
         </div>

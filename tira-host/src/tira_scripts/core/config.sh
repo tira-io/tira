@@ -155,6 +155,10 @@ _CONFIG_tira_srv="/srv/tira"
 _CONFIG_tira_cvs_root="webis.uni-weimar.de/srv/cvsroot"
 _CONFIG_tira_cvs_subdir="code-in-progress/tira"
 
+#
+#    Disraptor settings
+#
+_CONFIG_tira_disraptor_url="https://disraptor.tira.io"
 
 #
 #    Export for usage in other scripts.
