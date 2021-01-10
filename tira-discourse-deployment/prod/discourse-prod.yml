@@ -1,0 +1,141 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: tira-discourse-prod
+spec:
+  type: NodePort
+  selector:
+    app: tira-discourse-prod
+  ports:
+    - nodePort: 30806
+      port: 443
+      targetPort: 443
+      name: discourse-https
+    - nodePort: 30807
+      port: 80
+      targetPort: 80
+      name: discourse-http
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  name: tira-discourse-prod
+spec:
+  selector:
+    matchLabels:
+      app: tira-discourse-prod
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: tira-discourse-prod
+    spec:
+      containers:
+        - name: tira-discourse-prod
+          image: docker.io/webis/tira-discourse:0.0.1-www.tira.io
+          ports:
+            - containerPort: 443
+              hostIP: 0.0.0.0
+              name: discourse-https
+            - containerPort: 80
+              hostIP: 0.0.0.0
+              name: discourse-http
+          volumeMounts:
+            - mountPath: "/shared"
+              name: discourse-prod-data
+            - mountPath: "/shared/backups"
+              name: backups
+            - mountPath: "/var/log"
+              name: discourse-prod-log
+            - mountPath: "/resource"
+              name: resource
+            - mountPath: "/sbin/setup"
+              name: setup
+              subPath: setup
+          env:
+            - name: LANG
+              value: "en_US.UTF-8"
+            - name: RAILS_ENV
+              value: production
+            - name: UNICORN_WORKERS
+              value: "8"
+            - name: UNICORN_SIDEKIQS
+              value: "1"
+            - name: RUBY_GLOBAL_METHOD_CACHE_SIZE
+              value: "131072"
+            - name: RUBY_GC_HEAP_GROWTH_MAX_SLOTS
+              value: "40000"
+            - name: RUBY_GC_HEAP_INIT_SLOTS
+              value: "400000"
+            - name: RUBY_GC_HEAP_OLDOBJECT_LIMIT_FACTOR
+              value: "1.5"
+            - name: DISCOURSE_DB_SOCKET
+              value: "/var/run/postgresql"
+            - name: DISCOURSE_DB_HOST
+              value: ""
+            - name: DISCOURSE_DB_PORT
+              value: ""
+            - name: DISCOURSE_HOSTNAME
+              value: "disraptor.tira.io"
+            - name: DISCOURSE_DEVELOPER_EMAILS
+              valueFrom:
+                secretKeyRef:
+                  name: discourse-prod-secret
+                  key: discourse_developer_emails
+            - name: DISCOURSE_SMTP_ADDRESS
+              valueFrom:
+                secretKeyRef:
+                  name: discourse-prod-secret
+                  key: discourse_smtp_address
+            - name: DISCOURSE_SMTP_USER_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: discourse-prod-secret
+                  key: discourse_smtp_user_name
+            - name: DISCOURSE_SMTP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: discourse-prod-secret
+                  key: discourse_smtp_password
+            - name: DISCOURSE_SMTP_PORT
+              value: "587"
+          command: ["/bin/bash", "-c", "/sbin/setup; /sbin/boot"]
+      volumes:
+        - name: discourse-prod-data
+#          persistentVolumeClaim:
+#            claimName: discourse-prod-data-pvc
+          cephfs:
+            monitors:
+              - ceph.dw.webis.de
+            path: /storage/data-in-production/disraptor/discourse/postgres-data
+            user: webis
+            secretFile: "etc/ceph/ceph.client.webis.secret"
+            readOnly: false
+        - name: backups 
+          cephfs:
+            monitors:
+              - ceph.dw.webis.de
+            path: /storage/data-in-production/disraptor/discourse/backup
+            user: webis
+            secretFile: "etc/ceph/ceph.client.webis.secret"
+            readOnly: false
+        - name: discourse-prod-log
+          persistentVolumeClaim:
+            claimName: discourse-prod-log-pvc
+        - name: resource
+          cephfs:
+            monitors:
+              - ceph.dw.webis.de
+            path: /storage/data-in-production/disraptor/boot/resource
+            user: webis
+            secretFile: "etc/ceph/ceph.client.webis.secret"
+            readOnly: true
+        - name: setup
+          cephfs:
+            monitors:
+              - ceph.dw.webis.de
+            path: /storage/data-in-production/disraptor/boot
+            user: webis
+            secretFile: "etc/ceph/ceph.client.webis.secret"
+            readOnly: true
