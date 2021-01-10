@@ -1,4 +1,4 @@
-VERSION=9.0.31
+VERSION=9.0.31-unpoly-test-06
 
 publish-docker: build-tira-docker
 	docker login &&\

@@ -355,7 +355,7 @@ public class TaskServlet extends HttpServlet {
 			.setProcessRunId("-1")
 			.setProcessState("my-state")
 			.setProcessTime("00:00:00")
-			.setVmBooting(false)
+			.setVmBooting(true)
 			.setVmPoweringOff(false)
 			.setVmShuttingDown(false)
 			.setHasLatestOutput(true)
