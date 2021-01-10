@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: discourse-prod-data-pvc
+  labels:
+    app: tira-discourse-prod
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: ceph-rbd
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: discourse-prod-log-pvc
+  labels:
+    app: tira-discourse-prod
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
