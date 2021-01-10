@@ -4,7 +4,7 @@ RUN mkdir /tira-src
 WORKDIR /tira-src
 
 RUN apt-get update && \
-	apt-get install -y ant nmap supervisor tree sudo bsdmainutils bash-completion dnsmasq dnsutils nfs-common sshpass zip
+	apt-get install -y ant nmap supervisor tree sudo bsdmainutils bash-completion dnsmasq dnsutils nfs-common sshpass zip jq
 
 COPY build /tira-src/build
 COPY conf /tira-src/conf

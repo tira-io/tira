@@ -6,7 +6,7 @@
     {{> tira-admin-task-toolbar-head}}
   </head>
   <body>
-    <div class="container">
+    <div class="container" id="tira-container">
       <div class="row">
         <div class="col-xs-12">
           <h1>{{taskName}} <small>Administration</small></h1>
@@ -15,8 +15,6 @@
       {{> tira-admin-task-toolbar-body}}
       {{> tira-task-user-vminfo-body}}
     </div><!-- /.container -->
-    {{> jquery-foot}}
-    {{> jquery-datatables-foot}}
     {{> bootstrap-foot}}
     {{> bootstrap-confirmation-foot}}
     {{> tira-task-user-vminfo-foot}}

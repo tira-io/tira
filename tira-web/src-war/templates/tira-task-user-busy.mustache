@@ -6,13 +6,27 @@
     {{> tira-task-user-toolbar-head}}
   </head>
   <body>
-    <div class="container">
+    <div class="container" id="tira-container">
       {{> tira-task-user-title-body}}
       {{> tira-task-user-toolbar-body}}
       {{> tira-task-user-vminfo-body}}
       {{> tira-task-user-softwarerunning-body}}
+    <script>
+      var tiraTaskUserBusyUrl = window.location.href;
+    
+      function reloadPageWithUnpoly() {
+        if(window.location.href == tiraTaskUserBusyUrl) {
+          up.replace('#tira-container', tiraTaskUserBusyUrl, {cache: false, history: false}).then(() => {
+            setTimeout("reloadPageWithUnpoly();", 2000);
+          }).catch(() => {
+            setTimeout("reloadPageWithUnpoly();", 10000);
+          });
+        }
+      }
+      
+      setTimeout("reloadPageWithUnpoly();", 2000);
+    </script>
     </div><!-- /.container -->
-    {{> jquery-foot}}
     {{> bootstrap-foot}}
     {{> google-analytics-foot}}
     {{> tira-task-user-foot}}
