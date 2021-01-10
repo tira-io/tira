@@ -11,22 +11,6 @@ spec:
     app: tira-bg-web-client
 ---
 
-apiVersion: networking.k8s.io/v1beta1
-kind: Ingress
-metadata:
-  name: legacy-tira-web-client
-spec:
-  rules:
-  - host: legacy.tira.io
-    http:
-      paths:
-      - path: /
-        backend:
-          serviceName: tira-web-client
-          servicePort: 8080
-
----
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -43,7 +27,7 @@ spec:
     spec:
       containers:
       - name: tira-bg-web-client
-        image: mam10eks/tmp-tira-mam10eks:9.0.31
+        image: mam10eks/tmp-tira-mam10eks:9.0.31-unpoly-test-07
         imagePullPolicy: Always
         volumeMounts:
         - mountPath: "/mnt/nfs/tira"
