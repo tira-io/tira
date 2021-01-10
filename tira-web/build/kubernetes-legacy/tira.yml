@@ -1,0 +1,65 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: tira-web-client
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: tira-web-client
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tira-web-client
+spec:
+  selector:
+    matchLabels:
+      app: tira-web-client
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: tira-web-client
+    spec:
+      containers:
+      - name: tira-web-client
+        image: mam10eks/tmp-tira-mam10eks:9.0.12
+        imagePullPolicy: Always
+        volumeMounts:
+        - mountPath: "/mnt/nfs/tira"
+          name: tira-cephfs
+        - mountPath: "/usr/local/share/tira/src"
+          name: tira-src-code
+        - mountPath: "/etc/ssh-key"
+          name: ssh-key
+        - mountPath: "/etc/discourse/client-api-key"
+          name: tira-discourse-api-key
+          subPath: key
+      nodeSelector:
+        kubernetes.io/hostname: betaweb127
+      volumes:
+      - name: tira-cephfs
+        cephfs:
+          monitors:
+          - ceph.dw.webis.de
+          user: tira
+          path: /tira
+          secretRef:
+            name: tira-ceph-secret
+      - name: tira-src-code
+        hostPath:
+          path: /usr/local/share/tira/tira-host/src/tira_scripts
+          type: Directory
+      - name: tira-discourse-api-key
+        secret:
+          secretName: tira-discourse-api-key
+      - name: ssh-key
+        secret:
+          secretName: tira-webis18-ssh-key
+          defaultMode: 256
+
