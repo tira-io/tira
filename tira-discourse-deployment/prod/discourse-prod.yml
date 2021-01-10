@@ -33,7 +33,7 @@ spec:
     spec:
       containers:
         - name: tira-discourse-prod
-          image: docker.io/bastiangrahm/discourse-prod:0.0.9
+          image: docker.io/webis/tira-discourse:0.0.1-www.tira.io
           ports:
             - containerPort: 443
               hostIP: 0.0.0.0
