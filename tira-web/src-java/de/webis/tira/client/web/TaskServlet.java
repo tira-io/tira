@@ -21,8 +21,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
-import com.google.protobuf.TextFormat;
-
 import de.webis.tira.client.web.authentication.Authenticator;
 import de.webis.tira.client.web.generated.TiraClientWebMessages.Dataset;
 import de.webis.tira.client.web.generated.TiraClientWebMessages.Evaluator;
@@ -81,7 +79,7 @@ public class TaskServlet extends HttpServlet {
 		ROUTE12 = "^/(?<taskId>[a-zA-Z0-9-]+)/user/(?<userName>[a-zA-Z0-9-]+)/software/(?<softwareId>software\\d+)/kill/$",
 		ROUTE13 = "^/(?<taskId>[a-zA-Z0-9-]+)/user/(?<userName>[a-zA-Z0-9-]+)/software/evaluator/run/$",
 		ROUTE14 = "^/(?<taskId>[a-zA-Z0-9-]+)/user/(?<userName>[a-zA-Z0-9-]+)/software/evaluator/kill/$",
-		ROUTE15 = "^/(?<taskId>[a-zA-Z0-9-]+)/user/(?<userName>[a-zA-Z0-9-]+)/run/(?<runId>[a-zA-Z0-9-]+).zip$",
+		ROUTE15 = "^/(?<taskId>[a-zA-Z0-9-]+)/user/(?<userName>[a-zA-Z0-9-]+)/run/(?<runId>[a-zA-Z0-9-]+).zip/*$",
 		ROUTE16 = "^/(?<taskId>[a-zA-Z0-9-]+)/user/(?<userName>[a-zA-Z0-9-]+)/run/(?<runId>[a-zA-Z0-9-]+)/delete/$",
 		ROUTE17 = "^/(?<taskId>[a-zA-Z0-9-]+)/user/(?<userName>[a-zA-Z0-9-]+)/run/(?<runId>[a-zA-Z0-9-]+)/view/$";
 	
