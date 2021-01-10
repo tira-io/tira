@@ -28,6 +28,22 @@ spec:
 
 ---
 
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: legacy-tira-web-client
+spec:
+  rules:
+  - host: legacy.tira.io
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: tira-web-client
+          servicePort: 8080
+
+---
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
