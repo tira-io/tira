@@ -83,7 +83,7 @@ public class UsersStore {
 		return DEFAULT_USERS_STORE.getUserWithNameOrNull(userName);
 	}
 	
-	public User
+	public static User
 	userWithoutVM() {
 		try {
 			Users.Builder ub = Users.newBuilder();
