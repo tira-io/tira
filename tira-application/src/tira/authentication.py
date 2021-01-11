@@ -150,7 +150,7 @@ class DisraptorAuthentication(Authentication):
     @staticmethod
     def _get_user_id(request):
         """ Return the content of the X-Disraptor-User header set in the http request """
-        user_id = request.headers.get('X-Disraptor-User', "None")
+        user_id = request.headers.get('X-Disraptor-User', None)
         return user_id
 
     @staticmethod
