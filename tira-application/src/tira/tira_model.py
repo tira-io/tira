@@ -277,7 +277,7 @@ class FileDatabase(object):
             "dataset_id": dataset.datasetId,
             "is_confidential": dataset.isConfidential, "is_deprecated": dataset.isDeprecated,
             "year": extract_year_from_dataset_id(),
-            "task": self.default_tasks.get(dataset.datasetId, ""),
+            "task": self.default_tasks.get(dataset.datasetId, "None"),
             'organizer': self.task_organizers.get(dataset.datasetId, ""),
             "software_count": self.software_count_by_dataset.get(dataset.datasetId, 0)
         }
