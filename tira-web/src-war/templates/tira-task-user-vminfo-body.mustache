@@ -1,20 +1,3 @@
-<script>
-  function reloadVmInfoPageWithUnpoly() {
-    if(document.querySelectorAll("div[class~='tira-refresh-necessary']").length > 0) {
-      up.replace('#tira-container', window.location.href, {cache: false, history: false}).then(() => {
-        var d = new Date();
-        document.querySelectorAll("div[class~='tira-refresh-necessary']")[0].innerHTML += ' (Refreshed: ' + 
-          ("0" + d.getHours()).slice(-2) + ":" + 
-          ("0" + d.getMinutes()).slice(-2) + ":" + 
-          ("0" + d.getSeconds()).slice(-2) + ')';
-        setTimeout("reloadVmInfoPageWithUnpoly();", 2000);
-      }).catch(() => {
-        setTimeout("reloadVmInfoPageWithUnpoly();", 10000);
-      });
-    }
-  }
-</script>
-
 <div class="row">
   <div class="col-xs-12">
     <div class="tira-panel panel-default">
@@ -25,33 +8,33 @@
         {{#hasVm}}
         {{#vmInfo}}
         {{#vmBooting}}
-        <div class="alert alert-success tira-refresh-necessary"><strong>Powering on.</strong> Your virtual machine is being powered on. Please wait until the boot sequence is completed before using it.</div>
+        <div class="alert alert-success"><strong>Powering on.</strong> Your virtual machine is being powered on. Please wait until the boot sequence is completed before using it.</div>
         <script type="text/javascript">
-          setTimeout("reloadVmInfoPageWithUnpoly();", 2000);
+          setTimeout("location.reload(true);", 3000);
         </script>
         {{/vmBooting}}
         {{#vmPoweringOff}}
-        <div class="alert alert-danger tira-refresh-necessary"><strong>Powering off.</strong> Your virtual machine is being powered off.</div>
+        <div class="alert alert-danger"><strong>Powering off.</strong> Your virtual machine is being powered off.</div>
         <script type="text/javascript">
-          setTimeout("reloadVmInfoPageWithUnpoly();", 2000);
+          setTimeout("location.reload(true);", 3000);
         </script>
         {{/vmPoweringOff}}
         {{#vmShuttingDown}}
-        <div class="alert alert-warning tira-refresh-necessary"><strong>Shutting Down.</strong> Your virtual machine is being shut down.</div>
+        <div class="alert alert-warning"><strong>Shutting Down.</strong> Your virtual machine is being shut down.</div>
         <script type="text/javascript">
-          setTimeout("reloadVmInfoPageWithUnpoly();", 2000);
+          setTimeout("location.reload(true);", 3000);
         </script>
         {{/vmShuttingDown}}
         {{#stateSandboxing}}
-        <div class="alert alert-warning tira-refresh-necessary"><strong>Sandboxing.</strong> Your virtual machine is being sandboxed.</div>
+        <div class="alert alert-warning"><strong>Sandboxing.</strong> Your virtual machine is being sandboxed.</div>
         <script type="text/javascript">
-          setTimeout("reloadVmInfoPageWithUnpoly();", 2000);
+          setTimeout("location.reload(true);", 3000);
         </script>
         {{/stateSandboxing}}
         {{#stateUnsandboxing}}
-        <div class="alert alert-success tira-refresh-necessary"><strong>Unsandboxing.</strong> Your virtual machine is being unsandboxed.</div>
+        <div class="alert alert-success"><strong>Unsandboxing.</strong> Your virtual machine is being unsandboxed.</div>
         <script type="text/javascript">
-          setTimeout("reloadVmInfoPageWithUnpoly();", 2000);
+          setTimeout("location.reload(true);", 3000);
         </script>
         {{/stateUnsandboxing}}
         {{^vmBooting}}
@@ -62,9 +45,9 @@
         {{^stateUnsandboxing}}
         {{^portSshOpen}}
         {{#portRdpOpen}}
-        <div class="alert alert-info tira-refresh-necessary"><strong>Waiting.</strong> Please wait until the port states are resolved.</div>
+        <div class="alert alert-info"><strong>Waiting.</strong> Please wait until the port states are resolved.</div>
         <script type="text/javascript">
-          setTimeout("reloadVmInfoPageWithUnpoly();", 2000);
+          setTimeout("location.reload(true);", 3000);
         </script>
         {{/portRdpOpen}}
         {{/portSshOpen}}
