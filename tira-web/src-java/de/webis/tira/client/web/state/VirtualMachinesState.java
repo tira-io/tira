@@ -122,6 +122,10 @@ public class VirtualMachinesState {
 			}
 			else if (line.startsWith(VM_INFO_MEMORY_SIZE)) {
 				vmsb.setMemorySize(line.split(VM_INFO_SPLIT_REGEX)[1].trim());
+			} else if(line.startsWith("Memory size")) {
+				//probably a bug in new versions of virtualbox
+				//Example line: "Memory size                  4096MB"
+				vmsb.setMemorySize(line.split("size")[1].trim());
 			}
 			else if (line.startsWith(VM_INFO_NUMBER_OF_CP_US)) {
 				vmsb.setNumberOfCpus(line.split(VM_INFO_SPLIT_REGEX)[1].trim());
