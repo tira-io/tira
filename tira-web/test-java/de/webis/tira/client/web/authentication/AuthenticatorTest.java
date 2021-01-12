@@ -123,6 +123,30 @@ public class AuthenticatorTest {
 		Assert.assertEquals(0, user.getRolesCount());
 	}
 	
+	@Test
+	public void testThatRequestWithUserAndMultipleGroupsAndReviewerGroup() throws Exception {
+		HttpServletRequest request = request("foo-bar", ",,fdsa,tira-vm-foobar,,tira-vm-froebe,fdghdf,tira-reviewer");
+		
+		Assert.assertTrue(isSignedIn(request));
+		User user = signedInUser(request);
+		
+		Assert.assertEquals("no-vm-assigned", user.getUserName());
+		Assert.assertEquals(1, user.getRolesCount());
+		Assert.assertEquals("reviewer", user.getRoles(0));
+	}
+	
+	@Test
+	public void testThatRequestWithUserAndMultipleGroupsAndReviewerGroup2() throws Exception {
+		HttpServletRequest request = request("foo-bar", ",,fdsa,tira-reviewer,tira-vm-foobar,,tira-vm-froebe,fdghdf");
+		
+		Assert.assertTrue(isSignedIn(request));
+		User user = signedInUser(request);
+		
+		Assert.assertEquals("no-vm-assigned", user.getUserName());
+		Assert.assertEquals(1, user.getRolesCount());
+		Assert.assertEquals("reviewer", user.getRoles(0));
+	}
+	
 	private boolean isSignedIn(HttpServletRequest req) throws ServletException {
 		return Authenticator.isSignedIn(req, UsersStoreTest.USERS_STORE);
 	}
