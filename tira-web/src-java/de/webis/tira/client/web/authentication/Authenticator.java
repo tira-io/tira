@@ -74,6 +74,6 @@ public class Authenticator {
 	}
 	
 	private static boolean isReviewer(HttpServletRequest req) {
-		return ("," + req.getHeader("X-Disraptor-Groups") + ",").contains("tira-reviewer");
+		return ("," + req.getHeader("X-Disraptor-Groups") + ",").contains(",tira-reviewer,");
 	}
 }
