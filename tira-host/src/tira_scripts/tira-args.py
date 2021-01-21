@@ -14,7 +14,8 @@ def getcommands():
     """
     Returns all available subscript commands with minimum argument count.
     """
-    return {"host-list": 0,
+    return {"admin-shell": 0,
+            "host-list": 0,
             "exchange-keys": 0,
             "run-copy-to-local": 7,
             "run-execute": 4,  # - 5

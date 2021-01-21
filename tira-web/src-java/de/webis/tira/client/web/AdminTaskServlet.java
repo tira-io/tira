@@ -89,7 +89,7 @@ public class AdminTaskServlet extends HttpServlet {
     	ROUTE20b = "^/(?<taskId>[a-zA-Z0-9-]+)/evaluations/dataset/(?<datasetId>[a-zA-Z0-9-]+)/$",
 		ROUTE20 = "^/(?<taskId>[a-zA-Z0-9-]+)/evaluations/user/(?<userName>[a-zA-Z0-9-]+)/run/(?<runId>[a-zA-Z0-9-]+)/view/$",
 		ROUTE21 = "^/(?<taskId>[a-zA-Z0-9-]+)/evaluations/user/(?<userName>[a-zA-Z0-9-]+)/run/(?<runId>[a-zA-Z0-9-]+)/save/$",
-		ROUTE22 = "^/(?<taskId>[a-zA-Z0-9-]+)/evaluations/user/(?<userName>[a-zA-Z0-9-]+)/run/(?<runId>[a-zA-Z0-9-]+).zip$",
+		ROUTE22 = "^/(?<taskId>[a-zA-Z0-9-]+)/evaluations/user/(?<userName>[a-zA-Z0-9-]+)/run/(?<runId>[a-zA-Z0-9-]+).zip/*$",
 		ROUTE23 = "^/(?<taskId>[a-zA-Z0-9-]+)/evaluations/user/(?<userName>[a-zA-Z0-9-]+)/run/(?<runId>[a-zA-Z0-9-]+)/publish/$",
 		ROUTE24 = "^/(?<taskId>[a-zA-Z0-9-]+)/evaluations/user/(?<userName>[a-zA-Z0-9-]+)/run/(?<runId>[a-zA-Z0-9-]+)/unpublish/$",
 		ROUTE25 = "^/(?<taskId>[a-zA-Z0-9-]+)/evaluations/user/(?<userName>[a-zA-Z0-9-]+)/run/(?<runId>[a-zA-Z0-9-]+)/blind/$",
