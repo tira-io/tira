@@ -198,53 +198,53 @@ def software_detail(request, task_id, vm_id):
     #     software["results"] = r_independent
 
     # request tira-host for vmInfo
-    user = model.get_user(user_id)
-    response_vm_info = _vm_info(request, user_id, vm_name=user.vmName)
+    # vm = model.get_vm_by_id(vm_id)
+    # response_vm_info = vm_info(request, vm)
 
     context = {
-        "include_navigation": True if settings.DEPLOYMENT == "standalone" else False,
-        "user_id": user_id,
-        "softwares": softwares,
-        "responseVmInfo": response_vm_info,
+        "include_navigation": include_navigation,
+        "task": model.get_task(task_id),
+        "vm_id": vm_id,
+        "software": software,
+        # "responseVmInfo": response_vm_info,
     }
 
     return render(request, 'tira/software.html', context)
 
-def _vm_info(request, user_id, vm_name):
-    user = model.get_user(user_id)
-    grpc_client = GrpcClient(user.host)
-    response_vm_info = grpc_client.vm_info(vm_name)
 
-    response = MessageToDict(response_vm_info)
-    response['ssh_port'] = user.portSsh
-    response['rdp_port'] = user.portRdp
-    response['host'] = user.host
+def vm_info(request, user_id, vm_id):
+    # # 1. check permissions
+    # role = auth.get_role(request, auth.get_user_id(request), vm_id=vm_id)
+    #
+    # if role == 'forbidden':
+    #     raise PermissionDenied
 
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        response['ssh_status'] = True if sock.connect_ex((user.host, int(user.portSsh))) == 0 else False
-        response['rdp_status'] = True if sock.connect_ex((user.host, int(user.portRdp))) == 0 else False
+    vm = model.get_vm_by_id(user_id)
+    grpc_client = GrpcClient(vm.host)
+    response = grpc_client.vm_info(vm.vmName)
 
-    response['is_running'] = response_vm_info.state.startswith("running")
+    return JsonResponse({'status': 'accepted', 'message': response}, status=202)
 
-    return response
 
-def vm_start(request, user_id, vm_name):
-    user = model.get_user(user_id)
-    grpc_client = GrpcClient(user.host)
-    response = grpc_client.vm_start(vm_name)
+def vm_start(request, user_id, vm_id):
+    vm = model.get_vm_by_id(user_id)
+    grpc_client = GrpcClient(vm.host)
+    response = grpc_client.vm_start(vm.vmName)
+    return JsonResponse({'status': 'accepted', 'message': response}, status=202)
+    # return JsonResponse({"output": response})
+    # return response
+
+
+def vm_stop(request, user_id, vm_id):
+    vm = model.get_vm_by_id(user_id)
+    grpc_client = GrpcClient(vm.host)
+    response = grpc_client.vm_stop(vm.vmName)
     return JsonResponse({"output": response})
 
 
-def vm_stop(request, user_id, vm_name):
-    user = model.get_user(user_id)
-    grpc_client = GrpcClient(user.host)
-    response = grpc_client.vm_stop(vm_name)
-    return JsonResponse({"output": response})
-
-
-def run_execute(request, user_id, vm_name):
-    user = model.get_user(user_id)
-    grpc_client = GrpcClient(user.host)
+def run_execute(request, user_id, vm_id):
+    vm = model.get_vm_by_id(user_id)
+    grpc_client = GrpcClient(vm.host)
     response = grpc_client.run_execute(submissionFile="",
                                        inputDatasetName="",
                                        inputRunPath="",
@@ -254,9 +254,9 @@ def run_execute(request, user_id, vm_name):
     return JsonResponse({"output": response})
 
 
-def run_eval(request, user_id, vm_name):
-    user = model.get_user(user_id)
-    grpc_client = GrpcClient(user.host)
+def run_eval(request, user_id, vm_id):
+    vm = model.get_vm_by_id(user_id)
+    grpc_client = GrpcClient(vm.host)
     response = grpc_client.run_execute(submissionFile="",
                                        inputDatasetName="",
                                        inputRunPath="",
@@ -266,8 +266,11 @@ def run_eval(request, user_id, vm_name):
     return JsonResponse({"output": response})
 
 
-def command_status(request, user_id, command_id):
-    user = model.get_user(user_id)
-    grpc_client = GrpcClient(user.host)
+def command_status(request, user_id, vm_id, command_id):
+    vm = model.get_vm_by_id(user_id)
+    grpc_client = GrpcClient(vm.host)
     response = grpc_client.get_command_status(command_id)
-    return JsonResponse({"status": response.status})
+    if response == 404:
+        return JsonResponse({"status": 404})
+
+    return JsonResponse({"status": response[0], 'message': MessageToDict(response[1][1])})

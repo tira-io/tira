@@ -373,8 +373,5 @@ class FileDatabase(object):
                  "last_edit": software.lastEditDate}
                 for software in self.software[f"{task_id}${vm_id}"]]
 
-    def get_user(self, user_id):
-        """
-        return the hostname fqdn where user's vm is running
-        """
-        return self.users.get(user_id)
+    def get_vm_by_id(self, vm_id: str):
+        return self.vms.get(vm_id)

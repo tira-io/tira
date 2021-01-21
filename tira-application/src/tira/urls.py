@@ -15,10 +15,11 @@ urlpatterns = [
     path('logout', views.logout, name='logout'),
 
     # grpc client endpoints
-    path('user/<str:user_id>/vm/<str:vm_name>/vm_start', views.vm_start, name='vm_start'),
-    path('user/<str:user_id>/vm/<str:vm_name>/vm_stop', views.vm_stop, name="vm_stop"),
-    path('user/<str:user_id>/vm/<str:vm_name>/run_execute/<str:software_id>', views.run_execute, name="run_execute"),
-    path('user/<str:user_id>/vm/<str:vm_name>/run_eval/<str:software_id>', views.run_eval, name="run_eval"),
-    path('user/<str:user_id>/command_status/<str:command_id>', views.command_status, name="command_status"),
+    path('user/<str:user_id>/vm/<str:vm_id>/vm_info', views.vm_info, name='vm_info'),
+    path('user/<str:user_id>/vm/<str:vm_id>/vm_start', views.vm_start, name='vm_start'),
+    path('user/<str:user_id>/vm/<str:vm_id>/vm_stop', views.vm_stop, name="vm_stop"),
+    path('user/<str:user_id>/vm/<str:vm_id>/run_execute/<str:software_id>', views.run_execute, name="run_execute"),
+    path('user/<str:user_id>/vm/<str:vm_id>/run_eval/<str:software_id>', views.run_eval, name="run_eval"),
+    path('user/<str:user_id>/vm/<str:vm_id>/command_status/<str:command_id>', views.command_status, name="command_status"),
 ]
 app_name = 'tira'
