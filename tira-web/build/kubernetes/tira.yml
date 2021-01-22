@@ -27,7 +27,7 @@ spec:
     spec:
       containers:
       - name: tira-bg-web-client
-        image: mam10eks/tmp-tira-mam10eks:9.0.33
+        image: mam10eks/tmp-tira-mam10eks:9.0.35
         imagePullPolicy: Always
         volumeMounts:
         - mountPath: "/mnt/nfs/tira"
