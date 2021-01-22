@@ -162,7 +162,7 @@ class DisraptorAuthentication(Authentication):
          Note: Groupnames should be in the format '[tira_]key[_value]'
          """
         for group in groups:
-            g = group.split["_"]
+            g = group.split("_")
             if g[0] == 'tira':
                 yield {"key": g[1], "value": g[2]}
 
