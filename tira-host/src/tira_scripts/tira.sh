@@ -36,7 +36,7 @@ Options:
     -r | --remote     Use remote control
 
 Commands:
-    admin-shell       Start a bash shell with a complete tira environment
+    k8s               Run the specified command (e.g. a bash shell) in a tira environment with full admin privileges
     host-list         List all TIRA hosts
     exchange-keys     SSH Key exchange with all registred hosts (or one specific)
     run-copy-to-local Copy a run from a VM to the central run directory
