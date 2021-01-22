@@ -357,8 +357,8 @@ class FileDatabase(object):
         return {run_id: self._get_evaluation(ev)
                 for run_id, ev in self._load_vm_evaluations(dataset_id, vm_id, only_published=only_public_results).items()}
 
-    def get_vm_run_reviews(self):
-        pass
+    def get_run_review(self, dataset_id, vm_id, run_id):
+        return self._get_review(self._load_review(dataset_id, vm_id, run_id))
 
     def get_vm_reviews_by_dataset(self, dataset_id, vm_id):
         return {run_id: self._get_review(review)
