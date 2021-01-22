@@ -28,7 +28,7 @@ public class AuthenticatorTest {
 	
 	@Test
 	public void testThatRequestWithGroupAndWithoutUserIsNotSignedIn() throws Exception {
-		HttpServletRequest request = request(null, "tira-vm-xyz");
+		HttpServletRequest request = request(null, "tira_vm_xyz");
 		
 		Assert.assertFalse(isSignedIn(request));
 		Assert.assertNull(signedInUser(request));
@@ -47,7 +47,7 @@ public class AuthenticatorTest {
 	
 	@Test
 	public void testThatRequestWithUserAndWithGroupIsSignedIn() throws Exception {
-		HttpServletRequest request = request("foo-bar", "tira-vm-foo-bar");
+		HttpServletRequest request = request("foo-bar", "tira_vm_foo-bar");
 		
 		Assert.assertTrue(isSignedIn(request));
 		User user = signedInUser(request);
@@ -58,7 +58,7 @@ public class AuthenticatorTest {
 	
 	@Test
 	public void testThatRequestWithUserAndWithAdminGroupUsesTheAdminGroup() throws Exception {
-		HttpServletRequest request = request("foo-bar", "tira-vm-froebe");
+		HttpServletRequest request = request("foo-bar", "tira_vm_froebe");
 		
 		Assert.assertTrue(isSignedIn(request));
 		User user = signedInUser(request);
@@ -72,7 +72,7 @@ public class AuthenticatorTest {
 
 	@Test
 	public void testThatRequestWithUserAndMultipleGroupsGroupUsesTheAdminGroup() throws Exception {
-		HttpServletRequest request = request("foo-bar", ",,fdsa,tira-vm-froebe");
+		HttpServletRequest request = request("foo-bar", ",,fdsa,tira_vm_froebe");
 		
 		Assert.assertTrue(isSignedIn(request));
 		User user = signedInUser(request);
@@ -86,7 +86,7 @@ public class AuthenticatorTest {
 	
 	@Test
 	public void testThatRequestWithUserAndMultipleGroupsGroupUsesTheAdminGroup2() throws Exception {
-		HttpServletRequest request = request("foo-bar", ",,fdsa,tira-vm-froebe,fdghdf");
+		HttpServletRequest request = request("foo-bar", ",,fdsa,tira_vm_froebe,fdghdf");
 		
 		Assert.assertTrue(isSignedIn(request));
 		User user = signedInUser(request);
@@ -100,7 +100,7 @@ public class AuthenticatorTest {
 	
 	@Test
 	public void testThatRequestWithUserAndMultipleGroupsGroupUsesTheAdminGroup3() throws Exception {
-		HttpServletRequest request = request("foo-bar", ",,fdsa,tira-vm-froebe,tira-vm-foobar,fdghdf");
+		HttpServletRequest request = request("foo-bar", ",,fdsa,tira_vm_froebe,tira-vm-foobar,fdghdf");
 		
 		Assert.assertTrue(isSignedIn(request));
 		User user = signedInUser(request);
@@ -114,7 +114,7 @@ public class AuthenticatorTest {
 	
 	@Test
 	public void testThatRequestWithUserAndMultipleGroupsGroupUsesTheAdminGroup4() throws Exception {
-		HttpServletRequest request = request("foo-bar", ",,fdsa,tira-vm-foobar,,tira-vm-froebe,fdghdf");
+		HttpServletRequest request = request("foo-bar", ",,fdsa,tira_vm_foobar,,tira_vm_froebe,fdghdf");
 		
 		Assert.assertTrue(isSignedIn(request));
 		User user = signedInUser(request);
@@ -125,7 +125,7 @@ public class AuthenticatorTest {
 	
 	@Test
 	public void testThatRequestWithUserAndMultipleGroupsAndReviewerGroup() throws Exception {
-		HttpServletRequest request = request("foo-bar", ",,fdsa,tira-vm-foobar,,tira-vm-froebe,fdghdf,tira-reviewer");
+		HttpServletRequest request = request("foo-bar", ",,fdsa,tira_vm_foobar,,tira_vm_froebe,fdghdf,tira_reviewer");
 		
 		Assert.assertTrue(isSignedIn(request));
 		User user = signedInUser(request);
@@ -137,7 +137,7 @@ public class AuthenticatorTest {
 	
 	@Test
 	public void testThatRequestWithUserAndMultipleGroupsAndReviewerGroup2() throws Exception {
-		HttpServletRequest request = request("foo-bar", ",,fdsa,tira-reviewer,tira-vm-foobar,,tira-vm-froebe,fdghdf");
+		HttpServletRequest request = request("foo-bar", ",,fdsa,tira_reviewer,tira_vm_foobar,,tira_vm_froebe,fdghdf");
 		
 		Assert.assertTrue(isSignedIn(request));
 		User user = signedInUser(request);
