@@ -68,7 +68,7 @@ public class Authenticator {
 	}
 
 	private static String firstVmGroupOrUserWithoutVM(HttpServletRequest req) {
-		String ret = StringUtils.substringBetween("," + req.getHeader("X-Disraptor-Groups") + ",", ",tira_vm-", ",");
+		String ret = StringUtils.substringBetween("," + req.getHeader("X-Disraptor-Groups") + ",", ",tira_vm_", ",");
 		
 		return ret == null ? UsersStore.USERNAME_WITHOUT_VM : ret;
 	}
