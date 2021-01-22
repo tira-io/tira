@@ -1,0 +1,55 @@
+{% extends 'tira/base.html' %}
+{% load static %}
+{% block title %}TIRA Run Review{% endblock %}
+{% block description %}TIRA Run Review{% endblock %}
+{% block navbar %}{% include "tira/navbar.html" with nav_active='software' %}{% endblock %}
+
+{% block content %}
+<nav class="uk-container">
+<ul class="uk-breadcrumb">
+<li><a href="{% url 'tira:index' %}">Tira.io</a></li>
+<li><a href="{% url 'tira:task-detail' task_id=task_id %}">{{ task_id }}</a></li>
+<li><a href="{% url 'tira:software-detail' task_id=task_id vm_id=vm_id %}">{{ vm_id }}</a></li>
+<li class="uk-disabled"><a href="#">{{ run_id }}</a></li>
+</ul>
+</nav>
+
+<main class="uk-section uk-section-default">
+    <div class="uk-container">
+        <h1>Review &mdash; <span class="uk-text-muted">{{ run_id }}</span></h1>
+    </div>
+
+<!--    <div class="uk-container uk-margin-medium">-->
+<!--        <ul class="uk-list">-->
+<!--            <li><span data-uk-icon="chevron-down"></span> <a href="#tira-evaluation-results">Evaluation Results</a></li>-->
+<!--            <li><span data-uk-icon="chevron-down"></span> <a href="#tira-runs">Runs</a></li>-->
+<!--        </ul>-->
+<!--    </div>-->
+
+    <!-- Overview - always shown   -->
+    <div class="uk-container uk-margin-medium">
+        <h2 id="tira-run-overview">Overview</h2>
+    </div>
+
+    <!-- Review - show if   -->
+    {% if role == 'admin' or review.blinded == false %}
+    <div class="uk-container uk-margin-medium">
+        <h2 id="tira-run-review">Review</h2>
+        <h2 id="tira-run-stdout">Stdout</h2>
+    </div>
+    {% endif %}
+
+</main>
+
+{% if not include_navigation %}
+<script src="https://assets.webis.de/js/thirdparty/jquery/jquery.slim.min.js"></script>
+{% endif %}
+<script src="https://assets.webis.de/js/thirdparty/fontawesome/fontawesome.min.js"></script>
+<script src="https://assets.webis.de/js/thirdparty/fontawesome/solid.min.js"></script>
+<script src="https://assets.webis.de/js/filter.js"></script>
+<script src="https://assets.webis.de/js/selection.js"></script>
+<script src="https://assets.webis.de/js/tables.js"></script>
+<script>initWebisTableFiltering();</script>
+<script>initTableSorting();</script>
+
+{% endblock %}

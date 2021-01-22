@@ -141,7 +141,7 @@ def software_detail(request, task_id, vm_id):
         context = {
             "include_navigation": include_navigation,
             "task": model.get_task(task_id),
-            "user_id": "no-vm-assigned",
+            "vm_id": "no-vm-assigned",
             "role": auth.get_role(request)
         }
         return render(request, 'tira/software.html', context)
@@ -194,3 +194,28 @@ def software_detail(request, task_id, vm_id):
     }
 
     return render(request, 'tira/software.html', context)
+
+
+def review(request, task_id, vm_id, dataset_id, run_id):
+    # permissions
+    role = auth.get_role(request, auth.get_user_id(request), vm_id=vm_id)
+    if role == 'forbidden':
+        raise PermissionDenied
+
+    run_review = model.get_run_review(dataset_id, vm_id, run_id)
+    context = {
+        "include_navigation": include_navigation,
+        "task_id": task_id,
+        "vm_id": vm_id,
+        "run_id": run_id,
+        "review": run_review
+    }
+
+    return render(request, 'tira/review.html', context)
+
+# {"reviewer": review.reviewerId, "noErrors": review.noErrors, "missingOutput": review.missingOutput,
+# "extraneousOutput": review.extraneousOutput, "invalidOutput": review.invalidOutput,
+# "hasErrorOutput": review.hasErrorOutput, "otherErrors": review.otherErrors,
+# "comment": review.comment, "hasErrors": review.hasErrors, "hasWarnings": review.hasWarnings,
+# "hasNoErrors": review.hasNoErrors, "published": review.published, "blinded": review.blinded
+# }
