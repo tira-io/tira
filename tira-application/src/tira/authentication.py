@@ -115,7 +115,6 @@ class LegacyAuthentication(Authentication):
 
         if 'reviewer' in {role for role in user.roles}:
             return self.ROLE_ADMIN
-
         # NOTE: in the old user management vm_id == user_id
         if user_id == vm_id:
             return self.ROLE_PARTICIPANT
@@ -154,19 +153,28 @@ class DisraptorAuthentication(Authentication):
         return user_id
 
     @staticmethod
-    def _is_in_group(request, group_name='admins') -> bool:
+    def _is_in_group(request, group_name='tira_reviewer') -> bool:
         """ return True if the user is in the given disraptor group"""
         return group_name in request.headers.get('X-Disraptor-Groups', "").split(",")
 
-    @staticmethod
-    def _get_user_groups(request, group_type: str = "vm") -> list:
+    def _parse_tira_groups(self, groups: list) -> list:
+        """ find all groups with 'tira_' prefix and return key and value of the group.
+         Note: Groupnames should be in the format '[tira_]key[_value]'
+         """
+        for group in groups:
+            g = group.split["_"]
+            if g[0] == 'tira':
+                yield {"key": g[1], "value": g[2]}
+
+    def _get_user_groups(self, request, group_type: str = "vm") -> list:
         """ read groups from the disraptor groups header.
         @param group_type: {"vm"}, indicate the class of groups.
         """
         all_groups = request.headers.get('X-Disraptor-Groups', "None").split(",")
 
         if group_type == 'vm':  # if we check for groups of a virtual machine
-            return [u.split("-")[2:] for u in all_groups if u.startswith("tira-vm-")]
+            return [group["value"] for group in self._parse_tira_groups(all_groups) if group["key"] == "vm"]
+            # return [u.split("-")[2:] for u in all_groups if u.startswith("tira-vm-")]
 
     def get_role(self, request, user_id: str = None, vm_id: str = None, task_id: str = None):
         """ Determine the role of the user on the requested page (determined by the given directives).
@@ -181,10 +189,15 @@ class DisraptorAuthentication(Authentication):
             return self._reply_if_allowed(request, self.ROLE_ADMIN, self.ROLE_GUEST)
 
         user_groups = self._get_user_groups(request, group_type='vm')
+        # Role for users with permissions for the vm
         if vm_id in user_groups:
             return self._reply_if_allowed(request, self.ROLE_PARTICIPANT, self.ROLE_GUEST)
-        elif user_id:
+        # Role for registered
+        elif user_id and not vm_id:
             return self._reply_if_allowed(request, self.ROLE_USER, self.ROLE_GUEST)
+        # Role without permissions for the vm
+        elif user_id and vm_id in user_groups:
+            return self._reply_if_allowed(request, self.ROLE_FORBIDDEN, self.ROLE_GUEST)
         return self.ROLE_GUEST
 
     def get_user_id(self, request):
