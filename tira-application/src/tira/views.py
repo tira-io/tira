@@ -163,10 +163,15 @@ def software_detail(request, task_id, vm_id):
 
     # software_keys = {sw["id"] for sw in softwares}
     # run_by_software = {swk: [r for r in runs if r["software"] == swk] for swk in software_keys}
+    # get all evaluations
+    evals = {r["input_run_id"]: r for r in runs if "evaluator" in r["software"]}
+
     software = [{
         "software": sw,
         "runs": [r for r in runs if r["software"] == sw["id"]]
     } for sw in softwares]
+
+    print(evals)
 
     # TODO evaluations do not have a software_id as 'software', but 'evaluatorXYZ'
     # code that sorts the runs in a way that runs with input_run_id follow directly after their original run
