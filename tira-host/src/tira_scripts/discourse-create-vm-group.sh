@@ -46,7 +46,7 @@ eval set -- "${FLAGS_ARGV}"
 set -e
 
 create_group() {
-    group_name="tira-vm-$vmname_or_user"
+    group_name="tira_vm_$vmname_or_user"
     group_bio="Members of this group have access to the virtual machine $vmname_or_user:<br><br>
 <ul>
   <li>Host: $host</li>
