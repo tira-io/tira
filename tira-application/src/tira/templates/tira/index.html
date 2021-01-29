@@ -2,12 +2,12 @@
 {% load static %}
 {% block title %}TIRA{% endblock %}
 {% block description %}TIRA List of Tasks{% endblock %}
-{% block navbar %}{% include "tira/navbar.html" with nav_active='index' %}{% endblock %}
+{% block navbar %}{% include "tira/navbar.html" with nav_active='tasks' %}{% endblock %}
 
 {% block content %}
 <main class="uk-section uk-cover-container index-main-cover">
     <div class="cover-background-fade"></div>
-    <div class="uk-container uk-position-bottom uk-light uk-padding">
+    <div class="uk-container uk-position-bottom uk-light uk-padding" >
         <h1>TIRA &mdash; Evaluation as a Service</h1>
         <h2>Improving the replicability of shared tasks in computer science</h2>
     </div>
@@ -24,7 +24,6 @@
             <input type="text" class="uk-input" id="filter-field" placeholder="Type here to filter&hellip;"/>
         </div>
     </div>
-
     <!-- task table start -->
     <div class="uk-container uk-margin-medium">
         <table class="uk-margin-medium uk-table uk-table-divider uk-table-small sortable targetable">
