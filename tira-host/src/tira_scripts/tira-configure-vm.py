@@ -26,6 +26,7 @@ SCRIPT_WINDOWS = TIRA_SCRIPT_PATH + "/tira-configure-vm-windows.sh"
 SCRIPT_UBUNTU = TIRA_SCRIPT_PATH + "/tira-configure-vm-ubuntu.sh"
 SCRIPT_FEDORA = TIRA_SCRIPT_PATH + "/tira-configure-vm-fedora.sh"
 SCRIPT_ALPINE = TIRA_SCRIPT_PATH + "/tira-configure-vm-alpine.sh"
+SCRIPT_DISCOURSE = TIRA_SCRIPT_PATH + "/discourse-create-vm-group.sh"
 
 DEFAULT_PORT_SSH = 44400
 DEFAULT_PORT_RDP = 55500
@@ -93,6 +94,14 @@ def assign_id():
     overview.close()
     return vmid
 
+def discourse_invite_link(user):
+    cmd = [SCRIPT_DISCOURSE, user]
+    try:
+        import subprocess
+        ret = subprocess.check_output(cmd)
+        return ret.split('\n')[-1]
+    except:
+        return 'Error during the creation of the discourse invite-link. Please run "' + (' '.join(cmd)) + '".'
 
 def generate_random_string():
     """
@@ -231,11 +240,13 @@ def main(args):
     print "rdesktop %s:%d -u %s -p %s" % (host, rdpport, user, userpw)
     print "\nTEST SSH"
     print("sshpass -p %s ssh %s@%s -p %d -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" % (userpw, user, host, sshport))
+    print "\nDiscourse Invite"
+    print discourse_invite_link(user)
     print ""
-
 
 if __name__ == '__main__':
     if len(sys.argv) != 3:
         usage()
         sys.exit(1)
     main(sys.argv[1:])
+
