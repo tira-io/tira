@@ -129,6 +129,12 @@ main() {
         usage
     fi
 
+    #   This early exit is required in case users run the k8s command
+    if [ "$script" = "k8s" ]; then
+        "$_SCRIPT_PATH/tira-$script.sh" $args  # Note: Don't doubleqoute $args.
+        exit $?
+    fi
+
     if [ "$help" = "true" ]; then
         logInfo "Tira help:"
         usage
