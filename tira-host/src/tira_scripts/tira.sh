@@ -174,6 +174,11 @@ main() {
             -o StrictHostKeyChecking=no -o TCPKeepAlive=yes -o ServerAliveInterval=60 \
             -o LogLevel=error \
             -t -t "$remote_script; exit" 2> /dev/null
+
+        if [ "$script" = "vm-create" ]; then
+            "$_SCRIPT_PATH/discourse-create-vm-group.py" $args  # Note: Don't doubleqoute $args.
+        fi
+
         exit 0
     fi
 
