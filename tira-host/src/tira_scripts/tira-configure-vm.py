@@ -94,15 +94,6 @@ def assign_id():
     overview.close()
     return vmid
 
-def discourse_invite_link(user):
-    cmd = [SCRIPT_DISCOURSE, user]
-    try:
-        import subprocess
-        ret = subprocess.check_output(cmd)
-        return ret.split('\n')[-1]
-    except:
-        return 'Error during the creation of the discourse invite-link. Please run "' + (' '.join(cmd)) + '".'
-
 def generate_random_string():
     """
     Generate random string with 8 characters of digits,
@@ -240,8 +231,6 @@ def main(args):
     print "rdesktop %s:%d -u %s -p %s" % (host, rdpport, user, userpw)
     print "\nTEST SSH"
     print("sshpass -p %s ssh %s@%s -p %d -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" % (userpw, user, host, sshport))
-    print "\nDiscourse Invite"
-    print discourse_invite_link(user)
     print ""
 
 if __name__ == '__main__':
