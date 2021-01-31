@@ -176,7 +176,7 @@ main() {
             -t -t "$remote_script; exit" 2> /dev/null
 
         if [ "$script" = "vm-create" ]; then
-            "$_SCRIPT_PATH/discourse-create-vm-group.py" $args  # Note: Don't doubleqoute $args.
+            "$_SCRIPT_PATH/discourse-create-vm-group.py" $args 2>/dev/null # Note: Don't doubleqoute $args.
         fi
 
         exit 0
