@@ -1,5 +1,6 @@
 #!/usr/bin/env python2
 import sys
+import os
 import subprocess
 
 sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)) + "/core/")
