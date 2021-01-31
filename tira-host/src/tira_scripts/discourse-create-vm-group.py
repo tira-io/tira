@@ -11,7 +11,12 @@ def discourse_invite_link(user):
 
 if __name__ == "__main__":
     import sys
+    user_name = sys.argv[-1]
+    invite_link = discourse_invite_link(user_name)
+
     print "\nDiscourse Invite"
-    print discourse_invite_link(sys.argv[-1])
+    print invite_link
+    print "\nDiscourse Invite Mail"
+    print "Please use this link to create your login for TIRA: " + invite_link + ". After login to TIRA, you can find the credentials and usage examples for your dedicated virtual machine " + user_name + " here: https://www.tira.io/g/tira_vm_" + user_name
     print ""
 
