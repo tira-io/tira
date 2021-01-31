@@ -26,7 +26,6 @@ SCRIPT_WINDOWS = TIRA_SCRIPT_PATH + "/tira-configure-vm-windows.sh"
 SCRIPT_UBUNTU = TIRA_SCRIPT_PATH + "/tira-configure-vm-ubuntu.sh"
 SCRIPT_FEDORA = TIRA_SCRIPT_PATH + "/tira-configure-vm-fedora.sh"
 SCRIPT_ALPINE = TIRA_SCRIPT_PATH + "/tira-configure-vm-alpine.sh"
-SCRIPT_DISCOURSE = TIRA_SCRIPT_PATH + "/discourse-create-vm-group.sh"
 
 DEFAULT_PORT_SSH = 44400
 DEFAULT_PORT_RDP = 55500
