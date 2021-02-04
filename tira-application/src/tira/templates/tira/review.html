@@ -16,7 +16,7 @@
 
 <main class="uk-section uk-section-default">
     <div class="uk-container">
-        <h1>Review &mdash; <span class="uk-text-muted">{{ run_id }}</span></h1>
+        <h1>Run Details &mdash; <span class="uk-text-muted">{{ run_id }}</span></h1>
     </div>
 
 <!--    <div class="uk-container uk-margin-medium">-->
@@ -28,14 +28,93 @@
 
     <!-- Overview - always shown   -->
     <div class="uk-container uk-margin-medium">
-        <h2 id="tira-run-overview">Overview</h2>
+        <div class="uk-child-width-1-3@m uk-grid-small uk-grid-match" uk-grid>
+            <div class="uk-card uk-card-body uk-width-1-3 uk-card-default">
+                <table>
+                    <tr>
+                        <td>Software:</td>
+                        <td></td>  <!-- TODO -->
+                    </tr>
+                    <tr>
+                        <td>Run:</td>
+                        <td>{{ run_id }}</td>
+                    </tr>
+                    <tr>
+                        <td>Input Dataset:</td>
+                        <td></td>  <!-- TODO -->
+                    </tr>
+                    <tr>
+                        <td>Input Run:</td>
+                        <td></td>  <!-- TODO -->
+                    </tr>
+                    <tr>
+                        <td>Runtime:</td>
+                        <td></td>  <!-- TODO -->
+                    </tr>
+                </table>
+                <p>
+                {% if review.blinded == false %}
+                The output is visible to the participant.
+                {% else %}
+                The output is <em>not</em> visible to the participant.
+                {% endif %}
+                <br>
+                {% if review.published == false %}
+                This run has been published.
+                {% else %}
+                This run has <em>not</em> been published.
+                {% endif %}
+                </p>
+            </div>
+            <div class="uk-card uk-card-body uk-width-2-3 uk-card-default">
+                {% if review.reviewer %}
+                <p>Reviewer: {{ review.reviewer }}</p>
+                <p>
+                {% if review.noErrors %}
+                There are no errors. This run is valid.
+                {% else %}
+                    {% if review.missingOutput %}
+                    This run is missing output.
+                    {% endif %}
+                    {% if review.extraneousOutput %}
+                    This run produced too much output.
+                    {% endif %}
+                    {% if review.invalidOutput %}
+                    This run has invalid output.
+                    {% endif %}
+                    {% if review.hasErrorOutput %}
+                    This run has errors in the output.
+                    {% endif %}
+                    {% if review.otherErrors %}
+                    This run has other errors.
+                    {% endif %}
+                {% endif %}
+                </p>
+                <p>
+                    Comment:
+                    <br>
+                    {% if review.comment %}
+                    {{ review.comment }}
+                    {% else %}
+                    There are no additional comments.
+                    {% endif %}
+                </p>
+                {% else %}
+                This run has not been reviewed yet.
+                {% endif %}
+            </div>
+        </div>
     </div>
 
     <!-- Review - show if   -->
     {% if role == 'admin' or review.blinded == false %}
     <div class="uk-container uk-margin-medium">
-        <h2 id="tira-run-review">Review</h2>
-        <h2 id="tira-run-stdout">Stdout</h2>
+        <h2 id="tira-run-review">Output</h2>
+<!--        Overview -->
+<!--        STDout -->
+<!--        STDerr -->
+<!--        Filelist -->
+
     </div>
     {% endif %}
 

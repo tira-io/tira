@@ -93,7 +93,6 @@ def assign_id():
     overview.close()
     return vmid
 
-
 def generate_random_string():
     """
     Generate random string with 8 characters of digits,
@@ -233,9 +232,9 @@ def main(args):
     print("sshpass -p %s ssh %s@%s -p %d -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" % (userpw, user, host, sshport))
     print ""
 
-
 if __name__ == '__main__':
     if len(sys.argv) != 3:
         usage()
         sys.exit(1)
     main(sys.argv[1:])
+
