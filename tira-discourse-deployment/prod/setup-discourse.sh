@@ -97,12 +97,12 @@ cd /var/discourse/
 echo "Waiting 5 seconds for command to reach input."
 ./discourse-setup & sleep 5 ; kill $!
 
-# rebuild with given information
-sed -i s/"\'discourse.example.com\'"/"\'$data_hostname\'"/g containers/app.yml
-sed -i s/"\'me@example.com,you@example.com\'"/"\'$data_developer_emails\'"/g containers/app.yml
-sed -i s/"smtp.example.com"/"$data_smtp_address"/g containers/app.yml
-sed -i s/"user@example.com"/"$data_smtp_username"/g containers/app.yml
-sed -i s/"pa\$\$word"/"$data_smtp_password"/g containers/app.yml
+# rebuild with dummy infomation
+sed -i s/"\'discourse.example.com\'"/"\'\'"/g containers/app.yml
+sed -i s/"\'me@example.com,you@example.com\'"/"\'\'"/g containers/app.yml
+sed -i s/"smtp.example.com"/""/g containers/app.yml
+sed -i s/"user@example.com"/""/g containers/app.yml
+sed -i s/"pa\$\$word"/""/g containers/app.yml
 sed -i s/"#DISCOURSE_SMTP_PORT"/"DISCOURSE_SMTP_PORT"/g containers/app.yml
 
 ./launcher rebuild app

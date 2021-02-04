@@ -76,17 +76,18 @@ docker stop $SERVICE_NAME
 # imagename:latest
 docker tag local_discourse/$SERVICE_NAME:latest $DOCKERHUB_USER/$DOCKERHUB_IMAGENAME:$DOCKERHUB_TAG
 docker push $DOCKERHUB_USER/$DOCKERHUB_IMAGENAME:$DOCKERHUB_TAG
-docker tag local_discourse/$SERVICE_NAME:latest $DOCKERHUB_USER/$DOCKERHUB_IMAGENAME:latest
-docker push $DOCKERHUB_USER/$DOCKERHUB_IMAGENAME:latest
+# latest not used in tira-discourse image
+# docker tag local_discourse/$SERVICE_NAME:latest $DOCKERHUB_USER/$DOCKERHUB_IMAGENAME:latest
+# docker push $DOCKERHUB_USER/$DOCKERHUB_IMAGENAME:latest
 
 cd $BASE_DIRECTORY
 
-# not sure if needed
+# only needed if ressources changed
 # mount -t ceph -o name=webis,secretfile=/etc/ceph/ceph.client.webis.secret ceph.dw.webis.de:/storage /mnt/ceph/storage
 # cp /var/discourse/shared/standalone /mnt/ceph/storage/data-in-production/disraptor/boot/resource
 # cp prod/setup /mnt/ceph/storage/data-in-production/disraptor/boot/setup
 
 # redeploy
-prod/k8s-undeploy-discourse-prod.sh
-prod/k8s-deploy-discourse-prod.sh
+#prod/k8s-undeploy-discourse-prod.sh
+#prod/k8s-deploy-discourse-prod.sh
 
