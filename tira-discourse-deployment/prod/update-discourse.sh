@@ -88,6 +88,7 @@ cd $BASE_DIRECTORY
 # cp prod/setup /mnt/ceph/storage/data-in-production/disraptor/boot/setup
 
 # redeploy
+sed "s/image: .*$DOCKERHUB_IMAGENAME.*/image: docker.io/$DOCKERHUB_USER/$DOCKERHUB_IMAGENAME:$DOCKERHUB_TAG/g"
 #prod/k8s-undeploy-discourse-prod.sh
 #prod/k8s-deploy-discourse-prod.sh
 
