@@ -72,8 +72,8 @@ def main(args):
 
     print("# script args=" + str(args))
 
-    # Extract remote & host, "-r HOST" can be everywhere.
-    if len(args) != 0 and ("-r" in args or "--remote" in args):
+    # Extract remote & host, "-r HOST" can be everywhere. (do not manipulate the passed args for the k8s script)
+    if len(args) != 0 and ("-r" in args or "--remote" in args) and not 'k8s' in script:
         if "-r" in args:
             pos = args.index("-r")
         else:

@@ -1,4 +1,4 @@
 #!/bin/bash -e
 
-kubectl delete -f tira.yml || echo "tira.yml is already deleted"
+kubectl delete -n default -f tira.yml || echo "tira.yml is already deleted"
 

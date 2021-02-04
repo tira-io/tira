@@ -164,7 +164,15 @@ class DisraptorAuthentication(Authentication):
         for group in groups:
             g = group.split("_")
             if g[0] == 'tira':
-                yield {"key": g[1], "value": g[2]}
+                try:
+                    key = g[1]
+                except IndexError:
+                    continue
+                try:
+                    value = g[2]
+                except IndexError:
+                    value = None
+                yield {"key": key, "value": value}
 
     def _get_user_groups(self, request, group_type: str = "vm") -> list:
         """ read groups from the disraptor groups header.

@@ -129,6 +129,12 @@ main() {
         usage
     fi
 
+    #   This early exit is required in case users run the k8s command
+    if [ "$script" = "k8s" ]; then
+        "$_SCRIPT_PATH/tira-$script.sh" $args  # Note: Don't doubleqoute $args.
+        exit $?
+    fi
+
     if [ "$help" = "true" ]; then
         logInfo "Tira help:"
         usage
@@ -168,6 +174,11 @@ main() {
             -o StrictHostKeyChecking=no -o TCPKeepAlive=yes -o ServerAliveInterval=60 \
             -o LogLevel=error \
             -t -t "$remote_script; exit" 2> /dev/null
+
+        if [ "$script" = "vm-create" ]; then
+            "$_SCRIPT_PATH/discourse-create-vm-group.py" $args 2>/dev/null # Note: Don't doubleqoute $args.
+        fi
+
         exit 0
     fi
 
