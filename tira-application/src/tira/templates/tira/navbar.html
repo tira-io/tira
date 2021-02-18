@@ -50,6 +50,9 @@
                 <li{% if nav_active == "dataset" %} class="uk-active"{% endif %}>
                     <a href="{% url 'tira:dataset' %}">Data</a>
                 </li>
+                <li{% if nav_active == "users" %} class="uk-active"{% endif %}>
+                    <a href="{% url 'tira:users' %}">Users</a>
+                </li>
                 <li>
                     {% if role != 'guest' %}
                     <a href="{% url 'tira:logout' %}">Logout</a>
