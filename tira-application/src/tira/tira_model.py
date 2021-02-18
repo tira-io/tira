@@ -372,3 +372,9 @@ class FileDatabase(object):
                  "dataset": software.dataset, "run": software.run, "creation_date": software.creationDate,
                  "last_edit": software.lastEditDate}
                 for software in self.software[f"{task_id}${vm_id}"]]
+
+    def get_users_vms(self):
+        """
+        Return the users list.
+        """
+        return self.vms

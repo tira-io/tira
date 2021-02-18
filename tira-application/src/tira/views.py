@@ -224,3 +224,47 @@ def review(request, task_id, vm_id, dataset_id, run_id):
 # "comment": review.comment, "hasErrors": review.hasErrors, "hasWarnings": review.hasWarnings,
 # "hasNoErrors": review.hasNoErrors, "published": review.published, "blinded": review.blinded
 # }
+
+
+def users(request):
+    """
+    List of all users and virtual machines.
+    """
+
+    context = {
+        "include_navigation": include_navigation,
+        "role": auth.get_role(request),
+        "users": model.get_users_vms()
+    }
+    return render(request, 'tira/user_list.html', context)
+
+
+def user_detail(request, user_id):
+    """
+    User-virtual machine details and management.
+    """
+
+    role = auth.get_role(request, auth.get_user_id(request))
+
+    vms = None
+    if role == 'admin':
+        vm_runs = {vm_id: model.get_vm_runs_by_dataset(user_id, vm_id)
+                   for vm_id in vm_ids}
+
+        vm_reviews = {vm_id: model.get_vm_reviews_by_dataset(user_id, vm_id)
+                      for vm_id in vm_ids}  # reviews[vm_id][run_id]
+
+        vms = [{"vm_id": vm_id,
+                "runs": [{"run": run, "review": vm_reviews.get(vm_id, None).get(run["run_id"], None)}
+                         for run in vm_runs[vm_id]],
+                "unreviewed_count": len([1 for r in vm_reviews[vm_id].values()
+                                         if not r.get("reviewer", None)])
+                } for vm_id, run in vm_runs.items()]
+
+    context = {
+        "include_navigation": include_navigation,
+        "role": role,
+        "user_id": user_id,
+    }
+
+    return render(request, 'tira/user_detail.html', context)
