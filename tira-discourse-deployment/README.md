@@ -21,7 +21,7 @@ The discourse production environent contains:
 To deploy the files named basic scripts are provided.
 
 ## By Script
-To deploy via script all you have to do by hand is fill the information sufficient for your service into `prod/data.yml`. Best create a copy with name `your_service_name.yml` for that.
+To deploy via script all you have to do by hand is fill the information sufficient for your service into `prod/data.yml`. Best create a copy with name `your_service_name.yml` for that. **BE SURE THAT THIS INFORMATION IS NEVER LEAKED TO THE PUBLIC! The SMTP user WILL be highjacked.**
 
 **_NOTE_**: The `developer_emails` should be a comma-separated list of mails, not a yaml-list.
 
