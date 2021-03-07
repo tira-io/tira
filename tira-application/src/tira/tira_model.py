@@ -378,3 +378,6 @@ class FileDatabase(object):
         Return the users list.
         """
         return self.vms
+
+    def get_vm_by_id(self, user_id):
+        return self.vms.get(user_id, None)
