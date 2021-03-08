@@ -14,5 +14,7 @@ urlpatterns = [
     # path('software/<str:user_id>', views.software_detail, name='software-detail'),  # show all vms on tasks of a user
     path('login', views.login, name='login'),
     path('logout', views.logout, name='logout'),
+    path('tira/admin', views.admin, name='tira-admin'),
+    path('tira/admin/reload-data', views.admin_reload_data, name='tira-admin-reload-data'),
 ]
 app_name = 'tira'

@@ -15,6 +15,7 @@ class FileDatabase(object):
     tasks_dir_path = tira_root / Path("model/tasks")
     users_file_path = tira_root / Path("model/users/users.prototext")
     organizers_file_path = tira_root / Path("model/organizers/organizers.prototext")
+    vm_list_file = tira_root / Path("model/virtual-machines/virtual-machines.txt")
     datasets_dir_path = tira_root / Path("model/datasets")
     softwares_dir_path = tira_root / Path("model/softwares")
     RUNS_DIR_PATH = tira_root / Path("data/runs")
@@ -32,6 +33,9 @@ class FileDatabase(object):
         self.software_by_vm = None  # vm_id: [modelpb.Software]
         self.software_count_by_dataset = None  # dataset_id: int()
 
+        self.build_model()
+
+    def build_model(self):
         self._parse_organizer_list()
         self._parse_vm_list()
         self._parse_task_list()
@@ -333,6 +337,19 @@ class FileDatabase(object):
     #
     #     return ev_keys, status, runs, evaluations
 
+    def get_vm_list(self):
+        """ load the vm-info file which stores all active vms as such:
+        <hostname>\t<vm_id>[\t<state>]\n
+        ...
+
+        returns a list of tuples (hostname, vm_id, state)
+        """
+        vm_list = []
+        for line in open(self.vm_list_file, 'r'):
+            l = line.split("\t")
+            vm_list.append([l[0], l[1].strip(), l[2].strip() if len(l) > 2 else ''])
+        return vm_list
+
     def get_vms_by_dataset(self, dataset_id):
         """ return a list of vm_id's that have runs on this dataset """
         return [user_run_dir.stem
@@ -355,7 +372,8 @@ class FileDatabase(object):
         @param only_public_results: only return the measures for published datasets.
         """
         return {run_id: self._get_evaluation(ev)
-                for run_id, ev in self._load_vm_evaluations(dataset_id, vm_id, only_published=only_public_results).items()}
+                for run_id, ev in
+                self._load_vm_evaluations(dataset_id, vm_id, only_published=only_public_results).items()}
 
     def get_run_review(self, dataset_id, vm_id, run_id):
         return self._get_review(self._load_review(dataset_id, vm_id, run_id))

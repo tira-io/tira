@@ -26,6 +26,22 @@ def index(request):
     return render(request, 'tira/index.html', context)
 
 
+def admin(request):
+    # 1. check permissions
+    role = auth.get_role(request, auth.get_user_id(request))
+    if role != 'admin':
+        raise PermissionDenied
+
+    vm_list = model.get_vm_list()
+
+    context = {
+        "include_navigation": include_navigation,
+        "role": auth.get_role(request, user_id=role),
+        "vm_list": vm_list
+    }
+    return render(request, 'tira/tira_admin.html', context)
+
+
 def login(request):
     """ Hand out the login form
     Note that this is only called in legacy deployment. Disraptor is supposed to catch the route to /login
@@ -224,3 +240,17 @@ def review(request, task_id, vm_id, dataset_id, run_id):
 # "comment": review.comment, "hasErrors": review.hasErrors, "hasWarnings": review.hasWarnings,
 # "hasNoErrors": review.hasNoErrors, "published": review.published, "blinded": review.blinded
 # }
+
+# ------------------- ajax calls --------------------------------
+
+
+def admin_reload_data(request):
+    # 1. check permissions
+    role = auth.get_role(request, auth.get_user_id(request))
+    if role != 'admin':
+        HttpResponse("Permission Denied")
+
+    if request.method == 'GET':
+        # post_id = request.GET['post_id']
+        model.build_model()
+        return HttpResponse("Success!")

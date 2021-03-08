@@ -1,0 +1,83 @@
+{% extends 'tira/base.html' %}
+{% load static %}
+{% block title %}TIRA - Admin{% endblock %}
+{% block description %}TIRA - Admin{% endblock %}
+{% block navbar %}{% include "tira/navbar.html" with nav_active='index' %}{% endblock %}
+
+{% block content %}
+
+<nav class="uk-container">
+    <ul class="uk-breadcrumb">
+        <li><a href="{% url 'tira:index' %}">Tira.io</a></li>
+        <li class="uk-disabled"><a href="#">Admin Panel</a></li>
+    </ul>
+</nav>
+
+<main class="uk-section uk-section-default">
+    <div class="uk-container">
+        <h1>Admin Panel</h1>
+        <ul class="uk-list uk-list-collapse uk-list-striped" uk-accordion>
+            <li>
+                <a class="uk-accordion-title" href="#">Active VMs ({{ vm_list|length }})</a>
+                <div class="uk-accordion-content">
+                    <table class="uk-margin-medium uk-table uk-table-divider uk-table-small sortable">
+                        <thead>
+                        <tr>
+                            <th></th>
+                            <th class="header"><span>VM_ID</span></th>
+                            <th class="header"><span>Actions</span></th>
+                            <th class="header"><span>Host</span></th>
+                            <th class="header"><span>State</span></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for vm in vm_list %}
+                        <tr>
+                            <td></td>
+                            <td>{{ vm.1 }}</td>
+                            <td>[delete]</td>
+                            <td>{{ vm.0 }}</td>
+                            <td>{{ vm.2 }}</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </li>
+        </ul>
+
+        <h3>Admin Actions</h3>
+        <ul>
+            <li><a id="tira-admin-reload-data">Reload Website Data</a><span id="tira-admin-reload-data-icon"></span></li>
+        </ul>
+
+        <h3>TODOs:</h3>
+        <ul>
+            <li>Show active vm's with state (and user/task info?)</li>
+            <li>reload data</li>
+            <li>create vm field</li>
+            <li>archive vm field</li>
+            <li>add task/dataset</li>
+        </ul>
+    </div>
+
+    <div class="uk-container">
+
+    </div>
+</main>
+
+{% if include_navigation %}
+<script src="https://assets.webis.de/js/thirdparty/jquery/jquery.slim.min.js"></script>
+<script src="https://assets.webis.de/js/thirdparty/fontawesome/fontawesome.min.js"></script>
+<script src="https://assets.webis.de/js/thirdparty/fontawesome/solid.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+{% endif %}
+<script src="https://assets.webis.de/js/filter.js"></script>
+<script src="https://assets.webis.de/js/selection.js"></script>
+<script src="https://assets.webis.de/js/tables.js"></script>
+<script>initWebisTableFiltering();</script>
+<script>initTableSorting();</script>
+<script src="{% static 'tira/js/tira-admin.js' %}"></script>
+<script>addTiraAdminHandlers()</script>
+
+{% endblock %}
