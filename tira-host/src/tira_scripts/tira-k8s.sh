@@ -42,5 +42,5 @@ then
 fi
 
 INTERNAL_CMD="${@}"
-kubectl -n default exec -ti ${POD} -- bash -c "cd /usr/local/share/tira/src && ${INTERNAL_CMD}"
+kubectl -n webisservices exec -ti ${POD} -- bash -c "cd /usr/local/share/tira/src && ${INTERNAL_CMD}"
 
