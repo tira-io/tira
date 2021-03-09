@@ -12,7 +12,32 @@ function reloadData() {
     })
 }
 
+function submitCreateVmForm(){
+    $('#tira-admin-create-vm-icon').html(' <div uk-spinner="ratio: 0.5"></div>')
+    $.ajax({
+        type:"POST",
+        url: "/tira/admin/create-vm",
+        data:{
+            bulk_create:$('#id_bulk_create').val(),
+            csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val(),
+            action: 'post'
+        },
+        success: function( data )
+        {
+            document.getElementById("tira-admin-vm-create-form").reset();
+            $('#tira-admin-create-vm-icon').html(' <i class="fas fa-check"></i>');
+            $('#tira-admin-vm-create-form').text(data['form_error']);
+            console.log(data);
+            $('#create-vm-form-results').text(data)
+        }
+    })
+}
+
 function addTiraAdminHandlers() {
     $('#tira-admin-reload-data').click(function() {reloadData()})
+    $('#tira-admin-vm-create-form').submit(function(e) {
+        e.preventDefault();
+        submitCreateVmForm()
+    })
 }
 

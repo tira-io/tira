@@ -1,12 +1,13 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, JsonResponse
 from itertools import groupby
 from django.conf import settings
 from .tira_model import FileDatabase
 from .authentication import Authentication
-from .forms import LoginForm
+from .forms import LoginForm, CreateVmForm
 from django import forms
 from django.core.exceptions import PermissionDenied
+from time import sleep
 
 model = FileDatabase()
 include_navigation = True if settings.DEPLOYMENT == "legacy" else False
@@ -37,7 +38,8 @@ def admin(request):
     context = {
         "include_navigation": include_navigation,
         "role": auth.get_role(request, user_id=role),
-        "vm_list": vm_list
+        "vm_list": vm_list,
+        "create_vm_form": CreateVmForm()
     }
     return render(request, 'tira/tira_admin.html', context)
 
@@ -254,3 +256,45 @@ def admin_reload_data(request):
         # post_id = request.GET['post_id']
         model.build_model()
         return HttpResponse("Success!")
+
+
+def admin_create_vm(request):
+    """
+    Hook to send create_vm requests to. Responds with json objects indicating the state of the create process.
+    """
+    # 1. check permissions
+    role = auth.get_role(request, auth.get_user_id(request))
+    if role != 'admin':
+        HttpResponse("Permission Denied")
+
+    context = {
+        "complete": [],
+        'failed': []
+    }
+
+    def parse_create_string(create_string: str):
+        for line in create_string.split("\n"):
+            line = line.split(",")
+            yield {"hostname": line[0], "vm_id": line[1], "ova_id": line[2]}
+
+    if request.method == "POST":
+        form = CreateVmForm(request.POST)
+        if form.is_valid():
+            try:
+                bulk_create = list(parse_create_string(form.cleaned_data["bulk_create"]))
+            except IndexError:
+                context["form_error"] = "Error Parsing input. Are all lines complete?"
+                return JsonResponse(context)
+            # TODO dummy code talk to Nikolay!
+            # TODO check semantics downstream (vm exists, host/ova does not exist)
+            sleep(2)
+            context["complete"].append(bulk_create[:-1])
+            context["failed"].append(bulk_create[-1])
+
+        else:
+            context["form_error"] = "Form Invalid (check formatting)"
+            return JsonResponse(context)
+    else:
+        HttpResponse("Permission Denied")
+
+    return JsonResponse(context)
