@@ -343,7 +343,7 @@ class FileDatabase(object):
         return list(open(self.host_list_file, "r").readlines())
 
     def get_ova_list(self) -> list:
-        return [ova_file.stem for ova_file in self.ova_dir.glob("*.ova")]
+        return [f"{ova_file.stem}.ova" for ova_file in self.ova_dir.glob("*.ova")]
 
     def get_vm_list(self):
         """ load the vm-info file which stores all active vms as such:
@@ -355,7 +355,11 @@ class FileDatabase(object):
         vm_list = []
         for line in open(self.vm_list_file, 'r'):
             l = line.split("\t")
-            vm_list.append([l[0], l[1].strip(), l[2].strip() if len(l) > 2 else ''])
+            try:
+                vm_list.append([l[0], l[1].strip(), l[2].strip() if len(l) > 2 else ''])
+            except IndexError as e:
+                print(e)
+                print(line)
         return vm_list
 
     def get_vms_by_dataset(self, dataset_id):

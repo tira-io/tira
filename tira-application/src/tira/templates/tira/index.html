@@ -13,8 +13,7 @@
     </div>
     <div class="uk-position-bottom-right uk-light uk-margin-right"><a href="https://www.shutterstock.com/image-photo/sunset-oia-santorini-greece-1005762703" target="_blank">Shutterstock</a></div>
 </main>
-
-{% if 'role==admin' %}
+{% if role == 'admin' %}
 <nav class="uk-container">
 <ul class="uk-breadcrumb">
 <li><a href="{% url 'tira:tira-admin' %}">[Admin Panel]</a></li>
