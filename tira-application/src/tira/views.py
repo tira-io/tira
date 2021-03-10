@@ -174,7 +174,8 @@ def software_detail(request, task_id, vm_id):
         raise PermissionDenied
 
     # 0. Early return a dummy page, if the user has no vm assigned on this task
-    if check.has_access(request, ["user"], on_vm_id=vm_id):
+    if check.has_access(request, ["user"], on_vm_id=vm_id) \
+            or vm_id == "no-vm-assigned":
         context = {
             "include_navigation": include_navigation,
             "task": model.get_task(task_id),
