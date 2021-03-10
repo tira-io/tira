@@ -138,6 +138,7 @@ class LegacyAuthentication(Authentication):
 class DisraptorAuthentication(Authentication):
     _AUTH_SOURCE = "disraptor"
 
+    # TODO should be in check
     @staticmethod
     def _reply_if_allowed(request, response, alternative="None"):
         """ Returns the :param response: if disraptor auth token is correct, otherwise returns the :param alternative:
@@ -184,6 +185,7 @@ class DisraptorAuthentication(Authentication):
             return [group["value"] for group in self._parse_tira_groups(all_groups) if group["key"] == "vm"]
             # return [u.split("-")[2:] for u in all_groups if u.startswith("tira-vm-")]
 
+    # TODO: permission logic should be in Check
     def get_role(self, request, user_id: str = None, vm_id: str = None, task_id: str = None):
         """ Determine the role of the user on the requested page (determined by the given directives).
         This is a minimalistic implementation that suffices for the current features of TIRA.
