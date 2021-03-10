@@ -16,6 +16,8 @@ class FileDatabase(object):
     users_file_path = tira_root / Path("model/users/users.prototext")
     organizers_file_path = tira_root / Path("model/organizers/organizers.prototext")
     vm_list_file = tira_root / Path("model/virtual-machines/virtual-machines.txt")
+    host_list_file = tira_root / Path("model/virtual-machine-hosts/virtual-machine-hosts.txt")
+    ova_dir = tira_root / Path("data/virtual-machine-templates/")
     datasets_dir_path = tira_root / Path("model/datasets")
     softwares_dir_path = tira_root / Path("model/softwares")
     RUNS_DIR_PATH = tira_root / Path("data/runs")
@@ -336,6 +338,12 @@ class FileDatabase(object):
     #                                      "reviewed": "", "unreviewed": unreviewed_count}  # TODO dummy
     #
     #     return ev_keys, status, runs, evaluations
+
+    def get_host_list(self) -> list:
+        return list(open(self.host_list_file, "r").readlines())
+
+    def get_ova_list(self) -> list:
+        return [ova_file.stem for ova_file in self.ova_dir.glob("*.ova")]
 
     def get_vm_list(self):
         """ load the vm-info file which stores all active vms as such:

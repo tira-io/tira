@@ -44,6 +44,48 @@
                     </table>
                 </div>
             </li>
+            <li>
+                <a class="uk-accordion-title" href="#">Registered Hosts ({{ host_list|length }})</a>
+                <div class="uk-accordion-content">
+                    <table class="uk-margin-medium uk-table uk-table-divider uk-table-small sortable">
+                        <thead>
+                        <tr>
+                            <th></th>
+                            <th class="header"><span>Hostname</span></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for host in host_list %}
+                        <tr>
+                            <td></td>
+                            <td>{{ host }}</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </li>
+            <li>
+                <a class="uk-accordion-title" href="#">Available OVAs ({{ ova_list|length }})</a>
+                <div class="uk-accordion-content">
+                    <table class="uk-margin-medium uk-table uk-table-divider uk-table-small sortable">
+                        <thead>
+                        <tr>
+                            <th></th>
+                            <th class="header"><span>OVA</span></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for ova in ova_list %}
+                        <tr>
+                            <td></td>
+                            <td>{{ ova }}</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </li>
         </ul>
 
         <h2>System Actions</h2>
