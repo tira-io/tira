@@ -98,13 +98,11 @@
         </ul>
 
         <h2>Create VMs</h2>
-        {% if form_error %}
-            <span style="color: red">{{ form_error }}</span>
-        {% endif %}
         <form id="tira-admin-vm-create-form" method="POST"> <!--            action="{% url 'tira:tira-admin-create-vm' %}"-->
             {% csrf_token %}
-            <span id="vm-create-errors"></span>
             {{ create_vm_form }}
+            <span id="create-vm-form-error" style="color: red"></span>
+            </br>
             <input type="submit" class="uk-button uk-button-primary" value="Create VMs"/><span id="tira-admin-create-vm-icon"></span>
         </form>
         <div id="create-vm-form-results"></div>
@@ -115,6 +113,7 @@
             <li>add task (creates master vm)</li>
             <li>add evaluator for dataset</li>
             <li>add dataset</li>
+            <li>give user_id permission to vm_id</li>
             <li>(bulk)archive vm field</li>
         </ul>
     </div>
