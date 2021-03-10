@@ -4,6 +4,7 @@ from itertools import groupby
 from django.conf import settings
 from .tira_model import FileDatabase
 from .authentication import Authentication
+from .checks import Check
 from .forms import LoginForm, CreateVmForm
 from django import forms
 from django.core.exceptions import PermissionDenied
@@ -13,9 +14,12 @@ model = FileDatabase()
 include_navigation = True if settings.DEPLOYMENT == "legacy" else False
 auth = Authentication(authentication_source=settings.DEPLOYMENT,
                       users_file=settings.LEGACY_USER_FILE)
+check = Check(model, auth)
 
 
 def index(request):
+    if not check.has_access(request, "any"):
+        raise PermissionDenied
     uid = auth.get_user_id(request)
     context = {
         "include_navigation": include_navigation,
@@ -28,17 +32,14 @@ def index(request):
 
 
 def admin(request):
-    # 1. check permissions
-    role = auth.get_role(request, auth.get_user_id(request))
-    if role != 'admin':
+    if not check.has_access(request, ["tira", "admin"]):
         raise PermissionDenied
-
-    vm_list = model.get_vm_list()
 
     context = {
         "include_navigation": include_navigation,
-        "role": auth.get_role(request, user_id=role),
-        "vm_list": vm_list,
+        "vm_list": model.get_vm_list(),
+        "host_list": model.get_host_list(),
+        "ova_list": model.get_ova_list(),
         "create_vm_form": CreateVmForm()
     }
     return render(request, 'tira/tira_admin.html', context)
@@ -48,6 +49,9 @@ def login(request):
     """ Hand out the login form
     Note that this is only called in legacy deployment. Disraptor is supposed to catch the route to /login
     """
+    if not check.has_access(request, 'any'):
+        raise PermissionDenied
+
     context = {
         "include_navigation": include_navigation,
         "role": auth.get_role(request)
@@ -69,11 +73,17 @@ def login(request):
 
 
 def logout(request):
+    if not check.has_access(request, 'any'):
+        raise PermissionDenied
+
     auth.logout(request)
     return redirect('tira:index')
 
 
 def task_detail(request, task_id):
+    if not check.has_access(request, 'any'):
+        raise PermissionDenied
+
     uid = auth.get_user_id(request)
     context = {
         "include_navigation": include_navigation,
@@ -86,6 +96,9 @@ def task_detail(request, task_id):
 
 
 def dataset_list(request):
+    if not check.has_access(request, 'any'):
+        raise PermissionDenied
+
     context = {
         "include_navigation": include_navigation,
         "role": auth.get_role(request),
@@ -99,6 +112,9 @@ def dataset_detail(request, task_id, dataset_id):
     Admins, it shows all evaluations on the dataset, as well as a list of all runs and the review interface.
      @note maybe later, we can show a consolidated view of all runs the user made on this dataset below.
      """
+    if not check.has_access(request, 'any'):
+        raise PermissionDenied
+
     role = auth.get_role(request, auth.get_user_id(request))
 
     # For all users: compile the results table from the evaluations
@@ -154,8 +170,11 @@ def dataset_detail(request, task_id, dataset_id):
 
 def software_detail(request, task_id, vm_id):
     """ render the detail of the user page: vm-stats, softwares, and runs """
+    if not check.has_access(request, ["tira", "admin", "participant", "user"], on_vm_id=vm_id):
+        raise PermissionDenied
+
     # 0. Early return a dummy page, if the user has no vm assigned on this task
-    if not vm_id or vm_id == "no-vm-assigned":
+    if check.has_access(request, ["user"], on_vm_id=vm_id):
         context = {
             "include_navigation": include_navigation,
             "task": model.get_task(task_id),
@@ -163,12 +182,6 @@ def software_detail(request, task_id, vm_id):
             "role": auth.get_role(request)
         }
         return render(request, 'tira/software.html', context)
-
-    # 1. check permissions
-    role = auth.get_role(request, auth.get_user_id(request), vm_id=vm_id)
-
-    if role == 'forbidden':
-        raise PermissionDenied
 
     # 2. try to load vm, if it fails, the user has no vm
     try:
@@ -220,9 +233,7 @@ def software_detail(request, task_id, vm_id):
 
 
 def review(request, task_id, vm_id, dataset_id, run_id):
-    # permissions
-    role = auth.get_role(request, auth.get_user_id(request), vm_id=vm_id)
-    if role == 'forbidden':
+    if not check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id):
         raise PermissionDenied
 
     run_review = model.get_run_review(dataset_id, vm_id, run_id)
@@ -247,10 +258,8 @@ def review(request, task_id, vm_id, dataset_id, run_id):
 
 
 def admin_reload_data(request):
-    # 1. check permissions
-    role = auth.get_role(request, auth.get_user_id(request))
-    if role != 'admin':
-        HttpResponse("Permission Denied")
+    if not check.has_access(request, ["tira", "admin"]):
+        raise PermissionDenied
 
     if request.method == 'GET':
         # post_id = request.GET['post_id']
@@ -259,13 +268,9 @@ def admin_reload_data(request):
 
 
 def admin_create_vm(request):
-    """
-    Hook to send create_vm requests to. Responds with json objects indicating the state of the create process.
-    """
-    # 1. check permissions
-    role = auth.get_role(request, auth.get_user_id(request))
-    if role != 'admin':
-        HttpResponse("Permission Denied")
+    """ Hook for create_vm posts. Responds with json objects indicating the state of the create process. """
+    if not check.has_access(request, ["tira", "admin"]):
+        raise PermissionDenied
 
     context = {
         "complete": [],
