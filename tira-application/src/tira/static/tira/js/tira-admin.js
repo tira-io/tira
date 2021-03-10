@@ -25,9 +25,8 @@ function submitCreateVmForm(){
         success: function( data )
         {
             document.getElementById("tira-admin-vm-create-form").reset();
-            $('#tira-admin-create-vm-icon').html(' <i class="fas fa-check"></i>');
-            $('#tira-admin-vm-create-form').text(data['form_error']);
-            console.log(data);
+            $('#tira-admin-create-vm-icon').html();
+            $('#create-vm-form-error').text(data['create_vm_form_error']);
             $('#create-vm-form-results').text(data)
         }
     })

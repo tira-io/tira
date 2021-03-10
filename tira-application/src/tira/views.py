@@ -289,7 +289,7 @@ def admin_create_vm(request):
             try:
                 bulk_create = list(parse_create_string(form.cleaned_data["bulk_create"]))
             except IndexError:
-                context["form_error"] = "Error Parsing input. Are all lines complete?"
+                context["create_vm_form_error"] = "Error Parsing input. Are all lines complete?"
                 return JsonResponse(context)
             # TODO dummy code talk to Nikolay!
             # TODO check semantics downstream (vm exists, host/ova does not exist)
@@ -298,7 +298,7 @@ def admin_create_vm(request):
             context["failed"].append(bulk_create[-1])
 
         else:
-            context["form_error"] = "Form Invalid (check formatting)"
+            context["create_vm_form_error"] = "Form Invalid (check formatting)"
             return JsonResponse(context)
     else:
         HttpResponse("Permission Denied")
