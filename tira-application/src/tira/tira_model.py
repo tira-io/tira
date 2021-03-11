@@ -6,6 +6,7 @@ from pathlib import Path
 import logging
 from django.conf import settings
 from .proto import TiraClientWebMessages_pb2 as modelpb
+from .proto import tira_host_pb2 as model_host
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +20,7 @@ class FileDatabase(object):
     softwares_dir_path = tira_root / Path("model/softwares")
     RUNS_DIR_PATH = tira_root / Path("data/runs")
 
-    def __init__(self):
+    def __init__(self, hostname):
         logger.info("Start loading dataset")
         self.organizers = None  # dict of host objects host_id: modelpb.Host
         self.vms = None  # dict of vm_id: modelpb.User
@@ -41,6 +42,13 @@ class FileDatabase(object):
         self._build_task_relations()
         self._build_software_relations()
         self._build_software_counts()
+
+        self.hostname = hostname
+        self.command_states_path = self.tira_root / Path("state/commands/" + self.hostname + ".prototext")
+        self.command_logs_path = self.tira_root / Path("log/virtual-machine-hosts/" + self.hostname + "/")
+        self.command_logs_path.mkdir(exist_ok=True)
+        self.commandState = None
+        self._parse_command_state()
 
     # _parse methods parse files once on startup
     def _parse_organizer_list(self):
@@ -375,3 +383,18 @@ class FileDatabase(object):
 
     def get_vm_by_id(self, vm_id: str):
         return self.vms.get(vm_id)
+
+    def _parse_command_state(self):
+        """
+        Parse the command state file.
+        """
+        self.commandState = Parse(open(self.command_states_path, "r").read(), model_host.CommandState())
+
+    def get_command(self, command_id):
+        """
+        Get command object
+        :param command_id:
+        """
+        for command in self.commandState.commands:
+            if command.id == command_id:
+                return command
