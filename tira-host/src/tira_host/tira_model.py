@@ -36,7 +36,6 @@ class FileDatabase(object):
     def _parse_command_state(self):
         """
         Parse the command state file.
-        :return: Commands message with the list of running commands
         """
         self.commandState = Parse(open(self.command_states_path, "r").read(), model_host.CommandState())
 
@@ -57,7 +56,7 @@ class FileDatabase(object):
     def create_command(self, command_id, command_string):
         """
         Add new Command to the state file and create command log file.
-        :return:
+        :return: Command object
         """
         new_command = self.commandState.commands.add()
         new_command.id = command_id
@@ -75,6 +74,11 @@ class FileDatabase(object):
         return new_command
 
     def update_command(self, command_id, **kwargs):
+        """
+        Update command object with passed key-value pairs
+        :param command_id:
+        :param kwargs:
+        """
         for c in self.commandState.commands:
             if c.id == command_id:
                 for key, value in kwargs.items():
@@ -85,8 +89,7 @@ class FileDatabase(object):
 
     def remove_commands(self, commands_to_remove):
         """
-        Remove finished command.
-        :return:
+        Remove finished commands
         """
         for c in self.commandState.commands:
             if c.id in commands_to_remove:
@@ -95,6 +98,10 @@ class FileDatabase(object):
         self._update_command_state_file()
 
     def clean_command_state(self, time_ago):
+        """
+        Update command state file and remove commands older then 'time_ago'.
+        :param time_ago:
+        """
         for command in self.commandState.commands:
             if time.mktime(datetime.strptime(command.endTime, "%Y-%m-%dT%H:%M:%SZ").timetuple()) < time_ago:
                 self.commandState.commands.remove(command)
