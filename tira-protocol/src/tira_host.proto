@@ -57,6 +57,7 @@ service TiraHostService {
   rpc vm_unsandbox (RequestVmCommands) returns (Response) {}
   rpc run_execute(RequestRunExecuteEval) returns (Response) {}
   rpc run_eval(RequestRunExecuteEval) returns (Response) {}
+  rpc get_command_status(RequestCommandStatus) returns (Response) {}
 }
 
 
@@ -89,7 +90,12 @@ message RequestRunExecuteEval {
 }
 
 message Response {
-  string output = 1;
+    enum Status {
+      RUNNING = 0;
+      SUCCESS = 1;
+      FAILED = 2;
+    }
+    Status status = 5;
 }
 
 message ResponseVmInfo {
@@ -97,4 +103,34 @@ message ResponseVmInfo {
   string memorySize = 2;
   string numberOfCpus = 3;
   string state = 4;
+  string sshPort = 5;
+  string rdpPort = 6;
+  string host = 7;
+  bool sshPortStatus = 8;
+  bool rdpPortStatus = 9;
+}
+
+message RequestCommandStatus {
+  string commandId = 1;
+}
+
+message CommandState {
+  string hostname = 1;
+
+  message Command {
+    string id = 1;
+    string commandString = 2;
+    string startTime = 3;
+    string endTime = 4;
+    enum Status {
+      RUNNING = 0;
+      SUCCESS = 1;
+      FAILED = 2;
+    }
+    Status status = 5;
+    string logFile = 6;
+    int32 returnCode = 7;
+  }
+
+  repeated Command commands = 2;
 }
