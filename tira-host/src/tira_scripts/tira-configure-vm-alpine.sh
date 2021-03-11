@@ -70,7 +70,7 @@ main() {
     pwhash=$(perl -e 'print crypt($ARGV[0], "password")' "$pw")
     pwtirahash=$(perl -e 'print crypt($ARGV[0], "password")' "$pwtira")
     #    pwstring=pwhash + '\n' + pwhash
-    pwstring="${pwhash}'\n'${pwhash}"
+    pwstring="${pwhash}\n${pwhash}"
 
     # Add user, change admin pw, change shell to /bin/bash.
     sshpass -p "$pwtiradefault" \
