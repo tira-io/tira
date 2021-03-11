@@ -19,7 +19,7 @@ from django.core.exceptions import PermissionDenied
 from .proto import tira_host_pb2
 from .proto import tira_host_pb2_grpc
 
-model = FileDatabase()
+model = FileDatabase(socket.gethostname())
 include_navigation = True if settings.DEPLOYMENT == "legacy" else False
 auth = Authentication(authentication_source=settings.DEPLOYMENT,
                       users_file=settings.LEGACY_USER_FILE)
@@ -198,32 +198,26 @@ def software_detail(request, task_id, vm_id):
     #     software["results"] = r_independent
 
     # request tira-host for vmInfo
-    # vm = model.get_vm_by_id(vm_id)
-    # response_vm_info = vm_info(request, vm)
+    vm = model.get_vm_by_id(vm_id)
+    response_vm_info = vm_info(request, vm)
 
     context = {
         "include_navigation": include_navigation,
         "task": model.get_task(task_id),
         "vm_id": vm_id,
         "software": software,
-        # "responseVmInfo": response_vm_info,
+        "responseVmInfo": response_vm_info,
     }
 
     return render(request, 'tira/software.html', context)
 
 
-def vm_info(request, user_id, vm_id):
-    # # 1. check permissions
-    # role = auth.get_role(request, auth.get_user_id(request), vm_id=vm_id)
-    #
-    # if role == 'forbidden':
-    #     raise PermissionDenied
-
+def vm_info(request, user_id):
     vm = model.get_vm_by_id(user_id)
     grpc_client = GrpcClient(vm.host)
     response = grpc_client.vm_info(vm.vmName)
-
-    return JsonResponse({'status': 'accepted', 'message': response}, status=202)
+    # return JsonResponse({'status': 'accepted', 'message': response}, status=202)
+    return response
 
 
 def vm_start(request, user_id, vm_id):
@@ -231,8 +225,6 @@ def vm_start(request, user_id, vm_id):
     grpc_client = GrpcClient(vm.host)
     response = grpc_client.vm_start(vm.vmName)
     return JsonResponse({'status': 'accepted', 'message': response}, status=202)
-    # return JsonResponse({"output": response})
-    # return response
 
 
 def vm_stop(request, user_id, vm_id):
@@ -245,24 +237,24 @@ def vm_stop(request, user_id, vm_id):
 def run_execute(request, user_id, vm_id):
     vm = model.get_vm_by_id(user_id)
     grpc_client = GrpcClient(vm.host)
-    response = grpc_client.run_execute(submissionFile="",
-                                       inputDatasetName="",
-                                       inputRunPath="",
-                                       outputDirName="",
+    response = grpc_client.run_execute(submission_file="",
+                                       input_dataset_name="",
+                                       input_run_path="",
+                                       output_dir_name="",
                                        sandboxed="",
-                                       optionalParameters="")
+                                       optional_parameters="")
     return JsonResponse({"output": response})
 
 
 def run_eval(request, user_id, vm_id):
     vm = model.get_vm_by_id(user_id)
     grpc_client = GrpcClient(vm.host)
-    response = grpc_client.run_execute(submissionFile="",
-                                       inputDatasetName="",
-                                       inputRunPath="",
-                                       outputDirName="",
+    response = grpc_client.run_execute(submission_file="",
+                                       input_dataset_name="",
+                                       input_run_path="",
+                                       output_dir_name="",
                                        sandboxed="",
-                                       optionalParameters="")
+                                       optional_parameters="")
     return JsonResponse({"output": response})
 
 
