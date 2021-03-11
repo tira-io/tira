@@ -1,20 +1,25 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, JsonResponse
 from itertools import groupby
 from django.conf import settings
 from .tira_model import FileDatabase
 from .authentication import Authentication
-from .forms import LoginForm
+from .checks import Check
+from .forms import LoginForm, CreateVmForm
 from django import forms
 from django.core.exceptions import PermissionDenied
+from time import sleep
 
 model = FileDatabase()
 include_navigation = True if settings.DEPLOYMENT == "legacy" else False
 auth = Authentication(authentication_source=settings.DEPLOYMENT,
                       users_file=settings.LEGACY_USER_FILE)
+check = Check(model, auth)
 
 
 def index(request):
+    if not check.has_access(request, "any"):
+        raise PermissionDenied
     uid = auth.get_user_id(request)
     context = {
         "include_navigation": include_navigation,
@@ -26,10 +31,27 @@ def index(request):
     return render(request, 'tira/index.html', context)
 
 
+def admin(request):
+    if not check.has_access(request, ["tira", "admin"]):
+        raise PermissionDenied
+
+    context = {
+        "include_navigation": include_navigation,
+        "vm_list": model.get_vm_list(),
+        "host_list": model.get_host_list(),
+        "ova_list": model.get_ova_list(),
+        "create_vm_form": CreateVmForm()
+    }
+    return render(request, 'tira/tira_admin.html', context)
+
+
 def login(request):
     """ Hand out the login form
     Note that this is only called in legacy deployment. Disraptor is supposed to catch the route to /login
     """
+    if not check.has_access(request, 'any'):
+        raise PermissionDenied
+
     context = {
         "include_navigation": include_navigation,
         "role": auth.get_role(request)
@@ -51,11 +73,17 @@ def login(request):
 
 
 def logout(request):
+    if not check.has_access(request, 'any'):
+        raise PermissionDenied
+
     auth.logout(request)
     return redirect('tira:index')
 
 
 def task_detail(request, task_id):
+    if not check.has_access(request, 'any'):
+        raise PermissionDenied
+
     uid = auth.get_user_id(request)
     context = {
         "include_navigation": include_navigation,
@@ -68,6 +96,9 @@ def task_detail(request, task_id):
 
 
 def dataset_list(request):
+    if not check.has_access(request, 'any'):
+        raise PermissionDenied
+
     context = {
         "include_navigation": include_navigation,
         "role": auth.get_role(request),
@@ -81,6 +112,9 @@ def dataset_detail(request, task_id, dataset_id):
     Admins, it shows all evaluations on the dataset, as well as a list of all runs and the review interface.
      @note maybe later, we can show a consolidated view of all runs the user made on this dataset below.
      """
+    if not check.has_access(request, 'any'):
+        raise PermissionDenied
+
     role = auth.get_role(request, auth.get_user_id(request))
 
     # For all users: compile the results table from the evaluations
@@ -136,8 +170,12 @@ def dataset_detail(request, task_id, dataset_id):
 
 def software_detail(request, task_id, vm_id):
     """ render the detail of the user page: vm-stats, softwares, and runs """
+    if not check.has_access(request, ["tira", "admin", "participant", "user"], on_vm_id=vm_id):
+        raise PermissionDenied
+
     # 0. Early return a dummy page, if the user has no vm assigned on this task
-    if not vm_id or vm_id == "no-vm-assigned":
+    if check.has_access(request, ["user"], on_vm_id=vm_id) \
+            or vm_id == "no-vm-assigned":
         context = {
             "include_navigation": include_navigation,
             "task": model.get_task(task_id),
@@ -145,12 +183,6 @@ def software_detail(request, task_id, vm_id):
             "role": auth.get_role(request)
         }
         return render(request, 'tira/software.html', context)
-
-    # 1. check permissions
-    role = auth.get_role(request, auth.get_user_id(request), vm_id=vm_id)
-
-    if role == 'forbidden':
-        raise PermissionDenied
 
     # 2. try to load vm, if it fails, the user has no vm
     try:
@@ -202,9 +234,7 @@ def software_detail(request, task_id, vm_id):
 
 
 def review(request, task_id, vm_id, dataset_id, run_id):
-    # permissions
-    role = auth.get_role(request, auth.get_user_id(request), vm_id=vm_id)
-    if role == 'forbidden':
+    if not check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id):
         raise PermissionDenied
 
     run_review = model.get_run_review(dataset_id, vm_id, run_id)
@@ -259,3 +289,54 @@ def user_detail(request, user_id):
     }
 
     return render(request, 'tira/user_detail.html', context)
+
+
+# ------------------- ajax calls --------------------------------
+
+
+def admin_reload_data(request):
+    if not check.has_access(request, ["tira", "admin"]):
+        raise PermissionDenied
+
+    if request.method == 'GET':
+        # post_id = request.GET['post_id']
+        model.build_model()
+        return HttpResponse("Success!")
+
+
+def admin_create_vm(request):
+    """ Hook for create_vm posts. Responds with json objects indicating the state of the create process. """
+    if not check.has_access(request, ["tira", "admin"]):
+        raise PermissionDenied
+
+    context = {
+        "complete": [],
+        'failed': []
+    }
+
+    def parse_create_string(create_string: str):
+        for line in create_string.split("\n"):
+            line = line.split(",")
+            yield {"hostname": line[0], "vm_id": line[1], "ova_id": line[2]}
+
+    if request.method == "POST":
+        form = CreateVmForm(request.POST)
+        if form.is_valid():
+            try:
+                bulk_create = list(parse_create_string(form.cleaned_data["bulk_create"]))
+            except IndexError:
+                context["create_vm_form_error"] = "Error Parsing input. Are all lines complete?"
+                return JsonResponse(context)
+            # TODO dummy code talk to Nikolay!
+            # TODO check semantics downstream (vm exists, host/ova does not exist)
+            sleep(2)
+            context["complete"].append(bulk_create[:-1])
+            context["failed"].append(bulk_create[-1])
+
+        else:
+            context["create_vm_form_error"] = "Form Invalid (check formatting)"
+            return JsonResponse(context)
+    else:
+        HttpResponse("Permission Denied")
+
+    return JsonResponse(context)

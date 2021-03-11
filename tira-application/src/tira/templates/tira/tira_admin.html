@@ -1,0 +1,140 @@
+{% extends 'tira/base.html' %}
+{% load static %}
+{% block title %}TIRA - Admin{% endblock %}
+{% block description %}TIRA - Admin{% endblock %}
+{% block navbar %}{% include "tira/navbar.html" with nav_active='index' %}{% endblock %}
+
+{% block content %}
+
+<nav class="uk-container">
+    <ul class="uk-breadcrumb">
+        <li><a href="{% url 'tira:index' %}">Tira.io</a></li>
+        <li class="uk-disabled"><a href="#">Admin Panel</a></li>
+    </ul>
+</nav>
+
+<main class="uk-section uk-section-default">
+    <div class="uk-container">
+        <h1>Admin Panel</h1>
+        <ul class="uk-list uk-list-collapse uk-list-striped" uk-accordion>
+            <li>
+                <a class="uk-accordion-title" href="#">Active VMs ({{ vm_list|length }})</a>
+                <div class="uk-accordion-content">
+                    <table class="uk-margin-medium uk-table uk-table-divider uk-table-small sortable">
+                        <thead>
+                        <tr>
+                            <th></th>
+                            <th class="header"><span>VM_ID</span></th>
+                            <th class="header"><span>Actions</span></th>
+                            <th class="header"><span>Host</span></th>
+                            <th class="header"><span>State</span></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for vm in vm_list %}
+                        <tr>
+                            <td></td>
+                            <td>{{ vm.1 }}</td>
+                            <td>[delete]</td>
+                            <td>{{ vm.0 }}</td>
+                            <td>{{ vm.2 }}</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </li>
+            <li>
+                <a class="uk-accordion-title" href="#">Registered Hosts ({{ host_list|length }})</a>
+                <div class="uk-accordion-content">
+                    <table class="uk-margin-medium uk-table uk-table-divider uk-table-small sortable">
+                        <thead>
+                        <tr>
+                            <th></th>
+                            <th class="header"><span>Hostname</span></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for host in host_list %}
+                        <tr>
+                            <td></td>
+                            <td>{{ host }}</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </li>
+            <li>
+                <a class="uk-accordion-title" href="#">Available OVAs ({{ ova_list|length }})</a>
+                <div class="uk-accordion-content">
+                    <table class="uk-margin-medium uk-table uk-table-divider uk-table-small sortable">
+                        <thead>
+                        <tr>
+                            <th></th>
+                            <th class="header"><span>OVA</span></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for ova in ova_list %}
+                        <tr>
+                            <td></td>
+                            <td>{{ ova }}</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </li>
+        </ul>
+
+        <h2>System Actions</h2>
+        <ul>
+            <li><a id="tira-admin-reload-data">Reload Website Data</a><span id="tira-admin-reload-data-icon"></span></li>
+            <li>TODO: Run Integration Test</li>
+<!--            <li><a id="tira-admin-integration-test">Run Integration Test</a><span id="tira-admin-integration-test-icon"></span></li>-->
+            <li>TODO: Check System Coherence</li>
+<!--            <li><a id="tira-admin-coherence" disabled>Check System Coherence</a><span id="tira-admin-coherence-icon"></span></li>-->
+        </ul>
+
+        <h2>Create VMs</h2>
+        <form id="tira-admin-vm-create-form" method="POST"> <!--            action="{% url 'tira:tira-admin-create-vm' %}"-->
+            {% csrf_token %}
+            {{ create_vm_form }}
+            <span id="create-vm-form-error" style="color: red"></span>
+            </br>
+            <input type="submit" class="uk-button uk-button-primary" value="Create VMs"/><span id="tira-admin-create-vm-icon"></span>
+        </form>
+        <div id="create-vm-form-results"></div>
+
+        <h3>TODOs:</h3>
+        <ul>
+            <li>backend connection for vm create</li>
+            <li>add task (creates master vm)</li>
+            <li>add evaluator for dataset</li>
+            <li>add dataset</li>
+            <li>give user_id permission to vm_id</li>
+            <li>(bulk)archive vm field</li>
+        </ul>
+    </div>
+
+    <div class="uk-container">
+
+    </div>
+</main>
+
+{% if include_navigation %}
+<script src="https://assets.webis.de/js/thirdparty/jquery/jquery.slim.min.js"></script>
+<script src="https://assets.webis.de/js/thirdparty/fontawesome/fontawesome.min.js"></script>
+<script src="https://assets.webis.de/js/thirdparty/fontawesome/solid.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+{% endif %}
+<script src="https://assets.webis.de/js/filter.js"></script>
+<script src="https://assets.webis.de/js/selection.js"></script>
+<script src="https://assets.webis.de/js/tables.js"></script>
+<script>initWebisTableFiltering();</script>
+<script>initTableSorting();</script>
+<script src="{% static 'tira/js/tira-admin.js' %}"></script>
+<script>addTiraAdminHandlers()</script>
+
+{% endblock %}
