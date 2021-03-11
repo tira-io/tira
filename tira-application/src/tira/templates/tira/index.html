@@ -11,7 +11,16 @@
         <h1>TIRA &mdash; Evaluation as a Service</h1>
         <h2>Improving the replicability of shared tasks in computer science</h2>
     </div>
+    <div class="uk-position-bottom-right uk-light uk-margin-right"><a href="https://www.shutterstock.com/image-photo/sunset-oia-santorini-greece-1005762703" target="_blank">Shutterstock</a></div>
 </main>
+{% if role == 'admin' %}
+<nav class="uk-container">
+<ul class="uk-breadcrumb">
+<li><a href="{% url 'tira:tira-admin' %}">[Admin Panel]</a></li>
+</ul>
+</nav>
+{% endif %}
+
 <div class="uk-section uk-section-default">
     <!-- search field -->
 
@@ -64,7 +73,6 @@
         </div>
     </div>
 </div>
-</main>
 
 {% if include_navigation %}
 <script src="https://assets.webis.de/js/thirdparty/jquery/jquery.slim.min.js"></script>
@@ -76,4 +84,5 @@
 <script src="https://assets.webis.de/js/tables.js"></script>
 <script>initWebisTableFiltering();</script>
 <script>initTableSorting();</script>
+
 {% endblock %}

@@ -56,8 +56,8 @@ clean:
 	rm -r $(BUILD_PATH)
 
 k8s-deploy-tira-application: k8s-undeploy-tira-application
-	kubectl create configmap tira-web2-config --from-file=config/settings-deploy.yml 
-	kubectl apply -f tira-application.yml
+	kubectl -n webisservices create configmap tira-web2-config --from-file=config/settings-deploy.yml
+	kubectl -n webisservices apply -f tira-application.yml
 
 k8s-undeploy-tira-application:
 	kubectl delete -f tira-application.yml || echo "already undeployed?"
