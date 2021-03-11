@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y iputils-ping net-tools ca-certificates 
     openssh-client openssh-server sshpass iptables dkms ufw iproute2 module-init-tools supervisor \
 		curl dnsmasq lsb-release rdesktop python2.7 python-pip python3 python3-pip bsdmainutils rdesktop dnsutils
 
-RUN python3 -m pip install --upgrade pip && python3 -m pip install grpcio grpcio-tools
+RUN python3 -m pip install --upgrade pip && python3 -m pip install grpcio grpcio-tools watchdog[watchmedo]
 
 RUN wget -q https://www.virtualbox.org/download/oracle_vbox_2016.asc -O- | sudo apt-key add -
 RUN wget -q https://www.virtualbox.org/download/oracle_vbox.asc -O- | sudo apt-key add -
@@ -65,6 +65,8 @@ RUN	chown -R tira:tira /usr/local && \
 	chown tira:tira -R /home/tira && \
     ssh-keygen -q -N '' -f /home/tira/.ssh/id_rsa
 	# ln -s /usr/local/share/tira/src/tira.sh /usr/bin/tira
+
+RUN chown -R tira:tira /mnt/nfs/tira
 
 #COPY src/tira_host/* /home/tira/tira_host/
 
