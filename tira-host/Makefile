@@ -32,6 +32,7 @@ run-tira-docker-prod: build-tira-docker
 		tira-io/tira-host -f /dev/null
 
 run-tira-docker-dev: build-tira-docker
+	docker container rm -f tira-host-dev
 	docker run \
 		-d \
 		-v /dev/vboxdrv:/dev/vboxdrv \
@@ -39,7 +40,7 @@ run-tira-docker-dev: build-tira-docker
 		-v /dev/vboxnetadp:/dev/vboxnetadp \
 		-v /dev/vboxpci:/dev/vboxpci \
 		-v /dev/vboxnetctl:/dev/vboxnetctl \
-		-v /home/nikolay/workspace/data/tira-model/src:/mnt/nfs/tira \
+		-v /mnt/nfs/tira:/mnt/nfs/tira \
 		-v ${PWD}/src:/tira \
 		-v ${PWD}/src/tira_scripts:/usr/lib/tira \
 		--name="tira-host-dev" \
@@ -47,6 +48,7 @@ run-tira-docker-dev: build-tira-docker
 		--cap-add=NET_ADMIN \
 		--network host \
 		--hostname=$(hostname) \
+		--env DEV=true \
 		tira-io/tira-host -f /dev/null
 
 
