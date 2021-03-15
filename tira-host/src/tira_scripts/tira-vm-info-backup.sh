@@ -59,7 +59,7 @@ main() {
     username="$1"
     
     #CALL PYTHON SCRIPT WITH ARGUMENTS
-    ./tira-info-backup.py -u "$username"
+    "$scriptPath"/tira-info-backup.py -u "$username"
     logInfo "Done."
 }
 
