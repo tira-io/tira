@@ -30,6 +30,7 @@ def getcommands():
             "vm-create": 1,
             "vm-delete": 1,
             "vm-info": 1,  # - 2..
+            "vm-info-backup": 2,
             "vm-list": 0,  # - 2..
             "vm-metrics": 1,
             "vm-restore": 2,
