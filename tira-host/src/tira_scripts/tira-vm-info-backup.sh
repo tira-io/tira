@@ -51,27 +51,12 @@ eval set -- "${FLAGS_ARGV}"
 main() {
 
     # Print usage screen if wrong parameter count.
-    if [ "$#" -ne 2 ]; then
+    if [ "$#" -ne 1 ]; then
         logError "Missing arguments see:"
         usage
     fi
 
-    vmname="$1"
-    username="$2"
-    timestamp=$(date +%Y-%m-%d-%H-%M-%S)
-
-    # Check if vm is registred.
-    if [ "$(is_tira_vm "$vmname")" = "false" ]; then
-        logError "Vm $vmname is not a registred virtual tira machine."
-        exit 1
-    fi
-
-    # Check if it is a vm of the given user.
-    if [ "$(is_tira_vm_of_user "$vmname" "$username")" = "false" ]; then
-        logError "Vm $vmname is not registred for user $username."
-        exit 1
-    fi
-
+    username="$1"
     
     #CALL PYTHON SCRIPT WITH ARGUMENTS
     ./tira-info-backup.py -u "$username"
