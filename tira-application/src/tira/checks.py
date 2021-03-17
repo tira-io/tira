@@ -41,3 +41,27 @@ class Check(object):
         if vm_id == 'no-vm-assigned' and role == 'user':
             return 'user'
         return role
+
+    def task_exists(self, task_id):
+        try:
+            self.model.get_task(task_id)
+            return True
+        except KeyError:
+            return False
+
+    def organizer_exists(self, organizer_id):
+        try:
+            self.model.get_organizer(organizer_id)
+            return True
+        except KeyError:
+            return False
+
+    def vm_exists(self, vm_id):
+        try:
+            self.model.get_vm(vm_id)
+            return True
+        except KeyError:
+            return False
+
+    def dataset_exists(self, dataset_id):
+        pass

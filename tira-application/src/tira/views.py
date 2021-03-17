@@ -5,7 +5,8 @@ from django.conf import settings
 from .tira_model import FileDatabase
 from .authentication import Authentication
 from .checks import Check
-from .forms import LoginForm, CreateVmForm
+from .forms import *
+from .execute import *
 from django import forms
 from django.core.exceptions import PermissionDenied
 from time import sleep
@@ -40,7 +41,11 @@ def admin(request):
         "vm_list": model.get_vm_list(),
         "host_list": model.get_host_list(),
         "ova_list": model.get_ova_list(),
-        "create_vm_form": CreateVmForm()
+        "create_vm_form": CreateVmForm(),
+        "archive_vm_form": ArchiveVmForm(),
+        "create_task_form": CreateTaskForm(),
+        "add_dataset_form": AddDatasetForm(),
+        "modify_vm_form": ModifyVmForm()
     }
     return render(request, 'tira/tira_admin.html', context)
 
@@ -119,7 +124,8 @@ def dataset_detail(request, task_id, dataset_id):
 
     # For all users: compile the results table from the evaluations
     vm_ids = model.get_vms_by_dataset(dataset_id)
-    vm_evaluations = {vm_id: model.get_vm_evaluations_by_dataset(dataset_id, vm_id, only_public_results=False if role == 'admin' else True)
+    vm_evaluations = {vm_id: model.get_vm_evaluations_by_dataset(dataset_id, vm_id,
+                                                                 only_public_results=False if role == 'admin' else True)
                       for vm_id in vm_ids}
     # This enforces an order to the measures, since they differ between datasets and are rendered dynamically
     keys = set()
@@ -192,7 +198,6 @@ def software_detail(request, task_id, vm_id):
         # TODO logging
         return redirect('tira:software-detail', task_id=task_id, vm_id="no-vm-assigned")
 
-
     # software_keys = {sw["id"] for sw in softwares}
     # run_by_software = {swk: [r for r in runs if r["software"] == swk] for swk in software_keys}
     # get all evaluations
@@ -248,6 +253,7 @@ def review(request, task_id, vm_id, dataset_id, run_id):
 
     return render(request, 'tira/review.html', context)
 
+
 # {"reviewer": review.reviewerId, "noErrors": review.noErrors, "missingOutput": review.missingOutput,
 # "extraneousOutput": review.extraneousOutput, "invalidOutput": review.invalidOutput,
 # "hasErrorOutput": review.hasErrorOutput, "otherErrors": review.otherErrors,
@@ -281,7 +287,7 @@ def admin_create_vm(request):
     def parse_create_string(create_string: str):
         for line in create_string.split("\n"):
             line = line.split(",")
-            yield {"hostname": line[0], "vm_id": line[1], "ova_id": line[2]}
+            yield line[0], line[1], line[2]
 
     if request.method == "POST":
         form = CreateVmForm(request.POST)
@@ -293,14 +299,132 @@ def admin_create_vm(request):
                 return JsonResponse(context)
             # TODO dummy code talk to Nikolay!
             # TODO check semantics downstream (vm exists, host/ova does not exist)
-            sleep(2)
-            context["complete"].append(bulk_create[:-1])
-            context["failed"].append(bulk_create[-1])
+            for create_command in parse_create_string(form.cleaned_data["bulk_create"]):
+                if create_vm(*create_command):
+                    model.add_ongoing_execution(*create_command)
 
         else:
             context["create_vm_form_error"] = "Form Invalid (check formatting)"
             return JsonResponse(context)
     else:
         HttpResponse("Permission Denied")
+
+    return JsonResponse(context)
+
+
+def admin_archive_vm():
+    return None
+
+
+def admin_modify_vm():
+    return None
+
+
+def admin_create_task(request):
+    """ Create an entry in the model for the task. Use data supplied by a model.
+     Return a json status message. """
+    if not check.has_access(request, ["tira", "admin"]):
+        raise PermissionDenied
+
+    context = {}
+
+    if request.method == "POST":
+        form = CreateTaskForm(request.POST)
+        if form.is_valid():
+            # sanity checks
+            if not check.vm_exists(form.cleaned_data["master_vm_id"]):
+                context["status"] = "fail"
+                context["create_task_form_error"] = f"Master VM with ID {form.cleaned_data['master_vm_id']} does not exist"
+                return JsonResponse(context)
+
+            if not check.organizer_exists(form.cleaned_data["organizer"]):
+                context["status"] = "fail"
+                context["create_task_form_error"] = f"Organizer with ID {form.cleaned_data['organizer']} does not exist"
+                return JsonResponse(context)
+
+            if check.task_exists(form.cleaned_data["task_id"]):
+                context["status"] = "fail"
+                context["create_task_form_error"] = f"Task with ID {form.cleaned_data['task_id']} already exist"
+                return JsonResponse(context)
+
+            if model.create_task(form.cleaned_data["task_id"], form.cleaned_data["task_name"],
+                              form.cleaned_data["task_description"], form.cleaned_data["master_vm_id"],
+                              form.cleaned_data["organizer"], form.cleaned_data["website"]):
+                context["status"] = "success"
+                context["created"] = {
+                    "task_id": form.cleaned_data["task_id"], "task_name": form.cleaned_data["task_name"],
+                    "task_description": form.cleaned_data["task_description"],
+                    "master_vm_id": form.cleaned_data["master_vm_id"],
+                    "organizer": form.cleaned_data["organizer"], "website": form.cleaned_data["website"]}
+            else:
+                context["status"] = "fail"
+                context["create_task_form_error"] = f"Could not create {form.cleaned_data['task_id']}. Contact Admin."
+                return JsonResponse(context)
+        else:
+            context["status"] = "fail"
+            context["create_task_form_error"] = "Form Invalid (check formatting)"
+            return JsonResponse(context)
+    else:
+        HttpResponse("Permission Denied")
+
+    return JsonResponse(context)
+
+
+def admin_add_dataset(request):
+    """ Create an entry in the model for the task. Use data supplied by a model.
+     Return a json status message. """
+    if not check.has_access(request, ["tira", "admin"]):
+        raise PermissionDenied
+    # dataset_id_prefix
+    # dataset_name
+    # master_vm_id
+    # command
+    # working_directory
+    # measures
+
+    # construct dataset ids
+    # add datasets to task
+    # create dataset directory structure
+    #
+    context = {}
+
+    # if request.method == "POST":
+    #     form = CreateTaskForm(request.POST)
+    #     if form.is_valid():
+    #         # sanity checks
+    #         if not check.vm_exists(form.cleaned_data["master_vm_id"]):
+    #             context["status"] = "fail"
+    #             context["create_task_form_error"] = f"Master VM with ID {form.cleaned_data['master_vm_id']} does not exist"
+    #             return JsonResponse(context)
+    #
+    #         if not check.task_exists(form.cleaned_data["task_id"]):
+    #             context["status"] = "fail"
+    #             context["create_task_form_error"] = f"Task with ID {form.cleaned_data['organizer']} does not exist"
+    #             return JsonResponse(context)
+    #
+    #         if not check.dataset_exists(form.cleaned_data["dataset_id_prefix"]):
+    #             context["status"] = "fail"
+    #             context["create_task_form_error"] = f"Task with ID {form.cleaned_data['organizer']} does not exist"
+    #             return JsonResponse(context)
+    #
+    #         if model.create_task(form.cleaned_data["task_id"], form.cleaned_data["task_name"],
+    #                           form.cleaned_data["task_description"], form.cleaned_data["master_vm_id"],
+    #                           form.cleaned_data["organizer"], form.cleaned_data["website"]):
+    #             context["status"] = "success"
+    #             context["created"] = {
+    #                 "task_id": form.cleaned_data["task_id"], "task_name": form.cleaned_data["task_name"],
+    #                 "task_description": form.cleaned_data["task_description"],
+    #                 "master_vm_id": form.cleaned_data["master_vm_id"],
+    #                 "organizer": form.cleaned_data["organizer"], "website": form.cleaned_data["website"]}
+    #         else:
+    #             context["status"] = "fail"
+    #             context["create_task_form_error"] = f"Could not create {form.cleaned_data['task_id']}. Contact Admin."
+    #             return JsonResponse(context)
+    #     else:
+    #         context["status"] = "fail"
+    #         context["create_task_form_error"] = "Form Invalid (check formatting)"
+    #         return JsonResponse(context)
+    # else:
+    #     HttpResponse("Permission Denied")
 
     return JsonResponse(context)

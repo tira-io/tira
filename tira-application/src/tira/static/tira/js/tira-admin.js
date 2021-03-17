@@ -1,19 +1,19 @@
 
 function reloadData() {
-    $('#tira-admin-reload-data-icon').html(' <div uk-spinner="ratio: 0.5"></div>')
+    $('#reload-website-data-icon').html(' <div uk-spinner="ratio: 0.5"></div>')
     $.ajax({
         type:"GET",
         url: "/tira/admin/reload-data",
         data:{},
         success: function( data )
         {
-            $('#tira-admin-reload-data-icon').html(' <i class="fas fa-check"></i>')
+            $('#reload-website-data-icon').html(' <i class="fas fa-check"></i>')
         }
     })
 }
 
 function submitCreateVmForm(){
-    $('#tira-admin-create-vm-icon').html(' <div uk-spinner="ratio: 0.5"></div>')
+    $('#create-vm-form-icon').html(' <div uk-spinner="ratio: 0.5"></div>')
     $.ajax({
         type:"POST",
         url: "/tira/admin/create-vm",
@@ -24,8 +24,8 @@ function submitCreateVmForm(){
         },
         success: function( data )
         {
-            document.getElementById("tira-admin-vm-create-form").reset();
-            $('#tira-admin-create-vm-icon').html();
+            document.getElementById("create-vm-from").reset();
+            $('#create-vm-from-icon').html('');
             $('#create-vm-form-error').text(data['create_vm_form_error']);
             $('#create-vm-form-results').text(data)
         }
@@ -33,8 +33,8 @@ function submitCreateVmForm(){
 }
 
 function addTiraAdminHandlers() {
-    $('#tira-admin-reload-data').click(function() {reloadData()})
-    $('#tira-admin-vm-create-form').submit(function(e) {
+    $('#reload-website-data').click(function() {reloadData()})
+    $('#create-vm-from').submit(function(e) {
         e.preventDefault();
         submitCreateVmForm()
     })
