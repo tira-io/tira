@@ -1,10 +1,25 @@
 #!/bin/bash
 
-POD=$(kubectl get pods | grep tira-discourse | head -1 | sed "s/\s/\n/g" | head -1)
+while [[ $# -gt 0 ]]
+do
+    case $1 in
+        -n)
+            NAMESPACE="$2"
+            shift
+            shift
+            ;;
+        --init)
+            EXT="-c install-dependencies"
+            shift
+            ;;
+        -h)
+            echo "USAGE: logs.sh [--init] -n NAMESPACE"
+            shift
+            exit
+            ;;
+    esac
+done
 
-if [[ $1 = "--init" ]]
-then
-    kubectl logs $POD -c install-dependencies -f
-else
-    kubectl logs $POD -f
-fi
+POD=$(kubectl get pods -n $NAMESPACE | grep tira-discourse | head -1 | sed "s/\s/\n/g" | head -1)
+
+kubectl logs $POD $EXT -f -n $NAMESPACE

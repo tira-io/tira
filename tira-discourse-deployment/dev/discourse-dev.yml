@@ -34,6 +34,7 @@ spec:
       containers:
       - name: tira-discourse
         image: discourse/discourse_dev:release
+#        imagePullPolicy: Always
         ports:
         - containerPort: 9292
           hostIP: 0.0.0.0
@@ -53,29 +54,7 @@ spec:
           value: "true"
         - name: DISCOURSE_DEV_HOSTS
           value: ""
-        command: ["/bin/bash", "-c", "for I in {001..129}; do DISCOURSE_DEV_HOSTS+=betaweb$I,; done; DISCOURSE_DEV_HOSTS+=betaweb130; /sbin/boot & sudo -E -u discourse -g discourse /bin/bash -c \"cd /src && USER=discourse RAILS_ENV=$RAILS_ENV bundle install && /src/bin/unicorn\""]
-      initContainers:
-      - name: install-dependencies
-        image: discourse/discourse_dev:release
-        volumeMounts:
-        - mountPath: "/shared/postgres_data"
-          name: discourse-postgres-data
-        - mountPath: "/src"
-          name: src-code
-        env:
-#        - name: DISCOURSE_COMMIT
-#          value: 544a9865c6e5890f37e762292cbe5558db843dcf
-        - name: DISRAPTOR_COMMIT
-          value: 42bed979bc82a3044f99ddd1e15f176a78badf12
-        - name: USER
-          value: discourse
-        - name: RUBY_GLOBAL_METHOD_CACHE_SIZE
-          value: "131072"
-        - name: LD_PRELOAD
-          value: /usr/lib/libjemalloc.so
-        - name: RAILS_ENV
-          value: development
-        command: ["/bin/bash", "-e", "-c", "/sbin/boot & rm -Rf /src/* && find /src/ -maxdepth 1 -type d -name '.*' -exec rm -Rf {} \\; && find /src/ -maxdepth 1 -type f -name '.*' -exec rm -Rf {} \\; && ls -lha /src && git clone https://github.com/discourse/discourse.git /src && cd /src && git checkout stable && cd /src/plugins && git clone https://github.com/disraptor/disraptor.git && cd /src/plugins/disraptor && git checkout $DISRAPTOR_COMMIT && chmod -R a+rwx /src && sudo -E -u discourse -g discourse /bin/bash -c 'cd /src && USER=$USER RAILS_ENV=$RAILS_ENV bundle install && USER=$USER RUBY_GLOBAL_METHOD_CACHE_SIZE=$RUBY_GLOBAL_METHOD_CACHE_SIZE  LD_PRELOAD=$LD_PRELOAD RAILS_ENV=$RAILS_ENV bundle exec rake db:migrate'"]
+        command: ["/bin/bash", "-c", "for I in {001..129}; do DISCOURSE_DEV_HOSTS+=betaweb$I,; done; DISCOURSE_DEV_HOSTS+=betaweb130; /sbin/boot & git clone https://github.com/discourse/discourse.git /src && cd /src && cd /src/plugins && git clone https://github.com/disraptor/disraptor.git && cd /src && chown -R discourse:discourse /src && chmod -R a+rwx /src && bundle install && sudo -E -u discourse -g discourse /bin/bash -c 'bundle install && bundle exec rake db:migrate && /src/bin/unicorn'"]
       volumes:
       - name: discourse-postgres-data
         persistentVolumeClaim:
