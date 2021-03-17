@@ -251,6 +251,10 @@ class FileDatabase(object):
         return {measure.key: measure.value for measure in evaluation.measure}
 
     # get methods are the public interface.
+    def get_vm(self, vm_id: str):
+        # TODO should return as dict
+        return self.vms[vm_id]
+
     def get_tasks(self) -> list:
         tasks = [self.get_task(task.taskId)
                  for task in self.tasks.values()]
@@ -302,6 +306,10 @@ class FileDatabase(object):
                 for dataset in self.datasets.values()
                 if task_id == self.default_tasks.get(dataset.datasetId, "") and
                 not (dataset.isDeprecated and not include_deprecated)]
+
+    def get_organizer(self, organizer_id: str):
+        # TODO should return as dict
+        return self.organizers[organizer_id]
 
     # # TODO change accordingly with _load_runs
     # # TODO should actually give us a list of all runs done on this dataset (without grouping)
@@ -402,3 +410,39 @@ class FileDatabase(object):
                  "dataset": software.dataset, "run": software.run, "creation_date": software.creationDate,
                  "last_edit": software.lastEditDate}
                 for software in self.software[f"{task_id}${vm_id}"]]
+
+    # add methods to add new data to the model
+
+    def add_dataset(self):
+        pass
+
+    def create_task(self, task_id, task_name, task_description, master_vm_id, organizer, website):
+        """ Add a new task to the database.
+         CAUTION: This function does not do any sanity checks and will OVERWRITE existing tasks """
+        new_task = modelpb.Tasks.Task()
+        new_task.taskId = task_id
+        new_task.taskName = task_name
+        new_task.taskDescription = task_description
+        new_task.virtualMachineId = master_vm_id
+        new_task.hostId = organizer
+        new_task.web = website
+        self.tasks[task_id] = new_task
+        # open(f'/home/tira/{task_id}.prototext', 'wb').write(new_task.SerializeToString())
+
+        new_task_file_path = self.tasks_dir_path / f'{task_id}.prototext'
+        if new_task_file_path.exists():
+            return False
+        open(new_task_file_path, 'w').write(str(new_task))
+        return True
+
+    def add_evaluator(self):
+        pass
+
+    def add_ongoing_execution(self, hostname, vm_id, ova):
+        """ add this create to the stack, so we know it's in progress. """
+        print('model', hostname, vm_id, ova)
+        pass
+
+    def complete_execution(self):
+        #TODO implement
+        pass
