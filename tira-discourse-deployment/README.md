@@ -200,3 +200,20 @@ It will proceed to push the image to Dockerhub once with the tag you gave and on
 The script will fail if the given tag already exists for the image so you don't override images.
 
 ## Development environment
+
+The discourse development environent contains:
+  - 1 Service                 ([dev/discourse-dev.yml](dev/discourse-dev.yml))
+  - 1 Deployment              ([dev/discourse-dev.yml](dev/discourse-dev.yml))
+  - 1 PersistentVolumeClaim   ([dev/persistent-volume.yml](dev/persistent-volume.yml))
+  
+To deploy the files named basic scripts are provided.
+
+### Deploying
+
+Deployment of the development environment is as simple as running `./k8s-deploy-discourse.sh -n <NAMESPACE>`, where `<NAMESPACE>` refers to the namespace you want to deploy in.
+All the heavy lifting is then done by the configs and the commands executed there.
+After the pod started, you have the possibility to read through the (pretty short) logs produces while starting up by using `./logs.sh -n <NAMESPACE>`. This is also very handy for unexpected issues.
+
+Right after startup a admin account for the Discourse instance needs to be created. Because this instance is in production mode, and emails can therefore not be sent this has to be done manually with the `create-admin` script via `./create-admin.sh -n <NAMESPACE>`.
+
+Now the instance is visitable on any betaweb machine at port `30804`. Be aware that `betawebXXX.medien.uni-weimar.de:30804` does not work, but only `betawebXXX:30804` does.
