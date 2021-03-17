@@ -210,7 +210,10 @@ To deploy the files named basic scripts are provided.
 
 ### Deploying
 
-Deployment of the development environment is as simple as running `./k8s-deploy-discourse-dev.sh -n <NAMESPACE>`, where `<NAMESPACE>` refers to the namespace you want to deploy in.
+First, to prevent collision with other development instances you have to choose a port `<PORT>` for your instance. Or rather 2. One for http and one for the mailcatcher. Do this by editing the Service in ([dev/discourse-dev.yml](dev/discourse-dev.yml)) at spec.ports accordingly (from 3080X to something you choose).
+If the nodePorts you choose are already occupied in the cluster the pod won't be able to start up and you have to choose others.
+
+After that deployment of the development environment is as simple as running `./k8s-deploy-discourse-dev.sh -n <NAMESPACE>`, where `<NAMESPACE>` refers to the namespace you want to deploy in.
 All the heavy lifting is then done by the configs and the commands executed there.
 After the pod started, you have the possibility to read through the (pretty short) logs produces while starting up by using `./logs.sh -n <NAMESPACE>`. This is also very handy for unexpected issues.
 
