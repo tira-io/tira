@@ -200,3 +200,34 @@ It will proceed to push the image to Dockerhub once with the tag you gave and on
 The script will fail if the given tag already exists for the image so you don't override images.
 
 ## Development environment
+
+The discourse development environent contains:
+  - 1 Service                 ([dev/discourse-dev.yml](dev/discourse-dev.yml))
+  - 1 Deployment              ([dev/discourse-dev.yml](dev/discourse-dev.yml))
+  - 1 PersistentVolumeClaim   ([dev/persistent-volume.yml](dev/persistent-volume.yml))
+  
+To deploy the files named basic scripts are provided.
+
+### Deploying
+
+First, to prevent collision with other development instances you have to choose a port `<PORT>` for your instance. Or rather 2. One for http and one for the mailcatcher. Do this by editing the Service in ([dev/discourse-dev.yml](dev/discourse-dev.yml)) at spec.ports accordingly (from 3080X to something you choose).
+If the nodePorts you choose are already occupied in the cluster the pod won't be able to start up and you have to choose others.
+
+After that deployment of the development environment is as simple as running `./k8s-deploy-discourse-dev.sh -n <NAMESPACE>`, where `<NAMESPACE>` refers to the namespace you want to deploy in.
+All the heavy lifting is then done by the configs and the commands executed there.
+After the pod started, you have the possibility to read through the (pretty short) logs produces while starting up by using `./logs.sh -n <NAMESPACE>`. This is also very handy for unexpected issues.
+
+Right after startup a admin account for the Discourse instance needs to be created. Because this instance is in production mode, and emails can therefore not be sent this has to be done manually with the `create-admin` script via `./create-admin.sh -n <NAMESPACE>`.
+
+Now the instance is visitable on any betaweb machine at port `30804`. Be aware that `betawebXXX.medien.uni-weimar.de:30804` does not work, but only `betawebXXX:30804` does.
+
+### Undeploying
+
+This works the same way, as for the production instance basically.
+Remove the deployment by:
+
+```
+$ prod/k8s-undeploy-discourse-dev.sh
+```
+
+Your volumes will not be removed by this. Only `Service` and `Deployment` are defined in `prod/discourse-prod.yml` and therefore only these will be deleted here. This secures persistent data to be persistent across deploys.
