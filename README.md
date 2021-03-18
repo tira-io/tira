@@ -1,4 +1,4 @@
-<h1 align="center"><p><a href="https://www.tira.io/">TIRA Integrated Research Architecture </a></p></h1>
+<h1 align="center"><p>TIRA Integrated Research Architecture </p></h1>
 
 
 ## Paper
