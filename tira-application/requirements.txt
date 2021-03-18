@@ -3,3 +3,4 @@ protobuf
 uwsgi
 Django
 pyyaml
+grpcio-tools

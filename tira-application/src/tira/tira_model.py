@@ -2,10 +2,14 @@
 p.stat().st_mtime - change time
 """
 from google.protobuf.text_format import Parse
+from google.protobuf.json_format import MessageToDict
 from pathlib import Path
 import logging
 from django.conf import settings
+import socket
+
 from .proto import TiraClientWebMessages_pb2 as modelpb
+from .proto import tira_host_pb2 as model_host
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +51,13 @@ class FileDatabase(object):
         self._build_task_relations()
         self._build_software_relations()
         self._build_software_counts()
+
+        self.hostname = socket.gethostname()
+        self.command_states_path = self.tira_root / Path("state/commands/" + self.hostname + ".prototext")
+        self.command_logs_path = self.tira_root / Path("log/virtual-machine-hosts/" + self.hostname + "/")
+        self.command_logs_path.mkdir(exist_ok=True)
+        self.commandState = None
+        self._parse_command_state()
 
     # _parse methods parse files once on startup
     def _parse_organizer_list(self):
@@ -411,6 +422,15 @@ class FileDatabase(object):
                  "last_edit": software.lastEditDate}
                 for software in self.software[f"{task_id}${vm_id}"]]
 
+    def get_users_vms(self):
+        """
+        Return the users list.
+        """
+        return self.vms
+
+    def get_vm_by_id(self, user_id):
+        return self.vms.get(user_id, None)
+
     # add methods to add new data to the model
 
     def add_dataset(self):
@@ -446,3 +466,31 @@ class FileDatabase(object):
     def complete_execution(self):
         #TODO implement
         pass
+
+    def get_vm_by_id(self, vm_id: str):
+        return self.vms.get(vm_id)
+
+    def _parse_command_state(self):
+        """
+        Parse the command state file.
+        """
+        self.commandState = Parse(open(self.command_states_path, "r").read(), model_host.CommandState())
+
+    def get_commands_bulk(self, bulk_id):
+        """
+        Get commands list by bulk command id
+        :param bulk_id:
+        """
+        self._parse_command_state()
+        return [MessageToDict(command) for command in self.commandState.commands if command.bulkCommandId == bulk_id]
+
+    def get_command(self, command_id):
+        """
+        Get command object
+        :param command_id:
+        """
+        self._parse_command_state()
+        for command in self.commandState.commands:
+            if command.id == command_id:
+                return MessageToDict(command)
+        return None

@@ -108,8 +108,8 @@ main() {
 
     logInfo "Create group with\n\tuser=${user}\n\tpw=${pw}\n\tssh-port=${port}\n\trdp_port=${rdp_port}\n\thost=${host}\n\tapi-key=${api_key}"
 
-    create_group
-    invite_users
+#    create_group
+#    invite_users
 }
 
 #

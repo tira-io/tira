@@ -57,7 +57,6 @@ service TiraHostService {
   rpc vm_unsandbox (RequestVmCommands) returns (Response) {}
   rpc run_execute(RequestRunExecuteEval) returns (Response) {}
   rpc run_eval(RequestRunExecuteEval) returns (Response) {}
-  rpc get_command_status(RequestCommandStatus) returns (Response) {}
 }
 
 
@@ -96,6 +95,7 @@ message Response {
       FAILED = 2;
     }
     Status status = 5;
+    string commandId = 6;
 }
 
 message ResponseVmInfo {
@@ -133,4 +133,5 @@ message CommandState {
   }
 
   repeated Command commands = 2;
+  string bulkCommandId = 3;
 }
