@@ -5,6 +5,10 @@ body {
     font-size: 15px;
 }
 
+#main-outlet{
+    overflow-y: auto;
+}
+
 /* fixes bootstrap.css:5313 "box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);" for discourse hamburger menu */
 .panel {
     box-shadow: 0 0 0 #fff;
@@ -25,8 +29,16 @@ body {
 /* RULES FOR DISRAPTOR CONTENT */
 
 /* all rules that should work for tira but not discourse by being more specific */
-.disraptor-content {
-    font-size: 14px;
+.disraptor-content .webis-data-table .sortable {
+    cursor: revert;
+}
+
+.disraptor-content .container .uk-section {
+    margin-top: 35px;
+}
+
+.disraptor-content .sortable:hover {
+    background-color: revert;
 }
 
 .disraptor-content .form-control {

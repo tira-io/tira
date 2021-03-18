@@ -19,6 +19,9 @@ class FileDatabase(object):
     tasks_dir_path = tira_root / Path("model/tasks")
     users_file_path = tira_root / Path("model/users/users.prototext")
     organizers_file_path = tira_root / Path("model/organizers/organizers.prototext")
+    vm_list_file = tira_root / Path("model/virtual-machines/virtual-machines.txt")
+    host_list_file = tira_root / Path("model/virtual-machine-hosts/virtual-machine-hosts.txt")
+    ova_dir = tira_root / Path("data/virtual-machine-templates/")
     datasets_dir_path = tira_root / Path("model/datasets")
     softwares_dir_path = tira_root / Path("model/softwares")
     RUNS_DIR_PATH = tira_root / Path("data/runs")
@@ -36,6 +39,9 @@ class FileDatabase(object):
         self.software_by_vm = None  # vm_id: [modelpb.Software]
         self.software_count_by_dataset = None  # dataset_id: int()
 
+        self.build_model()
+
+    def build_model(self):
         self._parse_organizer_list()
         self._parse_vm_list()
         self._parse_task_list()
@@ -256,6 +262,10 @@ class FileDatabase(object):
         return {measure.key: measure.value for measure in evaluation.measure}
 
     # get methods are the public interface.
+    def get_vm(self, vm_id: str):
+        # TODO should return as dict
+        return self.vms[vm_id]
+
     def get_tasks(self) -> list:
         tasks = [self.get_task(task.taskId)
                  for task in self.tasks.values()]
@@ -288,7 +298,7 @@ class FileDatabase(object):
             "dataset_id": dataset.datasetId,
             "is_confidential": dataset.isConfidential, "is_deprecated": dataset.isDeprecated,
             "year": extract_year_from_dataset_id(),
-            "task": self.default_tasks.get(dataset.datasetId, ""),
+            "task": self.default_tasks.get(dataset.datasetId, "None"),
             'organizer': self.task_organizers.get(dataset.datasetId, ""),
             "software_count": self.software_count_by_dataset.get(dataset.datasetId, 0)
         }
@@ -307,6 +317,10 @@ class FileDatabase(object):
                 for dataset in self.datasets.values()
                 if task_id == self.default_tasks.get(dataset.datasetId, "") and
                 not (dataset.isDeprecated and not include_deprecated)]
+
+    def get_organizer(self, organizer_id: str):
+        # TODO should return as dict
+        return self.organizers[organizer_id]
 
     # # TODO change accordingly with _load_runs
     # # TODO should actually give us a list of all runs done on this dataset (without grouping)
@@ -344,6 +358,29 @@ class FileDatabase(object):
     #
     #     return ev_keys, status, runs, evaluations
 
+    def get_host_list(self) -> list:
+        return list(open(self.host_list_file, "r").readlines())
+
+    def get_ova_list(self) -> list:
+        return [f"{ova_file.stem}.ova" for ova_file in self.ova_dir.glob("*.ova")]
+
+    def get_vm_list(self):
+        """ load the vm-info file which stores all active vms as such:
+        <hostname>\t<vm_id>[\t<state>]\n
+        ...
+
+        returns a list of tuples (hostname, vm_id, state)
+        """
+        vm_list = []
+        for line in open(self.vm_list_file, 'r'):
+            l = line.split("\t")
+            try:
+                vm_list.append([l[0], l[1].strip(), l[2].strip() if len(l) > 2 else ''])
+            except IndexError as e:
+                print(e)
+                print(line)
+        return vm_list
+
     def get_vms_by_dataset(self, dataset_id):
         """ return a list of vm_id's that have runs on this dataset """
         return [user_run_dir.stem
@@ -366,10 +403,11 @@ class FileDatabase(object):
         @param only_public_results: only return the measures for published datasets.
         """
         return {run_id: self._get_evaluation(ev)
-                for run_id, ev in self._load_vm_evaluations(dataset_id, vm_id, only_published=only_public_results).items()}
+                for run_id, ev in
+                self._load_vm_evaluations(dataset_id, vm_id, only_published=only_public_results).items()}
 
-    def get_vm_run_reviews(self):
-        pass
+    def get_run_review(self, dataset_id, vm_id, run_id):
+        return self._get_review(self._load_review(dataset_id, vm_id, run_id))
 
     def get_vm_reviews_by_dataset(self, dataset_id, vm_id):
         return {run_id: self._get_review(review)
@@ -383,6 +421,51 @@ class FileDatabase(object):
                  "dataset": software.dataset, "run": software.run, "creation_date": software.creationDate,
                  "last_edit": software.lastEditDate}
                 for software in self.software[f"{task_id}${vm_id}"]]
+
+    def get_users_vms(self):
+        """
+        Return the users list.
+        """
+        return self.vms
+
+    def get_vm_by_id(self, user_id):
+        return self.vms.get(user_id, None)
+
+    # add methods to add new data to the model
+
+    def add_dataset(self):
+        pass
+
+    def create_task(self, task_id, task_name, task_description, master_vm_id, organizer, website):
+        """ Add a new task to the database.
+         CAUTION: This function does not do any sanity checks and will OVERWRITE existing tasks """
+        new_task = modelpb.Tasks.Task()
+        new_task.taskId = task_id
+        new_task.taskName = task_name
+        new_task.taskDescription = task_description
+        new_task.virtualMachineId = master_vm_id
+        new_task.hostId = organizer
+        new_task.web = website
+        self.tasks[task_id] = new_task
+        # open(f'/home/tira/{task_id}.prototext', 'wb').write(new_task.SerializeToString())
+
+        new_task_file_path = self.tasks_dir_path / f'{task_id}.prototext'
+        if new_task_file_path.exists():
+            return False
+        open(new_task_file_path, 'w').write(str(new_task))
+        return True
+
+    def add_evaluator(self):
+        pass
+
+    def add_ongoing_execution(self, hostname, vm_id, ova):
+        """ add this create to the stack, so we know it's in progress. """
+        print('model', hostname, vm_id, ova)
+        pass
+
+    def complete_execution(self):
+        #TODO implement
+        pass
 
     def get_vm_by_id(self, vm_id: str):
         return self.vms.get(vm_id)

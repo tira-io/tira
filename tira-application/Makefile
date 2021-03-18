@@ -35,7 +35,7 @@ protobuf: venv
 	protoc -I=$(SRC_DIR) --python_out=$(BUILD_PATH) $(SRC_DIR)/TiraClientWebMessages.proto
 	${PYTHON} -m grpc_tools.protoc -I=$(SRC_DIR) --grpc_python_out=$(BUILD_PATH) tira_to_web.proto
 	${PYTHON} -m grpc_tools.protoc -I=$(SRC_DIR) --python_out=$(BUILD_PATH) --grpc_python_out=$(BUILD_PATH) tira_host.proto
-	sed -i 's/import tira_host_pb2 as tira__host__pb2/from . import tira_host_pb2 as tira__host__pb2/g' $(BUILD_PATH)/tira_host_pb2_grpc.py
+#	sed -i 's/import tira_host_pb2 as tira__host__pb2/from . import tira_host_pb2 as tira__host__pb2/g' $(BUILD_PATH)/tira_host_pb2_grpc.py
 	touch $(BUILD_PATH)/__init__.py
 
 django:
@@ -58,8 +58,8 @@ clean:
 	rm -r $(BUILD_PATH)
 
 k8s-deploy-tira-application: k8s-undeploy-tira-application
-	kubectl create configmap tira-web2-config --from-file=config/settings-deploy.yml 
-	kubectl apply -f tira-application.yml
+	kubectl -n webisservices create configmap tira-web2-config --from-file=config/settings-deploy.yml
+	kubectl -n webisservices apply -f tira-application.yml
 
 k8s-undeploy-tira-application:
 	kubectl delete -f tira-application.yml || echo "already undeployed?"

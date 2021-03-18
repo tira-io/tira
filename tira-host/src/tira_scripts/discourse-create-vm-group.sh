@@ -46,7 +46,7 @@ eval set -- "${FLAGS_ARGV}"
 set -e
 
 create_group() {
-    group_name="tira-vm-$vmname_or_user"
+    group_name="tira_vm_$vmname_or_user"
     group_bio="Members of this group have access to the virtual machine $vmname_or_user:<br><br>
 <ul>
   <li>Host: $host</li>
@@ -77,7 +77,7 @@ invite_users() {
     year=$(date +"%Y" -d 'next year')
 
     # invite users to group created by create_group()
-    curl -X POST "${_CONFIG_tira_disraptor_url}/invites/link" -H "Api-Key: $api_key" -H "Accept: application/json" -H "Content-Type: multipart/form-data" -F "group_ids[]=$group_id" -F "max_redemptions_allowed=20" -F "expires_at=$year-12-31"
+    curl -X POST "${_CONFIG_tira_disraptor_url}/invites" -H "Api-Key: $api_key" -H "Accept: application/json" -H "Content-Type: multipart/form-data" -F "group_ids[]=$group_id" -F "max_redemptions_allowed=20" -F "expires_at=$year-12-31"|jq -r '.link'
 }
 
 #

@@ -1,11 +1,11 @@
 <script type="text/javascript">
   $(document).ready(function() {
     setTimeout(updateRuntime, 1000);
-    
+        
     times = $("#runtime").text().split(":");
-    documentReloadTimeout = 2000;
+    documentReloadTimeout = 5000;
     if (times.length === 3) {
-      documentReloadTimeout = 10000;
+      documentReloadTimeout = 20000;
     }
     setTimeout("location.reload(true);", documentReloadTimeout);
   });

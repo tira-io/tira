@@ -14,7 +14,8 @@ def getcommands():
     """
     Returns all available subscript commands with minimum argument count.
     """
-    return {"host-list": 0,
+    return {"k8s": 1,
+            "host-list": 0,
             "exchange-keys": 0,
             "run-copy-to-local": 7,
             "run-execute": 4,  # - 5
@@ -29,6 +30,7 @@ def getcommands():
             "vm-create": 1,
             "vm-delete": 1,
             "vm-info": 1,  # - 2..
+            "vm-info-backup": 1,
             "vm-list": 0,  # - 2..
             "vm-metrics": 1,
             "vm-restore": 2,
@@ -71,8 +73,8 @@ def main(args):
 
     print("# script args=" + str(args))
 
-    # Extract remote & host, "-r HOST" can be everywhere.
-    if len(args) != 0 and ("-r" in args or "--remote" in args):
+    # Extract remote & host, "-r HOST" can be everywhere. (do not manipulate the passed args for the k8s script)
+    if len(args) != 0 and ("-r" in args or "--remote" in args) and not 'k8s' in script:
         if "-r" in args:
             pos = args.index("-r")
         else:

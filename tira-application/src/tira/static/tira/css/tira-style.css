@@ -1,0 +1,54 @@
+.index-main-cover {
+    background: #323232 url("/public/tira/img/background2.jpg") no-repeat top right;
+    background-size: 100%;
+    height: 250px;
+    width: 100%;
+    min-height: 200px;
+    font-size: 1.05rem;
+}
+
+.index-main-cover h1 {
+    font-size: 2.65rem
+}
+
+.cover-background-fade {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.2) 40%, rgba(0, 0, 0, 0.85) 85%)
+}
+
+
+@media (max-width: 800px) {
+    .index-main-cover {
+        height: 200px
+    }
+}
+
+@media (max-width: 400px) {
+    .index-main-cover {
+        height: 175px
+    }
+}
+
+@media (max-width: 300px) {
+    .index-main-cover {
+        height: 150px
+    }
+}
+
+@media (min-width: 960px) {
+    .index-main-cover {
+        height: 300px;
+        min-height: 200px;
+    }
+}
+/* strange disraptor hover fixes?  */
+.disraptor-content .sortable:hover {
+    background-color: revert;
+}
+.disraptor-content .webis-data-table .sortable {
+    cursor: revert;
+}
