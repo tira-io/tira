@@ -2,9 +2,12 @@
 p.stat().st_mtime - change time
 """
 from google.protobuf.text_format import Parse
+from google.protobuf.json_format import MessageToDict
 from pathlib import Path
 import logging
 from django.conf import settings
+import socket
+
 from .proto import TiraClientWebMessages_pb2 as modelpb
 from .proto import tira_host_pb2 as model_host
 
@@ -20,7 +23,7 @@ class FileDatabase(object):
     softwares_dir_path = tira_root / Path("model/softwares")
     RUNS_DIR_PATH = tira_root / Path("data/runs")
 
-    def __init__(self, hostname):
+    def __init__(self):
         logger.info("Start loading dataset")
         self.organizers = None  # dict of host objects host_id: modelpb.Host
         self.vms = None  # dict of vm_id: modelpb.User
@@ -43,7 +46,7 @@ class FileDatabase(object):
         self._build_software_relations()
         self._build_software_counts()
 
-        self.hostname = hostname
+        self.hostname = socket.gethostname()
         self.command_states_path = self.tira_root / Path("state/commands/" + self.hostname + ".prototext")
         self.command_logs_path = self.tira_root / Path("log/virtual-machine-hosts/" + self.hostname + "/")
         self.command_logs_path.mkdir(exist_ok=True)
@@ -390,11 +393,21 @@ class FileDatabase(object):
         """
         self.commandState = Parse(open(self.command_states_path, "r").read(), model_host.CommandState())
 
+    def get_commands_bulk(self, bulk_id):
+        """
+        Get commands list by bulk command id
+        :param bulk_id:
+        """
+        self._parse_command_state()
+        return [MessageToDict(command) for command in self.commandState.commands if command.bulkCommandId == bulk_id]
+
     def get_command(self, command_id):
         """
         Get command object
         :param command_id:
         """
+        self._parse_command_state()
         for command in self.commandState.commands:
             if command.id == command_id:
-                return command
+                return MessageToDict(command)
+        return None

@@ -7,7 +7,6 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse, Http404, JsonResponse
 from itertools import groupby
 from django.conf import settings
-import socket
 
 from .grpc_client import GrpcClient
 from .tira_model import FileDatabase
@@ -16,10 +15,9 @@ from .forms import LoginForm
 from django import forms
 from django.core.exceptions import PermissionDenied
 
-from .proto import tira_host_pb2
-from .proto import tira_host_pb2_grpc
+from . import grpc_client
 
-model = FileDatabase(socket.gethostname())
+model = FileDatabase()
 include_navigation = True if settings.DEPLOYMENT == "legacy" else False
 auth = Authentication(authentication_source=settings.DEPLOYMENT,
                       users_file=settings.LEGACY_USER_FILE)
@@ -199,7 +197,8 @@ def software_detail(request, task_id, vm_id):
 
     # request tira-host for vmInfo
     vm = model.get_vm_by_id(vm_id)
-    response_vm_info = vm_info(request, vm)
+    tira_client = GrpcClient(vm.hostname)
+    response_vm_info = tira_client.vm_info(request, vm)
 
     context = {
         "include_navigation": include_navigation,
@@ -212,57 +211,3 @@ def software_detail(request, task_id, vm_id):
     return render(request, 'tira/software.html', context)
 
 
-def vm_info(request, user_id):
-    vm = model.get_vm_by_id(user_id)
-    grpc_client = GrpcClient(vm.host)
-    response = grpc_client.vm_info(vm.vmName)
-    # return JsonResponse({'status': 'accepted', 'message': response}, status=202)
-    return response
-
-
-def vm_start(request, user_id, vm_id):
-    vm = model.get_vm_by_id(user_id)
-    grpc_client = GrpcClient(vm.host)
-    response = grpc_client.vm_start(vm.vmName)
-    return JsonResponse({'status': 'accepted', 'message': response}, status=202)
-
-
-def vm_stop(request, user_id, vm_id):
-    vm = model.get_vm_by_id(user_id)
-    grpc_client = GrpcClient(vm.host)
-    response = grpc_client.vm_stop(vm.vmName)
-    return JsonResponse({"output": response})
-
-
-def run_execute(request, user_id, vm_id):
-    vm = model.get_vm_by_id(user_id)
-    grpc_client = GrpcClient(vm.host)
-    response = grpc_client.run_execute(submission_file="",
-                                       input_dataset_name="",
-                                       input_run_path="",
-                                       output_dir_name="",
-                                       sandboxed="",
-                                       optional_parameters="")
-    return JsonResponse({"output": response})
-
-
-def run_eval(request, user_id, vm_id):
-    vm = model.get_vm_by_id(user_id)
-    grpc_client = GrpcClient(vm.host)
-    response = grpc_client.run_execute(submission_file="",
-                                       input_dataset_name="",
-                                       input_run_path="",
-                                       output_dir_name="",
-                                       sandboxed="",
-                                       optional_parameters="")
-    return JsonResponse({"output": response})
-
-
-def command_status(request, user_id, vm_id, command_id):
-    vm = model.get_vm_by_id(user_id)
-    grpc_client = GrpcClient(vm.host)
-    response = grpc_client.get_command_status(command_id)
-    if response == 404:
-        return JsonResponse({"status": 404})
-
-    return JsonResponse({"status": response[0], 'message': MessageToDict(response[1][1])})
