@@ -33,7 +33,7 @@ Examples:
     exit 1
 }
 
-POD=$(kubectl -n webisservices get all|grep tira-bg-web-client|grep 'Running'|grep -v 'tira-web-client-2-'|head -1|awk '{print }')
+POD=$(kubectl -n webisservices get all|grep tira-bg-web-client|grep 'Running'|grep -v 'tira-web-client-2-'|head -1|awk '{print $1}')
 
 if [ -z "${POD}" ]
 then

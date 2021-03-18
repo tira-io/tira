@@ -90,32 +90,99 @@
 
         <h2>System Actions</h2>
         <ul>
-            <li><a id="tira-admin-reload-data">Reload Website Data</a><span id="tira-admin-reload-data-icon"></span></li>
+            <li><a id="reload-website-data">Reload Website Data</a><span id="reload-website-data-icon"></span></li> <!-- This is called via ajax-->
             <li>TODO: Run Integration Test</li>
 <!--            <li><a id="tira-admin-integration-test">Run Integration Test</a><span id="tira-admin-integration-test-icon"></span></li>-->
             <li>TODO: Check System Coherence</li>
 <!--            <li><a id="tira-admin-coherence" disabled>Check System Coherence</a><span id="tira-admin-coherence-icon"></span></li>-->
         </ul>
 
-        <h2>Create VMs</h2>
-        <form id="tira-admin-vm-create-form" method="POST"> <!--            action="{% url 'tira:tira-admin-create-vm' %}"-->
-            {% csrf_token %}
-            {{ create_vm_form }}
-            <span id="create-vm-form-error" style="color: red"></span>
-            </br>
-            <input type="submit" class="uk-button uk-button-primary" value="Create VMs"/><span id="tira-admin-create-vm-icon"></span>
-        </form>
-        <div id="create-vm-form-results"></div>
 
-        <h3>TODOs:</h3>
-        <ul>
-            <li>backend connection for vm create</li>
-            <li>add task (creates master vm)</li>
-            <li>add evaluator for dataset</li>
-            <li>add dataset</li>
-            <li>give user_id permission to vm_id</li>
-            <li>(bulk)archive vm field</li>
-        </ul>
+        <div class="uk-grid-small uk-child-width-1-2@m" data-uk-grid>
+            <div>
+                <h2>Create VMs</h2>
+                <form id="create-vm-form" action="{% url 'tira:tira-admin-create-vm' %}" method="POST" target="_blank">
+                    {% csrf_token %}
+                    <div>
+                    {{ create_vm_form }}
+                    </div>
+                    <span id="create-vm-form-error" style="color: red"></span>
+                    <br>
+                    <input type="submit" class="uk-button uk-button-primary" value="Create VMs"/><span id="create-vm-form-icon"></span>
+                </form>
+                <div id="create-vm-form-results"></div>
+            </div>
+            <div>
+                <h2>Archive VMs</h2>
+                <form id="archive-vm-form" action="{% url 'tira:tira-admin-archive-vm' %}" method="POST" target="_blank">
+                    {% csrf_token %}
+                    <div>
+                    {{ archive_vm_form }}
+                    </div>
+                    <span id="archive-vm-form-error" style="color: red"></span>
+                    <br>
+                    <input type="submit" class="uk-button uk-button-primary" value="Archive VMs"/><span id="archive-vm-form-icon"></span>
+                </form>
+                <div id="archive-vm-form-results"></div>
+            </div>
+        </div>
+
+        <h2>Modify VM</h2>
+        <form id="modify-vm-form" action="{% url 'tira:tira-admin-modify-vm' %}" method="POST" target="_blank">
+            {% csrf_token %}
+            <div class="uk-grid-small uk-child-width-1-2@m" data-uk-grid>
+                <div>{{ modify_vm_form.vm_id.label }}{{ modify_vm_form.vm_id }}</div>
+                <div class="uk-grid-small uk-child-width-1-4@m" data-uk-grid>
+                    <div>{{ modify_vm_form.memory.label }}{{ modify_vm_form.memory }}</div>
+                    <div>{{ modify_vm_form.cpu.label }}{{ modify_vm_form.cpu }}</div>
+                    <div>{{ modify_vm_form.storage.label }}{{ modify_vm_form.storage }}</div>
+                    <div>{{ modify_vm_form.storage_type.label }}{{ modify_vm_form.storage_type }}</div>
+                </div>
+            </div>
+            <span id="modify-vm-form-error" style="color: red"></span>
+            <br>
+            <input type="submit" class="uk-button uk-button-primary" value="Modify VM"/>
+        </form>
+        <div id="modify-vm-form-results"></div>
+
+        <h2>Create Task</h2> <!-- this is called via ajax -->
+        <form id="create-task-form" action="{% url 'tira:tira-admin-create-task' %}" method="POST" target="_blank">
+            {% csrf_token %}
+            <div class="uk-grid-small uk-child-width-1-5@m" data-uk-grid>
+                <div>{{ create_task_form.task_id.label }}{{ create_task_form.task_id }}</div>
+                <div>{{ create_task_form.task_name.label }}{{ create_task_form.task_name }}</div>
+                <div>{{ create_task_form.master_vm_id.label }}{{ create_task_form.master_vm_id }}</div>
+                <div>{{ create_task_form.organizer.label }}{{ create_task_form.organizer }}</div>
+                <div>{{ create_task_form.website.label }}{{ create_task_form.website }}</div>
+            </div>
+            <br>
+            <div>{{ create_task_form.task_description.label }}{{ create_task_form.task_description }}</div>
+            <span id="create-task-form-error" style="color: red"></span>
+            <br>
+            <input type="submit" class="uk-button uk-button-primary" value="Create Task"/><span id="create-task-form-icon"></span>
+        </form>
+
+        <h2>Add Dataset</h2>
+        <form id="add-dataset-form" action="{% url 'tira:tira-admin-add-dataset' %}" method="POST"> <!--            action="{% url 'tira:tira-admin-add-dataset' %}"-->
+            {% csrf_token %}
+            <div class="uk-grid-small uk-child-width-1-4@m" data-uk-grid>
+                <div>{{ add_dataset_form.task_id.label }}{{ add_dataset_form.task_id }}</div>
+                <div>{{ add_dataset_form.dataset_id_prefix.label }}{{ add_dataset_form.dataset_id_prefix }}</div>
+                <div>{{ add_dataset_form.dataset_name.label }}{{ add_dataset_form.dataset_name }}</div>
+                <div>{{ add_dataset_form.master_vm_id.label }}{{ add_dataset_form.master_vm_id }}</div>
+            </div>
+            <div class="uk-grid-small uk-child-width-1-2@m" data-uk-grid>
+                <div>
+                    <div>{{ add_dataset_form.command.label }}{{ add_dataset_form.command }}</div>
+                    <div>{{ add_dataset_form.working_directory.label }}{{ add_dataset_form.working_directory }}</div>
+                </div>
+                <div>{{ add_dataset_form.measures.label }}{{ add_dataset_form.measures }}</div>
+            </div>
+            <br>
+            <span id="add-dataset-form-error" style="color: red"></span>
+            <br>
+            <input type="submit" class="uk-button uk-button-primary" value="Add Dataset"/><span id="add-dataset-form-icon"></span>
+        </form>
     </div>
 
     <div class="uk-container">
