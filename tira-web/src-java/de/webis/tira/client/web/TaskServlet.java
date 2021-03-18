@@ -29,6 +29,7 @@ import de.webis.tira.client.web.generated.TiraClientWebMessages.TaskDataset;
 import de.webis.tira.client.web.generated.TiraClientWebMessages.TaskReview;
 import de.webis.tira.client.web.generated.TiraClientWebMessages.Softwares.Software;
 import de.webis.tira.client.web.generated.TiraClientWebMessages.TaskUser;
+import de.webis.tira.client.web.generated.TiraClientWebMessages.TaskUser.Execution;
 import de.webis.tira.client.web.generated.TiraClientWebMessages.ExtendedRun;
 import de.webis.tira.client.web.generated.TiraClientWebMessages.Tasks.Task;
 import de.webis.tira.client.web.generated.TiraClientWebMessages.VirtualMachineState;
@@ -64,6 +65,7 @@ public class TaskServlet extends HttpServlet {
 		ROUTE_TASK = "^/(?<taskId>[a-zA-Z0-9-]+)/$",
 		ROUTE_TASK_DATASET = "^/(?<taskId>[a-zA-Z0-9-]+)/dataset/(?<datasetId>[a-zA-Z0-9-]+)/$",
 		ROUTE_TASK_USER = "^/(?<taskId>[a-zA-Z0-9-]+)/user/(?<userName>[a-zA-Z0-9-]+)/$",
+		ROUTE_TEST_UNPOLY_IN_DISRAPTOR = "^/(?<taskId>[a-zA-Z0-9-]+)/unpoly-in-disraptor-test-delete-me-later$",
 		ROUTE_TASK_USER_ID = "^/(?<taskId>[a-zA-Z0-9-]+)/user/(?<userName>[a-zA-Z0-9-]+)/.*$",
 		ROUTE3 = "^/(?<taskId>[a-zA-Z0-9-]+)/user/(?<userName>[a-zA-Z0-9-]+)/vm-metrics/$",
 		ROUTE4 = "^/(?<taskId>[a-zA-Z0-9-]+)/user/(?<userName>[a-zA-Z0-9-]+)/vm-shutdown/$",
@@ -77,7 +79,7 @@ public class TaskServlet extends HttpServlet {
 		ROUTE12 = "^/(?<taskId>[a-zA-Z0-9-]+)/user/(?<userName>[a-zA-Z0-9-]+)/software/(?<softwareId>software\\d+)/kill/$",
 		ROUTE13 = "^/(?<taskId>[a-zA-Z0-9-]+)/user/(?<userName>[a-zA-Z0-9-]+)/software/evaluator/run/$",
 		ROUTE14 = "^/(?<taskId>[a-zA-Z0-9-]+)/user/(?<userName>[a-zA-Z0-9-]+)/software/evaluator/kill/$",
-		ROUTE15 = "^/(?<taskId>[a-zA-Z0-9-]+)/user/(?<userName>[a-zA-Z0-9-]+)/run/(?<runId>[a-zA-Z0-9-]+).zip$",
+		ROUTE15 = "^/(?<taskId>[a-zA-Z0-9-]+)/user/(?<userName>[a-zA-Z0-9-]+)/run/(?<runId>[a-zA-Z0-9-]+).zip/*$",
 		ROUTE16 = "^/(?<taskId>[a-zA-Z0-9-]+)/user/(?<userName>[a-zA-Z0-9-]+)/run/(?<runId>[a-zA-Z0-9-]+)/delete/$",
 		ROUTE17 = "^/(?<taskId>[a-zA-Z0-9-]+)/user/(?<userName>[a-zA-Z0-9-]+)/run/(?<runId>[a-zA-Z0-9-]+)/view/$";
 	
@@ -167,6 +169,7 @@ public class TaskServlet extends HttpServlet {
 			if (path.matches(ROUTE_TASK)) getRouteTask(req, resp);
 			else if (path.matches(ROUTE_TASK_DATASET)) getRouteTaskDataset(req, resp);
 			else if (path.matches(ROUTE_TASK_USER)) getRouteTaskUser(req, resp);
+			else if (path.matches(ROUTE_TEST_UNPOLY_IN_DISRAPTOR)) getRouteUnpolyTest(req, resp);
 			else if (path.matches(ROUTE3)) getRoute3(req, resp);
 			else if (path.matches(ROUTE7)) getRoute7(req, resp);
 			else if (path.matches(ROUTE15)) getRoute15(req, resp);
@@ -175,7 +178,7 @@ public class TaskServlet extends HttpServlet {
 			throw new ServletException(e);
 		}
 	}
-	
+
 	@Override
 	protected void 
 	doPost(HttpServletRequest req, HttpServletResponse resp)
@@ -286,7 +289,90 @@ public class TaskServlet extends HttpServlet {
 			Renderer.render(sc, req, resp, TEMPLATE_TASK_USER_IDLE, tub, o);
 		}
 	}
+	
+	private void
+	getRouteUnpolyTest(HttpServletRequest req, HttpServletResponse resp)
+	throws IOException, ServletException {
+		@SuppressWarnings("unused")
+		Object o = new Object() {
+			boolean isMySoftware = true;
+		};
+		
+		Renderer.render(getServletContext(), req, resp, TEMPLATE_TASK_USER_BUSY, dummyUnpolyTestUser(), o);
+	}
 
+	static TaskUser
+	dummyUnpolyTestUser() {
+		Task task = Task.newBuilder()
+			.setTaskId("does-not-exist")
+			.setTaskName("My Test Task")
+			.build();
+		Execution execution = Execution.newBuilder()
+				.build();
+		Run run = Run.newBuilder()
+				.setSoftwareId("no-id")
+				.setRunId("no-id")
+				.setInputDataset("no-input-dataset")
+				.setDownloadable(true)
+				.setDeleted(false)
+				.build();
+		ExtendedRun extendedRun = ExtendedRun.newBuilder()
+				.setRun(run)
+				.setIsRunning(true)
+				.setStdout("this is some stdout.")
+				.build();
+		
+		Date start = new Date();
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+		
+		
+		String tmpOutput = "This is my output...\n\nStarted at: " + start +"\nFinished at: " + new Date();
+		
+		de.webis.tira.client.web.generated.TiraClientWebMessages.VirtualMachineState vmInfo = de.webis.tira.client.web.generated.TiraClientWebMessages.VirtualMachineState.newBuilder()
+			.setPortSshOpen(false)
+			.setGuestOs("my-os")
+			.setMemorySize("0 byte")
+			.setNumberOfCpus("-1")
+			.setState("running")
+			.setStateSandboxed(true)
+			.setStateSandboxing(false)
+			.setStateUnsandboxing(false)
+			.setStateRunning(true)
+			.setLatestOutput(tmpOutput)
+			.setHost("ssaas")
+			.setPortSsh("-1")
+			.setPortRdp("-1")
+			.setPortSshOpen(false)
+			.setPortRdpOpen(false)
+			.setProcessRunning(true)
+			.setProcessType("test")
+			.setProcessRunId("-1")
+			.setProcessState("my-state")
+			.setProcessTime("00:00:00")
+			.setVmBooting(true)
+			.setVmPoweringOff(false)
+			.setVmShuttingDown(false)
+			.setHasLatestOutput(true)
+			.build();
+		
+		return TaskUser.newBuilder()
+			.mergeUser(UsersStore.userWithoutVM())
+			.setHasVm(true)
+			.addRuns(extendedRun)
+			.setHasSoftwaresNotDeleted(false)
+			.setHasRunsNotDeleted(false)
+			.setHasEvaluatorRunsNotDeleted(false)
+			.setHasSoftwareRunsNotDeleted(false)
+			.mergeTask(task)
+			.setVmInfo(vmInfo)
+			.mergeExecution(execution)
+			.build();
+	}
+	
 	private void 
 	getRoute3(HttpServletRequest req, HttpServletResponse resp)
 	throws IOException, ServletException, ExecutionException {

@@ -1,0 +1,63 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: tira-discourse
+spec:
+  type: NodePort
+  selector:
+    app: tira-discourse
+  ports:
+    - nodePort: 30804
+      port: 9292
+      targetPort: 9292
+      name: unicorn
+    - nodePort: 30805
+      port: 1080
+      targetPort: 1080
+      name: mailcatcher
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tira-discourse
+spec:
+  selector:
+    matchLabels:
+      app: tira-discourse
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: tira-discourse
+    spec:
+      containers:
+      - name: tira-discourse
+        image: discourse/discourse_dev:release
+#        imagePullPolicy: Always
+        ports:
+        - containerPort: 9292
+          hostIP: 0.0.0.0
+          name: unicorn
+        - containerPort: 1080
+          hostIP: 0.0.0.0
+          name: mailcatcher
+        volumeMounts:
+        - mountPath: "/shared/postgres_data"
+          name: discourse-postgres-data
+        - mountPath: "/src"
+          name: src-code
+        env:
+        - name: RAILS_ENV
+          value: development
+        - name: UNICORN_BIND_ALL
+          value: "true"
+        - name: DISCOURSE_DEV_HOSTS
+          value: ""
+        command: ["/bin/bash", "-c", "for I in {001..129}; do DISCOURSE_DEV_HOSTS+=betaweb$I,; done; DISCOURSE_DEV_HOSTS+=betaweb130; /sbin/boot & git clone https://github.com/discourse/discourse.git /src && cd /src && cd /src/plugins && git clone https://github.com/disraptor/disraptor.git && cd /src && chown -R discourse:discourse /src && chmod -R a+rwx /src && bundle install && sudo -E -u discourse -g discourse /bin/bash -c 'bundle install && bundle exec rake db:migrate && /src/bin/unicorn'"]
+      volumes:
+      - name: discourse-postgres-data
+        persistentVolumeClaim:
+          claimName: discourse-postgres-data-pvc
+      - name: src-code
+        emptyDir: {}

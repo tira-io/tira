@@ -57,7 +57,6 @@ service TiraHostService {
   rpc vm_unsandbox (RequestVmCommands) returns (Response) {}
   rpc run_execute(RequestRunExecuteEval) returns (Response) {}
   rpc run_eval(RequestRunExecuteEval) returns (Response) {}
-  rpc get_command_status(RequestCommandStatus) returns (Response) {}
 }
 
 

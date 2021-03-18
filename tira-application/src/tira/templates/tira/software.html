@@ -10,15 +10,15 @@
 <ul class="uk-breadcrumb">
 <li><a href="{% url 'tira:index' %}">Tira.io</a></li>
 <li><a href="{% url 'tira:task-detail' task_id=task.task_id%}">{{ task.task_name }}</a></li>
-<li href="{% url 'tira:index' %}"><a href="#">{{ user_id }}</a></li>
+<li class="uk-disabled"><a href="#">{{ vm_id }}</a></li>
 </ul>
 </nav>
 
 <main class="uk-section uk-section-default">
     <div class="uk-container">
-        <h1>Virtual Machine &mdash; <span class="uk-text-muted">{{ user_id }}</span></h1>
+        <h1>Virtual Machine &mdash; <span class="uk-text-muted">{{ vm_id }}</span></h1>
     </div>
-    {% if user_id == 'no-vm-assigned' %}
+    {% if vm_id == 'no-vm-assigned' %}
      <div class="uk-container uk-margin-medium">
         <div class="uk-grid-small uk-grid-match" uk-grid>
             <div class="uk-card uk-card-body uk-card-default">
@@ -172,7 +172,8 @@
                             <td>TODO: [x] no errors, [x] no output</td>
                             <td class="uk-align-right">
                                 <button class="uk-button uk-button-small uk-button-primary">evaluate</button>
-                                <button class="uk-button uk-button-small uk-button-default">inspect</button>
+                                <a class="uk-button uk-button-small uk-button-default"
+                                href="{% url 'tira:review' task_id=task.task_id vm_id=vm_id dataset_id=sw.software.dataset run_id=run.run_id %}">inspect</a>
                                 <button class="uk-button uk-button-small uk-button-danger">delete</button>
                             </td>
                         </tr>

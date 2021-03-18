@@ -1,4 +1,4 @@
-VERSION=9.0.24
+VERSION=9.0.36
 
 publish-docker: build-tira-docker
 	docker login &&\
@@ -10,7 +10,7 @@ run-tira-docker: build-tira-docker
 run-tira-docker-with-ceph-mount: build-tira-docker
 	docker run --rm -ti -v /mnt/ceph/tira:/mnt/nfs/tira -p 8080:8080 mam10eks/tmp-tira-mam10eks:${VERSION}
 
-k8s-deploy: k8s-undeploy
+k8s-deploy:
 	cd build/kubernetes/ && ./k8s-deploy.sh
 
 k8s-undeploy:

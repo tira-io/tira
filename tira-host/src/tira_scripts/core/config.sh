@@ -158,7 +158,7 @@ _CONFIG_tira_cvs_subdir="code-in-progress/tira"
 #
 #    Disraptor settings
 #
-_CONFIG_tira_disraptor_url="https://disraptor.tira.io"
+_CONFIG_tira_disraptor_url="https://www.tira.io"
 
 #
 #    Export for usage in other scripts.
