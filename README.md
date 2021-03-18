@@ -1,4 +1,4 @@
-<h1 align="center"><p><img src="https://github.com/tira-io/tira/blob/master/tira-application/src/tira/static/tira/img/logo-tira-40x40-transparent.png" style="vertical-align:middle"> TIRA Integrated Research Architecture </p></h1>
+<h1 align="center"><p><img src="https://github.com/tira-io/tira/blob/master/tira-application/src/tira/static/tira/img/logo-tira-40x40-transparent.png" style="vertical-align:bottom"> TIRA Integrated Research Architecture </p></h1>
 
 
 >Data and software are immaterial. Scientists in computer science hence have the unique chance to let other scientists easily reproduce their findings. Similarly, and with the same ease, the organization of shared tasks, i.e., the collaborative search for new algorithms given a predefined problem, is possible. Experience shows that the potential of reproducibility is hardly tapped in either case. Based on this observation, and driven by the ambitious
