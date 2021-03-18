@@ -34,25 +34,25 @@
             <div class="uk-card uk-card-body uk-width-1-3 uk-card-default">
                 <table>
                     <tr>
-                        <td>OS:</td>
+                        <td>OS</td><td  id="vm_info_guestOs">{{ responseVmInfo.guestOs }}</td>
                     </tr>
                     <tr>
-                        <td>RAM:</td>
+                        <td>RAM</td><td id="vm_info_memorySize">{{ responseVmInfo.memorySize }}</td>
                     </tr>
                     <tr>
-                        <td>CPU:</td>
+                        <td>CPU</td><td id="vm_info_numberOfCpus">{{ responseVmInfo.numberOfCpus }}</td>
                     </tr>
                     <tr>
                         <td>&nbsp;</td>
                     </tr>
                     <tr>
-                        <td>Host:</td>
+                        <td>Host</td><td id="vm_info_host">{{ responseVmInfo.host }}</td>
                     </tr>
                     <tr>
-                        <td>Ssh Port:</td>
+                        <td>SSH port</td><td id="vm_info_ssh_port">{{ responseVmInfo.ssh_port }}</td>
                     </tr>
                     <tr>
-                        <td>Rdp Port:</td>
+                        <td>RDP port</td><td id="vm_info_rdp_port">{{ responseVmInfo.rdp_port }}</td>
                     </tr>
                 </table>
             </div>
@@ -60,19 +60,30 @@
                 <h3 class="uk-card-title">State</h3>
                 <table>
                     <tr>
-                        <td>VM is Idle | VM is executing Software 1. | Vm is shut down. | VM is being sandboxed.</td>
+{#                      <td>VM is Idle | VM is executing Software 1. | Vm is shut down. | VM is being sandboxed.</td>#}
+                        <td id="vm_info_state">{{ responseVmInfo.state }}</td>
                     </tr>
                     <tr>
-                        <td>Ssh Port is (not) accessible</td>
+                        <td>
+                            <div class="uk-grid">
+                                <div>SSH port</div>
+                                <div>{% if responseVmInfo.ssh_status %}<div class="uk-label uk-label-success">open</div>{% else %}<div class="uk-label uk-label-danger">closed</div>{% endif %}</div>
+                            </div>
+                            </td>
                     </tr>
                     <tr>
-                        <td>Rdp Port is (not) accessible</td>
+                        <td>
+                            <div class="uk-grid">
+                                <div>RDP port</div>
+                                <div>{% if responseVmInfo.rdp_status %}<div class="uk-label uk-label-success">open</div>{% else %}<div class="uk-label uk-label-danger">closed</div>{% endif %}</div>
+                            </div>
+                        </td>
                     </tr>
                 </table>
 
-                <div class="uk-grid-small uk-margin-small" uk-grid>
+                <div class="uk-grid-small uk-margin-small uk-grid">
                     <div>
-                        <button class="uk-button uk-button-primary uk-text-center">Start|Stop VM</button>
+                        <button onclick="location.href='{{ request.path }}/{% if responseVmInfo.is_running %}stop_vm{% else %}start_vm{% endif %}';" class="uk-button uk-button-primary uk-text-center {% if responseVmInfo.is_running %}uk-button-danger{% endif %}">{% if responseVmInfo.is_running %}Stop VM{% else %}Start VM{% endif %}</button>
                     </div>
                     <div>
                         <button class="uk-button uk-button-primary uk-text-center">Abort Run</button>
@@ -193,5 +204,17 @@
     </div>
     {% endif %}
 </main>
+
+<script>
+$(document).ready(function () {
+    url = "/user/nik-111-u18/vm/nik-111-u18-04-tira-ubuntu-18-04-desktop-64bit/vm_info";
+    (function (url) {
+        $.getJSON(url, {})
+            .done(function (data) {
+                console.log(data);
+            });
+    })();
+});
+</script>
 
 {% endblock %}

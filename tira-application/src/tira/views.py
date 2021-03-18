@@ -1,7 +1,14 @@
+import asyncio
+import grpc
+from grpc import aio
+from google.protobuf.empty_pb2 import Empty
+from google.protobuf.json_format import MessageToDict
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, Http404, JsonResponse
 from itertools import groupby
 from django.conf import settings
+
+from .grpc_client import GrpcClient
 from .tira_model import FileDatabase
 from .authentication import Authentication
 from .checks import Check
@@ -10,6 +17,8 @@ from .execute import *
 from django import forms
 from django.core.exceptions import PermissionDenied
 from time import sleep
+
+from . import grpc_client
 
 model = FileDatabase()
 include_navigation = True if settings.DEPLOYMENT == "legacy" else False
@@ -228,11 +237,17 @@ def software_detail(request, task_id, vm_id):
     #             r.get("dependent", list()).append(r_dependent[r["run_id"]])
     #     software["results"] = r_independent
 
+    # request tira-host for vmInfo
+    vm = model.get_vm_by_id(vm_id)
+    tira_client = GrpcClient(vm.hostname)
+    response_vm_info = tira_client.vm_info(request, vm)
+
     context = {
         "include_navigation": include_navigation,
         "task": model.get_task(task_id),
         "vm_id": vm_id,
-        "software": software
+        "software": software,
+        "responseVmInfo": response_vm_info,
     }
 
     return render(request, 'tira/software.html', context)
@@ -260,6 +275,42 @@ def review(request, task_id, vm_id, dataset_id, run_id):
 # "comment": review.comment, "hasErrors": review.hasErrors, "hasWarnings": review.hasWarnings,
 # "hasNoErrors": review.hasNoErrors, "published": review.published, "blinded": review.blinded
 # }
+
+
+def users(request):
+    """
+    List of all users and virtual machines.
+    """
+
+    context = {
+        "include_navigation": include_navigation,
+        "role": auth.get_role(request),
+        "users": model.get_users_vms()
+    }
+    return render(request, 'tira/user_list.html', context)
+
+
+def user_detail(request, user_id):
+    """
+    User-virtual machine details and management.
+    """
+
+    role = auth.get_role(request, auth.get_user_id(request))
+
+    # response = None
+    # if role == 'admin':
+    #     vm = model.get_vm_by_id(user_id)
+    #     grpc_client = GrpcClient(vm.host)
+    #     response = grpc_client.vm_info(vm.vmName)
+
+    context = {
+        "include_navigation": include_navigation,
+        "role": role,
+        "user": model.get_vm_by_id(user_id),
+    }
+
+    return render(request, 'tira/user_detail.html', context)
+
 
 # ------------------- ajax calls --------------------------------
 
