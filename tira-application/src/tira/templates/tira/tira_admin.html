@@ -163,20 +163,31 @@
         </form>
 
         <h2>Add Dataset</h2>
-        <form id="add-dataset-form" action="{% url 'tira:tira-admin-add-dataset' %}" method="POST"> <!--            action="{% url 'tira:tira-admin-add-dataset' %}"-->
+        <form id="add-dataset-form" action="{% url 'tira:tira-admin-add-dataset' %}" method="POST" target="_blank"> <!--            action="{% url 'tira:tira-admin-add-dataset' %}"-->
             {% csrf_token %}
-            <div class="uk-grid-small uk-child-width-1-4@m" data-uk-grid>
-                <div>{{ add_dataset_form.task_id.label }}{{ add_dataset_form.task_id }}</div>
-                <div>{{ add_dataset_form.dataset_id_prefix.label }}{{ add_dataset_form.dataset_id_prefix }}</div>
-                <div>{{ add_dataset_form.dataset_name.label }}{{ add_dataset_form.dataset_name }}</div>
-                <div>{{ add_dataset_form.master_vm_id.label }}{{ add_dataset_form.master_vm_id }}</div>
+            <div class="uk-grid-small uk-child-width-1-3@m" data-uk-grid>
+                <div>
+                    <div>{{ add_dataset_form.dataset_name.label }}*{{ add_dataset_form.dataset_name }}</div>
+                    <div>{{ add_dataset_form.task_id.label }}*{{ add_dataset_form.task_id }}</div>
+                </div>
+                <div>
+                    <div>{{ add_dataset_form.dataset_id_prefix.label }}{{ add_dataset_form.dataset_id_prefix }}</div>
+                    <div>{{ add_dataset_form.master_vm_id.label }}*{{ add_dataset_form.master_vm_id }}</div>
+                </div>
+                <div>
+                    <div>{{ add_dataset_form.create_training }}{{ add_dataset_form.create_training.label }}</div>
+                    <div>{{ add_dataset_form.create_test }}{{ add_dataset_form.create_test.label }}</div>
+                    <div>{{ add_dataset_form.create_dev }}{{ add_dataset_form.create_dev.label }}</div>
+                </div>
             </div>
+
             <div class="uk-grid-small uk-child-width-1-2@m" data-uk-grid>
                 <div>
                     <div>{{ add_dataset_form.command.label }}{{ add_dataset_form.command }}</div>
                     <div>{{ add_dataset_form.working_directory.label }}{{ add_dataset_form.working_directory }}</div>
                 </div>
                 <div>{{ add_dataset_form.measures.label }}{{ add_dataset_form.measures }}</div>
+                <div>*mandatory</div>
             </div>
             <br>
             <span id="add-dataset-form-error" style="color: red"></span>
