@@ -20,6 +20,7 @@ class FileDatabase(object):
     users_file_path = tira_root / Path("model/users/users.prototext")
     organizers_file_path = tira_root / Path("model/organizers/organizers.prototext")
     vm_list_file = tira_root / Path("model/virtual-machines/virtual-machines.txt")
+    vm_dir_path = tira_root / Path("model/virtual-machines")
     host_list_file = tira_root / Path("model/virtual-machine-hosts/virtual-machine-hosts.txt")
     ova_dir = tira_root / Path("data/virtual-machine-templates/")
     datasets_dir_path = tira_root / Path("model/datasets")
@@ -261,6 +262,31 @@ class FileDatabase(object):
     def _get_evaluation(self, evaluation):
         return {measure.key: measure.value for measure in evaluation.measure}
 
+    # ---------------------------------------------------------------------
+    # ---- save methods to update protos
+    # ---------------------------------------------------------------------
+
+    def _save_task(self, task_proto, overwrite=False):
+        # open(f'/home/tira/{task_id}.prototext', 'wb').write(new_task.SerializeToString())
+        new_task_file_path = self.tasks_dir_path / f'{task_proto.taskId}.prototext'
+        if not overwrite and new_task_file_path.exists():
+            return False
+        self.tasks[task_proto.taskId] = task_proto
+        open(new_task_file_path, 'w').write(str(task_proto))
+        self._build_task_relations()
+        return True
+
+    def _save_vm(self, vm_proto, overwrite=False):
+        new_vm_file_path = self.vm_dir_path / f'{vm_proto.virtualMachineId}.prototext'
+        if not overwrite and new_vm_file_path.exists():
+            return False
+        self.vms[vm_proto.virtualMachineId] = vm_proto
+        open(new_vm_file_path, 'w').write(str(vm_proto))
+        return True
+
+    def _save_dataset(self, dataset_proto, overwrite=False):
+        pass
+
     # get methods are the public interface.
     def get_vm(self, vm_id: str):
         # TODO should return as dict
@@ -428,13 +454,10 @@ class FileDatabase(object):
         """
         return self.vms
 
-    def get_vm_by_id(self, user_id):
-        return self.vms.get(user_id, None)
+    def get_vm_by_id(self, vm_id):
+        return self.vms.get(vm_id, None)
 
     # add methods to add new data to the model
-
-    def add_dataset(self):
-        pass
 
     def create_task(self, task_id, task_name, task_description, master_vm_id, organizer, website):
         """ Add a new task to the database.
@@ -446,16 +469,51 @@ class FileDatabase(object):
         new_task.virtualMachineId = master_vm_id
         new_task.hostId = organizer
         new_task.web = website
-        self.tasks[task_id] = new_task
-        # open(f'/home/tira/{task_id}.prototext', 'wb').write(new_task.SerializeToString())
+        return self._save_task(new_task)
 
-        new_task_file_path = self.tasks_dir_path / f'{task_id}.prototext'
-        if new_task_file_path.exists():
-            return False
-        open(new_task_file_path, 'w').write(str(new_task))
-        return True
+    def add_dataset(self, vm_id, task_id, dataset_id, dataset_type, dataset_name):
+        """
+        - task_dir_path/task_id.prototext:
+        taskId: "pan21-authorship-verification"
+        taskName: "Authorship Verification 2021"
+        taskDescription: "This is a realistic demo task."
+        trainingDataset: "pan-21-authorship-verifivation-training"  # make sure these are unique
+        testDataset: "pan-21-authorship-verifivation-test"
+        virtualMachineId: "pan20-master"
+        hostId: "dummy-host-id"
+        web: "http://pan.webis.de"
 
-    def add_evaluator(self):
+        - dataset_dir_path/task_id/dataset_id.prototext
+        datasetId: "pan-21-authorship-verifivation-test"
+        displayName: "PAN 21 Authorship Verifivation"
+        evaluatorId: "pan-21-authorship-verifivation-evaluator"
+        isConfidential: true
+        isDeprecated: false
+
+        - data_path/dataset/test-dataset[-truth]/task_id/dataset-id-type
+        """
+        pass  # returns new paths as strings in a list
+
+    def add_evaluator(self, task_id, dataset_id, dataset_type, command, working_directory, measures):
+        """
+        - dataset_dir_path/task_id/dataset_id.prototext
+        datasetId: "pan-21-authorship-verifivation-test"
+        displayName: "PAN 21 Authorship Verifivation"
+        evaluatorId: "pan-21-authorship-verifivation-evaluator"
+        isConfidential: true
+        isDeprecated: false
+
+        - vm_dir_path/vm_id.prototext:
+        evaluators {
+          evaluatorId: "pan-21-authorship-verifivation-evaluator"
+          command: "python3 ap-demo.py $inputDataset $outputDir"
+          workingDirectory: ""
+          measures: "F1,F2"
+          measureKeys: "f1"
+          measureKeys: "f2"
+        }
+        """
+        evaluator_id = f"{dataset_id}-evaluator"
         pass
 
     def add_ongoing_execution(self, hostname, vm_id, ova):
@@ -466,9 +524,6 @@ class FileDatabase(object):
     def complete_execution(self):
         #TODO implement
         pass
-
-    def get_vm_by_id(self, vm_id: str):
-        return self.vms.get(vm_id)
 
     def _parse_command_state(self):
         """
