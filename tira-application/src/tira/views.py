@@ -464,16 +464,16 @@ def admin_add_dataset(request):
             try:
                 new_paths = []
                 if form.cleaned_data["create_training"]:
-                    new_paths += model.add_dataset(master_vm_id, task_id, dataset_id_prefix, "training", dataset_name)
-                    model.add_evaluator(task_id, dataset_id_prefix, "training", command, working_directory, measures)
+                    new_paths += model.add_dataset(task_id, dataset_id_prefix, "training", dataset_name)
+                    model.add_evaluator(master_vm_id, task_id, dataset_id_prefix, "training", command, working_directory, measures)
 
                 if form.cleaned_data["create_test"]:
-                    new_paths += model.add_dataset(master_vm_id, task_id, dataset_id_prefix, "test", dataset_name)
-                    model.add_evaluator(task_id, dataset_id_prefix, "test", command, working_directory, measures)
+                    new_paths += model.add_dataset(task_id, dataset_id_prefix, "test", dataset_name)
+                    model.add_evaluator(master_vm_id, task_id, dataset_id_prefix, "test", command, working_directory, measures)
 
                 if form.cleaned_data["create_dev"]:
-                    new_paths += model.add_dataset(master_vm_id, task_id, dataset_id_prefix, "dev", dataset_name)
-                    model.add_evaluator(task_id, dataset_id_prefix, "dev", command, working_directory, measures)
+                    new_paths += model.add_dataset(task_id, dataset_id_prefix, "dev", dataset_name)
+                    model.add_evaluator(master_vm_id, task_id, dataset_id_prefix, "dev", command, working_directory, measures)
 
                 context["status"] = "success"
                 context["created"] = {"dataset_id": dataset_id_prefix, "new_paths": new_paths}
