@@ -25,6 +25,7 @@ class FileDatabase(object):
     ova_dir = tira_root / Path("data/virtual-machine-templates/")
     datasets_dir_path = tira_root / Path("model/datasets")
     softwares_dir_path = tira_root / Path("model/softwares")
+    data_path = tira_root / Path("data/datasets")
     RUNS_DIR_PATH = tira_root / Path("data/runs")
 
     def __init__(self):
@@ -267,6 +268,8 @@ class FileDatabase(object):
     # ---------------------------------------------------------------------
 
     def _save_task(self, task_proto, overwrite=False):
+        """ makes persistant changes to task: store in memory and to file.
+         Returns false if task exists and overwrite is false. """
         # open(f'/home/tira/{task_id}.prototext', 'wb').write(new_task.SerializeToString())
         new_task_file_path = self.tasks_dir_path / f'{task_proto.taskId}.prototext'
         if not overwrite and new_task_file_path.exists():
@@ -284,8 +287,13 @@ class FileDatabase(object):
         open(new_vm_file_path, 'w').write(str(vm_proto))
         return True
 
-    def _save_dataset(self, dataset_proto, overwrite=False):
-        pass
+    def _save_dataset(self, dataset_proto, task_id, overwrite=False):
+        """ dataset_dir_path/task_id/dataset_id.prototext """
+        new_dataset_file_path = self.datasets_dir_path / task_id / f'{dataset_proto.datasetId}.prototext'
+        if not overwrite and new_dataset_file_path.exists():
+            return False
+        self.datasets[dataset_proto.datasetId] = dataset_proto
+        return True
 
     # get methods are the public interface.
     def get_vm(self, vm_id: str):
@@ -449,9 +457,7 @@ class FileDatabase(object):
                 for software in self.software[f"{task_id}${vm_id}"]]
 
     def get_users_vms(self):
-        """
-        Return the users list.
-        """
+        """ Return the users list. """
         return self.vms
 
     def get_vm_by_id(self, vm_id):
@@ -471,8 +477,8 @@ class FileDatabase(object):
         new_task.web = website
         return self._save_task(new_task)
 
-    def add_dataset(self, vm_id, task_id, dataset_id, dataset_type, dataset_name):
-        """
+    def add_dataset(self, task_id, dataset_id, dataset_type, dataset_name):
+        """ TODO documentation
         - task_dir_path/task_id.prototext:
         taskId: "pan21-authorship-verification"
         taskName: "Authorship Verification 2021"
@@ -492,10 +498,41 @@ class FileDatabase(object):
 
         - data_path/dataset/test-dataset[-truth]/task_id/dataset-id-type
         """
-        pass  # returns new paths as strings in a list
 
-    def add_evaluator(self, task_id, dataset_id, dataset_type, command, working_directory, measures):
-        """
+        # update task_dir_path/task_id.prototext:
+        dataset_id = f"{dataset_id}-test"
+        for_task = self.tasks.get(task_id)
+        if dataset_type == 'test':
+            for_task.testDataset.append(dataset_id)
+        elif dataset_type in {'training', 'dev'}:
+            for_task.trainingDataset.append(dataset_id)
+        else:
+            raise KeyError("dataset type must be test, training, or dev")
+        task_ok = self._save_task(for_task, overwrite=True)
+
+        # create new dataset_dir_path/task_id/dataset_id.prototext
+        ds = modelpb.Dataset()
+        ds.datasetId = dataset_id
+        ds.displayName = dataset_name
+        ds.isDeprecated = False
+        ds.isConfidential = True if dataset_type == 'test' else False
+        dataset_ok = self._save_dataset(ds, task_id)
+
+        # create dirs data_path/dataset/test-dataset[-truth]/task_id/dataset-id-type
+        new_dirs = []
+        if dataset_type == 'test':
+            new_dirs.append((self.data_path / f'test-datasets' / task_id / dataset_id))
+            new_dirs.append((self.data_path / f'test-datasets-truth' / task_id / dataset_id))
+        else:
+            new_dirs.append((self.data_path / f'training-datasets' / task_id / dataset_id))
+            new_dirs.append((self.data_path / f'training-datasets-truth' / task_id / dataset_id))
+        for d in new_dirs:
+            d.mkdir(parents=True, exist_ok=True)
+
+        return [str(nd) for nd in new_dirs]
+
+    def add_evaluator(self, vm_id, task_id, dataset_id, dataset_type, command, working_directory, measures):
+        """ TODO documentation
         - dataset_dir_path/task_id/dataset_id.prototext
         datasetId: "pan-21-authorship-verifivation-test"
         displayName: "PAN 21 Authorship Verifivation"
@@ -514,7 +551,25 @@ class FileDatabase(object):
         }
         """
         evaluator_id = f"{dataset_id}-evaluator"
-        pass
+        dataset_id = f"{dataset_id}-{dataset_type}"
+
+        # update dataset_id.prototext
+        dataset = self.datasets.get(dataset_id)
+        dataset.evaluatorId = evaluator_id
+        dataset_ok = self._save_dataset(dataset, task_id, overwrite=True)
+
+        # add evaluators to vm
+        vm = self.vms.get(vm_id)
+        ev = modelpb.Evaluator()
+        ev.evaluatorId = evaluator_id
+        ev.command = command
+        ev.workingDirectory = working_directory
+        ev.measures = ",".join([x[0] for x in measures])
+        ev.measureKeys.append([x[1] for x in measures])
+        vm.evaluators.append(ev)
+        vm_ok = self._save_vm(vm, overwrite=True)
+
+        return vm_ok and dataset_ok
 
     def add_ongoing_execution(self, hostname, vm_id, ova):
         """ add this create to the stack, so we know it's in progress. """
