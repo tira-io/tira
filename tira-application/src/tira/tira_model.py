@@ -584,7 +584,10 @@ class FileDatabase(object):
         """
         Parse the command state file.
         """
-        self.commandState = Parse(open(self.command_states_path, "r").read(), model_host.CommandState())
+        try:
+            self.commandState = Parse(open(self.command_states_path, "r").read(), model_host.CommandState())
+        except FileNotFoundError as e:
+            logger.warning("Could not 'parse_command_state'", e)
 
     def get_commands_bulk(self, bulk_id):
         """

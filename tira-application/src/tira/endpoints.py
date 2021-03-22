@@ -1,11 +1,5 @@
-import asyncio
-import grpc
-from grpc import aio
-from google.protobuf.empty_pb2 import Empty
 from google.protobuf.json_format import MessageToDict
-from django.shortcuts import render, redirect
 from django.http import HttpResponse, Http404, JsonResponse
-from itertools import groupby
 from django.conf import settings
 import uuid
 from http import HTTPStatus
@@ -13,12 +7,6 @@ from http import HTTPStatus
 from .grpc_client import GrpcClient
 from .tira_model import FileDatabase
 from .authentication import Authentication
-from .forms import LoginForm
-from django import forms
-from django.core.exceptions import PermissionDenied
-
-from .proto import tira_host_pb2
-from .proto import tira_host_pb2_grpc
 
 
 model = FileDatabase()

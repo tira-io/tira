@@ -1,6 +1,6 @@
 import asyncio
 import grpc
-from grpc import aio
+# from grpc import aio
 from google.protobuf.empty_pb2 import Empty
 from google.protobuf.json_format import MessageToDict
 from django.shortcuts import render, redirect
