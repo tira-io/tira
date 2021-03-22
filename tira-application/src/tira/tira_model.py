@@ -26,6 +26,8 @@ class FileDatabase(object):
     datasets_dir_path = tira_root / Path("model/datasets")
     softwares_dir_path = tira_root / Path("model/softwares")
     data_path = tira_root / Path("data/datasets")
+    commands_dir_path = tira_root / Path("state/commands/")
+    command_logs_path = tira_root / Path(f"log/virtual-machine-hosts/{socket.gethostname()}/")
     RUNS_DIR_PATH = tira_root / Path("data/runs")
 
     def __init__(self):
@@ -40,6 +42,8 @@ class FileDatabase(object):
         self.software_by_task = None  # task_id: [modelpb.Software]
         self.software_by_vm = None  # vm_id: [modelpb.Software]
         self.software_count_by_dataset = None  # dataset_id: int()
+        self.commandState = None
+        self.command_logs_path.mkdir(exist_ok=True, parents=True)
 
         self.build_model()
 
@@ -49,17 +53,11 @@ class FileDatabase(object):
         self._parse_task_list()
         self._parse_dataset_list()
         self._parse_software_list()
+        self._parse_command_state()
 
         self._build_task_relations()
         self._build_software_relations()
         self._build_software_counts()
-
-        self.hostname = socket.gethostname()
-        self.command_states_path = self.tira_root / Path("state/commands/" + self.hostname + ".prototext")
-        self.command_logs_path = self.tira_root / Path("log/virtual-machine-hosts/" + self.hostname + "/")
-        self.command_logs_path.mkdir(exist_ok=True)
-        self.commandState = None
-        self._parse_command_state()
 
     # _parse methods parse files once on startup
     def _parse_organizer_list(self):
@@ -115,6 +113,17 @@ class FileDatabase(object):
                 software[f"{task_dir.stem}${user_dir.stem}"] = software_list
 
         self.software = software
+
+    def _parse_command_state(self):
+        """ Parse the command state file. """
+        command_states_path = self.commands_dir_path / f"{socket.gethostname()}.prototext"
+        if command_states_path.exists():
+            self.commandState = Parse(open(command_states_path, "r").read(), model_host.CommandState())
+        else:
+            self.commandState = model_host.CommandState()
+            self.commands_dir_path.mkdir(exist_ok=True, parents=True)
+            open(command_states_path, 'w').write(str(self.commandState))
+
 
     # _build methods reconstruct the relations once per parse. This is a shortcut for frequent joins.
     def _build_task_relations(self):
@@ -579,15 +588,6 @@ class FileDatabase(object):
     def complete_execution(self):
         #TODO implement
         pass
-
-    def _parse_command_state(self):
-        """
-        Parse the command state file.
-        """
-        try:
-            self.commandState = Parse(open(self.command_states_path, "r").read(), model_host.CommandState())
-        except FileNotFoundError as e:
-            logger.warning("Could not 'parse_command_state'", e)
 
     def get_commands_bulk(self, bulk_id):
         """
