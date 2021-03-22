@@ -1,11 +1,5 @@
-import asyncio
-import grpc
-# from grpc import aio
-from google.protobuf.empty_pb2 import Empty
-from google.protobuf.json_format import MessageToDict
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, Http404, JsonResponse
-from itertools import groupby
 from django.conf import settings
 
 from .grpc_client import GrpcClient
@@ -16,9 +10,6 @@ from .forms import *
 from .execute import *
 from django import forms
 from django.core.exceptions import PermissionDenied
-from time import sleep
-
-from . import grpc_client
 
 model = FileDatabase()
 include_navigation = True if settings.DEPLOYMENT == "legacy" else False
@@ -434,7 +425,7 @@ def admin_add_dataset(request):
     context = {}
 
     if request.method == "POST":
-        form = CreateTaskForm(request.POST)
+        form = AddDatasetForm(request.POST)
         if form.is_valid():
             # TODO should be calculated from dataset_name
             dataset_id_prefix = form.cleaned_data["dataset_id_prefix"]
@@ -443,22 +434,22 @@ def admin_add_dataset(request):
             task_id = form.cleaned_data["task_id"]
             command = form.cleaned_data["command"]
             working_directory = form.cleaned_data["working_directory"]
-            measures = [line.split(',') for line in form.cleaned_data["measures"]]
+            measures = [line.split(',') for line in form.cleaned_data["measures"].split('\n')]
 
             # sanity checks
             if not check.vm_exists(master_vm_id):
                 context["status"] = "fail"
-                context["create_task_form_error"] = f"Master VM with ID {master_vm_id} does not exist"
+                context["add_dataset_form_error"] = f"Master VM with ID {master_vm_id} does not exist"
                 return JsonResponse(context)
 
             if not check.task_exists(task_id):
                 context["status"] = "fail"
-                context["create_task_form_error"] = f"Task with ID {task_id} does not exist"
+                context["add_dataset_form_error"] = f"Task with ID {task_id} does not exist"
                 return JsonResponse(context)
 
             if check.dataset_exists(dataset_id_prefix):
                 context["status"] = "fail"
-                context["create_task_form_error"] = f"Task with ID {dataset_id_prefix} already exist"
+                context["add_dataset_form_error"] = f"Task with ID {dataset_id_prefix} already exist"
                 return JsonResponse(context)
 
             try:
@@ -478,10 +469,10 @@ def admin_add_dataset(request):
                 context["status"] = "success"
                 context["created"] = {"dataset_id": dataset_id_prefix, "new_paths": new_paths}
 
-            except Exception as e:
+            except KeyError as e:
                 print(e)
                 context["status"] = "fail"
-                context["create_task_form_error"] = f"Could not create {dataset_id_prefix}. Contact Admin."
+                context["create_task_form_error"] = f"Could not create {dataset_id_prefix}: {e}"
                 return JsonResponse(context)
         else:
             context["status"] = "fail"

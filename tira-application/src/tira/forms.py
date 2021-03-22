@@ -67,11 +67,11 @@ class AddDatasetForm(forms.Form):
                                    widget=forms.TextInput(attrs={"class": "uk-input",
                                                                  "placeholder": "Titlecase Name of the Dataset."}))
     create_training = forms.BooleanField(label="training", required=False, initial=True,
-                                         widget=forms.CheckboxInput(attrs={"class": "uk-select"}))
+                                         widget=forms.CheckboxInput(attrs={"class": "uk-checkbox"}))
     create_test = forms.BooleanField(label="test", required=False, initial=True,
-                                     widget=forms.CheckboxInput(attrs={"class": "uk-select"}))
+                                     widget=forms.CheckboxInput(attrs={"class": "uk-checkbox"}))
     create_dev = forms.BooleanField(label="dev", required=False,
-                                    widget=forms.CheckboxInput(attrs={"class": "uk-select"}))
+                                    widget=forms.CheckboxInput(attrs={"class": "uk-checkbox"}))
 
     master_vm_id = forms.CharField(label="Master VM_ID", max_length=200, required=True,
                                    widget=forms.TextInput(attrs={"class": "uk-input",
