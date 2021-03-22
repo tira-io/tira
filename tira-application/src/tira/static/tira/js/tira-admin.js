@@ -31,6 +31,11 @@ function string_to_slug (str) {
     return str;
 }
 
+function add_slug() {
+
+}
+
+
 function submitCreateVmForm(){
     $('#create-vm-form-icon').html(' <div uk-spinner="ratio: 0.5"></div>')
     $.ajax({
@@ -57,8 +62,12 @@ function addTiraAdminHandlers() {
         e.preventDefault();
         submitCreateVmForm()
     })
-    $('#id_dataset_name').keypress(function() {
-        let name = this.val()
+    $('#id_dataset_name').keyup(function() {
+        let name = $('#id_dataset_name').val()
+        $('#id_dataset_id_prefix').val(string_to_slug(name))
+    })
+    $('#id_dataset_name').keydown(function() {
+        let name = $('#id_dataset_name').val()
         $('#id_dataset_id_prefix').val(string_to_slug(name))
     })
 }

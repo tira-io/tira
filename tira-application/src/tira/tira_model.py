@@ -124,7 +124,6 @@ class FileDatabase(object):
             self.commands_dir_path.mkdir(exist_ok=True, parents=True)
             open(command_states_path, 'w').write(str(self.commandState))
 
-
     # _build methods reconstruct the relations once per parse. This is a shortcut for frequent joins.
     def _build_task_relations(self):
         """ parse the relation dicts self.default_tasks and self.task_organizers from self.tasks
@@ -202,6 +201,10 @@ class FileDatabase(object):
             reviews[run_id_dir.stem] = self._load_review(dataset_id, vm_id, run_id_dir.stem)
 
         return reviews
+
+    def _load_vm(self, vm_id):
+        """ load a vm object from vm_dir_path """
+        return Parse(open(self.vm_dir_path / f"{vm_id}.prototext").read(), modelpb.VirtualMachine())
 
     def _get_review(self, review):
         return {"reviewer": review.reviewerId, "noErrors": review.noErrors, "missingOutput": review.missingOutput,
@@ -292,7 +295,7 @@ class FileDatabase(object):
         new_vm_file_path = self.vm_dir_path / f'{vm_proto.virtualMachineId}.prototext'
         if not overwrite and new_vm_file_path.exists():
             return False
-        self.vms[vm_proto.virtualMachineId] = vm_proto
+        # self.vms[vm_proto.virtualMachineId] = vm_proto  # TODO see issue:30
         open(new_vm_file_path, 'w').write(str(vm_proto))
         return True
 
@@ -301,6 +304,8 @@ class FileDatabase(object):
         new_dataset_file_path = self.datasets_dir_path / task_id / f'{dataset_proto.datasetId}.prototext'
         if not overwrite and new_dataset_file_path.exists():
             return False
+        (self.datasets_dir_path / task_id).mkdir(exist_ok=True, parents=True)
+        open(new_dataset_file_path, 'w').write(str(dataset_proto))
         self.datasets[dataset_proto.datasetId] = dataset_proto
         return True
 
@@ -509,13 +514,16 @@ class FileDatabase(object):
         """
 
         # update task_dir_path/task_id.prototext:
-        dataset_id = f"{dataset_id}-test"
-        for_task = self.tasks.get(task_id)
-        if dataset_type == 'test':
+        dataset_id = f"{dataset_id}-{dataset_type}"
+        for_task = self.tasks.get(task_id, None)
+        if not for_task:
+            raise KeyError(f"No task with id {task_id}")
+
+        if dataset_type == 'test' and dataset_id not in for_task.testDataset:
             for_task.testDataset.append(dataset_id)
-        elif dataset_type in {'training', 'dev'}:
+        elif dataset_type in {'training', 'dev'} and dataset_id not in for_task.trainingDataset:
             for_task.trainingDataset.append(dataset_id)
-        else:
+        elif dataset_type not in {'training', 'dev', 'test'}:
             raise KeyError("dataset type must be test, training, or dev")
         task_ok = self._save_task(for_task, overwrite=True)
 
@@ -568,13 +576,13 @@ class FileDatabase(object):
         dataset_ok = self._save_dataset(dataset, task_id, overwrite=True)
 
         # add evaluators to vm
-        vm = self.vms.get(vm_id)
+        vm = self._load_vm(vm_id)
         ev = modelpb.Evaluator()
         ev.evaluatorId = evaluator_id
         ev.command = command
         ev.workingDirectory = working_directory
-        ev.measures = ",".join([x[0] for x in measures])
-        ev.measureKeys.append([x[1] for x in measures])
+        ev.measures = ",".join([x[0].strip('\r') for x in measures])
+        ev.measureKeys.extend([x[1].strip('\r') for x in measures])
         vm.evaluators.append(ev)
         vm_ok = self._save_vm(vm, overwrite=True)
 
