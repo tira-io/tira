@@ -62,8 +62,8 @@ k8s-deploy-tira-application: k8s-undeploy-tira-application
 	kubectl -n webisservices apply -f tira-application.yml
 
 k8s-undeploy-tira-application:
-	kubectl delete -f tira-application.yml || echo "already undeployed?"
-	kubectl delete configmap tira-web2-config || echo "no configmap?"
+	kubectl -n webisservices delete -f tira-application.yml || echo "already undeployed?"
+	kubectl -n webisservices delete configmap tira-web2-config || echo "no configmap?"
 
 docker-publish-tira-application: docker-build-tira-application
 	docker login &&\
