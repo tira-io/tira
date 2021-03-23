@@ -2,10 +2,12 @@ FROM nginx:1.18-alpine
 # 1. setup user and system software
 
 RUN apk update &&\
-    apk add --no-cache --virtual .build-deps gcc linux-headers make musl-dev g++ python3-dev &&\
+    apk add --no-cache --virtual .build-deps gcc linux-headers make musl-dev python3-dev &&\
+    apk add --no-cache g++ &&\
     apk add --update --no-cache python3 zip py3-virtualenv
-
-RUN python3 -m pip install --no-cache-dir grpcio protobuf uwsgi Django pyyaml
+# NOTE: We'll install it here, so rebuilding the image when testing application code is faster.
+# If we install requirements after copying the code, the install layer has to be redone every time.
+RUN python3 -m pip install --no-cache-dir grpcio==1.36.1 protobuf uwsgi Django pyyaml grpcio-tools==1.36.1
 
 RUN addgroup --gid 1010 tira && \
 	adduser --disabled-password --uid 1010 --ingroup tira tira && \
@@ -36,7 +38,7 @@ RUN chown -R tira:tira /usr/local && \
 
 # 4. make the sources
 WORKDIR /tira/tira-application
-RUN python3 -m pip install --no-cache-dir -r requirements.txt
+#RUN python3 -m pip install --no-cache-dir -r requirements.txt
 RUN python3 src/manage.py migrate && \
 	python3 src/manage.py makemigrations&& \
 	python3 src/manage.py collectstatic
