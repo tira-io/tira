@@ -3,7 +3,7 @@ function reloadData() {
     $('#reload-website-data-icon').html(' <div uk-spinner="ratio: 0.5"></div>')
     $.ajax({
         type:"GET",
-        url: "/tira/admin/reload-data",
+        url: "/tira-admin/reload-data",
         data:{},
         success: function( data )
         {
@@ -40,7 +40,7 @@ function submitCreateVmForm(){
     $('#create-vm-form-icon').html(' <div uk-spinner="ratio: 0.5"></div>')
     $.ajax({
         type:"POST",
-        url: "/tira/admin/create-vm",
+        url: "/tira-admin/create-vm",
         data:{
             bulk_create:$('#id_bulk_create').val(),
             csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val(),

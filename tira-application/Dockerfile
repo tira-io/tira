@@ -32,6 +32,7 @@ RUN chown -R tira:tira /usr/local && \
 	chown tira:tira /var/log/tira_debug.txt &&\
 	chown tira:tira  /tira/tira-application/src/debug.log &&\
 	mkdir -p /home/tira/.tira &&\
+	mkdir -p /mnt/ceph/tira/log/tira-application &&\
 	mkdir /home/tira/.ssh &&\
 	chown tira:tira -R /home/tira &&\
 	chown tira:tira -R /tira

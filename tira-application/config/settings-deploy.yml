@@ -6,6 +6,7 @@ allowed_hosts:
 tira_root: /mnt/ceph/tira
 # deployment = {disraptor, legacy}
 deployment: disraptor
+logging_dir: /mnt/ceph/tira/log/tira-application
 # in the legacy deployment, a path to the users file is needed
 # legacy_users_file: /mnt/ceph/tira/model/users/users.prototext
 grpc_port: 50051

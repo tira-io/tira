@@ -27,12 +27,12 @@ urlpatterns = [
     path('command_status/<str:command_id>', endpoints.command_status, name="command_status"),
     path('bulk_command_status/<str:bulk_id>', endpoints.get_bulk_command_status, name="get_bulk_command_status"),
 
-    path('tira/admin', views.admin, name='tira-admin'),
-    path('tira/admin/reload-data', views.admin_reload_data, name='tira-admin-reload-data'),
-    path('tira/admin/create-vm', views.admin_create_vm, name='tira-admin-create-vm'),
-    path('tira/admin/archive-vm', views.admin_archive_vm, name='tira-admin-archive-vm'),
-    path('tira/admin/modify-vm', views.admin_modify_vm, name='tira-admin-modify-vm'),
-    path('tira/admin/create-task', views.admin_create_task, name='tira-admin-create-task'),
-    path('tira/admin/add-dataset', views.admin_add_dataset, name='tira-admin-add-dataset'),
+    path('tira-admin', views.admin, name='tira-admin'),
+    path('tira-admin/reload-data', views.admin_reload_data, name='tira-admin-reload-data'),
+    path('tira-admin/create-vm', views.admin_create_vm, name='tira-admin-create-vm'),
+    path('tira-admin/archive-vm', views.admin_archive_vm, name='tira-admin-archive-vm'),
+    path('tira-admin/modify-vm', views.admin_modify_vm, name='tira-admin-modify-vm'),
+    path('tira-admin/create-task', views.admin_create_task, name='tira-admin-create-task'),
+    path('tira-admin/add-dataset', views.admin_add_dataset, name='tira-admin-add-dataset'),
 ]
 app_name = 'tira'
