@@ -31,7 +31,7 @@ class GrpcClient:
 
     def vm_create(self, ova_file, user_name, bulk_id=None):
         response = self.stub.vm_create(
-            tira_host_pb2.RequestVmCommands(ovaFile=ova_file, userName=user_name, bulkId=bulk_id))
+            tira_host_pb2.RequestVmCreate(ovaFile=ova_file, userName=user_name, bulkCommandId=bulk_id))
         return response.commandId
 
     def vm_start(self, vm_name):

@@ -26,22 +26,17 @@ include_navigation = True if settings.DEPLOYMENT == "legacy" else False
 auth = Authentication(authentication_source=settings.DEPLOYMENT,
                       users_file=settings.LEGACY_USER_FILE)
 
-def bulk_vm_create(request, vm_list):
-    """
-    1. generate bulkCommandId
-    1. iterate over the list of vms to be created
-    2. for each vm execute grpc_client.vm-create
-    3. return response bulkCommandId
-    """
 
+def bulk_vm_create(request, vm_list):
     bulk_id = uuid.uuid4().hex
     for host, vm_id, ova_id in vm_list:
         vm_create(request, host, vm_id, ova_id, bulk_id=bulk_id)
 
     return JsonResponse({'status': 'Accepted', 'message': {'bulkCommandId': bulk_id}}, status=HTTPStatus.ACCEPTED)
+    # return bulk_id
 
 
-def get_bulk_command_status(bulk_id):
+def get_bulk_command_status(request, bulk_id):
     commands = model.get_commands_bulk(bulk_id)
     return JsonResponse({'status': 'OK', 'message': {'commands': commands}}, status=HTTPStatus.OK)
 

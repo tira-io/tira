@@ -19,6 +19,7 @@ from django.core.exceptions import PermissionDenied
 from time import sleep
 
 from . import grpc_client
+from . import endpoints
 
 model = FileDatabase()
 include_navigation = True if settings.DEPLOYMENT == "legacy" else False
@@ -348,12 +349,14 @@ def admin_create_vm(request):
             except IndexError:
                 context["create_vm_form_error"] = "Error Parsing input. Are all lines complete?"
                 return JsonResponse(context)
+
             # TODO dummy code talk to Nikolay!
             # TODO check semantics downstream (vm exists, host/ova does not exist)
-            for create_command in parse_create_string(form.cleaned_data["bulk_create"]):
-                if create_vm(*create_command):
-                    model.add_ongoing_execution(*create_command)
-
+            # for create_command in parse_create_string(form.cleaned_data["bulk_create"]):
+            #     if create_vm(*create_command):
+            #         model.add_ongoing_execution(*create_command)
+            return endpoints.bulk_vm_create(request, bulk_create)
+            # context['bulkCommandId'] = bulk_id
         else:
             context["create_vm_form_error"] = "Form Invalid (check formatting)"
             return JsonResponse(context)
@@ -361,6 +364,10 @@ def admin_create_vm(request):
         HttpResponse("Permission Denied")
 
     return JsonResponse(context)
+
+
+def admin_get_command_queue():
+    return endpoints.get_bulk_command_status()
 
 
 def admin_archive_vm():

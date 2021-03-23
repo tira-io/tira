@@ -75,6 +75,7 @@ message RequestVmCommands {
 message RequestVmCreate {
   string ovaFile = 1;
   string userName = 2;
+  string bulkCommandId = 3;
 }
 
 message RequestRunExecuteEval {
@@ -110,9 +111,11 @@ message ResponseVmInfo {
   bool rdpPortStatus = 9;
 }
 
-message RequestCommandStatus {
-  string commandId = 1;
-}
+// TODO: add response message for vm_create command parsing vm access details
+//message ResponseVmCreate {
+//  string userName = 1;
+//  string userPwd = 2;
+//}
 
 message CommandState {
   string hostname = 1;
@@ -130,8 +133,8 @@ message CommandState {
     Status status = 5;
     string logFile = 6;
     int32 returnCode = 7;
+    string bulkCommandId = 8;
   }
 
   repeated Command commands = 2;
-  string bulkCommandId = 3;
 }

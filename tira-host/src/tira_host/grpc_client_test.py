@@ -74,8 +74,9 @@ async def vm_create():
 
 
 async def main():
-    await asyncio.gather(vm_start())
-    await asyncio.gather(vm_stop(), vm_info())
+    # await asyncio.gather(vm_start())
+    await asyncio.gather(vm_stop())
+    # await asyncio.gather(vm_stop(), vm_info())
     # await asyncio.gather(vm_create(), get_command_status())
     # await asyncio.gather(vm_info())
 

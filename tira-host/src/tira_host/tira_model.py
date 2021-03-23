@@ -7,6 +7,7 @@ import logging
 from proto import TiraClientWebMessages_pb2 as modelpb
 from proto import tira_host_pb2 as model_host
 import time
+import socket
 
 logger = logging.getLogger(__name__)
 # TODO: get TIRA_ROOT from settings
@@ -17,9 +18,9 @@ class FileDatabase(object):
     tira_root = TIRA_ROOT
     users_file_path = tira_root / Path("model/users/users.prototext")
 
-    def __init__(self, hostname):
+    def __init__(self):
         logger.info("Start loading dataset")
-        self.hostname = hostname
+        self.hostname = socket.gethostname()
         self.command_states_path = self.tira_root / Path("state/commands/" + self.hostname + ".prototext")
         self.command_logs_path = self.tira_root / Path("log/virtual-machine-hosts/" + self.hostname + "/")
         self.command_logs_path.mkdir(exist_ok=True)
@@ -31,7 +32,6 @@ class FileDatabase(object):
 
         self._parse_vm_list()
         self._parse_command_state()
-
 
     def _parse_command_state(self):
         """
@@ -53,7 +53,7 @@ class FileDatabase(object):
                     "." + datetime.strftime(datetime.now(), "%Y-%m-%dT%H:%M:%SZ") + ".prototext"))
         self.command_states_path.touch()
 
-    def create_command(self, command_id, command_string):
+    def create_command(self, request, command_id, command_string):
         """
         Add new Command to the state file and create command log file.
         :return: Command object
@@ -63,6 +63,8 @@ class FileDatabase(object):
         new_command.commandString = command_string
         new_command.startTime = datetime.strftime(datetime.utcnow(), "%Y-%m-%dT%H:%M:%SZ")
         new_command.status = model_host.Response.Status.RUNNING
+        if request.bulkCommandId:
+            new_command.bulkCommandId = request.bulkCommandId
 
         # command_name = new_command.startTime + "_" + command_string.strip()[0]
         log_file_path = self.command_logs_path / Path(command_id + ".log")
@@ -103,7 +105,8 @@ class FileDatabase(object):
         :param time_ago:
         """
         for command in self.commandState.commands:
-            if time.mktime(datetime.strptime(command.endTime, "%Y-%m-%dT%H:%M:%SZ").timetuple()) < time_ago:
+            if command.endTime and time.mktime(
+                    datetime.strptime(command.endTime, "%Y-%m-%dT%H:%M:%SZ").timetuple()) < time_ago:
                 self.commandState.commands.remove(command)
         self._update_command_state_file()
 
