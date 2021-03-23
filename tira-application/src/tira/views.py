@@ -1,24 +1,14 @@
-import asyncio
-import grpc
-from grpc import aio
-from google.protobuf.empty_pb2 import Empty
-from google.protobuf.json_format import MessageToDict
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, Http404, JsonResponse
-from itertools import groupby
 from django.conf import settings
+import logging
 
 from .grpc_client import GrpcClient
 from .tira_model import FileDatabase
 from .authentication import Authentication
 from .checks import Check
 from .forms import *
-from .execute import *
-from django import forms
 from django.core.exceptions import PermissionDenied
-from time import sleep
-
-from . import grpc_client
 from . import endpoints
 
 model = FileDatabase()
@@ -27,10 +17,14 @@ auth = Authentication(authentication_source=settings.DEPLOYMENT,
                       users_file=settings.LEGACY_USER_FILE)
 check = Check(model, auth)
 
+logger = logging.getLogger("tira")
+logger.info("Views: Logger active")
+
 
 def index(request):
     if not check.has_access(request, "any"):
         raise PermissionDenied
+
     uid = auth.get_user_id(request)
     context = {
         "include_navigation": include_navigation,
