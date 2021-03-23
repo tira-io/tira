@@ -1,6 +1,6 @@
-grpcio
+grpcio==1.36.1
 protobuf
 uwsgi
 Django
 pyyaml
-grpcio-tools
+grpcio-tools==1.36.1
