@@ -24,7 +24,8 @@ urlpatterns = [
     path('user/<str:user_id>/vm/<str:vm_id>/vm_stop', endpoints.vm_stop, name="vm_stop"),
     path('user/<str:user_id>/vm/<str:vm_id>/run_execute/<str:software_id>', endpoints.run_execute, name="run_execute"),
     path('user/<str:user_id>/vm/<str:vm_id>/run_eval/<str:software_id>', endpoints.run_eval, name="run_eval"),
-    path('user/<str:user_id>/vm/<str:vm_id>/command_status/<str:command_id>', endpoints.command_status, name="command_status"),
+    path('command_status/<str:command_id>', endpoints.command_status, name="command_status"),
+    path('bulk_command_status/<str:bulk_id>', endpoints.get_bulk_command_status, name="get_bulk_command_status"),
 
     path('tira/admin', views.admin, name='tira-admin'),
     path('tira/admin/reload-data', views.admin_reload_data, name='tira-admin-reload-data'),

@@ -95,11 +95,6 @@ class TiraHostServiceStub(object):
                 request_serializer=tira__host__pb2.RequestRunExecuteEval.SerializeToString,
                 response_deserializer=tira__host__pb2.Response.FromString,
                 )
-        self.get_command_status = channel.unary_unary(
-                '/tira.generated.TiraHostService/get_command_status',
-                request_serializer=tira__host__pb2.RequestCommandStatus.SerializeToString,
-                response_deserializer=tira__host__pb2.Response.FromString,
-                )
 
 
 class TiraHostServiceServicer(object):
@@ -200,12 +195,6 @@ class TiraHostServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def get_command_status(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
 
 def add_TiraHostServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -282,11 +271,6 @@ def add_TiraHostServiceServicer_to_server(servicer, server):
             'run_eval': grpc.unary_unary_rpc_method_handler(
                     servicer.run_eval,
                     request_deserializer=tira__host__pb2.RequestRunExecuteEval.FromString,
-                    response_serializer=tira__host__pb2.Response.SerializeToString,
-            ),
-            'get_command_status': grpc.unary_unary_rpc_method_handler(
-                    servicer.get_command_status,
-                    request_deserializer=tira__host__pb2.RequestCommandStatus.FromString,
                     response_serializer=tira__host__pb2.Response.SerializeToString,
             ),
     }
@@ -555,23 +539,6 @@ class TiraHostService(object):
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/tira.generated.TiraHostService/run_eval',
             tira__host__pb2.RequestRunExecuteEval.SerializeToString,
-            tira__host__pb2.Response.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-    @staticmethod
-    def get_command_status(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/tira.generated.TiraHostService/get_command_status',
-            tira__host__pb2.RequestCommandStatus.SerializeToString,
             tira__host__pb2.Response.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
