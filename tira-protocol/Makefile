@@ -44,6 +44,7 @@ build-python:
 	protoc -I=$(SRC_DIR) --python_out=$(BUILD_PATH)/python $(SRC_DIR)/tira_messages.proto
 	protoc -I=$(SRC_DIR) --python_out=$(BUILD_PATH)/python $(SRC_DIR)/TiraClientWebMessages.proto
 	${PYTHON} -m grpc_tools.protoc -I=$(SRC_DIR) --grpc_python_out=$(BUILD_PATH)/python tira_to_web.proto
+	${PYTHON} -m grpc_tools.protoc -I=$(SRC_DIR) --python_out=$(BUILD_PATH)/python --grpc_python_out=$(BUILD_PATH)/python tira_host.proto
 	touch $(BUILD_PATH)/python/__init__.py
 
 build-java:

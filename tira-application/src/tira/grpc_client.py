@@ -6,7 +6,6 @@
 
 from django.conf import settings
 import grpc
-from grpc import aio
 from google.protobuf.empty_pb2 import Empty
 from django.http import HttpResponse, Http404, JsonResponse
 import socket
