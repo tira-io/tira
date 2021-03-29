@@ -54,6 +54,7 @@ Commands:
     vm-info           Display VM information
     vm-list           List all VMs
     vm-metrics        Get runtime metrics of a given VM
+    vm-modify         Upgrade Memory and CPU count of a VM.
     vm-restore        Recreate a VM from a snapshot
     vm-runtime-output Lists the files of the temporary output directory during run execution.
     vm-sandbox        Put VM into sandbox mode
