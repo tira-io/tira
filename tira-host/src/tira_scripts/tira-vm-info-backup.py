@@ -123,10 +123,10 @@ def main(username, backup_folder, backup, verbose):
     if verbose:
         console.log(user_vm_prototext)
     user_runs = save_user_runs(username, backup_folder, console)
-    if not verbose:
+    if verbose:
         console.log(user_runs)
     softwares_prototext = save_user_softwares_prototext(username, backup_folder, console)
-    if not verbose:
+    if verbose:
         console.log(softwares_prototext)
     softwares_submissions = save_user_softwares_submissions(username, backup_folder, console)
     if verbose:
