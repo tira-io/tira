@@ -69,7 +69,7 @@ def save_user_runs(username, backup_folder, console):
         run_directories = glob.glob(f'{RUNS_PATH}/*/{username}')
         tasks = [d[-2] for d in [d.split('/') for d in run_directories]]
         if len(run_directories) > 0:
-            return {f'{backup_folder}/{username}/runs/{t}':d for d,t in zip(run_directories, tasks)}
+            return {f'{backup_folder}/{username}/data/runs/{t}':d for d,t in zip(run_directories, tasks)}
         else:
             console.log("[bold red]No runs to save")
     except:
@@ -117,19 +117,19 @@ def main(username, backup_folder, backup, verbose):
         console.log(f'[bold red]Please make sure {backup_folder} is mounted')
         sys.exit(0)
     user_credentials = save_user_credentials(username, backup_folder, console)
-    if not backup or verbose:
+    if verbose:
         console.log(user_credentials)
     user_vm_prototext = save_virtual_machine_prototext(username, backup_folder, console)
-    if not backup or verbose:
+    if verbose:
         console.log(user_vm_prototext)
     user_runs = save_user_runs(username, backup_folder, console)
-    if not backup or verbose:
+    if not verbose:
         console.log(user_runs)
     softwares_prototext = save_user_softwares_prototext(username, backup_folder, console)
-    if not backup or verbose:
+    if not verbose:
         console.log(softwares_prototext)
     softwares_submissions = save_user_softwares_submissions(username, backup_folder, console)
-    if not backup or verbose:
+    if verbose:
         console.log(softwares_submissions)
 
     if backup:
