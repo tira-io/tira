@@ -123,12 +123,11 @@ def main(username, backup_folder, backup, verbose):
         console.log(f'Now creating {destination_folder}')
         # os.makedirs(destination_folder, exist_ok=True)
     console.log(f'Backing up to folder {destination_folder}')
-    console.log(save_user_credentials(username, backup_folder, console))
-    console.log(save_virtual_machine_prototext(username, backup_folder, console))
-    console.log(save_user_runs(username, backup_folder, console))
-    console.log(save_user_softwares_prototext(username, backup_folder, console))
-    console.log(save_user_softwares_submissions(username, backup_folder, console))
-
+    user_credentials = save_user_credentials(username, backup_folder, console)
+    user_vm_prototext = save_virtual_machine_prototext(username, backup_folder, console)
+    user_runs = save_user_runs(username, backup_folder, console)
+    softwares_prototext = save_user_softwares_prototext(username, backup_folder, console)
+    softwares_submissions = save_user_softwares_submissions(username, backup_folder, console)
 
 if __name__ == "__main__":
     main()
