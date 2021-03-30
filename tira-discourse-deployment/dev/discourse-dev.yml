@@ -54,7 +54,7 @@ spec:
           value: "true"
         - name: DISCOURSE_DEV_HOSTS
           value: ""
-        command: ["/bin/bash", "-c", "for I in {001..129}; do DISCOURSE_DEV_HOSTS+=betaweb$I,; done; DISCOURSE_DEV_HOSTS+=betaweb130; /sbin/boot & git clone https://github.com/discourse/discourse.git /src && cd /src && cd /src/plugins && git clone https://github.com/disraptor/disraptor.git && cd /src && chown -R discourse:discourse /src && chmod -R a+rwx /src && bundle install && sudo -E -u discourse -g discourse /bin/bash -c 'bundle install && bundle exec rake db:migrate && /src/bin/unicorn'"]
+        command: ["/bin/bash", "-c", "for I in {001..129}; do DISCOURSE_DEV_HOSTS+=betaweb$I,; done; DISCOURSE_DEV_HOSTS+=betaweb130; /sbin/boot & git clone https://github.com/discourse/discourse.git /src && cd /src && cd /src/plugins && git clone https://github.com/disraptor/disraptor.git && cd disraptor && git checkout development && cd /src && chown -R discourse:discourse /src && chmod -R a+rwx /src && bundle install && sudo -E -u discourse -g discourse /bin/bash -c 'bundle install && bundle exec rake db:migrate && /src/bin/unicorn'"]
       volumes:
       - name: discourse-postgres-data
         persistentVolumeClaim:
