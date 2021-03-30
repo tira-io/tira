@@ -2,98 +2,132 @@
 import os
 import sys
 from itertools import groupby
-import logging
-import argparse
+import click
 import glob
+from rich.console import Console
+from rich.columns import Columns
+from rich.panel import Panel
+from time import sleep
 
-logging.basicConfig(level=logging.DEBUG)
+
 ########################################
-TIRA_PATH='/mnt/ceph/tira'
+TIRA_PATH = '/mnt/ceph/tira'
 ########################################
-DATA_PATH=TIRA_PATH+'/data'
-MODEL_PATH=TIRA_PATH+'/model'
-STATE_PATH=TIRA_PATH+'/state'
-BACKUP_PATH=TIRA_PATH+'/backup'
+DATA_PATH = TIRA_PATH + '/data'
+MODEL_PATH = TIRA_PATH + '/model'
+STATE_PATH = TIRA_PATH + '/state'
+BACKUP_PATH = TIRA_PATH + '/backup'
 ########################################
-RUNS_PATH=DATA_PATH+'/runs'
+RUNS_PATH = DATA_PATH + '/runs'
 ########################################
-USERS_PATH=MODEL_PATH+'/users'
-SOFTWARES_PATH=MODEL_PATH+'/softwares'
-VMS_PATH=MODEL_PATH+'/virtual-machines'
+USERS_PATH = MODEL_PATH + '/users'
+SOFTWARES_PATH = MODEL_PATH + '/softwares'
+VMS_PATH = MODEL_PATH + '/virtual-machines'
 ########################################
-SUBMISSIONS_PATH=STATE_PATH+'/softwares'
+SUBMISSIONS_PATH = STATE_PATH + '/softwares'
+
+
 ########################################
 
 def is_mounted_ceph():
     return os.path.ismount(TIRA_PATH)
 
-def save_user_credentials(username):
-    logging.info('Saving user credentials from users.prototext')
+
+def save_user_credentials(username, backup_folder, console):
+    console.log('[bold black on white]Looking for user credentials from users.prototext')
     l = []
     list_of_users = []
     with open(f'{USERS_PATH}/users.prototext') as f:
-        for key,group in groupby(f, lambda line: line.startswith('users')):
+        for key, group in groupby(f, lambda line: line.startswith('users')):
             if not key:
                 group = list(group)
                 l.append(group)
-    for user in l:            
+    for user in l:
         a = user[:-1]
         a = [field.strip() for field in a]
         a = [thing.split(':') for thing in a]
-        a = {thing[0]:thing[1].strip() for thing in a if len(thing)==2}
-        a = {k:v.replace('"', "") for k,v in a.items()}
+        a = {thing[0]: thing[1].strip() for thing in a if len(thing) == 2}
+        a = {k: v.replace('"', "") for k, v in a.items()}
         list_of_users.append(a)
-    print([user for user in list_of_users if user['userName']==f'{username}'][0])
+    try:
+        credentials = [user for user in list_of_users if user['userName'] == f'{username}'][0]
+        return {f"{backup_folder}/{username}/model": credentials}
+    except:
+        console.log(f"[bold red]No credentials for user {username}")
 
-def save_virtual_machine_prototext(username):
-    logging.info(f'Saving VM prototext for user {username}')
+
+def save_virtual_machine_prototext(username, backup_folder, console):
+    console.log(f'[bold black on white]Looking for VM prototext for user {username}')
     vm_prototext = f'{VMS_PATH}/{username}.prototext'
-    print(vm_prototext)
-
-def save_user_runs(username):
-    logging.info(f'Saving run directories of user {username}')
-    run_directories = glob.glob(f'{RUNS_PATH}/*/{username}')
-    for d in run_directories:
-        print(d)
-        print(os.listdir(d))
-        print(d.split('/')[-2])
-
-def save_user_softwares_prototext(username):
-    logging.info(f'Saving software/prototext.files for user {username}')
-    software_directories = glob.glob(f'{SOFTWARES_PATH}/*/{username}')
-    to_save = [d[-2] for d in [d.split('/') for d in software_directories]]    
-    print([os.listdir(d)[0] for d in software_directories])
-    print(to_save)
-
-def save_user_softwares_submissions(username):
-    logging.info(f'Saving software submissions for user {username}')
-    software_directories = f'{SUBMISSIONS_PATH}/{username}'
-    print(os.listdir(software_directories))
+    if os.path.exists(vm_prototext):
+        return {f'{backup_folder}/{username}/model': vm_prototext}
+    else:
+        console.log(f"[bold red]No VM prototext for user {username}")
 
 
+def save_user_runs(username, backup_folder, console):
+    console.log(f'Looking for run directories of user {username}')
+    try:
+        run_directories = glob.glob(f'{RUNS_PATH}/*/{username}')
+        tasks = [d[-2] for d in [d.split('/') for d in run_directories]]
+        if len(run_directories) > 0:
+            return {f'{backup_folder}/{username}/runs/{t}':d for d,t in zip(run_directories, tasks)}
+        else:
+            console.log("[bold red]No runs to save")
+    except:
+        console.log("[bold red]No runs to save")
 
-def main(username):
+
+def save_user_softwares_prototext(username, backup_folder, console):
+    console.log(f'[bold black on white]Looking for software/prototext.files for user {username}')
+    try:
+        software_directories = glob.glob(f'{SOFTWARES_PATH}/*/{username}')
+        tasks = [d[-2] for d in [d.split('/') for d in software_directories]]
+        if len(tasks) > 0:
+            console.log(f'[blue]Found files for the following tasks: {tasks}')
+            return {f'{backup_folder}/{username}/model/softwares/{t}':os.path.join(d, os.listdir(d)[0]) for d, t in
+                zip(software_directories, tasks)} # Only one software.prototext per folder
+        else:
+            console.log("[bold red]No softwares to save")
+    except:
+        console.log("[bold red]No softwares to save")
+
+
+def save_user_softwares_submissions(username, backup_folder, console):
+    console.log(f'[bold black on white]Looking for software submissions for user {username}')
+    try:
+        software_directory = f'{SUBMISSIONS_PATH}/{username}'
+        num_softwares = len(os.listdir(software_directory))
+        return {f'{backup_folder}/{username}/state/softwares': software_directory}
+    except:
+        console.log(f"[bold red]No software submissions for user {username}")
+
+@click.command()
+@click.option('--username', '-u', help='Username whose data you want to backup', required=True)
+@click.option('--backup-folder', '-f', help='Absolute path of the backup destination', default=BACKUP_PATH,
+              required=True, show_default=True)
+@click.option('--backup', '-b', default=False, is_flag=True, help="Use this flag when you're ready to backup the data",
+              show_default=True)
+@click.option('--verbose', '-v', default=False, is_flag=True, show_default=True)
+
+def main(username, backup_folder, backup, verbose):
+    destination_folder = f'{backup_folder}/{username}'
+    console = Console(log_path=verbose)
+    console.log(backup_folder)
+    # if click.confirm('Do you wish to continue?', abort=True, default=True):
+    #     print('Do something')
     if not is_mounted_ceph():
-        logging.error('Please make sure Ceph is mounted')
+        console.log(f'[bold red]Please make sure {backup_folder} is mounted')
         sys.exit(0)
-    destination_folder = f'{BACKUP_PATH}/{username}'
     if not os.path.exists(destination_folder):
-        logging.info(f'Now creating {destination_folder}')
-        os.makedirs(destination_folder, exist_ok=True)
-    logging.info(f'Now backing up metadata to folder {destination_folder}')
-    save_user_credentials(username)
-    print("********************************************")
-    save_virtual_machine_prototext(username)
-    print("********************************************")
-    save_user_runs(username)
-    print("********************************************")
-    save_user_softwares_prototext(username)
-    print("********************************************")
-    save_user_softwares_submissions(username)
+        console.log(f'Now creating {destination_folder}')
+        # os.makedirs(destination_folder, exist_ok=True)
+    console.log(f'Backing up to folder {destination_folder}')
+    user_credentials = save_user_credentials(username, backup_folder, console)
+    user_vm_prototext = save_virtual_machine_prototext(username, backup_folder, console)
+    user_runs = save_user_runs(username, backup_folder, console)
+    softwares_prototext = save_user_softwares_prototext(username, backup_folder, console)
+    softwares_submissions = save_user_softwares_submissions(username, backup_folder, console)
 
-if __name__=="__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-u", "--username")
-    args = parser.parse_args()
-    args = vars(args)
-    main(**args)
+if __name__ == "__main__":
+    main()
