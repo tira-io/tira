@@ -5,10 +5,8 @@ from itertools import groupby
 import click
 import glob
 from rich.console import Console
-from rich.columns import Columns
-from rich.panel import Panel
-from time import sleep
-
+import json
+import shutil
 
 ########################################
 TIRA_PATH = '/mnt/ceph/tira'
@@ -112,22 +110,64 @@ def save_user_softwares_submissions(username, backup_folder, console):
 
 def main(username, backup_folder, backup, verbose):
     destination_folder = f'{backup_folder}/{username}'
-    console = Console(log_path=verbose)
+    console = Console(log_path=False)
     console.log(backup_folder)
-    # if click.confirm('Do you wish to continue?', abort=True, default=True):
-    #     print('Do something')
+
     if not is_mounted_ceph():
         console.log(f'[bold red]Please make sure {backup_folder} is mounted')
         sys.exit(0)
-    if not os.path.exists(destination_folder):
-        console.log(f'Now creating {destination_folder}')
-        # os.makedirs(destination_folder, exist_ok=True)
-    console.log(f'Backing up to folder {destination_folder}')
     user_credentials = save_user_credentials(username, backup_folder, console)
+    if not backup or verbose:
+        console.log(user_credentials)
     user_vm_prototext = save_virtual_machine_prototext(username, backup_folder, console)
+    if not backup or verbose:
+        console.log(user_vm_prototext)
     user_runs = save_user_runs(username, backup_folder, console)
+    if not backup or verbose:
+        console.log(user_runs)
     softwares_prototext = save_user_softwares_prototext(username, backup_folder, console)
+    if not backup or verbose:
+        console.log(softwares_prototext)
     softwares_submissions = save_user_softwares_submissions(username, backup_folder, console)
+    if not backup or verbose:
+        console.log(softwares_submissions)
 
+    if backup:
+
+        if click.confirm(f'Are you sure you want to backup the files to {destination_folder}?', abort=True, default=True):
+            pass
+
+        if not os.path.exists(destination_folder):
+            console.log(f'Now creating {destination_folder}')
+            os.makedirs(destination_folder, exist_ok=True)
+        console.log(f'Backing up to folder {destination_folder}')
+
+        if user_credentials is not None:
+            for folder, dictionary in user_credentials.items():
+                os.makedirs(folder, exist_ok=True)
+                with open(f'{folder}/{username}.json', 'w') as f:
+                    json.dump(dictionary, f)
+
+        if user_vm_prototext is not None:
+            for dst, src in user_vm_prototext.items():
+                os.makedirs(dst, exist_ok=True)
+                shutil.copy(src, dst)
+
+        if user_runs is not None:
+            for dst, src in user_runs.items():
+                os.makedirs(dst, exist_ok=True)
+                shutil.rmtree(dst)
+                shutil.copytree(src, dst)
+
+        if softwares_prototext is not None:
+            for dst, src in softwares_prototext.items():
+                os.makedirs(dst, exist_ok=True)
+                shutil.copy(src, dst)
+
+        if softwares_submissions is not None:
+            for dst, src in softwares_submissions.items():
+                os.makedirs(dst, exist_ok=True)
+                shutil.rmtree(dst)
+                shutil.copytree(src, dst)
 if __name__ == "__main__":
     main()
