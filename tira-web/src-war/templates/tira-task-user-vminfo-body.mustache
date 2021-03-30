@@ -10,31 +10,31 @@
         {{#vmBooting}}
         <div class="alert alert-success"><strong>Powering on.</strong> Your virtual machine is being powered on. Please wait until the boot sequence is completed before using it.</div>
         <script type="text/javascript">
-          setTimeout("location.reload(true);", 60000);
+            reload_dom_element("#tira-vm-info");
         </script>
         {{/vmBooting}}
         {{#vmPoweringOff}}
         <div class="alert alert-danger"><strong>Powering off.</strong> Your virtual machine is being powered off.</div>
         <script type="text/javascript">
-          setTimeout("location.reload(true);", 60000);
+            reload_dom_element("#tira-vm-info");
         </script>
         {{/vmPoweringOff}}
         {{#vmShuttingDown}}
         <div class="alert alert-warning"><strong>Shutting Down.</strong> Your virtual machine is being shut down.</div>
         <script type="text/javascript">
-          setTimeout("location.reload(true);", 60000);
+            reload_dom_element("#tira-vm-info");
         </script>
         {{/vmShuttingDown}}
         {{#stateSandboxing}}
         <div class="alert alert-warning"><strong>Sandboxing.</strong> Your virtual machine is being sandboxed.</div>
         <script type="text/javascript">
-          setTimeout("location.reload(true);", 60000);
+            reload_dom_element("#tira-vm-info");
         </script>
         {{/stateSandboxing}}
         {{#stateUnsandboxing}}
         <div class="alert alert-success"><strong>Unsandboxing.</strong> Your virtual machine is being unsandboxed.</div>
         <script type="text/javascript">
-          setTimeout("location.reload(true);", 60000);
+            reload_dom_element("#tira-vm-info");
         </script>
         {{/stateUnsandboxing}}
         {{^vmBooting}}
@@ -47,7 +47,7 @@
         {{#portRdpOpen}}
         <div class="alert alert-info"><strong>Waiting.</strong> Please wait until the port states are resolved.</div>
         <script type="text/javascript">
-          setTimeout("location.reload(true);", 60000);
+            reload_dom_element("#tira-vm-info");
         </script>
         {{/portRdpOpen}}
         {{/portSshOpen}}
