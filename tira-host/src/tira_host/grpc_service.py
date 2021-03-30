@@ -23,7 +23,7 @@ from tira_model import FileDatabase
 logger = logging.getLogger()
 
 commands = {}
-model = FileDatabase(socket.gethostname())
+model = FileDatabase()
 
 parser = ConfigParser()
 parser.read('conf/grpc_service.ini')
@@ -42,7 +42,7 @@ def async_api(wrapped_function):
         def task_call():
             try:
                 # Add new Message to command state file for the current host.
-                command = model.create_command(command_id, (wrapped_function.__name__ + ' ' + str(args[1])).strip())
+                command = model.create_command(args[1], command_id, (wrapped_function.__name__ + ' ' + str(args[1])).strip())
 
                 # TODO: check solution with logger
                 # Set logger handler file for the command output
@@ -70,6 +70,10 @@ def async_api(wrapped_function):
         commands[command_id] = {'command_thread': threading.Thread(target=task_call, args=())}
         commands[command_id]['command_thread'].start()
 
+        response = tira_host_pb2.Response()
+        response.commandId = command_id
+        return response
+
     return new_function
 
 
@@ -79,6 +83,8 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
             """
             Start a background thread that cleans up old tasks. Only keep tasks that are running or that finished
             less than 5 days ago.
+
+            TODO: keep last 50 commands instead of period
             """
             while True:
                 time_ago = datetime.timestamp(datetime.utcnow()) - 5 * 86400

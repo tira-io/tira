@@ -2,10 +2,14 @@
 p.stat().st_mtime - change time
 """
 from google.protobuf.text_format import Parse
+from google.protobuf.json_format import MessageToDict
 from pathlib import Path
 import logging
 from django.conf import settings
+import socket
+
 from .proto import TiraClientWebMessages_pb2 as modelpb
+from .proto import tira_host_pb2 as model_host
 
 logger = logging.getLogger(__name__)
 
@@ -16,10 +20,14 @@ class FileDatabase(object):
     users_file_path = tira_root / Path("model/users/users.prototext")
     organizers_file_path = tira_root / Path("model/organizers/organizers.prototext")
     vm_list_file = tira_root / Path("model/virtual-machines/virtual-machines.txt")
+    vm_dir_path = tira_root / Path("model/virtual-machines")
     host_list_file = tira_root / Path("model/virtual-machine-hosts/virtual-machine-hosts.txt")
     ova_dir = tira_root / Path("data/virtual-machine-templates/")
     datasets_dir_path = tira_root / Path("model/datasets")
     softwares_dir_path = tira_root / Path("model/softwares")
+    data_path = tira_root / Path("data/datasets")
+    commands_dir_path = tira_root / Path("state/commands/")
+    command_logs_path = tira_root / Path(f"log/virtual-machine-hosts/{socket.gethostname()}/")
     RUNS_DIR_PATH = tira_root / Path("data/runs")
 
     def __init__(self):
@@ -34,6 +42,8 @@ class FileDatabase(object):
         self.software_by_task = None  # task_id: [modelpb.Software]
         self.software_by_vm = None  # vm_id: [modelpb.Software]
         self.software_count_by_dataset = None  # dataset_id: int()
+        self.commandState = None
+        self.command_logs_path.mkdir(exist_ok=True, parents=True)
 
         self.build_model()
 
@@ -43,6 +53,7 @@ class FileDatabase(object):
         self._parse_task_list()
         self._parse_dataset_list()
         self._parse_software_list()
+        self._parse_command_state()
 
         self._build_task_relations()
         self._build_software_relations()
@@ -102,6 +113,16 @@ class FileDatabase(object):
                 software[f"{task_dir.stem}${user_dir.stem}"] = software_list
 
         self.software = software
+
+    def _parse_command_state(self):
+        """ Parse the command state file. """
+        command_states_path = self.commands_dir_path / f"{socket.gethostname()}.prototext"
+        if command_states_path.exists():
+            self.commandState = Parse(open(command_states_path, "r").read(), model_host.CommandState())
+        else:
+            self.commandState = model_host.CommandState()
+            self.commands_dir_path.mkdir(exist_ok=True, parents=True)
+            open(command_states_path, 'w').write(str(self.commandState))
 
     # _build methods reconstruct the relations once per parse. This is a shortcut for frequent joins.
     def _build_task_relations(self):
@@ -181,6 +202,10 @@ class FileDatabase(object):
 
         return reviews
 
+    def _load_vm(self, vm_id):
+        """ load a vm object from vm_dir_path """
+        return Parse(open(self.vm_dir_path / f"{vm_id}.prototext").read(), modelpb.VirtualMachine())
+
     def _get_review(self, review):
         return {"reviewer": review.reviewerId, "noErrors": review.noErrors, "missingOutput": review.missingOutput,
                 "extraneousOutput": review.extraneousOutput, "invalidOutput": review.invalidOutput,
@@ -249,6 +274,40 @@ class FileDatabase(object):
 
     def _get_evaluation(self, evaluation):
         return {measure.key: measure.value for measure in evaluation.measure}
+
+    # ---------------------------------------------------------------------
+    # ---- save methods to update protos
+    # ---------------------------------------------------------------------
+
+    def _save_task(self, task_proto, overwrite=False):
+        """ makes persistant changes to task: store in memory and to file.
+         Returns false if task exists and overwrite is false. """
+        # open(f'/home/tira/{task_id}.prototext', 'wb').write(new_task.SerializeToString())
+        new_task_file_path = self.tasks_dir_path / f'{task_proto.taskId}.prototext'
+        if not overwrite and new_task_file_path.exists():
+            return False
+        self.tasks[task_proto.taskId] = task_proto
+        open(new_task_file_path, 'w').write(str(task_proto))
+        self._build_task_relations()
+        return True
+
+    def _save_vm(self, vm_proto, overwrite=False):
+        new_vm_file_path = self.vm_dir_path / f'{vm_proto.virtualMachineId}.prototext'
+        if not overwrite and new_vm_file_path.exists():
+            return False
+        # self.vms[vm_proto.virtualMachineId] = vm_proto  # TODO see issue:30
+        open(new_vm_file_path, 'w').write(str(vm_proto))
+        return True
+
+    def _save_dataset(self, dataset_proto, task_id, overwrite=False):
+        """ dataset_dir_path/task_id/dataset_id.prototext """
+        new_dataset_file_path = self.datasets_dir_path / task_id / f'{dataset_proto.datasetId}.prototext'
+        if not overwrite and new_dataset_file_path.exists():
+            return False
+        (self.datasets_dir_path / task_id).mkdir(exist_ok=True, parents=True)
+        open(new_dataset_file_path, 'w').write(str(dataset_proto))
+        self.datasets[dataset_proto.datasetId] = dataset_proto
+        return True
 
     # get methods are the public interface.
     def get_vm(self, vm_id: str):
@@ -411,10 +470,14 @@ class FileDatabase(object):
                  "last_edit": software.lastEditDate}
                 for software in self.software[f"{task_id}${vm_id}"]]
 
-    # add methods to add new data to the model
+    def get_users_vms(self):
+        """ Return the users list. """
+        return self.vms
 
-    def add_dataset(self):
-        pass
+    def get_vm_by_id(self, vm_id):
+        return self.vms.get(vm_id, None)
+
+    # add methods to add new data to the model
 
     def create_task(self, task_id, task_name, task_description, master_vm_id, organizer, website):
         """ Add a new task to the database.
@@ -426,17 +489,107 @@ class FileDatabase(object):
         new_task.virtualMachineId = master_vm_id
         new_task.hostId = organizer
         new_task.web = website
-        self.tasks[task_id] = new_task
-        # open(f'/home/tira/{task_id}.prototext', 'wb').write(new_task.SerializeToString())
+        return self._save_task(new_task)
 
-        new_task_file_path = self.tasks_dir_path / f'{task_id}.prototext'
-        if new_task_file_path.exists():
-            return False
-        open(new_task_file_path, 'w').write(str(new_task))
-        return True
+    def add_dataset(self, task_id, dataset_id, dataset_type, dataset_name):
+        """ TODO documentation
+        - task_dir_path/task_id.prototext:
+        taskId: "pan21-authorship-verification"
+        taskName: "Authorship Verification 2021"
+        taskDescription: "This is a realistic demo task."
+        trainingDataset: "pan-21-authorship-verifivation-training"  # make sure these are unique
+        testDataset: "pan-21-authorship-verifivation-test"
+        virtualMachineId: "pan20-master"
+        hostId: "dummy-host-id"
+        web: "http://pan.webis.de"
 
-    def add_evaluator(self):
-        pass
+        - dataset_dir_path/task_id/dataset_id.prototext
+        datasetId: "pan-21-authorship-verifivation-test"
+        displayName: "PAN 21 Authorship Verifivation"
+        evaluatorId: "pan-21-authorship-verifivation-evaluator"
+        isConfidential: true
+        isDeprecated: false
+
+        - data_path/dataset/test-dataset[-truth]/task_id/dataset-id-type
+        """
+
+        # update task_dir_path/task_id.prototext:
+        dataset_id = f"{dataset_id}-{dataset_type}"
+        for_task = self.tasks.get(task_id, None)
+        if not for_task:
+            raise KeyError(f"No task with id {task_id}")
+
+        if dataset_type == 'test' and dataset_id not in for_task.testDataset:
+            for_task.testDataset.append(dataset_id)
+        elif dataset_type in {'training', 'dev'} and dataset_id not in for_task.trainingDataset:
+            for_task.trainingDataset.append(dataset_id)
+        elif dataset_type not in {'training', 'dev', 'test'}:
+            raise KeyError("dataset type must be test, training, or dev")
+        task_ok = self._save_task(for_task, overwrite=True)
+
+        # create new dataset_dir_path/task_id/dataset_id.prototext
+        ds = modelpb.Dataset()
+        ds.datasetId = dataset_id
+        ds.displayName = dataset_name
+        ds.isDeprecated = False
+        ds.isConfidential = True if dataset_type == 'test' else False
+        dataset_ok = self._save_dataset(ds, task_id)
+
+        # create dirs data_path/dataset/test-dataset[-truth]/task_id/dataset-id-type
+        new_dirs = []
+        if dataset_type == 'test':
+            new_dirs.append((self.data_path / f'test-datasets' / task_id / dataset_id))
+            new_dirs.append((self.data_path / f'test-datasets-truth' / task_id / dataset_id))
+        else:
+            new_dirs.append((self.data_path / f'training-datasets' / task_id / dataset_id))
+            new_dirs.append((self.data_path / f'training-datasets-truth' / task_id / dataset_id))
+        for d in new_dirs:
+            d.mkdir(parents=True, exist_ok=True)
+
+        return [str(nd) for nd in new_dirs]
+
+    def add_evaluator(self, vm_id, task_id, dataset_id, dataset_type, command, working_directory, measures):
+        """ TODO documentation
+        - dataset_dir_path/task_id/dataset_id.prototext
+        datasetId: "pan-21-authorship-verifivation-test"
+        displayName: "PAN 21 Authorship Verifivation"
+        evaluatorId: "pan-21-authorship-verifivation-evaluator"
+        isConfidential: true
+        isDeprecated: false
+
+        - vm_dir_path/vm_id.prototext:
+        evaluators {
+          evaluatorId: "pan-21-authorship-verifivation-evaluator"
+          command: "python3 ap-demo.py $inputDataset $outputDir"
+          workingDirectory: ""
+          measures: "F1,F2"
+          measureKeys: "f1"
+          measureKeys: "f2"
+        }
+        """
+        evaluator_id = f"{dataset_id}-evaluator"
+        dataset_id = f"{dataset_id}-{dataset_type}"
+
+        # update dataset_id.prototext
+        dataset = self.datasets.get(dataset_id)
+        dataset.evaluatorId = evaluator_id
+        dataset_ok = self._save_dataset(dataset, task_id, overwrite=True)
+
+        # add evaluators to vm
+        vm = self._load_vm(vm_id)
+        if evaluator_id not in {ev.evaluatorId for ev in vm.evaluators}:
+            ev = modelpb.Evaluator()
+            ev.evaluatorId = evaluator_id
+            ev.command = command
+            ev.workingDirectory = working_directory
+            ev.measures = ",".join([x[0].strip('\r') for x in measures])
+            ev.measureKeys.extend([x[1].strip('\r') for x in measures])
+            vm.evaluators.append(ev)
+            vm_ok = self._save_vm(vm, overwrite=True)
+        else:
+            vm_ok = True
+
+        return vm_ok and dataset_ok
 
     def add_ongoing_execution(self, hostname, vm_id, ova):
         """ add this create to the stack, so we know it's in progress. """
@@ -446,3 +599,22 @@ class FileDatabase(object):
     def complete_execution(self):
         #TODO implement
         pass
+
+    def get_commands_bulk(self, bulk_id):
+        """
+        Get commands list by bulk command id
+        :param bulk_id:
+        """
+        self._parse_command_state()
+        return [MessageToDict(command) for command in self.commandState.commands if command.bulkCommandId == bulk_id]
+
+    def get_command(self, command_id):
+        """
+        Get command object
+        :param command_id:
+        """
+        self._parse_command_state()
+        for command in self.commandState.commands:
+            if command.id == command_id:
+                return MessageToDict(command)
+        return None

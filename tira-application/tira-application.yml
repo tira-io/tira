@@ -27,12 +27,11 @@ spec:
     spec:
       containers:
       - name: tira-web-client-2
-        image: webis/tira-web-2:latest
+        image: webis/tira-web-2:0.0.4
         imagePullPolicy: Always
         volumeMounts:
         - mountPath: "/mnt/ceph/tira"
           name: tira-cephfs
-          readOnly: true
         - mountPath: "/tira/tira-application/src/config/settings-deploy.yml"
           name: config-yml
           subPath: settings-deploy.yml

@@ -69,10 +69,10 @@ main() {
     vmname="$1"
 
     # Every parameter is parsed and extracted: now do the job.
-    if [ "$(is_tira_vm "$vmname")" = "false" ]; then
-        logError "Vm $vmname is not available on this host."
-        return
-    fi
+#    if [ "$(is_tira_vm "$vmname")" = "false" ]; then
+#        logError "Vm $vmname is not available on this host."
+#        return
+#    fi
 
     # Extract info of VM $vname.
     if [ "$statusFlag" -ne "${FLAGS_TRUE}" ]; then
