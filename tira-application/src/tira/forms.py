@@ -56,27 +56,33 @@ class CreateTaskForm(forms.Form):
 
 class AddDatasetForm(forms.Form):
     """ id_prefix, dataset_name, evaluator: master_vm_id, command, workingDirectory, measures, measureKeys  """
-    task_id = forms.CharField(label="For Task ID", max_length=100,
+    task_id = forms.CharField(label="For Task ID", max_length=100, required=True,
                               widget=forms.TextInput(attrs={"class": "uk-input",
                                                             "placeholder": "task-id-lowercase-with-dashes"}))
 
-    dataset_id_prefix = forms.CharField(label="Dataset ID prefix", max_length=100,
-                                        widget=forms.TextInput(attrs={"class": "uk-input",
-                                                                      "placeholder": "id-lowercase-with-dashes"}))
-    dataset_name = forms.CharField(label="Dataset Name", max_length=200,
+    dataset_id_prefix = forms.SlugField(label="Dataset ID prefix", max_length=200, required=True,
+                                        widget=forms.TextInput(attrs={"class": "uk-input"}))
+
+    dataset_name = forms.CharField(label="Dataset Name", max_length=200, required=True,
                                    widget=forms.TextInput(attrs={"class": "uk-input",
                                                                  "placeholder": "Titlecase Name of the Dataset."}))
+    create_training = forms.BooleanField(label="training", required=False, initial=True,
+                                         widget=forms.CheckboxInput(attrs={"class": "uk-checkbox"}))
+    create_test = forms.BooleanField(label="test", required=False, initial=True,
+                                     widget=forms.CheckboxInput(attrs={"class": "uk-checkbox"}))
+    create_dev = forms.BooleanField(label="dev", required=False,
+                                    widget=forms.CheckboxInput(attrs={"class": "uk-checkbox"}))
 
-    master_vm_id = forms.CharField(label="Master VM_ID", max_length=200,
+    master_vm_id = forms.CharField(label="Master VM_ID", max_length=200, required=True,
                                    widget=forms.TextInput(attrs={"class": "uk-input",
                                                                  "placeholder": "id-lowercase-with-dashes"}))
-    command = forms.CharField(label="Evaluator Command", max_length=200,
+    command = forms.CharField(label="Evaluator Command", max_length=200, required=False,
                               widget=forms.TextInput(attrs={"class": "uk-input",
                                                             "placeholder": "Command to be run from working directory."}))
-    working_directory = forms.CharField(label="Evaluator Working Directory", max_length=200,
-                                       widget=forms.TextInput(attrs={"class": "uk-input",
-                                                                     "placeholder": "/path/to/directory. Defaults to home."}))
-    measures = forms.CharField(label="Measures (separate by newline)",
+    working_directory = forms.CharField(label="Evaluator Working Directory", max_length=200, required=False,
+                                        widget=forms.TextInput(attrs={"class": "uk-input",
+                                                                      "placeholder": "/path/to/directory. Defaults to home."}))
+    measures = forms.CharField(label="Measures (separate by newline)", required=False,
                                widget=forms.Textarea(attrs={"class": "uk-textarea", "rows": "5",
                                                             "placeholder": "Measure Name,measure_key\n"
                                                                            "Name will be displayed to the users.\n"
