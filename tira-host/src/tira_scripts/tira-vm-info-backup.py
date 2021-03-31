@@ -84,7 +84,7 @@ def save_user_softwares_prototext(username, backup_folder, console):
         if len(tasks) > 0:
             console.log(f'[blue]Found files for the following tasks: {tasks}')
             return {f'{backup_folder}/{username}/model/softwares/{t}':os.path.join(d, os.listdir(d)[0]) for d, t in
-                zip(software_directories, tasks)} # Only one software.prototext per folder
+                    zip(software_directories, tasks)}
         else:
             console.log("[bold red]No softwares to save")
     except:
@@ -110,7 +110,7 @@ def save_user_softwares_submissions(username, backup_folder, console):
 
 def main(username, backup_folder, backup, verbose):
     destination_folder = f'{backup_folder}/{username}'
-    console = Console(log_path=False)
+    console = Console(log_path=False, record=backup)
     console.log(backup_folder)
 
     if not is_mounted_ceph():
@@ -169,5 +169,7 @@ def main(username, backup_folder, backup, verbose):
                 os.makedirs(dst, exist_ok=True)
                 shutil.rmtree(dst)
                 shutil.copytree(src, dst)
+        os.makedirs(f'{destination_folder}/logs', exist_ok=True)
+        console.export_html(f'{destination_folder}/logs/log.html')
 if __name__ == "__main__":
     main()
