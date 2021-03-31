@@ -20,23 +20,20 @@ scriptPath=${0%/*}
 usage() {
     echo "
 Usage:
-    $(basename "$0") [flags] <vm-name> <user-name>
+    $(basename "$0") [flags] <user-name>
 
 Description:
     Creates a backup .ova file of a VM.
 
 Options:
     -h | --help           Display help documentation
-    -r | --remote [host]  Remote control a specific host
 
 Parameters:
-    <vm-name>             Name of the VM
     <user-name>           Name of the user
 
 Examples:
-    $(basename "$0") my_vm User123 (local)
-    $(basename "$0") -r webis46 my_vm User123 (remote)"
-    
+    $(basename "$0") User123
+
     exit 1
 }
 
