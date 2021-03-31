@@ -59,7 +59,7 @@ main() {
     username="$1"
     
     #CALL PYTHON SCRIPT WITH ARGUMENTS
-    "$scriptPath"/tira-vm-info-backup.py -u "$username"
+    "$scriptPath"/tira-vm-info-backup.py -u "$username" -b -v
     logInfo "Done."
 }
 
