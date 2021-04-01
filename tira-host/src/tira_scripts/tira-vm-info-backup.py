@@ -171,5 +171,6 @@ def main(username, backup_folder, backup, verbose):
                 shutil.copytree(src, dst)
         os.makedirs(f'{destination_folder}/logs', exist_ok=True)
         console.save_html(f'{destination_folder}/logs/log.html')
+        console.save_text(f'{destination_folder}/logs/log.txt')
 if __name__ == "__main__":
     main()
