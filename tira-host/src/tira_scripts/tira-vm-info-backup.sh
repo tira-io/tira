@@ -32,7 +32,7 @@ Parameters:
     <user-name>           Name of the user
 
 Examples:
-    $(basename "$0") User123
+    $(basename "$0") User123"
 
     exit 1
 }
@@ -48,7 +48,7 @@ eval set -- "${FLAGS_ARGV}"
 main() {
 
     # Print help if no parameters supplied.
-    if [ "$#" -eq 1 ]; then
+    if [ "$#" -eq 0 ]; then
         logError "Missing arguments see:"
         "$scriptPath"/tira-vm-info-backup.py -h
     fi
