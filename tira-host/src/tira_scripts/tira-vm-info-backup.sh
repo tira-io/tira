@@ -48,7 +48,7 @@ eval set -- "${FLAGS_ARGV}"
 main() {
 
     # Print help if no parameters supplied.
-    if [ "$#" -eq 0 ]; then
+    if [ "$#" -eq 1 ]; then
         logError "Missing arguments see:"
         "$scriptPath"/tira-vm-info-backup.py -h
     fi
