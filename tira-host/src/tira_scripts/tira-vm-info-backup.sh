@@ -23,7 +23,7 @@ Usage:
     $(basename "$0") [flags] <user-name>
 
 Description:
-    Creates a backup .ova file of a VM.
+    Backs up all metadata for a given user.
 
 Options:
     -h | --help           Display help documentation
