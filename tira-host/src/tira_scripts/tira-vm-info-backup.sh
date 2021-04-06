@@ -47,10 +47,10 @@ eval set -- "${FLAGS_ARGV}"
 
 main() {
 
-    # Print usage screen if wrong parameter count.
-    if [ "$#" -ne 1 ]; then
+    # Print help if no parameters supplied.
+    if [ "$#" -eq 0 ]; then
         logError "Missing arguments see:"
-        usage
+        "$scriptPath"/tira-vm-info-backup.py -h
     fi
 
     #CALL PYTHON SCRIPT WITH ARGUMENTS
@@ -59,6 +59,6 @@ main() {
 }
 
 #
-#    Start programm with parameters.
+#    Start program with parameters.
 #
 main "$@"
