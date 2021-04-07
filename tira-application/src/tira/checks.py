@@ -1,5 +1,6 @@
 from .tira_model import FileDatabase
 from .authentication import Authentication
+from django.core.exceptions import PermissionDenied
 
 
 class Check(object):
@@ -23,7 +24,7 @@ class Check(object):
         if role in roles:
             return True
 
-        return False
+        raise PermissionDenied
 
     def _has_role(self, request):
         return self.authentication.get_role(request, self.authentication.get_user_id(request))
