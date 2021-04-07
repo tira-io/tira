@@ -5,8 +5,10 @@ from itertools import groupby
 import click
 import glob
 from rich.console import Console
+from rich.pretty import Pretty
 import json
 import shutil
+from filecmp import cmp, dircmp
 
 ########################################
 TIRA_PATH = '/mnt/ceph/tira'
@@ -26,10 +28,8 @@ SUBMISSIONS_PATH = STATE_PATH + '/softwares'
 
 
 ########################################
-
 def is_mounted_ceph():
     return os.path.ismount(TIRA_PATH)
-
 
 def save_user_credentials(username, backup_folder, console):
     console.log('[bold black on white]Looking for user credentials from users.prototext')
@@ -83,7 +83,7 @@ def save_user_softwares_prototext(username, backup_folder, console):
         tasks = [d[-2] for d in [d.split('/') for d in software_directories]]
         if len(tasks) > 0:
             console.log(f'[blue]Found files for the following tasks: {tasks}')
-            return {f'{backup_folder}/{username}/model/softwares/{t}':os.path.join(d, os.listdir(d)[0]) for d, t in
+            return {f'{backup_folder}/{username}/model/softwares/{t}': os.path.join(d, os.listdir(d)[0]) for d, t in
                     zip(software_directories, tasks)}
         else:
             console.log("[bold red]No softwares to save")
@@ -107,70 +107,90 @@ def save_user_softwares_submissions(username, backup_folder, console):
 @click.option('--backup', '-b', default=False, is_flag=True, help="Use this flag when you're ready to backup the data",
               show_default=True)
 @click.option('--verbose', '-v', default=False, is_flag=True, show_default=True)
-
 def main(username, backup_folder, backup, verbose):
     destination_folder = f'{backup_folder}/{username}'
     console = Console(log_path=False, record=backup)
-    console.log(backup_folder)
-
     if not is_mounted_ceph():
-        console.log(f'[bold red]Please make sure {backup_folder} is mounted')
+        console.log(f'[bold red]Please make sure {TIRA_PATH} is mounted and accessible.')
         sys.exit(0)
     user_credentials = save_user_credentials(username, backup_folder, console)
     if verbose:
         console.log(user_credentials)
+
     user_vm_prototext = save_virtual_machine_prototext(username, backup_folder, console)
     if verbose:
         console.log(user_vm_prototext)
+
     user_runs = save_user_runs(username, backup_folder, console)
     if verbose:
         console.log(user_runs)
+
     softwares_prototext = save_user_softwares_prototext(username, backup_folder, console)
     if verbose:
         console.log(softwares_prototext)
+
     softwares_submissions = save_user_softwares_submissions(username, backup_folder, console)
     if verbose:
         console.log(softwares_submissions)
 
     if backup:
-
+        to_delete = []
+        os.makedirs(f'{destination_folder}/logs', exist_ok=True)
         if click.confirm(f'Are you sure you want to backup the files to {destination_folder}?', abort=True, default=True):
             pass
 
-        if not os.path.exists(destination_folder):
+        if os.path.exists(destination_folder):
+            console.print(f"[red bold]{destination_folder} already exists!")
+            if click.confirm('Do you want to re-run the backup?', abort=True, default=True):
+                pass
+        else:
             console.log(f'Now creating {destination_folder}')
-            os.makedirs(destination_folder, exist_ok=True)
+        os.makedirs(destination_folder, exist_ok=True)
         console.log(f'Backing up to folder {destination_folder}')
 
-        if user_credentials is not None:
+        if user_credentials:
+            console.log(f'[bold black on white]Now copying entry from users.prototext file')
             for folder, dictionary in user_credentials.items():
                 os.makedirs(folder, exist_ok=True)
                 with open(f'{folder}/{username}.json', 'w') as f:
                     json.dump(dictionary, f)
 
-        if user_vm_prototext is not None:
-            for dst, src in user_vm_prototext.items():
-                os.makedirs(dst, exist_ok=True)
-                shutil.copy(src, dst)
+        if user_vm_prototext:
+            console.log(f"[bold black on white]Now copying the virtual machine's .prototext file")
+            for dst_d, src_f in user_vm_prototext.items():
+                os.makedirs(dst_d, exist_ok=True)
+                shutil.copy(src_f, dst_d)
+                src_d = os.path.dirname(src_f)
+                to_delete.append({'source_directory':src_d, 'destination_directory':dst_d})
+        if user_runs:
+            console.log(f"[bold black on white]Now copying all user runs")
+            for dst_d, src_d in user_runs.items():
+                os.makedirs(dst_d, exist_ok=True)
+                shutil.rmtree(dst_d)
+                shutil.copytree(src_d, dst_d)
+                to_delete.append({'source_directory': src_d, 'destination_directory': dst_d})
+        if softwares_prototext:
+            console.log(f"[bold black on white]Now copying all software prototext files")
+            for dst_d, src_d in softwares_prototext.items():
+                os.makedirs(dst_d, exist_ok=True)
+                shutil.copy(src_d, dst_d)
+                to_delete.append({'source_directory': src_d, 'destination_directory': dst_d})
 
-        if user_runs is not None:
-            for dst, src in user_runs.items():
-                os.makedirs(dst, exist_ok=True)
-                shutil.rmtree(dst)
-                shutil.copytree(src, dst)
+        if softwares_submissions:
+            console.log(f"[bold black on white]Now copying all user submissions")
+            for dst_d, src_d in softwares_submissions.items():
+                os.makedirs(dst_d, exist_ok=True)
+                shutil.rmtree(dst_d)
+                shutil.copytree(src_d, dst_d)
+                to_delete.append({'source_directory': src_d, 'destination_directory': dst_d})
 
-        if softwares_prototext is not None:
-            for dst, src in softwares_prototext.items():
-                os.makedirs(dst, exist_ok=True)
-                shutil.copy(src, dst)
-
-        if softwares_submissions is not None:
-            for dst, src in softwares_submissions.items():
-                os.makedirs(dst, exist_ok=True)
-                shutil.rmtree(dst)
-                shutil.copytree(src, dst)
-        os.makedirs(f'{destination_folder}/logs', exist_ok=True)
-        console.save_html(f'{destination_folder}/logs/log.html')
+        console.print(to_delete)
+        with open(f'{destination_folder}/logs/delete.jsonl', 'w') as f:
+            for entry in to_delete:
+                f.write(json.dumps(entry) + "\n")
+        console.save_html(f'{destination_folder}/logs/log.html', clear=False)
         console.save_text(f'{destination_folder}/logs/log.txt')
+
+
 if __name__ == "__main__":
     main()

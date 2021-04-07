@@ -46,17 +46,13 @@ FLAGS "$@" || exit 1  # Parse command line arguments.
 eval set -- "${FLAGS_ARGV}"
 
 main() {
-
     # Print help if no parameters supplied.
     if [ "$#" -eq 0 ]; then
         logError "Missing arguments see:"
         "$scriptPath"/tira-vm-info-backup.py --help
-        exit 1
     fi
-
     #CALL PYTHON SCRIPT WITH ARGUMENTS
     "$scriptPath"/tira-vm-info-backup.py "$@"
-    logInfo "Done."
 }
 
 #
