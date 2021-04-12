@@ -20,23 +20,20 @@ scriptPath=${0%/*}
 usage() {
     echo "
 Usage:
-    $(basename "$0") [flags] <vm-name> <user-name>
+    $(basename "$0") [flags] <user-name>
 
 Description:
-    Creates a backup .ova file of a VM.
+    Backs up all metadata for a given user.
 
 Options:
     -h | --help           Display help documentation
-    -r | --remote [host]  Remote control a specific host
 
 Parameters:
-    <vm-name>             Name of the VM
     <user-name>           Name of the user
 
 Examples:
-    $(basename "$0") my_vm User123 (local)
-    $(basename "$0") -r webis46 my_vm User123 (remote)"
-    
+    $(basename "$0") User123"
+
     exit 1
 }
 
@@ -49,21 +46,16 @@ FLAGS "$@" || exit 1  # Parse command line arguments.
 eval set -- "${FLAGS_ARGV}"
 
 main() {
-
-    # Print usage screen if wrong parameter count.
-    if [ "$#" -ne 1 ]; then
+    # Print help if no parameters supplied.
+    if [ "$#" -eq 0 ]; then
         logError "Missing arguments see:"
-        usage
+        "$scriptPath"/tira-vm-info-backup.py --help
     fi
-
-    username="$1"
-    
     #CALL PYTHON SCRIPT WITH ARGUMENTS
-    "$scriptPath"/tira-vm-info-backup.py -u "$username"
-    logInfo "Done."
+    "$scriptPath"/tira-vm-info-backup.py "$@"
 }
 
 #
-#    Start programm with parameters.
+#    Start program with parameters.
 #
 main "$@"

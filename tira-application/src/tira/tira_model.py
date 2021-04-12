@@ -577,14 +577,17 @@ class FileDatabase(object):
 
         # add evaluators to vm
         vm = self._load_vm(vm_id)
-        ev = modelpb.Evaluator()
-        ev.evaluatorId = evaluator_id
-        ev.command = command
-        ev.workingDirectory = working_directory
-        ev.measures = ",".join([x[0].strip('\r') for x in measures])
-        ev.measureKeys.extend([x[1].strip('\r') for x in measures])
-        vm.evaluators.append(ev)
-        vm_ok = self._save_vm(vm, overwrite=True)
+        if evaluator_id not in {ev.evaluatorId for ev in vm.evaluators}:
+            ev = modelpb.Evaluator()
+            ev.evaluatorId = evaluator_id
+            ev.command = command
+            ev.workingDirectory = working_directory
+            ev.measures = ",".join([x[0].strip('\r') for x in measures])
+            ev.measureKeys.extend([x[1].strip('\r') for x in measures])
+            vm.evaluators.append(ev)
+            vm_ok = self._save_vm(vm, overwrite=True)
+        else:
+            vm_ok = True
 
         return vm_ok and dataset_ok
 

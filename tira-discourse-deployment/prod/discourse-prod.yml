@@ -33,7 +33,7 @@ spec:
     spec:
       containers:
         - name: tira-discourse-prod
-          image: docker.io/webis/tira-discourse:0.0.1-www.tira.io
+          image: docker.io/webis/tira-discourse:0.0.3-www.tira.io
           ports:
             - containerPort: 443
               hostIP: 0.0.0.0
@@ -42,8 +42,10 @@ spec:
               hostIP: 0.0.0.0
               name: discourse-http
           volumeMounts:
+#            - mountPath: "/shared"
+#              name: discourse-prod-data
             - mountPath: "/shared"
-              name: discourse-prod-data
+              name: discourse-prod-data-pvc
             - mountPath: "/shared/backups"
               name: backups
             - mountPath: "/var/log"
@@ -77,7 +79,7 @@ spec:
             - name: DISCOURSE_DB_PORT
               value: ""
             - name: DISCOURSE_HOSTNAME
-              value: "disraptor.tira.io"
+              value: "tira.io"
             - name: DISCOURSE_DEVELOPER_EMAILS
               valueFrom:
                 secretKeyRef:
@@ -102,16 +104,17 @@ spec:
               value: "587"
           command: ["/bin/bash", "-c", "/sbin/setup; /sbin/boot"]
       volumes:
-        - name: discourse-prod-data
-#          persistentVolumeClaim:
-#            claimName: discourse-prod-data-pvc
-          cephfs:
-            monitors:
-              - ceph.dw.webis.de
-            path: /storage/data-in-production/disraptor/discourse/postgres-data
-            user: webis
-            secretFile: "etc/ceph/ceph.client.webis.secret"
-            readOnly: false
+        - name: discourse-prod-data-pvc
+          persistentVolumeClaim:
+            claimName: discourse-prod-data-pvc
+#        - name: discourse-prod-data
+#          cephfs:
+#            monitors:
+#              - ceph.dw.webis.de
+#            path: /storage/data-in-production/disraptor/discourse/postgres-data
+#            user: webis
+#            secretFile: "etc/ceph/ceph.client.webis.secret"
+#            readOnly: false
         - name: backups 
           cephfs:
             monitors:
