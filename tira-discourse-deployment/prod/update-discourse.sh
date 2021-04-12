@@ -56,6 +56,7 @@ done
 [ -z $DOCKERHUB_TAG ] && usage && exit 1
 [ -z $SERVICE_NAME ] && usage && exit 1
 
+
 # Test if imagename:tag already exists on Dockerhub
 if docker_tag_exists $DOCKERHUB_USER/$DOCKERHUB_IMAGENAME $DOCKERHUB_TAG; then
     echo "Combination $DOCKERHUB_IMAGENAME:$DOCKERHUB_TAG already exists for user $DOCKERHUB_USER"
@@ -88,7 +89,7 @@ cd $BASE_DIRECTORY
 # cp prod/setup /mnt/ceph/storage/data-in-production/disraptor/boot/setup
 
 # redeploy
-sed "s/image: .*$DOCKERHUB_IMAGENAME.*/image: docker.io/$DOCKERHUB_USER/$DOCKERHUB_IMAGENAME:$DOCKERHUB_TAG/g"
+sed -i "s/image: .*$DOCKERHUB_IMAGENAME.*/image: docker.io\/$DOCKERHUB_USER\/$DOCKERHUB_IMAGENAME:$DOCKERHUB_TAG/g" prod/discourse-prod.yml
 #prod/k8s-undeploy-discourse-prod.sh
 #prod/k8s-deploy-discourse-prod.sh
 

@@ -101,6 +101,10 @@ LOGGING = {
             'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
             'style': '{',
         },
+        'default': {
+            'format': '{levelname} {asctime} {module}: {message}',
+            'style': '{',
+        },
         'simple': {
             'format': '{levelname} {message}',
             'style': '{',
@@ -120,19 +124,50 @@ LOGGING = {
         },
         'file': {
             'level': 'DEBUG',
+            'filters': ['require_debug_true'],
             'class': 'logging.FileHandler',
             'filename': BASE_DIR / 'debug.log',
+            'formatter': 'simple'
+        },
+        'ceph_debug_file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filters': ['require_debug_true'],
+            'filename': Path(custom_settings.get("logging_dir", BASE_DIR)) / 'debug.log',
+            'formatter': 'default'
+        },
+        'ceph_info_file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': Path(custom_settings.get("logging_dir", BASE_DIR)) / 'info.log',
+            'formatter': 'default'
+        },
+        'ceph_warn_file': {
+            'level': 'WARNING',
+            'class': 'logging.FileHandler',
+            'filename': Path(custom_settings.get("logging_dir", BASE_DIR)) / 'warnings.log',
+            'formatter': 'default'
         },
     },
     'loggers': {
         'django': {
-            'handlers': ['console', 'file'],
+            'handlers': ['console', 'ceph_debug_file'],
             'propagate': True,
-            'level': 'WARNING',
+        },
+        'django.requests': {
+            'handlers': ['console', 'ceph_warn_file', 'ceph_info_file'],
+            'propagate': True,
+        },
+        'django.server': {
+            'handlers': ['console', 'ceph_warn_file', 'ceph_info_file'],
+            'propagate': True,
+        },
+        'tira': {
+            'handlers': ['console', 'ceph_warn_file', 'ceph_info_file'],
+            'propagate': True,
         },
     }
 }
-
 
 
 # Password validation

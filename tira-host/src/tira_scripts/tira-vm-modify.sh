@@ -1,52 +1,30 @@
 #!/bin/bash
-#
-#    Copyright 2014-today www.webis.de
-#
-#    Project TIRA
-#    Author: Manuel Willem, Steve Göring
-#
 
-#
-#    Load libaries and toolkits.
-#
 scriptPath=${0%/*}
 . "$scriptPath"/core/bashhelper.sh
 . "$scriptPath"/core/vboxhelper.sh
 . "$scriptPath"/libs/shflags
 
-#
-#    Define and check needed tools for this script.
-#
 neededtools="VBoxManage"
 debug && check_tools "$neededtools"  # If debug, check that tools are available.
 
-#
-#    Define usage screen.
-#
 usage() {
     echo "
 Usage:
-    $(basename "$0") [flags] <name>
+    $(basename "$0") [flags] <vm_id> <memory> <cpus>
 
 Description:
-    Starts a VM on a host.
+    This script runs vboxmanage modifyvm <vmname> --memory --cpus
 
-Parameters:
-    <name>             Name of the VM or username
+Options:
+    -h | --help           Display help documentation
 
 Examples:
-    $(basename "$0") my_vm (local)
-    $(basename "$0") -r webis46 my_vm (remote)
-
-Authors:
-    Manuel Willem
-    Steve Göring"
+    $(basename "$0") pan21-master 16000 2 (local)
+    $(basename "$0") -r betaweb042 pan21-master 16000 2 (remote)
     exit 1
-}
+}"
 
-#
-#    Define command line arguments and parse them.
-#
 FLAGS_HELP=$(usage)
 export FLAGS_HELP
 FLAGS "$@" || exit 1  # Parse command line arguments.
@@ -60,8 +38,9 @@ check_is_vm_started() {
     get_vm_state "$vmname" state
     if [ "$state" != "running" ];  then
         logError "VM is not running!"
-        exit 1
+        return "false"
     fi
+    return "true"
 }
 
 #
@@ -70,15 +49,15 @@ check_is_vm_started() {
 main() {
 
     # Print usage screen if wrong parameter count.
-    if [ "$#" -eq 0 ]; then
-        logError "Missing arguments see:"
+    if [ "$#" -ne 3 ]; then
+        logError "Wrong arguments, see:"
         usage
     fi
 
-    sleep 10
-
     # Extract correct vmname from nfs.
     vmname_or_user="$1"
+    mem="$2"
+    cpu="$3"
 
     vm_info=$(get_vm_info_from_tira "$vmname_or_user")
     vmname=$(echo "$vm_info" | grep "vmName" | sed "s|vmName=||g")
@@ -91,47 +70,26 @@ main() {
         host=$(echo "$vm_info" | grep "host=" | sed "s|host=||g")
         curhost=$(hostname --fqdn)
         if [ "$host" != "" ] && [ "$host" != "$curhost" ] ; then
-            tira_call vm-start -r "$host" "$vmname"
+            tira_call vm-modify -r "$host" "$vmname" "$mem" "$cpu"
         else
             logError "$vmname is not a valid username/vmname."
         fi
         return
     fi
 
-    # Check if vm is already started.
-    get_vm_state "$vmname" state
-
-    if [ "$state" = "running" ];  then
-        logError "VM is already running!"
-        exit 1
+    if [ $(check_is_vm_running) = "true" ]; then
+      tira vm-stop "$vmname"
     fi
+    # Check if vm is already started.
 
     # Starting VM.
     logInfo "'$vmname' getting started ..."
 
-    # solving "sf_" prefix problem
-    logTodo "check if one guestproperty call is enough"
-
-    VBoxManage guestproperty set "$vmname" \
-        /VirtualBox/GuestAdd/SharedFolders/MountPrefix ""
+    VBoxManage modifyvm "$vmname" --memory "$mem" --cpus "$cpu"\
+        || logError "vm could not be modified"
 
     VBoxManage startvm "$vmname" --type headless \
-        || logError "vm could not be started"
-
-    # Immediately set guestproperty, since it is not
-    # set permanently for Ubuntu server.
-    VBoxManage guestproperty set "$vmname" \
-        /VirtualBox/GuestAdd/SharedFolders/MountPrefix ""
-
-    VBoxManage metrics setup --period 1 --samples 1 "$vmname"
+        || logError "vm could not be started after modification"
 
     unittest && check_is_vm_started "$vmname"
-
-    # restart dnsmasq: https://github.com/tira-io/tira9-application2/issues/8
-    ssh tira@localhost -C 'sudo systemctl restart dnsmasq'
 }
-
-#
-#    Start programm with parameters.
-#
-main "$@"
