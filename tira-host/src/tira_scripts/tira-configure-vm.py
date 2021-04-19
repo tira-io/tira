@@ -142,7 +142,7 @@ def main(args):
         vmname = user + "-" + "%02d" % vmid + "-" + ova[:-4]
 
     if len(vmname) > 64:
-        print "VM Name exceeds 64 characters. Please choose a shorter name and rerun the command"
+        print "\n\nVM Name exceeds 64 characters! Please choose a shorter name and rerun the command"
         sys.exit(0)
 
     # Set ports.
