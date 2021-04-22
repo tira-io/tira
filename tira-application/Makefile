@@ -5,7 +5,7 @@ PYTHON=${VENV_NAME}/bin/python3
 SRC_DIR=../tira-protocol/src
 #PYTHON_DEST=${VENV_NAME}/lib/python3.7/site-packages
 BUILD_PATH=src/tira/proto
-VERSION=0.0.2
+VERSION=0.0.4
 
 
 .DEFAULT: help
@@ -29,11 +29,13 @@ venv:
 	test -d $(VENV_NAME) || python3 -m venv $(VENV_NAME)
 	${PYTHON} -m pip install -r requirements.txt
 
-protobuf:
+protobuf: venv
 	protoc -I=$(SRC_DIR) --python_out=$(BUILD_PATH) $(SRC_DIR)/tira_to_web.proto
 	protoc -I=$(SRC_DIR) --python_out=$(BUILD_PATH) $(SRC_DIR)/tira_messages.proto
 	protoc -I=$(SRC_DIR) --python_out=$(BUILD_PATH) $(SRC_DIR)/TiraClientWebMessages.proto
 	${PYTHON} -m grpc_tools.protoc -I=$(SRC_DIR) --grpc_python_out=$(BUILD_PATH) tira_to_web.proto
+	${PYTHON} -m grpc_tools.protoc -I=$(SRC_DIR) --python_out=$(BUILD_PATH) --grpc_python_out=$(BUILD_PATH) tira_host.proto
+	sed -i 's/import tira_host_pb2 as tira__host__pb2/from . import tira_host_pb2 as tira__host__pb2/g' $(BUILD_PATH)/tira_host_pb2_grpc.py
 	touch $(BUILD_PATH)/__init__.py
 
 django:
@@ -43,7 +45,7 @@ django:
 
 run-dev:
 	mkdir -p src/config
-	cp config/settings-dev.yml src/config
+	cp config/settings-dev.yml src/config/settings.yml
 	su tira -c". $(VENV_NAME)/bin/activate && \
 	python3 src/manage.py runserver 8080"
 
@@ -56,12 +58,12 @@ clean:
 	rm -r $(BUILD_PATH)
 
 k8s-deploy-tira-application: k8s-undeploy-tira-application
-	kubectl create configmap tira-web2-config --from-file=config/settings-deploy.yml 
-	kubectl apply -f tira-application.yml
+	kubectl -n webisservices create configmap tira-web2-config --from-file=config/settings-deploy.yml
+	kubectl -n webisservices apply -f tira-application.yml
 
 k8s-undeploy-tira-application:
-	kubectl delete -f tira-application.yml || echo "already undeployed?"
-	kubectl delete configmap tira-web2-config || echo "no configmap?"
+	kubectl -n webisservices delete -f tira-application.yml || echo "already undeployed?"
+	kubectl -n webisservices delete configmap tira-web2-config || echo "no configmap?"
 
 docker-publish-tira-application: docker-build-tira-application
 	docker login &&\
@@ -77,4 +79,3 @@ docker-run-tira-application:
 
 docker-build-tira-application:
 	docker build --tag webis/tira-web-2:${VERSION} -f Dockerfile ..
-

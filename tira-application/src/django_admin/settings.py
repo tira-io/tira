@@ -16,6 +16,7 @@ import yaml
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
 custom_settings = {}
 for cfg in (BASE_DIR / "config").glob("*.yml"):
     custom_settings.update(yaml.load(open(cfg, "r").read(), Loader=yaml.FullLoader))
@@ -31,7 +32,9 @@ DEBUG = custom_settings.get("debug", True)
 ALLOWED_HOSTS = custom_settings.get("allowed_hosts", [])
 
 TIRA_ROOT = Path(custom_settings.get("tira_root", "/mnt/ceph/tira"))
-NAVIGATION = custom_settings.get("navigation", True)
+DEPLOYMENT = custom_settings.get("deployment", "legacy")
+LEGACY_USER_FILE = Path(custom_settings.get("legacy_users_file", ""))
+GRPC_PORT = custom_settings.get("grpc_port", True)
 
 # Application definition
 
@@ -89,6 +92,84 @@ DATABASES = {
 
 SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
 
+# Logging
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'default': {
+            'format': '{levelname} {asctime} {module}: {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'filters': {
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'filters': ['require_debug_true'],
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple'
+        },
+        'file': {
+            'level': 'DEBUG',
+            'filters': ['require_debug_true'],
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'debug.log',
+            'formatter': 'simple'
+        },
+        'ceph_debug_file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filters': ['require_debug_true'],
+            'filename': Path(custom_settings.get("logging_dir", BASE_DIR)) / 'debug.log',
+            'formatter': 'default'
+        },
+        'ceph_info_file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': Path(custom_settings.get("logging_dir", BASE_DIR)) / 'info.log',
+            'formatter': 'default'
+        },
+        'ceph_warn_file': {
+            'level': 'WARNING',
+            'class': 'logging.FileHandler',
+            'filename': Path(custom_settings.get("logging_dir", BASE_DIR)) / 'warnings.log',
+            'formatter': 'default'
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'ceph_debug_file'],
+            'propagate': True,
+        },
+        'django.requests': {
+            'handlers': ['console', 'ceph_warn_file', 'ceph_info_file'],
+            'propagate': True,
+        },
+        'django.server': {
+            'handlers': ['console', 'ceph_warn_file', 'ceph_info_file'],
+            'propagate': True,
+        },
+        'tira': {
+            'handlers': ['console', 'ceph_warn_file', 'ceph_info_file'],
+            'propagate': True,
+        },
+    }
+}
+
+
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
 
@@ -125,10 +206,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = '/public/'
 
 STATICFILES_DIRS = [
-    BASE_DIR / "static",
+    BASE_DIR / "static/",
+    BASE_DIR / "tira/static/"
 ]
 
-STATIC_ROOT = "/var/www/static"
+STATIC_ROOT = "/var/www/public"

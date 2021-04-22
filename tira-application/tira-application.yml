@@ -27,20 +27,25 @@ spec:
     spec:
       containers:
       - name: tira-web-client-2
-        image: webis/tira-web-2:latest
+        image: webis/tira-web-2:0.0.4
         imagePullPolicy: Always
         volumeMounts:
         - mountPath: "/mnt/ceph/tira"
           name: tira-cephfs
-          readOnly: true
         - mountPath: "/tira/tira-application/src/config/settings-deploy.yml"
           name: config-yml
           subPath: settings-deploy.yml
+        - mountPath: "/etc/discourse/client-api-key"
+          name: tira-discourse-api-key
+          subPath: key
       volumes:
       - name: tira-cephfs
         hostPath:
           path: /mnt/ceph/tira
           type: Directory
+      - name: tira-discourse-api-key
+        secret:
+          secretName: tira-discourse-api-key
       - name: config-yml
         configMap:
           name: tira-web2-config

@@ -1,5 +1,5 @@
 #!/bin/bash -e
 
 echo "Apply tira deployment to kubernetes"
-kubectl -n webisservices apply -f tira.yml
+kubectl apply -n webisservices -f tira.yml
 

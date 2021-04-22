@@ -21,7 +21,7 @@ The discourse production environent contains:
 To deploy the files named basic scripts are provided.
 
 ## By Script
-To deploy via script all you have to do by hand is fill the information sufficient for your service into `prod/data.yml`. Best create a copy with name `your_service_name.yml` for that.
+To deploy via script all you have to do by hand is fill the information sufficient for your service into `prod/data.yml`. Best create a copy with name `your_service_name.yml` for that. **BE SURE THAT THIS INFORMATION IS NEVER LEAKED TO THE PUBLIC! The SMTP user WILL be highjacked.**
 
 **_NOTE_**: The `developer_emails` should be a comma-separated list of mails, not a yaml-list.
 
@@ -105,7 +105,7 @@ Next use discourse_dockers launcher to setup the configuration for image creatio
 # ./discourse-setup
 ```
 
-You will be asked for the following information:
+You will be asked for the following information. You do not actually have to give the information here, since Discourse will pull the information from the [earlier created secret](#secret). You may just supply dummy information.
 
 ```
 Hostname for your Discourse? [discourse.example.com]: 
@@ -120,7 +120,7 @@ Let's Encrypt account email? (ENTER to skip) [me@example.com]:
 When filling these be sure to also overwrite the `SMTP port` with `587` (if your SMTP server listens to that), even when it seems to default to `587`. 
 If you don't there might be problems with sending mail, because Discourse (sometimes) uses `25` else. Requests on port `25` cannot reach AWS SES servers from the Webis network (for some reason).
 
-**_IMPORTANT_**: If there occurs any error (which is very likely already at the domain check) you have to edit `containers/app.yml` yourself. If so, enter the information which is mentioned [above](https://github.com/BastianGrahm/discourse-k8s-deploy/blob/master/README.md#L68) at the position you find it in the file.
+**_IMPORTANT_**: If there occurs any error (which is very likely already at the domain check) you have to edit `containers/app.yml` yourself. If so, enter the information which is mentioned [above](https://github.com/tira-io/tira/edit/master/tira-discourse-deployment/README.md#L68) at the position you find it in the file.
 When you entered them restart the building process via `./launcher rebuild app`. Do not skip this!
 
 So after the setup edit the file at `containers/app.yml` as follows:
@@ -200,3 +200,34 @@ It will proceed to push the image to Dockerhub once with the tag you gave and on
 The script will fail if the given tag already exists for the image so you don't override images.
 
 ## Development environment
+
+The discourse development environent contains:
+  - 1 Service                 ([dev/discourse-dev.yml](dev/discourse-dev.yml))
+  - 1 Deployment              ([dev/discourse-dev.yml](dev/discourse-dev.yml))
+  - 1 PersistentVolumeClaim   ([dev/persistent-volume.yml](dev/persistent-volume.yml))
+  
+To deploy the files named basic scripts are provided.
+
+### Deploying
+
+First, to prevent collision with other development instances you have to choose a port `<PORT>` for your instance. Or rather 2. One for http and one for the mailcatcher. Do this by editing the Service in ([dev/discourse-dev.yml](dev/discourse-dev.yml)) at spec.ports accordingly (from 3080X to something you choose).
+If the nodePorts you choose are already occupied in the cluster the pod won't be able to start up and you have to choose others.
+
+After that deployment of the development environment is as simple as running `./k8s-deploy-discourse-dev.sh -n <NAMESPACE>`, where `<NAMESPACE>` refers to the namespace you want to deploy in.
+All the heavy lifting is then done by the configs and the commands executed there.
+After the pod started, you have the possibility to read through the (pretty short) logs produces while starting up by using `./logs.sh -n <NAMESPACE>`. This is also very handy for unexpected issues.
+
+Right after startup a admin account for the Discourse instance needs to be created. Because this instance is in production mode, and emails can therefore not be sent this has to be done manually with the `create-admin` script via `./create-admin.sh -n <NAMESPACE>`.
+
+Now the instance is visitable on any betaweb machine at port `30804`. Be aware that `betawebXXX.medien.uni-weimar.de:30804` does not work, but only `betawebXXX:30804` does.
+
+### Undeploying
+
+This works the same way, as for the production instance basically.
+Remove the deployment by:
+
+```
+$ prod/k8s-undeploy-discourse-dev.sh
+```
+
+Your volumes will not be removed by this. Only `Service` and `Deployment` are defined in `prod/discourse-prod.yml` and therefore only these will be deleted here. This secures persistent data to be persistent across deploys.

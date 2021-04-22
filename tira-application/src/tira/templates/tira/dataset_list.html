@@ -48,10 +48,10 @@
         {% if dataset.is_deprecated is not True %}
         <tr>
             <td id="task-{{ dataset }}"></td>
-            <td class="uk-text-truncate uk-width-1-2"><a href="{% url 'tira:dataset-detail' dataset_id=id %}">{{ dataset.name }}</a></td>
+            <td class="uk-text-truncate uk-width-1-2"><a href="{% url 'tira:dataset-detail' task_id=dataset.task dataset_id=id %}">{{ dataset.dataset_id }}</a></td>
             <td>{{ dataset.organizer }}</td> <!-- organizer -->
-            <td>{{ dataset.task }}</td> <!-- default task -->
-            <td>{{ dataset.softwares }}</td> <!-- default task -->
+            <td><a href="{% url 'tira:task-detail' task_id=dataset.task %}">{{ dataset.task }}</a></td> <!-- default task -->
+            <td>{{ dataset.software_count }}</td> <!-- default task -->
             <td class="uk-text-center">{{ dataset.year }}</td>
         </tr>
         {% endif %}
@@ -66,8 +66,9 @@
     </div>
 </div>
 </main>
-
+{% if not include_navigation %}
 <script src="https://assets.webis.de/js/thirdparty/jquery/jquery.slim.min.js"></script>
+{% endif %}
 <script src="https://assets.webis.de/js/thirdparty/fontawesome/fontawesome.min.js"></script>
 <script src="https://assets.webis.de/js/thirdparty/fontawesome/solid.min.js"></script>
 <script src="https://assets.webis.de/js/filter.js"></script>
