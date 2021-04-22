@@ -47,5 +47,14 @@ fi
 
 sudo ssh-keygen -A -v
 sudo service ssh start
-#tail -f /dev/null
-python3 /usr/lib/tira/tira_host/TiraHostService.py
+
+# Don't start grpc service if started as local dev environment
+DEV=$DEV
+if [ -z ${DEV+x} ];
+then
+  tail -f /dev/null
+  # Start grpc service with code change tracking: when the code is changed, reload the service
+  #watchmedo auto-restart --recursive --pattern="*.py" --ignore-patterns="grpc_client_test.py" --directory="/tira/tira_host" python3 -- -m grpc_service
+else
+  python3 grpc_service.py
+fi

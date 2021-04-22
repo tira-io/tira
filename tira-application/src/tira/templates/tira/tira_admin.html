@@ -1,0 +1,218 @@
+{% extends 'tira/base.html' %}
+{% load static %}
+{% block title %}TIRA - Admin{% endblock %}
+{% block description %}TIRA - Admin{% endblock %}
+{% block navbar %}{% include "tira/navbar.html" with nav_active='index' %}{% endblock %}
+
+{% block content %}
+
+<nav class="uk-container">
+    <ul class="uk-breadcrumb">
+        <li><a href="{% url 'tira:index' %}">Tira.io</a></li>
+        <li class="uk-disabled"><a href="#">Admin Panel</a></li>
+    </ul>
+</nav>
+
+<main class="uk-section uk-section-default">
+    <div class="uk-container">
+        <h1>Admin Panel</h1>
+        <ul class="uk-list uk-list-collapse uk-list-striped" uk-accordion>
+            <li>
+                <a class="uk-accordion-title" href="#">Active VMs ({{ vm_list|length }})</a>
+                <div class="uk-accordion-content">
+                    <table class="uk-margin-medium uk-table uk-table-divider uk-table-small sortable">
+                        <thead>
+                        <tr>
+                            <th></th>
+                            <th class="header"><span>VM_ID</span></th>
+                            <th class="header"><span>Actions</span></th>
+                            <th class="header"><span>Host</span></th>
+                            <th class="header"><span>State</span></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for vm in vm_list %}
+                        <tr>
+                            <td></td>
+                            <td>{{ vm.1 }}</td>
+                            <td>[delete]</td>
+                            <td>{{ vm.0 }}</td>
+                            <td>{{ vm.2 }}</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </li>
+            <li>
+                <a class="uk-accordion-title" href="#">Registered Hosts ({{ host_list|length }})</a>
+                <div class="uk-accordion-content">
+                    <table class="uk-margin-medium uk-table uk-table-divider uk-table-small sortable">
+                        <thead>
+                        <tr>
+                            <th></th>
+                            <th class="header"><span>Hostname</span></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for host in host_list %}
+                        <tr>
+                            <td></td>
+                            <td>{{ host }}</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </li>
+            <li>
+                <a class="uk-accordion-title" href="#">Available OVAs ({{ ova_list|length }})</a>
+                <div class="uk-accordion-content">
+                    <table class="uk-margin-medium uk-table uk-table-divider uk-table-small sortable">
+                        <thead>
+                        <tr>
+                            <th></th>
+                            <th class="header"><span>OVA</span></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for ova in ova_list %}
+                        <tr>
+                            <td></td>
+                            <td>{{ ova }}</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </li>
+        </ul>
+
+        <h2>System Actions</h2>
+        <ul>
+            <li><a id="reload-website-data">Reload Website Data</a><span id="reload-website-data-icon"></span></li> <!-- This is called via ajax-->
+            <li>TODO: Run Integration Test</li>
+<!--            <li><a id="tira-admin-integration-test">Run Integration Test</a><span id="tira-admin-integration-test-icon"></span></li>-->
+            <li>TODO: Check System Coherence</li>
+<!--            <li><a id="tira-admin-coherence" disabled>Check System Coherence</a><span id="tira-admin-coherence-icon"></span></li>-->
+        </ul>
+
+
+        <div class="uk-grid-small uk-child-width-1-2@m" data-uk-grid>
+            <div>
+                <h2>Create VMs</h2>
+                <form id="create-vm-form" action="{% url 'tira:tira-admin-create-vm' %}" method="POST" target="_blank">
+                    {% csrf_token %}
+                    <div>
+                    {{ create_vm_form }}
+                    </div>
+                    <span id="create-vm-form-error" style="color: red"></span>
+                    <br>
+                    <input type="submit" class="uk-button uk-button-primary" value="Create VMs"/><span id="create-vm-form-icon"></span>
+                </form>
+                <div id="create-vm-form-results"></div>
+            </div>
+            <div>
+                <h2>Archive VMs</h2>
+                <form id="archive-vm-form" action="{% url 'tira:tira-admin-archive-vm' %}" method="POST" target="_blank">
+                    {% csrf_token %}
+                    <div>
+                    {{ archive_vm_form }}
+                    </div>
+                    <span id="archive-vm-form-error" style="color: red"></span>
+                    <br>
+                    <input type="submit" class="uk-button uk-button-primary" value="Archive VMs"/><span id="archive-vm-form-icon"></span>
+                </form>
+                <div id="archive-vm-form-results"></div>
+            </div>
+        </div>
+
+        <h2>Modify VM</h2>
+        <form id="modify-vm-form" action="{% url 'tira:tira-admin-modify-vm' %}" method="POST" target="_blank">
+            {% csrf_token %}
+            <div class="uk-grid-small uk-child-width-1-2@m" data-uk-grid>
+                <div>{{ modify_vm_form.vm_id.label }}{{ modify_vm_form.vm_id }}</div>
+                <div class="uk-grid-small uk-child-width-1-4@m" data-uk-grid>
+                    <div>{{ modify_vm_form.memory.label }}{{ modify_vm_form.memory }}</div>
+                    <div>{{ modify_vm_form.cpu.label }}{{ modify_vm_form.cpu }}</div>
+                    <div>{{ modify_vm_form.storage.label }}{{ modify_vm_form.storage }}</div>
+                    <div>{{ modify_vm_form.storage_type.label }}{{ modify_vm_form.storage_type }}</div>
+                </div>
+            </div>
+            <span id="modify-vm-form-error" style="color: red"></span>
+            <br>
+            <input type="submit" class="uk-button uk-button-primary" value="Modify VM"/>
+        </form>
+        <div id="modify-vm-form-results"></div>
+
+        <h2>Create Task</h2> <!-- this is called via ajax -->
+        <form id="create-task-form" action="{% url 'tira:tira-admin-create-task' %}" method="POST" target="_blank">
+            {% csrf_token %}
+            <div class="uk-grid-small uk-child-width-1-5@m" data-uk-grid>
+                <div>{{ create_task_form.task_id.label }}{{ create_task_form.task_id }}</div>
+                <div>{{ create_task_form.task_name.label }}{{ create_task_form.task_name }}</div>
+                <div>{{ create_task_form.master_vm_id.label }}{{ create_task_form.master_vm_id }}</div>
+                <div>{{ create_task_form.organizer.label }}{{ create_task_form.organizer }}</div>
+                <div>{{ create_task_form.website.label }}{{ create_task_form.website }}</div>
+            </div>
+            <br>
+            <div>{{ create_task_form.task_description.label }}{{ create_task_form.task_description }}</div>
+            <span id="create-task-form-error" style="color: red"></span>
+            <br>
+            <input type="submit" class="uk-button uk-button-primary" value="Create Task"/><span id="create-task-form-icon"></span>
+        </form>
+
+        <h2>Add Dataset</h2>
+        <form id="add-dataset-form" action="{% url 'tira:tira-admin-add-dataset' %}" method="POST" target="_blank"> <!--            action="{% url 'tira:tira-admin-add-dataset' %}"-->
+            {% csrf_token %}
+            <div class="uk-grid-small uk-child-width-1-3@m" data-uk-grid>
+                <div>
+                    <div>{{ add_dataset_form.dataset_name.label }}*{{ add_dataset_form.dataset_name }}</div>
+                    <div>{{ add_dataset_form.task_id.label }}*{{ add_dataset_form.task_id }}</div>
+                </div>
+                <div>
+                    <div>{{ add_dataset_form.dataset_id_prefix.label }}{{ add_dataset_form.dataset_id_prefix }}</div>
+                    <div>{{ add_dataset_form.master_vm_id.label }}*{{ add_dataset_form.master_vm_id }}</div>
+                </div>
+                <div class="uk-align-center">
+                    <div>{{ add_dataset_form.create_training }} {{ add_dataset_form.create_training.label }}</div>
+                    <div>{{ add_dataset_form.create_test }} {{ add_dataset_form.create_test.label }}</div>
+                    <div>{{ add_dataset_form.create_dev }} {{ add_dataset_form.create_dev.label }}</div>
+                </div>
+            </div>
+
+            <div class="uk-grid-small uk-child-width-1-2@m" data-uk-grid>
+                <div>
+                    <div>{{ add_dataset_form.command.label }}{{ add_dataset_form.command }}</div>
+                    <div>{{ add_dataset_form.working_directory.label }}{{ add_dataset_form.working_directory }}</div>
+                </div>
+                <div>{{ add_dataset_form.measures.label }}{{ add_dataset_form.measures }}</div>
+                <div>*mandatory</div>
+            </div>
+            <br>
+            <span id="add-dataset-form-error" style="color: red"></span>
+            <br>
+            <input type="submit" class="uk-button uk-button-primary" value="Add Dataset"/><span id="add-dataset-form-icon"></span>
+        </form>
+    </div>
+
+    <div class="uk-container">
+
+    </div>
+</main>
+
+{% if include_navigation %}
+<script src="https://assets.webis.de/js/thirdparty/jquery/jquery.slim.min.js"></script>
+<script src="https://assets.webis.de/js/thirdparty/fontawesome/fontawesome.min.js"></script>
+<script src="https://assets.webis.de/js/thirdparty/fontawesome/solid.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+{% endif %}
+<script src="https://assets.webis.de/js/filter.js"></script>
+<script src="https://assets.webis.de/js/selection.js"></script>
+<script src="https://assets.webis.de/js/tables.js"></script>
+<script>initWebisTableFiltering();</script>
+<script>initTableSorting();</script>
+<script src="{% static 'tira/js/tira-admin.js' %}"></script>
+<script>addTiraAdminHandlers()</script>
+
+{% endblock %}

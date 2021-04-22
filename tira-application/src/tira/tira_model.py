@@ -2,10 +2,14 @@
 p.stat().st_mtime - change time
 """
 from google.protobuf.text_format import Parse
+from google.protobuf.json_format import MessageToDict
 from pathlib import Path
 import logging
 from django.conf import settings
+import socket
+
 from .proto import TiraClientWebMessages_pb2 as modelpb
+from .proto import tira_host_pb2 as model_host
 
 logger = logging.getLogger(__name__)
 
@@ -13,31 +17,62 @@ logger = logging.getLogger(__name__)
 class FileDatabase(object):
     tira_root = settings.TIRA_ROOT
     tasks_dir_path = tira_root / Path("model/tasks")
+    users_file_path = tira_root / Path("model/users/users.prototext")
     organizers_file_path = tira_root / Path("model/organizers/organizers.prototext")
+    vm_list_file = tira_root / Path("model/virtual-machines/virtual-machines.txt")
+    vm_dir_path = tira_root / Path("model/virtual-machines")
+    host_list_file = tira_root / Path("model/virtual-machine-hosts/virtual-machine-hosts.txt")
+    ova_dir = tira_root / Path("data/virtual-machine-templates/")
     datasets_dir_path = tira_root / Path("model/datasets")
     softwares_dir_path = tira_root / Path("model/softwares")
+    data_path = tira_root / Path("data/datasets")
+    commands_dir_path = tira_root / Path("state/commands/")
+    command_logs_path = tira_root / Path(f"log/virtual-machine-hosts/{socket.gethostname()}/")
     RUNS_DIR_PATH = tira_root / Path("data/runs")
 
     def __init__(self):
         logger.info("Start loading dataset")
-        self.organizers = self._parse_organizer_list()
+        self.organizers = None  # dict of host objects host_id: modelpb.Host
+        self.vms = None  # dict of vm_id: modelpb.User
+        self.tasks = None  # dict of task_id: modelpb.Tasks.Task
+        self.datasets = None  # dict of dataset_id: modelpb.Dataset
+        self.software = None  # dict of task_id$vm_id: modelpb.Software
+        self.default_tasks = None  # dataset_id: task_id
+        self.task_organizers = None  # dataset_id: modelpb.Hosts.Host.name
+        self.software_by_task = None  # task_id: [modelpb.Software]
+        self.software_by_vm = None  # vm_id: [modelpb.Software]
+        self.software_count_by_dataset = None  # dataset_id: int()
+        self.commandState = None
+        self.command_logs_path.mkdir(exist_ok=True, parents=True)
 
-        self.softwares_by_task, self.softwares_by_user = self._parse_softwares_list()
-        self.softwares_count_by_dataset = {}
-        for k, v in self.softwares_by_task.items():
-            for d in v:
-                self.softwares_count_by_dataset.setdefault(d["dataset"], 0) + 1
+        self.build_model()
 
-        self.tasks, self.default_tasks, self.task_organizers = self._parse_task_list()
-        self.datasets = self._parse_dataset_list()
+    def build_model(self):
+        self._parse_organizer_list()
+        self._parse_vm_list()
+        self._parse_task_list()
+        self._parse_dataset_list()
+        self._parse_software_list()
+        self._parse_command_state()
 
+        self._build_task_relations()
+        self._build_software_relations()
+        self._build_software_counts()
+
+    # _parse methods parse files once on startup
     def _parse_organizer_list(self):
         """ Parse the PB Database and extract all hosts.
         :return: a dict {hostId: {"name", "years"}
         """
         organizers = modelpb.Hosts()
         Parse(open(self.organizers_file_path, "r").read(), organizers)
-        return {org.hostId: {"name": org.name, "years": org.years} for org in organizers.hosts}
+
+        self.organizers = {org.hostId: org for org in organizers.hosts}
+
+    def _parse_vm_list(self):
+        users = modelpb.Users()
+        Parse(open(self.users_file_path, "r").read(), users)
+        self.vms = {user.userName: user for user in users.users}
 
     def _parse_task_list(self):
         """ Parse the PB Database and extract all tasks.
@@ -46,204 +81,540 @@ class FileDatabase(object):
         2. a dict with default tasks of datasets {"dataset_id": "task_id"}
         """
         tasks = {}
-        default_tasks = {}
-        task_organizers = {}
 
         for task_path in self.tasks_dir_path.glob("*"):
             task = Parse(open(task_path, "r").read(), modelpb.Tasks.Task())
-            tasks[task.taskId] = {"name": task.taskName, "description": task.taskDescription,
-                                  "dataset_count": len(task.trainingDataset) + len(task.testDataset),
-                                  "softwares_count": len(self.softwares_by_task.get(task.taskId, {0})),
-                                  "web": task.web, "organizer": self.organizers.get(task.hostId, dict()).get("name", "None"),
-                                  "year": self.organizers.get(task.hostId, dict()).get("years", "None")
-                                  }
-            for td in task.trainingDataset:
-                default_tasks[td] = task.taskId
-                task_organizers[td] = self.organizers.get(task.hostId, dict()).get("name", "None")
-            for td in task.testDataset:
-                default_tasks[td] = task.taskId
-                task_organizers[td] = self.organizers.get(task.hostId, dict()).get("name", "None")
+            tasks[task.taskId] = task
 
-        return tasks, default_tasks, task_organizers
+        self.tasks = tasks
 
     def _parse_dataset_list(self):
-        """ Load all the datasets from the Filedatabase. Combines with information parsed from tasks
-        :return: a dict {dataset_id: {name, "evaluator_id", "is_confidential", "is_deprecated",
-                    "year", "task", 'organizer'}}
+        """ Load all the datasets from the Filedatabase.
+        :return: a dict {dataset_id: dataset protobuf object}
         """
+        datasets = {}
+        for dataset_file in self.datasets_dir_path.rglob("*.prototext"):
+            dataset = Parse(open(dataset_file, "r").read(), modelpb.Dataset())
+            datasets[dataset.datasetId] = dataset
 
-        def extract_year_from_dataset_id(dataset_id):
+        self.datasets = datasets
+
+    def _parse_software_list(self):
+        """ extract the software files. We invent a new id for the lookup since software has none:
+          - <task_name>$<user_name>
+        Afterwards sets self.software: a dict with the new key and a list of software objects as value
+        """
+        software = {}
+
+        for task_dir in self.softwares_dir_path.glob("*"):
+            for user_dir in task_dir.glob("*"):
+                s = Parse(open(user_dir / "softwares.prototext", "r").read(), modelpb.Softwares())
+                software_list = [user_software for user_software in s.softwares if not user_software.deleted]
+                software[f"{task_dir.stem}${user_dir.stem}"] = software_list
+
+        self.software = software
+
+    def _parse_command_state(self):
+        """ Parse the command state file. """
+        command_states_path = self.commands_dir_path / f"{socket.gethostname()}.prototext"
+        if command_states_path.exists():
+            self.commandState = Parse(open(command_states_path, "r").read(), model_host.CommandState())
+        else:
+            self.commandState = model_host.CommandState()
+            self.commands_dir_path.mkdir(exist_ok=True, parents=True)
+            open(command_states_path, 'w').write(str(self.commandState))
+
+    # _build methods reconstruct the relations once per parse. This is a shortcut for frequent joins.
+    def _build_task_relations(self):
+        """ parse the relation dicts self.default_tasks and self.task_organizers from self.tasks
+        """
+        default_tasks = {}
+        task_organizers = {}
+        for task_id, task in self.tasks.items():
+            for td in task.trainingDataset:
+                default_tasks[td] = task.taskId
+                task_organizers[td] = self.organizers.get(task.hostId, modelpb.Hosts.Host()).name
+            for td in task.testDataset:
+                default_tasks[td] = task.taskId
+                task_organizers[td] = self.organizers.get(task.hostId, modelpb.Hosts.Host()).name
+
+        self.default_tasks = default_tasks
+        self.task_organizers = task_organizers
+
+    def _build_software_relations(self):
+        software_by_task = {}
+        software_by_vm = {}
+
+        for software_id, software_list in self.software.items():
+            task_id = software_id.split("$")[0]
+            vm_id = software_id.split("$")[1]
+            _swbd = software_by_task.get(task_id, list())
+            _swbd.extend(software_list)
+            software_by_task[task_id] = _swbd
+
+            _swbu = software_by_vm.get(vm_id, list())
+            _swbu.extend(software_list)
+            software_by_vm[vm_id] = _swbu
+
+        self.software_by_vm = software_by_vm
+        self.software_by_task = software_by_task
+
+    def _build_software_counts(self):
+        counts = {}
+
+        for software_list in self.software.values():
+            for software in software_list:
+                c = counts.get(software.dataset, 0)
+                c += 1
+                counts[software.dataset] = c
+
+        self.software_count_by_dataset = counts
+
+    # _load methods parse files on the fly when pages are called
+    def _load_review(self, dataset_id, vm_id, run_id):
+        review_path = self.RUNS_DIR_PATH / dataset_id / vm_id / run_id / "run-review.bin"
+        if not review_path.exists():
+            review = modelpb.RunReview()
+            review.reviewerId = ""
+            return review
+        review = modelpb.RunReview()
+        review.ParseFromString(open(review_path, "rb").read())
+        return review
+
+    def _load_user_reviews(self, dataset_id, vm_id):
+        reviews = {}
+        for run_id_dir in (self.RUNS_DIR_PATH / dataset_id / vm_id).glob("*"):
+            if not (run_id_dir / "run.bin").exists():
+                review = modelpb.RunReview()
+                review.runId = run_id_dir.stem
+                review.reviewerId = 'tira'
+                review.reviewDate = ""
+                review.comment = "Internal Error: No run definition recorded. Please contact the support."
+                review.hasErrors = True
+                review.hasWarnings = False
+                review.hasNoErrors = False
+                review.blinded = False
+
+                reviews[run_id_dir.stem] = review
+                continue
+
+            reviews[run_id_dir.stem] = self._load_review(dataset_id, vm_id, run_id_dir.stem)
+
+        return reviews
+
+    def _load_vm(self, vm_id):
+        """ load a vm object from vm_dir_path """
+        return Parse(open(self.vm_dir_path / f"{vm_id}.prototext").read(), modelpb.VirtualMachine())
+
+    def _get_review(self, review):
+        return {"reviewer": review.reviewerId, "noErrors": review.noErrors, "missingOutput": review.missingOutput,
+                "extraneousOutput": review.extraneousOutput, "invalidOutput": review.invalidOutput,
+                "hasErrorOutput": review.hasErrorOutput, "otherErrors": review.otherErrors,
+                "comment": review.comment, "hasErrors": review.hasErrors, "hasWarnings": review.hasWarnings,
+                "hasNoErrors": review.hasNoErrors, "published": review.published, "blinded": review.blinded
+                }
+
+    def _load_vm_runs(self, dataset_id, vm_id, include_evaluations):
+        """ load all run's data.
+        @param include_evaluations: If True, also load evaluator runs (where an evaluation.bin exists)
+        """
+        runs = {}
+        for run_id_dir in (self.RUNS_DIR_PATH / dataset_id / vm_id).glob("*"):
+            if not (run_id_dir / "run.bin").exists():
+                run = modelpb.Run()
+                run.softwareId = ""
+                run.runId = run_id_dir.stem
+                run.inputDataset = dataset_id
+                runs[run_id_dir.stem] = run
+                continue
+
+            run = modelpb.Run()
+            run.ParseFromString(open(run_id_dir / "run.bin", "rb").read())
+            if run.deleted:
+                continue
+            if include_evaluations is False and (run_id_dir / "output" / "evaluation.bin").exists():
+                continue
+            runs[run.runId] = self._get_run(run)
+        return runs
+
+    def _get_run(self, run):
+        return {"software": run.softwareId,
+                "run_id": run.runId, "input_run_id": run.inputRun,
+                "dataset": run.inputDataset, "downloadable": run.downloadable}
+
+    def _load_vm_evaluations(self, dataset_id, vm_id, only_published):
+        """ load all evaluations for a user on a given dataset
+
+        :param dataset_id: id/name of the dataset
+        :param vm_id: id/name of the user
+        :param runs: a run dict as loaded by _load_user_runs: {run_id: {software, run_id, input_run_id, size, lines, files, dirs, downloadable, review}}
+        :return 1: keys of the measures
+        :return 2: [{run_id, vm_id, software, input_run_id, measures: {}, runtime}]
+        """
+        evaluations = {}
+        # measure_keys = set()
+        for run_id_dir in (self.RUNS_DIR_PATH / dataset_id / vm_id).glob("*"):
+            if not (run_id_dir / "output/evaluation.bin").exists():
+                continue
+            # if not runs[run_id_dir.stem]["review"].get("reviewer", False):
+            #     continue
+            if only_published is True and self._load_review(dataset_id, vm_id, run_id_dir.stem).published is False:
+                continue
+
+            evaluation = modelpb.Evaluation()
+            evaluation.ParseFromString(open(run_id_dir / "output/evaluation.bin", "rb").read())
+
+            # if not measure_keys:
+            #     measure_keys.update({measure.key for measure in evaluation.measure})
+            #
+            # measures = {measure.key: measure.value for measure in evaluation.measure}
+            evaluations[run_id_dir.stem] = evaluation
+
+        return evaluations
+
+    def _get_evaluation(self, evaluation):
+        return {measure.key: measure.value for measure in evaluation.measure}
+
+    # ---------------------------------------------------------------------
+    # ---- save methods to update protos
+    # ---------------------------------------------------------------------
+
+    def _save_task(self, task_proto, overwrite=False):
+        """ makes persistant changes to task: store in memory and to file.
+         Returns false if task exists and overwrite is false. """
+        # open(f'/home/tira/{task_id}.prototext', 'wb').write(new_task.SerializeToString())
+        new_task_file_path = self.tasks_dir_path / f'{task_proto.taskId}.prototext'
+        if not overwrite and new_task_file_path.exists():
+            return False
+        self.tasks[task_proto.taskId] = task_proto
+        open(new_task_file_path, 'w').write(str(task_proto))
+        self._build_task_relations()
+        return True
+
+    def _save_vm(self, vm_proto, overwrite=False):
+        new_vm_file_path = self.vm_dir_path / f'{vm_proto.virtualMachineId}.prototext'
+        if not overwrite and new_vm_file_path.exists():
+            return False
+        # self.vms[vm_proto.virtualMachineId] = vm_proto  # TODO see issue:30
+        open(new_vm_file_path, 'w').write(str(vm_proto))
+        return True
+
+    def _save_dataset(self, dataset_proto, task_id, overwrite=False):
+        """ dataset_dir_path/task_id/dataset_id.prototext """
+        new_dataset_file_path = self.datasets_dir_path / task_id / f'{dataset_proto.datasetId}.prototext'
+        if not overwrite and new_dataset_file_path.exists():
+            return False
+        (self.datasets_dir_path / task_id).mkdir(exist_ok=True, parents=True)
+        open(new_dataset_file_path, 'w').write(str(dataset_proto))
+        self.datasets[dataset_proto.datasetId] = dataset_proto
+        return True
+
+    # get methods are the public interface.
+    def get_vm(self, vm_id: str):
+        # TODO should return as dict
+        return self.vms[vm_id]
+
+    def get_tasks(self) -> list:
+        tasks = [self.get_task(task.taskId)
+                 for task in self.tasks.values()]
+        return tasks
+
+    def get_task(self, task_id: str) -> dict:
+        t = self.tasks[task_id]
+        return {"task_name": t.taskName,
+                "description": t.taskDescription,
+                "task_id": t.taskId,
+                "dataset_count": len(t.trainingDataset) + len(t.testDataset),
+                "software_count": len(self.software_by_task.get(t.taskId, {0})),
+                "web": t.web,
+                "organizer": self.organizers.get(t.hostId, modelpb.Hosts.Host()).name,
+                "year": self.organizers.get(t.hostId, modelpb.Hosts.Host()).years
+                }
+
+    def get_dataset(self, dataset_id: str) -> dict:
+
+        def extract_year_from_dataset_id():
             try:
                 splits = dataset_id.split("-")
                 return splits[-3] if len(splits) > 3 and (1990 <= int(splits[-3])) else ""
             except Exception:
                 return ""
 
-        datasets = {}
-        for dataset_file in self.datasets_dir_path.rglob("*.prototext"):
-            dataset = Parse(open(dataset_file, "r").read(), modelpb.Dataset())
-            datasets[dataset.datasetId] = {
-                "name": dataset.datasetId, "evaluator_id": dataset.evaluatorId,
-                "is_confidential": dataset.isConfidential, "is_deprecated": dataset.isDeprecated,
-                "year": extract_year_from_dataset_id(dataset.datasetId),
-                "task": self.default_tasks.get(dataset.datasetId, ""),
-                'organizer': self.task_organizers.get(dataset.datasetId, ""),
-                "softwares": self.softwares_count_by_dataset.get(dataset.datasetId, 0)
-            }
-
-        return datasets
-
-    def _parse_softwares_list(self):
-        """ extract the softwares: {id, count, command, working_directory, dataset, run, creation_date, last_edit}
-         :returns softwares_by_task: a dict {task_name: [{software}, ], }
-         :returns softwares_by_user: a dict {user_id: [{software}, ], }
-         """
-
-        def parse_software_file(path):
-            s = Parse(open(path, "r").read(), modelpb.Softwares())
-            return [{"id": software.id, "count": software.count,
-                     "command": software.command, "working_directory": software.workingDirectory,
-                     "dataset": software.dataset, "run": software.run, "creation_date": software.creationDate,
-                     "last_edit": software.lastEditDate}
-                    for software in s.softwares if not software.deleted]
-
-        softwares_by_task = {}
-        softwares_by_user = {}
-        for dataset_dir in self.softwares_dir_path.glob("*"):
-            for user_dir in dataset_dir.glob("*"):
-                _sw = parse_software_file(user_dir / "softwares.prototext")
-                _swbd = softwares_by_task.get(dataset_dir.stem, list())
-                _swbd.extend(_sw)
-                softwares_by_task[dataset_dir.stem] = _swbd
-                _swbu = softwares_by_user.get(user_dir.stem, list())
-                _swbu.extend(_sw)
-                softwares_by_user[user_dir.stem] = _swbu
-
-        return softwares_by_task, softwares_by_user
-
-    def _load_review(self, dataset_id, user_id, run_id):
-        review_path = self.RUNS_DIR_PATH / dataset_id / user_id / run_id / "run-review.bin"
-        if not review_path.exists():
-            return {"reviewer": None}
-        review = modelpb.RunReview()
-        review.ParseFromString(open(review_path, "rb").read())
+        dataset = self.datasets[dataset_id]
         return {
-            "reviewer": review.reviewerId, "noErrors": review.noErrors, "missingOutput": review.missingOutput,
-            "extraneousOutput": review.extraneousOutput, "invalidOutput": review.invalidOutput,
-            "hasErrorOutput": review.hasErrorOutput, "otherErrors": review.otherErrors,
-            "comment": review.comment, "hasErrors": review.hasErrors, "hasWarnings": review.hasWarnings,
-            "hasNoErrors": review.hasNoErrors, "published": review.published, "blinded": review.blinded
+            "display_name": dataset.displayName, "evaluator_id": dataset.evaluatorId,
+            "dataset_id": dataset.datasetId,
+            "is_confidential": dataset.isConfidential, "is_deprecated": dataset.isDeprecated,
+            "year": extract_year_from_dataset_id(),
+            "task": self.default_tasks.get(dataset.datasetId, "None"),
+            'organizer': self.task_organizers.get(dataset.datasetId, ""),
+            "software_count": self.software_count_by_dataset.get(dataset.datasetId, 0)
         }
 
-    def _load_user_runs(self, dataset_id, user_id):
-        """
-        :return runs: {run_id: {}}
-        """
-        runs = {}
-        for run_id_dir in (self.RUNS_DIR_PATH / dataset_id / user_id).glob("*"):
-            if not (run_id_dir / "run.bin").exists():
-                runs[run_id_dir.stem] = {"software": "", "input_run_id": "", "run_id": run_id_dir.stem,
-                                         "dataset": dataset_id, "size": 0, "lines": 0, "files": 0, "dirs": 0,
-                                         "review": {"reviewer": "tira", "otherErrors": True, "hasErrors": True,
-                                                    "blinded": False, "published": False,
-                                                    "comment": "Software execution failed with NRFC-01. Please contact support."}}
-                continue
-            run = modelpb.Run()
-            run.ParseFromString(open(run_id_dir / "run.bin", "rb").read())
-            if not run.deleted:
-                runs[run.runId] = {"software": run.softwareId,
-                                   "run_id": run.runId, "input_run_id": run.inputRun,
-                                   "dataset": dataset_id, "size": "", "lines": "", "files": "", "dirs": "",
-                                   "downloadable": run.downloadable,
-                                   "review": self._load_review(dataset_id, user_id, run_id_dir.stem)}
-        return runs
+    def get_datasets(self) -> dict:
+        """ Get a dict of dataset_id: dataset_json_descriptor """
+        return {dataset_id: self.get_dataset(dataset_id) for dataset_id in self.datasets.keys()}
 
-    def _load_user_evaluations(self, dataset_id, user_id, runs, only_published=True):
-        """ load all evaluations for a user on a given dataset
-
-        :param dataset_id: id/name of the dataset
-        :param user_id: id/name of the user
-        :param runs: a run dict as loaded by _load_user_runs: {run_id: {software, run_id, input_run_id, size, lines, files, dirs, downloadable, review}}
-        :return 1: keys of the measures
-        :return 2: [{run_id, user_id, software, input_run_id, measures: {}, runtime}]
-        """
-        evaluations = []
-        measure_keys = set()
-        for run_id_dir in (self.RUNS_DIR_PATH / dataset_id / user_id).glob("*"):
-            if not runs[run_id_dir.stem]["review"].get("reviewer", False):
-                continue
-            if runs[run_id_dir.stem]["review"].get("published", False) is False and only_published is True:
-                continue
-            if not (run_id_dir / "output/evaluation.bin").exists():
-                continue
-
-            evaluation = modelpb.Evaluation()
-            evaluation.ParseFromString(open(run_id_dir / "output/evaluation.bin", "rb").read())
-
-            if not measure_keys:
-                measure_keys.update({measure.key for measure in evaluation.measure})
-
-            measures = {measure.key: measure.value for measure in evaluation.measure}
-            evaluations.append({"run_id": run_id_dir.stem, "user_id": user_id,
-                                "published": runs[run_id_dir.stem]["review"].get("published", False),
-                                "software": runs[run_id_dir.stem]["software"],
-                                "input_run_id": runs[run_id_dir.stem]["input_run_id"],
-                                "measures": measures, "runtime": ""})
-
-        return list(measure_keys), evaluations
-
-    def get_datasets_by_task(self, task_id: str) -> list:
+    def get_datasets_by_task(self, task_id: str, include_deprecated=False) -> list:
         """ return the list of datasets associated with this task_id
-        :return datasets: [{ }]
+        @param task_id: id string of the task the dataset belongs to
+        @param include_deprecated: Default False. If True, also returns datasets marked as deprecated.
+        @return: a list of json-formatted datasets, as returned by get_dataset
         """
-        return [dataset for dataset in self.datasets.values() if dataset["task"] == task_id]
+        return [self.get_dataset(dataset.datasetId)
+                for dataset in self.datasets.values()
+                if task_id == self.default_tasks.get(dataset.datasetId, "") and
+                not (dataset.isDeprecated and not include_deprecated)]
 
-    def get_dataset_runs(self, dataset_id, only_public_results=True) -> tuple:
-        """ return for all users on a given dataset_id: runs, evaluations, user_stats
-        Its equivalent to using the individual getters, but much faster
+    def get_organizer(self, organizer_id: str):
+        # TODO should return as dict
+        return self.organizers[organizer_id]
 
-        :return ev_keys: keys of the measures used in this dataset
-        :return user: dict of users and runs
-        :return status: {user_id: {signed_in, softwares, deleted, now_running, runs, reviewed, unreviewed}}
-        runs: {user_id: [{software, size, lines, files, dirs, review: {}}],
-        evaluations: {user_id: [{software, run_id, input_run_id, measures: {}, runtime}]}
+    # # TODO change accordingly with _load_runs
+    # # TODO should actually give us a list of all runs done on this dataset (without grouping)
+    # def get_dataset_runs(self, dataset_id, only_public_results=True) -> tuple:
+    #     """ return all runs for all users on a given dataset_id """
+    #     status = {}
+    #     runs = {}
+    #     evaluations = {}
+    #     ev_keys = set()
+    #     for user_run_dir in (self.RUNS_DIR_PATH / dataset_id).glob("*"):
+    #         # all of these are dicts
+    #         user_runs = self._load_vm_runs(dataset_id, user_run_dir.stem)
+    #         user_evaluations = self._load_vm_evaluations(dataset_id, user_run_dir.stem,
+    #                                                      only_published=only_public_results)
+    #         user_reviews = self._load_user_reviews(dataset_id, user_run_dir.stem)
+    #
+    #         keys = set()
+    #         for e in ev.values():
+    #             keys.update(e.keys())
+    #         keys = list(keys)
+    #
+    #         # runs[user_run_dir.stem] = list(r.values())
+    #
+    #         # update the measures evaluations to a list, following the order of the keys
+    #         evaluations[user_run_dir.stem] = ev
+    #         for eval in evaluations[user_run_dir.stem]:
+    #             m = eval["measures"]
+    #             eval["measures"] = [m[k] for k in keys]
+    #
+    #         unreviewed_count = sum([1 for x in runs[user_run_dir.stem] if not x["review"].get("reviewer", None)])
+    #         status[user_run_dir.stem] = {"user_id": user_run_dir.stem,
+    #                                      "signed_in": "", "softwares": "", "deleted": "", "now_running": "",
+    #                                      "runs": len(runs[user_run_dir.stem]),
+    #                                      "reviewed": "", "unreviewed": unreviewed_count}  # TODO dummy
+    #
+    #     return ev_keys, status, runs, evaluations
+
+    def get_host_list(self) -> list:
+        return list(open(self.host_list_file, "r").readlines())
+
+    def get_ova_list(self) -> list:
+        return [f"{ova_file.stem}.ova" for ova_file in self.ova_dir.glob("*.ova")]
+
+    def get_vm_list(self):
+        """ load the vm-info file which stores all active vms as such:
+        <hostname>\t<vm_id>[\t<state>]\n
+        ...
+
+        returns a list of tuples (hostname, vm_id, state)
         """
-        status = {}
-        runs = {}
-        evaluations = {}
-        ev_keys = set()
-        for user_run_dir in (self.RUNS_DIR_PATH / dataset_id).glob("*"):
-            r = self._load_user_runs(dataset_id, user_run_dir.stem)
-            keys, ev = self._load_user_evaluations(dataset_id, user_run_dir.stem, r, only_published=only_public_results)
-            runs[user_run_dir.stem] = list(r.values())
+        vm_list = []
+        for line in open(self.vm_list_file, 'r'):
+            l = line.split("\t")
+            try:
+                vm_list.append([l[0], l[1].strip(), l[2].strip() if len(l) > 2 else ''])
+            except IndexError as e:
+                print(e)
+                print(line)
+        return vm_list
 
-            # as keys for the measures, we use the first non-empty set of keys we encounter
-            if keys and not ev_keys:
-                ev_keys = keys
+    def get_vms_by_dataset(self, dataset_id):
+        """ return a list of vm_id's that have runs on this dataset """
+        return [user_run_dir.stem
+                for user_run_dir in (self.RUNS_DIR_PATH / dataset_id).glob("*")]
 
-            # update the measures evaluations to a list, following the order of the keys
-            evaluations[user_run_dir.stem] = ev
-            for eval in evaluations[user_run_dir.stem]:
-                m = eval["measures"]
-                eval["measures"] = [m[k] for k in keys]
+    def get_vm_runs_by_dataset(self, dataset_id, vm_id, include_evaluations=True):
+        user_runs = self._load_vm_runs(dataset_id, vm_id, include_evaluations)
+        return list(user_runs.values())
 
-            unreviewed_count = sum([1 for x in runs[user_run_dir.stem] if not x["review"].get("reviewer", None)])
-            status[user_run_dir.stem] = {"user_id": user_run_dir.stem,
-                                         "signed_in": "", "softwares": "", "deleted": "", "now_running": "",
-                                         "runs": len(runs[user_run_dir.stem]),
-                                         "reviewed": "", "unreviewed": unreviewed_count}  # TODO dummy
-
-        return ev_keys, status, runs, evaluations
-
-    def get_user_runs(self, user_id):
-        """
-        returns a list of all the runs of a user over all datasets: [{software, run_id, input_run_id, size, lines, files, dirs, review: {}}]
-        """
-        relevant_datasets = {software["dataset"] for software in self.softwares_by_user[user_id]}
-
+    def get_vm_runs_by_task(self, task_id, vm_id, include_evaluations=True):
+        """ returns a list of all the runs of a user over all datasets in json (as returned by _load_user_runs) """
+        relevant_datasets = {software["dataset"] for software in self.get_software(task_id, vm_id)}
         runs = []
         for dataset_id in relevant_datasets:
-            user_runs = self._load_user_runs(dataset_id, user_id)
-            runs.extend(list(user_runs.values()))
-
+            runs.extend(self.get_vm_runs_by_dataset(dataset_id, vm_id, include_evaluations))
         return runs
+
+    def get_vm_evaluations_by_dataset(self, dataset_id, vm_id, only_public_results=True):
+        """ Return a dict of run_id: evaluation_results for the given vm on the given dataset
+        @param only_public_results: only return the measures for published datasets.
+        """
+        return {run_id: self._get_evaluation(ev)
+                for run_id, ev in
+                self._load_vm_evaluations(dataset_id, vm_id, only_published=only_public_results).items()}
+
+    def get_run_review(self, dataset_id, vm_id, run_id):
+        return self._get_review(self._load_review(dataset_id, vm_id, run_id))
+
+    def get_vm_reviews_by_dataset(self, dataset_id, vm_id):
+        return {run_id: self._get_review(review)
+                for run_id, review in self._load_user_reviews(dataset_id, vm_id).items()}
+
+    def get_software(self, task_id, vm_id):
+        """ Returns the software of a vm on a task in json """
+        return [{"id": software.id, "count": software.count,
+                 "task_id": task_id, "vm_id": vm_id,
+                 "command": software.command, "working_directory": software.workingDirectory,
+                 "dataset": software.dataset, "run": software.run, "creation_date": software.creationDate,
+                 "last_edit": software.lastEditDate}
+                for software in self.software[f"{task_id}${vm_id}"]]
+
+    def get_users_vms(self):
+        """ Return the users list. """
+        return self.vms
+
+    def get_vm_by_id(self, vm_id):
+        return self.vms.get(vm_id, None)
+
+    # add methods to add new data to the model
+
+    def create_task(self, task_id, task_name, task_description, master_vm_id, organizer, website):
+        """ Add a new task to the database.
+         CAUTION: This function does not do any sanity checks and will OVERWRITE existing tasks """
+        new_task = modelpb.Tasks.Task()
+        new_task.taskId = task_id
+        new_task.taskName = task_name
+        new_task.taskDescription = task_description
+        new_task.virtualMachineId = master_vm_id
+        new_task.hostId = organizer
+        new_task.web = website
+        return self._save_task(new_task)
+
+    def add_dataset(self, task_id, dataset_id, dataset_type, dataset_name):
+        """ TODO documentation
+        - task_dir_path/task_id.prototext:
+        taskId: "pan21-authorship-verification"
+        taskName: "Authorship Verification 2021"
+        taskDescription: "This is a realistic demo task."
+        trainingDataset: "pan-21-authorship-verifivation-training"  # make sure these are unique
+        testDataset: "pan-21-authorship-verifivation-test"
+        virtualMachineId: "pan20-master"
+        hostId: "dummy-host-id"
+        web: "http://pan.webis.de"
+
+        - dataset_dir_path/task_id/dataset_id.prototext
+        datasetId: "pan-21-authorship-verifivation-test"
+        displayName: "PAN 21 Authorship Verifivation"
+        evaluatorId: "pan-21-authorship-verifivation-evaluator"
+        isConfidential: true
+        isDeprecated: false
+
+        - data_path/dataset/test-dataset[-truth]/task_id/dataset-id-type
+        """
+
+        # update task_dir_path/task_id.prototext:
+        dataset_id = f"{dataset_id}-{dataset_type}"
+        for_task = self.tasks.get(task_id, None)
+        if not for_task:
+            raise KeyError(f"No task with id {task_id}")
+
+        if dataset_type == 'test' and dataset_id not in for_task.testDataset:
+            for_task.testDataset.append(dataset_id)
+        elif dataset_type in {'training', 'dev'} and dataset_id not in for_task.trainingDataset:
+            for_task.trainingDataset.append(dataset_id)
+        elif dataset_type not in {'training', 'dev', 'test'}:
+            raise KeyError("dataset type must be test, training, or dev")
+        task_ok = self._save_task(for_task, overwrite=True)
+
+        # create new dataset_dir_path/task_id/dataset_id.prototext
+        ds = modelpb.Dataset()
+        ds.datasetId = dataset_id
+        ds.displayName = dataset_name
+        ds.isDeprecated = False
+        ds.isConfidential = True if dataset_type == 'test' else False
+        dataset_ok = self._save_dataset(ds, task_id)
+
+        # create dirs data_path/dataset/test-dataset[-truth]/task_id/dataset-id-type
+        new_dirs = []
+        if dataset_type == 'test':
+            new_dirs.append((self.data_path / f'test-datasets' / task_id / dataset_id))
+            new_dirs.append((self.data_path / f'test-datasets-truth' / task_id / dataset_id))
+        else:
+            new_dirs.append((self.data_path / f'training-datasets' / task_id / dataset_id))
+            new_dirs.append((self.data_path / f'training-datasets-truth' / task_id / dataset_id))
+        for d in new_dirs:
+            d.mkdir(parents=True, exist_ok=True)
+
+        return [str(nd) for nd in new_dirs]
+
+    def add_evaluator(self, vm_id, task_id, dataset_id, dataset_type, command, working_directory, measures):
+        """ TODO documentation
+        - dataset_dir_path/task_id/dataset_id.prototext
+        datasetId: "pan-21-authorship-verifivation-test"
+        displayName: "PAN 21 Authorship Verifivation"
+        evaluatorId: "pan-21-authorship-verifivation-evaluator"
+        isConfidential: true
+        isDeprecated: false
+
+        - vm_dir_path/vm_id.prototext:
+        evaluators {
+          evaluatorId: "pan-21-authorship-verifivation-evaluator"
+          command: "python3 ap-demo.py $inputDataset $outputDir"
+          workingDirectory: ""
+          measures: "F1,F2"
+          measureKeys: "f1"
+          measureKeys: "f2"
+        }
+        """
+        evaluator_id = f"{dataset_id}-evaluator"
+        dataset_id = f"{dataset_id}-{dataset_type}"
+
+        # update dataset_id.prototext
+        dataset = self.datasets.get(dataset_id)
+        dataset.evaluatorId = evaluator_id
+        dataset_ok = self._save_dataset(dataset, task_id, overwrite=True)
+
+        # add evaluators to vm
+        vm = self._load_vm(vm_id)
+        if evaluator_id not in {ev.evaluatorId for ev in vm.evaluators}:
+            ev = modelpb.Evaluator()
+            ev.evaluatorId = evaluator_id
+            ev.command = command
+            ev.workingDirectory = working_directory
+            ev.measures = ",".join([x[0].strip('\r') for x in measures])
+            ev.measureKeys.extend([x[1].strip('\r') for x in measures])
+            vm.evaluators.append(ev)
+            vm_ok = self._save_vm(vm, overwrite=True)
+        else:
+            vm_ok = True
+
+        return vm_ok and dataset_ok
+
+    def add_ongoing_execution(self, hostname, vm_id, ova):
+        """ add this create to the stack, so we know it's in progress. """
+        print('model', hostname, vm_id, ova)
+        pass
+
+    def complete_execution(self):
+        #TODO implement
+        pass
+
+    def get_commands_bulk(self, bulk_id):
+        """
+        Get commands list by bulk command id
+        :param bulk_id:
+        """
+        self._parse_command_state()
+        return [MessageToDict(command) for command in self.commandState.commands if command.bulkCommandId == bulk_id]
+
+    def get_command(self, command_id):
+        """
+        Get command object
+        :param command_id:
+        """
+        self._parse_command_state()
+        for command in self.commandState.commands:
+            if command.id == command_id:
+                return MessageToDict(command)
+        return None

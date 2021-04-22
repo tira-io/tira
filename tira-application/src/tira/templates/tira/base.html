@@ -1,20 +1,19 @@
-{% load static %}
-
 <!doctype html>
+{% load static %}
 <html lang="en">
 <head>
     <title>{% block title %}{% endblock %}</title>
     <meta charset="utf-8">
     <meta name="description" content="{% block description %}{% endblock %}">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="copyright" content="&copy; {% now "Y" %} Webis">
-    <link rel="icon" type="image/png" href="{% static 'tira/tira-logo.png' %}">
+    <meta name="copyright" content="&copy; {% now 'Y' %} Webis">
+    <link rel="icon" type="image/png" href="{% static 'tira/img/logo-tira-32x32.png' %}">
 
     <link rel="stylesheet" href="https://assets.webis.de/css/style.css?1603728332">
     <link rel="stylesheet" href="https://assets.webis.de/css/style.css?1605285914">
     <link rel="stylesheet" href="https://assets.webis.de/css/workshop.css?1603728332">
 
-    <link rel="stylesheet" href="{% static 'tira/style.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'tira/css/tira-style.css' %}">
 </head>
 <body class="uk-offcanvas-content">
 <script src="https://assets.webis.de/js/thirdparty/uikit/uikit.min.js"></script>
@@ -23,13 +22,16 @@
 {% block navbar %}{% endblock %}
 
 <div data-uk-height-viewport="expand: true">
-{% block content %}{% endblock %}
+    {% block content %}{% endblock %}
 </div>
 
 <footer class="uk-section uk-section-muted footer-section uk-padding-small">
     <div class="uk-container uk-margin-small-top">
         <div class="uk-align-right@m">
             Copyright &copy; {% now "Y" %} <a href="https://webis.de/">Webis group</a> <span class="uk-padding-small">&bullet;</span>
+            <a href="https://github.com/webis-de"><span data-uk-icon="icon: github; ratio:0.8"></span></a>
+            <a href="https://twitter.com/webis_de"><span data-uk-icon="icon: twitter; ratio:0.9"></span></a>
+            <a href="https://www.youtube.com/webis"><span data-uk-icon="icon: youtube; ratio:0.9"></span></a> <span class="uk-padding-small">&bullet;</span>
             <a href="https://webis.de/people.html">Contact</a> <span class="uk-padding-small">&bullet;</span>
             <a href="https://webis.de/legal.html">Impressum / Terms / Privacy</a>
         </div>
