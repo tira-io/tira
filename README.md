@@ -1,9 +1,8 @@
 <h1 align="center"><p><img src="https://github.com/tira-io/tira/blob/master/tira-application/src/tira/static/tira/img/logo-tira-40x40-transparent.png" style="vertical-align:bottom"> TIRA Integrated Research Architecture </p></h1>
 
 
->[TIRA](https://www.tira.io) Integrated Research Architecture
-
 This repository contains the source code for all the following modules of the TIRA shared task platform:
+
 - [backend](tira-host): todo
 - [frontend](tira-discourse-deployment): todo
 - [protocol](tira-protocol): todo
