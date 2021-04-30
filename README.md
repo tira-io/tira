@@ -3,10 +3,12 @@
 
 This repository contains the source code for all the following modules of the [TIRA](https://www.tira.io) shared task platform:
 
-- [backend](tira-host): todo
-- [frontend](tira-discourse-deployment): todo
-- [protocol](tira-protocol): todo
-...
+- [Host](tira-host): todo
+- [Model](tira-model): todo
+- [Discourse](tira-discourse-deployment): todo
+- [Web](tira-web): todo
+- [Application](tira-application): todo
+- [Protocol](tira-protocol): todo
 
 ## Resources
 * [Wiki](../../wiki): Getting started with TIRA
