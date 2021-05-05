@@ -7,6 +7,8 @@ from pathlib import Path
 from .proto import TiraClientWebMessages_pb2 as modelpb
 import re
 
+logger = logging.getLogger(__name__)
+
 
 class Authentication(object):
     """ Base class for Authentication and Role Management"""
@@ -91,15 +93,13 @@ class LegacyAuthentication(Authentication):
         return True
 
     def logout(self, request, **kwargs):
-        """ Remove a user_id cookie from the django session
-        @param kwargs:
-        - :param user_id:
-        """
+        """ Remove a user_id cookie from the django session """
         try:
             del request.session["user_id"]
         except KeyError:
             pass
 
+    # TODO permission logic should be in check.
     def get_role(self, request, user_id: str = None, vm_id: str = None, task_id: str = None):
         """ Determine the role of the user on the requested page (determined by the given directives).
         This is a minimalistic implementation using the legacy account storage.
@@ -109,7 +109,6 @@ class LegacyAuthentication(Authentication):
         Currently only checks: (1) is user admin, (2) otherwise, is user owner of the vm (ROLE_PARTICIPANT)
         """
         user = self.users.get(user_id, None)
-
         if not user_id or not user:
             return self.ROLE_GUEST
 
@@ -119,7 +118,7 @@ class LegacyAuthentication(Authentication):
         if user_id == vm_id:
             return self.ROLE_PARTICIPANT
 
-        if user_id != vm_id and vm_id is not None:
+        if user_id != vm_id and vm_id is not None and vm_id != 'no-vm-assigned':
             return self.ROLE_FORBIDDEN
 
         return self.ROLE_USER

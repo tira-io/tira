@@ -176,6 +176,8 @@ def software_detail(request, task_id, vm_id):
     check.has_access(request, ["tira", "admin", "participant", "user"], on_vm_id=vm_id)
 
     # 0. Early return a dummy page, if the user has no vm assigned on this task
+    # TODO should be in check. If the user has no VM, check should forward to 'request-vm'.
+    #   If user has no permission on the task, should forward to task page
     if auth.get_role(request, user_id=auth.get_user_id(request), vm_id=vm_id) == auth.ROLE_USER or \
             vm_id == "no-vm-assigned":
         context = {
@@ -185,13 +187,13 @@ def software_detail(request, task_id, vm_id):
             "role": auth.get_role(request)
         }
         return render(request, 'tira/software.html', context)
-
-    # 2. try to load vm, if it fails, the user has no vm # TODO should also use checks
+    # 2. try to load vm, # TODO if it fails return meaningful error page :D
     try:
         softwares = model.get_software(task_id, vm_id)
         runs = model.get_vm_runs_by_task(task_id, vm_id)
-    except KeyError:
-        logger.warning(f"tried to load vm that does not exists ")
+    except KeyError as e:
+        logger.error(e)
+        logger.warning(f"tried to load vm that does not exists: {vm_id} on task {task_id}")
         return redirect('tira:software-detail', task_id=task_id, vm_id="no-vm-assigned")
 
     # software_keys = {sw["id"] for sw in softwares}
@@ -204,7 +206,7 @@ def software_detail(request, task_id, vm_id):
         "runs": [r for r in runs if r["software"] == sw["id"]]
     } for sw in softwares]
 
-    print(evals)
+    # print(evals)
 
     # TODO evaluations do not have a software_id as 'software', but 'evaluatorXYZ'
     # code that sorts the runs in a way that runs with input_run_id follow directly after their original run
@@ -224,10 +226,15 @@ def software_detail(request, task_id, vm_id):
     #             r.get("dependent", list()).append(r_dependent[r["run_id"]])
     #     software["results"] = r_independent
 
+    # TODO Nikolay: this sometimes just hangs infinitely. Uncommented until fixed.
     # request tira-host for vmInfo
-    vm = model.get_vm_by_id(vm_id)
-    tira_client = GrpcClient(vm.hostname)
-    response_vm_info = tira_client.vm_info(request, vm)
+    # vm = model.get_vm(vm_id)
+    # tira_client = GrpcClient(vm.host)
+    # response_vm_info = tira_client.vm_info(vm_id)
+
+    response_vm_info = None
+
+    print("pass")
 
     context = {
         "include_navigation": include_navigation,
@@ -292,7 +299,7 @@ def user_detail(request, user_id):
     context = {
         "include_navigation": include_navigation,
         "role": role,
-        "user": model.get_vm_by_id(user_id),
+        "user": model.get_vm(user_id),
     }
 
     return render(request, 'tira/user_detail.html', context)
@@ -415,10 +422,6 @@ def admin_add_dataset(request):
      Return a json status message. """
     check.has_access(request, ["tira", "admin"])
 
-    # construct dataset ids
-    # add datasets to task
-    # create dataset directory structure
-    #
     context = {}
 
     if request.method == "POST":
@@ -467,7 +470,7 @@ def admin_add_dataset(request):
                 context["created"] = {"dataset_id": dataset_id_prefix, "new_paths": new_paths}
 
             except KeyError as e:
-                print(e)
+                logger.error(e)
                 context["status"] = "fail"
                 context["create_task_form_error"] = f"Could not create {dataset_id_prefix}: {e}"
                 return JsonResponse(context)
