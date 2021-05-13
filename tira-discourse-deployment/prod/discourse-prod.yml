@@ -79,7 +79,7 @@ spec:
             - name: DISCOURSE_DB_PORT
               value: ""
             - name: DISCOURSE_HOSTNAME
-              value: "tira.io"
+              value: "www.tira.io"
             - name: DISCOURSE_DEVELOPER_EMAILS
               valueFrom:
                 secretKeyRef:

@@ -1,11 +1,17 @@
 <h1 align="center"><p><img src="https://github.com/tira-io/tira/blob/master/tira-application/src/tira/static/tira/img/logo-tira-40x40-transparent.png" style="vertical-align:bottom"> TIRA Integrated Research Architecture </p></h1>
 
 
->Data and software are immaterial. Scientists in computer science hence have the unique chance to let other scientists easily reproduce their findings. Similarly, and with the same ease, the organization of shared tasks, i.e., the collaborative search for new algorithms given a predefined problem, is possible. Experience shows that the potential of reproducibility is hardly tapped in either case. Based on this observation, and driven by the ambitious
-goal to find the best solutions for certain problems in our research field, we have been developing the [TIRA](https://www.tira.io) Integrated Research Architecture. Within TIRA, the reproducibility requirement got top priority right from the start. 
+This repository contains the source code for all the following modules of the [TIRA](https://www.tira.io) shared task platform:
+
+- [Host](tira-host): todo
+- [Model](tira-model): todo
+- [Discourse](tira-discourse-deployment): todo
+- [Web](tira-web): todo
+- [Application](tira-application): todo
+- [Protocol](tira-protocol): todo
 
 ## Resources
-* [Wiki](../../wiki): Getting started with using TIRA
+* [Wiki](../../wiki): Getting started with TIRA
 * [Papers](https://webis.de/publications.html?q=tira): List of publications
 
 ## Paper
