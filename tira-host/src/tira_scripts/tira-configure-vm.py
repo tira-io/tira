@@ -141,6 +141,10 @@ def main(args):
     else:
         vmname = user + "-" + "%02d" % vmid + "-" + ova[:-4]
 
+    if len(vmname) > 64:
+        print "\n\nVM Name exceeds 64 characters! Please choose a shorter name and rerun the command"
+        sys.exit(0)
+
     # Set ports.
     sshport = DEFAULT_PORT_SSH + vmid
     rdpport = DEFAULT_PORT_RDP + vmid

@@ -42,7 +42,8 @@ def async_api(wrapped_function):
         def task_call():
             try:
                 # Add new Message to command state file for the current host.
-                command = model.create_command(args[1], command_id, (wrapped_function.__name__ + ' ' + str(args[1])).strip())
+                command = model.create_command(args[1], command_id,
+                                               (wrapped_function.__name__ + ' ' + str(args[1])).strip())
 
                 # TODO: check solution with logger
                 # Set logger handler file for the command output

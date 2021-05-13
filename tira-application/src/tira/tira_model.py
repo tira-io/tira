@@ -11,7 +11,7 @@ import socket
 from .proto import TiraClientWebMessages_pb2 as modelpb
 from .proto import tira_host_pb2 as model_host
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("tira")
 
 
 class FileDatabase(object):
@@ -81,7 +81,7 @@ class FileDatabase(object):
         2. a dict with default tasks of datasets {"dataset_id": "task_id"}
         """
         tasks = {}
-
+        logger.info('loading tasks')
         for task_path in self.tasks_dir_path.glob("*"):
             task = Parse(open(task_path, "r").read(), modelpb.Tasks.Task())
             tasks[task.taskId] = task
@@ -93,6 +93,7 @@ class FileDatabase(object):
         :return: a dict {dataset_id: dataset protobuf object}
         """
         datasets = {}
+        logger.info('loading datasets')
         for dataset_file in self.datasets_dir_path.rglob("*.prototext"):
             dataset = Parse(open(dataset_file, "r").read(), modelpb.Dataset())
             datasets[dataset.datasetId] = dataset
@@ -105,7 +106,7 @@ class FileDatabase(object):
         Afterwards sets self.software: a dict with the new key and a list of software objects as value
         """
         software = {}
-
+        logger.info('loading softwares')
         for task_dir in self.softwares_dir_path.glob("*"):
             for user_dir in task_dir.glob("*"):
                 s = Parse(open(user_dir / "softwares.prototext", "r").read(), modelpb.Softwares())
@@ -312,7 +313,7 @@ class FileDatabase(object):
     # get methods are the public interface.
     def get_vm(self, vm_id: str):
         # TODO should return as dict
-        return self.vms[vm_id]
+        return self.vms.get(vm_id, None)
 
     def get_tasks(self) -> list:
         tasks = [self.get_task(task.taskId)
@@ -425,8 +426,7 @@ class FileDatabase(object):
             try:
                 vm_list.append([l[0], l[1].strip(), l[2].strip() if len(l) > 2 else ''])
             except IndexError as e:
-                print(e)
-                print(line)
+                logger.error(e, line)
         return vm_list
 
     def get_vms_by_dataset(self, dataset_id):
@@ -463,19 +463,17 @@ class FileDatabase(object):
 
     def get_software(self, task_id, vm_id):
         """ Returns the software of a vm on a task in json """
+        logger.debug(f"get_software({task_id}, {vm_id})")
         return [{"id": software.id, "count": software.count,
                  "task_id": task_id, "vm_id": vm_id,
                  "command": software.command, "working_directory": software.workingDirectory,
                  "dataset": software.dataset, "run": software.run, "creation_date": software.creationDate,
                  "last_edit": software.lastEditDate}
-                for software in self.software[f"{task_id}${vm_id}"]]
+                for software in self.software.get(f"{task_id}${vm_id}", [])]
 
     def get_users_vms(self):
         """ Return the users list. """
         return self.vms
-
-    def get_vm_by_id(self, vm_id):
-        return self.vms.get(vm_id, None)
 
     # add methods to add new data to the model
 

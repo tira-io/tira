@@ -114,7 +114,7 @@ main() {
     python "$scriptPath/tira-configure-vm.py" "$ova" "$username"
 
     # restart dnsmasq: https://github.com/tira-io/tira9-application2/issues/8
-    sudo systemctl restart dnsmasq
+    ssh tira@localhost -C 'sudo systemctl restart dnsmasq'
 }
 
 #

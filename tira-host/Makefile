@@ -6,7 +6,7 @@ VENV_ACTIVATE=. $(VENV_NAME)/bin/activate
 PYTHON=${VENV_NAME}/bin/python3
 PROTO_INPUT_PATH=../tira-protocol/src
 PROTO_OUT_PATH=src/tira_host/proto
-VERSION=0.0.1
+VERSION=0.0.2
 VBOXVERSION=6.1.16
 TIRA_PASSWORD=tira
 
@@ -54,6 +54,10 @@ run-tira-docker-dev: build-tira-docker
 
 build-tira-docker:
 	docker build -t tira-io/tira-host --build-arg TIRA_PASSWORD=$(TIRA_PASSWORD) --build-arg VBOXVERSION=$(VBOXVERSION) -f build/Dockerfile .
+
+export-tira-image:
+	docker build -t tira-io/tira-host:$(VERSION) --build-arg TIRA_PASSWORD=$(TIRA_PASSWORD) --build-arg VBOXVERSION=$(VBOXVERSION) -f build/Dockerfile .
+	sudo docker save tira-io/tira-host:$(VERSION) -o /mnt/ceph/tira/data/tira-dockerized-host-images/tira-io-tira-host-$(VERSION).tar
 
 compile-protobuf: venv
 	${PYTHON} -m grpc_tools.protoc -I=$(PROTO_INPUT_PATH) --python_out=$(PROTO_OUT_PATH) --grpc_python_out=$(PROTO_OUT_PATH) tira_host.proto

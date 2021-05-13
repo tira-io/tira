@@ -22,8 +22,7 @@ logger.info("Views: Logger active")
 
 
 def index(request):
-    if not check.has_access(request, "any"):
-        raise PermissionDenied
+    check.has_access(request, "any")
 
     uid = auth.get_user_id(request)
     context = {
@@ -37,8 +36,7 @@ def index(request):
 
 
 def admin(request):
-    if not check.has_access(request, ["tira", "admin"]):
-        raise PermissionDenied
+    check.has_access(request, ["tira", "admin"])
 
     context = {
         "include_navigation": include_navigation,
@@ -58,8 +56,7 @@ def login(request):
     """ Hand out the login form
     Note that this is only called in legacy deployment. Disraptor is supposed to catch the route to /login
     """
-    if not check.has_access(request, 'any'):
-        raise PermissionDenied
+    check.has_access(request, 'any')
 
     context = {
         "include_navigation": include_navigation,
@@ -82,16 +79,14 @@ def login(request):
 
 
 def logout(request):
-    if not check.has_access(request, 'any'):
-        raise PermissionDenied
+    check.has_access(request, 'any')
 
     auth.logout(request)
     return redirect('tira:index')
 
 
 def task_detail(request, task_id):
-    if not check.has_access(request, 'any'):
-        raise PermissionDenied
+    check.has_access(request, 'any')
 
     uid = auth.get_user_id(request)
     context = {
@@ -105,8 +100,7 @@ def task_detail(request, task_id):
 
 
 def dataset_list(request):
-    if not check.has_access(request, 'any'):
-        raise PermissionDenied
+    check.has_access(request, 'any')
 
     context = {
         "include_navigation": include_navigation,
@@ -121,8 +115,7 @@ def dataset_detail(request, task_id, dataset_id):
     Admins, it shows all evaluations on the dataset, as well as a list of all runs and the review interface.
      @note maybe later, we can show a consolidated view of all runs the user made on this dataset below.
      """
-    if not check.has_access(request, 'any'):
-        raise PermissionDenied
+    check.has_access(request, 'any')
 
     role = auth.get_role(request, auth.get_user_id(request))
 
@@ -180,12 +173,13 @@ def dataset_detail(request, task_id, dataset_id):
 
 def software_detail(request, task_id, vm_id):
     """ render the detail of the user page: vm-stats, softwares, and runs """
-    if not check.has_access(request, ["tira", "admin", "participant", "user"], on_vm_id=vm_id):
-        raise PermissionDenied
+    check.has_access(request, ["tira", "admin", "participant", "user"], on_vm_id=vm_id)
 
     # 0. Early return a dummy page, if the user has no vm assigned on this task
-    if check.has_access(request, ["user"], on_vm_id=vm_id) \
-            or vm_id == "no-vm-assigned":
+    # TODO should be in check. If the user has no VM, check should forward to 'request-vm'.
+    #   If user has no permission on the task, should forward to task page
+    if auth.get_role(request, user_id=auth.get_user_id(request), vm_id=vm_id) == auth.ROLE_USER or \
+            vm_id == "no-vm-assigned":
         context = {
             "include_navigation": include_navigation,
             "task": model.get_task(task_id),
@@ -193,13 +187,13 @@ def software_detail(request, task_id, vm_id):
             "role": auth.get_role(request)
         }
         return render(request, 'tira/software.html', context)
-
-    # 2. try to load vm, if it fails, the user has no vm
+    # 2. try to load vm, # TODO if it fails return meaningful error page :D
     try:
         softwares = model.get_software(task_id, vm_id)
         runs = model.get_vm_runs_by_task(task_id, vm_id)
-    except KeyError:
-        # TODO logging
+    except KeyError as e:
+        logger.error(e)
+        logger.warning(f"tried to load vm that does not exists: {vm_id} on task {task_id}")
         return redirect('tira:software-detail', task_id=task_id, vm_id="no-vm-assigned")
 
     # software_keys = {sw["id"] for sw in softwares}
@@ -212,7 +206,7 @@ def software_detail(request, task_id, vm_id):
         "runs": [r for r in runs if r["software"] == sw["id"]]
     } for sw in softwares]
 
-    print(evals)
+    # print(evals)
 
     # TODO evaluations do not have a software_id as 'software', but 'evaluatorXYZ'
     # code that sorts the runs in a way that runs with input_run_id follow directly after their original run
@@ -232,10 +226,15 @@ def software_detail(request, task_id, vm_id):
     #             r.get("dependent", list()).append(r_dependent[r["run_id"]])
     #     software["results"] = r_independent
 
+    # TODO Nikolay: this sometimes just hangs infinitely. Uncommented until fixed.
     # request tira-host for vmInfo
-    vm = model.get_vm_by_id(vm_id)
-    tira_client = GrpcClient(vm.hostname)
-    response_vm_info = tira_client.vm_info(request, vm)
+    # vm = model.get_vm(vm_id)
+    # tira_client = GrpcClient(vm.host)
+    # response_vm_info = tira_client.vm_info(vm_id)
+
+    response_vm_info = None
+
+    print("pass")
 
     context = {
         "include_navigation": include_navigation,
@@ -249,8 +248,7 @@ def software_detail(request, task_id, vm_id):
 
 
 def review(request, task_id, vm_id, dataset_id, run_id):
-    if not check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id):
-        raise PermissionDenied
+    check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
 
     run_review = model.get_run_review(dataset_id, vm_id, run_id)
     context = {
@@ -301,7 +299,7 @@ def user_detail(request, user_id):
     context = {
         "include_navigation": include_navigation,
         "role": role,
-        "user": model.get_vm_by_id(user_id),
+        "user": model.get_vm(user_id),
     }
 
     return render(request, 'tira/user_detail.html', context)
@@ -311,8 +309,7 @@ def user_detail(request, user_id):
 
 
 def admin_reload_data(request):
-    if not check.has_access(request, ["tira", "admin"]):
-        raise PermissionDenied
+    check.has_access(request, ["tira", "admin"])
 
     if request.method == 'GET':
         # post_id = request.GET['post_id']
@@ -322,8 +319,7 @@ def admin_reload_data(request):
 
 def admin_create_vm(request):
     """ Hook for create_vm posts. Responds with json objects indicating the state of the create process. """
-    if not check.has_access(request, ["tira", "admin"]):
-        raise PermissionDenied
+    check.has_access(request, ["tira", "admin"])
 
     context = {
         "complete": [],
@@ -375,8 +371,7 @@ def admin_modify_vm():
 def admin_create_task(request):
     """ Create an entry in the model for the task. Use data supplied by a model.
      Return a json status message. """
-    if not check.has_access(request, ["tira", "admin"]):
-        raise PermissionDenied
+    check.has_access(request, ["tira", "admin"])
 
     context = {}
 
@@ -425,13 +420,8 @@ def admin_create_task(request):
 def admin_add_dataset(request):
     """ Create an entry in the model for the task. Use data supplied by a model.
      Return a json status message. """
-    if not check.has_access(request, ["tira", "admin"]):
-        raise PermissionDenied
+    check.has_access(request, ["tira", "admin"])
 
-    # construct dataset ids
-    # add datasets to task
-    # create dataset directory structure
-    #
     context = {}
 
     if request.method == "POST":
@@ -480,7 +470,7 @@ def admin_add_dataset(request):
                 context["created"] = {"dataset_id": dataset_id_prefix, "new_paths": new_paths}
 
             except KeyError as e:
-                print(e)
+                logger.error(e)
                 context["status"] = "fail"
                 context["create_task_form_error"] = f"Could not create {dataset_id_prefix}: {e}"
                 return JsonResponse(context)
