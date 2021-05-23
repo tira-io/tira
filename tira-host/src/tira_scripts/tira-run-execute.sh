@@ -169,8 +169,9 @@ main() {
     inputDataset="$sharedFolder/$taskname/$inputDatasetName"
 
     localRunDir="$runDir/$inputDatasetName/$user"
-    outputRunDir="$localRunDir/$outputDirName"
-    mkdir -p "$outputRunDir"
+    mkdir -p "$localRunDir"
+
+    outputRunDir="/media/$sharedFolderRunName"
     outputDir="$outputRunDir/output"
 
     # Retrieve data server, if any, from dataset model
