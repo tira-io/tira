@@ -36,7 +36,7 @@ def getcommands():
             "vm-modify": 3,
             "vm-restore": 2,
             "vm-runtime-output": 2,
-            "vm-sandbox": 3,
+            "vm-sandbox": 5,
             "vm-screenshot": 1,
             "vm-shutdown": 1,
             "vm-snapshot": 2,

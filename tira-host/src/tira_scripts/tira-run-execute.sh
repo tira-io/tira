@@ -144,9 +144,9 @@ main() {
             datasetsDir="$_CONFIG_FILE_tira_training_datasets_dir"
         fi
         if [ "$outputDirName" = "auto" ]; then
-            outputRunDir="/tmp/$user/$timestamp"
+            sharedFolderRunName = "$user/$timestamp"
         else
-            outputRunDir="/tmp/$user/$outputDirName"
+            sharedFolderRunName = "$user/$outputDirName"
         fi
     elif [ "$os" = "windows" ]; then
         if [[ "$inputDatasetName" == *"test"* ]]; then
@@ -160,15 +160,19 @@ main() {
         fi
         # The path must be Windows style, or else the software won't find it
         if [ "$outputDirName" = "auto" ]; then
-            outputRunDir="C:/Windows/Temp/$user/$timestamp"
+            sharedFolderRunName = "$user/$timestamp"
         else
-            outputRunDir="C:/Windows/Temp/$user/$outputDirName"
+            sharedFolderRunName = "$user/$outputDirName"
         fi
     fi
 
     inputDataset="$sharedFolder/$taskname/$inputDatasetName"
+
+    localRunDir="$runDir/$inputDatasetName/$user"
+    outputRunDir="$localRunDir/$outputDirName"
+    mkdir -p "$outputRunDir"
     outputDir="$outputRunDir/output"
-    
+
     # Retrieve data server, if any, from dataset model
     if [[ "$inputDatasetName" == *"test"* ]]; then
         datasetPrototex="$_CONFIG_FILE_tira_model_datasets_dir/$taskname/$inputDatasetName.prototext"
@@ -203,7 +207,8 @@ main() {
     if [ "$hostname" != "webis*" ]; then
         hostname="localhost"
     fi
-    
+
+
     # Sandbox VM if requested.
     if [ "$sandboxed" = "true" ]; then
 
@@ -219,9 +224,9 @@ main() {
         fi
 
         if [ "$taskname" != "" ]; then
-            tira_call vm-sandbox -r "$hostname" "$vmname" "$outputDirName" "$mountTestData" -T "$taskname"
+            tira_call vm-sandbox -r "$hostname" "$vmname" "$outputDirName" "$mountTestData" "$sharedFolderRunName" "$localRunDir" -T "$taskname"
         else
-            tira_call vm-sandbox -r "$hostname" "$vmname" "$outputDirName" "$mountTestData"
+            tira_call vm-sandbox -r "$hostname" "$vmname" "$outputDirName" "$mountTestData" "$sharedFolderRunName" "$localRunDir"
         fi
 
         #host="localhost"  # because in sandboxed mode vm is just rechable via localhost
@@ -314,7 +319,7 @@ main() {
         -o ServerAliveInterval=60 \
         -o LogLevel=error \
         -t \
-        -t "mkdir -p $outputDir; cd $workingDir; if [ -f ~/.bashrc ]; then source ~/.bashrc; fi; $timedCmd; exit"
+        -t "mkdir $outputDir; cd $workingDir; if [ -f ~/.bashrc ]; then source ~/.bashrc; fi; $timedCmd; exit"
 
     # Bugfix for the subsequent scp command: http://stackoverflow.com/questions/12440287/scp-doesnt-work-when-echo-in-bashrc
     # The proposed solutions all solve the problem within .bashrc, but we cannot
@@ -329,31 +334,9 @@ main() {
         -o LogLevel=error \
         -t \
         -t "rm ~/.bashrc"
-    # Copy outputDir from vm to localhost.
-    logInfo "$user@$host: copying $outputDir from VM..."
-    localRunDir="$runDir/$inputDatasetName/$user"
-    mkdir -p "$localRunDir"
-    sshpass -p "$userpw" \
-      scp \
-        -o UserKnownHostsFile=/dev/null \
-        -o StrictHostKeyChecking=no \
-        -o LogLevel=error \
-        -r \
-        -P "$sshport" "$user@$host:$outputRunDir" "$localRunDir"
 
     # Reset access rights.
     chmod -R 775 "$localRunDir/$outputDirName"
-
-    # Remove outputDir on vm.
-    logInfo "$user@$host: removing $outputDir from VM..."
-    sshpass -p "$userpw" \
-      ssh "$user@$host" \
-        -p "$sshport" \
-        -o UserKnownHostsFile=/dev/null \
-        -o StrictHostKeyChecking=no \
-        -o LogLevel=error \
-        -t \
-        -t "rm -rf $outputRunDir; exit"
 
     # Remove inputRun on vm.
     logInfo "$user@$host: removing $outputDir from VM..."

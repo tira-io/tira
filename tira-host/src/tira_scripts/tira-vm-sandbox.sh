@@ -25,7 +25,7 @@ debug && check_tools "$neededtools"  # If debug, check that tools are available.
 usage(){
     echo "
 Usage:
-    $(basename "$0") [flags] <vm-name> <snapshot-name> <mount-test-datasets>
+    $(basename "$0") [flags] <vm-name> <snapshot-name> <mount-test-datasets> <sharedFolderRunName> <localRunDir>
 
 Description:
     Puts a VM in sandbox mode: VM is only reachable within the
@@ -40,6 +40,8 @@ Parameters:
     <snapshot-name>         Name of the snapshot to be taken from the VM.
     <mount-test-datasets>   Flag indicates whether test datasets should be mounted or not.
                             Is either \"true\" or \"false\".
+    <sharedFolderRunName>   shared folder name for the run output
+    <localRunDir>           path to run folder in TIRA model
 
 Examples:
     $(basename "$0") my_vm (local)
@@ -70,7 +72,7 @@ eval set -- "${FLAGS_ARGV}"
 main() {
 
     # Print usage screen if wrong parameter count.
-    if [ "$#" -ne 3 ]; then
+    if [ "$#" -ne 4 ]; then
         logError "Wrong amount of parameters, see:"
         usage
     fi
@@ -80,6 +82,8 @@ main() {
     vmname="$1"
     snapshotName="$2"
     mounttestdatasets="$3"
+    sharedFolderRunName="$4"
+    localRunDir="$5"
 
     # Flag for mounting test datasets.
     if [ "$mounttestdatasets" != "true" ] && [ "$mounttestdatasets" != "false" ]; then
@@ -184,6 +188,8 @@ main() {
         logInfo "$sfnametest -> $sfpathtest"
         VBoxManage sharedfolder add "$vmname-clone-$snapshotName" --name "$sfnametest" --hostpath "$sfpathtest" --readonly --automount
     fi
+
+    VBoxManage sharedfolder add "$vmname-clone-$snapshotName" --name "$sharedFolderRunName" --hostpath "$localRunDir" --automount
 
     # Start cloned copy.
     VBoxManage modifyvm "$vmname-clone-$snapshotName" --audio none # temporary fix for "VBoxManage: error: The specified string / bytes buffer was to small. Specify a larger one and retry. (VERR_CFGM_NOT_ENOUGH_SPACE) VBoxManage: error: Details: code NS_ERROR_FAILURE (0x80004005), component ConsoleWrap, interface IConsole"
