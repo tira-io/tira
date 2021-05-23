@@ -155,12 +155,18 @@ main() {
         fi
     fi
 
+    if [ "$outputDirName" = "auto" ]; then
+        sharedFolderRunName="$timestamp"
+    else
+        sharedFolderRunName="$outputDirName"
+    fi
+
     inputDataset="$sharedFolder/$taskname/$inputDatasetName"
 
     localRunDir="$runDir/$inputDatasetName/$user"
     mkdir -p "$localRunDir"
 
-    sharedFolderRunName = "run_output"
+    sharedFolderRunName="$outputDirName"
     outputRunDir="/media/$sharedFolderRunName"
     outputDir="$outputRunDir/output"
 
