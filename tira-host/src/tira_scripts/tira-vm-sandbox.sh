@@ -72,7 +72,7 @@ eval set -- "${FLAGS_ARGV}"
 main() {
 
     # Print usage screen if wrong parameter count.
-    if [ "$#" -ne 4 ]; then
+    if [ "$#" -ne 5 ]; then
         logError "Wrong amount of parameters, see:"
         usage
     fi

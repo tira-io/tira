@@ -143,11 +143,6 @@ main() {
             sharedFolderName="$_CONFIG_tira_training_datasets_name"
             datasetsDir="$_CONFIG_FILE_tira_training_datasets_dir"
         fi
-        if [ "$outputDirName" = "auto" ]; then
-            sharedFolderRunName = "$user/$timestamp"
-        else
-            sharedFolderRunName = "$user/$outputDirName"
-        fi
     elif [ "$os" = "windows" ]; then
         if [[ "$inputDatasetName" == *"test"* ]]; then
             sharedFolder="//VBOXSVR/$_CONFIG_tira_test_datasets_name"
@@ -158,12 +153,6 @@ main() {
             sharedFolderName="$_CONFIG_tira_training_datasets_name"
             datasetsDir="$_CONFIG_FILE_tira_training_datasets_dir"
         fi
-        # The path must be Windows style, or else the software won't find it
-        if [ "$outputDirName" = "auto" ]; then
-            sharedFolderRunName = "$user/$timestamp"
-        else
-            sharedFolderRunName = "$user/$outputDirName"
-        fi
     fi
 
     inputDataset="$sharedFolder/$taskname/$inputDatasetName"
@@ -171,8 +160,12 @@ main() {
     localRunDir="$runDir/$inputDatasetName/$user"
     mkdir -p "$localRunDir"
 
+    sharedFolderRunName = "run_output"
     outputRunDir="/media/$sharedFolderRunName"
     outputDir="$outputRunDir/output"
+
+    logInfo "sharedFolderRunName: $sharedFolderRunName"
+    logInfo "outputRunDir: $outputRunDir"
 
     # Retrieve data server, if any, from dataset model
     if [[ "$inputDatasetName" == *"test"* ]]; then
@@ -225,9 +218,9 @@ main() {
         fi
 
         if [ "$taskname" != "" ]; then
-            tira_call vm-sandbox -r "$hostname" "$vmname" "$outputDirName" "$mountTestData" "$sharedFolderRunName" "$localRunDir" -T "$taskname"
+            tira_call vm-sandbox -r "$hostname" "$vmname" "$outputDirName" "$mountTestData" "$sharedFolderRunName" "$localRunDir/$outputDirName" -T "$taskname"
         else
-            tira_call vm-sandbox -r "$hostname" "$vmname" "$outputDirName" "$mountTestData" "$sharedFolderRunName" "$localRunDir"
+            tira_call vm-sandbox -r "$hostname" "$vmname" "$outputDirName" "$mountTestData" "$sharedFolderRunName" "$localRunDir/$outputDirName"
         fi
 
         #host="localhost"  # because in sandboxed mode vm is just rechable via localhost
