@@ -7,11 +7,11 @@ spec:
   selector:
     app: tira-discourse-prod
   ports:
-    - nodePort: 30806
+    - nodePort: 31806
       port: 443
       targetPort: 443
       name: discourse-https
-    - nodePort: 30807
+    - nodePort: 31807
       port: 80
       targetPort: 80
       name: discourse-http
@@ -33,7 +33,7 @@ spec:
     spec:
       containers:
         - name: tira-discourse-prod
-          image: docker.io/webis/tira-discourse:0.0.3-www.tira.io
+          image: docker.io/webis/tira-discourse:0.0.6-www.tira.io
           ports:
             - containerPort: 443
               hostIP: 0.0.0.0
