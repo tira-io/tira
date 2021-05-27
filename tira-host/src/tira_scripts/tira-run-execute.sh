@@ -242,6 +242,9 @@ main() {
         logDebug "set sshport to : $natsshport"
     fi
 
+    logInfo "Waiting in order to prevent VirtualBox processes racing conditions..."
+    sleep 30
+
     # Loop while connection can be established.
     sshpass -p "$userpw" \
       ssh "$user@$host" \
