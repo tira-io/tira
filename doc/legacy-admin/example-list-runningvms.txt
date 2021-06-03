@@ -1,3 +1,0 @@
-"00-tira-ubuntu-12-04-desktop-64bit" {a49f6b50-b83c-89d8-a288-4175002f4a4b}
-"01-tira-ubuntu-12-04-desktop-64bit" {c5520848-5583-40b4-96a5-ed0efef097dc}
-"02-tira-ubuntu-12-04-desktop-64bit" {b056fdb5-4300-4634-879a-b2bdc3192e55}
