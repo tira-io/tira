@@ -36,4 +36,4 @@ If you use TIRA in your own research, please be sure to cite our paper
 ```
 ## License
 
-[Apache License 2.0](LICENSE)
+[MIT License](LICENSE)
