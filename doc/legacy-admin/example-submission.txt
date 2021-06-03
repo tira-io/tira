@@ -1,9 +1,0 @@
-user="aditya13"
-userpw="PAeOlREg"
-host="webis18.medien.uni-weimar.de"
-vmname="17-tira-ubuntu-12-04-desktop-64bit"
-os="ubuntu"
-sshport="44417"
-path="/home/aditya13/mallet-2.0.7"
-cmd="sh executer.sh $inputdir $output"
-
