@@ -11,8 +11,10 @@ This repository contains the source code for all the following components of the
 - [Protocol](tira-protocol): todo
 
 ## Resources
-* [Wiki](../../wiki): Getting started with TIRA
+* [Wiki](../../wiki): Getting started with TIRA as a developer/administrator
+* [User Docs](https://www.tira.io/docs): Getting started with TIRA as a user
 * [Papers](https://webis.de/publications.html?q=tira): List of publications
+* [Contribution Guide](CONTRIBUTING.md): How to contribute to the TIRA project
 
 ## Paper
 
