@@ -1,0 +1,74 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: tira-web-client-debug
+spec:
+  type: NodePort
+  selector:
+    app: tira-web-client-debug
+  ports:
+    - name: port-ui
+      nodePort: 30802
+      port: 8080
+      targetPort: 8080
+    - name: port-debug
+      nodePort: 30803
+      port: 8000
+      targetPort: 8000
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tira-web-client-debug
+spec:
+  selector:
+    matchLabels:
+      app: tira-web-client-debug
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: tira-web-client-debug
+    spec:
+      containers:
+        - name: tira-web-client-debug
+          image: mam10eks/tmp-tira-mam10eks:9.0.12
+          imagePullPolicy: Always
+          volumeMounts:
+            - mountPath: "/mnt/nfs/tira"
+              name: tira-cephfs
+            - mountPath: "/usr/local/share/tira/src"
+              name: tira-src-code
+            - mountPath: "/etc/ssh-key"
+              name: ssh-key
+            - mountPath: "/etc/discourse/client-api-key"
+              name: tira-discourse-api-key
+              subPath: key
+          env:
+            - name: JAVA_OPTS
+              value: "-Djava.awt.headless=true -Xmx11264m -XX:+UseConcMarkSweepGC -Xdebug -Xrunjdwp:transport=dt_socket,address=8000,server=y,suspend=n"
+      nodeSelector:
+        kubernetes.io/hostname: betaweb127
+      volumes:
+        - name: tira-cephfs
+          cephfs:
+            monitors:
+              - ceph.dw.webis.de
+            user: tira
+            path: /tira
+            secretRef:
+              name: tira-ceph-secret
+        - name: tira-src-code
+          hostPath:
+            path: /usr/local/share/tira/tira-host/src/tira_scripts
+            type: Directory
+        - name: tira-discourse-api-key
+          secret:
+            secretName: tira-discourse-api-key
+        - name: ssh-key
+          secret:
+            secretName: tira-webis18-ssh-key
+            defaultMode: 256
+
