@@ -7,6 +7,7 @@ from pathlib import Path
 import logging
 from django.conf import settings
 import socket
+from datetime import datetime
 
 from .proto import TiraClientWebMessages_pb2 as modelpb
 from .proto import tira_host_pb2 as model_host
@@ -20,28 +21,35 @@ def auto_reviewer(review_path, run_id):
      """
     review_file = review_path / "run-review.bin"
     review = modelpb.RunReview()
-    review.reviewDate = ""
-    review.hasWarnings = False
-    review.runId = run_id
 
-    if review_file.exists():
-        review.ParseFromString(open(review_path, "rb").read())
-        if not review.reviewerId:
-            review.reviewerId = 'tira'
+    if review_file.exists():  # TODO this will throw if the file is corrupt. Let it throw to not overwrite files.
+        try:
+            review.ParseFromString(open(review_path, "rb").read())
+            return review
+        except Exception as e:
+            logger.exception(f"review file: {review_file} exists but is corrupted with {e}")
+            raise FileExistsError(f"review file: {review_file} exists but is corrupted with {e}")
+
+    review.reviewerId = 'tira'
+    review.reviewDate = str(datetime.utcnow())
+    review.hasWarnings = False
+    review.hasErrors = False
+    review.hasNoErrors = False
+    review.blinded = True
+    review.runId = run_id
 
     try:
         if not (review_path / "run.bin").exists():  # No Run file
-            review.reviewerId = 'tira'
             review.comment = "Internal Error: No run definition recorded. Please contact the support."
             review.hasErrors = True
             review.hasNoErrors = False
             review.blinded = False
-        if not (review_path / "output").exists(): # No Output directory
-            review.reviewerId = 'tira'
+
+        if not (review_path / "output").exists():  # No Output directory
             review.comment = "No Output was produced"
             review.hasErrors = True
             review.hasNoErrors = False
-            review.blinded = False
+            review.blinded = True
             review.missing_output = True
 
     except Exception as e:
@@ -224,46 +232,44 @@ class FileDatabase(object):
         self.software_count_by_dataset = counts
 
     # _load methods parse files on the fly when pages are called
-    def _load_review(self, dataset_id, vm_id, run_id):
+    def _load_review(self, dataset_id, vm_id, run_id, as_json=False):
         """ This method loads a review or toggles auto reviewer if it does not exist. """
+
+        def _as_json(r):
+            if as_json:
+                return {"reviewer": review.reviewerId, "noErrors": review.noErrors,
+                        "missingOutput": review.missingOutput,
+                        "extraneousOutput": review.extraneousOutput, "invalidOutput": review.invalidOutput,
+                        "hasErrorOutput": review.hasErrorOutput, "otherErrors": review.otherErrors,
+                        "comment": review.comment, "hasErrors": review.hasErrors, "hasWarnings": review.hasWarnings,
+                        "hasNoErrors": review.hasNoErrors, "published": review.published, "blinded": review.blinded
+                        }
+            return review
+
         review_path = self.RUNS_DIR_PATH / dataset_id / vm_id / run_id
         review_file = review_path / "run-review.bin"
         if not review_file.exists():
             review = auto_reviewer(review_path, run_id)
             self._save_review(dataset_id, vm_id, run_id, review)
-            return review
+            return _as_json(review)
+
         review = modelpb.RunReview()
         review.ParseFromString(open(review_file, "rb").read())
-        return review
+        return _as_json(review)
 
-    def _load_user_reviews(self, dataset_id, vm_id):
-        return {run_id_dir.stem: self._load_review(dataset_id, vm_id, run_id_dir.stem)
+    def _load_user_reviews(self, dataset_id, vm_id, as_json=False):
+        return {run_id_dir.stem: self._load_review(dataset_id, vm_id, run_id_dir.stem, as_json)
                 for run_id_dir in (self.RUNS_DIR_PATH / dataset_id / vm_id).glob("*")}
 
     def _load_vm(self, vm_id):
         """ load a vm object from vm_dir_path """
         return Parse(open(self.vm_dir_path / f"{vm_id}.prototext").read(), modelpb.VirtualMachine())
 
-    def _get_review(self, review):
-        return {"reviewer": review.reviewerId, "noErrors": review.noErrors, "missingOutput": review.missingOutput,
-                "extraneousOutput": review.extraneousOutput, "invalidOutput": review.invalidOutput,
-                "hasErrorOutput": review.hasErrorOutput, "otherErrors": review.otherErrors,
-                "comment": review.comment, "hasErrors": review.hasErrors, "hasWarnings": review.hasWarnings,
-                "hasNoErrors": review.hasNoErrors, "published": review.published, "blinded": review.blinded
-                }
-
-    def _load_run(self, dataset_id, vm_id, run_id, return_deleted=False):
+    def _load_run(self, dataset_id, vm_id, run_id, return_deleted=False, as_json=False):
         run_dir = (self.RUNS_DIR_PATH / dataset_id / vm_id / run_id)
         if not (run_dir / "run.bin").exists():
             logger.error(f"Try to read a run without a run.bin: {dataset_id}-{vm_id}-{run_id}")
-            # TODO check if it is better to return empty runs or None
-            # if not (run_id_dir / "run.bin").exists():
-            #     run = modelpb.Run()
-            #     run.softwareId = ""
-            #     run.runId = run_id_dir.stem
-            #     run.inputDataset = dataset_id
-            #     runs[run_id_dir.stem] = run
-            #     continue
+            # TODO check if it is better to return empty runs vs. returning None vs. raising
             return None
 
         run = modelpb.Run()
@@ -272,26 +278,26 @@ class FileDatabase(object):
             run.softwareId = "This run was deleted"
             run.runId = run_id
             run.inputDataset = dataset_id
+
+        if as_json:
+            return {"software": run.softwareId,
+                    "run_id": run.runId, "input_run_id": run.inputRun,
+                    "dataset": run.inputDataset, "downloadable": run.downloadable}
         return run
 
-    def _load_vm_runs(self, dataset_id, vm_id, return_deleted=False, include_evaluations=False):
+    def _load_vm_runs(self, dataset_id, vm_id, return_deleted=False, include_evaluations=False, as_json=False):
         """ load all run's data.
         @param include_evaluations: If True, also load evaluator runs (where an evaluation.bin exists)
         """
         runs = {}
         for run_id_dir in (self.RUNS_DIR_PATH / dataset_id / vm_id).glob("*"):
             run_id = run_id_dir.stem
-            run = self._load_run(dataset_id, vm_id, run_id, return_deleted=return_deleted)
+            run = self._load_run(dataset_id, vm_id, run_id, return_deleted=return_deleted, as_json=as_json)
 
             if run is not None:
-                runs[run_id] = self._get_run(run)
+                runs[run_id] = run
 
         return runs
-
-    def _get_run(self, run):
-        return {"software": run.softwareId,
-                "run_id": run.runId, "input_run_id": run.inputRun,
-                "dataset": run.inputDataset, "downloadable": run.downloadable}
 
     def _load_vm_evaluations(self, dataset_id, vm_id, only_published):
         """ load all evaluations for a user on a given dataset
@@ -363,8 +369,7 @@ class FileDatabase(object):
     def _save_review(self, dataset_id, vm_id, run_id, review):
         review_path = self.RUNS_DIR_PATH / dataset_id / vm_id / run_id
         open(review_path / "run-review.prototext", 'w').write(str(review))
-        # TODO
-        # open(review_path / "run-review.bin", 'wb').write(review.SerializeToString())
+        open(review_path / "run-review.bin", 'wb').write(review.SerializeToString())
         return True
 
     # get methods are the public interface.
@@ -492,7 +497,7 @@ class FileDatabase(object):
                 for user_run_dir in (self.RUNS_DIR_PATH / dataset_id).glob("*")]
 
     def get_vm_runs_by_dataset(self, dataset_id, vm_id, include_evaluations=True):
-        user_runs = self._load_vm_runs(dataset_id, vm_id, include_evaluations)
+        user_runs = self._load_vm_runs(dataset_id, vm_id, include_evaluations, as_json=True)
         return list(user_runs.values())
 
     def get_vm_runs_by_task(self, task_id, vm_id, include_evaluations=True):
@@ -512,14 +517,13 @@ class FileDatabase(object):
                 self._load_vm_evaluations(dataset_id, vm_id, only_published=only_public_results).items()}
 
     def get_run(self, dataset_id, vm_id, run_id):
-        return self._get_run(self._load_run(dataset_id, vm_id, run_id))
+        return self._load_run(dataset_id, vm_id, run_id, as_json=True)
 
     def get_run_review(self, dataset_id, vm_id, run_id):
-        return self._get_review(self._load_review(dataset_id, vm_id, run_id))
+        return self._load_review(dataset_id, vm_id, run_id, as_json=True)
 
     def get_vm_reviews_by_dataset(self, dataset_id, vm_id):
-        return {run_id: self._get_review(review)
-                for run_id, review in self._load_user_reviews(dataset_id, vm_id).items()}
+        return self._load_user_reviews(dataset_id, vm_id, as_json=True)
 
     def get_software(self, task_id, vm_id):
         """ Returns the software of a vm on a task in json """
@@ -553,24 +557,6 @@ class FileDatabase(object):
 
     def add_dataset(self, task_id, dataset_id, dataset_type, dataset_name):
         """ TODO documentation
-        - task_dir_path/task_id.prototext:
-        taskId: "pan21-authorship-verification"
-        taskName: "Authorship Verification 2021"
-        taskDescription: "This is a realistic demo task."
-        trainingDataset: "pan-21-authorship-verifivation-training"  # make sure these are unique
-        testDataset: "pan-21-authorship-verifivation-test"
-        virtualMachineId: "pan20-master"
-        hostId: "dummy-host-id"
-        web: "http://pan.webis.de"
-
-        - dataset_dir_path/task_id/dataset_id.prototext
-        datasetId: "pan-21-authorship-verifivation-test"
-        displayName: "PAN 21 Authorship Verifivation"
-        evaluatorId: "pan-21-authorship-verifivation-evaluator"
-        isConfidential: true
-        isDeprecated: false
-
-        - data_path/dataset/test-dataset[-truth]/task_id/dataset-id-type
         """
 
         # update task_dir_path/task_id.prototext:
@@ -610,22 +596,6 @@ class FileDatabase(object):
 
     def add_evaluator(self, vm_id, task_id, dataset_id, dataset_type, command, working_directory, measures):
         """ TODO documentation
-        - dataset_dir_path/task_id/dataset_id.prototext
-        datasetId: "pan-21-authorship-verifivation-test"
-        displayName: "PAN 21 Authorship Verifivation"
-        evaluatorId: "pan-21-authorship-verifivation-evaluator"
-        isConfidential: true
-        isDeprecated: false
-
-        - vm_dir_path/vm_id.prototext:
-        evaluators {
-          evaluatorId: "pan-21-authorship-verifivation-evaluator"
-          command: "python3 ap-demo.py $inputDataset $outputDir"
-          workingDirectory: ""
-          measures: "F1,F2"
-          measureKeys: "f1"
-          measureKeys: "f2"
-        }
         """
         evaluator_id = f"{dataset_id}-evaluator"
         dataset_id = f"{dataset_id}-{dataset_type}"
@@ -651,13 +621,42 @@ class FileDatabase(object):
 
         return vm_ok and dataset_ok
 
-    def update_review(self, run_id, reviewerId, reviewDate,
-                            noErrors, missingOutput, extraneousOutput,
-                            invalidOutput, hasErrorOutput, otherErrors,
-                            comment, hasErrors, hasWarnings, hasNoErrors):
-        """   TODO implement """
-        return True
+    def update_review(self, dataset_id, vm_id, run_id,
+                      reviewer_id: str, review_date: str, has_errors: bool, has_no_errors: bool,
+                      no_errors: bool = None, missing_output: bool = None, extraneous_output: bool = None,
+                      invalid_output: bool = None, has_error_output: bool = None, other_errors: bool = None,
+                      comment: str = None, has_warnings: bool = False):
+        """ updates the review specified by dataset_id, vm_id, and run_id with the values given in the parameters.
+        Required Parameters are also required in the function
+        """
+        review = self._load_review(dataset_id, vm_id, run_id)
 
+        review.reviewerId = reviewer_id
+        review.reviewDate = review_date
+        review.hasErrors = has_errors
+        review.hasWarnings = has_warnings
+        review.hasNoErrors = has_no_errors
+
+        if no_errors:
+            review.noErrors = no_errors
+        if missing_output:
+            review.missingOutput = missing_output
+        if extraneous_output:
+            review.extraneousOutput = extraneous_output
+        if invalid_output:
+            review.invalidOutput = invalid_output
+        if has_error_output:
+            review.hasErrorOutput = has_error_output
+        if other_errors:
+            review.otherErrors = other_errors
+        if comment:
+            review.comment = comment
+        try:
+            self._save_review(dataset_id, vm_id, run_id, review)
+            return True
+        except Exception as e:
+            logger.exception(f"Exception while saving review ({dataset_id}, {vm_id}, {run_id}): {e}")
+            return False
 
     def add_ongoing_execution(self, hostname, vm_id, ova):
         """ add this create to the stack, so we know it's in progress. """
