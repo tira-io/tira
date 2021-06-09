@@ -5,11 +5,14 @@ import logging
 
 from .grpc_client import GrpcClient
 from .tira_model import FileDatabase
+from .tira_data import get_run_runtime, get_run_file_list, get_stderr, get_stdout
 from .authentication import Authentication
 from .checks import Check
 from .forms import *
 from django.core.exceptions import PermissionDenied
 from . import endpoints
+from pathlib import Path
+from shutil import move
 
 model = FileDatabase()
 include_navigation = True if settings.DEPLOYMENT == "legacy" else False
@@ -146,12 +149,29 @@ def dataset_detail(request, task_id, dataset_id):
         vm_reviews = {vm_id: model.get_vm_reviews_by_dataset(dataset_id, vm_id)
                       for vm_id in vm_ids}  # reviews[vm_id][run_id]
 
-        vms = [{"vm_id": vm_id,
-                "runs": [{"run": run, "review": vm_reviews.get(vm_id, None).get(run["run_id"], None)}
-                         for run in vm_runs[vm_id]],
-                "unreviewed_count": len([1 for r in vm_reviews[vm_id].values()
-                                         if not r.get("reviewer", None)])
-                } for vm_id, run in vm_runs.items()]
+        vms = []
+        for vm_id, run in vm_runs.items():
+            runs = []
+            for r in run:
+                try:
+                    runs.append({"run": r, "review": vm_reviews.get(vm_id, None).get(r["run_id"], None)})
+                except TypeError as e:
+                    logger.error(f"dataset: {dataset_id}, vm_id: {vm_id}, run: {r}")
+                    Path(f"/mnt/ceph/tira/data/runs/{dataset_id}/{vm_id}")
+                    move(Path(f"/mnt/ceph/tira/data/runs/{dataset_id}/{vm_id}"),
+                         Path(f"/home/tira/{dataset_id}/{vm_id}"))
+                    raise TypeError(e)
+            # runs = [{"run": run, "review": vm_reviews.get(vm_id, None).get(run["run_id"], None)}
+            #         for run in vm_runs.get(vm_id)]
+            unreviewed_count = len([1 for r in vm_reviews[vm_id].values()
+                                    if not r.get("reviewer", None)])
+            vms.append({"vm_id": vm_id, "runs": runs, "unreviewed_count": unreviewed_count})
+        # vms = [{"vm_id": vm_id,
+        #         "runs": [{"run": run, "review": vm_reviews.get(vm_id, None).get(run["run_id"], None)}
+        #                  for run in vm_runs.get(vm_id)],
+        #         "unreviewed_count": len([1 for r in vm_reviews[vm_id].values()
+        #                                  if not r.get("reviewer", None)])
+        #         } for vm_id, run in vm_runs.items()]
 
     context = {
         "include_navigation": include_navigation,
@@ -249,25 +269,30 @@ def software_detail(request, task_id, vm_id):
 
 def review(request, task_id, vm_id, dataset_id, run_id):
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
+    role = auth.get_role(request, auth.get_user_id(request))
 
+    # {'software': 'software9', 'run_id': '2021-05-19-02-51-01', 'input_run_id': 'none', 'dataset': 'pan20-authorship-verification-training-dataset2-2020-03-25', 'downloadable': True}
+    # run_review: {'reviewer': '', 'noErrors': False, 'missingOutput': False, 'extraneousOutput': False, 'invalidOutput': False, 'hasErrorOutput': False, 'otherErrors': False, 'comment': '', 'hasErrors': False, 'hasWarnings': False, 'hasNoErrors': False, 'published': False, 'blinded': True}
+    run = model.get_run(dataset_id, vm_id, run_id)
     run_review = model.get_run_review(dataset_id, vm_id, run_id)
+    print(run_review)
+    runtime = get_run_runtime(dataset_id, vm_id, run_id)
+    files = get_run_file_list(dataset_id, vm_id, run_id)
+    files["file_list"][0] = "$outputDir"
+    stdout = get_stdout(dataset_id, vm_id, run_id)
+    stderr = get_stderr(dataset_id, vm_id, run_id)
+    # TODO: add reviewer form if not reviewed
+
     context = {
         "include_navigation": include_navigation,
-        "task_id": task_id,
-        "vm_id": vm_id,
-        "run_id": run_id,
-        "review": run_review
+        'role': role,
+        "review_form": ReviewForm(initial={'no_errors': True}),
+        "task_id": task_id, "dataset_id": dataset_id, "vm_id": vm_id, "run_id": run_id,
+        "run": run, "review": run_review, "runtime": runtime, "files": files,
+        "stdout": stdout, "stderr": stderr,
     }
 
     return render(request, 'tira/review.html', context)
-
-
-# {"reviewer": review.reviewerId, "noErrors": review.noErrors, "missingOutput": review.missingOutput,
-# "extraneousOutput": review.extraneousOutput, "invalidOutput": review.invalidOutput,
-# "hasErrorOutput": review.hasErrorOutput, "otherErrors": review.otherErrors,
-# "comment": review.comment, "hasErrors": review.hasErrors, "hasWarnings": review.hasWarnings,
-# "hasNoErrors": review.hasNoErrors, "published": review.published, "blinded": review.blinded
-# }
 
 
 def users(request):
@@ -306,6 +331,52 @@ def user_detail(request, user_id):
 
 
 # ------------------- ajax calls --------------------------------
+
+
+def add_review(request, task_id, vm_id, dataset_id, run_id):
+    """
+    # 'hasErrorOutput': False,
+    # 'hasErrors': False
+    # 'hasWarnings': False
+    # 'hasNoErrors': False
+    these should be filled by the model when updating review data
+    """
+    check.has_access(request, ["tira", "admin"])
+
+    context = {}
+
+    if request.method == "POST":
+        form = ReviewForm(request.POST)
+        if form.is_valid():
+
+            no_errors = form.cleaned_data["no_errors"]
+            output_error = form.cleaned_data["output_error"]
+            software_error = form.cleaned_data["software_error"]
+            comment = form.cleaned_data["comment"]
+
+
+
+            try:  # TODO how to get the reviewer name??
+                # TODO implement
+                # model.update_review(run_id, reviewerId, reviewDate,
+                #                     noErrors, missingOutput, extraneousOutput,
+                #                     invalidOutput, hasErrorOutput, otherErrors,
+                #                     comment, hasErrors, hasWarnings, hasNoErrors)
+                print(no_errors, output_error, software_error, comment)
+
+                context["status"] = "success"
+            except KeyError as e:
+                logger.error(e)
+                context["status"] = "fail"
+                return JsonResponse(context)
+        else:
+            context["status"] = "fail"
+            context["review_form_error"] = "Form Invalid (check formatting)"
+            return JsonResponse(context)
+    else:
+        HttpResponse("Permission Denied")
+
+    return JsonResponse(context)
 
 
 def admin_reload_data(request):
@@ -381,7 +452,8 @@ def admin_create_task(request):
             # sanity checks
             if not check.vm_exists(form.cleaned_data["master_vm_id"]):
                 context["status"] = "fail"
-                context["create_task_form_error"] = f"Master VM with ID {form.cleaned_data['master_vm_id']} does not exist"
+                context[
+                    "create_task_form_error"] = f"Master VM with ID {form.cleaned_data['master_vm_id']} does not exist"
                 return JsonResponse(context)
 
             if not check.organizer_exists(form.cleaned_data["organizer"]):
@@ -395,8 +467,8 @@ def admin_create_task(request):
                 return JsonResponse(context)
 
             if model.create_task(form.cleaned_data["task_id"], form.cleaned_data["task_name"],
-                              form.cleaned_data["task_description"], form.cleaned_data["master_vm_id"],
-                              form.cleaned_data["organizer"], form.cleaned_data["website"]):
+                                 form.cleaned_data["task_description"], form.cleaned_data["master_vm_id"],
+                                 form.cleaned_data["organizer"], form.cleaned_data["website"]):
                 context["status"] = "success"
                 context["created"] = {
                     "task_id": form.cleaned_data["task_id"], "task_name": form.cleaned_data["task_name"],
@@ -456,15 +528,18 @@ def admin_add_dataset(request):
                 new_paths = []
                 if form.cleaned_data["create_training"]:
                     new_paths += model.add_dataset(task_id, dataset_id_prefix, "training", dataset_name)
-                    model.add_evaluator(master_vm_id, task_id, dataset_id_prefix, "training", command, working_directory, measures)
+                    model.add_evaluator(master_vm_id, task_id, dataset_id_prefix, "training", command,
+                                        working_directory, measures)
 
                 if form.cleaned_data["create_test"]:
                     new_paths += model.add_dataset(task_id, dataset_id_prefix, "test", dataset_name)
-                    model.add_evaluator(master_vm_id, task_id, dataset_id_prefix, "test", command, working_directory, measures)
+                    model.add_evaluator(master_vm_id, task_id, dataset_id_prefix, "test", command, working_directory,
+                                        measures)
 
                 if form.cleaned_data["create_dev"]:
                     new_paths += model.add_dataset(task_id, dataset_id_prefix, "dev", dataset_name)
-                    model.add_evaluator(master_vm_id, task_id, dataset_id_prefix, "dev", command, working_directory, measures)
+                    model.add_evaluator(master_vm_id, task_id, dataset_id_prefix, "dev", command, working_directory,
+                                        measures)
 
                 context["status"] = "success"
                 context["created"] = {"dataset_id": dataset_id_prefix, "new_paths": new_paths}

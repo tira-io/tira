@@ -34,5 +34,7 @@ urlpatterns = [
     path('tira-admin/modify-vm', views.admin_modify_vm, name='tira-admin-modify-vm'),
     path('tira-admin/create-task', views.admin_create_task, name='tira-admin-create-task'),
     path('tira-admin/add-dataset', views.admin_add_dataset, name='tira-admin-add-dataset'),
+
+    path('task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/run/<str:run_id>/review', views.add_review, name='add-review'),
 ]
 app_name = 'tira'

@@ -87,3 +87,15 @@ class AddDatasetForm(forms.Form):
                                                             "placeholder": "Measure Name,measure_key\n"
                                                                            "Name will be displayed to the users.\n"
                                                                            "measure_key must be as output by the evaluation software."}))
+
+
+class ReviewForm(forms.Form):
+    """ TODO checking noErrors should uncheck all others, and vice versa """
+    no_errors = forms.BooleanField(label="No Errors", required=False,
+                                   widget=forms.CheckboxInput(attrs={"class": "uk-checkbox"}))
+    output_error = forms.BooleanField(label="Output Error", required=False,
+                                        widget=forms.CheckboxInput(attrs={"class": "uk-checkbox"}))
+    software_error = forms.BooleanField(label="Software Error", required=False,
+                                      widget=forms.CheckboxInput(attrs={"class": "uk-checkbox"}))
+    comment = forms.CharField(label="Comment", required=False,
+                              widget=forms.Textarea(attrs={"class": "uk-textarea", "rows": "6"}))
