@@ -13,6 +13,7 @@ from django.core.exceptions import PermissionDenied
 from . import endpoints
 from pathlib import Path
 from shutil import move
+from datetime import datetime as dt
 
 model = FileDatabase()
 include_navigation = True if settings.DEPLOYMENT == "legacy" else False
@@ -147,22 +148,12 @@ def dataset_detail(request, task_id, dataset_id):
                    for vm_id in vm_ids}
 
         vm_reviews = {vm_id: model.get_vm_reviews_by_dataset(dataset_id, vm_id)
-                      for vm_id in vm_ids}  # reviews[vm_id][run_id]
+                      for vm_id in vm_ids}
 
         vms = []
         for vm_id, run in vm_runs.items():
-            runs = []
-            for r in run:
-                try:
-                    runs.append({"run": r, "review": vm_reviews.get(vm_id, None).get(r["run_id"], None)})
-                except TypeError as e:
-                    logger.error(f"dataset: {dataset_id}, vm_id: {vm_id}, run: {r}")
-                    Path(f"/mnt/ceph/tira/data/runs/{dataset_id}/{vm_id}")
-                    move(Path(f"/mnt/ceph/tira/data/runs/{dataset_id}/{vm_id}"),
-                         Path(f"/home/tira/{dataset_id}/{vm_id}"))
-                    raise TypeError(e)
-            # runs = [{"run": run, "review": vm_reviews.get(vm_id, None).get(run["run_id"], None)}
-            #         for run in vm_runs.get(vm_id)]
+            runs = [{"run": run, "review": vm_reviews.get(vm_id, None).get(run["run_id"], None)}
+                    for run in vm_runs.get(vm_id)]
             unreviewed_count = len([1 for r in vm_reviews[vm_id].values()
                                     if not r.get("reviewer", None)])
             vms.append({"vm_id": vm_id, "runs": runs, "unreviewed_count": unreviewed_count})
@@ -271,22 +262,21 @@ def review(request, task_id, vm_id, dataset_id, run_id):
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
     role = auth.get_role(request, auth.get_user_id(request))
 
-    # {'software': 'software9', 'run_id': '2021-05-19-02-51-01', 'input_run_id': 'none', 'dataset': 'pan20-authorship-verification-training-dataset2-2020-03-25', 'downloadable': True}
-    # run_review: {'reviewer': '', 'noErrors': False, 'missingOutput': False, 'extraneousOutput': False, 'invalidOutput': False, 'hasErrorOutput': False, 'otherErrors': False, 'comment': '', 'hasErrors': False, 'hasWarnings': False, 'hasNoErrors': False, 'published': False, 'blinded': True}
     run = model.get_run(dataset_id, vm_id, run_id)
     run_review = model.get_run_review(dataset_id, vm_id, run_id)
-    print(run_review)
     runtime = get_run_runtime(dataset_id, vm_id, run_id)
     files = get_run_file_list(dataset_id, vm_id, run_id)
     files["file_list"][0] = "$outputDir"
     stdout = get_stdout(dataset_id, vm_id, run_id)
     stderr = get_stderr(dataset_id, vm_id, run_id)
-    # TODO: add reviewer form if not reviewed
 
     context = {
         "include_navigation": include_navigation,
         'role': role,
-        "review_form": ReviewForm(initial={'no_errors': True}),
+        "review_form": ReviewForm(initial={"no_errors": run_review.get("hasNoErrors"),
+                                           "output_error": run_review.get("hasErrorOutput", False),
+                                           "software_error": run_review.get("otherErrors", False),
+                                           "comment": run_review.get("comment", "")}),
         "task_id": task_id, "dataset_id": dataset_id, "vm_id": vm_id, "run_id": run_id,
         "run": run, "review": run_review, "runtime": runtime, "files": files,
         "stdout": stdout, "stderr": stderr,
@@ -335,11 +325,6 @@ def user_detail(request, user_id):
 
 def add_review(request, task_id, vm_id, dataset_id, run_id):
     """
-    # 'hasErrorOutput': False,
-    # 'hasErrors': False
-    # 'hasWarnings': False
-    # 'hasNoErrors': False
-    these should be filled by the model when updating review data
     """
     check.has_access(request, ["tira", "admin"])
 
@@ -354,17 +339,22 @@ def add_review(request, task_id, vm_id, dataset_id, run_id):
             software_error = form.cleaned_data["software_error"]
             comment = form.cleaned_data["comment"]
 
+            try:
+                username = auth.get_user_id(request)
+                has_errors = output_error or software_error
+                has_no_errors = (not has_errors)
 
-
-            try:  # TODO how to get the reviewer name??
-                # TODO implement
-                # model.update_review(run_id, reviewerId, reviewDate,
-                #                     noErrors, missingOutput, extraneousOutput,
-                #                     invalidOutput, hasErrorOutput, otherErrors,
-                #                     comment, hasErrors, hasWarnings, hasNoErrors)
-                print(no_errors, output_error, software_error, comment)
-
-                context["status"] = "success"
+                s = model.update_review(dataset_id, vm_id, run_id, username, str(dt.utcnow()),
+                                        has_errors, has_no_errors, no_errors=no_errors,
+                                        missing_output=output_error, extraneous_output=output_error,
+                                        invalid_output=output_error,
+                                        has_error_output=output_error, other_errors=software_error, comment=comment
+                                        )
+                if s:
+                    context["status"] = "success"
+                else:
+                    context["status"] = "fail"
+                    context["review_form_error"] = "Failed saving review."
             except KeyError as e:
                 logger.error(e)
                 context["status"] = "fail"
