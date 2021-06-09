@@ -12,3 +12,18 @@ users {
   adminPw: ""
   ip: ""
 }
+
+users {
+  adminName: ""
+  roles: ""
+  email: "dummyUser@webis.de"
+  userPw: "password"
+  userName: "pan21-av-baseline"
+  vmName: "pan21-av-baseline"
+  vmId: "pan21-av-baseline"
+  portSsh: ""
+  host: ""
+  portRdp: ""
+  adminPw: ""
+  ip: ""
+}
