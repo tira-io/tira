@@ -14,7 +14,59 @@ from .proto import tira_host_pb2 as model_host
 logger = logging.getLogger("tira")
 
 
+def auto_reviewer(review_path, run_id):
+    """ Do standard checks for reviews so we do not need to wait for a reviewer to check for:
+     - failed runs (
+     """
+    review_file = review_path / "run-review.bin"
+    review = modelpb.RunReview()
+    review.reviewDate = ""
+    review.hasWarnings = False
+    review.runId = run_id
+
+    if review_file.exists():
+        review.ParseFromString(open(review_path, "rb").read())
+        if not review.reviewerId:
+            review.reviewerId = 'tira'
+
+    try:
+        if not (review_path / "run.bin").exists():  # No Run file
+            review.reviewerId = 'tira'
+            review.comment = "Internal Error: No run definition recorded. Please contact the support."
+            review.hasErrors = True
+            review.hasNoErrors = False
+            review.blinded = False
+        if not (review_path / "output").exists(): # No Output directory
+            review.reviewerId = 'tira'
+            review.comment = "No Output was produced"
+            review.hasErrors = True
+            review.hasNoErrors = False
+            review.blinded = False
+            review.missing_output = True
+
+    except Exception as e:
+        review_path.mkdir(parents=True, exist_ok=True)
+        review.reviewerId = 'tira'
+        review.comment = f"Internal Error: {e}. Please contact the support."
+        review.hasErrors = True
+        review.hasNoErrors = False
+        review.blinded = False
+
+    return review
+
+
 class FileDatabase(object):
+    """
+    This is the class to interface a TIRA Filedatabase.
+    All objects are loaded and stored as protobuf objects.
+    All public methods return dicts.
+    _parse methods are for loading and cashing (i.e. store in memory)
+    _load methods are for loading and returning (non persistent)
+    _get methods are for conversion from proto to dict
+    _save is to store objects in the file structure
+    add is the public IF to add to the model
+    get is the public IF to get data from the model
+    """
     tira_root = settings.TIRA_ROOT
     tasks_dir_path = tira_root / Path("model/tasks")
     users_file_path = tira_root / Path("model/users/users.prototext")
@@ -173,35 +225,20 @@ class FileDatabase(object):
 
     # _load methods parse files on the fly when pages are called
     def _load_review(self, dataset_id, vm_id, run_id):
-        review_path = self.RUNS_DIR_PATH / dataset_id / vm_id / run_id / "run-review.bin"
-        if not review_path.exists():
-            review = modelpb.RunReview()
-            review.reviewerId = ""
+        """ This method loads a review or toggles auto reviewer if it does not exist. """
+        review_path = self.RUNS_DIR_PATH / dataset_id / vm_id / run_id
+        review_file = review_path / "run-review.bin"
+        if not review_file.exists():
+            review = auto_reviewer(review_path, run_id)
+            self._save_review(dataset_id, vm_id, run_id, review)
             return review
         review = modelpb.RunReview()
-        review.ParseFromString(open(review_path, "rb").read())
+        review.ParseFromString(open(review_file, "rb").read())
         return review
 
     def _load_user_reviews(self, dataset_id, vm_id):
-        reviews = {}
-        for run_id_dir in (self.RUNS_DIR_PATH / dataset_id / vm_id).glob("*"):
-            if not (run_id_dir / "run.bin").exists():
-                review = modelpb.RunReview()
-                review.runId = run_id_dir.stem
-                review.reviewerId = 'tira'
-                review.reviewDate = ""
-                review.comment = "Internal Error: No run definition recorded. Please contact the support."
-                review.hasErrors = True
-                review.hasWarnings = False
-                review.hasNoErrors = False
-                review.blinded = False
-
-                reviews[run_id_dir.stem] = review
-                continue
-
-            reviews[run_id_dir.stem] = self._load_review(dataset_id, vm_id, run_id_dir.stem)
-
-        return reviews
+        return {run_id_dir.stem: self._load_review(dataset_id, vm_id, run_id_dir.stem)
+                for run_id_dir in (self.RUNS_DIR_PATH / dataset_id / vm_id).glob("*")}
 
     def _load_vm(self, vm_id):
         """ load a vm object from vm_dir_path """
@@ -215,27 +252,40 @@ class FileDatabase(object):
                 "hasNoErrors": review.hasNoErrors, "published": review.published, "blinded": review.blinded
                 }
 
-    def _load_vm_runs(self, dataset_id, vm_id, include_evaluations):
+    def _load_run(self, dataset_id, vm_id, run_id, return_deleted=False):
+        run_dir = (self.RUNS_DIR_PATH / dataset_id / vm_id / run_id)
+        if not (run_dir / "run.bin").exists():
+            logger.error(f"Try to read a run without a run.bin: {dataset_id}-{vm_id}-{run_id}")
+            # TODO check if it is better to return empty runs or None
+            # if not (run_id_dir / "run.bin").exists():
+            #     run = modelpb.Run()
+            #     run.softwareId = ""
+            #     run.runId = run_id_dir.stem
+            #     run.inputDataset = dataset_id
+            #     runs[run_id_dir.stem] = run
+            #     continue
+            return None
+
+        run = modelpb.Run()
+        run.ParseFromString(open(run_dir / "run.bin", "rb").read())
+        if return_deleted is False and run.deleted:
+            run.softwareId = "This run was deleted"
+            run.runId = run_id
+            run.inputDataset = dataset_id
+        return run
+
+    def _load_vm_runs(self, dataset_id, vm_id, return_deleted=False, include_evaluations=False):
         """ load all run's data.
         @param include_evaluations: If True, also load evaluator runs (where an evaluation.bin exists)
         """
         runs = {}
         for run_id_dir in (self.RUNS_DIR_PATH / dataset_id / vm_id).glob("*"):
-            if not (run_id_dir / "run.bin").exists():
-                run = modelpb.Run()
-                run.softwareId = ""
-                run.runId = run_id_dir.stem
-                run.inputDataset = dataset_id
-                runs[run_id_dir.stem] = run
-                continue
+            run_id = run_id_dir.stem
+            run = self._load_run(dataset_id, vm_id, run_id, return_deleted=return_deleted)
 
-            run = modelpb.Run()
-            run.ParseFromString(open(run_id_dir / "run.bin", "rb").read())
-            if run.deleted:
-                continue
-            if include_evaluations is False and (run_id_dir / "output" / "evaluation.bin").exists():
-                continue
-            runs[run.runId] = self._get_run(run)
+            if run is not None:
+                runs[run_id] = self._get_run(run)
+
         return runs
 
     def _get_run(self, run):
@@ -308,6 +358,13 @@ class FileDatabase(object):
         (self.datasets_dir_path / task_id).mkdir(exist_ok=True, parents=True)
         open(new_dataset_file_path, 'w').write(str(dataset_proto))
         self.datasets[dataset_proto.datasetId] = dataset_proto
+        return True
+
+    def _save_review(self, dataset_id, vm_id, run_id, review):
+        review_path = self.RUNS_DIR_PATH / dataset_id / vm_id / run_id
+        open(review_path / "run-review.prototext", 'w').write(str(review))
+        # TODO
+        # open(review_path / "run-review.bin", 'wb').write(review.SerializeToString())
         return True
 
     # get methods are the public interface.
@@ -454,6 +511,9 @@ class FileDatabase(object):
                 for run_id, ev in
                 self._load_vm_evaluations(dataset_id, vm_id, only_published=only_public_results).items()}
 
+    def get_run(self, dataset_id, vm_id, run_id):
+        return self._get_run(self._load_run(dataset_id, vm_id, run_id))
+
     def get_run_review(self, dataset_id, vm_id, run_id):
         return self._get_review(self._load_review(dataset_id, vm_id, run_id))
 
@@ -475,7 +535,9 @@ class FileDatabase(object):
         """ Return the users list. """
         return self.vms
 
+    # ------------------------------------------------------------
     # add methods to add new data to the model
+    # ------------------------------------------------------------
 
     def create_task(self, task_id, task_name, task_description, master_vm_id, organizer, website):
         """ Add a new task to the database.
@@ -589,13 +651,21 @@ class FileDatabase(object):
 
         return vm_ok and dataset_ok
 
+    def update_review(self, run_id, reviewerId, reviewDate,
+                            noErrors, missingOutput, extraneousOutput,
+                            invalidOutput, hasErrorOutput, otherErrors,
+                            comment, hasErrors, hasWarnings, hasNoErrors):
+        """   TODO implement """
+        return True
+
+
     def add_ongoing_execution(self, hostname, vm_id, ova):
         """ add this create to the stack, so we know it's in progress. """
         print('model', hostname, vm_id, ova)
         pass
 
     def complete_execution(self):
-        #TODO implement
+        # TODO implement
         pass
 
     def get_commands_bulk(self, bulk_id):
