@@ -222,18 +222,27 @@
     <div class="uk-container uk-margin-medium">
         <h2>Software Log</h2>
         <textarea class="uk-textarea" rows="10" placeholder="No Stdout recorded." disabled>
+        {% if review.blinded == False or role == 'admin' %}
         {{ stdout }}
+        {% else %}
+            The Software Log has not been revealed to participants yet. Contact your task's organizer for a review.
+        {% endif %}
         </textarea>
     </div>
 
-    <!-- Show Stderr -->
 
+    <!-- Show Stderr -->
     <div class="uk-container uk-margin-medium">
         <h2>Software Error Log</h2>
         <textarea class="uk-textarea" rows="10" placeholder="No Stdout recorded." disabled>
+        {% if review.blinded == False or role == 'admin' %}
         {{ stderr }}
+        {% else %}
+            The Software Error Log has not been revealed to participants yet. Contact your task's organizer for a review.
+        {% endif %}
         </textarea>
     </div>
+
 
 </main>
 
