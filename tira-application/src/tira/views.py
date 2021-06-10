@@ -272,7 +272,6 @@ def review(request, task_id, vm_id, dataset_id, run_id):
     if request.method == "POST":
         form = ReviewForm(request.POST)
         if form.is_valid():
-            print(form)
             no_errors = form.cleaned_data["no_errors"]
             output_error = form.cleaned_data["output_error"]
             software_error = form.cleaned_data["software_error"]
@@ -306,7 +305,7 @@ def review(request, task_id, vm_id, dataset_id, run_id):
     files["file_list"][0] = "$outputDir"
     stdout = get_stdout(dataset_id, vm_id, run_id)
     stderr = get_stderr(dataset_id, vm_id, run_id)
-    print(run_review)
+
     context = {
         "include_navigation": include_navigation,
         'role': role,
