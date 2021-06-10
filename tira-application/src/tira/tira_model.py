@@ -630,7 +630,6 @@ class FileDatabase(object):
         """ updates the review specified by dataset_id, vm_id, and run_id with the values given in the parameters.
         Required Parameters are also required in the function
         """
-        print(f"value = {published}")
         review = self._load_review(dataset_id, vm_id, run_id)
 
         if reviewer_id is not None:
@@ -663,7 +662,6 @@ class FileDatabase(object):
             review.blinded = blinded
         try:
             self._save_review(dataset_id, vm_id, run_id, review)
-            print(f"updated review for {run_id} to: {review}")
             return True
         except Exception as e:
             logger.exception(f"Exception while saving review ({dataset_id}, {vm_id}, {run_id}): {e}")

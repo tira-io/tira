@@ -4,7 +4,6 @@ let run_id = null;
 
 // change view when blind state changes
 function setBlindButton(blinded){
-    console.log(blinded)
     if ( blinded === false ) {
         $('#blind-button').show()
         $('#blind-text').show()
