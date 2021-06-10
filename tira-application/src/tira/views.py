@@ -259,8 +259,45 @@ def software_detail(request, task_id, vm_id):
 
 
 def review(request, task_id, vm_id, dataset_id, run_id):
+    """
+     - no_errors = hasNoErrors
+     - output_error -> invalid_output and has_error_output
+     - software_error <-> other_error
+    """
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
     role = auth.get_role(request, auth.get_user_id(request))
+
+    review_form_error = None
+
+    if request.method == "POST":
+        form = ReviewForm(request.POST)
+        if form.is_valid():
+            print(form)
+            no_errors = form.cleaned_data["no_errors"]
+            output_error = form.cleaned_data["output_error"]
+            software_error = form.cleaned_data["software_error"]
+            comment = form.cleaned_data["comment"]
+
+            try:
+                if no_errors and (output_error or software_error):
+                    review_form_error = "Either there is an error or there is not."
+
+                username = auth.get_user_id(request)
+                has_errors = output_error or software_error
+                has_no_errors = (not has_errors)
+
+                s = model.update_review(dataset_id, vm_id, run_id, username, str(dt.utcnow()),
+                                        has_errors, has_no_errors, no_errors=no_errors,
+                                        invalid_output=output_error,
+                                        has_error_output=output_error, other_errors=software_error, comment=comment
+                                        )
+                if not s:
+                    review_form_error = "Failed saving review. Contact Admin."
+            except KeyError as e:
+                logger.error(f"Failed updating review {task_id}, {vm_id}, {dataset_id}, {run_id} with {e}")
+                review_form_error = "Failed updating review. Contact Admin."
+        else:
+            review_form_error = "Form Invalid (check formatting)"
 
     run = model.get_run(dataset_id, vm_id, run_id)
     run_review = model.get_run_review(dataset_id, vm_id, run_id)
@@ -269,14 +306,16 @@ def review(request, task_id, vm_id, dataset_id, run_id):
     files["file_list"][0] = "$outputDir"
     stdout = get_stdout(dataset_id, vm_id, run_id)
     stderr = get_stderr(dataset_id, vm_id, run_id)
-
+    print(run_review)
     context = {
         "include_navigation": include_navigation,
         'role': role,
-        "review_form": ReviewForm(initial={"no_errors": run_review.get("hasNoErrors"),
-                                           "output_error": run_review.get("hasErrorOutput", False),
+        "review_form": ReviewForm(initial={"no_errors": run_review.get("hasNoErrors") or run_review.get("noErrors"),
+                                           "output_error": run_review.get("hasErrorOutput", False)
+                                                           or run_review.get("invalidOutput", False),
                                            "software_error": run_review.get("otherErrors", False),
                                            "comment": run_review.get("comment", "")}),
+        "review_form_error": review_form_error,
         "task_id": task_id, "dataset_id": dataset_id, "vm_id": vm_id, "run_id": run_id,
         "run": run, "review": run_review, "runtime": runtime, "files": files,
         "stdout": stdout, "stderr": stderr,
@@ -323,50 +362,30 @@ def user_detail(request, user_id):
 # ------------------- ajax calls --------------------------------
 
 
-def add_review(request, task_id, vm_id, dataset_id, run_id):
-    """
-    """
+def publish(request, vm_id, dataset_id, run_id, value):
     check.has_access(request, ["tira", "admin"])
-
-    context = {}
-
-    if request.method == "POST":
-        form = ReviewForm(request.POST)
-        if form.is_valid():
-
-            no_errors = form.cleaned_data["no_errors"]
-            output_error = form.cleaned_data["output_error"]
-            software_error = form.cleaned_data["software_error"]
-            comment = form.cleaned_data["comment"]
-
-            try:
-                username = auth.get_user_id(request)
-                has_errors = output_error or software_error
-                has_no_errors = (not has_errors)
-
-                s = model.update_review(dataset_id, vm_id, run_id, username, str(dt.utcnow()),
-                                        has_errors, has_no_errors, no_errors=no_errors,
-                                        missing_output=output_error, extraneous_output=output_error,
-                                        invalid_output=output_error,
-                                        has_error_output=output_error, other_errors=software_error, comment=comment
-                                        )
-                if s:
-                    context["status"] = "success"
-                else:
-                    context["status"] = "fail"
-                    context["review_form_error"] = "Failed saving review."
-            except KeyError as e:
-                logger.error(e)
-                context["status"] = "fail"
-                return JsonResponse(context)
+    value = (True if value == 'true' else False)
+    if request.method == 'GET':
+        status = model.update_review(dataset_id, vm_id, run_id, published=value)
+        if status:
+            context = {"status": "success", "published": value}
         else:
-            context["status"] = "fail"
-            context["review_form_error"] = "Form Invalid (check formatting)"
-            return JsonResponse(context)
-    else:
-        HttpResponse("Permission Denied")
+            context = {"status": "fail", "published": (not value)}
 
-    return JsonResponse(context)
+        return JsonResponse(context)
+
+
+def blind(request, vm_id, dataset_id, run_id, value):
+    check.has_access(request, ["tira", "admin"])
+    value = (False if value == 'false' else True)
+
+    if request.method == 'GET':
+        status = model.update_review(dataset_id, vm_id, run_id, blinded=value)
+        if status:
+            context = {"status": "success", "blinded": value}
+        else:
+            context = {"status": "fail", "blinded": (not value)}
+        return JsonResponse(context)
 
 
 def admin_reload_data(request):
