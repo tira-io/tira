@@ -68,18 +68,12 @@
                 </div>
                 <div class="uk-position-bottom uk-padding-small">
                     <p>
-                    {% if review.published == False %}
-                    <span class="uk-text-warning">The results are <em>not</em> on the leaderboards.</span>
-                    {% else %}
-                    <span class="uk-text-success">The results are on the leaderboards.</span>
-                    {% endif %}
+                    <span id="publish-text" class="uk-text-warning">The results are <em>not</em> on the leaderboards.</span>
+                    <span id="unpublish-text" class="uk-text-success">The results are on the leaderboards.</span>
                     </p>
                     {% if role == 'admin' %}
-                        {% if review.published == False %}
-                        <button class="uk-button uk-button-danger uk-width-1-1 uk-padding-remove-bottom">Publish run</button>
-                        {% else %}
-                        <button class="uk-button uk-button-default uk-width-1-1 uk-padding-remove-bottom">unpublish run</button>
-                        {% endif %}
+                        <button id="publish-button" class="uk-button uk-button-danger uk-width-1-1 uk-padding-remove-bottom">Publish run</button>
+                        <button id="unpublish-button" class="uk-button uk-button-default uk-width-1-1 uk-padding-remove-bottom">unpublish run</button>
                     {% endif %}
                 </div>
             </div>
@@ -114,18 +108,12 @@
                 </div>
                 <div  class="uk-position-bottom uk-padding-small">
                     <p>
-                        {% if review.blinded == False %}
-                        <span class="uk-text-success">The output is visible to the participant.</span>
-                        {% else %}
-                        <span class="uk-text-warning">The output is <em>not</em> visible to the participant.</span>
-                        {% endif %}
+                        <span id="blind-text" class="uk-text-success">The output is visible to the participant.</span>
+                        <span id="unblind-text" class="uk-text-warning">The output is <em>not</em> visible to the participant.</span>
                     </p>
                     {% if role == 'admin' %}
-                        {% if review.blinded == False %}
-                        <button class="uk-button uk-button-default uk-width-1-1 uk-padding-remove-bottom">blind run</button>
-                        {% else %}
-                        <button class="uk-button uk-button-danger uk-width-1-1 uk-padding-remove-bottom">unblind run</button>
-                        {% endif %}
+                        <button id="blind-button" class="uk-button uk-button-default uk-width-1-1 uk-padding-remove-bottom">blind run</button>
+                        <button id="unblind-button" class="uk-button uk-button-danger uk-width-1-1 uk-padding-remove-bottom">unblind run</button>
                     {% endif %}
                 </div>
             </div>
@@ -134,7 +122,7 @@
 
             {% if role == 'admin' %}
             <div class="uk-card uk-card-body uk-card-default">
-                <form id="review-form" action="{% url 'tira:add-review' task_id=task_id vm_id=vm_id dataset_id=dataset_id run_id=run_id %}" method="POST" target="_blank">
+                <form id="review-form" action="{% url 'tira:review' task_id=task_id vm_id=vm_id dataset_id=dataset_id run_id=run_id %}" method="POST">
                     {% csrf_token %}
                     <div class="uk-height-medium"></div>
                     <div  class="uk-position-top uk-padding-small">
@@ -220,7 +208,7 @@
 
     <!-- Show Stdout -->
     <div class="uk-container uk-margin-medium">
-        <h2>Software Log</h2>
+        <h2>Standard Output <span class="uk-text-muted uk-text-lead">[stdout]</span></h2>
         <textarea class="uk-textarea" rows="10" placeholder="No Stdout recorded." disabled>
         {% if review.blinded == False or role == 'admin' %}
         {{ stdout }}
@@ -233,7 +221,7 @@
 
     <!-- Show Stderr -->
     <div class="uk-container uk-margin-medium">
-        <h2>Software Error Log</h2>
+        <h2>Standard Error <span class="uk-text-muted uk-text-lead">[stderr]</span></h2>
         <textarea class="uk-textarea" rows="10" placeholder="No Stdout recorded." disabled>
         {% if review.blinded == False or role == 'admin' %}
         {{ stderr }}
@@ -246,15 +234,19 @@
 
 </main>
 
-{% if not include_navigation %}
+{% if include_navigation %}
 <script src="https://assets.webis.de/js/thirdparty/jquery/jquery.slim.min.js"></script>
-{% endif %}
 <script src="https://assets.webis.de/js/thirdparty/fontawesome/fontawesome.min.js"></script>
 <script src="https://assets.webis.de/js/thirdparty/fontawesome/solid.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+{% endif %}
 <script src="https://assets.webis.de/js/filter.js"></script>
 <script src="https://assets.webis.de/js/selection.js"></script>
 <script src="https://assets.webis.de/js/tables.js"></script>
 <script>initWebisTableFiltering();</script>
 <script>initTableSorting();</script>
+<script src="{% static 'tira/js/review.js' %}"></script>
+<script>addReviewEvents("{{ review.published }}", "{{ review.blinded }}", "{{ vm_id }}",
+    "{{ dataset_id }}", "{{ run_id }}");</script>
 
 {% endblock %}

@@ -90,12 +90,12 @@ class AddDatasetForm(forms.Form):
 
 
 class ReviewForm(forms.Form):
-    """ TODO checking noErrors should uncheck all others, and vice versa """
+    """ Form to create Reviews. Delivered on the tira.review route and handeled by the review view."""
     no_errors = forms.BooleanField(label="No Errors", required=False,
-                                   widget=forms.CheckboxInput(attrs={"class": "uk-checkbox"}))
+                                   widget=forms.CheckboxInput(attrs={"id": "no-error-checkbox", "class": "uk-checkbox"}))
     output_error = forms.BooleanField(label="Output Error", required=False,
-                                        widget=forms.CheckboxInput(attrs={"class": "uk-checkbox"}))
+                                        widget=forms.CheckboxInput(attrs={"id": "output-error-checkbox", "class": "uk-checkbox"}))
     software_error = forms.BooleanField(label="Software Error", required=False,
-                                      widget=forms.CheckboxInput(attrs={"class": "uk-checkbox"}))
+                                      widget=forms.CheckboxInput(attrs={"id": "software-error-checkbox", "class": "uk-checkbox"}))
     comment = forms.CharField(label="Comment", required=False,
                               widget=forms.Textarea(attrs={"class": "uk-textarea", "rows": "6"}))
