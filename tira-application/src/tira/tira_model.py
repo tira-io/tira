@@ -622,35 +622,44 @@ class FileDatabase(object):
         return vm_ok and dataset_ok
 
     def update_review(self, dataset_id, vm_id, run_id,
-                      reviewer_id: str, review_date: str, has_errors: bool, has_no_errors: bool,
-                      no_errors: bool = None, missing_output: bool = None, extraneous_output: bool = None,
-                      invalid_output: bool = None, has_error_output: bool = None, other_errors: bool = None,
-                      comment: str = None, has_warnings: bool = False):
+                      reviewer_id: str = None, review_date: str = None, has_errors: bool = None,
+                      has_no_errors: bool = None, no_errors: bool = None, missing_output: bool = None,
+                      extraneous_output: bool = None, invalid_output: bool = None, has_error_output: bool = None,
+                      other_errors: bool = None, comment: str = None, published: bool = None, blinded: bool = None,
+                      has_warnings: bool = False):
         """ updates the review specified by dataset_id, vm_id, and run_id with the values given in the parameters.
         Required Parameters are also required in the function
         """
         review = self._load_review(dataset_id, vm_id, run_id)
 
-        review.reviewerId = reviewer_id
-        review.reviewDate = review_date
-        review.hasErrors = has_errors
-        review.hasWarnings = has_warnings
-        review.hasNoErrors = has_no_errors
-
-        if no_errors:
+        if reviewer_id is not None:
+            review.reviewerId = reviewer_id
+        if review_date is not None:
+            review.reviewDate = review_date
+        if has_errors is not None:
+            review.hasErrors = has_errors
+        if has_warnings is not None:
+            review.hasWarnings = has_warnings
+        if has_no_errors is not None:
+            review.hasNoErrors = has_no_errors
+        if no_errors is not None:
             review.noErrors = no_errors
-        if missing_output:
+        if missing_output is not None:
             review.missingOutput = missing_output
-        if extraneous_output:
+        if extraneous_output is not None:
             review.extraneousOutput = extraneous_output
-        if invalid_output:
+        if invalid_output is not None:
             review.invalidOutput = invalid_output
-        if has_error_output:
+        if has_error_output is not None:
             review.hasErrorOutput = has_error_output
-        if other_errors:
+        if other_errors is not None:
             review.otherErrors = other_errors
-        if comment:
+        if comment is not None:
             review.comment = comment
+        if published is not None:
+            review.published = published
+        if blinded is not None:
+            review.blinded = blinded
         try:
             self._save_review(dataset_id, vm_id, run_id, review)
             return True
