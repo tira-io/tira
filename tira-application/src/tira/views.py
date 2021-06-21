@@ -153,14 +153,13 @@ def dataset_detail(request, task_id, dataset_id):
             runs = [{"run": run, "review": vm_reviews.get(vm_id, None).get(run["run_id"], None)}
                     for run in vm_runs.get(vm_id)]
             unreviewed_count = len([1 for r in vm_reviews[vm_id].values()
-                                    if not r.get("reviewer", None)])
-            vms.append({"vm_id": vm_id, "runs": runs, "unreviewed_count": unreviewed_count})
-        # vms = [{"vm_id": vm_id,
-        #         "runs": [{"run": run, "review": vm_reviews.get(vm_id, None).get(run["run_id"], None)}
-        #                  for run in vm_runs.get(vm_id)],
-        #         "unreviewed_count": len([1 for r in vm_reviews[vm_id].values()
-        #                                  if not r.get("reviewer", None)])
-        #         } for vm_id, run in vm_runs.items()]
+                                    if not r.get("reviewer", None) or r.get("reviewer", None) == 'tira'])
+            published_count = len([1 for r in vm_reviews[vm_id].values()
+                                   if r.get("published", None)])
+            blinded_count = len([1 for r in vm_reviews[vm_id].values()
+                                   if r.get("blinded", None)])
+            vms.append({"vm_id": vm_id, "runs": runs, "unreviewed_count": unreviewed_count,
+                        "blinded_count": blinded_count, "published_count": published_count})
 
     context = {
         "include_navigation": include_navigation,

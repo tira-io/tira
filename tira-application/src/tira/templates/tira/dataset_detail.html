@@ -80,19 +80,25 @@
         <h2 id="tira-runs">Runs</h2>
         <ul id="tira-run-accordion" class="uk-list uk-list-collapse uk-list-striped" uk-accordion="multiple: true">
             {% for vm in vms %}
-            <li class="uk-open">
+            <li>
                 <a class="uk-accordion-title uk-text-small" href="#">
-                    <table class="uk-width-1-2"><tr>
-                        <td class="uk-width-1-2 uk-text-left"><b>{{ vm.vm_id }}</b></td>
-                        <td class="uk-width-1-4 uk-text-right">{{ vm.runs|length }} Runs</td>
-                        <td class="uk-width-1-4 uk-text-right">{{ vm.unreviewed_count }} Unreviewed</td>
-                    </tr></table>
+                    <table class="uk-width-3-4">
+                        <tr>
+                            <td class="uk-width-1-5 uk-text-left"><b>{{ vm.vm_id }}</b></td>
+                            <td class="uk-width-1-5 uk-text-right">{{ vm.runs|length }} Runs</td>
+                            <td class="uk-width-1-5 uk-text-right">{{ vm.unreviewed_count }} Unreviewed</td>
+                            <td class="uk-width-1-5 uk-text-right">{{ vm.blinded_count }} Blinded</td>
+                            <td class="uk-width-1-5 uk-text-right">{{ vm.published_count }} Published</td>
+                        </tr>
+                    </table>
                 </a>
 
                 <div class="uk-accordion-content">
                     <table class="uk-margin-medium uk-table uk-table-divider uk-table-small sortable">
                         <thead>
                         <tr>
+                            <th></th>
+                            <th></th>
                             <th></th>
                             <th class="header"><span>Software</span></th>
                             <th class="header"><span>Actions</span></th>
@@ -105,7 +111,39 @@
                         <tbody>
                         {% for run in vm.runs %}
                         <tr>
-                            <td></td> <!-- id? -->
+                            <td class="uk-table-shrink">
+                                {% if run.review.noErrors == True %}
+                                <div uk-tooltip="This run is OK">
+                                    <i class="fas fa-check dataset-detail-icon uk-text-success"></i>
+                                </div>
+                                {% elif run.review.hasErrors == True %}
+                                <div uk-tooltip="This run has errors">
+                                    <i class="fas fa-times dataset-detail-icon uk-text-danger"></i>
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td class="uk-table-shrink">
+                                {% if run.review.blinded == True %}
+                                <div uk-tooltip="This run is blinded">
+                                    <i class="fas fa-user-slash dataset-detail-icon"></i>
+                                </div>
+                                {% else %}
+                                <div uk-tooltip="This run is visible to the participant">
+                                    <i class="fas fa-user dataset-detail-icon"></i>
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td class="uk-table-shrink"> <!-- Icons -->
+                                {% if run.review.published == True %}
+                                <div uk-tooltip="This run is on the leaderbords">
+                                    <i class="fas fa-users dataset-detail-icon"></i>
+                                </div>
+                                {% else %}
+                                <div uk-tooltip="This run is not published">
+                                    <i class="fas fa-users-slash dataset-detail-icon"></i>
+                                </div>
+                                {% endif %}
+                            </td> <!-- id? -->
                             <td>{{ run.run.software }}</td>
                             <td>[<a href="{% url 'tira:review' task_id=task.task_id vm_id=vm.vm_id dataset_id=dataset_id run_id=run.run.run_id %}">review</a>]</td>
                             <td id="run-{{ vm.vm_id }}-{{ run.run.run_id }}">{{ run.run.run_id }}</td>
@@ -115,7 +153,15 @@
                             <td>{{ run.run.input_run_id }}</td>
                             {% endif %}
                             <td>{{ run.review.reviewer }}</td>
-                            <td>{{ run.review.review }}</td>
+                            <td>
+                                {% if run.review.noErrors == True %}
+                                This run is OK
+                                {% elif run.review.hasErrorOutput == True %}
+                                Output Error
+                                {% elif run.review.otherErrors == True %}
+                                Software Error
+                                {% endif %}
+                            </td>
                         </tr>
                         {% endfor %}
                         </tbody>
