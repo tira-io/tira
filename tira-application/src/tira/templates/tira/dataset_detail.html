@@ -6,11 +6,11 @@
 
 {% block content %}
 <nav class="uk-container">
-<ul class="uk-breadcrumb">
-<li><a href="{% url 'tira:index' %}">Tira.io</a></li>
-<li> <a href="{% url 'tira:task-detail' task_id=task.task_id %}">{{ task.task_name }}</a></li>
-<li class="uk-disabled"><a href="#">{{ dataset_id }}</a></li>
-</ul>
+    <ul class="uk-breadcrumb">
+        <li><a href="{% url 'tira:index' %}">Tira.io</a></li>
+        <li><a href="{% url 'tira:task-detail' task_id=task.task_id %}">{{ task.task_name }}</a></li>
+        <li class="uk-disabled"><a href="#">{{ dataset_id }}</a></li>
+    </ul>
 </nav>
 
 <main class="uk-section uk-section-default">
@@ -19,12 +19,12 @@
         <h2>Dataset: <span class="uk-text-muted">{{ dataset_id }}</span></h2>
     </div>
 
-<!--    <div class="uk-container uk-margin-medium">-->
-<!--        <ul class="uk-list">-->
-<!--            <li><span data-uk-icon="chevron-down"></span> <a href="#tira-evaluation-results">Evaluation Results</a></li>-->
-<!--            <li><span data-uk-icon="chevron-down"></span> <a href="#tira-runs">Runs</a></li>-->
-<!--        </ul>-->
-<!--    </div>-->
+    <!--    <div class="uk-container uk-margin-medium">-->
+    <!--        <ul class="uk-list">-->
+    <!--            <li><span data-uk-icon="chevron-down"></span> <a href="#tira-evaluation-results">Evaluation Results</a></li>-->
+    <!--            <li><span data-uk-icon="chevron-down"></span> <a href="#tira-runs">Runs</a></li>-->
+    <!--        </ul>-->
+    <!--    </div>-->
 
     <div class="uk-container uk-margin-medium">
         <table class="uk-margin-medium uk-table uk-table-divider uk-table-small sortable targetable">
@@ -33,9 +33,9 @@
                 <th id="tira-evaluation-results"></th>
                 {% if role == 'admin' %}
                 <th colspan="{{ ev_keys|length|add:'3' }}">
-                {% else %}
+                    {% else %}
                 <th colspan="{{ ev_keys|length|add:'3' }}">
-                {% endif %}
+                    {% endif %}
                     Results of {{ dataset_id }}
                     <a href="#" class="uk-float-right uk-link-reset" data-uk-icon="chevron-up"></a>
                 </th>
@@ -81,20 +81,26 @@
         <ul id="tira-run-accordion" class="uk-list uk-list-collapse uk-list-striped" uk-accordion="multiple: true">
             {% for vm in vms %}
             <li>
-                <a class="uk-accordion-title uk-text-small" href="#">
-                    <table class="uk-width-3-4">
-                        <tr>
-                            <td class="uk-width-1-5 uk-text-left"><b>{{ vm.vm_id }}</b></td>
-                            <td class="uk-width-1-5 uk-text-right">{{ vm.runs|length }} Runs</td>
-                            <td class="uk-width-1-5 uk-text-right">{{ vm.unreviewed_count }} Unreviewed</td>
-                            <td class="uk-width-1-5 uk-text-right">{{ vm.blinded_count }} Blinded</td>
-                            <td class="uk-width-1-5 uk-text-right">{{ vm.published_count }} Published</td>
-                        </tr>
-                    </table>
-                </a>
-
-                <div class="uk-accordion-content">
-                    <table class="uk-margin-medium uk-table uk-table-divider uk-table-small sortable">
+                <div class="uk-accordion-title uk-grid-collapse" data-uk-grid>
+                    <div>
+                        <table class="uk-text-small uk-width-5-6">
+                            <tr>
+                                <td class="uk-width-1-5 uk-text-left"><b>{{ vm.vm_id }}</b></td>
+                                <td class="uk-width-1-5 uk-text-right">{{ vm.runs|length }} Runs</td>
+                                <td class="uk-width-1-5 uk-text-right {% if vm.unreviewed_count > 0 %}uk-text-warning{% endif %}">
+                                    {{ vm.unreviewed_count }} Unreviewed</td>
+                                <td class="uk-width-1-5 uk-text-right">{{ vm.blinded_count }} Blinded</td>
+                                <td class="uk-width-1-5 uk-text-right {% if vm.published_count == 0 %}uk-text-warning{% endif %}">
+                                    {{ vm.published_count }} Published</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="uk-accordion-content uk-margin-remove-top">
+                    <a href="{% url 'tira:software-detail' task_id=task.task_id vm_id=vm.vm_id %}">
+                        [manage user]
+                    </a>
+                    <table class="uk-margin-remove-top uk-table uk-table-divider uk-table-small sortable">
                         <thead>
                         <tr>
                             <th></th>
@@ -129,14 +135,14 @@
                                 </div>
                                 {% else %}
                                 <div uk-tooltip="This run is visible to the participant">
-                                    <i class="fas fa-user dataset-detail-icon"></i>
+                                    <i class="fas fa-user dataset-detail-icon uk-text-success"></i>
                                 </div>
                                 {% endif %}
                             </td>
                             <td class="uk-table-shrink"> <!-- Icons -->
                                 {% if run.review.published == True %}
                                 <div uk-tooltip="This run is on the leaderbords">
-                                    <i class="fas fa-users dataset-detail-icon"></i>
+                                    <i class="fas fa-users dataset-detail-icon uk-text-success"></i>
                                 </div>
                                 {% else %}
                                 <div uk-tooltip="This run is not published">
@@ -145,10 +151,13 @@
                                 {% endif %}
                             </td> <!-- id? -->
                             <td>{{ run.run.software }}</td>
-                            <td>[<a href="{% url 'tira:review' task_id=task.task_id vm_id=vm.vm_id dataset_id=dataset_id run_id=run.run.run_id %}">review</a>]</td>
+                            <td>
+                                [<a href="{% url 'tira:review' task_id=task.task_id vm_id=vm.vm_id dataset_id=dataset_id run_id=run.run.run_id %}">review</a>]
+                            </td>
                             <td id="run-{{ vm.vm_id }}-{{ run.run.run_id }}">{{ run.run.run_id }}</td>
                             {% if run.run.input_run_id != 'none' %}
-                            <td><a href="#run-{{ vm.vm_id }}-{{ run.run.input_run_id }}">{{ run.run.input_run_id }}</a></td>
+                            <td><a href="#run-{{ vm.vm_id }}-{{ run.run.input_run_id }}">{{ run.run.input_run_id }}</a>
+                            </td>
                             {% else %}
                             <td>{{ run.run.input_run_id }}</td>
                             {% endif %}
