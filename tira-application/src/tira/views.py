@@ -118,7 +118,6 @@ def dataset_detail(request, task_id, dataset_id):
      @note maybe later, we can show a consolidated view of all runs the user made on this dataset below.
      """
     check.has_access(request, 'any')
-
     role = auth.get_role(request, auth.get_user_id(request))
 
     # For all users: compile the results table from the evaluations
@@ -153,14 +152,14 @@ def dataset_detail(request, task_id, dataset_id):
             runs = [{"run": run, "review": vm_reviews.get(vm_id, None).get(run["run_id"], None)}
                     for run in vm_runs.get(vm_id)]
             unreviewed_count = len([1 for r in vm_reviews[vm_id].values()
-                                    if not r.get("reviewer", None) or r.get("reviewer", None) == 'tira'])
+                                    if not r.get("hasErrors", None) and not r.get("hasNoErrors", None)])
             published_count = len([1 for r in vm_reviews[vm_id].values()
                                    if r.get("published", None)])
             blinded_count = len([1 for r in vm_reviews[vm_id].values()
                                    if r.get("blinded", None)])
             vms.append({"vm_id": vm_id, "runs": runs, "unreviewed_count": unreviewed_count,
                         "blinded_count": blinded_count, "published_count": published_count})
-
+#
     context = {
         "include_navigation": include_navigation,
         "role": role,
@@ -184,8 +183,7 @@ def software_detail(request, task_id, vm_id):
     check.has_access(request, ["tira", "admin", "participant", "user"], on_vm_id=vm_id)
 
     # 0. Early return a dummy page, if the user has no vm assigned on this task
-    # TODO should be in check. If the user has no VM, check should forward to 'request-vm'.
-    #   If user has no permission on the task, should forward to task page
+    # TODO: If the user has no VM, give him a request form
     if auth.get_role(request, user_id=auth.get_user_id(request), vm_id=vm_id) == auth.ROLE_USER or \
             vm_id == "no-vm-assigned":
         context = {
@@ -241,8 +239,6 @@ def software_detail(request, task_id, vm_id):
     # response_vm_info = tira_client.vm_info(vm_id)
 
     response_vm_info = None
-
-    print("pass")
 
     context = {
         "include_navigation": include_navigation,
