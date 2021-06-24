@@ -126,7 +126,7 @@
                     {% csrf_token %}
                     <div class="uk-height-medium"></div>
                     <div  class="uk-position-top uk-padding-small">
-                        <h2 id="tira-run-review">Review</h2>
+                        <h2 id="tira-run-review" class="uk-margin-remove-top">Review</h2>
                         <div class="uk-grid-small uk-child-width-1-3@m" data-uk-grid>
                             <div>
                                 <div>{{ review_form.no_errors }} {{ review_form.no_errors.label }}</div>
@@ -162,7 +162,7 @@
             <div class="uk-card uk-card-body uk-card-default">
                 <div class="uk-height-medium"></div>
                 <div  class="uk-position-top uk-padding-small">
-                    <h2 id="tira-run-review">Review</h2>
+                    <h2 id="tira-run-review" class="uk-margin-remove-top">Review</h2>
                     <p>
                         {% if review.noErrors %}
                         There are no errors. This run is valid.
@@ -208,7 +208,7 @@
 
     <!-- Show Stdout -->
     <div class="uk-container uk-margin-medium">
-        <h2>Software Log</h2>
+        <h2>Standard Output <span class="uk-text-muted uk-text-lead">[stdout]</span></h2>
         <textarea class="uk-textarea" rows="10" placeholder="No Stdout recorded." disabled>
         {% if review.blinded == False or role == 'admin' %}
         {{ stdout }}
@@ -221,7 +221,7 @@
 
     <!-- Show Stderr -->
     <div class="uk-container uk-margin-medium">
-        <h2>Software Error Log</h2>
+        <h2>Standard Error <span class="uk-text-muted uk-text-lead">[stderr]</span></h2>
         <textarea class="uk-textarea" rows="10" placeholder="No Stdout recorded." disabled>
         {% if review.blinded == False or role == 'admin' %}
         {{ stderr }}

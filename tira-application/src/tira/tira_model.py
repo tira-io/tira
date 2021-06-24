@@ -50,7 +50,8 @@ def auto_reviewer(review_path, run_id):
             review.hasErrors = True
             review.hasNoErrors = False
             review.blinded = True
-            review.missing_output = True
+            review.missingOutput = True
+            review.hasErrorOutput = True
 
     except Exception as e:
         review_path.mkdir(parents=True, exist_ok=True)
