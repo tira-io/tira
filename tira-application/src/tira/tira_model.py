@@ -24,7 +24,7 @@ def auto_reviewer(review_path, run_id):
 
     if review_file.exists():  # TODO this will throw if the file is corrupt. Let it throw to not overwrite files.
         try:
-            review.ParseFromString(open(review_path, "rb").read())
+            review.ParseFromString(open(review_file, "rb").read())
             return review
         except Exception as e:
             logger.exception(f"review file: {review_file} exists but is corrupted with {e}")

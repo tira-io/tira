@@ -19,22 +19,15 @@
         <h2>Dataset: <span class="uk-text-muted">{{ dataset_id }}</span></h2>
     </div>
 
-    <!--    <div class="uk-container uk-margin-medium">-->
-    <!--        <ul class="uk-list">-->
-    <!--            <li><span data-uk-icon="chevron-down"></span> <a href="#tira-evaluation-results">Evaluation Results</a></li>-->
-    <!--            <li><span data-uk-icon="chevron-down"></span> <a href="#tira-runs">Runs</a></li>-->
-    <!--        </ul>-->
-    <!--    </div>-->
-
     <div class="uk-container uk-margin-medium">
         <table class="uk-margin-medium uk-table uk-table-divider uk-table-small sortable targetable">
             <thead>
             <tr>
                 <th id="tira-evaluation-results"></th>
                 {% if role == 'admin' %}
-                <th colspan="{{ ev_keys|length|add:'3' }}">
+                <th colspan="{{ ev_keys|length|add:'5' }}">
                     {% else %}
-                <th colspan="{{ ev_keys|length|add:'3' }}">
+                <th colspan="{{ ev_keys|length|add:'5' }}">
                     {% endif %}
                     Results of {{ dataset_id }}
                     <a href="#" class="uk-float-right uk-link-reset" data-uk-icon="chevron-up"></a>
@@ -42,11 +35,15 @@
             </tr>
             <tr>
                 <th></th>
-                <th class="header"><span>Virtual Machine</span></th>
                 {% if role == 'admin' %}
-                <th class="header"><span>Actions</span></th>
+                <th class="header uk-table-shrink">&nbsp;</th>
+                <th class="header uk-table-shrink">&nbsp;</th>
                 {% endif %}
-                <th class="header"><span>Run</span></th>
+                <th class="header uk-table-shrink uk-text-nowrap"><span>Virtual Machine</span></th>
+                {% if role == 'admin' %}
+                <th class="header uk-table-shrink uk-text-nowrap"><span>Actions</span></th>
+                {% endif %}
+                <th class="header uk-table-shrink uk-text-nowrap"><span>Run</span></th>
                 {% for key in ev_keys %}
                 <th class="header"><span>{{ key }}</span></th>
                 {% endfor %}
@@ -56,17 +53,41 @@
             {% for eval in evaluations %}
             <tr>
                 <td id="{{ dataset_id }}-{{ eval.vm_id }}-{{ eval.run_id }}"></td>
-                <td>{{ eval.vm_id }}</td>
                 {% if role == 'admin' %}
-                <td>[<a href="{% url 'tira:software-detail' task_id=task.task_id vm_id=eval.vm_id %}">manage</a>]</td>
+                <td class="uk-table-shrink">
+                    {% if eval.blinded == True %}
+                    <div uk-tooltip="This run is blinded">
+                        <i class="fas fa-user-slash dataset-detail-icon"></i>
+                    </div>
+                    {% else %}
+                    <div uk-tooltip="This run is visible to the participant">
+                        <i class="fas fa-user dataset-detail-icon uk-text-success"></i>
+                    </div>
+                    {% endif %}
+                </td>
+                <td class="uk-table-shrink"> <!-- Icons -->
+                    {% if eval.published == True %}
+                    <div uk-tooltip="This run is on the leaderbords">
+                        <i class="fas fa-users dataset-detail-icon uk-text-success"></i>
+                    </div>
+                    {% else %}
+                    <div uk-tooltip="This run is not published">
+                        <i class="fas fa-users-slash dataset-detail-icon"></i>
+                    </div>
+                    {% endif %}
+                </td> <!-- id? -->
+                {% endif %}
+                <td class="uk-table-shrink uk-text-nowrap">{{ eval.vm_id }}</td>
+                {% if role == 'admin' %}
+                <td class="uk-table-shrink uk-text-nowrap">[<a href="{% url 'tira:software-detail' task_id=task.task_id vm_id=eval.vm_id %}">manage</a>]</td>
                 {% endif %}
                 {% if role == 'admin' %}
-                <td><a href="#run-{{ eval.vm_id }}-{{ eval.run_id }}">{{ eval.run_id }}</a></td>
+                <td class="uk-table-shrink uk-text-nowrap"><a href="#run-{{ eval.vm_id }}-{{ eval.run_id }}">{{ eval.run_id }}</a></td>
                 {% else %}
-                <td>{{ eval.run_id }}</td>
+                <td class="uk-table-shrink uk-text-nowrap">{{ eval.run_id }}</td>
                 {% endif %}
                 {% for measure in eval.measures %}
-                <td class="uk-text-truncate">{{ measure }}</td>
+                <td class="uk-table-expand uk-text-truncate">{{ measure }}</td>
                 {% endfor %}
             </tr>
             {% endfor %}
@@ -100,23 +121,25 @@
                     <a href="{% url 'tira:software-detail' task_id=task.task_id vm_id=vm.vm_id %}">
                         [manage user]
                     </a>
-                    <table class="uk-margin-remove-top uk-table uk-table-divider uk-table-small sortable">
+                    <table class="uk-margin-medium uk-margin-remove-top uk-table uk-table-divider uk-table-small sortable">
                         <thead>
                         <tr>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th class="header"><span>Software</span></th>
-                            <th class="header"><span>Actions</span></th>
-                            <th class="header"><span>Run</span></th>
-                            <th class="header"><span>Input Run</span></th>
-                            <th class="header">Reviewer</th>
-                            <th class="header">Review</th>
+                            <th class="uk-table-shrink"></th>
+                            <th class="uk-table-shrink"></th>
+                            <th class="uk-table-shrink"></th>
+                            <th class="uk-table-shrink"></th>
+                            <th class="header uk-table-shrink uk-text-nowrap"><span>Software</span></th>
+                            <th class="header uk-table-shrink uk-text-nowrap"><span>Actions</span></th>
+                            <th class="header uk-table-shrink uk-text-nowrap"><span>Run</span></th>
+                            <th class="header uk-table-shrink uk-text-nowrap"><span>Input Run</span></th>
+                            <th class="header uk-table-shrink uk-text-nowrap">Reviewer</th>
+                            <th class="header uk-table-shrink uk-text-nowrap">Review</th>
                         </tr>
                         </thead>
                         <tbody>
                         {% for run in vm.runs %}
                         <tr>
+                            <td class="uk-table-shrink" id="run-{{ vm.vm_id }}-{{ run.run.run_id }}"></td>
                             <td class="uk-table-shrink">
                                 {% if run.review.noErrors == True %}
                                 <div uk-tooltip="This run is OK">
@@ -149,26 +172,29 @@
                                     <i class="fas fa-users-slash dataset-detail-icon"></i>
                                 </div>
                                 {% endif %}
-                            </td> <!-- id? -->
-                            <td>{{ run.run.software }}</td>
-                            <td>
+                            </td>
+                            <td class="uk-table-shrink uk-text-nowrap">{{ run.run.software }}</td>
+                            <td class="uk-table-shrink uk-text-nowrap">
                                 [<a href="{% url 'tira:review' task_id=task.task_id vm_id=vm.vm_id dataset_id=dataset_id run_id=run.run.run_id %}">review</a>]
                             </td>
-                            <td id="run-{{ vm.vm_id }}-{{ run.run.run_id }}">{{ run.run.run_id }}</td>
+                            <td class="uk-table-shrink uk-text-nowrap">{{ run.run.run_id }}</td>
                             {% if run.run.input_run_id != 'none' %}
-                            <td><a href="#run-{{ vm.vm_id }}-{{ run.run.input_run_id }}">{{ run.run.input_run_id }}</a>
+                            <td class="uk-table-shrink uk-text-nowrap"><a href="#run-{{ vm.vm_id }}-{{ run.run.input_run_id }}">{{ run.run.input_run_id }}</a>
                             </td>
                             {% else %}
-                            <td>{{ run.run.input_run_id }}</td>
+                            <td class="uk-table-shrink uk-text-nowrap">{{ run.run.input_run_id }}</td>
                             {% endif %}
-                            <td>{{ run.review.reviewer }}</td>
-                            <td>
+                            <td class="uk-table-shrink uk-text-nowrap">{{ run.review.reviewer }}</td>
+                            <td class="uk-table-expand uk-text-truncate">
                                 {% if run.review.noErrors == True %}
-                                This run is OK
+
                                 {% elif run.review.hasErrorOutput == True %}
                                 Output Error
                                 {% elif run.review.otherErrors == True %}
                                 Software Error
+                                {% endif %}
+                                {% if run.review.comment != "" %}
+                                : {{ run.review.comment }}
                                 {% endif %}
                             </td>
                         </tr>
