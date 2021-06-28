@@ -3,3 +3,4 @@ src/venv
 src/tira/proto
 src/__init__.py
 src/config
+tira-web/tira-web/lib
