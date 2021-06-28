@@ -20,6 +20,13 @@
     background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.2) 40%, rgba(0, 0, 0, 0.85) 85%)
 }
 
+.dataset-detail-icon {
+    height: 15px;
+    width: 15px;
+    min-width: 20px;
+    min-height: 20px;
+}
+
 
 @media (max-width: 800px) {
     .index-main-cover {
