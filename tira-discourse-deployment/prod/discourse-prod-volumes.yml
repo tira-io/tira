@@ -2,6 +2,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: discourse-prod-data-pvc
+  namespace: services-tira
   labels:
     app: tira-discourse-prod
 spec:
@@ -17,6 +18,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: discourse-prod-log-pvc
+  namespace: services-tira
   labels:
     app: tira-discourse-prod
 spec:
