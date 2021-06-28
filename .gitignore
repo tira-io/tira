@@ -281,3 +281,4 @@ local.properties
 conf/disraptor.properties
 *.swp
 /info/
+tira-web/tira-web/lib/
