@@ -201,6 +201,7 @@ def software_detail(request, task_id, vm_id):
             "role": auth.get_role(request)
         }
         return render(request, 'tira/software.html', context)
+
     # 2. try to load vm, # TODO if it fails return meaningful error page :D
     try:
         softwares = model.get_software(task_id, vm_id)
@@ -210,35 +211,32 @@ def software_detail(request, task_id, vm_id):
         logger.warning(f"tried to load vm that does not exists: {vm_id} on task {task_id}")
         return redirect('tira:software-detail', task_id=task_id, vm_id="no-vm-assigned")
 
-    # software_keys = {sw["id"] for sw in softwares}
-    # run_by_software = {swk: [r for r in runs if r["software"] == swk] for swk in software_keys}
-    # get all evaluations
-    evals = {r["input_run_id"]: r for r in runs if "evaluator" in r["software"]}
+    # Construct a dictionary that has the software as a key and as value a list of runs with that software
+    # Note that we order the list in such a way, that evaluations of a run are right behind that run in the list
+    #   (based on the input_run)
+    runs_with_input = {}  # get the runs which have an input_run_id
+    for r in runs:
+        # if we loop once, might as well get the review-info here.
+        r['review'] = model.get_run_review(r.get("dataset"), vm_id, r.get("run_id"))
+        if r.get("input_run_id") == 'none':
+            continue
+        runs_with_input.setdefault(r.get("input_run_id"), []).append(r)
+
+    runs_without_input = [r for r in runs if r.get("input_run_id") == "none"]
+    runs_by_software = {}
+    for r in runs_without_input:
+        runs_by_software.setdefault(r.get("software"), []).append(r)
+        runs_by_software.setdefault(r.get("software"), []).extend(runs_with_input.pop(r.get("run_id"), []))
+
+    for k, v in runs_with_input.items():  # left-over runs_with_input, where the input-run does not exist anymore
+        for r in v:
+            runs_by_software.setdefault(r.get("software"), []).append(r)
 
     software = [{
         "software": sw,
-        "runs": [r for r in runs if r["software"] == sw["id"]]
+        "runs": runs_by_software.get(sw["id"])
     } for sw in softwares]
 
-    # print(evals)
-
-    # TODO evaluations do not have a software_id as 'software', but 'evaluatorXYZ'
-    # code that sorts the runs in a way that runs with input_run_id follow directly after their original run
-    # all_run_ids = {r["run_id"] for r in runs}
-    # # dependent run: these are the run where input_run_id is the run_id of another run in the batch
-    # dependent_runs = {r["run_id"] for r in runs if r["input_run_id"] in all_run_ids}
-    # independent_runs = all_run_ids - dependent_runs
-    # r_dependent = {r["input_run_id"]: r for r in runs if r["run_id"] in dependent_runs}
-    #
-    # # here we assign to each software it's runs, and to each run it's dependent runs
-    # for software in softwares:
-    #     runs_of_current_software = run_by_software[software["id"]]
-    #     r_independent = [r for r in runs_of_current_software if r["run_id"] in independent_runs]
-    #
-    #     for r in r_independent:
-    #         if r_dependent.get(r["run_id"], None):
-    #             r.get("dependent", list()).append(r_dependent[r["run_id"]])
-    #     software["results"] = r_independent
 
     # TODO Nikolay: this sometimes just hangs infinitely. Uncommented until fixed.
     # request tira-host for vmInfo

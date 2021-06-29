@@ -15,10 +15,18 @@ def get_run_runtime(dataset_id, vm_id, run_id):
         return None
 
     runtime = open(run_dir / "runtime.txt", 'r').read()
-    time = runtime.split(" ")[2].strip("elapsed")
-    cpu = runtime.split(" ")[3]
-    pagefaults = runtime.split(" ")[6].strip("pagefaults").strip("(").strip(")")
-    swaps = runtime.split(" ")[7].strip("swaps")
+    try:
+        time = runtime.split(" ")[2].strip("elapsed")
+        cpu = runtime.split(" ")[3]
+        pagefaults = runtime.split(" ")[6].strip("pagefaults").strip("(").strip(")")
+        swaps = runtime.split(" ")[7].strip("swaps")
+    except IndexError as e:
+        logger.exception(f"IndexError while parsing the runtime file {run_dir}/runtime.txt: {e}")
+        time = None
+        cpu = None
+        pagefaults = None
+        swaps = None
+
     return {"runtime": runtime, "time": time, "cpu": cpu, "pagefaults": pagefaults, "swaps": swaps}
 
 
