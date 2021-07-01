@@ -237,7 +237,6 @@ def software_detail(request, task_id, vm_id):
         "runs": runs_by_software.get(sw["id"])
     } for sw in softwares]
 
-
     # TODO Nikolay: this sometimes just hangs infinitely. Uncommented until fixed.
     # request tira-host for vmInfo
     # vm = model.get_vm(vm_id)
