@@ -249,28 +249,69 @@ def admin_add_dataset(request):
 # ---------------------------------------------------------------------
 
 
-def vm_create(request, hostname, user_id, ova_file, bulk_id=None):
-    grpc_client = GrpcClient(hostname)
-    response = grpc_client.vm_create(ova_file, user_id, bulk_id)
+def vm_create(request, hostname, vm_id, ova_file, bulk_id=None):
+    check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
+    grpc_client = GrpcClient('localhost') if settings.GRPC_HOST == 'local' else GrpcClient(hostname)
+    response = grpc_client.vm_create(ova_file, vm_id, bulk_id)
     return JsonResponse({'status': 'Accepted', 'message': response}, status=HTTPStatus.ACCEPTED)
 
 
-def vm_start(request, user_id, vm_id):
-    vm = model.get_vm_by_id(user_id)
-    grpc_client = GrpcClient(vm.host)
+def vm_start(request, vm_id):
+    check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
+    vm = model.get_vm(vm_id)
+    grpc_client = GrpcClient('localhost') if settings.GRPC_HOST == 'local' else GrpcClient(vm.host)
     response = grpc_client.vm_start(vm.vmName)
     return JsonResponse({'status': 'Accepted', 'message': response}, status=HTTPStatus.ACCEPTED)
 
 
-def vm_stop(request, user_id, vm_id):
-    vm = model.get_vm_by_id(user_id)
-    grpc_client = GrpcClient(vm.host)
+def vm_stop(request, vm_id):
+    check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
+    vm = model.get_vm(vm_id)
+    grpc_client = GrpcClient('localhost') if settings.GRPC_HOST == 'local' else GrpcClient(vm.host)
     response = grpc_client.vm_stop(vm.vmName)
     return JsonResponse({'status': 'Accepted', 'message': response}, status=HTTPStatus.ACCEPTED)
 
 
-def run_execute(request, user_id, vm_id):
-    vm = model.get_vm_by_id(user_id)
+def vm_info(request, vm_id):
+    print("vm_info")
+    try:
+        check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
+    except Exception as e:
+        return JsonResponse({'status': 'Rejected', 'message': 'Not Authorized'}, status=HTTPStatus.UNAUTHORIZED)
+
+    try:
+        logger.info(f"get info for {vm_id}")
+        vm = model.get_vm(vm_id)
+        grpc_client = GrpcClient('localhost') if settings.GRPC_HOST == 'local' else GrpcClient(vm.host)
+        response_vm_info = grpc_client.vm_info(vm_id)
+        del grpc_client
+    except Exception as e:
+        logger.warning(f"VM info failed with {e}")
+        return JsonResponse({'status': 'Rejected', 'message': "Server Error"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+    return JsonResponse({'status': 'Accepted', 'message': {
+        "guestOs": response_vm_info.guestOs,
+        "memorySize": response_vm_info.memorySize,
+        "numberOfCpus": response_vm_info.numberOfCpus,
+        "state": response_vm_info.state,
+        "sshPort": response_vm_info.sshPort,
+        "rdpPort": response_vm_info.rdpPort,
+        "host": response_vm_info.host,
+        "sshPortStatus": response_vm_info.sshPortStatus,
+        "rdpPortStatus": response_vm_info.rdpPortStatus,
+    }
+                         }, status=HTTPStatus.ACCEPTED)
+
+
+# ---------------------------------------------------------------------
+#   Software actions
+# ---------------------------------------------------------------------
+
+
+def run_execute(request, vm_id):
+    check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
+
+    vm = model.get_vm(vm_id)
     grpc_client = GrpcClient(vm.host)
     response = grpc_client.run_execute(submission_file="",
                                        input_dataset_name="",
@@ -281,15 +322,17 @@ def run_execute(request, user_id, vm_id):
     return JsonResponse({'status': 'Accepted', 'message': response}, status=HTTPStatus.ACCEPTED)
 
 
-def run_eval(request, user_id, vm_id):
-    vm = model.get_vm_by_id(user_id)
+def run_eval(request, vm_id):
+    check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
+
+    vm = model.get_vm(vm_id)
     grpc_client = GrpcClient(vm.host)
-    response = grpc_client.run_execute(submission_file="",
-                                       input_dataset_name="",
-                                       input_run_path="",
-                                       output_dir_name="",
-                                       sandboxed="",
-                                       optional_parameters="")
+    response = grpc_client.run_eval(submission_file="",
+                                    input_dataset_name="",
+                                    input_run_path="",
+                                    output_dir_name="",
+                                    sandboxed="",
+                                    optional_parameters="")
     return JsonResponse({'status': 'Accepted', 'message': response}, status=HTTPStatus.ACCEPTED)
 
 
@@ -307,6 +350,8 @@ def command_status(request, command_id):
 
 
 def bulk_vm_create(request, vm_list):
+    check.has_access(request, ["tira", "admin"])
+
     bulk_id = uuid.uuid4().hex
     for host, vm_id, ova_id in vm_list:
         vm_create(request, host, vm_id, ova_id, bulk_id=bulk_id)

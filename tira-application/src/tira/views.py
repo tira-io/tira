@@ -237,25 +237,12 @@ def software_detail(request, task_id, vm_id):
         "runs": runs_by_software.get(sw["id"])
     } for sw in softwares]
 
-    # request tira-host for vmInfo
-    vm = model.get_vm(vm_id)
-    # tira_client = GrpcClient(vm.host)
-    print("open grpc channel")
-    tira_client = GrpcClient('localhost')
-    response_vm_info = tira_client.vm_info(vm_id)
-    print(response_vm_info)
-    print("close grpc channel")
-    del tira_client
-
-    response_vm_info = None
-
     context = {
         "user_id": auth.get_user_id(request),
         "include_navigation": include_navigation,
         "task": model.get_task(task_id),
         "vm_id": vm_id,
-        "software": software,
-        "responseVmInfo": response_vm_info,
+        "software": software
     }
 
     return render(request, 'tira/software.html', context)

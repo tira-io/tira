@@ -34,53 +34,49 @@
             <div class="uk-card uk-card-small uk-card-body uk-card-default uk-width-1-2">
                 <table>
                     <tr>
-                        <td>Host</td><td id="vm_info_host">{{ responseVmInfo.host }}</td>
+                        <td>Host</td><td id="vm-info-host"><div id="vm-info-spinner" uk-spinner="ratio: 0.5"></div></td>
                     </tr>
                     <tr><td>&nbsp;</td></tr>
                     <tr>
-                        <td>OS</td><td  id="vm_info_guestOs">{{ responseVmInfo.guestOs }}</td>
+                        <td>OS</td><td  id="vm-info-guestOs"></td>
                     </tr>
                     <tr>
-                        <td>RAM</td><td id="vm_info_memorySize">{{ responseVmInfo.memorySize }}</td>
+                        <td>RAM</td><td id="vm-info-memorySize"></td>
                     </tr>
                     <tr>
-                        <td>CPU</td><td id="vm_info_numberOfCpus">{{ responseVmInfo.numberOfCpus }}</td>
+                        <td>CPU</td><td id="vm-info-numberOfCpus"></td>
                     </tr>
                 </table>
             </div>
             <div class="uk-card uk-card-small uk-card-body uk-card-default uk-width-1-4">
                 <table class="">
-<!--                    sandboxed -->
-<!--                    running -->
                     <tr>
                         <td>State</td>
-                        <td class="uk-label uk-label-success">running</td>
+                        <td>
+                            <div id="vm-state-spinner" uk-spinner="ratio: 0.5"></div>
+                            <div id="vm-state-running" class="uk-label uk-label-success">running</div>
+                            <div id="vm-state-stopped" class="uk-label uk-label-success">stopped</div>
+                            <div id="vm-state-sandboxed" class="uk-label uk-label-success">sandboxed</div>
+                        </td>
+
                     </tr>
                     <tr><td>&nbsp;</td></tr>
                     <tr>
                         <td class="uk-table-shrink uk-text-nowrap uk-table-middle">
-                            SSH <span class="uk-text-lead uk-text-small">port {{ responseVmInfo.ssh_port }}</span>&nbsp;&nbsp;
+                            SSH <span id="vm-state-ssh" class="uk-text-lead uk-text-small">port ... </span>&nbsp;&nbsp;
                         </td>
-<!--                        <td id="vm_info_ssh_port">{{ responseVmInfo.ssh_port }}</td>-->
                         <td>
-                            {% if responseVmInfo.ssh_status %}
-                            <div class="uk-label uk-label-success">open</div>
-                            {% else %}
-                            <div class="uk-label uk-label-danger">closed</div>
-                            {% endif %}
+                            <div id="vm-state-ssh-open" class="uk-label uk-label-success">open</div>
+                            <div id="vm-state-ssh-closed" class="uk-label uk-label-danger">closed</div>
                         </td>
                     </tr>
                     <tr>
                         <td class="uk-table-shrink uk-text-nowrap uk-table-middle">
-                            RDP <span class="uk-text-lead uk-text-small">port {{ responseVmInfo.rdp_port }}</span>&nbsp;&nbsp;
+                            RDP <span id="vm-state-rdp" class="uk-text-lead uk-text-small">port ... </span>&nbsp;&nbsp;
                         </td>
-<!--                        <td id="vm_info_rdp_port">{{ responseVmInfo.rdp_port }}</td>-->
                         <td>
-                            {% if responseVmInfo.rdp_status %}
-                            <div class="uk-label uk-label-success">open</div>
-                            {% else %}
-                            <div class="uk-label uk-label-danger">closed</div>
-                            {% endif %}
+                            <div id="vm-state-rdp-open" class="uk-label uk-label-success">open</div>
+                            <div id="vm-state-rdp-closed" class="uk-label uk-label-danger">closed</div>
                         </td>
                     </tr>
                 </table>
@@ -139,7 +135,7 @@
                             <label class="uk-form-label" for="software-1-working-dir">Working Directory</label>
                             <div class="uk-form-controls">
                                 <input class="uk-input" id="software-1-working-dir" type="text"
-                                       value="{{ sw.software.working_directory }}" placeholder="/home/{{ user_id }}/">
+                                       value="{{ sw.software.working_directory }}" placeholder="/home/{{ vm_id }}/">
                             </div>
                         </div>
                     </div>
@@ -250,18 +246,6 @@
     {% endif %}
 </main>
 
-<script>
-$(document).ready(function () {
-    url = "/user/nik-111-u18/vm/nik-111-u18-04-tira-ubuntu-18-04-desktop-64bit/vm_info";
-    (function (url) {
-        $.getJSON(url, {})
-            .done(function (data) {
-                console.log(data);
-            });
-    })();
-});
-</script>
-
 {% if not include_navigation %}
 <script src="https://assets.webis.de/js/thirdparty/jquery/jquery.slim.min.js"></script>
 {% endif %}
@@ -276,6 +260,7 @@ $(document).ready(function () {
 <script src="{% static 'tira/js/software.js' %}"></script>
 <script>
     addSoftwareEvents("{{ user_id }}", "{{ vm_id }}")
+    loadVmInfo("{{ vm_id }}")
 </script>
 
 {% endblock %}
