@@ -247,6 +247,7 @@ def software_detail(request, task_id, vm_id):
     response_vm_info = None
 
     context = {
+        "user_id": auth.get_user_id(request),
         "include_navigation": include_navigation,
         "task": model.get_task(task_id),
         "vm_id": vm_id,
