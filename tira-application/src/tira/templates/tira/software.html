@@ -113,7 +113,7 @@
 <!--         show status as icon   -->
             {% endfor %}
             <li>
-                <a href="#">Add Software<span class="uk-margin-small-left" uk-icon="icon: triangle-down"></span></a>
+                <a href="#">Add<span class="uk-margin-small-left" uk-icon="icon: triangle-down"></span></a>
                 <div uk-dropdown="mode: click">
                     <ul class="uk-nav uk-dropdown-nav">
                         <li><a href="#">Software</a></li>
@@ -190,7 +190,7 @@
                         </thead>
                         <tbody>
                         {% for run in sw.runs %}
-                        <tr>
+                        <tr class="uk-padding-remove">
                             <td id="{{ vm_id }}-{{ sw.software.id }}-{{ run.run_id }}"></td>
                             <td class="uk-table-shrink">
                                 {% if run.review.noErrors == True %}
