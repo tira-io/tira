@@ -22,6 +22,7 @@ urlpatterns = [
     # path('user/<str:user_id>/vm/<str:vm_id>/vm_info', endpoints.vm_info, name='vm_info'),
     path('user/<str:user_id>/vm/<str:vm_id>/vm_start', actions.vm_start, name='vm_start'),
     path('user/<str:user_id>/vm/<str:vm_id>/vm_stop', actions.vm_stop, name="vm_stop"),
+    path('user/<str:user_id>/vm/<str:vm_id>/software_save/<str:sw_id>', actions.software_save, name='software_save'),
     path('user/<str:user_id>/vm/<str:vm_id>/run_execute/<str:software_id>', actions.run_execute, name="run_execute"),
     path('user/<str:user_id>/vm/<str:vm_id>/run_eval/<str:software_id>', actions.run_eval, name="run_eval"),
     path('command_status/<str:command_id>', actions.command_status, name="command_status"),

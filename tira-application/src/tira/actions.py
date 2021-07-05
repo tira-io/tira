@@ -263,10 +263,10 @@ def vm_start(request, user_id, vm_id):
 
 
 def vm_stop(request, user_id, vm_id):
-    vm = model.get_vm_by_id(user_id)
-    grpc_client = GrpcClient(vm.host)
-    response = grpc_client.vm_stop(vm.vmName)
-    return JsonResponse({'status': 'Accepted', 'message': response}, status=HTTPStatus.ACCEPTED)
+
+def software_save(request, user_id, vm_id, sw_id):
+
+    return JsonResponse({'status': 'Accepted'}, status=HTTPStatus.ACCEPTED)
 
 
 def run_execute(request, user_id, vm_id):
