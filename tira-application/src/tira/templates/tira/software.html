@@ -48,13 +48,17 @@
                     </tr>
                 </table>
             </div>
-            <div class="uk-card uk-card-small uk-card-body uk-card-default uk-width-1-4">
+            <div class="uk-card uk-card-small uk-card-body uk-card-default uk-width-1-4" id="vm_state">
                 <table class="">
 <!--                    sandboxed -->
 <!--                    running -->
                     <tr>
                         <td>State</td>
-                        <td class="uk-label uk-label-success">running</td>
+                        {% if responseVmInfo.is_running %}
+                            <td class="uk-label uk-label-success">running</td>
+                        {% else %}
+                            <td class="uk-label uk-label-danger">stopped</td>
+                        {% endif %}
                     </tr>
                     <tr><td>&nbsp;</td></tr>
                     <tr>
