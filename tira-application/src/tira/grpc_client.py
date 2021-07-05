@@ -7,12 +7,6 @@
 from django.conf import settings
 import grpc
 from google.protobuf.empty_pb2 import Empty
-from django.http import HttpResponse, Http404, JsonResponse
-import socket
-from functools import wraps
-import uuid
-from datetime import datetime
-import threading
 
 from .proto import tira_host_pb2, tira_host_pb2_grpc
 

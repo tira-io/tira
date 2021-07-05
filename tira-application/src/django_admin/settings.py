@@ -34,7 +34,7 @@ ALLOWED_HOSTS = custom_settings.get("allowed_hosts", [])
 TIRA_ROOT = Path(custom_settings.get("tira_root", "/mnt/ceph/tira"))
 DEPLOYMENT = custom_settings.get("deployment", "legacy")
 LEGACY_USER_FILE = Path(custom_settings.get("legacy_users_file", ""))
-GRPC_PORT = custom_settings.get("grpc_port", True)
+GRPC_PORT = custom_settings.get("grpc_server_port", "55055")  # Note that 55055 is the port for local dev (no actual host)
 
 # Application definition
 

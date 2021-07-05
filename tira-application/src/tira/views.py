@@ -237,11 +237,15 @@ def software_detail(request, task_id, vm_id):
         "runs": runs_by_software.get(sw["id"])
     } for sw in softwares]
 
-    # TODO Nikolay: this sometimes just hangs infinitely. Uncommented until fixed.
     # request tira-host for vmInfo
-    # vm = model.get_vm(vm_id)
+    vm = model.get_vm(vm_id)
     # tira_client = GrpcClient(vm.host)
-    # response_vm_info = tira_client.vm_info(vm_id)
+    print("open grpc channel")
+    tira_client = GrpcClient('localhost')
+    response_vm_info = tira_client.vm_info(vm_id)
+    print(response_vm_info)
+    print("close grpc channel")
+    del tira_client
 
     response_vm_info = None
 

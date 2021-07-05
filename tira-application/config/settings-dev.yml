@@ -9,4 +9,4 @@ deployment: legacy
 # in the legacy deployment, a path to the users file is needed
 legacy_users_file: /mnt/ceph/tira/model/users/users.prototext
 logging_dir: /mnt/ceph/tira/log/tira-application
-grpc_port: 50051
+grpc_server_port: 55055
