@@ -47,6 +47,38 @@ function abortRun(){
 
 }
 
+function saveSoftware(uid, vmid, swid){
+    $.ajax({
+        type: 'POST',
+        url: `/user/${uid}/vm/${vmid}/software_save/${swid}`,
+        headers: {
+            'X-CSRFToken': $('input[name=csrfmiddlewaretoken]').val()
+        },
+        //TODO: Maybe rename keys
+        data: {
+            command: $(`#${swid}-command-input`).val(),
+            working_dir: $(`#${swid}-working-dir`).val(),
+            input_dataset: $(`#${swid}-input-dataset`).val(),
+            input_run: $(`#${swid}-input-run`).val(),
+            csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val(),
+            action: 'post'
+        },
+        success: function(data){
+            $(`#${swid}_form_buttons a:last-of-type`).html(' <i class="fas fa-check"></i>');
+            setTimeout(function() {
+                $(`#${swid}_form_buttons a:last-of-type`).html('save');
+            }, 5000)
+        }
+    })
+}
+
+//function runSoftware(uid, vmid, swid){
+//    $(`#${swid}_form_buttons a:first-child`).html(' <div uk-spinner="ratio: 0.5"></div>');
+//    $(`#${swid}_form_buttons a:first-child`).prop('disabled', true);
+
+//}
+        
+
 // Every 10s reload the content of the #vm_state div.
 function reloadVmState(url){
     setTimeout(function() {
@@ -64,6 +96,11 @@ function addSoftwareEvents(uid, vmid) {
     } else {
         $('#vm_power_button button:first-child').click(function() {shutdownVM(uid, vmid)});
     }
+
+    $('.software_form_buttons a:last-of-type').click(function(e) {
+        var swid = e.target.parentElement.id.split('_')[0]
+        saveSoftware(uid, vmid, swid);
+    })
 
     reloadVmState(location.href);
 }

@@ -130,38 +130,39 @@
         <ul class="uk-switcher uk-margin">
             {% for sw in software %}
             <li>
-                <form>
+                <form id="{{ sw.software.id }}-form" class="software_form">
+                    {% csrf_token %}
                     <div class="uk-grid-medium uk-margin-small uk-child-width-1-2" uk-grid>
                         <div>
-                            <label class="uk-form-label" for="software-1-command-input">Command</label>
+                            <label class="uk-form-label" for="{{ sw.software.id }}-command-input">Command</label>
                             <div class="uk-form-controls">
-                                <input class="uk-input" id="software-1-command-input" type="text"
+                                <input class="uk-input" id="{{ sw.software.id }}-command-input" type="text"
                                        value="{{ sw.software.command }}" placeholder="Dummy Command">
                             </div>
                         </div>
                         <div>
-                            <label class="uk-form-label" for="software-1-working-dir">Working Directory</label>
+                            <label class="uk-form-label" for="{{ sw.software.id }}-working-dir">Working Directory</label>
                             <div class="uk-form-controls">
-                                <input class="uk-input" id="software-1-working-dir" type="text"
+                                <input class="uk-input" id="{{ sw.software.id }}-working-dir" type="text"
                                        value="{{ sw.software.working_directory }}" placeholder="/home/{{ user_id }}/">
                             </div>
                         </div>
                     </div>
                     <div class="uk-grid-medium uk-margin-small uk-child-width-1-2" uk-grid>
                         <div>
-                            <label class="uk-form-label" for="software-1-input-dataset">Input Dataset</label>
+                            <label class="uk-form-label" for="{{ sw.software.id }}-input-dataset">Input Dataset</label>
                             <div class="uk-form-controls">
 
-                                <select class="uk-select" id="software-1-input-dataset">
+                                <select class="uk-select" id="{{ sw.software.id }}-input-dataset">
                                     <option value="None">None</option>
                                     <option value="{{ sw.software.dataset }}" selected>{{ sw.software.dataset }}</option>
                                 </select>
                             </div>
                         </div>
                         <div>
-                            <label class="uk-form-label" for="software-1-input-run">Input Run</label>
+                            <label class="uk-form-label" for="{{ sw.software.id }}-input-run">Input Run</label>
                             <div class="uk-form-controls">
-                                <select class="uk-select" id="software-1-input-run">
+                                <select class="uk-select" id="{{ sw.software.id }}-input-run">
                                     <option>None</option>
                                     {% for run in sw.runs %}
                                         <option>{{ run.run_id }}</option>
@@ -171,7 +172,7 @@
                         </div>
                     </div>
                 </form>
-                <div>
+                <div id="{{ sw.software.id }}_form_buttons" class="software_form_buttons">
                     <a class="uk-button uk-button-small uk-button-primary uk-width-1-6">run</a>
                     <a class="uk-button uk-button-small uk-button-default uk-width-1-6">save</a>
                     <div class="uk-align-right">
