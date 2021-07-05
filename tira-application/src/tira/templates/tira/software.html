@@ -86,11 +86,11 @@
                 </table>
             </div>
             <div class="uk-width-1-4">
-                    <div>
+                    <div id="vm_power_button">
                         {% if responseVmInfo.is_running %}
-                        <a onclick="location.href='{{ request.path }}/stop_vm';" class="uk-button uk-button-primary uk-text-center uk-button-danger uk-width-1-1">Shut Down</a>
+                        <button class="uk-button uk-button-primary uk-text-center uk-button-danger uk-width-1-1">Shut Down</button>
                         {% else %}
-                        <a onclick="location.href='{{ request.path }}/start_vm';" class="uk-button uk-button-primary uk-text-center uk-width-1-1">Power On</a>
+                        <button class="uk-button uk-button-primary uk-text-center uk-width-1-1">Power On</button>
                         {% endif %}
                     </div>
                     <div>
@@ -159,6 +159,9 @@
                             <div class="uk-form-controls">
                                 <select class="uk-select" id="software-1-input-run">
                                     <option>None</option>
+                                    {% for run in sw.runs %}
+                                        <option>{{ run.run_id }}</option>
+                                    {% endfor %}
                                 </select>
                             </div>
                         </div>
@@ -256,10 +259,15 @@ $(document).ready(function () {
 {% endif %}
 <script src="https://assets.webis.de/js/thirdparty/fontawesome/fontawesome.min.js"></script>
 <script src="https://assets.webis.de/js/thirdparty/fontawesome/solid.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="https://assets.webis.de/js/filter.js"></script>
 <script src="https://assets.webis.de/js/selection.js"></script>
 <script src="https://assets.webis.de/js/tables.js"></script>
 <script>initWebisTableFiltering();</script>
 <script>initTableSorting();</script>
+<script src="{% static 'tira/js/software.js' %}"></script>
+<script>
+    addSoftwareEvents("{{ user_id }}", "{{ vm_id }}")
+</script>
 
 {% endblock %}

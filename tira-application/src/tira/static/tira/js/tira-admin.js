@@ -41,6 +41,9 @@ function submitCreateVmForm(){
     $.ajax({
         type:"POST",
         url: "/tira-admin/create-vm",
+        headers: {
+            'X-CSRFToken': $('input[name=csrfmiddlewaretoken]').val()
+        },
         data:{
             bulk_create:$('#id_bulk_create').val(),
             csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val(),
@@ -48,8 +51,8 @@ function submitCreateVmForm(){
         },
         success: function( data )
         {
-            document.getElementById("create-vm-from").reset();
-            $('#create-vm-from-icon').html('');
+            document.getElementById("create-vm-form").reset();
+            $('#create-vm-form-icon').html('');
             $('#create-vm-form-error').text(data['create_vm_form_error']);
             $('#create-vm-form-results').text(data)
         }
@@ -58,7 +61,7 @@ function submitCreateVmForm(){
 
 function addTiraAdminHandlers() {
     $('#reload-website-data').click(function() {reloadData()})
-    $('#create-vm-from').submit(function(e) {
+    $('#create-vm-form').submit(function(e) {
         e.preventDefault();
         submitCreateVmForm()
     })
