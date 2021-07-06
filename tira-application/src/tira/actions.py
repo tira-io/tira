@@ -277,20 +277,21 @@ def software_save(request, user_id, vm_id, software_id):
 
 
 def vm_info(request, vm_id):
-    print("vm_info")
     try:
         check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
     except Exception as e:
+        logger.exception(f"unauthorized request to /grpc/{vm_id}/vm-info", e)
         return JsonResponse({'status': 'Rejected', 'message': 'Not Authorized'}, status=HTTPStatus.UNAUTHORIZED)
 
+    logger.info(f"get info for {vm_id}")
+    vm = model.get_vm(vm_id)
+    host = 'localhost' if settings.GRPC_HOST == 'local' else vm.host
     try:
-        logger.info(f"get info for {vm_id}")
-        vm = model.get_vm(vm_id)
-        grpc_client = GrpcClient('localhost') if settings.GRPC_HOST == 'local' else GrpcClient(vm.host)
+        grpc_client = GrpcClient(host)
         response_vm_info = grpc_client.vm_info(vm_id)
         del grpc_client
     except Exception as e:
-        logger.warning(f"VM info failed with {e}")
+        logger.exception(f"/grpc/{vm_id}/vm-info to {host} failed with {e}")
         return JsonResponse({'status': 'Rejected', 'message': "Server Error"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
     return JsonResponse({'status': 'Accepted', 'message': {
