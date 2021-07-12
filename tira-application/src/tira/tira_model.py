@@ -633,34 +633,23 @@ class FileDatabase(object):
         """
         review = self._load_review(dataset_id, vm_id, run_id)
 
-        if reviewer_id is not None:
-            review.reviewerId = reviewer_id
-        if review_date is not None:
-            review.reviewDate = review_date
-        if has_errors is not None:
-            review.hasErrors = has_errors
-        if has_warnings is not None:
-            review.hasWarnings = has_warnings
-        if has_no_errors is not None:
-            review.hasNoErrors = has_no_errors
-        if no_errors is not None:
-            review.noErrors = no_errors
-        if missing_output is not None:
-            review.missingOutput = missing_output
-        if extraneous_output is not None:
-            review.extraneousOutput = extraneous_output
-        if invalid_output is not None:
-            review.invalidOutput = invalid_output
-        if has_error_output is not None:
-            review.hasErrorOutput = has_error_output
-        if other_errors is not None:
-            review.otherErrors = other_errors
-        if comment is not None:
-            review.comment = comment
-        if published is not None:
-            review.published = published
-        if blinded is not None:
-            review.blinded = blinded
+        def update(x, y):
+            return y if y is not None else x
+
+        review.reviewerId = update(review.reviewerId, reviewer_id)
+        review.reviewDate = update(review.reviewDate, review_date)
+        review.hasErrors = update(review.hasErrors, has_errors)
+        review.hasWarnings = update(review.hasWarnings, has_warnings)
+        review.hasNoErrors = update(review.hasNoErrors, has_no_errors)
+        review.noErrors = update(review.noErrors, no_errors)
+        review.missingOutput = update(review.missingOutput, missing_output)
+        review.extraneousOutput = update(review.extraneousOutput, extraneous_output)
+        review.invalidOutput = update(review.invalidOutput, invalid_output)
+        review.hasErrorOutput = update(review.hasErrorOutput, has_error_output)
+        review.otherErrors = update(review.otherErrors, other_errors)
+        review.comment = update(review.comment, comment)
+        review.published = update(review.published, published)
+        review.blinded = update(review.blinded, blinded)
         try:
             self._save_review(dataset_id, vm_id, run_id, review)
             return True
