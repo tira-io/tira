@@ -253,7 +253,7 @@ def vm_create(request, hostname, vm_id, ova_file, bulk_id=None):
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
     grpc_client = GrpcClient('localhost') if settings.GRPC_HOST == 'local' else GrpcClient(hostname)
     response = grpc_client.vm_create(ova_file, vm_id, bulk_id)
-    return JsonResponse({'status': 'Accepted', 'message': response}, status=HTTPStatus.ACCEPTED)
+    return JsonResponse({'status': 'Accepted', 'message': response.commandId}, status=HTTPStatus.ACCEPTED)
 
 
 def vm_start(request, vm_id):
@@ -261,7 +261,7 @@ def vm_start(request, vm_id):
     vm = model.get_vm(vm_id)
     grpc_client = GrpcClient('localhost') if settings.GRPC_HOST == 'local' else GrpcClient(vm.host)
     response = grpc_client.vm_start(vm.vmName)
-    return JsonResponse({'status': 'Accepted', 'message': response}, status=HTTPStatus.ACCEPTED)
+    return JsonResponse({'status': 'Accepted', 'message': response.commandId}, status=HTTPStatus.ACCEPTED)
 
 
 def vm_stop(request, vm_id):
@@ -269,7 +269,20 @@ def vm_stop(request, vm_id):
     vm = model.get_vm(vm_id)
     grpc_client = GrpcClient('localhost') if settings.GRPC_HOST == 'local' else GrpcClient(vm.host)
     response = grpc_client.vm_stop(vm.vmName)
-    return JsonResponse({'status': 'Accepted', 'message': response}, status=HTTPStatus.ACCEPTED)
+    return JsonResponse({'status': 'Accepted', 'message': response.commandId}, status=HTTPStatus.ACCEPTED)
+
+
+def vm_shutdown(request, vm_id):
+    check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
+    vm = model.get_vm(vm_id)
+    grpc_client = GrpcClient('localhost') if settings.GRPC_HOST == 'local' else GrpcClient(vm.host)
+    response = grpc_client.vm_shutdown(vm.vmName)
+    return JsonResponse({'status': 'Accepted', 'message': response.commandId}, status=HTTPStatus.ACCEPTED)
+
+
+# TODO implement
+def vm_abort_run(request, vm_id):
+    return JsonResponse({'status': 'Failed', 'message': "Not Implemented"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 def software_save(request, user_id, vm_id, software_id):

@@ -1,4 +1,15 @@
+
+/* Start a VM
+After the click, do:
+- disable the start button
+- set state to loading
+- do the ajax event
+- on success, do the vm-info again.
+
+ */
 function startVM(uid, vmid) {
+    disableButton('vm-power-on-button')
+    setState("loading")
     $.ajax({
         type: 'GET',
         url: `/grpc/${vmid}/vm_start`,
@@ -6,20 +17,31 @@ function startVM(uid, vmid) {
         success: function(data)
         {
             if(data.status === 'Accepted'){
-                $('#vm_power_button button:first-child').text('Shut Down');
-                $('#vm_power_button button:first-child').addClass('uk-button-danger');
-                $('#vm_power_button button:first-child').off('click').click(function() {shutdownVM(uid, vmid)})
-                $('#stop_vm_button button:first-child').addClass('uk-button-primary');
-                $('#stop_vm_button button:first-child').prop('disabled', false);
-                $('#abort_run_button button:first-child').addClass('uk-button-primary');
-                $('#abort_run_button button:first-child').prop('disabled', false);
-
+                loadVmInfo(vmid)
             }
         }
     })
 }
 
 function shutdownVM(uid, vmid) {
+    disableButton('vm-shutdown-button')
+    setState("loading")
+    $.ajax({
+        type: 'GET',
+        url: `/grpc/${vmid}/vm_shutdown`,
+        data: {},
+        success: function(data)
+        {
+            if(data.status === 'Accepted'){
+                loadVmInfo(vmid)
+            }
+        }
+    })
+}
+
+function stopVM(uid, vmid) {
+    disableButton('vm-stop-button')
+    setState("loading")
     $.ajax({
         type: 'GET',
         url: `/grpc/${vmid}/vm_stop`,
@@ -27,23 +49,27 @@ function shutdownVM(uid, vmid) {
         success: function(data)
         {
             if(data.status === 'Accepted'){
-                $('#vm_power_button button:first-child').text('Power On');
-                $('#vm_power_button button:first-child').removeClass('uk-button-danger');
-                $('#vm_power_button button:first-child').off('click').click(function() {startVM(uid, vmid)})
-                $('#stop_vm_button button:first-child').removeClass('uk-button-primary');
-                $('#stop_vm_button button:first-child').prop('disabled', true);
-                $('#abort_run_button button:first-child').removeClass('uk-button-primary');
-                $('#abort_run_button button:first-child').prop('disabled', true);
+                loadVmInfo(vmid)
             }
         }
     })
-}
-
-function stopVM() {
 
 }
 
-function abortRun(){
+function abortRun(uid, vmid){
+    disableButton('vm-abort-run-button')
+    setState("loading")
+    $.ajax({
+        type: 'GET',
+        url: `/grpc/${vmid}/vm_abort_run`,
+        data: {},
+        success: function(data)
+        {
+            if(data.status === 'Accepted'){
+                loadVmInfo(vmid)
+            }
+        }
+    })
 
 }
 
@@ -89,16 +115,52 @@ function saveSoftware(uid, vmid, swid){
 //        }
 //    }, 10000);
 
+function disableButton(id) {
+    // Console.log($('#' + id))
+    $('#' + id).prop( "disabled", true)
+        .removeClass('uk-button-primary')
+        .removeClass('uk-button-danger')
+        .removeClass('uk-button-default')
+        .addClass('uk-button-disabled');
+}
+
+function enableButton(id, cls) {
+    $('#' + id).prop( "disabled", false)
+        .removeClass('uk-button-disabled')
+        .addClass(cls);
+}
+
+function setState(state_name) {
+    $('#vm-state-spinner').hide();
+    $('#vm-state-running').hide();
+    $('#vm-state-stopped').hide();
+    $('#vm-state-sandboxed').hide();
+    $('#vm-state-sandboxing').hide();
+
+    if(state_name === 'running') {
+        $('#vm-state-running').show();
+    } else if(state_name === 'stopped') {
+        $('#vm-state-stopped').show();
+    } else if(state_name === 'sandboxed') {
+        $('#vm-state-sandboxed').show();
+    } else if(state_name === 'sandboxing') {
+        $('#vm-state-sandboxing').show();
+    } else if(state_name === 'loading') {
+        $('#vm-state-ssh-open').hide();
+        $('#vm-state-ssh-closed').hide();
+        $('#vm-state-rdp-open').hide();
+        $('#vm-state-rdp-closed').hide();
+        $('#vm-state-spinner').show();
+    }
+}
 
 function loadVmInfo(vmid) {
+    setState("loading")
 
-    $('#vm-state-running').hide()
-    $('#vm-state-stopped').hide()
-    $('#vm-state-sandboxed').hide()
-    $('#vm-state-ssh-open').hide()
-    $('#vm-state-ssh-closed').hide()
-    $('#vm-state-rdp-open').hide()
-    $('#vm-state-rdp-closed').hide()
+    disableButton('vm-shutdown-button')
+    disableButton('vm-power-on-button')
+    disableButton('vm-stop-button')
+    disableButton('vm-abort-run-button')
 
     $.ajax({
         type: 'GET',
@@ -117,17 +179,19 @@ function loadVmInfo(vmid) {
                 // logic status
                 $('#vm-state-spinner').hide()
                 if(data.message.state === 'running'){
-                    $('#vm-state-running').show()
-                    $('#vm-state-stopped').hide()
-                    $('#vm-state-sandboxed').hide()
+                    setState('running')
+                    enableButton('vm-shutdown-button', 'uk-button-primary')
+                    enableButton('vm-stop-button', 'uk-button-danger')
                 } else if(data.message.state === 'stopped'){
-                    $('#vm-state-running').hide()
-                    $('#vm-state-stopped').show()
-                    $('#vm-state-sandboxed').hide()
+                    setState('stopped')
+                    enableButton('vm-power-on-button', 'uk-button-primary')
                 } else if(data.message.state === 'sandboxed'){
-                    $('#vm-state-running').hide()
-                    $('#vm-state-stopped').hide()
-                    $('#vm-state-sandboxed').show()
+                    setState('sandboxed')
+                    enableButton('vm-stop-button', 'uk-button-danger')
+                    enableButton('vm-abort-run-button', 'uk-button-danger')
+                } else if(data.message.state === 'sandboxing'){
+                    setState('sandboxing')
+                    enableButton('vm-stop-button', 'uk-button-danger')
                 }
 
                 // sshPortStatus
@@ -166,11 +230,11 @@ function loadVmInfo(vmid) {
 }
 
 function addSoftwareEvents(uid, vmid) {
-    if($('#vm_power_button button:first-child').text() == 'Power On') {
-        $('#vm_power_button button:first-child').click(function() {startVM(uid, vmid)});
-    } else {
-        $('#vm_power_button button:first-child').click(function() {shutdownVM(uid, vmid)});
-    }
+
+    $('#vm-power-on-button').click(function() {startVM(uid, vmid)});
+    $('#vm-shutdown-button').click(function() {shutdownVM(uid, vmid)});
+    $('#vm-stop-button').click(function() {stopVM(uid, vmid)});
+    $('#vm-abort-run-button').click(function() {abortRun(uid, vmid)});
 
     $('.software_form_buttons a:last-of-type').click(function(e) {
         var swid = e.target.parentElement.id.split('_')[0]

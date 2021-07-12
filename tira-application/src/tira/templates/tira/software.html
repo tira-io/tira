@@ -55,8 +55,9 @@
                         <td>
                             <div id="vm-state-spinner" uk-spinner="ratio: 0.5"></div>
                             <div id="vm-state-running" class="uk-label uk-label-success">running</div>
-                            <div id="vm-state-stopped" class="uk-label uk-label-success">stopped</div>
-                            <div id="vm-state-sandboxed" class="uk-label uk-label-success">sandboxed</div>
+                            <div id="vm-state-stopped" class="uk-label uk-label-danger">stopped</div>
+                            <div id="vm-state-sandboxed" class="uk-label uk-label-success">executing RUN</div>
+                            <div id="vm-state-sandboxing" class="uk-label uk-label-warning">sandboxing</div>
                         </td>
                     </tr>
                     <tr><td>&nbsp;</td></tr>
@@ -81,20 +82,11 @@
                 </table>
             </div>
             <div class="uk-width-1-4">
-                    <div id="vm_power_button">
-                        {% if responseVmInfo.is_running %}
-                        <button class="uk-button uk-button-primary uk-text-center uk-button-danger uk-width-1-1">Shut Down</button>
-                        {% else %}
-                        <button class="uk-button uk-button-primary uk-text-center uk-width-1-1">Power On</button>
-                        {% endif %}
-                    </div>
-                    <div id="stop_vm_button">
-                        <button class="uk-button uk-button-disabled uk-text-center uk-width-1-1" disabled>Stop VM</button>
-                    </div>
-                    <div id="abort_run_button">
-                        <button class="uk-button uk-button-disabled uk-text-center uk-width-1-1" disabled>Abort Run</button>
-                    </div>
-                </div>
+                <button id="vm-power-on-button" class="uk-button uk-button-disabled uk-text-center uk-width-1-1" disabled>Power On</button>
+                <button id="vm-shutdown-button" class="uk-button uk-button-disabled uk-text-center uk-width-1-1" disabled>Shut Down</button>
+                <button id="vm-stop-button" class="uk-button uk-button-disabled uk-text-center uk-width-1-1" disabled>Stop VM</button>
+                <button id="vm-abort-run-button" class="uk-button uk-button-disabled uk-text-center uk-width-1-1" disabled>Abort Run</button>
+            </div>
         </div>
     </div>
 

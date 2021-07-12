@@ -28,19 +28,20 @@ class GrpcClient:
         return response.commandId
 
     def vm_start(self, vm_name):
+        print(vm_name)
         response = self.stub.vm_start(tira_host_pb2.RequestVmCommands(vmName=vm_name))
-        print("Client received: " + response.output)
-        return response.output
+        print("Client received: " + str(response))
+        return response
 
     def vm_stop(self, vm_name):
         response = self.stub.vm_stop(tira_host_pb2.RequestVmCommands(vmName=vm_name))
-        print("Client received: " + response.output)
-        return response.output
+        print("Client received: " + str(response))
+        return response
 
     def vm_shutdown(self, vm_name):
         response = self.stub.vm_shutdown(tira_host_pb2.RequestVmCommands(vmName=vm_name))
-        print("Client received: " + response.output)
-        return response.output
+        print("Client received: " + str(response))
+        return response
 
     def vm_info(self, vm_name):
         response_vm_info = self.stub.vm_info(tira_host_pb2.RequestVmCommands(vmName=vm_name))
@@ -49,8 +50,8 @@ class GrpcClient:
 
     def vm_list(self):
         response = self.stub.vm_list(Empty)
-        print("Client received: " + response.output)
-        return response.output
+        print("Client received: " + str(response))
+        return response
 
     def run_execute(self, submission_file, input_dataset_name, input_run_path, output_dir_name, sandboxed,
                     optional_parameters):
@@ -61,8 +62,8 @@ class GrpcClient:
                                                                              sandboxed=sandboxed,
                                                                              optionalParameters=optional_parameters
                                                                              ))
-        print("Client received: " + response.output)
-        return response.output
+        print("Client received: " + str(response))
+        return response
 
     def run_eval(self, submission_file, input_dataset_name, input_run_path, output_dir_name, sandboxed,
                  optional_parameters):
@@ -74,5 +75,5 @@ class GrpcClient:
                                                                              optionalParameters=optional_parameters
                                                                              ))
 
-        print("Client received: " + response.output)
-        return response.output
+        print("Client received: " + str(response))
+        return response
