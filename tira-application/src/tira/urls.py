@@ -22,6 +22,7 @@ urlpatterns = [
     # path('user/<str:user_id>/vm/<str:vm_id>/vm_info', endpoints.vm_info, name='vm_info'),
     path('user/<str:user_id>/vm/<str:vm_id>/vm_start', actions.vm_start, name='vm_start'),
     path('user/<str:user_id>/vm/<str:vm_id>/vm_stop', actions.vm_stop, name="vm_stop"),
+    path('task/<str:task_id>/vm/<str:vm_id>/software_add', actions.software_add, name='software_add'),
     path('user/<str:user_id>/vm/<str:vm_id>/software_save/<str:software_id>', actions.software_save, name='software_save'),
     path('user/<str:user_id>/vm/<str:vm_id>/run_execute/<str:software_id>', actions.run_execute, name="run_execute"),
     path('user/<str:user_id>/vm/<str:vm_id>/run_eval/<str:software_id>', actions.run_eval, name="run_eval"),
@@ -30,11 +31,13 @@ urlpatterns = [
 
     path('grpc/<str:vm_id>/vm_info', actions.vm_info, name='vm_info'),
     path('grpc/<str:vm_id>/vm_start', actions.vm_start, name='vm_start'),
+    path('grpc/<str:vm_id>/vm_shutdown', actions.vm_shutdown, name="vm_shutdown"),
     path('grpc/<str:vm_id>/vm_stop', actions.vm_stop, name="vm_stop"),
     path('grpc/<str:vm_id>/vm_shutdown', actions.vm_shutdown, name="vm_shutdown"),
     path('grpc/<str:vm_id>/vm_abort_run', actions.vm_abort_run, name="vm_abort_run"),
     path('grpc/<str:vm_id>/run_execute/<str:software_id>', actions.run_execute, name="run_execute"),
     path('grpc/<str:vm_id>/run_eval/<str:software_id>', actions.run_eval, name="run_eval"),
+    path('grpc/<str:vm_id>/run_delete/<str:dataset_id>/<str:run_id>', actions.run_delete, name="run_delete"),
 
     path('tira-admin', views.admin, name='tira-admin'),
     path('tira-admin/reload-data', actions.admin_reload_data, name='tira-admin-reload-data'),

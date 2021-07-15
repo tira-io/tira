@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, Http404, JsonResponse
 from django.conf import settings
+from django.template.loader import render_to_string
 import logging
 
 from .grpc_client import GrpcClient
@@ -264,14 +265,6 @@ def vm_start(request, vm_id):
     return JsonResponse({'status': 'Accepted', 'message': response.commandId}, status=HTTPStatus.ACCEPTED)
 
 
-def vm_stop(request, vm_id):
-    check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
-    vm = model.get_vm(vm_id)
-    grpc_client = GrpcClient('localhost') if settings.GRPC_HOST == 'local' else GrpcClient(vm.host)
-    response = grpc_client.vm_stop(vm.vmName)
-    return JsonResponse({'status': 'Accepted', 'message': response.commandId}, status=HTTPStatus.ACCEPTED)
-
-
 def vm_shutdown(request, vm_id):
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
     vm = model.get_vm(vm_id)
@@ -285,8 +278,12 @@ def vm_abort_run(request, vm_id):
     return JsonResponse({'status': 'Failed', 'message': "Not Implemented"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
-def software_save(request, user_id, vm_id, software_id):
-    return JsonResponse({'status': 'Accepted'}, status=HTTPStatus.ACCEPTED)
+def vm_stop(request, vm_id):
+    check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
+    vm = model.get_vm(vm_id)
+    grpc_client = GrpcClient('localhost') if settings.GRPC_HOST == 'local' else GrpcClient(vm.host)
+    response = grpc_client.vm_stop(vm.vmName)
+    return JsonResponse({'status': 'Accepted', 'message': response}, status=HTTPStatus.ACCEPTED)
 
 
 def vm_info(request, vm_id):
@@ -324,6 +321,50 @@ def vm_info(request, vm_id):
 # ---------------------------------------------------------------------
 #   Software actions
 # ---------------------------------------------------------------------
+def software_add(request, task_id, vm_id):
+    check.has_access(request, ["tira", "admin", "participant", "user"], on_vm_id=vm_id)
+
+    # 0. Early return a dummy page, if the user has no vm assigned on this task
+    # TODO: If the user has no VM, give him a request form
+    if auth.get_role(request, user_id=auth.get_user_id(request), vm_id=vm_id) == auth.ROLE_USER or \
+            vm_id == "no-vm-assigned":
+        context = {
+            "include_navigation": include_navigation,
+            "task": model.get_task(task_id),
+            "vm_id": "no-vm-assigned",
+            "role": auth.get_role(request)
+        }
+
+    # TODO: add software in model and put it in the context
+
+    # dummy data
+    context = {
+        "user_id": auth.get_user_id(request),
+        "include_navigation": include_navigation,
+        "task": "task123",
+        "vm_id": vm_id,
+        "software": {
+            "id": "id123",
+            "command": "command123",
+            "working_dir": "working_dir123",
+            "dataset": "dataset123",
+            "creation_date": "creation_date123",
+            "last_edit": "last_edit123"
+        }
+    }
+#     context = {
+#         "user_id": auth.get_user_id(request),
+#         "include_navigation": include_navigation,
+#         "task": model.get_task(task_id),
+#         "vm_id": vm_id,
+#         "software": software
+#     }
+    html = render_to_string('tira/software_form.html', context=context, request=request)
+    return JsonResponse({'html': html, 'software_id': context["software"]['id']}, status=HTTPStatus.ACCEPTED)
+
+
+def software_save(request, user_id, vm_id, software_id):
+    return JsonResponse({'status': 'Accepted'}, status=HTTPStatus.ACCEPTED)
 
 
 def run_execute(request, vm_id):
@@ -352,6 +393,10 @@ def run_eval(request, vm_id):
                                     sandboxed="",
                                     optional_parameters="")
     return JsonResponse({'status': 'Accepted', 'message': response}, status=HTTPStatus.ACCEPTED)
+
+
+def run_delete(request, vm_id, dataset_id, run_id):
+    return JsonResponse({'status': 'Accepted'}, status=HTTPStatus.ACCEPTED)
 
 
 # ---------------------------------------------------------------------

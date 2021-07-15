@@ -1,0 +1,65 @@
+<li>
+    <form id="{{ software.id }}-form" class="software_form">
+        {% csrf_token %}
+        <div class="uk-grid-medium uk-margin-small uk-child-width-1-2" uk-grid>
+            <div>
+                <label class="uk-form-label" for="{{ software.id }}-command-input">Command</label>
+                <div class="uk-form-controls">
+                    <input class="uk-input" id="{{ software.id }}-command-input" type="text"
+                           value="{{ software.command }}" placeholder="Dummy Command">
+                </div>
+            </div>
+            <div>
+                <label class="uk-form-label" for="{{ software.id }}-working-dir">Working Directory</label>
+                <div class="uk-form-controls">
+                    <input class="uk-input" id="{{ software.id }}-working-dir" type="text"
+                           value="{{ software.working_directory }}" placeholder="/home/{{ user_id }}/">
+                </div>
+            </div>
+        </div>
+        <div class="uk-grid-medium uk-margin-small uk-child-width-1-2" uk-grid>
+            <div>
+                <label class="uk-form-label" for="{{ software.id }}-input-dataset">Input Dataset</label>
+                <div class="uk-form-controls">
+
+                    <select class="uk-select" id="{{ software.id }}-input-dataset">
+                        <option value="None">None</option>
+                        <option value="{{ software.dataset }}" selected>{{ software.dataset }}</option>
+                    </select>
+                </div>
+            </div>
+            <div>
+                <label class="uk-form-label" for="{{ software.id }}-input-run">Input Run</label>
+                <div class="uk-form-controls">
+                    <select class="uk-select" id="{{ software.id }}-input-run">
+                        <option>None</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </form>
+    <div id="{{ software.id }}_form_buttons" class="software_form_buttons">
+        <a class="uk-button uk-button-small uk-button-primary uk-width-1-6">run</a>
+        <a class="uk-button uk-button-small uk-button-default uk-width-1-6">save</a>
+        <div class="uk-align-right">
+<!--                        <div class="uk-text-small uk-text-lead">created: {{ software.creation_date }}</div>-->
+<div class="uk-text-small uk-text-lead" id="{{ software.id }}-last-edit">last edit: {{ software.last_edit }}</div>
+        </div>
+    </div>
+    <table class="uk-margin-medium uk-table uk-table-divider uk-table-small uk-table-responsive targetable">
+            <thead>
+            <tr>
+                <th></th>
+                <th class="uk-table-shrink"></th>
+                <th class="uk-table-shrink"></th>
+                <th class="uk-table-shrink"></th>
+                <th class="header uk-table-shrink uk-text-nowrap"><span>Run</span></th>
+                <th class="header uk-table-shrink uk-text-nowrap"><span>Input Run</span></th>
+                <th class="header"><span>Dataset</span></th>
+                <th class="header uk-text-center">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+</li>
