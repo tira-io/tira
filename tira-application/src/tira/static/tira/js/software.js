@@ -53,7 +53,6 @@ function stopVM(uid, vmid) {
             }
         }
     })
-
 }
 
 function abortRun(uid, vmid){
@@ -70,7 +69,6 @@ function abortRun(uid, vmid){
             }
         }
     })
-
 }
 
 function saveSoftware(uid, vmid, swid){
@@ -97,6 +95,21 @@ function saveSoftware(uid, vmid, swid){
         }
     })
 }
+
+function addSoftware(tid, vmid){
+    $.ajax({
+        type: 'GET',
+        url: `/task/${tid}/vm/${vmid}/software_add`,
+        data: {},
+        success: function(data){
+            // data is the rendered html of the new software form
+            // see templates/tira/software-form.html
+            $('#tira-software-forms').append(data.html);
+            $('#tira-software-tab').find(' > li:last-child').before(`<li><a href="#">${data.software_id}</a></li>`);
+        }
+        })
+}
+
 
 //function runSoftware(uid, vmid, swid){
 //    $(`#${swid}_form_buttons a:first-child`).html(' <div uk-spinner="ratio: 0.5"></div>');
@@ -153,6 +166,19 @@ function setState(state_name) {
         $('#vm-state-spinner').show();
     }
 }
+
+function runDelete(dsid, vmid, rid, row) {
+    $.ajax({
+        type: 'GET',
+        url: `/grpc/${vmid}/run_delete/${dsid}/${rid}`,
+        data: {},
+        success: function(data)
+        {
+            row.remove();
+        }
+    })
+}
+
 
 function loadVmInfo(vmid) {
     setState("loading")
@@ -229,6 +255,7 @@ function loadVmInfo(vmid) {
     })
 }
 
+
 function addSoftwareEvents(uid, vmid) {
 
     $('#vm-power-on-button').click(function() {startVM(uid, vmid)});
@@ -236,9 +263,20 @@ function addSoftwareEvents(uid, vmid) {
     $('#vm-stop-button').click(function() {stopVM(uid, vmid)});
     $('#vm-abort-run-button').click(function() {abortRun(uid, vmid)});
 
+    $('#tira-add-software').click(function() {
+        var tid = window.location.pathname.split('/')[2]
+        addSoftware(tid, vmid);
+    });
+    
     $('.software_form_buttons a:last-of-type').click(function(e) {
         var swid = e.target.parentElement.id.split('_')[0]
         saveSoftware(uid, vmid, swid);
+    })
+
+    $('.tira-run-delete').click(function(e) {
+        var row = e.target.parentElement.parentElement
+        var id = row.firstElementChild.id.split("_")
+        runDelete(id[0], id[1], id[2], row)
     })
 
 //    reloadVmState(location.href);

@@ -94,7 +94,7 @@
         <h2>Software</h2>
 
 <!-- {id, count, command, working_directory, dataset, run, creation_date, last_edit} -->
-        <ul uk-tab>
+        <ul uk-tab id="tira-software-tab">
             {% for sw in software %}
             <li><a href="#">{{ sw.software.id }}</a></li>
 <!--         show status as icon   -->
@@ -103,14 +103,14 @@
                 <a href="#">Add<span class="uk-margin-small-left" uk-icon="icon: triangle-down"></span></a>
                 <div uk-dropdown="mode: click">
                     <ul class="uk-nav uk-dropdown-nav">
-                        <li><a href="#">Software</a></li>
+                        <li><a id="tira-add-software" href="#">Software</a></li>
 <!--                        <li><a href="#">Advanced Software</a></li>-->
                         <li><a href="#">Result Upload</a></li>
                     </ul>
                 </div>
             </li>
         </ul>
-        <ul class="uk-switcher uk-margin">
+        <ul class="uk-switcher uk-margin" id="tira-software-forms">
             {% for sw in software %}
             <li>
                 <form id="{{ sw.software.id }}-form" class="software_form">
@@ -160,7 +160,7 @@
                     <a class="uk-button uk-button-small uk-button-default uk-width-1-6">save</a>
                     <div class="uk-align-right">
 <!--                        <div class="uk-text-small uk-text-lead">created: {{ sw.software.creation_date }}</div>-->
-                        <div class="uk-text-small uk-text-lead">last edit: {{ sw.software.last_edit }}</div>
+<div class="uk-text-small uk-text-lead" id="{{ sw.software.id }}-last-edit">last edit: {{ sw.software.last_edit }}</div>
                     </div>
                 </div>
                 <table class="uk-margin-medium uk-table uk-table-divider uk-table-small uk-table-responsive targetable">
@@ -179,7 +179,7 @@
                         <tbody>
                         {% for run in sw.runs %}
                         <tr class="uk-padding-remove">
-                            <td id="{{ vm_id }}-{{ sw.software.id }}-{{ run.run_id }}"></td>
+                            <td id="{{ run.dataset }}_{{ vm_id }}_{{ run.run_id }}"></td>
                             <td class="uk-table-shrink">
                                 {% if run.review.noErrors == True %}
                                 <div uk-tooltip="This run is OK">
@@ -225,7 +225,7 @@
                                 <a class="uk-button uk-button-small uk-button-default">evaluate</a>
                                 {% endif %}
                                 <a class="uk-button uk-button-small uk-button-default" href="{% url 'tira:review' task_id=task.task_id vm_id=vm_id dataset_id=sw.software.dataset run_id=run.run_id %}">inspect</a>
-                                <a class="uk-button uk-button-small uk-button-danger">delete</a>
+                                <a class="uk-button uk-button-small uk-button-danger tira-run-delete">delete</a>
                             </td>
                         </tr>
                         {% endfor %}
