@@ -63,7 +63,6 @@ public class Checker {
 		FILE_NAME_RUN_PROTOTEXT = "run.prototext",
 		FILE_NAME_SOFTWARES_PROTOTEXT = "softwares.prototext";
 	
-	private static final String DISRAPTOR_PROPERTIES = "disraptor.properties";
 	private final String DISRAPTOR_APP_SECRET_KEY;
 	
 	private static Checker INSTANCE = null;
@@ -76,18 +75,8 @@ public class Checker {
 	}
 	
 	public Checker() {
-		Properties properties = new Properties();
 //        ClassLoader loader = Checker.class.getClassLoader();
-		InputStream inputStream = Checker.class.getResourceAsStream(DISRAPTOR_PROPERTIES);
-		try {
-			properties.load(inputStream);
-			DISRAPTOR_APP_SECRET_KEY = properties.getProperty("disraptor_app_secret_key");
-			inputStream.close();
-		} catch (IOException e) {
-			throw new RuntimeException(String.format("Could not find the file: %s", DISRAPTOR_PROPERTIES));
-		} catch (NullPointerException npe) {
-			throw new RuntimeException(String.format("Could not find the file: %s", DISRAPTOR_PROPERTIES));
-        }
+    DISRAPTOR_APP_SECRET_KEY = System.getenv("DISRAPTOR_APP_SECRET_KEY");
 	}
 	
 	public boolean 
