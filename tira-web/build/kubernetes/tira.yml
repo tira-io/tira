@@ -27,7 +27,7 @@ spec:
     spec:
       containers:
       - name: tira-bg-web-client
-        image: mam10eks/tmp-tira-mam10eks:9.0.36
+        image: mam10eks/tmp-tira-mam10eks:9.0.39
         imagePullPolicy: Always
         volumeMounts:
         - mountPath: "/mnt/nfs/tira"
@@ -39,6 +39,12 @@ spec:
         - mountPath: "/etc/discourse/client-api-key"
           name: tira-discourse-api-key
           subPath: key
+        env:
+          - name: DISRAPTOR_APP_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: disraptor-app-secret-key
+                key: disraptor-app-secret-key
       nodeSelector:
         kubernetes.io/hostname: betaweb127
       volumes:
