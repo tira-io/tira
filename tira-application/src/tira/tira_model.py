@@ -286,9 +286,8 @@ class FileDatabase(object):
                     "dataset": run.inputDataset, "downloadable": run.downloadable}
         return run
 
-    def _load_vm_runs(self, dataset_id, vm_id, return_deleted=False, include_evaluations=False, as_json=False):
+    def _load_vm_runs(self, dataset_id, vm_id, return_deleted=False, as_json=False):
         """ load all run's data.
-        @param include_evaluations: If True, also load evaluator runs (where an evaluation.bin exists)
         """
         runs = {}
         for run_id_dir in (self.RUNS_DIR_PATH / dataset_id / vm_id).glob("*"):
@@ -372,6 +371,13 @@ class FileDatabase(object):
         open(review_path / "run-review.prototext", 'w').write(str(review))
         open(review_path / "run-review.bin", 'wb').write(review.SerializeToString())
         return True
+
+    def _save_run(self, dataset_id, vm_id, run_id, run):
+        run_dir = (self.RUNS_DIR_PATH / dataset_id / vm_id / run_id)
+        (run_dir / "run.bin").mkdir(parents=True, exist_ok=True)
+
+        open(run_dir / "run.prototext", 'w').write(str(run))
+        open(run_dir / "run.bin", 'wb').write(run.SerializeToString())
 
     # get methods are the public interface.
     def get_vm(self, vm_id: str):
@@ -497,16 +503,16 @@ class FileDatabase(object):
         return [user_run_dir.stem
                 for user_run_dir in (self.RUNS_DIR_PATH / dataset_id).glob("*")]
 
-    def get_vm_runs_by_dataset(self, dataset_id, vm_id, include_evaluations=True):
-        user_runs = self._load_vm_runs(dataset_id, vm_id, include_evaluations, as_json=True)
+    def get_vm_runs_by_dataset(self, dataset_id, vm_id, return_deleted=False):
+        user_runs = self._load_vm_runs(dataset_id, vm_id, return_deleted=return_deleted, as_json=True)
         return list(user_runs.values())
 
-    def get_vm_runs_by_task(self, task_id, vm_id, include_evaluations=True):
+    def get_vm_runs_by_task(self, task_id, vm_id, return_deleted=False):
         """ returns a list of all the runs of a user over all datasets in json (as returned by _load_user_runs) """
         relevant_datasets = {software["dataset"] for software in self.get_software(task_id, vm_id)}
         runs = []
         for dataset_id in relevant_datasets:
-            runs.extend(self.get_vm_runs_by_dataset(dataset_id, vm_id, include_evaluations))
+            runs.extend(self.get_vm_runs_by_dataset(dataset_id, vm_id, return_deleted=return_deleted))
         return runs
 
     def get_vm_evaluations_by_dataset(self, dataset_id, vm_id, only_public_results=True):
@@ -517,8 +523,8 @@ class FileDatabase(object):
                 for run_id, ev in
                 self._load_vm_evaluations(dataset_id, vm_id, only_published=only_public_results).items()}
 
-    def get_run(self, dataset_id, vm_id, run_id):
-        return self._load_run(dataset_id, vm_id, run_id, as_json=True)
+    def get_run(self, dataset_id, vm_id, run_id, return_deleted=False):
+        return self._load_run(dataset_id, vm_id, run_id, return_deleted=return_deleted, as_json=True)
 
     def get_run_review(self, dataset_id, vm_id, run_id):
         return self._load_review(dataset_id, vm_id, run_id, as_json=True)
@@ -656,6 +662,11 @@ class FileDatabase(object):
         except Exception as e:
             logger.exception(f"Exception while saving review ({dataset_id}, {vm_id}, {run_id}): {e}")
             return False
+
+    def update_run(self, dataset_id, vm_id, run_id, deleted: bool = False):
+        run = self._load_run(self, dataset_id, vm_id, run_id, as_json=False)
+        run.delete = deleted
+        self._save_run(dataset_id, vm_id, run_id, run)
 
     def add_ongoing_execution(self, hostname, vm_id, ova):
         """ add this create to the stack, so we know it's in progress. """
