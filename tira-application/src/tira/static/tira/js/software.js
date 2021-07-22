@@ -17,7 +17,7 @@ function startVM(uid, vmid) {
         success: function(data)
         {
             if(data.status === 'Accepted'){
-                loadVmInfo(vmid)
+                loadVmInfo(vmid) 
             }
         }
     })
@@ -71,10 +71,12 @@ function abortRun(uid, vmid){
     })
 }
 
-function saveSoftware(uid, vmid, swid){
+function saveSoftware(tid, vmid, swid){
+    console.log(swid);
+    console.log(tid);
     $.ajax({
         type: 'POST',
-        url: `/user/${uid}/vm/${vmid}/software_save/${swid}`,
+        url: `/task/${tid}/vm/${vmid}/software_save/${swid}`,
         headers: {
             'X-CSRFToken': $('input[name=csrfmiddlewaretoken]').val()
         },
@@ -92,6 +94,7 @@ function saveSoftware(uid, vmid, swid){
             setTimeout(function() {
                 $(`#${swid}_form_buttons a:last-of-type`).html('save');
             }, 5000)
+            $(`#${swid}-last-edit`).text(`last edit: ${data.last_edit}`)
         }
     })
 }
@@ -269,8 +272,9 @@ function addSoftwareEvents(uid, vmid) {
     });
     
     $('.software_form_buttons a:last-of-type').click(function(e) {
-        var swid = e.target.parentElement.id.split('_')[0]
-        saveSoftware(uid, vmid, swid);
+        var swid = e.target.parentElement.id.split('_')[0];
+        var tid = window.location.pathname.split('/')[2];
+        saveSoftware(tid, vmid, swid);
     })
 
     $('.tira-run-delete').click(function(e) {

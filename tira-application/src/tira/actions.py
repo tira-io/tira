@@ -19,7 +19,8 @@ from http import HTTPStatus
 
 from .grpc_client import GrpcClient
 
-model = FileDatabase()
+from .views import model
+
 include_navigation = True if settings.DEPLOYMENT == "legacy" else False
 auth = Authentication(authentication_source=settings.DEPLOYMENT,
                       users_file=settings.LEGACY_USER_FILE)
@@ -335,21 +336,22 @@ def software_add(request, task_id, vm_id):
             "role": auth.get_role(request)
         }
 
-    # TODO: add software in model and put it in the context
+    software = model.add_software(task_id, vm_id)
+    if not software:
+        return JsonResponse({'status': 'Failed'}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
-    # dummy data
     context = {
         "user_id": auth.get_user_id(request),
         "include_navigation": include_navigation,
-        "task": "task123",
+        "task": task_id,
         "vm_id": vm_id,
         "software": {
-            "id": "id123",
-            "command": "command123",
-            "working_dir": "working_dir123",
-            "dataset": "dataset123",
-            "creation_date": "creation_date123",
-            "last_edit": "last_edit123"
+            "id": software.id,
+            "command": software.command,
+            "working_dir": software.workingDirectory,
+            "dataset": software.dataset,
+            "creation_date": software.creationDate,
+            "last_edit": software.lastEditDate
         }
     }
 #     context = {
@@ -363,8 +365,17 @@ def software_add(request, task_id, vm_id):
     return JsonResponse({'html': html, 'software_id': context["software"]['id']}, status=HTTPStatus.ACCEPTED)
 
 
-def software_save(request, user_id, vm_id, software_id):
-    return JsonResponse({'status': 'Accepted'}, status=HTTPStatus.ACCEPTED)
+def software_save(request, task_id, vm_id, software_id):
+    software = model.update_software(task_id, vm_id, software_id, 
+                          request.POST.get("command"),
+                          request.POST.get("working_dir"),
+                          request.POST.get("input_dataset"),
+                          request.POST.get("input_run"))
+
+    if software:
+        return JsonResponse({'status': 'Accepted', 'last_edit': software.lastEditDate}, status=HTTPStatus.ACCEPTED)
+    else:
+        return JsonResponse({'status': 'Failed'}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 # TODO implement

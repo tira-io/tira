@@ -14,6 +14,7 @@ from pathlib import Path
 from datetime import datetime as dt
 
 model = FileDatabase()
+
 include_navigation = True if settings.DEPLOYMENT == "legacy" else False
 auth = Authentication(authentication_source=settings.DEPLOYMENT,
                       users_file=settings.LEGACY_USER_FILE)
@@ -53,9 +54,8 @@ def admin(request):
     }
     return render(request, 'tira/tira_admin.html', context)
 
-
 def login(request):
-    """ Hand out the login form
+    """ Hand out the login form 
     Note that this is only called in legacy deployment. Disraptor is supposed to catch the route to /login
     """
     check.has_access(request, 'any')

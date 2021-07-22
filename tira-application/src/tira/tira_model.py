@@ -7,7 +7,8 @@ from pathlib import Path
 import logging
 from django.conf import settings
 import socket
-from datetime import datetime
+from datetime import datetime, timezone
+import re
 
 from .proto import TiraClientWebMessages_pb2 as modelpb
 from .proto import tira_host_pb2 as model_host
@@ -266,6 +267,9 @@ class FileDatabase(object):
         """ load a vm object from vm_dir_path """
         return Parse(open(self.vm_dir_path / f"{vm_id}.prototext").read(), modelpb.VirtualMachine())
 
+    def _load_softwares(self, task_id, vm_id):
+        return Parse(open(self.softwares_dir_path / task_id / vm_id / "softwares.prototext", "r").read(), modelpb.Softwares())
+
     def _load_run(self, dataset_id, vm_id, run_id, return_deleted=False, as_json=False):
         run_dir = (self.RUNS_DIR_PATH / dataset_id / vm_id / run_id)
         if not (run_dir / "run.bin").exists():
@@ -371,6 +375,12 @@ class FileDatabase(object):
         open(review_path / "run-review.prototext", 'w').write(str(review))
         open(review_path / "run-review.bin", 'wb').write(review.SerializeToString())
         return True
+
+    def _save_softwares(self, task_id, vm_id, softwares):
+        with open(self.softwares_dir_path / task_id / vm_id / "softwares.prototext", "w+") as prototext_file:
+            # update file
+            prototext_file.write(str(softwares))
+            return True
 
     def _save_run(self, dataset_id, vm_id, run_id, run):
         run_dir = (self.RUNS_DIR_PATH / dataset_id / vm_id / run_id)
@@ -535,6 +545,7 @@ class FileDatabase(object):
     def get_software(self, task_id, vm_id):
         """ Returns the software of a vm on a task in json """
         logger.debug(f"get_software({task_id}, {vm_id})")
+        print("get_software", len(self.software.get(f"{task_id}${vm_id}", [])))
         return [{"id": software.id, "count": software.count,
                  "task_id": task_id, "vm_id": vm_id,
                  "command": software.command, "working_directory": software.workingDirectory,
@@ -601,6 +612,40 @@ class FileDatabase(object):
 
         return [str(nd) for nd in new_dirs]
 
+    def add_software(self, task_id, vm_id):
+        software = modelpb.Softwares.Software()
+        try:
+            last_software_count = re.search(r'\d+$', self.get_software(task_id, vm_id)[-1]["id"])
+            software_count = int(last_software_count.group()) + 1 if last_software_count else None
+            if software_count is None:
+                # invalid software id value
+                return False
+
+            software.id = f"software{software_count}"
+            software.count = str(software_count)
+
+        except IndexError:
+            # no software present yet
+            software.id = "software1"
+            software.count = "1"
+
+        software.command = ""
+        software.workingDirectory = ""
+        software.dataset = ""
+        software.run = ""
+        software.creationDate = datetime.now(timezone.utc).strftime("%a %b %d %X %Z %Y")
+        software.lastEditDate = software.creationDate
+        software.deleted = False
+
+        s = self._load_softwares(task_id, vm_id)
+        s.softwares.append(software)
+        software_ok = self._save_softwares(task_id, vm_id, s)
+
+        software_list = self.software.get(f"{task_id}${vm_id}", [])
+        software_list.append(software)
+        self.software[f"{task_id}${vm_id}"] = software_list
+        return software if software_ok else False
+    
     def add_evaluator(self, vm_id, task_id, dataset_id, dataset_type, command, working_directory, measures):
         """ TODO documentation
         """
@@ -667,6 +712,29 @@ class FileDatabase(object):
         run = self._load_run(self, dataset_id, vm_id, run_id, as_json=False)
         run.delete = deleted
         self._save_run(dataset_id, vm_id, run_id, run)
+
+    def update_software(self, task_id, vm_id, software_id, command: str = None, working_directory: str = None,
+                        dataset: str = None, run: str = None, deleted: bool = False):
+        def update(x, y):
+            return y if y is not None else x
+
+        s = self._load_softwares(task_id, vm_id)
+        for software in s.softwares:
+            if software.id == software_id:
+                software.command = update(software.command, command)
+                software.workingDirectory = update(software.workingDirectory, working_directory)
+                software.dataset = update(software.dataset, dataset)
+                software.run = update(software.run, run)
+                software.deleted = update(software.deleted, deleted)
+                software.lastEditDate = datetime.now(timezone.utc).strftime("%a %b %d %X %Z %Y")
+
+                self._save_softwares(task_id, vm_id, s)
+                software_list = [user_software for user_software in s.softwares if not user_software.deleted]
+                self.software[f"{task_id}${vm_id}"] = software_list
+                return software
+
+        return False
+
 
     def add_ongoing_execution(self, hostname, vm_id, ova):
         """ add this create to the stack, so we know it's in progress. """
