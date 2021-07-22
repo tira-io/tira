@@ -34,7 +34,8 @@ ALLOWED_HOSTS = custom_settings.get("allowed_hosts", [])
 TIRA_ROOT = Path(custom_settings.get("tira_root", "/mnt/ceph/tira"))
 DEPLOYMENT = custom_settings.get("deployment", "legacy")
 LEGACY_USER_FILE = Path(custom_settings.get("legacy_users_file", ""))
-GRPC_PORT = custom_settings.get("grpc_server_port", "50051")
+HOST_GRPC_PORT = custom_settings.get("host_grpc_port", "50051")
+APPLICATION_GRPC_PORT = custom_settings.get("application_grpc_port", "50052")
 GRPC_HOST = custom_settings.get("grpc_host", "local")  # can be local or remote
 
 
@@ -95,6 +96,16 @@ DATABASES = {
 SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
 
 # Logging
+try:
+    log_dir = Path(custom_settings.get("logging_dir", BASE_DIR))
+except PermissionError as e:
+    print(f"failed to initialize logging with a Permission error: {e}")
+    if DEBUG:
+        print(f"Logging to {BASE_DIR}")
+        log_dir = BASE_DIR
+    else:
+        raise PermissionError(e)
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -135,19 +146,19 @@ LOGGING = {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
             'filters': ['require_debug_true'],
-            'filename': Path(custom_settings.get("logging_dir", BASE_DIR)) / 'debug.log',
+            'filename': log_dir / 'debug.log',
             'formatter': 'default'
         },
         'ceph_info_file': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
-            'filename': Path(custom_settings.get("logging_dir", BASE_DIR)) / 'info.log',
+            'filename': log_dir / 'info.log',
             'formatter': 'default'
         },
         'ceph_warn_file': {
             'level': 'WARNING',
             'class': 'logging.FileHandler',
-            'filename': Path(custom_settings.get("logging_dir", BASE_DIR)) / 'warnings.log',
+            'filename': log_dir / 'warnings.log',
             'formatter': 'default'
         },
     },
