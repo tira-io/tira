@@ -40,8 +40,8 @@ protobuf: venv
 
 django:
 	sh -c ". $(VENV_NAME)/bin/activate && \
-	python3 src/manage.py migrate && \
-	python3 src/manage.py makemigrations"
+	python3 src/manage.py makemigrations && \
+	python3 src/manage.py migrate"
 
 run-dev:
 	mkdir -p src/config
