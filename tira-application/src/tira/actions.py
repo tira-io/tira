@@ -273,17 +273,17 @@ def vm_shutdown(request, vm_id):
     return JsonResponse({'status': 'Accepted', 'message': response.commandId}, status=HTTPStatus.ACCEPTED)
 
 
-# TODO implement
-def vm_abort_run(request, vm_id):
-    return JsonResponse({'status': 'Failed', 'message': "Not Implemented"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
-
-
 def vm_stop(request, vm_id):
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
     vm = model.get_vm(vm_id)
     grpc_client = GrpcClient('localhost') if settings.GRPC_HOST == 'local' else GrpcClient(vm.host)
     response = grpc_client.vm_stop(vm.vmName)
-    return JsonResponse({'status': 'Accepted', 'message': response}, status=HTTPStatus.ACCEPTED)
+    return JsonResponse({'status': 'Accepted', 'message': response.commandId}, status=HTTPStatus.ACCEPTED)
+
+
+# TODO implement
+def vm_abort_run(request, vm_id):
+    return JsonResponse({'status': 'Failed', 'message': "Not Implemented"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 def vm_info(request, vm_id):
@@ -367,6 +367,7 @@ def software_save(request, user_id, vm_id, software_id):
     return JsonResponse({'status': 'Accepted'}, status=HTTPStatus.ACCEPTED)
 
 
+# TODO implement
 def run_execute(request, vm_id):
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
 
@@ -381,6 +382,7 @@ def run_execute(request, vm_id):
     return JsonResponse({'status': 'Accepted', 'message': response}, status=HTTPStatus.ACCEPTED)
 
 
+# TODO implement
 def run_eval(request, vm_id):
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
 
@@ -395,7 +397,11 @@ def run_eval(request, vm_id):
     return JsonResponse({'status': 'Accepted', 'message': response}, status=HTTPStatus.ACCEPTED)
 
 
-def run_delete(request, vm_id, dataset_id, run_id):
+# TODO implement
+def run_delete(request, dataset_id, vm_id, run_id):
+    check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
+
+    model.update_run(dataset_id, vm_id, run_id, deleted=True)
     return JsonResponse({'status': 'Accepted'}, status=HTTPStatus.ACCEPTED)
 
 

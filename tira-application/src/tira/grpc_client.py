@@ -55,6 +55,7 @@ class GrpcClient:
 
     def run_execute(self, submission_file, input_dataset_name, input_run_path, output_dir_name, sandboxed,
                     optional_parameters):
+        # user, os, host, sshport, userpw, workingDir, cmd
         response = self.stub.run_execute(tira_host_pb2.RequestRunExecuteEval(submissionFile=submission_file,
                                                                              inputDatasetName=input_dataset_name,
                                                                              inputRunPath=input_run_path,
@@ -65,6 +66,7 @@ class GrpcClient:
         print("Client received: " + str(response))
         return response
 
+    # TODO: these methods are more of a problem ...
     def run_eval(self, submission_file, input_dataset_name, input_run_path, output_dir_name, sandboxed,
                  optional_parameters):
         response = self.stub.run_execute(tira_host_pb2.RequestRunExecuteEval(submissionFile=submission_file,

@@ -25,7 +25,7 @@ for cfg in (BASE_DIR / "config").glob("*.yml"):
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '%%b151#yd778^ch(*p$$wq^yv75=om^g0@iut^j_hi-x1#8cbc'
+SECRET_KEY = custom_settings.get("django_secret")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = custom_settings.get("debug", True)
