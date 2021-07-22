@@ -255,7 +255,7 @@ def vm_create(request, hostname, vm_id, ova_file, bulk_id=None):
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
     grpc_client = GrpcClient('localhost') if settings.GRPC_HOST == 'local' else GrpcClient(hostname)
     response = grpc_client.vm_create(ova_file, vm_id, bulk_id)
-    return JsonResponse({'status': 'Accepted', 'message': response.commandId}, status=HTTPStatus.ACCEPTED)
+    return JsonResponse({'status': response.status, 'message': response.transactionId}, status=HTTPStatus.ACCEPTED)
 
 
 def vm_start(request, vm_id):
@@ -263,7 +263,8 @@ def vm_start(request, vm_id):
     vm = model.get_vm(vm_id)
     grpc_client = GrpcClient('localhost') if settings.GRPC_HOST == 'local' else GrpcClient(vm.host)
     response = grpc_client.vm_start(vm.vmName)
-    return JsonResponse({'status': 'Accepted', 'message': response.commandId}, status=HTTPStatus.ACCEPTED)
+    print(response)
+    return JsonResponse({'status': response.status, 'message': response.transactionId}, status=HTTPStatus.ACCEPTED)
 
 
 def vm_shutdown(request, vm_id):
@@ -271,7 +272,7 @@ def vm_shutdown(request, vm_id):
     vm = model.get_vm(vm_id)
     grpc_client = GrpcClient('localhost') if settings.GRPC_HOST == 'local' else GrpcClient(vm.host)
     response = grpc_client.vm_shutdown(vm.vmName)
-    return JsonResponse({'status': 'Accepted', 'message': response.commandId}, status=HTTPStatus.ACCEPTED)
+    return JsonResponse({'status': response.status, 'message': response.transactionId}, status=HTTPStatus.ACCEPTED)
 
 
 def vm_stop(request, vm_id):
@@ -279,7 +280,7 @@ def vm_stop(request, vm_id):
     vm = model.get_vm(vm_id)
     grpc_client = GrpcClient('localhost') if settings.GRPC_HOST == 'local' else GrpcClient(vm.host)
     response = grpc_client.vm_stop(vm.vmName)
-    return JsonResponse({'status': 'Accepted', 'message': response.commandId}, status=HTTPStatus.ACCEPTED)
+    return JsonResponse({'status': response.status, 'message': response.transactionId}, status=HTTPStatus.ACCEPTED)
 
 
 # TODO implement

@@ -708,10 +708,23 @@ class FileDatabase(object):
             logger.exception(f"Exception while saving review ({dataset_id}, {vm_id}, {run_id}): {e}")
             return False
 
-    def update_run(self, dataset_id, vm_id, run_id, deleted: bool = False):
+    def update_run(self, dataset_id, vm_id, run_id, deleted: bool = None):
+        """ updates the run specified by dataset_id, vm_id, and run_id with the values given in the parameters.
+            Required Parameters are also required in the function
+        """
         run = self._load_run(self, dataset_id, vm_id, run_id, as_json=False)
-        run.delete = deleted
-        self._save_run(dataset_id, vm_id, run_id, run)
+
+        def update(x, y):
+            return y if y is not None else x
+
+        run.delete = update(run.deleted, deleted)
+
+        try:
+            self._save_run(dataset_id, vm_id, run_id, run)
+            return True
+        except Exception as e:
+            logger.exception(f"Exception while saving run ({dataset_id}, {vm_id}, {run_id}): {e}")
+            return False
 
     def update_software(self, task_id, vm_id, software_id, command: str = None, working_directory: str = None,
                         dataset: str = None, run: str = None, deleted: bool = False):

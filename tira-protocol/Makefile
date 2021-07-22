@@ -28,7 +28,7 @@ setup:
 
 build:
 	command -v protoc || make setup
-	make venvqq
+	make venv
 	make build-java
 	make build-python
 
