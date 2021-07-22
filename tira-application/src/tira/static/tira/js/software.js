@@ -9,14 +9,14 @@ After the click, do:
  */
 function startVM(uid, vmid) {
     disableButton('vm-power-on-button')
-    setState("loading")
+    setState(0)
     $.ajax({
         type: 'GET',
         url: `/grpc/${vmid}/vm_start`,
         data: {},
         success: function(data)
         {
-            if(data.status === 'Accepted'){
+            if(data.status === 0){
                 loadVmInfo(vmid)
             }
         }
@@ -25,14 +25,14 @@ function startVM(uid, vmid) {
 
 function shutdownVM(uid, vmid) {
     disableButton('vm-shutdown-button')
-    setState("loading")
+    setState(0)
     $.ajax({
         type: 'GET',
         url: `/grpc/${vmid}/vm_shutdown`,
         data: {},
         success: function(data)
         {
-            if(data.status === 'Accepted'){
+            if(data.status === 0){
                 loadVmInfo(vmid)
             }
         }
@@ -41,14 +41,14 @@ function shutdownVM(uid, vmid) {
 
 function stopVM(uid, vmid) {
     disableButton('vm-stop-button')
-    setState("loading")
+    setState(0)
     $.ajax({
         type: 'GET',
         url: `/grpc/${vmid}/vm_stop`,
         data: {},
         success: function(data)
         {
-            if(data.status === 'Accepted'){
+            if(data.status === 0){
                 loadVmInfo(vmid)
             }
         }
@@ -57,14 +57,14 @@ function stopVM(uid, vmid) {
 
 function abortRun(uid, vmid){
     disableButton('vm-abort-run-button')
-    setState("loading")
+    setState(0)
     $.ajax({
         type: 'GET',
         url: `/grpc/${vmid}/vm_abort_run`,
         data: {},
         success: function(data)
         {
-            if(data.status === 'Accepted'){
+            if(data.status === 0){
                 loadVmInfo(vmid)
             }
         }
@@ -143,27 +143,48 @@ function enableButton(id, cls) {
         .addClass(cls);
 }
 
-function setState(state_name) {
+/* State IDs follow the tira protocol specification (in tira_host.proto)
+UNDEFINED = 0;
+RUNNING = 1;
+POWERED_OFF = 2;
+POWERING_ON = 3;
+POWERING_OFF = 4;
+SANDBOXING = 5;
+UNSANDBOXING = 6;
+EXECUTING = 7;  // sandboxed
+ARCHIVED = 8;
+ */
+function setState(state_id) {
     $('#vm-state-spinner').hide();
     $('#vm-state-running').hide();
     $('#vm-state-stopped').hide();
     $('#vm-state-sandboxed').hide();
     $('#vm-state-sandboxing').hide();
 
-    if(state_name === 'running') {
+    if(state_id === 1) {
         $('#vm-state-running').show();
-    } else if(state_name === 'stopped') {
+        enableButton('vm-shutdown-button', 'uk-button-primary')
+        enableButton('vm-stop-button', 'uk-button-danger')
+    } else if(state_id === 2) {
         $('#vm-state-stopped').show();
-    } else if(state_name === 'sandboxed') {
+        enableButton('vm-power-on-button', 'uk-button-primary')
+    } else if(state_id === 7) {
         $('#vm-state-sandboxed').show();
-    } else if(state_name === 'sandboxing') {
+        enableButton('vm-stop-button', 'uk-button-danger')
+        enableButton('vm-abort-run-button', 'uk-button-danger')
+    } else if(state_id === 5) {
         $('#vm-state-sandboxing').show();
-    } else if(state_name === 'loading') {
+        enableButton('vm-stop-button', 'uk-button-danger')
+    } else if(state_id === 0) {
         $('#vm-state-ssh-open').hide();
         $('#vm-state-ssh-closed').hide();
         $('#vm-state-rdp-open').hide();
         $('#vm-state-rdp-closed').hide();
         $('#vm-state-spinner').show();
+        disableButton('vm-shutdown-button');
+        disableButton('vm-power-on-button');
+        disableButton('vm-stop-button');
+        disableButton('vm-abort-run-button');
     }
 }
 
@@ -181,12 +202,8 @@ function runDelete(dsid, vmid, rid, row) {
 
 
 function loadVmInfo(vmid) {
-    setState("loading")
+    setState(0)
 
-    disableButton('vm-shutdown-button')
-    disableButton('vm-power-on-button')
-    disableButton('vm-stop-button')
-    disableButton('vm-abort-run-button')
 
     $.ajax({
         type: 'GET',
@@ -203,22 +220,8 @@ function loadVmInfo(vmid) {
                 $('#vm-info-numberOfCpus').text(data.message.numberOfCpus)
 
                 // logic status
-                $('#vm-state-spinner').hide()
-                if(data.message.state === 'running'){
-                    setState('running')
-                    enableButton('vm-shutdown-button', 'uk-button-primary')
-                    enableButton('vm-stop-button', 'uk-button-danger')
-                } else if(data.message.state === 'stopped'){
-                    setState('stopped')
-                    enableButton('vm-power-on-button', 'uk-button-primary')
-                } else if(data.message.state === 'sandboxed'){
-                    setState('sandboxed')
-                    enableButton('vm-stop-button', 'uk-button-danger')
-                    enableButton('vm-abort-run-button', 'uk-button-danger')
-                } else if(data.message.state === 'sandboxing'){
-                    setState('sandboxing')
-                    enableButton('vm-stop-button', 'uk-button-danger')
-                }
+                $('#vm-state-spinner').hide();
+                setState(data.message.state);
 
                 // sshPortStatus
                 $('#vm-state-ssh').text('port ' + data.message.sshPort)

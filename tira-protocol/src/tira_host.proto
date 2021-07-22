@@ -42,78 +42,95 @@ option optimize_for = SPEED;
 
 // The service definition.
 service TiraHostService {
-  rpc test (Input) returns (Output) {}
-  rpc vm_backup (RequestVmCommands) returns (Response) {}
-  rpc vm_create (RequestVmCreate) returns (Response) {}
-  rpc vm_delete (RequestVmCommands) returns (Response) {}
-  rpc vm_info (RequestVmCommands) returns (ResponseVmInfo) {}
-  rpc vm_list (google.protobuf.Empty) returns (Response) {}
-  rpc vm_metrics (RequestVmCommands) returns (Response) {}
-  rpc vm_sandbox (RequestVmCommands) returns (Response) {}
-  rpc vm_shutdown (RequestVmCommands) returns (Response) {}
-  rpc vm_snapshot (RequestVmCommands) returns (Response) {}
-  rpc vm_start (RequestVmCommands) returns (Response) {}
-  rpc vm_stop (RequestVmCommands) returns (Response) {}
-  rpc vm_unsandbox (RequestVmCommands) returns (Response) {}
-  rpc run_execute(RequestRunExecuteEval) returns (Response) {}
-  rpc run_eval(RequestRunExecuteEval) returns (Response) {}
+  rpc vm_backup (RequestVmCommands) returns (Transaction) {}
+  rpc vm_create (RequestVmCreate) returns (Transaction) {}
+  rpc vm_delete (RequestVmCommands) returns (Transaction) {}
+  rpc vm_info (RequestVmCommands) returns (VmInfo) {}
+  rpc vm_list (google.protobuf.Empty) returns (Transaction) {}
+  rpc vm_metrics (RequestVmCommands) returns (Transaction) {}
+  rpc vm_sandbox (RequestVmCommands) returns (Transaction) {}
+  rpc vm_shutdown (RequestVmCommands) returns (Transaction) {}
+  rpc vm_snapshot (RequestVmCommands) returns (Transaction) {}
+  rpc vm_start (RequestVmCommands) returns (Transaction) {}
+  rpc vm_stop (RequestVmCommands) returns (Transaction) {}
+  rpc vm_unsandbox (RequestVmCommands) returns (Transaction) {}
+  rpc run_execute(RequestRunExecuteEval) returns (Transaction) {}
+  rpc run_eval(RequestRunExecuteEval) returns (Transaction) {}
+  rpc alive (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 }
 
-
-// Message definitions.
-message Input {
-  string text = 1;
+service TiraApplicationService {
+  rpc set_state (SetVmState) returns (Transaction) {}
+  rpc complete_transaction (Transaction) returns (Transaction) {}
 }
-message Output {
-  string text = 1;
+
+enum Status {
+  SUCCESS = 0;
+  FAILED = 1;
+}
+
+enum VmState {
+    UNDEFINED = 0;
+    RUNNING = 1;
+    POWERED_OFF = 2;
+    POWERING_ON = 3;
+    POWERING_OFF = 4;
+    SANDBOXING = 5;
+    UNSANDBOXING = 6;
+    EXECUTING = 7;  // may be called sandboxed?
+    ARCHIVED = 8;
 }
 
 message RequestVmCommands {
-  string vmName = 1;
+  string vmId = 1;
 }
 
 message RequestVmCreate {
   string ovaFile = 1;
-  string userName = 2;
+  string userId = 2;
   string bulkCommandId = 3;
 }
 
 message RequestRunExecuteEval {
-  string submissionFile = 4;
-  string inputDatasetName = 5;
-  string inputRunPath = 6;
-  string outputDirName = 7;
-  string sandboxed = 8;
-  string runId = 9;
-  string snapshotName = 10;
-  string optionalParameters = 11;
+  string submissionFile = 1;
+  string inputDatasetId = 2;
+  string inputRunPath = 3;
+  string outputDirName = 4;
+  string sandboxed = 5;
+  string runId = 6;
+  string snapshotName = 7;
+  string optionalParameters = 8;
 }
 
-message Response {
-    enum Status {
-      RUNNING = 0;
-      SUCCESS = 1;
-      FAILED = 2;
-    }
-    Status status = 5;
-    string commandId = 6;
+message Transaction {
+  Status status = 1;
+  string transactionId = 2;
 }
 
-message ResponseVmInfo {
-  string guestOs = 1;
-  string memorySize = 2;
-  string numberOfCpus = 3;
-  string state = 4;
+message SetVmState {
+  Status status = 1;
+  VmState state = 2;
+  string vmId = 3;
+
+}
+
+message VmInfo {
+  Status status = 1;
+  string guestOs = 2;
+  string memorySize = 3;
+  string numberOfCpus = 4;
   string sshPort = 5;
   string rdpPort = 6;
   string host = 7;
   bool sshPortStatus = 8;
   bool rdpPortStatus = 9;
+  VmState state = 10;
 }
+
 
 // TODO: add response message for vm_create command parsing vm access details
 //message ResponseVmCreate {
-//  string userName = 1;
+//  string userId = 1;
 //  string userPwd = 2;
 //}
 

@@ -52,11 +52,11 @@ def async_api(wrapped_function):
 
                 vmmanage = vm_manage.VMManage(command.logFile)
                 returncode = wrapped_function(*args, vmmanage=vmmanage)
-                model.update_command(command_id, status=tira_host_pb2.Response.Status.SUCCESS,
+                model.update_command(command_id, status=tira_host_pb2.Transaction.Status.SUCCESS,
                                      returnCode=returncode)
             except Exception as e:
                 logger.error(str(e))
-                model.update_command(command_id, status=tira_host_pb2.Response.Status.FAILED,
+                model.update_command(command_id, status=tira_host_pb2.Transaction.Status.FAILED,
                                      returnCode=e.returncode)
             finally:
                 # Set endTime to help later remove finished commands from the state file.
@@ -71,8 +71,8 @@ def async_api(wrapped_function):
         commands[command_id] = {'command_thread': threading.Thread(target=task_call, args=())}
         commands[command_id]['command_thread'].start()
 
-        response = tira_host_pb2.Response()
-        response.commandId = command_id
+        response = tira_host_pb2.Transaction()
+        response.transactionId = command_id
         return response
 
     return new_function
@@ -95,9 +95,6 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         thread = threading.Thread(target=clean_old_tasks)
         thread.start()
 
-    def test(self, request, context):
-        return tira_host_pb2.Output(text="Server received: " + input.text)
-
     @async_api
     def vm_backup(self, request, context, vmmanage):
         """
@@ -107,7 +104,7 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         :param context:
         :return:
         """
-        return vmmanage.vm_backup(request.vmName)
+        return vmmanage.vm_backup(request.vmId)
 
     @async_api
     def vm_create(self, request, context, vmmanage):
@@ -119,7 +116,7 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         :return:
         """
 
-        return vmmanage.vm_create(request.ovaFile, request.userName)
+        return vmmanage.vm_create(request.ovaFile, request.userId)
 
     @async_api
     def vm_delete(self, request, context, vmmanage):
@@ -130,7 +127,7 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         :param context:
         :return:
         """
-        return vmmanage.vm_delete(request.vmName)
+        return vmmanage.vm_delete(request.vmId)
 
     def vm_info(self, request, context):
         """
@@ -139,17 +136,18 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         :param context:
         :return:
         """
-        vm = model.get_vm_by_id(request.vmName)
+        vm = model.get_vm_by_id(request.vmId)
         if not vm:
             context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
             context.set_details("VM not found.")
-            # return tira_host_pb2.Response()
+            # return tira_host_pb2.Transaction()
             raise Exception("VM not found.")
 
+        vm_state = None
         output = ""
         vmmanage = vm_manage.VMManage()
-        return_code = vmmanage.vm_info(vm.vmName, output=output)
-        response_vm_info = tira_host_pb2.ResponseVmInfo()
+        return_code = vmmanage.vm_info(vm.vmId, output=output)
+        response_vm_info = tira_host_pb2.VmInfo()
         for line in output.split('\n'):
             if line.startswith("Guest OS:"):
                 response_vm_info.guestOs = line.split(": ")[1].strip()
@@ -158,7 +156,7 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
             elif line.startswith("Number of CPUs:"):
                 response_vm_info.numberOfCpus = line.split(": ")[1].strip()
             elif line.startswith("State:"):
-                response_vm_info.state = re.sub(".\\d+\\)", ")", line.split(": ")[1].strip())
+                vm_state = re.sub(".\\d+\\)", ")", line.split(": ")[1].strip())
 
         response_vm_info.sshPort = vm.portSsh
         response_vm_info.rdpPort = vm.portRdp
@@ -169,7 +167,13 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
                 response_vm_info.sshPortStatus = 1 if sock.connect_ex((vm.host, int(vm.portSsh))) == 0 else 0
                 response_vm_info.rdpPortStatus = 1 if sock.connect_ex((vm.host, int(vm.portRdp))) == 0 else 0
 
-        # response_vm_info.is_running = response_vm_info.state.startswith("running")
+        # TODO we should return here fine grained information about the state before this foes live.
+        if vm_state.startswith("running"):
+            response_vm_info.state = tira_host_pb2.Status.RUNNING
+        else:
+            response_vm_info.state = tira_host_pb2.Status.POWERED_OFF
+
+        response_vm_info.status = tira_host_pb2.Status.SUCCESS
 
         return response_vm_info
 
@@ -186,7 +190,7 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         :param vmmanage:
         :return:
         """
-        return vmmanage.vmsandbox(request.vmName)
+        return vmmanage.vmsandbox(request.vmId)
 
     @async_api
     def vm_shutdown(self, request, context, vmmanage):
@@ -196,7 +200,7 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         :param vmmanage:
         :return:
         """
-        return vmmanage.vm_shutdown(request.vmName)
+        return vmmanage.vm_shutdown(request.vmId)
 
     @async_api
     def vm_snapshot(self, request, context, vmmanage):
@@ -206,7 +210,7 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         :param vmmanage:
         :return:
         """
-        return vmmanage.vm_snapshot(request.vmName)
+        return vmmanage.vm_snapshot(request.vmId)
 
     @async_api
     def vm_start(self, request, context, vmmanage):
@@ -216,7 +220,7 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         :param vmmanage:
         :return:
         """
-        return vmmanage.vm_start(request.vmName)
+        return vmmanage.vm_start(request.vmId)
 
     @async_api
     def vm_stop(self, request, context, vmmanage):
@@ -226,7 +230,7 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         :param vmmanage:
         :return:
         """
-        return vmmanage.vm_stop(request.vmName)
+        return vmmanage.vm_stop(request.vmId)
 
     @async_api
     def vm_unsandbox(self, request, context, vmmanage):
@@ -236,7 +240,7 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         :param vmmanage:
         :return:
         """
-        return vmmanage.vm_unsandbox(request.vmName)
+        return vmmanage.vm_unsandbox(request.vmId)
 
     @async_api
     def run_execute(self, request, context, vmmanage):
@@ -247,7 +251,7 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         :param vmmanage:
         :return:
         """
-        return vmmanage.run_execute(request.submissionFile, request.inputDatasetName,
+        return vmmanage.run_execute(request.submissionFile, request.inputDatasetId,
                                     request.inputRunPath, request.outputDirName, request.sandboxed,
                                     request.optionalParameters)
 
@@ -260,7 +264,7 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         :param vmmanage:
         :return:
         """
-        return vmmanage.run_eval(request.submissionFile, request.inputDatasetName, request.inputRunPath,
+        return vmmanage.run_eval(request.submissionFile, request.inputDatasetId, request.inputRunPath,
                                  request.outputDirName, request.sandboxed, request.optionalParameters)
 
 

@@ -9,8 +9,7 @@ import grpc
 from google.protobuf.empty_pb2 import Empty
 
 from .proto import tira_host_pb2, tira_host_pb2_grpc
-
-grpc_port = settings.GRPC_PORT
+grpc_port = settings.HOST_GRPC_PORT
 
 
 class GrpcClient:
@@ -24,27 +23,26 @@ class GrpcClient:
 
     def vm_create(self, ova_file, user_name, bulk_id=None):
         response = self.stub.vm_create(
-            tira_host_pb2.RequestVmCreate(ovaFile=ova_file, userName=user_name, bulkCommandId=bulk_id))
+            tira_host_pb2.RequestVmCreate(ovaFile=ova_file, userId=user_name, bulkCommandId=bulk_id))
         return response.commandId
 
     def vm_start(self, vm_name):
-        print(vm_name)
-        response = self.stub.vm_start(tira_host_pb2.RequestVmCommands(vmName=vm_name))
+        response = self.stub.vm_start(tira_host_pb2.RequestVmCommands(vmId=vm_name))
         print("Client received: " + str(response))
         return response
 
     def vm_stop(self, vm_name):
-        response = self.stub.vm_stop(tira_host_pb2.RequestVmCommands(vmName=vm_name))
+        response = self.stub.vm_stop(tira_host_pb2.RequestVmCommands(vmId=vm_name))
         print("Client received: " + str(response))
         return response
 
     def vm_shutdown(self, vm_name):
-        response = self.stub.vm_shutdown(tira_host_pb2.RequestVmCommands(vmName=vm_name))
+        response = self.stub.vm_shutdown(tira_host_pb2.RequestVmCommands(vmId=vm_name))
         print("Client received: " + str(response))
         return response
 
     def vm_info(self, vm_name):
-        response_vm_info = self.stub.vm_info(tira_host_pb2.RequestVmCommands(vmName=vm_name))
+        response_vm_info = self.stub.vm_info(tira_host_pb2.RequestVmCommands(vmId=vm_name))
         print("Client received: " + str(response_vm_info))
         return response_vm_info
 
@@ -57,7 +55,7 @@ class GrpcClient:
                     optional_parameters):
         # user, os, host, sshport, userpw, workingDir, cmd
         response = self.stub.run_execute(tira_host_pb2.RequestRunExecuteEval(submissionFile=submission_file,
-                                                                             inputDatasetName=input_dataset_name,
+                                                                             inputDatasetId=input_dataset_name,
                                                                              inputRunPath=input_run_path,
                                                                              outputDirName=output_dir_name,
                                                                              sandboxed=sandboxed,
@@ -70,7 +68,7 @@ class GrpcClient:
     def run_eval(self, submission_file, input_dataset_name, input_run_path, output_dir_name, sandboxed,
                  optional_parameters):
         response = self.stub.run_execute(tira_host_pb2.RequestRunExecuteEval(submissionFile=submission_file,
-                                                                             inputDatasetName=input_dataset_name,
+                                                                             inputDatasetId=input_dataset_name,
                                                                              inputRunPath=input_run_path,
                                                                              outputDirName=output_dir_name,
                                                                              sandboxed=sandboxed,

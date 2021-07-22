@@ -4,6 +4,7 @@ from django.conf import settings
 import logging
 
 from .grpc_client import GrpcClient
+from .grpc_server import serve
 from .tira_model import FileDatabase
 from .tira_data import get_run_runtime, get_run_file_list, get_stderr, get_stdout
 from .authentication import Authentication
