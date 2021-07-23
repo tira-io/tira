@@ -90,9 +90,16 @@ function saveSoftware(tid, vmid, swid){
         success: function(data){
             $(`#${swid}_form_buttons a:nth-of-type(2)`).html(' <i class="fas fa-check"></i>');
             setTimeout(function() {
-                $(`#${swid}_form_buttons a:last-of-type(2)`).html('save');
+                $(`#${swid}_form_buttons a:nth-of-type(2)`).html('save');
             }, 5000)
             $(`#${swid}-last-edit`).text(`last edit: ${data.last_edit}`)
+        },
+        error: function(){
+            $(`#${swid}_form_buttons a:nth-of-type(2)`).html(' <i class="fas fa-times"></i>');
+            setTimeout(function() {
+                $(`#${swid}_form_buttons a:nth-of-type(2)`).html('save');
+            }, 2000)
+            
         }
     })
 }
@@ -122,7 +129,7 @@ function addSoftware(tid, vmid){
             $('#tira-software-forms').append(data.html);
             $('#tira-software-tab').find(' > li:last-child').before(`<li><a href="#">${data.software_id}</a></li>`);
         }
-        })
+    })
 }
 
 
