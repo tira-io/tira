@@ -72,8 +72,6 @@ function abortRun(uid, vmid){
 }
 
 function saveSoftware(tid, vmid, swid){
-    console.log(swid);
-    console.log(tid);
     $.ajax({
         type: 'POST',
         url: `/task/${tid}/vm/${vmid}/software_save/${swid}`,
@@ -90,14 +88,28 @@ function saveSoftware(tid, vmid, swid){
             action: 'post'
         },
         success: function(data){
-            $(`#${swid}_form_buttons a:last-of-type`).html(' <i class="fas fa-check"></i>');
+            $(`#${swid}_form_buttons a:nth-of-type(2)`).html(' <i class="fas fa-check"></i>');
             setTimeout(function() {
-                $(`#${swid}_form_buttons a:last-of-type`).html('save');
+                $(`#${swid}_form_buttons a:last-of-type(2)`).html('save');
             }, 5000)
             $(`#${swid}-last-edit`).text(`last edit: ${data.last_edit}`)
         }
     })
 }
+
+function deleteSoftware(tid, vmid, swid, form){
+    $.ajax({
+        type: 'GET',
+        url: `/task/${tid}/vm/${vmid}/software_delete/${swid}`,
+        //TODO: Maybe rename keys
+        data: {},
+        success: function(data){
+            form.remove();
+            $('#tira-software-tab').find('.uk-active')[0].remove()
+        }
+    })
+}
+
 
 function addSoftware(tid, vmid){
     $.ajax({
@@ -263,6 +275,7 @@ function loadVmInfo(vmid) {
 
 
 function addSoftwareEvents(uid, vmid) {
+    var tid = window.location.pathname.split('/')[2];
 
     $('#vm-power-on-button').click(function() {startVM(uid, vmid)});
     $('#vm-shutdown-button').click(function() {shutdownVM(uid, vmid)});
@@ -270,14 +283,18 @@ function addSoftwareEvents(uid, vmid) {
     $('#vm-abort-run-button').click(function() {abortRun(uid, vmid)});
 
     $('#tira-add-software').click(function() {
-        var tid = window.location.pathname.split('/')[2]
         addSoftware(tid, vmid);
     });
     
-    $('.software_form_buttons a:last-of-type').click(function(e) {
+    $('.software_form_buttons a:nth-of-type(2)').click(function(e) {
         var swid = e.target.parentElement.id.split('_')[0];
-        var tid = window.location.pathname.split('/')[2];
         saveSoftware(tid, vmid, swid);
+    })
+
+    $('.software_form_buttons a:nth-of-type(3)').click(function(e) {
+        var form = e.target.parentElement.parentElement
+        var swid = e.target.parentElement.id.split('_')[0];
+        deleteSoftware(tid, vmid, swid, form);
     })
 
     $('.tira-run-delete').click(function(e) {

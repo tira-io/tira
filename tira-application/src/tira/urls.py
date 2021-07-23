@@ -24,6 +24,7 @@ urlpatterns = [
     path('user/<str:user_id>/vm/<str:vm_id>/vm_stop', actions.vm_stop, name="vm_stop"),
     path('task/<str:task_id>/vm/<str:vm_id>/software_add', actions.software_add, name='software_add'),
     path('task/<str:task_id>/vm/<str:vm_id>/software_save/<str:software_id>', actions.software_save, name='software_save'),
+    path('task/<str:task_id>/vm/<str:vm_id>/software_delete/<str:software_id>', actions.software_delete, name='software_delete'),
     path('user/<str:user_id>/vm/<str:vm_id>/run_execute/<str:software_id>', actions.run_execute, name="run_execute"),
     path('user/<str:user_id>/vm/<str:vm_id>/run_eval/<str:software_id>', actions.run_eval, name="run_eval"),
     path('command_status/<str:command_id>', actions.command_status, name="command_status"),

@@ -379,6 +379,10 @@ def software_save(request, task_id, vm_id, software_id):
         return JsonResponse({'status': 'Failed'}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
+def software_delete(request, task_id, vm_id, software_id):
+    return JsonResponse({'status': 'Accepted'}, status=HTTPStatus.ACCEPTED)
+
+
 # TODO implement
 def run_execute(request, vm_id):
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
