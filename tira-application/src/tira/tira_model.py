@@ -748,6 +748,17 @@ class FileDatabase(object):
 
         return False
 
+    def delete_software(self, task_id, vm_id, software_id):
+        s = self._load_softwares(task_id, vm_id)
+        found = False
+        for software in s.softwares:
+            if software.id == software_id:
+                software.deleted = True
+                found = True
+        software_list = [software for software in s.softwares if not software.deleted]
+        self.software[f"{task_id}${vm_id}"] = software_list
+        self._save_softwares(task_id, vm_id, s)
+        return found
 
     def add_ongoing_execution(self, hostname, vm_id, ova):
         """ add this create to the stack, so we know it's in progress. """

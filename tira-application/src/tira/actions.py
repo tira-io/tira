@@ -368,10 +368,10 @@ def software_add(request, task_id, vm_id):
 
 def software_save(request, task_id, vm_id, software_id):
     software = model.update_software(task_id, vm_id, software_id, 
-                          request.POST.get("command"),
-                          request.POST.get("working_dir"),
-                          request.POST.get("input_dataset"),
-                          request.POST.get("input_run"))
+                                     request.POST.get("command"),
+                                     request.POST.get("working_dir"),
+                                     request.POST.get("input_dataset"),
+                                     request.POST.get("input_run"))
 
     if software:
         return JsonResponse({'status': 'Accepted', 'last_edit': software.lastEditDate}, status=HTTPStatus.ACCEPTED)
@@ -380,7 +380,12 @@ def software_save(request, task_id, vm_id, software_id):
 
 
 def software_delete(request, task_id, vm_id, software_id):
-    return JsonResponse({'status': 'Accepted'}, status=HTTPStatus.ACCEPTED)
+    delete_ok = model.delete_software(task_id, vm_id, software_id)
+
+    if delete_ok:
+        return JsonResponse({'status': 'Accepted'}, status=HTTPStatus.ACCEPTED)
+    else:
+        return JsonResponse({'status': 'Failed', 'message': 'Software not found. Cannot delete.'}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 # TODO implement
