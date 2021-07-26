@@ -43,24 +43,79 @@
         <a class="uk-button uk-button-small uk-button-default uk-width-1-6">save</a>
         <a class="uk-button uk-button-small uk-button-danger uk-width-1-6">delete</a>
         <div class="uk-align-right">
-<!--                        <div class="uk-text-small uk-text-lead">created: {{ software.creation_date }}</div>-->
-<div class="uk-text-small uk-text-lead" id="{{ software.id }}-last-edit">last edit: {{ software.last_edit }}</div>
+            <!--                        <div class="uk-text-small uk-text-lead">created: {{ software.creation_date }}</div>-->
+            <div class="uk-text-small uk-text-lead" id="{{ software.id }}-last-edit">last edit: {{ software.last_edit
+                }}
+            </div>
         </div>
     </div>
-    <table class="uk-margin-medium uk-table uk-table-divider uk-table-small uk-table-responsive targetable">
-            <thead>
-            <tr>
-                <th></th>
-                <th class="uk-table-shrink"></th>
-                <th class="uk-table-shrink"></th>
-                <th class="uk-table-shrink"></th>
-                <th class="header uk-table-shrink uk-text-nowrap"><span>Run</span></th>
-                <th class="header uk-table-shrink uk-text-nowrap"><span>Input Run</span></th>
-                <th class="header"><span>Dataset</span></th>
-                <th class="header uk-text-center">Actions</th>
-            </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
+    <table class="uk-margin-medium uk-table uk-table-divider uk-table-small uk-table-responsive targetable uk-table-middle">
+        <thead>
+        <tr>
+            <th></th>
+            <th class="uk-table-shrink"></th>
+            <th class="uk-table-shrink"></th>
+            <th class="uk-table-shrink"></th>
+            <th class="header uk-table-shrink uk-text-nowrap"><span>Run</span></th>
+            <th class="header uk-table-shrink uk-text-nowrap"><span>Input Run</span></th>
+            <th class="header uk-table-expand"><span>Dataset</span></th>
+            <th class="header uk-text-center">Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for run in runs %}
+        <tr class="uk-padding-remove">
+            <td id="{{ run.dataset }}_{{ vm_id }}_{{ run.run_id }}"></td>
+            <td class="uk-table-shrink uk-padding-remove-vertical">
+                {% if run.review.noErrors == True %}
+                <div uk-tooltip="This run is OK">
+                    <i class="fas fa-check dataset-detail-icon uk-text-success"></i>
+                </div>
+                {% elif run.review.hasErrors == True %}
+                <div uk-tooltip="This run has errors">
+                    <i class="fas fa-times dataset-detail-icon uk-text-danger"></i>
+                </div>
+                {% endif %}
+            </td>
+            <td class="uk-table-shrink uk-padding-remove-vertical">
+                {% if run.review.blinded == True %}
+                <div uk-tooltip="This run is blinded">
+                    <i class="fas fa-user-slash dataset-detail-icon"></i>
+                </div>
+                {% else %}
+                <div uk-tooltip="You can inspect the results of this run.">
+                    <i class="fas fa-user dataset-detail-icon uk-text-success"></i>
+                </div>
+                {% endif %}
+            </td>
+            <td class="uk-table-shrink uk-padding-remove-vertical"> <!-- Icons -->
+                {% if run.review.published == True %}
+                <div uk-tooltip="This run is on the leaderboards">
+                    <i class="fas fa-users dataset-detail-icon uk-text-success"></i>
+                </div>
+                {% else %}
+                <div uk-tooltip="This run is not published">
+                    <i class="fas fa-users-slash dataset-detail-icon"></i>
+                </div>
+                {% endif %}
+            </td>
+            <td class="uk-table-shrink uk-text-nowrap uk-padding-remove-vertical">
+                {% if run.input_run_id != "none" %}<i class="fas fa-level-up-alt fa-flip-horizontal"></i>{% endif %}
+                &nbsp;{{ run.run_id }}
+            </td>
+            <td class="uk-table-shrink uk-text-nowrap uk-padding-remove-vertical">
+                {% if run.input_run_id != "none" %}{{ run.input_run_id }}{% endif %}
+            </td>
+            <td class="uk-table-expand uk-padding-remove-vertical">{{ run.dataset }}</td>
+            <td class="uk-align-right uk-margin-remove uk-padding-remove-vertical uk-padding-remove-right">
+                {% if run.input_run_id == "none" %}
+                <a class="uk-button uk-button-small uk-button-default">evaluate</a>
+                {% endif %}
+                <a class="uk-button uk-button-small uk-button-default" href="{% url 'tira:review' task_id=task_id vm_id=vm_id dataset_id=software.dataset run_id=run.run_id %}">inspect</a>
+                <a class="uk-button uk-button-small uk-button-danger tira-run-delete">delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
 </li>

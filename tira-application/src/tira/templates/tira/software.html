@@ -36,15 +36,17 @@
                     <tr>
                         <td>Host</td><td id="vm-info-host"><div id="vm-info-spinner" uk-spinner="ratio: 0.5"></div></td>
                     </tr>
-                    <tr><td>&nbsp;</td></tr>
                     <tr>
-                        <td>OS</td><td  id="vm-info-guestOs"></td>
+                        <td>OS</td>
+                        <td id="vm-info-guestOs"></td>
                     </tr>
                     <tr>
-                        <td>RAM</td><td id="vm-info-memorySize"></td>
+                        <td>RAM</td>
+                        <td id="vm-info-memorySize"></td>
                     </tr>
                     <tr>
-                        <td>CPU</td><td id="vm-info-numberOfCpus"></td>
+                        <td>CPU</td>
+                        <td id="vm-info-numberOfCpus"></td>
                     </tr>
                 </table>
             </div>
@@ -112,7 +114,7 @@
         </ul>
         <ul class="uk-switcher uk-margin" id="tira-software-forms">
             {% for sw in software %}
-                {% include "tira/software_form.html" with software=sw.software %}
+                {% include "tira/software_form.html" with software=sw.software runs=sw.runs task_id=task.task_id vm_id=vm_id%}
             {% endfor %}
         </ul>
     </div>
@@ -125,11 +127,11 @@
 <script src="https://assets.webis.de/js/thirdparty/fontawesome/fontawesome.min.js"></script>
 <script src="https://assets.webis.de/js/thirdparty/fontawesome/solid.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<script src="https://assets.webis.de/js/filter.js"></script>
-<script src="https://assets.webis.de/js/selection.js"></script>
-<script src="https://assets.webis.de/js/tables.js"></script>
-<script>initWebisTableFiltering();</script>
-<script>initTableSorting();</script>
+<!--<script src="https://assets.webis.de/js/filter.js"></script>-->
+<!--<script src="https://assets.webis.de/js/selection.js"></script>-->
+<!--<script src="https://assets.webis.de/js/tables.js"></script>-->
+<!--<script>initWebisTableFiltering();</script>-->
+<!--<script>initTableSorting();</script>-->
 <script src="{% static 'tira/js/software.js' %}"></script>
 <script>
     addSoftwareEvents("{{ user_id }}", "{{ vm_id }}")
