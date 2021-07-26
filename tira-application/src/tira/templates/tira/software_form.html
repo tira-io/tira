@@ -44,12 +44,11 @@
         <a class="uk-button uk-button-small uk-button-danger uk-width-1-6">delete</a>
         <div class="uk-align-right">
             <!--                        <div class="uk-text-small uk-text-lead">created: {{ software.creation_date }}</div>-->
-            <div class="uk-text-small uk-text-lead" id="{{ software.id }}-last-edit">last edit: {{ software.last_edit
-                }}
+            <div class="uk-text-small uk-text-lead" id="{{ software.id }}-last-edit">last edit: {{ software.last_edit }}
             </div>
         </div>
     </div>
-    <table class="uk-margin-medium uk-table uk-table-divider uk-table-small uk-table-responsive targetable uk-table-middle">
+    <table class="uk-margin-small uk-table uk-table-divider uk-table-small uk-table-responsive targetable uk-table-middle">
         <thead>
         <tr>
             <th></th>
@@ -59,7 +58,7 @@
             <th class="header uk-table-shrink uk-text-nowrap"><span>Run</span></th>
             <th class="header uk-table-shrink uk-text-nowrap"><span>Input Run</span></th>
             <th class="header uk-table-expand"><span>Dataset</span></th>
-            <th class="header uk-text-center">Actions</th>
+            <th class="header uk-text-center uk-width-1-4">Actions</th>
         </tr>
         </thead>
         <tbody>
@@ -106,8 +105,8 @@
             <td class="uk-table-shrink uk-text-nowrap uk-padding-remove-vertical">
                 {% if run.input_run_id != "none" %}{{ run.input_run_id }}{% endif %}
             </td>
-            <td class="uk-table-expand uk-padding-remove-vertical">{{ run.dataset }}</td>
-            <td class="uk-align-right uk-margin-remove uk-padding-remove-vertical uk-padding-remove-right">
+            <td class="uk-padding-remove-vertical">{{ run.dataset }}</td>
+            <td class="uk-align-right uk-table-expand uk-margin-remove uk-padding-remove-vertical uk-padding-remove-right">
                 {% if run.input_run_id == "none" %}
                 <a class="uk-button uk-button-small uk-button-default">evaluate</a>
                 {% endif %}
