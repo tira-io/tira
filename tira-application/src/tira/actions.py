@@ -16,6 +16,7 @@ from django.http import HttpResponse, Http404, JsonResponse
 from django.conf import settings
 import uuid
 from http import HTTPStatus
+from .transitions import TransitionLog
 
 from .grpc_client import GrpcClient
 
@@ -250,6 +251,12 @@ def admin_add_dataset(request):
 #   VM actions
 # ---------------------------------------------------------------------
 
+def vm_state(request, vm_id):
+    check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
+    state = TransitionLog.objects.get(vm_id=vm_id)
+    print(state.vm_id, state.vm_state)
+    return JsonResponse({'state': state.vm_state}, status=HTTPStatus.ACCEPTED)
+
 
 def vm_create(request, hostname, vm_id, ova_file, bulk_id=None):
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
@@ -262,16 +269,21 @@ def vm_start(request, vm_id):
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
     vm = model.get_vm(vm_id)
     grpc_client = GrpcClient('localhost') if settings.GRPC_HOST == 'local' else GrpcClient(vm.host)
-    response = grpc_client.vm_start(vm.vmName)
-    print(response)
-    return JsonResponse({'status': response.status, 'message': response.transactionId}, status=HTTPStatus.ACCEPTED)
+    response = grpc_client.vm_start(vm_id)  # NOTE vm_id is different from vm.vmName (latter one includes the 01-tira-ubuntu-...
+    # when status = 0, the host accepts the transaction. We shift our state to 3 - "powering on"
+    if response.status == 0:
+        t = TransitionLog(vm_id=vm_id, vm_state=3)
+        t.save()
+        return JsonResponse({'status': response.status, 'message': response.transactionId}, status=HTTPStatus.ACCEPTED)
+    return JsonResponse({'status': response.status, 'message': f"{response.transactionId} was rejected by the host"},
+                        status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 def vm_shutdown(request, vm_id):
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
     vm = model.get_vm(vm_id)
     grpc_client = GrpcClient('localhost') if settings.GRPC_HOST == 'local' else GrpcClient(vm.host)
-    response = grpc_client.vm_shutdown(vm.vmName)
+    response = grpc_client.vm_shutdown(vm_id)
     return JsonResponse({'status': response.status, 'message': response.transactionId}, status=HTTPStatus.ACCEPTED)
 
 
@@ -306,16 +318,19 @@ def vm_info(request, vm_id):
         logger.exception(f"/grpc/{vm_id}/vm-info to {host} failed with {e}")
         return JsonResponse({'status': 'Rejected', 'message': "Server Error"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
+    t = TransitionLog(vm_id=vm_id, vm_state=response_vm_info.state)
+    t.save()
+
     return JsonResponse({'status': 'Accepted', 'message': {
         "guestOs": response_vm_info.guestOs,
         "memorySize": response_vm_info.memorySize,
         "numberOfCpus": response_vm_info.numberOfCpus,
-        "state": response_vm_info.state,
         "sshPort": response_vm_info.sshPort,
         "rdpPort": response_vm_info.rdpPort,
         "host": response_vm_info.host,
         "sshPortStatus": response_vm_info.sshPortStatus,
         "rdpPortStatus": response_vm_info.rdpPortStatus,
+        "state": response_vm_info.state,
     }
                          }, status=HTTPStatus.ACCEPTED)
 
@@ -355,19 +370,19 @@ def software_add(request, task_id, vm_id):
             "last_edit": software.lastEditDate
         }
     }
-#     context = {
-#         "user_id": auth.get_user_id(request),
-#         "include_navigation": include_navigation,
-#         "task": model.get_task(task_id),
-#         "vm_id": vm_id,
-#         "software": software
-#     }
+    #     context = {
+    #         "user_id": auth.get_user_id(request),
+    #         "include_navigation": include_navigation,
+    #         "task": model.get_task(task_id),
+    #         "vm_id": vm_id,
+    #         "software": software
+    #     }
     html = render_to_string('tira/software_form.html', context=context, request=request)
     return JsonResponse({'html': html, 'software_id': context["software"]['id']}, status=HTTPStatus.ACCEPTED)
 
 
 def software_save(request, task_id, vm_id, software_id):
-    software = model.update_software(task_id, vm_id, software_id, 
+    software = model.update_software(task_id, vm_id, software_id,
                                      request.POST.get("command"),
                                      request.POST.get("working_dir"),
                                      request.POST.get("input_dataset"),
@@ -385,7 +400,8 @@ def software_delete(request, task_id, vm_id, software_id):
     if delete_ok:
         return JsonResponse({'status': 'Accepted'}, status=HTTPStatus.ACCEPTED)
     else:
-        return JsonResponse({'status': 'Failed', 'message': 'Software not found. Cannot delete.'}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+        return JsonResponse({'status': 'Failed', 'message': 'Software not found. Cannot delete.'},
+                            status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 # TODO implement

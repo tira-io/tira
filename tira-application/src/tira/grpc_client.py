@@ -28,7 +28,7 @@ class GrpcClient:
 
     def vm_start(self, vm_name):
         response = self.stub.vm_start(tira_host_pb2.RequestVmCommands(vmId=vm_name))
-        print("Client received: " + str(response))
+        print("VM-Start response: " + str(response.status))
         return response
 
     def vm_stop(self, vm_name):
@@ -43,7 +43,7 @@ class GrpcClient:
 
     def vm_info(self, vm_name):
         response_vm_info = self.stub.vm_info(tira_host_pb2.RequestVmCommands(vmId=vm_name))
-        print("Client received: " + str(response_vm_info))
+        print("got vm-info reponse")
         return response_vm_info
 
     def vm_list(self):

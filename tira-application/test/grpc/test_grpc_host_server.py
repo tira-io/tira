@@ -102,6 +102,9 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         print(f"received vm-shutdown for {request.vmId}")
         response = tira_host_pb2.Transaction()
         if STATE.get('status') == "running":
+            test_host_client = TestGrpcHostClient()
+            t = Thread(target=test_host_client.set_state, args=(request.vmId, tira_host_pb2.VmState.POWERED_OFF))
+            t.start()
             response.status = tira_host_pb2.Status.SUCCESS
             STATE['status'] = 'stopped'
         else:
@@ -120,12 +123,10 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         print(f"received vm-start for {request.vmId}")
         response = tira_host_pb2.Transaction()
         if STATE.get('status') == "stopped":
-            print("pre_thread")
             test_host_client = TestGrpcHostClient()
             t = Thread(target=test_host_client.set_state, args=(request.vmId, tira_host_pb2.VmState.RUNNING))
             t.start()
-            print("post_thread")
-            STATE['status'] = 'running'  # Only works in the mockup server, must be 'powering_on' in live.
+            STATE['status'] = 'running'  # Only works in the mockup server. Should be 'powering_on' in live.
             response.status = tira_host_pb2.Status.SUCCESS
         else:
             response.status = tira_host_pb2.Status.FAILED

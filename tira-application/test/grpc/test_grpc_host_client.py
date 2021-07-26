@@ -15,11 +15,12 @@ class TestGrpcHostClient:
     def __del__(self):
         self.channel.close()
 
-    def set_state(self, vm_id, vm_state, slp=5):
-        """ Wait for 10 seconds, then call the set_state method of the applications server,
+    def set_state(self, vm_id, vm_state, slp=7):
+        """ Wait for :param slp: seconds, then call the set_state method of the applications server,
          this means, we tell the application that the vm now changed it's state to vm_state """
         sleep(slp)
         print("after_sleep")
         response = self.stub.set_state(
             tira_host_pb2.SetVmState(status=tira_host_pb2.Status.SUCCESS, state=vm_state, vmId=vm_id))
+        print(f"host-client: set_state response was: {response}")
         return response

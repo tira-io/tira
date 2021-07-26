@@ -31,6 +31,7 @@ urlpatterns = [
     path('bulk_command_status/<str:bulk_id>', actions.get_bulk_command_status, name="get_bulk_command_status"),
 
     path('grpc/<str:vm_id>/vm_info', actions.vm_info, name='vm_info'),
+    path('grpc/<str:vm_id>/vm_state', actions.vm_state, name='vm_state'),
     path('grpc/<str:vm_id>/vm_start', actions.vm_start, name='vm_start'),
     path('grpc/<str:vm_id>/vm_shutdown', actions.vm_shutdown, name="vm_shutdown"),
     path('grpc/<str:vm_id>/vm_stop', actions.vm_stop, name="vm_stop"),
