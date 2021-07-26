@@ -38,7 +38,6 @@ HOST_GRPC_PORT = custom_settings.get("host_grpc_port", "50051")
 APPLICATION_GRPC_PORT = custom_settings.get("application_grpc_port", "50052")
 GRPC_HOST = custom_settings.get("grpc_host", "local")  # can be local or remote
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -82,7 +81,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'django_admin.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
@@ -95,92 +93,96 @@ DATABASES = {
 
 SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
 
+
+def logger_config(log_dir: Path):
+    return {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'verbose': {
+                'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+                'style': '{',
+            },
+            'default': {
+                'format': '{levelname} {asctime} {module}: {message}',
+                'style': '{',
+            },
+            'simple': {
+                'format': '{levelname} {message}',
+                'style': '{',
+            },
+        },
+        'filters': {
+            'require_debug_true': {
+                '()': 'django.utils.log.RequireDebugTrue',
+            },
+        },
+        'handlers': {
+            'console': {
+                'level': 'DEBUG',
+                'filters': ['require_debug_true'],
+                'class': 'logging.StreamHandler',
+                'formatter': 'default'
+            },
+            'file': {
+                'level': 'DEBUG',
+                'filters': ['require_debug_true'],
+                'class': 'logging.FileHandler',
+                'filename': BASE_DIR / 'debug.log',
+                'formatter': 'simple'
+            },
+            'ceph_debug_file': {
+                'level': 'DEBUG',
+                'class': 'logging.FileHandler',
+                'filters': ['require_debug_true'],
+                'filename': log_dir / 'debug.log',
+                'formatter': 'default'
+            },
+            'ceph_info_file': {
+                'level': 'INFO',
+                'class': 'logging.FileHandler',
+                'filename': log_dir / 'info.log',
+                'formatter': 'default'
+            },
+            'ceph_warn_file': {
+                'level': 'WARNING',
+                'class': 'logging.FileHandler',
+                'filename': log_dir / 'warnings.log',
+                'formatter': 'default'
+            },
+        },
+        'loggers': {
+            'django': {
+                'handlers': ['console', 'ceph_debug_file'],
+                'propagate': True,
+            },
+            'django.requests': {
+                'handlers': ['console', 'ceph_warn_file', 'ceph_info_file'],
+                'propagate': True,
+            },
+            'django.server': {
+                'handlers': ['console', 'ceph_warn_file', 'ceph_info_file'],
+                'propagate': True,
+            },
+            'tira': {
+                'handlers': ['console', 'ceph_warn_file', 'ceph_info_file'],
+                'propagate': True,
+            },
+        }
+    }
+
+
 # Logging
-try:
-    log_dir = Path(custom_settings.get("logging_dir", BASE_DIR))
-except PermissionError as e:
-    print(f"failed to initialize logging with a Permission error: {e}")
+ld = Path(custom_settings.get("logging_dir", BASE_DIR))
+if os.access(ld, os.W_OK):
+    LOGGING = logger_config(ld)
+else:
+    print(f"failed to initialize logging in {ld}")
     if DEBUG:
         print(f"Logging to {BASE_DIR}")
-        log_dir = BASE_DIR
+        LOGGING = logger_config(Path(BASE_DIR))
     else:
-        raise PermissionError(e)
-
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
-            'style': '{',
-        },
-        'default': {
-            'format': '{levelname} {asctime} {module}: {message}',
-            'style': '{',
-        },
-        'simple': {
-            'format': '{levelname} {message}',
-            'style': '{',
-        },
-    },
-    'filters': {
-        'require_debug_true': {
-            '()': 'django.utils.log.RequireDebugTrue',
-        },
-    },
-    'handlers': {
-        'console': {
-            'level': 'DEBUG',
-            'filters': ['require_debug_true'],
-            'class': 'logging.StreamHandler',
-            'formatter': 'default'
-        },
-        'file': {
-            'level': 'DEBUG',
-            'filters': ['require_debug_true'],
-            'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'debug.log',
-            'formatter': 'simple'
-        },
-        'ceph_debug_file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filters': ['require_debug_true'],
-            'filename': log_dir / 'debug.log',
-            'formatter': 'default'
-        },
-        'ceph_info_file': {
-            'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'filename': log_dir / 'info.log',
-            'formatter': 'default'
-        },
-        'ceph_warn_file': {
-            'level': 'WARNING',
-            'class': 'logging.FileHandler',
-            'filename': log_dir / 'warnings.log',
-            'formatter': 'default'
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['console', 'ceph_debug_file'],
-            'propagate': True,
-        },
-        'django.requests': {
-            'handlers': ['console', 'ceph_warn_file', 'ceph_info_file'],
-            'propagate': True,
-        },
-        'django.server': {
-            'handlers': ['console', 'ceph_warn_file', 'ceph_info_file'],
-            'propagate': True,
-        },
-        'tira': {
-            'handlers': ['console', 'ceph_warn_file', 'ceph_info_file'],
-            'propagate': True,
-        },
-    }
-}
+        raise PermissionError(f"Can not write to {ld} in production mode.")
 
 
 # Password validation
@@ -201,7 +203,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
 
@@ -214,7 +215,6 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
