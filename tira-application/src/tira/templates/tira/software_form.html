@@ -48,7 +48,7 @@
             </div>
         </div>
     </div>
-    <table class="uk-margin-small uk-table uk-table-divider uk-table-small uk-table-responsive targetable uk-table-middle">
+    <table class="uk-margin-small uk-table uk-table-divider uk-table-small uk-table-responsive uk-table-middle">
         <thead>
         <tr>
             <th></th>
@@ -67,33 +67,33 @@
             <td id="{{ run.dataset }}_{{ vm_id }}_{{ run.run_id }}"></td>
             <td class="uk-table-shrink uk-padding-remove-vertical">
                 {% if run.review.noErrors == True %}
-                <div uk-tooltip="This run is OK">
+                <div uk-tooltip="title: This run is OK; delay: 500">
                     <i class="fas fa-check dataset-detail-icon uk-text-success"></i>
                 </div>
                 {% elif run.review.hasErrors == True %}
-                <div uk-tooltip="This run has errors">
+                <div uk-tooltip="title: This run has errors; delay: 500">
                     <i class="fas fa-times dataset-detail-icon uk-text-danger"></i>
                 </div>
                 {% endif %}
             </td>
             <td class="uk-table-shrink uk-padding-remove-vertical">
                 {% if run.review.blinded == True %}
-                <div uk-tooltip="This run is blinded">
+                <div uk-tooltip="title: This run is blinded; delay: 500">
                     <i class="fas fa-user-slash dataset-detail-icon"></i>
                 </div>
                 {% else %}
-                <div uk-tooltip="You can inspect the results of this run.">
+                <div uk-tooltip="title: You can inspect the results of this run; delay: 500">
                     <i class="fas fa-user dataset-detail-icon uk-text-success"></i>
                 </div>
                 {% endif %}
             </td>
             <td class="uk-table-shrink uk-padding-remove-vertical"> <!-- Icons -->
                 {% if run.review.published == True %}
-                <div uk-tooltip="This run is on the leaderboards">
+                <div uk-tooltip="title: This run is on the leaderboards; delay: 500">
                     <i class="fas fa-users dataset-detail-icon uk-text-success"></i>
                 </div>
                 {% else %}
-                <div uk-tooltip="This run is not published">
+                <div uk-tooltip="title: This run is not published; delay: 500">
                     <i class="fas fa-users-slash dataset-detail-icon"></i>
                 </div>
                 {% endif %}

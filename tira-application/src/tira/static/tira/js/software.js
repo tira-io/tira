@@ -1,12 +1,63 @@
-/* Start a VM
-After the click, do:
-- disable the start button
-- set state to loading
-- do the ajax event
-- on success, do the vm-info again.
+function loadVmInfo(vmid) {
+    setState(0)
 
+    $.ajax({
+        type: 'GET',
+        url: `/grpc/${vmid}/vm_info`,
+        data: {},
+        success: function (data) {
+            console.log(data.message)
+            if (data.status === 'Accepted') {
+                $('#vm-info-spinner').hide()
+                $('#vm-info-host').text(data.message.host)
+                $('#vm-info-guestOs').text(data.message.guestOs)
+                $('#vm-info-memorySize').text(data.message.memorySize)
+                $('#vm-info-numberOfCpus').text(data.message.numberOfCpus)
+
+                // logic status
+                $('#vm-state-spinner').hide();
+                setState(data.message.state);
+
+                // sshPortStatus
+                $('#vm-state-ssh').text('port ' + data.message.sshPort)
+                if (data.message.sshPortStatus) {
+                    $('#vm-state-ssh-open').show()
+                    $('#vm-state-ssh-closed').hide()
+                } else {
+                    $('#vm-state-ssh-open').hide()
+                    $('#vm-state-ssh-closed').show()
+                }
+
+                // rdpPortStatus
+                $('#vm-state-rdp').text('port ' + data.message.rdpPort)
+                if (data.message.rdpPortStatus) {
+                    $('#vm-state-rdp-open').show()
+                    $('#vm-state-rdp-closed').hide()
+                } else {
+                    $('#vm-state-rdp-open').hide()
+                    $('#vm-state-rdp-closed').show()
+                }
+
+            } else {
+                $('#vm-info-spinner').hide()
+                $('#vm-state-spinner').hide()
+                $('#vm-info-host').text('Error contacting host: ' + data.message)
+            }
+        },
+        error: function (jqXHR, textStatus, throwError) {
+            $('#vm-info-spinner').hide()
+            $('#vm-state-spinner').hide()
+            console.log(jqXHR)
+            $('#vm-info-host').text(throwError)
+        }
+    })
+}
+
+
+/*
+** VM STATE CONTROL
  */
-function startVM(uid, vmid) {
+function startVM(vmid) {
     disableButton('vm-power-on-button')
     setState(0)
     $.ajax({
@@ -22,7 +73,8 @@ function startVM(uid, vmid) {
         }
     })
 }
-function shutdownVM(uid, vmid) {
+
+function shutdownVM(vmid) {
     disableButton('vm-shutdown-button')
     setState(0)
     $.ajax({
@@ -38,7 +90,7 @@ function shutdownVM(uid, vmid) {
     })
 }
 
-function stopVM(uid, vmid) {
+function stopVM(vmid) {
     disableButton('vm-stop-button')
     setState(0)
     $.ajax({
@@ -47,56 +99,48 @@ function stopVM(uid, vmid) {
         data: {},
         success: function (data) {
             if (data.status === 0) {
-                loadVmInfo(vmid)
+                setState(4)
+                pollVmState(vmid)
             }
         }
     })
 }
 
-function abortRun(uid, vmid) {
-    disableButton('vm-abort-run-button')
-    setState(0)
+function pollVmState(vmid) {
+    setTimeout(function () {
+        console.log("Polling VM State");
+        // TODO handle on fail.
+        $.ajax({
+            type: 'GET',
+            url: `/grpc/${vmid}/vm_state`,
+            data: {},
+            success: function (data) {
+                console.log(data.state);
+                if (isTransitionState(data.state)){
+                    setState(data.state);
+                    pollVmState(vmid);
+                } else {
+                    loadVmInfo(vmid)
+                }
+            }
+        })
+    }, 5000);
+}
+
+
+/*
+** SOFTWARE MANAGEMENT
+ */
+function addSoftware(tid, vmid) {
     $.ajax({
         type: 'GET',
-        url: `/grpc/${vmid}/vm_abort_run`,
+        url: `/task/${tid}/vm/${vmid}/software_add`,
         data: {},
         success: function (data) {
-            if (data.status === 0) {
-                loadVmInfo(vmid)
-            }
-        }
-    })
-}
-
-function saveSoftware(tid, vmid, swid) {
-    $.ajax({
-        type: 'POST',
-        url: `/task/${tid}/vm/${vmid}/software_save/${swid}`,
-        headers: {
-            'X-CSRFToken': $('input[name=csrfmiddlewaretoken]').val()
-        },
-        //TODO: Maybe rename keys
-        data: {
-            command: $(`#${swid}-command-input`).val(),
-            working_dir: $(`#${swid}-working-dir`).val(),
-            input_dataset: $(`#${swid}-input-dataset`).val(),
-            input_run: $(`#${swid}-input-run`).val(),
-            csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val(),
-            action: 'post'
-        },
-        success: function (data) {
-            $(`#${swid}_form_buttons a:nth-of-type(2)`).html(' <i class="fas fa-check"></i>');
-            setTimeout(function () {
-                $(`#${swid}_form_buttons a:nth-of-type(2)`).html('save');
-            }, 5000)
-            $(`#${swid}-last-edit`).text(`last edit: ${data.last_edit}`)
-        },
-        error: function () {
-            $(`#${swid}_form_buttons a:nth-of-type(2)`).html(' <i class="fas fa-times"></i>');
-            setTimeout(function () {
-                $(`#${swid}_form_buttons a:nth-of-type(2)`).html('save');
-            }, 2000)
-
+            // data is the rendered html of the new software form
+            // see templates/tira/software-form.html
+            $('#tira-software-forms').append(data.html);
+            $('#tira-software-tab').find(' > li:last-child').before(`<li><a href="#">${data.software_id}</a></li>`);
         }
     })
 }
@@ -114,39 +158,109 @@ function deleteSoftware(tid, vmid, swid, form) {
     })
 }
 
+function saveSoftware(taskId, vmId, softwareId) {
+    $.ajax({
+        type: 'POST',
+        url: `/task/${taskId}/vm/${vmId}/software_save/${softwareId}`,
+        headers: {
+            'X-CSRFToken': $('input[name=csrfmiddlewaretoken]').val()
+        },
+        //TODO: Maybe rename keys
+        data: {
+            command: $(`#${softwareId}-command-input`).val(),
+            working_dir: $(`#${softwareId}-working-dir`).val(),
+            input_dataset: $(`#${softwareId}-input-dataset`).val(),
+            input_run: $(`#${softwareId}-input-run`).val(),
+            csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val(),
+            action: 'post'
+        },
+        success: function (data) {
+            $(`#${softwareId}_form_buttons a:nth-of-type(2)`).html(' <i class="fas fa-check"></i>');
+            setTimeout(function () {
+                $(`#${softwareId}_form_buttons a:nth-of-type(2)`).html('save');
+            }, 5000)
+            $(`#${softwareId}-last-edit`).text(`last edit: ${data.last_edit}`)
+        },
+        error: function () {
+            $(`#${softwareId}_form_buttons a:nth-of-type(2)`).html(' <i class="fas fa-times"></i>');
+            setTimeout(function () {
+                $(`#${softwareId}_form_buttons a:nth-of-type(2)`).html('save');
+            }, 2000)
 
-function addSoftware(tid, vmid) {
+        }
+    })
+}
+
+function addSoftwareEvents(taskId, vmId) {
+    $('#vm-power-on-button').click(function () {
+        startVM(vmId)
+    });
+    $('#vm-shutdown-button').click(function () {
+        shutdownVM(vmId)
+    });
+    $('#vm-stop-button').click(function () {
+        stopVM(vmId)
+    });
+    $('#vm-abort-run-button').click(function () {
+        abortRun(vmId)
+    });
+
+    $('#tira-add-software').click(function () {
+        addSoftware(taskId, vmId);
+    });
+
+    $('.software_form_buttons a:nth-of-type(2)').click(function (e) {
+        let softwareId = e.target.parentElement.id.split('_')[0];
+        saveSoftware(taskId, vmId, softwareId);
+    })
+
+    $('.software_form_buttons a:nth-of-type(3)').click(function (e) {
+        let form = e.target.parentElement.parentElement
+        let softwareId = e.target.parentElement.id.split('_')[0];
+        deleteSoftware(taskId, vmId, softwareId, form);
+    })
+
+    $('.tira-run-delete').click(function (e) {
+        let row = e.target.parentElement.parentElement
+        let id = row.firstElementChild.id.split("_")
+        runDelete(id[0], id[1], id[2], row)
+    })
+}
+
+
+/*
+** RUN MANAGEMENT
+ */
+function abortRun(uid, vmId) {
+    disableButton('vm-abort-run-button')
+    setState(0)
     $.ajax({
         type: 'GET',
-        url: `/task/${tid}/vm/${vmid}/software_add`,
+        url: `/grpc/${vmId}/vm_abort_run`,
         data: {},
         success: function (data) {
-            // data is the rendered html of the new software form
-            // see templates/tira/software-form.html
-            $('#tira-software-forms').append(data.html);
-            $('#tira-software-tab').find(' > li:last-child').before(`<li><a href="#">${data.software_id}</a></li>`);
+            if (data.status === 0) {
+                loadVmInfo(vmId)
+            }
+        }
+    })
+}
+
+function runDelete(datasetId, vmId, runId, row) {
+    $.ajax({
+        type: 'GET',
+        url: `/grpc/${vmId}/run_delete/${datasetId}/${runId}`,
+        data: {},
+        success: function (data) {
+            row.remove();
         }
     })
 }
 
 
-//function runSoftware(uid, vmid, swid){
-//    $(`#${swid}_form_buttons a:first-child`).html(' <div uk-spinner="ratio: 0.5"></div>');
-//    $(`#${swid}_form_buttons a:first-child`).prop('disabled', true);
-
-//}
-
-
-// Every 10s reload the content of the #vm_state div.
-//function reloadVmState(url){
-//    setTimeout(function() {
-//        if (location.href == url){
-//            console.log("Reloading VM State");
-//            $('#vm_state').load(location.href + ' #vm_state>*', '');
-//            reloadVmState(url);
-//        }
-//    }, 10000);
-
+/*
+** UTILITY
+ */
 function disableButton(id) {
     // Console.log($('#' + id))
     $('#' + id).prop("disabled", true)
@@ -228,133 +342,4 @@ function setState(state_id) {
 
 function isTransitionState(state_id) {
     return [3, 4, 5, 6, 7].includes(state_id);
-}
-
-function pollVmState(vmid) {
-    setTimeout(function () {
-        console.log("Polling VM State");
-        // TODO handle on fail.
-        $.ajax({
-            type: 'GET',
-            url: `/grpc/${vmid}/vm_state`,
-            data: {},
-            success: function (data) {
-                console.log(data.state);
-                if (isTransitionState(data.state)){
-                    setState(data.state);
-                    pollVmState(vmid);
-                } else {
-                    loadVmInfo(vmid)
-                }
-            }
-        })
-    }, 5000);
-}
-
-
-function runDelete(dsid, vmid, rid, row) {
-    $.ajax({
-        type: 'GET',
-        url: `/grpc/${vmid}/run_delete/${dsid}/${rid}`,
-        data: {},
-        success: function (data) {
-            row.remove();
-        }
-    })
-}
-
-function loadVmInfo(vmid) {
-    setState(0)
-    // TODO handle transitional states
-    $.ajax({
-        type: 'GET',
-        url: `/grpc/${vmid}/vm_info`,
-        data: {},
-        success: function (data) {
-            console.log(data.message)
-            if (data.status === 'Accepted') {
-                $('#vm-info-spinner').hide()
-                $('#vm-info-host').text(data.message.host)
-                $('#vm-info-guestOs').text(data.message.guestOs)
-                $('#vm-info-memorySize').text(data.message.memorySize)
-                $('#vm-info-numberOfCpus').text(data.message.numberOfCpus)
-
-                // logic status
-                $('#vm-state-spinner').hide();
-                setState(data.message.state);
-
-                // sshPortStatus
-                $('#vm-state-ssh').text('port ' + data.message.sshPort)
-                if (data.message.sshPortStatus) {
-                    $('#vm-state-ssh-open').show()
-                    $('#vm-state-ssh-closed').hide()
-                } else {
-                    $('#vm-state-ssh-open').hide()
-                    $('#vm-state-ssh-closed').show()
-                }
-
-                // rdpPortStatus
-                $('#vm-state-rdp').text('port ' + data.message.rdpPort)
-                if (data.message.rdpPortStatus) {
-                    $('#vm-state-rdp-open').show()
-                    $('#vm-state-rdp-closed').hide()
-                } else {
-                    $('#vm-state-rdp-open').hide()
-                    $('#vm-state-rdp-closed').show()
-                }
-
-            } else {
-                $('#vm-info-spinner').hide()
-                $('#vm-state-spinner').hide()
-                $('#vm-info-host').text('Error contacting host: ' + data.message)
-            }
-        },
-        error: function (jqXHR, textStatus, throwError) {
-            $('#vm-info-spinner').hide()
-            $('#vm-state-spinner').hide()
-            console.log(jqXHR)
-            $('#vm-info-host').text(throwError)
-        }
-    })
-}
-
-
-function addSoftwareEvents(uid, vmid) {
-    var tid = window.location.pathname.split('/')[2];
-
-    $('#vm-power-on-button').click(function () {
-        startVM(uid, vmid)
-    });
-    $('#vm-shutdown-button').click(function () {
-        shutdownVM(uid, vmid)
-    });
-    $('#vm-stop-button').click(function () {
-        stopVM(uid, vmid)
-    });
-    $('#vm-abort-run-button').click(function () {
-        abortRun(uid, vmid)
-    });
-
-    $('#tira-add-software').click(function () {
-        addSoftware(tid, vmid);
-    });
-
-    $('.software_form_buttons a:nth-of-type(2)').click(function (e) {
-        var swid = e.target.parentElement.id.split('_')[0];
-        saveSoftware(tid, vmid, swid);
-    })
-
-    $('.software_form_buttons a:nth-of-type(3)').click(function (e) {
-        var form = e.target.parentElement.parentElement
-        var swid = e.target.parentElement.id.split('_')[0];
-        deleteSoftware(tid, vmid, swid, form);
-    })
-
-    $('.tira-run-delete').click(function (e) {
-        var row = e.target.parentElement.parentElement
-        var id = row.firstElementChild.id.split("_")
-        runDelete(id[0], id[1], id[2], row)
-    })
-
-//    reloadVmState(location.href);
 }

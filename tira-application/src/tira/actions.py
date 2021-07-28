@@ -370,18 +370,13 @@ def software_add(request, task_id, vm_id):
             "last_edit": software.lastEditDate
         }
     }
-    #     context = {
-    #         "user_id": auth.get_user_id(request),
-    #         "include_navigation": include_navigation,
-    #         "task": model.get_task(task_id),
-    #         "vm_id": vm_id,
-    #         "software": software
-    #     }
     html = render_to_string('tira/software_form.html', context=context, request=request)
     return JsonResponse({'html': html, 'software_id': context["software"]['id']}, status=HTTPStatus.ACCEPTED)
 
 
 def software_save(request, task_id, vm_id, software_id):
+    check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
+
     software = model.update_software(task_id, vm_id, software_id,
                                      request.POST.get("command"),
                                      request.POST.get("working_dir"),
@@ -395,6 +390,8 @@ def software_save(request, task_id, vm_id, software_id):
 
 
 def software_delete(request, task_id, vm_id, software_id):
+    check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
+
     delete_ok = model.delete_software(task_id, vm_id, software_id)
 
     if delete_ok:
