@@ -13,7 +13,7 @@ help:
 	@echo "       install protobuf from the included distribution"
 	@echo "make build"
 	@echo "       compile tira's protobufs"
-	@echo "make build-jave"
+	@echo "make build-java"
 	@echo "       compile tira's protobufs"
 	@echo "make build-python"
 	@echo "       compile tira's protobufs"
