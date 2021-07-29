@@ -15,7 +15,6 @@ from .proto import tira_host_pb2 as model_host
 
 logger = logging.getLogger("tira")
 
-
 def auto_reviewer(review_path, run_id):
     """ Do standard checks for reviews so we do not need to wait for a reviewer to check for:
      - failed runs (
@@ -384,7 +383,7 @@ class FileDatabase(object):
 
     def _save_run(self, dataset_id, vm_id, run_id, run):
         run_dir = (self.RUNS_DIR_PATH / dataset_id / vm_id / run_id)
-        (run_dir / "run.bin").mkdir(parents=True, exist_ok=True)
+        run_dir.mkdir(parents=True, exist_ok=True)
 
         open(run_dir / "run.prototext", 'w').write(str(run))
         open(run_dir / "run.bin", 'wb').write(run.SerializeToString())
@@ -545,7 +544,6 @@ class FileDatabase(object):
     def get_software(self, task_id, vm_id):
         """ Returns the software of a vm on a task in json """
         logger.debug(f"get_software({task_id}, {vm_id})")
-        print("get_software", len(self.software.get(f"{task_id}${vm_id}", [])))
         return [{"id": software.id, "count": software.count,
                  "task_id": task_id, "vm_id": vm_id,
                  "command": software.command, "working_directory": software.workingDirectory,
@@ -712,12 +710,12 @@ class FileDatabase(object):
         """ updates the run specified by dataset_id, vm_id, and run_id with the values given in the parameters.
             Required Parameters are also required in the function
         """
-        run = self._load_run(self, dataset_id, vm_id, run_id, as_json=False)
+        run = self._load_run(dataset_id, vm_id, run_id, as_json=False)
 
         def update(x, y):
             return y if y is not None else x
 
-        run.delete = update(run.deleted, deleted)
+        run.deleted = update(run.deleted, deleted)
 
         try:
             self._save_run(dataset_id, vm_id, run_id, run)

@@ -23,8 +23,10 @@
                 <div class="uk-form-controls">
 
                     <select class="uk-select" id="{{ software.id }}-input-dataset">
-                        <option value="None">None</option>
                         <option value="{{ software.dataset }}" selected>{{ software.dataset }}</option>
+                        {% for dataset in datasets %}
+                        <option value="{{ dataset.dataset_id }}">{{ dataset.dataset_id }}</option>
+                        {% endfor %}
                     </select>
                 </div>
             </div>

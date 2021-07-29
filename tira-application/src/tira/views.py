@@ -207,6 +207,7 @@ def software_detail(request, task_id, vm_id):
     try:
         softwares = model.get_software(task_id, vm_id)
         runs = model.get_vm_runs_by_task(task_id, vm_id)
+        datasets = model.get_datasets_by_task(task_id)
     except KeyError as e:
         logger.error(e)
         logger.warning(f"tried to load vm that does not exists: {vm_id} on task {task_id}")
@@ -243,7 +244,8 @@ def software_detail(request, task_id, vm_id):
         "include_navigation": include_navigation,
         "task": model.get_task(task_id),
         "vm_id": vm_id,
-        "software": software
+        "software": software,
+        "datasets": datasets
     }
 
     return render(request, 'tira/software.html', context)
