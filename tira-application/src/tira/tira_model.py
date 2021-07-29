@@ -614,8 +614,9 @@ class FileDatabase(object):
 
     def add_software(self, task_id, vm_id):
         software = modelpb.Softwares.Software()
+        s = self._load_softwares(task_id, vm_id)
         try:
-            last_software_count = re.search(r'\d+$', self.get_software(task_id, vm_id)[-1]["id"])
+            last_software_count = re.search(r'\d+$', s.softwares[-1].id)
             software_count = int(last_software_count.group()) + 1 if last_software_count else None
             if software_count is None:
                 # invalid software id value
@@ -637,7 +638,6 @@ class FileDatabase(object):
         software.lastEditDate = software.creationDate
         software.deleted = False
 
-        s = self._load_softwares(task_id, vm_id)
         s.softwares.append(software)
         software_ok = self._save_softwares(task_id, vm_id, s)
 
