@@ -9,11 +9,13 @@ from django.conf import settings
 import socket
 from datetime import datetime, timezone
 import re
+from shutil import rmtree
 
 from .proto import TiraClientWebMessages_pb2 as modelpb
 from .proto import tira_host_pb2 as model_host
 
 logger = logging.getLogger("tira")
+
 
 def auto_reviewer(review_path, run_id):
     """ Do standard checks for reviews so we do not need to wait for a reviewer to check for:
@@ -267,7 +269,8 @@ class FileDatabase(object):
         return Parse(open(self.vm_dir_path / f"{vm_id}.prototext").read(), modelpb.VirtualMachine())
 
     def _load_softwares(self, task_id, vm_id):
-        return Parse(open(self.softwares_dir_path / task_id / vm_id / "softwares.prototext", "r").read(), modelpb.Softwares())
+        return Parse(open(self.softwares_dir_path / task_id / vm_id / "softwares.prototext", "r").read(),
+                     modelpb.Softwares())
 
     def _load_run(self, dataset_id, vm_id, run_id, return_deleted=False, as_json=False):
         run_dir = (self.RUNS_DIR_PATH / dataset_id / vm_id / run_id)
@@ -541,15 +544,21 @@ class FileDatabase(object):
     def get_vm_reviews_by_dataset(self, dataset_id, vm_id):
         return self._load_user_reviews(dataset_id, vm_id, as_json=True)
 
-    def get_software(self, task_id, vm_id):
+    def get_software(self, task_id, vm_id, software_id=None):
         """ Returns the software of a vm on a task in json """
-        logger.debug(f"get_software({task_id}, {vm_id})")
-        return [{"id": software.id, "count": software.count,
-                 "task_id": task_id, "vm_id": vm_id,
-                 "command": software.command, "working_directory": software.workingDirectory,
-                 "dataset": software.dataset, "run": software.run, "creation_date": software.creationDate,
-                 "last_edit": software.lastEditDate}
-                for software in self.software.get(f"{task_id}${vm_id}", [])]
+        sw = [{"id": software.id, "count": software.count,
+               "task_id": task_id, "vm_id": vm_id,
+               "command": software.command, "working_directory": software.workingDirectory,
+               "dataset": software.dataset, "run": software.run, "creation_date": software.creationDate,
+               "last_edit": software.lastEditDate}
+              for software in self.software.get(f"{task_id}${vm_id}", [])]
+
+        if not software_id:
+            return sw
+
+        for s in sw:
+            if s["id"] == software_id:
+                return s
 
     def get_users_vms(self):
         """ Return the users list. """
@@ -643,7 +652,7 @@ class FileDatabase(object):
         software_list.append(software)
         self.software[f"{task_id}${vm_id}"] = software_list
         return software if software_ok else False
-    
+
     def add_evaluator(self, vm_id, task_id, dataset_id, dataset_type, command, working_directory, measures):
         """ TODO documentation
         """
@@ -746,6 +755,7 @@ class FileDatabase(object):
 
         return False
 
+    # TODO add option to truly delete the software.
     def delete_software(self, task_id, vm_id, software_id):
         s = self._load_softwares(task_id, vm_id)
         found = False
@@ -757,6 +767,10 @@ class FileDatabase(object):
         self.software[f"{task_id}${vm_id}"] = software_list
         self._save_softwares(task_id, vm_id, s)
         return found
+
+    def delete_run(self, dataset_id, vm_id, run_id):
+        run_dir = Path(self.RUNS_DIR_PATH / dataset_id / vm_id / run_id)
+        rmtree(run_dir)
 
     def add_ongoing_execution(self, hostname, vm_id, ova):
         """ add this create to the stack, so we know it's in progress. """

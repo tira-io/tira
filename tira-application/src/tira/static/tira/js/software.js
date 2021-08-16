@@ -127,6 +127,27 @@ function pollVmState(vmid) {
     }, 5000);
 }
 
+function pollRunningSoftware(vmid) {
+    setTimeout(function () {
+        // TODO handle on fail.
+        $.ajax({
+            type: 'GET',
+            url: `/grpc/${vmid}/vm_state`,
+            data: {},
+            success: function (data) {
+                console.log(data.state);
+                if (isTransitionState(data.state)){
+                    setState(data.state);
+                    pollVmState(vmid);
+                } else {
+                    // Note: It's easiest to reload the page here instead of adding the runs to the table via JS.
+                    location.reload()
+                }
+            }
+        })
+    }, 10000);
+}
+
 
 /*
 ** SOFTWARE MANAGEMENT
@@ -175,20 +196,44 @@ function saveSoftware(taskId, vmId, softwareId) {
             action: 'post'
         },
         success: function (data) {
-            $(`#${softwareId}_form_buttons a:nth-of-type(2)`).html(' <i class="fas fa-check"></i>');
+            $('.tira-software-save-button').html('<i class="fas fa-check"></i>');
             setTimeout(function () {
-                $(`#${softwareId}_form_buttons a:nth-of-type(2)`).html('save');
+                $('.tira-software-save-button').html('<i class="fas fa-save"></i>');
             }, 5000)
             $(`#${softwareId}-last-edit`).text(`last edit: ${data.last_edit}`)
         },
         error: function () {
-            $(`#${softwareId}_form_buttons a:nth-of-type(2)`).html(' <i class="fas fa-times"></i>');
+            $('.tira-software-save-button').html('<i class="fas fa-times"></i>');
             setTimeout(function () {
-                $(`#${softwareId}_form_buttons a:nth-of-type(2)`).html('save');
+                $('.tira-software-save-button').html('<i class="fas fa-save"></i>');
             }, 2000)
 
         }
     })
+}
+
+function runSoftware (taskId, vmId, softwareId) {
+    // 0. execute save software
+    saveSoftware(taskId, vmId, softwareId);
+    // 1. make ajax call
+    $.ajax({
+        type: 'POST',
+        url: `/grpc/${vmId}/run-execute/${softwareId}`,
+        headers: {
+            'X-CSRFToken': $('input[name=csrfmiddlewaretoken]').val()
+        },
+        data: {
+            csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val(),
+            action: 'post'
+        },
+        success: function (data) {
+            pollRunningSoftware(vmId)
+        },
+        error: function () {
+            console.log('failed to run software')
+        }
+    })
+
 }
 
 function addSoftwareEvents(taskId, vmId) {
@@ -209,22 +254,30 @@ function addSoftwareEvents(taskId, vmId) {
         addSoftware(taskId, vmId);
     });
 
-    $('.software_form_buttons a:nth-of-type(2)').click(function (e) {
-        let softwareId = e.target.parentElement.id.split('_')[0];
-        saveSoftware(taskId, vmId, softwareId);
+    $('.tira-software-run-button').click(function () {
+        runSoftware(taskId, vmId, $(this).data('tiraSoftwareId'))
+    });
+
+    $('.tira-software-save-button').click(function () {
+        saveSoftware(taskId, vmId, $(this).data("tiraSoftwareId"));
     })
 
-    $('.software_form_buttons a:nth-of-type(3)').click(function (e) {
-        let form = e.target.parentElement.parentElement
-        let softwareId = e.target.parentElement.id.split('_')[0];
-        deleteSoftware(taskId, vmId, softwareId, form);
+    $('.tira-software-delete-button').click(function () {
+        let formId = '#' + $(this).data("tiraSoftwareId") + '-row'
+        deleteSoftware(taskId, vmId, $(this).data("tiraSoftwareId"), $(formId));
     })
 
-    $('.tira-run-delete').click(function (e) {
-        let row = e.target.parentElement.parentElement
-        let id = row.firstElementChild.id.split("_")
-        runDelete(id[0], id[1], id[2], row)
+    $('.tira-run-delete').click(function () {
+        runDelete($(this).data('tiraDataset'),
+            $(this).data('tiraVmId'),
+            $(this).data('tiraRunId'), $(this).parent().parent())
     })
+
+    $('#tira-run-evaluate-button').click(function () {
+        // evaluateRun($(this).data('tiraDataset'),
+        //             $(this).data('tiraVmId'),
+        //             $(this).data('tiraRunId'), $(this).parent().parent())
+    });
 }
 
 

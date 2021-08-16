@@ -37,7 +37,7 @@ urlpatterns = [
     path('grpc/<str:vm_id>/vm_stop', actions.vm_stop, name="vm_stop"),
     path('grpc/<str:vm_id>/vm_shutdown', actions.vm_shutdown, name="vm_shutdown"),
     path('grpc/<str:vm_id>/vm_abort_run', actions.vm_abort_run, name="vm_abort_run"),
-    path('grpc/<str:vm_id>/run_execute/<str:software_id>', actions.run_execute, name="run_execute"),
+    path('grpc/<str:task_id>/<str:vm_id>/run_execute/<str:software_id>', actions.run_execute, name="run_execute"),
     path('grpc/<str:vm_id>/run_eval/<str:software_id>', actions.run_eval, name="run_eval"),
     path('grpc/<str:vm_id>/run_delete/<str:dataset_id>/<str:run_id>', actions.run_delete, name="run_delete"),
 

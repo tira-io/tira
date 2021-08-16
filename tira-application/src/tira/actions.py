@@ -402,10 +402,11 @@ def software_delete(request, task_id, vm_id, software_id):
 
 
 # TODO implement
-def run_execute(request, vm_id):
+def run_execute(request, task_id, vm_id, software_id):
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
 
     vm = model.get_vm(vm_id)
+
     grpc_client = GrpcClient(vm.host)
     response = grpc_client.run_execute(submission_file="",
                                        input_dataset_name="",
@@ -417,7 +418,7 @@ def run_execute(request, vm_id):
 
 
 # TODO implement
-def run_eval(request, vm_id):
+def run_eval(request, vm_id, software_id):
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
 
     vm = model.get_vm(vm_id)
@@ -431,10 +432,9 @@ def run_eval(request, vm_id):
     return JsonResponse({'status': 'Accepted', 'message': response}, status=HTTPStatus.ACCEPTED)
 
 
-# TODO implement
 def run_delete(request, dataset_id, vm_id, run_id):
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
-
+    # TODO just delete it with model.delete_run()
     model.update_run(dataset_id, vm_id, run_id, deleted=True)
     return JsonResponse({'status': 'Accepted'}, status=HTTPStatus.ACCEPTED)
 
