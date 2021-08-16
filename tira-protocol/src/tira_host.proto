@@ -102,6 +102,7 @@ message RequestRunExecuteEval {
   string optionalParameters = 8;
 }
 
+// TODO add a message filed that explains the status
 message Transaction {
   Status status = 1;
   string transactionId = 2;

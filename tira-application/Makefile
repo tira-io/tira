@@ -20,6 +20,8 @@ help:
 setup:
 	chmod o+x src
 	mkdir -p $(BUILD_PATH)
+	mkdir -p src/config
+	cp config/settings-dev.yml src/config/settings.yml
 	make venv
 	make django
 
@@ -45,9 +47,8 @@ django:
 	python3 src/manage.py migrate"
 
 run-dev:
-	mkdir -p src/config
 	cp config/settings-dev.yml src/config/settings.yml
-	su tira -c". $(VENV_NAME)/bin/activate && \
+	sh -c". $(VENV_NAME)/bin/activate && \
 	python3 src/manage.py runserver 8080"
 
 run-wsgi:
