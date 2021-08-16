@@ -21,6 +21,6 @@ class TestGrpcHostClient:
         sleep(slp)
         print("after_sleep")
         response = self.stub.set_state(
-            tira_host_pb2.SetVmState(status=tira_host_pb2.Status.SUCCESS, state=vm_state, vmId=vm_id))
+            tira_host_pb2.VmState(status=tira_host_pb2.Status.SUCCESS, state=vm_state, vmId=vm_id))
         print(f"host-client: set_state response was: {response}")
         return response

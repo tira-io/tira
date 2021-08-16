@@ -42,25 +42,26 @@ option optimize_for = SPEED;
 
 // The service definition.
 service TiraHostService {
-  rpc vm_backup (RequestVmCommands) returns (Transaction) {}
-  rpc vm_create (RequestVmCreate) returns (Transaction) {}
-  rpc vm_delete (RequestVmCommands) returns (Transaction) {}
-  rpc vm_info (RequestVmCommands) returns (VmInfo) {}
+  rpc vm_backup (VmDetails) returns (Transaction) {}
+  rpc vm_create (VmDetails) returns (Transaction) {}
+  rpc vm_delete (VmDetails) returns (Transaction) {}
+  rpc vm_info (VmDetails) returns (VmInfo) {}
   rpc vm_list (google.protobuf.Empty) returns (Transaction) {}
-  rpc vm_metrics (RequestVmCommands) returns (Transaction) {}
-  rpc vm_sandbox (RequestVmCommands) returns (Transaction) {}
-  rpc vm_shutdown (RequestVmCommands) returns (Transaction) {}
-  rpc vm_snapshot (RequestVmCommands) returns (Transaction) {}
-  rpc vm_start (RequestVmCommands) returns (Transaction) {}
-  rpc vm_stop (RequestVmCommands) returns (Transaction) {}
-  rpc vm_unsandbox (RequestVmCommands) returns (Transaction) {}
-  rpc run_execute(RequestRunExecuteEval) returns (Transaction) {}
-  rpc run_eval(RequestRunExecuteEval) returns (Transaction) {}
+  rpc vm_metrics (VmDetails) returns (Transaction) {}
+  rpc vm_sandbox (VmDetails) returns (Transaction) {}
+  rpc vm_shutdown (VmDetails) returns (Transaction) {}
+  rpc vm_snapshot (VmDetails) returns (Transaction) {}
+  rpc vm_start (VmDetails) returns (Transaction) {}
+  rpc vm_stop (VmDetails) returns (Transaction) {}
+  rpc vm_unsandbox (VmDetails) returns (Transaction) {}
+  rpc run_execute(RunDetails) returns (Transaction) {}
+  rpc run_eval(RunDetails) returns (Transaction) {}
   rpc alive (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 }
 
 service TiraApplicationService {
-  rpc set_state (SetVmState) returns (Transaction) {}
+  rpc set_state (VmState) returns (Transaction) {}
+  rpc confirm_creation (VmState) returns (Transaction) {}
   rpc complete_transaction (Transaction) returns (Transaction) {}
 }
 
@@ -69,7 +70,7 @@ enum Status {
   FAILED = 1;
 }
 
-enum VmState {
+enum State {
     UNDEFINED = 0;
     RUNNING = 1;
     POWERED_OFF = 2;
@@ -77,21 +78,26 @@ enum VmState {
     POWERING_OFF = 4;
     SANDBOXING = 5;
     UNSANDBOXING = 6;
-    EXECUTING = 7;  // may be called sandboxed?
+    EXECUTING = 7;
     ARCHIVED = 8;
 }
 
-message RequestVmCommands {
+// NOTE: replaces RequestVmCreate and RequestVmCommands from previous versions
+message VmDetails {
   string vmId = 1;
-}
-
-message RequestVmCreate {
-  string ovaFile = 1;
   string userId = 2;
-  string bulkCommandId = 3;
+  string ovaFile = 3;
+  string bulkCommandId = 4;
+  string adminName = 5;
+  string adminPw = 6;
+  string userName = 7;
+  string userPw = 8;
+  string ip = 9;
+  string sshPort = 10;
+  string rdpPort = 11;
 }
 
-message RequestRunExecuteEval {
+message RunDetails {
   string submissionFile = 1;
   string inputDatasetId = 2;
   string inputRunPath = 3;
@@ -102,17 +108,17 @@ message RequestRunExecuteEval {
   string optionalParameters = 8;
 }
 
-// TODO add a message filed that explains the status
 message Transaction {
   Status status = 1;
   string transactionId = 2;
+  string message = 3;
 }
 
-message SetVmState {
+message VmState {
   Status status = 1;
-  VmState state = 2;
+  State state = 2;
   string vmId = 3;
-
+  string message = 4;
 }
 
 message VmInfo {
@@ -125,15 +131,8 @@ message VmInfo {
   string host = 7;
   bool sshPortStatus = 8;
   bool rdpPortStatus = 9;
-  VmState state = 10;
+  State state = 10;
 }
-
-
-// TODO: add response message for vm_create command parsing vm access details
-//message ResponseVmCreate {
-//  string userId = 1;
-//  string userPwd = 2;
-//}
 
 message CommandState {
   string hostname = 1;

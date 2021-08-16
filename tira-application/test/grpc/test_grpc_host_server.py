@@ -23,7 +23,7 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         return response
 
     def vm_create(self, request, context):
-        print(f"received vm-create for {request.ovaFile} - {request.userId} - {request.bulkCommandId}")
+        print(f"received vm-create for {request.ovaFile} - {request.vmId} - {request.bulkCommandId}")
         response = tira_host_pb2.Transaction()
         response.status = tira_host_pb2.Status.SUCCESS
         response.transactionId = "12345"
@@ -46,39 +46,39 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         response.rdpPort = '0000'
         response.host = 'localhost'
         if STATE.get('status') == 'running':
-            response.state = tira_host_pb2.VmState.RUNNING
+            response.state = tira_host_pb2.State.RUNNING
             response.sshPortStatus = True
             response.rdpPortStatus = True
         elif STATE.get('status') == 'stopped':
-            response.state = tira_host_pb2.VmState.POWERED_OFF
+            response.state = tira_host_pb2.State.POWERED_OFF
             response.sshPortStatus = False
             response.rdpPortStatus = False
         elif STATE.get('status') == 'powering_on':
-            response.state = tira_host_pb2.VmState.POWERING_ON
+            response.state = tira_host_pb2.State.POWERING_ON
             response.sshPortStatus = False
             response.rdpPortStatus = False
         elif STATE.get('status') == 'powering_off':
-            response.state = tira_host_pb2.VmState.POWERING_OFF
+            response.state = tira_host_pb2.State.POWERING_OFF
             response.sshPortStatus = False
             response.rdpPortStatus = False
         elif STATE.get('status') == 'sandboxed':
-            response.state = tira_host_pb2.VmState.EXECUTING
+            response.state = tira_host_pb2.State.EXECUTING
             response.sshPortStatus = False
             response.rdpPortStatus = False
         elif STATE.get('status') == 'sandboxing':
-            response.state = tira_host_pb2.VmState.SANDBOXING
+            response.state = tira_host_pb2.State.SANDBOXING
             response.sshPortStatus = False
             response.rdpPortStatus = False
         elif STATE.get('status') == 'unsandboxing':
-            response.state = tira_host_pb2.VmState.UNSANDBOXING
+            response.state = tira_host_pb2.State.UNSANDBOXING
             response.sshPortStatus = False
             response.rdpPortStatus = False
         elif STATE.get('status') == 'archived':
-            response.state = tira_host_pb2.VmState.ARCHIVED
+            response.state = tira_host_pb2.State.ARCHIVED
             response.sshPortStatus = False
             response.rdpPortStatus = False
         else:
-            response.state = tira_host_pb2.VmState.UNDEFINED
+            response.state = tira_host_pb2.State.UNDEFINED
             response.sshPortStatus = False
             response.rdpPortStatus = False
 
@@ -103,7 +103,7 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         response = tira_host_pb2.Transaction()
         if STATE.get('status') == "running":
             test_host_client = TestGrpcHostClient()
-            t = Thread(target=test_host_client.set_state, args=(request.vmId, tira_host_pb2.VmState.POWERED_OFF))
+            t = Thread(target=test_host_client.set_state, args=(request.vmId, tira_host_pb2.State.POWERED_OFF))
             t.start()
             response.status = tira_host_pb2.Status.SUCCESS
             STATE['status'] = 'stopped'
@@ -124,7 +124,7 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         response = tira_host_pb2.Transaction()
         if STATE.get('status') == "stopped":
             test_host_client = TestGrpcHostClient()
-            t = Thread(target=test_host_client.set_state, args=(request.vmId, tira_host_pb2.VmState.RUNNING))
+            t = Thread(target=test_host_client.set_state, args=(request.vmId, tira_host_pb2.State.RUNNING))
             t.start()
             STATE['status'] = 'running'  # Only works in the mockup server. Should be 'powering_on' in live.
             response.status = tira_host_pb2.Status.SUCCESS

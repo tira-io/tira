@@ -48,7 +48,7 @@ django:
 
 run-dev:
 	cp config/settings-dev.yml src/config/settings.yml
-	sh -c". $(VENV_NAME)/bin/activate && \
+	sh -c ". $(VENV_NAME)/bin/activate && \
 	python3 src/manage.py runserver 8080"
 
 run-wsgi:
