@@ -210,7 +210,7 @@ main() {
     done
 
     # Get the ip adress of the specified network interface.
-    ip_eth=$(ifconfig "$eth" | awk /"$eth"/'{next}//{split($0,a,":");split(a[2],a," ");print a[1];exit}')
+    ip_eth=$(ip -f inet address show "$eth" | grep -Po 'inet \K[\d.]+')
 
     # The PREROUTING table is skipped for local packets (???) so we need to add the
     # portforwarding rules again in the nat OUTPUT table to be able to access virtual machines
