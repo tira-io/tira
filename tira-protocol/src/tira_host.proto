@@ -42,18 +42,18 @@ option optimize_for = SPEED;
 
 // The service definition.
 service TiraHostService {
-  rpc vm_backup (VmDetails) returns (Transaction) {}
-  rpc vm_create (VmDetails) returns (Transaction) {}
-  rpc vm_delete (VmDetails) returns (Transaction) {}
-  rpc vm_info (VmDetails) returns (VmInfo) {}
+  rpc vm_backup (VmId) returns (Transaction) {}
+  rpc vm_create (VmCreate) returns (Transaction) {}
+  rpc vm_delete (VmId) returns (Transaction) {}
+  rpc vm_info (VmId) returns (VmInfo) {}
   rpc vm_list (google.protobuf.Empty) returns (Transaction) {}
-  rpc vm_metrics (VmDetails) returns (Transaction) {}
-  rpc vm_sandbox (VmDetails) returns (Transaction) {}
-  rpc vm_shutdown (VmDetails) returns (Transaction) {}
-  rpc vm_snapshot (VmDetails) returns (Transaction) {}
-  rpc vm_start (VmDetails) returns (Transaction) {}
-  rpc vm_stop (VmDetails) returns (Transaction) {}
-  rpc vm_unsandbox (VmDetails) returns (Transaction) {}
+  rpc vm_metrics (VmId) returns (Transaction) {}
+  rpc vm_sandbox (VmId) returns (Transaction) {}
+  rpc vm_shutdown (VmId) returns (Transaction) {}
+  rpc vm_snapshot (VmId) returns (Transaction) {}
+  rpc vm_start (VmId) returns (Transaction) {}
+  rpc vm_stop (VmId) returns (Transaction) {}
+  rpc vm_unsandbox (VmId) returns (Transaction) {}
   rpc run_execute(RunDetails) returns (Transaction) {}
   rpc run_eval(RunDetails) returns (Transaction) {}
   rpc alive (google.protobuf.Empty) returns (google.protobuf.Empty) {}
@@ -61,8 +61,10 @@ service TiraHostService {
 
 service TiraApplicationService {
   rpc set_state (VmState) returns (Transaction) {}
-  rpc confirm_creation (VmState) returns (Transaction) {}
-  rpc complete_transaction (Transaction) returns (Transaction) {}
+  rpc confirm_vm_create (VmDetails) returns (Transaction) {}
+  rpc confirm_run_eval (EvaluationResults) returns (Transaction) {}
+  // rpc confirm_run_execute (EvaluationResults) returns (Transaction) {} // TODO transmit the results of the run that should be displayed on the website (i.e. runDir without output)
+  rpc confirm_transaction (Transaction) returns (Transaction) {}
 }
 
 enum Status {
@@ -82,30 +84,56 @@ enum State {
     ARCHIVED = 8;
 }
 
-// NOTE: replaces RequestVmCreate and RequestVmCommands from previous versions
-message VmDetails {
+// NOTE: replaces RequestVmCreate and RequestVmCommands from previous versions. TODO should be called VmId
+message VmId {
   string vmId = 1;
-  string userId = 2;
-  string ovaFile = 3;
-  string bulkCommandId = 4;
-  string adminName = 5;
-  string adminPw = 6;
-  string userName = 7;
-  string userPw = 8;
-  string ip = 9;
-  string sshPort = 10;
-  string rdpPort = 11;
 }
 
+// TODO : Who determines the vmUserName and vmUserPassword? I would say the Host, so these should be part of the response
+message VmCreate {
+  string vmId = 1;
+  string userId = 2;  // TODO userName? Identical to vmId?
+  string ovaFile = 3;
+  string bulkCommandId = 4;
+}
+
+message VmDetails {
+  string vmId = 1;
+  string userId = 2;  // TODO Identical to vmId?
+  string userName = 3;
+  string initialUserPw = 4;  // TODO see this as initial password. Hosts may refuse to include this here.
+  string ip = 5;
+  string sshPort = 6;
+  string rdpPort = 7;
+  // string adminName = 8; // TODO I've taken them out. The idea here is that only the host knows the admin pass and uses this to execute the software.
+  // string adminPw = 9;
+}
+
+message RunId {
+  string vmId = 1;
+  string datasetId = 2;
+  string runId = 3;
+}
+
+// TODO again, when telling the host to execute a software, it needs to know how to connect to it, hence we only need to submit the software details.
 message RunDetails {
-  string submissionFile = 1;
-  string inputDatasetId = 2;
-  string inputRunPath = 3;
-  string outputDirName = 4;
-  string sandboxed = 5;
-  string runId = 6;
-  string snapshotName = 7;
-  string optionalParameters = 8;
+  RunId runId = 1;
+  string workingDir = 2;
+  string command = 3;
+  RunId inputRunId = 4;
+  string optionalParameters = 5;
+  // string outputDirName = 6;  // Host must determine this
+  // string sandboxed = 7;  // Note sure how this makes sense
+  // string snapshotName = 8; // Note sure if this still makes sense
+}
+
+message EvaluationResults {
+  message Measure {
+    string key   = 1;
+    string value = 2;
+  }
+  RunId runId = 1;
+  repeated Measure measures = 2;
 }
 
 message Transaction {

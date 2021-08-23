@@ -29,6 +29,32 @@ class TiraApplicationService(tira_host_pb2_grpc.TiraApplicationService):
         response.transactionId = request.transactionId
         return response
 
+    def confirm_vm_create(self, request, context):
+        """ This gets called if a vm was successfully created. Right now it just says 'yes' when called.
+        See tira_host.proto for request specification.
+        TODO this should add the new VM to the model in the future.
+        """
+        print(f" Application Server received vm-create confirmation with \n"
+              f"{request.vmID}, {request.userName}, {request.initialUserPw}, {request.ip}, {request.sshPort}, "
+              f"{request.rdpPort}")
+        response = tira_host_pb2.Transaction()
+        response.status = tira_host_pb2.Status.SUCCESS
+        response.transactionId = request.transactionId
+        return response
+
+    def confirm_run_eval(self, request, context):
+        """ This gets called if a run_eval finishes and receives the EvaluationResults.
+        Right now it just says 'yes' when called. See tira_host.proto for request specification.
+        TODO this should add the new VM to the model in the future.
+        """
+        print(f" Application Server received run-eval confirmation with: \n"
+              f"{request.runId.runId} and {len(request.measures)} measures.")
+
+        response = tira_host_pb2.Transaction()
+        response.status = tira_host_pb2.Status.SUCCESS
+        response.transactionId = request.transactionId
+        return response
+
 
 def serve(port):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
