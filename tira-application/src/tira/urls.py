@@ -11,6 +11,7 @@ urlpatterns = [
     path('task/<str:task_id>/dataset/<str:dataset_id>', views.dataset_detail, name='dataset-detail'),
     path('task/<str:task_id>/user/<str:vm_id>', views.software_detail, name='software-detail'),
     path('task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/run/<str:run_id>', views.review, name='review'),
+    path('task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/run/download/<str:run_id>.zip', views.download_outdir, name='download_outdir'),
     path('dataset', views.dataset_list, name='dataset'),
     path('users', views.users, name='users'),
     path('user/<str:user_id>', views.user_detail, name='user-detail'),

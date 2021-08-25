@@ -54,10 +54,16 @@ def get_run_file_list(dataset_id, vm_id, run_id):
 
 
 def get_stdout(dataset_id, vm_id, run_id):
+    # TODO: Don't open whole file but only read the n last lines to not have a full xGB file in memory
+    output_lines = 100
     run_dir = (RUNS_DIR_PATH / dataset_id / vm_id / run_id)
     if not (run_dir / "stdout.txt").exists():
         return "No Stdout recorded"
-    stdout = open(run_dir / "stdout.txt", 'r').read()
+    stdout_file = open(run_dir / "stdout.txt", 'r')
+    stdout = stdout_file.readlines()
+    stdout_len = len(stdout)
+    stdout = ''.join([f"[{max(stdout_len - output_lines, 0)} more lines]\n"] + stdout[-output_lines:])
+    stdout_file.close()
     if not stdout:
         return "No Stdout recorded"
     return stdout

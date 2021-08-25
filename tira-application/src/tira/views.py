@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, Http404, JsonResponse
+from django.http import HttpResponse, Http404, JsonResponse, FileResponse
 from django.conf import settings
 import logging
 
@@ -13,6 +13,8 @@ from .forms import *
 from django.core.exceptions import PermissionDenied
 from pathlib import Path
 from datetime import datetime as dt
+import os
+import zipfile
 
 model = FileDatabase()
 
@@ -315,6 +317,25 @@ def review(request, task_id, vm_id, dataset_id, run_id):
 
     return render(request, 'tira/review.html', context)
 
+def download_outdir(request, task_id, vm_id, dataset_id, run_id):
+    path = Path(settings.TIRA_ROOT) / "data" / "runs" / dataset_id / vm_id / run_id / "output"
+    zip_handle = zipfile.ZipFile(path.with_suffix(".zip"), "w")
+    for root, dirs, files in os.walk(path):
+        for file in files:
+            zip_handle.write(os.path.join(root, file),
+                             os.path.relpath(os.path.join(root, file),
+                                             os.path.join(path, '..')
+                             )
+            )
+    zip_handle.close()
+
+    zip_path = path.with_suffix(".zip")
+    if os.path.exists(zip_path):
+        response = FileResponse(open(zip_path, "rb"), as_attachment=True, filename=run_id + "-" + os.path.basename(zip_path))
+        return response
+    else:
+        return JsonResponse({'status': 'Failed', 'reason': f'File does not exist: {zip_path}'}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+    
 
 def users(request):
     """
