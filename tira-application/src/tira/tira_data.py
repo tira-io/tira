@@ -59,11 +59,10 @@ def get_stdout(dataset_id, vm_id, run_id):
     run_dir = (RUNS_DIR_PATH / dataset_id / vm_id / run_id)
     if not (run_dir / "stdout.txt").exists():
         return "No Stdout recorded"
-    stdout_file = open(run_dir / "stdout.txt", 'r')
-    stdout = stdout_file.readlines()
-    stdout_len = len(stdout)
-    stdout = ''.join([f"[{max(stdout_len - output_lines, 0)} more lines]\n"] + stdout[-output_lines:])
-    stdout_file.close()
+    with open(run_dir / "stdout.txt", 'r') as stdout_file:
+        stdout = stdout_file.readlines()
+        stdout_len = len(stdout)
+        stdout = ''.join([f"[{max(stdout_len - output_lines, 0)} more lines]\n"] + stdout[-output_lines:])
     if not stdout:
         return "No Stdout recorded"
     return stdout
@@ -77,3 +76,12 @@ def get_stderr(dataset_id, vm_id, run_id):
     if not stderr:
         return "No Stderr recorded"
     return stderr
+
+
+def get_tira_log(dataset_id, vm_id, run_id):
+# TODO: read log once it has a fixed position
+#     log_path = 
+#     with open(log_path, 'r') as log:
+#         l = log.read()
+#     return l
+    return "foo"

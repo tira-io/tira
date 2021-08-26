@@ -6,7 +6,7 @@ import logging
 from .grpc_client import GrpcClient
 from .grpc_server import serve
 from .tira_model import FileDatabase
-from .tira_data import get_run_runtime, get_run_file_list, get_stderr, get_stdout
+from .tira_data import get_run_runtime, get_run_file_list, get_stderr, get_stdout, get_tira_log
 from .authentication import Authentication
 from .checks import Check
 from .forms import *
@@ -300,6 +300,7 @@ def review(request, task_id, vm_id, dataset_id, run_id):
     files["file_list"][0] = "$outputDir"
     stdout = get_stdout(dataset_id, vm_id, run_id)
     stderr = get_stderr(dataset_id, vm_id, run_id)
+    tira_log = get_tira_log(dataset_id, vm_id, run_id)
 
     context = {
         "include_navigation": include_navigation,
@@ -312,13 +313,33 @@ def review(request, task_id, vm_id, dataset_id, run_id):
         "review_form_error": review_form_error,
         "task_id": task_id, "dataset_id": dataset_id, "vm_id": vm_id, "run_id": run_id,
         "run": run, "review": run_review, "runtime": runtime, "files": files,
-        "stdout": stdout, "stderr": stderr,
+        "stdout": stdout, "stderr": stderr, "tira_log": tira_log,
     }
 
     return render(request, 'tira/review.html', context)
 
-def download_outdir(request, task_id, vm_id, dataset_id, run_id):
-    path = Path(settings.TIRA_ROOT) / "data" / "runs" / dataset_id / vm_id / run_id / "output"
+
+def _zip_dir(path):
+    if os.path.isdir(path):
+        zip_handle = zipfile.ZipFile(path.with_suffix(".zip"), "w")
+        for root, dirs, files in os.walk(path):
+            for file in files:
+                zip_handle.write(os.path.join(root, file),
+                                 os.path.relpath(os.path.join(root, file),
+                                                 os.path.join(path, '..')
+                                 )
+                )
+        zip_handle.close()
+
+        zip_path = path.with_suffix(".zip")
+        return zip_path
+    else:
+        return None
+                            
+    
+def download_rundir(request, task_id, dataset_id, vm_id, run_id):
+    check.has_access(request, ["tira", "admin"])
+    path = Path(settings.TIRA_ROOT) / "data" / "runs" / dataset_id / vm_id / run_id
     zip_handle = zipfile.ZipFile(path.with_suffix(".zip"), "w")
     for root, dirs, files in os.walk(path):
         for file in files:
@@ -332,16 +353,16 @@ def download_outdir(request, task_id, vm_id, dataset_id, run_id):
     zip_path = path.with_suffix(".zip")
     if os.path.exists(zip_path):
         response = FileResponse(open(zip_path, "rb"), as_attachment=True, filename=run_id + "-" + os.path.basename(zip_path))
+        os.remove(zip_path)
         return response
     else:
         return JsonResponse({'status': 'Failed', 'reason': f'File does not exist: {zip_path}'}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
-    
+
 
 def users(request):
     """
     List of all users and virtual machines.
     """
-
     context = {
         "include_navigation": include_navigation,
         "role": auth.get_role(request),

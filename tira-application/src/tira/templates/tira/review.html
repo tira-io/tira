@@ -71,10 +71,27 @@
                     <span id="publish-text" class="uk-text-warning">The results are <em>not</em> on the leaderboards.</span>
                     <span id="unpublish-text" class="uk-text-success">The results are on the leaderboards.</span>
                     </p>
-                    {% if role == 'admin' %}
-                        <button id="publish-button" class="uk-button uk-button-danger uk-width-1-1 uk-padding-remove-bottom">Publish run</button>
-                        <button id="unpublish-button" class="uk-button uk-button-default uk-width-1-1 uk-padding-remove-bottom">unpublish run</button>
-                    {% endif %}
+                    <div class="uk-grid-small uk-child-width-expand" data-uk-grid>
+                        {% if role == 'admin' %}
+                        <div>
+                            <button id="publish-button" class="uk-button uk-button-danger uk-padding-remove-bottom">Publish run</button>
+                            <button id="unpublish-button" class="uk-button uk-button-default uk-padding-remove-bottom">unpublish run</button>
+                        </div>
+                        <div>
+                            <a id="download-rundir-button" class="uk-button uk-button-primary uk-padding-remove-bottom" href="{% url 'tira:download_rundir' task_id=task_id vm_id=vm_id dataset_id=dataset_id run_id=run_id %}" target="_blank">download run</a>
+                        </div>
+                        {% elif role == 'user' %}
+                            {% with "user participant" as roles %}
+                                {% if role in roles.split %}
+                                    {% if review.blinded %}
+                                        <button disabled id="download-outdir-button" class="uk-button uk-button-disabled" uk-tooltip="title: Can only be downloaded if the run is unblinded.; delay: 500" ><i class="fas fa-download"></i> download run</button>
+                                    {% else %}
+                                        <a id="download-outdir-button" class="uk-button uk-button-primary" href="{% url 'tira:download_rundir' task_id=task_id vm_id=vm_id dataset_id=dataset_id run_id=run_id %}" target="_blank">download run</a>
+                                    {% endif %}
+                                {% endif %}
+                            {% endwith %}
+                        {% endif %}
+                    </div>
                 </div>
             </div>
 <!--            TODO: action buttons, difference between participant and reviewer -->
@@ -206,18 +223,6 @@
         </div>
     </div>
 
-    <div class="uk-container">
-        {% with "user participant admin" as roles %}
-            {% if role in roles.split %}
-                {% if review.blinded %}
-                    <button disabled id="download-outdir-button" class="uk-button uk-button-disabled uk-width-1-5" uk-tooltip="title: Can only be downloaded if the run is unblinded.; delay: 500" ><i class="fas fa-download"></i> download output</button>
-                {% else %}
-                    <a id="download-outdir-button" class="uk-button uk-button-primary uk-width-1-5" href="./download/{{ run_id }}.zip" target="_blank"><i class="fas fa-download"></i> download output</a>
-                {% endif %}
-            {% endif %}
-        {% endwith %}
-    </div>
-
     <!-- Show Stdout -->
     <div class="uk-container uk-margin-medium">
         <h2>Standard Output <span class="uk-text-muted uk-text-lead">[stdout]</span></h2>
@@ -243,8 +248,15 @@
         </textarea>
     </div>
     
-
-
+    <!-- Show Tira log -->
+    {% if role == 'admin' %}
+        <div class="uk-container uk-margin-medium">
+            <h2>TIRA Log <span class="uk-text-muted uk-text-lead"></span></h2>
+            <textarea class="uk-textarea" rows="10" placeholder="No TIRA log recorded." disabled>
+            {{ tira_log }}
+            </textarea>
+        </div>
+    {% endif %}
 
 </main>
 
