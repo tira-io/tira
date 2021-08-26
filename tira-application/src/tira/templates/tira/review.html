@@ -81,15 +81,11 @@
                             <a id="download-rundir-button" class="uk-button uk-button-primary uk-padding-remove-bottom" href="{% url 'tira:download_rundir' task_id=task_id vm_id=vm_id dataset_id=dataset_id run_id=run_id %}" target="_blank">download run</a>
                         </div>
                         {% elif role == 'user' %}
-                            {% with "user participant" as roles %}
-                                {% if role in roles.split %}
-                                    {% if review.blinded %}
-                                        <button disabled id="download-outdir-button" class="uk-button uk-button-disabled" uk-tooltip="title: Can only be downloaded if the run is unblinded.; delay: 500" ><i class="fas fa-download"></i> download run</button>
-                                    {% else %}
-                                        <a id="download-outdir-button" class="uk-button uk-button-primary" href="{% url 'tira:download_rundir' task_id=task_id vm_id=vm_id dataset_id=dataset_id run_id=run_id %}" target="_blank">download run</a>
-                                    {% endif %}
-                                {% endif %}
-                            {% endwith %}
+                            {% if review.blinded %}
+                                <button disabled id="download-rundir-button" class="uk-button uk-button-disabled" uk-tooltip="title: Can only be downloaded if the run is unblinded.; delay: 500" ><i class="fas fa-download"></i> download run</button>
+                            {% else %}
+                                <a id="download-rundir-button" class="uk-button uk-button-primary" href="{% url 'tira:download_rundir' task_id=task_id vm_id=vm_id dataset_id=dataset_id run_id=run_id %}" target="_blank">download run</a>
+                            {% endif %}
                         {% endif %}
                     </div>
                 </div>
