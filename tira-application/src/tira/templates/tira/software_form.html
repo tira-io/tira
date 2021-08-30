@@ -13,7 +13,7 @@
                 <label class="uk-form-label" for="{{ software.id }}-working-dir">Working Directory</label>
                 <div class="uk-form-controls">
                     <input class="uk-input" id="{{ software.id }}-working-dir" type="text"
-                           value="{{ software.working_directory }}" placeholder="/home/{{ user_id }}/">
+                           value="{{ software.working_directory }}" placeholder="/home/<user>/">
                 </div>
             </div>
         </div>
@@ -41,12 +41,13 @@
         </div>
     </form>
     <div class="software-form-buttons">
-        <a class="uk-button uk-button-small uk-button-primary uk-width-1-6 tira-software-run-button"
-           data-tira-software-id="{{ software.id }}">run</a>
-        <a class="uk-button uk-button-small uk-button-default tira-software-save-button"
-           data-tira-software-id="{{ software.id }}"><i class="fas fa-save"></i></a>
-        <a class="uk-button uk-button-small uk-button-danger tira-software-delete-button"
-           data-tira-software-id="{{ software.id }}"><i class="fas fa-trash-alt"></i></a>
+        <button class="uk-button uk-button-small uk-button-disabled uk-width-1-6 software-run-button"
+           uk-tooltip="title: If the VM is 'running': Execute {{ software.id }}. Only one Software can be executed at a time. Software will be saved when executing a run.; delay: 500"
+           data-tira-software-id="{{ software.id }}" disabled>run</button>
+        <button class="uk-button uk-button-small uk-button-default software-save-button"
+           data-tira-software-id="{{ software.id }}"><i class="fas fa-save"></i></button>
+        <button class="uk-button uk-button-small uk-button-danger software-delete-button"
+           data-tira-software-id="{{ software.id }}"><i class="fas fa-trash-alt"></i></button>
         <div class="uk-align-right">
             <div class="uk-text-small uk-text-lead" id="{{ software.id }}-last-edit">last edit: {{ software.last_edit }}
             </div>
@@ -112,15 +113,15 @@
             <td class="uk-padding-remove-vertical">{{ run.dataset }}</td>
             <td class="uk-align-right uk-table-expand uk-margin-remove uk-padding-remove-vertical uk-padding-remove-right">
                 {% if run.input_run_id == "none" %}
-                <a class="uk-button uk-button-small uk-button-default tira-run-evaluate-button"
+                <a class="uk-button uk-button-small uk-button-default run-evaluate-button"
                    data-tira-dataset="{{ run.dataset }}" data-tira-vm-id="{{ vm_id }}"
                    data-tira-run-id="{{ run.run_id }}">evaluate</a>
                 {% endif %}
                 <a class="uk-button uk-button-small uk-button-default"
                    href="{% url 'tira:review' task_id=task_id vm_id=vm_id dataset_id=software.dataset run_id=run.run_id %}">inspect</a>
-                <a class="uk-button uk-button-small uk-button-danger tira-run-delete"
+                <a class="uk-button uk-button-small uk-button-danger run-delete-button"
                    data-tira-dataset="{{ run.dataset }}" data-tira-vm-id="{{ vm_id }}"
-                   data-tira-run-id="{{ run.run_id }}">delete</i></a>
+                   data-tira-run-id="{{ run.run_id }}">delete</a>
             </td>
         </tr>
         {% endfor %}

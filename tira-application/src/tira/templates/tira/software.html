@@ -177,7 +177,7 @@
 <script src="{% static 'tira/js/software.js' %}"></script>
 <script>
     addSoftwareEvents("{{ task.task_id }}", "{{ vm_id }}")
-    loadVmInfo("{{ vm_id }}")
+    setupPollingAfterPageLoad("{{ vm_id }}")
 </script>
 
 {% endblock %}
