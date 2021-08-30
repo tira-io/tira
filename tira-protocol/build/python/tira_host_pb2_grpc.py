@@ -85,6 +85,11 @@ class TiraHostServiceStub(object):
                 request_serializer=tira__host__pb2.RunDetails.SerializeToString,
                 response_deserializer=tira__host__pb2.Transaction.FromString,
                 )
+        self.run_abort = channel.unary_unary(
+                '/tira.generated.TiraHostService/run_abort',
+                request_serializer=tira__host__pb2.VmId.SerializeToString,
+                response_deserializer=tira__host__pb2.Transaction.FromString,
+                )
         self.run_eval = channel.unary_unary(
                 '/tira.generated.TiraHostService/run_eval',
                 request_serializer=tira__host__pb2.RunDetails.SerializeToString,
@@ -183,6 +188,12 @@ class TiraHostServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def run_abort(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def run_eval(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -261,6 +272,11 @@ def add_TiraHostServiceServicer_to_server(servicer, server):
             'run_execute': grpc.unary_unary_rpc_method_handler(
                     servicer.run_execute,
                     request_deserializer=tira__host__pb2.RunDetails.FromString,
+                    response_serializer=tira__host__pb2.Transaction.SerializeToString,
+            ),
+            'run_abort': grpc.unary_unary_rpc_method_handler(
+                    servicer.run_abort,
+                    request_deserializer=tira__host__pb2.VmId.FromString,
                     response_serializer=tira__host__pb2.Transaction.SerializeToString,
             ),
             'run_eval': grpc.unary_unary_rpc_method_handler(
@@ -510,6 +526,23 @@ class TiraHostService(object):
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
+    def run_abort(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/tira.generated.TiraHostService/run_abort',
+            tira__host__pb2.VmId.SerializeToString,
+            tira__host__pb2.Transaction.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
     def run_eval(request,
             target,
             options=(),
@@ -563,6 +596,11 @@ class TiraApplicationServiceStub(object):
                 request_serializer=tira__host__pb2.VmDetails.SerializeToString,
                 response_deserializer=tira__host__pb2.Transaction.FromString,
                 )
+        self.confirm_vm_delete = channel.unary_unary(
+                '/tira.generated.TiraApplicationService/confirm_vm_delete',
+                request_serializer=tira__host__pb2.VmId.SerializeToString,
+                response_deserializer=tira__host__pb2.Transaction.FromString,
+                )
         self.confirm_run_eval = channel.unary_unary(
                 '/tira.generated.TiraApplicationService/confirm_run_eval',
                 request_serializer=tira__host__pb2.EvaluationResults.SerializeToString,
@@ -590,6 +628,12 @@ class TiraApplicationServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def confirm_vm_delete(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def confirm_run_eval(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -597,7 +641,7 @@ class TiraApplicationServiceServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def confirm_transaction(self, request, context):
-        """rpc confirm_run_execute (EvaluationResults) returns (Transaction) {} // TODO transmit the results of the run that should be displayed on the website (i.e. runDir without output)
+        """rpc confirm_run_execute (VmState) returns (Transaction) {} // TODO transmit the results of the run that should be displayed on the website (i.e. runDir without output)
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -614,6 +658,11 @@ def add_TiraApplicationServiceServicer_to_server(servicer, server):
             'confirm_vm_create': grpc.unary_unary_rpc_method_handler(
                     servicer.confirm_vm_create,
                     request_deserializer=tira__host__pb2.VmDetails.FromString,
+                    response_serializer=tira__host__pb2.Transaction.SerializeToString,
+            ),
+            'confirm_vm_delete': grpc.unary_unary_rpc_method_handler(
+                    servicer.confirm_vm_delete,
+                    request_deserializer=tira__host__pb2.VmId.FromString,
                     response_serializer=tira__host__pb2.Transaction.SerializeToString,
             ),
             'confirm_run_eval': grpc.unary_unary_rpc_method_handler(
@@ -666,6 +715,23 @@ class TiraApplicationService(object):
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/tira.generated.TiraApplicationService/confirm_vm_create',
             tira__host__pb2.VmDetails.SerializeToString,
+            tira__host__pb2.Transaction.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def confirm_vm_delete(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/tira.generated.TiraApplicationService/confirm_vm_delete',
+            tira__host__pb2.VmId.SerializeToString,
             tira__host__pb2.Transaction.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

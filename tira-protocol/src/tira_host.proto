@@ -55,6 +55,7 @@ service TiraHostService {
   rpc vm_stop (VmId) returns (Transaction) {}
   rpc vm_unsandbox (VmId) returns (Transaction) {}
   rpc run_execute(RunDetails) returns (Transaction) {}
+  rpc run_abort(VmId) returns (Transaction) {}
   rpc run_eval(RunDetails) returns (Transaction) {}
   rpc alive (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 }
@@ -62,8 +63,9 @@ service TiraHostService {
 service TiraApplicationService {
   rpc set_state (VmState) returns (Transaction) {}
   rpc confirm_vm_create (VmDetails) returns (Transaction) {}
+  rpc confirm_vm_delete (VmId) returns (Transaction) {}
   rpc confirm_run_eval (EvaluationResults) returns (Transaction) {}
-  // rpc confirm_run_execute (EvaluationResults) returns (Transaction) {} // TODO transmit the results of the run that should be displayed on the website (i.e. runDir without output)
+  // rpc confirm_run_execute (VmState) returns (Transaction) {} // TODO transmit the results of the run that should be displayed on the website (i.e. runDir without output)
   rpc confirm_transaction (Transaction) returns (Transaction) {}
 }
 
