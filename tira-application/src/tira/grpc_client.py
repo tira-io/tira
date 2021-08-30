@@ -97,3 +97,8 @@ class GrpcClient:
 
         print("Client received: " + str(response))
         return response
+
+    def run_abort(self, vm_id):
+        response = self.stub.run_abort(tira_host_pb2.VmId(vmId=vm_id))
+        print("Client received: " + str(response))
+        return response

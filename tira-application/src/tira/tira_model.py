@@ -108,6 +108,11 @@ class FileDatabase(object):
         self.commandState = None
         self.command_logs_path.mkdir(exist_ok=True, parents=True)
 
+        # TODO load evaluators
+        # datasets_dir_path/task_id/dataset_id.prototext: datasetId -> evaluatorId
+        # tasks_dir_path/task_id.prototext: virtualMachineId -> vm_id
+        # vm_dir_path/vm_id.prototext: evaluators -> [Evaluator] -> evaluatorId, command, workingDirectory, measures, measureKeys
+
         self.build_model()
 
     def build_model(self):

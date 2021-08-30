@@ -1,3 +1,7 @@
+let pollingState=false;
+let pollingSoftware=false;
+let pollingEvaluation=false;
+
 function loadVmInfo(vmid) {
     setState(0)
 
@@ -135,19 +139,44 @@ function pollRunningSoftware(vmid) {
             url: `/grpc/${vmid}/vm_state`,
             data: {},
             success: function (data) {
-                console.log(data.state);
-                if (isTransitionState(data.state)){
-                    setState(data.state);
-                    pollVmState(vmid);
+                if (isSoftwareRunningState(data.state)){
+                    pollingSoftware=true;
+                    pollRunningSoftware(vmid);
                 } else {
                     // Note: It's easiest to reload the page here instead of adding the runs to the table via JS.
-                    location.reload()
+                    if (pollingSoftware === true) location.reload();
                 }
             }
         })
     }, 10000);
 }
 
+function pollRunningEvaluations(vmid) {
+    setTimeout(function () {
+        // TODO handle on fail.
+        $.ajax({
+            type: 'GET',
+            url: `/grpc/${vmid}/vm_running_evaluations`,
+            data: {},
+            success: function (data) {
+                if (data.runningEvaluations === true ){
+                    pollingEvaluation=true;
+                    pollRunningEvaluations(vmid);
+                } else {
+                    // Note: It's easiest to reload the page here instead of adding the runs to the table via JS.
+                    if (pollingEvaluation === true) location.reload();
+                }
+            }
+        })
+    }, 10000);
+}
+
+function setupPollingAfterPageLoad(vmid) {
+    loadVmInfo(vmid)
+    pollVmState(vmid)
+    pollRunningEvaluations(vmid)
+    pollRunningSoftware(vmid)
+}
 
 /*
 ** SOFTWARE MANAGEMENT
@@ -196,16 +225,16 @@ function saveSoftware(taskId, vmId, softwareId) {
             action: 'post'
         },
         success: function (data) {
-            $('.tira-software-save-button').html('<i class="fas fa-check"></i>');
+            $('.software-save-button').html('<i class="fas fa-check"></i>');
             setTimeout(function () {
-                $('.tira-software-save-button').html('<i class="fas fa-save"></i>');
+                $('.software-save-button').html('<i class="fas fa-save"></i>');
             }, 5000)
             $(`#${softwareId}-last-edit`).text(`last edit: ${data.last_edit}`)
         },
         error: function () {
-            $('.tira-software-save-button').html('<i class="fas fa-times"></i>');
+            $('.software-save-button').html('<i class="fas fa-times"></i>');
             setTimeout(function () {
-                $('.tira-software-save-button').html('<i class="fas fa-save"></i>');
+                $('.software-save-button').html('<i class="fas fa-save"></i>');
             }, 2000)
 
         }
@@ -218,7 +247,7 @@ function runSoftware (taskId, vmId, softwareId) {
     // 1. make ajax call
     $.ajax({
         type: 'POST',
-        url: `/grpc/${vmId}/run-execute/${softwareId}`,
+        url: `/grpc/${taskId}/${vmId}/run-execute/${softwareId}`,
         headers: {
             'X-CSRFToken': $('input[name=csrfmiddlewaretoken]').val()
         },
@@ -250,33 +279,33 @@ function addSoftwareEvents(taskId, vmId) {
         abortRun(vmId)
     });
 
-    $('#tira-add-software').click(function () {
+    $('#add-software').click(function () {
         addSoftware(taskId, vmId);
     });
 
-    $('.tira-software-run-button').click(function () {
+    $('.software-run-button').click(function () {
         runSoftware(taskId, vmId, $(this).data('tiraSoftwareId'))
     });
 
-    $('.tira-software-save-button').click(function () {
+    $('.software-save-button').click(function () {
         saveSoftware(taskId, vmId, $(this).data("tiraSoftwareId"));
     })
 
-    $('.tira-software-delete-button').click(function () {
+    $('.software-delete-button').click(function () {
         let formId = '#' + $(this).data("tiraSoftwareId") + '-row'
         deleteSoftware(taskId, vmId, $(this).data("tiraSoftwareId"), $(formId));
     })
 
-    $('.tira-run-delete').click(function () {
-        runDelete($(this).data('tiraDataset'),
+    $('.run-delete-button').click(function () {
+        deleteRun($(this).data('tiraDataset'),
             $(this).data('tiraVmId'),
             $(this).data('tiraRunId'), $(this).parent().parent())
     })
 
-    $('#tira-run-evaluate-button').click(function () {
-        // evaluateRun($(this).data('tiraDataset'),
-        //             $(this).data('tiraVmId'),
-        //             $(this).data('tiraRunId'), $(this).parent().parent())
+    $('.run-evaluate-button').click(function () {
+        evaluateRun($(this).data('tiraDataset'),
+                     $(this).data('tiraVmId'),
+                     $(this).data('tiraRunId'))
     });
 }
 
@@ -289,7 +318,7 @@ function abortRun(uid, vmId) {
     setState(0)
     $.ajax({
         type: 'GET',
-        url: `/grpc/${vmId}/vm_abort_run`,
+        url: `/grpc/${vmId}/run_abort`,
         data: {},
         success: function (data) {
             if (data.status === 0) {
@@ -299,13 +328,26 @@ function abortRun(uid, vmId) {
     })
 }
 
-function runDelete(datasetId, vmId, runId, row) {
+function deleteRun(datasetId, vmId, runId, row) {
     $.ajax({
         type: 'GET',
         url: `/grpc/${vmId}/run_delete/${datasetId}/${runId}`,
         data: {},
         success: function (data) {
             row.remove();
+        }
+    })
+}
+
+function evaluateRun(datasetId, vmId, runId, row) {
+    $.ajax({
+        type: 'GET',
+        url: `/grpc/${vmId}/run_eval/${datasetId}/${runId}`,
+        data: {},
+        success: function (data) {
+        //    TODO: Data should yield a transaction id.
+        //     poll for the transaction. If it is completed, reload the page.
+        // TODO: add a function that checks after a load, if this VM has open transactions and start polling
         }
     })
 }
@@ -321,10 +363,20 @@ function disableButton(id) {
         .removeClass('uk-button-danger')
         .removeClass('uk-button-default')
         .addClass('uk-button-disabled');
+
+    $('.' + id).prop("disabled", true)
+        .removeClass('uk-button-primary')
+        .removeClass('uk-button-danger')
+        .removeClass('uk-button-default')
+        .addClass('uk-button-disabled');
 }
 
 function enableButton(id, cls) {
     $('#' + id).prop("disabled", false)
+        .removeClass('uk-button-disabled')
+        .addClass(cls);
+
+    $('.' + id).prop("disabled", false)
         .removeClass('uk-button-disabled')
         .addClass(cls);
 }
@@ -357,6 +409,7 @@ function setState(state_id) {
         $('#vm-state-running').show();
         enableButton('vm-shutdown-button', 'uk-button-primary')
         enableButton('vm-stop-button', 'uk-button-danger')
+        enableButton('software-run-button', 'uk-button-primary');
     } else if (state_id === 2) {
         $('#vm-state-stopped').show();
         enableButton('vm-power-on-button', 'uk-button-primary')
@@ -378,7 +431,7 @@ function setState(state_id) {
         enableButton('vm-abort-run-button', 'uk-button-danger')
     } else if (state_id === 8) {
         $('#vm-state-archived').show();
-    } else if (state_id === 8) {
+    } else if (state_id === 9) {
         $('#vm-state-unarchiving').show();
     } else if (state_id === 0) {
         $('#vm-state-ssh-open').hide();
@@ -390,9 +443,16 @@ function setState(state_id) {
         disableButton('vm-power-on-button');
         disableButton('vm-stop-button');
         disableButton('vm-abort-run-button');
+        disableButton('software-run-button');
+
     }
 }
 
+// Note: We use these helper functions so we can easily change what the state numbers mean.
 function isTransitionState(state_id) {
     return [3, 4, 5, 6, 7].includes(state_id);
+}
+
+function isSoftwareRunningState(state_id) {
+    return [5, 6, 7].includes(state_id);
 }

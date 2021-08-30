@@ -27,3 +27,11 @@ class TransitionLog(models.Model):
     vm_id = models.CharField(max_length=280, primary_key=True)
     # tracks the state of vms that are not in a stable state.
     vm_state = models.IntegerField(validators=[_validate_transition_state])
+
+
+class EvaluationLog(models.Model):
+    vm_id = models.CharField(max_length=280)
+    run_id = models.CharField(max_length=280)
+
+    class Meta:
+        unique_together = (("vm_id", "run_id"),)

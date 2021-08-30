@@ -42,6 +42,19 @@ class TiraApplicationService(tira_host_pb2_grpc.TiraApplicationService):
         response.transactionId = request.transactionId
         return response
 
+    def confirm_vm_delete(self, request, context):
+        """ This gets called if a run_eval finishes and receives the EvaluationResults.
+        Right now it just says 'yes' when called. See tira_host.proto for request specification.
+        TODO this should remove the deleted vm from.
+        """
+        print(f" Application Server received vm_delete confirmation with: \n"
+              f"{request.vmId.vmId} measures.")
+
+        response = tira_host_pb2.Transaction()
+        response.status = tira_host_pb2.Status.SUCCESS
+        response.transactionId = request.transactionId
+        return response
+
     def confirm_run_eval(self, request, context):
         """ This gets called if a run_eval finishes and receives the EvaluationResults.
         Right now it just says 'yes' when called. See tira_host.proto for request specification.

@@ -16,11 +16,12 @@ from django.http import HttpResponse, Http404, JsonResponse
 from django.conf import settings
 import uuid
 from http import HTTPStatus
-from .transitions import TransitionLog
+from .transitions import TransitionLog, EvaluationLog
 
 from .grpc_client import GrpcClient
 
 from .views import model
+from .util import get_tira_id
 
 include_navigation = True if settings.DEPLOYMENT == "legacy" else False
 auth = Authentication(authentication_source=settings.DEPLOYMENT,
@@ -258,6 +259,12 @@ def vm_state(request, vm_id):
     return JsonResponse({'state': state.vm_state}, status=HTTPStatus.ACCEPTED)
 
 
+def vm_running_evaluations(request, vm_id):
+    check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
+    results = EvaluationLog.objects.get(vm_id=vm_id)
+    return True if results else False
+
+
 def vm_create(request, hostname, vm_id, ova_file, bulk_id=None):
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
     grpc_client = GrpcClient('localhost') if settings.GRPC_HOST == 'local' else GrpcClient(hostname)
@@ -269,7 +276,8 @@ def vm_start(request, vm_id):
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
     vm = model.get_vm(vm_id)
     grpc_client = GrpcClient('localhost') if settings.GRPC_HOST == 'local' else GrpcClient(vm.host)
-    response = grpc_client.vm_start(vm_id)  # NOTE vm_id is different from vm.vmName (latter one includes the 01-tira-ubuntu-...
+    response = grpc_client.vm_start(
+        vm_id)  # NOTE vm_id is different from vm.vmName (latter one includes the 01-tira-ubuntu-...
     # when status = 0, the host accepts the transaction. We shift our state to 3 - "powering on"
     if response.status == 0:
         t = TransitionLog(vm_id=vm_id, vm_state=3)
@@ -293,11 +301,6 @@ def vm_stop(request, vm_id):
     grpc_client = GrpcClient('localhost') if settings.GRPC_HOST == 'local' else GrpcClient(vm.host)
     response = grpc_client.vm_stop(vm.vmName)
     return JsonResponse({'status': response.status, 'message': response.transactionId}, status=HTTPStatus.ACCEPTED)
-
-
-# TODO implement
-def vm_abort_run(request, vm_id):
-    return JsonResponse({'status': 'Failed', 'message': "Not Implemented"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 def vm_info(request, vm_id):
@@ -401,41 +404,60 @@ def software_delete(request, task_id, vm_id, software_id):
                             status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
-# TODO implement
 def run_execute(request, task_id, vm_id, software_id):
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
 
     vm = model.get_vm(vm_id)
-
+    software = model.get_software(task_id, vm_id, software_id=software_id)
+    # TODO get input_run data. This is not really supported right now, I suggest solving this via website (precise selector)
     grpc_client = GrpcClient(vm.host)
-    response = grpc_client.run_execute(submission_file="",
-                                       input_dataset_name="",
-                                       input_run_path="",
-                                       output_dir_name="",
-                                       sandboxed="",
+    response = grpc_client.run_execute(vm_id=vm_id,
+                                       dataset_id=software["dataset"],
+                                       run_id=get_tira_id(),
+                                       working_dir=software["working_directory"],
+                                       command=software["command"],
+                                       input_run_vm_id="",
+                                       input_run_dataset_id="",
+                                       input_run_run_id=software["run"],
                                        optional_parameters="")
     return JsonResponse({'status': 'Accepted', 'message': response}, status=HTTPStatus.ACCEPTED)
 
 
 # TODO implement
-def run_eval(request, vm_id, software_id):
+def run_eval(request, vm_id, dataset_id, run_id):
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
 
-    vm = model.get_vm(vm_id)
+    vm = model.get_vm(vm_id)  # TODO get the evaluator configuration
     grpc_client = GrpcClient(vm.host)
-    response = grpc_client.run_eval(submission_file="",
-                                    input_dataset_name="",
-                                    input_run_path="",
-                                    output_dir_name="",
-                                    sandboxed="",
+    response = grpc_client.run_eval(vm_id="",
+                                    dataset_id="",
+                                    run_id="",
+                                    working_dir="",
+                                    command="",
+                                    input_run_vm_id=vm_id,
+                                    input_run_dataset_id=dataset_id,
+                                    input_run_run_id=run_id,
                                     optional_parameters="")
+    if response.status == 0:
+        t = EvaluationLog(vm_id=vm_id, run_id=run_id)
+        t.save()
+        return JsonResponse({'status': response.status, 'message': response.transactionId}, status=HTTPStatus.ACCEPTED)
     return JsonResponse({'status': 'Accepted', 'message': response}, status=HTTPStatus.ACCEPTED)
 
 
 def run_delete(request, dataset_id, vm_id, run_id):
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
     # TODO just delete it with model.delete_run()
+    # TODO should also call a run_delete to delete host-side data
     model.update_run(dataset_id, vm_id, run_id, deleted=True)
+    return JsonResponse({'status': 'Accepted'}, status=HTTPStatus.ACCEPTED)
+
+
+def run_abort(request, vm_id):
+    check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
+    vm = model.get_vm(vm_id)
+    grpc_client = GrpcClient(vm.host)
+    response = grpc_client.run_abort(vm_id)
     return JsonResponse({'status': 'Accepted'}, status=HTTPStatus.ACCEPTED)
 
 
