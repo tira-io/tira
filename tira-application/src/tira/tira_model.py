@@ -105,13 +105,9 @@ class FileDatabase(object):
         self.software_by_task = None  # task_id: [modelpb.Software]
         self.software_by_vm = None  # vm_id: [modelpb.Software]
         self.software_count_by_dataset = None  # dataset_id: int()
+        self.evaluators = {}  # dataset_id: [modelpb.Evaluator] used as cache
         self.commandState = None
         self.command_logs_path.mkdir(exist_ok=True, parents=True)
-
-        # TODO load evaluators
-        # datasets_dir_path/task_id/dataset_id.prototext: datasetId -> evaluatorId
-        # tasks_dir_path/task_id.prototext: virtualMachineId -> vm_id
-        # vm_dir_path/vm_id.prototext: evaluators -> [Evaluator] -> evaluatorId, command, workingDirectory, measures, measureKeys
 
         self.build_model()
 
@@ -127,7 +123,6 @@ class FileDatabase(object):
         self._build_software_relations()
         self._build_software_counts()
 
-    # _parse methods parse files once on startup
     def _parse_organizer_list(self):
         """ Parse the PB Database and extract all hosts.
         :return: a dict {hostId: {"name", "years"}
@@ -320,22 +315,15 @@ class FileDatabase(object):
         :return 2: [{run_id, vm_id, software, input_run_id, measures: {}, runtime}]
         """
         evaluations = {}
-        # measure_keys = set()
         for run_id_dir in (self.RUNS_DIR_PATH / dataset_id / vm_id).glob("*"):
             if not (run_id_dir / "output/evaluation.bin").exists():
                 continue
-            # if not runs[run_id_dir.stem]["review"].get("reviewer", False):
-            #     continue
             if only_published is True and self._load_review(dataset_id, vm_id, run_id_dir.stem).published is False:
                 continue
 
             evaluation = modelpb.Evaluation()
             evaluation.ParseFromString(open(run_id_dir / "output/evaluation.bin", "rb").read())
 
-            # if not measure_keys:
-            #     measure_keys.update({measure.key for measure in evaluation.measure})
-            #
-            # measures = {measure.key: measure.value for measure in evaluation.measure}
             evaluations[run_id_dir.stem] = evaluation
 
         return evaluations
@@ -531,6 +519,33 @@ class FileDatabase(object):
         for dataset_id in relevant_datasets:
             runs.extend(self.get_vm_runs_by_dataset(dataset_id, vm_id, return_deleted=return_deleted))
         return runs
+
+    def get_evaluator(self, dataset_id, task_id=None):
+        """ returns a dict containing the evaluator parameters:
+
+        vm_id: id of the master vm running the evaluator
+        host: ip or hostname of the host
+        command: command to execute to run the evaluator. NOTE: contains variables the host needs to resolve
+        working_dir: where to execute the command
+        """
+        dataset = self.datasets[dataset_id]
+        evaluator_id = dataset.evaluatorId
+        if task_id is None:
+            task_id = self.default_tasks.get(dataset.datasetId, None)
+
+        task = self.tasks.get(task_id)
+        vm_id = task.virtualMachineId
+        master_vm = Parse(open(self.vm_dir_path / f"{vm_id}.prototext", "r").read(),
+                          modelpb.VirtualMachine())
+        result = {"vm_id": vm_id, "host": master_vm.host}
+
+        for evaluator in master_vm.evaluators:
+            if evaluator.evaluatorId == evaluator_id:
+                result["command"] = evaluator.command
+                result["working_dir"] = evaluator.workingDirectory
+                break
+
+        return result
 
     def get_vm_evaluations_by_dataset(self, dataset_id, vm_id, only_public_results=True):
         """ Return a dict of run_id: evaluation_results for the given vm on the given dataset

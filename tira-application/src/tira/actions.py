@@ -409,46 +409,66 @@ def run_execute(request, task_id, vm_id, software_id):
 
     vm = model.get_vm(vm_id)
     software = model.get_software(task_id, vm_id, software_id=software_id)
-    # TODO get input_run data. This is not really supported right now, I suggest solving this via website (precise selector)
-    grpc_client = GrpcClient(vm.host)
-    response = grpc_client.run_execute(vm_id=vm_id,
-                                       dataset_id=software["dataset"],
-                                       run_id=get_tira_id(),
-                                       working_dir=software["working_directory"],
-                                       command=software["command"],
-                                       input_run_vm_id="",
-                                       input_run_dataset_id="",
-                                       input_run_run_id=software["run"],
-                                       optional_parameters="")
+    # TODO get input_run data. This is not supported right now, I suggest solving this via website (better selector)
+
+    host = 'localhost' if settings.GRPC_HOST == 'local' else vm.host
+    try:
+        grpc_client = GrpcClient(host)
+        response = grpc_client.run_execute(vm_id=vm_id,
+                                           dataset_id=software["dataset"],
+                                           run_id=get_tira_id(),
+                                           working_dir=software["working_directory"],
+                                           command=software["command"],
+                                           input_run_vm_id="",
+                                           input_run_dataset_id="",
+                                           input_run_run_id=software["run"],
+                                           optional_parameters="")
+        del grpc_client
+    except Exception as e:
+        logger.exception(f"/grpc/{vm_id}/run_abort to {host} failed with {e}")
+        return JsonResponse({'status': 'Rejected', 'message': "Server Error"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
     return JsonResponse({'status': 'Accepted', 'message': response}, status=HTTPStatus.ACCEPTED)
 
 
-# TODO implement
 def run_eval(request, vm_id, dataset_id, run_id):
+    """ Get the evaluator for dataset_id from the model.
+     Then, send a GRPC-call to the host running the evaluator with the run data.
+     Then, log vm_id and run_id to the evaluation log as ongoing.
+    """
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
 
-    vm = model.get_vm(vm_id)  # TODO get the evaluator configuration
-    grpc_client = GrpcClient(vm.host)
-    response = grpc_client.run_eval(vm_id="",
-                                    dataset_id="",
-                                    run_id="",
-                                    working_dir="",
-                                    command="",
-                                    input_run_vm_id=vm_id,
-                                    input_run_dataset_id=dataset_id,
-                                    input_run_run_id=run_id,
-                                    optional_parameters="")
+    evaluator = model.get_evaluator(dataset_id)
+
+    host = 'localhost' if settings.GRPC_HOST == 'local' else evaluator["host"]
+    try:
+        grpc_client = GrpcClient(host)
+        response = grpc_client.run_eval(vm_id=evaluator["vm_id"],
+                                        dataset_id=dataset_id,
+                                        run_id=get_tira_id(),
+                                        working_dir=evaluator["working_dir"],
+                                        command=evaluator["command"],
+                                        input_run_vm_id=vm_id,
+                                        input_run_dataset_id=dataset_id,
+                                        input_run_run_id=run_id,
+                                        optional_parameters="")
+        del grpc_client
+    except Exception as e:
+        logger.exception(f"/grpc/{vm_id}/run_eval/{dataset_id}/{run_id} to {host} failed with {e}")
+        return JsonResponse({'status': 'Rejected', 'message': "Server Error"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
     if response.status == 0:
         t = EvaluationLog(vm_id=vm_id, run_id=run_id)
         t.save()
         return JsonResponse({'status': response.status, 'message': response.transactionId}, status=HTTPStatus.ACCEPTED)
+
     return JsonResponse({'status': 'Accepted', 'message': response}, status=HTTPStatus.ACCEPTED)
 
 
 def run_delete(request, dataset_id, vm_id, run_id):
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
     # TODO just delete it with model.delete_run()
-    # TODO should also call a run_delete to delete host-side data
+    # TODO should also call a grpc:run_delete to delete host-side data
     model.update_run(dataset_id, vm_id, run_id, deleted=True)
     return JsonResponse({'status': 'Accepted'}, status=HTTPStatus.ACCEPTED)
 
@@ -456,9 +476,17 @@ def run_delete(request, dataset_id, vm_id, run_id):
 def run_abort(request, vm_id):
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
     vm = model.get_vm(vm_id)
-    grpc_client = GrpcClient(vm.host)
-    response = grpc_client.run_abort(vm_id)
-    return JsonResponse({'status': 'Accepted'}, status=HTTPStatus.ACCEPTED)
+
+    host = 'localhost' if settings.GRPC_HOST == 'local' else vm.host
+    try:
+        grpc_client = GrpcClient(host)
+        response = grpc_client.run_abort(vm_id)
+        del grpc_client
+    except Exception as e:
+        logger.exception(f"/grpc/{vm_id}/run_abort to {host} failed with {e}")
+        return JsonResponse({'status': 'Rejected', 'message': "Server Error"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+    return JsonResponse({'status': 'Accepted', 'message': response}, status=HTTPStatus.ACCEPTED)
 
 
 # ---------------------------------------------------------------------

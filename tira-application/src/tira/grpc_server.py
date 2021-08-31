@@ -3,7 +3,7 @@ from concurrent import futures
 import grpc
 import logging
 from .proto import tira_host_pb2, tira_host_pb2_grpc
-from .transitions import TransitionLog
+from .transitions import TransitionLog, EvaluationLog
 
 grpc_port = settings.APPLICATION_GRPC_PORT
 
@@ -58,10 +58,12 @@ class TiraApplicationService(tira_host_pb2_grpc.TiraApplicationService):
     def confirm_run_eval(self, request, context):
         """ This gets called if a run_eval finishes and receives the EvaluationResults.
         Right now it just says 'yes' when called. See tira_host.proto for request specification.
-        TODO this should add the new VM to the model in the future.
+        TODO implement
         """
         print(f" Application Server received run-eval confirmation with: \n"
               f"{request.runId.runId} and {len(request.measures)} measures.")
+        t = EvaluationLog.objects.get(vm_id=request.runId.vmId, run_id=request.runId.runId)
+        t.delete()
 
         response = tira_host_pb2.Transaction()
         response.status = tira_host_pb2.Status.SUCCESS
