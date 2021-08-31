@@ -1,27 +1,24 @@
 <li id="{{ software.id }}-row">
     <form id="{{ software.id }}-form" class="software_form">
         {% csrf_token %}
-        <div class="uk-grid-medium uk-margin-small uk-child-width-1-2" uk-grid>
-            <div>
+        <div class="uk-grid-medium uk-margin-small" uk-grid>
+            <div class="uk-width-1-6">
+                <label class="uk-form-label" for="{{ software.id }}-working-dir">Working Directory</label>
+                <div class="uk-form-controls">
+                    <input class="uk-input" id="{{ software.id }}-working-dir" type="text"
+                           value="{{ software.working_directory }}" placeholder="/home/{{ vm_id }}/">
+                </div>
+            </div>
+            <div class="uk-width-1-2">
                 <label class="uk-form-label" for="{{ software.id }}-command-input">Command</label>
                 <div class="uk-form-controls">
                     <input class="uk-input" id="{{ software.id }}-command-input" type="text"
                            value="{{ software.command }}" placeholder="Dummy Command">
                 </div>
             </div>
-            <div>
-                <label class="uk-form-label" for="{{ software.id }}-working-dir">Working Directory</label>
-                <div class="uk-form-controls">
-                    <input class="uk-input" id="{{ software.id }}-working-dir" type="text"
-                           value="{{ software.working_directory }}" placeholder="/home/<user>/">
-                </div>
-            </div>
-        </div>
-        <div class="uk-grid-medium uk-margin-small uk-child-width-1-2" uk-grid>
-            <div>
+            <div class="uk-width-expand">
                 <label class="uk-form-label" for="{{ software.id }}-input-dataset">Input Dataset</label>
                 <div class="uk-form-controls">
-
                     <select class="uk-select" id="{{ software.id }}-input-dataset">
                         <option value="{{ software.dataset }}" selected>{{ software.dataset }}</option>
                         {% for dataset in datasets %}
@@ -30,24 +27,27 @@
                     </select>
                 </div>
             </div>
-            <div>
-                <label class="uk-form-label" for="{{ software.id }}-input-run">Input Run</label>
-                <div class="uk-form-controls">
-                    <select class="uk-select" id="{{ software.id }}-input-run">
-                        <option>None</option>
-                    </select>
-                </div>
-            </div>
         </div>
+        <!--        <div class="uk-grid-medium uk-margin-small uk-child-width-1-2" uk-grid>-->
+        <!--            <div hidden>-->
+        <!--                <label class="uk-form-label" for="{{ software.id }}-input-run">Input Run</label>-->
+        <!--                <div class="uk-form-controls">-->
+        <!--                    <select class="uk-select" id="{{ software.id }}-input-run">-->
+        <!--                        <option>None</option>-->
+        <!--                    </select>-->
+        <!--                </div>-->
+        <!--            </div>-->
+        <!--        </div>-->
     </form>
     <div class="software-form-buttons">
         <button class="uk-button uk-button-small uk-button-disabled uk-width-1-6 software-run-button"
-           uk-tooltip="title: If the VM is 'running': Execute {{ software.id }}. Only one Software can be executed at a time. Software will be saved when executing a run.; delay: 500"
-           data-tira-software-id="{{ software.id }}" disabled>run</button>
+                uk-tooltip="title: If the VM is 'running': Execute {{ software.id }}. Only one Software can be executed at a time. Software will be saved when executing a run.; delay: 500"
+                data-tira-software-id="{{ software.id }}" disabled>run
+        </button>
         <button class="uk-button uk-button-small uk-button-default software-save-button"
-           data-tira-software-id="{{ software.id }}"><i class="fas fa-save"></i></button>
+                data-tira-software-id="{{ software.id }}"><i class="fas fa-save"></i></button>
         <button class="uk-button uk-button-small uk-button-danger software-delete-button"
-           data-tira-software-id="{{ software.id }}"><i class="fas fa-trash-alt"></i></button>
+                data-tira-software-id="{{ software.id }}"><i class="fas fa-trash-alt"></i></button>
         <div class="uk-align-right">
             <div class="uk-text-small uk-text-lead" id="{{ software.id }}-last-edit">last edit: {{ software.last_edit }}
             </div>
