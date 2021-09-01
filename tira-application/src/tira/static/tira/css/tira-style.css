@@ -31,10 +31,6 @@ a.uk-button-primary {
     color: #fff;
 }
 
-a.uk-button-primary:visited {
-    color: #fff;
-}
-
 @media (max-width: 800px) {
     .index-main-cover {
         height: 200px

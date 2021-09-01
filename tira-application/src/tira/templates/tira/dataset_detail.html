@@ -40,13 +40,13 @@
                 <th class="header uk-table-shrink">&nbsp;</th>
                 {% endif %}
                 <th class="header uk-table-shrink uk-text-nowrap"><span>Virtual Machine</span></th>
-                {% if role == 'admin' %}
-                <th class="header uk-table-shrink uk-text-nowrap"><span>Actions</span></th>
-                {% endif %}
                 <th class="header uk-table-shrink uk-text-nowrap"><span>Run</span></th>
                 {% for key in ev_keys %}
                 <th class="header"><span>{{ key }}</span></th>
                 {% endfor %}
+                {% if role == 'admin' %}
+                <th class="header uk-table-shrink uk-text-nowrap"><span>Actions</span></th>
+                {% endif %}
             </tr>
             </thead>
             <tbody>
@@ -79,9 +79,6 @@
                 {% endif %}
                 <td class="uk-table-shrink uk-text-nowrap">{{ eval.vm_id }}</td>
                 {% if role == 'admin' %}
-                <td class="uk-table-shrink uk-text-nowrap">[<a href="{% url 'tira:software-detail' task_id=task.task_id vm_id=eval.vm_id %}">manage</a>]</td>
-                {% endif %}
-                {% if role == 'admin' %}
                 <td class="uk-table-shrink uk-text-nowrap"><a href="#run-{{ eval.vm_id }}-{{ eval.run_id }}">{{ eval.run_id }}</a></td>
                 {% else %}
                 <td class="uk-table-shrink uk-text-nowrap">{{ eval.run_id }}</td>
@@ -89,6 +86,9 @@
                 {% for measure in eval.measures %}
                 <td class="uk-table-expand uk-text-truncate">{{ measure }}</td>
                 {% endfor %}
+                {% if role == 'admin' %}
+                <td class="uk-table-shrink uk-text-nowrap"><a class="uk-button uk-button-small uk-button-default" href="{% url 'tira:software-detail' task_id=task.task_id vm_id=eval.vm_id %}">manage</a></td>
+                {% endif %}
             </tr>
             {% endfor %}
             </tbody>
@@ -128,13 +128,12 @@
                             <th class="uk-table-shrink"></th>
                             <th class="uk-table-shrink"></th>
                             <th class="uk-table-shrink"></th>
-                            <th class="uk-table-shrink"></th>
                             <th class="header uk-table-shrink uk-text-nowrap"><span>Software</span></th>
-                            <th class="header uk-table-shrink uk-text-nowrap"><span>Actions</span></th>
                             <th class="header uk-table-shrink uk-text-nowrap"><span>Run</span></th>
                             <th class="header uk-table-shrink uk-text-nowrap"><span>Input Run</span></th>
                             <th class="header uk-table-shrink uk-text-nowrap">Reviewer</th>
                             <th class="header uk-table-shrink uk-text-nowrap">Review</th>
+                            <th class="header uk-table-shrink uk-text-nowrap"><span>Actions</span></th>
                         </tr>
                         </thead>
                         <tbody>
@@ -174,15 +173,11 @@
                                 </div>
                                 {% endif %}
                             </td>
-                            <td class="uk-table-shrink">
-                                <div uk-tooltip="Download Run">
-                                    <a href="{% url 'tira:download_rundir' task_id=task.task_id vm_id=vm.vm_id dataset_id=dataset_id run_id=run.run.run_id %}" target="_blank"><i class="fas fa-download dataset-detail-icon"></i></a>
-                                </div>
-                            </td>
+{% comment %}                            <td class="uk-table-shrink">{% endcomment %}
+{% comment %}                                <div uk-tooltip="Download Run">{% endcomment %}
+{% comment %}                                </div>{% endcomment %}
+{% comment %}                            </td>{% endcomment %}
                             <td class="uk-table-shrink uk-text-nowrap">{{ run.run.software }}</td>
-                            <td class="uk-table-shrink uk-text-nowrap">
-                                [<a href="{% url 'tira:review' task_id=task.task_id vm_id=vm.vm_id dataset_id=dataset_id run_id=run.run.run_id %}">review</a>]
-                            </td>
                             <td class="uk-table-shrink uk-text-nowrap">{{ run.run.run_id }}</td>
                             {% if run.run.input_run_id != 'none' %}
                             <td class="uk-table-shrink uk-text-nowrap"><a href="#run-{{ vm.vm_id }}-{{ run.run.input_run_id }}">{{ run.run.input_run_id }}</a>
@@ -202,6 +197,10 @@
                                 {% if run.review.comment != "" %}
                                 : {{ run.review.comment }}
                                 {% endif %}
+                            </td>
+                            <td class="uk-table-shrink uk-text-nowrap">
+                                <a class="uk-button uk-button-small uk-button-default" href="{% url 'tira:review' task_id=task.task_id vm_id=vm.vm_id dataset_id=dataset_id run_id=run.run.run_id %}">review</a>
+                                <a class="uk-button uk-button-small uk-button-default" href="{% url 'tira:download_rundir' task_id=task.task_id vm_id=vm.vm_id dataset_id=dataset_id run_id=run.run.run_id %}" target="_blank">download run</a>
                             </td>
                         </tr>
                         {% endfor %}
