@@ -22,7 +22,9 @@
                     <select class="uk-select" id="{{ software.id }}-input-dataset">
                         <option value="{{ software.dataset }}" selected>{{ software.dataset }}</option>
                         {% for dataset in datasets %}
+                        {% if not dataset.is_deprecated %}
                         <option value="{{ dataset.dataset_id }}">{{ dataset.dataset_id }}</option>
+                        {% endif %}
                         {% endfor %}
                     </select>
                 </div>

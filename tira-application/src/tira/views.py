@@ -212,7 +212,7 @@ def software_detail(request, task_id, vm_id):
         datasets = model.get_datasets_by_task(task_id)
     except KeyError as e:
         logger.error(e)
-        logger.warning(f"tried to load vm that does not exists: {vm_id} on task {task_id}")
+        logger.warning(f"tried to load vm that does not exist: {vm_id} on task {task_id}")
         return redirect('tira:software-detail', task_id=task_id, vm_id="no-vm-assigned")
 
     # Construct a dictionary that has the software as a key and as value a list of runs with that software

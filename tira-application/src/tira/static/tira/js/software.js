@@ -191,8 +191,22 @@ function addSoftware(tid, vmid) {
             // see templates/tira/software-form.html
             $('#tira-software-forms').append(data.html);
             $('#tira-software-tab').find(' > li:last-child').before(`<li><a href="#">${data.software_id}</a></li>`);
-        }
-    })
+
+            // add event listeners
+            $(`#${data.software_id}-row .software-run-button`).click(function () {
+                runSoftware(tid, vmid, $(this).data('tiraSoftwareId'))
+            });
+
+            $(`#${data.software_id}-row .software-save-button`).click(function () {
+                saveSoftware(tid, vmid, $(this).data("tiraSoftwareId"));
+            })
+
+            $(`#${data.software_id}-row .software-delete-button`).click(function () {
+                let formId = '#' + $(this).data("tiraSoftwareId") + '-row'
+                deleteSoftware(tid, vmid, $(this).data("tiraSoftwareId"), $(formId));
+            })
+                }
+            })
 }
 
 function deleteSoftware(tid, vmid, swid, form) {

@@ -659,7 +659,7 @@ class FileDatabase(object):
 
         software.command = ""
         software.workingDirectory = ""
-        software.dataset = ""
+        software.dataset = "None"
         software.run = ""
         software.creationDate = datetime.now(timezone.utc).strftime("%a %b %d %X %Z %Y")
         software.lastEditDate = software.creationDate

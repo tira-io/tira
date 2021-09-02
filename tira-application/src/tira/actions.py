@@ -364,6 +364,7 @@ def software_add(request, task_id, vm_id):
         "include_navigation": include_navigation,
         "task": task_id,
         "vm_id": vm_id,
+        "datasets": model.get_datasets_by_task(task_id),
         "software": {
             "id": software.id,
             "command": software.command,
