@@ -16,7 +16,7 @@ from django.http import HttpResponse, Http404, JsonResponse
 from django.conf import settings
 import uuid
 from http import HTTPStatus
-from .transitions import TransitionLog, EvaluationLog
+from .transitions import TransitionLog, EvaluationLog, TransactionLog
 
 from .grpc_client import GrpcClient
 
@@ -255,14 +255,13 @@ def admin_add_dataset(request):
 def vm_state(request, vm_id):
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
     state = TransitionLog.objects.get(vm_id=vm_id)
-    print(state.vm_id, state.vm_state)
     return JsonResponse({'state': state.vm_state}, status=HTTPStatus.ACCEPTED)
 
 
 def vm_running_evaluations(request, vm_id):
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
-    results = EvaluationLog.objects.get(vm_id=vm_id)
-    return True if results else False
+    results = EvaluationLog.objects.filter(vm_id=vm_id)
+    return JsonResponse({'running_evaluations': True if results else False}, status=HTTPStatus.ACCEPTED)
 
 
 def vm_create(request, hostname, vm_id, ova_file, bulk_id=None):
@@ -276,8 +275,9 @@ def vm_start(request, vm_id):
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
     vm = model.get_vm(vm_id)
     grpc_client = GrpcClient('localhost') if settings.GRPC_HOST == 'local' else GrpcClient(vm.host)
-    response = grpc_client.vm_start(
-        vm_id)  # NOTE vm_id is different from vm.vmName (latter one includes the 01-tira-ubuntu-...
+    response = grpc_client.vm_start(vm_id)
+
+    # NOTE vm_id is different from vm.vmName (latter one includes the 01-tira-ubuntu-...
     # when status = 0, the host accepts the transaction. We shift our state to 3 - "powering on"
     if response.status == 0:
         t = TransitionLog(vm_id=vm_id, vm_state=3)
@@ -413,11 +413,13 @@ def run_execute(request, task_id, vm_id, software_id):
     # TODO get input_run data. This is not supported right now, I suggest solving this via website (better selector)
 
     host = 'localhost' if settings.GRPC_HOST == 'local' else vm.host
+
+    future_run_id = get_tira_id()
     try:
         grpc_client = GrpcClient(host)
         response = grpc_client.run_execute(vm_id=vm_id,
                                            dataset_id=software["dataset"],
-                                           run_id=get_tira_id(),
+                                           run_id=future_run_id,
                                            working_dir=software["working_directory"],
                                            command=software["command"],
                                            input_run_vm_id="",
@@ -426,10 +428,20 @@ def run_execute(request, task_id, vm_id, software_id):
                                            optional_parameters="")
         del grpc_client
     except Exception as e:
-        logger.exception(f"/grpc/{vm_id}/run_abort to {host} failed with {e}")
+        logger.exception(f"/grpc/{vm_id}/run_execute to {host} failed with {e}")
         return JsonResponse({'status': 'Rejected', 'message': "Server Error"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
-    return JsonResponse({'status': 'Accepted', 'message': response}, status=HTTPStatus.ACCEPTED)
+    if response.status == 0:
+        transaction = TransactionLog(transaction_id=response.transactionId, completed=False,
+                                     last_status=str(response.status),
+                                     last_message=response.message)
+        transaction.save()
+        t = EvaluationLog(vm_id=vm_id, run_id=future_run_id, transaction=transaction)
+        t.save()
+        t = TransitionLog(vm_id=vm_id, vm_state=5, transaction_id=response.transactionId)
+        t.save()
+
+    return JsonResponse({'status': 'Accepted', 'message': response.message}, status=HTTPStatus.ACCEPTED)
 
 
 def run_eval(request, vm_id, dataset_id, run_id):
@@ -459,11 +471,15 @@ def run_eval(request, vm_id, dataset_id, run_id):
         return JsonResponse({'status': 'Rejected', 'message': "Server Error"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
     if response.status == 0:
-        t = EvaluationLog(vm_id=vm_id, run_id=run_id)
+        transaction = TransactionLog(transaction_id=response.transactionId, completed=False,
+                                     last_status=str(response.status),
+                                     last_message=response.message)
+        print(transaction)
+        transaction.save()
+        t = EvaluationLog(vm_id=vm_id, run_id=run_id, transaction=transaction)
         t.save()
-        return JsonResponse({'status': response.status, 'message': response.transactionId}, status=HTTPStatus.ACCEPTED)
 
-    return JsonResponse({'status': 'Accepted', 'message': response}, status=HTTPStatus.ACCEPTED)
+    return JsonResponse({'status': 'Accepted', 'message': response.message}, status=HTTPStatus.ACCEPTED)
 
 
 def run_delete(request, dataset_id, vm_id, run_id):

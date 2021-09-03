@@ -3,7 +3,8 @@ from concurrent import futures
 import grpc
 import logging
 from .proto import tira_host_pb2, tira_host_pb2_grpc
-from .transitions import TransitionLog, EvaluationLog
+from .transitions import TransitionLog, EvaluationLog, TransactionLog
+from uuid import uuid4
 
 grpc_port = settings.APPLICATION_GRPC_PORT
 
@@ -13,17 +14,25 @@ logger = logging.getLogger("tira")
 class TiraApplicationService(tira_host_pb2_grpc.TiraApplicationService):
     def set_state(self, request, context):
         print(f" Application Server received vm-state {request.state} for {request.vmId}")
+        # TODO add transition if available
         t = TransitionLog(vm_id=request.vmId, vm_state=request.state)
         t.save()
         response = tira_host_pb2.Transaction()
         response.status = tira_host_pb2.Status.SUCCESS
         t = TransitionLog.objects.get(vm_id=request.vmId)
         print(t.vm_id, t.vm_state)
-        # response.transactionId = "12345"
         return response
 
     def complete_transaction(self, request, context):
+        """ Marks a transaction as completed if the
+        This is basically the final stage of a a TIRA message exchange.
+        """
         print(f" Application Server received complete_transaction for {request.transactionId}")
+        t = TransactionLog.objects.get(transaction_id=request.transactionId)
+        t.completed = True
+        t.last_status = str(request.status)
+        t.last_message = request.message
+        t.save()
         response = tira_host_pb2.Transaction()
         response.status = tira_host_pb2.Status.SUCCESS
         response.transactionId = request.transactionId
@@ -64,10 +73,15 @@ class TiraApplicationService(tira_host_pb2_grpc.TiraApplicationService):
               f"{request.runId.runId} and {len(request.measures)} measures.")
         t = EvaluationLog.objects.get(vm_id=request.runId.vmId, run_id=request.runId.runId)
         t.delete()
+        t = TransactionLog.objects.get(transaction_id=request.transaction.transactionId)
+        t.completed = False
+        t.last_status = str(request.transaction.status)
+        t.last_message = request.transaction.message
+        t.save()
 
         response = tira_host_pb2.Transaction()
         response.status = tira_host_pb2.Status.SUCCESS
-        response.transactionId = request.transactionId
+        response.transactionId = request.transaction.transactionId
         return response
 
 

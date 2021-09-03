@@ -3,14 +3,22 @@
 """
     GrpcClient to make gRPC calls to the dockerized tira-host running a VM.
 """
-
 from django.conf import settings
 import grpc
 from google.protobuf.empty_pb2 import Empty
+from .transitions import TransactionLog
+from uuid import uuid4
 
 from .proto import tira_host_pb2, tira_host_pb2_grpc
 
 grpc_port = settings.HOST_GRPC_PORT
+
+
+def new_transaction():
+    transaction_id = str(uuid4())
+    transaction = TransactionLog(transaction_id=transaction_id, completed=False)
+    transaction.save()
+    return tira_host_pb2.Transaction(transactionId=transaction_id)
 
 
 class GrpcClient:
@@ -23,22 +31,27 @@ class GrpcClient:
         self.channel.close()
 
     def vm_create(self, ova_file, vm_id, bulk_id=None):
+        grpc_transaction = new_transaction()
         response = self.stub.vm_create(
-            tira_host_pb2.VmCreate(vmId=vm_id, userId=vm_id, ovaFile=ova_file, bulkCommandId=bulk_id))
+            tira_host_pb2.VmCreate(transaction=grpc_transaction,
+                                   vmId=vm_id, userId=vm_id, ovaFile=ova_file, bulkCommandId=bulk_id))
         return response
 
     def vm_start(self, vm_id):
-        response = self.stub.vm_start(tira_host_pb2.VmId(vmId=vm_id))
+        grpc_transaction = new_transaction()
+        response = self.stub.vm_start(tira_host_pb2.VmId(transaction=grpc_transaction, vmId=vm_id))
         print("VM-Start response: " + str(response.status))
         return response
 
     def vm_stop(self, vm_id):
-        response = self.stub.vm_stop(tira_host_pb2.VmId(vmId=vm_id))
+        grpc_transaction = new_transaction()
+        response = self.stub.vm_stop(tira_host_pb2.VmId(transaction=grpc_transaction, vmId=vm_id))
         print("Client received: " + str(response))
         return response
 
     def vm_shutdown(self, vm_id):
-        response = self.stub.vm_shutdown(tira_host_pb2.VmId(vmId=vm_id))
+        grpc_transaction = new_transaction()
+        response = self.stub.vm_shutdown(tira_host_pb2.VmId(transaction=grpc_transaction, vmId=vm_id))
         print("Client received: " + str(response))
         return response
 
@@ -65,11 +78,14 @@ class GrpcClient:
         :param input_run_run_id: (optional) ID of the additional input (the input run )
         :param optional_parameters: Other parameters the software might expect
         """
+
+        grpc_transaction = new_transaction()
         grpc_run_id = tira_host_pb2.RunId(vmId=vm_id, datasetId=dataset_id, runId=run_id)
         grpc_input_run_id = tira_host_pb2.RunId(vmId=input_run_vm_id, datasetId=input_run_dataset_id,
                                                 runId=input_run_run_id)
 
-        response = self.stub.run_execute(tira_host_pb2.RunDetails(runId=grpc_run_id, workingDir=working_dir,
+        response = self.stub.run_execute(tira_host_pb2.RunDetails(transaction=grpc_transaction,
+                                                                  runId=grpc_run_id, workingDir=working_dir,
                                                                   command=command, inputRunId=grpc_input_run_id,
                                                                   optionalParameters=optional_parameters))
         print("Client received: " + str(response))
@@ -88,17 +104,19 @@ class GrpcClient:
         :param input_run_run_id: ID of the run that should be evaluated
         :param optional_parameters: Other parameters the evaluator might expect
         """
+        grpc_transaction = new_transaction()
         grpc_run_id = tira_host_pb2.RunId(vmId=vm_id, datasetId=dataset_id, runId=run_id)
         grpc_input_run_id = tira_host_pb2.RunId(vmId=input_run_vm_id, datasetId=input_run_dataset_id,
                                                 runId=input_run_run_id)
-        response = self.stub.run_eval(tira_host_pb2.RunDetails(runId=grpc_run_id, workingDir=working_dir,
+        response = self.stub.run_eval(tira_host_pb2.RunDetails(transaction=grpc_transaction,
+                                                               runId=grpc_run_id, workingDir=working_dir,
                                                                command=command, inputRunId=grpc_input_run_id,
                                                                optionalParameters=optional_parameters))
-
         print("Client received: " + str(response))
         return response
 
     def run_abort(self, vm_id):
-        response = self.stub.run_abort(tira_host_pb2.VmId(vmId=vm_id))
+        grpc_transaction = new_transaction()
+        response = self.stub.run_abort(tira_host_pb2.VmId(transaction=grpc_transaction, vmId=vm_id))
         print("Client received: " + str(response))
         return response

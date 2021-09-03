@@ -66,7 +66,7 @@ service TiraApplicationService {
   rpc confirm_vm_delete (VmId) returns (Transaction) {}
   rpc confirm_run_eval (EvaluationResults) returns (Transaction) {}
   // rpc confirm_run_execute (VmState) returns (Transaction) {} // TODO transmit the results of the run that should be displayed on the website (i.e. runDir without output)
-  rpc confirm_transaction (Transaction) returns (Transaction) {}
+  rpc complete_transaction (Transaction) returns (Transaction) {}
 }
 
 enum Status {
