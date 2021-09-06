@@ -89,4 +89,5 @@ class TestGrpcHostClient:
         self.set_state(vm_id, 3, transaction_id)  # set state to powering_on
         sleep(7)
         self.set_state(vm_id, 1, transaction_id)  # set state to running
+        sleep(7)
         self.complete_transaction(transaction_id, message="run execute completed successful")

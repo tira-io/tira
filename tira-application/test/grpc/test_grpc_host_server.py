@@ -87,9 +87,12 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
 
     def vm_list(self, context):
         print(f"received vm-list")
-        response = tira_host_pb2.Transaction()
-        response.status = tira_host_pb2.Status.SUCCESS
-        response.transactionId = str(uuid4())
+
+        response = tira_host_pb2.VmList(transaction=tira_host_pb2.Transaction(
+            status=tira_host_pb2.Status.SUCCESS,
+            message="host received vm-list request",
+            transactionId=str(uuid4())
+        ))
         return response
 
     def vm_sandbox(self, request, context):
@@ -184,7 +187,7 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
 
         response = tira_host_pb2.Transaction()
         response.status = tira_host_pb2.Status.SUCCESS
-        response.transactionId = str(uuid4())
+        response.transactionId = transaction_id
         return response
 
     def run_eval(self, request, context):

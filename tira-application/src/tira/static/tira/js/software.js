@@ -263,6 +263,7 @@ function saveSoftware(taskId, vmId, softwareId) {
 function runSoftware (taskId, vmId, softwareId) {
     // 0. execute save software
     saveSoftware(taskId, vmId, softwareId);
+    setState(0);
     // 1. make ajax call
     $.ajax({
         type: 'POST',

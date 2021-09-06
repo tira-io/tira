@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse, Http404, JsonResponse
 from django.conf import settings
 from django.template.loader import render_to_string
+from django.db.utils import IntegrityError
 import logging
 
 from .grpc_client import GrpcClient
@@ -254,8 +255,12 @@ def admin_add_dataset(request):
 
 def vm_state(request, vm_id):
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
-    state = TransitionLog.objects.get(vm_id=vm_id)
-    return JsonResponse({'state': state.vm_state}, status=HTTPStatus.ACCEPTED)
+    try:
+        state = TransitionLog.objects.get(vm_id=vm_id).vm_state
+    except IntegrityError as e:
+        logger.warning(f"failed to read state for vm {vm_id} with {e}")
+        state = 0
+    return JsonResponse({'state': state}, status=HTTPStatus.ACCEPTED)
 
 
 def vm_running_evaluations(request, vm_id):
@@ -280,8 +285,7 @@ def vm_start(request, vm_id):
     # NOTE vm_id is different from vm.vmName (latter one includes the 01-tira-ubuntu-...
     # when status = 0, the host accepts the transaction. We shift our state to 3 - "powering on"
     if response.status == 0:
-        t = TransitionLog(vm_id=vm_id, vm_state=3)
-        t.save()
+        _ = TransitionLog.objects.update_or_create(vm_id=vm_id, vm_state=3)
         return JsonResponse({'status': response.status, 'message': response.transactionId}, status=HTTPStatus.ACCEPTED)
     return JsonResponse({'status': response.status, 'message': f"{response.transactionId} was rejected by the host"},
                         status=HTTPStatus.INTERNAL_SERVER_ERROR)
@@ -297,6 +301,7 @@ def vm_shutdown(request, vm_id):
 
 def vm_stop(request, vm_id):
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
+
     vm = model.get_vm(vm_id)
     grpc_client = GrpcClient('localhost') if settings.GRPC_HOST == 'local' else GrpcClient(vm.host)
     response = grpc_client.vm_stop(vm.vmName)
@@ -304,13 +309,8 @@ def vm_stop(request, vm_id):
 
 
 def vm_info(request, vm_id):
-    try:
-        check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
-    except Exception as e:
-        logger.exception(f"unauthorized request to /grpc/{vm_id}/vm-info", e)
-        return JsonResponse({'status': 'Rejected', 'message': 'Not Authorized'}, status=HTTPStatus.UNAUTHORIZED)
+    check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
 
-    logger.info(f"get info for {vm_id}")
     vm = model.get_vm(vm_id)
     host = 'localhost' if settings.GRPC_HOST == 'local' else vm.host
     try:
@@ -318,11 +318,10 @@ def vm_info(request, vm_id):
         response_vm_info = grpc_client.vm_info(vm_id)
         del grpc_client
     except Exception as e:
-        logger.exception(f"/grpc/{vm_id}/vm-info to {host} failed with {e}")
+        logger.exception(f"/grpc/{vm_id}/vm-info: connection to {host} failed with {e}")
         return JsonResponse({'status': 'Rejected', 'message': "Server Error"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
-    t = TransitionLog(vm_id=vm_id, vm_state=response_vm_info.state)
-    t.save()
+    _ = TransitionLog.objects.update_or_create(vm_id=vm_id, vm_state=response_vm_info.state)
 
     return JsonResponse({'status': 'Accepted', 'message': {
         "guestOs": response_vm_info.guestOs,
@@ -334,8 +333,7 @@ def vm_info(request, vm_id):
         "sshPortStatus": response_vm_info.sshPortStatus,
         "rdpPortStatus": response_vm_info.rdpPortStatus,
         "state": response_vm_info.state,
-    }
-                         }, status=HTTPStatus.ACCEPTED)
+    }}, status=HTTPStatus.ACCEPTED)
 
 
 # ---------------------------------------------------------------------
@@ -407,6 +405,8 @@ def software_delete(request, task_id, vm_id, software_id):
 
 def run_execute(request, task_id, vm_id, software_id):
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
+    # TODO implement check.vm_state_is()
+    # NOTE we have a check concept where we validate the preconditions when initiating an action (if possible)
 
     vm = model.get_vm(vm_id)
     software = model.get_software(task_id, vm_id, software_id=software_id)
@@ -432,14 +432,11 @@ def run_execute(request, task_id, vm_id, software_id):
         return JsonResponse({'status': 'Rejected', 'message': "Server Error"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
     if response.status == 0:
-        transaction = TransactionLog(transaction_id=response.transactionId, completed=False,
-                                     last_status=str(response.status),
-                                     last_message=response.message)
-        transaction.save()
-        t = EvaluationLog(vm_id=vm_id, run_id=future_run_id, transaction=transaction)
-        t.save()
-        t = TransitionLog(vm_id=vm_id, vm_state=5, transaction_id=response.transactionId)
-        t.save()
+        transaction = TransactionLog.objects.create(transaction_id=response.transactionId,
+                                                    completed=False,
+                                                    last_status=str(response.status),
+                                                    last_message=response.message)
+        _ = TransitionLog.objects.get_or_create(vm_id=vm_id, vm_state=5, transaction=transaction)
 
     return JsonResponse({'status': 'Accepted', 'message': response.message}, status=HTTPStatus.ACCEPTED)
 
@@ -450,6 +447,9 @@ def run_eval(request, vm_id, dataset_id, run_id):
      Then, log vm_id and run_id to the evaluation log as ongoing.
     """
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
+    # check if evaluation already exists
+    if EvaluationLog.objects.filter(vm_id=vm_id, run_id=run_id):
+        return JsonResponse({'status': 'Accepted', 'message': "Evaluation in progress"}, status=HTTPStatus.OK)
 
     evaluator = model.get_evaluator(dataset_id)
 
@@ -471,13 +471,10 @@ def run_eval(request, vm_id, dataset_id, run_id):
         return JsonResponse({'status': 'Rejected', 'message': "Server Error"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
     if response.status == 0:
-        transaction = TransactionLog(transaction_id=response.transactionId, completed=False,
-                                     last_status=str(response.status),
-                                     last_message=response.message)
-        print(transaction)
-        transaction.save()
-        t = EvaluationLog(vm_id=vm_id, run_id=run_id, transaction=transaction)
-        t.save()
+        t = TransactionLog.objects.create(transaction_id=response.transactionId, completed=False,
+                                          last_status=str(response.status),
+                                          last_message=response.message)
+        _ = EvaluationLog.objects.create(vm_id=vm_id, run_id=run_id, running_on=evaluator["vm_id"], transaction=t)
 
     return JsonResponse({'status': 'Accepted', 'message': response.message}, status=HTTPStatus.ACCEPTED)
 
