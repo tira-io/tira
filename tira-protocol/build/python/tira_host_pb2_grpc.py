@@ -43,7 +43,7 @@ class TiraHostServiceStub(object):
         self.vm_list = channel.unary_unary(
                 '/tira.generated.TiraHostService/vm_list',
                 request_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
-                response_deserializer=tira__host__pb2.Transaction.FromString,
+                response_deserializer=tira__host__pb2.VmList.FromString,
                 )
         self.vm_metrics = channel.unary_unary(
                 '/tira.generated.TiraHostService/vm_metrics',
@@ -232,7 +232,7 @@ def add_TiraHostServiceServicer_to_server(servicer, server):
             'vm_list': grpc.unary_unary_rpc_method_handler(
                     servicer.vm_list,
                     request_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
-                    response_serializer=tira__host__pb2.Transaction.SerializeToString,
+                    response_serializer=tira__host__pb2.VmList.SerializeToString,
             ),
             'vm_metrics': grpc.unary_unary_rpc_method_handler(
                     servicer.vm_metrics,
@@ -385,7 +385,7 @@ class TiraHostService(object):
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/tira.generated.TiraHostService/vm_list',
             google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
-            tira__host__pb2.Transaction.FromString,
+            tira__host__pb2.VmList.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 

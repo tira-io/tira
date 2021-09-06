@@ -21,7 +21,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n\"de.webis.tira.client.web.generatedB\020TiraHostMessagesH\001',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x0ftira_host.proto\x12\x0etira.generated\x1a\x1bgoogle/protobuf/empty.proto\"]\n\x0bTransaction\x12&\n\x06status\x18\x01 \x01(\x0e\x32\x16.tira.generated.Status\x12\x15\n\rtransactionId\x18\x02 \x01(\t\x12\x0f\n\x07message\x18\x03 \x01(\t\"F\n\x04VmId\x12\x30\n\x0btransaction\x18\x01 \x01(\x0b\x32\x1b.tira.generated.Transaction\x12\x0c\n\x04vmId\x18\x02 \x01(\t\"\x82\x01\n\x08VmCreate\x12\x30\n\x0btransaction\x18\x01 \x01(\x0b\x32\x1b.tira.generated.Transaction\x12\x0c\n\x04vmId\x18\x02 \x01(\t\x12\x0e\n\x06userId\x18\x03 \x01(\t\x12\x0f\n\x07ovaFile\x18\x04 \x01(\t\x12\x15\n\rbulkCommandId\x18\x05 \x01(\t\"\xb2\x01\n\tVmDetails\x12\x30\n\x0btransaction\x18\x01 \x01(\x0b\x32\x1b.tira.generated.Transaction\x12\x0c\n\x04vmId\x18\x02 \x01(\t\x12\x0e\n\x06userId\x18\x03 \x01(\t\x12\x10\n\x08userName\x18\x04 \x01(\t\x12\x15\n\rinitialUserPw\x18\x05 \x01(\t\x12\n\n\x02ip\x18\x06 \x01(\t\x12\x0f\n\x07sshPort\x18\x07 \x01(\t\x12\x0f\n\x07rdpPort\x18\x08 \x01(\t\"i\n\x05RunId\x12\x30\n\x0btransaction\x18\x01 \x01(\x0b\x32\x1b.tira.generated.Transaction\x12\x0c\n\x04vmId\x18\x02 \x01(\t\x12\x11\n\tdatasetId\x18\x03 \x01(\t\x12\r\n\x05runId\x18\x04 \x01(\t\"\xd0\x01\n\nRunDetails\x12\x30\n\x0btransaction\x18\x01 \x01(\x0b\x32\x1b.tira.generated.Transaction\x12$\n\x05runId\x18\x02 \x01(\x0b\x32\x15.tira.generated.RunId\x12\x12\n\nworkingDir\x18\x03 \x01(\t\x12\x0f\n\x07\x63ommand\x18\x04 \x01(\t\x12)\n\ninputRunId\x18\x05 \x01(\x0b\x32\x15.tira.generated.RunId\x12\x1a\n\x12optionalParameters\x18\x06 \x01(\t\"\xcf\x01\n\x11\x45valuationResults\x12\x30\n\x0btransaction\x18\x01 \x01(\x0b\x32\x1b.tira.generated.Transaction\x12$\n\x05runId\x18\x02 \x01(\x0b\x32\x15.tira.generated.RunId\x12;\n\x08measures\x18\x03 \x03(\x0b\x32).tira.generated.EvaluationResults.Measure\x1a%\n\x07Measure\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\"\xa8\x01\n\x07VmState\x12\x30\n\x0btransaction\x18\x01 \x01(\x0b\x32\x1b.tira.generated.Transaction\x12&\n\x06status\x18\x02 \x01(\x0e\x32\x16.tira.generated.Status\x12$\n\x05state\x18\x03 \x01(\x0e\x32\x15.tira.generated.State\x12\x0c\n\x04vmId\x18\x04 \x01(\t\x12\x0f\n\x07message\x18\x05 \x01(\t\"\xa1\x02\n\x06VmInfo\x12\x30\n\x0btransaction\x18\x01 \x01(\x0b\x32\x1b.tira.generated.Transaction\x12&\n\x06status\x18\x02 \x01(\x0e\x32\x16.tira.generated.Status\x12\x0f\n\x07guestOs\x18\x03 \x01(\t\x12\x12\n\nmemorySize\x18\x04 \x01(\t\x12\x14\n\x0cnumberOfCpus\x18\x05 \x01(\t\x12\x0f\n\x07sshPort\x18\x06 \x01(\t\x12\x0f\n\x07rdpPort\x18\x07 \x01(\t\x12\x0c\n\x04host\x18\x08 \x01(\t\x12\x15\n\rsshPortStatus\x18\t \x01(\x08\x12\x15\n\rrdpPortStatus\x18\n \x01(\x08\x12$\n\x05state\x18\x0b \x01(\x0e\x32\x15.tira.generated.State\"\xd4\x02\n\x0c\x43ommandState\x12\x10\n\x08hostname\x18\x01 \x01(\t\x12\x36\n\x08\x63ommands\x18\x02 \x03(\x0b\x32$.tira.generated.CommandState.Command\x1a\xf9\x01\n\x07\x43ommand\x12\n\n\x02id\x18\x01 \x01(\t\x12\x15\n\rcommandString\x18\x02 \x01(\t\x12\x11\n\tstartTime\x18\x03 \x01(\t\x12\x0f\n\x07\x65ndTime\x18\x04 \x01(\t\x12;\n\x06status\x18\x05 \x01(\x0e\x32+.tira.generated.CommandState.Command.Status\x12\x0f\n\x07logFile\x18\x06 \x01(\t\x12\x12\n\nreturnCode\x18\x07 \x01(\x05\x12\x15\n\rbulkCommandId\x18\x08 \x01(\t\".\n\x06Status\x12\x0b\n\x07RUNNING\x10\x00\x12\x0b\n\x07SUCCESS\x10\x01\x12\n\n\x06\x46\x41ILED\x10\x02*!\n\x06Status\x12\x0b\n\x07SUCCESS\x10\x00\x12\n\n\x06\x46\x41ILED\x10\x01*\x96\x01\n\x05State\x12\r\n\tUNDEFINED\x10\x00\x12\x0b\n\x07RUNNING\x10\x01\x12\x0f\n\x0bPOWERED_OFF\x10\x02\x12\x0f\n\x0bPOWERING_ON\x10\x03\x12\x10\n\x0cPOWERING_OFF\x10\x04\x12\x0e\n\nSANDBOXING\x10\x05\x12\x10\n\x0cUNSANDBOXING\x10\x06\x12\r\n\tEXECUTING\x10\x07\x12\x0c\n\x08\x41RCHIVED\x10\x08\x32\xba\x08\n\x0fTiraHostService\x12@\n\tvm_backup\x12\x14.tira.generated.VmId\x1a\x1b.tira.generated.Transaction\"\x00\x12\x44\n\tvm_create\x12\x18.tira.generated.VmCreate\x1a\x1b.tira.generated.Transaction\"\x00\x12@\n\tvm_delete\x12\x14.tira.generated.VmId\x1a\x1b.tira.generated.Transaction\"\x00\x12\x39\n\x07vm_info\x12\x14.tira.generated.VmId\x1a\x16.tira.generated.VmInfo\"\x00\x12@\n\x07vm_list\x12\x16.google.protobuf.Empty\x1a\x1b.tira.generated.Transaction\"\x00\x12\x41\n\nvm_metrics\x12\x14.tira.generated.VmId\x1a\x1b.tira.generated.Transaction\"\x00\x12\x41\n\nvm_sandbox\x12\x14.tira.generated.VmId\x1a\x1b.tira.generated.Transaction\"\x00\x12\x42\n\x0bvm_shutdown\x12\x14.tira.generated.VmId\x1a\x1b.tira.generated.Transaction\"\x00\x12\x42\n\x0bvm_snapshot\x12\x14.tira.generated.VmId\x1a\x1b.tira.generated.Transaction\"\x00\x12?\n\x08vm_start\x12\x14.tira.generated.VmId\x1a\x1b.tira.generated.Transaction\"\x00\x12>\n\x07vm_stop\x12\x14.tira.generated.VmId\x1a\x1b.tira.generated.Transaction\"\x00\x12\x43\n\x0cvm_unsandbox\x12\x14.tira.generated.VmId\x1a\x1b.tira.generated.Transaction\"\x00\x12H\n\x0brun_execute\x12\x1a.tira.generated.RunDetails\x1a\x1b.tira.generated.Transaction\"\x00\x12@\n\trun_abort\x12\x14.tira.generated.VmId\x1a\x1b.tira.generated.Transaction\"\x00\x12\x45\n\x08run_eval\x12\x1a.tira.generated.RunDetails\x1a\x1b.tira.generated.Transaction\"\x00\x12\x39\n\x05\x61live\x12\x16.google.protobuf.Empty\x1a\x16.google.protobuf.Empty\"\x00\x32\xa0\x03\n\x16TiraApplicationService\x12\x43\n\tset_state\x12\x17.tira.generated.VmState\x1a\x1b.tira.generated.Transaction\"\x00\x12M\n\x11\x63onfirm_vm_create\x12\x19.tira.generated.VmDetails\x1a\x1b.tira.generated.Transaction\"\x00\x12H\n\x11\x63onfirm_vm_delete\x12\x14.tira.generated.VmId\x1a\x1b.tira.generated.Transaction\"\x00\x12T\n\x10\x63onfirm_run_eval\x12!.tira.generated.EvaluationResults\x1a\x1b.tira.generated.Transaction\"\x00\x12R\n\x14\x63omplete_transaction\x12\x1b.tira.generated.Transaction\x1a\x1b.tira.generated.Transaction\"\x00\x42\x38\n\"de.webis.tira.client.web.generatedB\x10TiraHostMessagesH\x01\x62\x06proto3'
+  serialized_pb=b'\n\x0ftira_host.proto\x12\x0etira.generated\x1a\x1bgoogle/protobuf/empty.proto\"]\n\x0bTransaction\x12&\n\x06status\x18\x01 \x01(\x0e\x32\x16.tira.generated.Status\x12\x15\n\rtransactionId\x18\x02 \x01(\t\x12\x0f\n\x07message\x18\x03 \x01(\t\"F\n\x04VmId\x12\x30\n\x0btransaction\x18\x01 \x01(\x0b\x32\x1b.tira.generated.Transaction\x12\x0c\n\x04vmId\x18\x02 \x01(\t\"\x82\x01\n\x08VmCreate\x12\x30\n\x0btransaction\x18\x01 \x01(\x0b\x32\x1b.tira.generated.Transaction\x12\x0c\n\x04vmId\x18\x02 \x01(\t\x12\x0e\n\x06userId\x18\x03 \x01(\t\x12\x0f\n\x07ovaFile\x18\x04 \x01(\t\x12\x15\n\rbulkCommandId\x18\x05 \x01(\t\"\xb2\x01\n\tVmDetails\x12\x30\n\x0btransaction\x18\x01 \x01(\x0b\x32\x1b.tira.generated.Transaction\x12\x0c\n\x04vmId\x18\x02 \x01(\t\x12\x0e\n\x06userId\x18\x03 \x01(\t\x12\x10\n\x08userName\x18\x04 \x01(\t\x12\x15\n\rinitialUserPw\x18\x05 \x01(\t\x12\n\n\x02ip\x18\x06 \x01(\t\x12\x0f\n\x07sshPort\x18\x07 \x01(\t\x12\x0f\n\x07rdpPort\x18\x08 \x01(\t\"h\n\x06VmList\x12\x30\n\x0btransaction\x18\x01 \x01(\x0b\x32\x1b.tira.generated.Transaction\x12,\n\tvmDetails\x18\x02 \x03(\x0b\x32\x19.tira.generated.VmDetails\"i\n\x05RunId\x12\x30\n\x0btransaction\x18\x01 \x01(\x0b\x32\x1b.tira.generated.Transaction\x12\x0c\n\x04vmId\x18\x02 \x01(\t\x12\x11\n\tdatasetId\x18\x03 \x01(\t\x12\r\n\x05runId\x18\x04 \x01(\t\"\xd0\x01\n\nRunDetails\x12\x30\n\x0btransaction\x18\x01 \x01(\x0b\x32\x1b.tira.generated.Transaction\x12$\n\x05runId\x18\x02 \x01(\x0b\x32\x15.tira.generated.RunId\x12\x12\n\nworkingDir\x18\x03 \x01(\t\x12\x0f\n\x07\x63ommand\x18\x04 \x01(\t\x12)\n\ninputRunId\x18\x05 \x01(\x0b\x32\x15.tira.generated.RunId\x12\x1a\n\x12optionalParameters\x18\x06 \x01(\t\"\xcf\x01\n\x11\x45valuationResults\x12\x30\n\x0btransaction\x18\x01 \x01(\x0b\x32\x1b.tira.generated.Transaction\x12$\n\x05runId\x18\x02 \x01(\x0b\x32\x15.tira.generated.RunId\x12;\n\x08measures\x18\x03 \x03(\x0b\x32).tira.generated.EvaluationResults.Measure\x1a%\n\x07Measure\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\"\xa8\x01\n\x07VmState\x12\x30\n\x0btransaction\x18\x01 \x01(\x0b\x32\x1b.tira.generated.Transaction\x12&\n\x06status\x18\x02 \x01(\x0e\x32\x16.tira.generated.Status\x12$\n\x05state\x18\x03 \x01(\x0e\x32\x15.tira.generated.State\x12\x0c\n\x04vmId\x18\x04 \x01(\t\x12\x0f\n\x07message\x18\x05 \x01(\t\"\xa1\x02\n\x06VmInfo\x12\x30\n\x0btransaction\x18\x01 \x01(\x0b\x32\x1b.tira.generated.Transaction\x12&\n\x06status\x18\x02 \x01(\x0e\x32\x16.tira.generated.Status\x12\x0f\n\x07guestOs\x18\x03 \x01(\t\x12\x12\n\nmemorySize\x18\x04 \x01(\t\x12\x14\n\x0cnumberOfCpus\x18\x05 \x01(\t\x12\x0f\n\x07sshPort\x18\x06 \x01(\t\x12\x0f\n\x07rdpPort\x18\x07 \x01(\t\x12\x0c\n\x04host\x18\x08 \x01(\t\x12\x15\n\rsshPortStatus\x18\t \x01(\x08\x12\x15\n\rrdpPortStatus\x18\n \x01(\x08\x12$\n\x05state\x18\x0b \x01(\x0e\x32\x15.tira.generated.State\"\xd4\x02\n\x0c\x43ommandState\x12\x10\n\x08hostname\x18\x01 \x01(\t\x12\x36\n\x08\x63ommands\x18\x02 \x03(\x0b\x32$.tira.generated.CommandState.Command\x1a\xf9\x01\n\x07\x43ommand\x12\n\n\x02id\x18\x01 \x01(\t\x12\x15\n\rcommandString\x18\x02 \x01(\t\x12\x11\n\tstartTime\x18\x03 \x01(\t\x12\x0f\n\x07\x65ndTime\x18\x04 \x01(\t\x12;\n\x06status\x18\x05 \x01(\x0e\x32+.tira.generated.CommandState.Command.Status\x12\x0f\n\x07logFile\x18\x06 \x01(\t\x12\x12\n\nreturnCode\x18\x07 \x01(\x05\x12\x15\n\rbulkCommandId\x18\x08 \x01(\t\".\n\x06Status\x12\x0b\n\x07RUNNING\x10\x00\x12\x0b\n\x07SUCCESS\x10\x01\x12\n\n\x06\x46\x41ILED\x10\x02*!\n\x06Status\x12\x0b\n\x07SUCCESS\x10\x00\x12\n\n\x06\x46\x41ILED\x10\x01*\x96\x01\n\x05State\x12\r\n\tUNDEFINED\x10\x00\x12\x0b\n\x07RUNNING\x10\x01\x12\x0f\n\x0bPOWERED_OFF\x10\x02\x12\x0f\n\x0bPOWERING_ON\x10\x03\x12\x10\n\x0cPOWERING_OFF\x10\x04\x12\x0e\n\nSANDBOXING\x10\x05\x12\x10\n\x0cUNSANDBOXING\x10\x06\x12\r\n\tEXECUTING\x10\x07\x12\x0c\n\x08\x41RCHIVED\x10\x08\x32\xb5\x08\n\x0fTiraHostService\x12@\n\tvm_backup\x12\x14.tira.generated.VmId\x1a\x1b.tira.generated.Transaction\"\x00\x12\x44\n\tvm_create\x12\x18.tira.generated.VmCreate\x1a\x1b.tira.generated.Transaction\"\x00\x12@\n\tvm_delete\x12\x14.tira.generated.VmId\x1a\x1b.tira.generated.Transaction\"\x00\x12\x39\n\x07vm_info\x12\x14.tira.generated.VmId\x1a\x16.tira.generated.VmInfo\"\x00\x12;\n\x07vm_list\x12\x16.google.protobuf.Empty\x1a\x16.tira.generated.VmList\"\x00\x12\x41\n\nvm_metrics\x12\x14.tira.generated.VmId\x1a\x1b.tira.generated.Transaction\"\x00\x12\x41\n\nvm_sandbox\x12\x14.tira.generated.VmId\x1a\x1b.tira.generated.Transaction\"\x00\x12\x42\n\x0bvm_shutdown\x12\x14.tira.generated.VmId\x1a\x1b.tira.generated.Transaction\"\x00\x12\x42\n\x0bvm_snapshot\x12\x14.tira.generated.VmId\x1a\x1b.tira.generated.Transaction\"\x00\x12?\n\x08vm_start\x12\x14.tira.generated.VmId\x1a\x1b.tira.generated.Transaction\"\x00\x12>\n\x07vm_stop\x12\x14.tira.generated.VmId\x1a\x1b.tira.generated.Transaction\"\x00\x12\x43\n\x0cvm_unsandbox\x12\x14.tira.generated.VmId\x1a\x1b.tira.generated.Transaction\"\x00\x12H\n\x0brun_execute\x12\x1a.tira.generated.RunDetails\x1a\x1b.tira.generated.Transaction\"\x00\x12@\n\trun_abort\x12\x14.tira.generated.VmId\x1a\x1b.tira.generated.Transaction\"\x00\x12\x45\n\x08run_eval\x12\x1a.tira.generated.RunDetails\x1a\x1b.tira.generated.Transaction\"\x00\x12\x39\n\x05\x61live\x12\x16.google.protobuf.Empty\x1a\x16.google.protobuf.Empty\"\x00\x32\xa0\x03\n\x16TiraApplicationService\x12\x43\n\tset_state\x12\x17.tira.generated.VmState\x1a\x1b.tira.generated.Transaction\"\x00\x12M\n\x11\x63onfirm_vm_create\x12\x19.tira.generated.VmDetails\x1a\x1b.tira.generated.Transaction\"\x00\x12H\n\x11\x63onfirm_vm_delete\x12\x14.tira.generated.VmId\x1a\x1b.tira.generated.Transaction\"\x00\x12T\n\x10\x63onfirm_run_eval\x12!.tira.generated.EvaluationResults\x1a\x1b.tira.generated.Transaction\"\x00\x12R\n\x14\x63omplete_transaction\x12\x1b.tira.generated.Transaction\x1a\x1b.tira.generated.Transaction\"\x00\x42\x38\n\"de.webis.tira.client.web.generatedB\x10TiraHostMessagesH\x01\x62\x06proto3'
   ,
   dependencies=[google_dot_protobuf_dot_empty__pb2.DESCRIPTOR,])
 
@@ -45,8 +45,8 @@ _STATUS = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1879,
-  serialized_end=1912,
+  serialized_start=1985,
+  serialized_end=2018,
 )
 _sym_db.RegisterEnumDescriptor(_STATUS)
 
@@ -106,8 +106,8 @@ _STATE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1915,
-  serialized_end=2065,
+  serialized_start=2021,
+  serialized_end=2171,
 )
 _sym_db.RegisterEnumDescriptor(_STATE)
 
@@ -150,8 +150,8 @@ _COMMANDSTATE_COMMAND_STATUS = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1831,
-  serialized_end=1877,
+  serialized_start=1937,
+  serialized_end=1983,
 )
 _sym_db.RegisterEnumDescriptor(_COMMANDSTATE_COMMAND_STATUS)
 
@@ -382,6 +382,45 @@ _VMDETAILS = _descriptor.Descriptor(
 )
 
 
+_VMLIST = _descriptor.Descriptor(
+  name='VmList',
+  full_name='tira.generated.VmList',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='transaction', full_name='tira.generated.VmList.transaction', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='vmDetails', full_name='tira.generated.VmList.vmDetails', index=1,
+      number=2, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=545,
+  serialized_end=649,
+)
+
+
 _RUNID = _descriptor.Descriptor(
   name='RunId',
   full_name='tira.generated.RunId',
@@ -430,8 +469,8 @@ _RUNID = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=545,
-  serialized_end=650,
+  serialized_start=651,
+  serialized_end=756,
 )
 
 
@@ -497,8 +536,8 @@ _RUNDETAILS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=653,
-  serialized_end=861,
+  serialized_start=759,
+  serialized_end=967,
 )
 
 
@@ -536,8 +575,8 @@ _EVALUATIONRESULTS_MEASURE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1034,
-  serialized_end=1071,
+  serialized_start=1140,
+  serialized_end=1177,
 )
 
 _EVALUATIONRESULTS = _descriptor.Descriptor(
@@ -581,8 +620,8 @@ _EVALUATIONRESULTS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=864,
-  serialized_end=1071,
+  serialized_start=970,
+  serialized_end=1177,
 )
 
 
@@ -641,8 +680,8 @@ _VMSTATE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1074,
-  serialized_end=1242,
+  serialized_start=1180,
+  serialized_end=1348,
 )
 
 
@@ -743,8 +782,8 @@ _VMINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1245,
-  serialized_end=1534,
+  serialized_start=1351,
+  serialized_end=1640,
 )
 
 
@@ -825,8 +864,8 @@ _COMMANDSTATE_COMMAND = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1628,
-  serialized_end=1877,
+  serialized_start=1734,
+  serialized_end=1983,
 )
 
 _COMMANDSTATE = _descriptor.Descriptor(
@@ -863,14 +902,16 @@ _COMMANDSTATE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1537,
-  serialized_end=1877,
+  serialized_start=1643,
+  serialized_end=1983,
 )
 
 _TRANSACTION.fields_by_name['status'].enum_type = _STATUS
 _VMID.fields_by_name['transaction'].message_type = _TRANSACTION
 _VMCREATE.fields_by_name['transaction'].message_type = _TRANSACTION
 _VMDETAILS.fields_by_name['transaction'].message_type = _TRANSACTION
+_VMLIST.fields_by_name['transaction'].message_type = _TRANSACTION
+_VMLIST.fields_by_name['vmDetails'].message_type = _VMDETAILS
 _RUNID.fields_by_name['transaction'].message_type = _TRANSACTION
 _RUNDETAILS.fields_by_name['transaction'].message_type = _TRANSACTION
 _RUNDETAILS.fields_by_name['runId'].message_type = _RUNID
@@ -893,6 +934,7 @@ DESCRIPTOR.message_types_by_name['Transaction'] = _TRANSACTION
 DESCRIPTOR.message_types_by_name['VmId'] = _VMID
 DESCRIPTOR.message_types_by_name['VmCreate'] = _VMCREATE
 DESCRIPTOR.message_types_by_name['VmDetails'] = _VMDETAILS
+DESCRIPTOR.message_types_by_name['VmList'] = _VMLIST
 DESCRIPTOR.message_types_by_name['RunId'] = _RUNID
 DESCRIPTOR.message_types_by_name['RunDetails'] = _RUNDETAILS
 DESCRIPTOR.message_types_by_name['EvaluationResults'] = _EVALUATIONRESULTS
@@ -930,6 +972,13 @@ VmDetails = _reflection.GeneratedProtocolMessageType('VmDetails', (_message.Mess
   # @@protoc_insertion_point(class_scope:tira.generated.VmDetails)
   })
 _sym_db.RegisterMessage(VmDetails)
+
+VmList = _reflection.GeneratedProtocolMessageType('VmList', (_message.Message,), {
+  'DESCRIPTOR' : _VMLIST,
+  '__module__' : 'tira_host_pb2'
+  # @@protoc_insertion_point(class_scope:tira.generated.VmList)
+  })
+_sym_db.RegisterMessage(VmList)
 
 RunId = _reflection.GeneratedProtocolMessageType('RunId', (_message.Message,), {
   'DESCRIPTOR' : _RUNID,
@@ -999,8 +1048,8 @@ _TIRAHOSTSERVICE = _descriptor.ServiceDescriptor(
   index=0,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=2068,
-  serialized_end=3150,
+  serialized_start=2174,
+  serialized_end=3251,
   methods=[
   _descriptor.MethodDescriptor(
     name='vm_backup',
@@ -1048,7 +1097,7 @@ _TIRAHOSTSERVICE = _descriptor.ServiceDescriptor(
     index=4,
     containing_service=None,
     input_type=google_dot_protobuf_dot_empty__pb2._EMPTY,
-    output_type=_TRANSACTION,
+    output_type=_VMLIST,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,
   ),
@@ -1175,8 +1224,8 @@ _TIRAAPPLICATIONSERVICE = _descriptor.ServiceDescriptor(
   index=1,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=3153,
-  serialized_end=3569,
+  serialized_start=3254,
+  serialized_end=3670,
   methods=[
   _descriptor.MethodDescriptor(
     name='set_state',

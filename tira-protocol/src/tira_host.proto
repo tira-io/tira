@@ -46,7 +46,7 @@ service TiraHostService {
   rpc vm_create (VmCreate) returns (Transaction) {}
   rpc vm_delete (VmId) returns (Transaction) {}
   rpc vm_info (VmId) returns (VmInfo) {}
-  rpc vm_list (google.protobuf.Empty) returns (Transaction) {}
+  rpc vm_list (google.protobuf.Empty) returns (VmList) {}
   rpc vm_metrics (VmId) returns (Transaction) {}
   rpc vm_sandbox (VmId) returns (Transaction) {}
   rpc vm_shutdown (VmId) returns (Transaction) {}
@@ -118,6 +118,11 @@ message VmDetails {
   string rdpPort = 8;
   // string adminName = 9; // TODO I've taken them out. The idea here is that only the host knows the admin pass and uses this to execute the software.
   // string adminPw = 10;
+}
+
+message VmList {
+  Transaction transaction = 1;
+  repeated VmDetails vmDetails = 2;
 }
 
 message RunId {
