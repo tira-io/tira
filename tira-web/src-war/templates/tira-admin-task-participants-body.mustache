@@ -45,15 +45,15 @@
 <script charset="utf-8">
     initWebisTableFiltering(document.querySelectorAll(".targetable"), true, entry => {
         const attributes = entry.dataset;
-        attributes['user'] = normalize(entry.children[1].textContent);
+        attributes['user'] = normalize(entry.children[0].textContent);
         attributes['signedIn'] = normalize(entry.children[1].textContent);
-        attributes['softwares'] = normalize(entry.children[1].textContent);
-        attributes['deleted'] = normalize(entry.children[1].textContent);
-        attributes['nowRunning'] = normalize(entry.children[1].textContent);
-        attributes['runs'] = normalize(entry.children[1].textContent);
-        attributes['reviewed'] = normalize(entry.children[1].textContent);
-        attributes['unreviewed'] = normalize(entry.children[1].textContent);
-        attributes['actions'] = normalize(entry.children[1].textContent);
+        attributes['softwares'] = normalize(entry.children[2].textContent);
+        attributes['deleted'] = normalize(entry.children[3].textContent);
+        attributes['nowRunning'] = normalize(entry.children[4].textContent);
+        attributes['runs'] = normalize(entry.children[5].textContent);
+        attributes['reviewed'] = normalize(entry.children[6].textContent);
+        attributes['unreviewed'] = normalize(entry.children[7].textContent);
+        attributes['actions'] = normalize(entry.children[8].textContent);
         return attributes;
     });
     initTableSorting();
