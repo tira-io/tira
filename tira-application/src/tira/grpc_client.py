@@ -37,11 +37,13 @@ class GrpcClient:
     def __del__(self):
         self.channel.close()
 
-    def vm_create(self, ova_file, vm_id):
+    def vm_create(self, ova_file, vm_id, user_id, hostname):
+        """ TODO test and comment """
         grpc_transaction = new_transaction(f"initialized vm create of {vm_id}")
+
         response = self.stub.vm_create(
             tira_host_pb2.VmCreate(transaction=grpc_transaction,
-                                   vmId=vm_id, userId=vm_id, ovaFile=ova_file, bulkCommandId=bulk_id))
+                                   vmId=vm_id, userId=user_id, ovaFile=ova_file, host=hostname))
         logger.debug("Application received vm-create response: " + str(response.message))
         return response
 
