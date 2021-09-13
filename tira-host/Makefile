@@ -35,7 +35,7 @@ run-tira-docker-dev: build-tira-docker
 		-v /dev/vboxnetadp:/dev/vboxnetadp \
 		-v /dev/vboxpci:/dev/vboxpci \
 		-v /dev/vboxnetctl:/dev/vboxnetctl \
-		-v /mnt/nfs/tira:/mnt/nfs/tira \
+		-v /mnt/ceph/tira:/mnt/nfs/tira \
 		-v ${PWD}/src:/tira \
 		-v ${PWD}/src/tira_scripts:/usr/lib/tira \
 		--name="tira-host-dev" \
