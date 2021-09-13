@@ -14,8 +14,8 @@
       <div class="panel-heading">
         <h3 class="panel-title"><span class="glyphicon glyphicon-folder-close"></span> Evaluations on <em>{{> tira-widget-dataset-name-body}}</em></h3>
       </div>
-      <div class="table-responsive" style="overflow:auto;">
-        <table id="runs-table-{{dataset}}" class="evaluation-table table table-condensed table-hover">
+      <div class="table-responsive webis-data-table" style="overflow:auto;">
+        <table id="runs-table-{{dataset}}" class="evaluation-table table table-condensed table-hover targetable sortable">
           <thead>
             <tr>
               <th class="sort-desc">User&nbsp;</th>
@@ -172,6 +172,27 @@
     </div>
   </div>
 </div><!-- /.row -->
+<script charset="utf-8">
+    initWebisTableFiltering(document.querySelectorAll(".targetable"), true, entry => {
+        {{#isReviewer}}
+        var isRev = 1;
+        {{/isReviewer}}
+        const attributes = entry.dataset;
+        attributes['user'] = normalize(entry.children[0].textContent);
+        {{#isReviewer}}
+        attributes['actions'] = normalize(entry.children[1].textContent);
+        {{/isReviewer}}
+        attributes['software'] = normalize(entry.children[1 + isRev].textContent);
+        attributes['run'] = normalize(entry.children[2 + isRev].textContent);
+        attributes['inputRun'] = normalize(entry.children[3 + isRev].textContent);
+        {{#measureKeysList}}
+        attributes['{{.}}'] = normalize(entry.children[4 + {{@index}} + isRev].textContent);
+        {{/measureKeysList}}
+        attributes['runtime'] = normalize(entry.children[4 + measureKeysList.length + isRev].textContent);
+        return attributes;
+    });
+    initTableSorting();
+</script>
 {{/evaluatorRunsList}}
 {{/hasEvaluatorRuns}}
 {{^hasEvaluatorRuns}}

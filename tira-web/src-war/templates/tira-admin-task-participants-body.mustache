@@ -4,8 +4,8 @@
       <div class="panel-heading">
         <h3 class="panel-title"><span class="glyphicon glyphicon-user"></span> Participants in <em>{{task.taskName}}</em></h3>
       </div>
-      <div class="table-responsive" style="overflow:auto;">
-        <table id="users-table" class="users-table table table-condensed table-hover">
+      <div class="table-responsive webis-data-table" style="overflow:auto;">
+        <table id="users-table" class="users-table table table-condensed table-hover targetable sortable">
           <thead>
             <tr>
               <th class="sort-asc">User&nbsp;</th>
@@ -42,3 +42,19 @@
     </div>
   </div>
 </div><!-- /.row -->
+<script charset="utf-8">
+    initWebisTableFiltering(document.querySelectorAll(".targetable"), true, entry => {
+        const attributes = entry.dataset;
+        attributes['user'] = normalize(entry.children[1].textContent);
+        attributes['signedIn'] = normalize(entry.children[1].textContent);
+        attributes['softwares'] = normalize(entry.children[1].textContent);
+        attributes['deleted'] = normalize(entry.children[1].textContent);
+        attributes['nowRunning'] = normalize(entry.children[1].textContent);
+        attributes['runs'] = normalize(entry.children[1].textContent);
+        attributes['reviewed'] = normalize(entry.children[1].textContent);
+        attributes['unreviewed'] = normalize(entry.children[1].textContent);
+        attributes['actions'] = normalize(entry.children[1].textContent);
+        return attributes;
+    });
+    initTableSorting();
+</script>

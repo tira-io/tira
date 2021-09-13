@@ -5,8 +5,8 @@
       <div class="panel-heading">
         <h3 class="panel-title"><span class="glyphicon glyphicon-folder-close"></span> Runs of <em>{{user.userName}}</em> on <em>{{> tira-widget-dataset-name-body}}</em></h3>
       </div>
-      <div class="table-responsive" style="overflow:auto;">
-        <table id="runs-table-{{dataset}}" class="runs-table table table-condensed table-hover">
+      <div class="table-responsive webis-data-table" style="overflow:auto;">
+        <table id="runs-table-{{dataset}}" class="runs-table table table-condensed table-hover targetable sortable">
           <thead>
             <tr>
               <th>Software&nbsp;</th>
@@ -117,4 +117,20 @@
     </div>
   </div>
 </div><!-- /.row -->
+<script charset="utf-8">
+    initWebisTableFiltering(document.querySelectorAll(".targetable"), true, entry => {
+        const attributes = entry.dataset;
+        attributes['software'] = normalize(entry.children[0].textContent);
+        attributes['run'] = normalize(entry.children[1].textContent);
+        attributes['inputRun'] = normalize(entry.children[2].textContent);
+        attributes['size'] = normalize(entry.children[3].textContent);
+        attributes['lines'] = normalize(entry.children[4].textContent);
+        attributes['files'] = normalize(entry.children[5].textContent);
+        attributes['dirs'] = normalize(entry.children[6].textContent);
+        attributes['review'] = normalize(entry.children[7].textContent);
+        attributes['actions'] = normalize(entry.children[8].textContent);
+        return attributes;
+    });
+    initTableSorting();
+</script>
 {{/userDatasetRunsList}}
