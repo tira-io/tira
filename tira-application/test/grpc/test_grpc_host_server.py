@@ -24,11 +24,20 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         return response
 
     def vm_create(self, request, context):
-        print(f"received vm-create for {request.ovaFile} - {request.vmId} - {request.bulkCommandId}")
-        response = tira_host_pb2.Transaction()
-        response.status = tira_host_pb2.Status.SUCCESS
-        response.transactionId = str(uuid4())
-        return response
+        print(f"received vm-create for {request.ovaFile} - {request.vmId} - {request.userName} "
+              f"- {request.ip} - {request.host}")
+
+        test_host_client = TestGrpcHostClient()
+        t = Thread(target=test_host_client.confirm_vm_create,
+                   args=(request.vmId, tira_host_pb2.State.RUNNING, request.transaction.transactionId))
+        t.start()
+        t = Thread(target=test_host_client.set_state, args=(request.runId.vmId, 1,
+                                                            request.transaction.transaction_id, 14))
+        t.start()
+
+        return tira_host_pb2.Transaction(status=tira_host_pb2.Status.SUCCESS,
+                                         transactionId=request.transaction.transactionId,
+                                         message="received vm_create request")
 
     def vm_delete(self, request, context):
         print(f"received vm-delete for {request.vmId}")

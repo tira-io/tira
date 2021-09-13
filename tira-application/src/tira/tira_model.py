@@ -13,57 +13,9 @@ from shutil import rmtree
 
 from .proto import TiraClientWebMessages_pb2 as modelpb
 from .proto import tira_host_pb2 as model_host
+from .util import auto_reviewer
 
 logger = logging.getLogger("tira")
-
-
-def auto_reviewer(review_path, run_id):
-    """ Do standard checks for reviews so we do not need to wait for a reviewer to check for:
-     - failed runs (
-     """
-    review_file = review_path / "run-review.bin"
-    review = modelpb.RunReview()
-
-    if review_file.exists():  # TODO this will throw if the file is corrupt. Let it throw to not overwrite files.
-        try:
-            review.ParseFromString(open(review_file, "rb").read())
-            return review
-        except Exception as e:
-            logger.exception(f"review file: {review_file} exists but is corrupted with {e}")
-            raise FileExistsError(f"review file: {review_file} exists but is corrupted with {e}")
-
-    review.reviewerId = 'tira'
-    review.reviewDate = str(datetime.utcnow())
-    review.hasWarnings = False
-    review.hasErrors = False
-    review.hasNoErrors = False
-    review.blinded = True
-    review.runId = run_id
-
-    try:
-        if not (review_path / "run.bin").exists():  # No Run file
-            review.comment = "Internal Error: No run definition recorded. Please contact the support."
-            review.hasErrors = True
-            review.hasNoErrors = False
-            review.blinded = False
-
-        if not (review_path / "output").exists():  # No Output directory
-            review.comment = "No Output was produced"
-            review.hasErrors = True
-            review.hasNoErrors = False
-            review.blinded = True
-            review.missingOutput = True
-            review.hasErrorOutput = True
-
-    except Exception as e:
-        review_path.mkdir(parents=True, exist_ok=True)
-        review.reviewerId = 'tira'
-        review.comment = f"Internal Error: {e}. Please contact the support."
-        review.hasErrors = True
-        review.hasNoErrors = False
-        review.blinded = False
-
-    return review
 
 
 class FileDatabase(object):
@@ -588,6 +540,24 @@ class FileDatabase(object):
     # add methods to add new data to the model
     # ------------------------------------------------------------
 
+    def add_vm(self, vm_id, user_name, initial_user_password, ip, host, ssh, rdp):
+        """ Add a new task to the database.
+        This will not overwrite existing files and instead do nothing and return false
+        """
+        new_vm = modelpb.VirtualMachine()
+        new_vm.virtualMachineId = vm_id
+        new_vm.vmId = vm_id
+        new_vm.vmName = vm_id
+        new_vm.host = host
+        new_vm.adminName = 'admin'  # Note these are required but deprecated
+        new_vm.adminPw = 'admin'  # Note these are required but deprecated
+        new_vm.userName = user_name
+        new_vm.userPw = initial_user_password
+        new_vm.ip = ip
+        new_vm.portSsh = ssh
+        new_vm.portRdp = rdp
+        return self._save_vm(new_vm)
+
     def create_task(self, task_id, task_name, task_description, master_vm_id, organizer, website):
         """ Add a new task to the database.
          CAUTION: This function does not do any sanity checks and will OVERWRITE existing tasks """
@@ -819,3 +789,6 @@ class FileDatabase(object):
             if command.id == command_id:
                 return MessageToDict(command)
         return None
+
+
+model = FileDatabase()

@@ -5,7 +5,7 @@ import logging
 
 from .grpc_client import GrpcClient
 from .grpc_server import serve
-from .tira_model import FileDatabase
+from .tira_model import model
 from .tira_data import get_run_runtime, get_run_file_list, get_stderr, get_stdout, get_tira_log
 from .authentication import Authentication
 from .checks import Check
@@ -16,7 +16,6 @@ from datetime import datetime as dt
 import os
 import zipfile
 
-model = FileDatabase()
 
 include_navigation = True if settings.DEPLOYMENT == "legacy" else False
 auth = Authentication(authentication_source=settings.DEPLOYMENT,

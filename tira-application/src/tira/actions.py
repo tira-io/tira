@@ -17,11 +17,10 @@ from django.http import HttpResponse, Http404, JsonResponse
 from django.conf import settings
 import uuid
 from http import HTTPStatus
+
 from .transitions import TransitionLog, EvaluationLog, TransactionLog
-
 from .grpc_client import GrpcClient
-
-from .views import model
+from .tira_model import model
 from .util import get_tira_id
 
 include_navigation = True if settings.DEPLOYMENT == "legacy" else False
@@ -78,7 +77,7 @@ def admin_reload_data(request):
         return HttpResponse("Success!")
 
 
-def admin_create_vm(request):
+def admin_create_vm(request):  # TODO implement
     """ Hook for create_vm posts. Responds with json objects indicating the state of the create process. """
     check.has_access(request, ["tira", "admin"])
 
@@ -86,39 +85,35 @@ def admin_create_vm(request):
         "complete": [],
         'failed': []
     }
-
-    def parse_create_string(create_string: str):
-        for line in create_string.split("\n"):
-            line = line.split(",")
-            yield line[0], line[1], line[2]
-
-    if request.method == "POST":
-        form = CreateVmForm(request.POST)
-        if form.is_valid():
-            try:
-                bulk_create = list(parse_create_string(form.cleaned_data["bulk_create"]))
-            except IndexError:
-                context["create_vm_form_error"] = "Error Parsing input. Are all lines complete?"
-                return JsonResponse(context)
-
-            # TODO dummy code talk to Nikolay!
-            # TODO check semantics downstream (vm exists, host/ova does not exist)
-            # for create_command in parse_create_string(form.cleaned_data["bulk_create"]):
-            #     if create_vm(*create_command):
-            #         model.add_ongoing_execution(*create_command)
-            return bulk_vm_create(request, bulk_create)
-            # context['bulkCommandId'] = bulk_id
-        else:
-            context["create_vm_form_error"] = "Form Invalid (check formatting)"
-            return JsonResponse(context)
-    else:
-        HttpResponse("Permission Denied")
-
     return JsonResponse(context)
 
-
-def admin_get_command_queue():
-    return get_bulk_command_status()
+    # def parse_create_string(create_string: str):
+    #     for line in create_string.split("\n"):
+    #         line = line.split(",")
+    #         yield line[0], line[1], line[2]
+    #
+    # if request.method == "POST":
+    #     form = CreateVmForm(request.POST)
+    #     if form.is_valid():
+    #         try:
+    #             bulk_create = list(parse_create_string(form.cleaned_data["bulk_create"]))
+    #         except IndexError:
+    #             context["create_vm_form_error"] = "Error Parsing input. Are all lines complete?"
+    #             return JsonResponse(context)
+    #
+    #         # TODO dummy code talk to Nikolay!
+    #         # TODO check semantics downstream (vm exists, host/ova does not exist)
+    #         # for create_command in parse_create_string(form.cleaned_data["bulk_create"]):
+    #         #     if create_vm(*create_command):
+    #         #         model.add_ongoing_execution(*create_command)
+    #         return bulk_vm_create(request, bulk_create)
+    #     else:
+    #         context["create_vm_form_error"] = "Form Invalid (check formatting)"
+    #         return JsonResponse(context)
+    # else:
+    #     HttpResponse("Permission Denied")
+    #
+    # return JsonResponse(context)
 
 
 def admin_archive_vm():
@@ -265,14 +260,17 @@ def vm_state(request, vm_id):
 
 def vm_running_evaluations(request, vm_id):
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
+
     results = EvaluationLog.objects.filter(vm_id=vm_id)
     return JsonResponse({'running_evaluations': True if results else False}, status=HTTPStatus.ACCEPTED)
 
 
-def vm_create(request, hostname, vm_id, ova_file, bulk_id=None):
+def vm_create(request, hostname, vm_id, ova_file):
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
+    uid = auth.get_user_id(request)
     grpc_client = GrpcClient('localhost') if settings.GRPC_HOST == 'local' else GrpcClient(hostname)
-    response = grpc_client.vm_create(ova_file, vm_id, bulk_id)
+
+    response = grpc_client.vm_create(ova_file, vm_id, uid, hostname)
     return JsonResponse({'status': response.status, 'message': response.transactionId}, status=HTTPStatus.ACCEPTED)
 
 
@@ -508,25 +506,25 @@ def run_abort(request, vm_id):
 # ---------------------------------------------------------------------
 
 
-def command_status(request, command_id):
-    command = model.get_command(command_id)
-    if not command:
-        return JsonResponse({"status": 'NOT_FOUND'}, status=HTTPStatus.NOT_FOUND)
-
-    return JsonResponse({"status": 'OK', 'message': {'command': MessageToDict(command)}}, status=HTTPStatus.OK)
-
-
-def bulk_vm_create(request, vm_list):
-    check.has_access(request, ["tira", "admin"])
-
-    bulk_id = uuid.uuid4().hex
-    for host, vm_id, ova_id in vm_list:
-        vm_create(request, host, vm_id, ova_id, bulk_id=bulk_id)
-
-    return JsonResponse({'status': 'Accepted', 'message': {'bulkCommandId': bulk_id}}, status=HTTPStatus.ACCEPTED)
-    # return bulk_id
-
-
-def get_bulk_command_status(request, bulk_id):
-    commands = model.get_commands_bulk(bulk_id)
-    return JsonResponse({'status': 'OK', 'message': {'commands': commands}}, status=HTTPStatus.OK)
+# def command_status(request, command_id):
+#     command = model.get_command(command_id)
+#     if not command:
+#         return JsonResponse({"status": 'NOT_FOUND'}, status=HTTPStatus.NOT_FOUND)
+#
+#     return JsonResponse({"status": 'OK', 'message': {'command': MessageToDict(command)}}, status=HTTPStatus.OK)
+#
+#
+# def bulk_vm_create(request, vm_list):
+#     check.has_access(request, ["tira", "admin"])
+#
+#     bulk_id = uuid.uuid4().hex
+#     for host, vm_id, ova_id in vm_list:
+#         vm_create(request, host, vm_id, ova_id, bulk_id=bulk_id)
+#
+#     return JsonResponse({'status': 'Accepted', 'message': {'bulkCommandId': bulk_id}}, status=HTTPStatus.ACCEPTED)
+#     # return bulk_id
+#
+#
+# def get_bulk_command_status(request, bulk_id):
+#     commands = model.get_commands_bulk(bulk_id)
+#     return JsonResponse({'status': 'OK', 'message': {'commands': commands}}, status=HTTPStatus.OK)

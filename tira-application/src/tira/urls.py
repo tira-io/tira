@@ -22,8 +22,6 @@ urlpatterns = [
     path('task/<str:task_id>/vm/<str:vm_id>/software_add', actions.software_add, name='software_add'),
     path('task/<str:task_id>/vm/<str:vm_id>/software_save/<str:software_id>', actions.software_save, name='software_save'),
     path('task/<str:task_id>/vm/<str:vm_id>/software_delete/<str:software_id>', actions.software_delete, name='software_delete'),
-    path('command_status/<str:command_id>', actions.command_status, name="command_status"),
-    path('bulk_command_status/<str:bulk_id>', actions.get_bulk_command_status, name="get_bulk_command_status"),
 
     path('grpc/<str:vm_id>/vm_info', actions.vm_info, name='vm_info'),
     path('grpc/<str:vm_id>/vm_state', actions.vm_state, name='vm_state'),

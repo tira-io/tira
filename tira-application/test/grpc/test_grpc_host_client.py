@@ -20,24 +20,30 @@ class TestGrpcHostClient:
          this means, we tell the application that the vm now changed it's state to vm_state """
         sleep(slp)
         response = self.stub.set_state(
-            tira_host_pb2.VmState(status=tira_host_pb2.Status.SUCCESS, state=vm_state, vmId=vm_id))
+            tira_host_pb2.VmState(transaction=tira_host_pb2.Transaction(status=tira_host_pb2.Status.SUCCESS,
+                                                                        transactionId=transaction_id,
+                                                                        message=f"Set state to {vm_state}"),
+                                  state=vm_state, vmId=vm_id))
         print(f"host-client: set_state response was: {response}")
         return response
 
     # TODO transactionId
-    def confirm_vm_create(self, vm_id, user_name, user_pw, ip, ssh, rdp, slp=7):
+    def confirm_vm_create(self, vm_id, user_name, user_pw, ip, host, ssh, rdp, transaction_id, slp=7):
         """ Wait for :param slp: seconds, then call the set_state method of the applications server,
          this means, we tell the application that the vm now changed it's state to vm_state """
         sleep(slp)
 
         response = self.stub.confirm_vm_create(
-            tira_host_pb2.VmDetails(vmId=vm_id, userId=vm_id, userName=user_name, initialUserPw=user_pw,
-                                    ip=ip, sshPort=ssh, rdpPort=rdp))
+            tira_host_pb2.VmDetails(transaction=tira_host_pb2.Transaction(status=tira_host_pb2.Status.SUCCESS,
+                                                                          transactionId=transaction_id,
+                                                                          message=f"Created VM"),
+                                    vmId=vm_id, userName=user_name, initialUserPw=user_pw,
+                                    ip=ip, host=host, sshPort=ssh, rdpPort=rdp))
         print(f"host-client: confirm_vm_create response was: {response}")
         return response
 
     # TODO transactionId
-    def confirm_vm_delete(self, vm_id, user_name, user_pw, ip, ssh, rdp, slp=7):
+    def confirm_vm_delete(self, vm_id, user_name, user_pw, ip, ssh, rdp, transaction_id, slp=7):
         """ Wait for :param slp: seconds, then call the set_state method of the applications server,
          this means, we tell the application that the vm now changed it's state to vm_state """
         sleep(slp)

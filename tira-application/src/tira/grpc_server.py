@@ -2,9 +2,10 @@ from django.conf import settings
 from concurrent import futures
 import grpc
 import logging
+
 from .proto import tira_host_pb2, tira_host_pb2_grpc
 from .transitions import TransitionLog, EvaluationLog, TransactionLog
-from uuid import uuid4
+from .tira_model import model
 
 grpc_port = settings.APPLICATION_GRPC_PORT
 
@@ -13,6 +14,7 @@ logger = logging.getLogger("tira")
 
 class TiraApplicationService(tira_host_pb2_grpc.TiraApplicationService):
     def set_state(self, request, context):
+        """ TODO error handling """
         logger.debug(f" Application Server received vm-state {request.state} for {request.vmId}")
 
         _ = TransitionLog.objects.create(vm_id=request.vmId, vm_state=request.state)
@@ -37,11 +39,24 @@ class TiraApplicationService(tira_host_pb2_grpc.TiraApplicationService):
     def confirm_vm_create(self, request, context):
         """ This gets called if a vm was successfully created. Right now it just says 'yes' when called.
         See tira_host.proto for request specification.
-        TODO this should add the new VM to the model in the future.
         """
         logger.debug(f" Application Server received vm-create confirmation with \n"
                      f"{request.vmID}, {request.userName}, {request.initialUserPw}, {request.ip}, {request.sshPort}, "
                      f"{request.rdpPort}")
+
+        _ = TransactionLog.objects.filter(transaction_id=request.transaction.transactionId).update(
+            completed=False,
+            last_status=str(request.transaction.status),
+            last_message=request.transaction.message)
+
+        if request.transaction.status == tira_host_pb2.Status.SUCCESS:
+            model.add_vm(request.vmId, request.userName, request.initialUserPw,
+                         request.ip, request.host, request.sshPort, request.rdpPort)
+
+        else:
+            logger.error("Application received confirm_vm_create with status Failed:\n"
+                         f"{request.vmID}, {request.userName}, {request.initialUserPw}, {request.ip}, "
+                         f"{request.sshPort}, {request.rdpPort}")
 
         return tira_host_pb2.Transaction(status=tira_host_pb2.Status.SUCCESS,
                                          message="Application accepted vm create confirmation",
