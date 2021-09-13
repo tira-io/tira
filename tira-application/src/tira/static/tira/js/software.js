@@ -139,8 +139,13 @@ function pollRunningSoftware(vmid) {
             url: `/grpc/${vmid}/vm_state`,
             data: {},
             success: function (data) {
-                if (isSoftwareRunningState(data.state)){
-                    pollingSoftware=true;
+                if (isTransitionState(data.state)){
+                    console.log(data.state);
+                    if (isSoftwareRunningState(data.state)){
+                        pollingSoftware=true;
+                    }
+                    setState(0);
+                    setState(data.state);
                     pollRunningSoftware(vmid);
                 } else {
                     // Note: It's easiest to reload the page here instead of adding the runs to the table via JS.
@@ -159,7 +164,7 @@ function pollRunningEvaluations(vmid) {
             url: `/grpc/${vmid}/vm_running_evaluations`,
             data: {},
             success: function (data) {
-                if (data.runningEvaluations === true ){
+                if (data.running_evaluations === true ){
                     pollingEvaluation=true;
                     pollRunningEvaluations(vmid);
                 } else {
@@ -258,10 +263,11 @@ function saveSoftware(taskId, vmId, softwareId) {
 function runSoftware (taskId, vmId, softwareId) {
     // 0. execute save software
     saveSoftware(taskId, vmId, softwareId);
+    setState(0);
     // 1. make ajax call
     $.ajax({
         type: 'POST',
-        url: `/grpc/${taskId}/${vmId}/run-execute/${softwareId}`,
+        url: `/grpc/${taskId}/${vmId}/run_execute/${softwareId}`,
         headers: {
             'X-CSRFToken': $('input[name=csrfmiddlewaretoken]').val()
         },
@@ -270,6 +276,7 @@ function runSoftware (taskId, vmId, softwareId) {
             action: 'post'
         },
         success: function (data) {
+            console.log('starting to run software')
             pollRunningSoftware(vmId)
         },
         error: function () {
@@ -435,13 +442,12 @@ function setState(state_id) {
         enableButton('vm-stop-button', 'uk-button-danger')
     } else if (state_id === 5) {
         $('#vm-state-sandboxing').show();
-        enableButton('vm-stop-button', 'uk-button-danger')
+        enableButton('vm-abort-run-button', 'uk-button-danger')
     } else if (state_id === 6) {
         $('#vm-state-unsandboxing').show();
-        enableButton('vm-stop-button', 'uk-button-danger')
+        enableButton('vm-abort-run-button', 'uk-button-danger')
     } else if (state_id === 7) {
         $('#vm-state-sandboxed').show();
-        enableButton('vm-stop-button', 'uk-button-danger')
         enableButton('vm-abort-run-button', 'uk-button-danger')
     } else if (state_id === 8) {
         $('#vm-state-archived').show();
@@ -458,7 +464,6 @@ function setState(state_id) {
         disableButton('vm-stop-button');
         disableButton('vm-abort-run-button');
         disableButton('software-run-button');
-
     }
 }
 

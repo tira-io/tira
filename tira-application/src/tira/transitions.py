@@ -23,15 +23,31 @@ def _validate_transition_state(value):
         raise ValidationError('%(value)s is not a transition state', params={'value': value})
 
 
+class TransactionLog(models.Model):
+    transaction_id = models.CharField(max_length=280, primary_key=True)
+    completed = models.BooleanField()
+    last_update = models.DateTimeField(auto_now=True)
+    last_status = models.CharField(max_length=50)
+    last_message = models.CharField(max_length=500)
+
+
 class TransitionLog(models.Model):
     vm_id = models.CharField(max_length=280, primary_key=True)
     # tracks the state of vms that are not in a stable state.
     vm_state = models.IntegerField(validators=[_validate_transition_state])
+    transaction = models.ForeignKey(TransactionLog, on_delete=models.SET_NULL, null=True)
+    last_update = models.DateTimeField(auto_now=True)
 
 
 class EvaluationLog(models.Model):
     vm_id = models.CharField(max_length=280)
     run_id = models.CharField(max_length=280)
+    running_on = models.CharField(max_length=280)  # the vm_id of the master vm for the dataset that is evaluated on
+    transaction = models.ForeignKey(TransactionLog, on_delete=models.SET_NULL, null=True)
+    last_update = models.DateTimeField(auto_now=True)
 
     class Meta:
         unique_together = (("vm_id", "run_id"),)
+
+
+

@@ -4,6 +4,7 @@ from concurrent import futures
 import grpc
 import sys
 from time import sleep
+from uuid import uuid4
 from threading import Thread
 
 sys.path.append('../../src/tira')
@@ -19,21 +20,21 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         print(f"received vm-backup for {request.vmId}")
         response = tira_host_pb2.Transaction()
         response.status = tira_host_pb2.Status.SUCCESS
-        response.transactionId = "12345"
+        response.transactionId = str(uuid4())
         return response
 
     def vm_create(self, request, context):
         print(f"received vm-create for {request.ovaFile} - {request.vmId} - {request.bulkCommandId}")
         response = tira_host_pb2.Transaction()
         response.status = tira_host_pb2.Status.SUCCESS
-        response.transactionId = "12345"
+        response.transactionId = str(uuid4())
         return response
 
     def vm_delete(self, request, context):
         print(f"received vm-delete for {request.vmId}")
         response = tira_host_pb2.Transaction()
         response.status = tira_host_pb2.Status.SUCCESS
-        response.transactionId = "12345"
+        response.transactionId = str(uuid4())
         return response
 
     def vm_info(self, request, context):
@@ -86,16 +87,19 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
 
     def vm_list(self, context):
         print(f"received vm-list")
-        response = tira_host_pb2.Transaction()
-        response.status = tira_host_pb2.Status.SUCCESS
-        response.transactionId = "12345"
+
+        response = tira_host_pb2.VmList(transaction=tira_host_pb2.Transaction(
+            status=tira_host_pb2.Status.SUCCESS,
+            message="host received vm-list request",
+            transactionId=str(uuid4())
+        ))
         return response
 
     def vm_sandbox(self, request, context):
         print(f"received vm-sandbox for {request.vmId}")
         response = tira_host_pb2.Transaction()
         response.status = tira_host_pb2.Status.SUCCESS
-        response.transactionId = "12345"
+        response.transactionId = str(uuid4())
         return response
 
     def vm_shutdown(self, request, context):
@@ -103,20 +107,21 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         response = tira_host_pb2.Transaction()
         if STATE.get('status') == "running":
             test_host_client = TestGrpcHostClient()
-            t = Thread(target=test_host_client.set_state, args=(request.vmId, tira_host_pb2.State.POWERED_OFF))
+            t = Thread(target=test_host_client.set_state, args=(request.vmId, tira_host_pb2.State.POWERED_OFF,
+                                                                request.transaction.transactionId))
             t.start()
             response.status = tira_host_pb2.Status.SUCCESS
             STATE['status'] = 'stopped'
         else:
             response.status = tira_host_pb2.Status.FAILED
-        response.transactionId = "12345"
+        response.transactionId = str(uuid4())
         return response
 
     def vm_snapshot(self, request, context):
         print(f"received vm-snapshot for {request.vmId}")
         response = tira_host_pb2.Transaction()
         response.status = tira_host_pb2.Status.FAILED
-        response.transactionId = "12345"
+        response.transactionId = str(uuid4())
         return response
 
     def vm_start(self, request, context):
@@ -124,7 +129,8 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         response = tira_host_pb2.Transaction()
         if STATE.get('status') == "stopped":
             test_host_client = TestGrpcHostClient()
-            t = Thread(target=test_host_client.set_state, args=(request.vmId, tira_host_pb2.State.RUNNING))
+            t = Thread(target=test_host_client.set_state,
+                       args=(request.vmId, tira_host_pb2.State.RUNNING, request.transaction.transactionId))
             t.start()
             STATE['status'] = 'running'  # Only works in the mockup server. Should be 'powering_on' in live.
             response.status = tira_host_pb2.Status.SUCCESS
@@ -141,28 +147,65 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
             STATE['status'] = 'stopped'
         else:
             response.status = tira_host_pb2.Status.FAILED
-        response.transactionId = "12345"
+        response.transactionId = str(uuid4())
         return response
 
     def vm_unsandbox(self, request, context):
         print(f"received vm-unsandbox for {request.vmId}")
         response = tira_host_pb2.Transaction()
         response.status = tira_host_pb2.Status.SUCCESS
-        response.transactionId = "12345"
+        response.transactionId = str(uuid4())
         return response
 
     def run_execute(self, request, context):
-        print(f"received run-execute for {request.submissionFile} - {request.inputDatasetName} - {request.inputRunPath} - {request.outputDirName} - {request.sandboxed} - {request.runId} - {request.snapshotName} - {request.optionalParameters}")
+        """ Here we pretend to do all actions involved in running and executing the software:
+         - shutdown, sandbox, execute, unsandbox, power_on
+         But we sleep instead. Afterwards, we notify the application that the transaction was complete.
+         """
+        print(f"received run-execute for {request.runId.runId} - {request.runId.datasetId} - {request.runId.vmId} - "
+              f"{request.inputRunId.runId} - {request.inputRunId.datasetId} - {request.inputRunId.vmId} - "
+              f"{request.workingDir} - {request.command}")
+
+        transaction_id = request.transaction.transactionId
+        test_host_client = TestGrpcHostClient()
+
+        t = Thread(target=test_host_client.set_state, args=(request.runId.vmId, 4, transaction_id, 7))
+        t.start()
+        t = Thread(target=test_host_client.set_state, args=(request.runId.vmId, 5, transaction_id, 14))
+        t.start()
+        t = Thread(target=test_host_client.set_state, args=(request.runId.vmId, 7, transaction_id, 21))
+        t.start()
+        t = Thread(target=test_host_client.set_state, args=(request.runId.vmId, 6, transaction_id, 28))
+        t.start()
+        t = Thread(target=test_host_client.set_state, args=(request.runId.vmId, 3, transaction_id, 35))
+        t.start()
+        t = Thread(target=test_host_client.set_state, args=(request.runId.vmId, 1, transaction_id, 42))
+        t.start()
+        t = Thread(target=test_host_client.complete_transaction, args=(transaction_id,
+                                                                       "run execute completed successful", 49))
+        t.start()
+
         response = tira_host_pb2.Transaction()
         response.status = tira_host_pb2.Status.SUCCESS
-        response.transactionId = "12345"
+        response.transactionId = transaction_id
         return response
 
     def run_eval(self, request, context):
-        print(f"received run-eval for {request.submissionFile} - {request.inputDatasetName} - {request.inputRunPath} - {request.outputDirName} - {request.sandboxed} - {request.runId} - {request.snapshotName} - {request.optionalParameters}")
+        print(f"received run-eval for {request.runId.runId} - {request.runId.datasetId} - {request.runId.vmId} - "
+              f"{request.inputRunId.runId} - {request.inputRunId.datasetId} - {request.inputRunId.vmId} - "
+              f"{request.workingDir} - {request.command}")
+        transaction_id = request.transaction.transactionId
+        # Here we do the job in a new thread. This Dummy job just sleeps and then notifies the application
+        test_host_client = TestGrpcHostClient()
+        t = Thread(target=test_host_client.confirm_run_eval, args=(request.inputRunId.vmId,
+                                                                   request.inputRunId.datasetId,
+                                                                   request.inputRunId.runId,
+                                                                   transaction_id))
+        t.start()
+
         response = tira_host_pb2.Transaction()
         response.status = tira_host_pb2.Status.SUCCESS
-        response.transactionId = "12345"
+        response.transactionId = transaction_id
         return response
 
 

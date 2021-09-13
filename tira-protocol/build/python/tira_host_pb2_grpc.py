@@ -43,7 +43,7 @@ class TiraHostServiceStub(object):
         self.vm_list = channel.unary_unary(
                 '/tira.generated.TiraHostService/vm_list',
                 request_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
-                response_deserializer=tira__host__pb2.Transaction.FromString,
+                response_deserializer=tira__host__pb2.VmList.FromString,
                 )
         self.vm_metrics = channel.unary_unary(
                 '/tira.generated.TiraHostService/vm_metrics',
@@ -232,7 +232,7 @@ def add_TiraHostServiceServicer_to_server(servicer, server):
             'vm_list': grpc.unary_unary_rpc_method_handler(
                     servicer.vm_list,
                     request_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
-                    response_serializer=tira__host__pb2.Transaction.SerializeToString,
+                    response_serializer=tira__host__pb2.VmList.SerializeToString,
             ),
             'vm_metrics': grpc.unary_unary_rpc_method_handler(
                     servicer.vm_metrics,
@@ -385,7 +385,7 @@ class TiraHostService(object):
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/tira.generated.TiraHostService/vm_list',
             google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
-            tira__host__pb2.Transaction.FromString,
+            tira__host__pb2.VmList.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -606,8 +606,8 @@ class TiraApplicationServiceStub(object):
                 request_serializer=tira__host__pb2.EvaluationResults.SerializeToString,
                 response_deserializer=tira__host__pb2.Transaction.FromString,
                 )
-        self.confirm_transaction = channel.unary_unary(
-                '/tira.generated.TiraApplicationService/confirm_transaction',
+        self.complete_transaction = channel.unary_unary(
+                '/tira.generated.TiraApplicationService/complete_transaction',
                 request_serializer=tira__host__pb2.Transaction.SerializeToString,
                 response_deserializer=tira__host__pb2.Transaction.FromString,
                 )
@@ -640,7 +640,7 @@ class TiraApplicationServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def confirm_transaction(self, request, context):
+    def complete_transaction(self, request, context):
         """rpc confirm_run_execute (VmState) returns (Transaction) {} // TODO transmit the results of the run that should be displayed on the website (i.e. runDir without output)
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -670,8 +670,8 @@ def add_TiraApplicationServiceServicer_to_server(servicer, server):
                     request_deserializer=tira__host__pb2.EvaluationResults.FromString,
                     response_serializer=tira__host__pb2.Transaction.SerializeToString,
             ),
-            'confirm_transaction': grpc.unary_unary_rpc_method_handler(
-                    servicer.confirm_transaction,
+            'complete_transaction': grpc.unary_unary_rpc_method_handler(
+                    servicer.complete_transaction,
                     request_deserializer=tira__host__pb2.Transaction.FromString,
                     response_serializer=tira__host__pb2.Transaction.SerializeToString,
             ),
@@ -754,7 +754,7 @@ class TiraApplicationService(object):
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
-    def confirm_transaction(request,
+    def complete_transaction(request,
             target,
             options=(),
             channel_credentials=None,
@@ -764,7 +764,7 @@ class TiraApplicationService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/tira.generated.TiraApplicationService/confirm_transaction',
+        return grpc.experimental.unary_unary(request, target, '/tira.generated.TiraApplicationService/complete_transaction',
             tira__host__pb2.Transaction.SerializeToString,
             tira__host__pb2.Transaction.FromString,
             options, channel_credentials,

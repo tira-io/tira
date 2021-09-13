@@ -46,7 +46,7 @@ service TiraHostService {
   rpc vm_create (VmCreate) returns (Transaction) {}
   rpc vm_delete (VmId) returns (Transaction) {}
   rpc vm_info (VmId) returns (VmInfo) {}
-  rpc vm_list (google.protobuf.Empty) returns (Transaction) {}
+  rpc vm_list (google.protobuf.Empty) returns (VmList) {}
   rpc vm_metrics (VmId) returns (Transaction) {}
   rpc vm_sandbox (VmId) returns (Transaction) {}
   rpc vm_shutdown (VmId) returns (Transaction) {}
@@ -66,7 +66,7 @@ service TiraApplicationService {
   rpc confirm_vm_delete (VmId) returns (Transaction) {}
   rpc confirm_run_eval (EvaluationResults) returns (Transaction) {}
   // rpc confirm_run_execute (VmState) returns (Transaction) {} // TODO transmit the results of the run that should be displayed on the website (i.e. runDir without output)
-  rpc confirm_transaction (Transaction) returns (Transaction) {}
+  rpc complete_transaction (Transaction) returns (Transaction) {}
 }
 
 enum Status {
@@ -86,47 +86,63 @@ enum State {
     ARCHIVED = 8;
 }
 
+message Transaction {
+  Status status = 1;
+  string transactionId = 2;
+  string message = 3;
+}
+
 // NOTE: replaces RequestVmCreate and RequestVmCommands from previous versions. TODO should be called VmId
 message VmId {
-  string vmId = 1;
+  Transaction transaction = 1;
+  string vmId = 2;
 }
 
 // TODO : Who determines the vmUserName and vmUserPassword? I would say the Host, so these should be part of the response
 message VmCreate {
-  string vmId = 1;
-  string userId = 2;  // TODO userName? Identical to vmId?
-  string ovaFile = 3;
-  string bulkCommandId = 4;
+  Transaction transaction = 1;
+  string vmId = 2;
+  string userId = 3;  // TODO userName? Identical to vmId?
+  string ovaFile = 4;
+  string bulkCommandId = 5;
 }
 
 message VmDetails {
-  string vmId = 1;
-  string userId = 2;  // TODO Identical to vmId?
-  string userName = 3;
-  string initialUserPw = 4;  // TODO see this as initial password. Hosts may refuse to include this here.
-  string ip = 5;
-  string sshPort = 6;
-  string rdpPort = 7;
-  // string adminName = 8; // TODO I've taken them out. The idea here is that only the host knows the admin pass and uses this to execute the software.
-  // string adminPw = 9;
+  Transaction transaction = 1;
+  string vmId = 2;
+  string userId = 3;  // TODO Identical to vmId?
+  string userName = 4;
+  string initialUserPw = 5;  // TODO see this as initial password. Hosts may refuse to include this here.
+  string ip = 6;
+  string sshPort = 7;
+  string rdpPort = 8;
+  // string adminName = 9; // TODO I've taken them out. The idea here is that only the host knows the admin pass and uses this to execute the software.
+  // string adminPw = 10;
+}
+
+message VmList {
+  Transaction transaction = 1;
+  repeated VmDetails vmDetails = 2;
 }
 
 message RunId {
-  string vmId = 1;
-  string datasetId = 2;
-  string runId = 3;
+  Transaction transaction = 1;
+  string vmId = 2;
+  string datasetId = 3;
+  string runId = 4;
 }
 
 // TODO again, when telling the host to execute a software, it needs to know how to connect to it, hence we only need to submit the software details.
 message RunDetails {
-  RunId runId = 1;
-  string workingDir = 2;
-  string command = 3;
-  RunId inputRunId = 4;
-  string optionalParameters = 5;
-  // string outputDirName = 6;  // Host must determine this
-  // string sandboxed = 7;  // Note sure how this makes sense
-  // string snapshotName = 8; // Note sure if this still makes sense
+  Transaction transaction = 1;
+  RunId runId = 2;
+  string workingDir = 3;
+  string command = 4;
+  RunId inputRunId = 5;
+  string optionalParameters = 6;
+  // string outputDirName = 7;  // Host must determine this
+  // string sandboxed = 8;  // Note sure how this makes sense
+  // string snapshotName = 9; // Note sure if this still makes sense
 }
 
 message EvaluationResults {
@@ -134,34 +150,31 @@ message EvaluationResults {
     string key   = 1;
     string value = 2;
   }
-  RunId runId = 1;
-  repeated Measure measures = 2;
-}
-
-message Transaction {
-  Status status = 1;
-  string transactionId = 2;
-  string message = 3;
+  Transaction transaction = 1;
+  RunId runId = 2;
+  repeated Measure measures = 3;
 }
 
 message VmState {
-  Status status = 1;
-  State state = 2;
-  string vmId = 3;
-  string message = 4;
+  Transaction transaction = 1;
+  Status status = 2;
+  State state = 3;
+  string vmId = 4;
+  string message = 5;
 }
 
 message VmInfo {
-  Status status = 1;
-  string guestOs = 2;
-  string memorySize = 3;
-  string numberOfCpus = 4;
-  string sshPort = 5;
-  string rdpPort = 6;
-  string host = 7;
-  bool sshPortStatus = 8;
-  bool rdpPortStatus = 9;
-  State state = 10;
+  Transaction transaction = 1;
+  Status status = 2;
+  string guestOs = 3;
+  string memorySize = 4;
+  string numberOfCpus = 5;
+  string sshPort = 6;
+  string rdpPort = 7;
+  string host = 8;
+  bool sshPortStatus = 9;
+  bool rdpPortStatus = 10;
+  State state = 11;
 }
 
 message CommandState {
