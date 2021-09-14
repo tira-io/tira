@@ -1,7 +1,0 @@
-taskId:     "sample-task"
-taskName:   "Sample-Task"
-taskDescription:   "Dummy task description"
-trainingDataset: "sample-dataset-of-task"
-virtualMachineId: "vm-master"
-hostId: "ir-lecture"
-web: "https://webis.de"

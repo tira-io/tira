@@ -1,11 +1,6 @@
-#		-v /home/tira:/home/tira \
-# -v $PWD/src:/usr/lib/tira \
-
 VENV_NAME?=venv
 VENV_ACTIVATE=. $(VENV_NAME)/bin/activate
 PYTHON=${VENV_NAME}/bin/python3
-PROTO_INPUT_PATH=../tira-protocol/src
-PROTO_OUT_PATH=src/tira_host/proto
 VERSION=0.0.2
 VBOXVERSION=6.1.16
 TIRA_PASSWORD=tira
@@ -40,7 +35,7 @@ run-tira-docker-dev: build-tira-docker
 		-v /dev/vboxnetadp:/dev/vboxnetadp \
 		-v /dev/vboxpci:/dev/vboxpci \
 		-v /dev/vboxnetctl:/dev/vboxnetctl \
-		-v /mnt/nfs/tira:/mnt/nfs/tira \
+		-v /mnt/ceph/tira:/mnt/nfs/tira \
 		-v ${PWD}/src:/tira \
 		-v ${PWD}/src/tira_scripts:/usr/lib/tira \
 		--name="tira-host-dev" \
@@ -58,11 +53,6 @@ build-tira-docker:
 export-tira-image:
 	docker build -t tira-io/tira-host:$(VERSION) --build-arg TIRA_PASSWORD=$(TIRA_PASSWORD) --build-arg VBOXVERSION=$(VBOXVERSION) -f build/Dockerfile .
 	sudo docker save tira-io/tira-host:$(VERSION) -o /mnt/ceph/tira/data/tira-dockerized-host-images/tira-io-tira-host-$(VERSION).tar
-
-compile-protobuf: venv
-	${PYTHON} -m grpc_tools.protoc -I=$(PROTO_INPUT_PATH) --python_out=$(PROTO_OUT_PATH) --grpc_python_out=$(PROTO_OUT_PATH) tira_host.proto
-	sed -i 's/import tira_host_pb2 as tira__host__pb2/from proto import tira_host_pb2 as tira__host__pb2/g' $(PROTO_OUT_PATH)/tira_host_pb2_grpc.py
-	touch $(PROTO_OUT_PATH)/__init__.py
 
 clean:
 	rm -r $(VENV_NAME)
