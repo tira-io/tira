@@ -1,5 +1,6 @@
 <script type="text/javascript">
 $(document).ready(function() {
+    setTimeout(() => {
     if (!$.fn.dataTable.isDataTable('#users-table')) {
         $('#users-table').dataTable({
             "bPaginate": false,
@@ -16,7 +17,7 @@ $(document).ready(function() {
         // TODO: Replace the fixed index with a column name once possible in a newer version of data tables.
         "aaSorting": [[ "0", "asc" ]]
         });
-    }
+    }}, 500);
 });
 </script>
 <script type="text/javascript">
