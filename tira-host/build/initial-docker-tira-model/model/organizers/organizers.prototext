@@ -1,6 +1,0 @@
-hosts {
-  hostId: "dummy-host-id"
-  name:   "Dummy-Host-Id"
-  years:  "2019"
-  web:    "webis.de"
-}
