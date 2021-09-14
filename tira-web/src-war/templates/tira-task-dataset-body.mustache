@@ -18,17 +18,18 @@
         <table id="runs-table-{{dataset}}" class="evaluation-table table table-condensed table-hover targetable sortable">
           <thead>
             <tr>
-              <th class="sort-desc">User&nbsp;</th>
+              <th></th>
+              <th class="sort-desc header">User&nbsp;</th>
               {{#isReviewer}}
               <th class="no-sort">Actions</th>
               {{/isReviewer}}
-              <th>Software&nbsp;</th>
-              <th>Run&nbsp;</th>
-              <th>Input run&nbsp;</th>
+              <th class="header">Software&nbsp;</th>
+              <th class="header">Run&nbsp;</th>
+              <th class="header">Input run&nbsp;</th>
               {{#measureKeysList}}
-              <th>{{.}}&nbsp;</th>
+              <th class="header">{{.}}&nbsp;</th>
               {{/measureKeysList}}
-              <th>Runtime&nbsp;</th>
+              <th class="header">Runtime&nbsp;</th>
             </tr>
           </thead>
           <tbody>
@@ -185,10 +186,10 @@
         attributes['software'] = normalize(entry.children[1 + isRev].textContent);
         attributes['run'] = normalize(entry.children[2 + isRev].textContent);
         attributes['inputRun'] = normalize(entry.children[3 + isRev].textContent);
-        {{#measureKeysList}}
-        attributes['{{.}}'] = normalize(entry.children[4 + {{@index}} + isRev].textContent);
+        {{#measureKeysList:i}}
+        attributes['measure{{i}}'] = normalize(entry.children[4 + {{i}} + isRev].textContent);
         {{/measureKeysList}}
-        attributes['runtime'] = normalize(entry.children[4 + measureKeysList.length + isRev].textContent);
+        attributes['runtime'] = normalize(entry.children[4 + {{measureKeysList.length}} + isRev].textContent);
         return attributes;
     });
     initTableSorting();

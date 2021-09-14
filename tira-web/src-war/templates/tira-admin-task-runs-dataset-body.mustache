@@ -10,15 +10,16 @@
         <table id="runs-table-{{dataset}}" class="runs-table table table-condensed table-hover sortable targetable">
           <thead>
             <tr>
-              <th>User&nbsp;</th>
-              <th>Software&nbsp;</th>
-              <th class="sort-desc">Run&nbsp;</th>
-              <th>Input run&nbsp;</th>
-              <th>Size&nbsp;</th>
-              <th>Lines&nbsp;</th>
-              <th>Files&nbsp;</th>
-              <th>Dirs&nbsp;</th>
-              <th>Review&nbsp;</th>
+              <th></th>
+              <th class="header">User&nbsp;</th>
+              <th class="header">Software&nbsp;</th>
+              <th class="sort-desc header">Run&nbsp;</th>
+              <th class="header">Input run&nbsp;</th>
+              <th class="header">Size&nbsp;</th>
+              <th class="header">Lines&nbsp;</th>
+              <th class="header">Files&nbsp;</th>
+              <th class="header">Dirs&nbsp;</th>
+              <th class="header">Review&nbsp;</th>
               <th class="no-sort">Actions</th>
             </tr>
           </thead>
@@ -53,6 +54,7 @@
             <tr>
             {{/isRunning}}
             {{/hasReview}}
+              <td></td>
               <td style="white-space:nowrap;">{{user.userName}}</td>
               <td data-order="{{softwareId}}" {{#softwareDeprecated}}title="deprecated"{{/softwareDeprecated}}>{{> tira-widget-software-name-body}}</td>
               <td data-order="{{runId}}" style="white-space:nowrap;" {{#isDeprecated}}title="deprecated"{{/isDeprecated}}>{{> tira-widget-run-name-body}}</td>
@@ -132,16 +134,16 @@
 <script charset="utf-8">
     initWebisTableFiltering(document.querySelectorAll(".targetable"), true, entry => {
         const attributes = entry.dataset;
-        attributes['user'] = normalize(entry.children[0].textContent);
-        attributes['software'] = normalize(entry.children[1].textContent);
-        attributes['run'] = normalize(entry.children[2].textContent);
-        attributes['inputRun'] = normalize(entry.children[3].textContent);
-        attributes['size'] = normalize(entry.children[4].textContent);
-        attributes['lines'] = normalize(entry.children[5].textContent);
-        attributes['files'] = normalize(entry.children[6].textContent);
-        attributes['dirs'] = normalize(entry.children[7].textContent);
-        attributes['review'] = normalize(entry.children[8].textContent);
-        attributes['actions'] = normalize(entry.children[9].textContent);
+        attributes['user'] = normalize(entry.children[1].textContent);
+        attributes['software'] = normalize(entry.children[2].textContent);
+        attributes['run'] = normalize(entry.children[3].textContent);
+        attributes['inputRun'] = normalize(entry.children[4].textContent);
+        attributes['size'] = normalize(entry.children[5].textContent);
+        attributes['lines'] = normalize(entry.children[6].textContent);
+        attributes['files'] = normalize(entry.children[7].textContent);
+        attributes['dirs'] = normalize(entry.children[8].textContent);
+        attributes['review'] = normalize(entry.children[9].textContent);
+        attributes['actions'] = normalize(entry.children[10].textContent);
         return attributes;
     });
     initTableSorting();

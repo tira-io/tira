@@ -8,20 +8,22 @@
         <table id="users-table" class="users-table table table-condensed table-hover targetable sortable">
           <thead>
             <tr>
-              <th class="sort-asc">User&nbsp;</th>
-              <th>Signed in&nbsp;</th>
-              <th>Softwares&nbsp;</th>
-              <th>Deleted&nbsp;</th>
-              <th>Now Running&nbsp;</th>
-              <th>Runs&nbsp;</th>
-              <th>Reviewed&nbsp;</th>
-              <th>Unreviewed&nbsp;</th>
+              <th></th>
+              <th class="sort-asc header">User&nbsp;</th>
+              <th class="header">Signed in&nbsp;</th>
+              <th class="header">Softwares&nbsp;</th>
+              <th class="header">Deleted&nbsp;</th>
+              <th class="header">Now Running&nbsp;</th>
+              <th class="header">Runs&nbsp;</th>
+              <th class="header">Reviewed&nbsp;</th>
+              <th class="header">Unreviewed&nbsp;</th>
               <th class="no-sort">Actions</th>
             </tr>
           </thead>
           <tbody>
             {{#taskUsersList}}
             <tr>
+              <td></td>
               <td style="white-space:nowrap;"><img src="{{user.gravatarUrl}}" /> {{user.userName}}</td>
               <td style="white-space:nowrap;">{{#userSignedIn}}yes{{/userSignedIn}}{{^userSignedIn}}no{{/userSignedIn}}</td>
               <td style="white-space:nowrap;">{{softwares}}</td>
@@ -45,15 +47,15 @@
 <script charset="utf-8">
     initWebisTableFiltering(document.querySelectorAll(".targetable"), true, entry => {
         const attributes = entry.dataset;
-        attributes['user'] = normalize(entry.children[0].textContent);
-        attributes['signedIn'] = normalize(entry.children[1].textContent);
-        attributes['softwares'] = normalize(entry.children[2].textContent);
-        attributes['deleted'] = normalize(entry.children[3].textContent);
-        attributes['nowRunning'] = normalize(entry.children[4].textContent);
-        attributes['runs'] = normalize(entry.children[5].textContent);
-        attributes['reviewed'] = normalize(entry.children[6].textContent);
-        attributes['unreviewed'] = normalize(entry.children[7].textContent);
-        attributes['actions'] = normalize(entry.children[8].textContent);
+        attributes['user'] = normalize(entry.children[1].textContent);
+        attributes['signedIn'] = normalize(entry.children[2].textContent);
+        attributes['softwares'] = normalize(entry.children[3].textContent);
+        attributes['deleted'] = normalize(entry.children[4].textContent);
+        attributes['nowRunning'] = normalize(entry.children[5].textContent);
+        attributes['runs'] = normalize(entry.children[6].textContent);
+        attributes['reviewed'] = normalize(entry.children[7].textContent);
+        attributes['unreviewed'] = normalize(entry.children[8].textContent);
+        attributes['actions'] = normalize(entry.children[9].textContent);
         return attributes;
     });
     initTableSorting();

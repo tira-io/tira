@@ -10,13 +10,14 @@
         <table id="runs-table-{{dataset}}" class="evaluation-table table table-condensed table-hover targetable sortable">
           <thead>
             <tr>
-              <th class="sort-desc">User&nbsp;</th>
+              <th></th>
+              <th class="sort-desc header">User&nbsp;</th>
               <th class="no-sort">Actions</th>
-              <th>Software&nbsp;</th>
-              <th>Run&nbsp;</th>
-              <th>Input run&nbsp;</th>
+              <th class="header">Software&nbsp;</th>
+              <th class="header">Run&nbsp;</th>
+              <th class="header">Input run&nbsp;</th>
               {{#measureKeysList}}
-              <th>{{.}}&nbsp;</th>
+              <th class="header">{{.}}&nbsp;</th>
               {{/measureKeysList}}
             </tr>
           </thead>
@@ -24,6 +25,7 @@
             {{#runsList}}
             {{#run}}
             <tr>
+              <td></td>
               <td style="white-space:nowrap;">{{user.userName}}</td>
               <td style="white-space:nowrap;">
                 {{#isRunning}}
@@ -150,13 +152,13 @@
 <script charset="utf-8">
     initWebisTableFiltering(document.querySelectorAll(".targetable"), true, entry => {
         const attributes = entry.dataset;
-        attributes['user'] = normalize(entry.children[0].textContent);
-        attributes['actions'] = normalize(entry.children[1].textContent);
-        attributes['software'] = normalize(entry.children[2].textContent);
-        attributes['run'] = normalize(entry.children[3].textContent);
-        attributes['inputRun'] = normalize(entry.children[4].textContent);
-        {{#measureKeysList}}
-        attributes['{{.}}'] = normalize(entry.children[5 + {{@index}}].textContent);
+        attributes['user'] = normalize(entry.children[1].textContent);
+        attributes['actions'] = normalize(entry.children[2].textContent);
+        attributes['software'] = normalize(entry.children[3].textContent);
+        attributes['run'] = normalize(entry.children[4].textContent);
+        attributes['inputRun'] = normalize(entry.children[5].textContent);
+        {{#measureKeysList:i}}
+        attributes['measure{{i}}'] = normalize(entry.children[6 + {{i}}].textContent);
         {{/measureKeysList}}
         return attributes;
     });

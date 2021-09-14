@@ -9,12 +9,13 @@
         <table id="runs-table" class="table table-condensed table-hover targetable sortable">
           <thead>
             <tr>
-              <th>Software&nbsp;</th>
-              <th class="sort-desc">Run&nbsp;</th>
-              <th>Input dataset&nbsp;</th>
-              <th>Input run&nbsp;</th>
-              <th>Runtime&nbsp;</th>
-              <th>Size&nbsp;</th>
+              <th></th>
+              <th class="header">Software&nbsp;</th>
+              <th class="sort-desc header">Run&nbsp;</th>
+              <th class="header">Input dataset&nbsp;</th>
+              <th class="header">Input run&nbsp;</th>
+              <th class="header">Runtime&nbsp;</th>
+              <th class="header">Size&nbsp;</th>
               <th class="no-sort">Actions</th>
             </tr>
           </thead>
@@ -44,6 +45,7 @@
             {{^hasReview}}
             <tr>
             {{/hasReview}}
+              <td></td>
               <td data-sort="{{softwareId}}" {{#softwareDeprecated}}title="deprecated"{{/softwareDeprecated}}>{{> tira-widget-software-name-body}}</td>
               <td style="white-space:nowrap;" data-sort="{{runId}}" {{#isDeprecated}}title="deprecated"{{/isDeprecated}}>
                 {{> tira-widget-run-name-body}}
@@ -106,13 +108,13 @@
 <script charset="utf-8">
     initWebisTableFiltering(document.querySelectorAll(".targetable"), true, entry => {
         const attributes = entry.dataset;
-        attributes['software'] = normalize(entry.children[0].textContent);
-        attributes['run'] = normalize(entry.children[1].textContent);
-        attributes['inputDataset'] = normalize(entry.children[2].textContent);
-        attributes['inputRun'] = normalize(entry.children[3].textContent);
-        attributes['runtime'] = normalize(entry.children[4].textContent);
-        attributes['size'] = normalize(entry.children[5].textContent);
-        attributes['actions'] = normalize(entry.children[6].textContent);
+        attributes['software'] = normalize(entry.children[1].textContent);
+        attributes['run'] = normalize(entry.children[2].textContent);
+        attributes['inputDataset'] = normalize(entry.children[3].textContent);
+        attributes['inputRun'] = normalize(entry.children[4].textContent);
+        attributes['runtime'] = normalize(entry.children[5].textContent);
+        attributes['size'] = normalize(entry.children[6].textContent);
+        attributes['actions'] = normalize(entry.children[7].textContent);
         return attributes;
     });
     initTableSorting();
