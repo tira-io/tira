@@ -10,9 +10,12 @@ import time
 import socket
 
 logger = logging.getLogger(__name__)
+# TODO: get TIRA_ROOT from settings
+TIRA_ROOT = "/mnt/nfs/tira/"
 
 
 class FileDatabase(object):
+    tira_root = TIRA_ROOT
     users_file_path = tira_root / Path("model/users/users.prototext")
 
     def __init__(self):
