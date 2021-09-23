@@ -49,8 +49,7 @@ sudo ssh-keygen -A -v
 sudo service ssh start
 
 # Don't start grpc service if started as local dev environment
-DEV=$DEV
-if [ -z ${DEV+x} ];
+if [ "$DEV" = "true" ];
 then
   tail -f /dev/null
   # Start grpc service with code change tracking: when the code is changed, reload the service
