@@ -105,7 +105,8 @@ def get_host_name():
     """ Get host name. """
     # Get host name: webisXY
     name = socket.gethostname()
-    name = name if 'medien' in name else name + ".medien.uni-weimar.de"
+    if conf['_CONFIG_tira_dev_mode'] == "false":
+        name = name if 'medien' in name else name + ".medien.uni-weimar.de"
     return name
 
 

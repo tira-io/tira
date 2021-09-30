@@ -17,6 +17,14 @@ _DEBUG=true
 _UNITTEST=true
 _LOG_FILE="/var/log/tira_debug.txt"
 
+# `dev_mode` flag for correct hostname check in case of local deployment
+if [ "$DEV" = "true" ];
+then
+  _CONFIG_tira_dev_mode=true
+else
+  _CONFIG_tira_dev_mode=false
+fi
+
 #
 #    TIRA specific config section.
 #
