@@ -170,25 +170,3 @@ message VmInfo {
   bool rdpPortStatus = 10;
   State state = 11;
 }
-
-message CommandState {
-  string hostname = 1;
-
-  message Command {
-    string id = 1;
-    string commandString = 2;
-    string startTime = 3;
-    string endTime = 4;
-    enum Status {
-      RUNNING = 0;
-      SUCCESS = 1;
-      FAILED = 2;
-    }
-    Status status = 5;
-    string logFile = 6;
-    int32 returnCode = 7;
-    string bulkCommandId = 8;
-  }
-
-  repeated Command commands = 2;
-}
