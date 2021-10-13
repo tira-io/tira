@@ -41,8 +41,8 @@ class FileDatabase(object):
     datasets_dir_path = tira_root / Path("model/datasets")
     softwares_dir_path = tira_root / Path("model/softwares")
     data_path = tira_root / Path("data/datasets")
-    commands_dir_path = tira_root / Path("state/commands/")
-    command_logs_path = tira_root / Path(f"log/virtual-machine-hosts/{socket.gethostname()}/")
+    # commands_dir_path = tira_root / Path("state/commands/")
+    # command_logs_path = tira_root / Path(f"log/virtual-machine-hosts/{socket.gethostname()}/")
     RUNS_DIR_PATH = tira_root / Path("data/runs")
 
     def __init__(self):
@@ -58,8 +58,6 @@ class FileDatabase(object):
         self.software_by_vm = None  # vm_id: [modelpb.Software]
         self.software_count_by_dataset = None  # dataset_id: int()
         self.evaluators = {}  # dataset_id: [modelpb.Evaluator] used as cache
-        self.commandState = None
-        self.command_logs_path.mkdir(exist_ok=True, parents=True)
 
         self.build_model()
 
@@ -69,7 +67,6 @@ class FileDatabase(object):
         self._parse_task_list()
         self._parse_dataset_list()
         self._parse_software_list()
-        self._parse_command_state()
 
         self._build_task_relations()
         self._build_software_relations()
@@ -129,16 +126,6 @@ class FileDatabase(object):
                 software[f"{task_dir.stem}${user_dir.stem}"] = software_list
 
         self.software = software
-
-    def _parse_command_state(self):
-        """ Parse the command state file. """
-        command_states_path = self.commands_dir_path / f"{socket.gethostname()}.prototext"
-        if command_states_path.exists():
-            self.commandState = Parse(open(command_states_path, "r").read(), model_host.CommandState())
-        else:
-            self.commandState = model_host.CommandState()
-            self.commands_dir_path.mkdir(exist_ok=True, parents=True)
-            open(command_states_path, 'w').write(str(self.commandState))
 
     # _build methods reconstruct the relations once per parse. This is a shortcut for frequent joins.
     def _build_task_relations(self):
@@ -396,42 +383,6 @@ class FileDatabase(object):
     def get_organizer(self, organizer_id: str):
         # TODO should return as dict
         return self.organizers[organizer_id]
-
-    # # TODO change accordingly with _load_runs
-    # # TODO should actually give us a list of all runs done on this dataset (without grouping)
-    # def get_dataset_runs(self, dataset_id, only_public_results=True) -> tuple:
-    #     """ return all runs for all users on a given dataset_id """
-    #     status = {}
-    #     runs = {}
-    #     evaluations = {}
-    #     ev_keys = set()
-    #     for user_run_dir in (self.RUNS_DIR_PATH / dataset_id).glob("*"):
-    #         # all of these are dicts
-    #         user_runs = self._load_vm_runs(dataset_id, user_run_dir.stem)
-    #         user_evaluations = self._load_vm_evaluations(dataset_id, user_run_dir.stem,
-    #                                                      only_published=only_public_results)
-    #         user_reviews = self._load_user_reviews(dataset_id, user_run_dir.stem)
-    #
-    #         keys = set()
-    #         for e in ev.values():
-    #             keys.update(e.keys())
-    #         keys = list(keys)
-    #
-    #         # runs[user_run_dir.stem] = list(r.values())
-    #
-    #         # update the measures evaluations to a list, following the order of the keys
-    #         evaluations[user_run_dir.stem] = ev
-    #         for eval in evaluations[user_run_dir.stem]:
-    #             m = eval["measures"]
-    #             eval["measures"] = [m[k] for k in keys]
-    #
-    #         unreviewed_count = sum([1 for x in runs[user_run_dir.stem] if not x["review"].get("reviewer", None)])
-    #         status[user_run_dir.stem] = {"user_id": user_run_dir.stem,
-    #                                      "signed_in": "", "softwares": "", "deleted": "", "now_running": "",
-    #                                      "runs": len(runs[user_run_dir.stem]),
-    #                                      "reviewed": "", "unreviewed": unreviewed_count}  # TODO dummy
-    #
-    #     return ev_keys, status, runs, evaluations
 
     def get_host_list(self) -> list:
         return list(open(self.host_list_file, "r").readlines())
@@ -770,25 +721,5 @@ class FileDatabase(object):
     def complete_execution(self):
         # TODO implement
         pass
-
-    def get_commands_bulk(self, bulk_id):
-        """
-        Get commands list by bulk command id
-        :param bulk_id:
-        """
-        self._parse_command_state()
-        return [MessageToDict(command) for command in self.commandState.commands if command.bulkCommandId == bulk_id]
-
-    def get_command(self, command_id):
-        """
-        Get command object
-        :param command_id:
-        """
-        self._parse_command_state()
-        for command in self.commandState.commands:
-            if command.id == command_id:
-                return MessageToDict(command)
-        return None
-
 
 model = FileDatabase()
