@@ -133,7 +133,10 @@ main() {
         -o LogLevel=error \
         -t \
         -t "$shutdownCmd"
-        
+
+    logInfo "...waiting..."
+    sleep 5
+
     unittest && check_is_vm_stopped "$vmname"
 }
 
