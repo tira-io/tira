@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from configparser import ConfigParser
 from datetime import datetime
 from google.protobuf.text_format import Parse, MessageToString
 from pathlib import Path
@@ -11,19 +12,18 @@ import socket
 
 logger = logging.getLogger(__name__)
 # TODO: get TIRA_ROOT from settings
-TIRA_ROOT = "/mnt/nfs/tira/"
+parser = ConfigParser()
+parser.read('conf/grpc_service.ini')
+TIRA_ROOT = parser.get('main', 'tira_model_path')
 
 
 class FileDatabase(object):
     tira_root = TIRA_ROOT
     users_file_path = tira_root / Path("model/users/users.prototext")
+    vm_dir_path = tira_root / Path("model/virtual-machines")
 
     def __init__(self):
         logger.info("Start loading dataset")
-        self.hostname = socket.gethostname()
-        self.command_states_path = self.tira_root / Path("state/commands/" + self.hostname + ".prototext")
-        self.command_logs_path = self.tira_root / Path("log/virtual-machine-hosts/" + self.hostname + "/")
-        self.command_logs_path.mkdir(exist_ok=True)
 
         self.vms = None  # dict of vm_id: modelpb.User
 
@@ -105,5 +105,4 @@ class FileDatabase(object):
                 for software in self.software[f"{task_id}${vm_id}"]]
 
     def get_vm_by_id(self, vm_id: str):
-        print(vm_id)
-        return self.vms.get(vm_id)
+        return self.vms.get(vm_id, None)

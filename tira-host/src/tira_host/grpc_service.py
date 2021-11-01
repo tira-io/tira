@@ -19,6 +19,7 @@ import vm_manage
 
 from proto import tira_host_pb2, tira_host_pb2_grpc
 from tira_model import FileDatabase
+from grpc_client import TiraHostClient
 
 logger = logging.getLogger()
 
@@ -28,11 +29,15 @@ model = FileDatabase()
 parser = ConfigParser()
 parser.read('conf/grpc_service.ini')
 grpc_port = parser.get('main', 'grpc_port')
+tira_application_host = parser.get('main', 'tira_application_host')
+tira_application_grpc_port = parser.get('main', 'tira_application_grpc_port')
+
+grpc_client = TiraHostClient(tira_application_host, tira_application_grpc_port)
 
 
 def async_api(wrapped_function):
     """
-    Manage command queue and update command state in the model.
+    Manages command queue.
     :param wrapped_function:
     :return:
     """
@@ -41,59 +46,67 @@ def async_api(wrapped_function):
     def new_function(*args, **kwargs):
         def task_call():
             try:
-                # Add new Message to command state file for the current host.
-                command = model.create_command(args[1], command_id,
-                                               (wrapped_function.__name__ + ' ' + str(args[1])).strip())
-
                 # TODO: check solution with logger
                 # Set logger handler file for the command output
                 # vmmanage.logger.handlers.clear()
                 # vmmanage.logger.addHandler(logging.FileHandler(command.logFile))
 
-                vmmanage = vm_manage.VMManage(command.logFile)
-                returncode = wrapped_function(*args, vmmanage=vmmanage)
-                model.update_command(command_id, status=tira_host_pb2.Transaction.Status.SUCCESS,
-                                     returnCode=returncode)
+                vmmanage = vm_manage.VMManage()
+                commands[transaction_id]['return_code'] = wrapped_function(*args, vmmanage=vmmanage)
+                logger.debug(f"Transaction {transaction_id} request (function {wrapped_function.__name__}) finished.")
             except Exception as e:
-                logger.error(str(e))
-                model.update_command(command_id, status=tira_host_pb2.Transaction.Status.FAILED,
-                                     returnCode=e.returncode)
+                logger.error(f"Transaction {transaction_id} request failed (function {wrapped_function.__name__}): {str(e)}")
+                # todo: if tira script fails (return_code != 0), we need to reset the vm state in TransitionLog and/or trigger new vm_info request
+                grpc_client.complete_transaction(transaction_id=transaction_id,
+                                                 status=tira_host_pb2.Status.FAILED,
+                                                 message=f"Transaction {transaction_id} request failed: {str(e)}")
             finally:
-                # Set endTime to help later remove finished commands from the state file.
-                command.endTime = datetime.strftime(datetime.utcnow(), "%Y-%m-%dT%H:%M:%SZ")
-                commands.pop(command_id)
+                commands.pop(transaction_id)
 
-        # Assign an id to the asynchronous task
-        command_id = uuid.uuid4().hex + "_" + wrapped_function.__name__
-        # command_id = datetime.strftime(datetime.now(), "%Y%m%dT%H:%M:%S.%fZ") + "_" + wrapped_function.__name__
+        request = args[1]
+        transaction_id = request.transaction.transactionId
+        logger.debug(f"{wrapped_function.__name__} call. Server received {str(request)}.")
 
         # Record the task, and then launch it
-        commands[command_id] = {'command_thread': threading.Thread(target=task_call, args=())}
-        commands[command_id]['command_thread'].start()
+        commands[transaction_id] = {'command_thread': threading.Thread(target=task_call, args=())}
+        commands[transaction_id]['command_thread'].start()
 
-        response = tira_host_pb2.Transaction()
-        response.transactionId = command_id
-        return response
+        # Respond right away with Transaction message to tira-application request
+        response_transaction = tira_host_pb2.Transaction()
+        response_transaction.transactionId = str(uuid.uuid4())
+        response_transaction.status = tira_host_pb2.Status.SUCCESS
+        response_transaction.message = f"Host accepted the transaction {transaction_id} request."
+
+        return response_transaction
 
     return new_function
 
 
 class TiraHostService(tira_host_pb2_grpc.TiraHostService):
     def __init__(self):
-        def clean_old_tasks():
+        def call():
             """
-            Start a background thread that cleans up old tasks. Only keep tasks that are running or that finished
-            less than 5 days ago.
-
-            TODO: keep last 50 commands instead of period
+            Start a background thread that makes heartbeat calls to tira-application.
             """
             while True:
-                time_ago = datetime.timestamp(datetime.utcnow()) - 5 * 86400
-                time.sleep(5 * 60)
-                model.clean_command_state(time_ago)
+                time.sleep(2 * 60)
+                self.heartbeat()
 
-        thread = threading.Thread(target=clean_old_tasks)
+        thread = threading.Thread(target=call)
         thread.start()
+
+    def heartbeat(self):
+        # todo: call tira-application.set_state(state, vmId) for all vms on the current host?
+        pass
+
+    def _get_vm(self, vm_id, context):
+        vm = model.get_vm_by_id(vm_id)
+        if not vm:
+            context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
+            context.set_details("VM not found.")
+            raise Exception("VM not found.")
+
+        return vm
 
     @async_api
     def vm_backup(self, request, context, vmmanage):
@@ -104,7 +117,12 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         :param context:
         :return:
         """
-        return vmmanage.vm_backup(request.vmId)
+        return_code, output = vmmanage.vm_backup(request.vmId)
+        grpc_client.set_state(request.vmId, tira_host_pb2.State.ARCHIVED, request.transaction.transactionId)
+        grpc_client.complete_transaction(transaction_id=request.transaction.transactionId,
+                                         status=tira_host_pb2.Status.SUCCESS,
+                                         message=f"vm_backup command finished successfully.")
+        return return_code
 
     @async_api
     def vm_create(self, request, context, vmmanage):
@@ -116,7 +134,12 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         :return:
         """
 
-        return vmmanage.vm_create(request.ovaFile, request.userId)
+        return_code, output = vmmanage.vm_create(request.ovaFile, request.userName)
+        grpc_client.set_state(request.vmId, tira_host_pb2.State.RUNNING, request.transaction.transactionId)
+        grpc_client.complete_transaction(transaction_id=request.transaction.transactionId,
+                                         status=tira_host_pb2.Status.SUCCESS,
+                                         message=f"vm_create command finished successfully.")
+        return return_code
 
     @async_api
     def vm_delete(self, request, context, vmmanage):
@@ -127,7 +150,11 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         :param context:
         :return:
         """
-        return vmmanage.vm_delete(request.vmId)
+        return_code, output = vmmanage.vm_delete(request.vmId)
+        grpc_client.complete_transaction(transaction_id=request.transaction.transactionId,
+                                         status=tira_host_pb2.Status.SUCCESS,
+                                         message=f"vm_delete command finished successfully.")
+        return return_code
 
     def vm_info(self, request, context):
         """
@@ -136,61 +163,69 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         :param context:
         :return:
         """
-        vm = model.get_vm_by_id(request.vmId)
-        if not vm:
-            context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
-            context.set_details("VM not found.")
-            # return tira_host_pb2.Transaction()
-            raise Exception("VM not found.")
+        vm = self._get_vm(request.vmId, context)
 
         vm_state = None
-        output = ""
         vmmanage = vm_manage.VMManage()
-        return_code = vmmanage.vm_info(vm.vmId, output=output)
-        response_vm_info = tira_host_pb2.VmInfo()
+        return_code, output = vmmanage.vm_info(vm.vmName)
+        response = tira_host_pb2.VmInfo(transaction=tira_host_pb2.Transaction(
+            status=tira_host_pb2.Status.SUCCESS,
+            message="host received vm-info request",
+            transactionId=str(uuid.uuid4().hex + "_vm_info")
+        ))
         for line in output.split('\n'):
             if line.startswith("Guest OS:"):
-                response_vm_info.guestOs = line.split(": ")[1].strip()
+                response.guestOs = line.split(": ")[1].strip()
             elif line.startswith("Memory size"):
-                response_vm_info.memorySize = line.split()[2].strip()
+                response.memorySize = line.split()[2].strip()
             elif line.startswith("Number of CPUs:"):
-                response_vm_info.numberOfCpus = line.split(": ")[1].strip()
+                response.numberOfCpus = line.split(": ")[1].strip()
             elif line.startswith("State:"):
                 vm_state = re.sub(".\\d+\\)", ")", line.split(": ")[1].strip())
 
-        response_vm_info.sshPort = vm.portSsh
-        response_vm_info.rdpPort = vm.portRdp
-        response_vm_info.host = vm.host
+        response.sshPort = vm.portSsh
+        response.rdpPort = vm.portRdp
+        response.host = vm.host
 
-        if response_vm_info.sshPort and response_vm_info.rdpPort:
+        if response.sshPort and response.rdpPort:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                response_vm_info.sshPortStatus = 1 if sock.connect_ex((vm.host, int(vm.portSsh))) == 0 else 0
-                response_vm_info.rdpPortStatus = 1 if sock.connect_ex((vm.host, int(vm.portRdp))) == 0 else 0
+                response.sshPortStatus = 1 if sock.connect_ex((vm.host, int(vm.portSsh))) == 0 else 0
+                response.rdpPortStatus = 1 if sock.connect_ex((vm.host, int(vm.portRdp))) == 0 else 0
 
         # TODO we should return here fine grained information about the state before this foes live.
-        if vm_state.startswith("running"):
-            response_vm_info.state = tira_host_pb2.Status.RUNNING
+        if vm_state and vm_state.startswith("running"):
+            response.state = tira_host_pb2.State.RUNNING
+        elif vm_state:
+            response.state = tira_host_pb2.State.POWERED_OFF
         else:
-            response_vm_info.state = tira_host_pb2.Status.POWERED_OFF
+            response.state = tira_host_pb2.State.UNDEFINED
 
-        response_vm_info.status = tira_host_pb2.Status.SUCCESS
+        # response.transaction = tira_host_pb2.Transaction(
+        #     status=tira_host_pb2.Status.SUCCESS,
+        #     message="host received vm-info request",
+        #     transactionId=str(uuid.uuid4().hex + "_vm_info")
+        # )
 
-        return response_vm_info
+        return response
 
     def vm_list(self, context, vmmanage):
         output = ""
         vmmanage.vm_list(output)
         return output
 
-    @async_api
-    def vm_sandbox(self, request, context, vmmanage):
+    def _vm_sandbox(self, vmmanage, vm_id, output_dir_name, mount_test_data):
         """
-        :param request:
-        :param context:
+        :param vm_id:
         :param vmmanage:
         :return:
         """
-        return vmmanage.vmsandbox(request.vmId)
+        #        if [[ "$inputDataset" == *"test"* ]]; then
+        #            mountTestData=true
+        #        else
+        #            mountTestData=false
+        #        fi
+        return_code, output = vmmanage.vm_sandbox(vm_id, output_dir_name, mount_test_data)
+        return return_code
 
     @async_api
     def vm_shutdown(self, request, context, vmmanage):
@@ -200,7 +235,12 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         :param vmmanage:
         :return:
         """
-        return vmmanage.vm_shutdown(request.vmId)
+        return_code, output = vmmanage.vm_shutdown(request.vmId)
+        grpc_client.set_state(request.vmId, tira_host_pb2.State.POWERED_OFF, request.transaction.transactionId)
+        grpc_client.complete_transaction(transaction_id=request.transaction.transactionId,
+                                         status=tira_host_pb2.Status.SUCCESS,
+                                         message=f"vm_shutdown command finished successfully.")
+        return return_code
 
     @async_api
     def vm_snapshot(self, request, context, vmmanage):
@@ -210,7 +250,11 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         :param vmmanage:
         :return:
         """
-        return vmmanage.vm_snapshot(request.vmId)
+        return_code, output = vmmanage.vm_create(request.ovaFile, request.userName)
+        grpc_client.complete_transaction(transaction_id=request.transaction.transactionId,
+                                         status=tira_host_pb2.Status.SUCCESS,
+                                         message=f"vm_create command finished successfully.")
+        return return_code
 
     @async_api
     def vm_start(self, request, context, vmmanage):
@@ -220,7 +264,14 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         :param vmmanage:
         :return:
         """
-        return vmmanage.vm_start(request.vmId)
+        vm = self._get_vm(request.vmId, context)
+        return_code, output = vmmanage.vm_start(vm.vmName)
+        grpc_client.set_state(request.vmId, tira_host_pb2.State.RUNNING, request.transaction.transactionId)
+        grpc_client.complete_transaction(transaction_id=request.transaction.transactionId,
+                                         status=tira_host_pb2.Status.SUCCESS,
+                                         message=f"vm_start command finished successfully.")
+
+        return return_code
 
     @async_api
     def vm_stop(self, request, context, vmmanage):
@@ -230,30 +281,49 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         :param vmmanage:
         :return:
         """
-        return vmmanage.vm_stop(request.vmId)
+        vm = self._get_vm(request.vmId, context)
+        return_code, output = vmmanage.vm_stop(vm.vmName)
+        grpc_client.set_state(request.vmId, tira_host_pb2.State.POWERED_OFF, request.transaction.transactionId)
+        grpc_client.complete_transaction(transaction_id=request.transaction.transactionId,
+                                         status=tira_host_pb2.Status.SUCCESS,
+                                         message=f"vm_stop command finished successfully.")
 
-    @async_api
-    def vm_unsandbox(self, request, context, vmmanage):
+        return return_code
+
+    def _vm_unsandbox(self, vm_id, vmmanage):
         """
-        :param request:
-        :param context:
+        :param vm_id:
         :param vmmanage:
         :return:
         """
-        return vmmanage.vm_unsandbox(request.vmId)
+        return_code, output = vmmanage.vm_unsandbox(vm_id)
+        return return_code
 
     @async_api
     def run_execute(self, request, context, vmmanage):
         """
-
         :param request:
         :param context:
         :param vmmanage:
         :return:
         """
-        return vmmanage.run_execute(request.submissionFile, request.inputDatasetId,
-                                    request.inputRunPath, request.outputDirName, request.sandboxed,
-                                    request.optionalParameters)
+        vm = self._get_vm(request.runId.vmId, context)
+
+        grpc_client.set_state(request.runId.vmId, tira_host_pb2.State.POWERING_OFF, request.transaction.transactionId)
+        vmmanage.vm_stop(request.runId.vmId)
+        grpc_client.set_state(request.runId.vmId, tira_host_pb2.State.POWERED_OFF, request.transaction.transactionId)
+        grpc_client.set_state(request.runId.vmId, tira_host_pb2.State.SANDBOXING, request.transaction.transactionId)
+        self._vm_sandbox(vmmanage, vm.vmName, 'auto', "true" if "test" in request.inputRunId.datasetId else "false")
+        grpc_client.set_state(request.runId.vmId, tira_host_pb2.State.EXECUTING, request.transaction.transactionId)
+        return_code, output = vmmanage.run_execute(vm.userName+".prototext", request.runId.datasetId, 'none', 'auto', 'false')
+        grpc_client.set_state(request.runId.vmId, tira_host_pb2.State.UNSANDBOXING, request.transaction.transactionId)
+        self._vm_unsandbox(vm.vmName, vmmanage)
+        grpc_client.set_state(request.runId.vmId, tira_host_pb2.State.RUNNING, request.transaction.transactionId)
+        grpc_client.complete_transaction(transaction_id=request.transaction.transactionId,
+                                         status=tira_host_pb2.Status.SUCCESS,
+                                         message=f"run_execute command finished successfully.")
+
+        return return_code
 
     @async_api
     def run_eval(self, request, context, vmmanage):
@@ -264,8 +334,30 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         :param vmmanage:
         :return:
         """
-        return vmmanage.run_eval(request.submissionFile, request.inputDatasetId, request.inputRunPath,
-                                 request.outputDirName, request.sandboxed, request.optionalParameters)
+        vm = self._get_vm(request.runId.vmId, context)
+
+        grpc_client.set_state(request.runId.vmId, tira_host_pb2.State.EXECUTING, request.transaction.transactionId)
+        return_code, output = vmmanage.run_eval(vm.vmName + ".prototext", request.runId.datasetId,
+                                                request.inputRunId.runId,
+                                                'auto', 'false')
+        grpc_client.set_state(request.runId.vmId, tira_host_pb2.State.RUNNING, request.transaction.transactionId)
+        grpc_client.complete_transaction(transaction_id=request.transaction.transactionId,
+                                         status=tira_host_pb2.Status.SUCCESS,
+                                         message=f"run_eval command finished successfully.")
+
+        return return_code
+
+    def run_abort(self, request, context, vmmanage):
+        """
+
+        :param request:
+        :param context:
+        :param vmmanage:
+        :return:
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details("run_abort() method not implemented.")
+        raise NotImplementedError("run_abort() method not implemented.")
 
 
 def serve():

@@ -1,11 +1,12 @@
 VENV_NAME?=venv
 VENV_ACTIVATE=. $(VENV_NAME)/bin/activate
 PYTHON=${VENV_NAME}/bin/python3
-VERSION=0.0.2
+VERSION=0.0.5-dev
 VBOXVERSION=6.1.16
 TIRA_PASSWORD=tira
 TIRA_MODEL_PATH=/mnt/nfs/tira
-DEV_MODE=true # if ture grpc service inside the container won't start
+#TIRA_MODEL_PATH=/home/nikolay/workspace/github/tira/tira-model/src
+DEV_MODE=false # if ture grpc service inside the container won't start
 CONTAINER_NAME=tira-host-dev
 
 venv:

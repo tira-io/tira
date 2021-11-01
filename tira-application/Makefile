@@ -5,7 +5,7 @@ PYTHON=${VENV_NAME}/bin/python3
 SRC_DIR=../tira-protocol/src
 #PYTHON_DEST=${VENV_NAME}/lib/python3.7/site-packages
 BUILD_PATH=src/tira/proto
-VERSION=0.0.4
+VERSION=0.0.5
 
 
 .DEFAULT: help
@@ -81,3 +81,8 @@ docker-run-tira-application:
 
 docker-build-tira-application:
 	docker build --tag webis/tira-web-2:${VERSION} -f Dockerfile ..
+
+docker-build-and-push-to-webis-registry: docker-build-tira-application
+	docker tag webis/tira-web-2:${VERSION} registry.webis.de/code-lib/public-images/tira-application:${VERSION}
+	docker login registry.webis.de
+	docker push registry.webis.de/code-lib/public-images/tira-application:${VERSION}
