@@ -382,42 +382,6 @@ class FileDatabase(object):
         # TODO should return as dict
         return self.organizers[organizer_id]
 
-    # # TODO change accordingly with _load_runs
-    # # TODO should actually give us a list of all runs done on this dataset (without grouping)
-    # def get_dataset_runs(self, dataset_id, only_public_results=True) -> tuple:
-    #     """ return all runs for all users on a given dataset_id """
-    #     status = {}
-    #     runs = {}
-    #     evaluations = {}
-    #     ev_keys = set()
-    #     for user_run_dir in (self.RUNS_DIR_PATH / dataset_id).glob("*"):
-    #         # all of these are dicts
-    #         user_runs = self._load_vm_runs(dataset_id, user_run_dir.stem)
-    #         user_evaluations = self._load_vm_evaluations(dataset_id, user_run_dir.stem,
-    #                                                      only_published=only_public_results)
-    #         user_reviews = self._load_user_reviews(dataset_id, user_run_dir.stem)
-    #
-    #         keys = set()
-    #         for e in ev.values():
-    #             keys.update(e.keys())
-    #         keys = list(keys)
-    #
-    #         # runs[user_run_dir.stem] = list(r.values())
-    #
-    #         # update the measures evaluations to a list, following the order of the keys
-    #         evaluations[user_run_dir.stem] = ev
-    #         for eval in evaluations[user_run_dir.stem]:
-    #             m = eval["measures"]
-    #             eval["measures"] = [m[k] for k in keys]
-    #
-    #         unreviewed_count = sum([1 for x in runs[user_run_dir.stem] if not x["review"].get("reviewer", None)])
-    #         status[user_run_dir.stem] = {"user_id": user_run_dir.stem,
-    #                                      "signed_in": "", "softwares": "", "deleted": "", "now_running": "",
-    #                                      "runs": len(runs[user_run_dir.stem]),
-    #                                      "reviewed": "", "unreviewed": unreviewed_count}  # TODO dummy
-    #
-    #     return ev_keys, status, runs, evaluations
-
     def get_host_list(self) -> list:
         return list(open(self.host_list_file, "r").readlines())
 
