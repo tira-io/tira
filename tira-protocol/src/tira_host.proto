@@ -93,7 +93,7 @@ message Transaction {
 }
 
 message VmId {
-  Transaction transaction = 1;
+  Transaction transaction = 1; // todo: move transaction from here to the list of function arguments, the same for other request messages
   string vmId = 2;
 }
 
@@ -159,7 +159,6 @@ message VmState {
 
 message VmInfo {
   Transaction transaction = 1;
-  Status status = 2;
   string guestOs = 3;
   string memorySize = 4;
   string numberOfCpus = 5;

@@ -251,7 +251,7 @@ def admin_add_dataset(request):
 def vm_state(request, vm_id):
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
     try:
-        state = TransitionLog.objects.get(vm_id=vm_id).vm_state
+        state = TransitionLog.objects.get_or_create(vm_id=vm_id, defaults={'vm_state': 0})[0].vm_state
     except IntegrityError as e:
         logger.warning(f"failed to read state for vm {vm_id} with {e}")
         state = 0
@@ -283,7 +283,7 @@ def vm_start(request, vm_id):
     # NOTE vm_id is different from vm.vmName (latter one includes the 01-tira-ubuntu-...
     # when status = 0, the host accepts the transaction. We shift our state to 3 - "powering on"
     if response.status == 0:
-        _ = TransitionLog.objects.update_or_create(vm_id=vm_id, vm_state=3)
+        _ = TransitionLog.objects.update_or_create(vm_id=vm_id, defaults={'vm_state': 3})
         return JsonResponse({'status': response.status, 'message': response.transactionId}, status=HTTPStatus.ACCEPTED)
     return JsonResponse({'status': response.status, 'message': f"{response.transactionId} was rejected by the host"},
                         status=HTTPStatus.INTERNAL_SERVER_ERROR)
@@ -294,7 +294,11 @@ def vm_shutdown(request, vm_id):
     vm = model.get_vm(vm_id)
     grpc_client = GrpcClient('localhost') if settings.GRPC_HOST == 'local' else GrpcClient(vm.host)
     response = grpc_client.vm_shutdown(vm_id)
-    return JsonResponse({'status': response.status, 'message': response.transactionId}, status=HTTPStatus.ACCEPTED)
+    if response.status == 0:
+        _ = TransitionLog.objects.update_or_create(vm_id=vm_id, defaults={'vm_state': 4})
+        return JsonResponse({'status': response.status, 'message': response.transactionId}, status=HTTPStatus.ACCEPTED)
+    return JsonResponse({'status': response.status, 'message': f"{response.transactionId} was rejected by the host"},
+                        status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 def vm_stop(request, vm_id):
@@ -302,8 +306,12 @@ def vm_stop(request, vm_id):
 
     vm = model.get_vm(vm_id)
     grpc_client = GrpcClient('localhost') if settings.GRPC_HOST == 'local' else GrpcClient(vm.host)
-    response = grpc_client.vm_stop(vm.vmName)
-    return JsonResponse({'status': response.status, 'message': response.transactionId}, status=HTTPStatus.ACCEPTED)
+    response = grpc_client.vm_stop(vm_id)
+    if response.status == 0:
+        _ = TransitionLog.objects.update_or_create(vm_id=vm_id, defaults={'vm_state': 4})
+        return JsonResponse({'status': response.status, 'message': response.transactionId}, status=HTTPStatus.ACCEPTED)
+    return JsonResponse({'status': response.status, 'message': f"{response.transactionId} was rejected by the host"},
+                        status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 def vm_info(request, vm_id):
@@ -314,12 +322,11 @@ def vm_info(request, vm_id):
     try:
         grpc_client = GrpcClient(host)
         response_vm_info = grpc_client.vm_info(vm_id)
+        _ = TransitionLog.objects.update_or_create(vm_id=vm_id, defaults={'vm_state': response_vm_info.state})
         del grpc_client
     except Exception as e:
         logger.exception(f"/grpc/{vm_id}/vm-info: connection to {host} failed with {e}")
         return JsonResponse({'status': 'Rejected', 'message': "Server Error"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
-
-    _ = TransitionLog.objects.update_or_create(vm_id=vm_id, vm_state=response_vm_info.state)
 
     return JsonResponse({'status': 'Accepted', 'message': {
         "guestOs": response_vm_info.guestOs,
@@ -434,7 +441,7 @@ def run_execute(request, task_id, vm_id, software_id):
                                                     completed=False,
                                                     last_status=str(response.status),
                                                     last_message=response.message)
-        _ = TransitionLog.objects.get_or_create(vm_id=vm_id, vm_state=5, transaction=transaction)
+        _ = TransitionLog.objects.get_or_create(vm_id=vm_id, defaults={'vm_state': 5, 'transaction': transaction})
 
     return JsonResponse({'status': 'Accepted', 'message': response.message}, status=HTTPStatus.ACCEPTED)
 

@@ -2,12 +2,16 @@ from django.conf import settings
 from concurrent import futures
 import grpc
 import logging
+import time
+from contextlib import contextmanager
+from django.core.management.base import BaseCommand, CommandError
 
 from .proto import tira_host_pb2, tira_host_pb2_grpc
 from .transitions import TransitionLog, EvaluationLog, TransactionLog
 from .tira_model import model
 
 grpc_port = settings.APPLICATION_GRPC_PORT
+listen_addr = f'[::]:{grpc_port}'
 
 logger = logging.getLogger("tira")
 
@@ -17,16 +21,19 @@ class TiraApplicationService(tira_host_pb2_grpc.TiraApplicationService):
         """ TODO error handling """
         logger.debug(f" Application Server received vm-state {request.state} for {request.vmId}")
 
-        _ = TransitionLog.objects.create(vm_id=request.vmId, vm_state=request.state)
+        _ = TransitionLog.objects.update_or_create(vm_id=request.vmId, defaults={'vm_state': request.state})
         return tira_host_pb2.Transaction(status=tira_host_pb2.Status.SUCCESS,
                                          message=f"Set VM state to {request.state}",
-                                         transactionId=request.transactionId)
+                                         transactionId=request.transaction.transactionId)
 
     def complete_transaction(self, request, context):
         """ Marks a transaction as completed if the
         This is basically the final stage of a a TIRA message exchange.
         """
         logger.debug(f" Application Server received complete_transaction for {request.transactionId}")
+        if request.status is tira_host_pb2.Status.FAILED:
+            vm_id = TransactionLog.objects.get()
+            _ = TransitionLog.objects.update_or_create(vm_id=vm_id, defaults={'vm_state': 4})
         _ = TransactionLog.objects.filter(transaction_id=request.transactionId).update(
             completed=True,
             last_status=str(request.status),
@@ -34,7 +41,7 @@ class TiraApplicationService(tira_host_pb2_grpc.TiraApplicationService):
 
         return tira_host_pb2.Transaction(status=tira_host_pb2.Status.SUCCESS,
                                          message="Application accepted the transaction",
-                                         transactionId=request.transaction.transactionId)
+                                         transactionId=request.transactionId)
 
     def confirm_vm_create(self, request, context):
         """ This gets called if a vm was successfully created. Right now it just says 'yes' when called.
@@ -90,6 +97,12 @@ class TiraApplicationService(tira_host_pb2_grpc.TiraApplicationService):
         return tira_host_pb2.Transaction(status=tira_host_pb2.Status.SUCCESS,
                                          message="Application accepted evaluation confirmation",
                                          transactionId=request.transaction.transactionId)
+
+    def heartbeat(self, request, context):
+        """
+
+        """
+        pass
 
 
 def serve(port):

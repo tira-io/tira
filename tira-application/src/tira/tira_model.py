@@ -41,8 +41,6 @@ class FileDatabase(object):
     datasets_dir_path = tira_root / Path("model/datasets")
     softwares_dir_path = tira_root / Path("model/softwares")
     data_path = tira_root / Path("data/datasets")
-    commands_dir_path = tira_root / Path("state/commands/")
-    command_logs_path = tira_root / Path(f"log/virtual-machine-hosts/{socket.gethostname()}/")
     RUNS_DIR_PATH = tira_root / Path("data/runs")
 
     def __init__(self):
@@ -58,8 +56,6 @@ class FileDatabase(object):
         self.software_by_vm = None  # vm_id: [modelpb.Software]
         self.software_count_by_dataset = None  # dataset_id: int()
         self.evaluators = {}  # dataset_id: [modelpb.Evaluator] used as cache
-        self.commandState = None
-        self.command_logs_path.mkdir(exist_ok=True, parents=True)
 
         self.build_model()
 
@@ -69,7 +65,6 @@ class FileDatabase(object):
         self._parse_task_list()
         self._parse_dataset_list()
         self._parse_software_list()
-        self._parse_command_state()
 
         self._build_task_relations()
         self._build_software_relations()
@@ -129,16 +124,6 @@ class FileDatabase(object):
                 software[f"{task_dir.stem}${user_dir.stem}"] = software_list
 
         self.software = software
-
-    def _parse_command_state(self):
-        """ Parse the command state file. """
-        command_states_path = self.commands_dir_path / f"{socket.gethostname()}.prototext"
-        if command_states_path.exists():
-            self.commandState = Parse(open(command_states_path, "r").read(), model_host.CommandState())
-        else:
-            self.commandState = model_host.CommandState()
-            self.commands_dir_path.mkdir(exist_ok=True, parents=True)
-            open(command_states_path, 'w').write(str(self.commandState))
 
     # _build methods reconstruct the relations once per parse. This is a shortcut for frequent joins.
     def _build_task_relations(self):
@@ -770,25 +755,5 @@ class FileDatabase(object):
     def complete_execution(self):
         # TODO implement
         pass
-
-    def get_commands_bulk(self, bulk_id):
-        """
-        Get commands list by bulk command id
-        :param bulk_id:
-        """
-        self._parse_command_state()
-        return [MessageToDict(command) for command in self.commandState.commands if command.bulkCommandId == bulk_id]
-
-    def get_command(self, command_id):
-        """
-        Get command object
-        :param command_id:
-        """
-        self._parse_command_state()
-        for command in self.commandState.commands:
-            if command.id == command_id:
-                return MessageToDict(command)
-        return None
-
 
 model = FileDatabase()
