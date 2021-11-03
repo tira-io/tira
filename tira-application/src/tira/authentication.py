@@ -6,6 +6,7 @@ from google.protobuf.text_format import Parse
 from pathlib import Path
 from .proto import TiraClientWebMessages_pb2 as modelpb
 import re
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -136,15 +137,17 @@ class LegacyAuthentication(Authentication):
 
 class DisraptorAuthentication(Authentication):
     _AUTH_SOURCE = "disraptor"
+    _DISRAPTOR_APP_SECRET_KEY = os.getenv("DISRAPTOR_APP_SECRET_KEY")
 
     # TODO should be in check
     @staticmethod
     def _reply_if_allowed(request, response, alternative="None"):
         """ Returns the :param response: if disraptor auth token is correct, otherwise returns the :param alternative:
-        TODO return the response if the the disraptor secret is correct but WHERE IS THAT???
         """
-        # print(request.headers.get('X-Disraptor-App-Secret-Key', None))
-        return response
+        if request.headers.get('X-Disraptor-App-Secret-Key', None) == _DISRAPTOR_APP_SECRET_KEY:
+            return response
+        else:
+            return alternative
 
     @staticmethod
     def _get_user_id(request):
