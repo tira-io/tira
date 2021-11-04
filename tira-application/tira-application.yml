@@ -40,9 +40,13 @@ spec:
           subPath: key
       volumes:
       - name: tira-cephfs
-        hostPath:
+        cephfs:
+          monitors:
+            - ceph.dw.webis.de
           path: /mnt/ceph/tira
-          type: Directory
+          user: tira
+          secretFile: "/etc/ceph/ceph.client.tira.secret"
+          readOnly: false
       - name: tira-discourse-api-key
         secret:
           secretName: tira-discourse-api-key
