@@ -136,6 +136,8 @@ message RunDetails {
   string command = 4;
   RunId inputRunId = 5;
   string optionalParameters = 6;
+  string taskId = 7;
+  string softwareId = 8;
   // string outputDirName = 7;  // Host must determine this
   // string sandboxed = 8;  // Note sure if this still makes sense
   // string snapshotName = 9; // Note sure if this still makes sense
