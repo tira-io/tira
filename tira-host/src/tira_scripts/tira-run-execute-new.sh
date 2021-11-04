@@ -24,7 +24,7 @@ debug && check_tools "$neededtools"  # If debug, check that tools are available.
 usage() {
     echo "
 Usage:
-    $(basename "$0") [flags] <virtual-machine-prototext> <input-dataset-name> <input-run-name> <outpur-dir-name> <sandboxed> [<optional-parameters>]
+    $(basename "$0") [flags] <virtual-machine-prototext> <input-dataset-name> <input-run-name> <outpur-dir-name> <taskId> <softwareId>
 
 Description:
     Executes a participant's submission for a task. The submission is expected to
@@ -43,11 +43,8 @@ Parameter:
     <outpur-dir-name>       Name of the ouptut directory where the software is
                             supposed to store its output, or 'auto' if it shall
                             be chosen automatically.
-    <optional-parameters>   Additional task-specific parameters, such as an access
-                            token for source retrieval, or language and genre tags
-                            for author identification. The parameters must be
-                            formatted as follows:
-                                'token=my-token;language=en;genre=reviews'
+    <taskId>
+    <softwareId>
 
 Examples:
     $(basename "$0") 'submission-text-alignment.txt' 'pan14-text-alignment-mini-dataset' true
@@ -64,7 +61,7 @@ Authors:
 #
 #    Define command line arguments and parse them.
 #
-DEFINE_string taskname "" 'taskname' 'T'
+#DEFINE_string taskname "" 'taskname' 'T'
 
 FLAGS_HELP=$(usage)
 export FLAGS_HELP
@@ -77,8 +74,8 @@ eval set -- "${FLAGS_ARGV}"
 main() {
     logCall "$(basename "$0") $@"
     # Check number of parameters.
-    if [ "$#" -ne 4 ] && [ "$#" -ne 5 ]; then
-        logError "Wrong amount of parameters: $# but expected 4 or 5, see:"
+    if [ "$#" -ne 6 ]; then
+        logError "Wrong amount of parameters: $# but expected 6, see:"
         usage
     fi
 
@@ -90,17 +87,17 @@ main() {
     inputDatasetName="$2"
     inputRunPath="$3"
     outputDirName="$4"
+    taskname="$5"
+    softwareId="$6"
 
-    taskname="${FLAGS_taskname}"
-    logInfo "Task: $taskname"
-
-    # Check for additional parameters.
-    if [ "$#" -eq 5 ]; then
-        additonalParameters="$5"
-        # Evaluate additional Parameters.
-        # TODO: Using eval is an anti-pattern. Is there a better way?
-        eval "$additonalParameters"
+    if [ "$workingDir" = "none" ]; then
+        workingDir=""
+    else
+        workingDir="$5"
     fi
+
+    #taskname="${FLAGS_taskname}"
+    logInfo "Task: $taskname"
 
     vmFile=$(find "$vmFileDir" -type f -name "$vmFileName")
     if [ ! -e "$vmFile" ]; then
@@ -119,6 +116,27 @@ main() {
     os="ubuntu"
     userpw="$userPw"
     sshport="$portSsh"
+
+    softwareFile=$(find "$_CONFIG_FILE_tira_model/softwares/$taskname/$user/" -type f -name "softwares.prototext")
+    if [ ! -e "$softwareFile" ]; then
+        logError "User software file does not exist, check path: $_CONFIG_FILE_tira_model/softwares/$taskname/$user/softwares.prototext."
+        usage
+    fi
+    # Load user's vm prototext file to populate variables (e.g., $user, $host, etc.)
+    while read LINE;
+    do
+      if [ "$LINE" == "softwares {" ]; then
+        continue
+      elif [ "$LINE" == "}" ] && [ "$id" == "$softwareId" ]; then
+        break
+      fi
+      name=$(echo "$LINE" | cut -d ":" -f 1)
+      value=$(echo "$LINE" | cut -d ":" -f 2 | tr -d '" ')
+      printf -v $name $value
+      export $name
+    done < $softwareFile
+    workingDir="$workingDirectory"
+    cmd="$command"
 
     # Define access token for data server access.
     runPrototext="$runDir/$inputDatasetName/$user/$outputDirName/run.prototext"
@@ -200,7 +218,23 @@ main() {
     fi
 
     # Include user specific data again for correct binding of command line parameters.
-    . "$submissionFile"
+    vmFile=$(find "$vmFileDir" -type f -name "$vmFileName")
+    if [ ! -e "$vmFile" ]; then
+        logError "$vmFileName does not exist, check path: $vmFile."
+        usage
+    fi
+    # Load user's vm prototext file to populate variables (e.g., $user, $host, etc.)
+    while read LINE;
+    do
+      name=$(echo "$LINE" | cut -d ":" -f 1)
+      value=$(echo "$LINE" | cut -d ":" -f 2 | tr -d '" ')
+      printf -v $name $value
+      export $name
+    done < $vmFile
+    user="$userName"
+    os="ubuntu"
+    userpw="$userPw"
+    sshport="$portSsh"
 
     # Get hostname (webisxx) for remote sandboxing/unsandboxing.
     hostname=$(echo "$host" | cut -d'.' -f 1)
