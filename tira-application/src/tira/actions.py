@@ -425,12 +425,11 @@ def run_execute(request, task_id, vm_id, software_id):
         response = grpc_client.run_execute(vm_id=vm_id,
                                            dataset_id=software["dataset"],
                                            run_id=future_run_id,
-                                           working_dir=software["working_directory"],
-                                           command=software["command"],
                                            input_run_vm_id="",
                                            input_run_dataset_id="",
                                            input_run_run_id=software["run"],
-                                           optional_parameters="")
+                                           task_id=task_id,
+                                           software_id=software_id)
         del grpc_client
     except Exception as e:
         logger.exception(f"/grpc/{vm_id}/run_execute to {host} failed with {e}")

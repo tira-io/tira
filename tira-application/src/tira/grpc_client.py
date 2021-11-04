@@ -75,9 +75,11 @@ class GrpcClient:
         logger.debug("Application received vm-list response: " + str(response.transaction.message))
         return response
 
-    def run_execute(self, vm_id, dataset_id, run_id, working_dir, command,
-                    input_run_vm_id, input_run_dataset_id, input_run_run_id, optional_parameters):
+    def run_execute(self, vm_id, dataset_id, run_id, input_run_vm_id, input_run_dataset_id, input_run_run_id, task_id,
+                    software_id):
         """ Initiates a run: the execution of a software to produce output.
+        :param software_id:
+        :param task_id:
         :param vm_id: ID of the vm to run the command below
         :param dataset_id: ID of the dataset
         :param run_id: ID of the run
@@ -95,9 +97,8 @@ class GrpcClient:
                                                 runId=input_run_run_id)
 
         response = self.stub.run_execute(tira_host_pb2.RunDetails(transaction=grpc_transaction,
-                                                                  runId=grpc_run_id, workingDir=working_dir,
-                                                                  command=command, inputRunId=grpc_input_run_id,
-                                                                  optionalParameters=optional_parameters))
+                                                                  runId=grpc_run_id, inputRunId=grpc_input_run_id,
+                                                                  taskId=task_id, softwareId=software_id))
         logger.debug("Application received run-execute response: " + str(response.message))
         return response
 
