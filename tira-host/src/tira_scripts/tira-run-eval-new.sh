@@ -100,8 +100,8 @@ main() {
     # Load user's vm prototext file to populate variables (e.g., $user, $host, etc.)
     while read LINE;
     do
-      if [[ "$LINE" == 'evaluators {' ]]; then
-        break
+      if [ "$LINE" == 'evaluators {' ]; then
+        continue
       fi
       name=$(echo "$LINE" | cut -d ":" -f 1)
       value=$(echo "$LINE" | cut -d ":" -f 2 | tr -d '" ')
@@ -112,6 +112,8 @@ main() {
     os="ubuntu"
     userpw="$userPw"
     sshport="$portSsh"
+    workingDir="$workingDirectory"
+    cmd="$command"
 
     # Define access token for data server access.
     runPrototext="$localInputRun/run.prototext"
@@ -163,7 +165,7 @@ main() {
     while read LINE;
     do
       if [[ "$LINE" == 'evaluators {' ]]; then
-        break
+        continue
       fi
       name=$(echo "$LINE" | cut -d ":" -f 1)
       value=$(echo "$LINE" | cut -d ":" -f 2 | tr -d '" ')
@@ -174,6 +176,8 @@ main() {
     os="ubuntu"
     userpw="$userPw"
     sshport="$portSsh"
+    workingDir="$workingDirectory"
+    cmd="$command"
 
     # Copy the input run into the virtual machine into the tmp folder.
     logInfo "$user@$host: copying input run into the virtual machine..."
