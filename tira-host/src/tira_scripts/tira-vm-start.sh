@@ -68,15 +68,18 @@ check_is_vm_started() {
 #    Start a vm.
 #
 main() {
-
+    
+    logInfo "[tira-vm-start] Checking parameters..."
     # Print usage screen if wrong parameter count.
     if [ "$#" -eq 0 ]; then
-        logError "Missing arguments see:"
+        logError "[tira-vm-start] Missing arguments see:"
         usage
     fi
+    logInfo "[tira-vm-start] Checking parameters done."
 
     sleep 10
 
+    logInfo "[tira-vm-start] Getting vmname..."
     # Extract correct vmname from nfs.
     vmname_or_user="$1"
 
@@ -93,30 +96,36 @@ main() {
         if [ "$host" != "" ] && [ "$host" != "$curhost" ] ; then
             tira_call vm-start -r "$host" "$vmname"
         else
-            logError "$vmname is not a valid username/vmname."
+            logError "[tira-vm-start] $vmname is not a valid username/vmname."
         fi
         return
     fi
-
+    
+    logInfo "[tira-vm-start] Getting vmname done."
+    
+    logInfo "[tira-vm-start] Checking VM state..."
     # Check if vm is already started.
     get_vm_state "$vmname" state
 
     if [ "$state" = "running" ];  then
-        logError "VM is already running!"
+        logError "[tira-vm-start] VM is already running!"
         exit 1
     fi
+    
+    logInfo "[tira-vm-start] VM is not running."
+    logInfo "[tira-vm-start] Checking VM state done."
 
     # Starting VM.
-    logInfo "'$vmname' getting started ..."
+    logInfo "[tira-vm-start] Starting VM '$vmname'..."
 
     # solving "sf_" prefix problem
-    logTodo "check if one guestproperty call is enough"
+    # TODO "check if one guestproperty call is enough"
 
     VBoxManage guestproperty set "$vmname" \
         /VirtualBox/GuestAdd/SharedFolders/MountPrefix ""
 
     VBoxManage startvm "$vmname" --type headless \
-        || logError "vm could not be started"
+        || logError "[tira-vm-start] Failed to start VM '$vmname'."
 
     # Immediately set guestproperty, since it is not
     # set permanently for Ubuntu server.
@@ -129,6 +138,8 @@ main() {
 
     # restart dnsmasq: https://github.com/tira-io/tira9-application2/issues/8
     ssh tira@localhost -C 'sudo systemctl restart dnsmasq'
+    
+    logInfo "[tira-vm-start] Started VM '$vmname'."
 }
 
 #
