@@ -6,6 +6,7 @@ from django.db.utils import IntegrityError
 import logging
 
 from .grpc_client import GrpcClient
+from grpc import RpcError, StatusCode
 from .tira_model import FileDatabase
 from .authentication import Authentication
 from .checks import Check
@@ -324,9 +325,19 @@ def vm_info(request, vm_id):
         response_vm_info = grpc_client.vm_info(vm_id)
         _ = TransitionLog.objects.update_or_create(vm_id=vm_id, defaults={'vm_state': response_vm_info.state})
         del grpc_client
+    except RpcError as e:
+        ex_message = "FAILED"
+        try:
+            if e.code() == StatusCode.UNAVAILABLE:  # .code() is implemented by the _channel._InteractiveRpcError
+                ex_message = "UNAVAILABLE"  # This happens if the GRPC Server is not running
+        except Exception as e2:  # There is a RpcError but not an Interactive one. This should not happen
+            logger.exception(f"/grpc/{vm_id}/vm-info: Unexpected Execption occured: {e2}")
+
+        logger.exception(f"/grpc/{vm_id}/vm-info: connection to {host} failed with {e}")
+        return JsonResponse({'status': 'Rejected', 'message': ex_message}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
     except Exception as e:
         logger.exception(f"/grpc/{vm_id}/vm-info: connection to {host} failed with {e}")
-        return JsonResponse({'status': 'Rejected', 'message': "Server Error"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+        return JsonResponse({'status': 'Rejected', 'message': "SERVER_ERROR"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
     return JsonResponse({'status': 'Accepted', 'message': {
         "guestOs": response_vm_info.guestOs,
