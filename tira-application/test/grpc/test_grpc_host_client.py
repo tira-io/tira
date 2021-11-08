@@ -27,7 +27,7 @@ class TestGrpcHostClient:
         print(f"host-client: set_state response was: {response}")
         return response
 
-    # TODO transactionId
+    # TODO transactionId -- implement create feature
     def confirm_vm_create(self, vm_id, user_name, user_pw, ip, host, ssh, rdp, transaction_id, slp=7):
         """ Wait for :param slp: seconds, then call the set_state method of the applications server,
          this means, we tell the application that the vm now changed it's state to vm_state """
@@ -42,7 +42,7 @@ class TestGrpcHostClient:
         print(f"host-client: confirm_vm_create response was: {response}")
         return response
 
-    # TODO transactionId
+    # TODO transactionId -- implement delete feature
     def confirm_vm_delete(self, vm_id, user_name, user_pw, ip, ssh, rdp, transaction_id, slp=7):
         """ Wait for :param slp: seconds, then call the set_state method of the applications server,
          this means, we tell the application that the vm now changed it's state to vm_state """
@@ -78,22 +78,3 @@ class TestGrpcHostClient:
                                       message=message))
         print(f"host-client: complete_transaction response was: {response}")
         return response
-
-    def do_run_execute(self, vm_id, dataset_id, run_id, transaction_id):
-        """ Here we pretend to do all actions involved in running and executing the software:
-         - shutdown, sandbox, execute, unsandbox, power_on
-         But we sleep instead. Afterwards, we notify the application that the transaction was complete.
-         """
-        self.set_state(vm_id, 4, transaction_id)  # set state to powering_off
-        sleep(7)
-        self.set_state(vm_id, 5, transaction_id)  # set state to sandboxing
-        sleep(7)
-        self.set_state(vm_id, 7, transaction_id)  # set state to executing
-        sleep(7)
-        self.set_state(vm_id, 6, transaction_id)  # set state to unsandboxing
-        sleep(7)
-        self.set_state(vm_id, 3, transaction_id)  # set state to powering_on
-        sleep(7)
-        self.set_state(vm_id, 1, transaction_id)  # set state to running
-        sleep(7)
-        self.complete_transaction(transaction_id, message="run execute completed successful")
