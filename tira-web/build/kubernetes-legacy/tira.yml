@@ -11,19 +11,23 @@ spec:
     app: tira-web-client
 
 ---
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: legacy-tira-web-client
 spec:
+  ingressClassName: nginx
   rules:
   - host: legacy.tira.io
     http:
       paths:
       - path: /
+        pathType: Prefix
         backend:
-          serviceName: tira-web-client
-          servicePort: 8080
+          service:
+            name: tira-web-client
+            port: 
+              number: 8080
 
 ---
 
