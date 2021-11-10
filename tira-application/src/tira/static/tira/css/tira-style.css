@@ -31,6 +31,14 @@ a.uk-button-primary {
     color: #fff;
 }
 
+.uk-checkbox {
+    width: 16px;
+}
+
+[class*="uk-width"] {
+    width: 100%;
+}
+
 @media (max-width: 800px) {
     .index-main-cover {
         height: 200px
