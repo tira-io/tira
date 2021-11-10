@@ -1,4 +1,4 @@
-# ---
+# ---task/celebrity-profiling/user/hodge20a
 debug: true
 allowed_hosts:
   - "127.0.0.1"
@@ -10,6 +10,8 @@ deployment: legacy
 # in the legacy deployment, a path to the users file is needed
 legacy_users_file: /mnt/ceph/tira/model/users/users.prototext
 logging_dir: /mnt/ceph/tira/log/tira-application
+# database: [local | state] if the database is a local one or the one in tira_root/state
+database: local
 # grpc_host can be local or remote. If local, it will call localhost (i.e. for testing). If remote, it will call the vm-host
 # When developing, set this option to local, otherwise you might accidentally remote-control the live-vms.
 grpc_host: local
