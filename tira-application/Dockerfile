@@ -34,6 +34,8 @@ RUN chown -R tira:tira /usr/local && \
 	mkdir -p /home/tira/.tira &&\
 	mkdir -p /mnt/ceph/tira/log/tira-application &&\
 	mkdir /home/tira/.ssh &&\
+	mkdir /mnt/ceph/tira/state &&\
+	touch /mnt/ceph/tira/state/tira_vm_states.sqlite3 &&\
 	chown tira:tira -R /home/tira &&\
 	chown tira:tira -R /tira
 
@@ -41,8 +43,8 @@ RUN chown -R tira:tira /usr/local && \
 WORKDIR /tira/tira-application
 #RUN python3 -m pip install --no-cache-dir -r requirements.txt
 RUN python3 src/manage.py migrate && \
-	python3 src/manage.py makemigrations&& \
-	python3 src/manage.py collectstatic
+	python3 src/manage.py makemigrations && \
+    python3 src/manage.py collectstatic
 
 RUN apk del .build-deps
 

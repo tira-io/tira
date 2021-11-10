@@ -5,7 +5,7 @@ PYTHON=${VENV_NAME}/bin/python3
 SRC_DIR=../tira-protocol/src
 #PYTHON_DEST=${VENV_NAME}/lib/python3.7/site-packages
 BUILD_PATH=src/tira/proto
-VERSION=0.0.5
+VERSION=0.0.6
 
 
 .DEFAULT: help
@@ -23,7 +23,7 @@ setup:
 	mkdir -p src/config
 	cp config/settings-dev.yml src/config/settings.yml
 	make venv
-	make django
+	make local-migrations
 
 # Requirements are in setup.py, so whenever setup.py is changed, re-run installation of dependencies.
 venv:
@@ -41,7 +41,14 @@ protobuf: venv
 	sed -i 's/import tira_host_pb2 as tira__host__pb2/from . import tira_host_pb2 as tira__host__pb2/g' $(BUILD_PATH)/tira_host_pb2_grpc.py
 	touch $(BUILD_PATH)/__init__.py
 
-django:
+local-migrations:
+	cp config/settings-dev.yml src/config/settings.yml
+	sh -c ". $(VENV_NAME)/bin/activate && \
+	python3 src/manage.py makemigrations && \
+	python3 src/manage.py migrate"
+
+deployment-migrations:
+	cp config/settings-deploy.yml src/config/settings.yml
 	sh -c ". $(VENV_NAME)/bin/activate && \
 	python3 src/manage.py makemigrations && \
 	python3 src/manage.py migrate"
@@ -80,9 +87,12 @@ docker-run-tira-application:
 		webis/tira-web-2:${VERSION}
 
 docker-build-tira-application:
+
 	docker build --tag webis/tira-web-2:${VERSION} -f Dockerfile ..
 
 docker-build-and-push-to-webis-registry: docker-build-tira-application
 	docker tag webis/tira-web-2:${VERSION} registry.webis.de/code-lib/public-images/tira-application:${VERSION}
 	docker login registry.webis.de
 	docker push registry.webis.de/code-lib/public-images/tira-application:${VERSION}
+	docker tag webis/tira-web-2:${VERSION} registry.webis.de/code-lib/public-images/tira-application:latest
+	docker push registry.webis.de/code-lib/public-images/tira-application:latest

@@ -22,4 +22,12 @@ Use `make k8s-deploy-tira-application` and `make k8s-undeploy-tira-application`.
 2. `make docker-run-tira-application`
 3. (optional) Publish a new version to docker hub: `make docker-publish-tira-application`
 
+## Settings 
 
+The environment for the docker deployment can be configured via settings files, which can be found at `tira-application/config/`. 
+
+## Database
+
+The docker setup uses a pre-existing database located at `tira_root/state/`, where `tira_root` as given in the settings will be mounted. This database must be created once by running 
+
+`make deployment-migrations`
