@@ -531,19 +531,6 @@ function setInfo(host, os=null, ram=null, cpu=null, warn=false) {
     warn ? host_td.addClass('uk-text-danger') : host_td.removeClass('uk-text-danger');
 }
 
-/* This function sets the Info block Texts */
-function setInfo(host, os=null, ram=null, cpu=null, warn=false) {
-    let host_td = $('#vm-info-host');
-
-    $('#vm-info-spinner').hide();
-
-    if (host !== null) host_td.text(host);
-    if (os !== null) $('#vm-info-guestOs').text(os);
-    if (ram !== null) $('#vm-info-memorySize').text(ram);
-    if (cpu !== null) $('#vm-info-numberOfCpus').text(cpu);
-    warn ? host_td.addClass('uk-text-danger') : host_td.removeClass('uk-text-danger');
-}
-
 // Note: We use these helper functions so we can easily change what the state numbers mean.
 function isTransitionState(state_id) {
     return [3, 4, 5, 6, 7].includes(state_id);
