@@ -69,12 +69,13 @@ check_is_vm_stopped() {
 #
 main() {
 
+    logInfo "[tira-vm-stop] Checking Parameters..."
     # Print usage screen if wrong parameter count.
     if [ "$#" -eq 0 ]; then
         logError "Missing arguments see:"
         usage
     fi
-
+    
     sleep 10
 
     # Extract correct vmname from nfs.
@@ -89,31 +90,36 @@ main() {
     # Check if vm is a local vm, otherwise extract info and run remotly.
     if [ "$(is_tira_vm "$vmname")" = "false" ]; then
         host=$(echo "$vm_info" | grep "host=" | sed "s|host=||g")
-        logTodo "check if host is not the extracted host"
+        #logTodo "check if host is not the extracted host"
         if [ "$host" != "" ]; then
             tira_call vm-stop -r "$host" "$vmname"
         else
-            logError "$vmname is not a valid username/vmname."
+            logError "[tira-vm-stop] $vmname is not a valid username/vmname."
         fi
         return
     fi
-
+    logInfo "[tira-vm-stop] Checking Parameters done."
     # Every parameter is parsed and extracted: now do the job.
 
+    logInfo "[tira-vm-stop] Checking VM state..."
     # Check if vm is started.
     get_vm_state "$vmname" state
 
     if [ "$state" != "running" ];  then
-        logWarn "VM is not running!"
+        logWarn "[tira-vm-stop] VM is not running!"
         exit 1
     fi
 
+    logInfo "[tira-vm-stop] Checking VM state done."
+    
+    logInfo "[tira-vm-stop] Stopping VM..."
     # Stopping VM.
-    logInfo "Powering off local vm $vmname..."
+    logInfo "[tira-vm-stop] Powering off local vm $vmname..."
     VBoxManage controlvm "$vmname" poweroff \
-        || logError "Vm could not be stopped!"
+        || logError "[tira-vm-stop] Vm could not be stopped!"
 
     unittest && check_is_vm_stopped "$vmname"
+    logInfo "[tira-vm-stop] Stopping VM done."
 
 }
 
