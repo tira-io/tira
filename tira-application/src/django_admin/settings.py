@@ -33,6 +33,9 @@ DEBUG = custom_settings.get("debug", True)
 ALLOWED_HOSTS = custom_settings.get("allowed_hosts", [])
 
 TIRA_ROOT = Path(custom_settings.get("tira_root", "/mnt/ceph/tira"))
+TIRA_DB_PATH = TIRA_ROOT / "state" / "tira_vm_states.sqlite3" \
+                   if custom_settings.get("database", "local") == "state" \
+                   else BASE_DIR / "tira_vm_states.sqlite3"
 DEPLOYMENT = custom_settings.get("deployment", "legacy")
 LEGACY_USER_FILE = Path(custom_settings.get("legacy_users_file", ""))
 HOST_GRPC_PORT = custom_settings.get("host_grpc_port", "50051")
@@ -88,11 +91,12 @@ WSGI_APPLICATION = 'django_admin.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': TIRA_DB_PATH,
     }
 }
 
 SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 
 def logger_config(log_dir: Path):

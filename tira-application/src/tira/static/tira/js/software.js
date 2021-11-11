@@ -3,8 +3,6 @@ let pollingSoftware=false;
 let pollingEvaluation=false;
 
 function loadVmInfo(vmid) {
-    setState(0)
-
     $.ajax({
         type: 'GET',
         url: `/grpc/${vmid}/vm_info`,
@@ -16,7 +14,16 @@ function loadVmInfo(vmid) {
                         data.message.memorySize, data.message.numberOfCpus);
 
                 setState(data.message.state);
-                setPorts(data.message.sshPort, data.message.rdpPort);
+                setPorts(data.message.sshPort, data.message.sshPortStatus,
+                         data.message.rdpPort, data.message.rdpPortStatus,);
+
+                if (isTransitionState(data.message.state) && pollingState === false){
+                    pollingState=true;
+                    pollVmState(vmid);
+                } else if (data.message.state === 1 && (!data.message.sshPortStatus || !data.message.rdpPortStatus) ) {
+                    pollingState=true;
+                    pollVmState(vmid);
+                }
 
             } else {
                 setConnectionError(data.message)
@@ -32,7 +39,7 @@ function loadVmInfo(vmid) {
 function setConnectionError(msg) {
     setInfo(msg, null, null, null, true);
     setState(0);
-    setPorts(null, null);
+    setPorts(null, false, null,false);
 }
 
 /*
@@ -51,7 +58,11 @@ function startVM(vmid) {
                 setState(3)
                 pollVmState(vmid)
             }
-        }  // TODO error
+        },
+        error: function (jqXHR, textStatus, throwError) {
+            console.log(throwError, jqXHR.responseJSON.message)
+            loadVmInfo(vmid)
+        }
     })
 }
 
@@ -67,6 +78,10 @@ function shutdownVM(vmid) {
                 setState(4)
                 pollVmState(vmid)
             }
+        },
+        error: function (jqXHR, textStatus, throwError) {
+            console.log(throwError, jqXHR.responseJSON.message)
+            loadVmInfo(vmid)
         }
     })
 }
@@ -83,11 +98,15 @@ function stopVM(vmid) {
                 setState(4)
                 pollVmState(vmid)
             }
+        },
+        error: function (jqXHR, textStatus, throwError) {
+            console.log(throwError, jqXHR.responseJSON.message)
+            loadVmInfo(vmid)
         }
     })
 }
 
-function pollVmState(vmid) {
+function pollVmState(vmid, pollTimeout=5000) {
     setTimeout(function () {
         console.log("Polling VM State");
         // TODO handle on fail.
@@ -101,11 +120,12 @@ function pollVmState(vmid) {
                     setState(data.state);
                     pollVmState(vmid);
                 } else {
+                    pollingState = false
                     loadVmInfo(vmid)
                 }
             }
         })
-    }, 5000);
+    }, pollTimeout);
 }
 
 function pollRunningSoftware(vmid) {
@@ -121,7 +141,6 @@ function pollRunningSoftware(vmid) {
                     if (isSoftwareRunningState(data.state)){
                         pollingSoftware=true;
                     }
-                    setState(0);
                     setState(data.state);
                     pollRunningSoftware(vmid);
                 } else {
@@ -155,7 +174,6 @@ function pollRunningEvaluations(vmid) {
 
 function setupPollingAfterPageLoad(vmid) {
     loadVmInfo(vmid)
-    pollVmState(vmid)
     pollRunningEvaluations(vmid)
     pollRunningSoftware(vmid)
 }
@@ -311,7 +329,7 @@ function addSoftwareEvents(taskId, vmId) {
 /*
 ** RUN MANAGEMENT
  */
-function abortRun(uid, vmId) {
+function abortRun(vmId) {
     disableButton('vm-abort-run-button')
     setState(0)
     $.ajax({
@@ -320,8 +338,12 @@ function abortRun(uid, vmId) {
         data: {},
         success: function (data) {
             if (data.status === 0) {
-                loadVmInfo(vmId)
+                pollVmState(vmId);
             }
+        },
+        error: function (jqXHR, textStatus, throwError) {
+            console.log(throwError, jqXHR.responseJSON.message)
+            loadVmInfo(vmId)
         }
     })
 }
@@ -333,6 +355,10 @@ function deleteRun(datasetId, vmId, runId, row) {
         data: {},
         success: function (data) {
             row.remove();
+        },
+        error: function (jqXHR, textStatus, throwError) {
+            console.log(throwError, jqXHR.responseJSON.message)
+            loadVmInfo(vmid)
         }
     })
 }
@@ -343,9 +369,14 @@ function evaluateRun(datasetId, vmId, runId, row) {
         url: `/grpc/${vmId}/run_eval/${datasetId}/${runId}`,
         data: {},
         success: function (data) {
+            console.log(data)
         //    TODO: Data should yield a transaction id.
         //     poll for the transaction. If it is completed, reload the page.
         // TODO: add a function that checks after a load, if this VM has open transactions and start polling
+        },
+        error: function (jqXHR, textStatus, throwError) {
+            console.log(throwError, jqXHR.responseJSON.message)
+            loadVmInfo(vmId)
         }
     })
 }
@@ -406,43 +437,45 @@ function setState(state_id) {
     unarchiving.hide()
     undef.hide()
 
+
+    disableButton('vm-shutdown-button');
+    disableButton('vm-power-on-button');
+    disableButton('vm-stop-button');
+    disableButton('vm-abort-run-button');
+    disableButton('software-run-button');
+
     switch (state_id) {
-        case 0:  // UNDEFINED = 0;
-            disableButton('vm-shutdown-button');
-            disableButton('vm-power-on-button');
-            disableButton('vm-stop-button');
-            disableButton('vm-abort-run-button');
-            disableButton('software-run-button');
+        case 0:
+            spinner.show();
             break;
         case 1:  // RUNNING = 1;
             running.show();
-            enableButton('vm-shutdown-button', 'uk-button-primary')
-            enableButton('vm-stop-button', 'uk-button-danger')
+            enableButton('vm-shutdown-button', 'uk-button-primary');
             enableButton('software-run-button', 'uk-button-primary');
             break;
         case 2:  // POWERED_OFF = 2;
             stopped.show();
-            enableButton('vm-power-on-button', 'uk-button-primary')
+            enableButton('vm-power-on-button', 'uk-button-primary');
             break;
         case 3:  // POWERING_ON = 3;
             powering_on.show();
-            enableButton('vm-stop-button', 'uk-button-danger')
+            enableButton('vm-stop-button', 'uk-button-danger');
             break;
         case 4:  // POWERING_OFF = 4;
             powering_off.show();
-            enableButton('vm-stop-button', 'uk-button-danger')
+            enableButton('vm-stop-button', 'uk-button-danger');
             break;
         case 5:  // SANDBOXING = 5;
             sandboxing.show();
-            enableButton('vm-abort-run-button', 'uk-button-danger')
+            enableButton('vm-abort-run-button', 'uk-button-danger');
             break;
         case 6:  // UNSANDBOXING = 6
             unsandboxing.show();
-            enableButton('vm-abort-run-button', 'uk-button-danger')
+            enableButton('vm-abort-run-button', 'uk-button-danger');
             break;
         case 7:  // EXECUTING = 7;
             sandboxed.show();
-            enableButton('vm-abort-run-button', 'uk-button-danger')
+            enableButton('vm-abort-run-button', 'uk-button-danger');
             break;
         case 8: // ARCHIVED = 8
             archived.show();
@@ -458,7 +491,7 @@ function setState(state_id) {
     }
 }
 /* This function sets the Ports and Port labels and the Buttons */
-function setPorts(ssh, rdp) {
+function setPorts(ssh, ssh_status, rdp, rdp_status) {
     let ssh_text = $('#vm-state-ssh');
     let ssh_open = $('#vm-state-ssh-open');
     let ssh_closed = $('#vm-state-ssh-closed');
@@ -466,25 +499,36 @@ function setPorts(ssh, rdp) {
     let rdp_open = $('#vm-state-rdp-open');
     let rdp_closed = $('#vm-state-rdp-closed');
 
-    if (ssh !== null) {
-        ssh_text.text('port ' + ssh)
+    ssh !== null ? ssh_text.text('port ' + ssh) : ssh_text.text("")
+    if (ssh_status){
         ssh_open.show()
         ssh_closed.hide()
     } else {
-        ssh_text.text("")
         ssh_open.hide()
         ssh_closed.show()
     }
 
-    if (rdp !== null) {
-        rdp_text.text('port ' + rdp)
+    rdp !== null ? rdp_text.text('port ' + rdp) : rdp_text.text("")
+    if (rdp_status) {
         rdp_open.show()
         rdp_closed.hide()
     } else {
-        rdp_text.text("")
         rdp_open.hide()
         rdp_closed.show()
     }
+}
+
+/* This function sets the Info block Texts */
+function setInfo(host, os=null, ram=null, cpu=null, warn=false) {
+    let host_td = $('#vm-info-host');
+
+    $('#vm-info-spinner').hide();
+
+    if (host !== null) host_td.text(host);
+    if (os !== null) $('#vm-info-guestOs').text(os);
+    if (ram !== null) $('#vm-info-memorySize').text(ram);
+    if (cpu !== null) $('#vm-info-numberOfCpus').text(cpu);
+    warn ? host_td.addClass('uk-text-danger') : host_td.removeClass('uk-text-danger');
 }
 
 /* This function sets the Info block Texts */

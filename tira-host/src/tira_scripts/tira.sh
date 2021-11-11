@@ -112,21 +112,22 @@ main() {
     # tira.sh <comnmand> ARGS
 
     # 5. case:any other not valid arguments
-    logCall "unchecked $(basename "$0") $@"  # write call to log file
-    logInfo "tira version: $_TIRA_VERSION"
-
+    logCall "[tira] unchecked $(basename "$0") $@"  # write call to log file
+    logInfo "[tira] tira version: $_TIRA_VERSION"
+    
+    logInfo "[tira] Checking arguments..."
     parsed_args=$("$_SCRIPT_PATH"/tira-args.py "$@")
 
     eval "$parsed_args"
-    logDebug "Parsed arguments: \n$parsed_args\n"
+    logDebug "[tira] Parsed arguments: \n$parsed_args\n"
 
     if [ "$no_arguments" = "true" ]; then
-        logError "No arguments, see"
+        logError "[tira] No arguments, see"
         usage
     fi
 
     if [ "$error" != "" ]; then
-        logError "$error"
+        logError "[tira] $error"
         usage
     fi
 
@@ -137,39 +138,41 @@ main() {
     fi
 
     if [ "$help" = "true" ]; then
-        logInfo "Tira help:"
+        logInfo "[tira] Tira help:"
         usage
     fi
 
     if [ "$local_help" = "true" ]; then
-        logDebug "Get help screen of $script:"
+        logDebug "[tira] Get help screen of $script:"
         local_script_help_screen "$script" "$_SCRIPT_PATH"
         exit 1
     fi
 
     # Check needed min arguments for subscript.
     if [ "$has_minarg_count" != "true" ]; then
-        logError "Command $script need at least $minarg_count parameters, see:\n"
+        logError "[tira] Command $script need at least $minarg_count parameters, see:\n"
         local_script_help_screen "$script" "$_SCRIPT_PATH"
         exit 1
     fi
-
+    
+    logInfo "[tira] Checking arguments done."
+    
     # Now everything is ok, that means:
     #   $cmd stores a valid command
     #   $args stores all relevant arguments for subscript (without -r HOST)
     #   $remote is true if -r was set and hostname is store in $host.
     if [ "$remote" = "true" ]; then
-        logInfo "Remote call @ $host."
+        logInfo "[tira] Remote call @ $host."
 
         hostname="$host"
         userathost="$_CONFIG_tira_username@$hostname"
 
         if [ "$(host_alive "$hostname")" = "false" ]; then
-            logError "Host $hostname is not available or wrong, check network settings, "\
+            logError "[tira] Host $hostname is not available or wrong, check network settings, "\
                 "ping $hostname should run!"
         fi
         remote_script="tira $script $args"
-        logInfo "Start $remote_script via ssh."
+        logInfo "[tira] Starting $remote_script via ssh."
         # This connection may have to last for a very long time, so we set alive intervals.
         ssh "$userathost" -o UserKnownHostsFile=/dev/null \
             -o StrictHostKeyChecking=no -o TCPKeepAlive=yes -o ServerAliveInterval=60 \
@@ -183,10 +186,10 @@ main() {
         exit 0
     fi
 
-    logCall "$(basename "$0") $@"  # write call to log file
+    logCall "[tira] $(basename "$0") $@"  # write call to log file
 
     if [ "$USER" != "$_CONFIG_tira_username" ]; then
-        logWarn "Better use tira as $_CONFIG_tira_username instead as $USER."
+        logWarn "[tira] Better use tira as $_CONFIG_tira_username instead as $USER."
         remote_script="tira $script $args"
         # This connection may have to last for a very long time, so we set alive intervals.
         ssh "$_CONFIG_tira_username@localhost" -X -o UserKnownHostsFile=/dev/null \

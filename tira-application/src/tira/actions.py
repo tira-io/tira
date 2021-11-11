@@ -22,7 +22,7 @@ from http import HTTPStatus
 from .transitions import TransitionLog, EvaluationLog, TransactionLog
 from .grpc_client import GrpcClient
 from .tira_model import model
-from .util import get_tira_id
+from .util import get_tira_id, reroute_host
 
 include_navigation = True if settings.DEPLOYMENT == "legacy" else False
 auth = Authentication(authentication_source=settings.DEPLOYMENT,
@@ -269,22 +269,22 @@ def vm_running_evaluations(request, vm_id):
 def vm_create(request, hostname, vm_id, ova_file):
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
     uid = auth.get_user_id(request)
-    grpc_client = GrpcClient('localhost') if settings.GRPC_HOST == 'local' else GrpcClient(hostname)
+    host = reroute_host(hostname)
+    response = GrpcClient(host).vm_create(vm_id, ova_file, uid, host)
 
-    response = grpc_client.vm_create(ova_file, vm_id, uid, hostname)
-    return JsonResponse({'status': response.status, 'message': response.transactionId}, status=HTTPStatus.ACCEPTED)
+    if response.status == 0:
+        return JsonResponse({'status': response.status, 'message': response.transactionId}, status=HTTPStatus.ACCEPTED)
+    return JsonResponse({'status': response.status, 'message': response.transactionId}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 def vm_start(request, vm_id):
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
     vm = model.get_vm(vm_id)
-    grpc_client = GrpcClient('localhost') if settings.GRPC_HOST == 'local' else GrpcClient(vm.host)
-    response = grpc_client.vm_start(vm_id)
+
+    response = GrpcClient(reroute_host(vm.host)).vm_start(vm_id)
 
     # NOTE vm_id is different from vm.vmName (latter one includes the 01-tira-ubuntu-...
-    # when status = 0, the host accepts the transaction. We shift our state to 3 - "powering on"
     if response.status == 0:
-        _ = TransitionLog.objects.update_or_create(vm_id=vm_id, defaults={'vm_state': 3})
         return JsonResponse({'status': response.status, 'message': response.transactionId}, status=HTTPStatus.ACCEPTED)
     return JsonResponse({'status': response.status, 'message': f"{response.transactionId} was rejected by the host"},
                         status=HTTPStatus.INTERNAL_SERVER_ERROR)
@@ -293,23 +293,26 @@ def vm_start(request, vm_id):
 def vm_shutdown(request, vm_id):
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
     vm = model.get_vm(vm_id)
-    grpc_client = GrpcClient('localhost') if settings.GRPC_HOST == 'local' else GrpcClient(vm.host)
-    response = grpc_client.vm_shutdown(vm_id)
+
+    response = GrpcClient(reroute_host(vm.host)).vm_shutdown(vm_id)
     if response.status == 0:
-        _ = TransitionLog.objects.update_or_create(vm_id=vm_id, defaults={'vm_state': 4})
+        print(response)
         return JsonResponse({'status': response.status, 'message': response.transactionId}, status=HTTPStatus.ACCEPTED)
     return JsonResponse({'status': response.status, 'message': f"{response.transactionId} was rejected by the host"},
                         status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+
+def do_grpc_call(callback):
+    pass
 
 
 def vm_stop(request, vm_id):
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
 
     vm = model.get_vm(vm_id)
-    grpc_client = GrpcClient('localhost') if settings.GRPC_HOST == 'local' else GrpcClient(vm.host)
-    response = grpc_client.vm_stop(vm_id)
+    response = GrpcClient(reroute_host(vm.host)).vm_stop(vm_id)
+
     if response.status == 0:
-        _ = TransitionLog.objects.update_or_create(vm_id=vm_id, defaults={'vm_state': 4})
         return JsonResponse({'status': response.status, 'message': response.transactionId}, status=HTTPStatus.ACCEPTED)
     return JsonResponse({'status': response.status, 'message': f"{response.transactionId} was rejected by the host"},
                         status=HTTPStatus.INTERNAL_SERVER_ERROR)
@@ -319,7 +322,7 @@ def vm_info(request, vm_id):
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
 
     vm = model.get_vm(vm_id)
-    host = 'localhost' if settings.GRPC_HOST == 'local' else vm.host
+    host = reroute_host(vm.host)
     try:
         grpc_client = GrpcClient(host)
         response_vm_info = grpc_client.vm_info(vm_id)
@@ -421,15 +424,12 @@ def software_delete(request, task_id, vm_id, software_id):
 
 def run_execute(request, task_id, vm_id, software_id):
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
-    # TODO implement check.vm_state_is()
-    # NOTE we have a check concept where we validate the preconditions when initiating an action (if possible)
 
     vm = model.get_vm(vm_id)
     software = model.get_software(task_id, vm_id, software_id=software_id)
     # TODO get input_run data. This is not supported right now, I suggest solving this via website (better selector)
 
-    host = 'localhost' if settings.GRPC_HOST == 'local' else vm.host
-
+    host = reroute_host(vm.host)
     future_run_id = get_tira_id()
     try:
         grpc_client = GrpcClient(host)
@@ -442,18 +442,24 @@ def run_execute(request, task_id, vm_id, software_id):
                                            task_id=task_id,
                                            software_id=software_id)
         del grpc_client
+    except RpcError as e:
+        ex_message = "FAILED"
+        try:
+            logger.exception(f"/grpc/{vm_id}/run_execute: connection to {host} failed with {e}")
+            if e.code() == StatusCode.UNAVAILABLE:  # .code() is implemented by the _channel._InteractiveRpcError
+                ex_message = "UNAVAILABLE"  # This happens if the GRPC Server is not running
+        except Exception as e2:  # There is a RpcError but not an Interactive one. This should not happen
+            logger.exception(f"/grpc/{vm_id}/run_execute: Unexpected Execption occured: {e2}")
+
+        return JsonResponse({'status': "1", 'message': ex_message}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
     except Exception as e:
-        logger.exception(f"/grpc/{vm_id}/run_execute to {host} failed with {e}")
-        return JsonResponse({'status': 'Rejected', 'message': "Server Error"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+        logger.exception(f"/grpc/{vm_id}/run_execute: Server Error: {e}")
+        return JsonResponse({'status': "1", 'message': "SERVER_ERROR"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
     if response.status == 0:
-        transaction = TransactionLog.objects.create(transaction_id=response.transactionId,
-                                                    completed=False,
-                                                    last_status=str(response.status),
-                                                    last_message=response.message)
-        _ = TransitionLog.objects.get_or_create(vm_id=vm_id, defaults={'vm_state': 5, 'transaction': transaction})
-
-    return JsonResponse({'status': 'Accepted', 'message': response.message}, status=HTTPStatus.ACCEPTED)
+        return JsonResponse({'status': response.status, 'message': response.transactionId}, status=HTTPStatus.ACCEPTED)
+    return JsonResponse({'status': response.status, 'message': f"{response.transactionId} was rejected by the host"},
+                        status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 def run_eval(request, vm_id, dataset_id, run_id):
@@ -467,8 +473,7 @@ def run_eval(request, vm_id, dataset_id, run_id):
         return JsonResponse({'status': 'Accepted', 'message': "Evaluation in progress"}, status=HTTPStatus.OK)
 
     evaluator = model.get_evaluator(dataset_id)
-
-    host = 'localhost' if settings.GRPC_HOST == 'local' else evaluator["host"]
+    host = reroute_host(evaluator["host"])
     try:
         grpc_client = GrpcClient(host)
         response = grpc_client.run_eval(vm_id=evaluator["vm_id"],
@@ -481,17 +486,25 @@ def run_eval(request, vm_id, dataset_id, run_id):
                                         input_run_run_id=run_id,
                                         optional_parameters="")
         del grpc_client
+    except RpcError as e:
+        print(e)
+        ex_message = "FAILED"
+        try:
+            logger.exception(f"/grpc/{vm_id}/run_eval/{dataset_id}/{run_id}: connection to {host} failed with {e}")
+            if e.code() == StatusCode.UNAVAILABLE:  # .code() is implemented by the _channel._InteractiveRpcError
+                ex_message = "UNAVAILABLE"  # This happens if the GRPC Server is not running
+        except Exception as e2:  # There is a RpcError but not an Interactive one. This should not happen
+            logger.exception(f"/grpc/{vm_id}/run_eval/{dataset_id}/{run_id}: Unexpected Execption occured: {e2}")
+
+        return JsonResponse({'status': "1", 'message': ex_message}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
     except Exception as e:
-        logger.exception(f"/grpc/{vm_id}/run_eval/{dataset_id}/{run_id} to {host} failed with {e}")
-        return JsonResponse({'status': 'Rejected', 'message': "Server Error"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+        logger.exception(f"/grpc/{vm_id}/run_eval/{dataset_id}/{run_id}: Server Error: {e}")
+        return JsonResponse({'status': "1", 'message': "SERVER_ERROR"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
     if response.status == 0:
-        t = TransactionLog.objects.create(transaction_id=response.transactionId, completed=False,
-                                          last_status=str(response.status),
-                                          last_message=response.message)
-        _ = EvaluationLog.objects.create(vm_id=vm_id, run_id=run_id, running_on=evaluator["vm_id"], transaction=t)
-
-    return JsonResponse({'status': 'Accepted', 'message': response.message}, status=HTTPStatus.ACCEPTED)
+        return JsonResponse({'status': response.status, 'message': response.transactionId}, status=HTTPStatus.ACCEPTED)
+    return JsonResponse({'status': response.status, 'message': f"{response.transactionId} was rejected by the host"},
+                        status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 def run_delete(request, dataset_id, vm_id, run_id):
@@ -503,45 +516,34 @@ def run_delete(request, dataset_id, vm_id, run_id):
 
 
 def run_abort(request, vm_id):
+    """ """
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
+    print("vm_id", vm_id)
     vm = model.get_vm(vm_id)
 
-    host = 'localhost' if settings.GRPC_HOST == 'local' else vm.host
+    host = reroute_host(vm.host)
+
     try:
         grpc_client = GrpcClient(host)
         response = grpc_client.run_abort(vm_id)
         del grpc_client
+    except RpcError as e:
+        ex_message = "FAILED"
+        try:
+            logger.exception(f"/grpc/{vm_id}/run_abort: connection to {host} failed with {e}")
+            if e.code() == StatusCode.UNAVAILABLE:  # .code() is implemented by the _channel._InteractiveRpcError
+                ex_message = "UNAVAILABLE"  # This happens if the GRPC Server is not running
+        except Exception as e2:  # There is a RpcError but not an Interactive one. This should not happen
+            logger.exception(f"/grpc/{vm_id}/run_abort: Unexpected Execption occured: {e2}")
+
+        return JsonResponse({'status': "1", 'message': ex_message}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
     except Exception as e:
-        logger.exception(f"/grpc/{vm_id}/run_abort to {host} failed with {e}")
-        return JsonResponse({'status': 'Rejected', 'message': "Server Error"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+        logger.exception(f"/grpc/{vm_id}/run_abort: Server Error: {e}")
+        return JsonResponse({'status': "1", 'message': "SERVER_ERROR"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
-    return JsonResponse({'status': 'Accepted', 'message': response}, status=HTTPStatus.ACCEPTED)
-
-
-# ---------------------------------------------------------------------
-#   Management actions
-# ---------------------------------------------------------------------
+    if response.status == 0:
+        return JsonResponse({'status': response.status, 'message': response.transactionId}, status=HTTPStatus.ACCEPTED)
+    return JsonResponse({'status': response.status, 'message': f"{response.transactionId} was rejected by the host"},
+                        status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
-# def command_status(request, command_id):
-#     command = model.get_command(command_id)
-#     if not command:
-#         return JsonResponse({"status": 'NOT_FOUND'}, status=HTTPStatus.NOT_FOUND)
-#
-#     return JsonResponse({"status": 'OK', 'message': {'command': MessageToDict(command)}}, status=HTTPStatus.OK)
-#
-#
-# def bulk_vm_create(request, vm_list):
-#     check.has_access(request, ["tira", "admin"])
-#
-#     bulk_id = uuid.uuid4().hex
-#     for host, vm_id, ova_id in vm_list:
-#         vm_create(request, host, vm_id, ova_id, bulk_id=bulk_id)
-#
-#     return JsonResponse({'status': 'Accepted', 'message': {'bulkCommandId': bulk_id}}, status=HTTPStatus.ACCEPTED)
-#     # return bulk_id
-#
-#
-# def get_bulk_command_status(request, bulk_id):
-#     commands = model.get_commands_bulk(bulk_id)
-#     return JsonResponse({'status': 'OK', 'message': {'commands': commands}}, status=HTTPStatus.OK)

@@ -9,9 +9,9 @@ from proto import TiraClientWebMessages_pb2 as modelpb
 from proto import tira_host_pb2 as model_host
 import time
 import socket
+import uuid
 
 logger = logging.getLogger(__name__)
-# TODO: get TIRA_ROOT from settings
 parser = ConfigParser()
 parser.read('conf/grpc_service.ini')
 TIRA_ROOT = parser.get('main', 'tira_model_path')
@@ -21,6 +21,7 @@ class FileDatabase(object):
     tira_root = TIRA_ROOT
     users_file_path = tira_root / Path("model/users/users.prototext")
     vm_dir_path = tira_root / Path("model/virtual-machines")
+    RUNS_DIR_PATH = tira_root / Path("data/runs")
 
     def __init__(self):
         logger.info("Start loading dataset")
@@ -59,6 +60,76 @@ class FileDatabase(object):
                 software[f"{task_dir.stem}${user_dir.stem}"] = software_list
 
         self.software = software
+
+    def _load_run(self, dataset_id, vm_id, run_id, return_deleted=False, as_json=False):
+        run_dir = self.get_run_dir(dataset_id, vm_id, run_id)
+        if not (run_dir / "run.bin").exists():
+            logger.error(f"Try to read a run without a run.bin: {dataset_id}-{vm_id}-{run_id}")
+            # TODO check if it is better to return empty runs vs. returning None vs. raising
+            return None
+
+        run = modelpb.Run()
+        run.ParseFromString(open(run_dir / "run.bin", "rb").read())
+        if return_deleted is False and run.deleted:
+            run.softwareId = "This run was deleted"
+            run.runId = run_id
+            run.inputDataset = dataset_id
+
+        if as_json:
+            return {"software": run.softwareId,
+                    "run_id": run.runId, "input_run_id": run.inputRun,
+                    "dataset": run.inputDataset, "downloadable": run.downloadable}
+        return run
+
+    def get_run_dir(self, dataset_id, vm_id, run_id):
+        return self.RUNS_DIR_PATH / dataset_id / vm_id / run_id
+
+    def _save_run(self, dataset_id, vm_id, run_id, run):
+        run_dir = self.get_run_dir(dataset_id, vm_id, run_id)
+        run_dir.mkdir(parents=True, exist_ok=True)
+
+        open(run_dir / "run.prototext", 'w').write(str(run))
+        open(run_dir / "run.bin", 'wb').write(run.SerializeToString())
+
+    def create_run(self, vm_id, software_id, run_id, dataset_id, input_run_id, task_id):
+        """
+        :param vm_id:
+        :param software_id:
+        :param run_id:
+        :param dataset_id:
+        :param input_run_id:
+        :param task_id:
+        :return:
+        """
+        run = modelpb.Run()
+        run.softwareId = software_id
+        run.runId = run_id
+        run.inputDataset = dataset_id
+        run.inputRun = input_run_id if input_run_id else "none"
+        run.downloadable = False
+        run.deleted = False
+        run.taskId = task_id
+        run.accessToken = str(uuid.uuid4())
+
+        self._save_run(dataset_id, vm_id, run_id, run)
+
+    def update_run(self, dataset_id, vm_id, run_id, deleted: bool = None):
+        """ updates the run specified by dataset_id, vm_id, and run_id with the values given in the parameters.
+            Required Parameters are also required in the function
+        """
+        run = self._load_run(dataset_id, vm_id, run_id, as_json=False)
+
+        def update(x, y):
+            return y if y is not None else x
+
+        run.deleted = update(run.deleted, deleted)
+
+        try:
+            self._save_run(dataset_id, vm_id, run_id, run)
+            return True
+        except Exception as e:
+            logger.exception(f"Exception while saving run ({dataset_id}, {vm_id}, {run_id}): {e}")
+            return False
 
     def get_dataset(self, dataset_id: str) -> dict:
 

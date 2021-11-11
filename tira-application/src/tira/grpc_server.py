@@ -20,10 +20,18 @@ class TiraApplicationService(tira_host_pb2_grpc.TiraApplicationService):
     def set_state(self, request, context):
         """ TODO error handling """
         logger.debug(f" Application Server received vm-state {request.state} for {request.vmId}")
+        print(f"Application Server received vm-state {request.state} for {request.vmId}. Transaction: {request.transaction.transactionId}")
 
-        _ = TransitionLog.objects.update_or_create(vm_id=request.vmId, defaults={'vm_state': request.state})
+        TransactionLog.objects.filter(transaction_id=request.transaction.transactionId).update(
+            last_status=request.transaction.status,
+            last_message=f"TiraApplicationService:set_state:{request.transaction.message}"
+        )
+
+        t = TransactionLog.objects.get(transaction_id=request.transaction.transactionId)
+        _ = TransitionLog.objects.update_or_create(vm_id=request.vmId, defaults={'vm_state': request.state,
+                                                                                 'transaction': t})
         return tira_host_pb2.Transaction(status=tira_host_pb2.Status.SUCCESS,
-                                         message=f"Set VM state to {request.state}",
+                                         message="TiraApplicationService:set_state:SUCCESS",
                                          transactionId=request.transaction.transactionId)
 
     def complete_transaction(self, request, context):
@@ -31,16 +39,15 @@ class TiraApplicationService(tira_host_pb2_grpc.TiraApplicationService):
         This is basically the final stage of a a TIRA message exchange.
         """
         logger.debug(f" Application Server received complete_transaction for {request.transactionId}")
-        if request.status is tira_host_pb2.Status.FAILED:
-            vm_id = TransactionLog.objects.get()
-            _ = TransitionLog.objects.update_or_create(vm_id=vm_id, defaults={'vm_state': 4})
+        print(f" Application Server received complete_transaction for {request.transactionId}")
+
         _ = TransactionLog.objects.filter(transaction_id=request.transactionId).update(
             completed=True,
             last_status=str(request.status),
-            last_message=request.message)
+            last_message=f"TiraApplicationService:complete_transaction:{request.message}")
 
         return tira_host_pb2.Transaction(status=tira_host_pb2.Status.SUCCESS,
-                                         message="Application accepted the transaction",
+                                         message="TiraApplicationService:complete_transaction:SUCCESS",
                                          transactionId=request.transactionId)
 
     def confirm_vm_create(self, request, context):

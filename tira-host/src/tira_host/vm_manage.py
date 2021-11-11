@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+import json
 from datetime import datetime
 from functools import wraps
 import logging
@@ -21,8 +21,8 @@ class VMManage:
         :param output: if defined, output of the command is assigned to it for further parsing
         :return:
         """
-        logger.debug("Start " + script_name + " command.")
-        shell_command = "tira " + script_name + " " + " ".join([a for a in args])
+        shell_command = f"tira {script_name} " + " ".join([f"'{a}'" for a in args])
+        logger.debug(f"Execute {shell_command}")
         p = subprocess.Popen(shell_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         out, err = p.communicate()
         output = out.decode('utf-8')
@@ -144,29 +144,31 @@ class VMManage:
     def vm_unsandbox(self, vm_name):
         return self._run_tira_script("vm-unsandbox", vm_name)
 
-    def run_execute(self, vm_file, input_dataset_name, input_run_path, output_dir_name, sandboxed,
-                    optional_parameters=""):
+    def run_execute(self, vm_file, input_dataset_name, input_run_path, output_dir_name, task_id, software_id):
         """
 
-        :param vm_file: 
+        :param software_id:
+        :param task_id:
+        :param command:
+        :param working_dir:
+        :param vm_file:
         :param input_dataset_name: 
         :param input_run_path: 
         :param output_dir_name:
-        :param sandboxed: 
-        :param optional_parameters: 
-        :return: 
+        :return:
         """
         return self._run_tira_script("run-execute-new", vm_file, input_dataset_name, input_run_path,
-                                     output_dir_name,
-                                     sandboxed, optional_parameters)
+                                     output_dir_name, task_id, software_id)
 
     def run_eval(self, vm_file, input_dataset_name, input_run_path, output_dir_name):
         """
 
+        :param command:
+        :param working_dir:
         :param vm_file:
         :param input_dataset_name:
         :param input_run_path:
         :param output_dir_name:
         :return:
         """
-        return self._run_tira_script("run-execute-new", vm_file, input_dataset_name, input_run_path, output_dir_name)
+        return self._run_tira_script("run-eval-new", vm_file, input_dataset_name, input_run_path, output_dir_name)
