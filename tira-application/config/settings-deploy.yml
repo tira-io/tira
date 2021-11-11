@@ -2,7 +2,7 @@
 debug: false
 allowed_hosts:
   - "*"
-django_secret: 'INSERT_SECRET'
+django_secret: 'not-so-secret'
 # --- Tira specific settings
 tira_root: /mnt/ceph/tira
 # deployment = {disraptor, legacy}
@@ -10,7 +10,10 @@ deployment: disraptor
 logging_dir: /mnt/ceph/tira/log/tira-application
 # in the legacy deployment, a path to the users file is needed
 # legacy_users_file: /mnt/ceph/tira/model/users/users.prototext
+# database: [local | state] if the database is a local one or the one in tira_root/state
+database: state
 # grpc_host can be local or remote. If local, it will call localhost (i.e. for testing). If remote, it will call the vm-host
+# When developing, set this option to local, otherwise you might accidentally remote-control the live-vms.
 grpc_host: remote
 host_grpc_port: 50051
 application_grpc_port: 50052

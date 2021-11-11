@@ -2,6 +2,8 @@ from datetime import datetime
 import logging
 
 from .proto import TiraClientWebMessages_pb2 as modelpb
+from django.conf import settings
+
 
 logger = logging.getLogger("tira")
 
@@ -9,6 +11,13 @@ logger = logging.getLogger("tira")
 def get_tira_id():
     dt = datetime.now()
     return dt.strftime("%Y-%m-%d-%H-%M-%S")
+
+
+def reroute_host(hostname):
+    """ If we use a local deployment and use a local (mock) host, we need to change all hostnames to localhost.
+    Otherwise we may contact the real vm-hosts while developing.
+      """
+    return 'localhost' if settings.GRPC_HOST == 'local' else hostname
 
 
 def auto_reviewer(review_path, run_id):

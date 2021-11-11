@@ -28,14 +28,14 @@ def colorcyan(m):
 
 
 def logInfo(msg):
-    print(colorgreen("[INFO ] ") + str(msg))
+    print(colorgreen("[INFO] ") + str(msg))
 
 
 def logError(msg):
     print(colorred("[ERROR] ") + str(msg))
 
 def logTodo(msg):
-    print(colorred("[TODO ] ") + colorred(str(msg)))
+    print(colorred("[TODO] ") + colorred(str(msg)))
 
 
 def logDebug(msg):
