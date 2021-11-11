@@ -296,14 +296,9 @@ def vm_shutdown(request, vm_id):
 
     response = GrpcClient(reroute_host(vm.host)).vm_shutdown(vm_id)
     if response.status == 0:
-        print(response)
         return JsonResponse({'status': response.status, 'message': response.transactionId}, status=HTTPStatus.ACCEPTED)
     return JsonResponse({'status': response.status, 'message': f"{response.transactionId} was rejected by the host"},
                         status=HTTPStatus.INTERNAL_SERVER_ERROR)
-
-
-def do_grpc_call(callback):
-    pass
 
 
 def vm_stop(request, vm_id):
@@ -320,6 +315,7 @@ def vm_stop(request, vm_id):
 
 def vm_info(request, vm_id):
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
+    # TODO when vm_id is no-vm-assigned
 
     vm = model.get_vm(vm_id)
     host = reroute_host(vm.host)
@@ -469,8 +465,9 @@ def run_eval(request, vm_id, dataset_id, run_id):
     """
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
     # check if evaluation already exists
-    if EvaluationLog.objects.filter(vm_id=vm_id, run_id=run_id):
-        return JsonResponse({'status': 'Accepted', 'message': "Evaluation in progress"}, status=HTTPStatus.OK)
+    if EvaluationLog.objects.filter(vm_id=vm_id):
+        return JsonResponse({'status': '1', 'message': "An evaluation is already in progress."},
+                            status=HTTPStatus.PRECONDITION_FAILED)
 
     evaluator = model.get_evaluator(dataset_id)
     host = reroute_host(evaluator["host"])
@@ -487,7 +484,6 @@ def run_eval(request, vm_id, dataset_id, run_id):
                                         optional_parameters="")
         del grpc_client
     except RpcError as e:
-        print(e)
         ex_message = "FAILED"
         try:
             logger.exception(f"/grpc/{vm_id}/run_eval/{dataset_id}/{run_id}: connection to {host} failed with {e}")
@@ -502,6 +498,7 @@ def run_eval(request, vm_id, dataset_id, run_id):
         return JsonResponse({'status': "1", 'message': "SERVER_ERROR"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
     if response.status == 0:
+
         return JsonResponse({'status': response.status, 'message': response.transactionId}, status=HTTPStatus.ACCEPTED)
     return JsonResponse({'status': response.status, 'message': f"{response.transactionId} was rejected by the host"},
                         status=HTTPStatus.INTERNAL_SERVER_ERROR)
@@ -518,7 +515,6 @@ def run_delete(request, dataset_id, vm_id, run_id):
 def run_abort(request, vm_id):
     """ """
     check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
-    print("vm_id", vm_id)
     vm = model.get_vm(vm_id)
 
     host = reroute_host(vm.host)

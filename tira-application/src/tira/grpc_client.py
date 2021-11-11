@@ -123,7 +123,7 @@ class GrpcClient:
         response = self.stub.run_execute(tira_host_pb2.RunDetails(transaction=grpc_transaction,
                                                                   runId=grpc_run_id, inputRunId=grpc_input_run_id,
                                                                   taskId=task_id, softwareId=software_id))
-        logger.info("Application received run-execute response: " + str(response.message))
+        logger.debug("Application received run-execute response: " + str(response.message))
         return response
 
     def run_eval(self, vm_id, dataset_id, run_id, working_dir, command,
