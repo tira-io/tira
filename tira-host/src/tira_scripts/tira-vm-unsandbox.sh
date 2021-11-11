@@ -66,7 +66,7 @@ main() {
 
     # Print usage screen if wrong parameter count.
     if [ "$#" -ne 1 ]; then
-        logError "Missing arguments see:"
+        logError "[tira-vm-unsandbox] Missing arguments see:"
         usage
     fi
 
@@ -75,7 +75,7 @@ main() {
     vm_reg_file="$_CONFIG_FILE_tira_vms"
     vmname="$1"
 
-    logInfo "executing unsandbox script"
+    logInfo "[tira-vm-unsandbox] Executing unsandbox script..."
 
     vm_info=$(get_vm_info_from_tira "$vmname")
     vmnumber=$(echo "$vm_info" | grep "vmId" | sed "s|vmId=||g")
@@ -91,11 +91,11 @@ main() {
 
     # Is not sandboxed.
     if [ ! -e "$lockfile" ]; then
-        logWarn "VM $vmname is not sandboxed!"
+        logWarn "[tira-vm-unsandbox] VM $vmname is not sandboxed!"
         exit 1
     fi
 
-    logInfo "UNSANDBOX $vmname..."
+    logInfo "[tira-vm-unsandbox] Unsandboxing VM $vmname..."
     # Get snapshot name.
     . "$lockfile"
 
@@ -106,24 +106,29 @@ main() {
     if [ -f "$oldprogressfile" ]; then
         rm "$oldprogressfile"
     fi
-
+    
+    logInfo "[tira-vm-unsandbox] Shutting down and unregistering cloned VM..."
     # Shutdown cloned vm.
     tira_call vm-stop "$vmname-clone-$snapshotName"
 
     # Unregister cloned vm.
     VBoxManage unregistervm --delete "$vmname-clone-$snapshotName"
+    logInfo "[tira-vm-unsandbox] Shutting down and unregistering cloned VM done."
     # Remove snapshot.
     #VBoxManage snapshot "$vmname" delete "$snapshotName"
-
+    
+    logInfo "[tira-vm-unsandbox] Starting original VM..."
     # Start original VM.
     tira_call vm-start "$vmname"
+    logInfo "[tira-vm-unsandbox] Starting original VM $vmname done."
 
+    logInfo "[tira-vm-unsandbox] Configuring original VM..."
     # tira custom chains
     INPUT=tira_input
     FORWARD=tira_forward
     # Deactivate firewall rules.
-    logDebug "chainname: $chainname"
-    logDebug "rdpport: $rdpport"
+    logDebug "[tira-vm-unsandbox] chainname: $chainname"
+    logDebug "[tira-vm-unsandbox] rdpport: $rdpport"
     sudo iptables -D $FORWARD -j "$chainname"
     sudo iptables -F "$chainname"
     sudo iptables -X "$chainname"
@@ -145,13 +150,16 @@ main() {
     # Config entry.
     hostname=$(hostname)
     sed -i "s/$hostname\\t$vmname\\tsandboxed/$hostname\\t$vmname/g" "$vm_reg_file"
+    logInfo "[tira-vm-unsandbox] Configuring original VM done."
 
+    logInfo "[tira-vm-unsandbox] Cleaning up Virtualbox directory and removing lock files..."
     # Tidy up Virtualbox directory.
     rm -rf "/home/$_CONFIG_tira_username"/VirtualBox\ VMs/"$vmname-clone-$snapshotName"
 
     # Remove lock file.
     rm "$lockfile"
     rm "$progressfile"
+    logInfo "[tira-vm-unsandbox] Cleaning up Virtualbox directory and removing lock files done."
 }
 
 #
