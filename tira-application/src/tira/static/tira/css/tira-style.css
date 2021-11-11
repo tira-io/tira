@@ -35,10 +35,6 @@ a.uk-button-primary {
     width: 16px; !important
 }
 
-[class*="uk-width"] {
-    width: 100%; !important
-}
-
 @media (max-width: 800px) {
     .index-main-cover {
         height: 200px
