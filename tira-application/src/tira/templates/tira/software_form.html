@@ -30,16 +30,6 @@
                 </div>
             </div>
         </div>
-        <!--        <div class="uk-grid-medium uk-margin-small uk-child-width-1-2" uk-grid>-->
-        <!--            <div hidden>-->
-        <!--                <label class="uk-form-label" for="{{ software.id }}-input-run">Input Run</label>-->
-        <!--                <div class="uk-form-controls">-->
-        <!--                    <select class="uk-select" id="{{ software.id }}-input-run">-->
-        <!--                        <option>None</option>-->
-        <!--                    </select>-->
-        <!--                </div>-->
-        <!--            </div>-->
-        <!--        </div>-->
     </form>
     <div class="software-form-buttons">
         <button class="uk-button uk-button-small uk-button-disabled uk-width-1-6 software-run-button"
@@ -117,7 +107,8 @@
                 {% if run.input_run_id == "none" %}
                 <a class="uk-button uk-button-small uk-button-default run-evaluate-button"
                    data-tira-dataset="{{ run.dataset }}" data-tira-vm-id="{{ vm_id }}"
-                   data-tira-run-id="{{ run.run_id }}">evaluate</a>
+                   data-tira-run-id="{{ run.run_id }}">
+                    <div id="run-evaluate-spinner-{{ run.run_id }}" class="run-evaluate-spinner" uk-spinner="ratio: 0.4"></div> evaluate</a>
                 {% endif %}
                 <a class="uk-button uk-button-small uk-button-default"
                    href="{% url 'tira:review' task_id=task_id vm_id=vm_id dataset_id=software.dataset run_id=run.run_id %}">inspect</a>

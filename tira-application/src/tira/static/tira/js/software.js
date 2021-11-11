@@ -8,7 +8,6 @@ function loadVmInfo(vmid) {
         url: `/grpc/${vmid}/vm_info`,
         data: {},
         success: function (data) {
-            console.log(data.message)
             if (data.status === 'Accepted') {
                 setInfo(data.message.host, data.message.guestOs,
                         data.message.memorySize, data.message.numberOfCpus);
@@ -108,14 +107,12 @@ function stopVM(vmid) {
 
 function pollVmState(vmid, pollTimeout=5000) {
     setTimeout(function () {
-        console.log("Polling VM State");
         // TODO handle on fail.
         $.ajax({
             type: 'GET',
             url: `/grpc/${vmid}/vm_state`,
             data: {},
             success: function (data) {
-                console.log(data.state);
                 if (isTransitionState(data.state)){
                     setState(data.state);
                     pollVmState(vmid);
@@ -137,7 +134,6 @@ function pollRunningSoftware(vmid) {
             data: {},
             success: function (data) {
                 if (isTransitionState(data.state)){
-                    console.log(data.state);
                     if (isSoftwareRunningState(data.state)){
                         pollingSoftware=true;
                     }
@@ -147,6 +143,9 @@ function pollRunningSoftware(vmid) {
                     // Note: It's easiest to reload the page here instead of adding the runs to the table via JS.
                     if (pollingSoftware === true) location.reload();
                 }
+            },
+            error: function (jqXHR, textStatus, throwError) {
+                console.log(throwError, jqXHR.responseJSON.message)
             }
         })
     }, 10000);
@@ -154,7 +153,6 @@ function pollRunningSoftware(vmid) {
 
 function pollRunningEvaluations(vmid) {
     setTimeout(function () {
-        // TODO handle on fail.
         $.ajax({
             type: 'GET',
             url: `/grpc/${vmid}/vm_running_evaluations`,
@@ -167,12 +165,16 @@ function pollRunningEvaluations(vmid) {
                     // Note: It's easiest to reload the page here instead of adding the runs to the table via JS.
                     if (pollingEvaluation === true) location.reload();
                 }
+            },
+            error: function (jqXHR, textStatus, throwError) {
+                console.log(throwError, jqXHR.responseJSON.message)
             }
         })
     }, 10000);
 }
 
 function setupPollingAfterPageLoad(vmid) {
+    $('.run-evaluate-spinner').hide()
     loadVmInfo(vmid)
     pollRunningEvaluations(vmid)
     pollRunningSoftware(vmid)
@@ -271,7 +273,6 @@ function runSoftware (taskId, vmId, softwareId) {
             action: 'post'
         },
         success: function (data) {
-            console.log('starting to run software')
             pollRunningSoftware(vmId)
         },
         error: function () {
@@ -364,19 +365,24 @@ function deleteRun(datasetId, vmId, runId, row) {
 }
 
 function evaluateRun(datasetId, vmId, runId, row) {
+    disableButton("run-evaluate-button")
+    let spinner_id = 'run-evaluate-spinner-' + runId
+    $('#' + spinner_id).show()
+
     $.ajax({
         type: 'GET',
         url: `/grpc/${vmId}/run_eval/${datasetId}/${runId}`,
         data: {},
         success: function (data) {
-            console.log(data)
-        //    TODO: Data should yield a transaction id.
-        //     poll for the transaction. If it is completed, reload the page.
-        // TODO: add a function that checks after a load, if this VM has open transactions and start polling
+            pollingEvaluation=true;
+            pollRunningEvaluations(vmId)
         },
         error: function (jqXHR, textStatus, throwError) {
+            // TODO let user know
             console.log(throwError, jqXHR.responseJSON.message)
             loadVmInfo(vmId)
+            $('#run-evaluate-spinner-' + runId).hide()
+            enableButton("run-evaluate-button")
         }
     })
 }
@@ -386,7 +392,6 @@ function evaluateRun(datasetId, vmId, runId, row) {
 ** UTILITY
  */
 function disableButton(id) {
-    // Console.log($('#' + id))
     $('#' + id).prop("disabled", true)
         .removeClass('uk-button-primary')
         .removeClass('uk-button-danger')
