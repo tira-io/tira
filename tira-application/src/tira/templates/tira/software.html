@@ -5,7 +5,7 @@
 {% block navbar %}{% include "tira/navbar.html" with nav_active='software' %}{% endblock %}
 
 {% block content %}
-
+<div id="alert-warning"></div>
 <nav class="uk-container">
 <ul class="uk-breadcrumb">
 <li><a href="{% url 'tira:index' %}">Tira.io</a></li>
@@ -15,6 +15,7 @@
 </nav>
 
 <main class="uk-section uk-section-default">
+
     <div class="uk-container">
         <h1>Virtual Machine &mdash; <span class="uk-text-muted">{{ vm_id }}</span></h1>
     </div>
