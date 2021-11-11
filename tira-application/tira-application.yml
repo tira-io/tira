@@ -38,6 +38,12 @@ spec:
         - mountPath: "/etc/discourse/client-api-key"
           name: tira-discourse-api-key
           subPath: key
+        env:
+          - name: DISRAPTOR_APP_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: disraptor-app-secret-key
+                key: disraptor-app-secret-key
       volumes:
       - name: tira-cephfs
         cephfs:
