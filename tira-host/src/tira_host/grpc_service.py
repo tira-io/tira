@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-import json
-import os
 from concurrent import futures
 from configparser import ConfigParser
 from datetime import datetime
@@ -10,8 +8,10 @@ import grpc
 from grpc import aio
 import logging
 from logging.config import fileConfig
+import os
 import re
 import socket
+import signal
 import threading
 import time
 import uuid
@@ -62,7 +62,7 @@ def async_api(wrapped_function):
                                                  status=tira_host_pb2.Status.FAILED,
                                                  message=f"Transaction {transaction_id} request failed: {str(e)}")
             finally:
-                commands.pop(transaction_id)
+                commands.pop(transaction_id, None)
 
         request = args[1]
         transaction_id = request.transaction.transactionId
@@ -358,6 +358,7 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
 
         return return_code
 
+    @async_api
     def run_abort(self, request, context, vmmanage):
         """
 
@@ -366,9 +367,25 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         :param vmmanage:
         :return:
         """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details("run_abort() method not implemented.")
-        raise NotImplementedError("run_abort() method not implemented.")
+        vm = self._get_vm(request.runId.vmId, context)
+
+        transaction_id = request.vmId.transactionId
+        if transaction_id not in commands:
+            context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
+            msg = f"Transaction {transaction_id} not found."
+            context.set_details(msg)
+            raise Exception(msg)
+
+        t = commands[transaction_id]['command_thread']
+        os.killpg(os.getpgid(t.pid), signal.SIGTERM)
+        commands.pop(transaction_id)
+
+        grpc_client.set_state(request.runId.vmId, tira_host_pb2.State.UNSANDBOXING, request.vmId.transactionId)
+        self._vm_unsandbox(vm.vmName, vmmanage)
+        grpc_client.set_state(request.runId.vmId, tira_host_pb2.State.RUNNING, request.vmId.transactionId)
+        grpc_client.complete_transaction(transaction_id=request.vmId.transactionId,
+                                         status=tira_host_pb2.Status.SUCCESS,
+                                         message=f"run_abort command finished successfully.")
 
 
 def serve():
