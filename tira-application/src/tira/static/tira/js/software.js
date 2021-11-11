@@ -437,7 +437,6 @@ function setState(state_id) {
     unarchiving.hide()
     undef.hide()
 
-
     disableButton('vm-shutdown-button');
     disableButton('vm-power-on-button');
     disableButton('vm-stop-button');
