@@ -59,22 +59,25 @@ eval set -- "${FLAGS_ARGV}"
 #
 main() {
 
+    logInfo "[tira-vm-ssh] Checking Parameters..."
     # Print usage screen if wrong parameter count.
     if [ "$#" -eq 0 ]; then
-        logError "Missing arguments see:"
+        logError "[tira-vm-ssh] Missing arguments see:"
         usage
     fi
-
+    
+    logInfo "[tira-vm-ssh] Checking Parameters done."
     vmname_or_user="$1"
-
+    
+    logInfo "[tira-vm-ssh] Starting ssh connection to VM..."
     # Every parameter is parsed and extracted: now do the job.
     vm_info=$(get_vm_info_from_tira "$vmname_or_user")
 
     if [ "$vm_info" = "" ]; then
-        logError "VM-Name/user $vmname_or_user is not registred. Use tira vm-list to get a list of all vms."
+        logError "[tira-vm-ssh] VM-Name/user $vmname_or_user is not registered. Use tira vm-list to get a list of all vms."
         exit 1
     fi
-    logDebug "Extracted vm info: \n$vm_info"
+    logDebug "[tira-vm-ssh] Extracted vm info: \n$vm_info"
 
     admin="${FLAGS_admin}"
     cmd="${FLAGS_cmd}"
@@ -83,15 +86,15 @@ main() {
     if [ "$admin" = "${FLAGS_TRUE}" ]; then
         user=$(echo "$vm_info" | grep "adminName=" | sed "s|adminName=||g")
         pw=$(echo "$vm_info" | grep "adminPw=" | sed "s|adminPw=||g")
-        logDebug "User=Administrator"
+        logDebug "[tira-vm-ssh] User=Administrator"
     else
         user=$(echo "$vm_info" | grep "userName=" | sed "s|userName=||g")
         pw=$(echo "$vm_info" | grep "userPw=" | sed "s|userPw=||g")
-        logDebug "User= $user (default)"
+        logDebug "[tira-vm-ssh] User= $user (default)"
     fi
     port=$(echo "$vm_info" | grep "portSsh=" | sed "s|portSsh=||g")
     host=$(echo "$vm_info" | grep "host=" | sed "s|host=||g")
-    logDebug "with pw: $pw using port: $port on host: $host"
+    logDebug "[tira-vm-ssh] with pw: $pw using port: $port on host: $host"
 
     # Reset vmname in order to make sure its the actual name, not just the user name.
     vmname=$(echo "$vm_info" | grep "vmName=" | sed "s|vmName=||g")
@@ -99,11 +102,11 @@ main() {
     running=$(tira_call vm-info -r "$host" "$vmname" -s| grep "running")
 
     if [ "$running" = "" ]; then
-        logError "Vm $vmname is not running, therefore no ssh connection can be established."
+        logError "[tira-vm-ssh] Vm $vmname is not running, therefore no ssh connection can be established."
         exit 1
     fi
 
-    logInfo "Build SSH connection: user: $user password: $pw"
+    logInfo "[tira-vm-ssh] Build SSH connection: user: $user password: $pw"
 
     if [ "$cmd" = "" ]; then
         sshpass -p "$pw" ssh "${user}@${host}" -p "$port" \
@@ -114,7 +117,7 @@ main() {
     else
         # Replace variable names (password).
         #cmd=$(echo "$cmd" | sed "s|\$pw|$pw|g")
-        logInfo "run command: \"$cmd\""
+        logInfo "[tira-vm-ssh]  Run command: \"$cmd\""
         sshpass -p "$pw" ssh "${user}@${host}" -p "$port" \
             -o ConnectTimeout=15 \
             -o ConnectionAttempts=100 \
@@ -122,7 +125,7 @@ main() {
             -o UserKnownHostsFile=/dev/null \
             -o LogLevel=error -t -t "$cmd"
     fi
-
+    logInfo "[tira-vm-ssh] Started ssh connection to VM."
 
 }
 
