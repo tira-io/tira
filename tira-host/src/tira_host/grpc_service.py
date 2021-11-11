@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+import json
 import os
 from concurrent import futures
 from configparser import ConfigParser
@@ -18,6 +18,7 @@ import uuid
 import vm_manage
 
 from proto import tira_host_pb2, tira_host_pb2_grpc
+from proto import TiraClientWebMessages_pb2 as modelpb
 from tira_model import FileDatabase
 from grpc_client import TiraHostClient
 
@@ -193,6 +194,7 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
                 response.rdpPortStatus = 1 if sock.connect_ex((vm.host, int(vm.portRdp))) == 0 else 0
 
         # TODO we should return here fine grained information about the state before this foes live.
+        # todo: check which commands are executing at the moment
         if vm_state and vm_state.startswith("running"):
             response.state = tira_host_pb2.State.RUNNING
         elif vm_state:
@@ -309,13 +311,18 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         """
         vm = self._get_vm(request.runId.vmId, context)
 
+        model.create_run(request.runId.vmId, request.softwareId, request.runId.runId, request.runId.datasetId,
+                         request.inputRunId.runId, request.taskId)
+
         grpc_client.set_state(request.runId.vmId, tira_host_pb2.State.POWERING_OFF, request.transaction.transactionId)
         vmmanage.vm_stop(request.runId.vmId)
         grpc_client.set_state(request.runId.vmId, tira_host_pb2.State.POWERED_OFF, request.transaction.transactionId)
         grpc_client.set_state(request.runId.vmId, tira_host_pb2.State.SANDBOXING, request.transaction.transactionId)
         self._vm_sandbox(vmmanage, vm.vmName, 'auto', "true" if "test" in request.inputRunId.datasetId else "false")
         grpc_client.set_state(request.runId.vmId, tira_host_pb2.State.EXECUTING, request.transaction.transactionId)
-        return_code, output = vmmanage.run_execute(vm.userName+".prototext", request.runId.datasetId, 'none', 'auto', 'false')
+        return_code, output = vmmanage.run_execute(vm.userName + ".prototext", request.runId.datasetId, 'none',
+                                                   datetime.strftime(datetime.now(), '%Y-%m-%d-%H-%M-%S'),
+                                                   request.taskId, request.softwareId)
         grpc_client.set_state(request.runId.vmId, tira_host_pb2.State.UNSANDBOXING, request.transaction.transactionId)
         self._vm_unsandbox(vm.vmName, vmmanage)
         grpc_client.set_state(request.runId.vmId, tira_host_pb2.State.RUNNING, request.transaction.transactionId)
@@ -336,10 +343,14 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         """
         vm = self._get_vm(request.runId.vmId, context)
 
+        model.create_run(request.runId.vmId, request.softwareId, request.runId.runId, request.runId.datasetId,
+                         request.inputRunId.runId, request.taskId)
+
         grpc_client.set_state(request.runId.vmId, tira_host_pb2.State.EXECUTING, request.transaction.transactionId)
         return_code, output = vmmanage.run_eval(vm.vmName + ".prototext", request.runId.datasetId,
-                                                request.inputRunId.runId,
-                                                'auto', 'false')
+                                                model.get_run_dir(request.runId.datasetId, request.runId.vmId,
+                                                                  request.inputRunId.runId),
+                                                datetime.strftime(datetime.now(), '%Y-%m-%d-%H-%M-%S'))
         grpc_client.set_state(request.runId.vmId, tira_host_pb2.State.RUNNING, request.transaction.transactionId)
         grpc_client.complete_transaction(transaction_id=request.transaction.transactionId,
                                          status=tira_host_pb2.Status.SUCCESS,

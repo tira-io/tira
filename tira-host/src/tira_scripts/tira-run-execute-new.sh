@@ -109,8 +109,8 @@ main() {
     do
       name=$(echo "$LINE" | cut -d ":" -f 1)
       value=$(echo "$LINE" | cut -d ":" -f 2 | tr -d '" ')
-      printf -v $name $value
-      export $name
+      printf -v "$name" "$value"
+      export "$name"
     done < $vmFile
     user="$userName"
     os="ubuntu"
