@@ -22,17 +22,19 @@ from proto import TiraClientWebMessages_pb2 as modelpb
 from tira_model import FileDatabase
 from grpc_client import TiraHostClient
 
-logging.config.fileConfig("conf/logging_config.ini")
-logger = logging.getLogger()
-
-commands = {}
-model = FileDatabase()
-
 parser = ConfigParser()
 parser.read('conf/grpc_service.ini')
 grpc_port = parser.get('main', 'grpc_port')
 tira_application_host = parser.get('main', 'tira_application_host')
 tira_application_grpc_port = parser.get('main', 'tira_application_grpc_port')
+tira_log_path = parser.get('main', 'tira_log_path')
+
+fileConfig("conf/logging_config.ini", defaults={'filename': f"{tira_log_path}{socket.gethostname()}.log"},
+                          disable_existing_loggers=False)
+logger = logging.getLogger()
+
+commands = {}
+model = FileDatabase()
 
 grpc_client = TiraHostClient(tira_application_host, tira_application_grpc_port)
 
@@ -67,17 +69,18 @@ def async_api(wrapped_function):
 
         request = args[1]
         transaction_id = request.transaction.transactionId
-        logger.debug(f"{wrapped_function.__name__} call. Server received {str(request)}.")
+        logger.debug(f"{wrapped_function.__name__} call. Server received {str(request)}")
 
         # Record the task, and then launch it
-        commands[transaction_id] = {'command_thread': threading.Thread(target=task_call, args=())}
+        commands[transaction_id] = {'command_thread': threading.Thread(target=task_call, args=(), daemon=True)}
         commands[transaction_id]['command_thread'].start()
 
         # Respond right away with Transaction message to tira-application request
         response_transaction = tira_host_pb2.Transaction()
         response_transaction.transactionId = str(uuid.uuid4())
         response_transaction.status = tira_host_pb2.Status.SUCCESS
-        response_transaction.message = f"Host accepted the transaction {transaction_id} request."
+        response_transaction.message = f"Host accepted the transaction {transaction_id} request"
+        logger.debug(f"Confirmation response for transactionId {str(request.transaction.transactionId)} sent")
 
         return response_transaction
 
@@ -390,7 +393,7 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
 
 
 def serve():
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=1))
     tira_host_pb2_grpc.add_TiraHostServiceServicer_to_server(TiraHostService(), server)
     listen_addr = '[::]:' + grpc_port
     server.add_insecure_port(listen_addr)
@@ -400,5 +403,7 @@ def serve():
 
 
 if __name__ == '__main__':
-    fileConfig('conf/logging_config.ini')
+    fileConfig("conf/logging_config.ini", defaults={'filename': f"{tira_log_path}{socket.gethostname()}.log"},
+               disable_existing_loggers=False)
+    logger = logging.getLogger()
     serve()

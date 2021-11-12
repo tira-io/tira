@@ -1,9 +1,13 @@
 import grpc
 from google.protobuf.empty_pb2 import Empty
+import logging
+import logging.config
 import sys
 
 sys.path.append('../../src/tira')
 from proto import tira_host_pb2, tira_host_pb2_grpc
+
+logger = logging.getLogger(__name__)
 
 
 class TiraHostClient(tira_host_pb2_grpc.TiraApplicationService):
@@ -20,7 +24,7 @@ class TiraHostClient(tira_host_pb2_grpc.TiraApplicationService):
                                                                         transactionId=transaction_id,
                                                                         message=f"Set state to {vm_state}"),
                                   state=vm_state, vmId=vm_id))
-        print(f"host-client: set_state response was: {response}")
+        logger.debug(f"tira-application.set_state() response was: {response}")
         return response
 
     def complete_transaction(self, transaction_id, status, message):
@@ -29,7 +33,7 @@ class TiraHostClient(tira_host_pb2_grpc.TiraApplicationService):
         response = self.stub_tira_application.complete_transaction(
             tira_host_pb2.Transaction(status=status, transactionId=transaction_id,
                                       message=message))
-        print(f"host-client: complete_transaction response was: {response}")
+        logger.debug(f"tira-application.complete_transaction() response was: {response}")
         return response
 
     # TODO transactionId
@@ -42,5 +46,5 @@ class TiraHostClient(tira_host_pb2_grpc.TiraApplicationService):
                                                                           message=f"Created VM"),
                                     vmId=vm_id, userName=user_name, initialUserPw=user_pw,
                                     ip=ip, host=host, sshPort=ssh, rdpPort=rdp))
-        print(f"host-client: confirm_vm_create response was: {response}")
+        logger.debug(f"tira-application.confirm_vm_create() response was: {response}")
         return response
