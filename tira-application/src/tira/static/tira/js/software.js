@@ -185,7 +185,7 @@ function setupPollingAfterPageLoad(vmid) {
 
 function warningAlert(action, error, response) {
     UIkit.notification(action + ' failed with: <span class="uk-text-small">' +
-        error + ' ' + response + '</span>', 'warning');
+        error + ' ' + JSON.stringify(response) + '</span>', 'warning');
 }
 
 /*
