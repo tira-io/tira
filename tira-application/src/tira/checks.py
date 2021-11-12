@@ -1,6 +1,9 @@
 from .tira_model import FileDatabase
-from .authentication import Authentication
+from .authentication import auth
 from django.core.exceptions import PermissionDenied
+
+
+
 
 
 class Check(object):

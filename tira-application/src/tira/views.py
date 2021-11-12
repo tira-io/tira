@@ -7,7 +7,7 @@ from .grpc_client import GrpcClient
 from .grpc_server import serve
 from .tira_model import model
 from .tira_data import get_run_runtime, get_run_file_list, get_stderr, get_stdout, get_tira_log
-from .authentication import Authentication
+from .authentication import auth
 from .checks import Check
 from .forms import *
 from django.core.exceptions import PermissionDenied
@@ -18,8 +18,6 @@ import zipfile
 
 
 include_navigation = True if settings.DEPLOYMENT == "legacy" else False
-auth = Authentication(authentication_source=settings.DEPLOYMENT,
-                      users_file=settings.LEGACY_USER_FILE)
 check = Check(model, auth)
 
 logger = logging.getLogger("tira")

@@ -8,7 +8,7 @@ import logging
 from .grpc_client import GrpcClient
 from grpc import RpcError, StatusCode
 from .tira_model import FileDatabase
-from .authentication import Authentication
+from .authentication import auth
 from .checks import Check
 from .forms import *
 from django.core.exceptions import PermissionDenied
@@ -25,8 +25,6 @@ from .tira_model import model
 from .util import get_tira_id, reroute_host
 
 include_navigation = True if settings.DEPLOYMENT == "legacy" else False
-auth = Authentication(authentication_source=settings.DEPLOYMENT,
-                      users_file=settings.LEGACY_USER_FILE)
 check = Check(model, auth)
 
 logger = logging.getLogger("tira")
@@ -74,8 +72,16 @@ def admin_reload_data(request):
 
     if request.method == 'GET':
         # post_id = request.GET['post_id']
-        model.build_model()
-        return HttpResponse("Success!")
+        try:
+            model.build_model()
+            if auth.get_auth_source() == 'legacy':
+                auth.load_legacy_users()
+            return JsonResponse({'status': 0, 'message': "Success"}, status=HTTPStatus.OK)
+        except Exception as e:
+            logger.exception(f"/admin/reload_data failed with {e}", e)
+            return JsonResponse({'status': 1, 'message': f"Failed with {e}"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+    return JsonResponse({'status': 1, 'message': f"{request.method} is not allowed."}, status=HTTPStatus.FORBIDDEN)
 
 
 def admin_create_vm(request):  # TODO implement

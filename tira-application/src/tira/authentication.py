@@ -3,10 +3,9 @@
 """
 import logging
 from google.protobuf.text_format import Parse
-from pathlib import Path
 from .proto import TiraClientWebMessages_pb2 as modelpb
-import re
 import os
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -14,6 +13,7 @@ logger = logging.getLogger(__name__)
 class Authentication(object):
     """ Base class for Authentication and Role Management"""
     subclasses = {}
+    _AUTH_SOURCE = 'superclass'
     ROLE_TIRA = "tira"  # super admin if we ever need it
     ROLE_ADMIN = "admin"  # is admin for the requested resource, so all permissions
     ROLE_PARTICIPANT = "participant"  # has edit but not admin permissions - user-header is set, group is set
@@ -51,6 +51,9 @@ class Authentication(object):
         """
         return self.ROLE_GUEST
 
+    def get_auth_source(self):
+        return self._AUTH_SOURCE
+
     def get_user_id(self, request):
         return None
 
@@ -73,8 +76,12 @@ class LegacyAuthentication(Authentication):
         - :param users_file: path to the users.prototext that contains the user data
         """
         super(LegacyAuthentication, self).__init__(**kwargs)
-        # TODO file change listener
-        users = Parse(open(kwargs["users_file"], "r").read(), modelpb.Users())
+        self.users = {}
+        self.users_file = kwargs["users_file"]
+        self.load_legacy_users()
+
+    def load_legacy_users(self):
+        users = Parse(open(self.users_file, "r").read(), modelpb.Users())
         self.users = {user.userName: user for user in users.users}
 
     def login(self, request, **kwargs):
@@ -140,11 +147,10 @@ class DisraptorAuthentication(Authentication):
     _DISRAPTOR_APP_SECRET_KEY = os.getenv("DISRAPTOR_APP_SECRET_KEY")
 
     # TODO should be in check
-    @staticmethod
-    def _reply_if_allowed(request, response, alternative="None"):
+    def _reply_if_allowed(self, request, response, alternative="None"):
         """ Returns the :param response: if disraptor auth token is correct, otherwise returns the :param alternative:
         """
-        if request.headers.get('X-Disraptor-App-Secret-Key', None) == _DISRAPTOR_APP_SECRET_KEY:
+        if request.headers.get('X-Disraptor-App-Secret-Key', None) == self._DISRAPTOR_APP_SECRET_KEY:
             return response
         else:
             return alternative
@@ -224,3 +230,5 @@ class DisraptorAuthentication(Authentication):
         return vms[0] if len(vms) >= 1 else "no-vm-assigned"
 
 
+auth = Authentication(authentication_source=settings.DEPLOYMENT,
+                      users_file=settings.LEGACY_USER_FILE)
