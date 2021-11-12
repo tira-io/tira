@@ -29,7 +29,7 @@ function loadVmInfo(vmid) {
             }
         },
         error: function (jqXHR, textStatus, throwError) {
-            console.log(throwError, jqXHR.responseJSON.message)
+            warningAlert("Loading VM info", throwError, jqXHR.responseJSON)
             setConnectionError(jqXHR.responseJSON.message)
         }
     })
@@ -59,7 +59,7 @@ function startVM(vmid) {
             }
         },
         error: function (jqXHR, textStatus, throwError) {
-            console.log(throwError, jqXHR.responseJSON.message)
+            warningAlert("Starting VM", throwError, jqXHR.responseJSON)
             loadVmInfo(vmid)
         }
     })
@@ -79,7 +79,7 @@ function shutdownVM(vmid) {
             }
         },
         error: function (jqXHR, textStatus, throwError) {
-            console.log(throwError, jqXHR.responseJSON.message)
+            warningAlert("Shutting VM down", throwError, jqXHR.responseJSON)
             loadVmInfo(vmid)
         }
     })
@@ -99,7 +99,7 @@ function stopVM(vmid) {
             }
         },
         error: function (jqXHR, textStatus, throwError) {
-            console.log(throwError, jqXHR.responseJSON.message)
+            warningAlert("Stopping VM", throwError, jqXHR.responseJSON)
             loadVmInfo(vmid)
         }
     })
@@ -120,6 +120,9 @@ function pollVmState(vmid, pollTimeout=5000) {
                     pollingState = false
                     loadVmInfo(vmid)
                 }
+            },
+            error: function (jqXHR, textStatus, throwError) {
+                warningAlert("Polling vm state", throwError, jqXHR.responseJSON)
             }
         })
     }, pollTimeout);
@@ -145,7 +148,7 @@ function pollRunningSoftware(vmid) {
                 }
             },
             error: function (jqXHR, textStatus, throwError) {
-                console.log(throwError, jqXHR.responseJSON.message)
+                warningAlert("Polling running softwares", throwError, jqXHR.responseJSON)
             }
         })
     }, 10000);
@@ -167,7 +170,7 @@ function pollRunningEvaluations(vmid) {
                 }
             },
             error: function (jqXHR, textStatus, throwError) {
-                console.log(throwError, jqXHR.responseJSON.message)
+                warningAlert("Polling Evaluations", throwError, jqXHR.responseJSON)
             }
         })
     }, 10000);
@@ -178,6 +181,11 @@ function setupPollingAfterPageLoad(vmid) {
     loadVmInfo(vmid)
     pollRunningEvaluations(vmid)
     pollRunningSoftware(vmid)
+}
+
+function warningAlert(action, error, response) {
+    UIkit.notification(action + ' failed with: <span class="uk-text-small">' +
+        error + ' ' + response + '</span>', 'warning');
 }
 
 /*
@@ -207,19 +215,25 @@ function addSoftware(tid, vmid) {
                 let formId = '#' + $(this).data("tiraSoftwareId") + '-row'
                 deleteSoftware(tid, vmid, $(this).data("tiraSoftwareId"), $(formId));
             })
-                }
-            })
+        },
+        error: function (jqXHR, textStatus, throwError) {
+            warningAlert("Adding Software", throwError, jqXHR.responseJSON)
+        }
+    })
 }
 
-function deleteSoftware(tid, vmid, swid, form) {
+function deleteSoftware(tid, vmid, softwareId, form) {
     $.ajax({
         type: 'GET',
-        url: `/task/${tid}/vm/${vmid}/software_delete/${swid}`,
+        url: `/task/${tid}/vm/${vmid}/software_delete/${softwareId}`,
         //TODO: Maybe rename keys
         data: {},
         success: function (data) {
             form.remove();
             $('#tira-software-tab').find('.uk-active')[0].remove()
+        },
+        error: function (jqXHR, textStatus, throwError) {
+            warningAlert("Deleting Software " + softwareId + " ", throwError, jqXHR.responseJSON)
         }
     })
 }
@@ -247,7 +261,8 @@ function saveSoftware(taskId, vmId, softwareId) {
             }, 5000)
             $(`#${softwareId}-last-edit`).text(`last edit: ${data.last_edit}`)
         },
-        error: function () {
+        error: function (jqXHR, textStatus, throwError) {
+            warningAlert("Saving Software " + softwareId + " ", throwError, jqXHR.responseJSON)
             $('.software-save-button').html('<i class="fas fa-times"></i>');
             setTimeout(function () {
                 $('.software-save-button').html('<i class="fas fa-save"></i>');
@@ -275,8 +290,8 @@ function runSoftware (taskId, vmId, softwareId) {
         success: function (data) {
             pollRunningSoftware(vmId)
         },
-        error: function () {
-            console.log('failed to run software')
+        error: function (jqXHR, textStatus, throwError) {
+            warningAlert("Running Software " + softwareId + " ", throwError, jqXHR.responseJSON)
         }
     })
 
@@ -343,7 +358,7 @@ function abortRun(vmId) {
             }
         },
         error: function (jqXHR, textStatus, throwError) {
-            console.log(throwError, jqXHR.responseJSON.message)
+            warningAlert("Aborting the run " + runId + " ", throwError, jqXHR.responseJSON)
             loadVmInfo(vmId)
         }
     })
@@ -358,7 +373,7 @@ function deleteRun(datasetId, vmId, runId, row) {
             row.remove();
         },
         error: function (jqXHR, textStatus, throwError) {
-            console.log(throwError, jqXHR.responseJSON.message)
+            warningAlert("Deleting the run " + runId + " ", throwError, jqXHR.responseJSON)
             loadVmInfo(vmid)
         }
     })
@@ -378,8 +393,7 @@ function evaluateRun(datasetId, vmId, runId, row) {
             pollRunningEvaluations(vmId)
         },
         error: function (jqXHR, textStatus, throwError) {
-            // TODO let user know
-            console.log(throwError, jqXHR.responseJSON.message)
+            warningAlert("Evaluating the run " + runId + " ", throwError, jqXHR.responseJSON)
             loadVmInfo(vmId)
             $('#run-evaluate-spinner-' + runId).hide()
             enableButton("run-evaluate-button")
