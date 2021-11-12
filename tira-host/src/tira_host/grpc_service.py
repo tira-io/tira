@@ -22,6 +22,7 @@ from proto import TiraClientWebMessages_pb2 as modelpb
 from tira_model import FileDatabase
 from grpc_client import TiraHostClient
 
+logging.config.fileConfig("conf/logging_config.ini")
 logger = logging.getLogger()
 
 commands = {}

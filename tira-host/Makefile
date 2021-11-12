@@ -1,7 +1,7 @@
 VENV_NAME?=venv
 VENV_ACTIVATE=. $(VENV_NAME)/bin/activate
 PYTHON=${VENV_NAME}/bin/python3
-VERSION=0.0.5-dev
+VERSION=0.0.6
 VBOXVERSION=6.1.16
 TIRA_PASSWORD=tira
 TIRA_MODEL_PATH=/mnt/nfs/tira
