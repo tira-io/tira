@@ -9,7 +9,7 @@ from .grpc_client import GrpcClient
 from grpc import RpcError, StatusCode
 from .tira_model import FileDatabase
 from .authentication import auth
-from .checks import Check
+from .checks import actions_check_permissions, check_resource_exists
 from .forms import *
 from django.core.exceptions import PermissionDenied
 from pathlib import Path
@@ -25,40 +25,42 @@ from .tira_model import model
 from .util import get_tira_id, reroute_host
 
 include_navigation = True if settings.DEPLOYMENT == "legacy" else False
-check = Check(model, auth)
 
 logger = logging.getLogger("tira")
 logger.info("ajax_routes: Logger active")
 
+
+def add_protocol_exceptions():
+    pass
 
 # ---------------------------------------------------------------------
 #   Review actions
 # ---------------------------------------------------------------------
 
 
+@actions_check_permissions({"tira", "admin"})
 def publish(request, vm_id, dataset_id, run_id, value):
-    check.has_access(request, ["tira", "admin"])
     value = (True if value == 'true' else False)
     if request.method == 'GET':
         status = model.update_review(dataset_id, vm_id, run_id, published=value)
         if status:
-            context = {"status": "success", "published": value}
+            context = {"status": "0", "published": value,  "message": f"Published is now: {value}"}
         else:
-            context = {"status": "fail", "published": (not value)}
+            context = {"status": "1", "published": (not value),  "message": f"Published is now: {value}"}
 
         return JsonResponse(context)
 
 
+@actions_check_permissions({"tira", "admin"})
 def blind(request, vm_id, dataset_id, run_id, value):
-    check.has_access(request, ["tira", "admin"])
     value = (False if value == 'false' else True)
 
     if request.method == 'GET':
         status = model.update_review(dataset_id, vm_id, run_id, blinded=value)
         if status:
-            context = {"status": "success", "blinded": value}
+            context = {"status": "0", "blinded": value,  "message": f"Blinded is now: {value}"}
         else:
-            context = {"status": "fail", "blinded": (not value)}
+            context = {"status": "1", "blinded": (not value),  "message": f"Blinded is now: {value}"}
         return JsonResponse(context)
 
 
@@ -67,8 +69,8 @@ def blind(request, vm_id, dataset_id, run_id, value):
 # ---------------------------------------------------------------------
 
 
+@actions_check_permissions({"tira", "admin"})
 def admin_reload_data(request):
-    check.has_access(request, ["tira", "admin"])
 
     if request.method == 'GET':
         # post_id = request.GET['post_id']
@@ -84,9 +86,9 @@ def admin_reload_data(request):
     return JsonResponse({'status': 1, 'message': f"{request.method} is not allowed."}, status=HTTPStatus.FORBIDDEN)
 
 
+@actions_check_permissions({"tira", "admin"})
 def admin_create_vm(request):  # TODO implement
     """ Hook for create_vm posts. Responds with json objects indicating the state of the create process. """
-    check.has_access(request, ["tira", "admin"])
 
     context = {
         "complete": [],
@@ -123,18 +125,20 @@ def admin_create_vm(request):  # TODO implement
     # return JsonResponse(context)
 
 
+@actions_check_permissions({"tira", "admin"})
 def admin_archive_vm():
-    return None
+    return JsonResponse({'status': 1, 'message': f"Not implemented"}, status=HTTPStatus.NOT_IMPLEMENTED)
 
 
+@actions_check_permissions({"tira", "admin"})
 def admin_modify_vm():
-    return None
+    return JsonResponse({'status': 1, 'message': f"Not implemented"}, status=HTTPStatus.NOT_IMPLEMENTED)
 
 
+@actions_check_permissions({"tira", "admin"})
 def admin_create_task(request):
     """ Create an entry in the model for the task. Use data supplied by a model.
      Return a json status message. """
-    check.has_access(request, ["tira", "admin"])
 
     context = {}
 
@@ -181,10 +185,10 @@ def admin_create_task(request):
     return JsonResponse(context)
 
 
+@actions_check_permissions({"tira", "admin"})
 def admin_add_dataset(request):
     """ Create an entry in the model for the task. Use data supplied by a model.
      Return a json status message. """
-    check.has_access(request, ["tira", "admin"])
 
     context = {}
 
@@ -255,8 +259,8 @@ def admin_add_dataset(request):
 #   VM actions
 # ---------------------------------------------------------------------
 
+@actions_check_permissions({"tira", "admin", "participant"})
 def vm_state(request, vm_id):
-    check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
     try:
         state = TransitionLog.objects.get_or_create(vm_id=vm_id, defaults={'vm_state': 0})[0].vm_state
     except IntegrityError as e:
@@ -265,15 +269,15 @@ def vm_state(request, vm_id):
     return JsonResponse({'state': state}, status=HTTPStatus.ACCEPTED)
 
 
+@actions_check_permissions({"tira", "admin", "participant"})
 def vm_running_evaluations(request, vm_id):
-    check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
 
     results = EvaluationLog.objects.filter(vm_id=vm_id)
     return JsonResponse({'running_evaluations': True if results else False}, status=HTTPStatus.ACCEPTED)
 
 
+@actions_check_permissions({"tira", "admin", "participant"})
 def vm_create(request, hostname, vm_id, ova_file):
-    check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
     uid = auth.get_user_id(request)
     host = reroute_host(hostname)
     response = GrpcClient(host).vm_create(vm_id, ova_file, uid, host)
@@ -283,8 +287,8 @@ def vm_create(request, hostname, vm_id, ova_file):
     return JsonResponse({'status': response.status, 'message': response.transactionId}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
+@actions_check_permissions({"tira", "admin", "participant"})
 def vm_start(request, vm_id):
-    check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
     vm = model.get_vm(vm_id)
 
     response = GrpcClient(reroute_host(vm.host)).vm_start(vm_id)
@@ -296,8 +300,8 @@ def vm_start(request, vm_id):
                         status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
+@actions_check_permissions({"tira", "admin", "participant"})
 def vm_shutdown(request, vm_id):
-    check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
     vm = model.get_vm(vm_id)
 
     response = GrpcClient(reroute_host(vm.host)).vm_shutdown(vm_id)
@@ -307,8 +311,8 @@ def vm_shutdown(request, vm_id):
                         status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
+@actions_check_permissions({"tira", "admin", "participant"})
 def vm_stop(request, vm_id):
-    check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
 
     vm = model.get_vm(vm_id)
     response = GrpcClient(reroute_host(vm.host)).vm_stop(vm_id)
@@ -319,8 +323,8 @@ def vm_stop(request, vm_id):
                         status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
+@actions_check_permissions({"tira", "admin", "participant"})
 def vm_info(request, vm_id):
-    check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
     # TODO when vm_id is no-vm-assigned
 
     vm = model.get_vm(vm_id)
@@ -360,9 +364,10 @@ def vm_info(request, vm_id):
 # ---------------------------------------------------------------------
 #   Software actions
 # ---------------------------------------------------------------------
-def software_add(request, task_id, vm_id):
-    check.has_access(request, ["tira", "admin", "participant", "user"], on_vm_id=vm_id)
 
+
+@actions_check_permissions({"tira", "admin", "participant", "user"})
+def software_add(request, task_id, vm_id):
     # 0. Early return a dummy page, if the user has no vm assigned on this task
     # TODO: If the user has no VM, give him a request form
     if auth.get_role(request, user_id=auth.get_user_id(request), vm_id=vm_id) == auth.ROLE_USER or \
@@ -397,9 +402,8 @@ def software_add(request, task_id, vm_id):
     return JsonResponse({'html': html, 'software_id': context["software"]['id']}, status=HTTPStatus.ACCEPTED)
 
 
+@actions_check_permissions({"tira", "admin", "participant"})
 def software_save(request, task_id, vm_id, software_id):
-    check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
-
     software = model.update_software(task_id, vm_id, software_id,
                                      request.POST.get("command"),
                                      request.POST.get("working_dir"),
@@ -412,9 +416,8 @@ def software_save(request, task_id, vm_id, software_id):
         return JsonResponse({'status': 'Failed'}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
+@actions_check_permissions({"tira", "admin", "participant"})
 def software_delete(request, task_id, vm_id, software_id):
-    check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
-
     delete_ok = model.delete_software(task_id, vm_id, software_id)
 
     if delete_ok:
@@ -424,9 +427,8 @@ def software_delete(request, task_id, vm_id, software_id):
                             status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
+@actions_check_permissions({"tira", "admin", "participant"})
 def run_execute(request, task_id, vm_id, software_id):
-    check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
-
     vm = model.get_vm(vm_id)
     software = model.get_software(task_id, vm_id, software_id=software_id)
     # TODO get input_run data. This is not supported right now, I suggest solving this via website (better selector)
@@ -464,12 +466,12 @@ def run_execute(request, task_id, vm_id, software_id):
                         status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
+@actions_check_permissions({"tira", "admin", "participant"})
 def run_eval(request, vm_id, dataset_id, run_id):
     """ Get the evaluator for dataset_id from the model.
      Then, send a GRPC-call to the host running the evaluator with the run data.
      Then, log vm_id and run_id to the evaluation log as ongoing.
     """
-    check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
     # check if evaluation already exists
     if EvaluationLog.objects.filter(vm_id=vm_id):
         return JsonResponse({'status': '1', 'message': "An evaluation is already in progress."},
@@ -510,17 +512,17 @@ def run_eval(request, vm_id, dataset_id, run_id):
                         status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
+@actions_check_permissions({"tira", "admin", "participant"})
 def run_delete(request, dataset_id, vm_id, run_id):
-    check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
     # TODO just delete it with model.delete_run()
     # TODO should also call a grpc:run_delete to delete host-side data
     model.update_run(dataset_id, vm_id, run_id, deleted=True)
     return JsonResponse({'status': 'Accepted'}, status=HTTPStatus.ACCEPTED)
 
 
+@actions_check_permissions({"tira", "admin", "participant"})
 def run_abort(request, vm_id):
     """ """
-    check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
     vm = model.get_vm(vm_id)
 
     host = reroute_host(vm.host)
@@ -547,5 +549,3 @@ def run_abort(request, vm_id):
         return JsonResponse({'status': response.status, 'message': response.transactionId}, status=HTTPStatus.ACCEPTED)
     return JsonResponse({'status': response.status, 'message': f"{response.transactionId} was rejected by the host"},
                         status=HTTPStatus.INTERNAL_SERVER_ERROR)
-
-
