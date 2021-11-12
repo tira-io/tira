@@ -36,10 +36,11 @@ def auto_transaction(msg):
             message_suffix = '-'.join([a for a in args if isinstance(a, str)])
 
             response = func(*args, transaction=grpc_transaction, **kwargs)
-            _ = TransactionLog.objects.filter(transaction_id=response.transactionId).update(
-                completed=True,
-                last_status=str(response.status),
-                last_message=f"{response.message}: {message_suffix}")
+            if response.status == 1:
+                _ = TransactionLog.objects.filter(transaction_id=response.transactionId).update(
+                    completed=True,
+                    last_status=str(response.status),
+                    last_message=f"{response.message}: {message_suffix}")
             return response
 
         return func_wrapper
@@ -98,8 +99,9 @@ class GrpcClient:
         logger.debug("Application received vm-list response: " + str(response.transaction.message))
         return response
 
+    @auto_transaction("run-execute")
     def run_execute(self, vm_id, dataset_id, run_id, input_run_vm_id, input_run_dataset_id, input_run_run_id, task_id,
-                    software_id):
+                    software_id, transaction):
         """ Initiates a run: the execution of a software to produce output.
         :param software_id:
         :param task_id:
@@ -115,19 +117,20 @@ class GrpcClient:
         """
 
         logger.info("Application starts a run-execute")
-        grpc_transaction = new_transaction(f"initialized run execute of {vm_id} with run_id {run_id}")
         grpc_run_id = tira_host_pb2.RunId(vmId=vm_id, datasetId=dataset_id, runId=run_id)
         grpc_input_run_id = tira_host_pb2.RunId(vmId=input_run_vm_id, datasetId=input_run_dataset_id,
                                                 runId=input_run_run_id)
 
-        response = self.stub.run_execute(tira_host_pb2.RunDetails(transaction=grpc_transaction,
+        response = self.stub.run_execute(tira_host_pb2.RunDetails(transaction=transaction,
                                                                   runId=grpc_run_id, inputRunId=grpc_input_run_id,
                                                                   taskId=task_id, softwareId=software_id))
+
         logger.debug("Application received run-execute response: " + str(response.message))
         return response
 
+    @auto_transaction("run-eval")
     def run_eval(self, vm_id, dataset_id, run_id, working_dir, command,
-                 input_run_vm_id, input_run_dataset_id, input_run_run_id, optional_parameters):
+                 input_run_vm_id, input_run_dataset_id, input_run_run_id, optional_parameters, transaction):
         """ Initiates the evaluation of a prior run.
         :param vm_id: ID of the vm that can run the evaluation
         :param dataset_id: ID of the dataset
@@ -139,24 +142,23 @@ class GrpcClient:
         :param input_run_run_id: ID of the run that should be evaluated
         :param optional_parameters: Other parameters the evaluator might expect
         """
-        grpc_transaction = new_transaction(f"initialized eval of run_id {input_run_run_id} on {vm_id}")
         grpc_run_id = tira_host_pb2.RunId(vmId=vm_id, datasetId=dataset_id, runId=run_id)
         grpc_input_run_id = tira_host_pb2.RunId(vmId=input_run_vm_id, datasetId=input_run_dataset_id,
                                                 runId=input_run_run_id)
-        response = self.stub.run_eval(tira_host_pb2.RunDetails(transaction=grpc_transaction,
+        response = self.stub.run_eval(tira_host_pb2.RunDetails(transaction=transaction,
                                                                runId=grpc_run_id, workingDir=working_dir,
                                                                command=command, inputRunId=grpc_input_run_id,
                                                                optionalParameters=optional_parameters))
         if response.status == 0:
-            t = TransactionLog.objects.get(transaction_id=grpc_transaction.transactionId)
+            t = TransactionLog.objects.get(transaction_id=transaction.transactionId)
             _ = EvaluationLog.objects.update_or_create(vm_id=vm_id, run_id=run_id, running_on=vm_id,
                                                        transaction=t)
         logger.debug("Application received run-eval response: " + str(response.message))
         return response
 
-    def run_abort(self, vm_id):
+    @auto_transaction("run-abort")
+    def run_abort(self, vm_id, transaction):
         """ Abort a currently ongoing run."""
-        grpc_transaction = new_transaction(f"initialized run abort on {vm_id}")
-        response = self.stub.run_abort(tira_host_pb2.VmId(transaction=grpc_transaction, vmId=vm_id))
+        response = self.stub.run_abort(tira_host_pb2.VmId(transaction=transaction, vmId=vm_id))
         logger.debug("Application received run-abort response: " + str(response.message))
         return response
