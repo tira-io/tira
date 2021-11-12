@@ -559,6 +559,7 @@ class FileDatabase(object):
         return [str(nd) for nd in new_dirs]
 
     def add_software(self, task_id, vm_id):
+        # TODO crashes if software prototext does not exist.
         software = modelpb.Softwares.Software()
         s = self._load_softwares(task_id, vm_id)
         try:

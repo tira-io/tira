@@ -23,6 +23,7 @@ from .transitions import TransitionLog, EvaluationLog, TransactionLog
 from .grpc_client import GrpcClient
 from .tira_model import model
 from .util import get_tira_id, reroute_host
+from functools import wraps
 
 include_navigation = True if settings.DEPLOYMENT == "legacy" else False
 
@@ -30,8 +31,36 @@ logger = logging.getLogger("tira")
 logger.info("ajax_routes: Logger active")
 
 
-def add_protocol_exceptions():
-    pass
+def host_call(func):
+    @wraps(func)
+    def func_wrapper(request, *args, **kwargs):
+        try:
+            response = func(request, *args, **kwargs)
+        except RpcError as e:
+            ex_message = "FAILED"
+            try:
+                logger.exception(f"{request.get_full_path()}: connection failed with {e}")
+                if e.code() == StatusCode.UNAVAILABLE:  # .code() is implemented by the _channel._InteractiveRpcError
+                    logger.exception(f"Connection Unavailable: {e.debug_error_string()}")
+                    ex_message = "UNAVAILABLE"  # This happens if the GRPC Server is not running
+                if e.code() == StatusCode.INVALID_ARGUMENT:
+                    logger.exception(f"Invalid Argument: {e.debug_error_string()}")
+                    ex_message = "The VM was not found on this host."  #
+            except Exception as e2:  # There is a RpcError but not an Interactive one. This should not happen
+                logger.exception(f"{request.get_full_path()}: Unexpected Execption occured: {e2}")
+            return JsonResponse({'status': "1", 'message': ex_message}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+        except Exception as e:
+            logger.exception(f"{request.get_full_path()}: Server Error: {e}")
+            return JsonResponse({'status': "1", 'message': "SERVER_ERROR"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+        if response.status == 0:
+            return JsonResponse({'status': response.status, 'message': response.transactionId},
+                                status=HTTPStatus.ACCEPTED)
+        return JsonResponse(
+            {'status': response.status, 'message': f"{response.transactionId} was rejected by the host"},
+            status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+    return func_wrapper
 
 # ---------------------------------------------------------------------
 #   Review actions
@@ -467,6 +496,7 @@ def run_execute(request, task_id, vm_id, software_id):
 
 
 @actions_check_permissions({"tira", "admin", "participant"})
+@host_call
 def run_eval(request, vm_id, dataset_id, run_id):
     """ Get the evaluator for dataset_id from the model.
      Then, send a GRPC-call to the host running the evaluator with the run data.
@@ -479,37 +509,18 @@ def run_eval(request, vm_id, dataset_id, run_id):
 
     evaluator = model.get_evaluator(dataset_id)
     host = reroute_host(evaluator["host"])
-    try:
-        grpc_client = GrpcClient(host)
-        response = grpc_client.run_eval(vm_id=evaluator["vm_id"],
-                                        dataset_id=dataset_id,
-                                        run_id=get_tira_id(),
-                                        working_dir=evaluator["working_dir"],
-                                        command=evaluator["command"],
-                                        input_run_vm_id=vm_id,
-                                        input_run_dataset_id=dataset_id,
-                                        input_run_run_id=run_id,
-                                        optional_parameters="")
-        del grpc_client
-    except RpcError as e:
-        ex_message = "FAILED"
-        try:
-            logger.exception(f"/grpc/{vm_id}/run_eval/{dataset_id}/{run_id}: connection to {host} failed with {e}")
-            if e.code() == StatusCode.UNAVAILABLE:  # .code() is implemented by the _channel._InteractiveRpcError
-                ex_message = "UNAVAILABLE"  # This happens if the GRPC Server is not running
-        except Exception as e2:  # There is a RpcError but not an Interactive one. This should not happen
-            logger.exception(f"/grpc/{vm_id}/run_eval/{dataset_id}/{run_id}: Unexpected Execption occured: {e2}")
-
-        return JsonResponse({'status': "1", 'message': ex_message}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
-    except Exception as e:
-        logger.exception(f"/grpc/{vm_id}/run_eval/{dataset_id}/{run_id}: Server Error: {e}")
-        return JsonResponse({'status': "1", 'message': "SERVER_ERROR"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
-
-    if response.status == 0:
-
-        return JsonResponse({'status': response.status, 'message': response.transactionId}, status=HTTPStatus.ACCEPTED)
-    return JsonResponse({'status': response.status, 'message': f"{response.transactionId} was rejected by the host"},
-                        status=HTTPStatus.INTERNAL_SERVER_ERROR)
+    grpc_client = GrpcClient(host)
+    response = grpc_client.run_eval(vm_id=evaluator["vm_id"],
+                                    dataset_id=dataset_id,
+                                    run_id=get_tira_id(),
+                                    working_dir=evaluator["working_dir"],
+                                    command=evaluator["command"],
+                                    input_run_vm_id=vm_id,
+                                    input_run_dataset_id=dataset_id,
+                                    input_run_run_id=run_id,
+                                    optional_parameters="")
+    del grpc_client
+    return response
 
 
 @actions_check_permissions({"tira", "admin", "participant"})

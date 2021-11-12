@@ -22,6 +22,7 @@ class TiraApplicationService(tira_host_pb2_grpc.TiraApplicationService):
         logger.debug(f" Application Server received vm-state {request.state} for {request.vmId}")
         print(f"Application Server received vm-state {request.state} for {request.vmId}. Transaction: {request.transaction.transactionId}")
 
+
         TransactionLog.objects.filter(transaction_id=request.transaction.transactionId).update(
             last_status=request.transaction.status,
             last_message=f"TiraApplicationService:set_state:{request.transaction.message}"
