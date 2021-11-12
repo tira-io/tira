@@ -3,12 +3,10 @@ from django.http import HttpResponse, Http404, JsonResponse, FileResponse
 from django.conf import settings
 import logging
 
-from .grpc_client import GrpcClient
-from .grpc_server import serve
 from .tira_model import model
 from .tira_data import get_run_runtime, get_run_file_list, get_stderr, get_stdout, get_tira_log
 from .authentication import auth
-from .checks import actions_check_permissions, check_resource_exists
+from .checks import actions_check_permissions, check_resources_exist
 from .forms import *
 from django.core.exceptions import PermissionDenied
 from pathlib import Path
@@ -86,6 +84,7 @@ def logout(request):
 
 
 @actions_check_permissions({"any"})
+@check_resources_exist('http')
 def task_detail(request, task_id):
     uid = auth.get_user_id(request)
     context = {
@@ -110,6 +109,7 @@ def dataset_list(request):
 
 
 @actions_check_permissions({"any"})
+@check_resources_exist('http')
 def dataset_detail(request, task_id, dataset_id):
     """ The dataset view. Users, it shows only the public leaderboard right now.
     Admins, it shows all evaluations on the dataset, as well as a list of all runs and the review interface.
@@ -184,29 +184,19 @@ def dataset_detail(request, task_id, dataset_id):
 
 
 @actions_check_permissions({"tira", "admin", "participant", "user"})
+@check_resources_exist('http')
 def software_detail(request, task_id, vm_id):
     """ render the detail of the user page: vm-stats, softwares, and runs """
     # 0. Early return a dummy page, if the user has no vm assigned on this task
-    # TODO: If the user has no VM, give him a request form
-    if auth.get_role(request, user_id=auth.get_user_id(request), vm_id=vm_id) == auth.ROLE_USER or \
-            vm_id == "no-vm-assigned":
-        context = {
-            "include_navigation": include_navigation,
-            "task": model.get_task(task_id),
-            "vm_id": "no-vm-assigned",
-            "role": auth.get_role(request)
-        }
-        return render(request, 'tira/software.html', context)
 
-    # 2. try to load vm, # TODO if it fails return meaningful error page :D
-    try:
-        softwares = model.get_software(task_id, vm_id)
-        runs = model.get_vm_runs_by_task(task_id, vm_id)
-        datasets = model.get_datasets_by_task(task_id)
-    except KeyError as e:
-        logger.error(e)
-        logger.warning(f"tried to load vm that does not exist: {vm_id} on task {task_id}")
-        return redirect('tira:software-detail', task_id=task_id, vm_id="no-vm-assigned")
+    # try:
+    softwares = model.get_software(task_id, vm_id)
+    runs = model.get_vm_runs_by_task(task_id, vm_id)
+    datasets = model.get_datasets_by_task(task_id)
+    # except KeyError as e:
+    #     logger.error(e)
+    #     logger.warning(f"tried to load vm that does not exist: {vm_id} on task {task_id}")
+    #     return redirect('tira:software-detail', task_id=task_id, vm_id="no-vm-assigned")
 
     # Construct a dictionary that has the software as a key and as value a list of runs with that software
     # Note that we order the list in such a way, that evaluations of a run are right behind that run in the list
@@ -247,6 +237,7 @@ def software_detail(request, task_id, vm_id):
 
 
 @actions_check_permissions({"tira", "admin", "participant"})
+@check_resources_exist('http')
 def review(request, task_id, vm_id, dataset_id, run_id):
     """
      - no_errors = hasNoErrors
@@ -331,6 +322,7 @@ def _zip_dir(path):
                             
 
 @actions_check_permissions({"tira", "admin"})
+@check_resources_exist('json')
 def download_rundir(request, task_id, dataset_id, vm_id, run_id):
     path = Path(settings.TIRA_ROOT) / "data" / "runs" / dataset_id / vm_id / run_id
     zip_handle = zipfile.ZipFile(path.with_suffix(".zip"), "w")

@@ -9,7 +9,7 @@ from .grpc_client import GrpcClient
 from grpc import RpcError, StatusCode
 from .tira_model import FileDatabase
 from .authentication import auth
-from .checks import actions_check_permissions, check_resource_exists
+from .checks import actions_check_permissions, check_resources_exist
 from .forms import *
 from django.core.exceptions import PermissionDenied
 from pathlib import Path
@@ -68,6 +68,7 @@ def host_call(func):
 
 
 @actions_check_permissions({"tira", "admin"})
+@check_resources_exist('json')
 def publish(request, vm_id, dataset_id, run_id, value):
     value = (True if value == 'true' else False)
     if request.method == 'GET':
@@ -81,6 +82,7 @@ def publish(request, vm_id, dataset_id, run_id, value):
 
 
 @actions_check_permissions({"tira", "admin"})
+@check_resources_exist('json')
 def blind(request, vm_id, dataset_id, run_id, value):
     value = (False if value == 'false' else True)
 
@@ -100,7 +102,6 @@ def blind(request, vm_id, dataset_id, run_id, value):
 
 @actions_check_permissions({"tira", "admin"})
 def admin_reload_data(request):
-
     if request.method == 'GET':
         # post_id = request.GET['post_id']
         try:
@@ -175,20 +176,30 @@ def admin_create_task(request):
         form = CreateTaskForm(request.POST)
         if form.is_valid():
             # sanity checks
-            if not check.vm_exists(form.cleaned_data["master_vm_id"]):
-                context["status"] = "fail"
-                context[
-                    "create_task_form_error"] = f"Master VM with ID {form.cleaned_data['master_vm_id']} does not exist"
+            context["status"] = "fail"
+            master_vm_id = form.cleaned_data["master_vm_id"]
+            task_id = form.cleaned_data["task_id"]
+            organizer = form.cleaned_data["organizer"]
+
+            try:
+                model.get_vm(master_vm_id)
+            except KeyError as e:
+                logger.error(e)
+                context["add_dataset_form_error"] = f"Master VM with ID {master_vm_id} does not exist"
                 return JsonResponse(context)
 
-            if not check.organizer_exists(form.cleaned_data["organizer"]):
-                context["status"] = "fail"
-                context["create_task_form_error"] = f"Organizer with ID {form.cleaned_data['organizer']} does not exist"
+            try:
+                model.get_task(task_id)
+            except KeyError as e:
+                logger.error(e)
+                context["add_dataset_form_error"] = f"Task with ID {task_id} does not exist"
                 return JsonResponse(context)
 
-            if check.task_exists(form.cleaned_data["task_id"]):
-                context["status"] = "fail"
-                context["create_task_form_error"] = f"Task with ID {form.cleaned_data['task_id']} already exist"
+            try:
+                model.get_organizer(organizer)
+            except KeyError as e:
+                logger.error(e)
+                context["add_dataset_form_error"] = f"Task with ID {organizer} does not exist"
                 return JsonResponse(context)
 
             if model.create_task(form.cleaned_data["task_id"], form.cleaned_data["task_name"],
@@ -201,7 +212,6 @@ def admin_create_task(request):
                     "master_vm_id": form.cleaned_data["master_vm_id"],
                     "organizer": form.cleaned_data["organizer"], "website": form.cleaned_data["website"]}
             else:
-                context["status"] = "fail"
                 context["create_task_form_error"] = f"Could not create {form.cleaned_data['task_id']}. Contact Admin."
                 return JsonResponse(context)
         else:
@@ -234,19 +244,19 @@ def admin_add_dataset(request):
             measures = [line.split(',') for line in form.cleaned_data["measures"].split('\n')]
 
             # sanity checks
-            if not check.vm_exists(master_vm_id):
-                context["status"] = "fail"
+            context["status"] = "fail"
+            try:
+                model.get_vm(master_vm_id)
+            except KeyError as e:
+                logger.error(e)
                 context["add_dataset_form_error"] = f"Master VM with ID {master_vm_id} does not exist"
                 return JsonResponse(context)
 
-            if not check.task_exists(task_id):
-                context["status"] = "fail"
+            try:
+                model.get_task(task_id)
+            except KeyError as e:
+                logger.error(e)
                 context["add_dataset_form_error"] = f"Task with ID {task_id} does not exist"
-                return JsonResponse(context)
-
-            if check.dataset_exists(dataset_id_prefix):
-                context["status"] = "fail"
-                context["add_dataset_form_error"] = f"Task with ID {dataset_id_prefix} already exist"
                 return JsonResponse(context)
 
             try:
@@ -271,11 +281,9 @@ def admin_add_dataset(request):
 
             except KeyError as e:
                 logger.error(e)
-                context["status"] = "fail"
                 context["create_task_form_error"] = f"Could not create {dataset_id_prefix}: {e}"
                 return JsonResponse(context)
         else:
-            context["status"] = "fail"
             context["create_task_form_error"] = "Form Invalid (check formatting)"
             return JsonResponse(context)
     else:
@@ -289,6 +297,7 @@ def admin_add_dataset(request):
 # ---------------------------------------------------------------------
 
 @actions_check_permissions({"tira", "admin", "participant"})
+@check_resources_exist('json')
 def vm_state(request, vm_id):
     try:
         state = TransitionLog.objects.get_or_create(vm_id=vm_id, defaults={'vm_state': 0})[0].vm_state
@@ -299,60 +308,48 @@ def vm_state(request, vm_id):
 
 
 @actions_check_permissions({"tira", "admin", "participant"})
+@check_resources_exist('json')
 def vm_running_evaluations(request, vm_id):
-
     results = EvaluationLog.objects.filter(vm_id=vm_id)
     return JsonResponse({'running_evaluations': True if results else False}, status=HTTPStatus.ACCEPTED)
 
 
 @actions_check_permissions({"tira", "admin", "participant"})
+@check_resources_exist('json')
+@host_call
 def vm_create(request, hostname, vm_id, ova_file):
     uid = auth.get_user_id(request)
     host = reroute_host(hostname)
-    response = GrpcClient(host).vm_create(vm_id, ova_file, uid, host)
-
-    if response.status == 0:
-        return JsonResponse({'status': response.status, 'message': response.transactionId}, status=HTTPStatus.ACCEPTED)
-    return JsonResponse({'status': response.status, 'message': response.transactionId}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+    return GrpcClient(host).vm_create(vm_id, ova_file, uid, host)
 
 
 @actions_check_permissions({"tira", "admin", "participant"})
+@check_resources_exist('json')
+@host_call
 def vm_start(request, vm_id):
     vm = model.get_vm(vm_id)
-
-    response = GrpcClient(reroute_host(vm.host)).vm_start(vm_id)
-
     # NOTE vm_id is different from vm.vmName (latter one includes the 01-tira-ubuntu-...
-    if response.status == 0:
-        return JsonResponse({'status': response.status, 'message': response.transactionId}, status=HTTPStatus.ACCEPTED)
-    return JsonResponse({'status': response.status, 'message': f"{response.transactionId} was rejected by the host"},
-                        status=HTTPStatus.INTERNAL_SERVER_ERROR)
+    return GrpcClient(reroute_host(vm.host)).vm_start(vm_id)
 
 
 @actions_check_permissions({"tira", "admin", "participant"})
+@check_resources_exist('json')
+@host_call
 def vm_shutdown(request, vm_id):
     vm = model.get_vm(vm_id)
-
-    response = GrpcClient(reroute_host(vm.host)).vm_shutdown(vm_id)
-    if response.status == 0:
-        return JsonResponse({'status': response.status, 'message': response.transactionId}, status=HTTPStatus.ACCEPTED)
-    return JsonResponse({'status': response.status, 'message': f"{response.transactionId} was rejected by the host"},
-                        status=HTTPStatus.INTERNAL_SERVER_ERROR)
+    return GrpcClient(reroute_host(vm.host)).vm_shutdown(vm_id)
 
 
 @actions_check_permissions({"tira", "admin", "participant"})
+@check_resources_exist('json')
+@host_call
 def vm_stop(request, vm_id):
-
     vm = model.get_vm(vm_id)
-    response = GrpcClient(reroute_host(vm.host)).vm_stop(vm_id)
-
-    if response.status == 0:
-        return JsonResponse({'status': response.status, 'message': response.transactionId}, status=HTTPStatus.ACCEPTED)
-    return JsonResponse({'status': response.status, 'message': f"{response.transactionId} was rejected by the host"},
-                        status=HTTPStatus.INTERNAL_SERVER_ERROR)
+    return GrpcClient(reroute_host(vm.host)).vm_stop(vm_id)
 
 
 @actions_check_permissions({"tira", "admin", "participant"})
+@check_resources_exist('json')
 def vm_info(request, vm_id):
     # TODO when vm_id is no-vm-assigned
 
@@ -396,6 +393,7 @@ def vm_info(request, vm_id):
 
 
 @actions_check_permissions({"tira", "admin", "participant", "user"})
+@check_resources_exist('json')
 def software_add(request, task_id, vm_id):
     # 0. Early return a dummy page, if the user has no vm assigned on this task
     # TODO: If the user has no VM, give him a request form
@@ -432,6 +430,7 @@ def software_add(request, task_id, vm_id):
 
 
 @actions_check_permissions({"tira", "admin", "participant"})
+@check_resources_exist('json')
 def software_save(request, task_id, vm_id, software_id):
     software = model.update_software(task_id, vm_id, software_id,
                                      request.POST.get("command"),
@@ -446,6 +445,7 @@ def software_save(request, task_id, vm_id, software_id):
 
 
 @actions_check_permissions({"tira", "admin", "participant"})
+@check_resources_exist('json')
 def software_delete(request, task_id, vm_id, software_id):
     delete_ok = model.delete_software(task_id, vm_id, software_id)
 
@@ -457,6 +457,8 @@ def software_delete(request, task_id, vm_id, software_id):
 
 
 @actions_check_permissions({"tira", "admin", "participant"})
+@check_resources_exist('json')
+@host_call
 def run_execute(request, task_id, vm_id, software_id):
     vm = model.get_vm(vm_id)
     software = model.get_software(task_id, vm_id, software_id=software_id)
@@ -464,38 +466,21 @@ def run_execute(request, task_id, vm_id, software_id):
 
     host = reroute_host(vm.host)
     future_run_id = get_tira_id()
-    try:
-        grpc_client = GrpcClient(host)
-        response = grpc_client.run_execute(vm_id=vm_id,
-                                           dataset_id=software["dataset"],
-                                           run_id=future_run_id,
-                                           input_run_vm_id="",
-                                           input_run_dataset_id="",
-                                           input_run_run_id=software["run"],
-                                           task_id=task_id,
-                                           software_id=software_id)
-        del grpc_client
-    except RpcError as e:
-        ex_message = "FAILED"
-        try:
-            logger.exception(f"/grpc/{vm_id}/run_execute: connection to {host} failed with {e}")
-            if e.code() == StatusCode.UNAVAILABLE:  # .code() is implemented by the _channel._InteractiveRpcError
-                ex_message = "UNAVAILABLE"  # This happens if the GRPC Server is not running
-        except Exception as e2:  # There is a RpcError but not an Interactive one. This should not happen
-            logger.exception(f"/grpc/{vm_id}/run_execute: Unexpected Execption occured: {e2}")
-
-        return JsonResponse({'status': "1", 'message': ex_message}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
-    except Exception as e:
-        logger.exception(f"/grpc/{vm_id}/run_execute: Server Error: {e}")
-        return JsonResponse({'status': "1", 'message': "SERVER_ERROR"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
-
-    if response.status == 0:
-        return JsonResponse({'status': response.status, 'message': response.transactionId}, status=HTTPStatus.ACCEPTED)
-    return JsonResponse({'status': response.status, 'message': f"{response.transactionId} was rejected by the host"},
-                        status=HTTPStatus.INTERNAL_SERVER_ERROR)
+    grpc_client = GrpcClient(host)
+    response = grpc_client.run_execute(vm_id=vm_id,
+                                       dataset_id=software["dataset"],
+                                       run_id=future_run_id,
+                                       input_run_vm_id="",
+                                       input_run_dataset_id="",
+                                       input_run_run_id=software["run"],
+                                       task_id=task_id,
+                                       software_id=software_id)
+    del grpc_client
+    return response
 
 
 @actions_check_permissions({"tira", "admin", "participant"})
+@check_resources_exist('json')
 @host_call
 def run_eval(request, vm_id, dataset_id, run_id):
     """ Get the evaluator for dataset_id from the model.
@@ -524,6 +509,7 @@ def run_eval(request, vm_id, dataset_id, run_id):
 
 
 @actions_check_permissions({"tira", "admin", "participant"})
+@check_resources_exist('json')
 def run_delete(request, dataset_id, vm_id, run_id):
     # TODO just delete it with model.delete_run()
     # TODO should also call a grpc:run_delete to delete host-side data
@@ -532,31 +518,14 @@ def run_delete(request, dataset_id, vm_id, run_id):
 
 
 @actions_check_permissions({"tira", "admin", "participant"})
+@check_resources_exist('json')
+@host_call
 def run_abort(request, vm_id):
     """ """
     vm = model.get_vm(vm_id)
-
     host = reroute_host(vm.host)
 
-    try:
-        grpc_client = GrpcClient(host)
-        response = grpc_client.run_abort(vm_id)
-        del grpc_client
-    except RpcError as e:
-        ex_message = "FAILED"
-        try:
-            logger.exception(f"/grpc/{vm_id}/run_abort: connection to {host} failed with {e}")
-            if e.code() == StatusCode.UNAVAILABLE:  # .code() is implemented by the _channel._InteractiveRpcError
-                ex_message = "UNAVAILABLE"  # This happens if the GRPC Server is not running
-        except Exception as e2:  # There is a RpcError but not an Interactive one. This should not happen
-            logger.exception(f"/grpc/{vm_id}/run_abort: Unexpected Execption occured: {e2}")
-
-        return JsonResponse({'status': "1", 'message': ex_message}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
-    except Exception as e:
-        logger.exception(f"/grpc/{vm_id}/run_abort: Server Error: {e}")
-        return JsonResponse({'status': "1", 'message': "SERVER_ERROR"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
-
-    if response.status == 0:
-        return JsonResponse({'status': response.status, 'message': response.transactionId}, status=HTTPStatus.ACCEPTED)
-    return JsonResponse({'status': response.status, 'message': f"{response.transactionId} was rejected by the host"},
-                        status=HTTPStatus.INTERNAL_SERVER_ERROR)
+    grpc_client = GrpcClient(host)
+    response = grpc_client.run_abort(vm_id)
+    del grpc_client
+    return response
