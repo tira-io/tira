@@ -21,16 +21,21 @@ class TiraApplicationService(tira_host_pb2_grpc.TiraApplicationService):
         """ TODO error handling """
         logger.debug(f" Application Server received vm-state {request.state} for {request.vmId}")
         print(f"Application Server received vm-state {request.state} for {request.vmId}. Transaction: {request.transaction.transactionId}")
+        try:
+            TransactionLog.objects.filter(transaction_id=request.transaction.transactionId).update(
+                last_status=request.transaction.status,
+                last_message=f"TiraApplicationService:set_state:{request.transaction.message}"
+            )
 
+            t = TransactionLog.objects.get(transaction_id=request.transaction.transactionId)
+            _ = TransitionLog.objects.update_or_create(vm_id=request.vmId, defaults={'vm_state': request.state,
+                                                                                     'transaction': t})
+        except Exception as e:
+            logger.warning(e)
+            return tira_host_pb2.Transaction(status=tira_host_pb2.Status.FAILED,
+                                             message=f"TiraApplicationService:set_state:FAILED with {e}",
+                                             transactionId=request.transaction.transactionId)
 
-        TransactionLog.objects.filter(transaction_id=request.transaction.transactionId).update(
-            last_status=request.transaction.status,
-            last_message=f"TiraApplicationService:set_state:{request.transaction.message}"
-        )
-
-        t = TransactionLog.objects.get(transaction_id=request.transaction.transactionId)
-        _ = TransitionLog.objects.update_or_create(vm_id=request.vmId, defaults={'vm_state': request.state,
-                                                                                 'transaction': t})
         return tira_host_pb2.Transaction(status=tira_host_pb2.Status.SUCCESS,
                                          message="TiraApplicationService:set_state:SUCCESS",
                                          transactionId=request.transaction.transactionId)
@@ -42,10 +47,17 @@ class TiraApplicationService(tira_host_pb2_grpc.TiraApplicationService):
         logger.debug(f" Application Server received complete_transaction for {request.transactionId}")
         print(f" Application Server received complete_transaction for {request.transactionId}")
 
-        _ = TransactionLog.objects.filter(transaction_id=request.transactionId).update(
-            completed=True,
-            last_status=str(request.status),
-            last_message=f"TiraApplicationService:complete_transaction:{request.message}")
+        try:
+            _ = TransactionLog.objects.filter(transaction_id=request.transactionId).update(
+                completed=True,
+                last_status=str(request.status),
+                last_message=f"TiraApplicationService:complete_transaction:{request.message}")
+
+        except Exception as e:
+            logger.warning(e)
+            return tira_host_pb2.Transaction(status=tira_host_pb2.Status.FAILED,
+                                             message=f"TiraApplicationService:complete_transaction:FAILED with {e}",
+                                             transactionId=request.transaction.transactionId)
 
         return tira_host_pb2.Transaction(status=tira_host_pb2.Status.SUCCESS,
                                          message="TiraApplicationService:complete_transaction:SUCCESS",

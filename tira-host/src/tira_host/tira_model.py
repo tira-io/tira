@@ -10,6 +10,8 @@ from proto import tira_host_pb2 as model_host
 import time
 import socket
 import uuid
+from watchdog.observers.polling import PollingObserver
+from watchdog.events import FileSystemEventHandler
 
 logger = logging.getLogger(__name__)
 parser = ConfigParser()
@@ -17,7 +19,7 @@ parser.read('conf/grpc_service.ini')
 TIRA_ROOT = parser.get('main', 'tira_model_path')
 
 
-class FileDatabase(object):
+class FileDatabase(FileSystemEventHandler):
     tira_root = TIRA_ROOT
     users_file_path = tira_root / Path("model/users/users.prototext")
     vm_dir_path = tira_root / Path("model/virtual-machines")
@@ -28,6 +30,14 @@ class FileDatabase(object):
 
         self.vms = None  # dict of vm_id: modelpb.User
 
+        self._parse_vm_list()
+
+        observer = PollingObserver()
+        observer.schedule(self, path=str(self.users_file_path), recursive=False)
+        observer.start()
+
+    def on_modified(self, event):
+        logger.info(f"Reload {self.users_file_path}...")
         self._parse_vm_list()
 
     def _parse_vm_list(self):

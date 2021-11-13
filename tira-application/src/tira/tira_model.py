@@ -206,15 +206,24 @@ class FileDatabase(object):
         return Parse(open(self.vm_dir_path / f"{vm_id}.prototext").read(), modelpb.VirtualMachine())
 
     def _load_softwares(self, task_id, vm_id):
+        softwares_dir = self.softwares_dir_path / task_id / vm_id
+        softwares_dir.mkdir(parents=True, exist_ok=True)
+        software_file = softwares_dir / "softwares.prototext"
+        if not software_file.exists():
+            software_file.touch()
+
         return Parse(open(self.softwares_dir_path / task_id / vm_id / "softwares.prototext", "r").read(),
                      modelpb.Softwares())
 
     def _load_run(self, dataset_id, vm_id, run_id, return_deleted=False, as_json=False):
         run_dir = (self.RUNS_DIR_PATH / dataset_id / vm_id / run_id)
         if not (run_dir / "run.bin").exists():
-            logger.error(f"Try to read a run without a run.bin: {dataset_id}-{vm_id}-{run_id}")
-            # TODO check if it is better to return empty runs vs. returning None vs. raising
-            return None
+            if (run_dir / "run.prototext").exists():
+                r = Parse(open(run_dir / "run.prototext", "r").read(), modelpb.Run())
+                open(run_dir / "run.bin", 'wb').write(r.SerializeToString())
+            else:
+                logger.error(f"Try to read a run without a run.bin: {dataset_id}-{vm_id}-{run_id}")
+                return None
 
         run = modelpb.Run()
         run.ParseFromString(open(run_dir / "run.bin", "rb").read())
