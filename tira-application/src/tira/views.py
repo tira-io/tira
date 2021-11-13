@@ -27,6 +27,7 @@ def index(request):
     uid = auth.get_user_id(request)
     context = {
         "include_navigation": include_navigation,
+        "include_navigation": include_navigation,
         "tasks": model.get_tasks(),
         "user_id": uid,
         "vm_id": auth.get_vm_id(request, uid),
@@ -224,11 +225,19 @@ def software_detail(request, task_id, vm_id):
         "runs": runs_by_software.get(sw["id"])
     } for sw in softwares]
 
+    vm = model.get_vm(vm_id)
     context = {
         "user_id": auth.get_user_id(request),
         "include_navigation": include_navigation,
         "task": model.get_task(task_id),
         "vm_id": vm_id,
+        "vm": {
+            "host": vm.host,
+            "user": vm.userName,
+            "password": vm.userPw,
+            "ssh": vm.portSsh,
+            "rdp": vm.portRdp
+        },
         "software": software,
         "datasets": datasets
     }

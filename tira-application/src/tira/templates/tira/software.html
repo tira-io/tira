@@ -90,7 +90,6 @@
                                  class="uk-label uk-label-danger">undefined</div>
                         </td>
                     </tr>
-                    <tr><td>&nbsp;</td></tr>
                     <tr>
                         <td class="uk-table-shrink uk-text-nowrap uk-table-middle">
                             SSH <span id="vm-state-ssh" class="uk-text-lead uk-text-small">port ... </span>&nbsp;&nbsp;
@@ -118,6 +117,25 @@
                         </td>
                     </tr>
                 </table>
+
+                <!-- The modal that shows the connection information -->
+                <button class="uk-button uk-button-default uk-margin-small-right uk-margin-small-top" type="button" uk-toggle="target: #modal-close-default">Connection Info</button>
+                <div id="modal-close-default" class="uk-modal-container" uk-modal>
+                    <div class="uk-modal-dialog uk-modal-body uk-margin-auto-vertical">
+                        <button class="uk-modal-close-default" type="button" uk-close></button>
+                        <h2 class="uk-modal-title">Connection Info:</h2>
+                        <table class="uk-table-small uk-margin-bottom">
+                            <tr><td class="uk-text-bold">Host:</td><td>{{ vm.host }}</td></tr>
+                            <tr><td><span class="uk-text-bold">User: </span></td><td>{{ vm.user }}</td><td><span class="uk-text-bold">SSH Port: </span></td><td>{{ vm.ssh }}</td></tr>
+                            <tr><td><span class="uk-text-bold">Password: </span></td><td>{{ vm.password }}</td><td><span class="uk-text-bold">RPD Port: </span></td><td>{{ vm.rdp }}</td></tr>
+                        </table>
+                        <label class="uk-form-label" for="form-stacked-text">SSH Example</label>
+                        <div class="uk-form-controls">
+                            <input class="uk-input uk-width-3-4" id="form-stacked-text" type="text"
+                                   value="sshpass -p {{ vm.passwort }} ssh {{ vm.user }}@{{ vm.host }} -p {{ vm.ssh }} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no">
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="uk-width-1-4">
                 <button id="vm-power-on-button"
