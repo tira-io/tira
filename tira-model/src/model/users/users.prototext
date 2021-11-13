@@ -21,9 +21,9 @@ users {
   userName: "pan21-av-baseline"
   vmName: "pan21-av-baseline"
   vmId: "pan21-av-baseline"
-  portSsh: ""
-  host: ""
-  portRdp: ""
+  portSsh: "1234"
+  host: "localhost"
+  portRdp: "5678"
   adminPw: ""
   ip: ""
 }
