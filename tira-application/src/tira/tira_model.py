@@ -568,6 +568,7 @@ class FileDatabase(object):
         return [str(nd) for nd in new_dirs]
 
     def add_software(self, task_id, vm_id):
+        # TODO crashes if software prototext does not exist.
         software = modelpb.Softwares.Software()
         s = self._load_softwares(task_id, vm_id)
         try:
@@ -720,13 +721,30 @@ class FileDatabase(object):
         run_dir = Path(self.RUNS_DIR_PATH / dataset_id / vm_id / run_id)
         rmtree(run_dir)
 
-    def add_ongoing_execution(self, hostname, vm_id, ova):
-        """ add this create to the stack, so we know it's in progress. """
-        print('model', hostname, vm_id, ova)
-        pass
+    # ------------------------------------------------------------
+    # add methods to check for existence
+    # ------------------------------------------------------------
 
-    def complete_execution(self):
-        # TODO implement
-        pass
+    def task_exists(self, task_id):
+        return True if task_id in self.tasks else False
+
+    def dataset_exists(self, dataset_id):
+        return True if dataset_id in self.datasets else False
+
+    def vm_exists(self, vm_id):
+        return True if vm_id in self.vms else False
+
+    def organizer_exists(self, organizer_id):
+        return True if organizer_id in self.organizers else False
+
+    def run_exists(self, vm_id, dataset_id, run_id):
+        return True if self.get_run(self, dataset_id, vm_id, run_id) else False
+
+    def software_exists(self, task_id, vm_id, software_id):
+        for software in self.software.get(f"{task_id}${vm_id}", []):
+            if software_id == software.id:
+                return True
+        return False
+
 
 model = FileDatabase()
