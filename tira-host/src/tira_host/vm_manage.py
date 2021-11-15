@@ -154,6 +154,7 @@ class VirtualMachine(object):
 
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             self.ssh_port_status = 1 if sock.connect_ex((self.host, int(self.ssh_port))) == 0 else 0
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             self.rdp_port_status = 1 if sock.connect_ex((self.host, int(self.rdp_port))) == 0 else 0
 
         state = self.state
