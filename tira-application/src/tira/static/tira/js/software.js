@@ -374,7 +374,7 @@ function deleteRun(datasetId, vmId, runId, row) {
         },
         error: function (jqXHR, textStatus, throwError) {
             warningAlert("Deleting the run " + runId + " ", throwError, jqXHR.responseJSON)
-            loadVmInfo(vmid)
+            loadVmInfo(vmId)
         }
     })
 }

@@ -94,7 +94,7 @@ def check_resources_exist(reply_as='json'):
             if "run_id" in kwargs:
                 if "dataset_id" not in kwargs or "vm_id" not in kwargs:
                     raise AttributeError("Can't validate run_id: need dataset_id and vm_id in kwargs")
-                if not model.run_exists(kwargs["vm_id"], kwargs["dataset_id"], kwargs["software_id"]):
+                if not model.run_exists(kwargs["vm_id"], kwargs["dataset_id"], kwargs["run_id"]):
                     logger.error(f"{resolve(request.path_info).url_name}: run_id does not exist")
                     return return_fail("run_id does not exist")
 
