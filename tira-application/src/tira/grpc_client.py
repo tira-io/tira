@@ -31,8 +31,8 @@ def auto_transaction(msg):
     in the TransactionLog """
     def attribute_decorator(func):
         @wraps(func)
-        def func_wrapper(*args, **kwargs):
-            grpc_transaction = new_transaction(f"initialized {msg} of {args[1]}")
+        def func_wrapper(self, *args, **kwargs):
+            grpc_transaction = new_transaction(f"initialized {msg} of {args[0]}")
             message_suffix = '-'.join([a for a in args if isinstance(a, str)])
 
             response = func(*args, transaction=grpc_transaction, **kwargs)
