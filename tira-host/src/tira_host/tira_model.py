@@ -38,8 +38,6 @@ class FileDatabase(FileSystemEventHandler):
     def on_modified(self, event):
         logger.info(f"Reload {self.users_file_path}...")
         self._parse_vm_list()
-        if self.grpc_service:
-            self.grpc_service.load_vms_list()
 
     def _parse_vm_list(self):
         users = modelpb.Users()

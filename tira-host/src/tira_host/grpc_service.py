@@ -115,7 +115,10 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         :return:
         """
         vm = vm_manage.VirtualMachine(request)
-        return vm.create(request.transaction.transactionId, request)
+        response = vm.create(request.transaction.transactionId, request)
+        self.load_vms_list()
+
+        return response
 
     def vm_delete(self, request, context):
         """
