@@ -321,7 +321,7 @@ def vm_running_evaluations(request, vm_id):
 def vm_create(request, hostname, vm_id, ova_file):
     uid = auth.get_user_id(request)
     host = reroute_host(hostname)
-    return GrpcClient(host).vm_create(vm_id, ova_file, uid, host)
+    return GrpcClient(host).vm_create(vm_id=vm_id, ova_file=ova_file, user_id=uid, hostname=host)
 
 
 @actions_check_permissions({"tira", "admin", "participant"})
@@ -330,7 +330,7 @@ def vm_create(request, hostname, vm_id, ova_file):
 def vm_start(request, vm_id):
     vm = model.get_vm(vm_id)
     # NOTE vm_id is different from vm.vmName (latter one includes the 01-tira-ubuntu-...
-    return GrpcClient(reroute_host(vm.host)).vm_start(vm_id)
+    return GrpcClient(reroute_host(vm.host)).vm_start(vm_id=vm_id)
 
 
 @actions_check_permissions({"tira", "admin", "participant"})
@@ -338,7 +338,7 @@ def vm_start(request, vm_id):
 @host_call
 def vm_shutdown(request, vm_id):
     vm = model.get_vm(vm_id)
-    return GrpcClient(reroute_host(vm.host)).vm_shutdown(vm_id)
+    return GrpcClient(reroute_host(vm.host)).vm_shutdown(vm_id=vm_id)
 
 
 @actions_check_permissions({"tira", "admin", "participant"})
@@ -346,7 +346,7 @@ def vm_shutdown(request, vm_id):
 @host_call
 def vm_stop(request, vm_id):
     vm = model.get_vm(vm_id)
-    return GrpcClient(reroute_host(vm.host)).vm_stop(vm_id)
+    return GrpcClient(reroute_host(vm.host)).vm_stop(vm_id=vm_id)
 
 
 @actions_check_permissions({"tira", "admin", "participant"})
@@ -358,7 +358,7 @@ def vm_info(request, vm_id):
     host = reroute_host(vm.host)
     try:
         grpc_client = GrpcClient(host)
-        response_vm_info = grpc_client.vm_info(vm_id)
+        response_vm_info = grpc_client.vm_info(vm_id=vm_id)
         # _ = TransitionLog.objects.update_or_create(vm_id=vm_id, defaults={'vm_state': response_vm_info.state})
         del grpc_client
     except RpcError as e:
@@ -527,6 +527,6 @@ def run_abort(request, vm_id):
     host = reroute_host(vm.host)
 
     grpc_client = GrpcClient(host)
-    response = grpc_client.run_abort(vm_id)
+    response = grpc_client.run_abort(vm_id=vm_id)
     del grpc_client
     return response

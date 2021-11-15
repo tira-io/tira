@@ -32,10 +32,10 @@ def auto_transaction(msg):
     def attribute_decorator(func):
         @wraps(func)
         def func_wrapper(self, *args, **kwargs):
-            grpc_transaction = new_transaction(f"initialized {msg} of {args[0]}")
+            grpc_transaction = new_transaction(f"initialized {msg} of {kwargs['vm_id']}")
             message_suffix = '-'.join([a for a in args if isinstance(a, str)])
 
-            response = func(*args, transaction=grpc_transaction, **kwargs)
+            response = func(self, *args, transaction=grpc_transaction, **kwargs)
             if response.status == 1:
                 _ = TransactionLog.objects.filter(transaction_id=response.transactionId).update(
                     completed=True,
