@@ -105,6 +105,7 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         :return:
         """
         vm = self._get_vm(request.vmId, context)
+
         return vm.backup(request.vmId)
 
     def vm_create(self, request, context):
@@ -128,6 +129,7 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         :return:
         """
         vm = self._get_vm(request.vmId, context)
+
         return vm.delete(request.transaction.transactionId, request)
 
     def vm_info(self, request, context):
@@ -169,9 +171,7 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         :return:
         """
         vm = self._get_vm(request.vmId, context)
-        retcode, output = vm.shutdown(request.transaction.transactionId, request)
-
-        return retcode
+        return vm.shutdown(request.transaction.transactionId, request)
 
     def vm_snapshot(self, request, context):
         """
@@ -180,9 +180,8 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         :return:
         """
         vm = self._get_vm(request.vmId, context)
-        retcode, output = vm.spanshot(request.transaction.transactionId, request)
 
-        return retcode
+        return vm.spanshot(request.transaction.transactionId, request)
 
     def vm_start(self, request, context):
         """
@@ -201,9 +200,8 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         :return:
         """
         vm = self._get_vm(request.vmId, context)
-        retcode, output = vm.stop(request.transaction.transactionId, request)
 
-        return retcode
+        return vm.stop(request.transaction.transactionId, request)
 
     def run_execute(self, request, context):
         """
@@ -216,9 +214,7 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         model.create_run(request.runId.vmId, request.softwareId, request.runId.runId, request.runId.datasetId,
                          request.inputRunId.runId, request.taskId)
 
-        retcode, output = vm.run_execute(request)
-
-        return retcode
+        return vm.run_execute(request.transaction.transactionId, request)
 
     def run_eval(self, request, context):
         """
@@ -232,11 +228,9 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         model.create_run(request.runId.vmId, request.softwareId, request.runId.runId, request.runId.datasetId,
                          request.inputRunId.runId, request.taskId)
 
-        retcode, output = vm.run_eval(request.transaction.transactionId, request,
+        return vm.run_eval(request.transaction.transactionId, request,
                                       model.get_run_dir(request.runId.datasetId, request.runId.vmId,
                                                         request.inputRunId.runId))
-
-        return retcode
 
     def run_abort(self, request, context):
         """
@@ -247,9 +241,7 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         """
         vm = self._get_vm(request.vmId, context)
 
-        retcode, output = vm.run_abort(request.transaction.transactionId, request)
-
-        return retcode
+        return vm.run_abort(request.transaction.transactionId, request)
 
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=1))
