@@ -21,6 +21,7 @@ from http import HTTPStatus
 
 from .transitions import TransitionLog, EvaluationLog, TransactionLog
 from .grpc_client import GrpcClient
+from .grpc_server import TiraApplicationService
 from .tira_model import model
 from .util import get_tira_id, reroute_host
 from functools import wraps
@@ -358,7 +359,7 @@ def vm_info(request, vm_id):
     try:
         grpc_client = GrpcClient(host)
         response_vm_info = grpc_client.vm_info(vm_id)
-        _ = TransitionLog.objects.update_or_create(vm_id=vm_id, defaults={'vm_state': response_vm_info.state})
+        # _ = TransitionLog.objects.update_or_create(vm_id=vm_id, defaults={'vm_state': response_vm_info.state})
         del grpc_client
     except RpcError as e:
         ex_message = "FAILED"
