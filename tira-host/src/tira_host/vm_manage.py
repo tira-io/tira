@@ -57,7 +57,6 @@ def async_api(wrapped_function):
 
         logger.debug(f"Transaction ({transaction_id}) received. (function: {wrapped_function.__name__}, request: {str(request)})")
 
-        # Record the task, and then launch it
         t = threading.Thread(target=task_call, args=())
         t.start()
 
@@ -167,6 +166,7 @@ class VirtualMachine(object):
 
         return state
 
+    @check_state({0})
     @async_api
     def create(self, transaction_id, request):
         """
@@ -183,6 +183,8 @@ class VirtualMachine(object):
 
         return retcode, output
 
+    @check_state({1,2})
+    @async_api
     def delete(self, transaction_id, request):
         """
 
@@ -314,7 +316,7 @@ class VirtualMachine(object):
                                           datetime.strftime(datetime.now(), '%Y-%m-%d-%H-%M-%S'),
                                           request.taskId, request.softwareId, command="run-execute-new")
 
-        self.stop(transaction_id)
+        self.stop(transaction_id, request)
         self._sandbox(transaction_id, 'auto', "true" if "test" in request.inputRunId.datasetId else "false")
 
         self._set_state(7)
@@ -322,7 +324,7 @@ class VirtualMachine(object):
                         datetime.strftime(datetime.now(), '%Y-%m-%d-%H-%M-%S'),
                         request.taskId, request.softwareId, command="run-execute-new")
 
-        self._unsandbox()
+        self._unsandbox(transaction_id)
         self.transaction_id = None
 
         return retcode, output
