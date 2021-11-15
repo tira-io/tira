@@ -58,7 +58,7 @@ spec:
     spec:
       containers:
         - name: tira-discourse-prod
-          image: docker.io/webis/tira-discourse:0.0.7-www.tira.io
+          image: docker.io/webis/tira-discourse:0.0.8-www.tira.io
           ports:
             - containerPort: 443
               hostIP: 0.0.0.0
@@ -73,7 +73,7 @@ spec:
               name: discourse-prod-data-pvc
             - mountPath: "/shared/backups"
               name: backups
-            - mountPath: "/var/log"
+            - mountPath: "/shared/log"
               name: discourse-prod-log
             - mountPath: "/resource"
               name: resource
@@ -138,7 +138,7 @@ spec:
 #              - ceph.dw.webis.de
 #            path: /storage/data-in-production/disraptor/discourse/postgres-data
 #            user: webis
-#            secretFile: "etc/ceph/ceph.client.webis.secret"
+#            secretFile: "/etc/ceph/ceph.client.webis.secret"
 #            readOnly: false
         - name: backups 
           cephfs:
@@ -146,18 +146,23 @@ spec:
               - ceph.dw.webis.de
             path: /storage/data-in-production/disraptor/discourse/backup
             user: webis
-            secretFile: "etc/ceph/ceph.client.webis.secret"
+            secretFile: "/etc/ceph/ceph.client.webis.secret"
             readOnly: false
         - name: discourse-prod-log
-          persistentVolumeClaim:
-            claimName: discourse-prod-log-pvc
+          cephfs:
+            monitors:
+              - ceph.dw.webis.de
+            path: /tira/log/discourse
+            user: tira
+            secretFile: "/etc/ceph/ceph.client.tira.secret"
+            readOnly: false
         - name: resource
           cephfs:
             monitors:
               - ceph.dw.webis.de
             path: /storage/data-in-production/disraptor/boot/resource
             user: webis
-            secretFile: "etc/ceph/ceph.client.webis.secret"
+            secretFile: "/etc/ceph/ceph.client.webis.secret"
             readOnly: true
         - name: setup
           cephfs:
@@ -165,5 +170,5 @@ spec:
               - ceph.dw.webis.de
             path: /storage/data-in-production/disraptor/boot
             user: webis
-            secretFile: "etc/ceph/ceph.client.webis.secret"
+            secretFile: "/etc/ceph/ceph.client.webis.secret"
             readOnly: true
