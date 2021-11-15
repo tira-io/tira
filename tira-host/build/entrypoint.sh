@@ -52,8 +52,7 @@ sudo service ssh start
 if [ "$DEV" = "true" ];
 then
   tail -f /dev/null
-  # Start grpc service with code change tracking: when the code is changed, reload the service
-  #watchmedo auto-restart --recursive --pattern="*.py" --ignore-patterns="grpc_client_test.py" --directory="/tira/tira_host" python3 -- -m grpc_service
 else
-  python3 grpc_service.py
+#  python3 grpc_service.py
+  watchmedo auto-restart --recursive --pattern="*.py" --ignore-patterns="grpc_client_test.py" --directory="/tira/tira_host" python3 -- -m grpc_service
 fi
