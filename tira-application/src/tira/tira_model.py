@@ -216,7 +216,7 @@ class FileDatabase(object):
                      modelpb.Softwares())
 
     def _load_run(self, dataset_id, vm_id, run_id, return_deleted=False, as_json=False):
-        run_dir = (self.RUNS_DIR_PATH / dataset_id / vm_id / run_id)
+        run_dir = self.RUNS_DIR_PATH / dataset_id / vm_id / run_id
         if not (run_dir / "run.bin").exists():
             if (run_dir / "run.prototext").exists():
                 r = Parse(open(run_dir / "run.prototext", "r").read(), modelpb.Run())
@@ -738,7 +738,7 @@ class FileDatabase(object):
         return True if organizer_id in self.organizers else False
 
     def run_exists(self, vm_id, dataset_id, run_id):
-        return True if self.get_run(self, dataset_id, vm_id, run_id) else False
+        return True if self.get_run(dataset_id, vm_id, run_id) else False
 
     def software_exists(self, task_id, vm_id, software_id):
         for software in self.software.get(f"{task_id}${vm_id}", []):

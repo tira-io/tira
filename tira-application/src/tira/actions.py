@@ -5,7 +5,6 @@ from django.template.loader import render_to_string
 from django.db.utils import IntegrityError
 import logging
 
-from .grpc_client import GrpcClient
 from grpc import RpcError, StatusCode
 from .tira_model import FileDatabase
 from .authentication import auth
@@ -21,7 +20,6 @@ from http import HTTPStatus
 
 from .transitions import TransitionLog, EvaluationLog, TransactionLog
 from .grpc_client import GrpcClient
-from .grpc_server import TiraApplicationService
 from .tira_model import model
 from .util import get_tira_id, reroute_host
 from functools import wraps
