@@ -135,7 +135,7 @@ main() {
         -t "$shutdownCmd"
 
     logInfo "...waiting..."
-    sleep 5
+    sleep 10
 
     unittest && check_is_vm_stopped "$vmname"
 }

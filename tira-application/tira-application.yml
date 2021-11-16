@@ -46,7 +46,7 @@ spec:
     spec:
       containers:
       - name: tira-application
-        image: registry.webis.de/code-lib/public-images/tira-application:0.0.6
+        image: registry.webis.de/code-lib/public-images/tira-application:0.0.7
         imagePullPolicy: Always
         volumeMounts:
         - mountPath: "/mnt/ceph/tira"

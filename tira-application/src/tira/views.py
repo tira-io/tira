@@ -3,12 +3,10 @@ from django.http import HttpResponse, Http404, JsonResponse, FileResponse
 from django.conf import settings
 import logging
 
-from .grpc_client import GrpcClient
-from .grpc_server import serve
 from .tira_model import model
 from .tira_data import get_run_runtime, get_run_file_list, get_stderr, get_stdout, get_tira_log
-from .authentication import Authentication
-from .checks import Check
+from .authentication import auth
+from .checks import actions_check_permissions, check_resources_exist
 from .forms import *
 from django.core.exceptions import PermissionDenied
 from pathlib import Path
@@ -18,19 +16,17 @@ import zipfile
 
 
 include_navigation = True if settings.DEPLOYMENT == "legacy" else False
-auth = Authentication(authentication_source=settings.DEPLOYMENT,
-                      users_file=settings.LEGACY_USER_FILE)
-check = Check(model, auth)
+
 
 logger = logging.getLogger("tira")
 logger.info("Views: Logger active")
 
 
+@actions_check_permissions({"any"})
 def index(request):
-    check.has_access(request, "any")
-
     uid = auth.get_user_id(request)
     context = {
+        "include_navigation": include_navigation,
         "include_navigation": include_navigation,
         "tasks": model.get_tasks(),
         "user_id": uid,
@@ -40,9 +36,8 @@ def index(request):
     return render(request, 'tira/index.html', context)
 
 
+@actions_check_permissions({"tira", "admin"})
 def admin(request):
-    check.has_access(request, ["tira", "admin"])
-
     context = {
         "include_navigation": include_navigation,
         "vm_list": model.get_vm_list(),
@@ -56,11 +51,12 @@ def admin(request):
     }
     return render(request, 'tira/tira_admin.html', context)
 
+
+@actions_check_permissions({"any"})
 def login(request):
     """ Hand out the login form 
     Note that this is only called in legacy deployment. Disraptor is supposed to catch the route to /login
     """
-    check.has_access(request, 'any')
 
     context = {
         "include_navigation": include_navigation,
@@ -82,16 +78,15 @@ def login(request):
     return render(request, 'tira/login.html', context)
 
 
+@actions_check_permissions({"any"})
 def logout(request):
-    check.has_access(request, 'any')
-
     auth.logout(request)
     return redirect('tira:index')
 
 
+@actions_check_permissions({"any"})
+@check_resources_exist('http')
 def task_detail(request, task_id):
-    check.has_access(request, 'any')
-
     uid = auth.get_user_id(request)
     context = {
         "include_navigation": include_navigation,
@@ -103,8 +98,8 @@ def task_detail(request, task_id):
     return render(request, 'tira/task_detail.html', context)
 
 
+@actions_check_permissions({"any"})
 def dataset_list(request):
-    check.has_access(request, 'any')
 
     context = {
         "include_navigation": include_navigation,
@@ -114,12 +109,13 @@ def dataset_list(request):
     return render(request, 'tira/dataset_list.html', context)
 
 
+@actions_check_permissions({"any"})
+@check_resources_exist('http')
 def dataset_detail(request, task_id, dataset_id):
     """ The dataset view. Users, it shows only the public leaderboard right now.
     Admins, it shows all evaluations on the dataset, as well as a list of all runs and the review interface.
      @note maybe later, we can show a consolidated view of all runs the user made on this dataset below.
      """
-    check.has_access(request, 'any')
     role = auth.get_role(request, auth.get_user_id(request))
 
     # For all users: compile the results table from the evaluations
@@ -188,31 +184,20 @@ def dataset_detail(request, task_id, dataset_id):
 #     return redirect('tira:index')
 
 
+@actions_check_permissions({"tira", "admin", "participant", "user"})
+@check_resources_exist('http')
 def software_detail(request, task_id, vm_id):
     """ render the detail of the user page: vm-stats, softwares, and runs """
-    check.has_access(request, ["tira", "admin", "participant", "user"], on_vm_id=vm_id)
-
     # 0. Early return a dummy page, if the user has no vm assigned on this task
-    # TODO: If the user has no VM, give him a request form
-    if auth.get_role(request, user_id=auth.get_user_id(request), vm_id=vm_id) == auth.ROLE_USER or \
-            vm_id == "no-vm-assigned":
-        context = {
-            "include_navigation": include_navigation,
-            "task": model.get_task(task_id),
-            "vm_id": "no-vm-assigned",
-            "role": auth.get_role(request)
-        }
-        return render(request, 'tira/software.html', context)
 
-    # 2. try to load vm, # TODO if it fails return meaningful error page :D
-    try:
-        softwares = model.get_software(task_id, vm_id)
-        runs = model.get_vm_runs_by_task(task_id, vm_id)
-        datasets = model.get_datasets_by_task(task_id)
-    except KeyError as e:
-        logger.error(e)
-        logger.warning(f"tried to load vm that does not exist: {vm_id} on task {task_id}")
-        return redirect('tira:software-detail', task_id=task_id, vm_id="no-vm-assigned")
+    # try:
+    softwares = model.get_software(task_id, vm_id)
+    runs = model.get_vm_runs_by_task(task_id, vm_id)
+    datasets = model.get_datasets_by_task(task_id)
+    # except KeyError as e:
+    #     logger.error(e)
+    #     logger.warning(f"tried to load vm that does not exist: {vm_id} on task {task_id}")
+    #     return redirect('tira:software-detail', task_id=task_id, vm_id="no-vm-assigned")
 
     # Construct a dictionary that has the software as a key and as value a list of runs with that software
     # Note that we order the list in such a way, that evaluations of a run are right behind that run in the list
@@ -240,11 +225,19 @@ def software_detail(request, task_id, vm_id):
         "runs": runs_by_software.get(sw["id"])
     } for sw in softwares]
 
+    vm = model.get_vm(vm_id)
     context = {
         "user_id": auth.get_user_id(request),
         "include_navigation": include_navigation,
         "task": model.get_task(task_id),
         "vm_id": vm_id,
+        "vm": {
+            "host": vm.host,
+            "user": vm.userName,
+            "password": vm.userPw,
+            "ssh": vm.portSsh,
+            "rdp": vm.portRdp
+        },
         "software": software,
         "datasets": datasets
     }
@@ -252,13 +245,14 @@ def software_detail(request, task_id, vm_id):
     return render(request, 'tira/software.html', context)
 
 
+@actions_check_permissions({"tira", "admin", "participant"})
+@check_resources_exist('http')
 def review(request, task_id, vm_id, dataset_id, run_id):
     """
      - no_errors = hasNoErrors
      - output_error -> invalid_output and has_error_output
      - software_error <-> other_error
     """
-    check.has_access(request, ["tira", "admin", "participant"], on_vm_id=vm_id)
     role = auth.get_role(request, auth.get_user_id(request))
 
     review_form_error = None
@@ -335,9 +329,10 @@ def _zip_dir(path):
     else:
         return None
                             
-    
+
+@actions_check_permissions({"tira", "admin"})
+@check_resources_exist('json')
 def download_rundir(request, task_id, dataset_id, vm_id, run_id):
-    check.has_access(request, ["tira", "admin"])
     path = Path(settings.TIRA_ROOT) / "data" / "runs" / dataset_id / vm_id / run_id
     zip_handle = zipfile.ZipFile(path.with_suffix(".zip"), "w")
     for root, dirs, files in os.walk(path):
@@ -358,6 +353,7 @@ def download_rundir(request, task_id, dataset_id, vm_id, run_id):
         return JsonResponse({'status': 'Failed', 'reason': f'File does not exist: {zip_path}'}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
+@actions_check_permissions({"tira", "admin"})
 def users(request):
     """
     List of all users and virtual machines.
@@ -370,11 +366,11 @@ def users(request):
     return render(request, 'tira/user_list.html', context)
 
 
+@actions_check_permissions({"tira", "admin"})
 def user_detail(request, user_id):
     """
     User-virtual machine details and management.
     """
-
     role = auth.get_role(request, auth.get_user_id(request))
 
     # response = None

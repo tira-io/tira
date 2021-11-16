@@ -7,16 +7,15 @@ from pathlib import Path
 import logging
 from proto import TiraClientWebMessages_pb2 as modelpb
 from proto import tira_host_pb2 as model_host
-import time
-import socket
 import uuid
 from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler
 
+config = ConfigParser()
+config.read('conf/grpc_service.ini')
+TIRA_ROOT = config.get('main', 'tira_model_path')
+
 logger = logging.getLogger(__name__)
-parser = ConfigParser()
-parser.read('conf/grpc_service.ini')
-TIRA_ROOT = parser.get('main', 'tira_model_path')
 
 
 class FileDatabase(FileSystemEventHandler):
@@ -29,7 +28,7 @@ class FileDatabase(FileSystemEventHandler):
         logger.info("Start loading dataset")
 
         self.vms = None  # dict of vm_id: modelpb.User
-
+        self.grpc_service = None
         self._parse_vm_list()
 
         observer = PollingObserver()
