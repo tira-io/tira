@@ -241,6 +241,7 @@ class VirtualMachine(object):
         :return:
         """
         self.transaction_id = transaction_id
+        self._set_state(4)
         retcode, output = self.run_script(self.vm_name, command="vm-shutdown")
         self._set_state(self._update_info())
         self.transaction_id = None
@@ -313,15 +314,14 @@ class VirtualMachine(object):
         :return:
         """
         self.transaction_id = transaction_id
-        retcode, output = self.run_script(self.user_name + ".prototext", request.runId.datasetId, 'none',
-                                          datetime.strftime(datetime.now(), '%Y-%m-%d-%H-%M-%S'),
-                                          request.taskId, request.softwareId, command="run-execute-new")
 
-        self.stop(transaction_id, request)
+        self._set_state(4)
+        self.run_script(self.vm_name, command="vm-stop")
+        self._set_state(2)
         self._sandbox(transaction_id, 'auto', "true" if "test" in request.inputRunId.datasetId else "false")
 
         self._set_state(7)
-        self.run_script(self.user_name + ".prototext", request.runId.datasetId, 'none',
+        retcode, output = self.run_script(self.user_name + ".prototext", request.runId.datasetId, 'none',
                         datetime.strftime(datetime.now(), '%Y-%m-%d-%H-%M-%S'),
                         request.taskId, request.softwareId, command="run-execute-new")
 
