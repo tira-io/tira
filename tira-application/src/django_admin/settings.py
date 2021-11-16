@@ -158,19 +158,19 @@ def logger_config(log_dir: Path):
         },
         'loggers': {
             'django': {
-                'handlers': ['console', 'ceph_debug_file'],
+                'handlers': ['console', 'ceph_debug_file', 'ceph_warn_file', 'ceph_info_file'],
                 'propagate': True,
             },
             'django.requests': {
-                'handlers': ['console', 'ceph_warn_file', 'ceph_info_file'],
+                'handlers': ['console', 'ceph_debug_file', 'ceph_warn_file', 'ceph_info_file'],
                 'propagate': True,
             },
             'django.server': {
-                'handlers': ['console', 'ceph_warn_file', 'ceph_info_file'],
+                'handlers': ['console', 'ceph_debug_file', 'ceph_warn_file', 'ceph_info_file'],
                 'propagate': True,
             },
             'tira': {
-                'handlers': ['console', 'ceph_warn_file', 'ceph_info_file'],
+                'handlers': ['console', 'ceph_debug_file', 'ceph_warn_file', 'ceph_info_file'],
                 'propagate': True,
             },
         }
