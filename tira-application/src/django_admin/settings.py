@@ -129,48 +129,83 @@ def logger_config(log_dir: Path):
                 'class': 'logging.StreamHandler',
                 'formatter': 'default'
             },
-            'file': {
-                'level': 'DEBUG',
-                'filters': ['require_debug_true'],
-                'class': 'logging.FileHandler',
-                'filename': BASE_DIR / 'debug.log',
-                'formatter': 'simple'
-            },
-            'ceph_debug_file': {
+            'ceph_django_debug': {
                 'level': 'DEBUG',
                 'class': 'logging.FileHandler',
                 'filters': ['require_debug_true'],
-                'filename': log_dir / 'debug.log',
+                'filename': log_dir / 'django-debug.log',
                 'formatter': 'default'
             },
-            'ceph_info_file': {
+            'ceph_django_info': {
                 'level': 'INFO',
                 'class': 'logging.FileHandler',
-                'filename': log_dir / 'info.log',
+                'filename': log_dir / 'django-info.log',
                 'formatter': 'default'
             },
-            'ceph_warn_file': {
+            'ceph_django_warn': {
                 'level': 'WARNING',
                 'class': 'logging.FileHandler',
-                'filename': log_dir / 'warnings.log',
+                'filename': log_dir / 'django-warning.log',
+                'formatter': 'default'
+            },
+            'ceph_tira_debug': {
+                'level': 'DEBUG',
+                'class': 'logging.FileHandler',
+                'filters': ['require_debug_true'],
+                'filename': log_dir / 'tira-debug.log',
+                'formatter': 'default'
+            },
+            'ceph_tira_info': {
+                'level': 'INFO',
+                'class': 'logging.FileHandler',
+                'filename': log_dir / 'tira-info.log',
+                'formatter': 'default'
+            },
+            'ceph_tira_warn': {
+                'level': 'WARNING',
+                'class': 'logging.FileHandler',
+                'filename': log_dir / 'tira-warning.log',
+                'formatter': 'default'
+            },
+            'ceph_grpc_debug': {
+                'level': 'DEBUG',
+                'class': 'logging.FileHandler',
+                'filters': ['require_debug_true'],
+                'filename': log_dir / 'grpc-debug.log',
+                'formatter': 'default'
+            },
+            'ceph_grpc_info': {
+                'level': 'INFO',
+                'class': 'logging.FileHandler',
+                'filename': log_dir / 'grpc-info.log',
+                'formatter': 'default'
+            },
+            'ceph_grpc_warn': {
+                'level': 'WARNING',
+                'class': 'logging.FileHandler',
+                'filename': log_dir / 'grpc-warning.log',
                 'formatter': 'default'
             },
         },
         'loggers': {
             'django': {
-                'handlers': ['console', 'ceph_debug_file', 'ceph_warn_file', 'ceph_info_file'],
+                'handlers': ['console', 'ceph_django_debug', 'ceph_django_warn', 'ceph_django_info'],
                 'propagate': True,
             },
             'django.requests': {
-                'handlers': ['console', 'ceph_debug_file', 'ceph_warn_file', 'ceph_info_file'],
+                'handlers': ['console', 'ceph_django_debug', 'ceph_django_warn', 'ceph_django_info'],
                 'propagate': True,
             },
             'django.server': {
-                'handlers': ['console', 'ceph_debug_file', 'ceph_warn_file', 'ceph_info_file'],
+                'handlers': ['console', 'ceph_django_debug', 'ceph_django_warn', 'ceph_django_info'],
                 'propagate': True,
             },
             'tira': {
-                'handlers': ['console', 'ceph_debug_file', 'ceph_warn_file', 'ceph_info_file'],
+                'handlers': ['console', 'ceph_tira_debug', 'ceph_tira_warn', 'ceph_tira_info'],
+                'propagate': True,
+            },
+            'grpc_server': {
+                'handlers': ['console', 'ceph_grpc_debug', 'ceph_grpc_warn', 'ceph_grpc_info'],
                 'propagate': True,
             },
         }
