@@ -28,7 +28,6 @@ def index(request):
     uid = auth.get_user_id(request)
     context = {
         "include_navigation": include_navigation,
-        "include_navigation": include_navigation,
         "tasks": model.get_tasks(),
         "user_id": uid,
         "vm_id": auth.get_vm_id(request, uid),
