@@ -21,7 +21,7 @@ metadata:
 spec:
   type: NodePort
   selector:
-    app: tira-application
+    app: tira-application-grpc
   ports:
   - name: port-grpc-server
     nodePort: 31553
@@ -79,3 +79,41 @@ spec:
         configMap:
           name: tira-application-config
 
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tira-application-grpc
+  namespace: services-tira
+spec:
+  selector:
+    matchLabels:
+      app: tira-application-grpc
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: tira-application-grpc
+    spec:
+      containers:
+      - name: tira-application-grpc
+        image: registry.webis.de/code-lib/public-images/tira-application-grpc:0.0.7
+        imagePullPolicy: Always
+        volumeMounts:
+        - mountPath: "/mnt/ceph/tira"
+          name: tira-cephfs
+        - mountPath: "/tira/tira-application/src/config/settings-deploy.yml"
+          name: config-yml
+          subPath: settings-deploy.yml
+      volumes:
+      - name: tira-cephfs
+        cephfs:
+          monitors:
+            - ceph.dw.webis.de
+          path: /tira
+          user: tira
+          secretFile: "/etc/ceph/ceph.client.tira.secret"
+          readOnly: false
+      - name: config-yml
+        configMap:
+          name: tira-application-config

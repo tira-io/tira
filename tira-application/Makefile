@@ -80,17 +80,26 @@ docker-publish-tira-application: docker-build-tira-application
 	docker tag webis/tira-web-2:${VERSION} webis/tira-web-2:latest &&\
 	docker push webis/tira-web-2:latest
 
+docker-build-tira-application-grpc:
+	docker build --tag webis/tira-application-grpc:${VERSION} -f tira-application-grpc.Dockerfile ..
+
 docker-run-tira-application:
 	docker run -ti --rm \
         --name=tira-application \
 		-p 8080:80 \
-		-p 50052:50052 \
 		-v=/mnt/ceph/tira:/mnt/ceph/tira \
 		webis/tira-web-2:${VERSION}
 
-docker-build-tira-application:
+docker-run-tira-application-grpc:
+	docker run -ti --rm \
+        --name=tira-application-grpc \
+		-p 50052:50052 \
+		-v=/mnt/ceph/tira:/mnt/ceph/tira \
+		webis/tira-application-grpc:${VERSION}
 
+docker-build-tira-application:
 	docker build --tag webis/tira-web-2:${VERSION} -f Dockerfile ..
+
 
 docker-build-and-push-to-webis-registry: docker-build-tira-application
 	docker tag webis/tira-web-2:${VERSION} registry.webis.de/code-lib/public-images/tira-application:${VERSION}
@@ -98,3 +107,8 @@ docker-build-and-push-to-webis-registry: docker-build-tira-application
 	docker push registry.webis.de/code-lib/public-images/tira-application:${VERSION}
 	docker tag webis/tira-web-2:${VERSION} registry.webis.de/code-lib/public-images/tira-application:latest
 	docker push registry.webis.de/code-lib/public-images/tira-application:latest
+
+docker-build-and-push-to-webis-registry-grpc: docker-build-tira-application-grpc
+	docker tag webis/tira-application-grpc:${VERSION} registry.webis.de/code-lib/public-images/tira-application-grpc:${VERSION}
+	docker login registry.webis.de
+	docker push registry.webis.de/code-lib/public-images/tira-application-grpc:${VERSION}

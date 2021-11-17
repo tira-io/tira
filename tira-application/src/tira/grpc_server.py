@@ -2,16 +2,12 @@ from django.conf import settings
 from concurrent import futures
 import grpc
 import logging
-import time
-from contextlib import contextmanager
-from django.core.management.base import BaseCommand, CommandError
 
 from .proto import tira_host_pb2, tira_host_pb2_grpc
 from .transitions import TransitionLog, EvaluationLog, TransactionLog
 from .tira_model import model
 
 grpc_port = settings.APPLICATION_GRPC_PORT
-listen_addr = f'[::]:{grpc_port}'
 
 logger = logging.getLogger("tira")
 
@@ -125,14 +121,11 @@ class TiraApplicationService(tira_host_pb2_grpc.TiraApplicationService):
         pass
 
 
-def serve(port):
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+def serve():
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=50))
     tira_host_pb2_grpc.add_TiraApplicationServiceServicer_to_server(TiraApplicationService(), server)
-    listen_addr = f'[::]:{port}'
+    listen_addr = f'[::]:{grpc_port}'
     server.add_insecure_port(listen_addr)
     server.start()
     logger.info("Starting tira-application server on %s", listen_addr)
-    return server
-
-
-s = serve(grpc_port)
+    server.wait_for_termination()
