@@ -31,6 +31,7 @@
             </div>
         </div>
     </form>
+
     <div class="software-form-buttons">
         <button class="uk-button uk-button-small uk-button-disabled uk-width-1-6 software-run-button"
                 uk-tooltip="title: If the VM is 'running': Execute {{ software.id }}. Only one Software can be executed at a time. Software will be saved when executing a run.; delay: 500"
@@ -38,11 +39,14 @@
         </button>
         <button class="uk-button uk-button-small uk-button-default software-save-button"
                 data-tira-software-id="{{ software.id }}"><i class="fas fa-save"></i></button>
+        <button class="uk-button uk-button-small uk-button-default"
+            uk-tooltip="title: Click to show the help for Commands; delay: 500"
+                uk-toggle="target: #modal-command-help"><i class="fas fa-info"></i></button>
         <button class="uk-button uk-button-small uk-button-danger software-delete-button"
                 data-tira-software-id="{{ software.id }}"><i class="fas fa-trash-alt"></i></button>
         <div class="uk-align-right">
-            <div class="uk-text-small uk-text-lead" id="{{ software.id }}-last-edit">last edit: {{ software.last_edit }}
-            </div>
+            <span class="uk-text-small uk-text-lead" id="{{ software.id }}-last-edit">last edit: {{ software.last_edit }}
+            </span>
         </div>
     </div>
     <table class="uk-margin-small uk-table uk-table-divider uk-table-small uk-table-responsive uk-table-middle">

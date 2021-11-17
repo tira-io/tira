@@ -47,7 +47,7 @@
                         <td id="vm-info-memorySize"></td>
                     </tr>
                     <tr>
-                        <td>CPU <i class="far fa-question-circle"></i></td>
+                        <td>CPU</td>
                         <td id="vm-info-numberOfCpus"></td>
                     </tr>
                 </table>
@@ -181,6 +181,31 @@
         </ul>
     </div>
     {% endif %}
+    <!-- The modal that shows the Command Help -->
+    <div id="modal-command-help" class="uk-modal-container" uk-modal>
+        <div class="uk-modal-dialog uk-modal-body uk-margin-auto-vertical">
+            <button class="uk-modal-close-default" type="button" uk-close></button>
+            <h2 class="uk-modal-title">Commands Help</h2>
+            <p>
+            The <em>Command</em> will be executed on your Virtual Machine. By default, it will be run from your user's home directory.
+                You can select a different location in the <em>Working Directory</em> input. You can use the following variables in your Commands:
+            </p>
+            <table class="uk-table uk-table-small uk-table-divider uk-align-center uk-margin-bottom">
+                <thead>
+                    <tr><th>Variable</th><th>Description</th></tr>
+                </thead>
+                <tfoot>
+                <tr><td class="uk-text-bold">$inputDataset</td><td>This will resolve to the full path to the directory that contains the <em>dataset you have selected</em>.</td></tr>
+                <tr><td class="uk-text-bold">$outputDir</td><td>This will resolve to the full path to the directory where <em>your software must write it's output</em></td></tr>
+                </tfoot>
+            </table>
+            <label class="uk-form-label">Example Command in TIRA</label>
+            <pre><code>my-software/run.sh -i $inputDataset -o $outputDir</code></pre>
+
+            <label class="uk-form-label">Example Command in the Virtual Machine</label>
+            <pre><code>my-software/run.sh -i /media/training-datasets/{{ task.task_id }}/&lt;Input Dataset&gt; -o /tmp/{{ vm_id }}/&lt;RUN&gt;/output</code></pre>
+        </div>
+    </div>
 </main>
 
 {% if not include_navigation %}
