@@ -98,7 +98,7 @@ class TiraApplicationService(tira_host_pb2_grpc.TiraApplicationService):
 
 @contextmanager
 def serve_forever():
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=50))
     tira_host_pb2_grpc.add_TiraApplicationServiceServicer_to_server(TiraApplicationService(), server)
     server.add_insecure_port(listen_addr)
     server.start()

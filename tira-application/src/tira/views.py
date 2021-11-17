@@ -6,7 +6,6 @@ import logging
 from .tira_model import model
 from .tira_data import get_run_runtime, get_run_file_list, get_stderr, get_stdout, get_tira_log
 from .authentication import auth
-from .grpc_server import TiraApplicationService  # leave this
 from .checks import actions_check_permissions, check_resources_exist
 from .forms import *
 from django.core.exceptions import PermissionDenied

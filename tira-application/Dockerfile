@@ -48,4 +48,5 @@ RUN python3 src/manage.py migrate && \
 
 RUN apk del .build-deps
 
-CMD sh -c "nginx && uwsgi --uid 1010 --ini /tira/tira-application/src/uwsgi.ini"
+ENTRYPOINT ["sh", "entrypoint.sh"]
+

@@ -82,7 +82,9 @@ docker-publish-tira-application: docker-build-tira-application
 
 docker-run-tira-application:
 	docker run -ti --rm \
+        --name=tira-application \
 		-p 8080:80 \
+		-p 50052:50052 \
 		-v=/mnt/ceph/tira:/mnt/ceph/tira \
 		webis/tira-web-2:${VERSION}
 
