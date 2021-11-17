@@ -1,6 +1,6 @@
 #!/bin/bash
 
-python3 src/manage.py grpc_server &
+python3 manage.py grpc_server &
 nginx && uwsgi --uid 1010 --ini /tira/tira-application/src/uwsgi.ini &
 
 # Wait for any process to exit

@@ -40,11 +40,11 @@ RUN chown -R tira:tira /usr/local && \
 	chown tira:tira -R /tira
 
 # 4. make the sources
-WORKDIR /tira/tira-application
+WORKDIR /tira/tira-application/src
 #RUN python3 -m pip install --no-cache-dir -r requirements.txt
-RUN python3 src/manage.py migrate && \
-	python3 src/manage.py makemigrations && \
-    python3 src/manage.py collectstatic
+RUN python3 manage.py migrate && \
+	python3 manage.py makemigrations && \
+    python3 manage.py collectstatic
 
 RUN apk del .build-deps
 

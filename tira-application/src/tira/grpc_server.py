@@ -3,8 +3,7 @@ from concurrent import futures
 import grpc
 import logging
 import time
-from contextlib import contextmanager
-from django.core.management.base import BaseCommand, CommandError
+from django.conf import settings
 
 from .proto import tira_host_pb2, tira_host_pb2_grpc
 from .transitions import TransitionLog, EvaluationLog, TransactionLog
@@ -135,4 +134,5 @@ def serve(port):
     return server
 
 
-s = serve(grpc_port)
+if settings.DEBUG:
+    s = serve(grpc_port)
