@@ -32,7 +32,7 @@ setup:
 # Requires that protobuf was installed
 build:
     # TODO check if virtualenv is installed
-	command -v protoc || make setup
+	! command -v protoc > /dev/null 2>&1 || make setup
 	make venv
 	make build-java
 	make build-python
