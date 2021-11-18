@@ -2,6 +2,14 @@ let pollingState=false;
 let pollingSoftware=false;
 let pollingEvaluation=false;
 
+function setupPollingAfterPageLoad(vmid) {
+    $('.run-evaluate-spinner').hide()
+    setState()
+    loadVmInfo(vmid)
+    pollRunningEvaluations(vmid)
+    pollRunningSoftware(vmid)
+}
+
 function loadVmInfo(vmid) {
     $.ajax({
         type: 'GET',
@@ -174,13 +182,6 @@ function pollRunningEvaluations(vmid) {
             }
         })
     }, 10000);
-}
-
-function setupPollingAfterPageLoad(vmid) {
-    $('.run-evaluate-spinner').hide()
-    loadVmInfo(vmid)
-    pollRunningEvaluations(vmid)
-    pollRunningSoftware(vmid)
 }
 
 function warningAlert(action, error, response) {
