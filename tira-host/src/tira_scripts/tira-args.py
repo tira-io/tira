@@ -19,7 +19,7 @@ def getcommands():
             "exchange-keys": 0,
             "run-copy-to-local": 7,
             "run-execute": 4,  # - 5
-            "run-execute-new": 6,
+            "run-execute-new": 4,
             "run-eval": 4,
             "run-eval-new": 4,
             "start": 0,

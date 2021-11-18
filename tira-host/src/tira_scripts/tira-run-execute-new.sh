@@ -24,7 +24,7 @@ debug && check_tools "$neededtools"  # If debug, check that tools are available.
 usage() {
     echo "
 Usage:
-    $(basename "$0") [flags] <virtual-machine-prototext> <input-dataset-name> <input-run-name> <outpur-dir-name> <taskId> <softwareId>
+    $(basename "$0") [flags] <submission-file> <input-dataset-name> <input-run-name> <outpur-dir-name>
 
 Description:
     Executes a participant's submission for a task. The submission is expected to
@@ -35,7 +35,7 @@ Options:
     -r | --remote [host]  Remote control a specific host
 
 Parameter:
-    <virtual-machine-prototext>  Virtual-machine prototext filename.
+    <submission-file>       Contains user credentials and the software command
     <input-dataset-name>    Name of the input directory where a task's dataset is
                             located in the shared folder inside the virtual machine.
     <input-run-path>        Path to the run to serve as additional input to the
@@ -43,8 +43,6 @@ Parameter:
     <outpur-dir-name>       Name of the ouptut directory where the software is
                             supposed to store its output, or 'auto' if it shall
                             be chosen automatically.
-    <taskId>
-    <softwareId>
 
 Examples:
     $(basename "$0") 'submission-text-alignment.txt' 'pan14-text-alignment-mini-dataset' true
@@ -61,7 +59,7 @@ Authors:
 #
 #    Define command line arguments and parse them.
 #
-#DEFINE_string taskname "" 'taskname' 'T'
+DEFINE_string taskname "" 'taskname' 'T'
 
 FLAGS_HELP=$(usage)
 export FLAGS_HELP
@@ -74,69 +72,40 @@ eval set -- "${FLAGS_ARGV}"
 main() {
     logCall "$(basename "$0") $@"
     # Check number of parameters.
-    if [ "$#" -ne 6 ]; then
-        logError "Wrong amount of parameters: $# but expected 6, see:"
+    if [ "$#" -ne 4 ] && [ "$#" -ne 5 ]; then
+        logError "Wrong amount of parameters: $# but expected 4 or 5, see:"
         usage
     fi
 
-    vmFileDir="$_CONFIG_FILE_tira_model_virtual_machines_dir"
+    submissionFileDir="$_CONFIG_FILE_tira_state_softwares_dir"
     runDir="$_CONFIG_FILE_tira_runs_dir"
     timestamp=$(date +%F-%H-%M-%S)
 
-    vmFileName="$1"
+    submissionFileName="$1"
     inputDatasetName="$2"
     inputRunPath="$3"
     outputDirName="$4"
-    taskname="$5"
-    softwareId="$6"
 
-    if [ "$workingDir" = "none" ]; then
-        workingDir=""
-    else
-        workingDir="$5"
-    fi
-
-    #taskname="${FLAGS_taskname}"
+    taskname="${FLAGS_taskname}"
     logInfo "Task: $taskname"
 
-    vmFile=$(find "$vmFileDir" -type f -name "$vmFileName")
-    if [ ! -e "$vmFile" ]; then
-        logError "$vmFileName does not exist, check path: $vmFile."
-        usage
+    # Check for additional parameters.
+    if [ "$#" -eq 6 ]; then
+        additonalParameters="$6"
+        # Evaluate additional Parameters.
+        # TODO: Using eval is an anti-pattern. Is there a better way?
+        eval "$additonalParameters"
     fi
-    # Load user's vm prototext file to populate variables (e.g., $user, $host, etc.)
-    while read LINE;
-    do
-      name=$(echo "$LINE" | cut -d ":" -f 1)
-      value=$(echo "$LINE" | cut -d ":" -f 2 | tr -d '" ')
-      printf -v "$name" "$value"
-      export "$name"
-    done < $vmFile
-    user="$userName"
-    os="ubuntu"
-    userpw="$userPw"
-    sshport="$portSsh"
 
-    softwareFile=$(find "$_CONFIG_FILE_tira_model/softwares/$taskname/$user/" -type f -name "softwares.prototext")
-    if [ ! -e "$softwareFile" ]; then
-        logError "User software file does not exist, check path: $_CONFIG_FILE_tira_model/softwares/$taskname/$user/softwares.prototext."
+    # Define inputDataset.
+    # TODO: Remove the construct of submission files altogether."
+    submissionFile=$(find "$submissionFileDir" -type f -name "$submissionFileName")
+    if [ ! -e "$submissionFile" ]; then
+        logError "$submissionFileName does not exist, check path: $submissionFile."
         usage
     fi
-    # Load user's vm prototext file to populate variables (e.g., $user, $host, etc.)
-    while read LINE;
-    do
-      if [ "$LINE" == "softwares {" ]; then
-        continue
-      elif [ "$LINE" == "}" ] && [ "$id" == "$softwareId" ]; then
-        break
-      fi
-      name=$(echo "$LINE" | cut -d ":" -f 1)
-      value=$(echo "$LINE" | cut -d ":" -f 2 | tr -d '" ')
-      printf -v $name $value
-      export $name
-    done < $softwareFile
-    workingDir="$workingDirectory"
-    cmd="$command"
+    # Source submission file to populate its variables (e.g., $user, $host, etc.)
+    . "$submissionFile"
 
     # Define access token for data server access.
     runPrototext="$runDir/$inputDatasetName/$user/$outputDirName/run.prototext"
@@ -218,23 +187,7 @@ main() {
     fi
 
     # Include user specific data again for correct binding of command line parameters.
-    vmFile=$(find "$vmFileDir" -type f -name "$vmFileName")
-    if [ ! -e "$vmFile" ]; then
-        logError "$vmFileName does not exist, check path: $vmFile."
-        usage
-    fi
-    # Load user's vm prototext file to populate variables (e.g., $user, $host, etc.)
-    while read LINE;
-    do
-      name=$(echo "$LINE" | cut -d ":" -f 1)
-      value=$(echo "$LINE" | cut -d ":" -f 2 | tr -d '" ')
-      printf -v $name $value
-      export $name
-    done < $vmFile
-    user="$userName"
-    os="ubuntu"
-    userpw="$userPw"
-    sshport="$portSsh"
+    . "$submissionFile"
 
     # Get hostname (webisxx) for remote sandboxing/unsandboxing.
     hostname=$(echo "$host" | cut -d'.' -f 1)

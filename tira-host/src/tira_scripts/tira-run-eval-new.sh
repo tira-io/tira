@@ -38,7 +38,9 @@ Options:
     -r | --remote [host]    Remote control a specific host
 
 Parameter:
-    <virtual-machine-prototext>  Virtual-machine prototext filename.
+    <submission-file>       Absolute path to the evaluation software submission file.
+                            It contains master VM credentials and the task specific
+                            evaluation software command
     <input-dataset-name>    Name of the evaluation dataset.
     <input-run>             Absolute path to the input directory where a user's
                             software run is located.
@@ -82,9 +84,9 @@ main() {
     sleep 5
 
     # Static variables.
-    vmFileDir="$_CONFIG_FILE_tira_model_virtual_machines_dir"
+    submissionFileDir="$_CONFIG_FILE_tira_state_softwares_dir"
 
-    vmFileName="$1"
+    submissionFileName="$1"
     inputDatasetName="$2"
     localInputRun="$3"
     outputDirName="$4"
@@ -92,28 +94,21 @@ main() {
     taskname="${FLAGS_taskname}"
     logInfo "taskname: $taskname"
 
-    vmFile=$(find "$vmFileDir" -type f -name "$vmFileName")
-    if [ ! -e "$vmFile" ]; then
-        logError "$vmFileName does not exist, check path: $vmFile."
+    # Define inputDataset.
+    submissionFile=$(find "$submissionFileDir" -type f -name "$submissionFileName")
+
+    logDebug "Submission file name: $submissionFileName"
+    logDebug "Submission file dir: $submissionFileDir"
+    logDebug "Submission file: $submissionFile"
+
+    # Check if submission file exists.
+    if [ ! -e "$submissionFile" ]; then
+        logError "$submissionFile does not exist."
         usage
     fi
-    # Load user's vm prototext file to populate variables (e.g., $user, $host, etc.)
-    while read LINE;
-    do
-      if [ "$LINE" == 'evaluators {' ]; then
-        continue
-      fi
-      name=$(echo "$LINE" | cut -d ":" -f 1)
-      value=$(echo "$LINE" | cut -d ":" -f 2 | tr -d '" ')
-      printf -v $name $value
-      export $name
-    done < $vmFile
-    user="$userName"
-    os="ubuntu"
-    userpw="$userPw"
-    sshport="$portSsh"
-    workingDir="$workingDirectory"
-    cmd="$command"
+
+    # Include user specific data.
+    . "$submissionFile"
 
     # Define access token for data server access.
     runPrototext="$localInputRun/run.prototext"
@@ -162,22 +157,7 @@ main() {
     outputDir="$outputRunDir/output"
 
     # Include user specific data again to fill in missing variables.
-    while read LINE;
-    do
-      if [[ "$LINE" == 'evaluators {' ]]; then
-        continue
-      fi
-      name=$(echo "$LINE" | cut -d ":" -f 1)
-      value=$(echo "$LINE" | cut -d ":" -f 2 | tr -d '" ')
-      printf -v $name $value
-      export $name
-    done < $vmFile
-    user="$userName"
-    os="ubuntu"
-    userpw="$userPw"
-    sshport="$portSsh"
-    workingDir="$workingDirectory"
-    cmd="$command"
+    . "$submissionFile"
 
     # Copy the input run into the virtual machine into the tmp folder.
     logInfo "$user@$host: copying input run into the virtual machine..."

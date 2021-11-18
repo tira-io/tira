@@ -97,6 +97,23 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
 
         return vm
 
+    def _create_submission_file(self, request, vm):
+        """
+
+        :param request:
+        :return:
+        """
+        submission = {'user': vm.user_name, 'os': vm.guest_os, 'host': vm.host, 'sshport': vm.ssh_port,
+                      'userpw': vm.user_password, 'workingDir': request.workingDir,
+                      'cmd': model.get_software(request.taskId, vm.vm_id)['command']}
+
+        submission_filename = model.get_submissions_dir(vm.vm_id) / f"{vm.vm_id}-submission-{request.runId.runId}"
+        with open(submission_filename, "w") as f:
+            for k,v in submission.items():
+                f.write(f"{k}={v}\n")
+
+        return submission_filename
+
     def vm_backup(self, request, context):
         """
 
@@ -215,7 +232,9 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         model.create_run(request.runId.vmId, request.softwareId, request.runId.runId, request.runId.datasetId,
                          request.inputRunId.runId, request.taskId)
 
-        return vm.run_execute(request.transaction.transactionId, request)
+        submission_filename = self._create_submission_file(request, vm)
+
+        return vm.run_execute(request.transaction.transactionId, request, submission_filename)
 
     def run_eval(self, request, context):
         """
@@ -229,9 +248,11 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         model.create_run(request.runId.vmId, request.softwareId, request.runId.runId, request.runId.datasetId,
                          request.inputRunId.runId, request.taskId)
 
+        submission_filename = self._create_submission_file(request, vm)
+
         return vm.run_eval(request.transaction.transactionId, request,
-                                      model.get_run_dir(request.runId.datasetId, request.runId.vmId,
-                                                        request.inputRunId.runId))
+                                      model.get_run_dir(request.inputRunId.datasetId, request.inputRunId.vmId,
+                                                        request.inputRunId.runId), submission_filename)
 
     def run_abort(self, request, context):
         """

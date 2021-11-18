@@ -306,9 +306,10 @@ class VirtualMachine(object):
 
     @check_state({1})
     @async_api
-    def run_execute(self, transaction_id, request):
+    def run_execute(self, transaction_id, request, submission_filename):
         """
 
+        :param submission_filename:
         :param transaction_id:
         :param request:
         :return:
@@ -321,9 +322,8 @@ class VirtualMachine(object):
         self._sandbox(transaction_id, 'auto', "true" if "test" in request.inputRunId.datasetId else "false")
 
         self._set_state(7)
-        retcode, output = self.run_script(self.user_name + ".prototext", request.runId.datasetId, 'none',
-                        datetime.strftime(datetime.now(), '%Y-%m-%d-%H-%M-%S'),
-                        request.taskId, request.softwareId, command="run-execute-new")
+        retcode, output = self.run_script(submission_filename, request.runId.datasetId, 'none',
+                                          request.runId.runId, command="run-execute-new")
 
         self._unsandbox(transaction_id)
         self.transaction_id = None
@@ -332,7 +332,7 @@ class VirtualMachine(object):
 
     @check_state({1})
     @async_api
-    def run_eval(self, transaction_id, request, input_run_path):
+    def run_eval(self, transaction_id, request, input_run_path, submission_filename):
         """
 
         :param transaction_id:
@@ -342,8 +342,8 @@ class VirtualMachine(object):
         """
         self.transaction_id = transaction_id
         self._set_state(7)
-        retcode, output = self.run_script(self.vm_name + ".prototext", request.runId.datasetId,
-                                          input_run_path, datetime.strftime(datetime.now(), '%Y-%m-%d-%H-%M-%S'),
+        retcode, output = self.run_script(submission_filename, request.runId.datasetId,
+                                          input_run_path, request.runId.runId,
                                           command="run-eval-new")
 
         self.transaction_id = None

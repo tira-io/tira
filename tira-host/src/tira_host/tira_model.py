@@ -23,6 +23,7 @@ class FileDatabase(FileSystemEventHandler):
     users_file_path = tira_root / Path("model/users/users.prototext")
     vm_dir_path = tira_root / Path("model/virtual-machines")
     RUNS_DIR_PATH = tira_root / Path("data/runs")
+    SUBMISSIONS_PATH = tira_root / Path("state/softwares")
 
     def __init__(self):
         logger.info("Start loading dataset")
@@ -92,6 +93,9 @@ class FileDatabase(FileSystemEventHandler):
 
     def get_run_dir(self, dataset_id, vm_id, run_id):
         return self.RUNS_DIR_PATH / dataset_id / vm_id / run_id
+
+    def get_submissions_dir(self, vm_id):
+        return self.SUBMISSIONS_PATH / vm_id
 
     def _save_run(self, dataset_id, vm_id, run_id, run):
         run_dir = self.get_run_dir(dataset_id, vm_id, run_id)

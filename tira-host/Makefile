@@ -1,7 +1,7 @@
 VENV_NAME?=venv
 VENV_ACTIVATE=. $(VENV_NAME)/bin/activate
 PYTHON=${VENV_NAME}/bin/python3
-VERSION=0.0.6
+VERSION=0.0.7-dev
 VBOXVERSION=6.1.16
 TIRA_PASSWORD=tira
 TIRA_MODEL_PATH=/mnt/nfs/tira
@@ -39,7 +39,12 @@ build-tira-docker:
 	docker build -t tira-io/tira-host:$(VERSION) --build-arg TIRA_PASSWORD=$(TIRA_PASSWORD) --build-arg VBOXVERSION=$(VBOXVERSION) -f build/Dockerfile .
 
 export-tira-image: build-tira-docker
-	sudo docker save tira-io/tira-host:$(VERSION) -o /mnt/ceph/tira/data/tira-dockerized-host-images/tira-io-tira-host-$(VERSION).tar
+	sudo docker save tira-io/tira-host:$(VERSION) -o /mnt/ceph/tira/data/tira-host-images/tira-io-tira-host-$(VERSION).tar
 
 clean:
 	rm -r $(VENV_NAME)
+
+docker-build-and-push-to-webis-registry: build-tira-docker
+	docker tag tira-io/tira-host:$(VERSION) registry.webis.de/code-lib/public-images/tira-host:${VERSION}
+	docker login registry.webis.de
+	docker push registry.webis.de/code-lib/public-images/tira-host:${VERSION}
