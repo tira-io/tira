@@ -32,12 +32,13 @@ SECRET_KEY = custom_settings.get("django_secret", 'not-so-secret')
 DEBUG = custom_settings.get("debug", True)
 ALLOWED_HOSTS = custom_settings.get("allowed_hosts", [])
 
-TIRA_ROOT = Path(custom_settings.get("tira_root", "/mnt/ceph/tira"))
-TIRA_DB_PATH = TIRA_ROOT / "state" / "tira_vm_states.sqlite3" \
-                   if custom_settings.get("database", "local") == "state" \
-                   else BASE_DIR / "tira_vm_states.sqlite3"
+TIRA_ROOT = Path(custom_settings.get("tira_root", BASE_DIR.parents[1] / "tira-model" / "src"))
+if not TIRA_ROOT.is_dir():
+    raise FileNotFoundError(f"TIRA_ROOT must point to an existing tira model but points to {TIRA_ROOT} instead.")
+
+TIRA_DB_PATH = Path(custom_settings.get("database", TIRA_ROOT / "state")) / "tira_vm_states.sqlite3"
 DEPLOYMENT = custom_settings.get("deployment", "legacy")
-LEGACY_USER_FILE = Path(custom_settings.get("legacy_users_file", ""))
+LEGACY_USER_FILE = Path(custom_settings.get("legacy_users_file", TIRA_ROOT / "model" / "users" / "users.prototext"))
 HOST_GRPC_PORT = custom_settings.get("host_grpc_port", "50051")
 APPLICATION_GRPC_PORT = custom_settings.get("application_grpc_port", "50052")
 GRPC_HOST = custom_settings.get("grpc_host", "local")  # can be local or remote
@@ -213,7 +214,11 @@ def logger_config(log_dir: Path):
 
 
 # Logging
-ld = Path(custom_settings.get("logging_dir", BASE_DIR))
+ld = Path(custom_settings.get("logging_dir", TIRA_ROOT / "log" / "tira-application"))
+try:
+    ld.mkdir(parents=True, exist_ok=True)
+except PermissionError as e:
+    print(f"failed to create logging path {ld}: ", e)
 if os.access(ld, os.W_OK):
     LOGGING = logger_config(ld)
 else:

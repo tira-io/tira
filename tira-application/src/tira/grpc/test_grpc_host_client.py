@@ -1,10 +1,5 @@
 import grpc
-from google.protobuf.empty_pb2 import Empty
-from time import sleep
-import sys
-
-sys.path.append('../../src/tira')
-from proto import tira_host_pb2, tira_host_pb2_grpc
+from tira.proto import tira_host_pb2, tira_host_pb2_grpc
 
 
 class TestGrpcHostClient:

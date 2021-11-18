@@ -8,5 +8,5 @@ os.environ.setdefault(
 from django_admin.settings import DATABASES, TIME_ZONE, INSTALLED_APPS
 django.setup()
 
-from tira import grpc_server
+from tira.grpc import grpc_server
 grpc_server.serve()

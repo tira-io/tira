@@ -3,9 +3,9 @@ from concurrent import futures
 import grpc
 import logging
 
-from .proto import tira_host_pb2, tira_host_pb2_grpc
-from .transitions import TransitionLog, EvaluationLog, TransactionLog
-from .tira_model import model
+from tira.proto import tira_host_pb2, tira_host_pb2_grpc
+from tira.transitions import TransitionLog, EvaluationLog, TransactionLog
+from tira.tira_model import model
 
 grpc_port = settings.APPLICATION_GRPC_PORT
 
@@ -127,5 +127,6 @@ def serve():
     listen_addr = f'[::]:{grpc_port}'
     server.add_insecure_port(listen_addr)
     server.start()
+    print("Starting tira-application server on %s", listen_addr)
     logger.info("Starting tira-application server on %s", listen_addr)
     server.wait_for_termination()

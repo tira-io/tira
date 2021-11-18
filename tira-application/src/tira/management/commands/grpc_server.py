@@ -5,9 +5,10 @@ import logging
 import time
 from contextlib import contextmanager
 from django.core.management.base import BaseCommand, CommandError
+from django.core.management import call_command
 
 from tira.proto import tira_host_pb2_grpc
-from tira.grpc_server import TiraApplicationService
+from tira.grpc.grpc_server import TiraApplicationService
 
 grpc_port = settings.APPLICATION_GRPC_PORT
 listen_addr = f'[::]:{grpc_port}'
@@ -29,6 +30,8 @@ class Command(BaseCommand):
     help = 'api server'
 
     def handle(self, *args, **options):
+        call_command('makemigrations')
+        call_command('migrate')
         with serve_forever():
             logger.info(f"Starting tira-application server on {listen_addr}")
             self.stdout.write(self.style.SUCCESS(f"Starting tira-application server on {listen_addr}"))

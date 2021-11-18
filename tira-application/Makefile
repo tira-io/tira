@@ -1,8 +1,8 @@
-.PHONY: help setup run-dev clean
+.PHONY: help setup run-develop k8s-deploy-tira-application docker-publish-tira-application clean
 
 VENV_NAME?=venv
 PYTHON=${VENV_NAME}/bin/python3
-SRC_DIR=../tira-protocol/src
+GRPC_SRC_DIR=../tira-protocol/src
 #PYTHON_DEST=${VENV_NAME}/lib/python3.7/site-packages
 BUILD_PATH=src/tira/proto
 VERSION=0.0.7
@@ -18,12 +18,12 @@ help:
 	@echo "       remove setup files"
 
 setup:
+	! test -d $(GRPC_SRC_DIR) || { echo "please compile the protocol files first. See the docs in tira/tira-protocol"; exit 1; }
 	chmod o+x src
 	mkdir -p $(BUILD_PATH)
+	cp $(GRPC_SRC_DIR)/* $(BUILD_PATH)/
 	mkdir -p src/config
-	cp config/settings-dev.yml src/config/settings.yml
 	make venv
-	make local-migrations
 
 # Requirements are in setup.py, so whenever setup.py is changed, re-run installation of dependencies.
 venv:
@@ -31,84 +31,43 @@ venv:
 	sh -c ". $(VENV_NAME)/bin/activate && \
 		python3 -m pip install -r requirements.txt"
 
-# Better use the make in tira-protocol
-protobuf: venv
-	protoc -I=$(SRC_DIR) --python_out=$(BUILD_PATH) $(SRC_DIR)/tira_to_web.proto
-	protoc -I=$(SRC_DIR) --python_out=$(BUILD_PATH) $(SRC_DIR)/tira_messages.proto
-	protoc -I=$(SRC_DIR) --python_out=$(BUILD_PATH) $(SRC_DIR)/TiraClientWebMessages.proto
-	${PYTHON} -m grpc_tools.protoc -I=$(SRC_DIR) --grpc_python_out=$(BUILD_PATH) tira_to_web.proto
-	${PYTHON} -m grpc_tools.protoc -I=$(SRC_DIR) --python_out=$(BUILD_PATH) --grpc_python_out=$(BUILD_PATH) tira_host.proto
-	sed -i 's/import tira_host_pb2 as tira__host__pb2/from . import tira_host_pb2 as tira__host__pb2/g' $(BUILD_PATH)/tira_host_pb2_grpc.py
-	touch $(BUILD_PATH)/__init__.py
-
-local-migrations:
+run-develop: venv
 	cp config/settings-dev.yml src/config/settings.yml
 	sh -c ". $(VENV_NAME)/bin/activate && \
-	python3 src/manage.py makemigrations && \
-	python3 src/manage.py migrate"
-
-deployment-migrations:
-	cp config/settings-deploy.yml src/config/settings.yml
-	sh -c ". $(VENV_NAME)/bin/activate && \
-	python3 src/manage.py makemigrations && \
-	python3 src/manage.py migrate"
-
-run-dev:
-	cp config/settings-dev.yml src/config/settings.yml
-	sh -c ". $(VENV_NAME)/bin/activate && \
-	python3 src/manage.py runserver 8080"
-
-run-wsgi:
-	su tira -c". $(VENV_NAME)/bin/activate && \
-	uwsgi --ini src/uwsgi.ini"
-
-clean:
-	rm -r $(VENV_NAME)
-	rm -r $(BUILD_PATH)
-
-k8s-deploy-tira-application: k8s-undeploy-tira-application
-	kubectl -n webisservices create configmap tira-web2-config --from-file=config/settings-deploy.yml
-	kubectl -n webisservices apply -f tira-application.yml
-
-k8s-undeploy-tira-application:
-	kubectl -n webisservices delete -f tira-application.yml || echo "already undeployed?"
-	kubectl -n webisservices delete configmap tira-web2-config || echo "no configmap?"
-
-docker-publish-tira-application: docker-build-tira-application
-	docker login &&\
-	docker push webis/tira-web-2:${VERSION} &&\
-	docker tag webis/tira-web-2:${VERSION} webis/tira-web-2:latest &&\
-	docker push webis/tira-web-2:latest
-
-docker-build-tira-application-grpc:
-	docker build --tag webis/tira-application-grpc:${VERSION} -f tira-application-grpc.Dockerfile ..
+	python3 src/manage.py run_develop"
 
 docker-run-tira-application:
-	docker run -ti --rm \
+	docker run -td --rm \
         --name=tira-application \
 		-p 8080:80 \
 		-v=/mnt/ceph/tira:/mnt/ceph/tira \
 		webis/tira-web-2:${VERSION}
-
-docker-run-tira-application-grpc:
-	docker run -ti --rm \
+	docker run -td --rm \
         --name=tira-application-grpc \
 		-p 50052:50052 \
 		-v=/mnt/ceph/tira:/mnt/ceph/tira \
 		webis/tira-application-grpc:${VERSION}
 
 docker-build-tira-application:
-	docker build --tag webis/tira-web-2:${VERSION} -f Dockerfile ..
+	docker build --tag webis/tira-web-2:${VERSION} -f Dockerfile.application ..
+	docker build --tag webis/tira-application-grpc:${VERSION} -f Dockerfile.application-grpc ..
 
-
-docker-build-and-push-to-webis-registry: docker-build-tira-application
+docker-publish-tira-application: docker-build-tira-application
 	docker tag webis/tira-web-2:${VERSION} registry.webis.de/code-lib/public-images/tira-application:${VERSION}
-	docker login registry.webis.de
-	docker push registry.webis.de/code-lib/public-images/tira-application:${VERSION}
 	docker tag webis/tira-web-2:${VERSION} registry.webis.de/code-lib/public-images/tira-application:latest
-	docker push registry.webis.de/code-lib/public-images/tira-application:latest
-
-docker-build-and-push-to-webis-registry-grpc: docker-build-tira-application-grpc
 	docker tag webis/tira-application-grpc:${VERSION} registry.webis.de/code-lib/public-images/tira-application-grpc:${VERSION}
+	docker tag webis/tira-application-grpc:${VERSION} registry.webis.de/code-lib/public-images/tira-application-grpc:latest
 	docker login registry.webis.de
+	docker push registry.webis.de/code-lib/public-images/tira-application:latest
+	docker push registry.webis.de/code-lib/public-images/tira-application:${VERSION}
 	docker push registry.webis.de/code-lib/public-images/tira-application-grpc:${VERSION}
+
+k8s-deploy-tira-application: k8s-undeploy-tira-application
+	kubectl -n services-tira apply -f tira-application.yml
+
+k8s-undeploy-tira-application:
+	kubectl -n services-tira delete -f tira-application.yml || echo "already undeployed?"
+
+clean:
+	rm -r $(VENV_NAME)
+	rm -r $(BUILD_PATH)

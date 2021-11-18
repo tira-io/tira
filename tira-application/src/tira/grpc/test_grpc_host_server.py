@@ -8,9 +8,9 @@ from uuid import uuid4
 from threading import Thread
 from functools import wraps
 
-sys.path.append('../../src/tira')
-from proto import tira_host_pb2, tira_host_pb2_grpc
-from test_grpc_host_client import TestGrpcHostClient
+
+from tira.proto import tira_host_pb2, tira_host_pb2_grpc
+from tira.grpc.test_grpc_host_client import TestGrpcHostClient
 
 VIRTUAL_MACHINES = {}
 
@@ -248,7 +248,7 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
                     return tira_host_pb2.Transaction(
                         status=tira_host_pb2.Status.FAILED,
                         transactionId=request.transaction.transactionId,
-                        message=f"{request.vmId}: required state {state} but was in state {self.state}"
+                        message=f"{request.vmId}: required state {state} but was in state {vm.state}"
                     )
 
                 if vm.transaction_id is not None and \
