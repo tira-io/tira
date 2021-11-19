@@ -7,9 +7,11 @@
         <!-- Off-canvas mobile navigation -->
         <nav class="uk-margin-large-top">
             <ul class="uk-nav uk-nav-primary uk-nav-parent-icon" data-uk-nav>
-                <li{% if nav_active == "tasks" %} class="uk-active"{% endif %}>
-                    <a href="{% url 'tira:tasks' %}">Tasks</a>
+                {% if role == 'admin' %}
+                <li{% if nav_active == "admin" %} class="uk-active"{% endif %}>
+                    <a href="{% url 'tira:tira-admin' %}">Admin</a>
                 </li>
+                {% endif %}
                 <li{% if nav_active == "dataset" %} class="uk-active"{% endif %}>
                     <a href="{% url 'tira:dataset' %}">Data</a>
                 </li>
@@ -44,14 +46,13 @@
         <!-- Desktop navigation -->
         <div class="uk-navbar-right desktop-nav">
             <ul class="uk-navbar-nav">
-                <li{% if nav_active == "tasks" %} class="uk-active"{% endif %}>
-                    <a href="{% url 'tira:tasks' %}">Tasks</a>
+                {% if role == 'admin' %}
+                <li{% if nav_active == "admin" %} class="uk-active"{% endif %}>
+                    <a href="{% url 'tira:tira-admin' %}">Admin</a>
                 </li>
+                {% endif %}
                 <li{% if nav_active == "dataset" %} class="uk-active"{% endif %}>
                     <a href="{% url 'tira:dataset' %}">Data</a>
-                </li>
-                <li{% if nav_active == "users" %} class="uk-active"{% endif %}>
-                    <a href="{% url 'tira:users' %}">Users</a>
                 </li>
                 <li>
                     {% if role != 'guest' %}

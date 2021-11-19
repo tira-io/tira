@@ -13,53 +13,52 @@ from datetime import datetime as dt
 import os
 import zipfile
 
-
-include_navigation = True if settings.DEPLOYMENT == "legacy" else False
-
-
 logger = logging.getLogger("tira")
 logger.info("Views: Logger active")
 
 
+def add_context(func):
+    def func_wrapper(request, *args, **kwargs):
+        uid = auth.get_user_id(request)
+        context = {
+            "include_navigation": True if settings.DEPLOYMENT == "legacy" else False,
+            "user_id": uid,
+            "role": auth.get_role(request, user_id=uid)
+        }
+        return func(request, context, *args, **kwargs, )
+
+    return func_wrapper
+
+
 @actions_check_permissions({"any"})
-def index(request):
-    uid = auth.get_user_id(request)
-    context = {
-        "include_navigation": include_navigation,
-        "tasks": model.get_tasks(),
-        "user_id": uid,
-        "vm_id": auth.get_vm_id(request, uid),
-        "role": auth.get_role(request, user_id=uid)
-    }
+@add_context
+def index(request, context):
+    context["tasks"] = model.get_tasks()
+    context["vm_id"] = auth.get_vm_id(request, context["user_id"])
     return render(request, 'tira/index.html', context)
 
 
 @actions_check_permissions({"tira", "admin"})
-def admin(request):
-    context = {
-        "include_navigation": include_navigation,
-        "vm_list": model.get_vm_list(),
-        "host_list": model.get_host_list(),
-        "ova_list": model.get_ova_list(),
-        "create_vm_form": CreateVmForm(),
-        "archive_vm_form": ArchiveVmForm(),
-        "create_task_form": CreateTaskForm(),
-        "add_dataset_form": AddDatasetForm(),
-        "modify_vm_form": ModifyVmForm()
-    }
+@add_context
+def admin(request, context):
+    context["vm_list"] = model.get_vm_list()
+    context["host_list"] = model.get_host_list()
+    context["ova_list"] = model.get_ova_list()
+    context["create_vm_form"] = CreateVmForm()
+    context["archive_vm_form"] = ArchiveVmForm()
+    context["create_task_form"] = CreateTaskForm()
+    context["add_dataset_form"] = AddDatasetForm()
+    context["modify_vm_form"] = ModifyVmForm()
     return render(request, 'tira/tira_admin.html', context)
 
 
 @actions_check_permissions({"any"})
-def login(request):
+@add_context
+def login(request, context):
     """ Hand out the login form 
     Note that this is only called in legacy deployment. Disraptor is supposed to catch the route to /login
     """
 
-    context = {
-        "include_navigation": include_navigation,
-        "role": auth.get_role(request)
-    }
     if request.method == "POST":
         form = LoginForm(request.POST)
         if form.is_valid():
@@ -84,37 +83,31 @@ def logout(request):
 
 @actions_check_permissions({"any"})
 @check_resources_exist('http')
-def task_detail(request, task_id):
-    uid = auth.get_user_id(request)
-    context = {
-        "include_navigation": include_navigation,
-        "vm_id": auth.get_vm_id(request, uid),
-        "role": auth.get_role(request, uid),
-        "task": model.get_task(task_id),
-        "tasks": model.get_datasets_by_task(task_id)
-    }
+@add_context
+def task_detail(request, context, task_id):
+    context["vm_id"] = auth.get_vm_id(request, context["user_id"])
+    context["task"] = model.get_task(task_id)
+    context["tasks"] = model.get_datasets_by_task(task_id)
     return render(request, 'tira/task_detail.html', context)
 
 
 @actions_check_permissions({"any"})
-def dataset_list(request):
+@add_context
+def dataset_list(request, context):
+    context["datasets"] = model.get_datasets()
 
-    context = {
-        "include_navigation": include_navigation,
-        "role": auth.get_role(request),
-        "datasets": model.get_datasets()
-    }
     return render(request, 'tira/dataset_list.html', context)
 
 
 @actions_check_permissions({"any"})
 @check_resources_exist('http')
-def dataset_detail(request, task_id, dataset_id):
+@add_context
+def dataset_detail(request, context, task_id, dataset_id):
     """ The dataset view. Users, it shows only the public leaderboard right now.
     Admins, it shows all evaluations on the dataset, as well as a list of all runs and the review interface.
      @note maybe later, we can show a consolidated view of all runs the user made on this dataset below.
      """
-    role = auth.get_role(request, auth.get_user_id(request))
+    role = context["role"]
 
     # For all users: compile the results table from the evaluations
     vm_ids = model.get_vms_by_dataset(dataset_id)
@@ -146,7 +139,7 @@ def dataset_detail(request, task_id, dataset_id):
             published_count = len([1 for r in vm_reviews[vm_id].values()
                                    if r.get("published", None)])
             blinded_count = len([1 for r in vm_reviews[vm_id].values()
-                                   if r.get("blinded", None)])
+                                 if r.get("blinded", None)])
             vms.append({"vm_id": vm_id, "runs": runs, "unreviewed_count": unreviewed_count,
                         "blinded_count": blinded_count, "published_count": published_count})
 
@@ -164,38 +157,23 @@ def dataset_detail(request, task_id, dataset_id):
                        for vm_id, measures_by_runs in vm_evaluations.items()
                        for run_id, measures in measures_by_runs.items()]
 
-    context = {
-        "include_navigation": include_navigation,
-        "role": role,
-        "dataset_id": dataset_id,
-        "task": model.get_task(task_id),
-        "ev_keys": ev_keys,
-        "evaluations": evaluations,
-        "vms": vms,
-    }
+    context["dataset_id"] = dataset_id
+    context["task"] = model.get_task(task_id)
+    context["ev_keys"] = ev_keys
+    context["evaluations"] = evaluations
+    context["vms"] = vms
 
     return render(request, 'tira/dataset_detail.html', context)
 
 
-# def software_user(request, user_id):
-#     # TODO show all tasks or datasets a user participated in. -> depends on the disraptor groups
-#     return redirect('tira:index')
-
-
 @actions_check_permissions({"tira", "admin", "participant", "user"})
 @check_resources_exist('http')
-def software_detail(request, task_id, vm_id):
+@add_context
+def software_detail(request, context, task_id, vm_id):
     """ render the detail of the user page: vm-stats, softwares, and runs """
-    # 0. Early return a dummy page, if the user has no vm assigned on this task
-
-    # try:
     softwares = model.get_software(task_id, vm_id)
     runs = model.get_vm_runs_by_task(task_id, vm_id)
     datasets = model.get_datasets_by_task(task_id)
-    # except KeyError as e:
-    #     logger.error(e)
-    #     logger.warning(f"tried to load vm that does not exist: {vm_id} on task {task_id}")
-    #     return redirect('tira:software-detail', task_id=task_id, vm_id="no-vm-assigned")
 
     # Construct a dictionary that has the software as a key and as value a list of runs with that software
     # Note that we order the list in such a way, that evaluations of a run are right behind that run in the list
@@ -224,34 +202,26 @@ def software_detail(request, task_id, vm_id):
     } for sw in softwares]
 
     vm = model.get_vm(vm_id)
-    context = {
-        "user_id": auth.get_user_id(request),
-        "include_navigation": include_navigation,
-        "task": model.get_task(task_id),
-        "vm_id": vm_id,
-        "vm": {
-            "host": vm.host,
-            "user": vm.userName,
-            "password": vm.userPw,
-            "ssh": vm.portSsh,
-            "rdp": vm.portRdp
-        },
-        "software": software,
-        "datasets": datasets
-    }
+
+    context["task"] = model.get_task(task_id)
+    context["vm_id"] = vm_id
+    context["vm"] = {"host": vm.host, "user": vm.userName, "password": vm.userPw, "ssh": vm.portSsh, "rdp": vm.portRdp}
+    context["software"] = software
+    context["datasets"] = datasets
 
     return render(request, 'tira/software.html', context)
 
 
 @actions_check_permissions({"tira", "admin", "participant"})
 @check_resources_exist('http')
-def review(request, task_id, vm_id, dataset_id, run_id):
+@add_context
+def review(request, context, task_id, vm_id, dataset_id, run_id):
     """
      - no_errors = hasNoErrors
      - output_error -> invalid_output and has_error_output
      - software_error <-> other_error
     """
-    role = auth.get_role(request, auth.get_user_id(request))
+    role = context["role"]
 
     review_form_error = None
 
@@ -293,19 +263,23 @@ def review(request, task_id, vm_id, dataset_id, run_id):
     stderr = get_stderr(dataset_id, vm_id, run_id)
     tira_log = get_tira_log(dataset_id, vm_id, run_id)
 
-    context = {
-        "include_navigation": include_navigation,
-        'role': role,
-        "review_form": ReviewForm(initial={"no_errors": run_review.get("hasNoErrors") or run_review.get("noErrors"),
-                                           "output_error": run_review.get("hasErrorOutput", False)
-                                                           or run_review.get("invalidOutput", False),
-                                           "software_error": run_review.get("otherErrors", False),
-                                           "comment": run_review.get("comment", "")}),
-        "review_form_error": review_form_error,
-        "task_id": task_id, "dataset_id": dataset_id, "vm_id": vm_id, "run_id": run_id,
-        "run": run, "review": run_review, "runtime": runtime, "files": files,
-        "stdout": stdout, "stderr": stderr, "tira_log": tira_log,
-    }
+    context["review_form"] = ReviewForm(
+        initial={"no_errors": run_review.get("hasNoErrors") or run_review.get("noErrors"),
+                 "output_error": run_review.get("hasErrorOutput", False) or run_review.get("invalidOutput", False),
+                 "software_error": run_review.get("otherErrors", False),
+                 "comment": run_review.get("comment", "")}),
+    context["review_form_error"] = review_form_error
+    context["task_id"] = task_id
+    context["dataset_id"] = dataset_id
+    context["vm_id"] = vm_id
+    context["run_id"] = run_id
+    context["run"] = run
+    context["review"] = run_review
+    context["runtime"] = runtime
+    context["files"] = files
+    context["stdout"] = stdout
+    context["stderr"] = stderr
+    context["tira_log"] = tira_log
 
     return render(request, 'tira/review.html', context)
 
@@ -318,15 +292,15 @@ def _zip_dir(path):
                 zip_handle.write(os.path.join(root, file),
                                  os.path.relpath(os.path.join(root, file),
                                                  os.path.join(path, '..')
+                                                 )
                                  )
-                )
         zip_handle.close()
 
         zip_path = path.with_suffix(".zip")
         return zip_path
     else:
         return None
-                            
+
 
 @actions_check_permissions({"tira", "admin"})
 @check_resources_exist('json')
@@ -338,49 +312,36 @@ def download_rundir(request, task_id, dataset_id, vm_id, run_id):
             zip_handle.write(os.path.join(root, file),
                              os.path.relpath(os.path.join(root, file),
                                              os.path.join(path, '..')
+                                             )
                              )
-            )
     zip_handle.close()
 
     zip_path = path.with_suffix(".zip")
     if os.path.exists(zip_path):
-        response = FileResponse(open(zip_path, "rb"), as_attachment=True, filename=run_id + "-" + os.path.basename(zip_path))
+        response = FileResponse(open(zip_path, "rb"), as_attachment=True,
+                                filename=run_id + "-" + os.path.basename(zip_path))
         os.remove(zip_path)
         return response
     else:
-        return JsonResponse({'status': 'Failed', 'reason': f'File does not exist: {zip_path}'}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+        return JsonResponse({'status': 'Failed', 'reason': f'File does not exist: {zip_path}'},
+                            status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 @actions_check_permissions({"tira", "admin"})
-def users(request):
+@add_context
+def users(request, context):
     """
     List of all users and virtual machines.
     """
-    context = {
-        "include_navigation": include_navigation,
-        "role": auth.get_role(request),
-        "users": model.get_users_vms()
-    }
+    context["users"] = model.get_users_vms()
     return render(request, 'tira/user_list.html', context)
 
 
 @actions_check_permissions({"tira", "admin"})
-def user_detail(request, user_id):
+@add_context
+def user_detail(request, context, user_id):
     """
     User-virtual machine details and management.
     """
-    role = auth.get_role(request, auth.get_user_id(request))
-
-    # response = None
-    # if role == 'admin':
-    #     vm = model.get_vm_by_id(user_id)
-    #     grpc_client = GrpcClient(vm.host)
-    #     response = grpc_client.vm_info(vm.vmName)
-
-    context = {
-        "include_navigation": include_navigation,
-        "role": role,
-        "user": model.get_vm(user_id),
-    }
-
+    context["user"] = model.get_vm(user_id)
     return render(request, 'tira/user_detail.html', context)
