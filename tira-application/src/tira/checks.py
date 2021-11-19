@@ -58,15 +58,8 @@ def check_resources_exist(reply_as='json'):
                     logger.error(f"{resolve(request.path_info).url_name}: vm_id does not exist")
                     if "task_id" in kwargs:
                         if kwargs["vm_id"] == "no-vm-assigned":
-                            # TODO: If the user has no VM, give him a request form
-                            context = {
-                                "include_navigation": True if settings.DEPLOYMENT == "legacy" else False,
-                                "task": model.get_task(kwargs["task_id"]),
-                                "vm_id": "no-vm-assigned",
-                                "role": auth.get_role(request)
-                            }
-                            return render(request, 'tira/software.html', context)
-                        return redirect('tira:software-detail', task_id=kwargs["task_id"], vm_id="no-vm-assigned")
+                            return redirect('tira:request_vm')
+                        return redirect('tira:request_vm')
                     return return_fail("vm_id does not exist")
 
             if "dataset_id" in kwargs:

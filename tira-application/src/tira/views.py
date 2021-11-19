@@ -345,3 +345,9 @@ def user_detail(request, context, user_id):
     """
     context["user"] = model.get_vm(user_id)
     return render(request, 'tira/user_detail.html', context)
+
+
+@actions_check_permissions({"tira", "admin"})
+@add_context
+def request_vm(request, context):
+    return render(request, 'tira/request_vm.html', context)

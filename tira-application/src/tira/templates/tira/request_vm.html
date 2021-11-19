@@ -1,0 +1,38 @@
+{% extends 'tira/base.html' %}
+{% load static %}
+{% block title %}TIRA - My Software{% endblock %}
+{% block description %}TIRA - My Software{% endblock %}
+{% block navbar %}{% include "tira/navbar.html" with nav_active='software' %}{% endblock %}
+
+{% block content %}
+<nav class="uk-container">
+<ul class="uk-breadcrumb">
+<li><a href="{% url 'tira:index' %}">Tira.io</a></li>
+<li class="uk-disabled"><a href="#">Request a Virtual Machine</a></li>
+</ul>
+</nav>
+
+<main class="uk-section uk-section-default">
+    <div class="uk-container">
+        <h1>Request a Virtual Machine</h1>
+    </div>
+     <div class="uk-container uk-margin-medium">
+        <div class="uk-grid-small uk-grid-match" uk-grid>
+            <div class="uk-card uk-card-body uk-card-default">
+                <b>No Virtual Machine.</b>
+                Your TIRA account is currently not associated with a virtual machine.
+                Please contact your task organizer to obtain one.
+            </div>
+        </div>
+     </div>
+
+</main>
+
+{% if not include_navigation %}
+<script src="https://assets.webis.de/js/thirdparty/jquery/jquery.slim.min.js"></script>
+{% endif %}
+<script src="https://assets.webis.de/js/thirdparty/fontawesome/fontawesome.min.js"></script>
+<script src="https://assets.webis.de/js/thirdparty/fontawesome/solid.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="{% static 'tira/js/software.js' %}"></script>
+{% endblock %}
