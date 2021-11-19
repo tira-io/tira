@@ -31,6 +31,8 @@ logger.info("ajax_routes: Logger active")
 
 
 def host_call(func):
+    """ This is a decorator for methods that connect to a tira-host. It handles all exceptions that can occur
+     in the grpc communication. It also adds a reply consistent with the return status of the grpc call. """
     @wraps(func)
     def func_wrapper(request, *args, **kwargs):
         try:
@@ -41,22 +43,60 @@ def host_call(func):
                 logger.exception(f"{request.get_full_path()}: connection failed with {e}")
                 if e.code() == StatusCode.UNAVAILABLE:  # .code() is implemented by the _channel._InteractiveRpcError
                     logger.exception(f"Connection Unavailable: {e.debug_error_string()}")
-                    ex_message = "UNAVAILABLE"  # This happens if the GRPC Server is not running
+                    ex_message = f"The requested host is unavailable. If you think this is a mistake, please contact " \
+                                 "your task organizer."  # This happens if the GRPC Server is not running
                 if e.code() == StatusCode.INVALID_ARGUMENT:
                     logger.exception(f"Invalid Argument: {e.debug_error_string()}")
-                    ex_message = "The VM was not found on this host."  #
+                    ex_message = f"Response returned with an invalid argument: {e.debug_error_string()}"  #
             except Exception as e2:  # There is a RpcError but not an Interactive one. This should not happen
-                logger.exception(f"{request.get_full_path()}: Unexpected Execption occured: {e2}")
-            return JsonResponse({'status': "1", 'message': ex_message}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+                logger.exception(f"{request.get_full_path()}: Unexpected Exception occurred: {e2}")
+                ex_message = f"An unexpected exception occurred: {e2}"
+            return JsonResponse({'status': "2", 'message': ex_message}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
         except Exception as e:
             logger.exception(f"{request.get_full_path()}: Server Error: {e}")
-            return JsonResponse({'status': "1", 'message': "SERVER_ERROR"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+            return JsonResponse({'status': "1", 'message': f"An unexpected exception occurred: {e}"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
         if response.status == 0:
-            return JsonResponse({'status': response.status, 'message': response.transactionId},
+            return JsonResponse({'status': 0,
+                                 'message': response.transactionId},
                                 status=HTTPStatus.ACCEPTED)
+        if response.status == 2:
+            return JsonResponse({'status': 2,
+                                 'message': f"Virtual machine not found on host: {response.message}"},
+                                status=HTTPStatus.NOT_FOUND)
+        if response.status == 3:
+            return JsonResponse({'status': 1,
+                                 'message': f"Virtual machine is in the wrong state for your request: {response.message}"},
+                                status=HTTPStatus.BAD_REQUEST)
+        if response.status == 4:
+            return JsonResponse({'status': 1,
+                                 'message': f"VM is archived: {response.message}"},
+                                status=HTTPStatus.NOT_FOUND)
+        if response.status == 5:
+            return JsonResponse({'status': 2,
+                                 'message': f"VM is not accessible: {response.message}"},
+                                status=HTTPStatus.NOT_FOUND)
+        if response.status == 6:
+            return JsonResponse({'status': 1,
+                                 'message': f"Requested input run was not found: {response.message}"},
+                                status=HTTPStatus.NOT_FOUND)
+        if response.status == 7:
+            return JsonResponse({'status': 1,
+                                 'message': f"Evaluation failed due to malformed run output: {response.message}"},
+                                status=HTTPStatus.BAD_REQUEST)
+        if response.status == 8:
+            return JsonResponse({'status': 1,
+                                 'message': f"Input malformed: {response.message}"},
+                                status=HTTPStatus.BAD_REQUEST)
+        if response.status == 9:
+            return JsonResponse({'status': 2,
+                                 'message': f"Host ist busy: {response.message}"},
+                                status=HTTPStatus.SERVICE_UNAVAILABLE)
+
         return JsonResponse(
-            {'status': response.status, 'message': f"{response.transactionId} was rejected by the host"},
+            {'status': 2,
+             'message': f"{response.transactionId} was rejected by the host: {response.message}"},
             status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
     return func_wrapper
