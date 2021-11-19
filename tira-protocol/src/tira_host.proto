@@ -46,7 +46,7 @@ service TiraHostService {
   rpc vm_create (VmCreate) returns (Transaction) {}
   rpc vm_delete (VmId) returns (Transaction) {}
   rpc vm_info (VmId) returns (VmInfo) {}
-  rpc vm_list (google.protobuf.Empty) returns (VmList) {}
+  rpc vm_list (Transaction) returns (VmList) {}
   rpc vm_metrics (VmId) returns (Transaction) {}
   rpc vm_sandbox (VmId) returns (Transaction) {}
   rpc vm_shutdown (VmId) returns (Transaction) {}
@@ -57,7 +57,7 @@ service TiraHostService {
   rpc run_execute(RunDetails) returns (Transaction) {}
   rpc run_abort(VmId) returns (Transaction) {}
   rpc run_eval(RunDetails) returns (Transaction) {}
-  rpc alive (google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc alive (Transaction) returns (Transaction) {}
 }
 
 service TiraApplicationService {
@@ -71,7 +71,15 @@ service TiraApplicationService {
 
 enum Status {
   SUCCESS = 0;
-  FAILED = 1;
+  FAILED = 1;               // When a request failed for unknown reasons or reasons other than the ones below.
+  NO_VM = 2;                // When the request can not be served because the VM can not be found at all.
+  VM_IN_WRONG_STATE = 3;    // When the request can not be served because the VM is in a state where a requested transition is impossible.
+  VM_IN_ARCHIVE =4;         // When the request can not be served because the VM is archived.
+  VM_NOT_ACCESSIBLE = 5;    // When the VM is inaccessible for other reasons (froze, ssh down, wont boot)
+  NO_RUN = 6;               // When the run does not exist
+  RUN_MALFORMED = 7;        // When the run exists, the evaluation failed, and it's the runs fault.
+  INPUT_MALFORMED = 8;      // When the
+  HOST_BUSY = 9;            // When the host does not want to accept a request for external reasons.
 }
 
 enum State {
@@ -138,9 +146,9 @@ message RunDetails {
   string optionalParameters = 6;
   string taskId = 7;
   string softwareId = 8;
-  // string outputDirName = 7;  // Host must determine this
-  // string sandboxed = 8;  // Note sure if this still makes sense
-  // string snapshotName = 9; // Note sure if this still makes sense
+  // string outputDirName = 7;  // deprecated: Host must determine this
+  // string sandboxed = 8;  // deprecated: Note sure if this still makes sense
+  // string snapshotName = 9; // deprecated: Note sure if this still makes sense
 }
 
 message EvaluationResults {
