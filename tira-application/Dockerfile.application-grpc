@@ -21,7 +21,7 @@ RUN mkdir -p /mnt/ceph/tira
 COPY tira-application /tira/tira-application
 COPY tira-protocol/build/python/* /tira/tira-application/src/tira/proto/
 COPY tira-model/src/* /mnt/ceph/tira/model/
-COPY tira-application/config/settings-deploy.yml /tira/tira-application/src/config/settings.yml
+COPY tira-application/config/tira-application-config.docker.yml /tira/tira-application/src/config/settings.yml
 
 RUN chown -R tira:tira /usr/local && \
 	chmod 777 /var/run/ && \

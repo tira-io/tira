@@ -32,7 +32,7 @@ venv:
 		python3 -m pip install -r requirements.txt"
 
 run-develop: venv
-	cp config/settings-dev.yml src/config/settings.yml
+	cp config/tira-application-config.dev.yml src/config/settings.yml
 	sh -c ". $(VENV_NAME)/bin/activate && \
 	python3 src/manage.py run_develop"
 
@@ -49,12 +49,12 @@ docker-run-tira-application:
 		webis/tira-application-grpc:${VERSION}
 
 docker-build-tira-application:
-	docker build --tag webis/tira-web-2:${VERSION} -f Dockerfile.application ..
+	docker build --tag webis/tira-application:${VERSION} -f Dockerfile.application ..
 	docker build --tag webis/tira-application-grpc:${VERSION} -f Dockerfile.application-grpc ..
 
 docker-publish-tira-application: docker-build-tira-application
-	docker tag webis/tira-web-2:${VERSION} registry.webis.de/code-lib/public-images/tira-application:${VERSION}
-	docker tag webis/tira-web-2:${VERSION} registry.webis.de/code-lib/public-images/tira-application:latest
+	docker tag webis/tira-application:${VERSION} registry.webis.de/code-lib/public-images/tira-application:${VERSION}
+	docker tag webis/tira-application:${VERSION} registry.webis.de/code-lib/public-images/tira-application:latest
 	docker tag webis/tira-application-grpc:${VERSION} registry.webis.de/code-lib/public-images/tira-application-grpc:${VERSION}
 	docker tag webis/tira-application-grpc:${VERSION} registry.webis.de/code-lib/public-images/tira-application-grpc:latest
 	docker login registry.webis.de
