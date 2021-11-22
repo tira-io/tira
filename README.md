@@ -1,4 +1,4 @@
-<h1 align="center"><p><img src="https://github.com/tira-io/tira/blob/master/tira-application/src/tira/static/tira/img/tira-logo-32px-white.png" style="vertical-align:bottom"> TIRA Integrated Research Architecture </p></h1>
+<h1 align="center"><p><img src="http://assets.tira.io/tira-icons/tira-logo-32px-white.png" style="vertical-align:bottom"> TIRA Integrated Research Architecture </p></h1>
 
 
 This repository contains the source code for all the following components of the [TIRA](https://www.tira.io) shared task platform:
