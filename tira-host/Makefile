@@ -33,7 +33,6 @@ run-tira-docker-dev: build-tira-docker
 		--env DEV=$(DEV_MODE) \
 		tira-io/tira-host:$(VERSION) -f /dev/null
 
-
 build-tira-docker:
 	cp ../tira-protocol/build/python/* src/tira_host/proto/
 	docker build -t tira-io/tira-host:$(VERSION) --build-arg TIRA_PASSWORD=$(TIRA_PASSWORD) --build-arg VBOXVERSION=$(VBOXVERSION) -f build/Dockerfile .
@@ -43,8 +42,3 @@ export-tira-image: build-tira-docker
 
 clean:
 	rm -r $(VENV_NAME)
-
-docker-build-and-push-to-webis-registry: build-tira-docker
-	docker tag tira-io/tira-host:$(VERSION) registry.webis.de/code-lib/public-images/tira-host:${VERSION}
-	docker login registry.webis.de
-	docker push registry.webis.de/code-lib/public-images/tira-host:${VERSION}

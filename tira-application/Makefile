@@ -1,4 +1,4 @@
-.PHONY: help setup run-develop k8s-deploy-tira-application docker-publish-tira-application clean
+.PHONY: help setup run-develop build-docker clean
 
 VENV_NAME?=venv
 PYTHON=${VENV_NAME}/bin/python3
@@ -12,8 +12,10 @@ VERSION=0.0.7
 help:
 	@echo "make setup"
 	@echo "       setup venv, compile protobuf, give permissions to tira, and make migrations"
-	@echo "make run-dev"
+	@echo "make run-develop"
 	@echo "       run server as tira user"
+	@echo "make build-docker"
+	@echo "       build the docker containers "
 	@echo "make clean"
 	@echo "       remove setup files"
 
@@ -36,7 +38,7 @@ run-develop: venv
 	sh -c ". $(VENV_NAME)/bin/activate && \
 	python3 src/manage.py run_develop"
 
-docker-run-tira-application:
+run-docker:
 	docker run -td --rm \
         --name=tira-application \
 		-p 8080:80 \
@@ -48,25 +50,9 @@ docker-run-tira-application:
 		-v=/mnt/ceph/tira:/mnt/ceph/tira \
 		webis/tira-application-grpc:${VERSION}
 
-docker-build-tira-application:
+build-docker:
 	docker build --tag webis/tira-application:${VERSION} -f Dockerfile.application ..
 	docker build --tag webis/tira-application-grpc:${VERSION} -f Dockerfile.application-grpc ..
-
-docker-publish-tira-application: docker-build-tira-application
-	docker tag webis/tira-application:${VERSION} registry.webis.de/code-lib/public-images/tira-application:${VERSION}
-	docker tag webis/tira-application:${VERSION} registry.webis.de/code-lib/public-images/tira-application:latest
-	docker tag webis/tira-application-grpc:${VERSION} registry.webis.de/code-lib/public-images/tira-application-grpc:${VERSION}
-	docker tag webis/tira-application-grpc:${VERSION} registry.webis.de/code-lib/public-images/tira-application-grpc:latest
-	docker login registry.webis.de
-	docker push registry.webis.de/code-lib/public-images/tira-application:latest
-	docker push registry.webis.de/code-lib/public-images/tira-application:${VERSION}
-	docker push registry.webis.de/code-lib/public-images/tira-application-grpc:${VERSION}
-
-k8s-deploy-tira-application: k8s-undeploy-tira-application
-	kubectl -n services-tira apply -f tira-application.yml
-
-k8s-undeploy-tira-application:
-	kubectl -n services-tira delete -f tira-application.yml || echo "already undeployed?"
 
 clean:
 	rm -r $(VENV_NAME)
