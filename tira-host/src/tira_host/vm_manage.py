@@ -121,6 +121,7 @@ class VirtualMachine(object):
         self.state = 0
         self.vm_id = vm.virtualMachineId
         self.user_name = vm.userName
+        self.user_password = vm.userPw
         self.vm_name = vm.vmName
         self.guest_os = None
         self.memory_size = None
@@ -335,6 +336,7 @@ class VirtualMachine(object):
     def run_eval(self, transaction_id, request, input_run_path, submission_filename):
         """
 
+        :param submission_filename:
         :param transaction_id:
         :param request:
         :param input_run_path:

@@ -105,11 +105,12 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         """
         submission = {'user': vm.user_name, 'os': vm.guest_os, 'host': vm.host, 'sshport': vm.ssh_port,
                       'userpw': vm.user_password, 'workingDir': request.workingDir,
-                      'cmd': model.get_software(request.taskId, vm.vm_id)['command']}
+                      'cmd': model.get_software(request.taskId, vm.vm_id, request.softwareId)['command']}
 
-        submission_filename = model.get_submissions_dir(vm.vm_id) / f"{vm.vm_id}-submission-{request.runId.runId}"
-        with open(submission_filename, "w") as f:
-            for k,v in submission.items():
+        submission_filename = f"{vm.vm_id}-submission-{request.runId.runId}.txt"
+        submission_file_path = model.get_submissions_dir(vm.vm_id) / submission_filename
+        with open(submission_file_path, "w") as f:
+            for k, v in submission.items():
                 f.write(f"{k}={v}\n")
 
         return submission_filename
@@ -251,8 +252,8 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         submission_filename = self._create_submission_file(request, vm)
 
         return vm.run_eval(request.transaction.transactionId, request,
-                                      model.get_run_dir(request.inputRunId.datasetId, request.inputRunId.vmId,
-                                                        request.inputRunId.runId), submission_filename)
+                           model.get_run_dir(request.inputRunId.datasetId, request.inputRunId.vmId,
+                                             request.inputRunId.runId), submission_filename)
 
     def run_abort(self, request, context):
         """
