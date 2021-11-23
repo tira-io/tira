@@ -5,8 +5,6 @@ This repository contains the source code for all the following components of the
 
 - [Host](tira-host): todo
 - [Model](tira-model): todo
-- [Discourse](tira-discourse-deployment): todo
-- [Web](tira-web): todo
 - [Application](tira-application): todo
 - [Protocol](tira-protocol): todo
 
