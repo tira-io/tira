@@ -1,9 +1,0 @@
-service:
-  name:
-hostname:
-developer_emails:
-smtp:
-  address:
-  username:
-  password:
-  port:
