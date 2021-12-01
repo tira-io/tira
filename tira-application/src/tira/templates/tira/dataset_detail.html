@@ -15,7 +15,16 @@
 
 <main class="uk-section uk-section-default">
     <div class="uk-container">
-        <h1>{{ task.task_name }}</h1>
+        <h1>{{ task.task_name }}
+            <a class="uk-button uk-button-small uk-button-default" href="{{ task.web }}" target="_blank"
+               uk-tooltip="title: Task Website;">
+                <i class="fas fa-external-link-alt"></i></a>
+            <a class="uk-button uk-button-small uk-button-primary"
+               uk-tooltip="title: Participate;"
+               href="{% if role == 'guest' %}{% url 'tira:login' %}{% else %}{% url 'tira:software-detail' task_id=task.task_id vm_id=vm_id %}{% endif %}">
+                <i class="fas fa-play"></i></a>
+
+        </h1>
         <h2>Dataset: <span class="uk-text-muted">{{ dataset_id }}</span></h2>
     </div>
 
