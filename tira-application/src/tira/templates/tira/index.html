@@ -32,10 +32,10 @@
             <thead>
             <tr>
                 <th></th>
-                <th class="header uk-text-center uk-padding-remove-right uk-padding-remove-left" uk-tooltip="title: Submissions;"><i class="fas fa-users-cog"></i></th>
-                <th class="header uk-padding-remove-left"><span>Task</span></th>
-                <th class="header uk-text-center"><span>Organization</span></th>
-                <th class="header uk-text-center"><span>Year</span></th>
+<!--                <th class="header uk-text-center uk-padding-remove-right uk-padding-remove-left" uk-tooltip="title: Submissions;"><i class="fas fa-users-cog"></i></th>-->
+                <th class="header uk-table-expand"><span>Task</span></th>
+                <th class="header uk-text-right"><span>Organization</span></th>
+                <th class="header uk-text-right"><span>Year</span></th>
                 <th class="header uk-margin-remove uk-padding-remove-vertical uk-padding-remove-right"></th>
             </tr>
             </thead>
@@ -43,23 +43,18 @@
             {% for task in tasks %}
             <tr>
                 <td id="task-{{ task.task_id }}"></td>
-                <td class="uk-text-right uk-padding-remove-left"><sup class="uk-text-muted uk-text-small">{{ task.software_count }}</sup></td>
-                <td class="uk-padding-remove-left uk-text-nowrap uk-table-shrink">
-                    {{ task.task_name }}
+<!--                <td class="uk-text-right uk-padding-remove-left"><sup class="uk-text-muted uk-text-small">{{ task.software_count }}</sup></td>-->
+                <td class="uk-text-nowrap">
+                    <a href="{% url 'tira:task-detail' task_id=task.task_id %}">{{ task.task_name }}</a>
+                     <span class="uk-text-muted uk-text-small">({{ task.software_count }} submission)</span>
                 </td>
-                <td class="uk-text-center" >{{ task.organizer }}</td>
-                <td class="uk-text-center uk-text-nowrap">{{ task.year }}</td>
+                <td class="uk-text-right" >{{ task.organizer }}</td>
+                <td class="uk-text-right uk-text-nowrap">{{ task.year }}</td>
                 <td class="uk-text-right uk-text-nowrap uk-margin-remove uk-padding-remove-vertical uk-padding-remove-right">
-                    <a class="uk-button uk-button-small uk-button-default" href="{% url 'tira:task-detail' task_id=task.task_id %}">
-                        leaderboard</a>
-                    <a class="uk-button uk-button-small uk-button-default"
-                       uk-tooltip="title: Task Website;"
-                       href="{{ task.web }}" target="_blank">
-                        <i class="fas fa-external-link-alt"></i></a>
-                    <a class="uk-button uk-button-small uk-button-primary"
+                    <a class="uk-button uk-button-small uk-button-default uk-text-primary"
                        uk-tooltip="title: Participate;"
                        href="{% if role == 'guest' %}{% url 'tira:login' %}{% else %}{% url 'tira:software-detail' task_id=task.task_id vm_id=vm_id %}{% endif %}">
-                        <i class="fas fa-play"></i></a>
+                        <i class="fas fa-terminal"></i>&nbsp;&nbsp;Submit</a>
 
                 </td>
             </tr>

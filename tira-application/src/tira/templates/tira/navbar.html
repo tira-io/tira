@@ -12,9 +12,6 @@
                     <a href="{% url 'tira:tira-admin' %}">Admin</a>
                 </li>
                 {% endif %}
-                <li{% if nav_active == "dataset" %} class="uk-active"{% endif %}>
-                    <a href="{% url 'tira:dataset' %}">Data</a>
-                </li>
                 <li>
                     {% if role != 'guest' %}
                     <a href="{% url 'tira:logout' %}">Logout</a>
@@ -51,9 +48,6 @@
                     <a href="{% url 'tira:tira-admin' %}">Admin</a>
                 </li>
                 {% endif %}
-                <li{% if nav_active == "dataset" %} class="uk-active"{% endif %}>
-                    <a href="{% url 'tira:dataset' %}">Data</a>
-                </li>
                 <li>
                     {% if role != 'guest' %}
                     <a href="{% url 'tira:logout' %}">Logout</a>

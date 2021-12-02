@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}TIRA Users{% endblock %}
 {% block description %}TIRA Users{% endblock %}
-{% block navbar %}{% include "tira/navbar.html" with nav_active='dataset' %}{% endblock %}
+{% block navbar %}{% include "tira/navbar.html" with nav_active='tasks' %}{% endblock %}
 
 {% block content %}
 <nav class="uk-container">
@@ -15,21 +15,22 @@
 
 <main class="uk-section uk-section-default">
     <div class="uk-container">
-        <h1>{{ task.task_name }}
-            <a class="uk-button uk-button-small uk-button-default" href="{{ task.web }}" target="_blank"
-               uk-tooltip="title: Task Website;">
-                <i class="fas fa-external-link-alt"></i></a>
-            <a class="uk-button uk-button-small uk-button-primary"
+        <div uk-grid>
+        <div class="uk-width-expand">
+            <h1>{{ task.task_name }} <span class="uk-text-muted">Leaderboard</span></h1>
+        </div>
+<!--         CSS lol -->
+        <div>
+            <a class="uk-button uk-button-primary uk-text-large"
                uk-tooltip="title: Participate;"
                href="{% if role == 'guest' %}{% url 'tira:login' %}{% else %}{% url 'tira:software-detail' task_id=task.task_id vm_id=vm_id %}{% endif %}">
-                <i class="fas fa-play"></i></a>
-
-        </h1>
-        <h2>Dataset: <span class="uk-text-muted">{{ dataset_id }}</span></h2>
+               <i class="fas fa-terminal uk-margin-right"></i>Submit</a></div>
+        </div>
     </div>
 
     <div class="uk-container uk-margin-medium">
-        <table class="uk-margin-medium uk-table uk-table-divider uk-table-small sortable targetable">
+        <h2>Dataset: <span class="uk-text-muted">{{ dataset_id }}</span></h2>
+        <table class="uk-margin-small uk-table uk-table-divider uk-table-small sortable targetable">
             <thead>
             <tr>
                 <th id="tira-evaluation-results"></th>

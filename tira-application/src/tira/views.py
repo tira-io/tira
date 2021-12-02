@@ -161,6 +161,7 @@ def dataset_detail(request, context, task_id, dataset_id):
     context["task"] = model.get_task(task_id)
     context["ev_keys"] = ev_keys
     context["evaluations"] = evaluations
+    context["vm_id"] = auth.get_vm_id(request, context["user_id"])
     context["vms"] = vms
 
     return render(request, 'tira/dataset_detail.html', context)

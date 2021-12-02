@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}TIRA {{ task_id }}{% endblock %}
 {% block description %}TIRA dataset for {{ task_id }}{% endblock %}
-{% block navbar %}{% include "tira/navbar.html" with nav_active='datasets' %}{% endblock %}
+{% block navbar %}{% include "tira/navbar.html" with nav_active='tasks' %}{% endblock %}
 
 {% block content %}
 <nav class="uk-container">
@@ -15,44 +15,44 @@
 <main class="uk-section uk-section-default">
 <!-- Title and anchor links -->
 <div class="uk-container">
-    <h1>{{ task.task_name }}
-        <a class="uk-button uk-button-small uk-button-default" href="{{ task.web }}" target="_blank"
-           uk-tooltip="title: Task Website;">
-            <i class="fas fa-external-link-alt"></i></a>
-        <a class="uk-button uk-button-small uk-button-primary"
+    <div uk-grid>
+        <div class="uk-width-expand"><h1>{{ task.task_name }} <span class="uk-text-muted">Task</span></h1></div>
+<!--         CSS lol -->
+        <div><a class="uk-button uk-button-primary uk-text-large"
            uk-tooltip="title: Participate;"
            href="{% if role == 'guest' %}{% url 'tira:login' %}{% else %}{% url 'tira:software-detail' task_id=task.task_id vm_id=vm_id %}{% endif %}">
-            <i class="fas fa-play"></i></a>
-    </h1>
-    <p>{{ task.description }}</p>
+           <i class="fas fa-terminal uk-margin-right"></i>Submit</a></div>
+    </div>
+
+    <p class="uk-text-lead">{{ task.description }}</p>
+<!--        <a class="uk-button uk-button-small uk-button-default" href="{{ task.web }}" target="_blank"-->
+<!--           uk-tooltip="title: Task Website;">-->
+<!--           Task Description <i class="fas fa-external-link-alt"></i></a>-->
 </div>
 
 <!-- task table start -->
 <div class="uk-container uk-margin-medium">
-    <table class="uk-margin-medium uk-table uk-table-divider uk-table-small sortable targetable">
+    <h2>Datasets</h2>
+    <table class="uk-margin-small uk-table uk-table-divider uk-table-small sortable targetable">
         <thead>
         <tr>
             <th></th>
-            <th class="header uk-text-center uk-padding-remove-right uk-padding-remove-left" uk-tooltip="title: Submissions;"><i class="fas fa-users-cog"></i></th>
-            <th class="header uk-padding-remove-left"><span>Dataset</span></th>
-            <th class="header"><span>Organization</span></th>
-            <th class="header uk-text-center"><span>Year</span></th>
-            <th class="header uk-margin-remove uk-padding-remove-vertical uk-padding-remove-right"></th>
+<!--            <th class="header uk-text-center uk-padding-remove-right uk-padding-remove-left" uk-tooltip="title: Submissions;"><i class="fas fa-users-cog"></i></th>-->
+            <th class="header"><span>Dataset</span></th>
+            <th class="header uk-text-right"><span>Organization</span></th>
+            <th  uk-text-right><span>Year</span></th>
         </tr>
         </thead>
         <tbody>
         {% for dataset in tasks %}
         <tr>
             <td id="task-{{ dataset.dataset_id }}"></td>
-            <td class="uk-text-right uk-padding-remove-left"><sup class="uk-text-muted uk-text-small">{{ dataset.software_count }}</sup></td>
-            <td class="uk-text-truncate uk-width-1-2 uk-padding-remove-left">{{ dataset.dataset_id }}</td>
-            <td>{{ dataset.organizer }}</td>
-            <td class="uk-text-center ">{{ dataset.year }}</td>
-            <td class="uk-text-right uk-text-nowrap uk-margin-remove uk-padding-remove-vertical uk-padding-remove-right">
-                <a class="uk-button uk-button-small uk-button-default"
-                   href="{% url 'tira:dataset-detail' task_id=task.task_id dataset_id=dataset.dataset_id %}">
-                    leaderboard</a>
-            </td>
+<!--            <td class="uk-text-right uk-padding-remove-left"><span class="uk-text-muted uk-text-small">{{ dataset.software_count }}</span></td>-->
+            <td class="uk-text-truncate uk-width-expand">
+                <a href="{% url 'tira:dataset-detail' task_id=task.task_id dataset_id=dataset.dataset_id %}">{{ dataset.dataset_id }}</a>
+                <span class="uk-text-muted uk-text-small">({{ dataset.software_count }} Submissions)</span></td>
+            <td class="uk-text-right">{{ dataset.organizer }}</td>
+            <td class="uk-text-right ">{{ dataset.year }}</td>
         </tr>
         {% empty %}
             <tr><td>Sorry, we could not find any tasks.</td></tr>
