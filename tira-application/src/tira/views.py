@@ -267,7 +267,7 @@ def review(request, context, task_id, vm_id, dataset_id, run_id):
         initial={"no_errors": run_review.get("hasNoErrors") or run_review.get("noErrors"),
                  "output_error": run_review.get("hasErrorOutput", False) or run_review.get("invalidOutput", False),
                  "software_error": run_review.get("otherErrors", False),
-                 "comment": run_review.get("comment", "")}),
+                 "comment": run_review.get("comment", "")})
     context["review_form_error"] = review_form_error
     context["task_id"] = task_id
     context["dataset_id"] = dataset_id
