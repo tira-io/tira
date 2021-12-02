@@ -17,17 +17,19 @@
 <div class="uk-container">
     <div uk-grid>
         <div class="uk-width-expand"><h1>{{ task.task_name }} <span class="uk-text-muted">Task</span></h1></div>
-<!--         CSS lol -->
-        <div><a class="uk-button uk-button-primary uk-text-large"
-           uk-tooltip="title: Participate;"
-           href="{% if role == 'guest' %}{% url 'tira:login' %}{% else %}{% url 'tira:software-detail' task_id=task.task_id vm_id=vm_id %}{% endif %}">
-           <i class="fas fa-terminal uk-margin-right"></i>Submit</a></div>
+        <div>
+            <a class="uk-button uk-button-default uk-text-large"
+               uk-tooltip="title: Task Website;"
+               href="{{ task.web }}">
+               Task Website<i class="fas fa-external-link-alt uk-margin-small-left"></i></a>
+            <a class="uk-button uk-button-primary uk-text-large"
+               uk-tooltip="title: Participate;"
+               href="{% if role == 'guest' %}{% url 'tira:login' %}{% else %}{% url 'tira:software-detail' task_id=task.task_id vm_id=vm_id %}{% endif %}">
+               <i class="fas fa-terminal uk-margin-small-right"></i>Submit</a>
+        </div>
     </div>
 
     <p class="uk-text-lead">{{ task.description }}</p>
-<!--        <a class="uk-button uk-button-small uk-button-default" href="{{ task.web }}" target="_blank"-->
-<!--           uk-tooltip="title: Task Website;">-->
-<!--           Task Description <i class="fas fa-external-link-alt"></i></a>-->
 </div>
 
 <!-- task table start -->
