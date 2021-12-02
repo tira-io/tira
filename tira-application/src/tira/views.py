@@ -142,18 +142,17 @@ def dataset_detail(request, context, task_id, dataset_id):
                                  if r.get("blinded", None)])
             vms.append({"vm_id": vm_id, "runs": runs, "unreviewed_count": unreviewed_count,
                         "blinded_count": blinded_count, "published_count": published_count})
-
         evaluations = [{"vm_id": vm_id,
                         "run_id": run_id,
                         "blinded": vm_reviews.get(vm_id, {}).get(run_id, {}).get("blinded", False),
                         "published": vm_reviews.get(vm_id, {}).get(run_id, {}).get("published", False),
-                        "measures": [measures[k] for k in ev_keys]}
+                        "measures": [measures.get(k, "-") for k in ev_keys]}
                        for vm_id, measures_by_runs in vm_evaluations.items()
                        for run_id, measures in measures_by_runs.items()]
     else:
         evaluations = [{"vm_id": vm_id,
                         "run_id": run_id,
-                        "measures": [measures[k] for k in ev_keys]}
+                        "measures": [measures.get(k, "-") for k in ev_keys]}
                        for vm_id, measures_by_runs in vm_evaluations.items()
                        for run_id, measures in measures_by_runs.items()]
 
