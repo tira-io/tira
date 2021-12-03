@@ -274,6 +274,7 @@ def run_execute(request, task_id, vm_id, software_id):
                                        input_run_vm_id="",
                                        input_run_dataset_id="",
                                        input_run_run_id=software["run"],
+                                       optional_parameters="",
                                        task_id=task_id,
                                        software_id=software_id)
     del grpc_client
@@ -299,8 +300,6 @@ def run_eval(request, vm_id, dataset_id, run_id):
     response = grpc_client.run_eval(vm_id=evaluator["vm_id"],
                                     dataset_id=dataset_id,
                                     run_id=get_tira_id(),
-                                    working_dir=evaluator["working_dir"],
-                                    command=evaluator["command"],
                                     input_run_vm_id=vm_id,
                                     input_run_dataset_id=dataset_id,
                                     input_run_run_id=run_id,
