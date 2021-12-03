@@ -103,9 +103,10 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         :param request:
         :return:
         """
+        software = model.get_software(request.taskId, vm.vm_id, request.softwareId)
         submission = {'user': vm.user_name, 'os': vm.guest_os, 'host': vm.host, 'sshport': vm.ssh_port,
-                      'userpw': vm.user_password, 'workingDir': request.workingDir,
-                      'cmd': model.get_software(request.taskId, vm.vm_id, request.softwareId)['command']}
+                      'userpw': vm.user_password, 'workingDir': software['working_directory'],
+                      'cmd': software['command']}
 
         submission_filename = f"{vm.vm_id}-submission-{request.runId.runId}.txt"
         submission_file_path = model.get_submissions_dir(vm.vm_id) / submission_filename
