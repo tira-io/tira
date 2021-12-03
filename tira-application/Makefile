@@ -2,9 +2,9 @@
 
 VENV_NAME?=venv
 PYTHON=${VENV_NAME}/bin/python3
-GRPC_SRC_DIR=../tira-protocol/src
+GRPC_BUILD_DIR=../tira-protocol/build/python
 #PYTHON_DEST=${VENV_NAME}/lib/python3.7/site-packages
-BUILD_PATH=src/tira/proto
+PROTO_MODULE_DIR=src/tira/proto
 VERSION=0.0.7
 
 
@@ -20,10 +20,10 @@ help:
 	@echo "       remove setup files"
 
 setup:
-	! test -d $(GRPC_SRC_DIR) || { echo "please compile the protocol files first. See the docs in tira/tira-protocol"; exit 1; }
+	test -d $(GRPC_BUILD_DIR) || { echo "please compile the protocol files first. See the docs in tira/tira-protocol"; exit 1; }
 	chmod o+x src
-	mkdir -p $(BUILD_PATH)
-	cp $(GRPC_SRC_DIR)/* $(BUILD_PATH)/
+	mkdir -p $(PROTO_MODULE_DIR)
+	cp $(GRPC_BUILD_DIR)/* $(PROTO_MODULE_DIR)/
 	mkdir -p src/config
 	make venv
 
@@ -43,7 +43,7 @@ run-docker:
         --name=tira-application \
 		-p 8080:80 \
 		-v=/mnt/ceph/tira:/mnt/ceph/tira \
-		webis/tira-web-2:${VERSION}
+		webis/tira-application:${VERSION}
 	docker run -td --rm \
         --name=tira-application-grpc \
 		-p 50052:50052 \
@@ -56,4 +56,4 @@ build-docker:
 
 clean:
 	rm -r $(VENV_NAME)
-	rm -r $(BUILD_PATH)
+	rm -r $(PROTO_MODULE_DIR)
