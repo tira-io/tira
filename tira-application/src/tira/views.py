@@ -87,7 +87,7 @@ def logout(request):
 def task_detail(request, context, task_id):
     context["vm_id"] = auth.get_vm_id(request, context["user_id"])
     context["task"] = model.get_task(task_id)
-    context["tasks"] = model.get_datasets_by_task(task_id)
+    context["datasets"] = model.get_datasets_by_task(task_id)
 
     return render(request, 'tira/task_detail.html', context)
 
