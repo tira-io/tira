@@ -35,7 +35,7 @@ a.uk-button-primary {
     width: 16px !important;
 }
 
-.uk-accordion table {
+.uk-accordion table, .uk-card table {
     border-collapse: inherit;
 
 @media (max-width: 800px) {
