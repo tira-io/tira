@@ -57,7 +57,7 @@ eval set -- "${FLAGS_ARGV}"
 check_is_screenshoting_done() {
     file="$1"
     if [ ! -f "$1" ]; then
-        logError "$file could not be created."
+        logError "[tira-vm-screenshot] Screenshot $file could not be created."
         exit 1
     fi
 }
@@ -66,12 +66,15 @@ check_is_screenshoting_done() {
 #     Take a a screenshot.
 #
 main() {
-
+    
+    logInfo "[tira-vm-screenshot] Checking Parameters..."
     if [ "$#" -eq 0 ]; then
-        logError "Missing arguments see:"
+        logError "[tira-vm-screenshot] Missing arguments see:"
         usage
     fi
-
+    logInfo "[tira-vm-screenshot] Checking Parameters done."
+    
+    logInfo "[tira-vm-screenshot] Prepare taking screenshot..."
     vmname="$1"
     screenshotname="/tmp/$vmname.png"
 
@@ -81,17 +84,19 @@ main() {
     get_vm_state "$vmname" state
 
     if [ "$state" != "running" ];  then
-        logError "VM is not running!"
+        logError "[tira-vm-screenshot] VM is not running!"
         exit 1
     fi
-
+    logInfo "[tira-vm-screenshot] Prepare taking screenshot done."
+    
     # Take a screenshot of VM.
-    logInfo "Taking screenshot of $vmname...and store as $screenshotname"
+    logInfo "[tira-vm-screenshot] Taking screenshot of $vmname...and store as $screenshotname."
     VBoxManage controlvm "$vmname" screenshotpng "$screenshotname" \
-        || logError "Could not take screenshot of vm $vmname."
+        || logError "[tira-vm-screenshot] Could not take screenshot of vm $vmname."
 
     chmod g+r "$screenshotname"
     unittest && check_is_screenshoting_done "$screenshotname"
+    logInfo "[tira-vm-screenshot] Successfully taken Screenshot."
 }
 
 #
