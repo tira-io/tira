@@ -60,22 +60,30 @@ eval set -- "${FLAGS_ARGV}"
 #
 main() {
 
+    logInfo "[tira-vm-runtime-output] Checking Parameters..."
     if [ "$#" -eq 0 ]; then
-        logError "Missing arguments see:"
+        logError "[tira-vm-runtime-output] Missing arguments see:"
         usage
     fi
-
+    logInfo "[tira-vm-runtime-output] Checking Parameters done."
+    
+    logInfo "[tira-vm-runtime-output] Get VM info..."
     vmname="$1"
     runid="$2"
 
     vm_info=$(get_vm_info_from_tira "$vmname")
     if [ "$vm_info" = "" ]; then
-        logError "VM-Name/user $vmname_or_user is not registred. Use tira vm-list to get a list of all vms."
+        logError "[tira-vm-runtime-output] VM-Name/user $vmname_or_user is not registred. Use tira vm-list to get a list of all vms."
         exit 1
     fi
     user=$(echo "$vm_info" | grep "userName=" | sed "s|userName=||g")
     pw=$(echo "$vm_info" | grep "userPw=" | sed "s|userPw=||g")
     host=$(echo "$vm_info" | grep "host=" | sed "s|host=||g")
+    
+    logInfo "[tira-vm-runtime-output] Get VM info done."
+    
+    
+    logInfo "[tira-vm-runtime-output] Create runtime output directory..."
 
     if [[ "$vmname" == *"ubuntu"* ]] || [[ "$vmname" == *"fedora"* ]]; then
         tmpRunDir="/tmp/$user/$runid"
@@ -83,10 +91,13 @@ main() {
         tmpRunDir="/cygdrive/c/Windows/Temp/$user/$runid"
     fi
     tmpRunDirOutput="$tmpRunDir/output"
+    
+    logInfo "[tira-vm-runtime-output] Create runtime output directory done."
 
+    logInfo "[tira-vm-runtime-output] Checking if VM is sandboxed and cloned VM is running..."
     sandboxLockFile="$_CONFIG_FILE_tira_state_virtual_machines_dir/~$vmname.sandboxed"
     if [ ! -e "$sandboxLockFile" ]; then
-        logError "VM $vmname is not sandboxed!"
+        logError "[tira-vm-runtime-output] VM $vmname is not sandboxed!"
         exit 1
     fi
     . "$sandboxLockFile"
@@ -96,13 +107,14 @@ main() {
     vmname="$vmclonename"
     get_vm_state "$vmclonename" state
     if [ "$state" != "running" ]; then
-        logError "VM clone $vmclonename is not running!"
+        logError "[tira-vm-runtime-output] VM clone $vmclonename is not running!"
         exit 1
     fi
-
+    logInfo "[tira-vm-runtime-output] VM is sandboxed and cloned VM is running."
+    
     # TODO "Clonend VM expects to be called from localhost, so that this script must be called with the -r option to work. Not sure, how to solve this."
-    logDebug "pw: $pw  host: ${user}@localhost port: $natsshport"
-    logInfo "Latest output begin:"
+    logDebug "[tira-vm-runtime-output] pw: $pw  host: ${user}@localhost port: $natsshport"
+    logInfo "[tira-vm-runtime-output] Show VM runtime output. Latest output begin:"
 
     # with the following extension, the command can be startet without the -r host parameter of the main script, but it is nessessary to update this script, e.g. get_vm_state call would not work
     # ssh -t "$host"
@@ -124,6 +136,8 @@ main() {
             | awk '{if(NR>1)print}' \
             | awk '{printf(\"%10s %5s  %5s  %2s  %-40s\n\", \$4, \$5, \$3, \$2, \$6);}' \
             | head"
+      
+      logInfo "[tira-vm-runtime-output] Stopped showing VM runtime output."
 }
 
 #
