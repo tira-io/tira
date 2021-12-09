@@ -68,13 +68,14 @@ eval set -- "${FLAGS_ARGV}"
 #    Puts a VM in sandbox mode.
 #
 main() {
-
+    
+    logInfo "[tira-vm-sandbox] Checking Parameters..."
     # Print usage screen if wrong parameter count.
     if [ "$#" -ne 3 ]; then
         logError "Wrong amount of parameters, see:"
         usage
     fi
-
+    
     sleep 10
 
     vmname="$1"
@@ -83,11 +84,12 @@ main() {
 
     # Flag for mounting test datasets.
     if [ "$mounttestdatasets" != "true" ] && [ "$mounttestdatasets" != "false" ]; then
-        logError "<mount-test-datasets> is not \"true\" or \"false\"."
+        logError "[tira-vm-sandbox] <mount-test-datasets> is not \"true\" or \"false\"."
         usage
     fi
-
-    logInfo "Executing sandbox script."
+    logInfo "[tira-vm-sandbox] Checking Parameters done..."
+    
+    logInfo "[tira-vm-sandbox] Prepare sandboxing..."
 
     vm_info=$(get_vm_info_from_tira "$vmname")
     vmnumber=$(echo "$vm_info" | grep "vmId" | sed "s|vmId=||g")
@@ -106,8 +108,11 @@ main() {
         logError "VM $vmname is already sandboxed!"
         exit 1
     fi
-    logInfo "SANDBOX $vmname..."
-    logInfo "Shutdown original vm."
+    
+    logInfo "[tira-vm-sandbox] Prepare sandboxing done."
+    
+    logInfo "[tira-vm-sandbox] Starting SANDBOX $vmname..."
+    logInfo "[tira-vm-sandbox]     Start shutdown original vm."
 
     # Check if auto snapshot name should be used.
     if [ "$snapshotName" = "auto" ]; then
@@ -133,16 +138,19 @@ main() {
 
         get_vm_state "$vmname" state
         if [[ "$tries" > 15 ]]; then
-            logError "Problem with shutdown of $vmname, so stop vm."
+            logError "[tira-vm-sandbox] Problem with shutdown of $vmname, so stop vm."
             tira_call vm-stop "$vmname"
         fi
         tries=$((tries+1))
     done
+    logInfo "[tira-vm-sandbox]     Shutdown original vm done..."
 
     iface="vboxnet$vmnumber"
     # tira custom chains
     INPUT=tira_input
     FORWARD=tira_forward
+    
+    logInfo "[tira-vm-sandbox]     Start cutting off traffic to origin vm..."
 
     # Firewall changes for disallowing traffic to the origin vm.
     sudo iptables -N "$chainname"
@@ -171,11 +179,15 @@ main() {
     sudo iptables -I $INPUT -i em+ -p tcp --dport "$rdpport" -s localhost -j ACCEPT
 
     vm_ip_adress=$(echo "$vm_infos" | grep "ip=" | sed "s|ip=||g")
-    logDebug "vm ip adress: $vm_ip_adress"
-
+    logDebug "tira-vm-sandbox] vm ip adress: $vm_ip_adress"
+    logInfo "[tira-vm-sandbox]     Cutting off traffic to origin vm done."
+    
+    logInfo "[tira-vm-sandbox]     Cloning VM..."
     # Create cloned VM.
     VBoxManage clonevm --options keepallmacs --name "$vmname-clone-$snapshotName" "$vmname" --register
-
+    logInfo "[tira-vm-sandbox]     Cloning VM done."
+    
+    logInfo "[tira-vm-sandbox]     Mounting test datasets to cloned VM."
     # Mounting test datasets.
     if [ "$mounttestdatasets" = "true" ]; then
         sfnametest="$_CONFIG_tira_test_datasets_name"
@@ -184,13 +196,19 @@ main() {
         logInfo "$sfnametest -> $sfpathtest"
         VBoxManage sharedfolder add "$vmname-clone-$snapshotName" --name "$sfnametest" --hostpath "$sfpathtest" --readonly --automount
     fi
-
+    logInfo "[tira-vm-sandbox]     Mounting test datasets to cloned VM done."
+    
+    logInfo "[tira-vm-sandbox]     Starting cloned VM..."
     # Start cloned copy.
     VBoxManage modifyvm "$vmname-clone-$snapshotName" --audio none # temporary fix for "VBoxManage: error: The specified string / bytes buffer was to small. Specify a larger one and retry. (VERR_CFGM_NOT_ENOUGH_SPACE) VBoxManage: error: Details: code NS_ERROR_FAILURE (0x80004005), component ConsoleWrap, interface IConsole"
     tira_call vm-start "$vmname-clone-$snapshotName"
 
-    logInfo "...waiting..."
+    logInfo "[tira-vm-sandbox] ...waiting..."
     sleep 40
+    
+    logInfo "[tira-vm-sandbox]     Starting cloned VM done."
+    
+    logInfo "[tira-vm-sandbox]     Getting VM info and test accessability of shares."
     vm_info=$(get_vm_info_from_tira "$vmname")
 
     user=$(echo "$vm_info" | grep "userName=" | sed "s|userName=||g")
@@ -216,13 +234,13 @@ main() {
     fi
     # Config entry $sandboxed.
     sed -i "s|$(hostname)\t$vmname|$(hostname)\t$vmname\tsandboxed|g" "$_CONFIG_FILE_tira_vms"
-
+    
     # Wait for the shared folders to be accessible,
     # this is nessessary, because windows vms need a lot of time for first accessing shared folders.
     sfflag=0
     tries=0
     while [[ "$sfflag" -eq 0 ]]; do
-        logInfo "Check if shares are accessible."
+        logInfo "[tira-vm-sandbox] Check if shares are accessible."
         # try to access shared folder
         sshpass -p "$pw" \
           ssh "$user@$host" \
@@ -238,10 +256,10 @@ main() {
         else
             tries=$((tries+1))
             if (( $tries > 15 )); then
-                logInfo "$user@$host: accessing shared folder failed."
+                logInfo "[tira-vm-sandbox] $user@$host: accessing shared folder failed."
                 # get VM out of sandbox, if necessary
                 if [[ "$sandboxed" = "true" ]]; then
-                    logInfo  "unsandboxing virtual machine..."
+                    logInfo  "[tira-vm-sandbox] unsandboxing virtual machine..."
                     tira_call vm-unsandbox -r "$hostname" "$vmname"
                 fi
                 exit 1
@@ -252,6 +270,7 @@ main() {
     
     # Remove progress file.
     rm "$progressfile"
+    logInfo "[tira-vm-sandbox] Successfully finished SANDBOX $vmname."
 }
 
 #
