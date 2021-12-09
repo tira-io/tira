@@ -60,13 +60,15 @@ eval set -- "${FLAGS_ARGV}"
 #    Takes a snapshot of a specific vm.
 #
 main() {
-
+    
+    logInfo "[tira-vm-snapshot] Checking Parameters..."
     # Print usage screen if wrong parameter count.
     if [ "$#" -ne 2 ]; then
         logError "Missing arguments see:"
         usage
     fi
-
+    logInfo "[tira-vm-snapshot] Checking Parameters done."
+    
     vmname="$1"
     snapshotname="$2"
 
@@ -75,15 +77,17 @@ main() {
 
     if [ "$state" = "running" ];  then
         VBoxManage controlvm "$vmname" poweroff
-        logInfo "First shutting down..."
+        logInfo "[tira-vm-snapshot] VM is running, shutting down now..."
         sleep 3
     fi
-
+    
+    logInfo "[tira-vm-snapshot] Taking snapshot..."
     VBoxManage snapshot "$vmname" take "$snapshotname"
     VBoxManage startvm "$vmname" --type headless
     # Immediately set guestproperty, since it is not set permanently for Ubuntu server.
     VBoxManage guestproperty set "$vmname" /VirtualBox/GuestAdd/SharedFolders/MountPrefix ""
     VBoxManage metrics setup --period 1 --samples 1 "$vmname"
+    logInfo "[tira-vm-snapshot] Taking snapshot done."
 }
 
 #
