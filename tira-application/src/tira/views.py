@@ -271,6 +271,7 @@ def review(request, context, task_id, vm_id, dataset_id, run_id):
     context["review_form_error"] = review_form_error
     context["task_id"] = task_id
     context["dataset_id"] = dataset_id
+    context["is_confidential"] = model.get_dataset(dataset_id).get('is_confidential', True)
     context["vm_id"] = vm_id
     context["run_id"] = run_id
     context["run"] = run

@@ -88,7 +88,7 @@
                         </div>
                         {% elif role == 'user' %}
                         <div class="uk-child-width-expand">
-                            {% if review.blinded %}
+                            {% if is_confidential and review.blinded %}
                             <button disabled class="uk-button uk-button-disabled"
                                     uk-tooltip="title: Can only be downloaded if the run is unblinded.; delay: 500"><i
                                     class="fas fa-download"></i> download run
@@ -109,7 +109,7 @@
                 <div class="uk-height-medium"></div>
                 <div class="uk-position-top uk-padding-small">
                     <h2>Output</h2>
-                    {% if review.blinded %}
+                    {% if is_confidential and review.blinded %}
                     <table>
                         <tr>
                             <td>Size:</td>
@@ -243,7 +243,7 @@
     <div class="uk-container uk-margin-medium">
         <h2>Standard Output <span class="uk-text-muted uk-text-lead">[stdout]</span></h2>
         <textarea class="uk-textarea" rows="10" placeholder="No Stdout recorded." disabled>
-        {% if review.blinded == False or role == 'admin' %}
+        {% if review.blinded == False or is_confidential == False or role == 'admin' %}
         {{ stdout }}
         {% else %}
             The Software Log has not been revealed to participants yet. Contact your task's organizer for a review.
