@@ -58,7 +58,7 @@ check_is_vm_stopped() {
     vmname="$1"
     get_vm_state "$vmname" state
     if [ "$state" = "running" ];  then
-        logError "VM is not stopped!"
+        logError "[tira-vm-shutdown] VM is not stopped!"
         exit 1
     fi
 }
@@ -67,16 +67,19 @@ check_is_vm_stopped() {
 #     Shuts down a given user's virtual machine via command line.
 #
 main() {
-
+    
+    logInfo "[tira-vm-shutdown] Checking Parameters..."
     # Print usage screen if wrong parameter count.
     if [ "$#" -ne 1 ]; then
         logError "Wrong number of parameters, see:"
         usage
     fi
-
+    logInfo "[tira-vm-shutdown] Checking Parameters done."
+    
+    logInfo "[tira-vm-shutdown] Preparing shutdown."
     # Extract correct vmname from nfs.
     vmname_or_user="$1"
-
+    
     vm_info=$(get_vm_info_from_tira "$vmname_or_user")
     vmname=$(echo "$vm_info" | grep "vmName" | sed "s|vmName=||g")
     if [ "$vmname" = "" ]; then
@@ -100,18 +103,18 @@ main() {
         if [ "$host" != "" ]; then
             tira_call vm-shutdown -r "$host" "$vmname"
         else
-            logError "$vmname is not a valid username/vmname."
+            logError "[tira-vm-shutdown] $vmname is not a valid username/vmname."
         fi
         return
     fi
-
+    
     # Every parameter is parsed and extracted: now do the job.
-
+    
     # Check if vm is started.
     get_vm_state "$vmname" state
 
     if [ "$state" != "running" ];  then
-        logWarn "VM is not running!"
+        logWarn "[tira-vm-shutdown] VM is not running!"
         exit 1
     fi
 
@@ -121,11 +124,12 @@ main() {
     elif [ "$os" = "windows" ]; then
         shutdownCmd="shutdown.exe /s /f /t 0"
     fi
-
+    
+    logInfo "[tira-vm-shutdown] Preparing shutdown done."
 
     # Shutting down VM.
 
-    logInfo "Shutting down VM of $user on $host with cmd $shutdownCmd ..."
+    logInfo "[tira-vm-shutdown] Shutting down VM of $user on $host with cmd $shutdownCmd ..."
     sshpass -p "$userpw" \
       ssh "$user@$host" -p "$sshport" \
         -o UserKnownHostsFile=/dev/null \
@@ -134,10 +138,11 @@ main() {
         -t \
         -t "$shutdownCmd"
 
-    logInfo "...waiting..."
+    logInfo "[tira-vm-shutdown] ...waiting..."
     sleep 10
 
     unittest && check_is_vm_stopped "$vmname"
+    logInfo "[tira-vm-shutdown] Successfully shut down VM."
 }
 
 #
