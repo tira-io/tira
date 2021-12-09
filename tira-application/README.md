@@ -36,6 +36,10 @@ You need to run two docker containers for a tira-application: `registry.webis.de
 
 ## Build and Deploy
 
+### Deploy on Kubernetes
+
+- Add the discourse secret in the namespace via: `tira-host/src/tira_scripts/k8s-deploy-discourse-api-key.sh`
+
 ### Re-build the docker images: 
 
    ```bash
