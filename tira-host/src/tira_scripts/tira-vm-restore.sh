@@ -60,15 +60,18 @@ eval set -- "${FLAGS_ARGV}"
 #    Recreates a VM from a snapshot.
 #
 main() {
-
+    
+    logInfo "[tira-vm-restore] Checking Parameters..."
     # Print usage screen, if wrong parameter count.
     if [ "$#" -ne 2 ]; then
-        logError "Wrong argument count, see:"
+        logError "[tira-vm-restore] Wrong argument count, see:"
         usage
     fi
-
+    logInfo "[tira-vm-restore] Checking Parameters done."
+    
     sleep 10
 
+    logInfo "[tira-vm-restore] Get VM info and state..."
     vmname="$1"
     snapshotname="$2"
 
@@ -76,14 +79,19 @@ main() {
 
     # If VM is running, shut it down.
     if [ "$state" = "running" ]; then
-        logInfo "first shutting down..."
+        logInfo "[tira-vm-restore] VM is running, shutting down now..."
         tira_call vm-stop "$vmname"
         sleep 3
     fi
-
+    logInfo "[tira-vm-restore] Get VM info and state done."
+    
+    logInfo "[tira-vm-restore] Restoring VM from snapshot..."
     VBoxManage snapshot "$vmname" restore "$snapshotname"
-
+    logInfo "[tira-vm-restore] Restored VM from snapshot."
+    
+    logInfo "[tira-vm-restore] Starting restored VM..."
     tira_call vm-start "$vmname"
+    logInfo "[tira-vm-restore] Started restored VM."
 }
 
 #
