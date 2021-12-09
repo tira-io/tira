@@ -32,7 +32,7 @@ a.uk-button-primary {
 }
 
 .uk-checkbox {
-    width: 16px; !important
+    width: 16px !important;
 }
 
 @media (max-width: 800px) {
