@@ -72,7 +72,7 @@ main() {
     logInfo "[tira-vm-sandbox] Checking Parameters..."
     # Print usage screen if wrong parameter count.
     if [ "$#" -ne 3 ]; then
-        logError "Wrong amount of parameters, see:"
+        logError "[tira-vm-sandbox] Wrong amount of parameters, see:"
         usage
     fi
     
@@ -179,7 +179,7 @@ main() {
     sudo iptables -I $INPUT -i em+ -p tcp --dport "$rdpport" -s localhost -j ACCEPT
 
     vm_ip_adress=$(echo "$vm_infos" | grep "ip=" | sed "s|ip=||g")
-    logDebug "tira-vm-sandbox] vm ip adress: $vm_ip_adress"
+    logDebug "[tira-vm-sandbox] vm ip adress: $vm_ip_adress"
     logInfo "[tira-vm-sandbox]     Cutting off traffic to origin vm done."
     
     logInfo "[tira-vm-sandbox]     Cloning VM..."
@@ -192,8 +192,8 @@ main() {
     if [ "$mounttestdatasets" = "true" ]; then
         sfnametest="$_CONFIG_tira_test_datasets_name"
         sfpathtest="$_CONFIG_FILE_tira_test_datasets_dir"
-        logInfo "Mounting shared folder with TEST datasets..."
-        logInfo "$sfnametest -> $sfpathtest"
+        logInfo "[tira-vm-sandbox] Mounting shared folder with TEST datasets..."
+        logInfo "[tira-vm-sandbox] $sfnametest -> $sfpathtest"
         VBoxManage sharedfolder add "$vmname-clone-$snapshotName" --name "$sfnametest" --hostpath "$sfpathtest" --readonly --automount
     fi
     logInfo "[tira-vm-sandbox]     Mounting test datasets to cloned VM done."
@@ -218,7 +218,7 @@ main() {
     sharedFolderBase="/media/"
 
     if [[ "$vmname" = *"windows"* ]]; then
-        logInfo "try to list network shares."
+        logInfo "[tira-vm-sandbox] List network shares."
         sleep 20
         sharedFolderBase="//VBOXSVR/"
         sshpass -p "$pw" \
