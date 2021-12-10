@@ -185,13 +185,15 @@
     <div id="modal-command-help" class="uk-modal-container" uk-modal>
         <div class="uk-modal-dialog uk-modal-body uk-margin-auto-vertical">
             <button class="uk-modal-close-default" type="button" uk-close></button>
-            <h2 class="uk-modal-title">Commands Help</h2>
+            <h2 class="uk-modal-title">Commands Help for {{ task.task_name }}</h2>
             <p>
             The <em>Command</em> will be executed on your Virtual Machine. By default, it will be run from your user's home directory.
-                You can select a different location in the <em>Working Directory</em> input. You can use the following variables in your Commands:
+                You can select a different location in the <em>Working Directory</em> input.
             </p>
+            {% if task.commandDescription == '' %}
             <table class="uk-table uk-table-small uk-table-divider uk-align-center uk-margin-bottom">
                 <thead>
+                    <tr><td colspan="2">You can use the following variables in your Commands:</td></tr>
                     <tr><th>Variable</th><th>Description</th></tr>
                 </thead>
                 <tfoot>
@@ -199,11 +201,21 @@
                 <tr><td class="uk-text-bold">$outputDir</td><td>This will resolve to the full path to the directory where <em>your software must write it's output</em></td></tr>
                 </tfoot>
             </table>
+            {% else %}
+            {% autoescape off %}
+            {{ task.commandDescription }}
+            {% endautoescape %}
+            {% endif %}
+
+            {% if task.commandPlaceholder == '' %}
             <label class="uk-form-label">Example Command in TIRA</label>
             <pre><code>my-software/run.sh -i $inputDataset -o $outputDir</code></pre>
-
             <label class="uk-form-label">Example Command in the Virtual Machine</label>
             <pre><code>my-software/run.sh -i /media/training-datasets/{{ task.task_id }}/&lt;Input Dataset&gt; -o /tmp/{{ vm_id }}/&lt;RUN&gt;/output</code></pre>
+            {% else %}
+            <label class="uk-form-label">Example Command in TIRA</label>
+            <pre><code>{{ task.commandPlaceholder }}</code></pre>
+            {% endif %}
         </div>
     </div>
 </main>
