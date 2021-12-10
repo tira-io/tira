@@ -15,11 +15,9 @@ class CreateVmForm(forms.Form):
                                                                "placeholder": "hostname,vm_id_1,ova_id\nhostname,vm_id_2,..."}))
 
 
-class AdminGrantAccessForm(forms.Form):
-    user_id = forms.CharField(label="User ID", max_length=100,
-                              widget=forms.TextInput(attrs={"class": "uk-input", "placeholder": "Enter Tira User ID"}))
-    vm_id = forms.CharField(label="Virtual Machine ID", max_length=100,
-                            widget=forms.TextInput(attrs={"class": "uk-input", "placeholder": "Enter Tira VM ID"}))
+class AdminCreateGroupForm(forms.Form):
+    vm_id = forms.CharField(label="Group ID", max_length=100,
+                            widget=forms.TextInput(attrs={"class": "uk-input", "placeholder": "Enter a group ID (same as VM ID)"}))
 
 
 class ArchiveVmForm(forms.Form):
