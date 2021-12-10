@@ -87,7 +87,8 @@ def logout(request):
 def task_detail(request, context, task_id):
     context["vm_id"] = auth.get_vm_id(request, context["user_id"])
     context["task"] = model.get_task(task_id)
-    context["tasks"] = model.get_datasets_by_task(task_id)
+    context["datasets"] = model.get_datasets_by_task(task_id)
+
     return render(request, 'tira/task_detail.html', context)
 
 
@@ -105,56 +106,20 @@ def dataset_list(request, context):
 def dataset_detail(request, context, task_id, dataset_id):
     """ The dataset view. Users, it shows only the public leaderboard right now.
     Admins, it shows all evaluations on the dataset, as well as a list of all runs and the review interface.
+
      @note maybe later, we can show a consolidated view of all runs the user made on this dataset below.
      """
     role = context["role"]
 
     # For all users: compile the results table from the evaluations
     vm_ids = model.get_vms_by_dataset(dataset_id)
-    vm_evaluations = {vm_id: model.get_vm_evaluations_by_dataset(dataset_id, vm_id,
-                                                                 only_public_results=False if role == 'admin' else True)
-                      for vm_id in vm_ids}
     # This enforces an order to the measures, since they differ between datasets and are rendered dynamically
-    keys = set()
-    for e1 in vm_evaluations.values():
-        for e2 in e1.values():
-            keys.update(e2.keys())
-    ev_keys = list(keys)
+    vm_reviews = {vm_id: model.get_vm_reviews_by_dataset(dataset_id, vm_id) for vm_id in vm_ids}
 
     # If an admin views the page, we also show all runs
-    vms = None
-    if role == 'admin':
-        vm_runs = {vm_id: model.get_vm_runs_by_dataset(dataset_id, vm_id)
-                   for vm_id in vm_ids}
-
-        vm_reviews = {vm_id: model.get_vm_reviews_by_dataset(dataset_id, vm_id)
-                      for vm_id in vm_ids}
-
-        vms = []
-        for vm_id, run in vm_runs.items():
-            runs = [{"run": run, "review": vm_reviews.get(vm_id, None).get(run["run_id"], None)}
-                    for run in vm_runs.get(vm_id)]
-            unreviewed_count = len([1 for r in vm_reviews[vm_id].values()
-                                    if not r.get("hasErrors", None) and not r.get("hasNoErrors", None)])
-            published_count = len([1 for r in vm_reviews[vm_id].values()
-                                   if r.get("published", None)])
-            blinded_count = len([1 for r in vm_reviews[vm_id].values()
-                                 if r.get("blinded", None)])
-            vms.append({"vm_id": vm_id, "runs": runs, "unreviewed_count": unreviewed_count,
-                        "blinded_count": blinded_count, "published_count": published_count})
-        evaluations = [{"vm_id": vm_id,
-                        "run_id": run_id,
-                        "blinded": vm_reviews.get(vm_id, {}).get(run_id, {}).get("blinded", False),
-                        "published": vm_reviews.get(vm_id, {}).get(run_id, {}).get("published", False),
-                        "measures": [measures.get(k, "-") for k in ev_keys]}
-                       for vm_id, measures_by_runs in vm_evaluations.items()
-                       for run_id, measures in measures_by_runs.items()]
-    else:
-        evaluations = [{"vm_id": vm_id,
-                        "run_id": run_id,
-                        "measures": [measures.get(k, "-") for k in ev_keys]}
-                       for vm_id, measures_by_runs in vm_evaluations.items()
-                       for run_id, measures in measures_by_runs.items()]
+    vms = model.get_vms_with_reviews(vm_ids, dataset_id, vm_reviews) if role == "admin" else None
+    ev_keys, evaluations = model.get_evaluations_with_keys_by_dataset(vm_ids, dataset_id,
+                                                                      vm_reviews if role == "admin" else None)
 
     context["dataset_id"] = dataset_id
     context["task"] = model.get_task(task_id)

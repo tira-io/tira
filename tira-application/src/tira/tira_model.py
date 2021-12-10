@@ -430,6 +430,27 @@ class FileDatabase(object):
             runs.extend(self.get_vm_runs_by_dataset(dataset_id, vm_id, return_deleted=return_deleted))
         return runs
 
+    def get_vms_with_reviews(self, vm_ids, dataset_id, vm_reviews):
+        """ Get a list of all vms of a given dataset. VM's are given as a dict:
+         ``{vm_id: str, "runs": list of runs, unreviewed_count: int, blinded_count: int, published_count: int}``
+        """
+        vm_runs = {vm_id: self.get_vm_runs_by_dataset(dataset_id, vm_id)
+                   for vm_id in vm_ids}
+
+        vms = []
+        for vm_id, run in vm_runs.items():
+            runs = [{"run": run, "review": vm_reviews.get(vm_id, None).get(run["run_id"], None)}
+                    for run in vm_runs.get(vm_id)]
+            unreviewed_count = len([1 for r in vm_reviews[vm_id].values()
+                                    if not r.get("hasErrors", None) and not r.get("hasNoErrors", None)])
+            published_count = len([1 for r in vm_reviews[vm_id].values()
+                                   if r.get("published", None)])
+            blinded_count = len([1 for r in vm_reviews[vm_id].values()
+                                 if r.get("blinded", None)])
+            vms.append({"vm_id": vm_id, "runs": runs, "unreviewed_count": unreviewed_count,
+                        "blinded_count": blinded_count, "published_count": published_count})
+        return vms
+
     def get_evaluator(self, dataset_id, task_id=None):
         """ returns a dict containing the evaluator parameters:
 
@@ -464,6 +485,42 @@ class FileDatabase(object):
         return {run_id: self._get_evaluation(ev)
                 for run_id, ev in
                 self._load_vm_evaluations(dataset_id, vm_id, only_published=only_public_results).items()}
+
+    def get_evaluations_with_keys_by_dataset(self, vm_ids, dataset_id, vm_reviews=None):
+        """ Get all evaluations and evaluation measures for all vms on the given dataset.
+
+        @param vm_ids: a list of vm_id
+        @param dataset_id: the dataset_id as used in tira_model
+        @param vm_reviews: a dict of {vm_id: review}, where review is returned by model.get_vm_reviews(_by_dataset).
+        If this is given, the review status (published, blinded) is included in the evaluations.
+
+        :returns: a tuple (ev_keys, evaluation), where ev-keys is a list of keys of the evaluation measure
+        and evaluation a list of evaluations and each evaluation is a dict with {vm_id: str, run_id: str, measures: list}
+        """
+        vm_evaluations = {vm_id: self.get_vm_evaluations_by_dataset(dataset_id, vm_id,
+                                                                     only_public_results=False if vm_reviews else True)
+                          for vm_id in vm_ids}
+        keys = set()
+        for e1 in vm_evaluations.values():
+            for e2 in e1.values():
+                keys.update(e2.keys())
+        ev_keys = list(keys)
+
+        if vm_reviews:
+            evaluations = [{"vm_id": vm_id,
+                            "run_id": run_id,
+                            "blinded": vm_reviews.get(vm_id, {}).get(run_id, {}).get("blinded", False),
+                            "published": vm_reviews.get(vm_id, {}).get(run_id, {}).get("published", False),
+                            "measures": [measures.get(k, "-") for k in ev_keys]}
+                           for vm_id, measures_by_runs in vm_evaluations.items()
+                           for run_id, measures in measures_by_runs.items()]
+        else:
+            evaluations = [{"vm_id": vm_id,
+                            "run_id": run_id,
+                            "measures": [measures.get(k, "-") for k in ev_keys]}
+                           for vm_id, measures_by_runs in vm_evaluations.items()
+                           for run_id, measures in measures_by_runs.items()]
+        return ev_keys, evaluations
 
     def get_run(self, dataset_id, vm_id, run_id, return_deleted=False):
         return self._load_run(dataset_id, vm_id, run_id, return_deleted=return_deleted, as_json=True)
