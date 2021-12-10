@@ -342,8 +342,11 @@ class FileDatabase(object):
 
     def get_task(self, task_id: str) -> dict:
         t = self.tasks[task_id]
+
         return {"task_name": t.taskName,
                 "description": t.taskDescription,
+                "commandPlaceholder": "" if t.commandPlaceholder == "mySoftware -c $inputDataset -r $inputRun -o $outputDir" else t.commandPlaceholder,
+                "commandDescription": "" if t.commandDescription == "Available variables: <code>$inputDataset</code>, <code>$inputRun</code>, <code>$outputDir</code>, <code>$dataServer</code>, and <code>$token</code>." else t.commandDescription,
                 "task_id": t.taskId,
                 "dataset_count": len(t.trainingDataset) + len(t.testDataset),
                 "software_count": len(self.software_by_task.get(t.taskId, {0})),
