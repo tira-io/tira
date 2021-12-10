@@ -6,6 +6,11 @@ from tira.forms import *
 from django.http import HttpResponse, JsonResponse
 from django.conf import settings
 from http import HTTPStatus
+from datetime import datetime
+
+import requests
+import json
+
 
 from tira.tira_model import model
 
@@ -233,13 +238,55 @@ def admin_create_group_form(request):
     return JsonResponse(context)
 
 
+def discourse_api_key():
+    return open("/etc/discourse/client-api-key", "r").read().strip()
+
+
+def create_discourse_group(vm):
+    group_bio=f"""Members of this group have access to the virtual machine ${vm.userName}:<br><br>
+<ul>
+  <li>Host: {vm.host}</li>
+  <li>User: {vm.userName}</li>
+  <li>Passwort: {vm.userPw}</li>
+  <li>SSH Port: {vm.portSsh}</li>
+  <li>RDP Port: {vm.portRdp}</li>
+  <li>SSH Example: <code>sshpass -p {vm.userPw} ssh {vm.userName}@{vm.host} -p {vm.portSsh} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no</code></li>
+</ul><br><br>
+Please contact us when you have questions.
+"""
+
+    ret = requests.post("https://www.tira.io/admin/groups",
+            headers = {"Api-Key": discourse_api_key(), "Accept": "application/json", "Content-Type": "multipart/form-data"},
+            data = {"group[name]": f"tira_vm_{vm.userName}", "group[visibility_level]": 2, "group[members_visibility_level]": 2, "group[bio_raw]": group_bio}
+    )
+
+
+    return json.loads(ret.text)['basic_group']['id']
+
+
+def create_discourse_invite_link(group_id):
+    ret = requests.post("https://www.tira.io/invites",
+            headers = {"Api-Key": discourse_api_key(), "Accept": "application/json", "Content-Type": "multipart/form-data"},
+            data = {"group_ids[]": group_id, "max_redemptions_allowed": 20, "expires_at": str(datetime.now().year+1)+ "-12-31"}
+    )
+
+    return json.loads(ret.text)['link']
+
+
 @actions_check_permissions({"tira", "admin"})
 @check_resources_exist('json')
 def admin_create_group(request, vm_id):
     """ this is a rest endpoint to grant a user permissions on a vm"""
-    context = {"status": 0, "message": ""}
+    vm = None
+    try:
+        vm = model.get_vm(vm_id)
+    except KeyError as e:
+        logger.error(e)
+        return JsonResponse({"status": 0, "message": f"VM with ID {vm_id} does not exist"})
 
-    # TODO implement
+    vm_group = create_discourse_group(vm)
+    invite_link = create_discourse_invite_link(vm_group)
 
-    context = {"status": 1, "message": f"Created group for {vm_id}"}
+    context = {"status": 1, "message": f"Invite Mail: Please use this link to create your login for TIRA: {invite_link}. After login to TIRA, you can find the credentials and usage examples for your dedicated virtual machine {vm_id} here: https://www.tira.io/g/tira_vm_{vm_id}"}
     return JsonResponse(context)
+

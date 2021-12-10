@@ -4,3 +4,4 @@ protobuf
 uwsgi
 Django
 pyyaml
+requests
