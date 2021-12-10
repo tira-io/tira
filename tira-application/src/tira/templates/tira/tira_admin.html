@@ -110,7 +110,7 @@
         <!--            <li><a id="tira-admin-coherence" disabled>Check System Coherence</a><span id="tira-admin-coherence-icon"></span></li>-->
                 </ul>
                 <h2>Add Permissions</h2>
-                <form id="grant-permission-form" action="{% url 'tira:admin_create_group_form' %}" method="POST" target="_blank">
+                <form id="create-group-form" action="{% url 'tira:admin_create_group_form' %}" method="POST" target="_blank">
                     {% csrf_token %}
                     <div>
                     {{ create_group_form }}
