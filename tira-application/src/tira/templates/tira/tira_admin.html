@@ -109,6 +109,17 @@
                     <li>TODO: Check System Coherence</li>
         <!--            <li><a id="tira-admin-coherence" disabled>Check System Coherence</a><span id="tira-admin-coherence-icon"></span></li>-->
                 </ul>
+                <h2>Add Permissions</h2>
+                <form id="grant-permission-form" action="{% url 'tira:admin_grant_user_permission_on_vm_form' %}" method="POST" target="_blank">
+                    {% csrf_token %}
+                    <div>
+                    {{ grant_permission_form }}
+                    </div>
+                    <span id="grant-permission-form-error" style="color: red"></span>
+                    <br>
+                    <input type="submit" class="uk-button uk-button-primary" value="Add"/><span id="grant-permission-form-icon"></span>
+                </form>
+                <div id="grant-permission-form-results"></div>
             </li>
             <li>
                 <div class="uk-grid-small uk-child-width-1-2@m" data-uk-grid>

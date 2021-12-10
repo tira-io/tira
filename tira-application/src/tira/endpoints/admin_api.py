@@ -204,3 +204,43 @@ def admin_add_dataset(request):
         HttpResponse("Permission Denied")
 
     return JsonResponse(context)
+
+
+@actions_check_permissions({"tira", "admin"})
+@check_resources_exist('json')
+def admin_grant_user_permission_on_vm_form(request):
+    """ This is the form endpoint to grant a user permissions on a vm"""
+    context = {"status": 0, "message": ""}
+
+    if request.method == "POST":
+        form = AdminGrantAccessForm(request.POST)
+        if form.is_valid():
+            try:
+                user_id = form.cleaned_data["user_id"]
+                vm_id = form.cleaned_data["vm_id"]
+            except IndexError:
+                context["create_vm_form_error"] = "Error Parsing input. Are all lines complete?"
+                return JsonResponse(context)
+
+            # TODO implement
+            context = {"status": 1, "message": f"Granted {user_id} permissions on {vm_id}"}
+
+        else:
+            context["create_vm_form_error"] = "Form Invalid (check formatting)"
+            return JsonResponse(context)
+    else:
+        HttpResponse("Permission Denied, GET request is not allowed here.")
+
+    return JsonResponse(context)
+
+
+@actions_check_permissions({"tira", "admin"})
+@check_resources_exist('json')
+def admin_grant_user_permission_on_vm(request, user_id, vm_id):
+    """ this is a rest endpoint to grant a user permissions on a vm"""
+    context = {"status": 0, "message": ""}
+
+    # TODO implement
+
+    context = {"status": 1, "message": f"Granted {user_id} permissions on {vm_id}"}
+    return JsonResponse(context)

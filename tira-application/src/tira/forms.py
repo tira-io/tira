@@ -15,6 +15,13 @@ class CreateVmForm(forms.Form):
                                                                "placeholder": "hostname,vm_id_1,ova_id\nhostname,vm_id_2,..."}))
 
 
+class AdminGrantAccessForm(forms.Form):
+    user_id = forms.CharField(label="User ID", max_length=100,
+                              widget=forms.TextInput(attrs={"class": "uk-input", "placeholder": "Enter Tira User ID"}))
+    vm_id = forms.CharField(label="Virtual Machine ID", max_length=100,
+                            widget=forms.TextInput(attrs={"class": "uk-input", "placeholder": "Enter Tira VM ID"}))
+
+
 class ArchiveVmForm(forms.Form):
     bulk_archive = forms.CharField(label="Enter VM_IDs to be archived (newline separated)",
                                    widget=forms.Textarea(attrs={"class": "uk-textarea", "rows": "5",
@@ -92,10 +99,13 @@ class AddDatasetForm(forms.Form):
 class ReviewForm(forms.Form):
     """ Form to create Reviews. Delivered on the tira.review route and handeled by the review view."""
     no_errors = forms.BooleanField(label="No Errors", required=False,
-                                   widget=forms.CheckboxInput(attrs={"id": "no-error-checkbox", "class": "uk-checkbox"}))
+                                   widget=forms.CheckboxInput(
+                                       attrs={"id": "no-error-checkbox", "class": "uk-checkbox"}))
     output_error = forms.BooleanField(label="Output Error", required=False,
-                                        widget=forms.CheckboxInput(attrs={"id": "output-error-checkbox", "class": "uk-checkbox"}))
+                                      widget=forms.CheckboxInput(
+                                          attrs={"id": "output-error-checkbox", "class": "uk-checkbox"}))
     software_error = forms.BooleanField(label="Software Error", required=False,
-                                      widget=forms.CheckboxInput(attrs={"id": "software-error-checkbox", "class": "uk-checkbox"}))
+                                        widget=forms.CheckboxInput(
+                                            attrs={"id": "software-error-checkbox", "class": "uk-checkbox"}))
     comment = forms.CharField(label="Comment", required=False,
                               widget=forms.Textarea(attrs={"class": "uk-textarea", "rows": "6"}))

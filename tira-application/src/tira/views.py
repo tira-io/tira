@@ -48,6 +48,7 @@ def admin(request, context):
     context["archive_vm_form"] = ArchiveVmForm()
     context["create_task_form"] = CreateTaskForm()
     context["add_dataset_form"] = AddDatasetForm()
+    context["grant_permission_form"] = AdminGrantAccessForm()
     context["modify_vm_form"] = ModifyVmForm()
     return render(request, 'tira/tira_admin.html', context)
 
