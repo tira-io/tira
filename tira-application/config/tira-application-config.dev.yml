@@ -9,6 +9,7 @@ django_secret: 'not-so-secret'
 deployment: legacy
 # in the legacy deployment, a path to the users file is needed. With the default tira model this is TIRA_ROOT/model/users/users.prototext
 # legacy_users_file: model/users/users.prototext
+# disraptor_secret_file: /etc/discourse/client-api-key
 # The directory where logs are written to. Defaults to TIRA_ROOT/log/tira-application
 # logging_dir: /mnt/ceph/tira/log/tira-application
 # Path to the database (currently, where the .sqlite rests. Defaults to TIRA_ROOT/state/

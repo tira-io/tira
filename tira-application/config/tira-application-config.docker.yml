@@ -8,6 +8,7 @@ tira_root: /path/to/tira/model
 # deployment = {disraptor, legacy}
 deployment: legacy
 # legacy_users_file: /path/to/tira/model/users/users.prototext
+# disraptor_secret_file: /etc/discourse/client-api-key
 # The directory where logs are written to. Defaults to TIRA_ROOT/log/tira-application
 # logging_dir: /path/to/tira/log/tira-application
 # Path to the database (currently, where the .sqlite rests. Defaults to TIRA_ROOT/state/
