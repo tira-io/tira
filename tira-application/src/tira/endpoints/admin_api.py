@@ -206,7 +206,7 @@ def admin_add_dataset(request):
 
 
 @actions_check_permissions({"tira", "admin"})
-# @check_resources_exist('json')
+@check_resources_exist('json')
 def admin_create_group(request, vm_id):
     """ This is the form endpoint to grant a user permissions on a vm"""
     context = {"status": 0, "message": ""}
