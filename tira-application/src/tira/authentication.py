@@ -241,7 +241,7 @@ class DisraptorAuthentication(Authentication):
         return open(settings.DISRAPTOR_SECRET_FILE, "r").read().strip()
 
     def _create_discourse_group(self, vm):
-        group_bio = f"""Members of this group have access to the virtual machine ${vm.userName}:<br><br>
+        group_bio = f"""Members of this group have access to the virtual machine {vm.userName}:<br><br>
     <ul>
       <li>Host: {vm.host}</li>
       <li>User: {vm.userName}</li>
