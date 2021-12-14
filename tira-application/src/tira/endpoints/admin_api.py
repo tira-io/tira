@@ -206,32 +206,32 @@ def admin_add_dataset(request):
 
 
 @actions_check_permissions({"tira", "admin"})
-@check_resources_exist('json')
-def admin_create_group_form(request):
+# @check_resources_exist('json')
+def admin_create_group(request, vm_id):
     """ This is the form endpoint to grant a user permissions on a vm"""
     context = {"status": 0, "message": ""}
-
+    print("uri", vm_id)
     if request.method == "POST":
         form = AdminCreateGroupForm(request.POST)
         if form.is_valid():
             vm_id = form.cleaned_data["vm_id"]
-            vm = model.get_vm(vm_id)
-            context = auth.create_group(vm)
+            print("form", vm_id)
         else:
             context["create_vm_form_error"] = "Form Invalid (check formatting)"
             return JsonResponse(context)
-    else:
-        HttpResponse("Permission Denied, GET request is not allowed here.")
 
-    return JsonResponse(context)
-
-
-@actions_check_permissions({"tira", "admin"})
-@check_resources_exist('json')
-def admin_create_group(request, vm_id):
-    """ this is a rest endpoint to grant a user permissions on a vm"""
     vm = model.get_vm(vm_id)
-
     context = auth.create_group(vm)
+
     return JsonResponse(context)
 
+#
+# @actions_check_permissions({"tira", "admin"})
+# @check_resources_exist('json')
+# def admin_create_group(request, vm_id):
+#     """ this is a rest endpoint to grant a user permissions on a vm"""
+#     vm = model.get_vm(vm_id)
+#
+#     context = auth.create_group(vm)
+#     return JsonResponse(context)
+#

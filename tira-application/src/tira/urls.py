@@ -43,8 +43,7 @@ urlpatterns = [
     path('tira-admin/modify-vm', admin_api.admin_modify_vm, name='tira-admin-modify-vm'),
     path('tira-admin/create-task', admin_api.admin_create_task, name='tira-admin-create-task'),
     path('tira-admin/add-dataset', admin_api.admin_add_dataset, name='tira-admin-add-dataset'),
-    path('tira-admin/admin_create_group', admin_api.admin_create_group_form, name='admin_create_group_form'),
-    path('tira-admin/admin_create_group/<str:vm_id>', admin_api.admin_create_group, name='admin_create_group'),
+    path('tira-admin/create-group/<str:vm_id>', admin_api.admin_create_group, name='tira-admin-create-group'),
 
     path('publish/<str:vm_id>/<str:dataset_id>/<str:run_id>/<str:value>', organizer_api.publish, name='publish'),
     path('blind/<str:vm_id>/<str:dataset_id>/<str:run_id>/<str:value>', organizer_api.blind, name='blind'),

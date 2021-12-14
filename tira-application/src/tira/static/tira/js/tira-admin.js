@@ -31,10 +31,21 @@ function string_to_slug (str) {
     return str;
 }
 
-function add_slug() {
+function warningAlert(action, error, response) {
+    if (response.status === '1') {
+        UIkit.notification('Warning: ' + action + ' failed. If you think this is a TIRA problem, please contact the support.' +
+            '<br>' +
+            '<span class="uk-text-small">' + error + ' ' + JSON.stringify(response) + '.</span>', 'warning');
+    } else if (response.status === '2') {
+        UIkit.notification('Critical: ' + action + ' failed. Please contact the support.' +
+            '<br>' +
+            '<span class="uk-text-small">' + error + ' ' + JSON.stringify(response) + '.</span>', 'danger');
+    } else {
+        UIkit.notification(action + ' responded with: <span class="uk-text-small">' +
+        error + ' ' + JSON.stringify(response) + '</span>', 'primary');
+    }
 
 }
-
 
 function submitCreateVmForm(){
     $('#create-vm-form-icon').html(' <div uk-spinner="ratio: 0.5"></div>')
@@ -59,19 +70,54 @@ function submitCreateVmForm(){
     })
 }
 
+function submitCreateGroup(){
+    $('#create-group-form-icon').html(' <div uk-spinner="ratio: 0.5"></div>')
+    let endpoint = "/tira-admin/create-group/" + $('#id_vm_id').val()
+    $.ajax({
+        type:"POST",
+        url: endpoint,
+        headers: {
+            'X-CSRFToken': $('input[name=csrfmiddlewaretoken]').val()
+        },
+        data:{
+            vm_id:$('#id_vm_id').val(),
+            csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val(),
+            action: 'post'
+        },
+        success: function( data )
+        {
+            document.getElementById("create-group-form").reset();
+            if (data.status === 1) {
+                $('#create-group-form-icon').html(' <i class="fas fa-check"></i>')
+            } else {
+                $('#create-group-form-icon').html('')
+                $('#create-group-form-error').text(data['create_group_form_error']);
+                warningAlert("Create Group", "Undefined", data.message)
+            }
+        },
+        error: function (jqXHR, textStatus, throwError) {
+            warningAlert("Create Group", throwError, jqXHR.responseJSON)
+        }
+    })
+}
+
 function addTiraAdminHandlers() {
     $('#reload-website-data').click(function() {reloadData()})
     $('#create-vm-form').submit(function(e) {
         e.preventDefault();
         submitCreateVmForm()
     })
-    $('#id_dataset_name').keyup(function() {
-        let name = $('#id_dataset_name').val()
-        $('#id_dataset_id_prefix').val(string_to_slug(name))
+    $('#create-group-form').submit(function(e) {
+        e.preventDefault();
+        submitCreateGroup()
     })
-    $('#id_dataset_name').keydown(function() {
-        let name = $('#id_dataset_name').val()
-        $('#id_dataset_id_prefix').val(string_to_slug(name))
+
+    $('#id_dataset_name').keyup(function() {
+        let name = this.val()
+        this.val(string_to_slug(name))
+    }).keydown(function() {
+        let name = this.val()
+        this.val(string_to_slug(name))
     })
 }
 

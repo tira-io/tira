@@ -72,7 +72,7 @@ class Authentication(object):
         pass
 
     def create_group(self, vm_id):
-        return {"status": 0, "message": f"create_group is not implemented for {self.__name__}"}
+        return {"status": 0, "message": f"create_group is not implemented for {self._AUTH_SOURCE}"}
 
 
 class LegacyAuthentication(Authentication):

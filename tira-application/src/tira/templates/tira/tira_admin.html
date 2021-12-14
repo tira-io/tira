@@ -109,17 +109,17 @@
                     <li>TODO: Check System Coherence</li>
         <!--            <li><a id="tira-admin-coherence" disabled>Check System Coherence</a><span id="tira-admin-coherence-icon"></span></li>-->
                 </ul>
-                <h2>Add Permissions</h2>
-                <form id="create-group-form" action="{% url 'tira:admin_create_group_form' %}" method="POST" target="_blank">
+                <h2>Create Discourse Group</h2>
+                <form id="create-group-form">
                     {% csrf_token %}
-                    <div>
-                    {{ create_group_form }}
+                    {{ create_group_form.vm_id.label }}
+                    <div class="uk-grid-small" data-uk-grid>
+                        <div class=" uk-width-3-5">{{ create_group_form.vm_id }}</div>
+                        <input type="submit" class="uk-button uk-button-primary uk-width-1-5" value="Create Group"/><span id="create-group-form-icon"></span>
                     </div>
-                    <span id="create-group-form-error" style="color: red"></span>
-                    <br>
-                    <input type="submit" class="uk-button uk-button-primary" value="Add"/><span id="create-group-form-icon"></span>
+                    <span id="create-group-form-error" class="uk-text-danger"></span>
+                    <span id="create-group-form-results"></span>
                 </form>
-                <div id="create-group-form-results"></div>
             </li>
             <li>
                 <div class="uk-grid-small uk-child-width-1-2@m" data-uk-grid>
