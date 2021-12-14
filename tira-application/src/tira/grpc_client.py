@@ -100,16 +100,15 @@ class GrpcClient:
         return response
 
     @auto_transaction("run-execute")
-    def run_execute(self, vm_id, dataset_id, run_id, input_run_vm_id, input_run_dataset_id, input_run_run_id, task_id,
-                    software_id, transaction):
+    def run_execute(self, vm_id, dataset_id, run_id, input_run_vm_id, input_run_dataset_id, input_run_run_id,
+                    optional_parameters, task_id, software_id, transaction):
         """ Initiates a run: the execution of a software to produce output.
         :param software_id:
         :param task_id:
         :param vm_id: ID of the vm to run the command below
         :param dataset_id: ID of the dataset
         :param run_id: ID of the run
-        :param working_dir: WD of the command below
-        :param command: command to be run on the vm
+        :param optional_parameters: This is a dummy in the specification. May get a use later on.
         :param input_run_vm_id: (optional) vm that produced additional input as a run
         :param input_run_dataset_id: (optional) ID of the dataset of the additional input
         :param input_run_run_id: (optional) ID of the additional input (the input run )

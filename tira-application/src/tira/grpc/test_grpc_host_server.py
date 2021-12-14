@@ -273,6 +273,7 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
     def vm_info(self, request, context):
         print(f"received vm-info for {request.vmId}")
         vm = get_or_create_vm(request.vmId)
+
         return vm.get_info()
 
     def vm_create(self, request, context):
@@ -355,8 +356,7 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
          But we sleep instead. Afterwards, we notify the application that the transaction was complete.
          """
         print(f"received run-execute for {request.runId.runId} - {request.runId.datasetId} - {request.runId.vmId} - "
-              f"{request.inputRunId.runId} - {request.inputRunId.datasetId} - {request.inputRunId.vmId} - "
-              f"{request.workingDir} - {request.command}")
+              f"{request.inputRunId.runId} - {request.inputRunId.datasetId} - {request.inputRunId.vmId}")
         vm = get_or_create_vm(request.runId.vmId)
 
         t = Thread(target=vm.run_execute, args=(request.transaction.transactionId, ),
@@ -366,8 +366,7 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
     # @check_state({1})  # Uncommented for the dummy code. Here we cheat and pretend the master is running already
     def run_eval(self, request, context):
         print(f"received run-eval for {request.runId.runId} - {request.runId.datasetId} - {request.runId.vmId} - "
-              f"{request.inputRunId.runId} - {request.inputRunId.datasetId} - {request.inputRunId.vmId} - "
-              f"{request.workingDir} - {request.command}")
+              f"{request.inputRunId.runId} - {request.inputRunId.datasetId} - {request.inputRunId.vmId}")
 
         vm = get_or_create_vm(request.runId.vmId)  # eval is executed on the master vm
         vm.state = 1
