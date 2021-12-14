@@ -89,6 +89,7 @@ function submitCreateGroup(){
             document.getElementById("create-group-form").reset();
             if (data.status === 1) {
                 $('#create-group-form-icon').html(' <i class="fas fa-check"></i>')
+                UIkit.modal.dialog('<p>' + data.message + '</p>');
             } else {
                 $('#create-group-form-icon').html('')
                 $('#create-group-form-error').text(data['create_group_form_error']);
