@@ -2,7 +2,6 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
 from . import tira_host_pb2 as tira__host__pb2
 
 
@@ -42,7 +41,7 @@ class TiraHostServiceStub(object):
                 )
         self.vm_list = channel.unary_unary(
                 '/tira.generated.TiraHostService/vm_list',
-                request_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+                request_serializer=tira__host__pb2.Transaction.SerializeToString,
                 response_deserializer=tira__host__pb2.VmList.FromString,
                 )
         self.vm_metrics = channel.unary_unary(
@@ -97,8 +96,8 @@ class TiraHostServiceStub(object):
                 )
         self.alive = channel.unary_unary(
                 '/tira.generated.TiraHostService/alive',
-                request_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
-                response_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+                request_serializer=tira__host__pb2.Transaction.SerializeToString,
+                response_deserializer=tira__host__pb2.Transaction.FromString,
                 )
 
 
@@ -231,7 +230,7 @@ def add_TiraHostServiceServicer_to_server(servicer, server):
             ),
             'vm_list': grpc.unary_unary_rpc_method_handler(
                     servicer.vm_list,
-                    request_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+                    request_deserializer=tira__host__pb2.Transaction.FromString,
                     response_serializer=tira__host__pb2.VmList.SerializeToString,
             ),
             'vm_metrics': grpc.unary_unary_rpc_method_handler(
@@ -286,8 +285,8 @@ def add_TiraHostServiceServicer_to_server(servicer, server):
             ),
             'alive': grpc.unary_unary_rpc_method_handler(
                     servicer.alive,
-                    request_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
-                    response_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+                    request_deserializer=tira__host__pb2.Transaction.FromString,
+                    response_serializer=tira__host__pb2.Transaction.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -384,7 +383,7 @@ class TiraHostService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/tira.generated.TiraHostService/vm_list',
-            google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+            tira__host__pb2.Transaction.SerializeToString,
             tira__host__pb2.VmList.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
@@ -571,8 +570,8 @@ class TiraHostService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/tira.generated.TiraHostService/alive',
-            google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
-            google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+            tira__host__pb2.Transaction.SerializeToString,
+            tira__host__pb2.Transaction.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 

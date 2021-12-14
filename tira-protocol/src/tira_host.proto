@@ -140,15 +140,10 @@ message RunId {
 message RunDetails {
   Transaction transaction = 1;
   RunId runId = 2;
-//  string workingDir = 3; // removed: host loads the data from software prototext
-//  string command = 4; // removed: host loads the data from software prototext
   RunId inputRunId = 3;
   string optionalParameters = 4;
   string taskId = 5;
   string softwareId = 6;
-  // string outputDirName = 7;  // deprecated: Host must determine this
-  // string sandboxed = 8;  // deprecated: Note sure if this still makes sense
-  // string snapshotName = 9; // deprecated: Note sure if this still makes sense
 }
 
 message EvaluationResults {
