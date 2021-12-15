@@ -10,22 +10,6 @@ function setupPollingAfterPageLoad(vmid) {
     pollRunningSoftware(vmid)
 }
 
-function warningAlert(action, error, response) {
-    if (response.status === '1') {
-        UIkit.notification('Warning: ' + action + ' failed. If you think this is a TIRA problem, please contact the support.' +
-            '<br>' +
-            '<span class="uk-text-small">' + error + ' ' + JSON.stringify(response) + '.</span>', 'warning');
-    } else if (response.status === '2') {
-        UIkit.notification('Critical: ' + action + ' failed. Please contact the support.' +
-            '<br>' +
-            '<span class="uk-text-small">' + error + ' ' + JSON.stringify(response) + '.</span>', 'danger');
-    } else {
-        UIkit.notification(action + ' responded with: <span class="uk-text-small">' +
-        error + ' ' + JSON.stringify(response) + '</span>', 'primary');
-    }
-
-}
-
 function loadVmInfo(vmid) {
     $.ajax({
         type: 'GET',
@@ -251,19 +235,25 @@ function deleteSoftware(tid, vmid, softwareId, form) {
 }
 
 function saveSoftware(taskId, vmId, softwareId) {
+    let token = $('input[name=csrfmiddlewaretoken]').val()
+    let command = $(`#${softwareId}-command-input`).val()
+    let inputDataset = $(`#${softwareId}-input-dataset`).val()
+    if (command === "" || inputDataset === "" ){
+
+    }
     $.ajax({
         type: 'POST',
         url: `/task/${taskId}/vm/${vmId}/software_save/${softwareId}`,
         headers: {
-            'X-CSRFToken': $('input[name=csrfmiddlewaretoken]').val()
+            'X-CSRFToken': token
         },
         //TODO: Maybe rename keys
         data: {
-            command: $(`#${softwareId}-command-input`).val(),
+            command: command,
             working_dir: $(`#${softwareId}-working-dir`).val(),
-            input_dataset: $(`#${softwareId}-input-dataset`).val(),
+            input_dataset: inputDataset,
             input_run: $(`#${softwareId}-input-run`).val(),
-            csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val(),
+            csrfmiddlewaretoken: token,
             action: 'post'
         },
         success: function (data) {
