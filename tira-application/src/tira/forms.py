@@ -17,7 +17,7 @@ class CreateVmForm(forms.Form):
 
 class AdminCreateGroupForm(forms.Form):
     vm_id = forms.CharField(label="Group ID", max_length=100,
-                            widget=forms.TextInput(attrs={"class": "uk-input", "placeholder": "Enter a group ID (same as VM ID)"}))
+                            widget=forms.TextInput(attrs={"class": "uk-input", "placeholder": "Enter a group ID (same as userName for VM)"}))
 
 
 class ArchiveVmForm(forms.Form):
