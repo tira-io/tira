@@ -37,7 +37,6 @@ function loadVmInfo(vmid) {
             }
         },
         error: function (jqXHR, textStatus, throwError) {
-            warningAlert("Loading VM info", throwError, jqXHR.responseJSON)
             setConnectionError(jqXHR.responseJSON.message)
         }
     })
@@ -45,7 +44,7 @@ function loadVmInfo(vmid) {
 
 function setConnectionError(msg) {
     setInfo(msg, null, null, null, true);
-    setState(0);
+    setState(10);
     setPorts(null, false, null,false);
 }
 

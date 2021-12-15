@@ -168,7 +168,7 @@ def vm_info(request, vm_id):
         ex_message = "FAILED"
         try:
             if e.code() == StatusCode.UNAVAILABLE:  # .code() is implemented by the _channel._InteractiveRpcError
-                ex_message = "UNAVAILABLE"  # This happens if the GRPC Server is not running
+                ex_message = "Host Unavailable"  # This happens if the GRPC Server is not running
         except Exception as e2:  # There is a RpcError but not an Interactive one. This should not happen
             logger.exception(f"/grpc/{vm_id}/vm-info: Unexpected Execption occured: {e2}")
 
