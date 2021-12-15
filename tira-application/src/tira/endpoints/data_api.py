@@ -35,8 +35,30 @@ def get_evaluations_by_dataset(request, context, dataset_id):
     # This enforces an order to the measures, since they differ between datasets and are rendered dynamically
     vm_reviews = {vm_id: model.get_vm_reviews_by_dataset(dataset_id, vm_id) for vm_id in vm_ids}
 
-    # If an admin views the page, we also show all runs
-    vms = model.get_vms_with_reviews(vm_ids, dataset_id, vm_reviews) if role == "admin" else None
     ev_keys, evaluations = model.get_evaluations_with_keys_by_dataset(vm_ids, dataset_id,
                                                                       vm_reviews if role == "admin" else None)
-    # TODO
+    
+    context["dataset_id"] = dataset_id     # probably unnecessary since given by call
+    context["ev_keys"] = ev_keys
+    context["evaluations"] = evaluations
+
+    # TODO: set status, message
+    return JsonResponse({"context": context})
+
+
+@actions_check_permissions({"tira", "admin"})
+@check_resources_exist("json")
+@add_context
+def get_runs_by_dataset(request, context, dataset_id):
+    role = context["role"]
+
+    vm_ids = model.get_vms_by_dataset(dataset_id)
+    # This enforces an order to the measures, since they differ between datasets and are rendered dynamically
+    vm_reviews = {vm_id: model.get_vm_reviews_by_dataset(dataset_id, vm_id) for vm_id in vm_ids}
+
+    vms = model.get_vms_with_reviews(vm_ids, dataset_id, vm_reviews) if role == "admin" else None
+
+    context["vms"] = vms
+
+    # TODO: set status, message
+    return JsonResponse({"context": context})
