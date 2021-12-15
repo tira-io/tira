@@ -25,6 +25,7 @@ logger.info("ajax_routes: Logger active")
 def host_call(func):
     """ This is a decorator for methods that connect to a tira-host. It handles all exceptions that can occur
      in the grpc communication. It also adds a reply consistent with the return status of the grpc call. """
+
     @wraps(func)
     def func_wrapper(request, *args, **kwargs):
         try:
@@ -47,7 +48,8 @@ def host_call(func):
 
         except Exception as e:
             logger.exception(f"{request.get_full_path()}: Server Error: {e}")
-            return JsonResponse({'status': "1", 'message': f"An unexpected exception occurred: {e}"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+            return JsonResponse({'status': "1", 'message': f"An unexpected exception occurred: {e}"},
+                                status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
         if response.status == 0:
             return JsonResponse({'status': 0,
@@ -92,6 +94,7 @@ def host_call(func):
             status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
     return func_wrapper
+
 
 # ---------------------------------------------------------------------
 #   VM actions
@@ -233,16 +236,17 @@ def software_add(request, task_id, vm_id):
 @actions_check_permissions({"tira", "admin", "participant"})
 @check_resources_exist('json')
 def software_save(request, task_id, vm_id, software_id):
-    software = model.update_software(task_id, vm_id, software_id,
-                                     request.POST.get("command"),
-                                     request.POST.get("working_dir"),
-                                     request.POST.get("input_dataset"),
-                                     request.POST.get("input_run"))
+
+    software, message = model.update_software(task_id, vm_id, software_id,
+                                              request.POST.get("command"),
+                                              request.POST.get("working_dir"),
+                                              request.POST.get("input_dataset"),
+                                              request.POST.get("input_run"))
 
     if software:
-        return JsonResponse({'status': 'Accepted', 'last_edit': software.lastEditDate}, status=HTTPStatus.ACCEPTED)
+        return JsonResponse({'status': 'Accepted', "message": message, 'last_edit': software.lastEditDate}, status=HTTPStatus.ACCEPTED)
     else:
-        return JsonResponse({'status': 'Failed'}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+        return JsonResponse({'status': 'Failed', "message": message}, status=HTTPStatus.BAD_REQUEST)
 
 
 @actions_check_permissions({"tira", "admin", "participant"})

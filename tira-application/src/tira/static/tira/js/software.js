@@ -234,13 +234,37 @@ function deleteSoftware(tid, vmid, softwareId, form) {
     })
 }
 
+function checkInputFields(softwareId, command, inputDataset) {
+    let check = true
+    let serr = $('#' + softwareId + '-form-error')
+    let scommanderr = $('#' + softwareId + '-command-input')
+    let siderr = $('#' + softwareId + '-input-dataset')
+    let err_str = ''
+    scommanderr.removeClass("uk-form-danger")
+    siderr.removeClass("uk-form-danger")
+    if (command === ""){
+        err_str += 'The command can not be empty<br>';
+        scommanderr.addClass("uk-form-danger");
+        check = false;
+    }
+    if (inputDataset === "" || inputDataset === "None"){
+        err_str += 'The input dataset can not be empty<br>';
+        siderr.addClass("uk-form-danger");
+        check = false;
+    }
+    serr.html(err_str)
+    return check
+}
+
 function saveSoftware(taskId, vmId, softwareId) {
     let token = $('input[name=csrfmiddlewaretoken]').val()
     let command = $(`#${softwareId}-command-input`).val()
     let inputDataset = $(`#${softwareId}-input-dataset`).val()
-    if (command === "" || inputDataset === "" ){
 
+    if (checkInputFields(softwareId, command, inputDataset) === false){
+        return false
     }
+
     $.ajax({
         type: 'POST',
         url: `/task/${taskId}/vm/${vmId}/software_save/${softwareId}`,
@@ -275,8 +299,12 @@ function saveSoftware(taskId, vmId, softwareId) {
 }
 
 function runSoftware (taskId, vmId, softwareId) {
+
     // 0. execute save software
-    saveSoftware(taskId, vmId, softwareId);
+    if (saveSoftware(taskId, vmId, softwareId) === false) {
+        return false
+    }
+
     setState(0);
     // 1. make ajax call
     $.ajax({

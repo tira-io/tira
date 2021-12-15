@@ -747,6 +747,13 @@ class FileDatabase(object):
         def update(x, y):
             return y if y is not None else x
 
+        if command is None or command == "" or command == "None":
+            logger.error("Tried to save software, but no command was given.")
+            return False, "Tried to save software, but no command was given."
+        if dataset is None or dataset == "" or dataset == "None":
+            logger.error("Tried to save software, but no input dataset was given.")
+            return False, "Tried to save software, but no input dataset was given."
+
         s = self._load_softwares(task_id, vm_id)
         for software in s.softwares:
             if software.id == software_id:
@@ -760,9 +767,9 @@ class FileDatabase(object):
                 self._save_softwares(task_id, vm_id, s)
                 software_list = [user_software for user_software in s.softwares if not user_software.deleted]
                 self.software[f"{task_id}${vm_id}"] = software_list
-                return software
-
-        return False
+                return software, "Software saved"
+            return False, "Data inconsistent"
+        return False, "Server Error"
 
     # TODO add option to truly delete the software.
     def delete_software(self, task_id, vm_id, software_id):
