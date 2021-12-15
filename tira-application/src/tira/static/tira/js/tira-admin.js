@@ -56,16 +56,18 @@ function submitCreateVmForm(){
 
 function submitCreateGroup(){
     $('#create-group-form-icon').html(' <div uk-spinner="ratio: 0.5"></div>')
-    let endpoint = "/tira-admin/create-group/" + $('#id_vm_id').val()
+    let vm_id = $('#id_vm_id').val()
+    let token = $('input[name=csrfmiddlewaretoken]').val()
+    let endpoint = "/tira-admin/create-group/" + vm_id
     $.ajax({
         type:"POST",
         url: endpoint,
         headers: {
-            'X-CSRFToken': $('input[name=csrfmiddlewaretoken]').val()
+            'X-CSRFToken':token
         },
         data:{
-            vm_id:$('#id_vm_id').val(),
-            csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val(),
+            vm_id:vm_id,
+            csrfmiddlewaretoken:token,
             action: 'post'
         },
         success: function( data )
@@ -73,7 +75,12 @@ function submitCreateGroup(){
             document.getElementById("create-group-form").reset();
             if (data.status === 1) {
                 $('#create-group-form-icon').html(' <i class="fas fa-check"></i>')
-                UIkit.modal.dialog('<p>' + data.message + '</p>');
+                UIkit.modal.dialog('<div class="uk-section uk-section-default"><div class="uk-container">' +
+                    '<h2>Invite for VM ' +
+                    vm_id +
+                    '</h2><p>' +
+                    data.message +
+                    '</p></div></div>');
             } else {
                 $('#create-group-form-icon').html('')
                 $('#create-group-form-error').text(data['create_group_form_error']);

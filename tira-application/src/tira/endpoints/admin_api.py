@@ -210,12 +210,10 @@ def admin_add_dataset(request):
 def admin_create_group(request, vm_id):
     """ This is the form endpoint to grant a user permissions on a vm"""
     context = {"status": 0, "message": ""}
-    print("uri", vm_id)
     if request.method == "POST":
         form = AdminCreateGroupForm(request.POST)
         if form.is_valid():
             vm_id = form.cleaned_data["vm_id"]
-            print("form", vm_id)
         else:
             context["create_vm_form_error"] = "Form Invalid (check formatting)"
             return JsonResponse(context)
