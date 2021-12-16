@@ -238,7 +238,11 @@ class _FileDatabase(object):
                 open(run_dir / "run.bin", 'wb').write(r.SerializeToString())
             else:
                 logger.error(f"Try to read a run without a run.bin: {dataset_id}-{vm_id}-{run_id}")
-                return None
+                run = modelpb.Run()
+                run.softwareId = "This run is corrupted. Please contact the support."
+                run.runId = run_id
+                run.inputDataset = dataset_id
+                return run
 
         run = modelpb.Run()
         run.ParseFromString(open(run_dir / "run.bin", "rb").read())
