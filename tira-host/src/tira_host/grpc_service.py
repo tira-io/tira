@@ -36,7 +36,6 @@ fileConfig("conf/logging_config.ini", defaults={'filename': f"{tira_log_path}{so
 logger = logging.getLogger()
 
 grpc_client = TiraHostClient(tira_application_host, tira_application_grpc_port)
-model = FileDatabase()
 transactions = {}
 vms = {}
 
@@ -51,6 +50,7 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
                 time.sleep(2 * 60)
                 self.heartbeat()
 
+        self.model = FileDatabase(on_modified_callback=self.load_vms_list)
         self.load_vms_list()
 
         thread = threading.Thread(target=call)
@@ -70,13 +70,15 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
 
         for line in output.split('\n'):
             if not line: continue
-            vm_name = line.split(' ')[0].strip('\"')
-            vm_id_list.append(vm_name.split("-tira-")[0][:-3])
+            vm_name_full = line.split(' ')[0].strip('\"')
+            vm_id = vm_name_full.split("-tira-")[0][:-3]
+            if vm_id not in vms:
+                vm_id_list.append(vm_name_full.split("-tira-")[0][:-3])
 
         for vm_id in vm_id_list:
             if vm_id in vms:
                 continue
-            vm = model.get_vm_by_id(vm_id)
+            vm = self.model.get_vm_by_id(vm_id)
             if vm is None:
                 logger.error(f"VM '{vm_id}' is not in users.prototext")
                 continue
@@ -103,13 +105,13 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         :param request:
         :return:
         """
-        software = model.get_software(request.taskId, vm.vm_id, request.softwareId)
+        software = self.model.get_software(request.taskId, vm.vm_id, request.softwareId)
         submission = {'user': vm.user_name, 'os': vm.guest_os, 'host': vm.host, 'sshport': vm.ssh_port,
                       'userpw': vm.user_password, 'workingDir': software['working_directory'],
                       'cmd': software['command']}
 
         submission_filename = f"{vm.vm_id}-submission-{request.runId.runId}.txt"
-        submission_file_path = model.get_submissions_dir(vm.vm_id) / submission_filename
+        submission_file_path = self.model.get_submissions_dir(vm.vm_id) / submission_filename
         with open(submission_file_path, "w") as f:
             for k, v in submission.items():
                 f.write(f"{k}={v}\n")
@@ -231,7 +233,7 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         """
         vm = self._get_vm(request.runId.vmId, context)
 
-        model.create_run(request.runId.vmId, request.softwareId, request.runId.runId, request.runId.datasetId,
+        self.model.create_run(request.runId.vmId, request.softwareId, request.runId.runId, request.runId.datasetId,
                          request.inputRunId.runId, request.taskId)
 
         submission_filename = self._create_submission_file(request, vm)
@@ -247,13 +249,13 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         """
         vm = self._get_vm(request.runId.vmId, context)
 
-        model.create_run(request.runId.vmId, request.softwareId, request.runId.runId, request.runId.datasetId,
+        self.model.create_run(request.runId.vmId, request.softwareId, request.runId.runId, request.runId.datasetId,
                          request.inputRunId.runId, request.taskId)
 
         submission_filename = self._create_submission_file(request, vm)
 
         return vm.run_eval(request.transaction.transactionId, request,
-                           model.get_run_dir(request.inputRunId.datasetId, request.inputRunId.vmId,
+                           self.model.get_run_dir(request.inputRunId.datasetId, request.inputRunId.vmId,
                                              request.inputRunId.runId), submission_filename)
 
     def run_abort(self, request, context):

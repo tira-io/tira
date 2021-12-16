@@ -46,7 +46,6 @@ class TiraHostClient(tira_host_pb2_grpc.TiraApplicationService):
 
         return response
 
-    # TODO transactionId
     def confirm_vm_create(self, vm_id, user_name, user_pw, ip, host, ssh, rdp, transaction_id):
         """ Wait for :param slp: seconds, then call the set_state method of the applications server,
          this means, we tell the application that the vm now changed it's state to vm_state """

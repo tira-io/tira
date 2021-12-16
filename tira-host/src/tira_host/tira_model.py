@@ -28,7 +28,7 @@ class FileDatabase(FileSystemEventHandler):
     RUNS_DIR_PATH = tira_root / Path("data/runs")
     SUBMISSIONS_PATH = tira_root / Path("state/softwares")
 
-    def __init__(self):
+    def __init__(self, on_modified_callback=None):
         logger.info("Start loading dataset")
 
         self.grpc_service = None
@@ -38,6 +38,7 @@ class FileDatabase(FileSystemEventHandler):
         self.tasks = None  # dict of task_id: modelpb.Tasks.Task
         self.vms = None  # dict of vm_id: modelpb.User
 
+        self.on_modified_callback = on_modified_callback
         observer = PollingObserver()
         observer.schedule(self, path=str(self.users_file_path), recursive=False)
         observer.start()
@@ -53,6 +54,8 @@ class FileDatabase(FileSystemEventHandler):
     def on_modified(self, event):
         logger.info(f"Reload {self.users_file_path}...")
         self._parse_vm_list()
+        if self.on_modified_callback:
+            self.on_modified_callback()
 
     def _parse_vm_list(self):
         users = modelpb.Users()
