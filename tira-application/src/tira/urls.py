@@ -47,5 +47,8 @@ urlpatterns = [
 
     path('publish/<str:vm_id>/<str:dataset_id>/<str:run_id>/<str:value>', organizer_api.publish, name='publish'),
     path('blind/<str:vm_id>/<str:dataset_id>/<str:run_id>/<str:value>', organizer_api.blind, name='blind'),
+
+    path('data_api/evaluations/<str:dataset_id>', data_api.get_evaluations_by_dataset, name='get_evaluations_by_dataset'),
+    path('data_api/runs/<str:dataset_id>', data_api.get_runs_by_dataset, name='get_runs_by_dataset')
 ]
 app_name = 'tira'
