@@ -1,6 +1,6 @@
 import logging
 from tira.forms import *
-from tira.tira_model import model
+import tira.tira_model as model
 from tira.checks import actions_check_permissions, check_resources_exist
 from tira.views import add_context
 

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime as dt
 import logging
 
 from .proto import TiraClientWebMessages_pb2 as modelpb
@@ -9,8 +9,17 @@ logger = logging.getLogger("tira")
 
 
 def get_tira_id():
-    dt = datetime.now()
-    return dt.strftime("%Y-%m-%d-%H-%M-%S")
+    return dt.now().strftime("%Y-%m-%d-%H-%M-%S")
+
+
+def extract_year_from_dataset_id(dataset_id: str) -> str:
+    try:
+        splits = dataset_id.split("-")
+        return splits[-3] if len(splits) > 3 and (1990 <= int(splits[-3])) else ""
+    except IndexError:
+        return ""
+    except ValueError:
+        return ""
 
 
 def reroute_host(hostname):
@@ -36,7 +45,7 @@ def auto_reviewer(review_path, run_id):
             raise FileExistsError(f"review file: {review_file} exists but is corrupted with {e}")
 
     review.reviewerId = 'tira'
-    review.reviewDate = str(datetime.utcnow())
+    review.reviewDate = str(dt.utcnow())
     review.hasWarnings = False
     review.hasErrors = False
     review.hasNoErrors = False

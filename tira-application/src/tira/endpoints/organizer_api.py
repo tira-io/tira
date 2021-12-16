@@ -5,7 +5,7 @@ from tira.forms import *
 from django.http import JsonResponse
 from django.conf import settings
 
-from tira.tira_model import model
+import tira.tira_model as model
 
 include_navigation = True if settings.DEPLOYMENT == "legacy" else False
 

@@ -3,7 +3,7 @@ from django.http import JsonResponse, FileResponse
 from django.conf import settings
 import logging
 
-from .tira_model import model
+import tira.tira_model as model
 from .tira_data import get_run_runtime, get_run_file_list, get_stderr, get_stdout, get_tira_log
 from .authentication import auth
 from .checks import actions_check_permissions, check_resources_exist

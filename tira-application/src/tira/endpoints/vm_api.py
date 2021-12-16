@@ -12,7 +12,7 @@ from http import HTTPStatus
 
 from tira.transitions import TransitionLog, EvaluationLog, TransactionLog
 from tira.grpc_client import GrpcClient
-from tira.tira_model import model
+import tira.tira_model as model
 from tira.util import get_tira_id, reroute_host
 from functools import wraps
 

@@ -6,7 +6,7 @@ from tira.forms import *
 from django.http import HttpResponse, JsonResponse
 from http import HTTPStatus
 
-from tira.tira_model import model
+import tira.tira_model as model
 
 
 logger = logging.getLogger("tira")

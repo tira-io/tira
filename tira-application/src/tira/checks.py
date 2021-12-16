@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.urls import resolve
 from .authentication import auth
-from .tira_model import model
+import tira.tira_model as model
 from django.core.exceptions import PermissionDenied
 from django.http import JsonResponse, Http404
 from http import HTTPStatus
