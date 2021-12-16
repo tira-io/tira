@@ -168,11 +168,15 @@ def vm_info(request, vm_id):
         ex_message = "FAILED"
         try:
             if e.code() == StatusCode.UNAVAILABLE:  # .code() is implemented by the _channel._InteractiveRpcError
+                logger.exception(f"/grpc/{vm_id}/vm-info: connection to {host} failed with {e}")
                 ex_message = "Host Unavailable"  # This happens if the GRPC Server is not running
+            if e.code() == StatusCode.INVALID_ARGUMENT:  # .code() is implemented by the _channel._InteractiveRpcError
+                ex_message = "VM is archived"  # If there is no VM with the requested name on the host.
+                                               # Nikolay thinks its a good idea to raise a grpc exception,
+                                               #   instead of returning the status code from the grpc specification.
         except Exception as e2:  # There is a RpcError but not an Interactive one. This should not happen
             logger.exception(f"/grpc/{vm_id}/vm-info: Unexpected Execption occured: {e2}")
 
-        logger.exception(f"/grpc/{vm_id}/vm-info: connection to {host} failed with {e}")
         return JsonResponse({'status': 'Rejected', 'message': ex_message}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
     except Exception as e:
         logger.exception(f"/grpc/{vm_id}/vm-info: connection to {host} failed with {e}")
