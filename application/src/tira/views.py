@@ -110,13 +110,14 @@ def dataset_detail(request, context, task_id, dataset_id):
     ev_keys, evaluations = model.get_evaluations_with_keys_by_dataset(dataset_id, True if role == "admin" else None)
 
     context["dataset_id"] = dataset_id
+    context["datasets"] = model.get_datasets_by_task(task_id)
     context["task"] = model.get_task(task_id)
     context["ev_keys"] = ev_keys
     context["evaluations"] = evaluations
     context["vm_id"] = auth.get_vm_id(request, context["user_id"])
     context["vms"] = vms
 
-    return render(request, 'tira/dataset_detail.html', context)
+    return render(request, 'tira/dataset_detail_new.html', context)
 
 
 @check_permissions
