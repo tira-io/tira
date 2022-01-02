@@ -2,33 +2,30 @@ var dataset_tables = new Vue({
     el: "#dataset_tables",
     delimiters:["[[", "]]"],
     data: {
-        task_id: "",
-        dataset_id: "",
+        dataset_id: null,
         role: null,
-        ev_keys: [],
-        evaluations: [],
-        vms: [],
-        selected: ""
+        ev_keys: null,
+        evaluations: null,
+        selected: 'Please select dataset'
     },
-    mounted: function () {
-        this.task_id = this.$el.getAttribute('tira-data-task-id');
-        this.selected = this.$el.getAttribute('tira-data-dataset-id');
-        this.update_tables(this.task_id, this.selected)
+    created: function () {
+        this.update_tables(this.selected)
     },
     watch: {
-        selected: function (selected) {
-            this.update_tables(this.task_id, selected)
+        selected: function (dataset_id) {
+            this.update_tables(dataset_id)
         }
     },
     methods: {
-        update_tables: function (task_id, dataset_id) {
+        update_tables: function (dataset_id) {
             var vue = this
-            $("#tira-load-dataset-icon").attr("uk-spinner", "ratio: 0.5")
             $.ajax({
                 type: "GET",
-                url: "/data_api/evaluations/" + task_id + "/" + dataset_id,
+                url: "/data_api/evaluations/" + dataset_id,
                 data: {},
                 success: function (data) {
+                    console.log(data["context"])
+                    console.log(data["context"]["ev_keys"])
                     vue.dataset_id = data["context"]["dataset_id"]
                     vue.role = data["context"]["role"]
                     vue.ev_keys = data["context"]["ev_keys"]
