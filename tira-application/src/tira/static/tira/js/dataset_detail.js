@@ -57,6 +57,18 @@ var dataset_tables = new Vue({
                     console.log(vue.vms)
                 }
             })
+
+            $.ajax({
+                type: "GET",
+                url: "/data_api/runs/" + task_id + "/" + dataset_id,
+                data: {},
+                success: function (data) {
+                    vue.dataset_id = data["context"]["dataset_id"]
+                    vue.role = data["context"]["role"]
+                    vue.vms = data["context"]["vms"]
+                    console.log(vue.vms)
+                }
+            })
         }
     }
 })
