@@ -1,0 +1,212 @@
+{% extends 'tira/base.html' %}
+{% load static %}
+{% block title %}TIRA Users{% endblock %}
+{% block description %}TIRA Users{% endblock %}
+{% block navbar %}{% include "tira/navbar.html" with nav_active='tasks' %}{% endblock %}
+
+{% block content %}
+<nav class="uk-container">
+    <ul class="uk-breadcrumb">
+        <li><a href="{% url 'tira:index' %}">Tira.io</a></li>
+        <li><a href="{% url 'tira:task-detail' task_id=task.task_id %}">{{ task.task_name }}</a></li>
+        <li class="uk-disabled"><a href="#">{{ dataset_id }}</a></li>
+    </ul>
+</nav>
+
+<main class="uk-section uk-section-default">
+    <div class="uk-container">
+        <div uk-grid>
+            <div class="uk-width-expand">
+                <h1>{{ task.task_name }} <span class="uk-text-muted">Leaderboard</span></h1>
+            </div>
+            <div>
+                <a class="uk-button uk-button-default uk-text-large"
+                   uk-tooltip="title: Task Website;"
+                   href="{{ task.web }}">
+                   <span class="uk-padding-small">Task Website</span><i class="fas fa-external-link-alt uk-margin-small-left"></i></a>
+                <a class="uk-button uk-button-primary uk-text-large"
+                   uk-tooltip="title: Participate;"
+                   href="{% if role == 'guest' %}{% url 'tira:login' %}{% else %}{% url 'tira:software-detail' task_id=task.task_id vm_id=vm_id %}{% endif %}">
+                   <i class="fas fa-terminal uk-margin-right"></i>Submit</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="uk-container uk-margin-medium" id="dataset_tables">
+        <h2>Dataset: </h2>
+            <div class="uk-width-expand">
+                <div class="uk-form-controls">
+                    <select class="uk-select" id="{{task}}-dataset-selector" v-model="selected">
+                        <option value="Please select dataset">Please select dataset</option>
+                        {% for dataset in datasets %}
+                        {% if not dataset.is_deprecated %}
+                        <option value="{{ dataset.dataset_id }}">{{ dataset.dataset_id }}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+        <table class="uk-margin-small uk-table uk-table-divider uk-table-small sortable targetable">
+            <thead>
+            <tr>
+                <th id="tira-evaluation-results"></th>
+                <th colspan="{{ ev_keys|length|add:'5' }}">
+                    Results of [[ dataset_id ]]
+                    <a href="#" class="uk-float-right uk-link-reset" data-uk-icon="chevron-up"></a>
+                </th>
+            </tr>
+            <tr>
+                <th></th>
+                <th class="header uk-table-shrink" v-if="role == 'admin'">&nbsp;</th>
+                <th class="header uk-table-shrink" v-if="role == 'admin'">&nbsp;</th>
+                <th class="header uk-table-shrink uk-text-nowrap"><span>Virtual Machine</span></th>
+                <th class="header uk-table-shrink uk-text-nowrap"><span>Run</span></th>
+                <th class="header" v-for="key in ev_keys"><span>[[ key ]]</span></th>
+                <th class="header uk-table-shrink uk-text-nowrap" v-if="role == 'admin'"><span>Actions</span></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="eval in evaluations">
+                <td v-bind:id="dataset_id + '-' + eval.vm_id + '-' + eval.run_id"></td>
+                <td class="uk-table-shrink" v-if="role == 'admin'">
+                    <div uk-tooltip="This run is blinded" v-if="eval.blinded">
+                        <i class="fas fa-user-slash dataset-detail-icon"></i>
+                    </div>
+                    <div uk-tooltip="This run is visible to the participant" v-else>
+                        <i class="fas fa-user dataset-detail-icon uk-text-success"></i>
+                    </div>
+                </td>
+                <td class="uk-table-shrink" v-if="role == 'admin'"> <!-- Icons -->
+                    <div uk-tooltip="This run is on the leaderbords" v-if="eval.published">
+                        <i class="fas fa-users dataset-detail-icon uk-text-success"></i>
+                    </div>
+                    <div uk-tooltip="This run is not published" v-else>
+                        <i class="fas fa-users-slash dataset-detail-icon"></i>
+                    </div>
+                </td> <!-- id? -->
+                <td class="uk-table-shrink uk-text-nowrap">[[ eval.vm_id ]]</td>
+                <td class="uk-table-shrink uk-text-nowrap" v-if="role == 'admin'"><a v-bind:href="'#run-' + eval.vm_id + '-' + eval.run_id">[[ eval.run_id ]]</a></td>
+                <td class="uk-table-shrink uk-text-nowrap" v-else>[[ eval.run_id ]]</td>
+                <td class="uk-table-expand uk-text-truncate" v-for="measure in eval.measures">[[ measure ]]</td>
+                <!-- TODO: PROBLEM WITH DJANGO + VUE for href argument -->
+                <td class="uk-table-shrink uk-text-nowrap" v-if="role == 'admin'"><a class="uk-button uk-button-small uk-button-default" href="{% url 'tira:software-detail' task_id=task.task_id vm_id=eval.vm_id %}">manage</a></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Run results - TODO only show when user is reviewer  -->
+    <div class="uk-container uk-margin-medium" v-if="role == 'guest'">
+        <h2 id="tira-runs">Runs</h2>
+        <ul id="tira-run-accordion" class="uk-list uk-list-collapse uk-list-striped" uk-accordion="multiple: true">
+            <li v-for="vm in vms">
+                <div class="uk-accordion-title uk-grid-collapse" data-uk-grid>
+                    <div>
+                        <table class="uk-text-small uk-width-5-6">
+                            <tr>
+                              <td class="uk-width-1-5 uk-text-left"><b>[[ vm.vm_id ]]</b></td>
+                                <td class="uk-width-1-5 uk-text-right">[[ vm.runs.length ]] Runs</td>
+                                <td class="uk-width-1-5 uk-text-right uk-text-warning" v-if="vm.unreviewed_count > 0">
+                                <td class="uk-width-1-5 uk-text-right" v-else>
+                                    [[ vm.unreviewed_count ]] Unreviewed</td>
+                                <td class="uk-width-1-5 uk-text-right">[[ vm.blinded_count ]] Blinded</td>
+                                <td class="uk-width-1-5 uk-text-right uk-text-warning" v-if="vm.published_count == 0">
+                                <td class="uk-width-1-5 uk-text-right" v-else>
+                                    [[ vm.published_count ]] Published</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="uk-accordion-content uk-margin-remove-top">
+                    <!-- TODO: PROBLEM WITH DJANGO + VUE for href -->
+                    <a href="{% url 'tira:software-detail' task_id=task.task_id vm_id=vm.vm_id %}">
+                        [manage user]
+                    </a>
+                    <table class="uk-margin-medium uk-margin-remove-top uk-table uk-table-divider uk-table-small sortable">
+                        <thead>
+                        <tr>
+                            <th class="uk-table-shrink"></th>
+                            <th class="uk-table-shrink"></th>
+                            <th class="uk-table-shrink"></th>
+                            <th class="uk-table-shrink"></th>
+                            <th class="header uk-table-shrink uk-text-nowrap"><span>Software</span></th>
+                            <th class="header uk-table-shrink uk-text-nowrap"><span>Run</span></th>
+                            <th class="header uk-table-shrink uk-text-nowrap"><span>Input Run</span></th>
+                            <th class="header uk-table-shrink uk-text-nowrap">Reviewer</th>
+                            <th class="header uk-table-shrink uk-text-nowrap">Review</th>
+                            <th class="header uk-table-shrink uk-text-nowrap"><span>Actions</span></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr v-for="run in vm.runs">
+                            <td class="uk-table-shrink" v-bind:id="'run-' + vm.vm_id + '-' + run.run.run_id"></td>
+                            <td class="uk-table-shrink">
+                                <div uk-tooltip="This run is OK" v-if="run.review.noErrors">
+                                    <i class="fas fa-check dataset-detail-icon uk-text-success"></i>
+                                </div>
+                                <div uk-tooltip="This run has errors" v-else-if="run.review.hasErrors">
+                                    <i class="fas fa-times dataset-detail-icon uk-text-danger"></i>
+                                </div>
+                            </td>
+                            <td class="uk-table-shrink">
+                                <div uk-tooltip="This run is blinded" v-if="run.review.blinded">
+                                    <i class="fas fa-user-slash dataset-detail-icon"></i>
+                                </div>
+                                <div uk-tooltip="This run is visible to the participant" v-else>
+                                    <i class="fas fa-user dataset-detail-icon uk-text-success"></i>
+                                </div>
+                            </td>
+                            <td class="uk-table-shrink"> <!-- Icons -->
+                                <div uk-tooltip="This run is on the leaderboards" v-if="run.review.published">
+                                    <i class="fas fa-users dataset-detail-icon uk-text-success"></i>
+                                </div>
+                                <div uk-tooltip="This run is not published" v-else>
+                                    <i class="fas fa-users-slash dataset-detail-icon"></i>
+                                </div>
+                            </td>
+{% comment %}                            <td class="uk-table-shrink">{% endcomment %}
+{% comment %}                                <div uk-tooltip="Download Run">{% endcomment %}
+{% comment %}                                </div>{% endcomment %}
+{% comment %}                            </td>{% endcomment %}
+                            <td class="uk-table-shrink uk-text-nowrap">[[ run.run.software ]]</td>
+                            <td class="uk-table-shrink uk-text-nowrap">[[ run.run.run_id ]]</td>
+                            <td class="uk-table-shrink uk-text-nowrap" v-if="run.run.input_run_id != 'none'"><a v-bind:href="'#run-' + vm.vm_id + '-' + run.run.input_run_id">[[ run.run.input_run_id ]]</a>
+                            </td>
+                            <td class="uk-table-shrink uk-text-nowrap" v-else>[[ run.run.input_run_id ]]</td>
+                            <td class="uk-table-shrink uk-text-nowrap">[[ run.review.reviewer ]]</td>
+                            <td class="uk-table-expand uk-text-truncate" v-if="run.review.noErrors"><p v-if="run.review.comment != ''">[[ run.review.comment ]]</p></td>
+                            <td class="uk-table-expand uk-text-truncate" v-else-if="run.review.hasErrorOutput">Output Error<p v-if="run.review.comment != ''">[[ run.review.comment ]]</p></td>
+
+                            <td class="uk-table-expand uk-text-truncate" v-if="run.review.otherErrors">Software Error<p v-if="run.review.comment != ''">[[ run.review.comment ]]</p></td>
+                            <td class="uk-table-shrink uk-text-nowrap">
+                            <!-- TODO: PROBLEM WITH DJANGO + VUE for href -->
+                                <a class="uk-button uk-button-small uk-button-default" href="{% url 'tira:review' task_id=task.task_id vm_id=vm.vm_id dataset_id=dataset_id run_id=run.run.run_id %}">review</a>
+                            <!-- TODO: PROBLEM WITH DJANGO + VUE for href -->
+                                <a class="uk-button uk-button-small uk-button-default" href="{% url 'tira:download_rundir' task_id=task.task_id vm_id=vm.vm_id dataset_id=dataset_id run_id=run.run.run_id %}" target="_blank">download run</a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </li>
+        </ul>
+    </div>
+
+</main>
+
+{% if not include_navigation %}
+<script src="https://assets.webis.de/js/thirdparty/jquery/jquery.slim.min.js"></script>
+{% endif %}
+<script src="https://assets.webis.de/js/thirdparty/fontawesome/fontawesome.min.js"></script>
+<script src="https://assets.webis.de/js/thirdparty/fontawesome/solid.min.js"></script>
+<script src="https://assets.webis.de/js/filter.js"></script>
+<script src="https://assets.webis.de/js/selection.js"></script>
+<script src="https://assets.webis.de/js/tables.js"></script>
+<script>initWebisTableFiltering();</script>
+<script>initTableSorting();</script>
+
+<!-- TODO: use production version -->
+<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+<script src="{% static 'tira/js/dataset_detail.js' %}"></script>
+{% endblock %}
