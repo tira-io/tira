@@ -32,12 +32,12 @@
         </div>
     </div>
 
-    <div id="dataset_tables" tira-data-task-id="{{ task.task_id }}">
+    <div id="dataset_tables" tira-data-task-id="{{ task.task_id }}" tira-data-dataset-id="{{ dataset_id }}">
         <div class="uk-container uk-margin-medium">
             <h2>Dataset: </h2>
                 <div class="uk-width-expand">
                     <div class="uk-form-controls">
-                        <select class="uk-select" id="{{task}}-dataset-selector" v-model="selected">
+                        <select class="uk-select" id="{{ task.task_id }}-dataset-selector" v-model="selected">
                             <option value="Please select dataset">Please select dataset</option>
                             {% for dataset in datasets %}
                             {% if not dataset.is_deprecated %}
@@ -52,9 +52,10 @@
                 <thead>
                 <tr>
                     <th id="tira-evaluation-results"></th>
-                    <th colspan="{{ ev_keys|length|add:'5' }}">
+                    <th :colspan="ev_keys.length + 5">
                         Results of [[ dataset_id ]]
                         <a href="#" class="uk-float-right uk-link-reset" data-uk-icon="chevron-up"></a>
+                        <div id="tira-load-dataset-icon"></div>
                     </th>
                 </tr>
                 <tr>
