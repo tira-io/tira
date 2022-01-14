@@ -240,17 +240,21 @@ def software_add(request, task_id, vm_id):
 @actions_check_permissions({"tira", "admin", "participant"})
 @check_resources_exist('json')
 def software_save(request, task_id, vm_id, software_id):
+    software = model.update_software(task_id, vm_id, software_id,
+                                     request.POST.get("command"),
+                                     request.POST.get("working_dir"),
+                                     request.POST.get("input_dataset"),
+                                     request.POST.get("input_run"))
 
-    software, message = model.update_software(task_id, vm_id, software_id,
-                                              request.POST.get("command"),
-                                              request.POST.get("working_dir"),
-                                              request.POST.get("input_dataset"),
-                                              request.POST.get("input_run"))
+    message = "failed to save software for unknown reasons"
+    try:
+        if software:
+            return JsonResponse({'status': 'Accepted', "message": f"Saved {software_id}", 'last_edit': software.lastEditDate},
+                                status=HTTPStatus.ACCEPTED)
+    except Exception as e:
+        message = str(e)
 
-    if software:
-        return JsonResponse({'status': 'Accepted', "message": message, 'last_edit': software.lastEditDate}, status=HTTPStatus.ACCEPTED)
-    else:
-        return JsonResponse({'status': 'Failed', "message": message}, status=HTTPStatus.BAD_REQUEST)
+    return JsonResponse({'status': 'Failed', "message": message}, status=HTTPStatus.BAD_REQUEST)
 
 
 @actions_check_permissions({"tira", "admin", "participant"})
