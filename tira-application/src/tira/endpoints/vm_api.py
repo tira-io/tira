@@ -10,7 +10,7 @@ from django.http import JsonResponse
 from django.conf import settings
 from http import HTTPStatus
 
-from tira.transitions import TransitionLog, EvaluationLog, TransactionLog
+from tira.model import TransitionLog, EvaluationLog, TransactionLog
 from tira.grpc_client import GrpcClient
 import tira.tira_model as model
 from tira.util import get_tira_id, reroute_host

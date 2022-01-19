@@ -7,7 +7,7 @@ import logging
 from django.conf import settings
 import grpc
 from google.protobuf.empty_pb2 import Empty
-from .transitions import TransactionLog, EvaluationLog
+from tira.model import TransactionLog, EvaluationLog
 from uuid import uuid4
 from functools import wraps
 

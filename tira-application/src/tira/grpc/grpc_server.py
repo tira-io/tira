@@ -4,7 +4,7 @@ import grpc
 import logging
 
 from tira.proto import tira_host_pb2, tira_host_pb2_grpc
-from tira.transitions import TransitionLog, EvaluationLog, TransactionLog
+from tira.model import TransitionLog, EvaluationLog, TransactionLog
 import tira.tira_model as model
 
 grpc_port = settings.APPLICATION_GRPC_PORT

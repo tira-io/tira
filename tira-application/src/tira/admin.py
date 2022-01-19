@@ -1,8 +1,10 @@
 from django.contrib import admin
-from .transitions import TransactionLog, TransitionLog, EvaluationLog
+import tira.model as modeldb
 
 # Register your models here.
 
-admin.site.register(TransactionLog)
-admin.site.register(TransitionLog)
-admin.site.register(EvaluationLog)
+admin.site.register(modeldb.TransactionLog)
+admin.site.register(modeldb.TransitionLog)
+admin.site.register(modeldb.EvaluationLog)
+admin.site.register(modeldb.Organizer)
+admin.site.register(modeldb.VirtualMachine)
