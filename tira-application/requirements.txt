@@ -5,4 +5,4 @@ uwsgi
 Django
 pyyaml
 requests
-watchdog
+randomname

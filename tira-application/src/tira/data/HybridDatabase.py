@@ -1,22 +1,17 @@
 from google.protobuf.text_format import Parse
-from google.protobuf.json_format import MessageToDict
 from pathlib import Path
 import logging
 from django.conf import settings
-import socket
-from datetime import datetime, timezone
-import re
+from django.db import IntegrityError
 from shutil import rmtree
 from datetime import datetime as dt
+import randomname
 
+from tira.util import TiraModelWriteError, TiraModelIntegrityError
 from tira.proto import TiraClientWebMessages_pb2 as modelpb
-from tira.proto import tira_host_pb2 as model_host
-from tira.util import auto_reviewer, extract_year_from_dataset_id
+from tira.util import auto_reviewer, now
 import tira.model as modeldb
-import tira.data.data as database_ops
-
-# from watchdog.observers import Observer
-# from watchdog.events import FileSystemEventHandler
+import tira.data.data as dbops
 
 logger = logging.getLogger("tira")
 
@@ -61,8 +56,8 @@ class HybridDatabase(object):
         self.software_by_vm = None  # vm_id: [modelpb.Software]
         self.software_count_by_dataset = None  # dataset_id: int()
         self.evaluators = {}  # dataset_id: [modelpb.Evaluator] used as cache
-        database_ops.index(self.organizers_file_path, self.users_file_path, self.vm_dir_path, self.tasks_dir_path,
-                           self.datasets_dir_path, self.softwares_dir_path, self.RUNS_DIR_PATH)
+        # dbops.index(self.organizers_file_path, self.users_file_path, self.vm_dir_path, self.tasks_dir_path,
+        #             self.datasets_dir_path, self.softwares_dir_path, self.RUNS_DIR_PATH)
 
         self.build_model()
 
@@ -195,6 +190,7 @@ class HybridDatabase(object):
         return Parse(open(self.vm_dir_path / f"{vm_id}.prototext").read(), modelpb.VirtualMachine())
 
     def _load_softwares(self, task_id, vm_id):
+        # Leave this
         softwares_dir = self.softwares_dir_path / task_id / vm_id
         softwares_dir.mkdir(parents=True, exist_ok=True)
         software_file = softwares_dir / "softwares.prototext"
@@ -247,54 +243,91 @@ class HybridDatabase(object):
 
         return evaluations
 
-    def get_evaluation_measures(self, evaluation):
-        return {measure.key: measure.value for measure in evaluation.measure}
-
     # ---------------------------------------------------------------------
     # ---- save methods to update protos
     # ---------------------------------------------------------------------
 
-    def _save_task(self, task_proto, overwrite=False):
+    def _save_task(self, task_id, task_name, task_description, master_vm_id, organizer, website,
+                   append_training_datasets: list = None, append_test_datasets: list = None, overwrite=False):
         """ makes persistant changes to task: store in memory and to file.
          Returns false if task exists and overwrite is false. """
-        # open(f'/home/tira/{task_id}.prototext', 'wb').write(new_task.SerializeToString())
-        new_task_file_path = self.tasks_dir_path / f'{task_proto.taskId}.prototext'
-        if not overwrite and new_task_file_path.exists():
-            return False
-        self.tasks[task_proto.taskId] = task_proto
-        open(new_task_file_path, 'w').write(str(task_proto))
-        self._build_task_relations()
+        task_file_path = self.tasks_dir_path / f'{task_id}.prototext'
+        if not overwrite and task_file_path.exists():
+            raise TiraModelWriteError(f"Failed to write task, task exists and overwrite is not allowed here")
+        elif overwrite and task_file_path.exists():
+            task = Parse(open(task_file_path, "r").read(), modelpb.Tasks.Task())
+        else:
+            task = modelpb.Tasks.Task()
+
+        task.taskId = task_id if task_id else task.taskId
+        task.taskName = task_name if task_name else task.taskName
+        task.taskDescription = task_description if task_description else task.taskDescription
+        task.virtualMachineId = master_vm_id if master_vm_id else task.virtualMachineId
+        task.hostId = organizer if organizer else task.hostId
+        task.web = website if website else task.web
+
+        for append in append_training_datasets:
+            task.trainingDataset.append(append)
+        for append in append_test_datasets:
+            task.testDataset.append(append)
+
+        # self.tasks[task_id] = new_task TODO
+        open(task_file_path, 'w').write(str(task))
+        # self._build_task_relations() TODO
         return True
 
-    def _save_vm(self, vm_proto, overwrite=False):
-        new_vm_file_path = self.vm_dir_path / f'{vm_proto.virtualMachineId}.prototext'
+    def _save_vm(self, vm_id=None, user_name=None, initial_user_password=None, ip=None, host=None, ssh=None, rdp=None,
+                 overwrite=False):
+        new_vm_file_path = self.vm_dir_path / f'{vm_id}.prototext'
         if not overwrite and new_vm_file_path.exists():
-            return False
-        # self.vms[vm_proto.virtualMachineId] = vm_proto  # TODO see issue:30
-        open(new_vm_file_path, 'w').write(str(vm_proto))
-        return True
+            raise TiraModelWriteError(f"Failed to write vm, vm exists and overwrite is not allowed here")
+        elif overwrite and new_vm_file_path.exists():
+            vm = Parse(open(new_vm_file_path).read(), modelpb.VirtualMachine())
+        else:
+            vm = modelpb.VirtualMachine()
+        vm.virtualMachineId = vm_id if vm_id else vm.virtualMachineId
+        vm.vmId = vm_id if vm_id else vm.vmId
+        vm.vmName = vm_id if vm_id else vm.vmName
+        vm.host = host if host else vm.host
+        vm.adminName = vm.adminName if vm.adminName else 'admin'  # Note these are required but deprecated
+        vm.adminPw = vm.adminPw if vm.adminPw else 'admin'  # Note these are required but deprecated
+        vm.userName = user_name if user_name else vm.userName
+        vm.userPw = initial_user_password if initial_user_password else vm.userPw
+        vm.ip = ip if ip else vm.ip
+        vm.portSsh = rdp if rdp else vm.portSsh
+        vm.portRdp = ssh if ssh else vm.portRdp
 
-    def _save_dataset(self, dataset_proto, task_id, overwrite=False):
+        # self.vms[vm_proto.virtualMachineId] = vm_proto  # TODO see issue:30
+        open(new_vm_file_path, 'w').write(str(vm))
+
+    def _save_dataset(self, task_id, dataset_id=None, display_name=None, is_deprecated=None, is_confidential=None,
+                      evaluator_id=None, overwrite=False):
         """ dataset_dir_path/task_id/dataset_id.prototext """
-        new_dataset_file_path = self.datasets_dir_path / task_id / f'{dataset_proto.datasetId}.prototext'
+        new_dataset_file_path = self.datasets_dir_path / task_id / f'{dataset_id}.prototext'
         if not overwrite and new_dataset_file_path.exists():
-            return False
+            raise TiraModelWriteError(f"Failed to write dataset, dataset exists and overwrite is not allowed here")
+        elif overwrite and new_dataset_file_path.exists():
+            ds = Parse(open(new_dataset_file_path, "r").read(), modelpb.Dataset())
+        else:
+            ds = modelpb.Dataset()
+
+        ds.datasetId = dataset_id if dataset_id else ds.datasetId
+        ds.displayName = display_name if display_name else ds.displayName
+        ds.evaluatorId = evaluator_id if evaluator_id else ds.evaluatorId
+        ds.isDeprecated = is_deprecated if is_deprecated else ds.isDeprecated
+        ds.isConfidential = is_confidential if is_confidential else ds.isConfidential
+
         (self.datasets_dir_path / task_id).mkdir(exist_ok=True, parents=True)
-        open(new_dataset_file_path, 'w').write(str(dataset_proto))
-        self.datasets[dataset_proto.datasetId] = dataset_proto
-        return True
+        open(new_dataset_file_path, 'w').write(str(ds))
+        # self.datasets[dataset_proto.datasetId] = dataset_proto TODO
 
     def _save_review(self, dataset_id, vm_id, run_id, review):
         review_path = self.RUNS_DIR_PATH / dataset_id / vm_id / run_id
         open(review_path / "run-review.prototext", 'w').write(str(review))
         open(review_path / "run-review.bin", 'wb').write(review.SerializeToString())
-        return True
 
     def _save_softwares(self, task_id, vm_id, softwares):
-        with open(self.softwares_dir_path / task_id / vm_id / "softwares.prototext", "w+") as prototext_file:
-            # update file
-            prototext_file.write(str(softwares))
-            return True
+        open(self.softwares_dir_path / task_id / vm_id / "softwares.prototext", "w+").write(str(softwares))
 
     def _save_run(self, dataset_id, vm_id, run_id, run):
         run_dir = (self.RUNS_DIR_PATH / dataset_id / vm_id / run_id)
@@ -307,136 +340,30 @@ class HybridDatabase(object):
     # add methods to add new data to the model
     # ------------------------------------------------------------
 
-    def add_vm(self, vm_id, user_name, initial_user_password, ip, host, ssh, rdp):
-        """ Add a new task to the database.
-        This will not overwrite existing files and instead do nothing and return false
-        """
-        new_vm = modelpb.VirtualMachine()
-        new_vm.virtualMachineId = vm_id
-        new_vm.vmId = vm_id
-        new_vm.vmName = vm_id
-        new_vm.host = host
-        new_vm.adminName = 'admin'  # Note these are required but deprecated
-        new_vm.adminPw = 'admin'  # Note these are required but deprecated
-        new_vm.userName = user_name
-        new_vm.userPw = initial_user_password
-        new_vm.ip = ip
-        new_vm.portSsh = ssh
-        new_vm.portRdp = rdp
-        return self._save_vm(new_vm)
-
-    def create_task(self, task_id, task_name, task_description, master_vm_id, organizer, website):
-        """ Add a new task to the database.
-         CAUTION: This function does not do any sanity checks and will OVERWRITE existing tasks """
-        new_task = modelpb.Tasks.Task()
-        new_task.taskId = task_id
-        new_task.taskName = task_name
-        new_task.taskDescription = task_description
-        new_task.virtualMachineId = master_vm_id
-        new_task.hostId = organizer
-        new_task.web = website
-        return self._save_task(new_task)
-
-    def add_dataset(self, task_id, dataset_id, dataset_type, dataset_name):
-        """ TODO documentation
-        """
-
-        # update task_dir_path/task_id.prototext:
-        dataset_id = f"{dataset_id}-{dataset_type}"
-        for_task = self.tasks.get(task_id, None)
-        if not for_task:
-            raise KeyError(f"No task with id {task_id}")
-
-        if dataset_type == 'test' and dataset_id not in for_task.testDataset:
-            for_task.testDataset.append(dataset_id)
-        elif dataset_type in {'training', 'dev'} and dataset_id not in for_task.trainingDataset:
-            for_task.trainingDataset.append(dataset_id)
-        elif dataset_type not in {'training', 'dev', 'test'}:
-            raise KeyError("dataset type must be test, training, or dev")
-        task_ok = self._save_task(for_task, overwrite=True)
-
-        # create new dataset_dir_path/task_id/dataset_id.prototext
-        ds = modelpb.Dataset()
-        ds.datasetId = dataset_id
-        ds.displayName = dataset_name
-        ds.isDeprecated = False
-        ds.isConfidential = True if dataset_type == 'test' else False
-        dataset_ok = self._save_dataset(ds, task_id)
-
-        # create dirs data_path/dataset/test-dataset[-truth]/task_id/dataset-id-type
-        new_dirs = []
-        if dataset_type == 'test':
-            new_dirs.append((self.data_path / f'test-datasets' / task_id / dataset_id))
-            new_dirs.append((self.data_path / f'test-datasets-truth' / task_id / dataset_id))
-        else:
-            new_dirs.append((self.data_path / f'training-datasets' / task_id / dataset_id))
-            new_dirs.append((self.data_path / f'training-datasets-truth' / task_id / dataset_id))
-        for d in new_dirs:
-            d.mkdir(parents=True, exist_ok=True)
-
-        return [str(nd) for nd in new_dirs]
-
     def _add_software(self, task_id, vm_id):
         # TODO crashes if software prototext does not exist.
         software = modelpb.Softwares.Software()
         s = self._load_softwares(task_id, vm_id)
-        try:
-            last_software_count = re.search(r'\d+$', s.softwares[-1].id)
-            software_count = int(last_software_count.group()) + 1 if last_software_count else None
-            if software_count is None:
-                # invalid software id value
-                return False
+        date = now()
 
-            software.id = f"software{software_count}"
-            software.count = str(software_count)
-
-        except IndexError:
-            # no software present yet
-            software.id = "software1"
-            software.count = "1"
-
+        new_software_id = randomname.get_name()
+        software.id = new_software_id
+        software.count = ""
         software.command = ""
         software.workingDirectory = ""
         software.dataset = "None"
         software.run = ""
-        software.creationDate = datetime.now(timezone.utc).strftime("%a %b %d %X %Z %Y")
-        software.lastEditDate = software.creationDate
+        software.creationDate = date
+        software.lastEditDate = date
         software.deleted = False
 
         s.softwares.append(software)
-        software_ok = self._save_softwares(task_id, vm_id, s)
-
-        software_list = self.software.get(f"{task_id}${vm_id}", [])
-        software_list.append(software)
-        self.software[f"{task_id}${vm_id}"] = software_list
-        return software if software_ok else False
-
-    def add_evaluator(self, vm_id, task_id, dataset_id, dataset_type, command, working_directory, measures):
-        """ TODO documentation
-        """
-        evaluator_id = f"{dataset_id}-evaluator"
-        dataset_id = f"{dataset_id}-{dataset_type}"
-
-        # update dataset_id.prototext
-        dataset = self.datasets.get(dataset_id)
-        dataset.evaluatorId = evaluator_id
-        dataset_ok = self._save_dataset(dataset, task_id, overwrite=True)
-
-        # add evaluators to vm
-        vm = self._load_vm(vm_id)
-        if evaluator_id not in {ev.evaluatorId for ev in vm.evaluators}:
-            ev = modelpb.Evaluator()
-            ev.evaluatorId = evaluator_id
-            ev.command = command
-            ev.workingDirectory = working_directory
-            ev.measures = ",".join([x[0].strip('\r') for x in measures])
-            ev.measureKeys.extend([x[1].strip('\r') for x in measures])
-            vm.evaluators.append(ev)
-            vm_ok = self._save_vm(vm, overwrite=True)
-        else:
-            vm_ok = True
-
-        return vm_ok and dataset_ok
+        self._save_softwares(task_id, vm_id, s)
+        modeldb.Software.objects.create(software_id=new_software_id,
+                                        vm=modeldb.VirtualMachine.objects.get(vm_id=vm_id),
+                                        task=modeldb.Task.objects.get(task_id=task_id),
+                                        count="", command="", working_directory="",
+                                        dataset="None", creation_date=date, last_edit_date=date)
 
     def _update_review(self, dataset_id, vm_id, run_id,
                        reviewer_id: str = None, review_date: str = None, has_errors: bool = None,
@@ -469,106 +396,67 @@ class HybridDatabase(object):
 
         self._save_review(dataset_id, vm_id, run_id, review)
 
-    def _update_run(self, dataset_id, vm_id, run_id, deleted: bool = None):
-        """ updates the run specified by dataset_id, vm_id, and run_id with the values given in the parameters.
-            Required Parameters are also required in the function
-        """
-        run = self.load_run(dataset_id, vm_id, run_id)
-
-        def update(x, y):
-            return y if y is not None else x
-
-        run.deleted = update(run.deleted, deleted)
-        self._save_run(dataset_id, vm_id, run_id, run)
-
-    def update_software(self, task_id, vm_id, software_id, command: str = None, working_directory: str = None,
-                        dataset: str = None, run: str = None, deleted: bool = False):
-        def update(x, y):
-            return y if y is not None else x
-
-        s = self._load_softwares(task_id, vm_id)
-        for software in s.softwares:
-            if software.id == software_id:
-                software.command = update(software.command, command)
-                software.workingDirectory = update(software.workingDirectory, working_directory)
-                software.dataset = update(software.dataset, dataset)
-                software.run = update(software.run, run)
-                software.deleted = update(software.deleted, deleted)
-                software.lastEditDate = datetime.now(timezone.utc).strftime("%a %b %d %X %Z %Y")
-
-                self._save_softwares(task_id, vm_id, s)
-                software_list = [user_software for user_software in s.softwares if not user_software.deleted]
-                self.software[f"{task_id}${vm_id}"] = software_list
-                return software
-
-        return False
-
-    # TODO add option to truly delete the software.
-    def delete_software(self, task_id, vm_id, software_id):
-        s = self._load_softwares(task_id, vm_id)
-        found = False
-        for software in s.softwares:
-            if software.id == software_id:
-                software.deleted = True
-                found = True
-        software_list = [software for software in s.softwares if not software.deleted]
-        self.software[f"{task_id}${vm_id}"] = software_list
-        self._save_softwares(task_id, vm_id, s)
-        return found
-
-    def delete_run(self, dataset_id, vm_id, run_id):
-        run_dir = Path(self.RUNS_DIR_PATH / dataset_id / vm_id / run_id)
-        rmtree(run_dir)
-
     #########################################
-    # get methods are the public interface.
+    # Public Interface Methods
     ###################################
 
+    @staticmethod
+    def _vm_as_dict(vm):
+        return {"vm_id": vm.vm_id, "user_password": vm.user_password, "roles": vm.roles,
+                "host": vm.host, "admin_name": vm.admin_name, "admin_pw": vm.admin_pw,
+                "ip": vm.ip, "ssh": vm.ssh, "rdp": vm.rdp, "archived": vm.archived}
+
     def get_vm(self, vm_id: str):
-        # TODO should return as dict
-        return self.vms.get(vm_id, None)
+        vm = modeldb.VirtualMachine.objects.get(vm_id)
+        return self._vm_as_dict(vm)
+
+    def get_users_vms(self):
+        """ Return the users list. """
+        return [self._vm_as_dict(vm) for vm in modeldb.VirtualMachine.objects.all()]
+
+    def _task_to_dict(self, task):
+        return {"task_id": task.task_id, "task_name": task.task_name, "task_description": task.task_description,
+                "organizer": task.organizer.organizer_id,
+                "web": task.web,
+                "year": task.organizer.years,
+                "dataset_count": task.dataset_set.count(),
+                "software_count": task.software_set.count(),
+                "max_std_out_chars_on_test_data": task.max_std_out_chars_on_test_data,
+                "max_std_err_chars_on_test_data": task.max_std_err_chars_on_test_data,
+                "max_file_list_chars_on_test_data": task.max_file_list_chars_on_test_data,
+                "command_placeholder": task.command_placeholder, "command_description": task.command_description,
+                "dataset_label": task.dataset_label,
+                "max_std_out_chars_on_test_data_eval": task.max_std_out_chars_on_test_data_eval,
+                "max_std_err_chars_on_test_data_eval": task.max_std_err_chars_on_test_data_eval,
+                "max_file_list_chars_on_test_data_eval": task.max_file_list_chars_on_test_data_eval}
 
     def get_tasks(self) -> list:
-        tasks = [self.get_task(task.taskId)
-                 for task in self.tasks.values()]
-        return tasks
-
-    def get_run(self, dataset_id: str, vm_id: str, run_id: str, return_deleted: bool = False) -> dict:
-        run = self.load_run(dataset_id, vm_id, run_id, return_deleted)
-        return {"software": run.softwareId,
-                "run_id": run.runId, "input_run_id": run.inputRun,
-                "dataset": run.inputDataset, "downloadable": run.downloadable}
+        return [self._task_to_dict(task)
+                for task in modeldb.Task.objects.select_related('organizer').all()]
 
     def get_task(self, task_id: str) -> dict:
-        t = self.tasks[task_id]
+        return self._task_to_dict(modeldb.Task.objects.select_related('organizer').get(task_id=task_id))
 
-        return {"task_name": t.taskName,
-                "description": t.taskDescription,
-                "commandPlaceholder": "" if t.commandPlaceholder == "mySoftware -c $inputDataset -r $inputRun -o $outputDir" else t.commandPlaceholder,
-                "commandDescription": "" if t.commandDescription == "Available variables: <code>$inputDataset</code>, <code>$inputRun</code>, <code>$outputDir</code>, <code>$dataServer</code>, and <code>$token</code>." else t.commandDescription,
-                "task_id": t.taskId,
-                "dataset_count": len(t.trainingDataset) + len(t.testDataset),
-                "software_count": len(self.software_by_task.get(t.taskId, {0})),
-                "web": t.web,
-                "organizer": self.organizers.get(t.hostId, modelpb.Hosts.Host()).name,
-                "year": self.organizers.get(t.hostId, modelpb.Hosts.Host()).years
-                }
+    def _dataset_to_dict(self, dataset):
+        return {
+            "display_name": dataset.display_name,
+            "evaluator_id": dataset.evaluator.evaluator_id,
+            "dataset_id": dataset.dataset_id,
+            "is_confidential": dataset.is_confidential, "is_deprecated": dataset.is_deprecated,
+            "year": dataset.released,
+            "task": dataset.default_task.task_id,
+            'organizer': None,  # TODO
+            "software_count": modeldb.Software.objects.filter(dataset__dataset_id=dataset.dataset_id).count(),
+        }
 
     def get_dataset(self, dataset_id: str) -> dict:
-        dataset = self.datasets[dataset_id]
-        return {
-            "display_name": dataset.displayName, "evaluator_id": dataset.evaluatorId,
-            "dataset_id": dataset.datasetId,
-            "is_confidential": dataset.isConfidential, "is_deprecated": dataset.isDeprecated,
-            "year": extract_year_from_dataset_id(dataset_id),
-            "task": self.default_tasks.get(dataset.datasetId, "None"),
-            'organizer': self.task_organizers.get(dataset.datasetId, ""),
-            "software_count": self.software_count_by_dataset.get(dataset.datasetId, 0)
-        }
+        return self._dataset_to_dict(modeldb.Dataset.objects.select_related('default_task', 'evaluator')
+                                     .get(dataset_id=dataset_id))
 
     def get_datasets(self) -> dict:
         """ Get a dict of dataset_id: dataset_json_descriptor """
-        return {dataset_id: self.get_dataset(dataset_id) for dataset_id in self.datasets}
+        return {dataset.dataset_id: self._dataset_to_dict(dataset)
+                for dataset in modeldb.Dataset.objects.select_related('default_task', 'evaluator').all()}
 
     def get_datasets_by_task(self, task_id: str, include_deprecated=False) -> list:
         """ return the list of datasets associated with this task_id
@@ -576,14 +464,13 @@ class HybridDatabase(object):
         @param include_deprecated: Default False. If True, also returns datasets marked as deprecated.
         @return: a list of json-formatted datasets, as returned by get_dataset
         """
-        return [self.get_dataset(dataset.datasetId)
-                for dataset in self.datasets.values()
-                if task_id == self.default_tasks.get(dataset.datasetId, "") and
-                not (dataset.isDeprecated and not include_deprecated)]
+        return [self._dataset_to_dict(d.dataset)
+                for d in modeldb.TaskHasDataset.objects.filter(task=task_id)
+                if not (d.dataset.is_deprecated and not include_deprecated)]
 
     def get_organizer(self, organizer_id: str):
         # TODO should return as dict
-        organizer = Organizers.objects.get(organizer_id=organizer_id)
+        organizer = modeldb.Organizers.objects.get(organizer_id=organizer_id)
         return {
             "organizer_id": organizer.organizer_id,
             "name": organizer.name,
@@ -615,50 +502,38 @@ class HybridDatabase(object):
 
         return list(parse_vm_list(open(self.vm_list_file, 'r')))
 
-    def get_vms_by_dataset(self, dataset_id: str) -> list:
+    @staticmethod
+    def get_vms_by_dataset(dataset_id: str) -> list:
         """ return a list of vm_id's that have runs on this dataset """
-        return [user_run_dir.stem
-                for user_run_dir in (self.RUNS_DIR_PATH / dataset_id).glob("*")]
+        return [run.software.vm.vm_id for run in modeldb.Run.objects.select_related('input_dataset', 'software').filter(input_dataset__dataset_id=dataset_id)]
+
+    @staticmethod
+    def _run_as_dict(run):
+        return {"software": run.software.software_id,
+                "run_id": run.run_id,
+                "input_run_id": modeldb.RunHasInputRun.objects.get(run__run_id=run.run_id),
+                "dataset": run.input_dataset.dataset_id,
+                "downloadable": run.downloadable}
+
+    def get_run(self, dataset_id: str, vm_id: str, run_id: str, return_deleted: bool = False) -> dict:
+        run = modeldb.Run.objects.select_related('software', 'input_dataset').get(run_id=run_id)
+        if run.deleted and not return_deleted:
+            return {}
+        return self._run_as_dict(run)
 
     def get_vm_runs_by_dataset(self, dataset_id: str, vm_id: str, return_deleted: bool = False) -> list:
-        runs = {}
-        for run_id_dir in (self.RUNS_DIR_PATH / dataset_id / vm_id).glob("*"):
-            run_id = run_id_dir.stem
-            run = self.get_run(dataset_id, vm_id, run_id, return_deleted=return_deleted)
-
-            if run is not None:
-                runs[run_id] = run
-
-        return list(runs.values())
+        """ TODO this not used on master, check if this can be deprecated """
+        return [self._run_as_dict(run) for run in
+                modeldb.Run.objects.select_related('software', 'input_dataset')
+                    .filter(input_dataset__dataset_id=dataset_id, software__vm__vm_id=vm_id)
+                if (run.deleted or not return_deleted)]
 
     def get_vm_runs_by_task(self, task_id: str, vm_id: str, return_deleted: bool = False) -> list:
         """ returns a list of all the runs of a user over all datasets in json (as returned by _load_user_runs) """
-        relevant_datasets = {software["dataset"] for software in self.get_software(task_id, vm_id)}
-        runs = []
-        for dataset_id in relevant_datasets:
-            runs.extend(self.get_vm_runs_by_dataset(dataset_id, vm_id, return_deleted=return_deleted))
-        return runs
-
-    def get_vms_with_reviews(self, vm_ids: list, dataset_id: str, vm_reviews) -> list:
-        """ Get a list of all vms of a given dataset. VM's are given as a dict:
-         ``{vm_id: str, "runs": list of runs, unreviewed_count: int, blinded_count: int, published_count: int}``
-        """
-        vm_runs = {vm_id: self.get_vm_runs_by_dataset(dataset_id, vm_id)
-                   for vm_id in vm_ids}
-
-        vms = []
-        for vm_id, run in vm_runs.items():
-            runs = [{"run": run, "review": vm_reviews.get(vm_id, None).get(run["run_id"], None)}
-                    for run in vm_runs.get(vm_id)]
-            unreviewed_count = len([1 for r in vm_reviews[vm_id].values()
-                                    if not r.get("hasErrors", None) and not r.get("hasNoErrors", None)])
-            published_count = len([1 for r in vm_reviews[vm_id].values()
-                                   if r.get("published", None)])
-            blinded_count = len([1 for r in vm_reviews[vm_id].values()
-                                 if r.get("blinded", None)])
-            vms.append({"vm_id": vm_id, "runs": runs, "unreviewed_count": unreviewed_count,
-                        "blinded_count": blinded_count, "published_count": published_count})
-        return vms
+        return [self._run_as_dict(run) for run in
+                modeldb.Run.objects.select_related('software', 'input_dataset')
+                    .filter(software__vm__vm_id=vm_id, task__task_id=task_id)
+                if (run.deleted or not return_deleted)]
 
     def get_evaluator(self, dataset_id, task_id=None):
         """ returns a dict containing the evaluator parameters:
@@ -668,114 +543,214 @@ class HybridDatabase(object):
         command: command to execute to run the evaluator. NOTE: contains variables the host needs to resolve
         working_dir: where to execute the command
         """
-        dataset = self.datasets[dataset_id]
-        evaluator_id = dataset.evaluatorId
-        if task_id is None:
-            task_id = self.default_tasks.get(dataset.datasetId, None)
+        dataset = modeldb.Dataset.objects.select_related('default_task').get(dataset_id=dataset_id)
+        master_vm = dataset.default_task.vm
 
-        task = self.tasks.get(task_id)
-        vm_id = task.virtualMachineId
-        master_vm = Parse(open(self.vm_dir_path / f"{vm_id}.prototext", "r").read(),
-                          modelpb.VirtualMachine())
-        result = {"vm_id": vm_id, "host": master_vm.host}
+        return {"vm_id": master_vm.vm_id, "host": master_vm.host, "command": dataset.evaluator.command,
+                "working_dir": dataset.evaluator.working_directory}
 
-        for evaluator in master_vm.evaluators:
-            if evaluator.evaluatorId == evaluator_id:
-                result["command"] = evaluator.command
-                result["working_dir"] = evaluator.workingDirectory
-                break
+    @staticmethod
+    def get_vm_evaluations_by_dataset(dataset_id, vm_id, only_public_results=True):
+        """ Return a dict of run_id: evaluation_results for the given vm on the given dataset
+            {run_id: {measure.key: measure.value for measure in evaluation.measure}}
 
+        @param only_public_results: only return the measures for published datasets.
+        TODO this method is never used. Check if it can be Deprecated.
+        """
+        evaluations = modeldb.Evaluation.objects.select_related('run') \
+            .filter(run__input_dataset__dataset_id=dataset_id, run__software__vm__vm_id=vm_id).distinct('run')
+
+        result = {}
+        for e in evaluations:
+            if only_public_results is True and not modeldb.Review.objects.get(run__run_id=e.run.run_id).published:
+                continue
+            result[e.run.run_id] = {evaluation.measure_key: evaluation.measure_value
+                                    for evaluation in modeldb.Evaluation.objects.filter(run__run_id=e.run.run_id)}
         return result
 
-    def get_vm_evaluations_by_dataset(self, dataset_id, vm_id, only_public_results=True):
-        """ Return a dict of run_id: evaluation_results for the given vm on the given dataset
-        @param only_public_results: only return the measures for published datasets.
-        """
-        return {run_id: self.get_evaluation_measures(ev)
-                for run_id, ev in
-                self.load_vm_evaluations(dataset_id, vm_id, only_published=only_public_results).items()}
-
-    def get_evaluations_with_keys_by_dataset(self, vm_ids, dataset_id, vm_reviews=None):
-        """ Get all evaluations and evaluation measures for all vms on the given dataset.
-
-        @param vm_ids: a list of vm_id
-        @param dataset_id: the dataset_id as used in tira_model
-        @param vm_reviews: a dict of {vm_id: review}, where review is returned by model.get_vm_reviews(_by_dataset).
-        If this is given, the review status (published, blinded) is included in the evaluations.
-
-        :returns: a tuple (ev_keys, evaluation), where ev-keys is a list of keys of the evaluation measure
-        and evaluation a list of evaluations and each evaluation is a dict with {vm_id: str, run_id: str, measures: list}
-        """
-        vm_evaluations = {vm_id: self.get_vm_evaluations_by_dataset(dataset_id, vm_id,
-                                                                    only_public_results=False if vm_reviews else True)
-                          for vm_id in vm_ids}
-        keys = set()
-        for e1 in vm_evaluations.values():
-            for e2 in e1.values():
-                keys.update(e2.keys())
-        ev_keys = list(keys)
-
-        if vm_reviews:
-            evaluations = [{"vm_id": vm_id,
-                            "run_id": run_id,
-                            "blinded": vm_reviews.get(vm_id, {}).get(run_id, {}).get("blinded", False),
-                            "published": vm_reviews.get(vm_id, {}).get(run_id, {}).get("published", False),
-                            "measures": [measures.get(k, "-") for k in ev_keys]}
-                           for vm_id, measures_by_runs in vm_evaluations.items()
-                           for run_id, measures in measures_by_runs.items()]
-        else:
-            evaluations = [{"vm_id": vm_id,
-                            "run_id": run_id,
-                            "measures": [measures.get(k, "-") for k in ev_keys]}
-                           for vm_id, measures_by_runs in vm_evaluations.items()
-                           for run_id, measures in measures_by_runs.items()]
-        return ev_keys, evaluations
+    @staticmethod
+    def _review_as_dict(review):
+        return {"reviewer": review.reviewer_id, "noErrors": review.no_errors,
+                "missingOutput": review.missing_output,
+                "extraneousOutput": review.extraneous_output, "invalidOutput": review.invalid_output,
+                "hasErrorOutput": review.has_error_output, "otherErrors": review.other_errors,
+                "comment": review.comment, "hasErrors": review.has_errors, "hasWarnings": review.has_warnings,
+                "hasNoErrors": review.has_no_errors, "published": review.published, "blinded": review.blinded}
 
     def get_run_review(self, dataset_id: str, vm_id: str, run_id: str) -> dict:
-        review = self.load_review(dataset_id, vm_id, run_id)
-
-        return {"reviewer": review.reviewerId, "noErrors": review.noErrors,
-                "missingOutput": review.missingOutput,
-                "extraneousOutput": review.extraneousOutput, "invalidOutput": review.invalidOutput,
-                "hasErrorOutput": review.hasErrorOutput, "otherErrors": review.otherErrors,
-                "comment": review.comment, "hasErrors": review.hasErrors, "hasWarnings": review.hasWarnings,
-                "hasNoErrors": review.hasNoErrors, "published": review.published, "blinded": review.blinded
-                }
+        review = modeldb.Review.objects.get(run__run_id=run_id)
+        return self._review_as_dict(review)
 
     def get_vm_reviews_by_dataset(self, dataset_id: str, vm_id: str) -> dict:
-        return {run_id_dir.stem: self.get_run_review(dataset_id, vm_id, run_id_dir.stem)
-                for run_id_dir in (self.RUNS_DIR_PATH / dataset_id / vm_id).glob("*")}
+        return {review.run.run_id: self._review_as_dict(review)
+                for review in modeldb.Review.objects.select_related('run').
+                    filter(run__input_dataset__dataset_id=dataset_id, run__software__vm__vm_id=vm_id)}
 
-    def get_software(self, task_id, vm_id, software_id=None):
+    @staticmethod
+    def _software_to_dict(software):
+        return {"id": software.software_id, "count": software.count,
+                "task_id": software.task.task_id, "vm_id": software.vm.vm_id,
+                "command": software.command, "working_directory": software.working_directory,
+                "dataset": software.dataset, "run": software.run, "creation_date": software.creation_date,
+                "last_edit": software.last_edit_date}
+
+    def get_software(self, task_id, vm_id, software_id):
+        """ Returns the software with the given name of a vm on a task """
+        return self._software_to_dict(modeldb.Software.objects.get(vm__vm_id=vm_id, software_id=software_id))
+
+    def get_software_by_vm(self, task_id, vm_id):
         """ Returns the software of a vm on a task in json """
-        sw = [{"id": software.id, "count": software.count,
-               "task_id": task_id, "vm_id": vm_id,
-               "command": software.command, "working_directory": software.workingDirectory,
-               "dataset": software.dataset, "run": software.run, "creation_date": software.creationDate,
-               "last_edit": software.lastEditDate}
-              for software in self.software.get(f"{task_id}${vm_id}", [])]
+        return [self._software_to_dict(software)
+                for software in modeldb.Software.objects.filter(vm__vm_id=vm_id, task__task_id=task_id)]
 
-        if not software_id:
-            return sw
+    def add_vm(self, vm_id, user_name, initial_user_password, ip, host, ssh, rdp):
+        """ Add a new task to the database.
+        This will not overwrite existing files and instead do nothing and return false
+        """
+        if self._save_vm(vm_id, user_name, initial_user_password, ip, host, ssh, rdp):
+            try:
+                modeldb.VirtualMachine.objects.create(vm_id=vm_id, user_password=initial_user_password,
+                                                      roles='user', host=host, ip=ip, ssh=ssh, rdp=rdp)
+            except IntegrityError as e:
+                logger.exception(f"Failed to add new vm {vm_id} with ", e)
+                raise TiraModelIntegrityError(e)
 
-        for s in sw:
-            if s["id"] == software_id:
-                return s
+        raise TiraModelWriteError(f"Failed to write VM {vm_id}")
 
-    def get_users_vms(self):
-        """ Return the users list. """
-        return self.vms
+    def create_task(self, task_id, task_name, task_description, master_vm_id, organizer, website):
+        """ Add a new task to the database.
+         CAUTION: This function does not do any sanity checks and will OVERWRITE existing tasks
+         TODO add max_std_out_chars_on_test_data, max_std_err_chars_on_test_data, max_file_list_chars_on_test_data, command_placeholder, command_description, dataset_label, max_std_out_chars_on_test_data_eval, max_std_err_chars_on_test_data_eval, max_file_list_chars_on_test_data_eval,          """
+        if self._save_task(task_id, task_name, task_description, master_vm_id, organizer, website):
+            try:
+                vm, _ = modeldb.VirtualMachine.objects.get_or_create(vm_id=master_vm_id)
+                modeldb.Task.objects.create(
+                    task_id=task_id, task_name=task_name, task_description=task_description,
+                    vm=vm, organizer=modeldb.Organizers.objects.get(organizer_id=organizer), web=website)
+                return True
+            except IntegrityError as e:
+                logger.exception(f"Failed to add new task {task_id} with ", e)
+                raise TiraModelIntegrityError(e)
 
-    # ------------------------------------------------------------
-    # add methods to add new data to the model
-    # ------------------------------------------------------------
+        raise TiraModelWriteError(f"Failed to write task {task_id}")
 
-    def add_software(self, task_id: str, vm_id: str) -> bool:
+    def add_dataset(self, task_id, dataset_id, dataset_type, dataset_name):
+        """ TODO documentation
+        """
+        # update task_dir_path/task_id.prototext:
+        dataset_id = f"{dataset_id}-{dataset_type}"
+
         try:
-            return self._add_software(task_id, vm_id)
-        except FileNotFoundError as e:
-            logger.exception(f"Exception while adding software ({task_id}, {vm_id}): {e}")
-            return False
+            for_task = modeldb.Task.objects.get(task_id=task_id)
+        except modeldb.Task.DoesNotExist:
+            raise KeyError(f"No task with id {task_id}")
+
+        # create new dataset_dir_path/task_id/dataset_id.prototext
+        self._save_dataset(task_id, dataset_id, dataset_name, False, True if dataset_type == 'test' else False)
+
+        ds, _ = modeldb.Dataset.objects.update_or_create(dataset_id=dataset_id, default_task=for_task,
+                                                         display_name=dataset_name,
+                                                         is_confidential=True if dataset_type == 'test' else False,
+                                                         released=str(dt.now()))
+
+        thds = modeldb.TaskHasDataset.objects.select_related('dataset').filter(task__task_id=task_id)
+        append_training = []
+        append_test = []
+        if dataset_type == 'test' and dataset_id not in {thd.dataset.dataset_id for thd in thds if thd.is_test}:
+            append_test.append(dataset_id)
+            modeldb.TaskHasDataset.objects.create(task=for_task, dataset=ds, is_test=True)
+        elif dataset_type in {'training', 'dev'} and dataset_id not in {thd.dataset.dataset_id for thd in thds if
+                                                                        not thd.is_test}:
+            append_training = [dataset_id]
+            modeldb.TaskHasDataset.objects.create(task=for_task, dataset=ds, is_test=False)
+        elif dataset_type not in {'training', 'dev', 'test'}:
+            raise KeyError("dataset type must be test, training, or dev")
+        self._save_task(task_id, None, None, None, None, None, append_training_datasets=append_training,
+                        append_test_datasets=append_test, overwrite=True)
+
+        # create dirs data_path/dataset/test-dataset[-truth]/task_id/dataset-id-type
+        new_dirs = []
+        if dataset_type == 'test':
+            new_dirs.append((self.data_path / f'test-datasets' / task_id / dataset_id))
+            new_dirs.append((self.data_path / f'test-datasets-truth' / task_id / dataset_id))
+        else:
+            new_dirs.append((self.data_path / f'training-datasets' / task_id / dataset_id))
+            new_dirs.append((self.data_path / f'training-datasets-truth' / task_id / dataset_id))
+        for d in new_dirs:
+            d.mkdir(parents=True, exist_ok=True)
+
+        return [str(nd) for nd in new_dirs]
+
+    def _append_evaluator(self, vm_id, evaluator_id, command, working_directory, measures):
+        vm_file_path = self.vm_dir_path / f'{vm_id}.prototext'
+        if not vm_file_path.exists():
+            raise TiraModelWriteError(f"Failed to _append_evaluator, vm file does not exist")
+        vm = Parse(open(vm_file_path).read(), modelpb.VirtualMachine())
+
+        ev = modelpb.Evaluator()
+        ev.evaluatorId = evaluator_id
+        ev.command = command
+        ev.workingDirectory = working_directory
+        ev.measures = ",".join([x[0].strip('\r') for x in measures])
+        ev.measureKeys.extend([x[1].strip('\r') for x in measures])
+        vm.evaluators.append(ev)
+
+        # self.vms[vm_proto.virtualMachineId] = vm_proto  # TODO see issue:30
+        open(vm_file_path, 'w').write(str(vm))
+
+    def add_evaluator(self, vm_id, task_id, dataset_id, dataset_type, command, working_directory, measures):
+        """ TODO documentation """
+        evaluator_id = f"{dataset_id}-evaluator"
+        dataset_id = f"{dataset_id}-{dataset_type}"
+
+        # get_or_create
+        ev = modeldb.Evaluator.objects.update_or_create(evaluator_id=evaluator_id, command=command,
+                                                        working_directory=working_directory,
+                                                        measures=", ".join(measures))
+
+        if not modeldb.VirtualMachineHasEvaluator.objects.filter(evaluator_evaluator_id=evaluator_id,
+                                                                 vm__vm_id=vm_id).exists():
+            self._append_evaluator(vm_id, evaluator_id, command, working_directory, measures)
+
+        # update dataset_id.prototext
+        modeldb.Dataset.objects.filter(dataset_id).update(evaluator=ev)
+        self._save_dataset(task_id, evaluator_id=evaluator_id, overwrite=True)
+
+    def add_software(self, task_id: str, vm_id: str):
+        self._add_software(task_id, vm_id)
+
+    def update_software(self, task_id, vm_id, software_id, command: str = None, working_directory: str = None,
+                        dataset: str = None, run: str = None, deleted: bool = False):
+        def update(x, y):
+            return y if y is not None else x
+
+        s = self._load_softwares(task_id, vm_id)
+        date = now()
+        for software in s.softwares:
+            if software.id == software_id:
+                software.command = update(software.command, command)
+                software.workingDirectory = update(software.workingDirectory, working_directory)
+                software.dataset = update(software.dataset, dataset)
+                software.run = update(software.run, run)
+                software.deleted = update(software.deleted, deleted)
+                software.lastEditDate = date
+
+                self._save_softwares(task_id, vm_id, s)
+                modeldb.Software.objects.filter(software_id=software_id, vm__vm_id=vm_id).update(
+                    command=software.command, working_directory=software.workingDirectory,
+                    deleted=software.deleted,
+                    dataset=modeldb.Dataset.objects.get(dataset_id=software.dataset),
+                    last_edit_date=date)
+                if run:
+                    modeldb.SoftwareHasInputRun.objects.filter(
+                        software=modeldb.Software.objects.get(software_id=software_id, vm__vm_id=vm_id),
+                        input_run=modeldb.Run.objects.get(run_id=run))
+
+                # software_list = [user_software for user_software in s.softwares if not user_software.deleted]
+                # self.software[f"{task_id}${vm_id}"] = software_list
+                return software
+
+        return False
 
     def update_review(self, dataset_id, vm_id, run_id,
                       reviewer_id: str = None, review_date: str = None, has_errors: bool = None,
@@ -801,33 +776,59 @@ class HybridDatabase(object):
             Required Parameters are also required in the function
         """
         try:
-            self._update_run(dataset_id, vm_id, run_id, deleted)
-            return True
+            run = self.load_run(dataset_id, vm_id, run_id)
+
+            def update(x, y):
+                return y if y is not None else x
+
+            run.deleted = update(run.deleted, deleted)
+            modeldb.Run.objects.filter(run_id=run_id).update(deleted=run.deleted)
+
+            self._save_run(dataset_id, vm_id, run_id, run)
         except Exception as e:
-            logger.exception(f"Exception while saving run ({dataset_id}, {vm_id}, {run_id}): {e}")
-            return False
+            raise TiraModelWriteError(f"Exception while saving run ({dataset_id}, {vm_id}, {run_id})", e)
 
-    # ------------------------------------------------------------
-    # add methods to check for existence
-    # ------------------------------------------------------------
+    # TODO add option to truly delete the software.
+    def delete_software(self, task_id, vm_id, software_id):
+        s = self._load_softwares(task_id, vm_id)
+        found = False
+        for software in s.softwares:
+            if software.id == software_id:
+                software.deleted = True
+                found = True
+        software_list = [software for software in s.softwares if not software.deleted]
+        self.software[f"{task_id}${vm_id}"] = software_list
+        self._save_softwares(task_id, vm_id, s)
+        modeldb.Software.objects.filter(software_id=software_id, vm__vm_id=vm_id).delete()
 
-    def task_exists(self, task_id: str) -> bool:
-        return task_id in self.tasks
+        return found
 
-    def dataset_exists(self, dataset_id: str) -> bool:
-        return dataset_id in self.datasets
+    def delete_run(self, dataset_id, vm_id, run_id):
+        run_dir = Path(self.RUNS_DIR_PATH / dataset_id / vm_id / run_id)
+        rmtree(run_dir)
+        modeldb.Run.objects.filter(run_id=run_id).delete()
 
-    def vm_exists(self, vm_id: str) -> bool:
-        return vm_id in self.vms
+    # methods to check for existence
+    @staticmethod
+    def task_exists(task_id: str) -> bool:
+        return modeldb.Task.objects.filter(task_id=task_id).exists()
 
-    def organizer_exists(self, organizer_id: str) -> bool:
-        return organizer_id in self.organizers
+    @staticmethod
+    def dataset_exists(dataset_id: str) -> bool:
+        return modeldb.Dataset.objects.filter(dataset_id=dataset_id).exists()
 
-    def run_exists(self, vm_id: str, dataset_id: str, run_id: str) -> bool:
-        return True if self.get_run(dataset_id, vm_id, run_id) else False
+    @staticmethod
+    def vm_exists(vm_id: str) -> bool:
+        return modeldb.VirtualMachine.objects.filter(vm_id=vm_id).exists()
 
-    def software_exists(self, task_id: str, vm_id: str, software_id: str) -> bool:
-        for software in self.software.get(f"{task_id}${vm_id}", []):
-            if software_id == software.id:
-                return True
-        return False
+    @staticmethod
+    def organizer_exists(organizer_id: str) -> bool:
+        return modeldb.Organizer.objects.filter(organizer_id=organizer_id).exists()
+
+    @staticmethod
+    def run_exists(vm_id: str, dataset_id: str, run_id: str) -> bool:
+        return modeldb.Run.objects.filter(run_id=run_id).exists()
+
+    @staticmethod
+    def software_exists(task_id: str, vm_id: str, software_id: str) -> bool:
+        return modeldb.Software.objects.filter(software_id=software_id, vm__vm_id=vm_id).exists()

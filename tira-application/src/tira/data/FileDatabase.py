@@ -1,20 +1,16 @@
 from google.protobuf.text_format import Parse
-from google.protobuf.json_format import MessageToDict
 from pathlib import Path
 import logging
 from django.conf import settings
-import socket
 from datetime import datetime, timezone
 import re
 from shutil import rmtree
 from datetime import datetime as dt
 
+from tira.util import TiraModelWriteError, TiraModelIntegrityError
 from tira.proto import TiraClientWebMessages_pb2 as modelpb
-from tira.proto import tira_host_pb2 as model_host
 from tira.util import auto_reviewer, extract_year_from_dataset_id
 
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
 
 logger = logging.getLogger("tira")
 
@@ -283,41 +279,36 @@ class FileDatabase(object):
         # open(f'/home/tira/{task_id}.prototext', 'wb').write(new_task.SerializeToString())
         new_task_file_path = self.tasks_dir_path / f'{task_proto.taskId}.prototext'
         if not overwrite and new_task_file_path.exists():
-            return False
+            raise TiraModelWriteError(f"Failed to write vm, vm exists and overwrite is not allowed here")
         self.tasks[task_proto.taskId] = task_proto
         open(new_task_file_path, 'w').write(str(task_proto))
         self._build_task_relations()
-        return True
 
     def _save_vm(self, vm_proto, overwrite=False):
         new_vm_file_path = self.vm_dir_path / f'{vm_proto.virtualMachineId}.prototext'
         if not overwrite and new_vm_file_path.exists():
-            return False
+            raise TiraModelWriteError(f"Failed to write vm, vm exists and overwrite is not allowed here")
         # self.vms[vm_proto.virtualMachineId] = vm_proto  # TODO see issue:30
         open(new_vm_file_path, 'w').write(str(vm_proto))
-        return True
 
     def _save_dataset(self, dataset_proto, task_id, overwrite=False):
         """ dataset_dir_path/task_id/dataset_id.prototext """
         new_dataset_file_path = self.datasets_dir_path / task_id / f'{dataset_proto.datasetId}.prototext'
         if not overwrite and new_dataset_file_path.exists():
-            return False
+            raise TiraModelWriteError(f"Failed to write dataset, dataset exists and overwrite is not allowed here")
         (self.datasets_dir_path / task_id).mkdir(exist_ok=True, parents=True)
         open(new_dataset_file_path, 'w').write(str(dataset_proto))
         self.datasets[dataset_proto.datasetId] = dataset_proto
-        return True
 
     def _save_review(self, dataset_id, vm_id, run_id, review):
         review_path = self.RUNS_DIR_PATH / dataset_id / vm_id / run_id
         open(review_path / "run-review.prototext", 'w').write(str(review))
         open(review_path / "run-review.bin", 'wb').write(review.SerializeToString())
-        return True
 
     def _save_softwares(self, task_id, vm_id, softwares):
         with open(self.softwares_dir_path / task_id / vm_id / "softwares.prototext", "w+") as prototext_file:
             # update file
             prototext_file.write(str(softwares))
-            return True
 
     def _save_run(self, dataset_id, vm_id, run_id, run):
         run_dir = (self.RUNS_DIR_PATH / dataset_id / vm_id / run_id)
@@ -346,7 +337,7 @@ class FileDatabase(object):
         new_vm.ip = ip
         new_vm.portSsh = ssh
         new_vm.portRdp = rdp
-        return self._save_vm(new_vm)
+        self._save_vm(new_vm)
 
     def create_task(self, task_id, task_name, task_description, master_vm_id, organizer, website):
         """ Add a new task to the database.
@@ -358,7 +349,7 @@ class FileDatabase(object):
         new_task.virtualMachineId = master_vm_id
         new_task.hostId = organizer
         new_task.web = website
-        return self._save_task(new_task)
+        self._save_task(new_task)
 
     def add_dataset(self, task_id, dataset_id, dataset_type, dataset_name):
         """ TODO documentation
@@ -427,12 +418,11 @@ class FileDatabase(object):
         software.deleted = False
 
         s.softwares.append(software)
-        software_ok = self._save_softwares(task_id, vm_id, s)
+        self._save_softwares(task_id, vm_id, s)
 
         software_list = self.software.get(f"{task_id}${vm_id}", [])
         software_list.append(software)
         self.software[f"{task_id}${vm_id}"] = software_list
-        return software if software_ok else False
 
     def add_evaluator(self, vm_id, task_id, dataset_id, dataset_type, command, working_directory, measures):
         """ TODO documentation
@@ -443,7 +433,7 @@ class FileDatabase(object):
         # update dataset_id.prototext
         dataset = self.datasets.get(dataset_id)
         dataset.evaluatorId = evaluator_id
-        dataset_ok = self._save_dataset(dataset, task_id, overwrite=True)
+        self._save_dataset(dataset, task_id, overwrite=True)
 
         # add evaluators to vm
         vm = self._load_vm(vm_id)
@@ -455,18 +445,14 @@ class FileDatabase(object):
             ev.measures = ",".join([x[0].strip('\r') for x in measures])
             ev.measureKeys.extend([x[1].strip('\r') for x in measures])
             vm.evaluators.append(ev)
-            vm_ok = self._save_vm(vm, overwrite=True)
-        else:
-            vm_ok = True
-
-        return vm_ok and dataset_ok
+            self._save_vm(vm, overwrite=True)
 
     def _update_review(self, dataset_id, vm_id, run_id,
-                      reviewer_id: str = None, review_date: str = None, has_errors: bool = None,
-                      has_no_errors: bool = None, no_errors: bool = None, missing_output: bool = None,
-                      extraneous_output: bool = None, invalid_output: bool = None, has_error_output: bool = None,
-                      other_errors: bool = None, comment: str = None, published: bool = None, blinded: bool = None,
-                      has_warnings: bool = False):
+                       reviewer_id: str = None, review_date: str = None, has_errors: bool = None,
+                       has_no_errors: bool = None, no_errors: bool = None, missing_output: bool = None,
+                       extraneous_output: bool = None, invalid_output: bool = None, has_error_output: bool = None,
+                       other_errors: bool = None, comment: str = None, published: bool = None, blinded: bool = None,
+                       has_warnings: bool = False):
         """ updates the review specified by dataset_id, vm_id, and run_id with the values given in the parameters.
         Required Parameters are also required in the function
         """
@@ -491,7 +477,6 @@ class FileDatabase(object):
         review.blinded = update(review.blinded, blinded)
 
         self._save_review(dataset_id, vm_id, run_id, review)
-
 
     def _update_run(self, dataset_id, vm_id, run_id, deleted: bool = None):
         """ updates the run specified by dataset_id, vm_id, and run_id with the values given in the parameters.
@@ -525,20 +510,18 @@ class FileDatabase(object):
                 self.software[f"{task_id}${vm_id}"] = software_list
                 return software
 
-        return False
-
     # TODO add option to truly delete the software.
     def delete_software(self, task_id, vm_id, software_id):
         s = self._load_softwares(task_id, vm_id)
         found = False
         for software in s.softwares:
             if software.id == software_id:
-                software.deleted = True
-                found = True
+                break
+        else:
+            raise TiraModelWriteError(f"Software does not exist: {task_id}, {vm_id}, {software_id}")
         software_list = [software for software in s.softwares if not software.deleted]
         self.software[f"{task_id}${vm_id}"] = software_list
         self._save_softwares(task_id, vm_id, s)
-        return found
 
     def delete_run(self, dataset_id, vm_id, run_id):
         run_dir = Path(self.RUNS_DIR_PATH / dataset_id / vm_id / run_id)
@@ -657,27 +640,6 @@ class FileDatabase(object):
             runs.extend(self.get_vm_runs_by_dataset(dataset_id, vm_id, return_deleted=return_deleted))
         return runs
 
-    def get_vms_with_reviews(self, vm_ids: list, dataset_id: str, vm_reviews) -> list:
-        """ Get a list of all vms of a given dataset. VM's are given as a dict:
-         ``{vm_id: str, "runs": list of runs, unreviewed_count: int, blinded_count: int, published_count: int}``
-        """
-        vm_runs = {vm_id: self.get_vm_runs_by_dataset(dataset_id, vm_id)
-                   for vm_id in vm_ids}
-
-        vms = []
-        for vm_id, run in vm_runs.items():
-            runs = [{"run": run, "review": vm_reviews.get(vm_id, None).get(run["run_id"], None)}
-                    for run in vm_runs.get(vm_id)]
-            unreviewed_count = len([1 for r in vm_reviews[vm_id].values()
-                                    if not r.get("hasErrors", None) and not r.get("hasNoErrors", None)])
-            published_count = len([1 for r in vm_reviews[vm_id].values()
-                                   if r.get("published", None)])
-            blinded_count = len([1 for r in vm_reviews[vm_id].values()
-                                 if r.get("blinded", None)])
-            vms.append({"vm_id": vm_id, "runs": runs, "unreviewed_count": unreviewed_count,
-                        "blinded_count": blinded_count, "published_count": published_count})
-        return vms
-
     def get_evaluator(self, dataset_id, task_id=None):
         """ returns a dict containing the evaluator parameters:
 
@@ -713,42 +675,6 @@ class FileDatabase(object):
                 for run_id, ev in
                 self.load_vm_evaluations(dataset_id, vm_id, only_published=only_public_results).items()}
 
-    def get_evaluations_with_keys_by_dataset(self, vm_ids, dataset_id, vm_reviews=None):
-        """ Get all evaluations and evaluation measures for all vms on the given dataset.
-
-        @param vm_ids: a list of vm_id
-        @param dataset_id: the dataset_id as used in tira_model
-        @param vm_reviews: a dict of {vm_id: review}, where review is returned by model.get_vm_reviews(_by_dataset).
-        If this is given, the review status (published, blinded) is included in the evaluations.
-
-        :returns: a tuple (ev_keys, evaluation), where ev-keys is a list of keys of the evaluation measure
-        and evaluation a list of evaluations and each evaluation is a dict with {vm_id: str, run_id: str, measures: list}
-        """
-        vm_evaluations = {vm_id: self.get_vm_evaluations_by_dataset(dataset_id, vm_id,
-                                                               only_public_results=False if vm_reviews else True)
-                          for vm_id in vm_ids}
-        keys = set()
-        for e1 in vm_evaluations.values():
-            for e2 in e1.values():
-                keys.update(e2.keys())
-        ev_keys = list(keys)
-
-        if vm_reviews:
-            evaluations = [{"vm_id": vm_id,
-                            "run_id": run_id,
-                            "blinded": vm_reviews.get(vm_id, {}).get(run_id, {}).get("blinded", False),
-                            "published": vm_reviews.get(vm_id, {}).get(run_id, {}).get("published", False),
-                            "measures": [measures.get(k, "-") for k in ev_keys]}
-                           for vm_id, measures_by_runs in vm_evaluations.items()
-                           for run_id, measures in measures_by_runs.items()]
-        else:
-            evaluations = [{"vm_id": vm_id,
-                            "run_id": run_id,
-                            "measures": [measures.get(k, "-") for k in ev_keys]}
-                           for vm_id, measures_by_runs in vm_evaluations.items()
-                           for run_id, measures in measures_by_runs.items()]
-        return ev_keys, evaluations
-
     def get_run_review(self, dataset_id: str, vm_id: str, run_id: str) -> dict:
         review = self.load_review(dataset_id, vm_id, run_id)
 
@@ -765,7 +691,7 @@ class FileDatabase(object):
                 for run_id_dir in (self.RUNS_DIR_PATH / dataset_id / vm_id).glob("*")}
 
     def get_software(self, task_id, vm_id, software_id=None):
-        """ Returns the software of a vm on a task in json """
+        """ Returns the software with the given name of a vm on a task """
         sw = [{"id": software.id, "count": software.count,
                "task_id": task_id, "vm_id": vm_id,
                "command": software.command, "working_directory": software.workingDirectory,
@@ -773,12 +699,18 @@ class FileDatabase(object):
                "last_edit": software.lastEditDate}
               for software in self.software.get(f"{task_id}${vm_id}", [])]
 
-        if not software_id:
-            return sw
-
         for s in sw:
             if s["id"] == software_id:
                 return s
+
+    def get_software_by_vm(self, task_id, vm_id):
+        """ Returns the softwares of a vm on a task """
+        return [{"id": software.id, "count": software.count,
+                 "task_id": task_id, "vm_id": vm_id,
+                 "command": software.command, "working_directory": software.workingDirectory,
+                 "dataset": software.dataset, "run": software.run, "creation_date": software.creationDate,
+                 "last_edit": software.lastEditDate}
+                for software in self.software.get(f"{task_id}${vm_id}", [])]
 
     def get_users_vms(self):
         """ Return the users list. """
@@ -788,12 +720,12 @@ class FileDatabase(object):
     # add methods to add new data to the model
     # ------------------------------------------------------------
 
-    def add_software(self, task_id: str, vm_id: str) -> bool:
+    def add_software(self, task_id: str, vm_id: str):
         try:
-            return self._add_software(task_id, vm_id)
+            self._add_software(task_id, vm_id)
         except FileNotFoundError as e:
             logger.exception(f"Exception while adding software ({task_id}, {vm_id}): {e}")
-            return False
+            raise TiraModelWriteError(f"Failed to write VM {vm_id}")
 
     def update_review(self, dataset_id, vm_id, run_id,
                       reviewer_id: str = None, review_date: str = None, has_errors: bool = None,

@@ -137,7 +137,7 @@ def dataset_detail(request, context, task_id, dataset_id):
 @add_context
 def software_detail(request, context, task_id, vm_id):
     """ render the detail of the user page: vm-stats, softwares, and runs """
-    softwares = model.get_software(task_id, vm_id)
+    softwares = model.get_software_by_task(task_id, vm_id)
     runs = model.get_vm_runs_by_task(task_id, vm_id)
     datasets = model.get_datasets_by_task(task_id)
 

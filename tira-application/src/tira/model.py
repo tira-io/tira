@@ -101,6 +101,11 @@ class Evaluator(models.Model):
     is_deprecated = models.BooleanField(default=False)
 
 
+class VirtualMachineHasEvaluator(models.Model):
+    evaluator = models.ForeignKey(Evaluator, on_delete=models.CASCADE)
+    vm = models.ForeignKey(VirtualMachine, on_delete=models.CASCADE)
+
+
 class Dataset(models.Model):
     dataset_id = models.CharField(max_length=150, primary_key=True)
     default_task = models.ForeignKey(Task, on_delete=models.SET_NULL, null=True, default=None)
@@ -109,6 +114,7 @@ class Dataset(models.Model):
     is_confidential = models.BooleanField(default=True)
     is_deprecated = models.BooleanField(default=False)
     data_server = models.CharField(max_length=150, null=True, default=None)
+    released = models.CharField(max_length=30, default="")
 
 
 class TaskHasDataset(models.Model):

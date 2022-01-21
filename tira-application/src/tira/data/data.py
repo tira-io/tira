@@ -4,6 +4,7 @@ p.stat().st_mtime - change time
 from tira.proto import TiraClientWebMessages_pb2 as modelpb
 from tira.proto import tira_host_pb2 as model_host
 from google.protobuf.text_format import Parse
+from tira.util import extract_year_from_dataset_id
 from pathlib import Path
 import tira.model as modeldb
 import logging
@@ -46,21 +47,22 @@ def _parse_vm_list(users_file_path, vm_dir_path):
     for user in users.users:
         try:
             vm = Parse(open(vm_dir_path / f"{user.userName}.prototext").read(), modelpb.VirtualMachine())
-            _, _ = modeldb.VirtualMachine.objects.update_or_create(vm_id=user.userName, user_password=user.userPw,
+            vm2, _ = modeldb.VirtualMachine.objects.update_or_create(vm_id=user.userName, user_password=user.userPw,
                                                                    roles=user.roles, host=vm.host,
                                                                    admin_name=vm.adminName, admin_pw=vm.adminPw,
                                                                    ip=vm.ip, ssh=vm.portSsh, rdp=vm.portRdp)
 
             for evaluator in vm.evaluators:
-                modeldb.Evaluator.update_or_create(
+                ev, _ = modeldb.Evaluator.objects.update_or_create(
                     evaluator_id=evaluator.evaluatorId,
                     command=evaluator.command,
                     working_directory=evaluator.workingDirectory,
                     measures=evaluator.measures,
                     is_deprecated=evaluator.is_deprecated)
+                modeldb.VirtualMachineHasEvaluator.objects.update_or_create(evaluator=ev, vm=vm2)
 
         except FileNotFoundError as e:
-            logger.exception(f"Could not find VM file for vm_id {user.userName}")
+            logger.exception(f"Could not find VM file for vm_id {user.userName}", e)
             _, _ = modeldb.VirtualMachine.objects.update_or_create(vm_id=user.userName, user_password=user.userPw,
                                                                    roles=user.roles)
 
@@ -122,7 +124,6 @@ def _parse_dataset_list(datasets_dir_path):
     """ Load all the datasets from the Filedatabase.
     :return: a dict {dataset_id: dataset protobuf object}
     """
-    datasets = {}
     logger.info('loading datasets')
     for dataset_file in datasets_dir_path.rglob("*.prototext"):
         dataset = Parse(open(dataset_file, "r").read(), modelpb.Dataset())
@@ -133,7 +134,8 @@ def _parse_dataset_list(datasets_dir_path):
             evaluator=evaluator,
             is_confidential=dataset.isConfidential,
             is_deprecated=dataset.isDeprecated,
-            data_server=dataset.dataServer
+            data_server=dataset.dataServer,
+            released=extract_year_from_dataset_id(dataset.datasetId)
         )
 
 

@@ -5,8 +5,6 @@ from pathlib import Path
 import logging
 from tira.data.HybridDatabase import HybridDatabase
 
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
 
 logger = logging.getLogger("tira")
 
@@ -82,7 +80,7 @@ def get_datasets_by_task(task_id: str, include_deprecated=False) -> list:
     @param include_deprecated: Default False. If True, also returns datasets marked as deprecated.
     @return: a list of json-formatted datasets, as returned by get_dataset
     """
-    return get_datasets_by_task(task_id, include_deprecated)
+    return model.get_datasets_by_task(task_id, include_deprecated)
 
 
 def get_organizer(organizer_id: str):
@@ -126,7 +124,22 @@ def get_vms_with_reviews(vm_ids: list, dataset_id: str, vm_reviews) -> list:
     """ Get a list of all vms of a given dataset. VM's are given as a dict:
      ``{vm_id: str, "runs": list of runs, unreviewed_count: int, blinded_count: int, published_count: int}``
     """
-    return model.get_vms_with_reviews(vm_ids, dataset_id, vm_reviews)
+    vm_runs = {vm_id: model.get_vm_runs_by_dataset(dataset_id, vm_id)
+               for vm_id in vm_ids}
+
+    vms = []
+    for vm_id, run in vm_runs.items():
+        runs = [{"run": run, "review": vm_reviews.get(vm_id, None).get(run["run_id"], None)}
+                for run in vm_runs.get(vm_id)]
+        unreviewed_count = len([1 for r in vm_reviews[vm_id].values()
+                                if not r.get("hasErrors", None) and not r.get("hasNoErrors", None)])
+        published_count = len([1 for r in vm_reviews[vm_id].values()
+                               if r.get("published", None)])
+        blinded_count = len([1 for r in vm_reviews[vm_id].values()
+                             if r.get("blinded", None)])
+        vms.append({"vm_id": vm_id, "runs": runs, "unreviewed_count": unreviewed_count,
+                    "blinded_count": blinded_count, "published_count": published_count})
+    return vms
 
 
 def get_evaluator(dataset_id, task_id=None):
@@ -158,7 +171,30 @@ def get_evaluations_with_keys_by_dataset(vm_ids, dataset_id, vm_reviews=None):
     :returns: a tuple (ev_keys, evaluation), where ev-keys is a list of keys of the evaluation measure
     and evaluation a list of evaluations and each evaluation is a dict with {vm_id: str, run_id: str, measures: list}
     """
-    return model.get_evaluations_with_keys_by_dataset(vm_ids, dataset_id, vm_reviews)
+    vm_evaluations = {vm_id: model.get_vm_evaluations_by_dataset(dataset_id, vm_id,
+                                                                only_public_results=False if vm_reviews else True)
+                      for vm_id in vm_ids}
+    keys = set()
+    for e1 in vm_evaluations.values():
+        for e2 in e1.values():
+            keys.update(e2.keys())
+    ev_keys = list(keys)
+
+    if vm_reviews:
+        evaluations = [{"vm_id": vm_id,
+                        "run_id": run_id,
+                        "blinded": vm_reviews.get(vm_id, {}).get(run_id, {}).get("blinded", False),
+                        "published": vm_reviews.get(vm_id, {}).get(run_id, {}).get("published", False),
+                        "measures": [measures.get(k, "-") for k in ev_keys]}
+                       for vm_id, measures_by_runs in vm_evaluations.items()
+                       for run_id, measures in measures_by_runs.items()]
+    else:
+        evaluations = [{"vm_id": vm_id,
+                        "run_id": run_id,
+                        "measures": [measures.get(k, "-") for k in ev_keys]}
+                       for vm_id, measures_by_runs in vm_evaluations.items()
+                       for run_id, measures in measures_by_runs.items()]
+    return ev_keys, evaluations
 
 
 def get_run_review(dataset_id: str, vm_id: str, run_id: str) -> dict:
@@ -169,9 +205,14 @@ def get_vm_reviews_by_dataset(dataset_id: str, vm_id: str) -> dict:
     return model.get_vm_reviews_by_dataset(dataset_id, vm_id)
 
 
-def get_software(task_id, vm_id, software_id=None):
+def get_software(task_id, vm_id, software_id):
     """ Returns the software of a vm on a task in json """
     return model.get_software(task_id, vm_id, software_id)
+
+
+def get_software_by_task(task_id, vm_id):
+    """ Returns the software of a vm on a task in json """
+    return model.get_software_by_task(task_id, vm_id)
 
 
 def get_users_vms():
@@ -183,7 +224,7 @@ def get_users_vms():
 # add methods to add new data to the model
 # ------------------------------------------------------------
 
-def add_vm(vm_id: str, user_name: str, initial_user_password: str, ip: str, host: str, ssh: str, rdp: str) -> bool:
+def add_vm(vm_id: str, user_name: str, initial_user_password: str, ip: str, host: str, ssh: str, rdp: str):
     """ Add a new task to the database.
     This will not overwrite existing files and instead do nothing and return false
     """
@@ -191,7 +232,7 @@ def add_vm(vm_id: str, user_name: str, initial_user_password: str, ip: str, host
 
 
 def create_task(task_id: str, task_name: str, task_description: str, master_vm_id: str,
-                organizer: str, website: str) -> bool:
+                organizer: str, website: str):
     """ Add a new task to the database.
      CAUTION: This function does not do any sanity checks and will OVERWRITE existing tasks
      :returns: True if successful
@@ -205,7 +246,7 @@ def add_dataset(task_id: str, dataset_id: str, dataset_type: str, dataset_name: 
     return model.add_dataset(task_id, dataset_id, dataset_type, dataset_name)
 
 
-def add_software(task_id: str, vm_id: str) -> bool:
+def add_software(task_id: str, vm_id: str):
     return model.add_software(task_id, vm_id)
 
 
@@ -219,7 +260,7 @@ def update_review(dataset_id, vm_id, run_id,
                   has_no_errors: bool = None, no_errors: bool = None, missing_output: bool = None,
                   extraneous_output: bool = None, invalid_output: bool = None, has_error_output: bool = None,
                   other_errors: bool = None, comment: str = None, published: bool = None, blinded: bool = None,
-                  has_warnings: bool = False) -> bool:
+                  has_warnings: bool = False):
     """ updates the review specified by dataset_id, vm_id, and run_id with the values given in the parameters.
     Required Parameters are also required in the function
     """
