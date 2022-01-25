@@ -5,47 +5,9 @@ from pathlib import Path
 import logging
 from tira.data.HybridDatabase import HybridDatabase
 
-
 logger = logging.getLogger("tira")
 
-
 model = HybridDatabase()
-
-# class ModelReloadHandler(FileSystemEventHandler):
-#     @staticmethod
-#     def on_any_event(event):
-#         try:
-#             if Path(event.src_path).resolve() == model.organizers_file_path.resolve():
-#                 print(event.src_path)
-#                 model._parse_organizer_list()
-#
-#             if Path(event.src_path).resolve() == model.users_file_path.resolve():
-#                 print(event.src_path)
-#                 model._parse_vm_list()
-#
-#             if Path(event.src_path).resolve() == model.tasks_dir_path.resolve():
-#                 print(event.src_path)
-#                 model._parse_task_list()
-#                 model._build_task_relations()
-#
-#             if Path(event.src_path).resolve() == model.datasets_dir_path.resolve():
-#                 print(event.src_path)
-#                 model._parse_dataset_list()
-#
-#             if Path(event.src_path).resolve() == model.softwares_dir_path.resolve():
-#                 print(event.src_path)
-#                 model._parse_software_list()
-#                 model._build_software_relations()
-#                 model._build_software_counts()
-#         except UnicodeDecodeError as e:
-#             logger.error(e)
-#
-#
-# logger.info("start watchdog")
-# event_handler = ModelReloadHandler()
-# observer = Observer()
-# observer.schedule(event_handler, model.tira_root / "model", recursive=True)
-# observer.start()
 
 
 # get methods are the public interface.
@@ -172,7 +134,7 @@ def get_evaluations_with_keys_by_dataset(vm_ids, dataset_id, vm_reviews=None):
     and evaluation a list of evaluations and each evaluation is a dict with {vm_id: str, run_id: str, measures: list}
     """
     vm_evaluations = {vm_id: model.get_vm_evaluations_by_dataset(dataset_id, vm_id,
-                                                                only_public_results=False if vm_reviews else True)
+                                                                 only_public_results=False if vm_reviews else True)
                       for vm_id in vm_ids}
     keys = set()
     for e1 in vm_evaluations.values():
@@ -255,6 +217,11 @@ def add_evaluator(vm_id: str, task_id: str, dataset_id: str, dataset_type: str, 
     return model.add_evaluator(vm_id, task_id, dataset_id, dataset_type, command, working_directory, measures)
 
 
+def add_run(dataset_id, vm_id, run_id):
+    """ Add a new run to the model. Currently, this initiates the caching on the application side of things. """
+    return model.add_run(dataset_id, vm_id, run_id)
+
+
 def update_review(dataset_id, vm_id, run_id,
                   reviewer_id: str = None, review_date: str = None, has_errors: bool = None,
                   has_no_errors: bool = None, no_errors: bool = None, missing_output: bool = None,
@@ -262,8 +229,7 @@ def update_review(dataset_id, vm_id, run_id,
                   other_errors: bool = None, comment: str = None, published: bool = None, blinded: bool = None,
                   has_warnings: bool = False):
     """ updates the review specified by dataset_id, vm_id, and run_id with the values given in the parameters.
-    Required Parameters are also required in the function
-    """
+    Required Parameters are also required in the function """
     return model.update_review(dataset_id, vm_id, run_id, reviewer_id, review_date, has_errors, has_no_errors,
                                no_errors, missing_output, extraneous_output, invalid_output, has_error_output,
                                other_errors, comment, published, blinded, has_warnings)
@@ -271,19 +237,19 @@ def update_review(dataset_id, vm_id, run_id,
 
 def update_run(dataset_id, vm_id, run_id, deleted: bool = None):
     """ updates the run specified by dataset_id, vm_id, and run_id with the values given in the parameters.
-        Required Parameters are also required in the function
-    """
+        Required Parameters are also required in the function """
     return model.update_run(dataset_id, vm_id, run_id, deleted)
 
 
 def update_software(task_id, vm_id, software_id, command: str = None, working_directory: str = None,
                     dataset: str = None, run: str = None, deleted: bool = False):
     return model.update_software(task_id, vm_id, software_id, command, working_directory, dataset,
-                                               run, deleted)
+                                 run, deleted)
 
 
-# TODO add option to truly delete the software.
 def delete_software(task_id, vm_id, software_id):
+    """ Set the Software's deleted flag to true and prune it from the cache.
+    TODO add option to truly delete the software. """
     return model.delete_software(task_id, vm_id, software_id)
 
 

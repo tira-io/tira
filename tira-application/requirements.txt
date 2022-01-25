@@ -6,3 +6,4 @@ Django
 pyyaml
 requests
 randomname
+tqdm

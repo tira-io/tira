@@ -13,7 +13,7 @@ from tira.util import auto_reviewer, now
 import tira.model as modeldb
 import tira.data.data as dbops
 
-logger = logging.getLogger("tira")
+logger = logging.getLogger("tira_db")
 
 
 class HybridDatabase(object):
@@ -41,7 +41,7 @@ class HybridDatabase(object):
     datasets_dir_path = tira_root / Path("model/datasets")
     softwares_dir_path = tira_root / Path("model/softwares")
     data_path = tira_root / Path("data/datasets")
-    RUNS_DIR_PATH = tira_root / Path("data/runs")
+    runs_dir_path = tira_root / Path("data/runs")
 
     def __init__(self):
         logger.info("Start loading dataset")
@@ -56,73 +56,17 @@ class HybridDatabase(object):
         self.software_by_vm = None  # vm_id: [modelpb.Software]
         self.software_count_by_dataset = None  # dataset_id: int()
         self.evaluators = {}  # dataset_id: [modelpb.Evaluator] used as cache
-        # dbops.index(self.organizers_file_path, self.users_file_path, self.vm_dir_path, self.tasks_dir_path,
-        #             self.datasets_dir_path, self.softwares_dir_path, self.RUNS_DIR_PATH)
+        dbops.index(self.organizers_file_path, self.users_file_path, self.vm_dir_path, self.tasks_dir_path,
+                    self.datasets_dir_path, self.softwares_dir_path, self.runs_dir_path)
 
-        self.build_model()
+        # self.build_model()
+
+    def reload_virtual_machines(self):
+        dbops.reload_vms(self.users_file_path, self.vm_dir_path)
 
     def build_model(self):
-        self._parse_organizer_list()
-        self._parse_vm_list()
-        self._parse_dataset_list()
-        self._parse_task_list()
-        self._parse_software_list()
-
-        self._build_task_relations()
-        self._build_software_relations()
-        self._build_software_counts()
-
-    def _parse_organizer_list(self):
-        """ Parse the PB Database and extract all hosts.
-        :return: a dict {hostId: {"name", "years"}
-        """
-        organizers = modelpb.Hosts()
-        Parse(open(self.organizers_file_path, "r").read(), organizers)
-        self.organizers = {org.hostId: org for org in organizers.hosts}
-
-    def _parse_vm_list(self):
-        users = Parse(open(self.users_file_path, "r").read(), modelpb.Users())
-
-        self.vms = {user.userName: user for user in users.users}
-
-    def _parse_task_list(self):
-        """ Parse the PB Database and extract all tasks.
-        :return:
-        1. a dict with the tasks {"taskId": {"name", "description", "dataset_count", "organizer", "year", "web"}}
-        2. a dict with default tasks of datasets {"dataset_id": "task_id"}
-        """
-        tasks = {}
-        for task_path in self.tasks_dir_path.glob("*"):
-            task = Parse(open(task_path, "r").read(), modelpb.Tasks.Task())
-            tasks[task.taskId] = task
-        self.tasks = tasks
-
-    def _parse_dataset_list(self):
-        """ Load all the datasets from the Filedatabase.
-        :return: a dict {dataset_id: dataset protobuf object}
-        """
-        datasets = {}
-        logger.info('loading datasets')
-        for dataset_file in self.datasets_dir_path.rglob("*.prototext"):
-            dataset = Parse(open(dataset_file, "r").read(), modelpb.Dataset())
-            datasets[dataset.datasetId] = dataset
-
-        self.datasets = datasets
-
-    def _parse_software_list(self):
-        """ extract the software files. We invent a new id for the lookup since software has none:
-          - <task_name>$<user_name>
-        Afterwards sets self.software: a dict with the new key and a list of software objects as value
-        """
-        software = {}
-        logger.info('loading softwares')
-        for task_dir in self.softwares_dir_path.glob("*"):
-            for user_dir in task_dir.glob("*"):
-                s = Parse(open(user_dir / "softwares.prototext", "r").read(), modelpb.Softwares())
-                software_list = [user_software for user_software in s.softwares if not user_software.deleted]
-                software[f"{task_dir.stem}${user_dir.stem}"] = software_list
-
-        self.software = software
+        dbops.index(self.organizers_file_path, self.users_file_path, self.vm_dir_path, self.tasks_dir_path,
+                    self.datasets_dir_path, self.softwares_dir_path, self.runs_dir_path)
 
     # _build methods reconstruct the relations once per parse. This is a shortcut for frequent joins.
     def _build_task_relations(self):
@@ -174,7 +118,7 @@ class HybridDatabase(object):
     def load_review(self, dataset_id, vm_id, run_id):
         """ This method loads a review or toggles auto reviewer if it does not exist. """
 
-        review_path = self.RUNS_DIR_PATH / dataset_id / vm_id / run_id
+        review_path = self.runs_dir_path / dataset_id / vm_id / run_id
         review_file = review_path / "run-review.bin"
         if not review_file.exists():
             review = auto_reviewer(review_path, run_id)
@@ -200,8 +144,9 @@ class HybridDatabase(object):
         return Parse(open(self.softwares_dir_path / task_id / vm_id / "softwares.prototext", "r").read(),
                      modelpb.Softwares())
 
-    def load_run(self, dataset_id, vm_id, run_id, return_deleted=False):
-        run_dir = self.RUNS_DIR_PATH / dataset_id / vm_id / run_id
+    def _load_run(self, dataset_id, vm_id, run_id, return_deleted=False):
+        """ Load a protobuf run file with some edge-case checks. """
+        run_dir = self.runs_dir_path / dataset_id / vm_id / run_id
         if not (run_dir / "run.bin").exists():
             if (run_dir / "run.prototext").exists():
                 r = Parse(open(run_dir / "run.prototext", "r").read(), modelpb.Run())
@@ -222,26 +167,6 @@ class HybridDatabase(object):
             run.inputDataset = dataset_id
 
         return run
-
-    def load_vm_evaluations(self, dataset_id, vm_id, only_published):
-        """ load all evaluations for a user on a given dataset
-        :param dataset_id: id/name of the dataset
-        :param vm_id: id/name of the user
-        :return: {run_id: modelpb.Evaluation}
-        """
-        evaluations = {}
-        for run_id_dir in (self.RUNS_DIR_PATH / dataset_id / vm_id).glob("*"):
-            if not (run_id_dir / "output/evaluation.bin").exists():
-                continue
-            if only_published is True and self.load_review(dataset_id, vm_id, run_id_dir.stem).published is False:
-                continue
-
-            evaluation = modelpb.Evaluation()
-            evaluation.ParseFromString(open(run_id_dir / "output/evaluation.bin", "rb").read())
-
-            evaluations[run_id_dir.stem] = evaluation
-
-        return evaluations
 
     # ---------------------------------------------------------------------
     # ---- save methods to update protos
@@ -322,7 +247,7 @@ class HybridDatabase(object):
         # self.datasets[dataset_proto.datasetId] = dataset_proto TODO
 
     def _save_review(self, dataset_id, vm_id, run_id, review):
-        review_path = self.RUNS_DIR_PATH / dataset_id / vm_id / run_id
+        review_path = self.runs_dir_path / dataset_id / vm_id / run_id
         open(review_path / "run-review.prototext", 'w').write(str(review))
         open(review_path / "run-review.bin", 'wb').write(review.SerializeToString())
 
@@ -330,7 +255,7 @@ class HybridDatabase(object):
         open(self.softwares_dir_path / task_id / vm_id / "softwares.prototext", "w+").write(str(softwares))
 
     def _save_run(self, dataset_id, vm_id, run_id, run):
-        run_dir = (self.RUNS_DIR_PATH / dataset_id / vm_id / run_id)
+        run_dir = (self.runs_dir_path / dataset_id / vm_id / run_id)
         run_dir.mkdir(parents=True, exist_ok=True)
 
         open(run_dir / "run.prototext", 'w').write(str(run))
@@ -505,7 +430,8 @@ class HybridDatabase(object):
     @staticmethod
     def get_vms_by_dataset(dataset_id: str) -> list:
         """ return a list of vm_id's that have runs on this dataset """
-        return [run.software.vm.vm_id for run in modeldb.Run.objects.select_related('input_dataset', 'software').filter(input_dataset__dataset_id=dataset_id)]
+        return [run.software.vm.vm_id for run in modeldb.Run.objects.select_related('input_dataset', 'software')
+                .filter(input_dataset__dataset_id=dataset_id)]
 
     @staticmethod
     def _run_as_dict(run):
@@ -516,13 +442,20 @@ class HybridDatabase(object):
                 "downloadable": run.downloadable}
 
     def get_run(self, dataset_id: str, vm_id: str, run_id: str, return_deleted: bool = False) -> dict:
-        run = modeldb.Run.objects.select_related('software', 'input_dataset').get(run_id=run_id)
+        try:
+            run = modeldb.Run.objects.select_related('software', 'input_dataset').get(run_id=run_id)
+        except modeldb.Run.DoesNotExist:
+            # TODO remove this line after the grpc callback (confirm_run_execute) updates the runs in the database
+            dbops.parse_run(self.runs_dir_path, dataset_id, vm_id, run_id)
+            run = modeldb.Run.objects.select_related('software', 'input_dataset').get(run_id=run_id)
+
         if run.deleted and not return_deleted:
             return {}
         return self._run_as_dict(run)
 
     def get_vm_runs_by_dataset(self, dataset_id: str, vm_id: str, return_deleted: bool = False) -> list:
-        """ TODO this not used on master, check if this can be deprecated """
+        # TODO remove this line after the grpc callback (confirm_run_execute) updates the runs in the database
+        # dbops.parse_runs_for_vm(self.runs_dir_path, dataset_id, vm_id)
         return [self._run_as_dict(run) for run in
                 modeldb.Run.objects.select_related('software', 'input_dataset')
                     .filter(input_dataset__dataset_id=dataset_id, software__vm__vm_id=vm_id)
@@ -530,6 +463,9 @@ class HybridDatabase(object):
 
     def get_vm_runs_by_task(self, task_id: str, vm_id: str, return_deleted: bool = False) -> list:
         """ returns a list of all the runs of a user over all datasets in json (as returned by _load_user_runs) """
+        # TODO remove this line after the grpc callback (confirm_run_execute) updates the runs in the database
+        for thd in modeldb.TaskHasDataset.objects.select_related('dataset').filter(task__task_id=task_id):
+            dbops.parse_runs_for_vm(self.runs_dir_path, thd.dataset.dataset_id, vm_id)
         return [self._run_as_dict(run) for run in
                 modeldb.Run.objects.select_related('software', 'input_dataset')
                     .filter(software__vm__vm_id=vm_id, task__task_id=task_id)
@@ -648,10 +584,12 @@ class HybridDatabase(object):
         # create new dataset_dir_path/task_id/dataset_id.prototext
         self._save_dataset(task_id, dataset_id, dataset_name, False, True if dataset_type == 'test' else False)
 
-        ds, _ = modeldb.Dataset.objects.update_or_create(dataset_id=dataset_id, default_task=for_task,
-                                                         display_name=dataset_name,
-                                                         is_confidential=True if dataset_type == 'test' else False,
-                                                         released=str(dt.now()))
+        ds, _ = modeldb.Dataset.objects.update_or_create(dataset_id=dataset_id, defaults={
+            'default_task': for_task,
+            'display_name': dataset_name,
+            'is_confidential': True if dataset_type == 'test' else False,
+            'released': str(dt.now())
+        })
 
         thds = modeldb.TaskHasDataset.objects.select_related('dataset').filter(task__task_id=task_id)
         append_training = []
@@ -704,9 +642,11 @@ class HybridDatabase(object):
         dataset_id = f"{dataset_id}-{dataset_type}"
 
         # get_or_create
-        ev = modeldb.Evaluator.objects.update_or_create(evaluator_id=evaluator_id, command=command,
-                                                        working_directory=working_directory,
-                                                        measures=", ".join(measures))
+        ev = modeldb.Evaluator.objects.update_or_create(evaluator_id=evaluator_id, defaults={
+            'command': command,
+            'working_directory': working_directory,
+            'measures': ", ".join(measures)
+        })
 
         if not modeldb.VirtualMachineHasEvaluator.objects.filter(evaluator_evaluator_id=evaluator_id,
                                                                  vm__vm_id=vm_id).exists():
@@ -771,12 +711,20 @@ class HybridDatabase(object):
             logger.exception(f"Exception while saving review ({dataset_id}, {vm_id}, {run_id}): {e}")
             return False
 
+    def add_run(self, dataset_id, vm_id, run_id):
+        """ Parses the specified run and adds it to the model. Does nothing if the run does not exist in the
+        FileDB.
+        Runs the auto reviewer to generate an initial review.
+        Also loads evaluations if present
+         """
+        dbops.parse_run(self.runs_dir_path, dataset_id, vm_id, run_id)
+
     def update_run(self, dataset_id, vm_id, run_id, deleted: bool = None):
         """ updates the run specified by dataset_id, vm_id, and run_id with the values given in the parameters.
             Required Parameters are also required in the function
         """
         try:
-            run = self.load_run(dataset_id, vm_id, run_id)
+            run = self._load_run(dataset_id, vm_id, run_id)
 
             def update(x, y):
                 return y if y is not None else x
@@ -796,8 +744,8 @@ class HybridDatabase(object):
             if software.id == software_id:
                 software.deleted = True
                 found = True
-        software_list = [software for software in s.softwares if not software.deleted]
-        self.software[f"{task_id}${vm_id}"] = software_list
+        # software_list = [software for software in s.softwares if not software.deleted]
+        # self.software[f"{task_id}${vm_id}"] = software_list
         self._save_softwares(task_id, vm_id, s)
         modeldb.Software.objects.filter(software_id=software_id, vm__vm_id=vm_id).delete()
 

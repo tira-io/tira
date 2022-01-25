@@ -92,6 +92,9 @@ class AllowedServer(models.Model):
     task = models.ForeignKey(Task, on_delete=models.CASCADE)
     server_address = models.CharField(max_length=280)
 
+    class Meta:
+        unique_together = (("task", "server_address"),)
+
 
 class Evaluator(models.Model):
     evaluator_id = models.CharField(max_length=150, primary_key=True)
@@ -145,6 +148,7 @@ class Software(models.Model):
 class Run(models.Model):
     run_id = models.CharField(max_length=150, primary_key=True)
     software = models.ForeignKey(Software, on_delete=models.SET_NULL, null=True)
+    evaluator = models.ForeignKey(Evaluator, on_delete=models.SET_NULL, null=True)
     input_dataset = models.ForeignKey(Dataset, on_delete=models.SET_NULL, null=True)
     task = models.ForeignKey(Task, on_delete=models.SET_NULL, null=True)
     downloadable = models.BooleanField(default=False)
@@ -170,7 +174,7 @@ class Evaluation(models.Model):
 
 
 class Review(models.Model):
-    run = models.ForeignKey(Run, on_delete=models.CASCADE)
+    run = models.OneToOneField(Run, on_delete=models.CASCADE)
     reviewer_id = models.CharField(max_length=150)
     review_date = models.CharField(max_length=150)
     no_errors = models.BooleanField(default=True)

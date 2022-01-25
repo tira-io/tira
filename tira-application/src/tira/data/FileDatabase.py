@@ -223,7 +223,7 @@ class FileDatabase(object):
         return Parse(open(self.softwares_dir_path / task_id / vm_id / "softwares.prototext", "r").read(),
                      modelpb.Softwares())
 
-    def load_run(self, dataset_id, vm_id, run_id, return_deleted=False):
+    def _load_run(self, dataset_id, vm_id, run_id, return_deleted=False):
         run_dir = self.RUNS_DIR_PATH / dataset_id / vm_id / run_id
         if not (run_dir / "run.bin").exists():
             if (run_dir / "run.prototext").exists():
@@ -246,7 +246,7 @@ class FileDatabase(object):
 
         return run
 
-    def load_vm_evaluations(self, dataset_id, vm_id, only_published):
+    def _load_vm_evaluations(self, dataset_id, vm_id, only_published):
         """ load all evaluations for a user on a given dataset
         :param dataset_id: id/name of the dataset
         :param vm_id: id/name of the user
@@ -482,7 +482,7 @@ class FileDatabase(object):
         """ updates the run specified by dataset_id, vm_id, and run_id with the values given in the parameters.
             Required Parameters are also required in the function
         """
-        run = self.load_run(dataset_id, vm_id, run_id)
+        run = self._load_run(dataset_id, vm_id, run_id)
 
         def update(x, y):
             return y if y is not None else x
@@ -541,7 +541,7 @@ class FileDatabase(object):
         return tasks
 
     def get_run(self, dataset_id: str, vm_id: str, run_id: str, return_deleted: bool = False) -> dict:
-        run = self.load_run(dataset_id, vm_id, run_id, return_deleted)
+        run = self._load_run(dataset_id, vm_id, run_id, return_deleted)
         return {"software": run.softwareId,
                 "run_id": run.runId, "input_run_id": run.inputRun,
                 "dataset": run.inputDataset, "downloadable": run.downloadable}
@@ -673,7 +673,7 @@ class FileDatabase(object):
         """
         return {run_id: self.get_evaluation_measures(ev)
                 for run_id, ev in
-                self.load_vm_evaluations(dataset_id, vm_id, only_published=only_public_results).items()}
+                self._load_vm_evaluations(dataset_id, vm_id, only_published=only_public_results).items()}
 
     def get_run_review(self, dataset_id: str, vm_id: str, run_id: str) -> dict:
         review = self.load_review(dataset_id, vm_id, run_id)
@@ -745,6 +745,11 @@ class FileDatabase(object):
         except Exception as e:
             logger.exception(f"Exception while saving review ({dataset_id}, {vm_id}, {run_id}): {e}")
             return False
+
+    def add_run(self, *args, **kwargs):
+        """ The FileDatabase loads runs and reviews from the Protobuf files every time,
+         so this method currently does nothing. """
+        pass
 
     def update_run(self, dataset_id, vm_id, run_id, deleted: bool = None):
         """ updates the run specified by dataset_id, vm_id, and run_id with the values given in the parameters.

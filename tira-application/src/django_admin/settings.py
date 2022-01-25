@@ -36,7 +36,7 @@ TIRA_ROOT = Path(custom_settings.get("tira_root", BASE_DIR.parents[1] / "tira-mo
 if not TIRA_ROOT.is_dir():
     raise FileNotFoundError(f"TIRA_ROOT must point to an existing tira model but points to {TIRA_ROOT} instead.")
 
-TIRA_DB_PATH = Path(custom_settings.get("database", TIRA_ROOT / "state")) / "tira_vm_states.sqlite3"
+TIRA_DB_PATH = Path(custom_settings.get("database", TIRA_ROOT / "state")) / "tira.sqlite3"
 DEPLOYMENT = custom_settings.get("deployment", "legacy")
 LEGACY_USER_FILE = Path(custom_settings.get("legacy_users_file", TIRA_ROOT / "model" / "users" / "users.prototext"))
 DISRAPTOR_SECRET_FILE = Path(custom_settings.get("disraptor_secret_file", "/etc/discourse/client-api-key"))
@@ -169,6 +169,12 @@ def logger_config(log_dir: Path):
                 'filename': log_dir / 'tira-warning.log',
                 'formatter': 'default'
             },
+            'ceph_tira_db': {
+                'level': 'INFO',
+                'class': 'logging.FileHandler',
+                'filename': log_dir / 'tira-db.log',
+                'formatter': 'default'
+            },
             'ceph_grpc_debug': {
                 'level': 'DEBUG',
                 'class': 'logging.FileHandler',
@@ -204,6 +210,10 @@ def logger_config(log_dir: Path):
             },
             'tira': {
                 'handlers': ['console', 'ceph_tira_debug', 'ceph_tira_warn', 'ceph_tira_info'],
+                'propagate': True,
+            },
+            'tira_db': {
+                'handlers': ['console', 'ceph_tira_db'],
                 'propagate': True,
             },
             'grpc_server': {
