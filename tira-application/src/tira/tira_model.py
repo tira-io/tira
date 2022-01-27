@@ -71,9 +71,9 @@ class _FileDatabase(object):
             "software_count_by_dataset": dt.now()
         }
 
-        self.build_model()
+        self._build_model()
 
-    def build_model(self):
+    def _build_model(self):
         print("build_model")
         self._parse_organizer_list()
         self._parse_vm_list()
@@ -587,6 +587,9 @@ observer = Observer()
 observer.schedule(event_handler, model.tira_root / "model", recursive=True)
 observer.start()
 
+
+def build_model():
+    model._build_model()
 
 # get methods are the public interface.
 def get_vm(vm_id: str):
