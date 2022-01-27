@@ -59,24 +59,30 @@ eval set -- "${FLAGS_ARGV}"
 #
 main() {
 
+    logInfo "[tira-vm-metrics] Checking Parameters..."
     if [ "$#" -eq 0 ]; then
-        logError "Missing arguments see:"
+        logError "[tira-vm-metrics] Wrong argument count, see:"
         usage
     fi
+    logInfo "[tira-vm-metrics] Checking Parameters done."
 
     vmname="$1"
 
     # Every parameter is parsed and extracted: now do the job.
-
+    
     # Getting metrics of VM.
+    logInfo "[tira-vm-metrics] Checking vm state..."
     get_vm_state "$vmname" state
     if [ "$state" != "running" ]; then
-        logError "VM is not running!"
+        logError "[tira-vm-metrics] VM is not running!"
         exit 1
     fi
-
+    logInfo "[tira-vm-metrics] Checking vm state done. VM is running."
+    
+    logInfo "[tira-vm-metrics] Extracting metrics of VM..."
     VBoxManage metrics query "$vmname" Guest/CPU/Load/User,Guest/RAM/Usage/Total,Guest/RAM/Usage/Free \
-        || logError "Metric of $vmname could not be extracted."
+        || logError "[tira-vm-metrics] Metric of $vmname could not be extracted."
+    logInfo "[tira-vm-metrics] Extracting metrics of VM done."
 }
 
 #
