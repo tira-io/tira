@@ -44,17 +44,20 @@ check_is_vm_started() {
 }
 
 #
-#    Start a vm.
+#    Modify and then start a vm.
 #
 main() {
-
+    
+    logInfo "[tira-vm-modify] Checking Parameters..."
     # Print usage screen if wrong parameter count.
     if [ "$#" -ne 3 ]; then
-        logError "Wrong arguments, see:"
+        logError "[tira-vm-modify] Wrong argument count, see:"
         usage
     fi
+    logInfo "[tira-vm-modify] Checking Parameters done."
 
     # Extract correct vmname from nfs.
+    logInfo "[tira-vm-modify] Extract vm info."
     vmname_or_user="$1"
     mem="$2"
     cpu="$3"
@@ -72,24 +75,31 @@ main() {
         if [ "$host" != "" ] && [ "$host" != "$curhost" ] ; then
             tira_call vm-modify -r "$host" "$vmname" "$mem" "$cpu"
         else
-            logError "$vmname is not a valid username/vmname."
+            logError "[tira-vm-modify] $vmname is not a valid username/vmname."
         fi
         return
     fi
-
+    logInfo "[tira-vm-modify] Extract vm info done."
+    
+    logInfo "[tira-vm-modify] Check vm state."
+    # Check if vm is already started.
     if [ $(check_is_vm_running) = "true" ]; then
       tira vm-stop "$vmname"
+      logInfo "[tira-vm-modify] $vmname is already running, stopped vm."
     fi
-    # Check if vm is already started.
+    logInfo "[tira-vm-modify] Check vm state done. VM is not running."
 
     # Starting VM.
-    logInfo "'$vmname' getting started ..."
+    logInfo "[tira-vm-modify] Modifying VM $vmname with memory: $mem and cpu: $cpu..."
 
     VBoxManage modifyvm "$vmname" --memory "$mem" --cpus "$cpu"\
-        || logError "vm could not be modified"
-
+        || logError "[tira-vm-modify] VM could not be modified."
+    logInfo "[tira-vm-modify] Successfully modified VM $vmname."
+    
+    logInfo "[tira-vm-modify] Starting VM $vmname..."
     VBoxManage startvm "$vmname" --type headless \
-        || logError "vm could not be started after modification"
-
+        || logError "[tira-vm-modify] VM could not be started after modification."
+    
+    logInfo "[tira-vm-modify] Check if VM is started."
     unittest && check_is_vm_started "$vmname"
 }
