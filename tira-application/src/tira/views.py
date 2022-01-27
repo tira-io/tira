@@ -130,7 +130,7 @@ def dataset_detail(request, context, task_id, dataset_id):
     context["vm_id"] = auth.get_vm_id(request, context["user_id"])
     context["vms"] = vms
 
-    return render(request, 'tira/dataset_detail_new.html', context)
+    return render(request, 'tira/dataset_detail.html', context)
 
 
 @actions_check_permissions({"tira", "admin", "participant", "user"})
