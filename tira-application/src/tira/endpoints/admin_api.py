@@ -13,20 +13,56 @@ logger = logging.getLogger("tira")
 logger.info("ajax_routes: Logger active")
 
 
-@actions_check_permissions({"tira", "admin"})
-def admin_reload_data(request):
-    if request.method == 'GET':
-        # post_id = request.GET['post_id']
-        try:
-            model.build_model()
-            if auth.get_auth_source() == 'legacy':
-                auth.load_legacy_users()
-            return JsonResponse({'status': 0, 'message': "Success"}, status=HTTPStatus.OK)
-        except Exception as e:
-            logger.exception(f"/admin/reload_data failed with {e}", e)
-            return JsonResponse({'status': 1, 'message': f"Failed with {e}"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+def handle_get_model_exceptions(func):
+    def decorate(request, *args, **kwargs):
+        if request.method == 'GET':
+            try:
+                msg = func(*args, **kwargs)
+                return JsonResponse({'status': 0, 'message': msg}, status=HTTPStatus.OK)
+            except Exception as e:
+                logger.exception(f"{func.__name___} failed with {e}", e)
+                return JsonResponse({'status': 1, 'message': f"{func.__name___} failed with {e}"},
+                                    status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
-    return JsonResponse({'status': 1, 'message': f"{request.method} is not allowed."}, status=HTTPStatus.FORBIDDEN)
+        return JsonResponse({'status': 1, 'message': f"{request.method} is not allowed."}, status=HTTPStatus.FORBIDDEN)
+    return decorate
+
+
+@actions_check_permissions({"tira", "admin"})
+@handle_get_model_exceptions
+def admin_reload_data():
+    model.build_model()
+    if auth.get_auth_source() == 'legacy':
+        auth.load_legacy_users()
+    return "Model data was reloaded successfully"
+
+
+@actions_check_permissions({"tira", "admin"})
+@handle_get_model_exceptions
+def admin_reload_vms():
+    model.reload_vms()
+    return "VM data was reloaded successfully"
+
+
+@actions_check_permissions({"tira", "admin"})
+@handle_get_model_exceptions
+def admin_reload_datasets():
+    model.reload_datasets()
+    return "Dataset data was reloaded successfully"
+
+
+@actions_check_permissions({"tira", "admin"})
+@handle_get_model_exceptions
+def admin_reload_tasks():
+    model.reload_tasks()
+    return "Task data was reloaded successfully"
+
+
+@actions_check_permissions({"tira", "admin"})
+@handle_get_model_exceptions
+def admin_reload_runs(vm_id):
+    model.reload_runs(vm_id)
+    return "Runs data was reloaded for {} on {} successfully"
 
 
 @actions_check_permissions({"tira", "admin"})

@@ -3,6 +3,7 @@ from pathlib import Path
 import logging
 from django.conf import settings
 from django.db import IntegrityError
+from django.db.models import Count, Q
 from shutil import rmtree
 from datetime import datetime as dt
 import randomname
@@ -56,17 +57,28 @@ class HybridDatabase(object):
         self.software_by_vm = None  # vm_id: [modelpb.Software]
         self.software_count_by_dataset = None  # dataset_id: int()
         self.evaluators = {}  # dataset_id: [modelpb.Evaluator] used as cache
-        dbops.index(self.organizers_file_path, self.users_file_path, self.vm_dir_path, self.tasks_dir_path,
-                    self.datasets_dir_path, self.softwares_dir_path, self.runs_dir_path)
-
-        # self.build_model()
-
-    def reload_virtual_machines(self):
-        dbops.reload_vms(self.users_file_path, self.vm_dir_path)
+        # dbops.index(self.organizers_file_path, self.users_file_path, self.vm_dir_path, self.tasks_dir_path,
+        #             self.datasets_dir_path, self.softwares_dir_path, self.runs_dir_path)
 
     def build_model(self):
         dbops.index(self.organizers_file_path, self.users_file_path, self.vm_dir_path, self.tasks_dir_path,
                     self.datasets_dir_path, self.softwares_dir_path, self.runs_dir_path)
+
+    def reload_vms(self):
+        """ reload VM and user data from the export format of the model """
+        dbops.reload_vms(self.users_file_path, self.vm_dir_path)
+
+    def reload_datasets(self):
+        """ reload dataset data from the export format of the model """
+        dbops.reload_datasets(self.tasks_dir_path)
+
+    def reload_tasks(self):
+        """ reload task data from the export format of the model """
+        dbops.reload_tasks(self.tasks_dir_path)
+
+    def reload_runs(self, vm_id):
+        """ reload run data for a VM from the export format of the model """
+        dbops.reload_runs(self.runs_dir_path, vm_id)
 
     # _build methods reconstruct the relations once per parse. This is a shortcut for frequent joins.
     def _build_task_relations(self):
@@ -332,7 +344,7 @@ class HybridDatabase(object):
                 "ip": vm.ip, "ssh": vm.ssh, "rdp": vm.rdp, "archived": vm.archived}
 
     def get_vm(self, vm_id: str):
-        vm = modeldb.VirtualMachine.objects.get(vm_id)
+        vm = modeldb.VirtualMachine.objects.get(vm_id=vm_id)
         return self._vm_as_dict(vm)
 
     def get_users_vms(self):
@@ -340,10 +352,17 @@ class HybridDatabase(object):
         return [self._vm_as_dict(vm) for vm in modeldb.VirtualMachine.objects.all()]
 
     def _task_to_dict(self, task):
+        if task.organizer:
+            org_name = task.organizer.name
+            org_year = task.organizer.years
+        else:
+            org_name = ""
+            org_year = ""
+
         return {"task_id": task.task_id, "task_name": task.task_name, "task_description": task.task_description,
-                "organizer": task.organizer.organizer_id,
+                "organizer": org_name,
                 "web": task.web,
-                "year": task.organizer.years,
+                "year": org_year,
                 "dataset_count": task.dataset_set.count(),
                 "software_count": task.software_set.count(),
                 "max_std_out_chars_on_test_data": task.max_std_out_chars_on_test_data,
@@ -355,9 +374,15 @@ class HybridDatabase(object):
                 "max_std_err_chars_on_test_data_eval": task.max_std_err_chars_on_test_data_eval,
                 "max_file_list_chars_on_test_data_eval": task.max_file_list_chars_on_test_data_eval}
 
+    def _tasks_to_dict(self, tasks):
+        for task in tasks:
+            if not task.organizer:
+                continue
+
+            yield self._task_to_dict(task)
+
     def get_tasks(self) -> list:
-        return [self._task_to_dict(task)
-                for task in modeldb.Task.objects.select_related('organizer').all()]
+        return list(self._tasks_to_dict(modeldb.Task.objects.select_related('organizer').all()))
 
     def get_task(self, task_id: str) -> dict:
         return self._task_to_dict(modeldb.Task.objects.select_related('organizer').get(task_id=task_id))
@@ -370,7 +395,7 @@ class HybridDatabase(object):
             "is_confidential": dataset.is_confidential, "is_deprecated": dataset.is_deprecated,
             "year": dataset.released,
             "task": dataset.default_task.task_id,
-            'organizer': None,  # TODO
+            'organizer': dataset.default_task.organizer.name,
             "software_count": modeldb.Software.objects.filter(dataset__dataset_id=dataset.dataset_id).count(),
         }
 
@@ -394,7 +419,6 @@ class HybridDatabase(object):
                 if not (d.dataset.is_deprecated and not include_deprecated)]
 
     def get_organizer(self, organizer_id: str):
-        # TODO should return as dict
         organizer = modeldb.Organizers.objects.get(organizer_id=organizer_id)
         return {
             "organizer_id": organizer.organizer_id,
@@ -430,14 +454,18 @@ class HybridDatabase(object):
     @staticmethod
     def get_vms_by_dataset(dataset_id: str) -> list:
         """ return a list of vm_id's that have runs on this dataset """
+        print("get_vms_by_dataset")
         return [run.software.vm.vm_id for run in modeldb.Run.objects.select_related('input_dataset', 'software')
-                .filter(input_dataset__dataset_id=dataset_id)]
+            .exclude(input_dataset=None)
+            .filter(input_dataset__dataset_id=dataset_id)
+            .exclude(software=None)
+            .all()]
 
     @staticmethod
     def _run_as_dict(run):
         return {"software": run.software.software_id,
                 "run_id": run.run_id,
-                "input_run_id": modeldb.RunHasInputRun.objects.get(run__run_id=run.run_id),
+                "input_run_id": "" if not run.input_run else run.input_run.run_id,
                 "dataset": run.input_dataset.dataset_id,
                 "downloadable": run.downloadable}
 
@@ -446,7 +474,7 @@ class HybridDatabase(object):
             run = modeldb.Run.objects.select_related('software', 'input_dataset').get(run_id=run_id)
         except modeldb.Run.DoesNotExist:
             # TODO remove this line after the grpc callback (confirm_run_execute) updates the runs in the database
-            dbops.parse_run(self.runs_dir_path, dataset_id, vm_id, run_id)
+            # dbops.parse_run(self.runs_dir_path, dataset_id, vm_id, run_id)
             run = modeldb.Run.objects.select_related('software', 'input_dataset').get(run_id=run_id)
 
         if run.deleted and not return_deleted:
@@ -461,14 +489,49 @@ class HybridDatabase(object):
                     .filter(input_dataset__dataset_id=dataset_id, software__vm__vm_id=vm_id)
                 if (run.deleted or not return_deleted)]
 
+    def get_vms_with_reviews(self, dataset_id: str):
+        """ returns a list of dicts with:
+         {"vm_id": vm_id,
+         "runs": [{run, review}, ...],
+         "unreviewed_count": unreviewed_count,
+         "blinded_count": blinded_count,
+         "published_count": published_count}
+         """
+
+        def get_ordered_runs_from_reviews(reviews_qs):
+            for review in reviews_qs.filter(run__input_run=None).all():
+                yield {"run": self._run_as_dict(review.run),
+                       "review": self._review_as_dict(review)}
+                for review2 in reviews_qs.filter(run__input_run__run_id=review.run.run_id).all():
+                    yield {"run": self._run_as_dict(review2.run),
+                           "review": self._review_as_dict(review2)}
+
+        results = []
+        reviews = modeldb.Review.objects.select_related('run', 'run__software', 'run__evaluator',
+                                                        'run__input_run').filter(
+            run__input_dataset__dataset_id=dataset_id).all()
+        for vm_id in {values['run__software__vm__vm_id'] for values in reviews.values('run__software__vm__vm_id')}:
+            if not vm_id:
+                continue
+            reviews_of_vm = reviews.filter(run__software__vm__vm_id=vm_id).all()
+            results.append({"vm_id": vm_id,
+                            "runs": list(get_ordered_runs_from_reviews(reviews_of_vm)),
+                            "unreviewed_count": reviews_of_vm.filter(has_errors=False, has_no_errors=False,
+                                                                     has_warnings=False).count(),
+                            "blinded_count": reviews_of_vm.filter(blinded=True).count(),
+                            "published_count": reviews_of_vm.filter(published=True).count()
+                            })
+        return results
+
     def get_vm_runs_by_task(self, task_id: str, vm_id: str, return_deleted: bool = False) -> list:
         """ returns a list of all the runs of a user over all datasets in json (as returned by _load_user_runs) """
         # TODO remove this line after the grpc callback (confirm_run_execute) updates the runs in the database
-        for thd in modeldb.TaskHasDataset.objects.select_related('dataset').filter(task__task_id=task_id):
-            dbops.parse_runs_for_vm(self.runs_dir_path, thd.dataset.dataset_id, vm_id)
+        # for thd in modeldb.TaskHasDataset.objects.select_related('dataset').filter(task__task_id=task_id):
+        # dbops.parse_runs_for_vm(self.runs_dir_path, thd.dataset.dataset_id, vm_id)
         return [self._run_as_dict(run) for run in
                 modeldb.Run.objects.select_related('software', 'input_dataset')
-                    .filter(software__vm__vm_id=vm_id, task__task_id=task_id)
+                    .filter(software__vm__vm_id=vm_id, input_dataset__default_task__task_id=task_id,
+                            software__task__task_id=task_id)
                 if (run.deleted or not return_deleted)]
 
     def get_evaluator(self, dataset_id, task_id=None):
@@ -479,11 +542,11 @@ class HybridDatabase(object):
         command: command to execute to run the evaluator. NOTE: contains variables the host needs to resolve
         working_dir: where to execute the command
         """
-        dataset = modeldb.Dataset.objects.select_related('default_task').get(dataset_id=dataset_id)
-        master_vm = dataset.default_task.vm
+        evaluator = modeldb.Dataset.objects.get(dataset_id=dataset_id)
+        master_vm = modeldb.VirtualMachineHasEvaluator.objects.filter(evaluator=evaluator)[0].vm
 
-        return {"vm_id": master_vm.vm_id, "host": master_vm.host, "command": dataset.evaluator.command,
-                "working_dir": dataset.evaluator.working_directory}
+        return {"vm_id": master_vm.vm_id, "host": master_vm.host, "command": evaluator.evauator.command,
+                "working_dir": evaluator.evauator.working_directory}
 
     @staticmethod
     def get_vm_evaluations_by_dataset(dataset_id, vm_id, only_public_results=True):
@@ -493,16 +556,46 @@ class HybridDatabase(object):
         @param only_public_results: only return the measures for published datasets.
         TODO this method is never used. Check if it can be Deprecated.
         """
-        evaluations = modeldb.Evaluation.objects.select_related('run') \
-            .filter(run__input_dataset__dataset_id=dataset_id, run__software__vm__vm_id=vm_id).distinct('run')
-
         result = {}
-        for e in evaluations:
-            if only_public_results is True and not modeldb.Review.objects.get(run__run_id=e.run.run_id).published:
-                continue
-            result[e.run.run_id] = {evaluation.measure_key: evaluation.measure_value
-                                    for evaluation in modeldb.Evaluation.objects.filter(run__run_id=e.run.run_id)}
+        for run in modeldb.Run.objects.filter(software__vm__vm_id=vm_id, input_dataset__dataset_id=dataset_id,
+                                              deleted=False):
+            if only_public_results and modeldb.Review.objects.filter(run=run).exists():
+                if not modeldb.Review.objects.get(run=run).published:
+                    continue
+            result[run.run_id] = {evaluation.measure_key: evaluation.measure_value
+                                  for evaluation in run.evaluation_set.all()}
         return result
+
+    def get_evaluations_with_keys_by_dataset(self, dataset_id, include_unpublished=False):
+        """
+        :returns: a tuple (ev_keys, evaluation),
+            ev-keys is a list of keys of the evaluation measure
+            evaluation is a list of evaluations, each evaluation is a dict with
+                {vm_id: str, run_id: str, measures: list}
+        """  # TODO compensate for evaluators
+        include_unpublished = True
+        runs = modeldb.Run.objects.filter(input_dataset=dataset_id).all()
+        evaluations = modeldb.Evaluation.objects.select_related('run', 'run__software__vm').filter(
+            run__input_dataset__dataset_id=dataset_id).all()
+        keys = [k['measure_key'] for k in evaluations.values('measure_key').distinct()]
+
+        exclude = {review.run.run_id for review in modeldb.Review.objects.select_related('run').filter(
+            run__input_dataset__dataset_id=dataset_id, published=False, run__software=None).all()
+                   if not include_unpublished}
+
+        # evaluations = [e for e in evaluations if e.run.run_id not in exclude]
+        result = []
+        for run in runs:
+            if run.run_id in exclude:
+                continue
+            values = evaluations.filter(run__run_id=run.run_id).all()
+            if not values.exists():
+                continue
+            result.append({"vm_id": run.input_run.software.vm.vm_id, "run_id": run.run_id,
+                 "measures": [evaluations.filter(run__run_id=run.run_id, measure_key=k)[0].measure_value
+                              for k in keys]})
+
+        return keys, result
 
     @staticmethod
     def _review_as_dict(review):
@@ -518,6 +611,7 @@ class HybridDatabase(object):
         return self._review_as_dict(review)
 
     def get_vm_reviews_by_dataset(self, dataset_id: str, vm_id: str) -> dict:
+        print("get_vm_reviews_by_dataset")
         return {review.run.run_id: self._review_as_dict(review)
                 for review in modeldb.Review.objects.select_related('run').
                     filter(run__input_dataset__dataset_id=dataset_id, run__software__vm__vm_id=vm_id)}
@@ -527,12 +621,16 @@ class HybridDatabase(object):
         return {"id": software.software_id, "count": software.count,
                 "task_id": software.task.task_id, "vm_id": software.vm.vm_id,
                 "command": software.command, "working_directory": software.working_directory,
-                "dataset": software.dataset, "run": software.run, "creation_date": software.creation_date,
+                "dataset": software.dataset, "run": 0, "creation_date": software.creation_date,
                 "last_edit": software.last_edit_date}
 
     def get_software(self, task_id, vm_id, software_id):
         """ Returns the software with the given name of a vm on a task """
         return self._software_to_dict(modeldb.Software.objects.get(vm__vm_id=vm_id, software_id=software_id))
+
+    def get_software_by_task(self, task_id, vm_id):
+        return [self._software_to_dict(sw)
+                for sw in modeldb.Software.objects.filter(vm__vm_id=vm_id, task__task_id=task_id)]
 
     def get_software_by_vm(self, task_id, vm_id):
         """ Returns the software of a vm on a task in json """
@@ -752,7 +850,7 @@ class HybridDatabase(object):
         return found
 
     def delete_run(self, dataset_id, vm_id, run_id):
-        run_dir = Path(self.RUNS_DIR_PATH / dataset_id / vm_id / run_id)
+        run_dir = Path(self.runs_dir_path / dataset_id / vm_id / run_id)
         rmtree(run_dir)
         modeldb.Run.objects.filter(run_id=run_id).delete()
 

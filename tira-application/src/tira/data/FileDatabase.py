@@ -78,6 +78,25 @@ class FileDatabase(object):
         self._build_software_relations()
         self._build_software_counts()
 
+    def reload_vms(self):
+        """ reload VM and user data from the export format of the model """
+        self._parse_vm_list()
+
+    def reload_datasets(self):
+        """ reload dataset data from the export format of the model """
+        self._parse_dataset_list()
+
+    def reload_tasks(self):
+        """ reload task data from the export format of the model """
+        self._parse_task_list()
+        self._build_task_relations()
+        self._build_software_relations()
+        self._build_software_counts()
+
+    def reload_runs(self, vm_id):
+        """ reload run data for a VM from the export format of the model """
+        raise NotImplementedError("Not Implemented: Runs are loaded on access when using FileDatabase")
+
     def _parse_organizer_list(self):
         """ Parse the PB Database and extract all hosts.
         :return: a dict {hostId: {"name", "years"}
@@ -639,6 +658,52 @@ class FileDatabase(object):
         for dataset_id in relevant_datasets:
             runs.extend(self.get_vm_runs_by_dataset(dataset_id, vm_id, return_deleted=return_deleted))
         return runs
+
+    def get_vms_with_reviews(self, dataset_id):
+        vm_ids = self.get_vms_by_dataset(dataset_id)
+        # This enforces an order to the measures, since they differ between datasets and are rendered dynamically
+        vm_reviews = {vm_id: self.get_vm_reviews_by_dataset(dataset_id, vm_id) for vm_id in vm_ids}
+        vm_runs = {vm_id: self.get_vm_runs_by_dataset(dataset_id, vm_id) for vm_id in vm_ids}
+
+        vms = []
+        for vm_id, run in vm_runs.items():
+            runs = [{"run": run, "review": vm_reviews.get(vm_id, None).get(run["run_id"], None)}
+                    for run in vm_runs.get(vm_id)]
+            unreviewed_count = len([1 for r in vm_reviews[vm_id].values()
+                                    if not r.get("hasErrors", None) and not r.get("hasNoErrors", None)])
+            published_count = len([1 for r in vm_reviews[vm_id].values()
+                                   if r.get("published", None)])
+            blinded_count = len([1 for r in vm_reviews[vm_id].values()
+                                 if r.get("blinded", None)])
+            vms.append({"vm_id": vm_id, "runs": runs, "unreviewed_count": unreviewed_count,
+                        "blinded_count": blinded_count, "published_count": published_count})
+        return vms
+
+    def get_evaluations_with_keys_by_dataset(self, dataset_id, include_unpublished):
+        vm_ids = self.get_vms_by_dataset(dataset_id)
+        vm_evaluations = {vm_id: self.get_vm_evaluations_by_dataset(dataset_id, vm_id, only_public_results=not include_unpublished)
+                          for vm_id in vm_ids}
+        keys = set()
+        for e1 in vm_evaluations.values():
+            for e2 in e1.values():
+                keys.update(e2.keys())
+        ev_keys = list(keys)
+        if include_unpublished:
+            vm_reviews = {vm_id: self.get_vm_reviews_by_dataset(dataset_id, vm_id) for vm_id in vm_ids}
+            evaluations = [{"vm_id": vm_id,
+                            "run_id": run_id,
+                            "blinded": vm_reviews.get(vm_id, {}).get(run_id, {}).get("blinded", False),
+                            "published": vm_reviews.get(vm_id, {}).get(run_id, {}).get("published", False),
+                            "measures": [measures.get(k, "-") for k in ev_keys]}
+                           for vm_id, measures_by_runs in vm_evaluations.items()
+                           for run_id, measures in measures_by_runs.items()]
+        else:
+            evaluations = [{"vm_id": vm_id,
+                            "run_id": run_id,
+                            "measures": [measures.get(k, "-") for k in ev_keys]}
+                           for vm_id, measures_by_runs in vm_evaluations.items()
+                           for run_id, measures in measures_by_runs.items()]
+        return ev_keys, evaluations
 
     def get_evaluator(self, dataset_id, task_id=None):
         """ returns a dict containing the evaluator parameters:

@@ -23,7 +23,7 @@ def index(organizers_file_path, users_file_path, vm_dir_path, tasks_dir_path,
     # _parse_vm_list(users_file_path, vm_dir_path)
     # _parse_dataset_list(datasets_dir_path)
     # _parse_task_list(tasks_dir_path)
-    # _parse_software_list(softwares_dir_path)
+    _parse_software_list(softwares_dir_path)
     _parse_runs_evaluations(runs_dir_path)
 
 
@@ -31,12 +31,23 @@ def reload_vms(users_file_path, vm_dir_path):
     _parse_vm_list(users_file_path, vm_dir_path)
 
 
-def reload_dataset(datasets_dir_path):
+def reload_datasets(datasets_dir_path):
     _parse_dataset_list(datasets_dir_path)
 
 
 def reload_tasks(tasks_dir_path):
     _parse_task_list(tasks_dir_path)
+
+
+def reload_runs(runs_dir_path, vm_id):
+    parse_runs_for_vm(runs_dir_path, vm_id)
+
+    for dataset_dir in runs_dir_path.glob("*"):
+        dataset_id = dataset_dir.stem
+        for vm_dir in dataset_dir.glob("*"):
+            if vm_dir.stem != vm_id:
+                continue
+            parse_runs_for_vm(runs_dir_path, dataset_id, vm_id)
 
 
 def _parse_organizer_list(organizers_file_path):
@@ -165,8 +176,7 @@ def _parse_software_list(softwares_dir_path):
                 vm, _ = modeldb.VirtualMachine.objects.get_or_create(vm_id=user_dir.stem)
                 task, _ = modeldb.Task.objects.get_or_create(task_id=task_dir.stem)
                 dataset, _ = modeldb.Dataset.objects.get_or_create(dataset_id=software.dataset)
-                modeldb.Software.objects.update_or_create(software_id=software.id, vm=vm, defaults={
-                    'task': task,
+                modeldb.Software.objects.update_or_create(software_id=software.id, vm=vm, task=task, defaults={
                     'count': software.count,
                     'command': software.command,
                     'working_directory': software.workingDirectory,
@@ -220,10 +230,22 @@ def parse_run(runs_dir_path, dataset_id, vm_id, run_id):
     except modeldb.Dataset.DoesNotExist as e:
         # If the dataset was deleted, but there are still runs left.
         logger.exception(e)
-        dataset = None
+        return
 
     try:  # Software and evaluators differ just by their name in the files.
-        software = modeldb.Software.objects.get(software_id=run.softwareId, vm=vm)
+        task_id = run.taskId
+        try:
+            software = modeldb.Software.objects.get(software_id=run.softwareId, vm=vm, task__task_id=run.taskId)
+        except modeldb.Software.DoesNotExist:
+            if "eval" in run.softwareId:
+                raise modeldb.Software.DoesNotExist()
+            if task_id:
+                print(f"No task {task_id} found for run {run.runId} on vm {vm.vm_id}")
+                for s in modeldb.Software.objects.filter(vm=vm).all():
+                    print(s.software_id, s.task.task_id)
+                return
+            software = modeldb.Software.objects.filter(software_id=run.softwareId, vm=vm).all()[0]
+
         r, _ = modeldb.Run.objects.update_or_create(run_id=run.runId, defaults={
             'software': software,
             'input_dataset': dataset,
@@ -232,11 +254,14 @@ def parse_run(runs_dir_path, dataset_id, vm_id, run_id):
             'deleted': run.deleted,
             'access_token': run.accessToken
         })
-    except modeldb.Software.DoesNotExist as e:
+
+    except (modeldb.Software.DoesNotExist, IndexError) as e:
         try:
             evaluator = modeldb.Evaluator.objects.get(evaluator_id=run.softwareId)
         except modeldb.Evaluator.DoesNotExist as e2:
-            logger.exception(e2)
+            print("Evaluator does not exist")
+            print(run)
+
             return
         if run.taskId:
             task = modeldb.Task.objects.get(task_id=run.taskId)
@@ -251,8 +276,16 @@ def parse_run(runs_dir_path, dataset_id, vm_id, run_id):
             'access_token': run.accessToken
         })
     except Exception as e:
+        print()
         print(e)
         print(run)
+        print()
+        return
+
+    if run.inputRun:
+        input_run, _ = modeldb.Run.objects.update_or_create(run_id=run.inputRun)
+        r.input_run = input_run
+        r.save()
 
     # parse the reviews
     review_file = run_dir / "run-review.bin"

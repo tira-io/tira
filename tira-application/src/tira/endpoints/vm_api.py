@@ -158,7 +158,7 @@ def vm_info(request, vm_id):
     # TODO when vm_id is no-vm-assigned
 
     vm = model.get_vm(vm_id)
-    host = reroute_host(vm.host)
+    host = reroute_host(vm['host'])
     try:
         grpc_client = GrpcClient(host)
         response_vm_info = grpc_client.vm_info(vm_id=vm_id)

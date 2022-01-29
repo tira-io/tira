@@ -126,13 +126,13 @@
                         <h2 class="uk-modal-title">Connection Info:</h2>
                         <table class="uk-table-small uk-margin-bottom">
                             <tr><td class="uk-text-bold">Host:</td><td>{{ vm.host }}</td></tr>
-                            <tr><td><span class="uk-text-bold">User: </span></td><td>{{ vm.user }}</td><td><span class="uk-text-bold">SSH Port: </span></td><td>{{ vm.ssh }}</td></tr>
-                            <tr><td><span class="uk-text-bold">Password: </span></td><td>{{ vm.password }}</td><td><span class="uk-text-bold">RPD Port: </span></td><td>{{ vm.rdp }}</td></tr>
+                            <tr><td><span class="uk-text-bold">User: </span></td><td>{{ vm.vm_id }}</td><td><span class="uk-text-bold">SSH Port: </span></td><td>{{ vm.ssh }}</td></tr>
+                            <tr><td><span class="uk-text-bold">Password: </span></td><td>{{ vm.user_password }}</td><td><span class="uk-text-bold">RPD Port: </span></td><td>{{ vm.rdp }}</td></tr>
                         </table>
                         <label class="uk-form-label" for="form-stacked-text">SSH Example</label>
                         <div class="uk-form-controls">
                             <input class="uk-input uk-width-3-4" id="form-stacked-text" type="text"
-                                   value="sshpass -p {{ vm.password }} ssh {{ vm.user }}@{{ vm.host }} -p {{ vm.ssh }} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no">
+                                   value="sshpass -p {{ vm.user_password }} ssh {{ vm.vm_id }}@{{ vm.host }} -p {{ vm.ssh }} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no">
                         </div>
                     </div>
                 </div>

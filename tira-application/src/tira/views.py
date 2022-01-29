@@ -111,16 +111,8 @@ def dataset_detail(request, context, task_id, dataset_id):
      @note maybe later, we can show a consolidated view of all runs the user made on this dataset below.
      """
     role = context["role"]
-
-    # For all users: compile the results table from the evaluations
-    vm_ids = model.get_vms_by_dataset(dataset_id)
-    # This enforces an order to the measures, since they differ between datasets and are rendered dynamically
-    vm_reviews = {vm_id: model.get_vm_reviews_by_dataset(dataset_id, vm_id) for vm_id in vm_ids}
-
-    # If an admin views the page, we also show all runs
-    vms = model.get_vms_with_reviews(vm_ids, dataset_id, vm_reviews) if role == "admin" else None
-    ev_keys, evaluations = model.get_evaluations_with_keys_by_dataset(vm_ids, dataset_id,
-                                                                      vm_reviews if role == "admin" else None)
+    vms = model.get_vms_with_reviews(dataset_id) if role == "admin" else None
+    ev_keys, evaluations = model.get_evaluations_with_keys_by_dataset(dataset_id, True if role == "admin" else None)
 
     context["dataset_id"] = dataset_id
     context["task"] = model.get_task(task_id)
@@ -171,7 +163,7 @@ def software_detail(request, context, task_id, vm_id):
 
     context["task"] = model.get_task(task_id)
     context["vm_id"] = vm_id
-    context["vm"] = {"host": vm.host, "user": vm.userName, "password": vm.userPw, "ssh": vm.portSsh, "rdp": vm.portRdp}
+    context["vm"] = vm
     context["software"] = software
     context["datasets"] = datasets
 

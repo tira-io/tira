@@ -142,7 +142,7 @@ class Software(models.Model):
     deleted = models.BooleanField(default=False)
 
     class Meta:
-        unique_together = (("software_id", "vm"),)
+        unique_together = (("software_id", "vm", 'task'),)
 
 
 class Run(models.Model):
@@ -150,15 +150,16 @@ class Run(models.Model):
     software = models.ForeignKey(Software, on_delete=models.SET_NULL, null=True)
     evaluator = models.ForeignKey(Evaluator, on_delete=models.SET_NULL, null=True)
     input_dataset = models.ForeignKey(Dataset, on_delete=models.SET_NULL, null=True)
+    input_run = models.ForeignKey('self', on_delete=models.SET_NULL, null=True)
     task = models.ForeignKey(Task, on_delete=models.SET_NULL, null=True)
     downloadable = models.BooleanField(default=False)
     deleted = models.BooleanField(default=False)
     access_token = models.CharField(max_length=150, default="")
 
-
-class RunHasInputRun(models.Model):
-    run = models.OneToOneField(Run, on_delete=models.CASCADE)
-    input_run = models.ForeignKey(Run, on_delete=models.SET_NULL, null=True, related_name="has_input")
+#
+# class RunHasInputRun(models.Model):
+#     run = models.OneToOneField(Run, on_delete=models.CASCADE)
+#     input_run = models.ForeignKey(Run, on_delete=models.SET_NULL, null=True, related_name="has_input")
 
 
 class SoftwareHasInputRun(models.Model):

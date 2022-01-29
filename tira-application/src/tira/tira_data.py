@@ -1,4 +1,4 @@
-from pathlib import Pathmsg
+from pathlib import Path
 import logging
 from django.conf import settings
 

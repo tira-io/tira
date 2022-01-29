@@ -36,7 +36,7 @@ TIRA_ROOT = Path(custom_settings.get("tira_root", BASE_DIR.parents[1] / "tira-mo
 if not TIRA_ROOT.is_dir():
     raise FileNotFoundError(f"TIRA_ROOT must point to an existing tira model but points to {TIRA_ROOT} instead.")
 
-TIRA_DB_PATH = Path(custom_settings.get("database", TIRA_ROOT / "state")) / "tira.sqlite3"
+TIRA_DB_PATH = Path(custom_settings.get("database", TIRA_ROOT / "state")) / "tira2.sqlite3"
 DEPLOYMENT = custom_settings.get("deployment", "legacy")
 LEGACY_USER_FILE = Path(custom_settings.get("legacy_users_file", TIRA_ROOT / "model" / "users" / "users.prototext"))
 DISRAPTOR_SECRET_FILE = Path(custom_settings.get("disraptor_secret_file", "/etc/discourse/client-api-key"))

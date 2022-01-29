@@ -27,3 +27,33 @@ users {
   adminPw: ""
   ip: ""
 }
+
+users {
+  adminName: ""
+  roles: ""
+  email: "dummyUser@webis.de"
+  userPw: "password"
+  userName: "dummy-vm-02"
+  vmName: "dummy-vm-02"
+  vmId: "dummy-vm-02"
+  portSsh: "44401"
+  host: "localhost"
+  portRdp: "55501"
+  adminPw: ""
+  ip: ""
+}
+
+users {
+  adminName: ""
+  roles: ""
+  email: "dummyUser@webis.de"
+  userPw: "password"
+  userName: "dummy-vm-02"
+  vmName: "dummy-vm-02"
+  vmId: "dummy-vm-02"
+  portSsh: "44401"
+  host: "localhost"
+  portRdp: "55501"
+  adminPw: ""
+  ip: ""
+}
