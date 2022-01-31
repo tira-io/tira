@@ -277,31 +277,6 @@ class HybridDatabase(object):
     # add methods to add new data to the model
     # ------------------------------------------------------------
 
-    def _add_software(self, task_id, vm_id):
-        # TODO crashes if software prototext does not exist.
-        software = modelpb.Softwares.Software()
-        s = self._load_softwares(task_id, vm_id)
-        date = now()
-
-        new_software_id = randomname.get_name()
-        software.id = new_software_id
-        software.count = ""
-        software.command = ""
-        software.workingDirectory = ""
-        software.dataset = "None"
-        software.run = ""
-        software.creationDate = date
-        software.lastEditDate = date
-        software.deleted = False
-
-        s.softwares.append(software)
-        self._save_softwares(task_id, vm_id, s)
-        modeldb.Software.objects.create(software_id=new_software_id,
-                                        vm=modeldb.VirtualMachine.objects.get(vm_id=vm_id),
-                                        task=modeldb.Task.objects.get(task_id=task_id),
-                                        count="", command="", working_directory="",
-                                        dataset="None", creation_date=date, last_edit_date=date)
-
     def _update_review(self, dataset_id, vm_id, run_id,
                        reviewer_id: str = None, review_date: str = None, has_errors: bool = None,
                        has_no_errors: bool = None, no_errors: bool = None, missing_output: bool = None,
@@ -332,6 +307,7 @@ class HybridDatabase(object):
         review.blinded = update(review.blinded, blinded)
 
         self._save_review(dataset_id, vm_id, run_id, review)
+        return review
 
     #########################################
     # Public Interface Methods
@@ -455,10 +431,10 @@ class HybridDatabase(object):
     def get_vms_by_dataset(dataset_id: str) -> list:
         """ return a list of vm_id's that have runs on this dataset """
         return [run.software.vm.vm_id for run in modeldb.Run.objects.select_related('input_dataset', 'software')
-                .exclude(input_dataset=None)
-                .filter(input_dataset__dataset_id=dataset_id)
-                .exclude(software=None)
-                .all()]
+            .exclude(input_dataset=None)
+            .filter(input_dataset__dataset_id=dataset_id)
+            .exclude(software=None)
+            .all()]
 
     @staticmethod
     def _run_as_dict(run):
@@ -660,7 +636,8 @@ class HybridDatabase(object):
         return {"id": software.software_id, "count": software.count,
                 "task_id": software.task.task_id, "vm_id": software.vm.vm_id,
                 "command": software.command, "working_directory": software.working_directory,
-                "dataset": software.dataset.dataset_id, "run": 0, "creation_date": software.creation_date,
+                "dataset": None if not software.dataset else software.dataset.dataset_id,
+                "run": 0, "creation_date": software.creation_date,
                 "last_edit": software.last_edit_date}
 
     def get_software(self, task_id, vm_id, software_id):
@@ -795,7 +772,29 @@ class HybridDatabase(object):
         self._save_dataset(task_id, evaluator_id=evaluator_id, overwrite=True)
 
     def add_software(self, task_id: str, vm_id: str):
-        self._add_software(task_id, vm_id)
+        software = modelpb.Softwares.Software()
+        s = self._load_softwares(task_id, vm_id)
+        date = now()
+
+        new_software_id = randomname.get_name()
+        software.id = new_software_id
+        software.count = ""
+        software.command = ""
+        software.workingDirectory = ""
+        software.dataset = ""
+        software.run = ""
+        software.creationDate = date
+        software.lastEditDate = date
+        software.deleted = False
+
+        s.softwares.append(software)
+        self._save_softwares(task_id, vm_id, s)
+        sw = modeldb.Software.objects.create(software_id=new_software_id,
+                                             vm=modeldb.VirtualMachine.objects.get(vm_id=vm_id),
+                                             task=modeldb.Task.objects.get(task_id=task_id),
+                                             count="", command="", working_directory="",
+                                             dataset=None, creation_date=date, last_edit_date=date)
+        return self._software_to_dict(sw)
 
     def update_software(self, task_id, vm_id, software_id, command: str = None, working_directory: str = None,
                         dataset: str = None, run: str = None, deleted: bool = False):
@@ -840,10 +839,27 @@ class HybridDatabase(object):
         Required Parameters are also required in the function
         """
         try:
-            self._update_review(dataset_id, vm_id, run_id, reviewer_id, review_date, has_errors, has_no_errors,
-                                no_errors,
-                                missing_output, extraneous_output, invalid_output, has_error_output,
-                                other_errors, comment, published, blinded, has_warnings)
+            # This changes the contents in the protobuf files
+            review = self._update_review(dataset_id, vm_id, run_id, reviewer_id, review_date, has_errors, has_no_errors,
+                                         no_errors,
+                                         missing_output, extraneous_output, invalid_output, has_error_output,
+                                         other_errors, comment, published, blinded, has_warnings)
+            modeldb.Review.objects.filter(run__run_id=run_id).update(
+                reviewer_id=review.reviewerId,
+                review_date=review.reviewDate,
+                no_errors=review.noErrors,
+                missing_output=review.missingOutput,
+                extraneous_output=review.extraneousOutput,
+                invalid_output=review.invalidOutput,
+                has_error_output=review.hasErrorOutput,
+                other_errors=review.otherErrors,
+                comment=review.comment,
+                has_errors=review.hasErrors,
+                has_warnings=review.hasWarnings,
+                has_no_errors=review.hasNoErrors,
+                published=review.published,
+                blinded=review.blinded
+            )
             return True
         except Exception as e:
             logger.exception(f"Exception while saving review ({dataset_id}, {vm_id}, {run_id}): {e}")
@@ -868,7 +884,7 @@ class HybridDatabase(object):
                 return y if y is not None else x
 
             run.deleted = update(run.deleted, deleted)
-            modeldb.Run.objects.filter(run_id=run_id).update(deleted=run.deleted)
+            modeldb.Run.objects.filter(run_id=run_id).delete()
 
             self._save_run(dataset_id, vm_id, run_id, run)
         except Exception as e:

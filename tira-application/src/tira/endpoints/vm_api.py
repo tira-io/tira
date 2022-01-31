@@ -203,17 +203,6 @@ def vm_info(request, vm_id):
 @actions_check_permissions({"tira", "admin", "participant", "user"})
 @check_resources_exist('json')
 def software_add(request, task_id, vm_id):
-    # 0. Early return a dummy page, if the user has no vm assigned on this task
-    # TODO: If the user has no VM, give him a request form
-    if auth.get_role(request, user_id=auth.get_user_id(request), vm_id=vm_id) == auth.ROLE_USER or \
-            vm_id == "no-vm-assigned":
-        context = {
-            "include_navigation": include_navigation,
-            "task": model.get_task(task_id),
-            "vm_id": "no-vm-assigned",
-            "role": auth.get_role(request)
-        }
-
     software = model.add_software(task_id, vm_id)
     if not software:
         return JsonResponse({'status': 'Failed'}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
@@ -225,12 +214,12 @@ def software_add(request, task_id, vm_id):
         "vm_id": vm_id,
         "datasets": model.get_datasets_by_task(task_id),
         "software": {
-            "id": software.id,
-            "command": software.command,
-            "working_dir": software.workingDirectory,
-            "dataset": software.dataset,
-            "creation_date": software.creationDate,
-            "last_edit": software.lastEditDate
+            "id": software['id'],
+            "command": software['command'],
+            "working_dir": software['working_directory'],
+            "dataset": software['dataset'],
+            "creation_date": software['creation_date'],
+            "last_edit": software['last_edit']
         }
     }
     html = render_to_string('tira/software_form.html', context=context, request=request)
