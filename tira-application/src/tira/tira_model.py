@@ -112,7 +112,6 @@ def get_vms_with_reviews(dataset_id: str) -> list:
     """ Get a list of all vms of a given dataset. VM's are given as a dict:
      ``{vm_id: str, "runs": list of runs, unreviewed_count: int, blinded_count: int, published_count: int}``
     """
-    print('get_vms_with_reviews')
     return model.get_vms_with_reviews(dataset_id)
 
 
@@ -144,6 +143,19 @@ def get_evaluations_with_keys_by_dataset(dataset_id, include_unpublished=False):
     and evaluation a list of evaluations and each evaluation is a dict with {vm_id: str, run_id: str, measures: list}
     """
     return model.get_evaluations_with_keys_by_dataset(dataset_id, include_unpublished)
+
+
+def get_software_with_runs(task_id, vm_id):
+    """
+    Construct a dictionary that has the software as a key and as value a list of runs with that software
+    Note that we order the list in such a way, that evaluations of a run are right behind that run in the list
+       (based on the input_run)
+    @return:
+    [{"software": sw, "runs": runs_by_software.get(sw["id"]) } for sw in softwares]
+
+
+    """
+    return model.get_software_with_runs(task_id, vm_id)
 
 
 def get_run_review(dataset_id: str, vm_id: str, run_id: str) -> dict:

@@ -454,40 +454,66 @@ class HybridDatabase(object):
     @staticmethod
     def get_vms_by_dataset(dataset_id: str) -> list:
         """ return a list of vm_id's that have runs on this dataset """
-        print("get_vms_by_dataset")
         return [run.software.vm.vm_id for run in modeldb.Run.objects.select_related('input_dataset', 'software')
-            .exclude(input_dataset=None)
-            .filter(input_dataset__dataset_id=dataset_id)
-            .exclude(software=None)
-            .all()]
+                .exclude(input_dataset=None)
+                .filter(input_dataset__dataset_id=dataset_id)
+                .exclude(software=None)
+                .all()]
 
     @staticmethod
     def _run_as_dict(run):
-        return {"software": run.software.software_id,
+        software = None
+        if run.software:
+            software = run.software.software_id
+        elif run.evaluator:
+            software = run.evaluator.evaluator_id
+
+        return {"software": software,
                 "run_id": run.run_id,
                 "input_run_id": "" if not run.input_run else run.input_run.run_id,
                 "dataset": run.input_dataset.dataset_id,
                 "downloadable": run.downloadable}
 
     def get_run(self, dataset_id: str, vm_id: str, run_id: str, return_deleted: bool = False) -> dict:
-        try:
-            run = modeldb.Run.objects.select_related('software', 'input_dataset').get(run_id=run_id)
-        except modeldb.Run.DoesNotExist:
-            # TODO remove this line after the grpc callback (confirm_run_execute) updates the runs in the database
-            # dbops.parse_run(self.runs_dir_path, dataset_id, vm_id, run_id)
-            run = modeldb.Run.objects.select_related('software', 'input_dataset').get(run_id=run_id)
+        run = modeldb.Run.objects.select_related('software', 'input_dataset').get(run_id=run_id)
 
         if run.deleted and not return_deleted:
             return {}
         return self._run_as_dict(run)
 
     def get_vm_runs_by_dataset(self, dataset_id: str, vm_id: str, return_deleted: bool = False) -> list:
-        # TODO remove this line after the grpc callback (confirm_run_execute) updates the runs in the database
-        # dbops.parse_runs_for_vm(self.runs_dir_path, dataset_id, vm_id)
         return [self._run_as_dict(run) for run in
                 modeldb.Run.objects.select_related('software', 'input_dataset')
                     .filter(input_dataset__dataset_id=dataset_id, software__vm__vm_id=vm_id)
                 if (run.deleted or not return_deleted)]
+
+    def _get_ordered_runs_from_reviews(self, reviews, vm_id, preloaded=True):
+        """ yields all runs with reviews and their evaluation runs with reviews produced by software from a given vm
+            evaluation runs (which have a run as input run) are yielded directly after the runs they use.
+
+        @param reviews: a querySet of modeldb.Review objects to
+        @param vm_id: the vm_id of the software
+        @param preloaded: If False, do a new database request to get the evaluation runs.
+            Otherwise assume they were preloaded
+        """
+        reviews_qs = reviews.filter(run__software__vm__vm_id=vm_id).all()
+        for review in reviews_qs:
+            yield {"run": self._run_as_dict(review.run),
+                   "review": self._review_as_dict(review),
+                   "reviewed": True if not review.has_errors and not review.has_no_errors
+                                       and not review.has_warnings else False,
+                   'published': review.published,
+                   'blinded': review.blinded}
+            r2 = reviews.filter(run__input_run__run_id=review.run.run_id).all() if preloaded \
+                else modeldb.Review.objects.select_related('run').filter(run__input_run__run_id=review.run.run_id).all()
+
+            for review2 in r2:
+                yield {"run": self._run_as_dict(review2.run),
+                       "review": self._review_as_dict(review2),
+                       "reviewed": True if not review2.has_errors and not review2.has_no_errors
+                                           and not review2.has_warnings else False,
+                       'published': review2.published,
+                       'blinded': review2.blinded}
 
     def get_vms_with_reviews(self, dataset_id: str):
         """ returns a list of dicts with:
@@ -497,29 +523,20 @@ class HybridDatabase(object):
          "blinded_count": blinded_count,
          "published_count": published_count}
          """
-
-        def get_ordered_runs_from_reviews(reviews_qs):
-            for review in reviews_qs.filter(run__input_run=None).all():
-                yield {"run": self._run_as_dict(review.run),
-                       "review": self._review_as_dict(review)}
-                for review2 in reviews_qs.filter(run__input_run__run_id=review.run.run_id).all():
-                    yield {"run": self._run_as_dict(review2.run),
-                           "review": self._review_as_dict(review2)}
-
         results = []
         reviews = modeldb.Review.objects.select_related('run', 'run__software', 'run__evaluator',
                                                         'run__input_run').filter(
             run__input_dataset__dataset_id=dataset_id).all()
+
         for vm_id in {values['run__software__vm__vm_id'] for values in reviews.values('run__software__vm__vm_id')}:
             if not vm_id:
                 continue
-            reviews_of_vm = reviews.filter(run__software__vm__vm_id=vm_id).all()
+            r = list(self._get_ordered_runs_from_reviews(reviews, vm_id))
             results.append({"vm_id": vm_id,
-                            "runs": list(get_ordered_runs_from_reviews(reviews_of_vm)),
-                            "unreviewed_count": reviews_of_vm.filter(has_errors=False, has_no_errors=False,
-                                                                     has_warnings=False).count(),
-                            "blinded_count": reviews_of_vm.filter(blinded=True).count(),
-                            "published_count": reviews_of_vm.filter(published=True).count()
+                            "runs": r,
+                            "unreviewed_count": len([_['reviewed'] for _ in r if _['reviewed'] is True]),
+                            "blinded_count": len([_['blinded'] for _ in r if _['blinded'] is True]),
+                            "published_count": len([_['published'] for _ in r if _['published'] is True]),
                             })
         return results
 
@@ -554,7 +571,6 @@ class HybridDatabase(object):
             {run_id: {measure.key: measure.value for measure in evaluation.measure}}
 
         @param only_public_results: only return the measures for published datasets.
-        TODO this method is never used. Check if it can be Deprecated.
         """
         result = {}
         for run in modeldb.Run.objects.filter(software__vm__vm_id=vm_id, input_dataset__dataset_id=dataset_id,
@@ -566,36 +582,60 @@ class HybridDatabase(object):
                                   for evaluation in run.evaluation_set.all()}
         return result
 
-    def get_evaluations_with_keys_by_dataset(self, dataset_id, include_unpublished=False):
+    def get_evaluations_with_keys_by_dataset(self, dataset_id, include_unpublished=False, round_floats=True):
         """
         :returns: a tuple (ev_keys, evaluation),
             ev-keys is a list of keys of the evaluation measure
             evaluation is a list of evaluations, each evaluation is a dict with
                 {vm_id: str, run_id: str, measures: list}
-        """  # TODO compensate for evaluators
-        include_unpublished = True
+        """
+
+        def round_if_float(fl):
+            if not round_floats:
+                return fl
+            try:
+                return round(float(fl), 3)
+            except ValueError:
+                return fl
+
+        def format_evalutation(r, ks, rev):
+            for run in r:
+                if run.run_id in exclude:
+                    continue
+                values = evaluations.filter(run__run_id=run.run_id).all()
+                if not values.exists():
+                    continue
+
+                yield {"vm_id": run.input_run.software.vm.vm_id,
+                       "run_id": run.run_id, 'published': rev.get(run__run_id=run.run_id).published,
+                       'blinded': rev.get(run__run_id=run.run_id).blinded,
+                       "measures": [
+                           round_if_float(evaluations.filter(run__run_id=run.run_id, measure_key=k)[0].measure_value)
+                           for k in ks]}
+
         runs = modeldb.Run.objects.filter(input_dataset=dataset_id).all()
         evaluations = modeldb.Evaluation.objects.select_related('run', 'run__software__vm').filter(
             run__input_dataset__dataset_id=dataset_id).all()
         keys = [k['measure_key'] for k in evaluations.values('measure_key').distinct()]
-
-        exclude = {review.run.run_id for review in modeldb.Review.objects.select_related('run').filter(
+        reviews = modeldb.Review.objects.select_related('run').all()
+        exclude = {review.run.run_id for review in reviews.filter(
             run__input_dataset__dataset_id=dataset_id, published=False, run__software=None).all()
                    if not include_unpublished}
 
-        # evaluations = [e for e in evaluations if e.run.run_id not in exclude]
-        result = []
-        for run in runs:
-            if run.run_id in exclude:
-                continue
-            values = evaluations.filter(run__run_id=run.run_id).all()
-            if not values.exists():
-                continue
-            result.append({"vm_id": run.input_run.software.vm.vm_id, "run_id": run.run_id,
-                 "measures": [evaluations.filter(run__run_id=run.run_id, measure_key=k)[0].measure_value
-                              for k in keys]})
+        return keys, list(format_evalutation(runs, keys, reviews))
 
-        return keys, result
+    def get_software_with_runs(self, task_id, vm_id):
+        def _runs_by_software(software):
+            reviews = modeldb.Review.objects.select_related("run", "run__software", "run__evaluator", "run__input_run",
+                                                            "run__input_dataset").filter(run__software=software).all()
+            for r in self._get_ordered_runs_from_reviews(reviews, vm_id, preloaded=False):
+                run = r['run']
+                run['review'] = r["review"]
+                yield run
+
+        return [{"software": self._software_to_dict(s),
+                 "runs": list(_runs_by_software(s))
+                 } for s in modeldb.Software.objects.filter(vm__vm_id=vm_id, task__task_id=task_id, deleted=False)]
 
     @staticmethod
     def _review_as_dict(review):
@@ -611,7 +651,6 @@ class HybridDatabase(object):
         return self._review_as_dict(review)
 
     def get_vm_reviews_by_dataset(self, dataset_id: str, vm_id: str) -> dict:
-        print("get_vm_reviews_by_dataset")
         return {review.run.run_id: self._review_as_dict(review)
                 for review in modeldb.Review.objects.select_related('run').
                     filter(run__input_dataset__dataset_id=dataset_id, run__software__vm__vm_id=vm_id)}
@@ -621,21 +660,22 @@ class HybridDatabase(object):
         return {"id": software.software_id, "count": software.count,
                 "task_id": software.task.task_id, "vm_id": software.vm.vm_id,
                 "command": software.command, "working_directory": software.working_directory,
-                "dataset": software.dataset, "run": 0, "creation_date": software.creation_date,
+                "dataset": software.dataset.dataset_id, "run": 0, "creation_date": software.creation_date,
                 "last_edit": software.last_edit_date}
 
     def get_software(self, task_id, vm_id, software_id):
         """ Returns the software with the given name of a vm on a task """
-        return self._software_to_dict(modeldb.Software.objects.get(vm__vm_id=vm_id, software_id=software_id))
+        return self._software_to_dict(
+            modeldb.Software.objects.get(vm__vm_id=vm_id, task__task_id=task_id, software_id=software_id))
 
     def get_software_by_task(self, task_id, vm_id):
         return [self._software_to_dict(sw)
-                for sw in modeldb.Software.objects.filter(vm__vm_id=vm_id, task__task_id=task_id)]
+                for sw in modeldb.Software.objects.filter(vm__vm_id=vm_id, task__task_id=task_id, deleted=False)]
 
     def get_software_by_vm(self, task_id, vm_id):
         """ Returns the software of a vm on a task in json """
         return [self._software_to_dict(software)
-                for software in modeldb.Software.objects.filter(vm__vm_id=vm_id, task__task_id=task_id)]
+                for software in modeldb.Software.objects.filter(vm__vm_id=vm_id, task__task_id=task_id, deleted=False)]
 
     def add_vm(self, vm_id, user_name, initial_user_password, ip, host, ssh, rdp):
         """ Add a new task to the database.

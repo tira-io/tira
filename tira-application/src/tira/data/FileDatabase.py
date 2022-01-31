@@ -11,7 +11,6 @@ from tira.util import TiraModelWriteError, TiraModelIntegrityError
 from tira.proto import TiraClientWebMessages_pb2 as modelpb
 from tira.util import auto_reviewer, extract_year_from_dataset_id
 
-
 logger = logging.getLogger("tira")
 
 
@@ -681,8 +680,9 @@ class FileDatabase(object):
 
     def get_evaluations_with_keys_by_dataset(self, dataset_id, include_unpublished):
         vm_ids = self.get_vms_by_dataset(dataset_id)
-        vm_evaluations = {vm_id: self.get_vm_evaluations_by_dataset(dataset_id, vm_id, only_public_results=not include_unpublished)
-                          for vm_id in vm_ids}
+        vm_evaluations = {
+            vm_id: self.get_vm_evaluations_by_dataset(dataset_id, vm_id, only_public_results=not include_unpublished)
+            for vm_id in vm_ids}
         keys = set()
         for e1 in vm_evaluations.values():
             for e2 in e1.values():
@@ -764,6 +764,9 @@ class FileDatabase(object):
                "last_edit": software.lastEditDate}
               for software in self.software.get(f"{task_id}${vm_id}", [])]
 
+        if software_id is None:
+            return sw
+
         for s in sw:
             if s["id"] == software_id:
                 return s
@@ -776,6 +779,32 @@ class FileDatabase(object):
                  "dataset": software.dataset, "run": software.run, "creation_date": software.creationDate,
                  "last_edit": software.lastEditDate}
                 for software in self.software.get(f"{task_id}${vm_id}", [])]
+
+    def get_software_with_runs(self, task_id, vm_id):
+        softwares = self.get_software_by_vm(task_id, vm_id)
+        runs = self.get_vm_runs_by_task(task_id, vm_id)
+
+        runs_with_input = {}  # get the runs which have an input_run_id
+        for r in runs:
+            # if we loop once, might as well get the review-info here.
+            r['review'] = self.get_run_review(r.get("dataset"), vm_id, r.get("run_id"))
+            if r.get("input_run_id") == 'none':
+                continue
+            runs_with_input.setdefault(r.get("input_run_id"), []).append(r)
+
+        runs_without_input = [r for r in runs if r.get("input_run_id") == "none"]
+        runs_by_software = {}
+        for r in runs_without_input:
+            runs_by_software.setdefault(r.get("software"), []).append(r)
+            runs_by_software.setdefault(r.get("software"), []).extend(runs_with_input.pop(r.get("run_id"), []))
+
+        for k, v in runs_with_input.items():  # left-over runs_with_input, where the input-run does not exist anymore
+            for r in v:
+                runs_by_software.setdefault(r.get("software"), []).append(r)
+
+        return [{"software": sw,
+                 "runs": runs_by_software.get(sw["id"])
+                 } for sw in softwares]
 
     def get_users_vms(self):
         """ Return the users list. """

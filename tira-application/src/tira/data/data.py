@@ -23,9 +23,9 @@ def index(organizers_file_path, users_file_path, vm_dir_path, tasks_dir_path,
     # _parse_vm_list(users_file_path, vm_dir_path)
     # _parse_dataset_list(datasets_dir_path)
     # _parse_task_list(tasks_dir_path)
-    _parse_software_list(softwares_dir_path)
-    _parse_runs_evaluations(runs_dir_path)
-
+    # _parse_software_list(softwares_dir_path)
+    # _parse_runs_evaluations(runs_dir_path)
+    pass
 
 def reload_vms(users_file_path, vm_dir_path):
     _parse_vm_list(users_file_path, vm_dir_path)

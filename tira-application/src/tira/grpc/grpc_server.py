@@ -111,7 +111,7 @@ class TiraApplicationService(tira_host_pb2_grpc.TiraApplicationService):
             last_status=str(request.transaction.status),
             last_message=request.transaction.message)
 
-        model.add(request.runId.datasetId, request.runId.vmId, request.runId.runId)
+        model.add_run(request.runId.datasetId, request.runId.vmId, request.runId.runId)
 
         return tira_host_pb2.Transaction(status=tira_host_pb2.Status.SUCCESS,
                                          message="Application accepted evaluation confirmation",
@@ -130,7 +130,7 @@ class TiraApplicationService(tira_host_pb2_grpc.TiraApplicationService):
             last_status=str(request.transaction.status),
             last_message=request.transaction.message)
 
-        model.add(request.runId.datasetId, request.runId.vmId, request.runId.runId)
+        model.add_run(request.runId.datasetId, request.runId.vmId, request.runId.runId)
 
         return tira_host_pb2.Transaction(status=tira_host_pb2.Status.SUCCESS,
                                          message="Application accepted evaluation confirmation",

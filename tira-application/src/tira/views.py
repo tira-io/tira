@@ -12,6 +12,7 @@ from pathlib import Path
 from datetime import datetime as dt
 import os
 import zipfile
+from http import HTTPStatus
 
 logger = logging.getLogger("tira")
 logger.info("Views: Logger active")
@@ -129,43 +130,14 @@ def dataset_detail(request, context, task_id, dataset_id):
 @add_context
 def software_detail(request, context, task_id, vm_id):
     """ render the detail of the user page: vm-stats, softwares, and runs """
-    softwares = model.get_software_by_task(task_id, vm_id)
-    runs = model.get_vm_runs_by_task(task_id, vm_id)
-    datasets = model.get_datasets_by_task(task_id)
 
-    # Construct a dictionary that has the software as a key and as value a list of runs with that software
-    # Note that we order the list in such a way, that evaluations of a run are right behind that run in the list
-    #   (based on the input_run)
-    runs_with_input = {}  # get the runs which have an input_run_id
-    for r in runs:
-        # if we loop once, might as well get the review-info here.
-        r['review'] = model.get_run_review(r.get("dataset"), vm_id, r.get("run_id"))
-        if r.get("input_run_id") == 'none':
-            continue
-        runs_with_input.setdefault(r.get("input_run_id"), []).append(r)
-
-    runs_without_input = [r for r in runs if r.get("input_run_id") == "none"]
-    runs_by_software = {}
-    for r in runs_without_input:
-        runs_by_software.setdefault(r.get("software"), []).append(r)
-        runs_by_software.setdefault(r.get("software"), []).extend(runs_with_input.pop(r.get("run_id"), []))
-
-    for k, v in runs_with_input.items():  # left-over runs_with_input, where the input-run does not exist anymore
-        for r in v:
-            runs_by_software.setdefault(r.get("software"), []).append(r)
-
-    software = [{
-        "software": sw,
-        "runs": runs_by_software.get(sw["id"])
-    } for sw in softwares]
-
-    vm = model.get_vm(vm_id)
+    software = model.get_software_with_runs(task_id, vm_id)
 
     context["task"] = model.get_task(task_id)
     context["vm_id"] = vm_id
-    context["vm"] = vm
+    context["vm"] = model.get_vm(vm_id)
     context["software"] = software
-    context["datasets"] = datasets
+    context["datasets"] = model.get_datasets_by_task(task_id)
 
     return render(request, 'tira/software.html', context)
 

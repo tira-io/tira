@@ -190,7 +190,7 @@
             The <em>Command</em> will be executed on your Virtual Machine. By default, it will be run from your user's home directory.
                 You can select a different location in the <em>Working Directory</em> input.
             </p>
-            {% if task.commandDescription == '' %}
+            {% if task.command_description == 'Available variables: <code>$inputDataset</code>, <code>$inputRun</code>, <code>$outputDir</code>, <code>$dataServer</code>, and <code>$token</code>.' %}
             <table class="uk-table uk-table-small uk-table-divider uk-align-center uk-margin-bottom">
                 <thead>
                     <tr><td colspan="2">You can use the following variables in your Commands:</td></tr>
@@ -203,18 +203,18 @@
             </table>
             {% else %}
             {% autoescape off %}
-            {{ task.commandDescription }}
+            {{ task.command_description }}
             {% endautoescape %}
             {% endif %}
 
-            {% if task.commandPlaceholder == '' %}
+            {% if task.command_placeholder == 'mySoftware -c $inputDataset -r $inputRun -o $outputDir' %}
             <label class="uk-form-label">Example Command in TIRA</label>
             <pre><code>my-software/run.sh -i $inputDataset -o $outputDir</code></pre>
             <label class="uk-form-label">Example Command in the Virtual Machine</label>
             <pre><code>my-software/run.sh -i /media/training-datasets/{{ task.task_id }}/&lt;Input Dataset&gt; -o /tmp/{{ vm_id }}/&lt;RUN&gt;/output</code></pre>
             {% else %}
             <label class="uk-form-label">Example Command in TIRA</label>
-            <pre><code>{{ task.commandPlaceholder }}</code></pre>
+            <pre><code>{{ task.command_placeholder }}</code></pre>
             {% endif %}
         </div>
     </div>
