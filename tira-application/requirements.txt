@@ -7,3 +7,4 @@ pyyaml
 requests
 randomname
 tqdm
+mysqlclient
