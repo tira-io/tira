@@ -56,7 +56,7 @@
                 <th class="header uk-table-shrink uk-text-nowrap"><span>Virtual Machine</span></th>
                 <th class="header uk-table-shrink uk-text-nowrap"><span>Run</span></th>
                 {% for key in ev_keys %}
-                <th class="header"><span>{{ key }}</span></th>
+                <th class="header uk-table-shrink uk-text-nowrap"><span>{{ key }}</span></th>
                 {% endfor %}
                 {% if role == 'admin' %}
                 <th class="header uk-table-shrink uk-text-nowrap"><span>Actions</span></th>
@@ -98,7 +98,7 @@
                 <td class="uk-table-shrink uk-text-nowrap">{{ eval.run_id }}</td>
                 {% endif %}
                 {% for measure in eval.measures %}
-                <td class="uk-table-expand uk-text-truncate">{{ measure }}</td>
+                <td class="uk-table-shrink uk-text-truncate">{{ measure }}</td>
                 {% endfor %}
                 {% if role == 'admin' %}
                 <td class="uk-table-shrink uk-text-nowrap"><a class="uk-button uk-button-small uk-button-default" href="{% url 'tira:software-detail' task_id=task.task_id vm_id=eval.vm_id %}">manage</a></td>

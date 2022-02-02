@@ -40,7 +40,7 @@ function publish(bool) {
         data: {},
         success: function( data )
         {
-            if(data.status === "success"){
+            if(data.status === "0"){
                 setPublishButton(data.published)
             }
         }
@@ -55,7 +55,7 @@ function blind(bool) {
         data:{},
         success: function( data )
         {
-            if(data.status === "success"){
+            if(data.status === "0"){
                 setBlindButton(data.blinded)
             }
         }

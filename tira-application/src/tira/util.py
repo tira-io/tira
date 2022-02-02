@@ -1,4 +1,5 @@
 from datetime import datetime as dt
+from datetime import timezone
 import logging
 
 from .proto import TiraClientWebMessages_pb2 as modelpb
@@ -8,8 +9,20 @@ from django.conf import settings
 logger = logging.getLogger("tira")
 
 
+class TiraModelWriteError(Exception):
+    pass
+
+
+class TiraModelIntegrityError(Exception):
+    pass
+
+
 def get_tira_id():
     return dt.now().strftime("%Y-%m-%d-%H-%M-%S")
+
+
+def now():
+    return dt.now(timezone.utc).strftime("%a %b %d %X %Z %Y")
 
 
 def extract_year_from_dataset_id(dataset_id: str) -> str:

@@ -10,7 +10,7 @@ from django.http import JsonResponse
 from django.conf import settings
 from http import HTTPStatus
 
-from tira.transitions import TransitionLog, EvaluationLog, TransactionLog
+from tira.model import TransitionLog, EvaluationLog, TransactionLog
 from tira.grpc_client import GrpcClient
 import tira.tira_model as model
 from tira.util import get_tira_id, reroute_host
@@ -158,7 +158,7 @@ def vm_info(request, vm_id):
     # TODO when vm_id is no-vm-assigned
 
     vm = model.get_vm(vm_id)
-    host = reroute_host(vm.host)
+    host = reroute_host(vm['host'])
     try:
         grpc_client = GrpcClient(host)
         response_vm_info = grpc_client.vm_info(vm_id=vm_id)
@@ -203,17 +203,6 @@ def vm_info(request, vm_id):
 @actions_check_permissions({"tira", "admin", "participant", "user"})
 @check_resources_exist('json')
 def software_add(request, task_id, vm_id):
-    # 0. Early return a dummy page, if the user has no vm assigned on this task
-    # TODO: If the user has no VM, give him a request form
-    if auth.get_role(request, user_id=auth.get_user_id(request), vm_id=vm_id) == auth.ROLE_USER or \
-            vm_id == "no-vm-assigned":
-        context = {
-            "include_navigation": include_navigation,
-            "task": model.get_task(task_id),
-            "vm_id": "no-vm-assigned",
-            "role": auth.get_role(request)
-        }
-
     software = model.add_software(task_id, vm_id)
     if not software:
         return JsonResponse({'status': 'Failed'}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
@@ -225,12 +214,12 @@ def software_add(request, task_id, vm_id):
         "vm_id": vm_id,
         "datasets": model.get_datasets_by_task(task_id),
         "software": {
-            "id": software.id,
-            "command": software.command,
-            "working_dir": software.workingDirectory,
-            "dataset": software.dataset,
-            "creation_date": software.creationDate,
-            "last_edit": software.lastEditDate
+            "id": software['id'],
+            "command": software['command'],
+            "working_dir": software['working_directory'],
+            "dataset": software['dataset'],
+            "creation_date": software['creation_date'],
+            "last_edit": software['last_edit']
         }
     }
     html = render_to_string('tira/software_form.html', context=context, request=request)

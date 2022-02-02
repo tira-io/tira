@@ -5,4 +5,7 @@ uwsgi
 Django
 pyyaml
 requests
-watchdog
+randomname
+tqdm
+mysql
+mysqlclient
