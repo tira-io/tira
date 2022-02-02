@@ -65,7 +65,7 @@ service TiraApplicationService {
   rpc confirm_vm_create (VmDetails) returns (Transaction) {}
   rpc confirm_vm_delete (VmId) returns (Transaction) {}
   rpc confirm_run_eval (EvaluationResults) returns (Transaction) {}
-  // rpc confirm_run_execute (VmState) returns (Transaction) {} // TODO transmit the results of the run that should be displayed on the website (i.e. runDir without output)
+  rpc confirm_run_execute (ExecutionResults) returns (Transaction) {} // TODO transmit the results of the run that should be displayed on the website (i.e. runDir without output)
   rpc complete_transaction (Transaction) returns (Transaction) {}
 }
 
@@ -101,7 +101,7 @@ message Transaction {
 }
 
 message VmId {
-  Transaction transaction = 1; // todo: move transaction from here to the list of function arguments, the same for other request messages
+  Transaction transaction = 1;
   string vmId = 2;
 }
 
@@ -118,7 +118,7 @@ message VmDetails {
   Transaction transaction = 1;
   string vmId = 2;
   string userName = 3;
-  string initialUserPw = 4;  // TODO see this as initial password. Hosts may refuse to include this here.
+  string initialUserPw = 4;  // see this as initial password. Hosts may refuse to include this here.
   string ip = 5;
   string host = 6;
   string sshPort = 7;
@@ -154,6 +154,11 @@ message EvaluationResults {
   Transaction transaction = 1;
   RunId runId = 2;
   repeated Measure measures = 3;
+}
+
+message ExecutionResults {
+  Transaction transaction = 1;
+  RunId runId = 2;
 }
 
 message VmState {

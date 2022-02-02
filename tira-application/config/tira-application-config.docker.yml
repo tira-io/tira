@@ -4,17 +4,22 @@ allowed_hosts:
   - "*"
 django_secret: 'not-so-secret'
 # --- Tira specific settings
-tira_root: /path/to/tira/model
+tira_root: /mnt/ceph/tira
 # deployment = {disraptor, legacy}
-deployment: legacy
-# legacy_users_file: /path/to/tira/model/users/users.prototext
+deployment: disraptor
+# legacy_users_file: /mnt/ceph/tira/model/users/users.prototext
 # disraptor_secret_file: /etc/discourse/client-api-key
 # The directory where logs are written to. Defaults to TIRA_ROOT/log/tira-application
-# logging_dir: /path/to/tira/log/tira-application
-# Path to the database (currently, where the .sqlite rests. Defaults to TIRA_ROOT/state/
-# database: /path/to/tira/state
+# logging_dir: /mnt/ceph/tira/log/tira-application
 # grpc_host can be local or remote. If local, it will call localhost (i.e. for testing). If remote, it will call the vm-host
 # When developing, set this option to local, otherwise you might accidentally remote-control the live-vms.
 grpc_host: remote
 host_grpc_port: 50051
 application_grpc_port: 50052
+database:
+  engine: django.db.backends.mysql
+  name: tira
+  user: tira
+  password: TODO-ENTER-PASSWORD
+  host: tira-mariadb
+  port: 3306

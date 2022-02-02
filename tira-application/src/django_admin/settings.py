@@ -36,14 +36,23 @@ TIRA_ROOT = Path(custom_settings.get("tira_root", BASE_DIR.parents[1] / "tira-mo
 if not TIRA_ROOT.is_dir():
     raise FileNotFoundError(f"TIRA_ROOT must point to an existing tira model but points to {TIRA_ROOT} instead.")
 
-TIRA_DB_PATH = Path(custom_settings.get("database", TIRA_ROOT / "state")) / "tira_vm_states.sqlite3"
 DEPLOYMENT = custom_settings.get("deployment", "legacy")
 LEGACY_USER_FILE = Path(custom_settings.get("legacy_users_file", TIRA_ROOT / "model" / "users" / "users.prototext"))
 DISRAPTOR_SECRET_FILE = Path(custom_settings.get("disraptor_secret_file", "/etc/discourse/client-api-key"))
 HOST_GRPC_PORT = custom_settings.get("host_grpc_port", "50051")
 APPLICATION_GRPC_PORT = custom_settings.get("application_grpc_port", "50052")
 GRPC_HOST = custom_settings.get("grpc_host", "local")  # can be local or remote
-
+TIRA_DB_NAME = Path(TIRA_ROOT / "state") / f"{custom_settings['database'].get('name', 'tira')}.sqlite3" \
+    if custom_settings['database'].get('engine', 'django.db.backends.sqlite3') == 'django.db.backends.sqlite3' \
+    else custom_settings['database'].get('name', 'tira')
+TIRA_DB = {
+    'ENGINE': custom_settings['database'].get('engine', 'django.db.backends.sqlite3'),
+    'NAME': TIRA_DB_NAME,
+    'USER': custom_settings['database'].get('user', 'tira'),
+    'PASSWORD': custom_settings['database'].get('password', 'replace-with-db-password'),
+    'HOST': custom_settings['database'].get('host', 'tira-mariadb'),
+    'PORT': int(custom_settings['database'].get('port', 3306)),
+}
 # Application definition
 
 INSTALLED_APPS = [
@@ -91,10 +100,7 @@ WSGI_APPLICATION = 'django_admin.wsgi.application'
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': TIRA_DB_PATH,
-    }
+    'default': TIRA_DB
 }
 
 SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
@@ -169,6 +175,12 @@ def logger_config(log_dir: Path):
                 'filename': log_dir / 'tira-warning.log',
                 'formatter': 'default'
             },
+            'ceph_tira_db': {
+                'level': 'INFO',
+                'class': 'logging.FileHandler',
+                'filename': log_dir / 'tira-db.log',
+                'formatter': 'default'
+            },
             'ceph_grpc_debug': {
                 'level': 'DEBUG',
                 'class': 'logging.FileHandler',
@@ -204,6 +216,10 @@ def logger_config(log_dir: Path):
             },
             'tira': {
                 'handlers': ['console', 'ceph_tira_debug', 'ceph_tira_warn', 'ceph_tira_info'],
+                'propagate': True,
+            },
+            'tira_db': {
+                'handlers': ['console', 'ceph_tira_db'],
                 'propagate': True,
             },
             'grpc_server': {

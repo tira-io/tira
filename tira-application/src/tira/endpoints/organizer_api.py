@@ -26,7 +26,7 @@ def publish(request, vm_id, dataset_id, run_id, value):
             context = {"status": "0", "published": value,  "message": f"Published is now: {value}"}
         else:
             context = {"status": "1", "published": (not value),  "message": f"Published is now: {value}"}
-
+        print(context)
         return JsonResponse(context)
 
 
