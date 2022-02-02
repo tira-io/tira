@@ -26,7 +26,7 @@ function reloadData(model_object) {
         data:{},
         success: function( data )
         {
-            if (data.status === 0) {
+            if (data.status === 1) {
                 icon.html(' <i class="fas fa-check"></i>')
             } else {
                 icon.html(' <i class="fas fa-times"></i>')
