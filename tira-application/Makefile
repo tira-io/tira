@@ -5,8 +5,8 @@ PYTHON=${VENV_NAME}/bin/python3
 GRPC_BUILD_DIR=../tira-protocol/build/python
 #PYTHON_DEST=${VENV_NAME}/lib/python3.7/site-packages
 PROTO_MODULE_DIR=src/tira/proto
-VERSION_APPLICATION=0.0.9
-VERSION_GRPC=0.0.9
+VERSION_APPLICATION=0.0.11
+VERSION_GRPC=0.0.11
 
 
 .DEFAULT: help
