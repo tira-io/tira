@@ -264,7 +264,6 @@ def software_delete(request, task_id, vm_id, software_id):
 def run_execute(request, task_id, vm_id, software_id):
     vm = model.get_vm(vm_id)
     software = model.get_software(task_id, vm_id, software_id=software_id)
-    # TODO get input_run data. This is not supported right now, I suggest solving this via website (better selector)
 
     host = reroute_host(vm['host'])
     future_run_id = get_tira_id()
