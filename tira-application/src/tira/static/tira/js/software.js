@@ -1,6 +1,7 @@
 let pollingState=false;
 let pollingSoftware=false;
 let pollingEvaluation=false;
+let state=0;
 
 function setupPollingAfterPageLoad(vmid) {
     $('.run-evaluate-spinner').hide()
@@ -210,6 +211,14 @@ function addSoftware(tid, vmid) {
                 let formId = '#' + $(this).data("tiraSoftwareId") + '-row'
                 deleteSoftware(tid, vmid, $(this).data("tiraSoftwareId"), $(formId));
             })
+            $(`#${data.software_id}-row .software-select`).change(function () {
+                updateSoftwareRunButton()
+            });
+
+            $(`#${data.software_id}-row .command-input`).change(function () {
+                updateSoftwareRunButton()
+            });
+            updateSoftwareRunButton()
         },
         error: function (jqXHR, textStatus, throwError) {
             warningAlert("Adding Software", throwError, jqXHR.responseJSON)
@@ -368,6 +377,16 @@ function addSoftwareEvents(taskId, vmId) {
                      $(this).data('tiraVmId'),
                      $(this).data('tiraRunId'))
     });
+
+    $('.software-select').change(function () {
+        updateSoftwareRunButton()
+    });
+
+    $('.command-input').change(function () {
+        updateSoftwareRunButton()
+    });
+
+
 }
 
 
@@ -461,6 +480,7 @@ function enableButton(id, cls) {
 /* This function sets the State labels and the Buttons
 State IDs follow the tira protocol specification (in tira_host.proto) */
 function setState(state_id) {
+    state = state_id
     let spinner = $('#vm-state-spinner');
     let running = $('#vm-state-running');
     let powering_on = $('#vm-state-powering-on');
@@ -498,7 +518,7 @@ function setState(state_id) {
         case 1:  // RUNNING = 1;
             running.show();
             enableButton('vm-shutdown-button', 'uk-button-primary');
-            enableButton('software-run-button', 'uk-button-primary');
+            updateSoftwareRunButton()
             break;
         case 2:  // POWERED_OFF = 2;
             stopped.show();
@@ -537,6 +557,24 @@ function setState(state_id) {
             break;
     }
 }
+
+function updateSoftwareRunButton(){
+    if (state === 1){
+        $('.software-run-button').each(function ( elem ){
+            let softwareId = $(this).data("tira-software-id")
+            let command = $(`#${softwareId}-command-input`).val()
+            let inputDataset = $(`#${softwareId}-input-dataset`).val()
+            if (checkInputFields(softwareId, command, inputDataset) === true){
+                enableButton($(this).attr('id'), 'uk-button-primary');
+            } else {
+                disableButton($(this).attr('id'), 'uk-button-primary');
+            }
+        })
+    } else {
+        disableButton('software-run-button');
+    }
+}
+
 /* This function sets the Ports and Port labels and the Buttons */
 function setPorts(ssh, ssh_status, rdp, rdp_status) {
     let ssh_text = $('#vm-state-ssh');
