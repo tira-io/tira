@@ -643,7 +643,8 @@ class HybridDatabase(object):
                 "task_id": software.task.task_id, "vm_id": software.vm.vm_id,
                 "command": software.command, "working_directory": software.working_directory,
                 "dataset": None if not software.dataset else software.dataset.dataset_id,
-                "run": 0, "creation_date": software.creation_date,
+                "run": 'none',  # always none, this is a relict from a past version we keep for compatibility.
+                "creation_date": software.creation_date,
                 "last_edit": software.last_edit_date}
 
     def get_software(self, task_id, vm_id, software_id):
