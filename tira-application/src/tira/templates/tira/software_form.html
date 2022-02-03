@@ -12,14 +12,14 @@
             <div class="uk-width-1-2">
                 <label class="uk-form-label" for="{{ software.id }}-command-input">Command</label>
                 <div class="uk-form-controls">
-                    <input class="uk-input" id="{{ software.id }}-command-input" type="text"
+                    <input class="uk-input command-input" id="{{ software.id }}-command-input" type="text"
                            value="{{ software.command }}" placeholder="Dummy Command">
                 </div>
             </div>
             <div class="uk-width-expand">
                 <label class="uk-form-label" for="{{ software.id }}-input-dataset">Input Dataset</label>
                 <div class="uk-form-controls">
-                    <select class="uk-select" id="{{ software.id }}-input-dataset">
+                    <select class="uk-select software-select" id="{{ software.id }}-input-dataset">
                         <option value="{{ software.dataset }}" selected>{{ software.dataset }}</option>
                         {% for dataset in datasets %}
                         {% if not dataset.is_deprecated and dataset.dataset_id != software.dataset %}
@@ -33,7 +33,7 @@
     </form>
     <div id="{{ software.id }}-form-error" class="uk-text-danger"></div>
     <div class="software-form-buttons">
-        <button class="uk-button uk-button-small uk-button-disabled uk-width-1-6 software-run-button"
+        <button class="uk-button uk-button-small uk-button-disabled uk-width-1-6 software-run-button" id="{{ software.id }}-run-button"
                 uk-tooltip="title: If the VM is 'running': Execute {{ software.id }}. Only one Software can be executed at a time. Software will be saved when executing a run.; delay: 500"
                 data-tira-software-id="{{ software.id }}" disabled>run
         </button>
