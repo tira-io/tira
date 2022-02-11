@@ -118,7 +118,7 @@ class GrpcClient:
         logger.info("Application starts a run-execute")
         grpc_run_id = tira_host_pb2.RunId(vmId=vm_id, datasetId=dataset_id, runId=run_id)
         grpc_input_run_id = tira_host_pb2.RunId(vmId=input_run_vm_id, datasetId=input_run_dataset_id,
-                                                runId=input_run_run_id)
+                                                runId=str(input_run_run_id))
 
         response = self.stub.run_execute(tira_host_pb2.RunDetails(transaction=transaction,
                                                                   runId=grpc_run_id, inputRunId=grpc_input_run_id,
@@ -143,7 +143,7 @@ class GrpcClient:
         """
         grpc_run_id = tira_host_pb2.RunId(vmId=vm_id, datasetId=dataset_id, runId=run_id)
         grpc_input_run_id = tira_host_pb2.RunId(vmId=input_run_vm_id, datasetId=input_run_dataset_id,
-                                                runId=input_run_run_id)
+                                                runId=str(input_run_run_id))
         response = self.stub.run_eval(tira_host_pb2.RunDetails(transaction=transaction,
                                                                runId=grpc_run_id, workingDir=working_dir,
                                                                command=command, inputRunId=grpc_input_run_id,

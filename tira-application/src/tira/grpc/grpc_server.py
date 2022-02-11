@@ -53,7 +53,7 @@ class TiraApplicationService(tira_host_pb2_grpc.TiraApplicationService):
             logger.warning(e)
             return tira_host_pb2.Transaction(status=tira_host_pb2.Status.FAILED,
                                              message=f"TiraApplicationService:complete_transaction:FAILED with {e}",
-                                             transactionId=request.transaction.transactionId)
+                                             transactionId=request.transactionId)
 
         return tira_host_pb2.Transaction(status=tira_host_pb2.Status.SUCCESS,
                                          message="TiraApplicationService:complete_transaction:SUCCESS",
