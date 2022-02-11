@@ -575,6 +575,14 @@ class HybridDatabase(object):
                 return fl
 
         def format_evalutation(r, ks, rev):
+            def if_exists(evals):
+                for k in ks:
+                    ev = evals.filter(run__run_id=run.run_id, measure_key=k).all()
+                    if ev.exists():
+                        yield round_if_float(ev[0].measure_value)
+                    else:
+                        yield "-"
+
             for run in r:
                 if run.run_id in exclude:
                     continue
@@ -585,9 +593,7 @@ class HybridDatabase(object):
                 yield {"vm_id": run.input_run.software.vm.vm_id,
                        "run_id": run.run_id, 'published': rev.get(run__run_id=run.run_id).published,
                        'blinded': rev.get(run__run_id=run.run_id).blinded,
-                       "measures": [
-                           round_if_float(evaluations.filter(run__run_id=run.run_id, measure_key=k)[0].measure_value)
-                           for k in ks]}
+                       "measures": list(if_exists(evaluations))}
 
         runs = modeldb.Run.objects.filter(input_dataset=dataset_id).all()
         evaluations = modeldb.Evaluation.objects.select_related('run', 'run__software__vm').filter(
@@ -637,7 +643,8 @@ class HybridDatabase(object):
                 "task_id": software.task.task_id, "vm_id": software.vm.vm_id,
                 "command": software.command, "working_directory": software.working_directory,
                 "dataset": None if not software.dataset else software.dataset.dataset_id,
-                "run": 0, "creation_date": software.creation_date,
+                "run": 'none',  # always none, this is a relict from a past version we keep for compatibility.
+                "creation_date": software.creation_date,
                 "last_edit": software.last_edit_date}
 
     def get_software(self, task_id, vm_id, software_id):

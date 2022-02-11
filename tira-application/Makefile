@@ -21,6 +21,7 @@ help:
 	@echo "       remove setup files"
 
 setup:
+	bash setup.sh
 	test -d $(GRPC_BUILD_DIR) || { echo "please compile the protocol files first. See the docs in tira/tira-protocol"; exit 1; }
 	chmod o+x src
 	mkdir -p $(PROTO_MODULE_DIR)
