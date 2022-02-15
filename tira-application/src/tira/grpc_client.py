@@ -128,8 +128,7 @@ class GrpcClient:
         return response
 
     @auto_transaction("run-eval")
-    def run_eval(self, vm_id, dataset_id, run_id, working_dir, command,
-                 input_run_vm_id, input_run_dataset_id, input_run_run_id, optional_parameters, transaction):
+    def run_eval(self, vm_id, dataset_id, run_id, input_run_vm_id, input_run_dataset_id, input_run_run_id, optional_parameters, transaction):
         """ Initiates the evaluation of a prior run.
         :param vm_id: ID of the vm that can run the evaluation
         :param dataset_id: ID of the dataset
@@ -145,8 +144,7 @@ class GrpcClient:
         grpc_input_run_id = tira_host_pb2.RunId(vmId=input_run_vm_id, datasetId=input_run_dataset_id,
                                                 runId=str(input_run_run_id))
         response = self.stub.run_eval(tira_host_pb2.RunDetails(transaction=transaction,
-                                                               runId=grpc_run_id, workingDir=working_dir,
-                                                               command=command, inputRunId=grpc_input_run_id,
+                                                               runId=grpc_run_id, inputRunId=grpc_input_run_id,
                                                                optionalParameters=optional_parameters))
         if response.status == 0:
             t = TransactionLog.objects.get(transaction_id=transaction.transactionId)
