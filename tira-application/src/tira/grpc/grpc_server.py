@@ -6,6 +6,7 @@ import logging
 from tira.proto import tira_host_pb2, tira_host_pb2_grpc
 from tira.model import TransitionLog, EvaluationLog, TransactionLog
 import tira.tira_model as model
+import django
 
 grpc_port = settings.APPLICATION_GRPC_PORT
 
@@ -15,6 +16,7 @@ logger = logging.getLogger("tira")
 class TiraApplicationService(tira_host_pb2_grpc.TiraApplicationService):
     def set_state(self, request, context):
         """ TODO error handling """
+        django.db.connection.close()
         logger.debug(f" Application Server received vm-state {request.state} for {request.vmId}")
         print(f"Application Server received vm-state {request.state} for {request.vmId}. Transaction: {request.transaction.transactionId}")
         try:
@@ -24,6 +26,8 @@ class TiraApplicationService(tira_host_pb2_grpc.TiraApplicationService):
             )
 
             t = TransactionLog.objects.get(transaction_id=request.transaction.transactionId)
+            t = TransactionLog.objects.get(transaction_id="e341c7db-590a-4c0c-9f7a-591e6c357981")
+
             _ = TransitionLog.objects.update_or_create(vm_id=request.vmId, defaults={'vm_state': request.state,
                                                                                      'transaction': t})
         except Exception as e:
@@ -40,6 +44,7 @@ class TiraApplicationService(tira_host_pb2_grpc.TiraApplicationService):
         """ Marks a transaction as completed if the
         This is basically the final stage of a a TIRA message exchange.
         """
+        django.db.connection.close()
         logger.debug(f" Application Server received complete_transaction for {request.transactionId}")
         print(f" Application Server received complete_transaction for {request.transactionId}")
 
@@ -63,6 +68,7 @@ class TiraApplicationService(tira_host_pb2_grpc.TiraApplicationService):
         """ This gets called if a vm was successfully created. Right now it just says 'yes' when called.
         See tira_host.proto for request specification.
         """
+        django.db.connection.close()
         logger.debug(f" Application Server received vm-create confirmation with \n"
                      f"{request.vmID}, {request.userName}, {request.initialUserPw}, {request.ip}, {request.sshPort}, "
                      f"{request.rdpPort}")
@@ -90,6 +96,7 @@ class TiraApplicationService(tira_host_pb2_grpc.TiraApplicationService):
         Right now it just says 'yes' when called. See tira_host.proto for request specification.
         TODO this should remove the deleted vm from the model.
         """
+        django.db.connection.close()
         print(f" Application Server received vm_delete confirmation with: \n"
               f"{request.vmId.vmId} measures.")
 
@@ -102,6 +109,7 @@ class TiraApplicationService(tira_host_pb2_grpc.TiraApplicationService):
         We use this to load a new evaluation run into the database.
         See tira_host.proto for request specification.
         """
+        django.db.connection.close()
         logger.debug(f" Application Server received run-eval confirmation with: \n"
                      f"{request.runId.runId} and {len(request.measures)} measures.")
         EvaluationLog.objects.filter(vm_id=request.runId.vmId, run_id=request.runId.runId).delete()
@@ -121,6 +129,7 @@ class TiraApplicationService(tira_host_pb2_grpc.TiraApplicationService):
         """ This gets called if a run_execute finishes. We use this to load the new run in the database.
         See tira_host.proto for request specification.
         """
+        django.db.connection.close()
         logger.debug(f" Application Server received run-eval confirmation with: \n"
                      f"{request.runId.runId}.")
         EvaluationLog.objects.filter(vm_id=request.runId.vmId, run_id=request.runId.runId).delete()
