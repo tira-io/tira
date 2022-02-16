@@ -5,8 +5,8 @@ PYTHON=${VENV_NAME}/bin/python3
 GRPC_BUILD_DIR=../tira-protocol/build/python
 #PYTHON_DEST=${VENV_NAME}/lib/python3.7/site-packages
 PROTO_MODULE_DIR=src/tira/proto
-VERSION_APPLICATION=0.0.11
-VERSION_GRPC=0.0.11
+VERSION_APPLICATION=0.0.12
+VERSION_GRPC=0.0.12
 
 
 .DEFAULT: help
@@ -53,8 +53,12 @@ run-docker:
 		webis/tira-application-grpc:${VERSION_GRPC}
 
 build-docker:
-	docker build --tag webis/tira-application:${VERSION_APPLICATION} -f Dockerfile.application ..
-	docker build --tag webis/tira-application-grpc:${VERSION_GRPC} -f Dockerfile.application-grpc ..
+	docker build --tag registry.webis.de/code-lib/public-images/tira-application:${VERSION_APPLICATION} -f Dockerfile.application ..
+	docker build --tag registry.webis.de/code-lib/public-images/tira-application-grpc:${VERSION_GRPC} -f Dockerfile.application-grpc ..
+
+docker-publish:
+	docker push registry.webis.de/code-lib/public-images/tira-application:${VERSION_APPLICATION}
+	docker push registry.webis.de/code-lib/public-images/tira-application-grpc:${VERSION_GRPC}
 
 clean:
 	rm -r $(VENV_NAME)
