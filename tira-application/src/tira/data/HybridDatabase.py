@@ -70,7 +70,7 @@ class HybridDatabase(object):
 
     def reload_datasets(self):
         """ reload dataset data from the export format of the model """
-        dbops.reload_datasets(self.tasks_dir_path)
+        dbops.reload_datasets(self.datasets_dir_path)
 
     def reload_tasks(self):
         """ reload task data from the export format of the model """
