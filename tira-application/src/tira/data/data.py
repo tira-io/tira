@@ -152,6 +152,7 @@ def _parse_dataset_list(datasets_dir_path):
     """
     logger.info('loading datasets')
     for dataset_file in datasets_dir_path.rglob("*.prototext"):
+        logger.info('Process dataset: ' + str(dataset_file))
         dataset = Parse(open(dataset_file, "r").read(), modelpb.Dataset())
         evaluator, _ = modeldb.Evaluator.objects.get_or_create(evaluator_id=dataset.evaluatorId)
         modeldb.Dataset.objects.update_or_create(dataset_id=dataset.datasetId, defaults={
