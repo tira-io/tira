@@ -53,12 +53,8 @@ run-docker:
 		webis/tira-application-grpc:${VERSION_GRPC}
 
 build-docker:
-	docker build --tag registry.webis.de/code-lib/public-images/tira-application:${VERSION_APPLICATION} -f Dockerfile.application ..
-	docker build --tag registry.webis.de/code-lib/public-images/tira-application-grpc:${VERSION_GRPC} -f Dockerfile.application-grpc ..
-
-docker-publish:
-	docker push registry.webis.de/code-lib/public-images/tira-application:${VERSION_APPLICATION}
-	docker push registry.webis.de/code-lib/public-images/tira-application-grpc:${VERSION_GRPC}
+	docker build --tag webis/tira-application:${VERSION_APPLICATION} -f Dockerfile.application ..
+	docker build --tag webis/tira-application-grpc:${VERSION_GRPC} -f Dockerfile.application-grpc ..
 
 clean:
 	rm -r $(VENV_NAME)
