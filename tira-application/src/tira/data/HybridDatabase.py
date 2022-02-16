@@ -527,7 +527,7 @@ class HybridDatabase(object):
                             software__task__task_id=task_id)
                 if (run.deleted or not return_deleted)]
 
-    def get_evaluator(self, evaluator_id, task_id=None):
+    def get_evaluator(self, dataset_id, task_id=None):
         """ returns a dict containing the evaluator parameters:
 
         vm_id: id of the master vm running the evaluator
@@ -535,7 +535,7 @@ class HybridDatabase(object):
         command: command to execute to run the evaluator. NOTE: contains variables the host needs to resolve
         working_dir: where to execute the command
         """
-        evaluator = modeldb.Evaluator.objects.get(dataset=evaluator_id)
+        evaluator = modeldb.Dataset.objects.get(dataset_id=dataset_id).evaluator
         master_vm = modeldb.VirtualMachineHasEvaluator.objects.filter(evaluator=evaluator)[0].vm
 
         return {"vm_id": master_vm.vm_id, "host": master_vm.host, "command": evaluator.command,

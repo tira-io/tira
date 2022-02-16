@@ -26,7 +26,6 @@ class TiraApplicationService(tira_host_pb2_grpc.TiraApplicationService):
             )
 
             t = TransactionLog.objects.get(transaction_id=request.transaction.transactionId)
-            t = TransactionLog.objects.get(transaction_id="e341c7db-590a-4c0c-9f7a-591e6c357981")
 
             _ = TransitionLog.objects.update_or_create(vm_id=request.vmId, defaults={'vm_state': request.state,
                                                                                      'transaction': t})
