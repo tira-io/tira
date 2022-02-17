@@ -43,4 +43,6 @@ WORKDIR /tira/tira-application
 
 RUN apk del .build-deps
 
+USER tira
+
 CMD python3 src/manage.py grpc_server
