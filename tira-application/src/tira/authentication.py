@@ -211,7 +211,7 @@ class DisraptorAuthentication(Authentication):
         Currently only checks: (1) is user admin, (2) otherwise, is user owner of the vm (ROLE_PARTICIPANT)
         """
 
-        if self._is_in_group(request, "admins"):
+        if self._is_in_group(request, "admins") or self._is_in_group(request, "tira_reviewer"):
             return self._reply_if_allowed(request, self.ROLE_ADMIN, self.ROLE_GUEST)
 
         user_groups = self._get_user_groups(request, group_type='vm')
