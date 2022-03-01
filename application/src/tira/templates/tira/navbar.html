@@ -1,0 +1,62 @@
+{% load static %}
+{% if include_navigation %}
+<div id="offcanvas-nav" class="mobile-nav" data-uk-offcanvas="overlay: true; flip: true;">
+    <div class="uk-offcanvas-bar">
+        <button class="uk-offcanvas-close" type="button" data-uk-close></button>
+
+        <!-- Off-canvas mobile navigation -->
+        <nav class="uk-margin-large-top">
+            <ul class="uk-nav uk-nav-primary uk-nav-parent-icon" data-uk-nav>
+                {% if role == 'admin' %}
+                <li{% if nav_active == "admin" %} class="uk-active"{% endif %}>
+                    <a href="{% url 'tira:tira-admin' %}">Admin</a>
+                </li>
+                {% endif %}
+                <li>
+                    {% if role != 'guest' %}
+                    <a href="{% url 'tira:logout' %}">Logout</a>
+                    {% else %}
+                    <a href="{% url 'tira:login' %}">Login</a>
+                    {% endif %}
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+
+<div class="uk-background-secondary global-nav" data-uk-sticky>
+    <nav class="uk-navbar-container uk-navbar-transparent uk-container uk-light" data-uk-navbar="mode: click">
+        <div class="uk-navbar-left">
+            <ul class="uk-navbar-nav">
+                <li{% if nav_active == "index" %} class="uk-active"{% endif %}>
+                    <a href="{% url 'tira:index' %}"><img src="{% static 'tira/img/logo-tira-40x40.png' %}" alt="TIRA Logo" class="uk-logo">tira.io</a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Mobile navigation toggle button -->
+        <div class="uk-navbar-right mobile-nav">
+            <button class="uk-button uk-navbar-item uk-light uk-button-large" type="button" data-uk-icon="icon: menu"
+                    data-uk-toggle="target: #offcanvas-nav"></button>
+        </div>
+
+        <!-- Desktop navigation -->
+        <div class="uk-navbar-right desktop-nav">
+            <ul class="uk-navbar-nav">
+                {% if role == 'admin' %}
+                <li{% if nav_active == "admin" %} class="uk-active"{% endif %}>
+                    <a href="{% url 'tira:tira-admin' %}">Admin</a>
+                </li>
+                {% endif %}
+                <li>
+                    {% if role != 'guest' %}
+                    <a href="{% url 'tira:logout' %}">Logout</a>
+                    {% else %}
+                    <a href="{% url 'tira:login' %}">Login</a>
+                    {% endif %}
+                </li>
+            </ul>
+        </div>
+    </nav>
+</div>
+{% endif %}
