@@ -3,6 +3,5 @@ src/tira_vm_states.sqlite3
 src/venv
 src/tira/proto
 src/__init__.py
-__init__.py
 src/config
 
