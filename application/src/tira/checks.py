@@ -16,9 +16,14 @@ logger = logging.getLogger("tira")
 def actions_check_permissions(roles):
     """ A decorator that checks if the requesting user has the needed role for this request.
 
+    This decorator considers the resources requested in the func_wrapper function.
+        - true if user is admin
+        - if vm_id is given, this is true for participant permissions, if the user owns the vm
+        - if datasets is given, this is true if the datasets is public
+        - if dataset and run are given, this is true if either the run is public or the dataset is public and the run
+        belongs to the user
+
     :@param roles: an iterable of role strings (Authentication.ROLE_ADMIN, ...)
-    :@param on_vm: If the permissions of a user against a vm are requested, this
-                   parameter should be the position of the vm_id in args. Otherwise, None.
 
     :returns: A JsonResponse
     :raises: django.core.exceptions.PermissionDenied
