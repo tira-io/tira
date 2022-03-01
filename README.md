@@ -3,10 +3,10 @@
 
 This repository contains the source code for all the following components of the [TIRA](https://www.tira.io) shared task platform:
 
-- [Host](tira-host): todo
-- [Model](tira-model): todo
-- [Application](tira-application): todo
-- [Protocol](tira-protocol): todo
+- [Host](host): todo
+- [Model](model): todo
+- [Application](application): todo
+- [Protocol](protocol): todo
 
 ## Resources
 * [Wiki](../../wiki): Getting started with TIRA as a developer/administrator
