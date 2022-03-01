@@ -36,6 +36,13 @@ You need to run two docker containers for a tira-application: `registry.webis.de
 
 ## Build and Deploy
 
+### Run the tests
+
+   ```bash
+   application/src~$ python3 manage.py test test tira/tests/  # run all tests in application/src/tira/tests
+   application/src~$ python3 manage.py test test tira/tests/tests.py  # run an individual test module
+   ```  
+
 ### Deploy on Kubernetes
 
 - Add the discourse secret in the namespace via: `tira-host/src/tira_scripts/k8s-deploy-discourse-api-key.sh`
