@@ -216,46 +216,22 @@ def review(request, context, task_id, vm_id, dataset_id, run_id):
     return render(request, 'tira/review.html', context)
 
 
-def _zip_dir(path):
-    if os.path.isdir(path):
-        zip_handle = zipfile.ZipFile(path.with_suffix(".zip"), "w")
-        for root, dirs, files in os.walk(path):
-            for file in files:
-                zip_handle.write(os.path.join(root, file),
-                                 os.path.relpath(os.path.join(root, file),
-                                                 os.path.join(path, '..')
-                                                 )
-                                 )
-        zip_handle.close()
-
-        zip_path = path.with_suffix(".zip")
-        return zip_path
-    else:
-        return None
-
-
 @actions_check_permissions({"tira", "admin"})
 @check_resources_exist('json')
 def download_rundir(request, task_id, dataset_id, vm_id, run_id):
-    path = Path(settings.TIRA_ROOT) / "data" / "runs" / dataset_id / vm_id / run_id
-    zip_handle = zipfile.ZipFile(path.with_suffix(".zip"), "w")
-    for root, dirs, files in os.walk(path):
-        for file in files:
-            zip_handle.write(os.path.join(root, file),
-                             os.path.relpath(os.path.join(root, file),
-                                             os.path.join(path, '..')
-                                             )
-                             )
-    zip_handle.close()
+    """ Zip the given run and hand it out for download. Deletes the zip on the server again. """
+    path_to_be_zipped = Path(settings.TIRA_ROOT) / "data" / "runs" / dataset_id / vm_id / run_id
+    zipped = Path(f"{path_to_be_zipped.stem}.zip")
+    with zipfile.ZipFile(zipped, "w") as zipf:
+        for f in path_to_be_zipped.rglob('*'):
+            zipf.write(f, arcname=f.relative_to(path_to_be_zipped.parent))
 
-    zip_path = path.with_suffix(".zip")
-    if os.path.exists(zip_path):
-        response = FileResponse(open(zip_path, "rb"), as_attachment=True,
-                                filename=run_id + "-" + os.path.basename(zip_path))
-        os.remove(zip_path)
+    if zipped.exists():
+        response = FileResponse(open(zipped, "rb"), as_attachment=True, filename=f"{run_id}-{zipped.stem}.zip")
+        os.remove(zipped)
         return response
     else:
-        return JsonResponse({'status': 'Failed', 'reason': f'File does not exist: {zip_path}'},
+        return JsonResponse({'status': 1, 'reason': f'File does not exist: {zipped}'},
                             status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
