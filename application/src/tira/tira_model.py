@@ -38,6 +38,12 @@ def reload_runs(vm_id):
 
 # get methods are the public interface.
 def get_vm(vm_id: str):
+    """
+    returns a vm as dictionary with:
+    {"vm_id", "user_password", "roles", "host", "admin_name", "admin_pw", "ip", "ssh", "rdp", "archived"}
+
+    Some fields may be None.
+    """
     return model.get_vm(vm_id)
 
 
