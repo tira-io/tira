@@ -308,9 +308,9 @@ def run_eval(request, vm_id, dataset_id, run_id):
 
 
 @check_conditional_permissions(private_run_ok=True)
-@check_resources_exist('json')
+# @check_resources_exist('json') - M: I don't think we need to check here if resources exists. Just attempt to delete and fail.
 def run_delete(request, dataset_id, vm_id, run_id):
-    model.delete_run(dataset_id, vm_id, run_id, deleted=True)
+    model.delete_run(dataset_id, vm_id, run_id)
     return JsonResponse({'status': 'Accepted'}, status=HTTPStatus.ACCEPTED)
 
 
