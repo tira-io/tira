@@ -115,7 +115,7 @@
                     <div id="run-evaluate-spinner-{{ run.run_id }}" class="run-evaluate-spinner" uk-spinner="ratio: 0.4"></div> evaluate</a>
                 {% endif %}
                 <a class="uk-button uk-button-small uk-button-default"
-                   href="{% url 'tira:review' task_id=task_id vm_id=vm_id dataset_id=software.dataset run_id=run.run_id %}">inspect</a>
+                   href="{% url 'tira:review' task_id=task_id vm_id=vm_id dataset_id=run.dataset run_id=run.run_id %}">inspect</a>
                 <a class="uk-button uk-button-small uk-button-danger run-delete-button"
                    data-tira-dataset="{{ run.dataset }}" data-tira-vm-id="{{ vm_id }}"
                    data-tira-run-id="{{ run.run_id }}">delete</a>
