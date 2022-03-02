@@ -1,7 +1,7 @@
 import logging
 
 from tira.authentication import auth
-from tira.checks import actions_check_permissions, check_resources_exist
+from tira.checks import check_permissions, check_resources_exist, check_conditional_permissions
 from tira.forms import *
 from django.http import HttpResponse, JsonResponse
 from http import HTTPStatus
@@ -28,7 +28,7 @@ def handle_get_model_exceptions(func):
     return decorate
 
 
-@actions_check_permissions({"tira", "admin"})
+@check_permissions
 @handle_get_model_exceptions
 def admin_reload_data():
     model.build_model()
@@ -37,35 +37,35 @@ def admin_reload_data():
     return "Model data was reloaded successfully"
 
 
-@actions_check_permissions({"tira", "admin"})
+@check_permissions
 @handle_get_model_exceptions
 def admin_reload_vms():
     model.reload_vms()
     return "VM data was reloaded successfully"
 
 
-@actions_check_permissions({"tira", "admin"})
+@check_permissions
 @handle_get_model_exceptions
 def admin_reload_datasets():
     model.reload_datasets()
     return "Dataset data was reloaded successfully"
 
 
-@actions_check_permissions({"tira", "admin"})
+@check_permissions
 @handle_get_model_exceptions
 def admin_reload_tasks():
     model.reload_tasks()
     return "Task data was reloaded successfully"
 
 
-@actions_check_permissions({"tira", "admin"})
+@check_conditional_permissions(restricted=True)
 @handle_get_model_exceptions
 def admin_reload_runs(vm_id):
     model.reload_runs(vm_id)
     return "Runs data was reloaded for {} on {} successfully"
 
 
-@actions_check_permissions({"tira", "admin"})
+@check_permissions
 def admin_create_vm(request):  # TODO implement
     """ Hook for create_vm posts. Responds with json objects indicating the state of the create process. """
 
@@ -104,17 +104,17 @@ def admin_create_vm(request):  # TODO implement
     # return JsonResponse(context)
 
 
-@actions_check_permissions({"tira", "admin"})
+@check_permissions
 def admin_archive_vm():
     return JsonResponse({'status': 1, 'message': f"Not implemented"}, status=HTTPStatus.NOT_IMPLEMENTED)
 
 
-@actions_check_permissions({"tira", "admin"})
+@check_permissions
 def admin_modify_vm():
     return JsonResponse({'status': 1, 'message': f"Not implemented"}, status=HTTPStatus.NOT_IMPLEMENTED)
 
 
-@actions_check_permissions({"tira", "admin"})
+@check_permissions
 def admin_create_task(request):
     """ Create an entry in the model for the task. Use data supplied by a model.
      Return a json status message. """
@@ -173,7 +173,7 @@ def admin_create_task(request):
     return JsonResponse(context)
 
 
-@actions_check_permissions({"tira", "admin"})
+@check_permissions
 def admin_add_dataset(request):
     """ Create an entry in the model for the task. Use data supplied by a model.
      Return a json status message. """
@@ -241,7 +241,7 @@ def admin_add_dataset(request):
     return JsonResponse(context)
 
 
-@actions_check_permissions({"tira", "admin"})
+@check_conditional_permissions(restricted=True)
 @check_resources_exist('json')
 def admin_create_group(request, vm_id):
     """ This is the form endpoint to grant a user permissions on a vm"""
