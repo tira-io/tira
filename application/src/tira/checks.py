@@ -74,7 +74,7 @@ def check_conditional_permissions(restricted=False, public_data_ok=False, privat
                         return Http404(f'The VM {kwargs["vm_id"]} has no run with the id {kwargs["run_id"]} on {kwargs["dataset_id"]}.')
                     review = model.get_run_review(kwargs["dataset_id"], kwargs["vm_id"], kwargs["run_id"])
                     is_review_visible = (not review['blinded']) or review['published']
-                    is_dataset_confidential = model.get_dataset(kwargs["dataset_id"])['is_confidential']
+                    is_dataset_confidential = model.get_dataset(kwargs["dataset_id"]).get('is_confidential', True)
 
                     # demote role to USER if the run is not visible and we make no exception for public datasets
                     if role not in {auth.ROLE_ADMIN, auth.ROLE_TIRA} and \

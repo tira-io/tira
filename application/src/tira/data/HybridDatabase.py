@@ -376,8 +376,11 @@ class HybridDatabase(object):
         }
 
     def get_dataset(self, dataset_id: str) -> dict:
-        return self._dataset_to_dict(modeldb.Dataset.objects.select_related('default_task', 'evaluator')
-                                     .get(dataset_id=dataset_id))
+        try:
+            return self._dataset_to_dict(modeldb.Dataset.objects.select_related('default_task', 'evaluator')
+                                         .get(dataset_id=dataset_id))
+        except modeldb.Dataset.DoesNotExist:
+            return {}
 
     def get_datasets(self) -> dict:
         """ Get a dict of dataset_id: dataset_json_descriptor """
@@ -914,7 +917,11 @@ class HybridDatabase(object):
 
     def delete_run(self, dataset_id, vm_id, run_id):
         run_dir = Path(self.runs_dir_path / dataset_id / vm_id / run_id)
-        rmtree(run_dir)
+        try:
+            rmtree(run_dir)
+        except FileNotFoundError as e:
+            logger.exception(f'Tried to delete {run_dir} but it was not found. Deleting the run from Database ... ')
+
         modeldb.Run.objects.filter(run_id=run_id).delete()
 
     # methods to check for existence

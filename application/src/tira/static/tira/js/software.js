@@ -413,6 +413,9 @@ function abortRun(vmId) {
 }
 
 function deleteRun(datasetId, vmId, runId, row) {
+    if(datasetId === ""){
+        datasetId=null
+    }
     $.ajax({
         type: 'GET',
         url: `/grpc/${vmId}/run_delete/${datasetId}/${runId}`,
