@@ -187,6 +187,7 @@ def review(request, context, task_id, vm_id, dataset_id, run_id):
     stdout = get_stdout(dataset_id, vm_id, run_id)
     stderr = get_stderr(dataset_id, vm_id, run_id)
     tira_log = get_tira_log(dataset_id, vm_id, run_id)
+    print(run)
 
     context["review_form"] = ReviewForm(
         initial={"no_errors": run_review.get("hasNoErrors") or run_review.get("noErrors"),
