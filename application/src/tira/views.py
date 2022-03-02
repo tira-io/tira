@@ -6,7 +6,7 @@ import logging
 import tira.tira_model as model
 from .tira_data import get_run_runtime, get_run_file_list, get_stderr, get_stdout, get_tira_log
 from .authentication import auth
-from .checks import actions_check_permissions, check_resources_exist
+from .checks import check_permissions, check_resources_exist, check_conditional_permissions
 from .forms import *
 from pathlib import Path
 from datetime import datetime as dt
@@ -31,7 +31,6 @@ def add_context(func):
     return func_wrapper
 
 
-@actions_check_permissions({"any"})
 @add_context
 def index(request, context):
     context["tasks"] = model.get_tasks()
@@ -39,7 +38,7 @@ def index(request, context):
     return render(request, 'tira/index.html', context)
 
 
-@actions_check_permissions({"tira", "admin"})
+@check_permissions
 @add_context
 def admin(request, context):
     context["vm_list"] = model.get_vm_list()
@@ -54,7 +53,6 @@ def admin(request, context):
     return render(request, 'tira/tira_admin.html', context)
 
 
-@actions_check_permissions({"any"})
 @add_context
 def login(request, context):
     """ Hand out the login form 
@@ -77,13 +75,11 @@ def login(request, context):
     return render(request, 'tira/login.html', context)
 
 
-@actions_check_permissions({"any"})
 def logout(request):
     auth.logout(request)
     return redirect('tira:index')
 
 
-@actions_check_permissions({"any"})
 @check_resources_exist('http')
 @add_context
 def task_detail(request, context, task_id):
@@ -94,7 +90,6 @@ def task_detail(request, context, task_id):
     return render(request, 'tira/task_detail.html', context)
 
 
-@actions_check_permissions({"any"})
 @add_context
 def dataset_list(request, context):
     context["datasets"] = model.get_datasets()
@@ -102,7 +97,6 @@ def dataset_list(request, context):
     return render(request, 'tira/dataset_list.html', context)
 
 
-@actions_check_permissions({"any"})
 @check_resources_exist('http')
 @add_context
 def dataset_detail(request, context, task_id, dataset_id):
@@ -125,7 +119,7 @@ def dataset_detail(request, context, task_id, dataset_id):
     return render(request, 'tira/dataset_detail.html', context)
 
 
-@actions_check_permissions({"tira", "admin", "participant", "user"})
+@check_permissions
 @check_resources_exist('http')
 @add_context
 def software_detail(request, context, task_id, vm_id):
@@ -142,7 +136,7 @@ def software_detail(request, context, task_id, vm_id):
     return render(request, 'tira/software.html', context)
 
 
-@actions_check_permissions({"tira", "admin", "participant"})
+@check_conditional_permissions(private_run_ok=True)
 @check_resources_exist('http')
 @add_context
 def review(request, context, task_id, vm_id, dataset_id, run_id):
@@ -215,7 +209,7 @@ def review(request, context, task_id, vm_id, dataset_id, run_id):
     return render(request, 'tira/review.html', context)
 
 
-@actions_check_permissions({"tira", "admin"})
+@check_conditional_permissions(public_data_ok=True)
 @check_resources_exist('json')
 def download_rundir(request, task_id, dataset_id, vm_id, run_id):
     """ Zip the given run and hand it out for download. Deletes the zip on the server again. """
@@ -234,7 +228,7 @@ def download_rundir(request, task_id, dataset_id, vm_id, run_id):
                             status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
-@actions_check_permissions({"tira", "admin"})
+@check_permissions
 @add_context
 def users(request, context):
     """
@@ -244,7 +238,7 @@ def users(request, context):
     return render(request, 'tira/user_list.html', context)
 
 
-@actions_check_permissions({"tira", "admin"})
+@check_permissions
 @add_context
 def user_detail(request, context, user_id):
     """
@@ -254,7 +248,7 @@ def user_detail(request, context, user_id):
     return render(request, 'tira/user_detail.html', context)
 
 
-@actions_check_permissions({"tira", "admin"})
+@check_permissions
 @add_context
 def request_vm(request, context):
     return render(request, 'tira/request_vm.html', context)

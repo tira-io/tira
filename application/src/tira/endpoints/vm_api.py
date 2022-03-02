@@ -4,7 +4,7 @@ import logging
 
 from grpc import RpcError, StatusCode
 from tira.authentication import auth
-from tira.checks import actions_check_permissions, check_resources_exist
+from tira.checks import check_permissions, check_resources_exist, check_conditional_permissions
 from tira.forms import *
 from django.http import JsonResponse
 from django.conf import settings
@@ -100,7 +100,7 @@ def host_call(func):
 #   VM actions
 # ---------------------------------------------------------------------
 
-@actions_check_permissions({"tira", "admin", "participant"})
+@check_permissions
 @check_resources_exist('json')
 def vm_state(request, vm_id):
     try:
@@ -111,15 +111,14 @@ def vm_state(request, vm_id):
     return JsonResponse({'state': state}, status=HTTPStatus.ACCEPTED)
 
 
-@actions_check_permissions({"tira", "admin", "participant"})
+@check_permissions
 @check_resources_exist('json')
 def vm_running_evaluations(request, vm_id):
     results = EvaluationLog.objects.filter(vm_id=vm_id)
     return JsonResponse({'running_evaluations': True if results else False}, status=HTTPStatus.ACCEPTED)
 
 
-@actions_check_permissions({"tira", "admin", "participant"})
-@check_resources_exist('json')
+@check_conditional_permissions(restricted=True)
 @host_call
 def vm_create(request, hostname, vm_id, ova_file):
     uid = auth.get_user_id(request)
@@ -127,7 +126,7 @@ def vm_create(request, hostname, vm_id, ova_file):
     return GrpcClient(host).vm_create(vm_id=vm_id, ova_file=ova_file, user_id=uid, hostname=host)
 
 
-@actions_check_permissions({"tira", "admin", "participant"})
+@check_permissions
 @check_resources_exist('json')
 @host_call
 def vm_start(request, vm_id):
@@ -136,7 +135,7 @@ def vm_start(request, vm_id):
     return GrpcClient(reroute_host(vm["host"])).vm_start(vm_id=vm_id)
 
 
-@actions_check_permissions({"tira", "admin", "participant"})
+@check_permissions
 @check_resources_exist('json')
 @host_call
 def vm_shutdown(request, vm_id):
@@ -144,7 +143,7 @@ def vm_shutdown(request, vm_id):
     return GrpcClient(reroute_host(vm["host"])).vm_shutdown(vm_id=vm_id)
 
 
-@actions_check_permissions({"tira", "admin", "participant"})
+@check_permissions
 @check_resources_exist('json')
 @host_call
 def vm_stop(request, vm_id):
@@ -152,7 +151,7 @@ def vm_stop(request, vm_id):
     return GrpcClient(reroute_host(vm["host"])).vm_stop(vm_id=vm_id)
 
 
-@actions_check_permissions({"tira", "admin", "participant"})
+@check_permissions
 @check_resources_exist('json')
 def vm_info(request, vm_id):
     # TODO when vm_id is no-vm-assigned
@@ -200,7 +199,7 @@ def vm_info(request, vm_id):
 # ---------------------------------------------------------------------
 
 
-@actions_check_permissions({"tira", "admin", "participant", "user"})
+@check_permissions
 @check_resources_exist('json')
 def software_add(request, task_id, vm_id):
     software = model.add_software(task_id, vm_id)
@@ -226,7 +225,7 @@ def software_add(request, task_id, vm_id):
     return JsonResponse({'html': html, 'software_id': context["software"]['id']}, status=HTTPStatus.ACCEPTED)
 
 
-@actions_check_permissions({"tira", "admin", "participant"})
+@check_permissions
 @check_resources_exist('json')
 def software_save(request, task_id, vm_id, software_id):
     software = model.update_software(task_id, vm_id, software_id,
@@ -246,7 +245,7 @@ def software_save(request, task_id, vm_id, software_id):
     return JsonResponse({'status': 'Failed', "message": message}, status=HTTPStatus.BAD_REQUEST)
 
 
-@actions_check_permissions({"tira", "admin", "participant"})
+@check_permissions
 @check_resources_exist('json')
 def software_delete(request, task_id, vm_id, software_id):
     delete_ok = model.delete_software(task_id, vm_id, software_id)
@@ -258,7 +257,7 @@ def software_delete(request, task_id, vm_id, software_id):
                             status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
-@actions_check_permissions({"tira", "admin", "participant"})
+@check_permissions
 @check_resources_exist('json')
 @host_call
 def run_execute(request, task_id, vm_id, software_id):
@@ -281,7 +280,7 @@ def run_execute(request, task_id, vm_id, software_id):
     return response
 
 
-@actions_check_permissions({"tira", "admin", "participant"})
+@check_conditional_permissions(private_run_ok=True)
 @check_resources_exist('json')
 @host_call
 def run_eval(request, vm_id, dataset_id, run_id):
@@ -308,16 +307,14 @@ def run_eval(request, vm_id, dataset_id, run_id):
     return response
 
 
-@actions_check_permissions({"tira", "admin", "participant"})
+@check_conditional_permissions(private_run_ok=True)
 @check_resources_exist('json')
 def run_delete(request, dataset_id, vm_id, run_id):
-    # TODO just delete it with model.delete_run()
-    # TODO should also call a grpc:run_delete to delete host-side data
-    model.update_run(dataset_id, vm_id, run_id, deleted=True)
+    model.delete_run(dataset_id, vm_id, run_id, deleted=True)
     return JsonResponse({'status': 'Accepted'}, status=HTTPStatus.ACCEPTED)
 
 
-@actions_check_permissions({"tira", "admin", "participant"})
+@check_permissions
 @check_resources_exist('json')
 @host_call
 def run_abort(request, vm_id):

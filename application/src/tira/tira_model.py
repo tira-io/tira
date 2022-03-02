@@ -38,9 +38,10 @@ def reload_runs(vm_id):
 
 # get methods are the public interface.
 def get_vm(vm_id: str):
-    """
-    returns a vm as dictionary with:
-    {"vm_id", "user_password", "roles", "host", "admin_name", "admin_pw", "ip", "ssh", "rdp", "archived"}
+    """ Returns a vm as dictionary with:
+
+        {"vm_id", "user_password", "roles", "host", "admin_name",
+        "admin_pw", "ip", "ssh", "rdp", "archived"}
 
     Some fields may be None.
     """
@@ -60,6 +61,11 @@ def get_task(task_id: str) -> dict:
 
 
 def get_dataset(dataset_id: str) -> dict:
+    """ Return a Dataset as dict with the keys:
+
+        {"display_name", "evaluator_id", "dataset_id", "is_confidential", "is_deprecated", "year",
+        "task".task_id, 'organizer', "software_count"}
+     """
     return model.get_dataset(dataset_id)
 
 
@@ -165,6 +171,12 @@ def get_software_with_runs(task_id, vm_id):
 
 
 def get_run_review(dataset_id: str, vm_id: str, run_id: str) -> dict:
+    """ Retunrs a review as dict with the following keys:
+
+        {"reviewer", "noErrors", "missingOutput", "extraneousOutput", "invalidOutput", "hasErrorOutput",
+        "otherErrors", "comment", "hasErrors", "hasWarnings", "hasNoErrors", "published", "blinded"}
+
+    """
     return model.get_run_review(dataset_id, vm_id, run_id)
 
 

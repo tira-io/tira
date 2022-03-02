@@ -1,7 +1,7 @@
 import logging
 from tira.forms import *
 import tira.tira_model as model
-from tira.checks import actions_check_permissions, check_resources_exist
+from tira.checks import check_permissions, check_resources_exist, check_conditional_permissions
 from tira.views import add_context
 
 from django.http import JsonResponse
@@ -12,7 +12,7 @@ include_navigation = True if settings.DEPLOYMENT == "legacy" else False
 logger = logging.getLogger("tira")
 logger.info("ajax_routes: Logger active")
 
-@actions_check_permissions({"tira", "admin"})
+
 @check_resources_exist('json')
 def get_dataset_for_task(request, task_id):
     if request.method == 'GET':
@@ -24,7 +24,7 @@ def get_dataset_for_task(request, task_id):
             return JsonResponse({"status": "0", "message": f"Encountered an exception: {e}"})
 
 
-@actions_check_permissions({"tira", "admin"})
+@check_permissions
 @check_resources_exist('json')
 @add_context
 def get_evaluations_by_dataset(request, context, dataset_id):
@@ -46,7 +46,7 @@ def get_evaluations_by_dataset(request, context, dataset_id):
     return JsonResponse({"context": context})
 
 
-@actions_check_permissions({"tira", "admin"})
+@check_permissions
 @check_resources_exist("json")
 @add_context
 def get_runs_by_dataset(request, context, dataset_id):

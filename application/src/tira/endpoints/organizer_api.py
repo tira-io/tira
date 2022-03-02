@@ -1,6 +1,6 @@
 import logging
 
-from tira.checks import actions_check_permissions, check_resources_exist
+from tira.checks import check_permissions, check_resources_exist, check_conditional_permissions
 from tira.forms import *
 from django.http import JsonResponse
 from django.conf import settings
@@ -16,7 +16,8 @@ logger.info("ajax_routes: Logger active")
 #   Review actions
 # ---------------------------------------------------------------------
 
-@actions_check_permissions({"tira", "admin"})
+
+@check_conditional_permissions(restricted=True)
 @check_resources_exist('json')
 def publish(request, vm_id, dataset_id, run_id, value):
     value = (True if value == 'true' else False)
@@ -30,7 +31,7 @@ def publish(request, vm_id, dataset_id, run_id, value):
         return JsonResponse(context)
 
 
-@actions_check_permissions({"tira", "admin"})
+@check_conditional_permissions(restricted=True)
 @check_resources_exist('json')
 def blind(request, vm_id, dataset_id, run_id, value):
     value = (False if value == 'false' else True)

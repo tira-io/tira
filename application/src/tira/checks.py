@@ -3,7 +3,7 @@ from django.urls import resolve
 from .authentication import auth
 import tira.tira_model as model
 from django.core.exceptions import PermissionDenied
-from django.http import JsonResponse, Http404
+from django.http import JsonResponse, Http404, HttpResponseNotAllowed
 from http import HTTPStatus
 from functools import wraps
 from django.conf import settings
@@ -13,34 +13,89 @@ import logging
 logger = logging.getLogger("tira")
 
 
-def actions_check_permissions(roles):
-    """ A decorator that checks if the requesting user has the needed role for this request.
+def check_permissions(func):
+    """ A decorator that checks if the requesting user has the needed permissions to call the decorated function.
+    This decorator redirects or blocks requests if the requesting user does not have permission.
+    This decorator considers the resources requested in the decorated function:
+        - vm_id: returns the permissions the requesting user has on the vm
+        - run_id: in addition to vm_id, checks if the requesting user can see the run. By default, permission is denied
+        if the run is not visible.
 
-    This decorator considers the resources requested in the func_wrapper function.
-        - true if user is admin
-        - if vm_id is given, this is true for participant permissions, if the user owns the vm
-        - if datasets is given, this is true if the datasets is public
-        - if dataset and run are given, this is true if either the run is public or the dataset is public and the run
-        belongs to the user
+    :raises: django.core.exceptions.PermissionDenied
+    """
+    @wraps(func)
+    def func_wrapper(request, *args, **kwargs):
+        if kwargs.get('vm_id', None):
+            role = auth.get_role(request, user_id=auth.get_user_id(request), vm_id=kwargs["vm_id"])
 
-    :@param roles: an iterable of role strings (Authentication.ROLE_ADMIN, ...)
+            if kwargs.get('run_id', None) and kwargs.get('dataset_id', None):
+                if not model.run_exists(kwargs["vm_id"], kwargs["dataset_id"], kwargs["run_id"]):
+                    return Http404(f'The VM {kwargs["vm_id"]} has no run with the id {kwargs["run_id"]} on {kwargs["dataset_id"]}.')
+                review = model.get_run_review(kwargs["dataset_id"], kwargs["vm_id"], kwargs["run_id"])
+                is_review_visible = (not review['blinded']) or review['published']
+                if not is_review_visible:
+                    role = auth.ROLE_USER
+        else:
+            role = auth.get_role(request, user_id=auth.get_user_id(request))
 
-    :returns: A JsonResponse
+        if role == auth.ROLE_ADMIN or role == auth.ROLE_TIRA or role == auth.ROLE_PARTICIPANT:
+            return func(request, *args, **kwargs)
+        elif role == auth.ROLE_GUEST:  # If guests access a restricted resource, we send them to login
+            return redirect('tira:login')
+
+        return HttpResponseNotAllowed(f"Access forbidden.")
+
+    return func_wrapper
+
+
+def check_conditional_permissions(restricted=False, public_data_ok=False, private_run_ok=False):
+    """ A decorator that checks if the requesting user has the needed permissions to call the decorated function.
+    This decorator redirects or blocks requests if the requesting user does not have permission.
+    This decorator considers the resources requested in the decorated function:
+        - vm_id: returns the permissions the requesting user has on the vm
+        - run_id: in addition to vm_id, checks if the requesting user can see the run. By default, permission is denied
+        if the run is not visible.
+
+    :param restricted: if True, only admins can ever access the decorated function
+    :param public_data_ok: if True and if a run is requested, return with permissions if the user owns the VM and the
+        dataset is public, even if the run is blinded and not published
+    :param private_run_ok: if True, and if a run is requested, return with permissions even if the run is blinded
+
     :raises: django.core.exceptions.PermissionDenied
     """
     def decorator(func):
         @wraps(func)
         def func_wrapper(request, *args, **kwargs):
-
-            if 'vm_id' in kwargs:
+            if kwargs.get('vm_id', None):
                 role = auth.get_role(request, user_id=auth.get_user_id(request), vm_id=kwargs["vm_id"])
+
+                if kwargs.get('run_id', None) and kwargs.get('dataset_id', None):
+                    if not model.run_exists(kwargs["vm_id"], kwargs["dataset_id"], kwargs["run_id"]):
+                        return Http404(f'The VM {kwargs["vm_id"]} has no run with the id {kwargs["run_id"]} on {kwargs["dataset_id"]}.')
+                    review = model.get_run_review(kwargs["dataset_id"], kwargs["vm_id"], kwargs["run_id"])
+                    is_review_visible = (not review['blinded']) or review['published']
+                    is_dataset_confidential = model.get_dataset(kwargs["dataset_id"])['is_confidential']
+
+                    # demote role to USER if the run is not visible and we make no exception for public datasets
+                    if role not in {auth.ROLE_ADMIN, auth.ROLE_TIRA} and \
+                            not is_review_visible and \
+                            not (public_data_ok and not is_dataset_confidential):
+                        role = auth.ROLE_USER
+                    # demote role to USER if the run is not visible and we make no exception
+                    elif role not in {auth.ROLE_ADMIN, auth.ROLE_TIRA} and not is_review_visible and not private_run_ok:
+                        role = auth.ROLE_USER
             else:
                 role = auth.get_role(request, user_id=auth.get_user_id(request))
+            if role == auth.ROLE_ADMIN or role == auth.ROLE_TIRA:  # Admins can access and do everything
+                return func(request, *args, **kwargs)
+            if restricted:
+                return HttpResponseNotAllowed(f"Access restricted.")
+            elif not restricted and role == auth.ROLE_PARTICIPANT:  # Participants can access when it is their resource, the resource is visible to them, and the call is not restricted
+                return func(request, *args, **kwargs)
+            elif role == auth.ROLE_GUEST:  # If guests access a restricted resource, we send them to login
+                return redirect('tira:login')
 
-            if role not in roles and "any" not in roles:
-                raise PermissionDenied
-
-            return func(request, *args, **kwargs)
+            return HttpResponseNotAllowed(f"Access forbidden.")
 
         return func_wrapper
     return decorator
