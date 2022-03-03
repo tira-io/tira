@@ -1,8 +1,8 @@
 VENV_NAME?=venv
 VENV_ACTIVATE=. $(VENV_NAME)/bin/activate
 PYTHON=${VENV_NAME}/bin/python3
-VERSION=0.0.8-dev
-VBOXVERSION=6.1.16
+VERSION=0.0.11
+VBOXVERSION=6.1.18
 TIRA_PASSWORD=tira
 TIRA_MODEL_PATH=/mnt/nfs/tira
 #TIRA_MODEL_PATH=/home/nikolay/workspace/github/tira/model/src
@@ -25,6 +25,7 @@ run-tira-docker-dev: build-tira-docker
 		-v $(TIRA_MODEL_PATH):/mnt/nfs/tira \
 		-v ${PWD}/src:/tira \
 		-v ${PWD}/src/tira_scripts:/usr/lib/tira \
+		-v ${PWD}/src/tira_host/conf/grpc_service-dev.ini:/tira/tira_host/conf/grpc_service.ini \
 		--name="$(CONTAINER_NAME)" \
 		--privileged \
 		--cap-add=NET_ADMIN \

@@ -53,6 +53,6 @@ if [ "$DEV" = "true" ];
 then
   tail -f /dev/null
 else
-#  python3 grpc_service.py
-  watchmedo auto-restart --recursive --pattern="*.py" --ignore-patterns="grpc_client_test.py" --directory="/tira/tira_host" python3 -- -m grpc_service
+  python3 grpc_service.py
+#  watchmedo auto-restart --recursive --pattern="*.py" --ignore-patterns="grpc_client_test.py" --directory="/tira/tira_host" python3 -- -m grpc_service
 fi

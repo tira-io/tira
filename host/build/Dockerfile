@@ -10,17 +10,12 @@ RUN apt-get update && apt-get install -y iputils-ping net-tools ca-certificates 
 
 RUN python3 -m pip install --upgrade pip && python3 -m pip install grpcio grpcio-tools watchdog[watchmedo]
 
-RUN wget -q https://www.virtualbox.org/download/oracle_vbox_2016.asc -O- | sudo apt-key add -
-RUN wget -q https://www.virtualbox.org/download/oracle_vbox.asc -O- | sudo apt-key add -
+RUN wget https://download.virtualbox.org/virtualbox/6.1.18/virtualbox-6.1_6.1.18-142142~Ubuntu~bionic_amd64.deb -O /tmp/virtualbox-6.1_6.1.18-142142~Ubuntu~bionic_amd64.deb
+RUN sudo apt-get install -y --no-install-recommends --allow-unauthenticated /tmp/virtualbox-6.1_6.1.18-142142~Ubuntu~bionic_amd64.deb
 
-RUN echo "deb [arch=amd64] http://download.virtualbox.org/virtualbox/debian $(lsb_release -cs) contrib" | \
- sudo tee -a /etc/apt/sources.list.d/virtualbox.list
-
-RUN sudo apt-get update && sudo apt-get install -y --no-install-recommends --allow-unauthenticated virtualbox-6.1
-RUN wget https://download.virtualbox.org/virtualbox/$VBOXVERSION/Oracle_VM_VirtualBox_Extension_Pack-$VBOXVERSION.vbox-extpack
-
-RUN echo "y" | sudo VBoxManage extpack install Oracle_VM_VirtualBox_Extension_Pack-$VBOXVERSION.vbox-extpack
-RUN rm Oracle_VM_VirtualBox_Extension_Pack-$VBOXVERSION.vbox-extpack
+RUN wget https://download.virtualbox.org/virtualbox/6.1.18/Oracle_VM_VirtualBox_Extension_Pack-6.1.18-142142.vbox-extpack -O /tmp/Oracle_VM_VirtualBox_Extension_Pack-6.1.18-142142.vbox-extpack
+RUN echo "y" | sudo VBoxManage extpack install /tmp/Oracle_VM_VirtualBox_Extension_Pack-6.1.18-142142.vbox-extpack
+RUN rm /tmp/Oracle_VM_VirtualBox_Extension_Pack-6.1.18-142142.vbox-extpack && rm /tmp/virtualbox-6.1_6.1.18-142142~Ubuntu~bionic_amd64.deb
 
 
 RUN mkdir -m 777 mnt/input && \
@@ -36,6 +31,7 @@ RUN mkdir /tira
 RUN mkdir /usr/lib/tira
 COPY src/tira_scripts /usr/lib/tira/
 COPY src /tira/
+COPY src/tira_host/conf/grpc_service-prod.ini /tira/tira_host/conf/grpc_service.ini
 RUN sudo touch /usr/lib/tira/log.txt && \
     sudo chmod -x /usr/lib/tira/log.txt && \
     sudo chmod ugo+w /usr/lib/tira/log.txt && \
