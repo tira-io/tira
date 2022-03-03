@@ -20,23 +20,31 @@ logger = logging.getLogger(__name__)
 
 class FileDatabase(FileSystemEventHandler):
     tira_root = TIRA_ROOT
-    datasets_dir_path = tira_root / Path("model/datasets")
-    softwares_dir_path = tira_root / Path("model/softwares")
     tasks_dir_path = tira_root / Path("model/tasks")
     users_file_path = tira_root / Path("model/users/users.prototext")
+    organizers_file_path = tira_root / Path("model/organizers/organizers.prototext")
+    vm_list_file = tira_root / Path("model/virtual-machines/virtual-machines.txt")
     vm_dir_path = tira_root / Path("model/virtual-machines")
+    host_list_file = tira_root / Path("model/virtual-machine-hosts/virtual-machine-hosts.txt")
+    ova_dir = tira_root / Path("data/virtual-machine-templates/")
+    datasets_dir_path = tira_root / Path("model/datasets")
+    softwares_dir_path = tira_root / Path("model/softwares")
+    data_path = tira_root / Path("data/datasets")
     RUNS_DIR_PATH = tira_root / Path("data/runs")
     SUBMISSIONS_PATH = tira_root / Path("state/softwares")
 
     def __init__(self, on_modified_callback=None):
-        logger.info("Start loading dataset")
+        logger.info("Start loading TIRA database")
 
         self.grpc_service = None
-        self.datasets = None  # dict of dataset_id: modelpb.Dataset
-        self.software = None  # dict of task_id$vm_id: modelpb.Software
-        self.software_by_vm = None  # vm_id: [modelpb.Software]
-        self.tasks = None  # dict of task_id: modelpb.Tasks.Task
+        self.organizers = None  # dict of host objects host_id: modelpb.Host
         self.vms = None  # dict of vm_id: modelpb.User
+        self.tasks = None  # dict of task_id: modelpb.Tasks.Task
+        self.datasets = None  # dict of dataset_id: modelpb.Dataset
+        self.default_tasks = None  # dataset_id: task_id
+        self.software = None  # dict of task_id$vm_id: modelpb.Software
+        self.evaluators = {}  # dataset_id: [modelpb.Evaluator] used as cache
+
 
         self.on_modified_callback = on_modified_callback
         observer = PollingObserver()
@@ -46,16 +54,29 @@ class FileDatabase(FileSystemEventHandler):
         self.build_model()
 
     def build_model(self):
+        self._parse_organizer_list()
+        self._parse_vm_list()
+        self._parse_task_list()
         self._parse_dataset_list()
         self._parse_software_list()
-        self._parse_task_list()
-        self._parse_vm_list()
+
+        self._build_task_relations()
+        self._build_software_relations()
 
     def on_modified(self, event):
         logger.info(f"Reload {self.users_file_path}...")
-        self._parse_vm_list()
+        self.build_model()
         if self.on_modified_callback:
             self.on_modified_callback()
+
+    def _parse_organizer_list(self):
+        """ Parse the PB Database and extract all hosts.
+        :return: a dict {hostId: {"name", "years"}
+        """
+        organizers = modelpb.Hosts()
+        Parse(open(self.organizers_file_path, "r").read(), organizers)
+
+        self.organizers = {org.hostId: org for org in organizers.hosts}
 
     def _parse_vm_list(self):
         users = modelpb.Users()
@@ -95,12 +116,28 @@ class FileDatabase(FileSystemEventHandler):
         2. a dict with default tasks of datasets {"dataset_id": "task_id"}
         """
         tasks = {}
-        logger.info('loading tasks')
         for task_path in self.tasks_dir_path.glob("*"):
             task = Parse(open(task_path, "r").read(), modelpb.Tasks.Task())
             tasks[task.taskId] = task
 
         self.tasks = tasks
+
+    # _build methods reconstruct the relations once per parse. This is a shortcut for frequent joins.
+    def _build_task_relations(self):
+        """ parse the relation dicts self.default_tasks and self.task_organizers from self.tasks
+        """
+        default_tasks = {}
+        task_organizers = {}
+        for task_id, task in self.tasks.items():
+            for td in task.trainingDataset:
+                default_tasks[td] = task.taskId
+                task_organizers[td] = self.organizers.get(task.hostId, modelpb.Hosts.Host()).name
+            for td in task.testDataset:
+                default_tasks[td] = task.taskId
+                task_organizers[td] = self.organizers.get(task.hostId, modelpb.Hosts.Host()).name
+
+        self.default_tasks = default_tasks
+        self.task_organizers = task_organizers
 
     def _load_run(self, dataset_id, vm_id, run_id, return_deleted=False, as_json=False):
         run_dir = self.get_run_dir(dataset_id, vm_id, run_id)
@@ -121,6 +158,24 @@ class FileDatabase(FileSystemEventHandler):
                     "run_id": run.runId, "input_run_id": run.inputRun,
                     "dataset": run.inputDataset, "downloadable": run.downloadable}
         return run
+
+    def _build_software_relations(self):
+        software_by_task = {}
+        software_by_vm = {}
+
+        for software_id, software_list in self.software.items():
+            task_id = software_id.split("$")[0]
+            vm_id = software_id.split("$")[1]
+            _swbd = software_by_task.get(task_id, list())
+            _swbd.extend(software_list)
+            software_by_task[task_id] = _swbd
+
+            _swbu = software_by_vm.get(vm_id, list())
+            _swbu.extend(software_list)
+            software_by_vm[vm_id] = _swbu
+
+        self.software_by_vm = software_by_vm
+        self.software_by_task = software_by_task
 
     def _load_softwares(self, task_id, vm_id):
         softwares_dir = self.softwares_dir_path / task_id / vm_id
@@ -229,7 +284,7 @@ class FileDatabase(FileSystemEventHandler):
                "command": software.command, "working_directory": software.workingDirectory,
                "dataset": software.dataset, "run": software.run, "creation_date": software.creationDate,
                "last_edit": software.lastEditDate}
-              for software in self.software.get(f"{task_id}${vm_id}", [])]
+              for software in self._load_softwares(task_id, vm_id).softwares]
 
         if not software_id:
             return sw
@@ -238,5 +293,47 @@ class FileDatabase(FileSystemEventHandler):
             if s["id"] == software_id:
                 return s
 
+    def get_evaluator(self, dataset_id, task_id=None):
+        """ returns a dict containing the evaluator parameters:
+
+        vm_id: id of the master vm running the evaluator
+        host: ip or hostname of the host
+        command: command to execute to run the evaluator. NOTE: contains variables the host needs to resolve
+        working_dir: where to execute the command
+        """
+        dataset = self.datasets[dataset_id]
+        evaluator_id = dataset.evaluatorId
+        if task_id is None:
+            task_id = self.default_tasks.get(dataset.datasetId, None)
+
+        task = self.tasks.get(task_id)
+        vm_id = task.virtualMachineId
+        master_vm = Parse(open(self.vm_dir_path / f"{vm_id}.prototext", "r").read(),
+                          modelpb.VirtualMachine())
+        result = {"vm_id": vm_id, "host": master_vm.host}
+
+        for evaluator in master_vm.evaluators:
+            if evaluator.evaluatorId == evaluator_id:
+                result["evaluator_id"] = evaluator_id
+                result["command"] = evaluator.command
+                result["working_dir"] = evaluator.workingDirectory
+                result['task_id'] = task_id
+                break
+
+        return result
+
+    def get_vm_evaluations_by_dataset(self, dataset_id, vm_id, only_public_results=True):
+        """ Return a dict of run_id: evaluation_results for the given vm on the given dataset
+        @param only_public_results: only return the measures for published datasets.
+        """
+        return {run_id: self.get_evaluation_measures(ev)
+                for run_id, ev in
+                self._load_vm_evaluations(dataset_id, vm_id, only_published=only_public_results).items()}
+
     def get_vm_by_id(self, vm_id: str):
         return self.vms.get(vm_id, None)
+
+
+if __name__ == '__main__':
+    model = FileDatabase()
+    model._load_softwares("celebrity-profiling", "test-user-02")

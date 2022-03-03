@@ -62,3 +62,39 @@ class TiraHostClient(tira_host_pb2_grpc.TiraApplicationService):
             logger.debug(f"tira-application.confirm_vm_create() request failed: {e}")
 
         return response
+
+    def confirm_run_execute(self, vm_id, dataset_id, run_id, transaction_id):
+        """ Call the confirm_run_eval method of the applications server """
+        result = tira_host_pb2.ExecutionResults(
+            transaction=tira_host_pb2.Transaction(status=tira_host_pb2.Status.SUCCESS, transactionId=transaction_id,
+                                                  message="completed evaluation"),
+            runId=tira_host_pb2.RunId(vmId=vm_id, datasetId=dataset_id, runId=run_id))
+
+        response = self.stub_tira_application.confirm_run_eval(result)
+        if response.status == tira_host_pb2.Status.SUCCESS:
+            logger.debug(f"tira-application.confirm_run_execute({locals()}) response was: {response}")
+            self.complete_transaction(transaction_id, status=tira_host_pb2.Status.SUCCESS,
+                                      message='confirmation: completed evaluation')
+        else:
+            logger.debug(f"tira-application.confirm_run_execute() request failed: {e}")
+            self.confirm_run_execute(vm_id, dataset_id, run_id, transaction_id)
+        return response
+
+    def confirm_run_eval(self, vm_id, dataset_id, run_id, transaction_id):
+        """ Call the confirm_run_eval method of the applications server """
+        measure = tira_host_pb2.EvaluationResults.Measure(key='demo-measure', value='1')
+        result = tira_host_pb2.EvaluationResults(
+            transaction=tira_host_pb2.Transaction(status=tira_host_pb2.Status.SUCCESS, transactionId=transaction_id,
+                                                  message="completed evaluation"),
+            runId=tira_host_pb2.RunId(vmId=vm_id, datasetId=dataset_id, runId=run_id))
+        result.measures.append(measure)
+
+        response = self.stub_tira_application.confirm_run_eval(result)
+        if response.status == tira_host_pb2.Status.SUCCESS:
+            logger.debug(f"tira-application.confirm_run_eval({locals()}) response was: {response}")
+            self.complete_transaction(transaction_id, status=tira_host_pb2.Status.SUCCESS,
+                                      message='confirmation: completed evaluation')
+        else:
+            logger.debug(f"tira-application.confirm_run_eval() request failed: {e}")
+            self.confirm_run_eval(vm_id, dataset_id, run_id, transaction_id)
+        return response

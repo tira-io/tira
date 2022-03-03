@@ -4,7 +4,6 @@ import signal
 import threading
 import uuid
 from configparser import ConfigParser
-from datetime import datetime
 from functools import wraps
 import logging
 import re
@@ -69,6 +68,9 @@ class VirtualMachine(object):
             @wraps(func)
             def wrapper(self, transaction_id, request, *args, **kwargs):
                 if self.state not in allowed_states:
+                    logger.debug(
+                        f"Transaction ({transaction_id}) received. (function: {func.__name__}, "
+                        f"request: {str(request)}). Not allowed for current vm state ({self.state})")
                     return tira_host_pb2.Transaction(
                         status=tira_host_pb2.Status.FAILED,
                         transactionId=transaction_id,
@@ -76,6 +78,9 @@ class VirtualMachine(object):
                     )
 
                 elif self.transaction_id is not None:
+                    logger.debug(
+                        f"Transaction ({transaction_id}) received. (function: {func.__name__}, "
+                        f"request: {str(request)}). Another transaction ({self.transaction_id}) is already running")
                     return tira_host_pb2.Transaction(
                         status=tira_host_pb2.Status.FAILED,
                         transactionId=transaction_id,
@@ -123,9 +128,9 @@ class VirtualMachine(object):
         self.user_name = vm.userName
         self.user_password = vm.userPw
         self.vm_name = vm.vmName
-        self.guest_os = None
-        self.memory_size = None
-        self.number_of_cpus = None
+        self.guest_os = ""
+        self.memory_size = ""
+        self.number_of_cpus = ""
         self.ssh_port = vm.portSsh
         self.ssh_port_status = False
         self.rdp_port = vm.portRdp
@@ -154,8 +159,10 @@ class VirtualMachine(object):
                 vm_state = re.sub(".\\d+\\)", ")", line.split(": ")[1].strip())
 
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.settimeout(0.5)
             self.ssh_port_status = 1 if sock.connect_ex((self.host, int(self.ssh_port))) == 0 else 0
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.settimeout(0.5)
             self.rdp_port_status = 1 if sock.connect_ex((self.host, int(self.rdp_port))) == 0 else 0
 
         state = self.state
@@ -185,7 +192,7 @@ class VirtualMachine(object):
 
         return retcode, output
 
-    @check_state({1,2})
+    @check_state({1, 2})
     @async_api
     def delete(self, transaction_id, request):
         """
@@ -238,6 +245,7 @@ class VirtualMachine(object):
     def shutdown(self, transaction_id, request):
         """
 
+        :param request:
         :param transaction_id:
         :return:
         """
@@ -268,6 +276,7 @@ class VirtualMachine(object):
     def start(self, transaction_id, request):
         """
 
+        :param request:
         :param transaction_id:
         :return:
         """
@@ -279,7 +288,7 @@ class VirtualMachine(object):
 
         return retcode, output
 
-    @check_state({1,3,4})
+    @check_state({1, 3, 4})
     @async_api
     def stop(self, transaction_id, request):
         """
@@ -301,7 +310,6 @@ class VirtualMachine(object):
         self._set_state(6)
         retcode, output = self.run_script(self.vm_name, command="vm-unsandbox")
         self._set_state(1)
-        self.transaction_id = None
 
         return retcode, output
 
@@ -324,16 +332,19 @@ class VirtualMachine(object):
 
         self._set_state(7)
         retcode, output = self.run_script(submission_filename, request.runId.datasetId, 'none',
-                                          request.runId.runId, command="run-execute-new")
+                                          request.runId.runId, f'-T "{request.taskId}"', command="run-execute-new")
 
         self._unsandbox(transaction_id)
         self.transaction_id = None
+
+        grpc_client.confirm_run_execute(vm_id=request.runId.vmId, dataset_id=request.runId.datasetId,
+                                        run_id=request.runId.runId, transaction_id=transaction_id)
 
         return retcode, output
 
     @check_state({1})
     @async_api
-    def run_eval(self, transaction_id, request, input_run_path, submission_filename):
+    def run_eval(self, transaction_id, request, input_run_path, submission_filename, task_id):
         """
 
         :param submission_filename:
@@ -343,12 +354,16 @@ class VirtualMachine(object):
         :return:
         """
         self.transaction_id = transaction_id
-        self._set_state(7)
+        grpc_client.set_state(request.inputRunId.vmId, 7, self.transaction_id)
         retcode, output = self.run_script(submission_filename, request.runId.datasetId,
-                                          input_run_path, request.runId.runId,
+                                          input_run_path, request.runId.runId, f'-T {task_id}',
                                           command="run-eval-new")
+        grpc_client.set_state(request.inputRunId.vmId, 1, self.transaction_id)
 
         self.transaction_id = None
+
+        grpc_client.confirm_run_eval(vm_id=request.inputRunId.vmId, dataset_id=request.runId.datasetId,
+                                     run_id=request.runId.runId, transaction_id=transaction_id)
 
         return retcode, output
 

@@ -6,3 +6,4 @@ log.txt
 .venv
 .project
 .pydevproject
+src/tira_host/conf/grpc_service.ini
