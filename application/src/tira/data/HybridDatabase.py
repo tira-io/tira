@@ -594,7 +594,9 @@ class HybridDatabase(object):
                     continue
 
                 yield {"vm_id": run.input_run.software.vm.vm_id,
-                       "run_id": run.run_id, 'published': rev.get(run__run_id=run.run_id).published,
+                       "run_id": run.run_id,
+                       'input_run_id': run.input_run.run_id,
+                       'published': rev.get(run__run_id=run.run_id).published,
                        'blinded': rev.get(run__run_id=run.run_id).blinded,
                        "measures": list(if_exists(evaluations))}
 

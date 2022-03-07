@@ -1,0 +1,199 @@
+{% extends 'tira/base.html' %}
+{% load static %}
+{% block title %}TIRA Users{% endblock %}
+{% block description %}TIRA Users{% endblock %}
+{% block navbar %}{% include "tira/navbar.html" with nav_active='tasks' %}{% endblock %}
+
+{% block content %}
+<nav class="uk-container">
+    <ul class="uk-breadcrumb">
+        <li><a href="{% url 'tira:index' %}">Tira.io</a></li>
+        <li><a href="{% url 'tira:task' task_id=task.task_id %}">{{ task.task_name }}</a></li>
+    </ul>
+</nav>
+
+<main class="uk-section uk-section-default" id="vue-task-mount">
+    <div class="uk-container">
+        <div uk-grid>
+
+            <div class="uk-width-expand">
+                <h1>{{ task.task_name }} <span class="'uk-text-lead">by {{ task.organizer }}</span></h1>
+            </div>
+            <div>
+                <a class="uk-button uk-button-default uk-text-large"
+                   uk-tooltip="title: Task Website;"
+                   href="{{ task.web }}">
+                   <span class="uk-padding-small">Task Website</span><i class="fas fa-external-link-alt uk-margin-small-left"></i></a>
+                <a class="uk-button uk-button-primary uk-text-large"
+                   uk-tooltip="title: Participate;"
+                   href="{% if role == 'guest' %}{% url 'tira:login' %}{% else %}{% url 'tira:software-detail' task_id=task.task_id vm_id=user_id %}{% endif %}">
+                   <i class="fas fa-terminal uk-margin-right"></i>Submit</a>
+            </div>
+        </div>
+        <div class="uk-margin-small">
+            {{ task.task_description }}
+        </div>
+    </div>
+
+    <div class="uk-container uk-margin-medium">
+        <div uk-grid>
+            <div><h2>Dataset</h2></div>
+            <div>
+                <ul class="uk-subnav uk-subnav-pill">
+                    <li><a href="#">[[ get_selected ]] <span uk-icon="icon: triangle-down"></span></a>
+                        <div uk-dropdown="mode: click">
+                            <ul class="uk-nav uk-dropdown-nav">
+                                <li class="uk-nav-header">Training Datasets</li>
+                                <li :class="{ 'uk-active': ds_id == selected }" v-for="ds_id in training_ids">
+                                    <a href="#" @click="selected = ds_id"><span v-html="get_nav_item(ds_id)"></span></a>
+                                </li>
+                                <li class="uk-nav-header">Test Datasets</li>
+                                <li :class="{ 'uk-active': ds_id == selected }" v-for="ds_id in test_ids">
+                                    <a href="#" @click="selected = ds_id"><span v-html="get_nav_item(ds_id)"></span></a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div v-if="loading" uk-spinner="ratio: 0.5"></div>
+            <div v-else><i src="fa-solid fa-check"></i></div>
+        </div>
+    </div>
+    <div v-if="selected != '' && evaluations[selected]" class="uk-container uk-margin-medium">
+        <div class="uk-grid-collapse" uk-grid>
+            <div class="uk-width-expand">
+                <h2>Leaderboard</h2>
+            </div>
+            <div class="" v-if="role === 'admin'">
+                <input id="check-hide-private" class="uk-checkbox" type="checkbox" v-model="hide_private">&nbsp;
+                <label for="check-hide-private">Hide private evaluations</label>
+            </div>
+        </div>
+        <Leaderboard :keys="evaluations[selected].ev_keys"
+                     :evaluation="evaluations[selected].evaluations"
+                     :role="role"
+                     :dataset_id="selected"
+                     :task_id="task_id"
+                     :hide_private="hide_private"/>
+    </div>
+
+    <div v-if="selected !== '' && role === 'admin' && vms[selected]" class="uk-container uk-margin-medium">
+
+        <div class="uk-grid-collapse" uk-grid>
+            <div class="uk-width-expand">
+                <h2>Participants</h2>
+            </div>
+            <div class="" v-if="role === 'admin'">
+                <input id="check-hide-reviewed" class="uk-checkbox" type="checkbox" v-model="hide_reviewed">&nbsp;
+                <label for="check-hide-reviewed">Hide already reviewed runs</label>
+            </div>
+        </div>
+        <review-list :vms="vms[selected]" :task_id="task_id" :dataset_id="selected" :hide_reviewed="hide_reviewed" />
+    </div>
+
+</main>
+
+{% if not include_navigation %}
+<script src="https://assets.webis.de/js/thirdparty/jquery/jquery.slim.min.js"></script>
+{% endif %}
+<script src="https://assets.webis.de/js/thirdparty/fontawesome/fontawesome.min.js"></script>
+<script src="https://assets.webis.de/js/thirdparty/fontawesome/solid.min.js"></script>
+<script src="https://assets.webis.de/js/filter.js"></script>
+<script src="https://assets.webis.de/js/selection.js"></script>
+<script src="https://assets.webis.de/js/tables.js"></script>
+<script>initWebisTableFiltering();</script>
+<script>initTableSorting();</script>
+
+<!--<script src="https://unpkg.com/vue@3"></script>-->
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<!--<script src="{% static 'tira/js/leaderboard.js' %}"></script>-->
+<!--https://vuejs.org/examples/#modal-->
+<script type="module">
+import Leaderboard from '{% static "tira/js/components/leaderboard.js" %}'
+import ReviewList from '{% static "tira/js/components/reviewlist.js" %}'
+
+const app = Vue.createApp({
+    data() {
+        return {
+            task_id: "{{ task.task_id|safe }}",
+            datasets: JSON.parse('{{ datasets|safe }}'),
+            test_ids: JSON.parse('{{ test_dataset_ids|safe }}'),
+            training_ids: JSON.parse('{{ training_dataset_ids|safe }}'),
+            role: '{{ role|safe }}',
+            evaluations: {},
+            vms: {},
+            loading: false,
+            selected: "{{ selected_dataset_id }}",
+            hide_private: true,
+            hide_reviewed: true,
+        }
+    },
+    components: {
+        Leaderboard, ReviewList
+    },
+    methods: {
+        get_nav_item(dsid) {
+            let title = this.datasets[dsid].dataset_id
+            if(this.datasets[dsid].display_name !== ""){
+                title = this.datasets[dsid].display_name
+            }
+            return `${title} (<span class="uk-text-bold">${this.datasets[dsid]["software_count"]}</span> Softwares)`
+        },
+        async getEvaluations(selected) {
+            try {
+                const res = await fetch(`/api/evaluations/${this.task_id}/${this.selected}`)
+                let ev = await res.json()
+                this.evaluations[selected] = {
+                     "ev_keys": ev.context.ev_keys,
+                     "evaluations": ev.context.evaluations
+                }
+            } catch (error) {
+                console.log(error)
+            }
+        },
+        async getSubmissions(selected) {
+            try {
+                const res = await fetch(`/api/submissions/${this.task_id}/${this.selected}`)
+                let ev = await res.json()
+                this.vms[selected] = ev.context.vms
+            } catch (error) {
+            }
+        }
+    },
+    computed: {
+        get_selected() {
+            if (this.selected === ""){
+                return "Select a Dataset"
+            }
+            if(this.datasets[this.selected].display_name !== ""){
+                return this.datasets[this.selected].display_name
+            }
+            return this.selected
+        }
+    },  // for values that should be computed when accessed
+    watch: {
+        selected(newSelected, oldSelected) {
+            if (!(newSelected in this.evaluations)) {
+                this.getEvaluations(newSelected)
+                if (this.role === 'admin'){
+                    this.getSubmissions(newSelected)
+                }
+
+            }
+        }
+    },
+    beforeMount() {
+        if (this.selected !== ""){
+            this.getEvaluations(this.selected)
+            if (this.role === 'admin'){
+                this.getSubmissions(this.selected)
+            }
+        }
+    },
+})
+app.config.compilerOptions.delimiters = ['[[', ']]']
+app.mount("#vue-task-mount")
+</script>
+
+{% endblock %}

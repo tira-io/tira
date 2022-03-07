@@ -51,7 +51,7 @@
             <td id="task-{{ dataset.dataset_id }}"></td>
 <!--            <td class="uk-text-right uk-padding-remove-left"><span class="uk-text-muted uk-text-small">{{ dataset.software_count }}</span></td>-->
             <td class="uk-text-truncate uk-width-expand">
-                <a href="{% url 'tira:dataset-detail' task_id=task.task_id dataset_id=dataset.dataset_id %}">{{ dataset.dataset_id }}</a>
+                <a href="{% url 'tira:dataset' task_id=task.task_id dataset_id=dataset.dataset_id %}">{{ dataset.dataset_id }}</a>
                 <span class="uk-text-muted uk-text-small">({{ dataset.software_count }} Submissions)</span></td>
             <td class="uk-text-right">{{ dataset.organizer }}</td>
             <td class="uk-text-right ">{{ dataset.year }}</td>
