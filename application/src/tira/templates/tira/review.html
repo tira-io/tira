@@ -8,8 +8,8 @@
 <nav class="uk-container">
     <ul class="uk-breadcrumb">
         <li><a href="{% url 'tira:index' %}">Tira.io</a></li>
-        <li><a href="{% url 'tira:task-detail' task_id=task_id %}">{{ task_id }}</a></li>
-        <li><a href="{% url 'tira:dataset-detail' task_id=task_id dataset_id=dataset_id %}">{{ dataset_id }}</a></li>
+        <li><a href="{% url 'tira:task' task_id=task_id %}">{{ task_id }}</a></li>
+        <li><a href="{% url 'tira:dataset' task_id=task_id dataset_id=dataset_id %}">{{ dataset_id }}</a></li>
         <li><a href="{% url 'tira:software-detail' task_id=task_id vm_id=vm_id %}">{{ vm_id }}</a></li>
         <li class="uk-disabled"><a href="#">{{ run_id }}</a></li>
     </ul>

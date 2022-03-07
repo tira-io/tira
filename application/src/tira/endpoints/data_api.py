@@ -24,7 +24,6 @@ def get_dataset_for_task(request, task_id):
             return JsonResponse({"status": "0", "message": f"Encountered an exception: {e}"})
 
 
-@check_permissions
 @check_resources_exist('json')
 @add_context
 def get_evaluations_by_dataset(request, context, task_id, dataset_id):
@@ -48,7 +47,6 @@ def get_evaluations_by_dataset(request, context, task_id, dataset_id):
     return JsonResponse({"context": context})
 
 
-@check_permissions
 @check_resources_exist("json")
 @add_context
 def get_runs_by_dataset(request, context, task_id, dataset_id):

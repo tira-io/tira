@@ -25,20 +25,24 @@ def check_permissions(func):
     """
     @wraps(func)
     def func_wrapper(request, *args, **kwargs):
-        if kwargs.get('vm_id', None):
-            role = auth.get_role(request, user_id=auth.get_user_id(request), vm_id=kwargs["vm_id"])
+        vm_id = kwargs.get('vm_id', None)
+        dataset_id = kwargs.get('dataset_id', None)
+        run_id = kwargs.get('run_id', None)
+        role = auth.get_role(request, user_id=auth.get_user_id(request))
+        if role == auth.ROLE_ADMIN or role == auth.ROLE_TIRA:
+            return func(request, *args, **kwargs)
 
-            if kwargs.get('run_id', None) and kwargs.get('dataset_id', None):
-                if not model.run_exists(kwargs["vm_id"], kwargs["dataset_id"], kwargs["run_id"]):
-                    return Http404(f'The VM {kwargs["vm_id"]} has no run with the id {kwargs["run_id"]} on {kwargs["dataset_id"]}.')
-                review = model.get_run_review(kwargs["dataset_id"], kwargs["vm_id"], kwargs["run_id"])
+        if vm_id:
+            role = auth.get_role(request, user_id=auth.get_user_id(request), vm_id=vm_id)
+
+            if run_id and dataset_id:
+                if not model.run_exists(vm_id, dataset_id, run_id):
+                    return Http404(f'The VM {vm_id} has no run with the id {run_id} on {dataset_id}.')
+                review = model.get_run_review(dataset_id, vm_id, run_id)
                 is_review_visible = (not review['blinded']) or review['published']
                 if not is_review_visible:
                     role = auth.ROLE_USER
-        else:
-            role = auth.get_role(request, user_id=auth.get_user_id(request))
-
-        if role == auth.ROLE_ADMIN or role == auth.ROLE_TIRA or role == auth.ROLE_PARTICIPANT:
+        if role == auth.ROLE_PARTICIPANT:
             return func(request, *args, **kwargs)
         elif role == auth.ROLE_GUEST:  # If guests access a restricted resource, we send them to login
             return redirect('tira:login')
@@ -65,32 +69,41 @@ def check_conditional_permissions(restricted=False, public_data_ok=False, privat
     """
     def decorator(func):
         @wraps(func)
-        def func_wrapper(request, *args, **kwargs):
-            if kwargs.get('vm_id', None):
-                role = auth.get_role(request, user_id=auth.get_user_id(request), vm_id=kwargs["vm_id"])
+        def func_wrapper(request, vm_id, *args, dataset_id=None, run_id=None, **kwargs):
+            # Admins can access and do everything
+            kwargs['vm_id'] = vm_id
+            if dataset_id:
+                kwargs['dataset_id'] = dataset_id
+            if run_id:
+                kwargs['run_id'] = run_id
 
-                if kwargs.get('run_id', None) and kwargs.get('dataset_id', None):
-                    if not model.run_exists(kwargs["vm_id"], kwargs["dataset_id"], kwargs["run_id"]):
-                        return Http404(f'The VM {kwargs["vm_id"]} has no run with the id {kwargs["run_id"]} on {kwargs["dataset_id"]}.')
-                    review = model.get_run_review(kwargs["dataset_id"], kwargs["vm_id"], kwargs["run_id"])
-                    is_review_visible = (not review['blinded']) or review['published']
-                    is_dataset_confidential = model.get_dataset(kwargs["dataset_id"])['is_confidential']
-
-                    # demote role to USER if the run is not visible and we make no exception for public datasets
-                    if role not in {auth.ROLE_ADMIN, auth.ROLE_TIRA} and \
-                            not is_review_visible and \
-                            not (public_data_ok and not is_dataset_confidential):
-                        role = auth.ROLE_USER
-                    # demote role to USER if the run is not visible and we make no exception
-                    elif role not in {auth.ROLE_ADMIN, auth.ROLE_TIRA} and not is_review_visible and not private_run_ok:
-                        role = auth.ROLE_USER
-            else:
-                role = auth.get_role(request, user_id=auth.get_user_id(request))
-            if role == auth.ROLE_ADMIN or role == auth.ROLE_TIRA:  # Admins can access and do everything
+            role = auth.get_role(request, user_id=auth.get_user_id(request))
+            if role == auth.ROLE_ADMIN or role == auth.ROLE_TIRA:
                 return func(request, *args, **kwargs)
-            if restricted:
+            elif restricted:
                 return HttpResponseNotAllowed(f"Access restricted.")
-            elif not restricted and role == auth.ROLE_PARTICIPANT:  # Participants can access when it is their resource, the resource is visible to them, and the call is not restricted
+
+            if vm_id:
+                role_on_vm = auth.get_role(request, user_id=auth.get_user_id(request), vm_id=vm_id)
+                if run_id and dataset_id:
+                    role = auth.ROLE_USER
+                    if not model.run_exists(vm_id, dataset_id, run_id):
+                        return Http404(f'The VM {vm_id} has no run with the id {run_id} on {dataset_id}.')
+
+                    review = model.get_run_review(dataset_id, vm_id, run_id)
+                    is_review_visible = (not review['blinded']) or review['published']
+                    is_dataset_confidential = model.get_dataset(dataset_id).get('is_confidential', True)
+                    # if the run is visible OR if we make an exception for public datasets
+                    if is_review_visible:
+                        role = role_on_vm
+                    elif not is_dataset_confidential and public_data_ok:
+                        role = role_on_vm
+                    elif private_run_ok:
+                        role = role_on_vm
+                else:
+                    role = role_on_vm
+
+            if not restricted and role == auth.ROLE_PARTICIPANT:  # Participants can access when it is their resource, the resource is visible to them, and the call is not restricted
                 return func(request, *args, **kwargs)
             elif role == auth.ROLE_GUEST:  # If guests access a restricted resource, we send them to login
                 return redirect('tira:login')
@@ -121,6 +134,9 @@ def check_resources_exist(reply_as='json'):
                             return redirect('tira:request_vm')
                         return redirect('tira:request_vm')
                     return return_fail("vm_id does not exist")
+                elif not model.get_vm(kwargs["vm_id"]).get('host', None):
+                    return redirect('tira:request_vm')
+                # TODO: handle if vm is in archive here.
 
             if "dataset_id" in kwargs:
                 if not model.dataset_exists(kwargs["dataset_id"]):
