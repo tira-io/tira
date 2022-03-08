@@ -23,6 +23,7 @@ urlpatterns = [
     path('task/<str:task_id>/vm/<str:vm_id>/software_add', vm_api.software_add, name='software_add'),
     path('task/<str:task_id>/vm/<str:vm_id>/software_save/<str:software_id>', vm_api.software_save, name='software_save'),
     path('task/<str:task_id>/vm/<str:vm_id>/software_delete/<str:software_id>', vm_api.software_delete, name='software_delete'),
+    path('task/<str:task_id>/vm/<str:vm_id>/upload/<str:dataset_id>', vm_api.upload, name='upload'),
 
     path('grpc/<str:vm_id>/vm_info', vm_api.vm_info, name='vm_info'),
     path('grpc/<str:vm_id>/vm_state', vm_api.vm_state, name='vm_state'),
@@ -53,6 +54,6 @@ urlpatterns = [
     path('blind/<str:vm_id>/<str:dataset_id>/<str:run_id>/<str:value>', organizer_api.blind, name='blind'),
 
     path('data_api/evaluations/<str:dataset_id>', data_api.get_evaluations_by_dataset, name='get_evaluations_by_dataset'),
-    path('data_api/runs/<str:dataset_id>', data_api.get_runs_by_dataset, name='get_runs_by_dataset')
+    path('data_api/runs/<str:dataset_id>', data_api.get_runs_by_dataset, name='get_runs_by_dataset'),
 ]
 app_name = 'tira'

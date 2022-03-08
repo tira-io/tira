@@ -164,10 +164,19 @@ def get_software_with_runs(task_id, vm_id):
        (based on the input_run)
     @return:
     [{"software": sw, "runs": runs_by_software.get(sw["id"]) } for sw in softwares]
-
-
     """
     return model.get_software_with_runs(task_id, vm_id)
+
+
+def get_upload_with_runs(task_id, vm_id):
+    """
+    Construct a dictionary that has the software as a key and as value a list of runs with that software
+    Note that we order the list in such a way, that evaluations of a run are right behind that run in the list
+       (based on the input_run)
+    @return:
+    [{"software": sw, "runs": runs_by_software.get(sw["id"]) } for sw in softwares]
+    """
+    return model.get_upload_with_runs(task_id, vm_id)
 
 
 def get_run_review(dataset_id: str, vm_id: str, run_id: str) -> dict:
@@ -198,6 +207,10 @@ def get_users_vms():
     """ Return the users list. """
     return model.get_users_vms()
 
+
+def add_uploaded_run(task_id, vm_id, dataset_id, uploaded_file):
+    """ Add the uploaded file as a new result and return it """
+    return model.add_uploaded_result(task_id, vm_id, dataset_id, uploaded_file)
 
 # ------------------------------------------------------------
 # add methods to add new data to the model

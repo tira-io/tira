@@ -188,6 +188,7 @@ function pollRunningEvaluations(vmid) {
 ** SOFTWARE MANAGEMENT
  */
 function addSoftware(tid, vmid) {
+    let len = $('#tira-software-tab').length
     $.ajax({
         type: 'GET',
         url: `/task/${tid}/vm/${vmid}/software_add`,
@@ -195,9 +196,8 @@ function addSoftware(tid, vmid) {
         success: function (data) {
             // data is the rendered html of the new software form
             // see templates/tira/software-form.html
-            $('#tira-software-forms').append(data.html);
-            $('#tira-software-tab').find(' > li:last-child').before(`<li><a href="#">${data.software_id}</a></li>`);
-
+            $('#add-software-row').before(data.html);
+            $('#add-software').before(`<li><a href="#">${data.software_id}</a></li>`);
             // add event listeners
             $(`#${data.software_id}-row .software-run-button`).click(function () {
                 runSoftware(tid, vmid, $(this).data('tiraSoftwareId'))
@@ -219,6 +219,7 @@ function addSoftware(tid, vmid) {
                 updateSoftwareRunButton()
             });
             updateSoftwareRunButton()
+            UIkit.switcher('#tira-software-tab').show(len)
         },
         error: function (jqXHR, textStatus, throwError) {
             warningAlert("Adding Software", throwError, jqXHR.responseJSON)
@@ -240,6 +241,21 @@ function deleteSoftware(tid, vmid, softwareId, form) {
             warningAlert("Deleting Software " + softwareId + " ", throwError, jqXHR.responseJSON)
         }
     })
+}
+
+async function upload(tid, vmid) {
+    let csrf = $('input[name=csrfmiddlewaretoken]').val()
+    let dataset = $('#upload-input-dataset').val()
+    let formData = new FormData();
+    const headers = new Headers({'X-CSRFToken': csrf})
+    formData.append("file", uploadresultsinput.files[0]);
+    const response = await fetch(`/task/${tid}/vm/${vmid}/upload/${dataset}`, {
+      method: "POST",
+      headers,
+      body: formData
+    });
+    const success = await response.json()
+    console.log(success)
 }
 
 function checkInputFields(softwareId, command, inputDataset) {
@@ -364,6 +380,10 @@ function addSoftwareEvents(taskId, vmId) {
     $('.software-delete-button').click(function () {
         let formId = '#' + $(this).data("tiraSoftwareId") + '-row'
         deleteSoftware(taskId, vmId, $(this).data("tiraSoftwareId"), $(formId));
+    })
+
+    $('.upload-button').click(function () {
+        upload(taskId, vmId);
     })
 
     $('.run-delete-button').click(function () {
