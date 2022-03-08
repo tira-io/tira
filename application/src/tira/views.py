@@ -127,12 +127,14 @@ def software_detail(request, context, task_id, vm_id):
     """ render the detail of the user page: vm-stats, softwares, and runs """
 
     software = model.get_software_with_runs(task_id, vm_id)
+    upload = model.get_upload_with_runs(task_id, vm_id)
 
     context["task"] = model.get_task(task_id)
     context["vm_id"] = vm_id
     context["vm"] = model.get_vm(vm_id)
     context["software"] = software
     context["datasets"] = model.get_datasets_by_task(task_id)
+    context["upload"] = upload
 
     return render(request, 'tira/software.html', context)
 

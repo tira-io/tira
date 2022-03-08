@@ -1,29 +1,21 @@
-<li id="{{ software.id }}-row">
-    {{ software.id }}
-    <form id="{{ software.id }}-form" class="software_form">
+<li id="uploads-row">
+    uploads
+    <form id="uploads-form" class="upload_form">
         {% csrf_token %}
         <div class="uk-grid-medium uk-margin-small" uk-grid>
-            <div class="uk-width-1-6">
-                <label class="uk-form-label" for="{{ software.id }}-working-dir">Working Directory</label>
+            <div class="uk-width-2-3">
+                <label class="uk-form-label" for="uploadresultsinput">Upload Results</label>
                 <div class="uk-form-controls">
-                    <input class="uk-input" id="{{ software.id }}-working-dir" type="text"
-                           value="{{ software.working_directory }}" placeholder="/home/{{ vm_id }}/">
-                </div>
-            </div>
-            <div class="uk-width-1-2">
-                <label class="uk-form-label" for="{{ software.id }}-command-input">Command</label>
-                <div class="uk-form-controls">
-                    <input class="uk-input command-input" id="{{ software.id }}-command-input" type="text"
-                           value="{{ software.command }}" placeholder="Dummy Command">
+                    <input class="uk-input" id="uploadresultsinput" name='uploadresultsinput' type="file" placeholder="Click to upload results">
                 </div>
             </div>
             <div class="uk-width-expand">
-                <label class="uk-form-label" for="{{ software.id }}-input-dataset">Input Dataset</label>
+                <label class="uk-form-label" for="upload-input-dataset">Input Dataset</label>
                 <div class="uk-form-controls">
-                    <select class="uk-select software-select" id="{{ software.id }}-input-dataset">
-                        <option value="{{ software.dataset }}" selected>{{ software.dataset }}</option>
+                    <select class="uk-select upload-select" id="upload-input-dataset">
+                        <option value="{{ upload.dataset }}" selected>{{ upload.dataset }}</option>
                         {% for dataset in datasets %}
-                        {% if not dataset.is_deprecated and dataset.dataset_id != software.dataset %}
+                        {% if not dataset.is_deprecated and dataset.dataset_id != upload.dataset %}
                         <option value="{{ dataset.dataset_id }}">{{ dataset.dataset_id }}</option>
                         {% endif %}
                         {% endfor %}
@@ -31,25 +23,15 @@
                 </div>
             </div>
         </div>
-    </form>
-    <div id="{{ software.id }}-form-error" class="uk-text-danger"></div>
-    <div class="software-form-buttons">
-        <button class="uk-button uk-button-small uk-button-disabled uk-width-1-6 software-run-button" id="{{ software.id }}-run-button"
-                uk-tooltip="title: If the VM is 'running': Execute {{ software.id }}. Only one Software can be executed at a time. Software will be saved when executing a run.; delay: 500"
-                data-tira-software-id="{{ software.id }}" disabled>run
-        </button>
-        <button class="uk-button uk-button-small uk-button-default software-save-button"
-                data-tira-software-id="{{ software.id }}"><i class="fas fa-save"></i></button>
-        <button class="uk-button uk-button-small uk-button-default"
-            uk-tooltip="title: Click to show the help for Commands; delay: 500"
-                uk-toggle="target: #modal-command-help"><i class="fas fa-info"></i></button>
-        <button class="uk-button uk-button-small uk-button-danger software-delete-button"
-                data-tira-software-id="{{ software.id }}"><i class="fas fa-trash-alt"></i></button>
-        <div class="uk-align-right">
-            <span class="uk-text-small uk-text-lead" id="{{ software.id }}-last-edit">last edit: {{ software.last_edit }}
-            </span>
+        <div class="upload-form-buttons">
+            <button class="uk-button uk-button-small uk-button-primary uk-width-1-6 upload-button" id="upload-button">upload</button>
+            <div class="uk-align-right">
+                <span class="uk-text-small uk-text-lead" id="{{ upload.id }}-last-edit">last edit: {{ upload.last_edit }}
+                </span>
+            </div>
         </div>
-    </div>
+    </form>
+    <div id="upload-form-error" class="uk-text-danger"></div>
     <table class="uk-margin-small uk-table uk-table-divider uk-table-small uk-table-responsive uk-table-middle">
         <thead>
         <tr>
@@ -63,9 +45,9 @@
             <th class="header uk-text-center uk-width-1-4">Actions</th>
         </tr>
         </thead>
-        <tbody id="{{ software.id }}-runs-tbody">
-        {% for run in runs %}
-        <tr class="uk-padding-remove" id="{{ software.id }}-{{ run.run_id }}-run">
+        <tbody id="uploads-runs-tbody">
+        {% for run in upload.runs %}
+        <tr class="uk-padding-remove" id="upload-{{ run.run_id }}-run">
             <td></td>
             <td class="uk-table-shrink uk-padding-remove-vertical">
                 {% if run.review.noErrors == True %}

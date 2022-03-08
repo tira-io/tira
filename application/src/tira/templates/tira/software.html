@@ -157,28 +157,25 @@
     <div class="uk-container uk-margin-small">
         <h2>Software</h2>
 
-<!-- {id, count, command, working_directory, dataset, run, creation_date, last_edit} -->
         <ul uk-tab id="tira-software-tab">
             {% for sw in software %}
             <li><a href="#">{{ sw.software.id }}</a></li>
-<!--         show status as icon   -->
             {% endfor %}
+            <li id="add-software">
+                <a><span class="uk-margin-small-right">+</span>Add Software</a>
+            </li>
             <li>
-                <a href="#">Add<span class="uk-margin-small-left" uk-icon="icon: triangle-down"></span></a>
-                <div uk-dropdown="mode: hover">
-                    <ul class="uk-nav uk-dropdown-nav">
-                        <li><a id="add-software" href="#">Software</a></li>
-<!--                        <li><a href="#">Advanced Software</a></li>-->
-                        <li><a href="#">Result Upload</a></li>
-                    </ul>
-                </div>
+                <a href="#">Uploads</a>
             </li>
         </ul>
         <ul class="uk-switcher uk-margin" id="tira-software-forms">
             {% for sw in software %}
                 {% include "tira/software_form.html" with software=sw.software runs=sw.runs task_id=task.task_id vm_id=vm_id%}
             {% endfor %}
+            <li id="add-software-row">add software</li>
+            {% include "tira/upload_form.html" with task_id=task.task_id vm_id=vm_id upload=upload %}
         </ul>
+
     </div>
     {% endif %}
     <!-- The modal that shows the Command Help -->
