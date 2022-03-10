@@ -638,8 +638,9 @@ class HybridDatabase(object):
                 run['review'] = r["review"]
                 yield run
 
-        upload = modeldb.Upload.objects.get(vm__vm_id=vm_id, task__task_id=task_id)
-        if not upload:
+        try:
+            upload = modeldb.Upload.objects.get(vm__vm_id=vm_id, task__task_id=task_id)
+        except modeldb.Upload.DoesNotExist:
             upload = modeldb.Upload(vm=modeldb.VirtualMachine.objects.get(vm_id=vm_id),
                                     task=modeldb.Task.objects.get(task_id=task_id),
                                     last_edit_date=now())
