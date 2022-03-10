@@ -41,15 +41,15 @@
             <div>
                 <ul class="uk-subnav uk-subnav-pill">
                     <li><a href="#">[[ get_selected ]] <span uk-icon="icon: triangle-down"></span></a>
-                        <div uk-dropdown="mode: click">
+                        <div id='dropdownDatasetSelector' uk-dropdown="mode: click">
                             <ul class="uk-nav uk-dropdown-nav">
                                 <li class="uk-nav-header">Training Datasets</li>
                                 <li :class="{ 'uk-active': ds_id == selected }" v-for="ds_id in training_ids">
-                                    <a href="#" @click="selected = ds_id"><span v-html="get_nav_item(ds_id)"></span></a>
+                                    <a @click="setSelected(ds_id)"><span v-html="get_nav_item(ds_id)"></span></a>
                                 </li>
                                 <li class="uk-nav-header">Test Datasets</li>
                                 <li :class="{ 'uk-active': ds_id == selected }" v-for="ds_id in test_ids">
-                                    <a href="#" @click="selected = ds_id"><span v-html="get_nav_item(ds_id)"></span></a>
+                                    <a href="#" @click="setSelected(ds_id)"><span v-html="get_nav_item(ds_id)"></span></a>
                                 </li>
                             </ul>
                         </div>
@@ -105,9 +105,8 @@
 <script>initWebisTableFiltering();</script>
 <script>initTableSorting();</script>
 
-<!--<script src="https://unpkg.com/vue@3"></script>-->
-<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
-<!--<script src="{% static 'tira/js/leaderboard.js' %}"></script>-->
+<script src="https://unpkg.com/vue@3"></script>
+<!--<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>-->
 <!--https://vuejs.org/examples/#modal-->
 <script type="module">
 import Leaderboard from '{% static "tira/js/components/leaderboard.js" %}'
@@ -159,6 +158,11 @@ const app = Vue.createApp({
                 this.vms[selected] = ev.context.vms
             } catch (error) {
             }
+        },
+        setSelected(dsId) {
+            this.selected = dsId
+            let dropdown = document.getElementById('dropdownDatasetSelector')
+            UIkit.dropdown(dropdown).hide(false)
         }
     },
     computed: {
