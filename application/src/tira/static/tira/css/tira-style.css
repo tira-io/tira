@@ -27,6 +27,13 @@
     min-height: 20px;
 }
 
+.dropdown-scroll {
+    /*height: auto;*/
+    max-height: calc(100vh - 52ex);
+    overflow-x: auto;
+    overflow-y: visible;
+}
+
 a.uk-button-primary {
     color: #fff;
 }

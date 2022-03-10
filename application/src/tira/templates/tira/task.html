@@ -15,7 +15,6 @@
 <main class="uk-section uk-section-default" id="vue-task-mount">
     <div class="uk-container">
         <div uk-grid>
-
             <div class="uk-width-expand">
                 <h1>{{ task.task_name }} <span class="'uk-text-lead">by {{ task.organizer }}</span></h1>
             </div>
@@ -41,7 +40,7 @@
             <div>
                 <ul class="uk-subnav uk-subnav-pill">
                     <li><a href="#">[[ get_selected ]] <span uk-icon="icon: triangle-down"></span></a>
-                        <div id='dropdownDatasetSelector' uk-dropdown="mode: click">
+                        <div class="dropdown-scroll" id='dropdownDatasetSelector' uk-dropdown="mode: click">
                             <ul class="uk-nav uk-dropdown-nav">
                                 <li class="uk-nav-header">Training Datasets</li>
                                 <li :class="{ 'uk-active': ds_id == selected }" v-for="ds_id in training_ids">
