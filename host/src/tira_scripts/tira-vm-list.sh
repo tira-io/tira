@@ -89,7 +89,7 @@ main() {
     fi
 
     if [ "$c" != "1" ]; then
-        logError "Flags cannot be combined, see:"
+        logError "[tira-vm-list] Flags cannot be combined, see:"
         usage
     fi
 
@@ -146,9 +146,9 @@ main() {
     # If there was no error, printout nice formatted summary.
     if [ "$(wc -l < "$tmp_file")" = "2" ]; then
         # Error case, because in $tmp_file there are just the two header lines stored.
-        logError "$error_message"
+        logError "[tira-vm-list]  $error_message"
     else
-        logInfo "Summary:"
+        logInfo "[tira-vm-list] Summary:"
         # Print collected values in a nice way.
         column -t -s' ' "$tmp_file"
     fi
