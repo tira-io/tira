@@ -3,18 +3,22 @@
         {% csrf_token %}
         <div class="uk-grid-medium" uk-grid>
             <div class="uk-width-1-2">
-                <label class="uk-form-label" for="uploadresultsform">Upload Results</label>
+                <label class="uk-form-label" for="uploadresultsform">Upload Run</label>
                 <div class="uk-form-controls uk-width-expand" uk-form-custom="target: true">
     <!--                    <input type="file">-->
                     <input id="uploadresultsinput" name='uploadresultsinput' type="file">
-                    <input class="uk-input" id="uploadresultsform" type="text" placeholder="Select file" disabled>
+                    <input class="uk-input" id="uploadresultsform" type="text" placeholder="Click to select file" disabled>
                 </div>
             </div>
             <div class="uk-width-1-3">
                 <label class="uk-form-label" for="upload-input-dataset">Input Dataset</label>
                 <div class="uk-form-controls">
                     <select class="uk-select upload-select" id="upload-input-dataset">
+                        {% if not upload.dataset %}
+                        <option value="None" selected>Select Dataset</option>
+                        {% else %}
                         <option value="{{ upload.dataset }}" selected>{{ upload.dataset }}</option>
+                        {% endif %}
                         {% for dataset in datasets %}
                         {% if not dataset.is_deprecated and dataset.dataset_id != upload.dataset %}
                         <option value="{{ dataset.dataset_id }}">{{ dataset.dataset_id }}</option>
