@@ -9,7 +9,8 @@ export default {
     }
   },
   template: `
-<table class="uk-margin-small uk-table uk-table-small uk-table-striped uk-table-middle targetable">
+<div class="scrollable-table">
+<table class="uk-margin-small uk-table uk-table-small uk-table-striped uk-table-middle">
   <thead>
   <tr>
       <th></th>
@@ -43,7 +44,7 @@ export default {
       <td class="uk-table-shrink uk-text-nowrap uk-padding-remove-vertical">[[ eval.vm_id ]]</td>
       <td class="uk-table-shrink uk-text-nowrap uk-padding-remove-vertical">[[ eval.run_id ]]</td>
       <td class="uk-padding-remove-vertical" v-for="measure in eval.measures">[[ measure ]]</td>
-      <td class="uk-align-right uk-table-expand uk-margin-remove uk-padding-remove-vertical uk-padding-remove-right">
+      <td class="uk-align-right uk-text-nowrap uk-table-expand uk-margin-remove uk-padding-remove-vertical uk-padding-remove-right">
         <button class="uk-button uk-button-small uk-button-default uk-background-default"
            target="_blank"
            :href="'/task/' + task_id + '/user/' + eval.vm_id + '/dataset/' + dataset_id + '/download/' + eval.input_run_id + '.zip'"><i class="fas fa-download"></i> run</button>
@@ -53,5 +54,6 @@ export default {
       </td>
   </tr>
   </tbody>
-</table>`
+</table>
+</div>`
 }
