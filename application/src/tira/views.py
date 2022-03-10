@@ -127,7 +127,7 @@ def software_detail(request, context, task_id, vm_id):
 
     software = model.get_software_with_runs(task_id, vm_id)
     upload = model.get_upload_with_runs(task_id, vm_id)
-
+    print(upload)
     context["task"] = model.get_task(task_id)
     context["vm_id"] = vm_id
     context["vm"] = model.get_vm(vm_id)

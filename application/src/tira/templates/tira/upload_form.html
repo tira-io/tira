@@ -1,15 +1,16 @@
 <li id="uploads-row">
-    uploads
     <form id="uploads-form" class="upload_form">
         {% csrf_token %}
-        <div class="uk-grid-medium uk-margin-small" uk-grid>
-            <div class="uk-width-2-3">
-                <label class="uk-form-label" for="uploadresultsinput">Upload Results</label>
-                <div class="uk-form-controls">
-                    <input class="uk-input" id="uploadresultsinput" name='uploadresultsinput' type="file" placeholder="Click to upload results">
+        <div class="uk-grid-medium" uk-grid>
+            <div class="uk-width-1-2">
+                <label class="uk-form-label" for="uploadresultsform">Upload Results</label>
+                <div class="uk-form-controls uk-width-expand" uk-form-custom="target: true">
+    <!--                    <input type="file">-->
+                    <input id="uploadresultsinput" name='uploadresultsinput' type="file">
+                    <input class="uk-input" id="uploadresultsform" type="text" placeholder="Select file" disabled>
                 </div>
             </div>
-            <div class="uk-width-expand">
+            <div class="uk-width-1-3">
                 <label class="uk-form-label" for="upload-input-dataset">Input Dataset</label>
                 <div class="uk-form-controls">
                     <select class="uk-select upload-select" id="upload-input-dataset">
@@ -22,16 +23,21 @@
                     </select>
                 </div>
             </div>
-        </div>
-        <div class="upload-form-buttons">
-            <button class="uk-button uk-button-small uk-button-primary uk-width-1-6 upload-button" id="upload-button">upload</button>
-            <div class="uk-align-right">
-                <span class="uk-text-small uk-text-lead" id="{{ upload.id }}-last-edit">last edit: {{ upload.last_edit }}
-                </span>
+            <div class="upload-form-buttons uk-width-expand">
+                <label class="uk-form-label" for="upload-button">&nbsp;</label>
+                <div>
+                    <button class="uk-button uk-button uk-button-primary uk-width-expand" id="upload-button">upload</button>
+                </div>
             </div>
         </div>
+        <div class="uk-grid-collapse uk-margin-remove" uk-grid>
+            <div id="upload-form-error" class="uk-text-danger uk-width-expand"></div>
+            <div>
+                <span class="uk-text-small uk-text-lead" id="upload-last-edit">last edit: {{ upload.last_edit }}
+            </span>
+        </div>
+        </div>
     </form>
-    <div id="upload-form-error" class="uk-text-danger"></div>
     <table class="uk-margin-small uk-table uk-table-divider uk-table-small uk-table-responsive uk-table-middle">
         <thead>
         <tr>
@@ -46,6 +52,7 @@
         </tr>
         </thead>
         <tbody id="uploads-runs-tbody">
+        {{ upload }}
         {% for run in upload.runs %}
         <tr class="uk-padding-remove" id="upload-{{ run.run_id }}-run">
             <td></td>

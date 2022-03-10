@@ -332,8 +332,12 @@ def run_abort(request, vm_id):
 @check_resources_exist("json")
 def upload(request, task_id, vm_id, dataset_id):
     if request.method == 'POST':
+        if not dataset_id or dataset_id is None or dataset_id == 'None':
+            return JsonResponse({"status": 0, "message": "Please specify the associated dataset."})
+
         uploaded_file = request.FILES['file']
         new_run = model.add_uploaded_run(task_id, vm_id, dataset_id, uploaded_file)
-        return JsonResponse({"status": 1, "message": "", "context": new_run})
+        return JsonResponse({"status": 1, "message": "ok", "context": new_run})
     else:
         return JsonResponse({"status": 0, "message": "GET is not allowed here."})
+
