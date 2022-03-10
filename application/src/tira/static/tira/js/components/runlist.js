@@ -9,7 +9,8 @@ export default {
         }
     },
     template: `
-<table class="uk-margin-small uk-table uk-table-divider uk-table-small uk-table-responsive uk-table-middle">
+<div class="scrollable-table">
+<table class="uk-margin-small uk-table uk-table-divider uk-table-small uk-table-middle">
     <thead>
     <tr>
         <th></th>
@@ -57,7 +58,7 @@ export default {
         <td class="uk-table-shrink uk-text-nowrap"><span v-if="run.run.input_run_id != 'none'"><i class="fas fa-level-up-alt fa-flip-horizontal"></i></span>&nbsp;[[ run.run.run_id ]]</td>
         <td class="uk-table-shrink uk-text-nowrap" ><a :href="'#run-' + vm_id + '-' + run.run.input_run_id" v-if="run.run.input_run_id != 'none'">[[ run.run.input_run_id ]]</a>
         </td>
-        <td class="uk-padding-remove-vertical uk-text-truncate" v-if="for_review">
+        <td class="uk-padding-remove-vertical uk-text-nowrap uk-text-truncate" v-if="for_review">
            <span v-if="run.review.reviewer" class="uk-text-bold">[[ run.review.reviewer ]]&nbsp;</span> 
            <span v-if="run.review.hasErrorOutput">Output Error -&nbsp;</span>
            <span v-else-if="run.review.otherErrors">Software Error -&nbsp;</span>
@@ -65,7 +66,7 @@ export default {
            </td>
         <td class="uk-padding-remove-vertical uk-text-truncate" v-else>[[ dataset_id ]]</td>
         
-        <td class="uk-align-right uk-table-expand uk-margin-remove uk-padding-remove-vertical uk-padding-remove-right">
+        <td class="uk-align-right uk-table-expand uk-text-nowrap uk-margin-remove uk-padding-remove-vertical uk-padding-remove-right">
             <a class="uk-button uk-button-small uk-button-default run-evaluate-button uk-background-default"
                data-tira-dataset="{{ run.dataset }}" data-tira-vm-id="{{ vm_id }}"
                data-tira-run-id="{{ run.run_id }}"
@@ -84,7 +85,7 @@ export default {
     </tr>
     </tbody>
 </table>
-
+</div>
 `
 }
 
