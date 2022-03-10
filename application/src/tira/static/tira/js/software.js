@@ -254,8 +254,18 @@ async function upload(tid, vmid) {
       headers,
       body: formData
     });
-    const success = await response.json()
-    console.log(success)
+
+    let r = await response.json()
+    console.log(response)
+    console.log(r)
+    if (!response.ok) {
+        warningAlert(`Uploading failed with status ${response.status}: ${await response.text()}`, undefined, undefined)
+    } else if (r.status === 0){
+        $('#upload-form-error').html('Error: ' + r.message)
+    } else {
+        $('#upload-form-error').html('')
+        location.reload();
+    }
 }
 
 function checkInputFields(softwareId, command, inputDataset) {
@@ -382,7 +392,8 @@ function addSoftwareEvents(taskId, vmId) {
         deleteSoftware(taskId, vmId, $(this).data("tiraSoftwareId"), $(formId));
     })
 
-    $('.upload-button').click(function () {
+    $('#upload-button').click(function (e) {
+        e.preventDefault()
         upload(taskId, vmId);
     })
 

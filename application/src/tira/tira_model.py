@@ -217,7 +217,7 @@ def get_users_vms():
 
 def add_uploaded_run(task_id, vm_id, dataset_id, uploaded_file):
     """ Add the uploaded file as a new result and return it """
-    return model.add_uploaded_result(task_id, vm_id, dataset_id, uploaded_file)
+    return model.add_uploaded_run(task_id, vm_id, dataset_id, uploaded_file)
 
 # ------------------------------------------------------------
 # add methods to add new data to the model

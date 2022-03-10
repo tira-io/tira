@@ -446,6 +446,8 @@ class HybridDatabase(object):
             software = run.software.software_id
         elif run.evaluator:
             software = run.evaluator.evaluator_id
+        elif run.upload:
+            software = 'upload'
 
         return {"software": software,
                 "run_id": run.run_id,
@@ -630,24 +632,22 @@ class HybridDatabase(object):
         def _runs_by_upload(up):
             reviews = modeldb.Review.objects.select_related("run", "run__upload", "run__evaluator", "run__input_run",
                                                             "run__input_dataset").filter(run__upload=up).all()
+
             for r in self._get_ordered_runs_from_reviews(reviews, vm_id, preloaded=False):
                 run = r['run']
                 run['review'] = r["review"]
                 yield run
 
-        upload = modeldb.Upload.objects.filter(vm__vm_id=vm_id, task__task_id=task_id).all()
+        upload = modeldb.Upload.objects.get(vm__vm_id=vm_id, task__task_id=task_id)
         if not upload:
             upload = modeldb.Upload(vm=modeldb.VirtualMachine.objects.get(vm_id=vm_id),
                                     task=modeldb.Task.objects.get(task_id=task_id),
                                     last_edit_date=now())
             upload.save()
-        else:
-            upload = upload[0]
 
-        return {"upload": {"task_id": upload.task.task_id, "vm_id": upload.vm.vm_id,
-                           "dataset": None if not upload.dataset else upload.dataset.dataset_id,
-                           "last_edit": upload.last_edit_date},
-                "runs": list(_runs_by_upload(upload))}
+        return {"task_id": upload.task.task_id, "vm_id": upload.vm.vm_id,
+                "dataset": None if not upload.dataset else upload.dataset.dataset_id,
+                "last_edit": upload.last_edit_date, "runs": list(_runs_by_upload(upload))}
 
     @staticmethod
     def _review_as_dict(review):
@@ -916,30 +916,53 @@ class HybridDatabase(object):
         run_dir = self.runs_dir_path / dataset_id / vm_id / new_id
         (run_dir / 'output').mkdir(parents=True)
 
-        with open(run_dir / 'output' / uploaded_file.name, 'wb+') as destination:
-            for chunk in uploaded_file.chunks():
-                destination.write(chunk)
-
         # Second add to proto dump
         run = modelpb.Run()
         run.softwareId = "upload"
         run.runId = new_id
         run.inputDataset = dataset_id
+        run.deleted = False
+        run.downloadable = True
+        # Third add to database
+        upload = modeldb.Upload.objects.get(vm__vm_id=vm_id, task__task_id=task_id)
+        upload.last_edit_date = now()
+        upload.save()
+
+        db_run = modeldb.Run.objects.create(run_id=new_id, upload=upload,
+                                            input_dataset=modeldb.Dataset.objects.get(dataset_id=dataset_id),
+                                            task=modeldb.Task.objects.get(task_id=task_id),
+                                            downloadable=True)
+
         open(run_dir / "run.bin", 'wb').write(run.SerializeToString())
         open(run_dir / "run.prototext", 'w').write(str(run))
+        with open(run_dir / 'output' / uploaded_file.name, 'wb+') as destination:
+            for chunk in uploaded_file.chunks():
+                destination.write(chunk)
 
-        # Third add to database
+        # add the review
+        review = auto_reviewer(run_dir, run_dir.stem)
+        open(run_dir / "run-review.prototext", 'w').write(str(review))
+        open(run_dir / "run-review.bin", 'wb').write(review.SerializeToString())
 
-        upload = modeldb.Upload.objects.get(vm__vm_id=vm_id, task__task_id=task_id).update(last_edit_date=now())
+        modeldb.Review.objects.update_or_create(run=db_run, defaults={
+            'reviewer_id': review.reviewerId,
+            'review_date': review.reviewDate,
+            'no_errors': review.noErrors,
+            'missing_output': review.missingOutput,
+            'extraneous_output': review.extraneousOutput,
+            'invalid_output': review.invalidOutput,
+            'has_error_output': review.hasErrorOutput,
+            'other_errors': review.otherErrors,
+            'comment': review.comment,
+            'has_errors': review.hasErrors,
+            'has_warnings': review.hasWarnings,
+            'has_no_errors': review.hasNoErrors,
+            'published': review.published,
+            'blinded': review.blinded
+        })
 
-        new_run = modeldb.Run(run_id=new_id, upload=upload,
-                              input_dataset=modeldb.Dataset.object.get(dataset_id=dataset_id),
-                              task=modeldb.Task.object.get(task_id=task_id),
-                              downloadable=True)
-        new_run.save()
-
-        return {"run": self._run_as_dict(run), "last_edit_date": upload.last_edit_date}
-        # return a dict object of the new run
+        return {"run": self._run_as_dict(db_run),
+                "last_edit_date": upload.last_edit_date}
 
     def update_run(self, dataset_id, vm_id, run_id, deleted: bool = None):
         """ updates the run specified by dataset_id, vm_id, and run_id with the values given in the parameters.
