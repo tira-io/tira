@@ -36,11 +36,13 @@ urlpatterns = [
     path('grpc/<str:vm_id>/run_delete/<str:dataset_id>/<str:run_id>', vm_api.run_delete, name="run_delete"),
 
     path('tira-admin', views.admin, name='tira-admin'),
+
+    path('tira-admin/reload/vms', admin_api.admin_reload_vms, name='tira-admin-reload-vms'),
+    path('tira-admin/reload/datasets', admin_api.admin_reload_datasets, name='tira-admin-reload-datasets'),
+    path('tira-admin/reload/tasks', admin_api.admin_reload_tasks, name='tira-admin-reload-tasks'),
     path('tira-admin/reload-data', admin_api.admin_reload_data, name='tira-admin-reload-data'),
-    path('tira-admin/reload-vms', admin_api.admin_reload_vms, name='tira-admin-reload-vms'),
-    path('tira-admin/reload-datasets', admin_api.admin_reload_datasets, name='tira-admin-reload-datasets'),
-    path('tira-admin/reload-tasks', admin_api.admin_reload_tasks, name='tira-admin-reload-tasks'),
     path('tira-admin/reload-runs/<str:vm_id>', admin_api.admin_reload_runs, name='tira-admin-reload-runs'),
+
     path('tira-admin/create-vm', admin_api.admin_create_vm, name='tira-admin-create-vm'),
     path('tira-admin/archive-vm', admin_api.admin_archive_vm, name='tira-admin-archive-vm'),
     path('tira-admin/modify-vm', admin_api.admin_modify_vm, name='tira-admin-modify-vm'),
