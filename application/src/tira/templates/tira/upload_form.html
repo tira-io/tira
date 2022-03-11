@@ -5,7 +5,6 @@
             <div class="uk-width-1-2">
                 <label class="uk-form-label" for="uploadresultsform">Upload Run</label>
                 <div class="uk-form-controls uk-width-expand" uk-form-custom="target: true">
-    <!--                    <input type="file">-->
                     <input id="uploadresultsinput" name='uploadresultsinput' type="file">
                     <input class="uk-input" id="uploadresultsform" type="text" placeholder="Click to select file" disabled>
                 </div>
@@ -56,7 +55,6 @@
         </tr>
         </thead>
         <tbody id="uploads-runs-tbody">
-        {{ upload }}
         {% for run in upload.runs %}
         <tr class="uk-padding-remove" id="upload-{{ run.run_id }}-run">
             <td></td>
@@ -94,7 +92,7 @@
                 {% endif %}
             </td>
             <td class="uk-table-shrink uk-text-nowrap uk-padding-remove-vertical">
-                {% if run.input_run_id != "none" %}<i class="fas fa-level-up-alt fa-flip-horizontal"></i>{% endif %}
+                {% if run.input_run_id != "none" and run.input_run_id != "" %}<i class="fas fa-level-up-alt fa-flip-horizontal"></i>{% endif %}
                 &nbsp;{{ run.run_id }}
             </td>
             <td class="uk-table-shrink uk-text-nowrap uk-padding-remove-vertical">
