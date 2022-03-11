@@ -468,16 +468,21 @@ class HybridDatabase(object):
                     .filter(input_dataset__dataset_id=dataset_id, software__vm__vm_id=vm_id)
                 if (run.deleted or not return_deleted)]
 
-    def _get_ordered_runs_from_reviews(self, reviews, vm_id, preloaded=True):
+    def _get_ordered_runs_from_reviews(self, reviews, vm_id, preloaded=True, is_upload=False):
         """ yields all runs with reviews and their evaluation runs with reviews produced by software from a given vm
             evaluation runs (which have a run as input run) are yielded directly after the runs they use.
 
-        @param reviews: a querySet of modeldb.Review objects to
-        @param vm_id: the vm_id of the software
-        @param preloaded: If False, do a new database request to get the evaluation runs.
+        :param reviews: a querySet of modeldb.Review objects to
+        :param vm_id: the vm_id of the software or upload
+        :param preloaded: If False, do a new database request to get the evaluation runs.
             Otherwise assume they were preloaded
+        :param is_upload: if true, get only uploaded runs
         """
-        reviews_qs = reviews.filter(run__software__vm__vm_id=vm_id).all()
+        if is_upload:
+            reviews_qs = reviews.filter(run__upload__vm__vm_id=vm_id).all()
+        else:
+            reviews_qs = reviews.filter(run__software__vm__vm_id=vm_id).all()
+
         for review in reviews_qs:
             yield {"run": self._run_as_dict(review.run),
                    "review": self._review_as_dict(review),
@@ -633,7 +638,7 @@ class HybridDatabase(object):
             reviews = modeldb.Review.objects.select_related("run", "run__upload", "run__evaluator", "run__input_run",
                                                             "run__input_dataset").filter(run__upload=up).all()
 
-            for r in self._get_ordered_runs_from_reviews(reviews, vm_id, preloaded=False):
+            for r in self._get_ordered_runs_from_reviews(reviews, vm_id, preloaded=False, is_upload=True):
                 run = r['run']
                 run['review'] = r["review"]
                 yield run
@@ -645,7 +650,6 @@ class HybridDatabase(object):
                                     task=modeldb.Task.objects.get(task_id=task_id),
                                     last_edit_date=now())
             upload.save()
-
         return {"task_id": upload.task.task_id, "vm_id": upload.vm.vm_id,
                 "dataset": None if not upload.dataset else upload.dataset.dataset_id,
                 "last_edit": upload.last_edit_date, "runs": list(_runs_by_upload(upload))}
