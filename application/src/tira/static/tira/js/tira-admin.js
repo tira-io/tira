@@ -1,45 +1,3 @@
-function reloadData(model_object) {
-    let icon = null
-    let uri = null
-    switch (model_object) {
-        case 'all':
-            icon = $('#reload-website-data-icon')
-            uri = "/tira-admin/reload-data"
-            break
-        case 'vms':
-            icon = $('#reload-vms-data-icon')
-            uri = "/tira-admin/reload-vms"
-            break
-        case 'datasets':
-            icon = $('#reload-datasets-data-icon')
-            uri = "/tira-admin/reload-datasets"
-            break
-        case 'tasks':
-            icon = $('#reload-tasks-data-icon')
-            uri = "/tira-admin/reload-tasks"
-            break
-    }
-    icon.html(' <div uk-spinner="ratio: 0.5"></div>')
-    $.ajax({
-        type:"GET",
-        url: uri,
-        data:{},
-        success: function( data )
-        {
-            if (data.status === 1) {
-                icon.html(' <i class="fas fa-check"></i>')
-            } else {
-                icon.html(' <i class="fas fa-times"></i>')
-                warningAlert("Create Group",  "Undefined", data.message)
-            }
-        },
-        error: function (jqXHR, textStatus, throwError) {
-            icon.html(' <i class="fas fa-times"></i>')
-            warningAlert("Reload failed for " + model_object, throwError, jqXHR.responseJSON)
-        }
-    })
-}
-
 function string_to_slug (str) {
     str = str.replace(/^\s+|\s+$/g, ''); // trim
     str = str.toLowerCase();
@@ -122,19 +80,6 @@ function submitCreateGroup(){
 }
 
 function addTiraAdminHandlers() {
-    $('#reload-website-data').click(function() {reloadData('all')})
-    $('#reload-vms-data').click(function() {reloadData('vms')})
-    $('#reload-datasets-data').click(function() {reloadData('datasets')})
-    $('#reload-tasks-data').click(function() {reloadData('tasks')})
-    $('#create-vm-form').submit(function(e) {
-        e.preventDefault();
-        submitCreateVmForm()
-    })
-    $('#create-group-form').submit(function(e) {
-        e.preventDefault();
-        submitCreateGroup()
-    })
-
     $('#id_dataset_name').keyup(function() {
         let name = this.val()
         this.val(string_to_slug(name))

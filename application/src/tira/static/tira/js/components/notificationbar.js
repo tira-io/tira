@@ -1,8 +1,7 @@
 export default {
-  props: ['notifications'],
+  props: ['notification'],
   template: `
-<div v-for="notification in notifications">
-    <div class="uk-margin-remove" :class="{ 
+    <div :class="{ 
     'uk-alert-success': notification.type === 'success',
     'uk-alert-primary': notification.type === 'warning',
     'uk-alert-danger': notification.type === 'error',  
