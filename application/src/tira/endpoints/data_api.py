@@ -58,3 +58,19 @@ def get_submissions_by_dataset(request, context, task_id, dataset_id):
     context["vms"] = vms
 
     return JsonResponse({'status': 1, "context": context})
+
+
+@check_permissions
+@check_resources_exist("json")
+@add_context
+def get_ova_list(request, context):
+    context["ova_list"] = model.get_ova_list()
+    return JsonResponse({'status': 1, "context": context})
+
+
+@check_permissions
+@check_resources_exist("json")
+@add_context
+def get_host_list(request, context):
+    context["host_list"] = model.get_host_list()
+    return JsonResponse({'status': 1, "context": context})
