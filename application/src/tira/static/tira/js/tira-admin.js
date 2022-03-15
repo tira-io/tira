@@ -17,29 +17,6 @@ function string_to_slug (str) {
     return str;
 }
 
-function submitCreateVmForm(){
-    $('#create-vm-form-icon').html(' <div uk-spinner="ratio: 0.5"></div>')
-    $.ajax({
-        type:"POST",
-        url: "/tira-admin/create-vm",
-        headers: {
-            'X-CSRFToken': $('input[name=csrfmiddlewaretoken]').val()
-        },
-        data:{
-            bulk_create:$('#id_bulk_create').val(),
-            csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val(),
-            action: 'post'
-        },
-        success: function( data )
-        {
-            document.getElementById("create-vm-form").reset();
-            $('#create-vm-form-icon').html('');
-            $('#create-vm-form-error').text(data['create_vm_form_error']);
-            $('#create-vm-form-results').text(data)
-        }
-    })
-}
-
 function submitCreateGroup(){
     $('#create-group-form-icon').html(' <div uk-spinner="ratio: 0.5"></div>')
     let vm_id = $('#id_vm_id').val()
@@ -78,14 +55,3 @@ function submitCreateGroup(){
         }
     })
 }
-
-function addTiraAdminHandlers() {
-    $('#id_dataset_name').keyup(function() {
-        let name = this.val()
-        this.val(string_to_slug(name))
-    }).keydown(function() {
-        let name = this.val()
-        this.val(string_to_slug(name))
-    })
-}
-

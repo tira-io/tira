@@ -286,11 +286,11 @@ class DisraptorAuthentication(Authentication):
         """
         vm_group = self._create_discourse_group(vm)
         invite_link = self._create_discourse_invite_link(vm_group)
+        message = f"""Invite Mail: Please use this link to create your login for TIRA: {invite_link}. 
+                      After login to TIRA, you can find the credentials and usage examples for your
+                      dedicated virtual machine {vm['vm_id']} here: https://www.tira.io/g/tira_vm_{vm['vm_id']}"""
 
-        return {"status": 1,
-                "message": f"Invite Mail: Please use this link to create your login for TIRA: {invite_link}. "
-                           f"After login to TIRA, you can find the credentials and usage examples for your "
-                           f"dedicated virtual machine {vm['vm_id']} here: https://www.tira.io/g/tira_vm_{vm['vm_id']}"}
+        return message
 
 
 auth = Authentication(authentication_source=settings.DEPLOYMENT,

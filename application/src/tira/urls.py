@@ -58,5 +58,6 @@ urlpatterns = [
     path('api/submissions/<str:task_id>/<str:dataset_id>', data_api.get_submissions_by_dataset, name='get_submissions_by_dataset'),
     path('api/ova-list', data_api.get_ova_list, name='get_ova_list'),
     path('api/host-list', data_api.get_host_list, name='get_host_list'),
+    path('api/organizer-list', data_api.get_organizer_list, name='get_organizer_list'),
 ]
 app_name = 'tira'
