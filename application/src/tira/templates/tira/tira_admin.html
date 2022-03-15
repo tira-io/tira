@@ -27,6 +27,7 @@
                 <li><a @click="setSelected('vm')">Create VMs</a></li>
                 <li><a @click="setSelected('modify')">Modify VM</a></li>
                 <li><a @click="setSelected('task')">Create Task</a></li>
+                <li><a @click="setSelected('dataset')">Add Dataset</a></li>
             </ul>
             <div v-if="selected === 'overview'">
                 <h2>System Overview</h2>
@@ -118,13 +119,13 @@
             </div>
             <div v-if="selected === 'vm'">
                 <keep-alive>
-                    <create-vm :csrf="csrf" />
+                    <create-vm :csrf="csrf" @addNotification="(type, message) => addNotification(type, message)" />
                 </keep-alive>
                 <h2>Create Discourse Group</h2>
                 <div class="uk-grid-small" data-uk-grid>
                     <div class=" uk-width-3-5">
                         <label for="create-group-input">Group ID</label>
-                        <input id="create-group-input" class="uk-input" type="text" placeholder="Enter a group ID (same as userName for VM)" />
+                        <input v-model="createGroupId" id="create-group-input" class="uk-input" type="text" placeholder="Enter a group ID (same as userName for VM)" />
                     </div>
                     <button @click="createGroup()" class="uk-button uk-button-primary uk-width-1-4 uk-margin-top">Create Group</button>
 
@@ -153,25 +154,12 @@
             </div>
 
             <div v-if="selected === 'task'">
-                <h2>Create Task</h2> <!-- this is called via ajax -->
-                <form id="create-task-form" action="{% url 'tira:tira-admin-create-task' %}" method="POST"
-                      target="_blank">
-                    {% csrf_token %}
-                    <div class="uk-grid-small uk-child-width-1-5@m" data-uk-grid>
-                        <div>{{ create_task_form.task_id.label }}{{ create_task_form.task_id }}</div>
-                        <div>{{ create_task_form.task_name.label }}{{ create_task_form.task_name }}</div>
-                        <div>{{ create_task_form.master_vm_id.label }}{{ create_task_form.master_vm_id }}</div>
-                        <div>{{ create_task_form.organizer.label }}{{ create_task_form.organizer }}</div>
-                        <div>{{ create_task_form.website.label }}{{ create_task_form.website }}</div>
-                    </div>
-                    <br>
-                    <div>{{ create_task_form.task_description.label }}{{ create_task_form.task_description }}</div>
-                    <span id="create-task-form-error" style="color: red"></span>
-                    <br>
-                    <input type="submit" class="uk-button uk-button-primary" value="Create Task"/><span
-                        id="create-task-form-icon"></span>
-                </form>
+                <keep-alive>
+                    <create-task :csrf="csrf" @addNotification="(type, message) => addNotification(type, message)" />
+                </keep-alive>
+            </div>
 
+            <div v-if="selected === 'dataset'">
                 <h2>Add Dataset</h2>
                 <form id="add-dataset-form" action="{% url 'tira:tira-admin-add-dataset' %}" method="POST"
                       target="_blank"> <!--            action="{% url 'tira:tira-admin-add-dataset' %}"-->
@@ -232,6 +220,8 @@
 <script type="module">
     import NotificationBar from '{% static "tira/js/components/notificationbar.js" %}'
     import CreateVm from '{% static "tira/js/components/createvm.js" %}'
+    import CreateTask from '{% static "tira/js/components/createtask.js" %}'
+    import AddDataset from '{% static "tira/js/components/adddataset.js" %}'
     // import ReviewList from '{% static "tira/js/components/reviewlist.js" %}'
 
     const app = Vue.createApp({
@@ -242,22 +232,24 @@
                 reloading: [],
                 notifications: [],
                 createGroupError: '',
+                createGroupId: '',
                 batchInput: '',
                 csrf: document.querySelector('[name=csrfmiddlewaretoken]').value
             }
         },
         components: {
-            NotificationBar, CreateVm
+            NotificationBar, CreateVm, CreateTask, AddDataset
         },
         methods: {
             async apiCall(url) {
+                console.log(url)
                 const response = await fetch(url)
                 if (!response.ok) {
-                    throw new Error(`Error fetching endpoint: ${url} with ${response.status}`);
+                    throw new Error(`${await response.text()}`);
                 }
                 let results = await response.json()
                 if (results.status === 1) {
-                    throw new Error(`Error fetching endpoint: ${url} with ${results.message}`);
+                    throw new Error(results.message);
                 }
                 return results
             },
@@ -281,10 +273,13 @@
                 this.notifications.push({'type': type, 'message': message})
             },
             createGroup() {
-                this.apiCall(`/tira-admin/create-group/${vmId}`).then(results => {
+                // spinner
+                console.log(this.createGroupId)
+                this.apiCall(`/tira-admin/create-group/${this.createGroupId}`).then(results => {
                     this.addNotification('success', results.message)
+                    this.createGroupId = ''
                 }).catch(error => {
-                    this.createGroupError(error.message)
+                    this.createGroupError = error.message
                 })
             },
         },

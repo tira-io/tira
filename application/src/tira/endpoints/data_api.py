@@ -65,7 +65,7 @@ def get_submissions_by_dataset(request, context, task_id, dataset_id):
 @add_context
 def get_ova_list(request, context):
     context["ova_list"] = model.get_ova_list()
-    return JsonResponse({'status': 1, "context": context})
+    return JsonResponse({'status': 0, "context": context})
 
 
 @check_permissions
@@ -73,4 +73,12 @@ def get_ova_list(request, context):
 @add_context
 def get_host_list(request, context):
     context["host_list"] = model.get_host_list()
-    return JsonResponse({'status': 1, "context": context})
+    return JsonResponse({'status': 0, "context": context})
+
+
+@check_permissions
+@check_resources_exist("json")
+@add_context
+def get_organizer_list(request, context):
+    context["organizer_list"] = model.get_organizer_list()
+    return JsonResponse({'status': 0, "context": context})

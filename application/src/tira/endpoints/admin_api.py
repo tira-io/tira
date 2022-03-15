@@ -4,10 +4,11 @@ from tira.authentication import auth
 from tira.checks import check_permissions, check_resources_exist, check_conditional_permissions
 from tira.forms import *
 from django.http import HttpResponse, JsonResponse
+from django.core.serializers.json import DjangoJSONEncoder
 from http import HTTPStatus
+import json
 
 import tira.tira_model as model
-
 
 logger = logging.getLogger("tira")
 logger.info("ajax_routes: Logger active")
@@ -25,6 +26,7 @@ def handle_get_model_exceptions(func):
                                     status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
         return JsonResponse({'status': 1, 'message': f"{request.method} is not allowed."}, status=HTTPStatus.FORBIDDEN)
+
     return decorate
 
 
@@ -69,39 +71,13 @@ def admin_reload_runs(vm_id):
 def admin_create_vm(request):  # TODO implement
     """ Hook for create_vm posts. Responds with json objects indicating the state of the create process. """
 
-    context = {
-        "complete": [],
-        'failed': []
-    }
-    return JsonResponse(context)
+    if request.method == "POST":
+        print(json.loads(request.body))
 
-    # def parse_create_string(create_string: str):
-    #     for line in create_string.split("\n"):
-    #         line = line.split(",")
-    #         yield line[0], line[1], line[2]
-    #
-    # if request.method == "POST":
-    #     form = CreateVmForm(request.POST)
-    #     if form.is_valid():
-    #         try:
-    #             bulk_create = list(parse_create_string(form.cleaned_data["bulk_create"]))
-    #         except IndexError:
-    #             context["create_vm_form_error"] = "Error Parsing input. Are all lines complete?"
-    #             return JsonResponse(context)
-    #
-    #         # TODO dummy code talk to Nikolay!
-    #         # TODO check semantics downstream (vm exists, host/ova does not exist)
-    #         # for create_command in parse_create_string(form.cleaned_data["bulk_create"]):
-    #         #     if create_vm(*create_command):
-    #         #         model.add_ongoing_execution(*create_command)
-    #         return bulk_vm_create(request, bulk_create)
-    #     else:
-    #         context["create_vm_form_error"] = "Form Invalid (check formatting)"
-    #         return JsonResponse(context)
-    # else:
-    #     HttpResponse("Permission Denied")
-    #
-    # return JsonResponse(context)
+        return JsonResponse({'status': 0, 'message': f"Creating VM with TransactionId: dummyId"})
+
+    return JsonResponse({'status': 1, 'message': f"GET is not implemented for vm create"},
+                        status=HTTPStatus.NOT_IMPLEMENTED)
 
 
 @check_permissions
@@ -119,58 +95,29 @@ def admin_create_task(request):
     """ Create an entry in the model for the task. Use data supplied by a model.
      Return a json status message. """
 
-    context = {}
-
     if request.method == "POST":
-        form = CreateTaskForm(request.POST)
-        if form.is_valid():
-            # sanity checks
-            context["status"] = "fail"
-            master_vm_id = form.cleaned_data["master_vm_id"]
-            task_id = form.cleaned_data["task_id"]
-            organizer = form.cleaned_data["organizer"]
+        data = json.loads(request.body)
 
-            try:
-                model.get_vm(master_vm_id)
-            except KeyError as e:
-                logger.error(e)
-                context["add_dataset_form_error"] = f"Master VM with ID {master_vm_id} does not exist"
-                return JsonResponse(context)
+        master_vm_id = data["master_id"]
+        task_id = data["task_id"]
+        organizer = data["organizer"]
 
-            try:
-                model.get_task(task_id)
-            except KeyError as e:
-                logger.error(e)
-                context["add_dataset_form_error"] = f"Task with ID {task_id} does not exist"
-                return JsonResponse(context)
+        if not model.vm_exists(master_vm_id):
+            return JsonResponse({'status': 1, 'message': f"Master VM with ID {master_vm_id} does not exist"})
+        if not model.organizer_exists(organizer):
+            return JsonResponse({'status': 1, 'message': f"Organizer with ID {organizer} does not exist"})
+        if model.task_exists(task_id):
+            return JsonResponse({'status': 1, 'message': f"Task with ID {task_id} already exist"})
 
-            try:
-                model.get_organizer(organizer)
-            except KeyError as e:
-                logger.error(e)
-                context["add_dataset_form_error"] = f"Task with ID {organizer} does not exist"
-                return JsonResponse(context)
+        new_task = model.create_task(task_id, data["name"], data["description"], data["master_id"],
+                                     data["organizer"], data["website"],
+                                     help_command=data["help_command"], help_text=data["help_text"])
+        new_task = json.dumps(new_task, cls=DjangoJSONEncoder)
+        return JsonResponse({'status': 0, 'context': new_task,
+                             'message': f"Created Task with Id: {data['task_id']}"})
 
-            if model.create_task(form.cleaned_data["task_id"], form.cleaned_data["task_name"],
-                                 form.cleaned_data["task_description"], form.cleaned_data["master_vm_id"],
-                                 form.cleaned_data["organizer"], form.cleaned_data["website"]):
-                context["status"] = "success"
-                context["created"] = {
-                    "task_id": form.cleaned_data["task_id"], "task_name": form.cleaned_data["task_name"],
-                    "task_description": form.cleaned_data["task_description"],
-                    "master_vm_id": form.cleaned_data["master_vm_id"],
-                    "organizer": form.cleaned_data["organizer"], "website": form.cleaned_data["website"]}
-            else:
-                context["create_task_form_error"] = f"Could not create {form.cleaned_data['task_id']}. Contact Admin."
-                return JsonResponse(context)
-        else:
-            context["status"] = "fail"
-            context["create_task_form_error"] = "Form Invalid (check formatting)"
-            return JsonResponse(context)
-    else:
-        HttpResponse("Permission Denied")
-
-    return JsonResponse(context)
+    return JsonResponse({'status': 1, 'message': f"GET is not implemented for vm create"},
+                        status=HTTPStatus.NOT_IMPLEMENTED)
 
 
 @check_permissions
@@ -264,9 +211,10 @@ def admin_add_dataset(request):
 @check_resources_exist('json')
 def admin_create_group(request, vm_id):
     """ this is a rest endpoint to grant a user permissions on a vm"""
+    if not model.vm_exists(vm_id):
+        return JsonResponse({'status': 1, 'message': f"VM with ID {vm_id} does not exist."})
+
     vm = model.get_vm(vm_id)
-
     print(vm)
-    context = auth.create_group(vm)
-    return JsonResponse(context)
-
+    message = auth.create_group(vm)
+    return JsonResponse({'status': 0, 'message': message})

@@ -398,7 +398,7 @@ class HybridDatabase(object):
                 if not (d.dataset.is_deprecated and not include_deprecated)]
 
     def get_organizer(self, organizer_id: str):
-        organizer = modeldb.Organizers.objects.get(organizer_id=organizer_id)
+        organizer = modeldb.Organizer.objects.get(organizer_id=organizer_id)
         return {
             "organizer_id": organizer.organizer_id,
             "name": organizer.name,
@@ -407,10 +407,17 @@ class HybridDatabase(object):
         }
 
     def get_host_list(self) -> list:
-        return list(open(self.host_list_file, "r").readlines())
+        return [line.strip() for line in open(self.host_list_file, "r").readlines()]
 
     def get_ova_list(self) -> list:
         return [f"{ova_file.stem}.ova" for ova_file in self.ova_dir.glob("*.ova")]
+
+    def get_organizer_list(self) -> list:
+        return [{"organizer_id": organizer.organizer_id,
+                 "name": organizer.name,
+                 "years": organizer.years,
+                 "web": organizer.web,
+                 } for organizer in modeldb.Organizer.objects.all()]
 
     def get_vm_list(self):
         """ load the vm-info file which stores all active vms as such:
@@ -685,22 +692,27 @@ class HybridDatabase(object):
 
         raise TiraModelWriteError(f"Failed to write VM {vm_id}")
 
-    def create_task(self, task_id, task_name, task_description, master_vm_id, organizer, website):
+    def create_task(self, task_id, task_name, task_description, master_vm_id, organizer, website,
+                    help_command=None, help_text=None):
         """ Add a new task to the database.
          CAUTION: This function does not do any sanity checks and will OVERWRITE existing tasks
          TODO add max_std_out_chars_on_test_data, max_std_err_chars_on_test_data, max_file_list_chars_on_test_data, command_placeholder, command_description, dataset_label, max_std_out_chars_on_test_data_eval, max_std_err_chars_on_test_data_eval, max_file_list_chars_on_test_data_eval,          """
-        if self._save_task(task_id, task_name, task_description, master_vm_id, organizer, website):
-            try:
-                vm, _ = modeldb.VirtualMachine.objects.get_or_create(vm_id=master_vm_id)
-                modeldb.Task.objects.create(
-                    task_id=task_id, task_name=task_name, task_description=task_description,
-                    vm=vm, organizer=modeldb.Organizers.objects.get(organizer_id=organizer), web=website)
-                return True
-            except IntegrityError as e:
-                logger.exception(f"Failed to add new task {task_id} with ", e)
-                raise TiraModelIntegrityError(e)
+        # if self._save_task(task_id, task_name, task_description, master_vm_id, organizer, website):
+        vm = modeldb.VirtualMachine.objects.get(vm_id=master_vm_id)
+        new_task = modeldb.Task.objects.create(task_id=task_id,
+                                               task_name=task_name,
+                                               task_description=task_description,
+                                               vm=vm,
+                                               organizer=modeldb.Organizer.objects.get(organizer_id=organizer),
+                                               web=website)
+        if help_command:
+            new_task.command_placeholder = help_command
+        if help_text:
+            new_task.command_description = help_text
 
-        raise TiraModelWriteError(f"Failed to write task {task_id}")
+        return self._task_to_dict(new_task)
+
+        # raise TiraModelWriteError(f"Failed to write task file {task_id}")
 
     def add_dataset(self, task_id, dataset_id, dataset_type, dataset_name):
         """ TODO documentation

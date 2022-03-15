@@ -103,6 +103,10 @@ def get_ova_list() -> list:
     return model.get_ova_list()
 
 
+def get_organizer_list() -> list:
+    return model.get_organizer_list()
+
+
 def get_vm_list():
     """ load the vm-info file which stores all active vms as such:
     <hostname>\t<vm_id>[\t<state>]\n
@@ -218,12 +222,13 @@ def add_vm(vm_id: str, user_name: str, initial_user_password: str, ip: str, host
 
 
 def create_task(task_id: str, task_name: str, task_description: str, master_vm_id: str,
-                organizer: str, website: str):
+                organizer: str, website: str, help_command: str = None, help_text: str = None):
     """ Add a new task to the database.
      CAUTION: This function does not do any sanity checks and will OVERWRITE existing tasks
-     :returns: True if successful
+     :returns: The new task as json as returned by get_task
      """
-    return model.create_task(task_id, task_name, task_description, master_vm_id, organizer, website)
+    return model.create_task(task_id, task_name, task_description, master_vm_id, organizer, website, help_command,
+                             help_text)
 
 
 def add_dataset(task_id: str, dataset_id: str, dataset_type: str, dataset_name: str) -> list:
