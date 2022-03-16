@@ -111,7 +111,7 @@ export default {
     template: `
 <div class="uk-grid-small uk-margin-small" uk-grid>
     <div class="uk-margin-right">
-        <h2>Create Task</h2>
+        <h2>Add Task</h2>
     </div>
 </div>
 <div class="uk-margin-small">
@@ -126,9 +126,8 @@ export default {
                    v-model="taskNameInput">
         </div>
         <div class="uk-width-1-4">
-            <label for="master-vm-input">Master VM*</label>
+            <label for="master-vm-input">Master VM</label>
             <input id="master-vm-input" class="uk-input" type="text" placeholder="id-lowercase-with-dashes"
-                   :class="{'uk-form-danger': (this.createTaskError !== '' && this.masterVmInput === '')}"
                    v-model="masterVmInput">
         </div>
         <div class="uk-width-1-4">
@@ -162,7 +161,7 @@ export default {
                v-model="helpText" />
     </div>
     <div class="uk-margin-small">
-        <button class="uk-button uk-button-primary" @click="createTask">Create Task</button>
+        <button class="uk-button uk-button-primary" @click="createTask">Add Task</button>
         <span class="uk-text-danger uk-margin-small-left">[[ this.createTaskError ]]</span>
     </div>
     *mandatory

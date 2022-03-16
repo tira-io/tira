@@ -82,3 +82,10 @@ def get_host_list(request, context):
 def get_organizer_list(request, context):
     context["organizer_list"] = model.get_organizer_list()
     return JsonResponse({'status': 0, "context": context})
+
+
+@check_resources_exist("json")
+@add_context
+def get_task_list(request, context):
+    context["task_list"] = model.get_tasks()
+    return JsonResponse({'status': 0, "context": context})

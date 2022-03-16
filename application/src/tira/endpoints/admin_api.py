@@ -127,65 +127,47 @@ def admin_add_dataset(request):
 
     context = {}
 
+    # 'training'
+    # 'dev'
+    # 'test'
+
     if request.method == "POST":
-        form = AddDatasetForm(request.POST)
-        if form.is_valid():
-            # TODO should be calculated from dataset_name
-            dataset_id_prefix = form.cleaned_data["dataset_id_prefix"]
-            dataset_name = form.cleaned_data["dataset_name"]
-            master_vm_id = form.cleaned_data["master_vm_id"]
-            task_id = form.cleaned_data["task_id"]
-            command = form.cleaned_data["command"]
-            working_directory = form.cleaned_data["working_directory"]
-            measures = [line.split(',') for line in form.cleaned_data["measures"].split('\n')]
+        data = json.loads(request.body)
 
-            # sanity checks
-            context["status"] = "fail"
-            try:
-                model.get_vm(master_vm_id)
-            except KeyError as e:
-                logger.error(e)
-                context["add_dataset_form_error"] = f"Master VM with ID {master_vm_id} does not exist"
-                return JsonResponse(context)
+        dataset_id_prefix = data["dataset_id"]
+        dataset_name = data["name"]
+        master_vm_id = data["master_id"]
+        task_id = data["task"]
+        command = data["evaluator_command"]
+        working_directory = data["evaluator_working_directory"]
+        measures = [line.split(',') for line in data["evaluation_measures"].split('\n')]
 
-            try:
-                model.get_task(task_id)
-            except KeyError as e:
-                logger.error(e)
-                context["add_dataset_form_error"] = f"Task with ID {task_id} does not exist"
-                return JsonResponse(context)
+        if master_vm_id and not model.vm_exists(master_vm_id):
+            return JsonResponse({'status': 1, "message": f"Master VM with ID {master_vm_id} does not exist"})
 
-            try:
-                new_paths = []
-                if form.cleaned_data["create_training"]:
-                    new_paths += model.add_dataset(task_id, dataset_id_prefix, "training", dataset_name)
-                    model.add_evaluator(master_vm_id, task_id, dataset_id_prefix, "training", command,
-                                        working_directory, measures)
+        if not model.task_exists(task_id):
+            return JsonResponse({'status': 1, "message":  f"Task with ID {task_id} does not exist"})
 
-                if form.cleaned_data["create_test"]:
-                    new_paths += model.add_dataset(task_id, dataset_id_prefix, "test", dataset_name)
-                    model.add_evaluator(master_vm_id, task_id, dataset_id_prefix, "test", command, working_directory,
-                                        measures)
+        return JsonResponse({'status': 1, "message": f"Task with ID {task_id} does not exist"})
 
-                if form.cleaned_data["create_dev"]:
-                    new_paths += model.add_dataset(task_id, dataset_id_prefix, "dev", dataset_name)
-                    model.add_evaluator(master_vm_id, task_id, dataset_id_prefix, "dev", command, working_directory,
-                                        measures)
+        new_datasets = []
+        if data['training']:
+            new_datasets.append(model.add_dataset(task_id, dataset_id_prefix, "training", dataset_name))
+            model.add_evaluator(master_vm_id, task_id, dataset_id_prefix, "training", command,
+                                working_directory, measures)
+        if data['dev']:
+            new_datasets.append(model.add_dataset(task_id, dataset_id_prefix, "dev", dataset_name))
+            model.add_evaluator(master_vm_id, task_id, dataset_id_prefix, "dev", command,
+                                working_directory, measures)
+        if data['test']:
+            new_datasets.append(model.add_dataset(task_id, dataset_id_prefix, "test", dataset_name))
+            model.add_evaluator(master_vm_id, task_id, dataset_id_prefix, "test", command,
+                                working_directory, measures)
 
-                context["status"] = "success"
-                context["created"] = {"dataset_id": dataset_id_prefix, "new_paths": new_paths}
+        return JsonResponse({'status': 0, context: new_datasets, 'message': f"Created {len(new_datasets)} new datasets"})
 
-            except KeyError as e:
-                logger.error(e)
-                context["create_task_form_error"] = f"Could not create {dataset_id_prefix}: {e}"
-                return JsonResponse(context)
-        else:
-            context["create_task_form_error"] = "Form Invalid (check formatting)"
-            return JsonResponse(context)
-    else:
-        HttpResponse("Permission Denied")
-
-    return JsonResponse(context)
+    return JsonResponse({'status': 1, 'message': f"GET is not implemented for add dataset"},
+                        status=HTTPStatus.NOT_IMPLEMENTED)
 
 
 # @check_conditional_permissions(restricted=True)
@@ -211,10 +193,6 @@ def admin_add_dataset(request):
 @check_resources_exist('json')
 def admin_create_group(request, vm_id):
     """ this is a rest endpoint to grant a user permissions on a vm"""
-    if not model.vm_exists(vm_id):
-        return JsonResponse({'status': 1, 'message': f"VM with ID {vm_id} does not exist."})
-
     vm = model.get_vm(vm_id)
-    print(vm)
     message = auth.create_group(vm)
     return JsonResponse({'status': 0, 'message': message})
