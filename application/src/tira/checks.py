@@ -119,11 +119,12 @@ def check_resources_exist(reply_as='json'):
     def decorator(func):
         @wraps(func)
         def func_wrapper(request, *args, **kwargs):
-
-            def return_fail(message):
+            def return_fail(message, request_vm_instead=False):
                 if reply_as == 'json':
-                    response = JsonResponse({'status': '1', 'message': message}, status=HTTPStatus.NOT_FOUND)
+                    response = JsonResponse({'status': 1, 'message': message})
                     return response
+                if request_vm_instead:
+                    return redirect('tira:request_vm')
                 return Http404
 
             if "vm_id" in kwargs:
@@ -131,12 +132,13 @@ def check_resources_exist(reply_as='json'):
                     logger.error(f"{resolve(request.path_info).url_name}: vm_id does not exist")
                     if "task_id" in kwargs:
                         if kwargs["vm_id"] == "no-vm-assigned":
-                            return redirect('tira:request_vm')
-                        return redirect('tira:request_vm')
-                    return return_fail("vm_id does not exist")
+                            return return_fail('No vm was assigned, please request a vm.', request_vm_instead=True)
+                        return return_fail(f'There is no vm with id {kwargs["vm_id"]} matching your request.',
+                                           request_vm_instead=True)
+                    return return_fail(f"vm_id {kwargs['vm_id']} does not exist", request_vm_instead=True)
                 elif not model.get_vm(kwargs["vm_id"]).get('host', None):
-                    return redirect('tira:request_vm')
-                # TODO: handle if vm is in archive here.
+                    return return_fail(f'The requested account has no live vm with id: {kwargs["vm_id"]}',
+                                       request_vm_instead=True)
 
             if "dataset_id" in kwargs:
                 if not model.dataset_exists(kwargs["dataset_id"]):

@@ -121,61 +121,46 @@ export default {
 </div>
 <div class="uk-margin-small">
     <div class="uk-width-1-5">
-        Dataset ID Prefix: [[ this.datasetId ]] 
+        Does not work yet. Empty fields will not be changed.
     </div>
     <div class="uk-grid-small uk-margin-small" uk-grid>
-        <div class="uk-width-1-4">
-            <label for="dataset-name-input">Dataset Name*</label>
-            <input id="dataset-name-input" class="uk-input" type="text" placeholder="Name of the Dataset"
-                   :class="{'uk-form-danger': (this.createDatasetError !== '' && this.datasetNameInput === '')}"
-                   v-model="datasetNameInput">
+        <div class="uk-width-1-3">
+            <label for="vm-input">VM ID</label>
+            <input id="vm-input" class="uk-input" type="text" placeholder="id-lowercase-with-dashes"
+                   :class="{'uk-form-danger': (this.modifyVmError !== '' && this.vmInput === '')}"
+                   v-model="vmInput">
         </div>
-        <div class="uk-width-1-4">
-            <label for="task-select">Task*</label>
-            <select id="task-select" class="uk-select" v-model="this.selectedTask"
-                   :class="{'uk-form-danger': (this.createDatasetError !== '' && this.selectedTask === '')}">
-                <option disabled value="">Please select a task</option>
-                <option v-for="task in this.taskList" :value="task">[[ task.task_id ]]</option>
-            </select>
-        </div>
-        <div class="uk-width-1-4">
-            <label for="master-vm-input">Master VM</label>
-            <input id="master-vm-input" class="uk-input" type="text" placeholder="id-lowercase-with-dashes"
-                   :class="{'uk-form-danger': (this.createDatasetError !== '' && this.masterVmInput === '')}"
-                   v-model="masterVmInput">
-        </div>
-        <div class="uk-width-1-4">
-            <div>
-                <input id="training-check" class="uk-checkbox uk-margin-small-right" type="checkbox" v-model="trainingCheck"><label for="training-check">training</label>
+        
+        <div class="uk-width-2-3">
+            <div class="uk-width-1-4">
+            <label for="vm-input">Memory (GB)</label>
+            <input id="vm-input" class="uk-input" type="text" placeholder="id-lowercase-with-dashes"
+                   :class="{'uk-form-danger': (this.modifyVmError !== '' && this.vmInput === '')}"
+                   v-model="vmInput">
             </div>
-            <div>
-                <input id="dev-check" class="uk-checkbox uk-margin-small-right" type="checkbox" v-model="devCheck"><label for="dev-check">dev</label>
+            <div class="uk-width-1-4">
+            <label for="cpus-input">CPUs</label>
+            <input id="cpus-input" class="uk-input" type="text" placeholder="1"
+                   v-model="cpusInput">
             </div>
-            <div>
-                <input id="test-check" class="uk-checkbox uk-margin-small-right" type="checkbox" v-model="testCheck"><label for="test-check">test</label>
+            <div class="uk-width-1-4">
+            <label for="storage-input">Storage (GB)</label>
+            <input id="storage-input" class="uk-input" type="text" placeholder="10"
+                   v-model="storageInput">
+            </div>
+            <div class="uk-width-1-4">
+                <label for="storage-select">Storage Type</label>
+                <select id="storage-select" class="uk-select" v-model="this.selectedTask">
+                    <option value="hdd" selected>hdd</option>
+                    <option value="sftp">SFTP</option>
+                </select>
             </div>
         </div>
-    </div>
-    <div class="uk-grid-small uk-margin-small" uk-grid>
-        <div class="uk-width-1-2">
-            <label for="evaluator-working-directory">Evaluator Working Directory</label>
-            <input id="evaluator-working-directory" type="text" class="uk-input" placeholder="/path/to/directory - Defaults to home."
-                   v-model="evaluatorWorkingDirectory" />
-        </div>
-        <div class="uk-width-1-2">
-            <label for="evaluator-command">Evaluator Command</label>
-            <input id="evaluator-command" type="text" class="uk-input" placeholder="Command to be run from working directory"
-                   v-model="evaluatorCommand" />
-        </div>
+        
     </div>
     <div class="uk-margin-small">
-        <label for="evaluation-measures">Evaluation Measures</label>
-        <textarea id="evaluation-measures" rows="4" class="uk-textarea" placeholder="Measure Name,measure_key\nName will be displayed to the users.\nmeasure_key must be as output by the evaluation software."
-               v-model="evaluationMeasures" />
-   </div>
-    <div class="uk-margin-small">
-        <button class="uk-button uk-button-primary" @click="addDataset">Add Dataset</button>
-        <span class="uk-text-danger uk-margin-small-left">[[ this.createDatasetError ]]</span>
+        <button class="uk-button uk-button-primary" @click="modify">Modify</button>
+        <span class="uk-text-danger uk-margin-small-left">[[ this.modifyVmError ]]</span>
     </div>
     *mandatory
 </div>`
