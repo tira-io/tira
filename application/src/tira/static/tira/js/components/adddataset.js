@@ -51,17 +51,18 @@ export default {
             return results
         },
         addDataset() {
+            console.log('add dataset')
             this.adddatasetError = ''
             if (this.selectedTask === '') {
-                this.createTaskError += 'Please select a Task;\n'
+                this.adddatasetError += 'Please select a Task;\n'
             }
             if (this.datasetNameInput === '') {
-                this.createTaskError += 'Please provide a name for the new Dataset;\n'
+                this.adddatasetError += 'Please provide a name for the new Dataset;\n'
             }
             if (!(this.trainingCheck || this.devCheck || this.testCheck)) {
-                this.createTaskError += 'Please declare if you create a training, test, and/or dev dataset for this name\n'
+                this.adddatasetError += 'Please declare if you create a training, test, and/or dev dataset for this name\n'
             }
-            if (this.createTaskError !== '') {
+            if (this.adddatasetError !== '') {
                 return
             }
             this.submitPost('tira-admin/add-dataset', {
@@ -79,7 +80,7 @@ export default {
                 this.$emit('addnotification', 'success', message.message)
             }).catch(error => {
                 console.log(error)
-                this.createTaskError = error
+                this.adddatasetError = error
             })
         },
         string_to_slug(str) {
@@ -139,12 +140,6 @@ export default {
             </select>
         </div>
         <div class="uk-width-1-4">
-            <label for="master-vm-input">Master VM</label>
-            <input id="master-vm-input" class="uk-input" type="text" placeholder="id-lowercase-with-dashes"
-                   :class="{'uk-form-danger': (this.createDatasetError !== '' && this.masterVmInput === '')}"
-                   v-model="masterVmInput">
-        </div>
-        <div class="uk-width-1-4">
             <div>
                 <input id="training-check" class="uk-checkbox uk-margin-small-right" type="checkbox" v-model="trainingCheck"><label for="training-check">training</label>
             </div>
@@ -156,16 +151,25 @@ export default {
             </div>
         </div>
     </div>
+    <div class="uk-margin-right">
+        <h2>Evaluator</h2>
+    </div>
     <div class="uk-grid-small uk-margin-small" uk-grid>
-        <div class="uk-width-1-2">
+        <div class="uk-width-1-3">
             <label for="evaluator-working-directory">Evaluator Working Directory</label>
             <input id="evaluator-working-directory" type="text" class="uk-input" placeholder="/path/to/directory - Defaults to home."
                    v-model="evaluatorWorkingDirectory" />
         </div>
-        <div class="uk-width-1-2">
+        <div class="uk-width-1-3">
             <label for="evaluator-command">Evaluator Command</label>
             <input id="evaluator-command" type="text" class="uk-input" placeholder="Command to be run from working directory"
                    v-model="evaluatorCommand" />
+        </div>
+        <div class="uk-width-1-3">
+            <label for="master-vm-input">Master VM</label>
+            <input id="master-vm-input" class="uk-input" type="text" placeholder="id-lowercase-with-dashes"
+                   :class="{'uk-form-danger': (this.createDatasetError !== '' && this.masterVmInput === '')}"
+                   v-model="masterVmInput">
         </div>
     </div>
     <div class="uk-margin-small">

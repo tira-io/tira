@@ -104,7 +104,6 @@
                 </ul>
                 <h2>Reload System Data</h2>
                 <ul>
-                    <!--                    <li><a id="reload-website-data">Reindex all Tira Data</a><span id="reload-website-data-icon"></span></li> -->
                     <li><a @click="reload('vms')">Reload VM Data</a>
                         <div v-if="reloading.includes('vms')" uk-spinner="ratio: 0.5"></div>
                     </li>
@@ -159,10 +158,8 @@
 <script src="https://assets.webis.de/js/thirdparty/fontawesome/solid.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 {% endif %}
-<script src="https://assets.webis.de/js/filter.js"></script>
 <script src="https://assets.webis.de/js/selection.js"></script>
 <script src="https://assets.webis.de/js/tables.js"></script>
-<script src="{% static 'tira/js/util.js' %}"></script>
 
 <script src="https://unpkg.com/vue@3"></script>
 <!--<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>-->
@@ -173,7 +170,6 @@
     import AddTask from '{% static "tira/js/components/addtask.js" %}'
     import AddDataset from '{% static "tira/js/components/adddataset.js" %}'
     import ModifyVm from '{% static "tira/js/components/modifyvm.js" %}'
-    // import ReviewList from '{% static "tira/js/components/reviewlist.js" %}'
 
     const app = Vue.createApp({
         data() {

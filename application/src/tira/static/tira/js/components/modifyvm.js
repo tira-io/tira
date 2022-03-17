@@ -1,18 +1,12 @@
 export default {
     data() {
         return {
-            createDatasetError: '',
-            datasetNameInput: '',
-            datasetId: '',
-            masterVmInput: '',
-            selectedTask: '',
-            trainingCheck: true,
-            devCheck: false,
-            testCheck: true,
-            evaluatorWorkingDirectory: '',
-            evaluatorCommand: '',
-            evaluationMeasures: '',
-            taskList: [],
+            modifyVmError: '',
+            vmInput: '',
+            memoryInput: '',
+            cpusInput: '',
+            storageInput: '',
+            selectedStorage: 'hdd',
         }
     },
     emits: ['addnotification'],
@@ -50,9 +44,9 @@ export default {
             }
             return results
         },
-        addDataset() {
-            this.adddatasetError = ''
-            if (this.selectedTask === '') {
+        modify() {
+            this.modifyVmError = ''
+            if (this.selectedStorage === '') {
                 this.createTaskError += 'Please select a Task;\n'
             }
             if (this.datasetNameInput === '') {
@@ -114,49 +108,45 @@ export default {
         }
     },
     template: `
+<div>
+    Does not work yet. Empty fields will not be changed.
+</div>
 <div class="uk-grid-small uk-margin-small" uk-grid>
     <div class="uk-margin-right">
-        <h2>Add Dataset</h2>
+        <h2>Modify VM</h2>
     </div>
 </div>
 <div class="uk-margin-small">
-    <div class="uk-width-1-5">
-        Does not work yet. Empty fields will not be changed.
-    </div>
     <div class="uk-grid-small uk-margin-small" uk-grid>
-        <div class="uk-width-1-3">
+        <div class="uk-width-1-3@m uk-width-1-1@s">
             <label for="vm-input">VM ID</label>
             <input id="vm-input" class="uk-input" type="text" placeholder="id-lowercase-with-dashes"
                    :class="{'uk-form-danger': (this.modifyVmError !== '' && this.vmInput === '')}"
                    v-model="vmInput">
         </div>
-        
-        <div class="uk-width-2-3">
-            <div class="uk-width-1-4">
-            <label for="vm-input">Memory (GB)</label>
-            <input id="vm-input" class="uk-input" type="text" placeholder="id-lowercase-with-dashes"
-                   :class="{'uk-form-danger': (this.modifyVmError !== '' && this.vmInput === '')}"
-                   v-model="vmInput">
-            </div>
-            <div class="uk-width-1-4">
+        <div class="uk-width-1-6@m uk-width-1-1@s">
+            <label for="memory-input">Memory (GB)</label>
+            <input id="memory-input" class="uk-input" type="text" placeholder="id-lowercase-with-dashes"
+                   :class="{'uk-form-danger': (this.modifyVmError !== '' && this.memoryInput === '')}"
+                   v-model="memoryInput">
+        </div>
+        <div class="uk-width-1-6@m uk-width-1-1@s">
             <label for="cpus-input">CPUs</label>
             <input id="cpus-input" class="uk-input" type="text" placeholder="1"
                    v-model="cpusInput">
-            </div>
-            <div class="uk-width-1-4">
-            <label for="storage-input">Storage (GB)</label>
-            <input id="storage-input" class="uk-input" type="text" placeholder="10"
-                   v-model="storageInput">
-            </div>
-            <div class="uk-width-1-4">
-                <label for="storage-select">Storage Type</label>
-                <select id="storage-select" class="uk-select" v-model="this.selectedTask">
-                    <option value="hdd" selected>hdd</option>
-                    <option value="sftp">SFTP</option>
-                </select>
-            </div>
         </div>
-        
+        <div class="uk-width-1-6@m uk-width-1-2@s">
+        <label for="storage-input">Storage (GB)</label>
+        <input id="storage-input" class="uk-input" type="text" placeholder="10"
+               v-model="storageInput">
+        </div>
+        <div class="uk-width-1-6@m uk-width-1-2@s">
+            <label for="storage-select">Storage Type</label>
+            <select id="storage-select" class="uk-select" v-model="this.selectedStorage">
+                <option value="hdd" selected>hdd</option>
+                <option value="sftp">SFTP</option>
+            </select>
+        </div>
     </div>
     <div class="uk-margin-small">
         <button class="uk-button uk-button-primary" @click="modify">Modify</button>
