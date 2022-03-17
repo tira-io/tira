@@ -10,7 +10,7 @@ import randomname
 
 from tira.util import TiraModelWriteError, TiraModelIntegrityError
 from tira.proto import TiraClientWebMessages_pb2 as modelpb
-from tira.util import auto_reviewer, now
+from tira.util import auto_reviewer, now, get_today_timestamp
 import tira.model as modeldb
 import tira.data.data as dbops
 
@@ -203,14 +203,14 @@ class HybridDatabase(object):
         task.hostId = organizer if organizer else task.hostId
         task.web = website if website else task.web
 
-        for append in append_training_datasets:
-            task.trainingDataset.append(append)
-        for append in append_test_datasets:
-            task.testDataset.append(append)
+        if append_training_datasets:
+            for append in append_training_datasets:
+                task.trainingDataset.append(append)
+        if append_test_datasets:
+            for append in append_test_datasets:
+                task.testDataset.append(append)
 
-        # self.tasks[task_id] = new_task TODO
         open(task_file_path, 'w').write(str(task))
-        # self._build_task_relations() TODO
         return True
 
     def _save_vm(self, vm_id=None, user_name=None, initial_user_password=None, ip=None, host=None, ssh=None, rdp=None,
@@ -238,7 +238,7 @@ class HybridDatabase(object):
         open(new_vm_file_path, 'w').write(str(vm))
 
     def _save_dataset(self, task_id, dataset_id=None, display_name=None, is_deprecated=None, is_confidential=None,
-                      evaluator_id=None, overwrite=False):
+                      evaluator_id=None, overwrite=True):
         """ dataset_dir_path/task_id/dataset_id.prototext """
         new_dataset_file_path = self.datasets_dir_path / task_id / f'{dataset_id}.prototext'
         if not overwrite and new_dataset_file_path.exists():
@@ -364,9 +364,10 @@ class HybridDatabase(object):
         return self._task_to_dict(modeldb.Task.objects.select_related('organizer').get(task_id=task_id))
 
     def _dataset_to_dict(self, dataset):
+        evaluator_id = None if not dataset.evaluator else dataset.evaluator.evaluator_id
         return {
             "display_name": dataset.display_name,
-            "evaluator_id": dataset.evaluator.evaluator_id,
+            "evaluator_id": evaluator_id,
             "dataset_id": dataset.dataset_id,
             "is_confidential": dataset.is_confidential, "is_deprecated": dataset.is_deprecated,
             "year": dataset.released,
@@ -696,34 +697,34 @@ class HybridDatabase(object):
                     help_command=None, help_text=None):
         """ Add a new task to the database.
          CAUTION: This function does not do any sanity checks and will OVERWRITE existing tasks
-         TODO add max_std_out_chars_on_test_data, max_std_err_chars_on_test_data, max_file_list_chars_on_test_data, command_placeholder, command_description, dataset_label, max_std_out_chars_on_test_data_eval, max_std_err_chars_on_test_data_eval, max_file_list_chars_on_test_data_eval,          """
-        # if self._save_task(task_id, task_name, task_description, master_vm_id, organizer, website):
-        vm = modeldb.VirtualMachine.objects.get(vm_id=master_vm_id)
-        new_task = modeldb.Task.objects.create(task_id=task_id,
-                                               task_name=task_name,
-                                               task_description=task_description,
-                                               vm=vm,
-                                               organizer=modeldb.Organizer.objects.get(organizer_id=organizer),
-                                               web=website)
-        if help_command:
-            new_task.command_placeholder = help_command
-        if help_text:
-            new_task.command_description = help_text
+         TODO add max_std_out_chars_on_test_data, max_std_err_chars_on_test_data, max_file_list_chars_on_test_data, dataset_label, max_std_out_chars_on_test_data_eval, max_std_err_chars_on_test_data_eval, max_file_list_chars_on_test_data_eval"""
+        if self._save_task(task_id, task_name, task_description, master_vm_id, organizer, website):
+            if master_vm_id:
+                vm = modeldb.VirtualMachine.objects.get(vm_id=master_vm_id)
+            else:
+                vm = None
 
-        return self._task_to_dict(new_task)
+            new_task = modeldb.Task.objects.create(task_id=task_id,
+                                                   task_name=task_name,
+                                                   task_description=task_description,
+                                                   vm=vm,
+                                                   organizer=modeldb.Organizer.objects.get(organizer_id=organizer),
+                                                   web=website)
+            if help_command:
+                new_task.command_placeholder = help_command
+            if help_text:
+                new_task.command_description = help_text
 
-        # raise TiraModelWriteError(f"Failed to write task file {task_id}")
+            return self._task_to_dict(new_task)
+
+        raise TiraModelWriteError(f"Failed to write task file {task_id}")
 
     def add_dataset(self, task_id, dataset_id, dataset_type, dataset_name):
-        """ TODO documentation
-        """
+        """ Add a new dataset to a task
+         CAUTION: This function does not do any sanity (existence) checks and will OVERWRITE existing datasets """
         # update task_dir_path/task_id.prototext:
-        dataset_id = f"{dataset_id}-{dataset_type}"
-
-        try:
-            for_task = modeldb.Task.objects.get(task_id=task_id)
-        except modeldb.Task.DoesNotExist:
-            raise KeyError(f"No task with id {task_id}")
+        dataset_id = f"{dataset_id}-{get_today_timestamp()}-{dataset_type}"
+        for_task = modeldb.Task.objects.get(task_id=task_id)
 
         # create new dataset_dir_path/task_id/dataset_id.prototext
         self._save_dataset(task_id, dataset_id, dataset_name, False, True if dataset_type == 'test' else False)
@@ -761,7 +762,7 @@ class HybridDatabase(object):
         for d in new_dirs:
             d.mkdir(parents=True, exist_ok=True)
 
-        return [str(nd) for nd in new_dirs]
+        return self._dataset_to_dict(ds), [str(nd) for nd in new_dirs]
 
     def _append_evaluator(self, vm_id, evaluator_id, command, working_directory, measures):
         vm_file_path = self.vm_dir_path / f'{vm_id}.prototext'
@@ -780,10 +781,9 @@ class HybridDatabase(object):
         # self.vms[vm_proto.virtualMachineId] = vm_proto  # TODO see issue:30
         open(vm_file_path, 'w').write(str(vm))
 
-    def add_evaluator(self, vm_id, task_id, dataset_id, dataset_type, command, working_directory, measures):
+    def add_evaluator(self, vm_id, task_id, dataset_id, command, working_directory, measures):
         """ TODO documentation """
         evaluator_id = f"{dataset_id}-evaluator"
-        dataset_id = f"{dataset_id}-{dataset_type}"
 
         # get_or_create
         ev = modeldb.Evaluator.objects.update_or_create(evaluator_id=evaluator_id, defaults={

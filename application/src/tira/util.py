@@ -21,6 +21,10 @@ def get_tira_id():
     return dt.now().strftime("%Y-%m-%d-%H-%M-%S")
 
 
+def get_today_timestamp():
+    return dt.now().strftime("%Y%m%d")
+
+
 def now():
     return dt.now(timezone.utc).strftime("%a %b %d %X %Z %Y")
 

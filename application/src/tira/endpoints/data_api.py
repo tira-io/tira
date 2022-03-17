@@ -42,14 +42,7 @@ def get_evaluations_by_dataset(request, context, task_id, dataset_id):
 @add_context
 def get_submissions_by_dataset(request, context, task_id, dataset_id):
     role = context["role"]
-
     vms = model.get_vms_with_reviews(dataset_id) if role == "admin" else None
-
-    # vm_ids = model.get_vms_by_dataset(dataset_id)
-    # # This enforces an order to the measures, since they differ between datasets and are rendered dynamically
-    # vm_reviews = {vm_id: model.get_vm_reviews_by_dataset(dataset_id, vm_id) for vm_id in vm_ids}
-    #
-    # vms = model.get_vms_with_reviews(vm_ids, dataset_id, vm_reviews) if role == "admin" else None
 
     context["task_id"] = task_id
     context["dataset_id"] = dataset_id

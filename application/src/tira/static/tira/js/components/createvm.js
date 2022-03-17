@@ -108,6 +108,9 @@ export default {
         })
     },
     template: `
+<div>
+    Does not work yet.
+</div>
 <div class="uk-grid-small uk-margin-small" uk-grid>
     <div class="uk-margin-right">
         <h2>Create VM</h2>

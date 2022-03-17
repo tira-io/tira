@@ -72,12 +72,11 @@ def admin_create_vm(request):  # TODO implement
     """ Hook for create_vm posts. Responds with json objects indicating the state of the create process. """
 
     if request.method == "POST":
-        print(json.loads(request.body))
+        data = json.loads(request.body)
 
-        return JsonResponse({'status': 0, 'message': f"Creating VM with TransactionId: dummyId"})
+        return JsonResponse({'status': 0, 'message': f"Not implemented yet, received: {data}"})
 
-    return JsonResponse({'status': 1, 'message': f"GET is not implemented for vm create"},
-                        status=HTTPStatus.NOT_IMPLEMENTED)
+    return JsonResponse({'status': 1, 'message': f"GET is not implemented for vm create"})
 
 
 @check_permissions
@@ -86,8 +85,13 @@ def admin_archive_vm():
 
 
 @check_permissions
-def admin_modify_vm():
-    return JsonResponse({'status': 1, 'message': f"Not implemented"}, status=HTTPStatus.NOT_IMPLEMENTED)
+def admin_modify_vm(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+
+        return JsonResponse({'status': 0, 'message': f"Not implemented yet, received: {data}"})
+
+    return JsonResponse({'status': 1, 'message': f"GET is not implemented for modify vm"})
 
 
 @check_permissions
@@ -98,19 +102,16 @@ def admin_create_task(request):
     if request.method == "POST":
         data = json.loads(request.body)
 
-        master_vm_id = data["master_id"]
         task_id = data["task_id"]
         organizer = data["organizer"]
 
-        if not model.vm_exists(master_vm_id):
-            return JsonResponse({'status': 1, 'message': f"Master VM with ID {master_vm_id} does not exist"})
         if not model.organizer_exists(organizer):
             return JsonResponse({'status': 1, 'message': f"Organizer with ID {organizer} does not exist"})
         if model.task_exists(task_id):
             return JsonResponse({'status': 1, 'message': f"Task with ID {task_id} already exist"})
 
         new_task = model.create_task(task_id, data["name"], data["description"], data["master_id"],
-                                     data["organizer"], data["website"],
+                                     organizer, data["website"],
                                      help_command=data["help_command"], help_text=data["help_text"])
         new_task = json.dumps(new_task, cls=DjangoJSONEncoder)
         return JsonResponse({'status': 0, 'context': new_task,
@@ -127,10 +128,6 @@ def admin_add_dataset(request):
 
     context = {}
 
-    # 'training'
-    # 'dev'
-    # 'test'
-
     if request.method == "POST":
         data = json.loads(request.body)
 
@@ -144,27 +141,32 @@ def admin_add_dataset(request):
 
         if master_vm_id and not model.vm_exists(master_vm_id):
             return JsonResponse({'status': 1, "message": f"Master VM with ID {master_vm_id} does not exist"})
-
         if not model.task_exists(task_id):
             return JsonResponse({'status': 1, "message":  f"Task with ID {task_id} does not exist"})
 
-        return JsonResponse({'status': 1, "message": f"Task with ID {task_id} does not exist"})
-
         new_datasets = []
+        new_paths = []
         if data['training']:
-            new_datasets.append(model.add_dataset(task_id, dataset_id_prefix, "training", dataset_name))
-            model.add_evaluator(master_vm_id, task_id, dataset_id_prefix, "training", command,
-                                working_directory, measures)
+            ds, paths = model.add_dataset(task_id, dataset_id_prefix, "training", dataset_name)
+            new_datasets.append(ds)
+            new_paths += paths
         if data['dev']:
-            new_datasets.append(model.add_dataset(task_id, dataset_id_prefix, "dev", dataset_name))
-            model.add_evaluator(master_vm_id, task_id, dataset_id_prefix, "dev", command,
-                                working_directory, measures)
+            ds, paths = model.add_dataset(task_id, dataset_id_prefix, "dev", dataset_name)
+            new_datasets.append(ds)
+            new_paths += paths
         if data['test']:
-            new_datasets.append(model.add_dataset(task_id, dataset_id_prefix, "test", dataset_name))
-            model.add_evaluator(master_vm_id, task_id, dataset_id_prefix, "test", command,
-                                working_directory, measures)
+            ds, paths = model.add_dataset(task_id, dataset_id_prefix, "test", dataset_name)
+            new_datasets.append(ds)
+            new_paths += paths
 
-        return JsonResponse({'status': 0, context: new_datasets, 'message': f"Created {len(new_datasets)} new datasets"})
+        if master_vm_id and command and measures:
+            for nds in new_datasets:
+                model.add_evaluator(master_vm_id, task_id, nds['dataset_id'], command, working_directory, measures)
+        else:
+            return JsonResponse(
+                {'status': 0, 'context': new_datasets, 'message': f"Created {len(new_datasets)} new datasets, but did not create evaluators (please provide command, master vm, and measures)"})
+
+        return JsonResponse({'status': 0, 'context': new_datasets, 'message': f"Created {len(new_datasets)} new datasets"})
 
     return JsonResponse({'status': 1, 'message': f"GET is not implemented for add dataset"},
                         status=HTTPStatus.NOT_IMPLEMENTED)
