@@ -63,6 +63,7 @@ def login(request, context):
 
     if request.method == "POST":
         form = LoginForm(request.POST)
+        form = LoginForm(request.POST)
         if form.is_valid():
             # read form data, do auth.login(request, user_id, password)
             valid = auth.login(request, user_id=form.cleaned_data["user_id"], password=form.cleaned_data["password"])
@@ -228,27 +229,6 @@ def download_rundir(request, task_id, dataset_id, vm_id, run_id):
     else:
         return JsonResponse({'status': 1, 'reason': f'File does not exist: {zipped}'},
                             status=HTTPStatus.INTERNAL_SERVER_ERROR)
-
-
-@check_permissions
-@add_context
-def users(request, context):
-    """
-    List of all users and virtual machines.
-    """
-    context["users"] = model.get_users_vms()
-    return render(request, 'tira/user_list.html', context)
-
-
-@check_permissions
-@add_context
-def user_detail(request, context, user_id):
-    """
-    User-virtual machine details and management.
-    """
-    context["user"] = model.get_vm(user_id)
-    return render(request, 'tira/user_detail.html', context)
-
 
 @check_permissions
 @add_context
