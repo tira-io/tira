@@ -276,6 +276,13 @@ def update_software(task_id, vm_id, software_id, command: str = None, working_di
                                  run, deleted)
 
 
+def edit_task(task_id: str, task_name: str, task_description: str, master_vm_id: str,
+                organizer: str, website: str, help_command: str = None, help_text: str = None):
+    """ Update the task's data """
+    return model.edit_task(task_id, task_name, task_description, master_vm_id, organizer, website, help_command,
+                             help_text)
+
+
 def delete_software(task_id, vm_id, software_id):
     """ Set the Software's deleted flag to true and prune it from the cache.
     TODO add option to truly delete the software. """
@@ -285,6 +292,10 @@ def delete_software(task_id, vm_id, software_id):
 def delete_run(dataset_id, vm_id, run_id):
     return model.delete_run(dataset_id, vm_id, run_id)
 
+
+def delete_task(task_id: str):
+    """ Delete a task from the model """
+    return model.delete_task(task_id)
 
 # ------------------------------------------------------------
 # add methods to check for existence

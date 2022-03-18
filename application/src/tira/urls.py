@@ -47,6 +47,8 @@ urlpatterns = [
     path('tira-admin/archive-vm', admin_api.admin_archive_vm, name='tira-admin-archive-vm'),
     path('tira-admin/modify-vm', admin_api.admin_modify_vm, name='tira-admin-modify-vm'),
     path('tira-admin/create-task', admin_api.admin_create_task, name='tira-admin-create-task'),
+    path('tira-admin/edit-task', admin_api.admin_edit_task, name='tira-admin-edit-task'),
+    path('tira-admin/delete-task/<str:task_id>', admin_api.admin_delete_task, name='tira-admin-delete-task'),
     path('tira-admin/add-dataset', admin_api.admin_add_dataset, name='tira-admin-add-dataset'),
     path('tira-admin/create-group/<str:vm_id>', admin_api.admin_create_group, name='tira-admin-create-group'),
 
@@ -59,6 +61,7 @@ urlpatterns = [
     path('api/host-list', data_api.get_host_list, name='get_host_list'),
     path('api/organizer-list', data_api.get_organizer_list, name='get_organizer_list'),
     path('api/task-list', data_api.get_task_list, name='get_task_list'),
+    path('api/task/<str:task_id>', data_api.get_task, name='get_task'),
 
 ]
 app_name = 'tira'
