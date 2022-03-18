@@ -7,6 +7,7 @@ from django.db.models import Count, Q
 from shutil import rmtree
 from datetime import datetime as dt
 import randomname
+import os
 
 from tira.util import TiraModelWriteError, TiraModelIntegrityError
 from tira.proto import TiraClientWebMessages_pb2 as modelpb
@@ -919,6 +920,30 @@ class HybridDatabase(object):
         except Exception as e:
             raise TiraModelWriteError(f"Exception while saving run ({dataset_id}, {vm_id}, {run_id})", e)
 
+    def edit_task(self, task_id: str, task_name: str, task_description: str, master_vm_id: str,
+                  organizer: str, website: str, help_command: str = None, help_text: str = None):
+
+        if self._save_task(task_id, task_name, task_description, master_vm_id, organizer, website, overwrite=True):
+            if master_vm_id:
+                vm = modeldb.VirtualMachine.objects.get(vm_id=master_vm_id)
+            else:
+                vm = None
+
+            task = modeldb.Task.objects.get(task_id=task_id)
+            task.task_name = task_name
+            task.task_description = task_description
+            task.vm = vm
+            task.organizer = modeldb.Organizer.objects.get(organizer_id=organizer)
+            task.web = website
+            if help_command:
+                task.command_placeholder = help_command
+            if help_text:
+                task.command_description = help_text
+            task.save()
+            return self._task_to_dict(task)
+
+        raise TiraModelWriteError(f"Failed to write task file {task_id}")
+
     # TODO add option to truly delete the software.
     def delete_software(self, task_id, vm_id, software_id):
         s = self._load_softwares(task_id, vm_id)
@@ -942,6 +967,12 @@ class HybridDatabase(object):
             logger.exception(f'Tried to delete {run_dir} but it was not found. Deleting the run from Database ... ')
 
         modeldb.Run.objects.filter(run_id=run_id).delete()
+
+    def delete_task(self, task_id):
+        task_file_path = self.tasks_dir_path / f'{task_id}.prototext'
+        if task_file_path.exists():
+            os.remove(task_file_path)
+        modeldb.Task.objects.filter(task_id=task_id).delete()
 
     # methods to check for existence
     @staticmethod

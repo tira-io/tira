@@ -5,23 +5,34 @@
 {% block navbar %}{% include "tira/navbar.html" with nav_active='tasks' %}{% endblock %}
 
 {% block content %}
+{% csrf_token %}
+<div id="vue-task-mount">
+<div>
+    <notification-bar v-for="notification in notifications"
+                      :notification="notification" />
+</div>
+
 <nav class="uk-container">
     <ul class="uk-breadcrumb">
         <li><a href="{% url 'tira:index' %}">Tira.io</a></li>
-        <li><a href="{% url 'tira:task' task_id=task.task_id %}">{{ task.task_name }}</a></li>
+        <li><a href="{% url 'tira:task' task_id=task.task_id %}">[[ taskName ]]</a></li>
     </ul>
 </nav>
 
-<main class="uk-section uk-section-default" id="vue-task-mount">
+<main class="uk-section uk-section-default" >
     <div class="uk-container">
         <div uk-grid>
-            <div class="uk-width-expand">
-                <h1>{{ task.task_name }} <span class="'uk-text-lead">by {{ task.organizer }}</span></h1>
+            <div class="uk-width-expand@m uk-width-1-2@s">
+                <h1>[[ taskName ]] <span class="uk-text-lead uk-text-muted">by [[ organizerName ]]</span></h1>
             </div>
             <div>
+                <a uk-toggle="target: #task-edit-modal" class="uk-button uk-button-default uk-text-large"
+                   uk-tooltip="title: Edit Task;">
+                   <span class="uk-padding-small">Edit</span><i class="fas fa-edit"></i></a>
                 <a class="uk-button uk-button-default uk-text-large"
                    uk-tooltip="title: Task Website;"
-                   href="{{ task.web }}">
+                   target="_blank"
+                   :href="website">
                    <span class="uk-padding-small">Task Website</span><i class="fas fa-external-link-alt uk-margin-small-left"></i></a>
                 <a class="uk-button uk-button-primary uk-text-large"
                    uk-tooltip="title: Participate;"
@@ -30,7 +41,7 @@
             </div>
         </div>
         <div class="uk-margin-small">
-            {{ task.task_description }}
+            [[ taskDescription ]]
         </div>
     </div>
 
@@ -77,6 +88,7 @@
                      :hide_private="hide_private"/>
     </div>
 
+    {% if role == 'admin' %}
     <div v-if="selected !== '' && role === 'admin' && vms[selected]" class="uk-container uk-margin-medium">
 
         <div class="uk-grid-collapse" uk-grid>
@@ -91,7 +103,20 @@
         <review-list :vms="vms[selected]" :task_id="task_id" :dataset_id="selected" :hide_reviewed="hide_reviewed" />
     </div>
 
+    <div id="task-edit-modal" uk-modal>
+        <div class="uk-modal-dialog uk-modal-body uk-width-4-5">
+            <button class="uk-modal-close-default" type="button" uk-close></button>
+            <edit-task :csrf="csrf"
+                       @addNotification="(type, message) => addNotification(type, message)"
+                       @updateTask="(message) => updateTask(message)"
+                       :task_id="task_id" />
+        </div>
+    </div>
+    {% endif %}
+
 </main>
+</div>
+
 
 {% if not include_navigation %}
 <script src="https://assets.webis.de/js/thirdparty/jquery/jquery.slim.min.js"></script>
@@ -108,29 +133,48 @@
 <!--<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>-->
 <!--https://vuejs.org/examples/#modal-->
 <script type="module">
+import NotificationBar from '{% static "tira/js/components/notificationbar.js" %}'
 import Leaderboard from '{% static "tira/js/components/leaderboard.js" %}'
 import ReviewList from '{% static "tira/js/components/reviewlist.js" %}'
+import EditTask from '{% static "tira/js/components/edittask.js" %}'
 
 const app = Vue.createApp({
     data() {
         return {
             task_id: "{{ task.task_id|safe }}",
+            taskName: "{{ task.task_name|safe }}",
+            organizerName: "{{ task.organizer|safe }}",
+            website: "{{ task.web|safe }}",
+            taskDescription: "{{ task.task_description|safe }}",
             datasets: JSON.parse('{{ datasets|safe }}'),
             test_ids: JSON.parse('{{ test_dataset_ids|safe }}'),
             training_ids: JSON.parse('{{ training_dataset_ids|safe }}'),
             role: '{{ role|safe }}',
             evaluations: {},
             vms: {},
+            notifications: [],
             loading: false,
             selected: "{{ selected_dataset_id }}",
             hide_private: true,
             hide_reviewed: true,
+            csrf: document.querySelector('[name=csrfmiddlewaretoken]').value
         }
     },
     components: {
-        Leaderboard, ReviewList
+        Leaderboard, ReviewList, NotificationBar, EditTask
     },
     methods: {
+        addNotification(type, message) {
+            this.notifications.push({'type': type, 'message': message})
+        },
+        updateTask(message){
+            let modal = document.getElementById('task-edit-modal')
+            UIkit.modal(modal).hide();
+            this.taskName = message.task_name
+            this.organizerName = message.organizer
+            this.website = message.web
+            this.taskDescription = message.task_description
+        },
         get_nav_item(dsid) {
             let title = this.datasets[dsid].dataset_id
             if(this.datasets[dsid].display_name !== ""){
@@ -183,6 +227,11 @@ const app = Vue.createApp({
                     this.getSubmissions(newSelected)
                 }
 
+            }
+        },
+        website(newWebsite, oldWebsite) {
+            if (!(newWebsite.startsWith('http://') || newWebsite.startsWith('https://'))) {
+                this.website = `https://${newWebsite}`
             }
         }
     },

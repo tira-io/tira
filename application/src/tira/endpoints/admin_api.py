@@ -122,6 +122,36 @@ def admin_create_task(request):
 
 
 @check_permissions
+def admin_edit_task(request):
+    """ Edit a task. Expects a POST message with all task data. """
+    if request.method == "POST":
+        data = json.loads(request.body)
+
+        task_id = data["task_id"]
+        organizer = data["organizer"]
+
+        if not model.organizer_exists(organizer):
+            return JsonResponse({'status': 1, 'message': f"Organizer with ID {organizer} does not exist"})
+        if not model.task_exists(task_id):
+            return JsonResponse({'status': 1, 'message': f"Task with ID {task_id} does not exist and can't be edited"})
+
+        task = model.edit_task(task_id, data["name"], data["description"], data["master_id"],
+                               organizer, data["website"], help_command=data["help_command"],
+                               help_text=data["help_text"])
+
+        return JsonResponse({'status': 0, 'context': json.dumps(task, cls=DjangoJSONEncoder),
+                             'message': f"Edited Task with Id: {data['task_id']}"})
+
+    return JsonResponse({'status': 1, 'message': f"GET is not implemented for edit task"})
+
+
+@check_permissions
+def admin_delete_task(request, task_id):
+    model.delete_task(task_id)
+    return JsonResponse({'status': 0, 'message': f"Deleted task {task_id}"})
+
+
+@check_permissions
 def admin_add_dataset(request):
     """ Create an entry in the model for the task. Use data supplied by a model.
      Return a json status message. """
@@ -142,7 +172,7 @@ def admin_add_dataset(request):
         if master_vm_id and not model.vm_exists(master_vm_id):
             return JsonResponse({'status': 1, "message": f"Master VM with ID {master_vm_id} does not exist"})
         if not model.task_exists(task_id):
-            return JsonResponse({'status': 1, "message":  f"Task with ID {task_id} does not exist"})
+            return JsonResponse({'status': 1, "message": f"Task with ID {task_id} does not exist"})
 
         new_datasets = []
         new_paths = []
@@ -164,9 +194,11 @@ def admin_add_dataset(request):
                 model.add_evaluator(master_vm_id, task_id, nds['dataset_id'], command, working_directory, measures)
         else:
             return JsonResponse(
-                {'status': 0, 'context': new_datasets, 'message': f"Created {len(new_datasets)} new datasets, but did not create evaluators (please provide command, master vm, and measures)"})
+                {'status': 0, 'context': new_datasets,
+                 'message': f"Created {len(new_datasets)} new datasets, but did not create evaluators (please provide command, master vm, and measures)"})
 
-        return JsonResponse({'status': 0, 'context': new_datasets, 'message': f"Created {len(new_datasets)} new datasets"})
+        return JsonResponse(
+            {'status': 0, 'context': new_datasets, 'message': f"Created {len(new_datasets)} new datasets"})
 
     return JsonResponse({'status': 1, 'message': f"GET is not implemented for add dataset"},
                         status=HTTPStatus.NOT_IMPLEMENTED)

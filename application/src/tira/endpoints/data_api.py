@@ -80,3 +80,10 @@ def get_organizer_list(request, context):
 def get_task_list(request, context):
     context["task_list"] = model.get_tasks()
     return JsonResponse({'status': 0, "context": context})
+
+
+@check_resources_exist("json")
+@add_context
+def get_task(request, context, task_id):
+    context["task"] = model.get_task(task_id)
+    return JsonResponse({'status': 0, "context": context})
