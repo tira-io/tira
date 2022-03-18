@@ -13,7 +13,7 @@ export default {
             organizerList: [],
         }
     },
-    emits: ['addnotification'],
+    emits: ['addnotification', 'closemodal'],
     props: ['csrf'],
     methods: {
         async get(url) {
@@ -72,6 +72,7 @@ export default {
                 'help_command': this.helpCommand,
             }).then(message => {
                 this.$emit('addnotification', 'success', message.message)
+                this.$emit('closemodal')
             }).catch(error => {
                 console.log(error)
                 this.createTaskError = error
@@ -109,6 +110,7 @@ export default {
         }
     },
     template: `
+<div>
 <div class="uk-grid-small uk-margin-small" uk-grid>
     <div class="uk-margin-right">
         <h2>Add Task</h2>
@@ -165,5 +167,6 @@ export default {
         <span class="uk-text-danger uk-margin-small-left">[[ this.createTaskError ]]</span>
     </div>
     *mandatory
+</div>
 </div>`
 }

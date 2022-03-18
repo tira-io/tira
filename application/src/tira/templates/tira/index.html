@@ -5,6 +5,13 @@
 {% block navbar %}{% include "tira/navbar.html" with nav_active='tasks' %}{% endblock %}
 
 {% block content %}
+{% csrf_token %}
+<div id="vue-index-mount">
+<div>
+    <notification-bar v-for="notification in notifications"
+                      :notification="notification" />
+</div>
+
 <main class="uk-section uk-cover-container index-main-cover">
     <div class="cover-background-fade"></div>
     <div class="uk-position-bottom">
@@ -20,15 +27,31 @@
 <div class="uk-section uk-section-default">
     <!-- search field -->
 
-
     <div class="uk-container uk-margin-medium">
         <h1>Shared Tasks</h1>
     </div>
     <div class="uk-container uk-margin-medium">
-        <div id="search-control">
-            <input type="text" class="uk-input" id="filter-field" placeholder="Type here to filter&hellip;"/>
+        <div class="uk-grid-small" uk-grid>
+            <div class="uk-width-1-3" id="search-control">
+                <input type="text" class="uk-input" id="filter-field" placeholder="Type here to filter&hellip;"/>
+            </div>
+            <div>
+                <a uk-toggle="target: #add-task-modal" class="uk-button uk-button-large uk-button-primary uk-text-large">Add Task +</a>
+            </div>
         </div>
     </div>
+
+    {% if role == 'admin' %}
+    <div id="add-task-modal" uk-modal>
+        <div class="uk-modal-dialog uk-modal-body uk-width-4-5">
+            <button class="uk-modal-close-default" type="button" uk-close></button>
+            <add-task :csrf="csrf"
+                       @addNotification="(type, message) => addNotification(type, message)"
+                       @closeModal="closeModal()" />
+        </div>
+    </div>
+    {% endif %}
+
     <!-- task table start -->
     <div class="uk-container uk-margin-medium">
         <table class="uk-margin-medium uk-table uk-table-divider uk-table-small sortable targetable">
@@ -74,6 +97,7 @@
         </div>
     </div>
 </div>
+</div>
 
 {% if include_navigation %}
 <script src="https://assets.webis.de/js/thirdparty/jquery/jquery.slim.min.js"></script>
@@ -85,5 +109,37 @@
 <script src="https://assets.webis.de/js/tables.js"></script>
 <script>initWebisTableFiltering();</script>
 <script>initTableSorting();</script>
+
+<script src="https://unpkg.com/vue@3"></script>
+<!--<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>-->
+<!--https://vuejs.org/examples/#modal-->
+<script type="module">
+import NotificationBar from '{% static "tira/js/components/notificationbar.js" %}'
+import AddTask from '{% static "tira/js/components/addtask.js" %}'
+
+const app = Vue.createApp({
+    data() {
+        return {
+            notifications: [],
+            csrf: document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    },
+    components: {
+        AddTask, NotificationBar
+    },
+    methods: {
+        addNotification(type, message) {
+            this.notifications.push({'type': type, 'message': message})
+        },
+        closeModal() {
+            let modal = document.getElementById('add-task-modal')
+            UIkit.modal(modal).hide();
+        }
+    },
+})
+app.config.compilerOptions.delimiters = ['[[', ']]']
+app.mount("#vue-index-mount")
+</script>
+
 
 {% endblock %}
