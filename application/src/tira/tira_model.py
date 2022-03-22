@@ -221,13 +221,13 @@ def add_vm(vm_id: str, user_name: str, initial_user_password: str, ip: str, host
     return model.add_vm(vm_id, user_name, initial_user_password, ip, host, ssh, rdp)
 
 
-def create_task(task_id: str, task_name: str, task_description: str, master_vm_id: str,
+def create_task(task_id: str, task_name: str, task_description: str,
                 organizer: str, website: str, help_command: str = None, help_text: str = None):
     """ Add a new task to the database.
      CAUTION: This function does not do any sanity checks and will OVERWRITE existing tasks
      :returns: The new task as json as returned by get_task
      """
-    return model.create_task(task_id, task_name, task_description, master_vm_id, organizer, website, help_command,
+    return model.create_task(task_id, task_name, task_description, organizer, website, help_command,
                              help_text)
 
 
@@ -241,9 +241,8 @@ def add_software(task_id: str, vm_id: str):
     return model.add_software(task_id, vm_id)
 
 
-def add_evaluator(vm_id: str, task_id: str, dataset_id: str, dataset_type: str, command: str,
-                  working_directory: str, measures):
-    return model.add_evaluator(vm_id, task_id, dataset_id, dataset_type, command, working_directory, measures)
+def add_evaluator(vm_id: str, task_id: str, dataset_id: str, command: str, working_directory: str, measures):
+    return model.add_evaluator(vm_id, task_id, dataset_id, command, working_directory, measures)
 
 
 def add_run(dataset_id, vm_id, run_id):
@@ -276,11 +275,17 @@ def update_software(task_id, vm_id, software_id, command: str = None, working_di
                                  run, deleted)
 
 
-def edit_task(task_id: str, task_name: str, task_description: str, master_vm_id: str,
-                organizer: str, website: str, help_command: str = None, help_text: str = None):
+def edit_task(task_id: str, task_name: str, task_description: str, organizer: str, website: str,
+              help_command: str = None, help_text: str = None):
     """ Update the task's data """
-    return model.edit_task(task_id, task_name, task_description, master_vm_id, organizer, website, help_command,
-                             help_text)
+    return model.edit_task(task_id, task_name, task_description, organizer, website, help_command, help_text)
+
+
+def edit_dataset(task_id: str, dataset_id: str, dataset_name: str, master_vm_id: str, command: str,
+                 working_directory: str, measures: str, is_confidential: bool = False):
+    """ Update the datasets's data """
+    return model.edit_dataset(task_id, dataset_id, dataset_name, master_vm_id, command, working_directory,
+                              measures, is_confidential)
 
 
 def delete_software(task_id, vm_id, software_id):
@@ -297,9 +302,18 @@ def delete_task(task_id: str):
     """ Delete a task from the model """
     return model.delete_task(task_id)
 
+
+def delete_dataset(dataset_id: str):
+    return model.delete_dataset(dataset_id)
+
+
+def edit_organizer(organizer_id: str, name: str, years: str, web: str):
+    return model.edit_organizer(organizer_id, name, years, web)
+
 # ------------------------------------------------------------
 # add methods to check for existence
 # ------------------------------------------------------------
+
 
 def task_exists(task_id: str) -> bool:
     return model.task_exists(task_id)

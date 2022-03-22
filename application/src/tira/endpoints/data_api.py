@@ -89,3 +89,18 @@ def get_task_list(request, context):
 def get_task(request, context, task_id):
     context["task"] = model.get_task(task_id)
     return JsonResponse({'status': 0, "context": context})
+
+
+@check_resources_exist("json")
+@add_context
+def get_dataset(request, context, dataset_id):
+    context["dataset"] = model.get_dataset(dataset_id)
+    context["evaluator"] = model.get_evaluator(dataset_id)
+    return JsonResponse({'status': 0, "context": context})
+
+
+@check_resources_exist("json")
+@add_context
+def get_organizer(request, context, organizer_id):
+    org = model.get_organizer(organizer_id)
+    return JsonResponse({'status': 0, "context": org})

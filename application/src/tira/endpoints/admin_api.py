@@ -110,7 +110,7 @@ def admin_create_task(request):
         if model.task_exists(task_id):
             return JsonResponse({'status': 1, 'message': f"Task with ID {task_id} already exist"})
 
-        new_task = model.create_task(task_id, data["name"], data["description"], data["master_id"],
+        new_task = model.create_task(task_id, data["name"], data["description"],
                                      organizer, data["website"],
                                      help_command=data["help_command"], help_text=data["help_text"])
         new_task = json.dumps(new_task, cls=DjangoJSONEncoder)
@@ -122,30 +122,28 @@ def admin_create_task(request):
 
 
 @check_permissions
-def admin_edit_task(request):
+@check_resources_exist('json')
+def admin_edit_task(request, task_id):
     """ Edit a task. Expects a POST message with all task data. """
     if request.method == "POST":
         data = json.loads(request.body)
-
-        task_id = data["task_id"]
         organizer = data["organizer"]
 
         if not model.organizer_exists(organizer):
             return JsonResponse({'status': 1, 'message': f"Organizer with ID {organizer} does not exist"})
-        if not model.task_exists(task_id):
-            return JsonResponse({'status': 1, 'message': f"Task with ID {task_id} does not exist and can't be edited"})
 
-        task = model.edit_task(task_id, data["name"], data["description"], data["master_id"],
+        task = model.edit_task(task_id, data["name"], data["description"],
                                organizer, data["website"], help_command=data["help_command"],
                                help_text=data["help_text"])
 
         return JsonResponse({'status': 0, 'context': json.dumps(task, cls=DjangoJSONEncoder),
-                             'message': f"Edited Task with Id: {data['task_id']}"})
+                             'message': f"Edited Task with Id: {task_id}"})
 
     return JsonResponse({'status': 1, 'message': f"GET is not implemented for edit task"})
 
 
 @check_permissions
+@check_resources_exist('json')
 def admin_delete_task(request, task_id):
     model.delete_task(task_id)
     return JsonResponse({'status': 0, 'message': f"Deleted task {task_id}"})
@@ -155,9 +153,6 @@ def admin_delete_task(request, task_id):
 def admin_add_dataset(request):
     """ Create an entry in the model for the task. Use data supplied by a model.
      Return a json status message. """
-
-    context = {}
-
     if request.method == "POST":
         data = json.loads(request.body)
 
@@ -167,60 +162,86 @@ def admin_add_dataset(request):
         task_id = data["task"]
         command = data["evaluator_command"]
         working_directory = data["evaluator_working_directory"]
-        measures = [line.split(',') for line in data["evaluation_measures"].split('\n')]
+        measures = data["evaluation_measures"]
+
+        if master_vm_id and not model.vm_exists(master_vm_id):
+            return JsonResponse({'status': 1, "message": f"Master VM with ID {master_vm_id} does not exist"})
+        if not model.task_exists(task_id):
+            return JsonResponse({'status': 1, "message": f"Task with ID {task_id} does not exist"})
+        if data['type'] not in {'test', 'training'}:
+            return JsonResponse({'status': 1, "message": f"Dataset type must be 'test' or 'training'"})
+
+        if data['type'] == 'training':
+            ds, paths = model.add_dataset(task_id, dataset_id_prefix, "training", dataset_name)
+        elif data['type'] == 'test':
+            ds, paths = model.add_dataset(task_id, dataset_id_prefix, "test", dataset_name)
+
+        model.add_evaluator(master_vm_id, task_id, ds['dataset_id'], command, working_directory, measures)
+        path_string = '\n '.join(paths)
+        return JsonResponse(
+            {'status': 0, 'context': ds, 'message': f"Created new dataset with id {ds['dataset_id']}. "
+                                                    f"Store your datasets in the following Paths:\n"
+                                                    f"{path_string}"})
+
+    return JsonResponse({'status': 1, 'message': f"GET is not implemented for add dataset"})
+
+
+@check_permissions
+@check_resources_exist('json')
+def admin_edit_dataset(request, dataset_id):
+    """ Edit a dataset with the given dataset_id
+    Send the new data of the dataset via POST. All these keys must be given and will be set:
+
+    - name: New display name of the dataset
+    - task: The associated task
+    - master_id: ID of the vm that runs the evaluator for this dataset
+    - type: 'training' or 'test'
+    - evaluator_working_directory: working directory of the evaluator on the master vm
+    - evaluator_command: command to be run on the master vm to evaluate the output of runs on the dataset
+    - evaluation_measures: (str) the measures output by the evaluator. Sent as a string with:
+        `
+        Display Name of Measure1,key_of_measure_1\n
+        Display Name of Measure2,key_of_measure_2\n
+        ...
+        `
+    """
+    if request.method == "POST":
+        data = json.loads(request.body)
+
+        dataset_name = data["name"]
+        task_id = data["task"]
+        is_confidential = not data['publish']
+
+        master_vm_id = data["master_id"]
+        command = data["evaluator_command"]
+        working_directory = data["evaluator_working_directory"]
+        measures = data["evaluation_measures"]
 
         if master_vm_id and not model.vm_exists(master_vm_id):
             return JsonResponse({'status': 1, "message": f"Master VM with ID {master_vm_id} does not exist"})
         if not model.task_exists(task_id):
             return JsonResponse({'status': 1, "message": f"Task with ID {task_id} does not exist"})
 
-        new_datasets = []
-        new_paths = []
-        if data['training']:
-            ds, paths = model.add_dataset(task_id, dataset_id_prefix, "training", dataset_name)
-            new_datasets.append(ds)
-            new_paths += paths
-        if data['dev']:
-            ds, paths = model.add_dataset(task_id, dataset_id_prefix, "dev", dataset_name)
-            new_datasets.append(ds)
-            new_paths += paths
-        if data['test']:
-            ds, paths = model.add_dataset(task_id, dataset_id_prefix, "test", dataset_name)
-            new_datasets.append(ds)
-            new_paths += paths
-
-        if master_vm_id and command and measures:
-            for nds in new_datasets:
-                model.add_evaluator(master_vm_id, task_id, nds['dataset_id'], command, working_directory, measures)
-        else:
-            return JsonResponse(
-                {'status': 0, 'context': new_datasets,
-                 'message': f"Created {len(new_datasets)} new datasets, but did not create evaluators (please provide command, master vm, and measures)"})
+        ds = model.edit_dataset(task_id, dataset_id, dataset_name, master_vm_id, command, working_directory,
+                                measures, is_confidential)
 
         return JsonResponse(
-            {'status': 0, 'context': new_datasets, 'message': f"Created {len(new_datasets)} new datasets"})
+            {'status': 0, 'context': ds, 'message': f"Updated Dataset {ds['dataset_id']}."})
 
-    return JsonResponse({'status': 1, 'message': f"GET is not implemented for add dataset"},
-                        status=HTTPStatus.NOT_IMPLEMENTED)
+    return JsonResponse({'status': 1, 'message': f"GET is not implemented for add dataset"})
 
 
-# @check_conditional_permissions(restricted=True)
-# @check_resources_exist('json')
-# def admin_create_group(request, vm_id):
-#     """ This is the form endpoint to grant a user permissions on a vm"""
-#     context = {"status": 0, "message": ""}
-#     if request.method == "POST":
-#         form = AdminCreateGroupForm(request.POST)
-#         if form.is_valid():
-#             vm_id = form.cleaned_data["vm_id"]
-#         else:
-#             context["create_vm_form_error"] = "Form Invalid (check formatting)"
-#             return JsonResponse(context)
-#
-#     vm = model.get_vm(vm_id)
-#     context = auth.create_group(vm)
-#
-#     return JsonResponse(context)
+@check_permissions
+@check_resources_exist('json')
+def admin_delete_dataset(request, dataset_id):
+    model.delete_dataset(dataset_id)
+    return JsonResponse({'status': 0, 'message': f"Deleted dataset {dataset_id}"})
+
+
+@check_permissions
+def admin_edit_organizer(request, organizer_id, name, years, web):
+    model.edit_organizer(organizer_id, name, years, web)
+    return JsonResponse({'status': 0, 'message': f"Updated Organizer {organizer_id}"})
 
 
 @check_conditional_permissions(restricted=True)

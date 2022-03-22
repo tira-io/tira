@@ -84,7 +84,9 @@
             <div class="uk-modal-dialog uk-modal-body uk-width-4-5">
                 <button class="uk-modal-close-default" type="button" uk-close></button>
                 <add-dataset :csrf="csrf"
+                             :task_id="task_id"
                              @addNotification="(type, message) => addNotification(type, message)"
+                             @addDataset="(dataset) => addDataset(dataset)"
                              @closeModal="closeModal()"/>
             </div>
         </div>
@@ -92,8 +94,12 @@
             <div class="uk-modal-dialog uk-modal-body uk-width-4-5">
                 <button class="uk-modal-close-default" type="button" uk-close></button>
                 <edit-dataset :csrf="csrf"
+                              :dataset_id="selected"
                               @addNotification="(type, message) => addNotification(type, message)"
-                              @closeModal="closeModal()"/>
+                              @closeModal="closeModal()"
+                              @deleteDataset="(dsId) => deleteDataset(dsId)"
+                              @editDataset="(dataset) => addDataset(dataset)"
+                              v-if="selected !== ''"/>
             </div>
         </div>
         {% endif %}
@@ -141,7 +147,6 @@
             </div>
         </div>
         {% endif %}
-
     </main>
 </div>
 
@@ -200,6 +205,15 @@
             closeModal() {
                 UIkit.modal(document.getElementById('add-dataset-modal')).hide();
                 UIkit.modal(document.getElementById('edit-dataset-modal')).hide();
+            },
+            deleteDataset(dsId) {
+                this.selected = ""
+                delete this.datasets[dsId]
+            },
+            addDataset(dataset) {
+                console.log(dataset)
+                this.datasets[dataset.dataset_id] = dataset
+                this.selected = dataset.dataset_id
             },
             updateTask(message) {
                 let modal = document.getElementById('task-edit-modal')

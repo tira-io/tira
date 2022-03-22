@@ -2,7 +2,6 @@ from django.urls import path
 
 from . import views
 from .endpoints import organizer_api, admin_api, vm_api, data_api
-
 urlpatterns = [
     path('', views.index, name='index'),
     path('task', views.index, name='index'),
@@ -47,9 +46,12 @@ urlpatterns = [
     path('tira-admin/archive-vm', admin_api.admin_archive_vm, name='tira-admin-archive-vm'),
     path('tira-admin/modify-vm', admin_api.admin_modify_vm, name='tira-admin-modify-vm'),
     path('tira-admin/create-task', admin_api.admin_create_task, name='tira-admin-create-task'),
-    path('tira-admin/edit-task', admin_api.admin_edit_task, name='tira-admin-edit-task'),
+    path('tira-admin/edit-task/<str:task_id>', admin_api.admin_edit_task, name='tira-admin-edit-task'),
     path('tira-admin/delete-task/<str:task_id>', admin_api.admin_delete_task, name='tira-admin-delete-task'),
     path('tira-admin/add-dataset', admin_api.admin_add_dataset, name='tira-admin-add-dataset'),
+    path('tira-admin/edit-dataset/<str:dataset_id>', admin_api.admin_edit_dataset, name='tira-admin-edit-dataset'),
+    path('tira-admin/delete-dataset/<str:dataset_id>', admin_api.admin_delete_dataset, name='tira-admin-delete-dataset'),
+    path('tira-admin/edit-organizer/<str:organizer_id>', admin_api.admin_edit_organizer, name='tira-admin-edit-organizer'),
     path('tira-admin/create-group/<str:vm_id>', admin_api.admin_create_group, name='tira-admin-create-group'),
 
     path('publish/<str:vm_id>/<str:dataset_id>/<str:run_id>/<str:value>', organizer_api.publish, name='publish'),
@@ -62,6 +64,9 @@ urlpatterns = [
     path('api/organizer-list', data_api.get_organizer_list, name='get_organizer_list'),
     path('api/task-list', data_api.get_task_list, name='get_task_list'),
     path('api/task/<str:task_id>', data_api.get_task, name='get_task'),
+    path('api/dataset/<str:dataset_id>', data_api.get_dataset, name='get_dataset'),
+    path('api/organizer/<str:organizer_id>', data_api.get_organizer, name='get_organizer'),
 
 ]
+
 app_name = 'tira'

@@ -3,7 +3,6 @@ export default {
         return {
             taskError: '',
             taskNameInput: '',
-            masterVmInput: '',
             selectedOrganizer: '',
             websiteInput: '',
             taskDescription: '',
@@ -67,10 +66,8 @@ export default {
             if (this.taskError !== '') {
                 return
             }
-            this.submitPost('/tira-admin/edit-task', {
-                'task_id': this.task_id,
+            this.submitPost(`/tira-admin/edit-task/${this.task_id}`, {
                 'name': this.taskNameInput,
-                'master_id': this.masterVmInput,
                 'organizer': this.selectedOrganizer.organizer_id,
                 'website': this.websiteInput,
                 'description': this.taskDescription,
@@ -114,52 +111,40 @@ export default {
     template: `
 <div class="uk-grid-small uk-margin-small" uk-grid>
     <div class="uk-margin-right">
-        <h2>Edit Task</h2>
+        <h2>Edit Task <span class="uk-text-lead uk-text-muted">ID: [[ this.task_id ]]</span></h2>
     </div>
 </div>
 <div class="uk-margin-small">
-    Task ID: [[ this.task_id ]]
     <div class="uk-grid-small uk-margin-small" uk-grid>
-        <div class="uk-width-1-4">
-            <label for="task-name-input">Task Name</label>
-            <input id="task-name-input" class="uk-input" type="text" placeholder="Name of the Task"
+        <div class="uk-width-1-3">
+            <label><input class="uk-input" type="text" placeholder="Name of the Task"
                    :class="{'uk-form-danger': (this.taskError !== '' && this.taskNameInput === '')}"
-                   v-model="taskNameInput">
+                   v-model="taskNameInput"> Task Name</label>
         </div>
-        <div class="uk-width-1-4">
-            <label for="master-vm-input">Master VM</label>
-            <input id="master-vm-input" class="uk-input" type="text" placeholder="id-lowercase-with-dashes"
-                   v-model="masterVmInput">
-        </div>
-        <div class="uk-width-1-4">
-            <label for="host-select">Organizer</label>
-            <select id="host-select" class="uk-select" v-model="this.selectedOrganizer"
+        <div class="uk-width-1-3">
+            <label><select id="host-select" class="uk-select" v-model="this.selectedOrganizer"
                    :class="{'uk-form-danger': (this.taskError !== '' && this.selectedOrganizer === '')}">
                 <option disabled value="">Please select an organizer</option>
                 <option v-for="organizer in this.organizerList" :value="organizer">[[ organizer.name ]]</option>
-            </select>
+            </select> Organizer</label>
         </div>
-        <div class="uk-width-1-4">
-            <label for="website-input">Website</label>
-            <input id="website-input" class="uk-input" type="text" placeholder="Website URL"
-                   v-model="websiteInput">
+        <div class="uk-width-1-3">
+            <label><input id="website-input" class="uk-input" type="text" placeholder="Website URL"
+                   v-model="websiteInput">Website</label>
         </div>
     </div>
     <div class="uk-margin-small">
-        <label for="task-description-input">Task Description*</label>
-        <textarea id="task-description-input" rows="3" class="uk-textarea" placeholder="Task Description"
+        <label><textarea id="task-description-input" rows="3" class="uk-textarea" placeholder="Task Description"
                :class="{'uk-form-danger': (this.taskError !== '' && this.taskDescription === '')}"
-               v-model="taskDescription" />
+               v-model="taskDescription" /> Task Description*</label>
     </div>
     <div class="uk-margin-small">
-        <label for="help-command-input">Help Command</label>
-        <input id="help-command-input" type="text" class="uk-input" placeholder="mySoftware -c $inputDataset -r $inputRun -o $outputDir"
-               v-model="helpCommand" />
+        <label><input type="text" class="uk-input" placeholder="mySoftware -c $inputDataset -r $inputRun -o $outputDir"
+               v-model="helpCommand" /> Help Command</label>
     </div>
     <div class="uk-margin-small">
-        <label for="help-text-input">Help Text</label>
-        <textarea id="help-text-input" rows="6" class="uk-textarea" placeholder="Available variables: \n<code>$inputDataset</code>, \n<code>$inputRun</code>, \n<code>$outputDir</code>, \n<code>$dataServer</code>, and \n<code>$token</code>."
-               v-model="helpText" />
+        <label><textarea rows="6" class="uk-textarea" placeholder="Available variables: \n<code>$inputDataset</code>, \n<code>$inputRun</code>, \n<code>$outputDir</code>, \n<code>$dataServer</code>, and \n<code>$token</code>."
+               v-model="helpText" /> Help Text</label>
     </div>
     <div class="uk-margin-small uk-grid-collapse" uk-grid>
         <div class="uk-width-expand">
