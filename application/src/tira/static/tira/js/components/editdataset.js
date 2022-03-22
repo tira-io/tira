@@ -116,21 +116,21 @@ export default {
     template: `
 <div class="uk-grid-small uk-margin-small" uk-grid>
     <div class="uk-margin-right">
-        <h2>Edit Dataset <span class="uk-text-lead uk-text-muted">ID: [[ this.datasetId ]]</span></h2>
+        <h2>Edit Dataset <span class="uk-text-lead uk-text-muted">ID: [[ this.dataset_id ]]</span></h2>
     </div>
 </div>
 <div class="uk-margin-small">
     <div class="uk-grid-small uk-margin-small" uk-grid>
         <div class="uk-width-1-3">
-            <label><input class="uk-input" type="text"
+            <label>Dataset Name* <input class="uk-input" type="text"
                    :class="{'uk-form-danger': (this.editDatasetError !== '' && this.datasetNameInput === '')}"
-                   v-model="datasetNameInput"> Dataset Name*</label>
+                   v-model="datasetNameInput" /></label>
         </div>
         <div class="uk-width-1-3">
-            <label><select class="uk-select" v-model="this.selectedTask"
+            <label>Task* <select class="uk-select" v-model="this.selectedTask"
                    :class="{'uk-form-danger': (this.editDatasetError !== '' && this.selectedTask === '')}">
                 <option v-for="task in this.taskList" :value="task">[[ task.task_id ]]</option>
-            </select> Task*</label>
+            </select></label>
         </div>
         <div class="uk-width-1-3">
             <div>
@@ -143,16 +143,16 @@ export default {
     </div>
     <div class="uk-grid-small uk-margin-small" uk-grid>
         <div class="uk-width-1-3">
-            <label><input type="text" class="uk-input" placeholder="/path/to/directory - Defaults to home."
-                   v-model="evaluatorWorkingDirectory" /> Evaluator Working Directory</label>
+            <label>Evaluator Working Directory <input type="text" class="uk-input" placeholder="/path/to/directory - Defaults to home."
+                   v-model="evaluatorWorkingDirectory" /></label>
         </div>
         <div class="uk-width-1-3">
-            <label><input type="text" class="uk-input" placeholder="Command to be run from working directory"
-                   v-model="evaluatorCommand" /> Evaluator Command</label>
+            <label>Evaluator Command <input type="text" class="uk-input" placeholder="Command to be run from working directory"
+                   v-model="evaluatorCommand" /></label>
         </div>
         <div class="uk-width-1-3">
-            <label><input class="uk-input" type="text" placeholder="id-lowercase-with-dashes"
-                   v-model="masterVmInput">Master VM</label>
+            <label>Master VM <input class="uk-input" type="text" placeholder="id-lowercase-with-dashes"
+                   v-model="masterVmInput" /></label>
         </div>
     </div>
     <div class="uk-margin-small">
@@ -160,7 +160,7 @@ export default {
                v-model="evaluationMeasures" /> Evaluation Measures</label>
    </div>
     <div class="uk-margin-small">
-        <button class="uk-button uk-button-primary" @click="saveDataset">Save</button>
+        <button class="uk-button uk-button-primary uk-margin-right" @click="saveDataset">Save</button>
         <button class="uk-button uk-button-danger" @click="deleteDataset">Delete</button>
         <span class="uk-text-danger uk-margin-small-left">[[ this.editDatasetError ]]</span>
     </div>

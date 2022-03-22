@@ -117,34 +117,39 @@ export default {
 <div class="uk-margin-small">
     <div class="uk-grid-small uk-margin-small" uk-grid>
         <div class="uk-width-1-3">
-            <label><input class="uk-input" type="text" placeholder="Name of the Task"
+            <label>Task Name+
+            <input class="uk-input" type="text" placeholder="Name of the Task"
                    :class="{'uk-form-danger': (this.taskError !== '' && this.taskNameInput === '')}"
-                   v-model="taskNameInput"> Task Name</label>
+                   v-model="taskNameInput" /></label>
         </div>
         <div class="uk-width-1-3">
-            <label><select id="host-select" class="uk-select" v-model="this.selectedOrganizer"
+            <label>Organizer*
+            <select id="host-select" class="uk-select" v-model="this.selectedOrganizer"
                    :class="{'uk-form-danger': (this.taskError !== '' && this.selectedOrganizer === '')}">
                 <option disabled value="">Please select an organizer</option>
                 <option v-for="organizer in this.organizerList" :value="organizer">[[ organizer.name ]]</option>
-            </select> Organizer</label>
+            </select></label>
         </div>
         <div class="uk-width-1-3">
-            <label><input id="website-input" class="uk-input" type="text" placeholder="Website URL"
-                   v-model="websiteInput">Website</label>
+            <label>Website
+            <input id="website-input" class="uk-input" type="text" placeholder="Website URL"
+                   v-model="websiteInput" /></label>
         </div>
     </div>
     <div class="uk-margin-small">
-        <label><textarea id="task-description-input" rows="3" class="uk-textarea" placeholder="Task Description"
+        <label>Task Description*
+        <textarea id="task-description-input" rows="3" class="uk-textarea" placeholder="Task Description"
                :class="{'uk-form-danger': (this.taskError !== '' && this.taskDescription === '')}"
-               v-model="taskDescription" /> Task Description*</label>
+               v-model="taskDescription" /> </label>
     </div>
     <div class="uk-margin-small">
-        <label><input type="text" class="uk-input" placeholder="mySoftware -c $inputDataset -r $inputRun -o $outputDir"
-               v-model="helpCommand" /> Help Command</label>
+        <label> Help Command
+        <input type="text" class="uk-input" placeholder="mySoftware -c $inputDataset -r $inputRun -o $outputDir"
+               v-model="helpCommand" /></label>
     </div>
     <div class="uk-margin-small">
-        <label><textarea rows="6" class="uk-textarea" placeholder="Available variables: \n<code>$inputDataset</code>, \n<code>$inputRun</code>, \n<code>$outputDir</code>, \n<code>$dataServer</code>, and \n<code>$token</code>."
-               v-model="helpText" /> Help Text</label>
+        <label> Help Text<textarea rows="6" class="uk-textarea" placeholder="Available variables: \n<code>$inputDataset</code>, \n<code>$inputRun</code>, \n<code>$outputDir</code>, \n<code>$dataServer</code>, and \n<code>$token</code>."
+               v-model="helpText" /></label>
     </div>
     <div class="uk-margin-small uk-grid-collapse" uk-grid>
         <div class="uk-width-expand">
