@@ -1,22 +1,20 @@
 export default {
     data() {
         return {
-            createDatasetError: '',
+            addDatasetError: '',
             datasetNameInput: '',
             datasetId: '',
             masterVmInput: '',
             selectedTask: '',
-            trainingCheck: true,
-            devCheck: false,
-            testCheck: true,
+            type: 'training',
             evaluatorWorkingDirectory: '',
             evaluatorCommand: '',
             evaluationMeasures: '',
             taskList: [],
         }
     },
-    emits: ['addnotification', 'closemodal'],
-    props: ['csrf'],
+    emits: ['addnotification', 'closemodal', 'adddataset'],
+    props: ['csrf', 'task_id'],
     methods: {
         async get(url) {
             const response = await fetch(url)
@@ -52,36 +50,32 @@ export default {
         },
         addDataset() {
             console.log('add dataset')
-            this.adddatasetError = ''
+            this.addDatasetError = ''
             if (this.selectedTask === '') {
-                this.adddatasetError += 'Please select a Task;\n'
+                this.addDatasetError += 'Please select a Task;\n'
             }
             if (this.datasetNameInput === '') {
-                this.adddatasetError += 'Please provide a name for the new Dataset;\n'
+                this.addDatasetError += 'Please provide a name for the new Dataset;\n'
             }
-            if (!(this.trainingCheck || this.devCheck || this.testCheck)) {
-                this.adddatasetError += 'Please declare if you create a training, test, and/or dev dataset for this name\n'
-            }
-            if (this.adddatasetError !== '') {
+            if (this.addDatasetError !== '') {
                 return
             }
-            this.submitPost('tira-admin/add-dataset', {
+            this.submitPost('/tira-admin/add-dataset', {
                 'dataset_id': this.datasetId,
                 'name': this.datasetNameInput,
                 'master_id': this.masterVmInput,
                 'task': this.selectedTask.task_id,
-                'training': this.trainingCheck,
-                'dev': this.devCheck,
-                'test': this.testCheck,
+                'type': this.type,
                 'evaluator_working_directory': this.evaluatorWorkingDirectory,
                 'evaluator_command': this.evaluatorCommand,
                 'evaluation_measures': this.evaluationMeasures,
             }).then(message => {
                 this.$emit('addnotification', 'success', message.message)
+                this.$emit('adddataset', message.context)
                 this.$emit('closemodal')
             }).catch(error => {
                 console.log(error)
-                this.adddatasetError = error
+                this.addDatasetError = error
             })
         },
         string_to_slug(str) {
@@ -102,10 +96,19 @@ export default {
 
             return str;
         },
+        getTaskById(task_id){
+            for (const task of this.taskList) {
+                if (task.task_id === task_id){
+                    return task
+                }
+            }
+            return {}
+        }
     },
     beforeMount() {
         this.get(`/api/task-list`).then(message => {
             this.taskList = message.context.task_list
+            this.selectedTask = this.getTaskById(this.task_id)
         }).catch(error => {
             this.$emit('addnotification', 'error', `Error loading task list: ${error}`)
         })
@@ -118,37 +121,29 @@ export default {
     template: `
 <div class="uk-grid-small uk-margin-small" uk-grid>
     <div class="uk-margin-right">
-        <h2>Add Dataset</h2>
+        <h2>Add Dataset <span class="uk-text-lead uk-text-muted">ID: [[ this.datasetId ]]</span></h2> 
     </div>
 </div>
 <div class="uk-margin-small">
-    <div class="uk-width-1-5">
-        Dataset ID Prefix: [[ this.datasetId ]] 
-    </div>
     <div class="uk-grid-small uk-margin-small" uk-grid>
-        <div class="uk-width-1-4">
-            <label for="dataset-name-input">Dataset Name*</label>
-            <input id="dataset-name-input" class="uk-input" type="text" placeholder="Name of the Dataset"
-                   :class="{'uk-form-danger': (this.createDatasetError !== '' && this.datasetNameInput === '')}"
-                   v-model="datasetNameInput">
+        <div class="uk-width-1-3">
+            <label><input class="uk-input" type="text" placeholder="Name of the Dataset"
+                   :class="{'uk-form-danger': (this.addDatasetError !== '' && this.datasetNameInput === '')}"
+                   v-model="datasetNameInput"> Dataset Name*</label>
         </div>
-        <div class="uk-width-1-4">
-            <label for="task-select">Task*</label>
-            <select id="task-select" class="uk-select" v-model="this.selectedTask"
-                   :class="{'uk-form-danger': (this.createDatasetError !== '' && this.selectedTask === '')}">
+        <div class="uk-width-1-3">
+            <label><select class="uk-select" v-model="this.selectedTask"
+                   :class="{'uk-form-danger': (this.addDatasetError !== '' && this.selectedTask === '')}">
                 <option disabled value="">Please select a task</option>
                 <option v-for="task in this.taskList" :value="task">[[ task.task_id ]]</option>
-            </select>
+            </select> Task*</label>
         </div>
-        <div class="uk-width-1-4">
+        <div class="uk-width-1-3">
             <div>
-                <input id="training-check" class="uk-checkbox uk-margin-small-right" type="checkbox" v-model="trainingCheck"><label for="training-check">training</label>
+                <label><input class="uk-radio" type="radio" name="radio2" value="training" v-model="type"> training</label>
             </div>
             <div>
-                <input id="dev-check" class="uk-checkbox uk-margin-small-right" type="checkbox" v-model="devCheck"><label for="dev-check">dev</label>
-            </div>
-            <div>
-                <input id="test-check" class="uk-checkbox uk-margin-small-right" type="checkbox" v-model="testCheck"><label for="test-check">test</label>
+                <label><input class="uk-radio" type="radio" name="radio2" value="test" v-model="type"> test</label>
             </div>
         </div>
     </div>
@@ -157,30 +152,25 @@ export default {
     </div>
     <div class="uk-grid-small uk-margin-small" uk-grid>
         <div class="uk-width-1-3">
-            <label for="evaluator-working-directory">Evaluator Working Directory</label>
-            <input id="evaluator-working-directory" type="text" class="uk-input" placeholder="/path/to/directory - Defaults to home."
-                   v-model="evaluatorWorkingDirectory" />
+            <label><input type="text" class="uk-input" placeholder="/path/to/directory - Defaults to home."
+                   v-model="evaluatorWorkingDirectory" /> Evaluator Working Directory</label>
         </div>
         <div class="uk-width-1-3">
-            <label for="evaluator-command">Evaluator Command</label>
-            <input id="evaluator-command" type="text" class="uk-input" placeholder="Command to be run from working directory"
-                   v-model="evaluatorCommand" />
+            <label><input type="text" class="uk-input" placeholder="Command to be run from working directory"
+                   v-model="evaluatorCommand" /> Evaluator Command</label>
         </div>
         <div class="uk-width-1-3">
-            <label for="master-vm-input">Master VM</label>
-            <input id="master-vm-input" class="uk-input" type="text" placeholder="id-lowercase-with-dashes"
-                   :class="{'uk-form-danger': (this.createDatasetError !== '' && this.masterVmInput === '')}"
-                   v-model="masterVmInput">
+            <label><input class="uk-input" type="text" placeholder="id-lowercase-with-dashes"
+                   v-model="masterVmInput">Master VM</label>
         </div>
     </div>
     <div class="uk-margin-small">
-        <label for="evaluation-measures">Evaluation Measures</label>
-        <textarea id="evaluation-measures" rows="4" class="uk-textarea" placeholder="Measure Name,measure_key\nName will be displayed to the users.\nmeasure_key must be as output by the evaluation software."
-               v-model="evaluationMeasures" />
+        <label><textarea rows="4" class="uk-textarea" placeholder="Measure Name,measure_key\nName will be displayed to the users.\nmeasure_key must be as output by the evaluation software."
+               v-model="evaluationMeasures" />Evaluation Measures</label>
    </div>
     <div class="uk-margin-small">
         <button class="uk-button uk-button-primary" @click="addDataset">Add Dataset</button>
-        <span class="uk-text-danger uk-margin-small-left">[[ this.createDatasetError ]]</span>
+        <span class="uk-text-danger uk-margin-small-left">[[ this.addDatasetError ]]</span>
     </div>
     *mandatory
 </div>`

@@ -548,10 +548,17 @@ class HybridDatabase(object):
         working_dir: where to execute the command
         """
         evaluator = modeldb.Dataset.objects.get(dataset_id=dataset_id).evaluator
-        master_vm = modeldb.VirtualMachineHasEvaluator.objects.filter(evaluator=evaluator)[0].vm
+        vmhe = modeldb.VirtualMachineHasEvaluator.objects.filter(evaluator=evaluator)
+        if vmhe:
+            master_vm = vmhe[0].vm
+            vm_id = master_vm.vm_id
+            host = master_vm.host
+        else:
+            vm_id = ''
+            host = ''
 
-        return {"vm_id": master_vm.vm_id, "host": master_vm.host, "command": evaluator.command,
-                "working_dir": evaluator.working_directory}
+        return {"vm_id": vm_id, "host": host, "command": evaluator.command,
+                "working_dir": evaluator.working_directory, 'measures': evaluator.measures}
 
     @staticmethod
     def get_vm_evaluations_by_dataset(dataset_id, vm_id, only_public_results=True):
@@ -694,31 +701,24 @@ class HybridDatabase(object):
 
         raise TiraModelWriteError(f"Failed to write VM {vm_id}")
 
-    def create_task(self, task_id, task_name, task_description, master_vm_id, organizer, website,
+    def create_task(self, task_id, task_name, task_description, organizer, website,
                     help_command=None, help_text=None):
         """ Add a new task to the database.
          CAUTION: This function does not do any sanity checks and will OVERWRITE existing tasks
          TODO add max_std_out_chars_on_test_data, max_std_err_chars_on_test_data, max_file_list_chars_on_test_data, dataset_label, max_std_out_chars_on_test_data_eval, max_std_err_chars_on_test_data_eval, max_file_list_chars_on_test_data_eval"""
-        if self._save_task(task_id, task_name, task_description, master_vm_id, organizer, website):
-            if master_vm_id:
-                vm = modeldb.VirtualMachine.objects.get(vm_id=master_vm_id)
-            else:
-                vm = None
+        new_task = modeldb.Task.objects.create(task_id=task_id,
+                                               task_name=task_name,
+                                               task_description=task_description,
+                                               organizer=modeldb.Organizer.objects.get(organizer_id=organizer),
+                                               web=website)
+        if help_command:
+            new_task.command_placeholder = help_command
+        if help_text:
+            new_task.command_description = help_text
+        new_task.save()
+        return self._task_to_dict(new_task)
 
-            new_task = modeldb.Task.objects.create(task_id=task_id,
-                                                   task_name=task_name,
-                                                   task_description=task_description,
-                                                   vm=vm,
-                                                   organizer=modeldb.Organizer.objects.get(organizer_id=organizer),
-                                                   web=website)
-            if help_command:
-                new_task.command_placeholder = help_command
-            if help_text:
-                new_task.command_description = help_text
-
-            return self._task_to_dict(new_task)
-
-        raise TiraModelWriteError(f"Failed to write task file {task_id}")
+        # raise TiraModelWriteError(f"Failed to write task file {task_id}")
 
     def add_dataset(self, task_id, dataset_id, dataset_type, dataset_name):
         """ Add a new dataset to a task
@@ -728,7 +728,7 @@ class HybridDatabase(object):
         for_task = modeldb.Task.objects.get(task_id=task_id)
 
         # create new dataset_dir_path/task_id/dataset_id.prototext
-        self._save_dataset(task_id, dataset_id, dataset_name, False, True if dataset_type == 'test' else False)
+        # self._save_dataset(task_id, dataset_id, dataset_name, False, True if dataset_type == 'test' else False)
 
         ds, _ = modeldb.Dataset.objects.update_or_create(dataset_id=dataset_id, defaults={
             'default_task': for_task,
@@ -738,68 +738,63 @@ class HybridDatabase(object):
         })
 
         thds = modeldb.TaskHasDataset.objects.select_related('dataset').filter(task__task_id=task_id)
-        append_training = []
-        append_test = []
+        # append_training = []
+        # append_test = []
         if dataset_type == 'test' and dataset_id not in {thd.dataset.dataset_id for thd in thds if thd.is_test}:
-            append_test.append(dataset_id)
+            # append_test.append(dataset_id)
             modeldb.TaskHasDataset.objects.create(task=for_task, dataset=ds, is_test=True)
-        elif dataset_type in {'training', 'dev'} and dataset_id not in {thd.dataset.dataset_id for thd in thds if
-                                                                        not thd.is_test}:
-            append_training = [dataset_id]
+        elif dataset_type == 'training' and dataset_id not in {thd.dataset.dataset_id for thd in thds if
+                                                               not thd.is_test}:
+            # append_training = [dataset_id]
             modeldb.TaskHasDataset.objects.create(task=for_task, dataset=ds, is_test=False)
         elif dataset_type not in {'training', 'dev', 'test'}:
             raise KeyError("dataset type must be test, training, or dev")
-        self._save_task(task_id, None, None, None, None, None, append_training_datasets=append_training,
-                        append_test_datasets=append_test, overwrite=True)
+        # self._save_task(task_id, None, None, None, None, None, append_training_datasets=append_training,
+        #                 append_test_datasets=append_test, overwrite=True)
 
         # create dirs data_path/dataset/test-dataset[-truth]/task_id/dataset-id-type
-        new_dirs = []
-        if dataset_type == 'test':
-            new_dirs.append((self.data_path / f'test-datasets' / task_id / dataset_id))
-            new_dirs.append((self.data_path / f'test-datasets-truth' / task_id / dataset_id))
-        else:
-            new_dirs.append((self.data_path / f'training-datasets' / task_id / dataset_id))
-            new_dirs.append((self.data_path / f'training-datasets-truth' / task_id / dataset_id))
+        new_dirs = [(self.data_path / f'{dataset_type}-datasets' / task_id / dataset_id),
+                    (self.data_path / f'{dataset_type}-datasets-truth' / task_id / dataset_id)]
         for d in new_dirs:
             d.mkdir(parents=True, exist_ok=True)
 
         return self._dataset_to_dict(ds), [str(nd) for nd in new_dirs]
 
-    def _append_evaluator(self, vm_id, evaluator_id, command, working_directory, measures):
-        vm_file_path = self.vm_dir_path / f'{vm_id}.prototext'
-        if not vm_file_path.exists():
-            raise TiraModelWriteError(f"Failed to _append_evaluator, vm file does not exist")
-        vm = Parse(open(vm_file_path).read(), modelpb.VirtualMachine())
-
-        ev = modelpb.Evaluator()
-        ev.evaluatorId = evaluator_id
-        ev.command = command
-        ev.workingDirectory = working_directory
-        ev.measures = ",".join([x[0].strip('\r') for x in measures])
-        ev.measureKeys.extend([x[1].strip('\r') for x in measures])
-        vm.evaluators.append(ev)
-
-        # self.vms[vm_proto.virtualMachineId] = vm_proto  # TODO see issue:30
-        open(vm_file_path, 'w').write(str(vm))
+    # def _append_evaluator(self, vm_id, evaluator_id, command, working_directory, measures):
+    #     vm_file_path = self.vm_dir_path / f'{vm_id}.prototext'
+    #     if not vm_file_path.exists():
+    #         raise TiraModelWriteError(f"Failed to _append_evaluator, vm file does not exist")
+    #     vm = Parse(open(vm_file_path).read(), modelpb.VirtualMachine())
+    #
+    #     ev = modelpb.Evaluator()
+    #     ev.evaluatorId = evaluator_id
+    #     ev.command = command
+    #     ev.workingDirectory = working_directory
+    #     ev.measures = ",".join([x[0].strip('\r') for x in measures])
+    #     ev.measureKeys.extend([x[1].strip('\r') for x in measures])
+    #     vm.evaluators.append(ev)
+    #
+    #     # self.vms[vm_proto.virtualMachineId] = vm_proto  # TODO see issue:30
+    #     open(vm_file_path, 'w').write(str(vm))
 
     def add_evaluator(self, vm_id, task_id, dataset_id, command, working_directory, measures):
         """ TODO documentation """
         evaluator_id = f"{dataset_id}-evaluator"
 
-        # get_or_create
-        ev = modeldb.Evaluator.objects.update_or_create(evaluator_id=evaluator_id, defaults={
+        ev, _ = modeldb.Evaluator.objects.update_or_create(evaluator_id=evaluator_id, defaults={
             'command': command,
             'working_directory': working_directory,
-            'measures': ", ".join(measures)
+            'measures': measures
         })
 
-        if not modeldb.VirtualMachineHasEvaluator.objects.filter(evaluator_evaluator_id=evaluator_id,
-                                                                 vm__vm_id=vm_id).exists():
-            self._append_evaluator(vm_id, evaluator_id, command, working_directory, measures)
+        # add evaluator to master vm
+        if vm_id:
+            vm = modeldb.VirtualMachine.objects.get(vm_id=vm_id)
+            vmhe, _ = modeldb.VirtualMachineHasEvaluator.objects.update_or_create(evaluator_evaluator_id=evaluator_id,
+                                                                                  vm=vm)
+        ## self._append_evaluator(vm_id, evaluator_id, command, working_directory, measures)
 
-        # update dataset_id.prototext
-        modeldb.Dataset.objects.filter(dataset_id).update(evaluator=ev)
-        self._save_dataset(task_id, evaluator_id=evaluator_id, overwrite=True)
+        modeldb.Dataset.objects.filter(dataset_id=dataset_id).update(evaluator=ev)
 
     def add_software(self, task_id: str, vm_id: str):
         software = modelpb.Softwares.Software()
@@ -920,29 +915,44 @@ class HybridDatabase(object):
         except Exception as e:
             raise TiraModelWriteError(f"Exception while saving run ({dataset_id}, {vm_id}, {run_id})", e)
 
-    def edit_task(self, task_id: str, task_name: str, task_description: str, master_vm_id: str,
+    def edit_task(self, task_id: str, task_name: str, task_description: str,
                   organizer: str, website: str, help_command: str = None, help_text: str = None):
 
-        if self._save_task(task_id, task_name, task_description, master_vm_id, organizer, website, overwrite=True):
-            if master_vm_id:
-                vm = modeldb.VirtualMachine.objects.get(vm_id=master_vm_id)
-            else:
-                vm = None
+        task = modeldb.Task.objects.filter(task_id=task_id)
+        task.update(
+            task_name=task_name,
+            task_description=task_description,
+            vm=None,
+            organizer=modeldb.Organizer.objects.get(organizer_id=organizer),
+            web=website,
+        )
 
-            task = modeldb.Task.objects.get(task_id=task_id)
-            task.task_name = task_name
-            task.task_description = task_description
-            task.vm = vm
-            task.organizer = modeldb.Organizer.objects.get(organizer_id=organizer)
-            task.web = website
-            if help_command:
-                task.command_placeholder = help_command
-            if help_text:
-                task.command_description = help_text
-            task.save()
-            return self._task_to_dict(task)
+        if help_command:
+            task.update(command_placeholder=help_command)
+        if help_text:
+            task.update(command_description=help_text)
 
-        raise TiraModelWriteError(f"Failed to write task file {task_id}")
+        return self._task_to_dict(modeldb.Task.objects.get(task_id=task_id))
+
+    def edit_dataset(self, task_id, dataset_id, dataset_name, master_vm_id, command, working_directory,
+                     measures, is_confidential):
+        for_task = modeldb.Task.objects.get(task_id=task_id)
+        modeldb.Dataset.objects.filter(dataset_id=dataset_id).update(
+            default_task=for_task,
+            display_name=dataset_name,
+            is_confidential=is_confidential)
+
+        ds = modeldb.Dataset.objects.get(dataset_id=dataset_id)
+        modeldb.TaskHasDataset.objects.filter(dataset=ds).update(task=for_task)
+        ev = modeldb.Evaluator.objects.filter(dataset__dataset_id=dataset_id)
+        ev.update(command=command, working_directory=working_directory, measures=measures)
+        if master_vm_id:
+            modeldb.VirtualMachineHasEvaluator.objects.\
+                update_or_create(evaluator=modeldb.Evaluator.objects.get(dataset__dataset_id=dataset_id), defaults={
+                    'vm': modeldb.VirtualMachine.objects.get(vm_id=master_vm_id)
+                })
+
+        return self._dataset_to_dict(ds)
 
     # TODO add option to truly delete the software.
     def delete_software(self, task_id, vm_id, software_id):
@@ -969,10 +979,15 @@ class HybridDatabase(object):
         modeldb.Run.objects.filter(run_id=run_id).delete()
 
     def delete_task(self, task_id):
-        task_file_path = self.tasks_dir_path / f'{task_id}.prototext'
-        if task_file_path.exists():
-            os.remove(task_file_path)
         modeldb.Task.objects.filter(task_id=task_id).delete()
+
+    def delete_dataset(self, dataset_id):
+        modeldb.Dataset.objects.filter(dataset_id=dataset_id).delete()
+
+    def edit_organizer(self, organizer_id, name, years, web):
+        org, _ = modeldb.Organizer.objects.update_or_create(organizer_id=organizer_id, defaults={
+            'name': name, 'years': years, 'web': web})
+        return org
 
     # methods to check for existence
     @staticmethod
