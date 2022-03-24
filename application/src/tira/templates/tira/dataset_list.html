@@ -48,9 +48,9 @@
         {% if dataset.is_deprecated is not True %}
         <tr>
             <td id="task-{{ dataset }}"></td>
-            <td class="uk-text-truncate uk-width-1-2"><a href="{% url 'tira:dataset-detail' task_id=dataset.task dataset_id=id %}">{{ dataset.dataset_id }}</a></td>
+            <td class="uk-text-truncate uk-width-1-2"><a href="{% url 'tira:dataset' task_id=dataset.task dataset_id=id %}">{{ dataset.dataset_id }}</a></td>
             <td>{{ dataset.organizer }}</td> <!-- organizer -->
-            <td><a href="{% url 'tira:task-detail' task_id=dataset.task %}">{{ dataset.task }}</a></td> <!-- default task -->
+            <td><a href="{% url 'tira:task' task_id=dataset.task %}">{{ dataset.task }}</a></td> <!-- default task -->
             <td>{{ dataset.software_count }}</td> <!-- default task -->
             <td class="uk-text-center">{{ dataset.year }}</td>
         </tr>
@@ -76,14 +76,3 @@
 <script src="https://assets.webis.de/js/tables.js"></script>
 <script>initWebisTableFiltering();</script>
 <script>initTableSorting();</script>
-
-{#{% if all_users %}#}
-{#<ul>#}
-{#    {% for user in all_users %}#}
-{#    <li><a href="{%  url 'tira:dataset-detail' user.user_name %}/">{{ user.user_name }}</a></li>#}
-{#    {% endfor %}#}
-{#</ul>#}
-{#{% else %}#}
-{#    <p>Nothing here!</p>#}
-{#{% endif %}#}
-{% endblock %}

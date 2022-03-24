@@ -57,6 +57,13 @@ def get_run(dataset_id: str, vm_id: str, run_id: str, return_deleted: bool = Fal
 
 
 def get_task(task_id: str) -> dict:
+    """ Get a dict with the task data as follows:
+    {"task_id", "task_name", "task_description", "organizer", "web", "year", "dataset_count",
+    "software_count", "max_std_out_chars_on_test_data", "max_std_err_chars_on_test_data",
+    "max_file_list_chars_on_test_data", "command_placeholder",  "command_description", "dataset_label",
+    "max_std_out_chars_on_test_data_eval", "max_std_err_chars_on_test_data_eval",
+    "max_file_list_chars_on_test_data_eval"}
+     """
     return model.get_task(task_id)
 
 

@@ -27,6 +27,18 @@
     min-height: 20px;
 }
 
+.dropdown-scroll {
+    /*height: auto;*/
+    max-height: calc(100vh - 52ex);
+    overflow-x: auto;
+    overflow-y: visible;
+}
+
+.scrollable-table {
+    overflow-x: visible;
+    overflow-y: hidden;
+}
+
 a.uk-button-primary {
     color: #fff;
 }
@@ -37,6 +49,31 @@ a.uk-button-primary {
 
 .uk-accordion table, .uk-card table {
     border-collapse: inherit;
+}
+
+.table-background-yellow {
+    background-color: #fff6ed;
+}
+
+.table-background-yellow .uk-button {
+    border-color: darkorange;
+}
+
+.table-background-red {
+    background-color: #ffe3e3;
+}
+
+.table-background-red .uk-button{
+    border-color: #a41515;
+}
+
+.table-background-green {
+    background-color: #e5ffe3;
+}
+
+.table-background-green .uk-button{
+    border-color: #006b1b;
+}
 
 @media (max-width: 800px) {
     .index-main-cover {

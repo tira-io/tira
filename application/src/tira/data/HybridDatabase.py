@@ -596,9 +596,16 @@ class HybridDatabase(object):
                 values = evaluations.filter(run__run_id=run.run_id).all()
                 if not values.exists():
                     continue
+                try:
+                    vm_id = run.input_run.software.vm.vm_id
+                except AttributeError as e:
+                    logger.error(f"The vm or software of run {run.run_id} does not exist. Maybe either was deleted?", e)
+                    vm_id = "None"
 
-                yield {"vm_id": run.input_run.software.vm.vm_id,
-                       "run_id": run.run_id, 'published': rev.get(run__run_id=run.run_id).published,
+                yield {"vm_id": vm_id,
+                       "run_id": run.run_id,
+                       'input_run_id': run.input_run.run_id,
+                       'published': rev.get(run__run_id=run.run_id).published,
                        'blinded': rev.get(run__run_id=run.run_id).blinded,
                        "measures": list(if_exists(evaluations))}
 

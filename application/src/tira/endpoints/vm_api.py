@@ -132,7 +132,7 @@ def vm_create(request, hostname, vm_id, ova_file):
 def vm_start(request, vm_id):
     vm = model.get_vm(vm_id)
     # NOTE vm_id is different from vm.vmName (latter one includes the 01-tira-ubuntu-...
-    return GrpcClient(reroute_host(vm["host"])).vm_start(vm_id=vm_id)
+    return GrpcClient(reroute_host(vm['host'])).vm_start(vm_id=vm_id)
 
 
 @check_permissions
@@ -140,7 +140,7 @@ def vm_start(request, vm_id):
 @host_call
 def vm_shutdown(request, vm_id):
     vm = model.get_vm(vm_id)
-    return GrpcClient(reroute_host(vm["host"])).vm_shutdown(vm_id=vm_id)
+    return GrpcClient(reroute_host(vm['host'])).vm_shutdown(vm_id=vm_id)
 
 
 @check_permissions
@@ -148,7 +148,7 @@ def vm_shutdown(request, vm_id):
 @host_call
 def vm_stop(request, vm_id):
     vm = model.get_vm(vm_id)
-    return GrpcClient(reroute_host(vm["host"])).vm_stop(vm_id=vm_id)
+    return GrpcClient(reroute_host(vm['host'])).vm_stop(vm_id=vm_id)
 
 
 @check_permissions
@@ -264,7 +264,7 @@ def run_execute(request, task_id, vm_id, software_id):
     vm = model.get_vm(vm_id)
     software = model.get_software(task_id, vm_id, software_id=software_id)
 
-    host = reroute_host(vm["host"])
+    host = reroute_host(vm['host'])
     future_run_id = get_tira_id()
     grpc_client = GrpcClient(host)
     response = grpc_client.run_execute(vm_id=vm_id,
@@ -320,7 +320,7 @@ def run_delete(request, dataset_id, vm_id, run_id):
 def run_abort(request, vm_id):
     """ """
     vm = model.get_vm(vm_id)
-    host = reroute_host(vm["host"])
+    host = reroute_host(vm['host'])
 
     grpc_client = GrpcClient(host)
     response = grpc_client.run_abort(vm_id=vm_id)
