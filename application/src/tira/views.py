@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import JsonResponse, FileResponse
 from django.conf import settings
+from django.core.serializers.json import DjangoJSONEncoder
 import logging
 
 import tira.tira_model as model
@@ -12,6 +13,7 @@ from pathlib import Path
 from datetime import datetime as dt
 import os
 import zipfile
+import json
 from http import HTTPStatus
 
 logger = logging.getLogger("tira")
@@ -80,43 +82,42 @@ def logout(request):
     return redirect('tira:index')
 
 
-@check_resources_exist('http')
-@add_context
-def task_detail(request, context, task_id):
-    context["vm_id"] = auth.get_vm_id(request, context["user_id"])
+def _add_task_to_context(context, task_id, dataset_id):
+    datasets = model.get_datasets_by_task(task_id)
+
+    context["datasets"] = json.dumps({ds['dataset_id']: ds for ds in datasets}, cls=DjangoJSONEncoder)
+    context['selected_dataset_id'] = dataset_id
+    context['test_dataset_ids'] = json.dumps([ds['dataset_id'] for ds in datasets if ds['is_confidential']],
+                                            cls=DjangoJSONEncoder)
+    context['training_dataset_ids'] = json.dumps([ds['dataset_id'] for ds in datasets if not ds['is_confidential']],
+                                                cls=DjangoJSONEncoder)
     context["task"] = model.get_task(task_id)
-    context["datasets"] = model.get_datasets_by_task(task_id)
-
-    return render(request, 'tira/task_detail.html', context)
-
-
-@add_context
-def dataset_list(request, context):
-    context["datasets"] = model.get_datasets()
-
-    return render(request, 'tira/dataset_list.html', context)
 
 
 @check_resources_exist('http')
 @add_context
-def dataset_detail(request, context, task_id, dataset_id):
-    """ The dataset view. Users, it shows only the public leaderboard right now.
-    Admins, it shows all evaluations on the dataset, as well as a list of all runs and the review interface.
+def task(request, context, task_id):
+    """ The tasks view. It shows the task information and all associated datasets.
+    If a dataset is selected, the leaderboard is shown.
 
-     @note maybe later, we can show a consolidated view of all runs the user made on this dataset below.
-     """
+    To admins, it shows, in addition, a review overview page.
+    """
     role = context["role"]
-    vms = model.get_vms_with_reviews(dataset_id) if role == "admin" else None
-    ev_keys, evaluations = model.get_evaluations_with_keys_by_dataset(dataset_id, True if role == "admin" else None)
+    _add_task_to_context(context, task_id, "")
+    return render(request, 'tira/task.html', context)
 
-    context["dataset_id"] = dataset_id
-    context["task"] = model.get_task(task_id)
-    context["ev_keys"] = ev_keys
-    context["evaluations"] = evaluations
-    context["vm_id"] = auth.get_vm_id(request, context["user_id"])
-    context["vms"] = vms
 
-    return render(request, 'tira/dataset_detail.html', context)
+@check_resources_exist('http')
+@add_context
+def dataset(request, context, task_id, dataset_id):
+    """ The tasks view. It shows the task information and all associated datasets.
+    If a dataset is selected, the leaderboard is shown.
+
+    To admins, it shows, in addition, a review overview page.
+    """
+    role = context["role"]
+    _add_task_to_context(context, task_id, dataset_id)
+    return render(request, 'tira/task.html', context)
 
 
 @check_permissions

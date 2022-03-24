@@ -32,200 +32,167 @@
         </div>
     </div>
 
-    <div class="uk-container uk-margin-medium">
-        <h2>Dataset: <span class="uk-text-muted">{{ dataset_id }}</span></h2>
-        <table class="uk-margin-small uk-table uk-table-divider uk-table-small sortable targetable">
-            <thead>
-            <tr>
-                <th id="tira-evaluation-results"></th>
-                {% if role == 'admin' %}
-                <th colspan="{{ ev_keys|length|add:'5' }}">
-                    {% else %}
-                <th colspan="{{ ev_keys|length|add:'5' }}">
+    <div id="dataset_tables" tira-data-task-id="{{ task.task_id }}" tira-data-dataset-id="{{ dataset_id }}">
+        <div class="uk-container uk-margin-medium">
+            <div class="uk-form-controls uk-flex">
+                <h2 class="uk-margin-remove-bottom uk-text-center uk-text-middle uk-display-inline">Dataset: </h2>
+                <select class="uk-select" id="{{ task.task_id }}-dataset-selector" v-model="selected">
+                    <option value="Please select dataset">Please select dataset</option>
+                    {% for dataset in datasets %}
+                    {% if not dataset.is_deprecated %}
+                    <option value="{{ dataset.dataset_id }}">{{ dataset.dataset_id }}</option>
                     {% endif %}
-                    Results of {{ dataset_id }}
-                    <a href="#" class="uk-float-right uk-link-reset" data-uk-icon="chevron-up"></a>
-                </th>
-            </tr>
-            <tr>
-                <th></th>
-                {% if role == 'admin' %}
-                <th class="header uk-table-shrink">&nbsp;</th>
-                <th class="header uk-table-shrink">&nbsp;</th>
-                {% endif %}
-                <th class="header uk-table-shrink uk-text-nowrap"><span>Virtual Machine</span></th>
-                <th class="header uk-table-shrink uk-text-nowrap"><span>Run</span></th>
-                {% for key in ev_keys %}
-                <th class="header uk-table-shrink uk-text-nowrap"><span>{{ key }}</span></th>
-                {% endfor %}
-                {% if role == 'admin' %}
-                <th class="header uk-table-shrink uk-text-nowrap"><span>Actions</span></th>
-                {% endif %}
-            </tr>
-            </thead>
-            <tbody>
-            {% for eval in evaluations %}
-            <tr>
-                <td id="{{ dataset_id }}-{{ eval.vm_id }}-{{ eval.run_id }}"></td>
-                {% if role == 'admin' %}
-                <td class="uk-table-shrink">
-                    {% if eval.blinded == True %}
-                    <div uk-tooltip="This run is blinded">
-                        <i class="fas fa-user-slash dataset-detail-icon"></i>
-                    </div>
-                    {% else %}
-                    <div uk-tooltip="This run is visible to the participant">
-                        <i class="fas fa-user dataset-detail-icon uk-text-success"></i>
-                    </div>
-                    {% endif %}
-                </td>
-                <td class="uk-table-shrink"> <!-- Icons -->
-                    {% if eval.published == True %}
-                    <div uk-tooltip="This run is on the leaderbords">
-                        <i class="fas fa-users dataset-detail-icon uk-text-success"></i>
-                    </div>
-                    {% else %}
-                    <div uk-tooltip="This run is not published">
-                        <i class="fas fa-users-slash dataset-detail-icon"></i>
-                    </div>
-                    {% endif %}
-                </td> <!-- id? -->
-                {% endif %}
-                <td class="uk-table-shrink uk-text-nowrap">{{ eval.vm_id }}</td>
-                {% if role == 'admin' %}
-                <td class="uk-table-shrink uk-text-nowrap"><a href="#run-{{ eval.vm_id }}-{{ eval.run_id }}">{{ eval.run_id }}</a></td>
-                {% else %}
-                <td class="uk-table-shrink uk-text-nowrap">{{ eval.run_id }}</td>
-                {% endif %}
-                {% for measure in eval.measures %}
-                <td class="uk-table-shrink uk-text-truncate">{{ measure }}</td>
-                {% endfor %}
-                {% if role == 'admin' %}
-                <td class="uk-table-shrink uk-text-nowrap"><a class="uk-button uk-button-small uk-button-default" href="{% url 'tira:software-detail' task_id=task.task_id vm_id=eval.vm_id %}">manage</a></td>
-                {% endif %}
-            </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    </div>
+                    {% endfor %}
+                </select>
+            </div>
 
-    <!-- Run results - TODO only show when user is reviewer  -->
-    {% if role == 'admin' %}
-    <div class="uk-container uk-margin-medium">
-        <h2 id="tira-runs">Runs</h2>
-        <ul id="tira-run-accordion" class="uk-list uk-list-collapse uk-list-striped" uk-accordion="multiple: true">
-            {% for vm in vms %}
-            <li>
-                <div class="uk-accordion-title uk-grid-collapse" data-uk-grid>
-                    <div>
-                        <table class="uk-text-small uk-width-5-6">
+            <table class="uk-margin-small uk-table uk-table-divider uk-table-small sortable targetable">
+                <thead>
+                <tr>
+                    <th id="tira-evaluation-results"></th>
+                    <th :colspan="ev_keys.length + 5">
+                        Results of [[ dataset_id ]]
+                        <a href="#" class="uk-float-right uk-link-reset" data-uk-icon="chevron-up"></a>
+                        <div id="tira-load-dataset-icon"></div>
+                    </th>
+                </tr>
+                <tr>
+                    <th></th>
+                    <th class="header uk-table-shrink" v-if="role == 'admin'">&nbsp;</th>
+                    <th class="header uk-table-shrink" v-if="role == 'admin'">&nbsp;</th>
+                    <th class="header uk-table-shrink uk-text-nowrap"><span>Virtual Machine</span></th>
+                    <th class="header uk-table-shrink uk-text-nowrap"><span>Run</span></th>
+                    <th class="header" v-for="key in ev_keys"><span>[[ key ]]</span></th>
+                    <th class="header uk-table-shrink uk-text-nowrap" v-if="role == 'admin'"><span>Actions</span></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-for="eval in evaluations">
+                    <td :id="dataset_id + '-' + eval.vm_id + '-' + eval.run_id"></td>
+                    <td class="uk-table-shrink" v-if="role == 'admin'">
+                        <div uk-tooltip="This run is blinded" v-if="eval.blinded">
+                            <i class="fas fa-user-slash dataset-detail-icon"></i>
+                        </div>
+                        <div uk-tooltip="This run is visible to the participant" v-else>
+                            <i class="fas fa-user dataset-detail-icon uk-text-success"></i>
+                        </div>
+                    </td>
+                    <td class="uk-table-shrink" v-if="role == 'admin'"> <!-- Icons -->
+                        <div uk-tooltip="This run is on the leaderbords" v-if="eval.published">
+                            <i class="fas fa-users dataset-detail-icon uk-text-success"></i>
+                        </div>
+                        <div uk-tooltip="This run is not published" v-else>
+                            <i class="fas fa-users-slash dataset-detail-icon"></i>
+                        </div>
+                    </td> <!-- id? -->
+                    <td class="uk-table-shrink uk-text-nowrap">[[ eval.vm_id ]]</td>
+                    <td class="uk-table-shrink uk-text-nowrap" v-if="role == 'admin'"><a :href="'#run-' + eval.vm_id + '-' + eval.run_id">[[ eval.run_id ]]</a></td>
+                    <td class="uk-table-shrink uk-text-nowrap" v-else>[[ eval.run_id ]]</td>
+                    <td class="uk-table-expand uk-text-truncate" v-for="measure in eval.measures">[[ measure ]]</td>
+                    <!-- TODO: PROBLEM WITH DJANGO + VUE for href argument -->
+                    <td class="uk-table-shrink uk-text-nowrap" v-if="role == 'admin'"><a class="uk-button uk-button-small uk-button-default" :href="'task/' + task_id + '/user/' + eval.vm_id">manage</a></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Run results - TODO only show when user is reviewer  -->
+        <div class="uk-container uk-margin-medium" v-if="role == 'admin'">
+            <h2 id="tira-runs">Runs</h2>
+            <ul id="tira-run-accordion" class="uk-list uk-list-collapse uk-list-striped" uk-accordion="multiple: true">
+                <li v-for="vm in vms">
+                    <div class="uk-accordion-title uk-grid-collapse" data-uk-grid>
+                        <div>
+                            <table class="uk-text-small uk-width-5-6">
+                                <tr>
+                                  <td class="uk-width-1-5 uk-text-left"><b>[[ vm.vm_id ]]</b></td>
+                                    <td class="uk-width-1-5 uk-text-right">[[ vm.runs.length ]] Runs</td>
+                                    <td class="uk-width-1-5 uk-text-right uk-text-warning" v-if="vm.unreviewed_count > 0">
+                                    <td class="uk-width-1-5 uk-text-right" v-else>
+                                        [[ vm.unreviewed_count ]] Unreviewed</td>
+                                    <td class="uk-width-1-5 uk-text-right">[[ vm.blinded_count ]] Blinded</td>
+                                    <td class="uk-width-1-5 uk-text-right uk-text-warning" v-if="vm.published_count == 0">
+                                    <td class="uk-width-1-5 uk-text-right" v-else>
+                                        [[ vm.published_count ]] Published</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="uk-accordion-content uk-margin-remove-top">
+                        <!-- TODO: PROBLEM WITH DJANGO + VUE for href -->
+                        <a :href="'/task/' + task_id + '/user/' + vm.vm_id">
+                            [manage user]
+                        </a>
+                        <table class="uk-margin-medium uk-margin-remove-top uk-table uk-table-divider uk-table-small sortable">
+                            <thead>
                             <tr>
-                                <td class="uk-width-1-5 uk-text-left"><b>{{ vm.vm_id }}</b></td>
-                                <td class="uk-width-1-5 uk-text-right">{{ vm.runs|length }} Runs</td>
-                                <td class="uk-width-1-5 uk-text-right {% if vm.unreviewed_count > 0 %}uk-text-warning{% endif %}">
-                                    {{ vm.unreviewed_count }} Unreviewed</td>
-                                <td class="uk-width-1-5 uk-text-right">{{ vm.blinded_count }} Blinded</td>
-                                <td class="uk-width-1-5 uk-text-right {% if vm.published_count == 0 %}uk-text-warning{% endif %}">
-                                    {{ vm.published_count }} Published</td>
+                                <th class="uk-table-shrink"></th>
+                                <th class="uk-table-shrink"></th>
+                                <th class="uk-table-shrink"></th>
+                                <th class="uk-table-shrink"></th>
+                                <th class="header uk-table-shrink uk-text-nowrap"><span>Software</span></th>
+                                <th class="header uk-table-shrink uk-text-nowrap"><span>Run</span></th>
+                                <th class="header uk-table-shrink uk-text-nowrap"><span>Input Run</span></th>
+                                <th class="header uk-table-shrink uk-text-nowrap">Reviewer</th>
+                                <th class="header uk-table-shrink uk-text-nowrap">Review</th>
+                                <th class="header uk-table-shrink uk-text-nowrap"><span>Actions</span></th>
                             </tr>
+                            </thead>
+                            <tbody>
+                            <tr v-for="run in vm.runs">
+                                <td class="uk-table-shrink" :id="'run-' + vm.vm_id + '-' + run.run.run_id"></td>
+                                <td class="uk-table-shrink">
+                                    <div uk-tooltip="This run is OK" v-if="run.review.noErrors">
+                                        <i class="fas fa-check dataset-detail-icon uk-text-success"></i>
+                                    </div>
+                                    <div uk-tooltip="This run has errors" v-else-if="run.review.hasErrors">
+                                        <i class="fas fa-times dataset-detail-icon uk-text-danger"></i>
+                                    </div>
+                                </td>
+                                <td class="uk-table-shrink">
+                                    <div uk-tooltip="This run is blinded" v-if="run.review.blinded">
+                                        <i class="fas fa-user-slash dataset-detail-icon"></i>
+                                    </div>
+                                    <div uk-tooltip="This run is visible to the participant" v-else>
+                                        <i class="fas fa-user dataset-detail-icon uk-text-success"></i>
+                                    </div>
+                                </td>
+                                <td class="uk-table-shrink"> <!-- Icons -->
+                                    <div uk-tooltip="This run is on the leaderboards" v-if="run.review.published">
+                                        <i class="fas fa-users dataset-detail-icon uk-text-success"></i>
+                                    </div>
+                                    <div uk-tooltip="This run is not published" v-else>
+                                        <i class="fas fa-users-slash dataset-detail-icon"></i>
+                                    </div>
+                                </td>
+    {% comment %}                            <td class="uk-table-shrink">{% endcomment %}
+    {% comment %}                                <div uk-tooltip="Download Run">{% endcomment %}
+    {% comment %}                                </div>{% endcomment %}
+    {% comment %}                            </td>{% endcomment %}
+                                <td class="uk-table-shrink uk-text-nowrap">[[ run.run.software ]]</td>
+                                <td class="uk-table-shrink uk-text-nowrap">[[ run.run.run_id ]]</td>
+                                <td class="uk-table-shrink uk-text-nowrap" v-if="run.run.input_run_id != 'none'"><a :href="'#run-' + vm.vm_id + '-' + run.run.input_run_id">[[ run.run.input_run_id ]]</a>
+                                </td>
+                                <td class="uk-table-shrink uk-text-nowrap" v-else>[[ run.run.input_run_id ]]</td>
+                                <td class="uk-table-shrink uk-text-nowrap">[[ run.review.reviewer ]]</td>
+                                <td class="uk-table-expand uk-text-truncate" v-if="run.review.noErrors"><p v-if="run.review.comment != ''">[[ run.review.comment ]]</p></td>
+                                <td class="uk-table-expand uk-text-truncate" v-else-if="run.review.hasErrorOutput">Output Error<p v-if="run.review.comment != ''">[[ run.review.comment ]]</p></td>
+
+                                <td class="uk-table-expand uk-text-truncate" v-if="run.review.otherErrors">Software Error<p v-if="run.review.comment != ''">[[ run.review.comment ]]</p></td>
+                                <td class="uk-table-shrink uk-text-nowrap">
+                                <!-- TODO: PROBLEM WITH DJANGO + VUE for href -->
+                                    <a class="uk-button uk-button-small uk-button-default" :href="'/task/' + task_id + '/user/' + vm.vm_id + '/dataset/' + dataset_id + '/run/' + run.run.run_id">review</a>
+                                <!-- TODO: PROBLEM WITH DJANGO + VUE for href -->
+                                    <a class="uk-button uk-button-small uk-button-default" href="'/task/' + task_id + '/user/' + vm.vm_id + '/dataset/' + dataset_id + '/download/' + run.run.run_id + '.zip'" target="_blank">download run</a>
+                                </td>
+                            </tr>
+                            </tbody>
                         </table>
                     </div>
-                </div>
-                <div class="uk-accordion-content uk-margin-remove-top">
-                    <a href="{% url 'tira:software-detail' task_id=task.task_id vm_id=vm.vm_id %}">
-                        [manage user]
-                    </a>
-                    <table class="uk-margin-medium uk-margin-remove-top uk-table uk-table-divider uk-table-small sortable">
-                        <thead>
-                        <tr>
-                            <th class="uk-table-shrink"></th>
-                            <th class="uk-table-shrink"></th>
-                            <th class="uk-table-shrink"></th>
-                            <th class="uk-table-shrink"></th>
-                            <th class="header uk-table-shrink uk-text-nowrap"><span>Software</span></th>
-                            <th class="header uk-table-shrink uk-text-nowrap"><span>Run</span></th>
-                            <th class="header uk-table-shrink uk-text-nowrap"><span>Input Run</span></th>
-                            <th class="header uk-table-shrink uk-text-nowrap">Reviewer</th>
-                            <th class="header uk-table-shrink uk-text-nowrap">Review</th>
-                            <th class="header uk-table-shrink uk-text-nowrap"><span>Actions</span></th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {% for run in vm.runs %}
-                        <tr>
-                            <td class="uk-table-shrink" id="run-{{ vm.vm_id }}-{{ run.run.run_id }}"></td>
-                            <td class="uk-table-shrink">
-                                {% if run.review.noErrors == True %}
-                                <div uk-tooltip="This run is OK">
-                                    <i class="fas fa-check dataset-detail-icon uk-text-success"></i>
-                                </div>
-                                {% elif run.review.hasErrors == True %}
-                                <div uk-tooltip="This run has errors">
-                                    <i class="fas fa-times dataset-detail-icon uk-text-danger"></i>
-                                </div>
-                                {% endif %}
-                            </td>
-                            <td class="uk-table-shrink">
-                                {% if run.review.blinded == True %}
-                                <div uk-tooltip="This run is blinded">
-                                    <i class="fas fa-user-slash dataset-detail-icon"></i>
-                                </div>
-                                {% else %}
-                                <div uk-tooltip="This run is visible to the participant">
-                                    <i class="fas fa-user dataset-detail-icon uk-text-success"></i>
-                                </div>
-                                {% endif %}
-                            </td>
-                            <td class="uk-table-shrink"> <!-- Icons -->
-                                {% if run.review.published == True %}
-                                <div uk-tooltip="This run is on the leaderboards">
-                                    <i class="fas fa-users dataset-detail-icon uk-text-success"></i>
-                                </div>
-                                {% else %}
-                                <div uk-tooltip="This run is not published">
-                                    <i class="fas fa-users-slash dataset-detail-icon"></i>
-                                </div>
-                                {% endif %}
-                            </td>
-{% comment %}                            <td class="uk-table-shrink">{% endcomment %}
-{% comment %}                                <div uk-tooltip="Download Run">{% endcomment %}
-{% comment %}                                </div>{% endcomment %}
-{% comment %}                            </td>{% endcomment %}
-                            <td class="uk-table-shrink uk-text-nowrap">{{ run.run.software }}</td>
-                            <td class="uk-table-shrink uk-text-nowrap">{{ run.run.run_id }}</td>
-                            {% if run.run.input_run_id != 'none' %}
-                            <td class="uk-table-shrink uk-text-nowrap"><a href="#run-{{ vm.vm_id }}-{{ run.run.input_run_id }}">{{ run.run.input_run_id }}</a>
-                            </td>
-                            {% else %}
-                            <td class="uk-table-shrink uk-text-nowrap">{{ run.run.input_run_id }}</td>
-                            {% endif %}
-                            <td class="uk-table-shrink uk-text-nowrap">{{ run.review.reviewer }}</td>
-                            <td class="uk-table-expand uk-text-truncate">
-                                {% if run.review.noErrors == True %}
-
-                                {% elif run.review.hasErrorOutput == True %}
-                                Output Error
-                                {% elif run.review.otherErrors == True %}
-                                Software Error
-                                {% endif %}
-                                {% if run.review.comment != "" %}
-                                : {{ run.review.comment }}
-                                {% endif %}
-                            </td>
-                            <td class="uk-table-shrink uk-text-nowrap">
-                                <a class="uk-button uk-button-small uk-button-default" href="{% url 'tira:review' task_id=task.task_id vm_id=vm.vm_id dataset_id=dataset_id run_id=run.run.run_id %}">review</a>
-                                <a class="uk-button uk-button-small uk-button-default" href="{% url 'tira:download_rundir' task_id=task.task_id vm_id=vm.vm_id dataset_id=dataset_id run_id=run.run.run_id %}" target="_blank">download run</a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </li>
-            {% endfor %}
-        </ul>
+                </li>
+            </ul>
+        </div>
     </div>
-    {% endif %}
 
 </main>
 
@@ -240,4 +207,7 @@
 <script>initWebisTableFiltering();</script>
 <script>initTableSorting();</script>
 
+<!-- TODO: use production version -->
+<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+<script src="{% static 'tira/js/dataset_detail.js' %}"></script>
 {% endblock %}

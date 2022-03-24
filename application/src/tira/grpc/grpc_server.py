@@ -141,6 +141,28 @@ class TiraApplicationService(tira_host_pb2_grpc.TiraApplicationService):
             last_status=str(request.transaction.status),
             last_message=request.transaction.message)
 
+        model.add_run(request.runId.datasetId, request.runId.vmId, request.runId.runId)
+
+        return tira_host_pb2.Transaction(status=tira_host_pb2.Status.SUCCESS,
+                                         message="Application accepted evaluation confirmation",
+                                         transactionId=request.transaction.transactionId)
+
+    def confirm_run_execute(self, request, context):
+        """ This gets called if a run_execute finishes. We use this to load the new run in the database.
+        See tira_host.proto for request specification.
+        """
+        django.db.connection.close()
+        logger.debug(f" Application Server received run-eval confirmation with: \n"
+                     f"{request.runId.runId}.")
+        EvaluationLog.objects.filter(vm_id=request.runId.vmId, run_id=request.runId.runId).delete()
+
+        _ = TransactionLog.objects.filter(transaction_id=request.transaction.transactionId).update(
+            completed=False,
+            last_status=str(request.transaction.status),
+            last_message=request.transaction.message)
+
+        model.add_run(request.runId.datasetId, request.runId.vmId, request.runId.runId)
+
         return tira_host_pb2.Transaction(status=tira_host_pb2.Status.SUCCESS,
                                          message="Application accepted evaluation confirmation",
                                          transactionId=request.transaction.transactionId)

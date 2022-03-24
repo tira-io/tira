@@ -5,14 +5,14 @@ from .endpoints import organizer_api, admin_api, vm_api, data_api
 
 urlpatterns = [
     path('', views.index, name='index'),
-    path('task', views.index, name='tasks'),
-    path('tasks', views.index, name='tasks'),
-    path('task/<str:task_id>', views.task_detail, name='task-detail'),
-    path('task/<str:task_id>/dataset/<str:dataset_id>', views.dataset_detail, name='dataset-detail'),
+    path('task', views.index, name='index'),
+    path('tasks', views.index, name='index'),
+    path('task/<str:task_id>', views.task, name='task'),
+    path('task/<str:task_id>/dataset/<str:dataset_id>', views.dataset, name='dataset'),
     path('task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/download/<str:run_id>.zip', views.download_rundir, name='download_rundir'),
     path('task/<str:task_id>/user/<str:vm_id>', views.software_detail, name='software-detail'),
     path('task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/run/<str:run_id>', views.review, name='review'),
-    path('dataset', views.dataset_list, name='dataset'),
+    # path('dataset', views.dataset_list, name='dataset'),
     path('users', views.users, name='users'),
     path('user/<str:user_id>', views.user_detail, name='user-detail'),
     path('request_vm', views.request_vm, name='request_vm'),
@@ -52,7 +52,7 @@ urlpatterns = [
     path('publish/<str:vm_id>/<str:dataset_id>/<str:run_id>/<str:value>', organizer_api.publish, name='publish'),
     path('blind/<str:vm_id>/<str:dataset_id>/<str:run_id>/<str:value>', organizer_api.blind, name='blind'),
 
-    path('data_api/evaluations/<str:dataset_id>', data_api.get_evaluations_by_dataset, name='get_evaluations_by_dataset'),
-    path('data_api/runs/<str:dataset_id>', data_api.get_runs_by_dataset, name='get_runs_by_dataset')
+    path('api/evaluations/<str:task_id>/<str:dataset_id>', data_api.get_evaluations_by_dataset, name='get_evaluations_by_dataset'),
+    path('api/submissions/<str:task_id>/<str:dataset_id>', data_api.get_submissions_by_dataset, name='get_submissions_by_dataset')
 ]
 app_name = 'tira'

@@ -134,6 +134,9 @@ def check_resources_exist(reply_as='json'):
                             return redirect('tira:request_vm')
                         return redirect('tira:request_vm')
                     return return_fail("vm_id does not exist")
+                elif not model.get_vm(kwargs["vm_id"]).get('host', None):
+                    return redirect('tira:request_vm')
+                # TODO: handle if vm is in archive here.
 
             if "dataset_id" in kwargs:
                 if not model.dataset_exists(kwargs["dataset_id"]):
