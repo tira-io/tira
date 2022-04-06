@@ -10,7 +10,7 @@ import randomname
 
 from tira.util import TiraModelWriteError, TiraModelIntegrityError
 from tira.proto import TiraClientWebMessages_pb2 as modelpb
-from tira.util import auto_reviewer, now
+from tira.util import auto_reviewer, now, get_tira_id
 import tira.model as modeldb
 import tira.data.data as dbops
 
@@ -446,6 +446,8 @@ class HybridDatabase(object):
             software = run.software.software_id
         elif run.evaluator:
             software = run.evaluator.evaluator_id
+        elif run.upload:
+            software = 'upload'
 
         return {"software": software,
                 "run_id": run.run_id,
@@ -466,16 +468,21 @@ class HybridDatabase(object):
                     .filter(input_dataset__dataset_id=dataset_id, software__vm__vm_id=vm_id)
                 if (run.deleted or not return_deleted)]
 
-    def _get_ordered_runs_from_reviews(self, reviews, vm_id, preloaded=True):
+    def _get_ordered_runs_from_reviews(self, reviews, vm_id, preloaded=True, is_upload=False):
         """ yields all runs with reviews and their evaluation runs with reviews produced by software from a given vm
             evaluation runs (which have a run as input run) are yielded directly after the runs they use.
 
-        @param reviews: a querySet of modeldb.Review objects to
-        @param vm_id: the vm_id of the software
-        @param preloaded: If False, do a new database request to get the evaluation runs.
+        :param reviews: a querySet of modeldb.Review objects to
+        :param vm_id: the vm_id of the software or upload
+        :param preloaded: If False, do a new database request to get the evaluation runs.
             Otherwise assume they were preloaded
+        :param is_upload: if true, get only uploaded runs
         """
-        reviews_qs = reviews.filter(run__software__vm__vm_id=vm_id).all()
+        if is_upload:
+            reviews_qs = reviews.filter(run__upload__vm__vm_id=vm_id).all()
+        else:
+            reviews_qs = reviews.filter(run__software__vm__vm_id=vm_id).all()
+
         for review in reviews_qs:
             yield {"run": self._run_as_dict(review.run),
                    "review": self._review_as_dict(review),
@@ -493,6 +500,27 @@ class HybridDatabase(object):
                                            and not review2.has_warnings else False,
                        'published': review2.published,
                        'blinded': review2.blinded}
+
+    def get_upload_with_runs(self, task_id, vm_id):
+        def _runs_by_upload(up):
+            reviews = modeldb.Review.objects.select_related("run", "run__upload", "run__evaluator", "run__input_run",
+                                                            "run__input_dataset").filter(run__upload=up).all()
+
+            for r in self._get_ordered_runs_from_reviews(reviews, vm_id, preloaded=False, is_upload=True):
+                run = r['run']
+                run['review'] = r["review"]
+                yield run
+
+        try:
+            upload = modeldb.Upload.objects.get(vm__vm_id=vm_id, task__task_id=task_id)
+        except modeldb.Upload.DoesNotExist:
+            upload = modeldb.Upload(vm=modeldb.VirtualMachine.objects.get(vm_id=vm_id),
+                                    task=modeldb.Task.objects.get(task_id=task_id),
+                                    last_edit_date=now())
+            upload.save()
+        return {"task_id": upload.task.task_id, "vm_id": upload.vm.vm_id,
+                "dataset": None if not upload.dataset else upload.dataset.dataset_id,
+                "last_edit": upload.last_edit_date, "runs": list(_runs_by_upload(upload))}
 
     def get_vms_with_reviews(self, dataset_id: str):
         """ returns a list of dicts with:
@@ -521,9 +549,6 @@ class HybridDatabase(object):
 
     def get_vm_runs_by_task(self, task_id: str, vm_id: str, return_deleted: bool = False) -> list:
         """ returns a list of all the runs of a user over all datasets in json (as returned by _load_user_runs) """
-        # TODO remove this line after the grpc callback (confirm_run_execute) updates the runs in the database
-        # for thd in modeldb.TaskHasDataset.objects.select_related('dataset').filter(task__task_id=task_id):
-        # dbops.parse_runs_for_vm(self.runs_dir_path, thd.dataset.dataset_id, vm_id)
         return [self._run_as_dict(run) for run in
                 modeldb.Run.objects.select_related('software', 'input_dataset')
                     .filter(software__vm__vm_id=vm_id, input_dataset__default_task__task_id=task_id,
@@ -889,6 +914,60 @@ class HybridDatabase(object):
         Also loads evaluations if present
          """
         dbops.parse_run(self.runs_dir_path, dataset_id, vm_id, run_id)
+
+    def add_uploaded_run(self, task_id, vm_id, dataset_id, uploaded_file):
+        # First add to data
+        new_id = get_tira_id()
+        run_dir = self.runs_dir_path / dataset_id / vm_id / new_id
+        (run_dir / 'output').mkdir(parents=True)
+
+        # Second add to proto dump
+        run = modelpb.Run()
+        run.softwareId = "upload"
+        run.runId = new_id
+        run.inputDataset = dataset_id
+        run.deleted = False
+        run.downloadable = True
+        # Third add to database
+        upload = modeldb.Upload.objects.get(vm__vm_id=vm_id, task__task_id=task_id)
+        upload.last_edit_date = now()
+        upload.save()
+
+        db_run = modeldb.Run.objects.create(run_id=new_id, upload=upload,
+                                            input_dataset=modeldb.Dataset.objects.get(dataset_id=dataset_id),
+                                            task=modeldb.Task.objects.get(task_id=task_id),
+                                            downloadable=True)
+
+        open(run_dir / "run.bin", 'wb').write(run.SerializeToString())
+        open(run_dir / "run.prototext", 'w').write(str(run))
+        with open(run_dir / 'output' / uploaded_file.name, 'wb+') as destination:
+            for chunk in uploaded_file.chunks():
+                destination.write(chunk)
+
+        # add the review
+        review = auto_reviewer(run_dir, run_dir.stem)
+        open(run_dir / "run-review.prototext", 'w').write(str(review))
+        open(run_dir / "run-review.bin", 'wb').write(review.SerializeToString())
+
+        modeldb.Review.objects.update_or_create(run=db_run, defaults={
+            'reviewer_id': review.reviewerId,
+            'review_date': review.reviewDate,
+            'no_errors': review.noErrors,
+            'missing_output': review.missingOutput,
+            'extraneous_output': review.extraneousOutput,
+            'invalid_output': review.invalidOutput,
+            'has_error_output': review.hasErrorOutput,
+            'other_errors': review.otherErrors,
+            'comment': review.comment,
+            'has_errors': review.hasErrors,
+            'has_warnings': review.hasWarnings,
+            'has_no_errors': review.hasNoErrors,
+            'published': review.published,
+            'blinded': review.blinded
+        })
+
+        return {"run": self._run_as_dict(db_run),
+                "last_edit_date": upload.last_edit_date}
 
     def update_run(self, dataset_id, vm_id, run_id, deleted: bool = None):
         """ updates the run specified by dataset_id, vm_id, and run_id with the values given in the parameters.

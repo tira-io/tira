@@ -12,7 +12,6 @@ urlpatterns = [
     path('task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/download/<str:run_id>.zip', views.download_rundir, name='download_rundir'),
     path('task/<str:task_id>/user/<str:vm_id>', views.software_detail, name='software-detail'),
     path('task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/run/<str:run_id>', views.review, name='review'),
-    # path('dataset', views.dataset_list, name='dataset'),
     path('users', views.users, name='users'),
     path('user/<str:user_id>', views.user_detail, name='user-detail'),
     path('request_vm', views.request_vm, name='request_vm'),
@@ -23,6 +22,7 @@ urlpatterns = [
     path('task/<str:task_id>/vm/<str:vm_id>/software_add', vm_api.software_add, name='software_add'),
     path('task/<str:task_id>/vm/<str:vm_id>/software_save/<str:software_id>', vm_api.software_save, name='software_save'),
     path('task/<str:task_id>/vm/<str:vm_id>/software_delete/<str:software_id>', vm_api.software_delete, name='software_delete'),
+    path('task/<str:task_id>/vm/<str:vm_id>/upload/<str:dataset_id>', vm_api.upload, name='upload'),
 
     path('grpc/<str:vm_id>/vm_info', vm_api.vm_info, name='vm_info'),
     path('grpc/<str:vm_id>/vm_state', vm_api.vm_state, name='vm_state'),
