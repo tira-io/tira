@@ -501,6 +501,27 @@ class HybridDatabase(object):
                        'published': review2.published,
                        'blinded': review2.blinded}
 
+    def get_upload_with_runs(self, task_id, vm_id):
+        def _runs_by_upload(up):
+            reviews = modeldb.Review.objects.select_related("run", "run__upload", "run__evaluator", "run__input_run",
+                                                            "run__input_dataset").filter(run__upload=up).all()
+
+            for r in self._get_ordered_runs_from_reviews(reviews, vm_id, preloaded=False, is_upload=True):
+                run = r['run']
+                run['review'] = r["review"]
+                yield run
+
+        try:
+            upload = modeldb.Upload.objects.get(vm__vm_id=vm_id, task__task_id=task_id)
+        except modeldb.Upload.DoesNotExist:
+            upload = modeldb.Upload(vm=modeldb.VirtualMachine.objects.get(vm_id=vm_id),
+                                    task=modeldb.Task.objects.get(task_id=task_id),
+                                    last_edit_date=now())
+            upload.save()
+        return {"task_id": upload.task.task_id, "vm_id": upload.vm.vm_id,
+                "dataset": None if not upload.dataset else upload.dataset.dataset_id,
+                "last_edit": upload.last_edit_date, "runs": list(_runs_by_upload(upload))}
+
     def get_vms_with_reviews(self, dataset_id: str):
         """ returns a list of dicts with:
          {"vm_id": vm_id,
