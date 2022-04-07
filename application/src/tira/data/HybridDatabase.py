@@ -816,7 +816,7 @@ class HybridDatabase(object):
         # add evaluator to master vm
         if vm_id:
             vm = modeldb.VirtualMachine.objects.get(vm_id=vm_id)
-            vmhe, _ = modeldb.VirtualMachineHasEvaluator.objects.update_or_create(evaluator_evaluator_id=evaluator_id,
+            vmhe, _ = modeldb.VirtualMachineHasEvaluator.objects.update_or_create(evaluator_id=evaluator_id,
                                                                                   vm=vm)
         ## self._append_evaluator(vm_id, evaluator_id, command, working_directory, measures)
 

@@ -126,7 +126,7 @@ export default {
         </div>
         <div class="uk-width-1-6@m uk-width-1-1@s">
             <label for="memory-input">Memory (GB)</label>
-            <input id="memory-input" class="uk-input" type="text" placeholder="id-lowercase-with-dashes"
+            <input id="memory-input" class="uk-input" type="text" placeholder="4"
                    :class="{'uk-form-danger': (this.modifyVmError !== '' && this.memoryInput === '')}"
                    v-model="memoryInput">
         </div>
