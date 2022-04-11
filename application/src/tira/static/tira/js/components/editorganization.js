@@ -94,7 +94,7 @@ export default {
             if (this.editOrganizerError !== '') {
                 addOrganizerError
             }
-            this.submitPost(`/tira-admin/edit-organizer/${this.newOrgId}`, {
+            this.submitPost(`/tira-admin/add-organizer/${this.newOrgId}`, {
                 'name': this.newName,
                 'years': this.newYears,
                 'web': this.newWeb,

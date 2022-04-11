@@ -51,6 +51,7 @@ urlpatterns = [
     path('tira-admin/add-dataset', admin_api.admin_add_dataset, name='tira-admin-add-dataset'),
     path('tira-admin/edit-dataset/<str:dataset_id>', admin_api.admin_edit_dataset, name='tira-admin-edit-dataset'),
     path('tira-admin/delete-dataset/<str:dataset_id>', admin_api.admin_delete_dataset, name='tira-admin-delete-dataset'),
+    path('tira-admin/add-organizer/<str:organizer_id>', admin_api.admin_add_organizer, name='tira-admin-add-organizer'),
     path('tira-admin/edit-organizer/<str:organizer_id>', admin_api.admin_edit_organizer, name='tira-admin-edit-organizer'),
     path('tira-admin/create-group/<str:vm_id>', admin_api.admin_create_group, name='tira-admin-create-group'),
 
