@@ -4,6 +4,9 @@ let pollingEvaluation=false;
 let state=0;
 
 function setupPollingAfterPageLoad(vmid) {
+    if(vmid.endsWith('default')){
+        return
+    }
     $('.run-evaluate-spinner').hide()
     setState()
     loadVmInfo(vmid)

@@ -29,12 +29,12 @@ def check_permissions(func):
         dataset_id = kwargs.get('dataset_id', None)
         run_id = kwargs.get('run_id', None)
         role = auth.get_role(request, user_id=auth.get_user_id(request))
+
         if role == auth.ROLE_ADMIN or role == auth.ROLE_TIRA:
             return func(request, *args, **kwargs)
 
         if vm_id:
             role = auth.get_role(request, user_id=auth.get_user_id(request), vm_id=vm_id)
-
             if run_id and dataset_id:
                 if not model.run_exists(vm_id, dataset_id, run_id):
                     return Http404(f'The VM {vm_id} has no run with the id {run_id} on {dataset_id}.')
@@ -42,6 +42,7 @@ def check_permissions(func):
                 is_review_visible = (not review['blinded']) or review['published']
                 if not is_review_visible:
                     role = auth.ROLE_USER
+
         if role == auth.ROLE_PARTICIPANT:
             return func(request, *args, **kwargs)
         elif role == auth.ROLE_GUEST:  # If guests access a restricted resource, we send them to login
@@ -120,6 +121,7 @@ def check_resources_exist(reply_as='json'):
         @wraps(func)
         def func_wrapper(request, *args, **kwargs):
             def return_fail(message, request_vm_instead=False):
+                logger.warning(message)
                 if reply_as == 'json':
                     response = JsonResponse({'status': 1, 'message': message})
                     return response
@@ -131,14 +133,16 @@ def check_resources_exist(reply_as='json'):
                 if not model.vm_exists(kwargs["vm_id"]):
                     logger.error(f"{resolve(request.path_info).url_name}: vm_id does not exist")
                     if "task_id" in kwargs:
-                        if kwargs["vm_id"] == "no-vm-assigned":
-                            return return_fail('No vm was assigned, please request a vm.', request_vm_instead=True)
+                        # if kwargs["vm_id"] == "no-vm-assigned":
+                        #     return return_fail('No vm was assigned, please request a vm.', request_vm_instead=True)
                         return return_fail(f'There is no vm with id {kwargs["vm_id"]} matching your request.',
                                            request_vm_instead=True)
+
                     return return_fail(f"vm_id {kwargs['vm_id']} does not exist", request_vm_instead=True)
-                elif not model.get_vm(kwargs["vm_id"]).get('host', None):
-                    return return_fail(f'The requested account has no live vm with id: {kwargs["vm_id"]}',
-                                       request_vm_instead=True)
+                # TODO uncommented so uploads work without a live vm
+                # elif not model.get_vm(kwargs["vm_id"]).get('host', None):
+                #     return return_fail(f'The requested account has no live vm with id: {kwargs["vm_id"]}',
+                #                        request_vm_instead=True)
 
             if "dataset_id" in kwargs:
                 if not model.dataset_exists(kwargs["dataset_id"]):

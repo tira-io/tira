@@ -549,7 +549,7 @@ class FileDatabase(object):
     # get methods are the public interface.
     ###################################
 
-    def get_vm(self, vm_id: str):
+    def get_vm(self, vm_id: str, create_if_none=False):
         # TODO should return as dict
         return self.vms.get(vm_id, None)
 

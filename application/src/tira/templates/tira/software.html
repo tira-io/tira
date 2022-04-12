@@ -15,7 +15,7 @@
 
 <main class="uk-section uk-section-default">
     <div class="uk-container">
-        <h1>Virtual Machine &mdash; <span class="uk-text-muted">{{ vm_id }}</span></h1>
+        <h1>Submissions to {{ task.task_name }} &mdash; <span class="uk-text-muted">{{ vm_id }}</span></h1>
     </div>
     {% if vm_id == 'no-vm-assigned' %}
      <div class="uk-container uk-margin-medium">
@@ -29,6 +29,8 @@
     {% else %}
     <!-- VM State and general options   -->
     <div class="uk-container uk-margin-medium">
+
+        {% if not is_default %}
         <div class="uk-grid-small uk-grid-match" uk-grid>
             <div class="uk-card uk-card-small uk-card-body uk-card-default uk-width-1-2">
                 <table>
@@ -152,8 +154,19 @@
                         class="uk-button uk-button-disabled uk-text-center uk-width-1-1" disabled>Abort Run</button>
             </div>
         </div>
+        {% else %}
+        <div class="uk-container uk-margin-medium">
+            <div class="uk-grid-small uk-grid-match" uk-grid>
+                <div class="uk-card uk-card-body uk-card-default">
+                    <b>No Virtual Machine.</b>
+                    Your TIRA account is currently not associated with a virtual machine.
+                    Without a VM, you can only use 'Upload' to submit results.
+                    Please contact your task organizer to obtain a TIRA virtual machine.
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </div>
-
     <div class="uk-container uk-margin-small">
         <h2>Software</h2>
 
@@ -161,9 +174,11 @@
             {% for sw in software %}
             <li><a href="#">{{ sw.software.id }}</a></li>
             {% endfor %}
+            {% if not is_default %}
             <li id="add-software">
                 <a><span class="uk-margin-small-right">+</span>Add Software</a>
             </li>
+            {% endif %}
             <li>
                 <a href="#">Uploads</a>
             </li>
@@ -172,7 +187,9 @@
             {% for sw in software %}
                 {% include "tira/software_form.html" with software=sw.software runs=sw.runs task_id=task.task_id vm_id=vm_id%}
             {% endfor %}
+            {% if not is_default %}
             <li id="add-software-row">add software</li>
+            {% endif %}
             {% include "tira/upload_form.html" with task_id=task.task_id vm_id=vm_id upload=upload %}
         </ul>
 
@@ -223,11 +240,7 @@
 <script src="https://assets.webis.de/js/thirdparty/fontawesome/fontawesome.min.js"></script>
 <script src="https://assets.webis.de/js/thirdparty/fontawesome/solid.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<!--<script src="https://assets.webis.de/js/filter.js"></script>-->
-<!--<script src="https://assets.webis.de/js/selection.js"></script>-->
-<!--<script src="https://assets.webis.de/js/tables.js"></script>-->
-<!--<script>initWebisTableFiltering();</script>-->
-<!--<script>initTableSorting();</script>-->
+
 <script src="{% static 'tira/js/util.js' %}"></script>
 <script src="{% static 'tira/js/software.js' %}"></script>
 <script>

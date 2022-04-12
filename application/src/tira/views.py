@@ -36,7 +36,9 @@ def add_context(func):
 @add_context
 def index(request, context):
     context["tasks"] = model.get_tasks()
-    context["vm_id"] = auth.get_vm_id(request, context["user_id"])
+    if context["role"] != auth.ROLE_GUEST:
+        context["vm_id"] = auth.get_vm_id(request, context["user_id"])
+
     return render(request, 'tira/index.html', context)
 
 
@@ -62,7 +64,6 @@ def login(request, context):
     """
 
     if request.method == "POST":
-        form = LoginForm(request.POST)
         form = LoginForm(request.POST)
         if form.is_valid():
             # read form data, do auth.login(request, user_id, password)
@@ -136,6 +137,7 @@ def software_detail(request, context, task_id, vm_id):
     context["software"] = software
     context["datasets"] = model.get_datasets_by_task(task_id)
     context["upload"] = upload
+    context["is_default"] = vm_id.endswith("default")
 
     return render(request, 'tira/software.html', context)
 

@@ -321,8 +321,11 @@ class HybridDatabase(object):
                 "host": vm.host, "admin_name": vm.admin_name, "admin_pw": vm.admin_pw,
                 "ip": vm.ip, "ssh": vm.ssh, "rdp": vm.rdp, "archived": vm.archived}
 
-    def get_vm(self, vm_id: str):
-        vm = modeldb.VirtualMachine.objects.get(vm_id=vm_id)
+    def get_vm(self, vm_id: str, create_if_none=False):
+        if create_if_none:
+            vm, _ = modeldb.VirtualMachine.objects.get_or_create(vm_id=vm_id)
+        else:
+            vm = modeldb.VirtualMachine.objects.get(vm_id=vm_id)
         return self._vm_as_dict(vm)
 
     def get_users_vms(self):
