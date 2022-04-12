@@ -29,11 +29,14 @@ def check_permissions(func):
         dataset_id = kwargs.get('dataset_id', None)
         run_id = kwargs.get('run_id', None)
         role = auth.get_role(request, user_id=auth.get_user_id(request))
+        print(role)
 
         if role == auth.ROLE_ADMIN or role == auth.ROLE_TIRA:
             return func(request, *args, **kwargs)
 
         if vm_id:
+            if not model.vm_exists(vm_id):
+                return redirect('tira:request_vm')
             role = auth.get_role(request, user_id=auth.get_user_id(request), vm_id=vm_id)
             if run_id and dataset_id:
                 if not model.run_exists(vm_id, dataset_id, run_id):
@@ -85,6 +88,8 @@ def check_conditional_permissions(restricted=False, public_data_ok=False, privat
                 return HttpResponseNotAllowed(f"Access restricted.")
 
             if vm_id:
+                if not model.vm_exists(vm_id):
+                    return redirect('tira:request_vm')
                 role_on_vm = auth.get_role(request, user_id=auth.get_user_id(request), vm_id=vm_id)
                 if run_id and dataset_id:
                     role = auth.ROLE_USER

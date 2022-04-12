@@ -234,7 +234,6 @@ def download_rundir(request, task_id, dataset_id, vm_id, run_id):
         return JsonResponse({'status': 1, 'reason': f'File does not exist: {zipped}'},
                             status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
-@check_permissions
 @add_context
 def request_vm(request, context):
     return render(request, 'tira/request_vm.html', context)

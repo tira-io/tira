@@ -130,8 +130,9 @@ class LegacyAuthentication(Authentication):
         if not user:
             return self.ROLE_GUEST
 
-        if 'reviewer' in {role for role in user['roles']}:
+        if 'reviewer' in user['roles']:
             return self.ROLE_ADMIN
+
         # NOTE: in the old user management vm_id == user_id
         if user_id == vm_id or Authentication.get_default_vm_id(user_id) == vm_id:
             return self.ROLE_PARTICIPANT
