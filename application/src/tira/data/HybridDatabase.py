@@ -11,7 +11,7 @@ import os
 
 from tira.util import TiraModelWriteError, TiraModelIntegrityError
 from tira.proto import TiraClientWebMessages_pb2 as modelpb
-from tira.util import auto_reviewer, now, get_today_timestamp
+from tira.util import auto_reviewer, now, get_today_timestamp, get_tira_id
 
 import tira.model as modeldb
 import tira.data.data as dbops

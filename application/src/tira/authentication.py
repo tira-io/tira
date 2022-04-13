@@ -161,13 +161,13 @@ class LegacyAuthentication(Authentication):
 
 def check_disraptor_token(func):
     @wraps(func)
-    def func_wrapper(request, *args, **kwargs):
+    def func_wrapper(auth, request, *args, **kwargs):
         _DISRAPTOR_APP_SECRET_KEY = os.getenv("DISRAPTOR_APP_SECRET_KEY")
 
         if not request.headers.get('X-Disraptor-App-Secret-Key', None) == _DISRAPTOR_APP_SECRET_KEY:
             return HttpResponseNotAllowed(f"Access forbidden.")
 
-        return func(request, *args, **kwargs)
+        return func(auth, request, *args, **kwargs)
 
     return func_wrapper
 
