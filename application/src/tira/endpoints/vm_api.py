@@ -154,10 +154,11 @@ def vm_stop(request, vm_id):
 @check_permissions
 @check_resources_exist('json')
 def vm_info(request, vm_id):
-    # TODO when vm_id is no-vm-assigned
-
     vm = model.get_vm(vm_id)
     host = reroute_host(vm['host'])
+    if not host:
+        logger.exception(f"/grpc/{vm_id}/vm-info: connection to {host} failed, because host is empty")
+        return JsonResponse({'status': 'Rejected', 'message': "SERVER_ERROR"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
     try:
         grpc_client = GrpcClient(host)
         response_vm_info = grpc_client.vm_info(vm_id=vm_id)

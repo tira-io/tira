@@ -37,7 +37,7 @@ def reload_runs(vm_id):
 
 
 # get methods are the public interface.
-def get_vm(vm_id: str):
+def get_vm(vm_id: str, create_if_none=False):
     """ Returns a vm as dictionary with:
 
         {"vm_id", "user_password", "roles", "host", "admin_name",
@@ -45,7 +45,7 @@ def get_vm(vm_id: str):
 
     Some fields may be None.
     """
-    return model.get_vm(vm_id)
+    return model.get_vm(vm_id, create_if_none)
 
 
 def get_tasks() -> list:

@@ -15,17 +15,18 @@
 
     <link rel="stylesheet" type="text/css" href="{% static 'tira/css/tira-style.css' %}">
 </head>
-<body class="uk-offcanvas-content">
+<body class="uk-offcanvas-content uk-flex uk-flex-between uk-flex-column" uk-height-viewport="min-height: 100vh">
 <script src="https://assets.webis.de/js/thirdparty/uikit/uikit.min.js"></script>
 <script src="https://assets.webis.de/js/thirdparty/uikit/uikit-icons.min.js"></script>
 
+
+<div class="uk-flex-none">
 {% block navbar %}{% endblock %}
-
-<div>
-    {% block content %}{% endblock %}
+{% block content %}{% endblock %}
 </div>
+<div class="uk-flex-wrap-stretch"></div>
 
-<footer class="uk-section uk-section-muted footer-section uk-padding-small uk-position-bottom">
+<footer class="uk-section uk-section-muted footer-section uk-padding-small uk-flex-none">
     <div class="uk-container uk-margin-small-top">
         <div class="uk-align-right@m">
             Copyright &copy; {% now "Y" %} <a href="https://webis.de/">Webis group</a> <span class="uk-padding-small">&bullet;</span>

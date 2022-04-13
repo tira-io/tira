@@ -5,9 +5,13 @@ import json
 import logging
 import os
 from datetime import datetime
+from functools import wraps
 
 import requests
 from django.conf import settings
+from django.http import JsonResponse, Http404, HttpResponseNotAllowed
+import tira.tira_model as model
+
 from google.protobuf.text_format import Parse
 
 from .proto import TiraClientWebMessages_pb2 as modelpb
@@ -41,6 +45,10 @@ class Authentication(object):
 
     def __init__(self, **kwargs):
         pass
+
+    @staticmethod
+    def get_default_vm_id(user_id):
+        return f"{user_id}-default"
 
     def get_role(self, request, user_id: str = None, vm_id: str = None, task_id: str = None):
         """ Determine the role of the user on the requested page (determined by the given directives).
@@ -84,13 +92,6 @@ class LegacyAuthentication(Authentication):
         - :param users_file: path to the users.prototext that contains the user data
         """
         super(LegacyAuthentication, self).__init__(**kwargs)
-        self.users = {}
-        self.users_file = kwargs["users_file"]
-        self.load_legacy_users()
-
-    def load_legacy_users(self):
-        users = Parse(open(self.users_file, "r").read(), modelpb.Users())
-        self.users = {user.userName: user for user in users.users}
 
     def login(self, request, **kwargs):
         """ Set a user_id cookie to the django session
@@ -99,8 +100,8 @@ class LegacyAuthentication(Authentication):
         - :param password:
         """
         try:
-            user = self.users.get(kwargs["user_id"])
-            if kwargs["password"] == user.userPw:
+            user = model.get_vm(kwargs["user_id"])
+            if kwargs["password"] == user['user_password']:
                 request.session["user_id"] = kwargs["user_id"]
             else:
                 return False
@@ -115,7 +116,6 @@ class LegacyAuthentication(Authentication):
         except KeyError:
             pass
 
-    # TODO permission logic should be in check.
     def get_role(self, request, user_id: str = None, vm_id: str = None, task_id: str = None):
         """ Determine the role of the user on the requested page (determined by the given directives).
         This is a minimalistic implementation using the legacy account storage.
@@ -124,53 +124,66 @@ class LegacyAuthentication(Authentication):
 
         Currently only checks: (1) is user admin, (2) otherwise, is user owner of the vm (ROLE_PARTICIPANT)
         """
-        user = self.users.get(user_id, None)
-        if not user_id or not user:
+        if not user_id:
+            return self.ROLE_GUEST
+        user = model.get_vm(user_id)
+        if not user:
             return self.ROLE_GUEST
 
-        if 'reviewer' in {role for role in user.roles}:
+        if 'reviewer' in user['roles']:
             return self.ROLE_ADMIN
+
         # NOTE: in the old user management vm_id == user_id
-        if user_id == vm_id:
+        if user_id == vm_id or Authentication.get_default_vm_id(user_id) == vm_id:
             return self.ROLE_PARTICIPANT
 
-        if user_id != vm_id and vm_id is not None and vm_id != 'no-vm-assigned':
+        if user_id != vm_id and vm_id is not None and vm_id != Authentication.get_default_vm_id(user_id):
             return self.ROLE_FORBIDDEN
 
         return self.ROLE_USER
 
+    # TODO creating the default user should be done at some other point that's less frequently called.
     def get_user_id(self, request):
+        user_id = request.session.get("user_id", None)
+        if user_id:
+            vm_id = Authentication.get_default_vm_id(user_id)
+            _ = model.get_vm(vm_id, create_if_none=True)
+
         return request.session.get("user_id", None)
 
     def get_vm_id(self, request, user_id):
         """ Note: in the old schema, user_id == vm_id"""
-        user = self.users.get(user_id, None)
-        if user and user.vmName:
+        user = model.get_vm(user_id)
+        if user and user['host']:  # i.e. if there is a host somewhere
             return user_id
-        return "no-vm-assigned"
+        return Authentication.get_default_vm_id(user_id)
+
+
+def check_disraptor_token(func):
+    @wraps(func)
+    def func_wrapper(auth, request, *args, **kwargs):
+        _DISRAPTOR_APP_SECRET_KEY = os.getenv("DISRAPTOR_APP_SECRET_KEY")
+
+        if not request.headers.get('X-Disraptor-App-Secret-Key', None) == _DISRAPTOR_APP_SECRET_KEY:
+            return HttpResponseNotAllowed(f"Access forbidden.")
+
+        return func(auth, request, *args, **kwargs)
+
+    return func_wrapper
 
 
 class DisraptorAuthentication(Authentication):
     _AUTH_SOURCE = "disraptor"
-    _DISRAPTOR_APP_SECRET_KEY = os.getenv("DISRAPTOR_APP_SECRET_KEY")
 
-    # TODO should be in check
-    def _reply_if_allowed(self, request, response, alternative="None"):
-        """ Returns the :param response: if disraptor auth token is correct, otherwise returns the :param alternative:
-        """
-        if request.headers.get('X-Disraptor-App-Secret-Key', None) == self._DISRAPTOR_APP_SECRET_KEY:
-            return response
-        else:
-            return alternative
-
-    @staticmethod
-    def _get_user_id(request):
+    def _get_user_id(self, request):
         """ Return the content of the X-Disraptor-User header set in the http request """
         user_id = request.headers.get('X-Disraptor-User', None)
+        if user_id:
+            vm_id = Authentication.get_default_vm_id(user_id)
+            _ = model.get_vm(vm_id, create_if_none=True)
         return user_id
 
-    @staticmethod
-    def _is_in_group(request, group_name='tira_reviewer') -> bool:
+    def _is_in_group(self, request, group_name='tira_reviewer') -> bool:
         """ return True if the user is in the given disraptor group"""
         return group_name in request.headers.get('X-Disraptor-Groups', "").split(",")
 
@@ -196,12 +209,13 @@ class DisraptorAuthentication(Authentication):
         @param group_type: {"vm"}, indicate the class of groups.
         """
         all_groups = request.headers.get('X-Disraptor-Groups', "None").split(",")
+        user_id = f"{request.headers.get('X-Disraptor-User', None)}-default"
 
         if group_type == 'vm':  # if we check for groups of a virtual machine
-            return [group["value"] for group in self._parse_tira_groups(all_groups) if group["key"] == "vm"]
+            return [group["value"] for group in self._parse_tira_groups(all_groups) if group["key"] == "vm"] + [user_id]
             # return [u.split("-")[2:] for u in all_groups if u.startswith("tira-vm-")]
 
-    # TODO: permission logic should be in Check
+    @check_disraptor_token
     def get_role(self, request, user_id: str = None, vm_id: str = None, task_id: str = None):
         """ Determine the role of the user on the requested page (determined by the given directives).
         This is a minimalistic implementation that suffices for the current features of TIRA.
@@ -212,30 +226,33 @@ class DisraptorAuthentication(Authentication):
         """
 
         if self._is_in_group(request, "admins") or self._is_in_group(request, "tira_reviewer"):
-            return self._reply_if_allowed(request, self.ROLE_ADMIN, self.ROLE_GUEST)
+            return self.ROLE_ADMIN
 
         user_groups = self._get_user_groups(request, group_type='vm')
         # Role for users with permissions for the vm
         if vm_id in user_groups:
-            return self._reply_if_allowed(request, self.ROLE_PARTICIPANT, self.ROLE_GUEST)
-        # Role for registered
+            return self.ROLE_PARTICIPANT
         elif user_id and not vm_id:
-            return self._reply_if_allowed(request, self.ROLE_USER, self.ROLE_GUEST)
+            return self.ROLE_USER
         # Role without permissions for the vm
         elif user_id and vm_id in user_groups:
-            return self._reply_if_allowed(request, self.ROLE_FORBIDDEN, self.ROLE_GUEST)
+            return self.ROLE_FORBIDDEN
         return self.ROLE_GUEST
 
+    @check_disraptor_token
     def get_user_id(self, request):
         """ public wrapper of _get_user_id that checks conditions """
-        return self._reply_if_allowed(request, self._get_user_id(request))
+        return self._get_user_id(request)
 
+    @check_disraptor_token
     def get_vm_id(self, request, user_id=None):
         """ return the vm_id of the first vm_group ("tira-vm-<vm_id>") found.
          If there is no vm-group, return "no-vm-assigned"
+         TODO: once multiple vms are supported, this should return a list
          """
         vms = self._get_user_groups(request)
-        return vms[0] if len(vms) >= 1 else "no-vm-assigned"
+        user_id = self._get_user_id(request)
+        return vms[0] if len(vms) >= 1 else Authentication.get_default_vm_id(user_id)
 
     def _discourse_api_key(self):
         return open(settings.DISRAPTOR_SECRET_FILE, "r").read().strip()
@@ -293,5 +310,4 @@ class DisraptorAuthentication(Authentication):
         return message
 
 
-auth = Authentication(authentication_source=settings.DEPLOYMENT,
-                      users_file=settings.LEGACY_USER_FILE)
+auth = Authentication(authentication_source=settings.DEPLOYMENT)
