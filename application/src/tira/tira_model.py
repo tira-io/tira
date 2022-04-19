@@ -295,10 +295,10 @@ def edit_task(task_id: str, task_name: str, task_description: str, master_vm_id:
                            help_command, help_text)
 
 
-def edit_dataset(task_id: str, dataset_id: str, dataset_name: str, master_vm_id: str, command: str,
+def edit_dataset(task_id: str, dataset_id: str, dataset_name: str, command: str,
                  working_directory: str, measures: str, is_confidential: bool = False):
     """ Update the datasets's data """
-    return model.edit_dataset(task_id, dataset_id, dataset_name, master_vm_id, command, working_directory,
+    return model.edit_dataset(task_id, dataset_id, dataset_name, command, working_directory,
                               measures, is_confidential)
 
 

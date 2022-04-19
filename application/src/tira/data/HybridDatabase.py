@@ -793,8 +793,8 @@ class HybridDatabase(object):
         ev.evaluatorId = evaluator_id
         ev.command = command
         ev.workingDirectory = working_directory
-        ev.measures = ",".join([x[0].strip('\r') for x in measures])
-        ev.measureKeys.extend([x[1].strip('\r') for x in measures])
+        ev.measures = measures  # ",".join([x[0].strip('\r') for x in measures])
+        # ev.measureKeys.extend([x[1].strip('\r') for x in measures])
         vm.evaluators.append(ev)
         open(vm_file_path, 'w').write(str(vm))
 
@@ -1049,39 +1049,40 @@ class HybridDatabase(object):
         self._fdb_edit_task(modeldb.Task.objects.get(task_id=task_id))
         return self._task_to_dict(modeldb.Task.objects.get(task_id=task_id))
 
+    def _fdb_edit_dataset(self, task_id, dataset_id, display_name, dataset_type, evaluator_id):
+        """ dataset_dir_path/task_id/dataset_id.prototext """
+        dataset_file_path = self.datasets_dir_path / task_id / f'{dataset_id}.prototext'
+        ds = Parse(open(dataset_file_path, "r").read(), modelpb.Dataset())
 
-    # def _save_task(self, task_id, task_name, task_description, master_vm_id, organizer, website,
-    #                append_training_datasets: list = None, append_test_datasets: list = None, overwrite=False):
-    #     """ makes persistant changes to task: store in memory and to file.
-    #      Returns false if task exists and overwrite is false. """
-    #     task_file_path = self.tasks_dir_path / f'{task_id}.prototext'
-    #     if not overwrite and task_file_path.exists():
-    #         raise TiraModelWriteError(f"Failed to write task, task exists and overwrite is not allowed here")
-    #     elif overwrite and task_file_path.exists():
-    #         task = Parse(open(task_file_path, "r").read(), modelpb.Tasks.Task())
-    #     else:
-    #
-    #     task = modelpb.Tasks.Task()
-    #     task.taskId = task_id if task_id else task.taskId
-    #     task.taskName = task_name if task_name else task.taskName
-    #     task.taskDescription = task_description if task_description else task.taskDescription
-    #     task.virtualMachineId = master_vm_id if master_vm_id else task.virtualMachineId
-    #     task.hostId = organizer if organizer else task.hostId
-    #     task.web = website if website else task.web
-    #
-    # TODO when add/edit dataset, add them to the task file.
-    #     if append_training_datasets:
-    #         for append in append_training_datasets:
-    #             task.trainingDataset.append(append)
-    #     if append_test_datasets:
-    #         for append in append_test_datasets:
-    #             task.testDataset.append(append)
-    #
-    #     open(task_file_path, 'w').write(str(task))
-    #     return True
+        ds.displayName = display_name
+        ds.evaluatorId = evaluator_id
+        if dataset_type == 'test':
+            ds.isConfidential = True
+        else:
+            ds.isConfidential = False
 
-    def edit_dataset(self, task_id, dataset_id, dataset_name, master_vm_id, command, working_directory,
-                     measures, is_confidential):
+        open(dataset_file_path, 'w').write(str(ds))
+
+    def _fdb_edit_evaluator_to_vm(self, vm_id, evaluator_id, command, working_directory, measures):
+        """ Edit the evaluator in the <vm_id>.prototext file in the Filedatabase
+         This file is potentially read by the host.
+           If it is not read by the host anymore, remove this function and all it's calls
+         """
+        vm_file_path = self.vm_dir_path / f'{vm_id}.prototext'
+        vm = Parse(open(vm_file_path).read(), modelpb.VirtualMachine())
+
+        for evaluator in vm.evaluators:
+            if evaluator.evaluatorId == evaluator_id:
+                evaluator.command = command
+                evaluator.workingDirectory = working_directory
+                evaluator.measures = measures
+
+        open(vm_file_path, 'w').write(str(vm))
+
+    def edit_dataset(self, task_id, dataset_id, dataset_name, command, working_directory, measures, is_confidential):
+        """
+
+        """
         for_task = modeldb.Task.objects.get(task_id=task_id)
         modeldb.Dataset.objects.filter(dataset_id=dataset_id).update(
             default_task=for_task,
@@ -1090,13 +1091,12 @@ class HybridDatabase(object):
 
         ds = modeldb.Dataset.objects.get(dataset_id=dataset_id)
         modeldb.TaskHasDataset.objects.filter(dataset=ds).update(task=for_task)
+        dataset_type = 'test' if is_confidential else 'training'
+
         ev = modeldb.Evaluator.objects.filter(dataset__dataset_id=dataset_id)
         ev.update(command=command, working_directory=working_directory, measures=measures)
-        if master_vm_id:
-            modeldb.VirtualMachineHasEvaluator.objects.\
-                update_or_create(evaluator=modeldb.Evaluator.objects.get(dataset__dataset_id=dataset_id), defaults={
-                    'vm': modeldb.VirtualMachine.objects.get(vm_id=master_vm_id)
-                })
+
+        self._fdb_edit_dataset(task_id, dataset_id, dataset_name, dataset_type, ev.evaluator_id)
 
         return self._dataset_to_dict(ds)
 
@@ -1124,11 +1124,50 @@ class HybridDatabase(object):
 
         modeldb.Run.objects.filter(run_id=run_id).delete()
 
+    def _fdb_delete_task(self, task_id):
+        task_file_path = self.tasks_dir_path / f'{task_id}.prototext'
+        os.remove(task_file_path)
+
     def delete_task(self, task_id):
         modeldb.Task.objects.filter(task_id=task_id).delete()
+        self._fdb_delete_task(task_id)
+
+    def _fdb_delete_dataset(self, task_id, dataset_id):
+        dataset_file_path = self.datasets_dir_path / task_id / f'{dataset_id}.prototext'
+        os.remove(dataset_file_path)
+
+    def _fdb_delete_dataset_from_task(self, task_id, dataset_id):
+        task_file_path = self.tasks_dir_path / f'{task_id}.prototext'
+        task = Parse(open(task_file_path, "r").read(), modelpb.Tasks.Task())
+        for ind, ds in enumerate(task.testDataset):
+            if ds.datasetId == dataset_id:
+                del task.testDataset[ind]
+
+        for ind, ds in enumerate(task.trainingDataset):
+            if ds.datasetId == dataset_id:
+                del task.trainingDataset[ind]
+
+        open(task_file_path, 'w').write(str(task))
+
+    def _fdb_delete_evaluator_from_vm(self, vm_id, evaluator_id):
+        vm_file_path = self.vm_dir_path / f'{vm_id}.prototext'
+        vm = Parse(open(vm_file_path).read(), modelpb.VirtualMachine())
+
+        for ind, ev in enumerate(vm.evaluators):
+            if ev.evaluatorId == evaluator_id:
+                del vm.evaluators[ind]
+
+        open(vm_file_path, 'w').write(str(vm))
 
     def delete_dataset(self, dataset_id):
-        modeldb.Dataset.objects.filter(dataset_id=dataset_id).delete()
+        ds = modeldb.Dataset.objects.select_related('default_task', 'evaluator').filter(dataset_id=dataset_id)
+        task_id = ds.default_task.task_id  # TODO maybe we need to go via TaskHasDataset instead
+        evaluator_id = ds.evaluator.evaluator_id
+        vm_id = ds.default_task.vm.vm_id
+        ds.delete()
+        self._fdb_delete_dataset_from_task(task_id, dataset_id)
+        self._fdb_delete_dataset(task_id, dataset_id)
+        self._fdb_delete_evaluator_from_vm(vm_id, evaluator_id)
 
     def edit_organizer(self, organizer_id, name, years, web):
         org, _ = modeldb.Organizer.objects.update_or_create(organizer_id=organizer_id, defaults={
