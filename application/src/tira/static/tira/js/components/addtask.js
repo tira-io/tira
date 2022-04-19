@@ -4,6 +4,7 @@ export default {
             createTaskError: '',
             taskNameInput: '',
             taskId: '',
+            masterVmId: '',
             selectedOrganizer: '',
             websiteInput: '',
             taskDescription: '',
@@ -57,12 +58,16 @@ export default {
             if (this.taskDescription === '') {
                 this.createTaskError += 'Please provide a description for you task;\n'
             }
+            if (this.masterVmId === '') {
+                this.createTaskError += 'Please provide a master vm for you task;\n'
+            }
             if (this.createTaskError !== '') {
                 return
             }
             this.submitPost('tira-admin/create-task', {
                 'task_id': this.taskId,
                 'name': this.taskNameInput,
+                'master_vm_id': this.masterVmId,
                 'organizer': this.selectedOrganizer.organizer_id,
                 'website': this.websiteInput,
                 'description': this.taskDescription,
@@ -134,6 +139,11 @@ export default {
             <input id="website-input" class="uk-input" type="text" placeholder="Website URL"
                    v-model="websiteInput"></label>
         </div>
+    </div>
+    <div class="uk-margin-small">
+        <label>Master VM ID*
+        <input id="master-vm-id-input" type="text" class="uk-input" placeholder="new-task-master"
+               v-model="masterVmId" /> </label>
     </div>
     <div class="uk-margin-small">
         <label>Task Description*

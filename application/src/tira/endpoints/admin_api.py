@@ -104,13 +104,16 @@ def admin_create_task(request):
 
         task_id = data["task_id"]
         organizer = data["organizer"]
+        master_vm_id = data["master_vm_id"]
 
         if not model.organizer_exists(organizer):
             return JsonResponse({'status': 1, 'message': f"Organizer with ID {organizer} does not exist"})
         if model.task_exists(task_id):
             return JsonResponse({'status': 1, 'message': f"Task with ID {task_id} already exist"})
+        if not model.vm_exists(master_vm_id):
+            return JsonResponse({'status': 1, 'message': f"VM with ID {master_vm_id} does not exist"})
 
-        new_task = model.create_task(task_id, data["name"], data["description"],
+        new_task = model.create_task(task_id, data["name"], data["description"], master_vm_id,
                                      organizer, data["website"],
                                      help_command=data["help_command"], help_text=data["help_text"])
         new_task = json.dumps(new_task, cls=DjangoJSONEncoder)

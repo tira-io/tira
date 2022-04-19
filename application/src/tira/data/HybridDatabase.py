@@ -186,35 +186,6 @@ class HybridDatabase(object):
     # ---- save methods to update protos
     # ---------------------------------------------------------------------
 
-    def _save_task(self, task_id, task_name, task_description, master_vm_id, organizer, website,
-                   append_training_datasets: list = None, append_test_datasets: list = None, overwrite=False):
-        """ makes persistant changes to task: store in memory and to file.
-         Returns false if task exists and overwrite is false. """
-        task_file_path = self.tasks_dir_path / f'{task_id}.prototext'
-        if not overwrite and task_file_path.exists():
-            raise TiraModelWriteError(f"Failed to write task, task exists and overwrite is not allowed here")
-        elif overwrite and task_file_path.exists():
-            task = Parse(open(task_file_path, "r").read(), modelpb.Tasks.Task())
-        else:
-            task = modelpb.Tasks.Task()
-
-        task.taskId = task_id if task_id else task.taskId
-        task.taskName = task_name if task_name else task.taskName
-        task.taskDescription = task_description if task_description else task.taskDescription
-        task.virtualMachineId = master_vm_id if master_vm_id else task.virtualMachineId
-        task.hostId = organizer if organizer else task.hostId
-        task.web = website if website else task.web
-
-        if append_training_datasets:
-            for append in append_training_datasets:
-                task.trainingDataset.append(append)
-        if append_test_datasets:
-            for append in append_test_datasets:
-                task.testDataset.append(append)
-
-        open(task_file_path, 'w').write(str(task))
-        return True
-
     def _save_vm(self, vm_id=None, user_name=None, initial_user_password=None, ip=None, host=None, ssh=None, rdp=None,
                  overwrite=False):
         new_vm_file_path = self.vm_dir_path / f'{vm_id}.prototext'
@@ -730,7 +701,50 @@ class HybridDatabase(object):
 
         raise TiraModelWriteError(f"Failed to write VM {vm_id}")
 
-    def create_task(self, task_id, task_name, task_description, organizer, website,
+    def _fdb_create_task(self, task_id, task_name, task_description, master_vm_id, organizer_id, website,
+                    help_command=None, help_text=None):
+        new_task_file_path = self.tasks_dir_path / f'{task_id}.prototext'
+        task = modelpb.Tasks.Task()
+        task.taskId = task_id
+        task.taskName = task_name
+        task.taskDescription = task_description
+        task.virtualMachineId = master_vm_id
+        task.hostId = organizer_id
+        task.web = website
+        task.commandPlaceholder = help_command
+        task.commandDescription = help_text
+        open(new_task_file_path, 'w').write(str(task))
+
+    # def _save_task(self, task_id, task_name, task_description, master_vm_id, organizer, website,
+    #                append_training_datasets: list = None, append_test_datasets: list = None, overwrite=False):
+    #     """ makes persistant changes to task: store in memory and to file.
+    #      Returns false if task exists and overwrite is false. """
+    #     task_file_path = self.tasks_dir_path / f'{task_id}.prototext'
+    #     if not overwrite and task_file_path.exists():
+    #         raise TiraModelWriteError(f"Failed to write task, task exists and overwrite is not allowed here")
+    #     elif overwrite and task_file_path.exists():
+    #         task = Parse(open(task_file_path, "r").read(), modelpb.Tasks.Task())
+    #     else:
+    #
+    #     task = modelpb.Tasks.Task()
+    #     task.taskId = task_id if task_id else task.taskId
+    #     task.taskName = task_name if task_name else task.taskName
+    #     task.taskDescription = task_description if task_description else task.taskDescription
+    #     task.virtualMachineId = master_vm_id if master_vm_id else task.virtualMachineId
+    #     task.hostId = organizer if organizer else task.hostId
+    #     task.web = website if website else task.web
+    #
+    #     if append_training_datasets:
+    #         for append in append_training_datasets:
+    #             task.trainingDataset.append(append)
+    #     if append_test_datasets:
+    #         for append in append_test_datasets:
+    #             task.testDataset.append(append)
+    #
+    #     open(task_file_path, 'w').write(str(task))
+    #     return True
+
+    def create_task(self, task_id, task_name, task_description, master_vm_id, organizer, website,
                     help_command=None, help_text=None):
         """ Add a new task to the database.
          CAUTION: This function does not do any sanity checks and will OVERWRITE existing tasks
@@ -745,6 +759,10 @@ class HybridDatabase(object):
         if help_text:
             new_task.command_description = help_text
         new_task.save()
+        self._fdb_create_task(task_id, task_name, task_description, master_vm_id, organizer, website,
+                              help_command, help_text)
+        # save task in filedb
+
         return self._task_to_dict(new_task)
 
         # raise TiraModelWriteError(f"Failed to write task file {task_id}")
