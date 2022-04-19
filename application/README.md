@@ -4,7 +4,7 @@ The following steps will setup a self-contained, local tira application and a mo
 
 0. Install Python3, pip, virtualenv, and the mysql tools. For Ubuntu:
    ```bash
-   ~$ sudo apt-get update && sudo apt-get install python3 python3-pip python3-venv, libmysqlclient-dev
+   ~$ sudo apt-get update && sudo apt-get install python3 python3-pip python3-venv libmysqlclient-dev
    ```
 
 1. Setup the local environment
