@@ -1,11 +1,10 @@
-## Local Development
+## Development Setup
 
-The following steps will setup a local tira-application and tira-application-grpc. By default, it uses tira/model which comes with this repo. 
+The following steps will setup a self-contained, local tira application and a mockup tira host. See [Development](#development) for more detailed options. 
 
-0. Install Protobuf and compile the tira protocol. Install Python3, pip, and virtualenv
+0. Install Python3, pip, and virtualenv
    ```bash
-   protocol~$ make build
-                ~$ sudo apt-get update && sudo apt-get install python3 python3-pip python3-venv 
+   ~$ sudo apt-get update && sudo apt-get install python3 python3-pip python3-venv 
    ```
 
 1. Setup the local environment
@@ -19,6 +18,8 @@ The following steps will setup a local tira-application and tira-application-grp
    ```
 
 ## Docker
+
+You can run tira in a docker container for a simple deployment. 
 
 You need to run two docker containers for a tira-application: `registry.webis.de/code-lib/public-images/tira-application` and `registry.webis.de/code-lib/public-images/tira-application-grpc`. 
 
@@ -57,11 +58,11 @@ You need to run two docker containers for a tira-application: `registry.webis.de
    ~$ make docker-publish-tira-application  # (optional) Publish a new version
    ```  
 
-These make targets the the deployment configuration: `tira/application/config/settings-deploy.yml`
+These make targets from the deployment configuration: `tira/application/config/settings-deploy.yml`
 
 ### Development
 
-The settings used for this local deployment are: `tira/application/config/settings-dev.yml` 
+The settings used for the development setup are: `tira/application/config/settings-dev.yml` 
 
 Frequently used development commands are:
 
@@ -71,3 +72,7 @@ Frequently used development commands are:
    application/src~$ python3 manage.py run_develop  # Start the application and  the application's grpc server. This is used in make run-develop and the container
    application/src~$ python3 manage.py run_mockup  # Start the application, the application's grpc server, and a mock host grpc server that will reply to the application with fake commands. This is the simplest way to develop the application.
    ```  
+
+## Troubleshooting
+
+If there are problems with the precompiled protobuf parser, you can recompile them from the `tira/protocol` repository and copy them to `tira/application/src/tira/proto`. 
