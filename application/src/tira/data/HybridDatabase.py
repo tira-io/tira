@@ -310,11 +310,17 @@ class HybridDatabase(object):
         else:
             org_name = ""
             org_year = ""
+        try:
+            master_vm_id = task.vm.vm_id
+        except AttributeError as e:
+            logger.error(f"Task with id {task.task_id} has no master vm associated")
+            master_vm_id = "None"
 
         return {"task_id": task.task_id, "task_name": task.task_name, "task_description": task.task_description,
                 "organizer": org_name,
                 "web": task.web,
                 "year": org_year,
+                "master_vm_id": master_vm_id,
                 "dataset_count": task.dataset_set.count(),
                 "software_count": task.software_set.count(),
                 "max_std_out_chars_on_test_data": task.max_std_out_chars_on_test_data,
@@ -715,35 +721,6 @@ class HybridDatabase(object):
         task.commandDescription = help_text
         open(new_task_file_path, 'w').write(str(task))
 
-    # def _save_task(self, task_id, task_name, task_description, master_vm_id, organizer, website,
-    #                append_training_datasets: list = None, append_test_datasets: list = None, overwrite=False):
-    #     """ makes persistant changes to task: store in memory and to file.
-    #      Returns false if task exists and overwrite is false. """
-    #     task_file_path = self.tasks_dir_path / f'{task_id}.prototext'
-    #     if not overwrite and task_file_path.exists():
-    #         raise TiraModelWriteError(f"Failed to write task, task exists and overwrite is not allowed here")
-    #     elif overwrite and task_file_path.exists():
-    #         task = Parse(open(task_file_path, "r").read(), modelpb.Tasks.Task())
-    #     else:
-    #
-    #     task = modelpb.Tasks.Task()
-    #     task.taskId = task_id if task_id else task.taskId
-    #     task.taskName = task_name if task_name else task.taskName
-    #     task.taskDescription = task_description if task_description else task.taskDescription
-    #     task.virtualMachineId = master_vm_id if master_vm_id else task.virtualMachineId
-    #     task.hostId = organizer if organizer else task.hostId
-    #     task.web = website if website else task.web
-    #
-    #     if append_training_datasets:
-    #         for append in append_training_datasets:
-    #             task.trainingDataset.append(append)
-    #     if append_test_datasets:
-    #         for append in append_test_datasets:
-    #             task.testDataset.append(append)
-    #
-    #     open(task_file_path, 'w').write(str(task))
-    #     return True
-
     def create_task(self, task_id, task_name, task_description, master_vm_id, organizer, website,
                     help_command=None, help_text=None):
         """ Add a new task to the database.
@@ -759,13 +736,11 @@ class HybridDatabase(object):
         if help_text:
             new_task.command_description = help_text
         new_task.save()
+
         self._fdb_create_task(task_id, task_name, task_description, master_vm_id, organizer, website,
                               help_command, help_text)
-        # save task in filedb
 
         return self._task_to_dict(new_task)
-
-        # raise TiraModelWriteError(f"Failed to write task file {task_id}")
 
     def add_dataset(self, task_id, dataset_id, dataset_type, dataset_name):
         """ Add a new dataset to a task
@@ -1016,14 +991,34 @@ class HybridDatabase(object):
         except Exception as e:
             raise TiraModelWriteError(f"Exception while saving run ({dataset_id}, {vm_id}, {run_id})", e)
 
-    def edit_task(self, task_id: str, task_name: str, task_description: str,
+    def _fdb_edit_task(self, task_id, task_name, task_description, master_vm_id, organizer_id, website,
+                       help_command=None, help_text=None):
+        task_file_path = self.tasks_dir_path / f'{task_id}.prototext'
+        if not task_file_path.exists():
+            logger.exception(f"Can not save task {task_id} because the task file {task_file_path} does not exist. Creating this file now.")
+            self._fdb_create_task(task_id, task_name, task_description, master_vm_id, organizer_id, website,
+                                  help_command, help_text)
+            return
+        task = Parse(open(task_file_path, "r").read(), modelpb.Tasks.Task())
+        task.taskId = task_id
+        task.taskName = task_name
+        task.taskDescription = task_description
+        task.virtualMachineId = master_vm_id
+        task.hostId = organizer_id
+        task.web = website
+        task.commandPlaceholder = help_command
+        task.commandDescription = help_text
+        open(task_file_path, 'w').write(str(task))
+
+    def edit_task(self, task_id: str, task_name: str, task_description: str, master_vm_id,
                   organizer: str, website: str, help_command: str = None, help_text: str = None):
 
         task = modeldb.Task.objects.filter(task_id=task_id)
+        vm = modeldb.VirtualMachine.objects.get(vm_id=master_vm_id)
         task.update(
             task_name=task_name,
             task_description=task_description,
-            vm=None,
+            vm=vm,
             organizer=modeldb.Organizer.objects.get(organizer_id=organizer),
             web=website,
         )
@@ -1033,7 +1028,39 @@ class HybridDatabase(object):
         if help_text:
             task.update(command_description=help_text)
 
+        self._fdb_edit_task(modeldb.Task.objects.get(task_id=task_id))
         return self._task_to_dict(modeldb.Task.objects.get(task_id=task_id))
+
+
+    # def _save_task(self, task_id, task_name, task_description, master_vm_id, organizer, website,
+    #                append_training_datasets: list = None, append_test_datasets: list = None, overwrite=False):
+    #     """ makes persistant changes to task: store in memory and to file.
+    #      Returns false if task exists and overwrite is false. """
+    #     task_file_path = self.tasks_dir_path / f'{task_id}.prototext'
+    #     if not overwrite and task_file_path.exists():
+    #         raise TiraModelWriteError(f"Failed to write task, task exists and overwrite is not allowed here")
+    #     elif overwrite and task_file_path.exists():
+    #         task = Parse(open(task_file_path, "r").read(), modelpb.Tasks.Task())
+    #     else:
+    #
+    #     task = modelpb.Tasks.Task()
+    #     task.taskId = task_id if task_id else task.taskId
+    #     task.taskName = task_name if task_name else task.taskName
+    #     task.taskDescription = task_description if task_description else task.taskDescription
+    #     task.virtualMachineId = master_vm_id if master_vm_id else task.virtualMachineId
+    #     task.hostId = organizer if organizer else task.hostId
+    #     task.web = website if website else task.web
+    #
+    # TODO when add/edit dataset, add them to the task file.
+    #     if append_training_datasets:
+    #         for append in append_training_datasets:
+    #             task.trainingDataset.append(append)
+    #     if append_test_datasets:
+    #         for append in append_test_datasets:
+    #             task.testDataset.append(append)
+    #
+    #     open(task_file_path, 'w').write(str(task))
+    #     return True
 
     def edit_dataset(self, task_id, dataset_id, dataset_name, master_vm_id, command, working_directory,
                      measures, is_confidential):
