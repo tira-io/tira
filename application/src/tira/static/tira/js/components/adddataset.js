@@ -4,7 +4,6 @@ export default {
             addDatasetError: '',
             datasetNameInput: '',
             datasetId: '',
-            masterVmInput: '',
             selectedTask: '',
             type: 'training',
             evaluatorWorkingDirectory: '',
@@ -63,7 +62,6 @@ export default {
             this.submitPost('/tira-admin/add-dataset', {
                 'dataset_id': this.datasetId,
                 'name': this.datasetNameInput,
-                'master_id': this.masterVmInput,
                 'task': this.selectedTask.task_id,
                 'type': this.type,
                 'evaluator_working_directory': this.evaluatorWorkingDirectory,
@@ -165,8 +163,8 @@ export default {
         </div>
         <div class="uk-width-1-3">
             <label>Master VM
-            <input class="uk-input" type="text" placeholder="id-lowercase-with-dashes"
-                   v-model="masterVmInput"></label>
+            <input class="uk-input uk-disabled" type="text" placeholder="id-lowercase-with-dashes"
+                   v-model="selectedTask.master_vm_id" disabled></label>
         </div>
     </div>
     <div class="uk-margin-small">

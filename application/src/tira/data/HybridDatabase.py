@@ -210,27 +210,6 @@ class HybridDatabase(object):
         # self.vms[vm_proto.virtualMachineId] = vm_proto  # TODO see issue:30
         open(new_vm_file_path, 'w').write(str(vm))
 
-    def _save_dataset(self, task_id, dataset_id=None, display_name=None, is_deprecated=None, is_confidential=None,
-                      evaluator_id=None, overwrite=True):
-        """ dataset_dir_path/task_id/dataset_id.prototext """
-        new_dataset_file_path = self.datasets_dir_path / task_id / f'{dataset_id}.prototext'
-        if not overwrite and new_dataset_file_path.exists():
-            raise TiraModelWriteError(f"Failed to write dataset, dataset exists and overwrite is not allowed here")
-        elif overwrite and new_dataset_file_path.exists():
-            ds = Parse(open(new_dataset_file_path, "r").read(), modelpb.Dataset())
-        else:
-            ds = modelpb.Dataset()
-
-        ds.datasetId = dataset_id if dataset_id else ds.datasetId
-        ds.displayName = display_name if display_name else ds.displayName
-        ds.evaluatorId = evaluator_id if evaluator_id else ds.evaluatorId
-        ds.isDeprecated = is_deprecated if is_deprecated else ds.isDeprecated
-        ds.isConfidential = is_confidential if is_confidential else ds.isConfidential
-
-        (self.datasets_dir_path / task_id).mkdir(exist_ok=True, parents=True)
-        open(new_dataset_file_path, 'w').write(str(ds))
-        # self.datasets[dataset_proto.datasetId] = dataset_proto TODO
-
     def _save_review(self, dataset_id, vm_id, run_id, review):
         review_path = self.runs_dir_path / dataset_id / vm_id / run_id
         open(review_path / "run-review.prototext", 'w').write(str(review))
@@ -742,15 +721,36 @@ class HybridDatabase(object):
 
         return self._task_to_dict(new_task)
 
+    def _fdb_add_dataset_to_task(self, task_id, dataset_id, dataset_type):
+        task_file_path = self.tasks_dir_path / f'{task_id}.prototext'
+        task = Parse(open(task_file_path, "r").read(), modelpb.Tasks.Task())
+        if dataset_type == 'test':
+            task.testDataset.append(dataset_id)
+        else:
+            task.trainingDataset.append(dataset_id)
+        open(task_file_path, 'w').write(str(task))
+
+    def _fdb_add_dataset(self, task_id, dataset_id, display_name, dataset_type, evaluator_id):
+        """ dataset_dir_path/task_id/dataset_id.prototext """
+        new_dataset_file_path = self.datasets_dir_path / task_id / f'{dataset_id}.prototext'
+
+        ds = modelpb.Dataset()
+        ds.datasetId = dataset_id
+        ds.displayName = display_name
+        ds.evaluatorId = evaluator_id
+        if dataset_type == 'test':
+            ds.isConfidential = True
+        else:
+            ds.isConfidential = False
+
+        (self.datasets_dir_path / task_id).mkdir(exist_ok=True, parents=True)
+        open(new_dataset_file_path, 'w').write(str(ds))
+
     def add_dataset(self, task_id, dataset_id, dataset_type, dataset_name):
         """ Add a new dataset to a task
          CAUTION: This function does not do any sanity (existence) checks and will OVERWRITE existing datasets """
-        # update task_dir_path/task_id.prototext:
         dataset_id = f"{dataset_id}-{get_today_timestamp()}-{dataset_type}"
         for_task = modeldb.Task.objects.get(task_id=task_id)
-
-        # create new dataset_dir_path/task_id/dataset_id.prototext
-        # self._save_dataset(task_id, dataset_id, dataset_name, False, True if dataset_type == 'test' else False)
 
         ds, _ = modeldb.Dataset.objects.update_or_create(dataset_id=dataset_id, defaults={
             'default_task': for_task,
@@ -760,47 +760,64 @@ class HybridDatabase(object):
         })
 
         thds = modeldb.TaskHasDataset.objects.select_related('dataset').filter(task__task_id=task_id)
-        # append_training = []
-        # append_test = []
+
         if dataset_type == 'test' and dataset_id not in {thd.dataset.dataset_id for thd in thds if thd.is_test}:
-            # append_test.append(dataset_id)
             modeldb.TaskHasDataset.objects.create(task=for_task, dataset=ds, is_test=True)
         elif dataset_type == 'training' and dataset_id not in {thd.dataset.dataset_id for thd in thds if
                                                                not thd.is_test}:
-            # append_training = [dataset_id]
             modeldb.TaskHasDataset.objects.create(task=for_task, dataset=ds, is_test=False)
         elif dataset_type not in {'training', 'dev', 'test'}:
             raise KeyError("dataset type must be test, training, or dev")
-        # self._save_task(task_id, None, None, None, None, None, append_training_datasets=append_training,
-        #                 append_test_datasets=append_test, overwrite=True)
+
+        self._fdb_add_dataset_to_task(for_task, dataset_id, dataset_type)
+        self._fdb_add_dataset(task_id, dataset_id, dataset_name, dataset_type, 'not-set')
 
         # create dirs data_path/dataset/test-dataset[-truth]/task_id/dataset-id-type
         new_dirs = [(self.data_path / f'{dataset_type}-datasets' / task_id / dataset_id),
                     (self.data_path / f'{dataset_type}-datasets-truth' / task_id / dataset_id)]
+
         for d in new_dirs:
             d.mkdir(parents=True, exist_ok=True)
 
         return self._dataset_to_dict(ds), [str(nd) for nd in new_dirs]
 
-    # def _append_evaluator(self, vm_id, evaluator_id, command, working_directory, measures):
-    #     vm_file_path = self.vm_dir_path / f'{vm_id}.prototext'
-    #     if not vm_file_path.exists():
-    #         raise TiraModelWriteError(f"Failed to _append_evaluator, vm file does not exist")
-    #     vm = Parse(open(vm_file_path).read(), modelpb.VirtualMachine())
-    #
-    #     ev = modelpb.Evaluator()
-    #     ev.evaluatorId = evaluator_id
-    #     ev.command = command
-    #     ev.workingDirectory = working_directory
-    #     ev.measures = ",".join([x[0].strip('\r') for x in measures])
-    #     ev.measureKeys.extend([x[1].strip('\r') for x in measures])
-    #     vm.evaluators.append(ev)
-    #
-    #     # self.vms[vm_proto.virtualMachineId] = vm_proto  # TODO see issue:30
-    #     open(vm_file_path, 'w').write(str(vm))
+    def _fdb_add_evaluator_to_vm(self, vm_id, evaluator_id, command, working_directory, measures):
+        """ Add the evaluator the the <vm_id>.prototext file in the Filedatabase
+         This file is potentially read by the host.
+           If it is not read by the host anymore, remove this function and all it's calls
+         """
+        vm_file_path = self.vm_dir_path / f'{vm_id}.prototext'
+        vm = Parse(open(vm_file_path).read(), modelpb.VirtualMachine())
+
+        ev = modelpb.Evaluator()
+        ev.evaluatorId = evaluator_id
+        ev.command = command
+        ev.workingDirectory = working_directory
+        ev.measures = ",".join([x[0].strip('\r') for x in measures])
+        ev.measureKeys.extend([x[1].strip('\r') for x in measures])
+        vm.evaluators.append(ev)
+        open(vm_file_path, 'w').write(str(vm))
+
+    def _fdb_add_evaluator_to_dataset(self, task_id, dataset_id, evaluator_id):
+        """ Add the evaluator the the dataset.prototext file in the Filedatabase
+         This file is potentially read by the host.
+           If it is not read by the host anymore, remove this function and all it's calls
+         """
+        dataset_file_path = self.datasets_dir_path / task_id / f'{dataset_id}.prototext'
+        ds = Parse(open(dataset_file_path, "r").read(), modelpb.Dataset())
+        ds.evaluatorId = evaluator_id
+        open(dataset_file_path, 'w').write(str(ds))
 
     def add_evaluator(self, vm_id, task_id, dataset_id, command, working_directory, measures):
-        """ TODO documentation """
+        """ Add a new Evaluator to the model (and the filedatabase as long as needed)
+
+        :param vm_id: vm id as string as usual
+        :param task_id: task_id as string as usual
+        :param dataset_id: dataset_id as string as usual
+        :param command: The command (including vairables) that should be executed to run the evaluator
+        :param working_directory: the directory in the master vm from where command should be executed
+        :param measures: a string: the header columns of the measures, colon-separated
+         """
         evaluator_id = f"{dataset_id}-evaluator"
 
         ev, _ = modeldb.Evaluator.objects.update_or_create(evaluator_id=evaluator_id, defaults={
@@ -814,7 +831,8 @@ class HybridDatabase(object):
             vm = modeldb.VirtualMachine.objects.get(vm_id=vm_id)
             vmhe, _ = modeldb.VirtualMachineHasEvaluator.objects.update_or_create(evaluator_id=evaluator_id,
                                                                                   vm=vm)
-        ## self._append_evaluator(vm_id, evaluator_id, command, working_directory, measures)
+        self._fdb_add_evaluator_to_dataset(task_id, dataset_id, evaluator_id)
+        self._fdb_add_evaluator_to_vm(vm_id, evaluator_id, command, working_directory, measures)
 
         modeldb.Dataset.objects.filter(dataset_id=dataset_id).update(evaluator=ev)
 
