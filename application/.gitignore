@@ -3,4 +3,5 @@ src/tira_vm_states.sqlite3
 src/venv
 src/__init__.py
 src/config
+src/tira/migrations/*.py
 

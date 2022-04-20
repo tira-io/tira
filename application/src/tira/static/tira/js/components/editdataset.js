@@ -3,7 +3,6 @@ export default {
         return {
             editDatasetError: '',
             datasetNameInput: '',
-            masterVmInput: '',
             selectedTask: '',
             publish: '',
             evaluatorWorkingDirectory: '',
@@ -48,7 +47,6 @@ export default {
             return results
         },
         saveDataset() {
-            console.log('save dataset')
             this.editDatasetError = ''
             if (this.selectedTask === '') {
                 this.editDatasetError += 'Please select a Task;\n'
@@ -62,7 +60,6 @@ export default {
             this.submitPost(`/tira-admin/edit-dataset/${this.dataset_id}`, {
                 'name': this.datasetNameInput,
                 'task': this.selectedTask.task_id,
-                'master_id': this.masterVmInput,
                 'publish': this.publish,
                 'evaluator_working_directory': this.evaluatorWorkingDirectory,
                 'evaluator_command': this.evaluatorCommand,
@@ -93,6 +90,13 @@ export default {
             return {}
         }
     },
+    watch: {
+        evaluatorWorkingDirectory(newName, oldName) {
+            if(newName === ""){
+                this.evaluatorWorkingDirectory = '/home/' + this.selectedTask.master_vm_id + '/'
+            }
+        }
+    },
     beforeMount() {
         this.get(`/api/task-list`).then(message => {
             this.taskList = message.context.task_list
@@ -100,7 +104,6 @@ export default {
                 const dataset = message.context.dataset
                 const evaluator = message.context.evaluator
                 this.datasetNameInput = dataset.display_name
-                this.masterVmInput = evaluator.vm_id
                 this.publish = !dataset.is_confidential
                 this.evaluatorWorkingDirectory = evaluator.working_dir
                 this.evaluatorCommand = evaluator.command
@@ -151,8 +154,9 @@ export default {
                    v-model="evaluatorCommand" /></label>
         </div>
         <div class="uk-width-1-3">
-            <label>Master VM <input class="uk-input" type="text" placeholder="id-lowercase-with-dashes"
-                   v-model="masterVmInput" /></label>
+            <label>Master VM
+            <input class="uk-input uk-disabled" type="text" placeholder="id-lowercase-with-dashes"
+                   v-model="selectedTask.master_vm_id" disabled></label>
         </div>
     </div>
     <div class="uk-margin-small">

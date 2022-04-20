@@ -234,14 +234,14 @@ def add_vm(vm_id: str, user_name: str, initial_user_password: str, ip: str, host
     return model.add_vm(vm_id, user_name, initial_user_password, ip, host, ssh, rdp)
 
 
-def create_task(task_id: str, task_name: str, task_description: str,
+def create_task(task_id: str, task_name: str, task_description: str, master_vm_id: str,
                 organizer: str, website: str, help_command: str = None, help_text: str = None):
     """ Add a new task to the database.
      CAUTION: This function does not do any sanity checks and will OVERWRITE existing tasks
      :returns: The new task as json as returned by get_task
      """
-    return model.create_task(task_id, task_name, task_description, organizer, website, help_command,
-                             help_text)
+    return model.create_task(task_id, task_name, task_description, master_vm_id, organizer, website,
+                             help_command, help_text)
 
 
 def add_dataset(task_id: str, dataset_id: str, dataset_type: str, dataset_name: str) -> list:
@@ -288,16 +288,17 @@ def update_software(task_id, vm_id, software_id, command: str = None, working_di
                                  run, deleted)
 
 
-def edit_task(task_id: str, task_name: str, task_description: str, organizer: str, website: str,
+def edit_task(task_id: str, task_name: str, task_description: str, master_vm_id: str, organizer: str, website: str,
               help_command: str = None, help_text: str = None):
     """ Update the task's data """
-    return model.edit_task(task_id, task_name, task_description, organizer, website, help_command, help_text)
+    return model.edit_task(task_id, task_name, task_description, master_vm_id, organizer, website,
+                           help_command, help_text)
 
 
-def edit_dataset(task_id: str, dataset_id: str, dataset_name: str, master_vm_id: str, command: str,
+def edit_dataset(task_id: str, dataset_id: str, dataset_name: str, command: str,
                  working_directory: str, measures: str, is_confidential: bool = False):
     """ Update the datasets's data """
-    return model.edit_dataset(task_id, dataset_id, dataset_name, master_vm_id, command, working_directory,
+    return model.edit_dataset(task_id, dataset_id, dataset_name, command, working_directory,
                               measures, is_confidential)
 
 
