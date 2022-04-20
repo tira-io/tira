@@ -95,6 +95,13 @@ export default {
             return {}
         }
     },
+    watch: {
+        websiteInput(newWebsite, oldWebsite) {
+            if (!(newWebsite.startsWith('http://') || newWebsite.startsWith('https://'))) {
+                this.websiteInput = `https://${newWebsite}`
+            }
+        }
+    },
     beforeMount() {
         this.get(`/api/organizer-list`).then(message => {
             this.organizerList = message.context.organizer_list
@@ -123,7 +130,7 @@ export default {
 <div class="uk-margin-small">
     <div class="uk-grid-small uk-margin-small" uk-grid>
         <div class="uk-width-1-3">
-            <label>Task Name+
+            <label>Task Name*
             <input class="uk-input" type="text" placeholder="Name of the Task"
                    :class="{'uk-form-danger': (this.taskError !== '' && this.taskNameInput === '')}"
                    v-model="taskNameInput" /></label>

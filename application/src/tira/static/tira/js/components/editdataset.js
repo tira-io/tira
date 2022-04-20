@@ -90,6 +90,13 @@ export default {
             return {}
         }
     },
+    watch: {
+        evaluatorWorkingDirectory(newName, oldName) {
+            if(newName === ""){
+                this.evaluatorWorkingDirectory = '/home/' + this.selectedTask.master_vm_id + '/'
+            }
+        }
+    },
     beforeMount() {
         this.get(`/api/task-list`).then(message => {
             this.taskList = message.context.task_list

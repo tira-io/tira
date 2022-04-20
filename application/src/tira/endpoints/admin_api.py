@@ -161,6 +161,7 @@ def admin_add_dataset(request):
      Return a json status message. """
     if request.method == "POST":
         data = json.loads(request.body)
+        print('endpoint data', data)
 
         dataset_id_prefix = data["dataset_id"]
         dataset_name = data["name"]

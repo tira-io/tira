@@ -59,8 +59,8 @@ class HybridDatabase(object):
         self.software_by_vm = None  # vm_id: [modelpb.Software]
         self.software_count_by_dataset = None  # dataset_id: int()
         self.evaluators = {}  # dataset_id: [modelpb.Evaluator] used as cache
-        # dbops.index(self.organizers_file_path, self.users_file_path, self.vm_dir_path, self.tasks_dir_path,
-        #             self.datasets_dir_path, self.softwares_dir_path, self.runs_dir_path)
+        dbops.index(self.organizers_file_path, self.users_file_path, self.vm_dir_path, self.tasks_dir_path,
+                    self.datasets_dir_path, self.softwares_dir_path, self.runs_dir_path)
 
     def build_model(self):
         dbops.index(self.organizers_file_path, self.users_file_path, self.vm_dir_path, self.tasks_dir_path,
@@ -707,6 +707,7 @@ class HybridDatabase(object):
          TODO add max_std_out_chars_on_test_data, max_std_err_chars_on_test_data, max_file_list_chars_on_test_data, dataset_label, max_std_out_chars_on_test_data_eval, max_std_err_chars_on_test_data_eval, max_file_list_chars_on_test_data_eval"""
         new_task = modeldb.Task.objects.create(task_id=task_id,
                                                task_name=task_name,
+                                               vm=modeldb.VirtualMachine.objects.get(vm_id=master_vm_id),
                                                task_description=task_description,
                                                organizer=modeldb.Organizer.objects.get(organizer_id=organizer),
                                                web=website)
@@ -722,6 +723,7 @@ class HybridDatabase(object):
         return self._task_to_dict(new_task)
 
     def _fdb_add_dataset_to_task(self, task_id, dataset_id, dataset_type):
+        print(task_id)
         task_file_path = self.tasks_dir_path / f'{task_id}.prototext'
         task = Parse(open(task_file_path, "r").read(), modelpb.Tasks.Task())
         if dataset_type == 'test':
@@ -750,6 +752,7 @@ class HybridDatabase(object):
         """ Add a new dataset to a task
          CAUTION: This function does not do any sanity (existence) checks and will OVERWRITE existing datasets """
         dataset_id = f"{dataset_id}-{get_today_timestamp()}-{dataset_type}"
+        print('dsid in add_dataset', dataset_id)
         for_task = modeldb.Task.objects.get(task_id=task_id)
 
         ds, _ = modeldb.Dataset.objects.update_or_create(dataset_id=dataset_id, defaults={
@@ -769,7 +772,7 @@ class HybridDatabase(object):
         elif dataset_type not in {'training', 'dev', 'test'}:
             raise KeyError("dataset type must be test, training, or dev")
 
-        self._fdb_add_dataset_to_task(for_task, dataset_id, dataset_type)
+        self._fdb_add_dataset_to_task(task_id, dataset_id, dataset_type)
         self._fdb_add_dataset(task_id, dataset_id, dataset_name, dataset_type, 'not-set')
 
         # create dirs data_path/dataset/test-dataset[-truth]/task_id/dataset-id-type
@@ -1046,7 +1049,8 @@ class HybridDatabase(object):
         if help_text:
             task.update(command_description=help_text)
 
-        self._fdb_edit_task(modeldb.Task.objects.get(task_id=task_id))
+        self._fdb_edit_task(task_id, task_name, task_description, master_vm_id, organizer, website,
+                            help_command, help_text)
         return self._task_to_dict(modeldb.Task.objects.get(task_id=task_id))
 
     def _fdb_edit_dataset(self, task_id, dataset_id, display_name, dataset_type, evaluator_id):
@@ -1095,9 +1099,13 @@ class HybridDatabase(object):
 
         ev = modeldb.Evaluator.objects.filter(dataset__dataset_id=dataset_id)
         ev.update(command=command, working_directory=working_directory, measures=measures)
+        ev_id = modeldb.Evaluator.objects.get(dataset__dataset_id=dataset_id).evaluator_id
 
-        self._fdb_edit_dataset(task_id, dataset_id, dataset_name, dataset_type, ev.evaluator_id)
+        self._fdb_edit_dataset(task_id, dataset_id, dataset_name, dataset_type, ev_id)
 
+        vm_id = modeldb.VirtualMachineHasEvaluator.objects.get(evaluator__evaluator_id=ev_id).vm.vm_id
+
+        self._fdb_edit_evaluator_to_vm(vm_id, ev_id, command, working_directory, measures)
         return self._dataset_to_dict(ds)
 
     # TODO add option to truly delete the software.
@@ -1161,7 +1169,7 @@ class HybridDatabase(object):
 
     def delete_dataset(self, dataset_id):
         ds = modeldb.Dataset.objects.select_related('default_task', 'evaluator').filter(dataset_id=dataset_id)
-        task_id = ds.default_task.task_id  # TODO maybe we need to go via TaskHasDataset instead
+        task_id = ds.default_task.task_id
         evaluator_id = ds.evaluator.evaluator_id
         vm_id = ds.default_task.vm.vm_id
         ds.delete()

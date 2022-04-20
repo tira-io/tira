@@ -110,6 +110,11 @@ export default {
     watch: {
         taskNameInput(newName, oldName) {
             this.taskId = this.string_to_slug(newName)
+        },
+        websiteInput(newWebsite, oldWebsite) {
+            if (!(newWebsite.startsWith('http://') || newWebsite.startsWith('https://'))) {
+                this.websiteInput = `https://${newWebsite}`
+            }
         }
     },
     template: `
