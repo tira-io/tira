@@ -3,7 +3,6 @@ from pathlib import Path
 import logging
 from django.conf import settings
 from django.db import IntegrityError
-from django.db.models import Count, Q
 from shutil import rmtree
 from datetime import datetime as dt
 import randomname
@@ -47,20 +46,9 @@ class HybridDatabase(object):
     runs_dir_path = tira_root / Path("data/runs")
 
     def __init__(self):
-        logger.info("Start loading dataset")
-        self.organizers = None  # dict of host objects host_id: modelpb.Host
-        self.vms = None  # dict of vm_id: modelpb.User
-        self.tasks = None  # dict of task_id: modelpb.Tasks.Task
-        self.datasets = None  # dict of dataset_id: modelpb.Dataset
-        self.software = None  # dict of task_id$vm_id: modelpb.Software
-        self.default_tasks = None  # dataset_id: task_id
-        self.task_organizers = None  # dataset_id: modelpb.Hosts.Host.name
-        self.software_by_task = None  # task_id: [modelpb.Software]
-        self.software_by_vm = None  # vm_id: [modelpb.Software]
-        self.software_count_by_dataset = None  # dataset_id: int()
-        self.evaluators = {}  # dataset_id: [modelpb.Evaluator] used as cache
-        dbops.index(self.organizers_file_path, self.users_file_path, self.vm_dir_path, self.tasks_dir_path,
-                    self.datasets_dir_path, self.softwares_dir_path, self.runs_dir_path)
+        pass
+        # dbops.index(self.organizers_file_path, self.users_file_path, self.vm_dir_path, self.tasks_dir_path,
+        #             self.datasets_dir_path, self.softwares_dir_path, self.runs_dir_path)
 
     def build_model(self):
         dbops.index(self.organizers_file_path, self.users_file_path, self.vm_dir_path, self.tasks_dir_path,
@@ -82,52 +70,6 @@ class HybridDatabase(object):
         """ reload run data for a VM from the export format of the model """
         dbops.reload_runs(self.runs_dir_path, vm_id)
 
-    # _build methods reconstruct the relations once per parse. This is a shortcut for frequent joins.
-    def _build_task_relations(self):
-        """ parse the relation dicts self.default_tasks and self.task_organizers from self.tasks
-        """
-        default_tasks = {}
-        task_organizers = {}
-        for task_id, task in self.tasks.items():
-            for td in task.trainingDataset:
-                default_tasks[td] = task.taskId
-                task_organizers[td] = self.organizers.get(task.hostId, modelpb.Hosts.Host()).name
-            for td in task.testDataset:
-                default_tasks[td] = task.taskId
-                task_organizers[td] = self.organizers.get(task.hostId, modelpb.Hosts.Host()).name
-
-        self.default_tasks = default_tasks
-        self.task_organizers = task_organizers
-
-    def _build_software_relations(self):
-        software_by_task = {}
-        software_by_vm = {}
-
-        for software_id, software_list in self.software.items():
-            task_id = software_id.split("$")[0]
-            vm_id = software_id.split("$")[1]
-            _swbd = software_by_task.get(task_id, list())
-            _swbd.extend(software_list)
-            software_by_task[task_id] = _swbd
-
-            _swbu = software_by_vm.get(vm_id, list())
-            _swbu.extend(software_list)
-            software_by_vm[vm_id] = _swbu
-
-        self.software_by_vm = software_by_vm
-        self.software_by_task = software_by_task
-
-    def _build_software_counts(self):
-        counts = {}
-
-        for software_list in self.software.values():
-            for software in software_list:
-                c = counts.get(software.dataset, 0)
-                c += 1
-                counts[software.dataset] = c
-
-        self.software_count_by_dataset = counts
-
     # _load methods parse files on the fly when pages are called
     def load_review(self, dataset_id, vm_id, run_id):
         """ This method loads a review or toggles auto reviewer if it does not exist. """
@@ -142,10 +84,6 @@ class HybridDatabase(object):
         review = modelpb.RunReview()
         review.ParseFromString(open(review_file, "rb").read())
         return review
-
-    def _load_vm(self, vm_id):
-        """ load a vm object from vm_dir_path """
-        return Parse(open(self.vm_dir_path / f"{vm_id}.prototext").read(), modelpb.VirtualMachine())
 
     def _load_softwares(self, task_id, vm_id):
         # Leave this
@@ -207,7 +145,6 @@ class HybridDatabase(object):
         vm.portSsh = rdp if rdp else vm.portSsh
         vm.portRdp = ssh if ssh else vm.portRdp
 
-        # self.vms[vm_proto.virtualMachineId] = vm_proto  # TODO see issue:30
         open(new_vm_file_path, 'w').write(str(vm))
 
     def _save_review(self, dataset_id, vm_id, run_id, review):
@@ -891,8 +828,6 @@ class HybridDatabase(object):
                         software=modeldb.Software.objects.get(software_id=software_id, vm__vm_id=vm_id),
                         input_run=modeldb.Run.objects.get(run_id=run))
 
-                # software_list = [user_software for user_software in s.softwares if not user_software.deleted]
-                # self.software[f"{task_id}${vm_id}"] = software_list
                 return software
 
         return False
@@ -1108,7 +1043,6 @@ class HybridDatabase(object):
         self._fdb_edit_evaluator_to_vm(vm_id, ev_id, command, working_directory, measures)
         return self._dataset_to_dict(ds)
 
-    # TODO add option to truly delete the software.
     def delete_software(self, task_id, vm_id, software_id):
         s = self._load_softwares(task_id, vm_id)
         found = False
@@ -1116,8 +1050,7 @@ class HybridDatabase(object):
             if software.id == software_id:
                 software.deleted = True
                 found = True
-        # software_list = [software for software in s.softwares if not software.deleted]
-        # self.software[f"{task_id}${vm_id}"] = software_list
+
         self._save_softwares(task_id, vm_id, s)
         modeldb.Software.objects.filter(software_id=software_id, vm__vm_id=vm_id).delete()
 
