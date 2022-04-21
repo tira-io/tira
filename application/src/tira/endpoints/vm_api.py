@@ -232,12 +232,17 @@ def software_add(request, task_id, vm_id):
 def software_save(request, task_id, vm_id, software_id):
     if request.method == "POST":
         data = json.loads(request.body)
+        new_dataset = data.get("input_dataset")
+        if not model.dataset_exists(new_dataset):
+            return JsonResponse({'status': 1, 'message': f"Cannot save, the dataset {new_dataset} does not exist."})
+
         software = model.update_software(task_id, vm_id, software_id,
                                          data.get("command"),
                                          data.get("working_dir"),
                                          data.get("input_dataset"),
                                          data.get("input_run"))
-        message = "failed to save software for unknown reasons"
+
+        message = "failed to save software for an unknown reasons"
         try:
             if software:
                 return JsonResponse({'status': 'Accepted', "message": f"Saved {software_id}", 'last_edit': software.lastEditDate},
@@ -245,7 +250,7 @@ def software_save(request, task_id, vm_id, software_id):
         except Exception as e:
             message = str(e)
 
-        return JsonResponse({'status': 'Failed', "message": message}, status=HTTPStatus.BAD_REQUEST)
+        return JsonResponse({'status': '1', "message": message}, status=HTTPStatus.BAD_REQUEST)
     return JsonResponse({'status': 1, 'message': f"GET is not implemented for add dataset"})
 
 
@@ -267,7 +272,8 @@ def software_delete(request, task_id, vm_id, software_id):
 def run_execute(request, task_id, vm_id, software_id):
     vm = model.get_vm(vm_id)
     software = model.get_software(task_id, vm_id, software_id=software_id)
-    print(software)
+    if not model.dataset_exists(software["dataset"]):
+        return JsonResponse({'status': '1', 'message': f'The dataset {software["dataset"]} does not exist'})
     host = reroute_host(vm['host'])
     future_run_id = get_tira_id()
     grpc_client = GrpcClient(host)
