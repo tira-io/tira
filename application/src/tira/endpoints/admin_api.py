@@ -104,13 +104,16 @@ def admin_create_task(request):
 
         task_id = data["task_id"]
         organizer = data["organizer"]
+        master_vm_id = data["master_vm_id"]
 
         if not model.organizer_exists(organizer):
             return JsonResponse({'status': 1, 'message': f"Organizer with ID {organizer} does not exist"})
         if model.task_exists(task_id):
             return JsonResponse({'status': 1, 'message': f"Task with ID {task_id} already exist"})
+        if not model.vm_exists(master_vm_id):
+            return JsonResponse({'status': 1, 'message': f"VM with ID {master_vm_id} does not exist"})
 
-        new_task = model.create_task(task_id, data["name"], data["description"],
+        new_task = model.create_task(task_id, data["name"], data["description"], master_vm_id,
                                      organizer, data["website"],
                                      help_command=data["help_command"], help_text=data["help_text"])
         new_task = json.dumps(new_task, cls=DjangoJSONEncoder)
@@ -128,11 +131,14 @@ def admin_edit_task(request, task_id):
     if request.method == "POST":
         data = json.loads(request.body)
         organizer = data["organizer"]
+        master_vm_id = data["master_vm_id"]
 
         if not model.organizer_exists(organizer):
             return JsonResponse({'status': 1, 'message': f"Organizer with ID {organizer} does not exist"})
+        if not model.vm_exists(master_vm_id):
+            return JsonResponse({'status': 1, 'message': f"VM with ID {master_vm_id} does not exist"})
 
-        task = model.edit_task(task_id, data["name"], data["description"],
+        task = model.edit_task(task_id, data["name"], data["description"], master_vm_id,
                                organizer, data["website"], help_command=data["help_command"],
                                help_text=data["help_text"])
 
@@ -155,17 +161,17 @@ def admin_add_dataset(request):
      Return a json status message. """
     if request.method == "POST":
         data = json.loads(request.body)
+        print('endpoint data', data)
 
         dataset_id_prefix = data["dataset_id"]
         dataset_name = data["name"]
-        master_vm_id = data["master_id"]
         task_id = data["task"]
         command = data["evaluator_command"]
         working_directory = data["evaluator_working_directory"]
         measures = data["evaluation_measures"]
 
-        if master_vm_id and not model.vm_exists(master_vm_id):
-            return JsonResponse({'status': 1, "message": f"Master VM with ID {master_vm_id} does not exist"})
+        master_vm_id = model.get_task(task_id)["master_vm_id"]
+
         if not model.task_exists(task_id):
             return JsonResponse({'status': 1, "message": f"Task with ID {task_id} does not exist"})
         if data['type'] not in {'test', 'training'}:
@@ -212,17 +218,15 @@ def admin_edit_dataset(request, dataset_id):
         task_id = data["task"]
         is_confidential = not data['publish']
 
-        master_vm_id = data["master_id"]
+        master_vm_id = model.get_task(task_id)["master_vm_id"]
         command = data["evaluator_command"]
         working_directory = data["evaluator_working_directory"]
         measures = data["evaluation_measures"]
 
-        if master_vm_id and not model.vm_exists(master_vm_id):
-            return JsonResponse({'status': 1, "message": f"Master VM with ID {master_vm_id} does not exist"})
         if not model.task_exists(task_id):
             return JsonResponse({'status': 1, "message": f"Task with ID {task_id} does not exist"})
 
-        ds = model.edit_dataset(task_id, dataset_id, dataset_name, master_vm_id, command, working_directory,
+        ds = model.edit_dataset(task_id, dataset_id, dataset_name, command, working_directory,
                                 measures, is_confidential)
 
         return JsonResponse(

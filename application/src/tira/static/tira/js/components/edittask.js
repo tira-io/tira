@@ -5,6 +5,7 @@ export default {
             taskNameInput: '',
             selectedOrganizer: '',
             websiteInput: '',
+            masterVmId: '',
             taskDescription: '',
             helpCommand: '',
             helpText: '',
@@ -58,7 +59,10 @@ export default {
                 this.taskError += 'Please select an Organizer;\n'
             }
             if (this.taskNameInput === '') {
-                this.taskError += 'Please provide an id for the new VM;\n'
+                this.taskError += 'Please provide a name for your task;\n'
+            }
+            if (this.masterVmId === '') {
+                this.taskError += 'Please provide a master vm;\n'
             }
             if (this.taskDescription === '') {
                 this.taskError += 'Please provide a description for you task;\n'
@@ -68,6 +72,7 @@ export default {
             }
             this.submitPost(`/tira-admin/edit-task/${this.task_id}`, {
                 'name': this.taskNameInput,
+                'master_vm_id': this.masterVmId,
                 'organizer': this.selectedOrganizer.organizer_id,
                 'website': this.websiteInput,
                 'description': this.taskDescription,
@@ -90,6 +95,13 @@ export default {
             return {}
         }
     },
+    watch: {
+        websiteInput(newWebsite, oldWebsite) {
+            if (!(newWebsite.startsWith('http://') || newWebsite.startsWith('https://'))) {
+                this.websiteInput = `https://${newWebsite}`
+            }
+        }
+    },
     beforeMount() {
         this.get(`/api/organizer-list`).then(message => {
             this.organizerList = message.context.organizer_list
@@ -97,6 +109,7 @@ export default {
                 let task = message.context.task
                 this.taskNameInput = task.task_name
                 this.websiteInput = task.web
+                this.masterVmId = task.master_vm_id
                 this.selectedOrganizer = this.getOrganizerByName(task.organizer)
                 this.taskDescription = task.task_description
                 this.helpCommand = task.command_placeholder
@@ -117,7 +130,7 @@ export default {
 <div class="uk-margin-small">
     <div class="uk-grid-small uk-margin-small" uk-grid>
         <div class="uk-width-1-3">
-            <label>Task Name+
+            <label>Task Name*
             <input class="uk-input" type="text" placeholder="Name of the Task"
                    :class="{'uk-form-danger': (this.taskError !== '' && this.taskNameInput === '')}"
                    v-model="taskNameInput" /></label>
@@ -135,6 +148,10 @@ export default {
             <input id="website-input" class="uk-input" type="text" placeholder="Website URL"
                    v-model="websiteInput" /></label>
         </div>
+    </div>
+    <div class="uk-margin-small">
+        <label>Master VM ID*
+        <input type="text" class="uk-input" v-model="masterVmId" /></label>
     </div>
     <div class="uk-margin-small">
         <label>Task Description*

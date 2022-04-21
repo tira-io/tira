@@ -4,7 +4,6 @@ export default {
             addDatasetError: '',
             datasetNameInput: '',
             datasetId: '',
-            masterVmInput: '',
             selectedTask: '',
             type: 'training',
             evaluatorWorkingDirectory: '',
@@ -63,7 +62,6 @@ export default {
             this.submitPost('/tira-admin/add-dataset', {
                 'dataset_id': this.datasetId,
                 'name': this.datasetNameInput,
-                'master_id': this.masterVmInput,
                 'task': this.selectedTask.task_id,
                 'type': this.type,
                 'evaluator_working_directory': this.evaluatorWorkingDirectory,
@@ -109,6 +107,7 @@ export default {
         this.get(`/api/task-list`).then(message => {
             this.taskList = message.context.task_list
             this.selectedTask = this.getTaskById(this.task_id)
+            this.evaluatorWorkingDirectory = '/home/' + this.selectedTask.master_vm_id
         }).catch(error => {
             this.$emit('addnotification', 'error', `Error loading task list: ${error}`)
         })
@@ -116,6 +115,11 @@ export default {
     watch: {
         datasetNameInput(newName, oldName) {
             this.datasetId = this.string_to_slug(newName)
+        },
+        evaluatorWorkingDirectory(newName, oldName) {
+            if(newName === ""){
+                this.evaluatorWorkingDirectory = '/home/' + this.selectedTask.master_vm_id + '/'
+            }
         }
     },
     template: `
@@ -155,7 +159,7 @@ export default {
     <div class="uk-grid-small uk-margin-small" uk-grid>
         <div class="uk-width-1-3">
             <label> Evaluator Working Directory
-            <input type="text" class="uk-input" placeholder="/path/to/directory - Defaults to home."
+            <input type="text" class="uk-input"
                    v-model="evaluatorWorkingDirectory" /></label>
         </div>
         <div class="uk-width-1-3">
@@ -165,8 +169,8 @@ export default {
         </div>
         <div class="uk-width-1-3">
             <label>Master VM
-            <input class="uk-input" type="text" placeholder="id-lowercase-with-dashes"
-                   v-model="masterVmInput"></label>
+            <input class="uk-input uk-disabled" type="text" placeholder="id-lowercase-with-dashes"
+                   v-model="selectedTask.master_vm_id" disabled></label>
         </div>
     </div>
     <div class="uk-margin-small">

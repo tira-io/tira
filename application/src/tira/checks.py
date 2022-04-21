@@ -29,7 +29,6 @@ def check_permissions(func):
         dataset_id = kwargs.get('dataset_id', None)
         run_id = kwargs.get('run_id', None)
         role = auth.get_role(request, user_id=auth.get_user_id(request))
-        print(role)
 
         if role == auth.ROLE_ADMIN or role == auth.ROLE_TIRA:
             return func(request, *args, **kwargs)
