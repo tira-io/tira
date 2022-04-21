@@ -15,6 +15,7 @@ from tira.grpc_client import GrpcClient
 import tira.tira_model as model
 from tira.util import get_tira_id, reroute_host
 from functools import wraps
+import json
 
 include_navigation = True if settings.DEPLOYMENT == "legacy" else False
 
@@ -229,21 +230,23 @@ def software_add(request, task_id, vm_id):
 @check_permissions
 @check_resources_exist('json')
 def software_save(request, task_id, vm_id, software_id):
-    software = model.update_software(task_id, vm_id, software_id,
-                                     request.POST.get("command"),
-                                     request.POST.get("working_dir"),
-                                     request.POST.get("input_dataset"),
-                                     request.POST.get("input_run"))
+    if request.method == "POST":
+        data = json.loads(request.body)
+        software = model.update_software(task_id, vm_id, software_id,
+                                         data.get("command"),
+                                         data.get("working_dir"),
+                                         data.get("input_dataset"),
+                                         data.get("input_run"))
+        message = "failed to save software for unknown reasons"
+        try:
+            if software:
+                return JsonResponse({'status': 'Accepted', "message": f"Saved {software_id}", 'last_edit': software.lastEditDate},
+                                    status=HTTPStatus.ACCEPTED)
+        except Exception as e:
+            message = str(e)
 
-    message = "failed to save software for unknown reasons"
-    try:
-        if software:
-            return JsonResponse({'status': 'Accepted', "message": f"Saved {software_id}", 'last_edit': software.lastEditDate},
-                                status=HTTPStatus.ACCEPTED)
-    except Exception as e:
-        message = str(e)
-
-    return JsonResponse({'status': 'Failed', "message": message}, status=HTTPStatus.BAD_REQUEST)
+        return JsonResponse({'status': 'Failed', "message": message}, status=HTTPStatus.BAD_REQUEST)
+    return JsonResponse({'status': 1, 'message': f"GET is not implemented for add dataset"})
 
 
 @check_permissions
@@ -264,7 +267,7 @@ def software_delete(request, task_id, vm_id, software_id):
 def run_execute(request, task_id, vm_id, software_id):
     vm = model.get_vm(vm_id)
     software = model.get_software(task_id, vm_id, software_id=software_id)
-
+    print(software)
     host = reroute_host(vm['host'])
     future_run_id = get_tira_id()
     grpc_client = GrpcClient(host)

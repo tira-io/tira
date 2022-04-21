@@ -188,7 +188,7 @@
                 {% include "tira/software_form.html" with software=sw.software runs=sw.runs task_id=task.task_id vm_id=vm_id%}
             {% endfor %}
             {% if not is_default %}
-            <li id="add-software-row">add software</li>
+            <li id="add-software-row"></li>
             {% endif %}
             {% include "tira/upload_form.html" with task_id=task.task_id vm_id=vm_id upload=upload %}
         </ul>

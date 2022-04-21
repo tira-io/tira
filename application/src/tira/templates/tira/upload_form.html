@@ -96,11 +96,11 @@
                 &nbsp;{{ run.run_id }}
             </td>
             <td class="uk-table-shrink uk-text-nowrap uk-padding-remove-vertical">
-                {% if run.input_run_id != "none" %}{{ run.input_run_id }}{% endif %}
+                {% if run.input_run_id != "none" and run.input_run_id != "" %}{{ run.input_run_id }}{% endif %}
             </td>
             <td class="uk-padding-remove-vertical">{{ run.dataset }}</td>
             <td class="uk-align-right uk-table-expand uk-margin-remove uk-padding-remove-vertical uk-padding-remove-right">
-                {% if run.input_run_id == "none" %}
+                {% if run.input_run_id == "none" or run.input_run_id == "" %}
                 <a class="uk-button uk-button-small uk-button-default run-evaluate-button"
                    data-tira-dataset="{{ run.dataset }}" data-tira-vm-id="{{ vm_id }}"
                    data-tira-run-id="{{ run.run_id }}">

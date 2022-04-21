@@ -293,75 +293,118 @@ function checkInputFields(softwareId, command, inputDataset) {
     return check
 }
 
-function saveSoftware(taskId, vmId, softwareId) {
+async function saveSoftware(taskId, vmId, softwareId) {
     let token = $('input[name=csrfmiddlewaretoken]').val()
     let command = $(`#${softwareId}-command-input`).val()
     let inputDataset = $(`#${softwareId}-input-dataset`).val()
-
     if (checkInputFields(softwareId, command, inputDataset) === false){
         return false
     }
 
-    $.ajax({
-        type: 'POST',
-        url: `/task/${taskId}/vm/${vmId}/software_save/${softwareId}`,
-        headers: {
-            'X-CSRFToken': token
-        },
-        //TODO: Maybe rename keys
-        data: {
-            command: command,
-            working_dir: $(`#${softwareId}-working-dir`).val(),
-            input_dataset: inputDataset,
-            input_run: $(`#${softwareId}-input-run`).val(),
-            csrfmiddlewaretoken: token,
-            action: 'post'
-        },
-        success: function (data) {
-            $('.software-save-button').html('<i class="fas fa-check"></i>');
-            setTimeout(function () {
-                $('.software-save-button').html('<i class="fas fa-save"></i>');
-            }, 5000)
-            $(`#${softwareId}-last-edit`).text(`last edit: ${data.last_edit}`)
-        },
-        error: function (jqXHR, textStatus, throwError) {
-            warningAlert("Saving Software " + softwareId + " ", throwError, jqXHR.responseJSON)
-            $('.software-save-button').html('<i class="fas fa-times"></i>');
-            setTimeout(function () {
-                $('.software-save-button').html('<i class="fas fa-save"></i>');
-            }, 2000)
-
-        }
+    const headers = new Headers({
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRFToken': token
     })
+    const params = {
+        command: command,
+        working_dir: $(`#${softwareId}-working-dir`).val(),
+        input_dataset: inputDataset,
+        input_run: $(`#${softwareId}-input-run`).val(),
+        csrfmiddlewaretoken: token,
+        action: 'post'
+    }
+
+    const response = await fetch(`/task/${taskId}/vm/${vmId}/software_save/${softwareId}`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(params)
+    })
+    if (!response.ok) {
+        warningAlert("Saving Software" + softwareId + " failed: ", response.status, url)
+        $('.software-save-button').html('<i class="fas fa-times"></i>');
+        setTimeout(function () {
+            $('.software-save-button').html('<i class="fas fa-save"></i>');
+        }, 2000)
+        throw new Error(`Error fetching endpoint: ${url} with ${response.status}`);
+    }
+    let results = await response.json()
+    if (results.status === 1) {
+        warningAlert("Saving Software " + softwareId + " ", response.status, url)
+        $('.software-save-button').html('<i class="fas fa-times"></i>');
+        setTimeout(function () {
+            $('.software-save-button').html('<i class="fas fa-save"></i>');
+        }, 2000)
+        throw new Error(`${results.message}`);
+    }
+    console.log(results)
+    $('.software-save-button').html('<i class="fas fa-check"></i>');
+    setTimeout(function () {
+        $('.software-save-button').html('<i class="fas fa-save"></i>');
+    }, 5000)
+    $(`#${softwareId}-last-edit`).text(`last edit: ${results.last_edit}`)
+
+    return results
+    // $.ajax({
+    //     type: 'POST',
+    //     url: `/task/${taskId}/vm/${vmId}/software_save/${softwareId}`,
+    //     headers: {
+    //         'X-CSRFToken': token
+    //     },
+    //     data: {
+    //         command: command,
+    //         working_dir: $(`#${softwareId}-working-dir`).val(),
+    //         input_dataset: inputDataset,
+    //         input_run: $(`#${softwareId}-input-run`).val(),
+    //         csrfmiddlewaretoken: token,
+    //         action: 'post'
+    //     },
+    //     success: function (data) {
+    //         $('.software-save-button').html('<i class="fas fa-check"></i>');
+    //         setTimeout(function () {
+    //             $('.software-save-button').html('<i class="fas fa-save"></i>');
+    //         }, 5000)
+    //         $(`#${softwareId}-last-edit`).text(`last edit: ${data.last_edit}`)
+    //     },
+    //     error: function (jqXHR, textStatus, throwError) {
+    //         warningAlert("Saving Software " + softwareId + " ", throwError, jqXHR.responseJSON)
+    //         $('.software-save-button').html('<i class="fas fa-times"></i>');
+    //         setTimeout(function () {
+    //             $('.software-save-button').html('<i class="fas fa-save"></i>');
+    //         }, 2000)
+    //
+    //     }
+    // })
 }
 
 function runSoftware (taskId, vmId, softwareId) {
-
-    // 0. execute save software
+    // 0. save software
     if (saveSoftware(taskId, vmId, softwareId) === false) {
         return false
     }
-
-    setState(0);
-    // 1. make ajax call
-    $.ajax({
-        type: 'POST',
-        url: `/grpc/${taskId}/${vmId}/run_execute/${softwareId}`,
-        headers: {
-            'X-CSRFToken': $('input[name=csrfmiddlewaretoken]').val()
-        },
-        data: {
-            csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val(),
-            action: 'post'
-        },
-        success: function (data) {
-            pollRunningSoftware(vmId)
-        },
-        error: function (jqXHR, textStatus, throwError) {
-            warningAlert("Running Software " + softwareId + " ", throwError, jqXHR.responseJSON)
-        }
+    saveSoftware(taskId, vmId, softwareId).then(message => {
+        // 1. make ajax call
+        $.ajax({
+            type: 'POST',
+            url: `/grpc/${taskId}/${vmId}/run_execute/${softwareId}`,
+            headers: {
+                'X-CSRFToken': $('input[name=csrfmiddlewaretoken]').val()
+            },
+            data: {
+                csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val(),
+                action: 'post'
+            },
+            success: function (data) {
+                pollRunningSoftware(vmId)
+            },
+            error: function (jqXHR, textStatus, throwError) {
+                warningAlert("Running Software " + softwareId + " ", throwError, jqXHR.responseJSON)
+            }
+        })
+        setState(0);
+    }).catch(error => {
+        console.log('Can not run software because save failed.')
     })
-
 }
 
 function addSoftwareEvents(taskId, vmId) {
