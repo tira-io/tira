@@ -31,6 +31,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         call_command('makemigrations')
+        call_command('makemigrations', 'tira')
         call_command('migrate')
         app_addr = f'[::]:{grpc_app_port}'
         with serve_forever(app_addr):
