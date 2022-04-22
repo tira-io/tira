@@ -316,12 +316,14 @@ def parse_run(runs_dir_path, dataset_id, vm_id, run_id):
         'blinded': review.blinded
     })
 
+    if (run_dir / "output/evaluation.prototext").exists():
+        evaluation = Parse(open(run_dir / "output/evaluation.prototext", "r").read(), modelpb.Evaluation())
+        open(run_dir / "output" / "evaluation.bin", 'wb').write(evaluation.SerializeToString())
     # parse the runs
-    if not (run_dir / "output/evaluation.bin").exists():
-        return
+    if (run_dir / "output/evaluation.bin").exists():
+        evaluation = modelpb.Evaluation()
+        evaluation.ParseFromString(open(run_dir / "output/evaluation.bin", "rb").read())
+        for measure in evaluation.measure:
+            modeldb.Evaluation.objects.update_or_create(
+                measure_key=measure.key, run=r, measure_value=measure.value)
 
-    evaluation = modelpb.Evaluation()
-    evaluation.ParseFromString(open(run_dir / "output/evaluation.bin", "rb").read())
-    for measure in evaluation.measure:
-        modeldb.Evaluation.objects.update_or_create(
-            measure_key=measure.key, run=r, measure_value=measure.value)
