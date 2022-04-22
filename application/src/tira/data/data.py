@@ -316,7 +316,7 @@ def parse_run(runs_dir_path, dataset_id, vm_id, run_id):
         'blinded': review.blinded
     })
 
-    if (run_dir / "output/evaluation.prototext").exists():
+    if (run_dir / "output/evaluation.prototext").exists() and not (run_dir / "output/evaluation.bin").exists():
         evaluation = Parse(open(run_dir / "output/evaluation.prototext", "r").read(), modelpb.Evaluation())
         open(run_dir / "output" / "evaluation.bin", 'wb').write(evaluation.SerializeToString())
     # parse the runs
