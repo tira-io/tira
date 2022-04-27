@@ -43,6 +43,10 @@ a.uk-button-primary {
     color: #fff;
 }
 
+.tira-content label {
+    display: inline;
+}
+
 .uk-checkbox {
     width: 16px !important;
 }
