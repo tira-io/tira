@@ -47,7 +47,7 @@ a.uk-button-primary {
     display: inline;
 }
 
-.uk-checkbox {
+.uk-checkbox, .uk-radio{
     width: 16px !important;
 }
 
