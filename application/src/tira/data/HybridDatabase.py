@@ -357,7 +357,9 @@ class HybridDatabase(object):
 
         return {"software": software,
                 "run_id": run.run_id,
-                "input_run_id": "" if not run.input_run else run.input_run.run_id,
+                "input_run_id": "" if not run.input_run or run.input_run.run_id == 'none' or run.input_run.run_id == 'None'
+                else run.input_run.run_id,
+                "is_evaluation": False if not run.input_run or run.input_run.run_id == 'none' or run.input_run.run_id == 'None' else True,
                 "dataset": run.input_dataset.dataset_id,
                 "downloadable": run.downloadable}
 
@@ -395,7 +397,8 @@ class HybridDatabase(object):
                    "reviewed": True if not review.has_errors and not review.has_no_errors
                                        and not review.has_warnings else False,
                    'published': review.published,
-                   'blinded': review.blinded}
+                   'blinded': review.blinded,
+                   'is_upload': is_upload}
             r2 = reviews.filter(run__input_run__run_id=review.run.run_id).all() if preloaded \
                 else modeldb.Review.objects.select_related('run').filter(run__input_run__run_id=review.run.run_id).all()
 
@@ -405,7 +408,8 @@ class HybridDatabase(object):
                        "reviewed": True if not review2.has_errors and not review2.has_no_errors
                                            and not review2.has_warnings else False,
                        'published': review2.published,
-                       'blinded': review2.blinded}
+                       'blinded': review2.blinded,
+                       'is_upload': is_upload}
 
     def get_upload_with_runs(self, task_id, vm_id):
         def _runs_by_upload(up):
@@ -437,14 +441,22 @@ class HybridDatabase(object):
          "published_count": published_count}
          """
         results = []
-        reviews = modeldb.Review.objects.select_related('run', 'run__software', 'run__evaluator',
+        reviews = modeldb.Review.objects.select_related('run', 'run__software', 'run__evaluator', 'run__upload',
                                                         'run__input_run').filter(
             run__input_dataset__dataset_id=dataset_id).all()
 
-        for vm_id in {values['run__software__vm__vm_id'] for values in reviews.values('run__software__vm__vm_id')}:
+        upload_vms = {vm_id["run__upload__vm__vm_id"] for vm_id in reviews.values('run__upload__vm__vm_id')}
+        software_vms = {vm_id["run__software__vm__vm_id"] for vm_id in reviews.values('run__software__vm__vm_id')}
+
+        for vm_id in upload_vms.union(software_vms):
             if not vm_id:
                 continue
-            r = list(self._get_ordered_runs_from_reviews(reviews, vm_id))
+            r = []
+            if vm_id in upload_vms:
+                r += list(self._get_ordered_runs_from_reviews(reviews, vm_id, is_upload=True))
+            elif vm_id in software_vms:
+                r = list(self._get_ordered_runs_from_reviews(reviews, vm_id, is_upload=False))
+
             results.append({"vm_id": vm_id,
                             "runs": r,
                             "unreviewed_count": len([_['reviewed'] for _ in r if _['reviewed'] is True]),
@@ -637,7 +649,7 @@ class HybridDatabase(object):
         raise TiraModelWriteError(f"Failed to write VM {vm_id}")
 
     def _fdb_create_task(self, task_id, task_name, task_description, master_vm_id, organizer_id, website,
-                    help_command=None, help_text=None):
+                         help_command=None, help_text=None):
         new_task_file_path = self.tasks_dir_path / f'{task_id}.prototext'
         task = modelpb.Tasks.Task()
         task.taskId = task_id
@@ -964,7 +976,8 @@ class HybridDatabase(object):
                        help_command=None, help_text=None):
         task_file_path = self.tasks_dir_path / f'{task_id}.prototext'
         if not task_file_path.exists():
-            logger.exception(f"Can not save task {task_id} because the task file {task_file_path} does not exist. Creating this file now.")
+            logger.exception(
+                f"Can not save task {task_id} because the task file {task_file_path} does not exist. Creating this file now.")
             self._fdb_create_task(task_id, task_name, task_description, master_vm_id, organizer_id, website,
                                   help_command, help_text)
             return

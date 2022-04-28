@@ -167,7 +167,7 @@ class Run(models.Model):
     deleted = models.BooleanField(default=False)
     access_token = models.CharField(max_length=150, default="")
 
-#
+
 # class RunHasInputRun(models.Model):
 #     run = models.OneToOneField(Run, on_delete=models.CASCADE)
 #     input_run = models.ForeignKey(Run, on_delete=models.SET_NULL, null=True, related_name="has_input")

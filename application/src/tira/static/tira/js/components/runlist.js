@@ -17,6 +17,7 @@ export default {
         <th class="uk-table-shrink"></th>
         <th class="uk-table-shrink"></th>
         <th class="uk-table-shrink"></th>
+        <th class="uk-table-shrink"></th>
         <th class="header uk-table-shrink uk-text-nowrap"><span>Run</span></th>
         <th class="header uk-table-shrink uk-text-nowrap"><span>Input Run</span></th>
         <th class="header uk-table-expand"><span v-if="for_review">Review</span><span v-else>Dataset</span></th>
@@ -55,8 +56,16 @@ export default {
                 <i class="fas fa-users-slash dataset-detail-icon"></i>
             </div>
         </td>
-        <td class="uk-table-shrink uk-text-nowrap"><span v-if="run.run.input_run_id != 'none'"><i class="fas fa-level-up-alt fa-flip-horizontal"></i></span>&nbsp;[[ run.run.run_id ]]</td>
-        <td class="uk-table-shrink uk-text-nowrap" ><a :href="'#run-' + vm_id + '-' + run.run.input_run_id" v-if="run.run.input_run_id != 'none'">[[ run.run.input_run_id ]]</a>
+        <td class="uk-table-shrink uk-padding-remove-vertical"> <!-- is upload  -->
+            <div uk-tooltip="This run is was uploaded" v-if="run.is_upload">
+                <i class="fas fa-upload dataset-detail-icon"></i>
+            </div>
+            <div uk-tooltip="This run is is from a software" v-if="!run.is_upload">
+                <i class="fas fa-cogs dataset-detail-icon"></i>
+            </div>
+        </td>
+        <td class="uk-table-shrink uk-text-nowrap"><span v-if="run.run.is_evaluation"><i class="fas fa-level-up-alt fa-flip-horizontal"></i></span>&nbsp;[[ run.run.run_id ]]</td>
+        <td class="uk-table-shrink uk-text-nowrap" ><a :href="'#run-' + vm_id + '-' + run.run.input_run_id" v-if="run.run.input_run_id != ''">[[ run.run.input_run_id ]]</a>
         </td>
         <td class="uk-padding-remove-vertical uk-text-nowrap uk-text-truncate" v-if="for_review">
            <span v-if="run.review.reviewer" class="uk-text-bold">[[ run.review.reviewer ]]&nbsp;</span> 
@@ -70,7 +79,7 @@ export default {
             <a class="uk-button uk-button-small uk-button-default run-evaluate-button uk-background-default"
                data-tira-dataset="{{ run.dataset }}" data-tira-vm-id="{{ vm_id }}"
                data-tira-run-id="{{ run.run_id }}"
-               v-if="!(for_review) && run.run.input_run_id === 'none'">
+               v-if="!(for_review) && !run.run.is_evaluation">
                 <div id="run-evaluate-spinner-{{ run.run_id }}" class="run-evaluate-spinner" uk-spinner="ratio: 0.4"></div> evaluate</a>
             <a class="uk-button uk-button-small uk-button-default uk-background-default"
                :href="'/task/' + task_id + '/user/' + vm_id + '/dataset/' + dataset_id + '/run/' + run.run.run_id"><i class="fas fa-search"></i> inspect</a>
