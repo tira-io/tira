@@ -37,7 +37,7 @@
                             class="fas fa-external-link-alt uk-margin-small-left"></i></a>
                     <a class="uk-button uk-button-primary uk-text-large"
                        uk-tooltip="title: Participate;"
-                       href="{% if role == 'guest' %}{% url 'tira:login' %}{% else %}{% url 'tira:software-detail' task_id=task.task_id vm_id=user_id %}{% endif %}">
+                       href="{% if role == 'guest' %}{% url 'tira:login' %}{% else %}{% url 'tira:software-detail' task_id=task.task_id vm_id=vm_id %}{% endif %}">
                         <i class="fas fa-terminal uk-margin-right"></i>Submit</a>
                 </div>
             </div>

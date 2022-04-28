@@ -104,7 +104,8 @@ def task(request, context, task_id):
 
     To admins, it shows, in addition, a review overview page.
     """
-    role = context["role"]
+    if context["role"] != auth.ROLE_GUEST:
+        context["vm_id"] = auth.get_vm_id(request, context["user_id"])
     _add_task_to_context(context, task_id, "")
     return render(request, 'tira/task.html', context)
 
