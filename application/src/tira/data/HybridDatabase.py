@@ -501,6 +501,13 @@ class HybridDatabase(object):
 
     def get_evaluations_with_keys_by_dataset(self, dataset_id, include_unpublished=False, round_floats=True):
         """
+        This function returns the data to render the Leaderboards: A list of keys 'ev-keys' of the evaluation measures
+            which will be the column titles, and a list of evaluations. Each evaluations contains the vm and run id
+            to identify it, and a key 'measures' which holds the scores in the same order as 'ev-keys'/
+
+
+        @param include_unpublished: If True, also contains evaluations that were not marked as 'published'
+        @param round_floats: If True, round float-valued scores to 3 digits.
         :returns: a tuple (ev_keys, evaluation),
             ev-keys is a list of keys of the evaluation measure
             evaluation is a list of evaluations, each evaluation is a dict with
@@ -515,7 +522,7 @@ class HybridDatabase(object):
             except ValueError:
                 return fl
 
-        def format_evalutation(r, ks, rev):
+        def format_evalutation(r, ks):
             def if_exists(evals):
                 for k in ks:
                     ev = evals.filter(run__run_id=run.run_id, measure_key=k).all()
@@ -531,28 +538,34 @@ class HybridDatabase(object):
                 if not values.exists():
                     continue
                 try:
-                    vm_id = run.input_run.software.vm.vm_id
+                    input_run = run.input_run
+                    if input_run.software:
+                        vm_id = run.input_run.software.vm.vm_id
+                    elif input_run.upload:
+                        vm_id = run.input_run.upload.vm.vm_id
+
                 except AttributeError as e:
                     logger.error(f"The vm or software of run {run.run_id} does not exist. Maybe either was deleted?", e)
                     vm_id = "None"
 
+                rev = modeldb.Review.objects.get(run__run_id=run.run_id)
+
                 yield {"vm_id": vm_id,
                        "run_id": run.run_id,
                        'input_run_id': run.input_run.run_id,
-                       'published': rev.get(run__run_id=run.run_id).published,
-                       'blinded': rev.get(run__run_id=run.run_id).blinded,
+                       'published': rev.published,
+                       'blinded': rev.blinded,
                        "measures": list(if_exists(evaluations))}
 
         runs = modeldb.Run.objects.filter(input_dataset=dataset_id).all()
         evaluations = modeldb.Evaluation.objects.select_related('run', 'run__software__vm').filter(
             run__input_dataset__dataset_id=dataset_id).all()
         keys = [k['measure_key'] for k in evaluations.values('measure_key').distinct()]
-        reviews = modeldb.Review.objects.select_related('run').all()
-        exclude = {review.run.run_id for review in reviews.filter(
+
+        exclude = {review.run.run_id for review in modeldb.Review.objects.select_related('run').filter(
             run__input_dataset__dataset_id=dataset_id, published=False, run__software=None).all()
                    if not include_unpublished}
-
-        return keys, list(format_evalutation(runs, keys, reviews))
+        return keys, list(format_evalutation(runs, keys))
 
     def get_software_with_runs(self, task_id, vm_id):
         def _runs_by_software(software):
