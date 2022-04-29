@@ -64,7 +64,8 @@ export default {
                 <i class="fas fa-cogs dataset-detail-icon"></i>
             </div>
         </td>
-        <td class="uk-table-shrink uk-text-nowrap"><span v-if="run.run.is_evaluation"><i class="fas fa-level-up-alt fa-flip-horizontal"></i></span>&nbsp;[[ run.run.run_id ]]</td>
+<!--        Note: the style attribute below is a hack, since disraptor ignores fa-flip-horizontal-->
+        <td class="uk-table-shrink uk-text-nowrap"><span v-if="run.run.is_evaluation"><i class="fas fa-level-up-alt" style="transform: scaleX(-1);"></i></span>&nbsp;[[ run.run.run_id ]]</td>
         <td class="uk-table-shrink uk-text-nowrap" ><a :href="'#run-' + vm_id + '-' + run.run.input_run_id" v-if="run.run.input_run_id != ''">[[ run.run.input_run_id ]]</a>
         </td>
         <td class="uk-padding-remove-vertical uk-text-nowrap uk-text-truncate" v-if="for_review">

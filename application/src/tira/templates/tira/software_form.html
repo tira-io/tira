@@ -100,27 +100,27 @@
                 {% endif %}
             </td>
             <td class="uk-table-shrink uk-text-nowrap uk-padding-remove-vertical">
-                {% if run.input_run_id != "none" %}<i class="fas fa-level-up-alt fa-flip-horizontal"></i>{% endif %}
+                {% if run.is_evaluation != "none" %}<i class="fas fa-level-up-alt" style="transform: scaleX(-1);"></i>{% endif %}
                 &nbsp;{{ run.run_id }}
             </td>
             <td class="uk-table-shrink uk-text-nowrap uk-padding-remove-vertical">
-                {% if run.input_run_id != "none" %}{{ run.input_run_id }}{% endif %}
+                {% if run.is_evaluation %}{{ run.input_run_id }}{% endif %}
             </td>
             <td class="uk-padding-remove-vertical">{{ run.dataset }}</td>
             <td class="uk-align-right uk-table-expand uk-margin-remove uk-padding-remove-vertical uk-padding-remove-right">
-                {% if run.input_run_id == "none" %}
-                <a class="uk-button uk-button-small uk-button-default run-evaluate-button"
+                <a class="uk-align-right uk-margin-remove uk-button uk-button-small uk-button-danger run-delete-button"
+                   data-tira-dataset="{{ run.dataset }}" data-tira-vm-id="{{ vm_id }}"
+                   data-tira-run-id="{{ run.run_id }}"><i class="fas fa-trash-alt"></i></a>
+                {% if task_id != "" and vm_id != "" and run.dataset != "" and run.run_id != "" %}
+                <a class="uk-align-right uk-margin-remove  uk-button uk-button-small uk-button-default"
+                   href="{% url 'tira:review' task_id=task_id vm_id=vm_id dataset_id=run.dataset run_id=run.run_id %}">inspect</a>
+                {% endif %}
+                {% if not run.is_evaluation %}
+                <a class="uk-align-right uk-margin-remove uk-button uk-button-small uk-button-default run-evaluate-button"
                    data-tira-dataset="{{ run.dataset }}" data-tira-vm-id="{{ vm_id }}"
                    data-tira-run-id="{{ run.run_id }}">
                     <div id="run-evaluate-spinner-{{ run.run_id }}" class="run-evaluate-spinner" uk-spinner="ratio: 0.4"></div> evaluate</a>
                 {% endif %}
-                {% if task_id != "" and vm_id != "" and run.dataset != "" and run.run_id != ""%}
-                <a class="uk-button uk-button-small uk-button-default"
-                   href="{% url 'tira:review' task_id=task_id vm_id=vm_id dataset_id=run.dataset run_id=run.run_id %}">inspect</a>
-                {% endif %}
-                <a class="uk-button uk-button-small uk-button-danger run-delete-button"
-                   data-tira-dataset="{{ run.dataset }}" data-tira-vm-id="{{ vm_id }}"
-                   data-tira-run-id="{{ run.run_id }}">delete</a>
             </td>
         </tr>
         {% endfor %}
