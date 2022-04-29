@@ -176,10 +176,10 @@ class HybridDatabase(object):
         Required Parameters are also required in the function
         """
         review = self.load_review(dataset_id, vm_id, run_id)
-
         def update(x, y):
             return y if y is not None else x
 
+        review.runId = run_id
         review.reviewerId = update(review.reviewerId, reviewer_id)
         review.reviewDate = update(review.reviewDate, review_date)
         review.hasErrors = update(review.hasErrors, has_errors)

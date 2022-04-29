@@ -61,13 +61,13 @@ def auto_reviewer(review_path, run_id):
             logger.exception(f"review file: {review_file} exists but is corrupted with {e}")
             raise FileExistsError(f"review file: {review_file} exists but is corrupted with {e}")
 
+    review.runId = run_id
     review.reviewerId = 'tira'
     review.reviewDate = str(dt.utcnow())
     review.hasWarnings = False
     review.hasErrors = False
     review.hasNoErrors = False
     review.blinded = True
-    review.runId = run_id
 
     try:
         if not (review_path / "run.bin").exists():  # No Run file
