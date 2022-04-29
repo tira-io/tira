@@ -161,11 +161,11 @@ def admin_add_dataset(request):
      Return a json status message. """
     if request.method == "POST":
         data = json.loads(request.body)
-        print('endpoint data', data)
 
         dataset_id_prefix = data["dataset_id"]
         dataset_name = data["name"]
         task_id = data["task"]
+        upload_name = data["upload_name"]
         command = data["evaluator_command"]
         working_directory = data["evaluator_working_directory"]
         measures = data["evaluation_measures"]
@@ -177,17 +177,21 @@ def admin_add_dataset(request):
         if data['type'] not in {'test', 'training'}:
             return JsonResponse({'status': 1, "message": f"Dataset type must be 'test' or 'training'"})
 
-        if data['type'] == 'training':
-            ds, paths = model.add_dataset(task_id, dataset_id_prefix, "training", dataset_name)
-        elif data['type'] == 'test':
-            ds, paths = model.add_dataset(task_id, dataset_id_prefix, "test", dataset_name)
+        try:
+            if data['type'] == 'training':
+                ds, paths = model.add_dataset(task_id, dataset_id_prefix, "training", dataset_name, upload_name)
+            elif data['type'] == 'test':
+                ds, paths = model.add_dataset(task_id, dataset_id_prefix, "test", dataset_name, upload_name)
 
-        model.add_evaluator(master_vm_id, task_id, ds['dataset_id'], command, working_directory, measures)
-        path_string = '\n '.join(paths)
-        return JsonResponse(
-            {'status': 0, 'context': ds, 'message': f"Created new dataset with id {ds['dataset_id']}. "
-                                                    f"Store your datasets in the following Paths:\n"
-                                                    f"{path_string}"})
+            model.add_evaluator(master_vm_id, task_id, ds['dataset_id'], command, working_directory, measures)
+            path_string = '\n '.join(paths)
+            return JsonResponse(
+                {'status': 0, 'context': ds, 'message': f"Created new dataset with id {ds['dataset_id']}. "
+                                                        f"Store your datasets in the following Paths:\n"
+                                                        f"{path_string}"})
+        except FileExistsError as e:
+            logger.exception(e)
+            return JsonResponse({'status': 1, 'message': f"A Dataset with this id already exists."})
 
     return JsonResponse({'status': 1, 'message': f"GET is not implemented for add dataset"})
 
@@ -218,16 +222,17 @@ def admin_edit_dataset(request, dataset_id):
         task_id = data["task"]
         is_confidential = not data['publish']
 
-        master_vm_id = model.get_task(task_id)["master_vm_id"]
         command = data["evaluator_command"]
         working_directory = data["evaluator_working_directory"]
         measures = data["evaluation_measures"]
+
+        upload_name = data["upload_name"]
 
         if not model.task_exists(task_id):
             return JsonResponse({'status': 1, "message": f"Task with ID {task_id} does not exist"})
 
         ds = model.edit_dataset(task_id, dataset_id, dataset_name, command, working_directory,
-                                measures, is_confidential)
+                                measures, upload_name, is_confidential)
 
         return JsonResponse(
             {'status': 0, 'context': ds, 'message': f"Updated Dataset {ds['dataset_id']}."})

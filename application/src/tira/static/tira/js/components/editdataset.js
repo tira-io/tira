@@ -5,6 +5,7 @@ export default {
             datasetNameInput: '',
             selectedTask: '',
             publish: '',
+            uploadName: '',
             evaluatorWorkingDirectory: '',
             evaluatorCommand: '',
             evaluationMeasures: '',
@@ -61,6 +62,7 @@ export default {
                 'name': this.datasetNameInput,
                 'task': this.selectedTask.task_id,
                 'publish': this.publish,
+                'upload_name': this.uploadName,
                 'evaluator_working_directory': this.evaluatorWorkingDirectory,
                 'evaluator_command': this.evaluatorCommand,
                 'evaluation_measures': this.evaluationMeasures,
@@ -105,6 +107,7 @@ export default {
                 const evaluator = message.context.evaluator
                 this.datasetNameInput = dataset.display_name
                 this.publish = !dataset.is_confidential
+                this.uploadName = dataset.default_upload_name
                 this.evaluatorWorkingDirectory = evaluator.working_dir
                 this.evaluatorCommand = evaluator.command
                 this.evaluationMeasures = evaluator.measures
@@ -139,6 +142,12 @@ export default {
             <div>
                 <label><input class="uk-checkbox" type="checkbox" name="checkbox-publish" v-model="publish"> Public Dataset</label>
             </div>
+        </div>
+    </div>
+    <div class="uk-grid-small uk-margin-small" uk-grid>
+        <div class="uk-width-1-3">
+            <label>Name of uploaded run results<input type="text" class="uk-input" placeholder="predictions.ndjson"
+                   v-model="uploadName" /></label>
         </div>
     </div>
     <div class="uk-margin-right">

@@ -6,6 +6,7 @@ export default {
             datasetId: '',
             selectedTask: '',
             type: 'training',
+            uploadName: 'predictions.ndjson',
             evaluatorWorkingDirectory: '',
             evaluatorCommand: '',
             evaluationMeasures: '',
@@ -64,6 +65,7 @@ export default {
                 'name': this.datasetNameInput,
                 'task': this.selectedTask.task_id,
                 'type': this.type,
+                'upload_name': this.uploadName,
                 'evaluator_working_directory': this.evaluatorWorkingDirectory,
                 'evaluator_command': this.evaluatorCommand,
                 'evaluation_measures': this.evaluationMeasures,
@@ -151,6 +153,12 @@ export default {
             <div>
                 <label><input class="uk-radio" type="radio" name="radio2" value="test" v-model="type"> test</label>
             </div>
+        </div>
+    </div>
+    <div class="uk-grid-small uk-margin-small" uk-grid>
+        <div class="uk-width-1-3">
+            <label>Name of uploaded run results<input type="text" class="uk-input" placeholder="predictions.ndjson"
+                   v-model="uploadName" /></label>
         </div>
     </div>
     <div class="uk-margin-right">

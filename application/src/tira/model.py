@@ -118,6 +118,7 @@ class Dataset(models.Model):
     is_deprecated = models.BooleanField(default=False)
     data_server = models.CharField(max_length=150, null=True, default=None)
     released = models.CharField(max_length=30, default="")
+    default_upload_name = models.CharField(max_length=50, default="predictions.ndjson")
 
 
 class TaskHasDataset(models.Model):

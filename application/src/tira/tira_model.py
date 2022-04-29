@@ -244,10 +244,10 @@ def create_task(task_id: str, task_name: str, task_description: str, master_vm_i
                              help_command, help_text)
 
 
-def add_dataset(task_id: str, dataset_id: str, dataset_type: str, dataset_name: str) -> list:
+def add_dataset(task_id: str, dataset_id: str, dataset_type: str, dataset_name: str, upload_name: str) -> list:
     """ returns a list of paths of newly created datasets as string.
     """
-    return model.add_dataset(task_id, dataset_id, dataset_type, dataset_name)
+    return model.add_dataset(task_id, dataset_id, dataset_type, dataset_name, upload_name)
 
 
 def add_software(task_id: str, vm_id: str):
@@ -296,10 +296,10 @@ def edit_task(task_id: str, task_name: str, task_description: str, master_vm_id:
 
 
 def edit_dataset(task_id: str, dataset_id: str, dataset_name: str, command: str,
-                 working_directory: str, measures: str, is_confidential: bool = False):
+                 working_directory: str, measures: str, upload_name: str, is_confidential: bool = False):
     """ Update the datasets's data """
     return model.edit_dataset(task_id, dataset_id, dataset_name, command, working_directory,
-                              measures, is_confidential)
+                              measures, upload_name, is_confidential)
 
 
 def delete_software(task_id, vm_id, software_id):

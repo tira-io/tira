@@ -271,7 +271,9 @@ class HybridDatabase(object):
             "year": dataset.released,
             "task": dataset.default_task.task_id,
             'organizer': dataset.default_task.organizer.name,
-            "software_count": modeldb.Software.objects.filter(dataset__dataset_id=dataset.dataset_id).count(),
+            "software_count": modeldb.Software.objects.filter(dataset__dataset_id=dataset.dataset_id).count() +
+                              modeldb.Upload.objects.filter(dataset__dataset_id=dataset.dataset_id).count(),
+            "default_upload_name": dataset.default_upload_name
         }
 
     def get_dataset(self, dataset_id: str) -> dict:
@@ -710,18 +712,22 @@ class HybridDatabase(object):
         (self.datasets_dir_path / task_id).mkdir(exist_ok=True, parents=True)
         open(new_dataset_file_path, 'w').write(str(ds))
 
-    def add_dataset(self, task_id, dataset_id, dataset_type, dataset_name):
+    def add_dataset(self, task_id, dataset_id, dataset_type, dataset_name, upload_name):
         """ Add a new dataset to a task
          CAUTION: This function does not do any sanity (existence) checks and will OVERWRITE existing datasets """
         dataset_id = f"{dataset_id}-{get_today_timestamp()}-{dataset_type}"
-        print('dsid in add_dataset', dataset_id)
+
+        if self.dataset_exists(dataset_id):
+            raise FileExistsError(f"Dataset with id {dataset_id} already exists")
+
         for_task = modeldb.Task.objects.get(task_id=task_id)
 
         ds, _ = modeldb.Dataset.objects.update_or_create(dataset_id=dataset_id, defaults={
             'default_task': for_task,
             'display_name': dataset_name,
             'is_confidential': True if dataset_type == 'test' else False,
-            'released': str(dt.now())
+            'released': str(dt.now()),
+            'default_upload_name': upload_name
         })
 
         thds = modeldb.TaskHasDataset.objects.select_related('dataset').filter(task__task_id=task_id)
@@ -926,7 +932,10 @@ class HybridDatabase(object):
 
         open(run_dir / "run.bin", 'wb').write(run.SerializeToString())
         open(run_dir / "run.prototext", 'w').write(str(run))
-        with open(run_dir / 'output' / uploaded_file.name, 'wb+') as destination:
+
+        default_filename = modeldb.Dataset.objects.get(dataset_id=dataset_id).defaul_upload_name
+
+        with open(run_dir / 'output' / default_filename, 'wb+') as destination:
             for chunk in uploaded_file.chunks():
                 destination.write(chunk)
 
@@ -1044,7 +1053,7 @@ class HybridDatabase(object):
 
         open(vm_file_path, 'w').write(str(vm))
 
-    def edit_dataset(self, task_id, dataset_id, dataset_name, command, working_directory, measures, is_confidential):
+    def edit_dataset(self, task_id, dataset_id, dataset_name, command, working_directory, measures, upload_name, is_confidential):
         """
 
         """
@@ -1052,6 +1061,7 @@ class HybridDatabase(object):
         modeldb.Dataset.objects.filter(dataset_id=dataset_id).update(
             default_task=for_task,
             display_name=dataset_name,
+            default_upload_name=upload_name,
             is_confidential=is_confidential)
 
         ds = modeldb.Dataset.objects.get(dataset_id=dataset_id)
