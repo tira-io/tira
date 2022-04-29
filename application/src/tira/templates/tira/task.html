@@ -15,7 +15,7 @@
     <nav class="uk-container">
         <ul class="uk-breadcrumb">
             <li><a href="{% url 'tira:index' %}">Tira.io</a></li>
-            <li><a href="{% url 'tira:task' task_id=task.task_id %}">[[ taskName ]]</a></li>
+            <li><a href="{% url 'tira:task' task_id=task_id|safe %}">[[ taskName ]]</a></li>
         </ul>
     </nav>
 
@@ -37,7 +37,7 @@
                             class="fas fa-external-link-alt uk-margin-small-left"></i></a>
                     <a class="uk-button uk-button-primary uk-text-large"
                        uk-tooltip="title: Participate;"
-                       href="{% if role == 'guest' %}{% url 'tira:login' %}{% else %}{% url 'tira:software-detail' task_id=task.task_id vm_id=vm_id %}{% endif %}">
+                       href="{% if role == 'guest' %}{% url 'tira:login' %}{% else %}{% url 'tira:software-detail' task_id=task_id|safe vm_id=vm_id %}{% endif %}">
                         <i class="fas fa-terminal uk-margin-right"></i>Submit</a>
                 </div>
             </div>
@@ -176,11 +176,11 @@
     const app = Vue.createApp({
         data() {
             return {
-                task_id: "{{ task.task_id|safe }}",
-                taskName: "{{ task.task_name|safe }}",
-                organizerName: "{{ task.organizer|safe }}",
-                website: "{{ task.web|safe }}",
-                taskDescription: "{{ task.task_description|safe }}",
+                task_id: JSON.parse('{{ task_id|safe }}'),
+                taskName: JSON.parse('{{ task_name|safe }}'),
+                organizerName: JSON.parse('{{ organizer|safe }}'),
+                website: JSON.parse('{{ web|safe }}'),
+                taskDescription: {{ task_description|safe }},
                 datasets: JSON.parse('{{ datasets|safe }}'),
                 test_ids: JSON.parse('{{ test_dataset_ids|safe }}'),
                 training_ids: JSON.parse('{{ training_dataset_ids|safe }}'),
