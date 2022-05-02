@@ -229,7 +229,8 @@
                     title = this.datasets[dsid].display_name
                 }
                 console.log(this.datasets[dsid])
-                return `${title} (<span class="uk-text-bold">${this.datasets[dsid]["software_count"]}</span> Softwares)`
+
+                return `${title} (<span class="uk-text-bold">${this.datasets[dsid]["evaluations_public_count"]}</span>/${this.datasets[dsid]["evaluations_count"]} Evaluations)`
             },
             async getEvaluations(selected) {
                 try {

@@ -275,6 +275,8 @@ class HybridDatabase(object):
             "software_count": modeldb.Software.objects.filter(dataset__dataset_id=dataset.dataset_id).count(),
             "runs_count": runs.count(),
             'evaluations_count': runs.filter(evaluator__isnull=False).count(),
+            'evaluations_public_count': modeldb.Review.objects.filter(run__run_id__in=[r.run_id for r in runs.filter(evaluator__isnull=False)]
+                                                                      ).filter(published=True).count(),
             "default_upload_name": dataset.default_upload_name
         }
 
