@@ -933,7 +933,7 @@ class HybridDatabase(object):
         open(run_dir / "run.bin", 'wb').write(run.SerializeToString())
         open(run_dir / "run.prototext", 'w').write(str(run))
 
-        default_filename = modeldb.Dataset.objects.get(dataset_id=dataset_id).defaul_upload_name
+        default_filename = modeldb.Dataset.objects.get(dataset_id=dataset_id).default_upload_name
 
         with open(run_dir / 'output' / default_filename, 'wb+') as destination:
             for chunk in uploaded_file.chunks():
@@ -1073,10 +1073,13 @@ class HybridDatabase(object):
         ev_id = modeldb.Evaluator.objects.get(dataset__dataset_id=dataset_id).evaluator_id
 
         self._fdb_edit_dataset(task_id, dataset_id, dataset_name, dataset_type, ev_id)
+        
+        try:
+            vm_id = modeldb.VirtualMachineHasEvaluator.objects.filter(evaluator__evaluator_id=ev_id)[0].vm.vm_id
+            self._fdb_edit_evaluator_to_vm(vm_id, ev_id, command, working_directory, measures)
+        except Exception as e:
+            logger.exception(f"failed to query 'VirtualMachineHasEvaluator' for evauator {ev_id}. WIll not save changes made to the Filestore.", e)
 
-        vm_id = modeldb.VirtualMachineHasEvaluator.objects.get(evaluator__evaluator_id=ev_id).vm.vm_id
-
-        self._fdb_edit_evaluator_to_vm(vm_id, ev_id, command, working_directory, measures)
         return self._dataset_to_dict(ds)
 
     def delete_software(self, task_id, vm_id, software_id):
