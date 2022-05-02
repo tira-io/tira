@@ -228,6 +228,7 @@
                 if (this.datasets[dsid].display_name !== "") {
                     title = this.datasets[dsid].display_name
                 }
+                console.log(this.datasets[dsid])
                 return `${title} (<span class="uk-text-bold">${this.datasets[dsid]["software_count"]}</span> Softwares)`
             },
             async getEvaluations(selected) {

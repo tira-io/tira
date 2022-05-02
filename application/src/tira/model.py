@@ -147,6 +147,11 @@ class Software(models.Model):
 
 
 class Upload(models.Model):
+    """ Because I've fallen over this several times:
+    - there is exactly one 'Upload' per vm. It's the equivalent to "software',
+    the uploaded instance is a 'run' ...
+    - The dataset is only associated for compatibility with Software. It's probably always zero.
+    """
     vm = models.ForeignKey(VirtualMachine, on_delete=models.CASCADE)
     task = models.ForeignKey(Task, on_delete=models.SET_NULL, null=True)
     dataset = models.ForeignKey(Dataset, on_delete=models.SET_NULL, null=True)

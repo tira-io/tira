@@ -263,6 +263,7 @@ class HybridDatabase(object):
 
     def _dataset_to_dict(self, dataset):
         evaluator_id = None if not dataset.evaluator else dataset.evaluator.evaluator_id
+        runs = modeldb.Run.objects.filter(input_dataset__dataset_id=dataset.dataset_id)
         return {
             "display_name": dataset.display_name,
             "evaluator_id": evaluator_id,
@@ -271,8 +272,9 @@ class HybridDatabase(object):
             "year": dataset.released,
             "task": dataset.default_task.task_id,
             'organizer': dataset.default_task.organizer.name,
-            "software_count": modeldb.Software.objects.filter(dataset__dataset_id=dataset.dataset_id).count() +
-                              modeldb.Upload.objects.filter(dataset__dataset_id=dataset.dataset_id).count(),
+            "software_count": modeldb.Software.objects.filter(dataset__dataset_id=dataset.dataset_id).count(),
+            "runs_count": runs.count(),
+            'evaluations_count': runs.filter(evaluator__isnull=False).count(),
             "default_upload_name": dataset.default_upload_name
         }
 
