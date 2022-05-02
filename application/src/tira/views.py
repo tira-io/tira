@@ -94,7 +94,7 @@ def _add_task_to_context(context, task_id, dataset_id):
     context['training_dataset_ids'] = json.dumps([ds['dataset_id'] for ds in datasets if not ds['is_confidential']],
                                                 cls=DjangoJSONEncoder)
     task = model.get_task(task_id)
-    context["task_id"] = json.dumps(task['task_id'], cls=DjangoJSONEncoder)
+    context["task_id"] = task['task_id']
     context["task_name"] = json.dumps(task['task_name'], cls=DjangoJSONEncoder)
     context["organizer"] = json.dumps(task['organizer'], cls=DjangoJSONEncoder)
     context["task_description"] = json.dumps(task['task_description'], cls=DjangoJSONEncoder)
