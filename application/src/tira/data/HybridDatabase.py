@@ -575,7 +575,7 @@ class HybridDatabase(object):
                        'blinded': rev.blinded,
                        "measures": list(if_exists(evaluations))}
 
-        runs = modeldb.Run.objects.filter(input_dataset=dataset_id).all()
+        runs = modeldb.Run.objects.filter(input_dataset=dataset_id).exclude(input_run__isnull=True).all()
         evaluations = modeldb.Evaluation.objects.select_related('run', 'run__software__vm').filter(
             run__input_dataset__dataset_id=dataset_id).all()
         keys = [k['measure_key'] for k in evaluations.values('measure_key').distinct()]
