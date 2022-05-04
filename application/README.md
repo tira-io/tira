@@ -7,7 +7,7 @@ The following steps will setup a self-contained, local tira application and a mo
    ~$ sudo apt-get update && sudo apt-get install python3 python3-pip python3-venv libmysqlclient-dev
    ```
 
-1. Setup the local environment
+1. y
    ```bash
    ~$ make setup  # This creates the virtual environment and prepares Django's database
    ```
