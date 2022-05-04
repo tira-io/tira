@@ -911,6 +911,31 @@ class HybridDatabase(object):
          """
         dbops.parse_run(self.runs_dir_path, dataset_id, vm_id, run_id)
 
+    def _list_files(self, startpath):
+        import os
+        tree = ""
+        for root, dirs, files in os.walk(startpath):
+            level = root.replace(startpath, '').count(os.sep)
+            indent = ' ' * 4 * (level)
+            tree += '{}{}/\n'.format(indent, os.path.basename(root))
+            subindent = ' ' * 4 * (level + 1)
+            for f in files:
+                tree += '{}{}\n'.format(subindent, f)
+        return tree
+
+    def _assess_uploaded_files(self, output_dir: Path, run_dir: Path):
+        dirs = sum([1 if d.is_dir() else 0 for d in output_dir.glob("*")])
+        files = sum([1 if not d.is_dir() else 0 for d in output_dir.rglob("*")])
+        root_files = list(output_dir.glob("*"))
+        if root_files and not root_files[0].is_dir():
+            lines = len(open(root_files[0], 'r').readlines())
+            size = root_files[0].stat().st_size
+        else:
+            lines = "--"
+            size = "--"
+        open(run_dir / 'size.txt', 'w').write(f"0\n{size}\n{lines}\n{files}\n{dirs}")
+        open(run_dir / 'file-list.txt', 'w').write(self._list_files(str(output_dir)))
+
     def add_uploaded_run(self, task_id, vm_id, dataset_id, uploaded_file):
         # First add to data
         new_id = get_tira_id()
@@ -942,6 +967,11 @@ class HybridDatabase(object):
         with open(run_dir / 'output' / default_filename, 'wb+') as destination:
             for chunk in uploaded_file.chunks():
                 destination.write(chunk)
+
+        # Add size.txt and stdout and stderr, and file-list.txt
+        self._assess_uploaded_files(run_dir, (run_dir / 'output'))
+        open(run_dir / 'stdout.txt', 'w').write("This run was successfully uploaded.")
+        open(run_dir / 'stderr.txt', 'w').write("No errors.")
 
         # add the review
         review = auto_reviewer(run_dir, run_dir.stem)
@@ -1082,7 +1112,7 @@ class HybridDatabase(object):
             vm_id = modeldb.VirtualMachineHasEvaluator.objects.filter(evaluator__evaluator_id=ev_id)[0].vm.vm_id
             self._fdb_edit_evaluator_to_vm(vm_id, ev_id, command, working_directory, measures)
         except Exception as e:
-            logger.exception(f"failed to query 'VirtualMachineHasEvaluator' for evauator {ev_id}. WIll not save changes made to the Filestore.", e)
+            logger.exception(f"failed to query 'VirtualMachineHasEvaluator' for evauator {ev_id}. Will not save changes made to the Filestore.", e)
 
         return self._dataset_to_dict(ds)
 
@@ -1182,3 +1212,4 @@ class HybridDatabase(object):
     @staticmethod
     def software_exists(task_id: str, vm_id: str, software_id: str) -> bool:
         return modeldb.Software.objects.filter(software_id=software_id, vm__vm_id=vm_id).exists()
+
