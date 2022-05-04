@@ -196,7 +196,7 @@ def review(request, context, task_id, vm_id, dataset_id, run_id):
     run_review = model.get_run_review(dataset_id, vm_id, run_id)
     runtime = get_run_runtime(dataset_id, vm_id, run_id)
     files = get_run_file_list(dataset_id, vm_id, run_id)
-    files["file_list"][0] = "$outputDir"
+    files["file_list"][0] = "output/"
     stdout = get_stdout(dataset_id, vm_id, run_id)
     stderr = get_stderr(dataset_id, vm_id, run_id)
     tira_log = get_tira_log(dataset_id, vm_id, run_id)

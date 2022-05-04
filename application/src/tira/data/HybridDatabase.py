@@ -7,6 +7,7 @@ from shutil import rmtree
 from datetime import datetime as dt
 import randomname
 import os
+import zipfile
 
 from tira.util import TiraModelWriteError, TiraModelIntegrityError
 from tira.proto import TiraClientWebMessages_pb2 as modelpb
@@ -916,14 +917,14 @@ class HybridDatabase(object):
         tree = ""
         for root, dirs, files in os.walk(startpath):
             level = root.replace(startpath, '').count(os.sep)
-            indent = ' ' * 4 * (level)
-            tree += '{}{}/\n'.format(indent, os.path.basename(root))
-            subindent = ' ' * 4 * (level + 1)
+            indent = '..' * 2 * (level)
+            tree += '{}|-- {}/\n'.format(indent, os.path.basename(root))
+            subindent = '..' * 2 * (level + 1)
             for f in files:
-                tree += '{}{}\n'.format(subindent, f)
+                tree += '{}|-- {}\n'.format(subindent, f)
         return tree
 
-    def _assess_uploaded_files(self, output_dir: Path, run_dir: Path):
+    def _assess_uploaded_files(self, run_dir: Path, output_dir: Path):
         dirs = sum([1 if d.is_dir() else 0 for d in output_dir.glob("*")])
         files = sum([1 if not d.is_dir() else 0 for d in output_dir.rglob("*")])
         root_files = list(output_dir.glob("*"))
@@ -962,11 +963,20 @@ class HybridDatabase(object):
         open(run_dir / "run.bin", 'wb').write(run.SerializeToString())
         open(run_dir / "run.prototext", 'w').write(str(run))
 
-        default_filename = modeldb.Dataset.objects.get(dataset_id=dataset_id).default_upload_name
+        if uploaded_file.name.endswith(".zip"):
+            with open(run_dir / 'output' / uploaded_file.name, 'wb+') as destination:
+                for chunk in uploaded_file.chunks():
+                    destination.write(chunk)
 
-        with open(run_dir / 'output' / default_filename, 'wb+') as destination:
-            for chunk in uploaded_file.chunks():
-                destination.write(chunk)
+            with zipfile.ZipFile(run_dir / 'output' / uploaded_file.name, 'r') as zip_ref:
+                zip_ref.extractall(run_dir / 'output')
+
+        else:
+            default_filename = modeldb.Dataset.objects.get(dataset_id=dataset_id).default_upload_name
+
+            with open(run_dir / 'output' / default_filename, 'wb+') as destination:
+                for chunk in uploaded_file.chunks():
+                    destination.write(chunk)
 
         # Add size.txt and stdout and stderr, and file-list.txt
         self._assess_uploaded_files(run_dir, (run_dir / 'output'))
