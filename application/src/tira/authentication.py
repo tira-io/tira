@@ -283,7 +283,7 @@ class DisraptorAuthentication(Authentication):
                                   "group[members_visibility_level]": 2, "group[bio_raw]": group_bio}
                             )
 
-        return json.loads(ret.text)['basic_group']['id']
+        return json.loads(ret.text).get('basic_group', {'id': f"tira_vm_{vm['vm_id']}"})["id"]
 
     def _create_discourse_invite_link(self, group_id):
         """ Create the invite link to get permission to a discourse group """
