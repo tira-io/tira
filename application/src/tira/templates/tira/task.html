@@ -159,8 +159,6 @@
 <script src="https://assets.webis.de/js/filter.js"></script>
 <script src="https://assets.webis.de/js/selection.js"></script>
 <script src="https://assets.webis.de/js/tables.js"></script>
-<script>initWebisTableFiltering();</script>
-<script>initTableSorting();</script>
 
 <script src="https://unpkg.com/vue@3"></script>
 <!--<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>-->
@@ -208,10 +206,10 @@
             },
             deleteDataset(dsId) {
                 this.selected = ""
+                UIkit.modal(document.getElementById('edit-dataset-modal')).hide();
                 delete this.datasets[dsId]
             },
             addDataset(dataset) {
-                console.log(dataset)
                 this.datasets[dataset.dataset_id] = dataset
                 this.selected = dataset.dataset_id
             },
@@ -228,7 +226,6 @@
                 if (this.datasets[dsid].display_name !== "") {
                     title = this.datasets[dsid].display_name
                 }
-                console.log(this.datasets[dsid])
 
                 return `${title} (<span class="uk-text-bold">${this.datasets[dsid]["evaluations_public_count"]}</span>/${this.datasets[dsid]["evaluations_count"]} Evaluations)`
             },

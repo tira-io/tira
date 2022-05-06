@@ -93,6 +93,25 @@ export default {
                 }
             }
             return {}
+        },
+        setup(){
+            this.get(`/api/organizer-list`).then(message => {
+                this.organizerList = message.context.organizer_list
+                this.get(`/api/task/${this.task_id}`).then(message => {
+                    let task = message.context.task
+                    this.taskNameInput = task.task_name
+                    this.websiteInput = task.web
+                    this.masterVmId = task.master_vm_id
+                    this.selectedOrganizer = this.getOrganizerByName(task.organizer)
+                    this.taskDescription = task.task_description
+                    this.helpCommand = task.command_placeholder
+                    this.helpText = task.command_description
+                }).catch(error => {
+                    this.$emit('addnotification', 'error', `Error loading task: ${error}`)
+                })
+            }).catch(error => {
+                this.$emit('addnotification', 'error', `Error loading organizer list: ${error}`)
+            })
         }
     },
     watch: {
@@ -100,26 +119,13 @@ export default {
             if (!(newWebsite.startsWith('http://') || newWebsite.startsWith('https://'))) {
                 this.websiteInput = `https://${newWebsite}`
             }
+        },
+        task_id(newId, oldId){
+            this.setup()
         }
     },
     beforeMount() {
-        this.get(`/api/organizer-list`).then(message => {
-            this.organizerList = message.context.organizer_list
-            this.get(`/api/task/${this.task_id}`).then(message => {
-                let task = message.context.task
-                this.taskNameInput = task.task_name
-                this.websiteInput = task.web
-                this.masterVmId = task.master_vm_id
-                this.selectedOrganizer = this.getOrganizerByName(task.organizer)
-                this.taskDescription = task.task_description
-                this.helpCommand = task.command_placeholder
-                this.helpText = task.command_description
-            }).catch(error => {
-                this.$emit('addnotification', 'error', `Error loading task: ${error}`)
-            })
-        }).catch(error => {
-            this.$emit('addnotification', 'error', `Error loading organizer list: ${error}`)
-        })
+        this.setup()
     },
     template: `
 <div class="uk-grid-small uk-margin-small" uk-grid>

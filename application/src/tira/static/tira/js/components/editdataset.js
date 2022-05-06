@@ -90,6 +90,26 @@ export default {
                 }
             }
             return {}
+        },
+        setup(){
+            this.get(`/api/task-list`).then(message => {
+                this.taskList = message.context.task_list
+                this.get(`/api/dataset/${this.dataset_id}`).then(message => {
+                    const dataset = message.context.dataset
+                    const evaluator = message.context.evaluator
+                    this.datasetNameInput = dataset.display_name
+                    this.publish = !dataset.is_confidential
+                    this.uploadName = dataset.default_upload_name
+                    this.evaluatorWorkingDirectory = evaluator.working_dir
+                    this.evaluatorCommand = evaluator.command
+                    this.evaluationMeasures = evaluator.measures
+                    this.selectedTask = this.getTaskById(dataset.task)
+                }).catch(error => {
+                    this.$emit('addnotification', 'error', `Error loading task: ${error}`)
+                })
+            }).catch(error => {
+                this.$emit('addnotification', 'error', `Error loading task list: ${error}`)
+            })
         }
     },
     watch: {
@@ -97,27 +117,14 @@ export default {
             if(newName === ""){
                 this.evaluatorWorkingDirectory = '/home/' + this.selectedTask.master_vm_id + '/'
             }
+        },
+        dataset_id(newId, oldId){
+            this.setup()
         }
+
     },
     beforeMount() {
-        this.get(`/api/task-list`).then(message => {
-            this.taskList = message.context.task_list
-            this.get(`/api/dataset/${this.dataset_id}`).then(message => {
-                const dataset = message.context.dataset
-                const evaluator = message.context.evaluator
-                this.datasetNameInput = dataset.display_name
-                this.publish = !dataset.is_confidential
-                this.uploadName = dataset.default_upload_name
-                this.evaluatorWorkingDirectory = evaluator.working_dir
-                this.evaluatorCommand = evaluator.command
-                this.evaluationMeasures = evaluator.measures
-                this.selectedTask = this.getTaskById(dataset.task)
-            }).catch(error => {
-                this.$emit('addnotification', 'error', `Error loading task: ${error}`)
-            })
-        }).catch(error => {
-            this.$emit('addnotification', 'error', `Error loading task list: ${error}`)
-        })
+        this.setup()
     },
     template: `
 <div class="uk-grid-small uk-margin-small" uk-grid>
