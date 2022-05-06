@@ -1164,11 +1164,11 @@ class HybridDatabase(object):
         task_file_path = self.tasks_dir_path / f'{task_id}.prototext'
         task = Parse(open(task_file_path, "r").read(), modelpb.Tasks.Task())
         for ind, ds in enumerate(task.testDataset):
-            if ds.datasetId == dataset_id:
+            if ds == dataset_id:
                 del task.testDataset[ind]
 
         for ind, ds in enumerate(task.trainingDataset):
-            if ds.datasetId == dataset_id:
+            if ds == dataset_id:
                 del task.trainingDataset[ind]
 
         open(task_file_path, 'w').write(str(task))
@@ -1184,7 +1184,7 @@ class HybridDatabase(object):
         open(vm_file_path, 'w').write(str(vm))
 
     def delete_dataset(self, dataset_id):
-        ds = modeldb.Dataset.objects.select_related('default_task', 'evaluator').filter(dataset_id=dataset_id)
+        ds = modeldb.Dataset.objects.select_related('default_task', 'evaluator').get(dataset_id=dataset_id)
         task_id = ds.default_task.task_id
         evaluator_id = ds.evaluator.evaluator_id
         vm_id = ds.default_task.vm.vm_id
