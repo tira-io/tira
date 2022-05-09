@@ -3,15 +3,16 @@ let pollingSoftware=false;
 let pollingEvaluation=false;
 let state=0;
 
-function setupPollingAfterPageLoad(vmid) {
-    if(vmid.endsWith('default')){
-        return
-    }
+function setupPollingAfterPageLoad(vmid, is_default) {
     $('.run-evaluate-spinner').hide()
-    setState()
-    loadVmInfo(vmid)
+    if(!is_default){
+        loadVmInfo(vmid)
+        pollRunningSoftware(vmid)
+        setState()
+    } else {
+        state = 42
+    }
     pollRunningEvaluations(vmid)
-    pollRunningSoftware(vmid)
 }
 
 function loadVmInfo(vmid) {
@@ -177,7 +178,11 @@ function pollRunningEvaluations(vmid) {
                     pollRunningEvaluations(vmid);
                 } else {
                     // Note: It's easiest to reload the page here instead of adding the runs to the table via JS.
-                    if (pollingEvaluation === true) location.reload();
+                    if (pollingEvaluation === true) {
+                        setTimeout(function () {
+                            location.reload()
+                        }, 3000);
+                    }
                 }
             },
             error: function (jqXHR, textStatus, throwError) {
@@ -407,63 +412,57 @@ function runSoftware (taskId, vmId, softwareId) {
     })
 }
 
-function addSoftwareEvents(taskId, vmId) {
-    $('#vm-power-on-button').click(function () {
-        startVM(vmId)
-    });
-    $('#vm-shutdown-button').click(function () {
-        shutdownVM(vmId)
-    });
-    $('#vm-stop-button').click(function () {
-        stopVM(vmId)
-    });
-    $('#vm-abort-run-button').click(function () {
-        abortRun(vmId)
-    });
+function addSoftwareEvents(taskId, vmId, is_default) {
+    if(!is_default){
+        console.log('True')
+        $('#vm-power-on-button').click(function () {
+            startVM(vmId)
+        });
+        $('#vm-shutdown-button').click(function () {
+            shutdownVM(vmId)
+        });
+        $('#vm-stop-button').click(function () {
+            stopVM(vmId)
+        });
+        $('#vm-abort-run-button').click(function () {
+            abortRun(vmId)
+        });
+        $('#add-software').click(function () {
+            addSoftware(taskId, vmId);
+        });
 
-    $('#add-software').click(function () {
-        addSoftware(taskId, vmId);
-    });
+        $('.software-run-button').click(function () {
+            runSoftware(taskId, vmId, $(this).data('tiraSoftwareId'))
+        });
 
-    $('.software-run-button').click(function () {
-        runSoftware(taskId, vmId, $(this).data('tiraSoftwareId'))
-    });
-
-    $('.software-save-button').click(function () {
-        saveSoftware(taskId, vmId, $(this).data("tiraSoftwareId"));
-    })
-
-    $('.software-delete-button').click(function () {
-        let formId = '#' + $(this).data("tiraSoftwareId") + '-row'
-        deleteSoftware(taskId, vmId, $(this).data("tiraSoftwareId"), $(formId));
-    })
-
+        $('.software-save-button').click(function () {
+            saveSoftware(taskId, vmId, $(this).data("tiraSoftwareId"));
+        })
+        $('.software-delete-button').click(function () {
+            let formId = '#' + $(this).data("tiraSoftwareId") + '-row'
+            deleteSoftware(taskId, vmId, $(this).data("tiraSoftwareId"), $(formId));
+        })
+        $('.software-select').change(function () {
+            updateSoftwareRunButton()
+        });
+        $('.command-input').change(function () {
+            updateSoftwareRunButton()
+        });
+    }
     $('#upload-button').click(function (e) {
         e.preventDefault()
         upload(taskId, vmId);
     })
-
     $('.run-delete-button').click(function () {
         deleteRun($(this).data('tiraDataset'),
             $(this).data('tiraVmId'),
             $(this).data('tiraRunId'), $(this).parent().parent())
     })
-
     $('.run-evaluate-button').click(function () {
         evaluateRun($(this).data('tiraDataset'),
                      $(this).data('tiraVmId'),
                      $(this).data('tiraRunId'))
     });
-
-    $('.software-select').change(function () {
-        updateSoftwareRunButton()
-    });
-
-    $('.command-input').change(function () {
-        updateSoftwareRunButton()
-    });
-
-
 }
 
 
