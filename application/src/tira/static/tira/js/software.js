@@ -5,7 +5,7 @@ let state=0;
 
 function setupPollingAfterPageLoad(vmid, is_default) {
     $('.run-evaluate-spinner').hide()
-    if(!is_default){
+    if(is_default != "True"){
         loadVmInfo(vmid)
         pollRunningSoftware(vmid)
         setState()
