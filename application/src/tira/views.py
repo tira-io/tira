@@ -36,6 +36,7 @@ def add_context(func):
 @add_context
 def index(request, context):
     context["tasks"] = model.get_tasks()
+    context["datasets"] = model.get_datasets() # dict task_id -> alle datensätze die dazu gehören
     if context["role"] != auth.ROLE_GUEST:
         context["vm_id"] = auth.get_vm_id(request, context["user_id"])
 

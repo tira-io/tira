@@ -82,7 +82,8 @@
                     <a href="{% url 'tira:task' task_id=task.task_id %}">{{ task.task_name }}</a>
                      <span class="uk-text-muted uk-text-small">({{ task.software_count }} submission)</span>
                 </td>
-                <td class="uk-text-right uk-text-nowrap">{{ task.year }}</td>
+                <!--<td class="uk-text-right uk-text-nowrap">{{ task.year }}</td>-->
+                <td class="uk-text-right uk-text-nowrap">{{ datasets }}</td>
                 <td class="uk-text-right" >{{ task.organizer }}</td>
                 
                 <td class="uk-text-right uk-text-nowrap uk-margin-remove uk-padding-remove-vertical uk-padding-remove-right">

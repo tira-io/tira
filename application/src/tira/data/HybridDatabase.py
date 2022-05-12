@@ -278,7 +278,8 @@ class HybridDatabase(object):
             'evaluations_count': runs.filter(evaluator__isnull=False).count(),
             'evaluations_public_count': modeldb.Review.objects.filter(run__run_id__in=[r.run_id for r in runs.filter(evaluator__isnull=False)]
                                                                       ).filter(published=True).count(),
-            "default_upload_name": dataset.default_upload_name
+            "default_upload_name": dataset.default_upload_name,
+            "date": dataset.date
         }
 
     def get_dataset(self, dataset_id: str) -> dict:
