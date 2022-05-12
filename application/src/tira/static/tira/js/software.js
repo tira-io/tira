@@ -413,8 +413,7 @@ function runSoftware (taskId, vmId, softwareId) {
 }
 
 function addSoftwareEvents(taskId, vmId, is_default) {
-    if(!is_default){
-        console.log('True')
+    if(is_default != "True"){
         $('#vm-power-on-button').click(function () {
             startVM(vmId)
         });
