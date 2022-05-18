@@ -36,7 +36,8 @@ def add_context(func):
 @add_context
 def index(request, context):
     context["tasks"] = model.get_tasks()
-    context["datasets"] = model.get_datasets() # dict task_id -> alle datensätze die dazu gehören
+    #context["datasets"] = model.get_datasets() # dict task_id -> alle datensätze die dazu gehören
+    _get_tasks_with_year(context)
     if context["role"] != auth.ROLE_GUEST:
         context["vm_id"] = auth.get_vm_id(request, context["user_id"])
 
@@ -83,6 +84,21 @@ def login(request, context):
 def logout(request):
     auth.logout(request)
     return redirect('tira:index')
+
+
+def _get_tasks_with_year(context):
+    #btw: task has dataset -> dataset for a specific task
+
+    #gettasks -> for task in tasks get dataset -> store as dict: {taskid;datasetid}
+    tasks = model.get_tasks()
+    task_ids = [t['task_id'] for t in tasks] # returns [taskid1,taskid2]
+    #task_ids=['sample-task']#, 'sample-task2']
+    for i in range (0,len(task_ids)):
+        datasets = model.get_datasets_by_task(task_ids[i]) # this is only one you need for i in task_ids
+    
+    context['datasets'] = datasets # task_ids[0] #json.dumps([i for i in task_ids], cls=DjangoJSONEncoder)# #model.get_datasets()
+
+#def _add_dataset_to_context(context, task_id):?
 
 
 def _add_task_to_context(context, task_id, dataset_id):
