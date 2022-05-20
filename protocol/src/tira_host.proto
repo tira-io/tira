@@ -127,7 +127,7 @@ message VmDetails {
 
 message VmList {
   Transaction transaction = 1;
-  repeated VmDetails vmDetails = 2;
+  repeated VmInfo vmsInfo = 2;
 }
 
 message RunId {
@@ -178,4 +178,8 @@ message VmInfo {
   bool sshPortStatus = 9;
   bool rdpPortStatus = 10;
   State state = 11;
+  string vmId = 12;
+  string userName = 13;
+  string initialUserPw = 14;  // see this as initial password. Hosts may refuse to include this here.
+  string ip = 15;
 }

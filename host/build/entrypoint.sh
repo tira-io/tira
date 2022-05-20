@@ -51,8 +51,8 @@ sudo service ssh start
 # Don't start grpc service if started as local dev environment
 if [ "$DEV" = "true" ];
 then
-  tail -f /dev/null
+#  tail -f /dev/null
+  watchmedo auto-restart --recursive --patterns="*.py;*.ini" --ignore-patterns="grpc_client_test.py" --directory="/tira/tira_host" python3 -- -m grpc_service
 else
   python3 grpc_service.py
-#  watchmedo auto-restart --recursive --pattern="*.py" --ignore-patterns="grpc_client_test.py" --directory="/tira/tira_host" python3 -- -m grpc_service
 fi

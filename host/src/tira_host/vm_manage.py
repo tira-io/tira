@@ -110,7 +110,8 @@ class VirtualMachine(object):
         :return:
         """
         shell_command = f"{script_name} {command} " + " ".join([f"'{a}'" for a in args])
-        logger.debug(f"Execute {shell_command}")
+        if not command == "vm-info":
+            logger.debug(f"Execute {shell_command}")
         p = subprocess.Popen(shell_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         self.pid = p.pid
         out, err = p.communicate()
@@ -136,6 +137,7 @@ class VirtualMachine(object):
         self.rdp_port = vm.portRdp
         self.rdp_port_status = False
         self.host = vm.host
+        self.ip = vm.ip
         self.transaction_id = None
         self.pid = None
 
@@ -328,7 +330,7 @@ class VirtualMachine(object):
         self._set_state(4)
         self.run_script(self.vm_name, command="vm-stop")
         self._set_state(2)
-        self._sandbox(transaction_id, 'auto', "true" if "test" in request.inputRunId.datasetId else "false")
+        self._sandbox(transaction_id, 'auto', "true" if "test" in request.runId.datasetId else "false")
 
         self._set_state(7)
         retcode, output = self.run_script(submission_filename, request.runId.datasetId, 'none',

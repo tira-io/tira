@@ -35,6 +35,13 @@ fileConfig("conf/logging_config.ini", defaults={'filename': f"{tira_log_path}{so
            disable_existing_loggers=False)
 logger = logging.getLogger()
 
+if config.get('main', 'connect_to_debug_server') == 'True':
+    try:
+        import pydevd_pycharm
+        pydevd_pycharm.settrace('host.docker.internal', port=4200,  stdoutToServer=True, stderrToServer=True)
+    except Exception as e:
+        logger.debug('Debug server is not reachable.')
+
 grpc_client = TiraHostClient(tira_application_host, tira_application_grpc_port)
 transactions = {}
 vms = {}
@@ -90,6 +97,9 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         pass
 
     def _get_vm(self, vm_id, context) -> vm_manage.VirtualMachine:
+        if vm_id not in vms:
+            self.load_vms_list()
+
         vm = vms.get(vm_id, None)
         if vm is None:
             context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
@@ -132,7 +142,7 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         """
         vm = self._get_vm(request.vmId, context)
 
-        return vm.backup(request.vmId)
+        return vm.backup(request.vmId, request)
 
     def vm_create(self, request, context):
         """
@@ -155,11 +165,11 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         """
         vm = self._get_vm(request.vmId, context)
         response = vm.delete(request.transaction.transactionId, request)
-        vms.pop(vm)
+        vms.pop(vm.vm_id)
 
         return response
 
-    def vm_info(self, request, context):
+    def vm_info(self, request, context, cached=False):
         """
 
         :param request:
@@ -168,7 +178,9 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         """
         vm = self._get_vm(request.vmId, context)
 
-        vm.info()
+        if not cached:
+            vm.info()
+
         response = tira_host_pb2.VmInfo(transaction=tira_host_pb2.Transaction(
             status=tira_host_pb2.Status.SUCCESS,
             message="Host received vm-info request",
@@ -184,12 +196,17 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         response.rdpPortStatus = vm.rdp_port_status
         response.rdpPort = vm.rdp_port
         response.host = vm.host
+        response.vmId = vm.vm_id
+        response.userName = vm.user_name
+        response.initialUserPw = vm.user_password
+        response.ip = vm.ip
 
         return response
 
     def vm_list(self, request, context):
-        vm_list = tira_host_pb2.VmList(transaction=request.transaction, )
-        return vm_list
+        response = tira_host_pb2.VmList(transaction=request.transaction,
+                                        vmsInfo=[self.vm_info({'vmId': vm.vm_id}, context, cached=True) for vm in vms])
+        return response
 
     def vm_shutdown(self, request, context):
         """
