@@ -28,6 +28,7 @@ setup:
 venv:
 	test -d $(VENV_NAME) || python3 -m venv $(VENV_NAME)
 	sh -c ". $(VENV_NAME)/bin/activate && \
+		python3 -m pip install wheel && \
 		python3 -m pip install -r requirements.txt"
 
 run-develop: venv
