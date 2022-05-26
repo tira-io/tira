@@ -227,6 +227,8 @@ class VirtualMachine(object):
         return retcode, output
 
     def info(self):
+        if self.transaction_id is not None:
+            return
         self.state = self._update_info()
 
     def _sandbox(self, transaction_id, output_dir_name, mount_test_data):
@@ -238,7 +240,6 @@ class VirtualMachine(object):
         self.transaction_id = transaction_id
         self._set_state(5)
         retcode, output = self.run_script(self.vm_name, output_dir_name, mount_test_data, command="vm-sandbox")
-        self.transaction_id = None
 
         return retcode, output
 
