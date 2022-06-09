@@ -9,3 +9,4 @@ randomname
 tqdm
 mysql
 mysqlclient
+django-webpack-loader==0.6.0
