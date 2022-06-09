@@ -24,6 +24,16 @@ setup:
 	mkdir -p src/config
 	make venv
 
+setup-webpack:
+	cd ./src/tira/frontend/
+	npm init
+	npm add vue@next webpack-bundle-tracker@0.4.3 uikit
+	npm add --dev vue-loader@v16.8.2 webpack-cli webpack webpack-dev-server typescript ts-loader @vue/compiler-sfc
+
+webpack:
+	cd ./src/tira/frontend/
+	npm run plain
+
 # Requirements are in setup.py, so whenever setup.py is changed, re-run installation of dependencies.
 venv:
 	test -d $(VENV_NAME) || python3 -m venv $(VENV_NAME)
