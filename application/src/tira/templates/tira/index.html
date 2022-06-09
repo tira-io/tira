@@ -1,5 +1,6 @@
 {% extends 'tira/base.html' %}
 {% load static %}
+{% load render_bundle from webpack_loader %}
 {% block title %}TIRA{% endblock %}
 {% block description %}TIRA List of Tasks{% endblock %}
 {% block navbar %}{% include "tira/navbar.html" with nav_active='tasks' %}{% endblock %}
@@ -35,7 +36,7 @@
             <div v-if="role === 'admin'">
                 <a uk-toggle="target: #add-task-modal" class="uk-button uk-button-large uk-button-default uk-text-large"><span class="uk-padding-small">Add Task +</span></a>
             </div>
-            <div id="add-task-modal" v-if="role === 'admin'" uk-modal>
+            <div id="add-task-modal" uk-modal>
                 <div class="uk-modal-dialog uk-modal-body uk-width-4-5">
                     <button class="uk-modal-close-default" type="button" uk-close></button>
                     <add-task :csrf="csrf"
@@ -43,11 +44,9 @@
                                @closeModal="closeModal()" />
                 </div>
             </div>
-            <div v-if="role === 'admin'">
-                <a uk-toggle="target: #edit-organization-modal" class="uk-button uk-button-large uk-button-default uk-text-large">
-                        <span class="uk-padding-small">Edit Organizations</span><i class="fas fa-edit"></i></a></a>
-            </div>
-            <div id="edit-organization-modal" v-if="role === 'admin'" uk-modal>
+            <a uk-toggle="target: #edit-organization-modal" class="uk-button uk-button-large uk-button-default uk-text-large">
+                  <span class="uk-padding-small">Edit Organizations</span><i class="fas fa-edit"></i></a>
+            <div id="edit-organization-modal" uk-modal>
                 <div class="uk-modal-dialog uk-modal-body uk-width-4-5">
                     <button class="uk-modal-close-default" type="button" uk-close></button>
                     <edit-organization :csrf="csrf"
@@ -105,8 +104,9 @@
         </div>
     </div>
 </div>
-</div>
 
+</div>
+{% render_bundle 'index' %}
 {% if include_navigation %}
 <script src="https://assets.webis.de/js/thirdparty/jquery/jquery.slim.min.js"></script>
 <script src="https://assets.webis.de/js/thirdparty/fontawesome/fontawesome.min.js"></script>
@@ -117,41 +117,5 @@
 <script src="https://assets.webis.de/js/tables.js"></script>
 <script>initWebisTableFiltering();</script>
 <script>initTableSorting();</script>
-
-<script src="https://unpkg.com/vue@3"></script>
-<!--<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>-->
-<!--https://vuejs.org/examples/#modal-->
-<script type="module">
-import NotificationBar from '{% static "tira/js/components/notificationbar.js" %}'
-import AddTask from '{% static "tira/js/components/addtask.js" %}'
-import EditOrganization from '{% static "tira/js/components/editorganization.js" %}'
-
-const app = Vue.createApp({
-    data() {
-        return {
-            notifications: [],
-            role: '{{ role|safe }}',
-            csrf: document.querySelector('[name=csrfmiddlewaretoken]').value
-        }
-    },
-    components: {
-        AddTask, NotificationBar, EditOrganization
-    },
-    methods: {
-        addNotification(type, message) {
-            this.notifications.push({'type': type, 'message': message})
-        },
-        closeModal() {
-            const addTaskModal = document.getElementById('add-task-modal')
-            UIkit.modal(addTaskModal).hide();
-            const editOrganizationModal = document.getElementById('edit-organization-modal')
-            UIkit.modal(editOrganizationModal).hide();
-        }
-    },
-})
-app.config.compilerOptions.delimiters = ['[[', ']]']
-app.mount("#vue-index-mount")
-</script>
-
 
 {% endblock %}
