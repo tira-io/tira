@@ -119,7 +119,7 @@ class Dataset(models.Model):
     data_server = models.CharField(max_length=150, null=True, default=None)
     released = models.CharField(max_length=30, default="")
     default_upload_name = models.CharField(max_length=50, default="predictions.ndjson")
-    date = models.CharField(max_length=30, default='2022')
+    date = models.CharField(max_length=30, default='02-03-2023')
 
 
 class TaskHasDataset(models.Model):
