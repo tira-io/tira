@@ -91,15 +91,14 @@ def logout(request):
 #returns dict{task_id:date of tasks' NEWEST dataset}
 def _get_tasks_with_year(context):
     tasks = model.get_tasks()
-    task_ids = [t['task_id'] for t in tasks] # returns [taskid1,taskid2,...]
-    datesByTasksDatasets ={}
+    task_ids = [t['task_id'] for t in tasks]
+    tasksWithDatasetYears = {}
     for id in task_ids:
         tasksDatasets = model.get_datasets_by_task(id)
-        tasksDatasetsDates = [d['date'] for d in tasksDatasets]  # year for each dataset for a specific task
-        tasksDatasetsDates.sort(key=lambda date: datetime.strptime(date, "%d-%m-%Y"))
-        #datesByTasksDatasets.update({id:tasksDatasetsDates}) # returns {taskid:[dataset1Year, dataset2Year, ...]}
-        datesByTasksDatasets.update({id:tasksDatasetsDates[0]})
-    context['datasetsDate'] = datesByTasksDatasets #tasksDatasetsYears[0]#datasets
+        tasksDatasetsDates = [d['date'] for d in tasksDatasets]  # date for *each* dataset for a specific task
+        tasksDatasetsDates.sort(key=lambda date: datetime.strptime(date, "%d-%m-%Y"), reverse=True)
+        tasksWithDatasetYears.update({id:datetime.strptime(tasksDatasetsDates[0],"%d-%m-%Y" ).year})
+    context['datasetsDate'] = tasksWithDatasetYears
 
 
 def _add_task_to_context(context, task_id, dataset_id):
