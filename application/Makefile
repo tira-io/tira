@@ -28,7 +28,7 @@ setup-webpack:
 	cd ./src/tira/frontend/; \
 	npm init; \
 	npm add vue@next webpack-bundle-tracker@0.4.3 uikit; \
-	npm add --dev vue-loader@v16.8.2 webpack-cli webpack webpack-dev-server typescript ts-loader @vue/compiler-sfc
+	npm add --dev vue-loader@v16.8.2 webpack-cli webpack webpack-dev-server typescript ts-loader @vue/compiler-sfc style-loader css-loader
 
 webpack:
 	cd ./src/tira/frontend/; \
