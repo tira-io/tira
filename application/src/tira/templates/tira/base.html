@@ -1,4 +1,5 @@
 <!doctype html>
+{% load static %}
 <html lang="en">
 <head>
     <title>{% block title %}{% endblock %}</title>
@@ -6,10 +7,13 @@
     <meta name="description" content="{% block description %}{% endblock %}">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="copyright" content="&copy; {% now 'Y' %} Webis">
+    <link rel="icon" type="image/png" href="{% static 'tira/img/logo-tira-32x32.png' %}">
 
     <link rel="stylesheet" href="https://assets.webis.de/css/style.css?1603728332">
     <link rel="stylesheet" href="https://assets.webis.de/css/style.css?1605285914">
     <link rel="stylesheet" href="https://assets.webis.de/css/workshop.css?1603728332">
+
+    <link rel="stylesheet" type="text/css" href="{% static 'tira/css/tira-style.css' %}">
 
 </head>
 <body class="uk-offcanvas-content uk-flex uk-flex-between uk-flex-column" uk-height-viewport="min-height: 100vh">
