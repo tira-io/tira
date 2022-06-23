@@ -9,7 +9,7 @@ const app = createApp({
     data() {
         return {
             notifications: [],
-            role: '{{ role|safe }}',
+            role: '',
             csrf: (<HTMLInputElement>document.querySelector('[name=csrfmiddlewaretoken]')).value
         }
     },
@@ -17,6 +17,17 @@ const app = createApp({
         AddTask, EditOrganization, NotificationBar
     },
     methods: {
+        async get(url) {
+            const response = await fetch(url)
+            if (!response.ok) {
+                throw new Error(`Error fetching endpoint: ${url} with ${response.status}`);
+            }
+            let results = await response.json()
+            if (results.status === 1) {
+                throw new Error(`${results.message}`);
+            }
+            return results
+        },
         addNotification(type, message) {
             this.notifications.push({'type': type, 'message': message})
         },
@@ -26,7 +37,14 @@ const app = createApp({
             const editorganizationModal = document.getElementById('edit-organization-modal')
             UIkit.modal(editorganizationModal).hide();
         },
-    }
+    },
+    beforeMount() {
+       this.get(`/api/role`).then(message => {
+           this.role = message.role
+       }).catch(error => {
+           this.addNotification('error', error)
+       })
+    },
 })
 
 app.mount("#vue-index-mount");

@@ -10,6 +10,7 @@ module.exports = (env = {}) => {
     entry: {
       index: './src/index.ts',
       tiraadmin: './src/tira_admin.ts',
+      task: './src/task.ts',
     },
     output: {
       filename: '[name].js',
@@ -23,7 +24,7 @@ module.exports = (env = {}) => {
       rules: [
         {
           test: /\.vue$/,
-          use: 'vue-loader'
+          use: 'vue-loader',
         },
         {
           test: /\.ts$/,
