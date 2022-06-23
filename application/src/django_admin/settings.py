@@ -299,6 +299,6 @@ WEBPACK_LOADER = {
     'DEFAULT': {
         'CACHE': DEBUG,
         'BUNDLE_DIR_NAME': '/bundles/',
-        'STATS_FILE': BASE_DIR / 'frontend' / 'webpack-stats.json'
+        'STATS_FILE': BASE_DIR / 'tira' / 'frontend' / 'webpack-stats.json'
     }
 }

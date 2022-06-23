@@ -1,4 +1,5 @@
 import logging
+import json
 from tira.forms import *
 import tira.tira_model as model
 from tira.checks import check_permissions, check_resources_exist, check_conditional_permissions
@@ -6,6 +7,7 @@ from tira.views import add_context
 
 from django.http import JsonResponse
 from django.conf import settings
+from django.core.serializers.json import DjangoJSONEncoder
 
 include_navigation = True if settings.DEPLOYMENT == "legacy" else False
 
@@ -14,11 +16,17 @@ logger.info("ajax_routes: Logger active")
 
 
 @check_resources_exist('json')
-def get_dataset_for_task(request, task_id):
+@add_context
+def get_dataset_for_task(request, context, task_id):
     if request.method == 'GET':
         try:
             datasets = model.get_datasets_by_task(task_id)
-            return JsonResponse({"status": "0", "datasets": datasets, "message": f"Encountered an exception: {e}"})
+
+            context['datasets'] = json.dumps({ds['dataset_id']: ds for ds in datasets}, cls=DjangoJSONEncoder)
+            context['selected_dataset_id'] = ''
+            context['test_dataset_ids'] = json.dumps([ds['dataset_id'] for ds in datasets if ds['is_confidential']], cls=DjangoJSONEncoder)
+            context['training_dataset_ids'] = json.dumps([ds['dataset_id'] for ds in datasets if not ds['is_confidential']], cls=DjangoJSONEncoder)
+            return JsonResponse({"status": "0", "context": context})
         except Exception as e:
             logger.exception(e)
             return JsonResponse({"status": "0", "message": f"Encountered an exception: {e}"})
@@ -102,3 +110,9 @@ def get_dataset(request, context, dataset_id):
 def get_organizer(request, context, organizer_id):
     org = model.get_organizer(organizer_id)
     return JsonResponse({'status': 0, "context": org})
+
+@add_context
+def get_role(request, context):
+    return JsonResponse({'status': 0, 'role': context['role']})
+
+

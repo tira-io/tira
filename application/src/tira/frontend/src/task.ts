@@ -11,20 +11,20 @@ import UIkit from 'uikit'
 const app = createApp({
     data() {
         return {
-            task_id: "{{ task.task_id|safe }}",
-            taskName: "{{ task.task_name|safe }}",
-            organizerName: "{{ task.organizer|safe }}",
-            website: "{{ task.web|safe }}",
-            taskDescription: "{{ task.task_description|safe }}",
-            datasets: JSON.parse('{{ datasets|safe }}'),
-            test_ids: JSON.parse('{{ test_dataset_ids|safe }}'),
-            training_ids: JSON.parse('{{ training_dataset_ids|safe }}'),
-            role: '{{ role|safe }}',
+            task_id: "",
+            taskName: "",
+            organizerName: "",
+            website: "",
+            taskDescription: "",
+            datasets: "",
+            test_ids: "",
+            training_ids: "",
+            role: '',
             evaluations: {},
             vms: {},
             notifications: [],
             loading: false,
-            selected: "{{ selected_dataset_id }}",
+            selected: "",
             hide_private: true,
             hide_reviewed: true,
             csrf: (<HTMLInputElement>document.querySelector('[name=csrfmiddlewaretoken]')).value
@@ -34,6 +34,17 @@ const app = createApp({
         Leaderboard, ReviewList, NotificationBar, EditTask, EditDataset, AddDataset
     },
     methods: {
+        async get(url) {
+            const response = await fetch(url)
+            if (!response.ok) {
+                throw new Error(`Error fetching endpoint: ${url} with ${response.status}`);
+            }
+            let results = await response.json()
+            if (results.status === 1) {
+                throw new Error(`${results.message}`);
+            }
+            return results
+        },
         addNotification(type, message) {
             this.notifications.push({'type': type, 'message': message})
         },
@@ -119,6 +130,29 @@ const app = createApp({
         }
     },
     beforeMount() {
+        var url_split = window.location.toString().split('/')
+        this.task_id = url_split[url_split.length - 1]
+        this.get(`/api/task/${this.task_id}`).then(message => {
+            this.taskName = message.context.task.task_name
+            this.organizerName = message.context.task.organizer
+            this.website = message.context.task.web
+            this.taskDescription = message.context.task.task_description
+        }).catch(error => {
+            this.addNotification('error', error)
+        })
+        this.get(`/api/datasets_by_task/${this.task_id}`).then(message => {
+            this.datasets = JSON.parse(message.context.datasets)
+            this.test_ids = JSON.parse(message.context.test_dataset_ids)
+            this.training_ids = JSON.parse(message.context.training_dataset_ids)
+            this.selected_dataset_id = message.context.selected_dataset_id
+        }).catch(error => {
+            this.addNotification('error', error)
+        })
+        this.get('/api/role').then(message => {
+            this.role = message.role
+        }).catch(error => {
+            this.addNotification('error', error)
+        })
         if (this.selected !== "") {
             this.getEvaluations(this.selected)
             if (this.role === 'admin') {
@@ -127,4 +161,6 @@ const app = createApp({
         }
     },
 })
+
+app.config.compilerOptions.delimiters = ['[[', ']]']
 app.mount("#vue-task-mount")
