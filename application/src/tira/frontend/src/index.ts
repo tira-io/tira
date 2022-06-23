@@ -5,6 +5,9 @@ import EditOrganization from './components/editorganization.vue'
 import {createApp} from 'vue';
 import UIkit from 'uikit';
 
+// CSS
+require('../../static/tira/css/tira-style.css');
+
 const app = createApp({
     data() {
         return {

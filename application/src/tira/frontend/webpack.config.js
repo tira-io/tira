@@ -14,7 +14,7 @@ module.exports = (env = {}) => {
     },
     output: {
       filename: '[name].js',
-      path: path.resolve(__dirname, '..', 'static', 'tira', 'js'),
+      path: path.resolve(__dirname, '..', 'static', 'tira', 'dist'),
       publicPath: '/public/tira/js/'
     },
     watchOptions: {
@@ -32,6 +32,13 @@ module.exports = (env = {}) => {
           options: {
             appendTsSuffixTo: [/\.vue$/],
           }
+        },
+        {
+          test: /\.css$/i,
+          use: [
+            'style-loader',
+            'css-loader'
+          ]
         },
       ]
     },
