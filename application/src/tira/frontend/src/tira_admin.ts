@@ -6,6 +6,9 @@ import ModifyVm from './components/modifyvm.vue'
 
 import {createApp} from 'vue'
 
+// CSS
+require('../../static/tira/css/tira-style.css');
+
 const app = createApp({
     data() {
         return {
