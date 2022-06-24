@@ -52,6 +52,7 @@ class HybridDatabase(object):
         #             self.datasets_dir_path, self.softwares_dir_path, self.runs_dir_path)
 
     def build_model(self):
+        self.vm_list_file.touch(exist_ok=True)
         dbops.index(self.organizers_file_path, self.users_file_path, self.vm_dir_path, self.tasks_dir_path,
                     self.datasets_dir_path, self.softwares_dir_path, self.runs_dir_path)
 
