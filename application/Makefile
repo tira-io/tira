@@ -21,8 +21,11 @@ setup:
 	chmod +x setup.sh
 	bash setup.sh
 	chmod o+x src
-	mkdir -p src/config
+	test -d $(VENV_NAME) || mkdir -p src/config/
+	cp config/tira-application-config.dev.yml src/config/settings.yml
 	make venv
+	sh -c ". $(VENV_NAME)/bin/activate && \
+	python3 src/manage.py index_model"
 
 # Requirements are in setup.py, so whenever setup.py is changed, re-run installation of dependencies.
 venv:
