@@ -2,7 +2,6 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse, FileResponse
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
-from django.template.defaulttags import register
 import logging
 
 import tira.tira_model as model
@@ -16,7 +15,6 @@ import os
 import zipfile
 import json
 from http import HTTPStatus
-from datetime import datetime
 
 logger = logging.getLogger("tira")
 logger.info("Views: Logger active")
@@ -37,9 +35,7 @@ def add_context(func):
 
 @add_context
 def index(request, context):
-    context["tasks"] = model.get_tasks()
-    #context["datasets"] = model.get_datasets() # dict task_id -> alle datensätze die dazu gehören
-    _get_tasks_with_year(context)
+    context["tasks"] = model.get_tasks(include_dataset_stats=True)
     if context["role"] != auth.ROLE_GUEST:
         context["vm_id"] = auth.get_vm_id(request, context["user_id"])
 
@@ -86,19 +82,6 @@ def login(request, context):
 def logout(request):
     auth.logout(request)
     return redirect('tira:index')
-
-
-#returns dict{task_id:date of tasks' NEWEST dataset}
-def _get_tasks_with_year(context):
-    tasks = model.get_tasks()
-    task_ids = [t['task_id'] for t in tasks]
-    tasksWithDatasetYears = {}
-    for id in task_ids:
-        tasksDatasets = model.get_datasets_by_task(id)
-        tasksDatasetsDates = [d['date'] for d in tasksDatasets]  # date for *each* dataset for a specific task
-        tasksDatasetsDates.sort(key=lambda date: datetime.strptime(date, "%d-%m-%Y"), reverse=True)
-        tasksWithDatasetYears.update({id:datetime.strptime(tasksDatasetsDates[0],"%d-%m-%Y" ).year})
-    context['datasetsDate'] = tasksWithDatasetYears
 
 
 def _add_task_to_context(context, task_id, dataset_id):
@@ -261,7 +244,3 @@ def download_rundir(request, task_id, dataset_id, vm_id, run_id):
 @add_context
 def request_vm(request, context):
     return render(request, 'tira/request_vm.html', context)
-
-@register.filter
-def get_item(dictionary, key):
-    return dictionary.get(key)

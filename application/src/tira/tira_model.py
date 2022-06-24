@@ -48,15 +48,15 @@ def get_vm(vm_id: str, create_if_none=False):
     return model.get_vm(vm_id, create_if_none)
 
 
-def get_tasks() -> list:
-    return model.get_tasks()
+def get_tasks(include_dataset_stats=False) -> list:
+    return model.get_tasks(include_dataset_stats)
 
 
 def get_run(dataset_id: str, vm_id: str, run_id: str, return_deleted: bool = False) -> dict:
     return model.get_run(dataset_id, vm_id, run_id, return_deleted)
 
 
-def get_task(task_id: str) -> dict:
+def get_task(task_id: str, include_dataset_stats=False) -> dict:
     """ Get a dict with the task data as follows:
     {"task_id", "task_name", "task_description", "organizer", "web", "year", "dataset_count",
     "software_count", "max_std_out_chars_on_test_data", "max_std_err_chars_on_test_data",
@@ -64,7 +64,7 @@ def get_task(task_id: str) -> dict:
     "max_std_out_chars_on_test_data_eval", "max_std_err_chars_on_test_data_eval",
     "max_file_list_chars_on_test_data_eval"}
      """
-    return model.get_task(task_id)
+    return model.get_task(task_id, include_dataset_stats)
 
 
 def get_dataset(dataset_id: str) -> dict:
