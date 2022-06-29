@@ -48,22 +48,22 @@ randomconst="Bhv0S"
 #    \params $@ tira nfs hostname
 #
 create_user() {
-    logInfo "Create tira user"
+    logInfo "[tira-user] Create tira user"
     host="$@"
 
     group_exists=$(getent group | cut -d: -f1 | grep "$tira_group")
     if [ "$group_exists" != "" ]; then
-        logError "$tira_group group is already there. Exit."
+        logError "[tira-user] $tira_group group is already there. Exit."
         exit 0
     fi
-    logInfo "SSH Key Exchange with tira nfs host."
+    logInfo "[tira-user] SSH Key Exchange with tira nfs host."
     read_password "Please insert tira NFS host password:" password
     ssh_key_exchange "$tira_user@$host" "$password"
 
     # Get Group and User ID from NFS-Host
     # Make sure that the group id of the tira group corresponds to the group id
     # used for the Tira NFS host (cat /etc/group lists group ids):
-    logInfo "Extract user and group id from nfs-host: $host."
+    logInfo "[tira-user] Extract user and group id from nfs-host: $host."
     userid=$(ssh "$tira_user@$host" \
             -o UserKnownHostsFile=/dev/null \
             -o StrictHostKeyChecking=no \
@@ -75,10 +75,10 @@ create_user() {
             -o LogLevel=error \
             "getent group \"$tira_group\" | cut -d: -f3" 2> /dev/null)
 
-    logInfo "userid: $userid, groupid: $groupid"
+    logInfo "[tira-user] userid: $userid, groupid: $groupid"
 
     if [ "$userid" = "" ] || [ "$groupid" = "" ]; then
-        logError "Userid and groupid could not be extracted, check if $host is a tira-nfs host."
+        logError "[tira-user] Userid and groupid could not be extracted, check if $host is a tira-nfs host."
         userid="1010"
         groupid="1010"
     fi
@@ -92,10 +92,10 @@ create_user() {
     sudo useradd -g "$tira_group" -G vboxusers -s "/bin/bash" -m -d "/home/$tira_user" "$tira_user"
     sudo usermod -u "$userid" "$tira_user"
 
-    logInfo "Set tira user password:"
+    logInfo "[tira-user] Set tira user password:"
     sudo passwd "$tira_user"
 
-    logInfo "Do sudoers modifications, so that tira user can access iptables."
+    logInfo "[tira-user] Do sudoers modifications, so that tira user can access iptables."
 
     tmp_file=$(tempfile)
 
@@ -116,14 +116,14 @@ create_user() {
         if [ "$?" -eq "0" ]; then
             sudo cp "$tmp_file" "/etc/sudoers"
         else
-            logError "There is something wrong with sudoers file."
+            logError "[tira-user] There is something wrong with sudoers file."
         fi
     else
-        logWarn "There were already settings for tira user in sudoers file."
+        logWarn "[tira-user] There were already settings for tira user in sudoers file."
     fi
     sudo rm -rf "$tmp_file"
 
-    logInfo "Log in as tira user in local computer and generate ssh key and create ~/.tira."
+    logInfo "[tira-user] Log in as tira user in local computer and generate ssh key and create ~/.tira."
     su "$tira_user" -c "ssh-keygen; mkdir -p ~/.tira"
 }
 
@@ -136,7 +136,7 @@ delete_user() {
     logInfo "Remove group: $tira_group"
     sudo groupdel "$tira_group" 2> /dev/null
 
-    logInfo "Undo visudo entries:"
+    logInfo "[tira-user] Undo visudo entries:"
 
     tmp_file=$(tempfile)
 
@@ -151,14 +151,14 @@ delete_user() {
         if [ "$?" -eq "0" ]; then
             sudo cp "$tmp_file" "/etc/sudoers"
         else
-            logError "There is something wrong with sudoers file."
+            logError "[tira-user] There is something wrong with sudoers file."
         fi
     else
-        logWarn "There were no settings for tira user in sudoers file."
+        logWarn "[tira-user] There were no settings for tira user in sudoers file."
     fi
     sudo rm -rf "$tmp_file"
 
-    logInfo "Done."
+    logInfo "[tira-user] Done."
 }
 
 #
@@ -181,14 +181,14 @@ main() {
     delete="${FLAGS_delete}"
 
     if [ "$create" != "" ] && [ "$delete" = "${FLAGS_TRUE}" ]; then
-        logError "Parameters delete and create cannot be combined, see:"
+        logError "[tira-user] Parameters delete and create cannot be combined, see:"
         usage
     fi
 
     # Create or delete tira user.
     if [ "$create" != "" ]; then
         if [ "$(host_alive "$create")" = "false" ]; then
-            logError "NFS Host is not reachable. Exit."
+            logError "[tira-user] NFS Host is not reachable. Exit."
             exit 0
         fi
         create_user "$create"
