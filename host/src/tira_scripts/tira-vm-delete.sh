@@ -62,7 +62,7 @@ eval set -- "${FLAGS_ARGV}"
 main() {
 
     if [ "$#" -ne 1 ]; then
-        logError "Wrong number of parameters, see:"
+        logError "[tira-vm-delete] Wrong number of parameters, see:"
         exit 1
     fi
 
@@ -73,29 +73,34 @@ main() {
     # Check if VM exists on this host.
     get_tira_vms vms
     check=$(echo "$vms" | grep "$vmname")
-
+    
+    logInfo "[tira-vm-delete] Check if VM exists on host..."
     if [ "$check" = "" ]; then
-        logError "No VM named \"$vmname\" exists on $(hostname)."
+        logError "[tira-vm-delete] No VM named \"$vmname\" exists on $(hostname)."
         exit 1
     fi
 
+    logInfo "[tira-vm-delete] VM exists on host."
+    
+    logInfo "[tira-vm-delete] Check VM state."
     # Check if vm is already started.
     get_vm_state "$vmname" state
 
     if [ "$state" = "running" ];  then
-        logInfo "$vmname is still running."
+        logInfo "[tira-vm-delete] $vmname is still running."
         yes_no_promt "Do you really want to proceed?" "Aborting."
 
         VBoxManage controlvm "$vmname" poweroff
         sleep 3
     fi
-
+    logInfo "[tira-vm-delete] VM is not running."
+    
     # Delete the VM and unregister it in TIRA's log files.
     VBoxManage unregistervm "$vmname" --delete
     sed -i "\|$vmname|d" "$_CONFIG_FILE_tira_vms"
     sed -i "\|$vmname|d" "$_CONFIG_FILE_tira_local_home/vms.txt"
     echo "$(hostname) $vmname $(date +%Y-%m-%d) deleted" >> "$_CONFIG_FILE_tira_vms_log"
-    logInfo "VM deleted!"
+    logInfo "[tira-vm-delete] VM deleted!"
 }
 
 #
