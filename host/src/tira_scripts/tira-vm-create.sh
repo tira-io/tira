@@ -63,13 +63,13 @@ main() {
 
     list="${FLAGS_list}"
     if [ "$list" = "${FLAGS_TRUE}" ]; then
-        logInfo "List all available ova images:"
+        logInfo "[tira-vm-create] List all available ova images:"
         find "$_CONFIG_FILE_tira_vm_dir" -name "*.ova" -exec basename {} \;
         exit 0
     fi
 
     if [ "$#" -ne 2 ]; then
-        logError "Wrong number of parameters."
+        logError "[tira-vm-create] Wrong number of parameters."
         usage
     fi
 
@@ -81,21 +81,21 @@ main() {
 
     vm_info=$(get_vm_info_from_tira "$username")
     if [ "$vm_info" != "" ]; then
-        logError "$username has already a registred vm. $username are unique!"
+        logError "[tira-vm-create] $username has already a registred vm. $username are unique!"
         exit 1
     fi
 
     # Perform sanity checks.
     if [ ! -f "$ova" ]; then
-        logError "OVA file not found: $ova"
+        logError "[tira-vm-create] OVA file not found: $ova"
         exit 1
     fi
     if [ $(get_owner "$ova") != "$_CONFIG_tira_username"  ]; then
-        logError "Owner of $ova is not $_CONFIG_tira_username."
+        logError "[tira-vm-create] Owner of $ova is not $_CONFIG_tira_username."
         exit 1
     fi
     if [ $(get_group "$ova") != "$_CONFIG_tira_username"  ]; then
-        logError "Group of $ova is not $_CONFIG_tira_username."
+        logError "[tira-vm-create] Group of $ova is not $_CONFIG_tira_username."
         exit 1
     fi
 
@@ -105,7 +105,7 @@ main() {
     diskspaceavailable=$(df -B1 -P ~/VirtualBox\ VMs/ | awk 'NR==2 {print $4}')
 
     if [ "$ovasizeinflated" -ge "$diskspaceavailable" ]; then
-        logError "Expected inflated file size of OVA $ova bigger than available disk space in ~/VirtualBox\ VMs/: $ovasizeinflated > $diskspaceavailable"
+        logError "[tira-vm-create] Expected inflated file size of OVA $ova bigger than available disk space in ~/VirtualBox\ VMs/: $ovasizeinflated > $diskspaceavailable"
         exit 1
     fi
 
