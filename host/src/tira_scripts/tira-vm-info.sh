@@ -62,7 +62,7 @@ main() {
     statusFlag="${FLAGS_status}"
 
     if [ "$#" -eq 0 ]; then
-        logError "Missing arguments see:"
+        logError "[tira-vm-info] Missing arguments see:"
         usage
     fi
 
@@ -76,8 +76,8 @@ main() {
 
     # Extract info of VM $vname.
     if [ "$statusFlag" -ne "${FLAGS_TRUE}" ]; then
-        logInfo "Information about local vm $vmname..."
-        timeout 5s VBoxManage showvminfo "$vmname" || logError "VM info error."
+        logInfo "[tira-vm-info] Information about local vm $vmname..."
+        timeout 5s VBoxManage showvminfo "$vmname" || logError "[tira-vm-info]  VM info error."
 
     else
         # Just printout vm state.
