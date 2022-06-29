@@ -65,7 +65,7 @@ main() {
 
     # Print usage screen if wrong parameter count.
     if [ "$#" -ne 2 ]; then
-        logError "Missing arguments see:"
+        logError "[tira-vm-backup] Missing arguments see:"
         usage
     fi
 
@@ -74,31 +74,36 @@ main() {
     timestamp=$(date +%Y-%m-%d-%H-%M-%S)
 
     # Check if vm is registred.
+    logInfo "[tira-vm-backup] Check if VM is registered..."
     if [ "$(is_tira_vm "$vmname")" = "false" ]; then
-        logError "Vm $vmname is not a registred virtual tira machine."
+        logError "[tira-vm-backup] Vm $vmname is not a registred virtual tira machine."
         exit 1
     fi
-
+    logInfo "[tira-vm-backup] VM is registered."
+    
     # Check if it is a vm of the given user.
+    logInfo "[tira-vm-backup] Check if VM is registered for user $username."
     if [ "$(is_tira_vm_of_user "$vmname" "$username")" = "false" ]; then
-        logError "Vm $vmname is not registred for user $username."
+        logError "[tira-vm-backup] Vm $vmname is not registred for user $username."
         exit 1
     fi
+    logInfo "[tira-vm-backup] VM is registered for $username."
 
     backupdir="$_CONFIG_tira_nfs/backup/"
     backupfilename="${backupdir}${_CONFIG_tira_backup_name_prefix}-${username}-${timestamp}.ova"
 
-    logInfo "Unsandbox $vmname..."
+    logInfo "[tira-vm-backup] Unsandbox $vmname..."
     tira_call vm-unsandbox "$vmname"
-    logInfo "...waiting..."
+    logInfo "[tira-vm-backup] ...waiting..."
     sleep 5
 
+    logInfo "[tira-vm-backup] Stop $vmname..."
     tira_call vm-stop "$vmname"
-    logInfo "...waiting..."
+    logInfo "[tira-vm-backup] ...waiting..."
     sleep 5
-    logInfo "Exporting $vmname..."
+    logInfo "[tira-vm-backup] Exporting $vmname..."
     VBoxManage export "$vmname" -o "$backupfilename"
-    logInfo "Done."
+    logInfo "[tira-vm-backup] VM backup done."
 }
 
 #
