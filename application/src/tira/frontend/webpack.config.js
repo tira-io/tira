@@ -15,7 +15,7 @@ module.exports = (env = {}) => {
     output: {
       filename: '[name].js',
       path: path.resolve(__dirname, '..', 'static', 'tira', 'dist'),
-      publicPath: '/public/tira/js/'
+      publicPath: '/public/tira/dist/'
     },
     watchOptions: {
       ignored: /node_modules/
