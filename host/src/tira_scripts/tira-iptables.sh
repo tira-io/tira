@@ -65,7 +65,7 @@ main() {
 
     # Terminate if the interface is missing
     if [ -z "$1" ]; then
-        logError "You need to specify the network interface controller."
+        logError "[tira-iptables] You need to specify the network interface controller."
         usage
     fi
 
@@ -195,7 +195,7 @@ main() {
     # Get the numerical part of the hostname e.g. 60 for webis60
     # the hostnumber is part of the ip-adress from the virtual machines
     # 10.<hostnumber>.<vm-interface>.100 is the adress of a machine.
-    logTodo "duplicated code!, and webis specific"
+    # TODO "duplicated code!, and webis specific"
     #hostnumber=$(hostname -s | awk 'sub("^[^1-9]+","",$0)')  ## remove leading word and leading zeroes from hostname
     #if [ "$hostnumber" = "" ]; then
         hostnumber="0"
@@ -223,7 +223,7 @@ main() {
     # 4 TIRA PORT CONFIGURATION FOR WEBIS60
     #
     # Forward port 33300 to the tira instance.
-    logTodo "special for webis 60?"
+    # TODO "special for webis 60?"
     if [ "$hostnumber" -eq 60 ]; then
         iptables -t nat -A PREROUTING -i eth+ -p tcp --dport 33300 -j DNAT --to 10.60.0.100:2306
     fi
