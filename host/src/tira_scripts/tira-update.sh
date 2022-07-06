@@ -55,7 +55,7 @@ eval set -- "${FLAGS_ARGV}"
 main() {
     user=${FLAGS_user}
 
-    logTodo "find a better way to update all hosts!"
+    #TODO "find a better way to update all hosts!"
     # all=${FLAGS_all}
 
     # if [ "$all" = "${FLAGS_TRUE}" ]; then
@@ -71,7 +71,7 @@ main() {
     #    return
     # fi
 
-    logInfo "Update local installed tira version."
+    logInfo "[tira-update] Update locally installed tira version."
 
 
     # Read all directorys in tira repository and extract last version.
@@ -79,19 +79,19 @@ main() {
     last_tira_version=$(echo "$tira_dirs" | grep "tira.-application" | tail -1)
 
     cd "$scriptPath"
-    logInfo "Create backup of current version (old.tar.bz2)."
+    logInfo "[tira-update] Create backup of current version (old.tar.bz2)."
     sudo rm -rf old.tar.bz2
     tmp=$(tempfile)
 
     sudo tar -cjvf "$tmp".tar.bz2 ./* >/dev/null
 
-    logInfo "Delete current version."
+    logInfo "[tira-update] Delete current version."
     sudo rm -rf ./*
     sudo mv "$tmp".tar.bz2 old.tar.bz2
     sudo rm -rf "$tmp".tar.bz2
 
-    logInfo "Last tira application version: $last_tira_version"
-    logInfo "Install this version."
+    logInfo "[tira-update] Last tira application version: $last_tira_version"
+    logInfo "[tira-update] Install this version."
 
     # Directory switching is needed for cvs checkout, because cvs does not
     # support checking out in the current directory.
@@ -120,7 +120,7 @@ main() {
     # logInfo "Run ip tables script."
     # sudo "./tira-iptables.sh" eth0
 
-    logInfo "Done."
+    logInfo "[tira-update] Done."
 }
 
 #
