@@ -57,7 +57,7 @@ Authors:
 }
 
 export_nfs_network() {
-    logTodo "hard coded network adresses"
+    # TODO "hard coded network adresses"
     networks="141.54.147.0/24 141.54.159.0/24 141.54.172.0/24 141.54.178.0/24 141.54.132.0/24 127.0.0.0/24"
 
     for network in $networks; do
@@ -84,19 +84,19 @@ main() {
 
     # Check pre-conditions.
     if [ -d "$_CONFIG_tira_srv" ]; then
-        logError "$_CONFIG_tira_srv already exists. Aborting."
+        logError "[tira-nfs-create] $_CONFIG_tira_srv already exists. Aborting."
         exit 1
     fi
 
     # NFS-create is a critical command so prompts its user for conformation.
-    logInfo "This command turns this machine into a TIRA NFS sever."
+    logInfo "[tira-nfs-create] This command turns this machine into a TIRA NFS sever."
     yes_no_promt "Do you wish to continue?" "Aborting."
 
 
     # Create TIRA directory structure.
-    logInfo "Creating TIRA directory structure."
+    logInfo "[tira-nfs-create] Creating TIRA directory structure."
 
-    logTodo "no, use CONFIG Variables, and apply '| sed' to change nfs path to server"
+    # TODO "no, use CONFIG Variables, and apply '| sed' to change nfs path to server"
     sudo mkdir -p -m 777 "/srv/tira/data"
     sudo mkdir -p -m 777 "/srv/tira/data/datasets"
     sudo mkdir -p -m 777 "/srv/tira/data/datasets/test-datasets"
@@ -133,20 +133,20 @@ main() {
 
 
     # Install required packages: nfs-kernel-server.
-    logInfo "Installing packages."
+    logInfo "[tira-nfs-create] Installing packages."
     sudo apt-get update
 
     if sudo apt-get -qq install "nfs-kernel-server"; then
-        logInfo "nfs-kernel-server installation was successful."
+        logInfo "[tira-nfs-create] nfs-kernel-server installation was successful."
     else
-        logError "Error installing nfs-kernel-server - process aborted."
+        logError "[tira-nfs-create] Error installing nfs-kernel-server - process aborted."
         exit 1
     fi
 
     if sudo apt-get -qq install "openssh-server"; then
-        logInfo "openssh-server installation was successful."
+        logInfo "[tira-nfs-create] openssh-server installation was successful."
     else
-        logError "Error installing openssh-server - process aborted."
+        logError "[tira-nfs-create] Error installing openssh-server - process aborted."
         exit 1
     fi
 
@@ -161,7 +161,7 @@ main() {
 
     sudo exportfs -ra
 
-    logInfo "Done."
+    logInfo "[tira-nfs-create] Done."
 }
 
 #
