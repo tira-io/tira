@@ -77,7 +77,7 @@ main() {
 
     # Check number of parameters.
     if [ "$#" -ne 4 ]; then
-        logError "Wrong amount of parameters, see:"
+        logError "[tira-run-eval] Wrong amount of parameters, see:"
         usage
     fi
 
@@ -92,18 +92,18 @@ main() {
     outputDirName="$4"
 
     taskname="${FLAGS_taskname}"
-    logInfo "taskname: $taskname"
+    logInfo "[tira-run-eval] taskname: $taskname"
 
     # Define inputDataset.
     submissionFile=$(find "$submissionFileDir" -type f -name "$submissionFileName")
 
-    logDebug "Submission file name: $submissionFileName"
-    logDebug "Submission file dir: $submissionFileDir"
-    logDebug "Submission file: $submissionFile"
+    logDebug "[tira-run-eval] Submission file name: $submissionFileName"
+    logDebug "[tira-run-eval] Submission file dir: $submissionFileDir"
+    logDebug "[tira-run-eval] Submission file: $submissionFile"
 
     # Check if submission file exists.
     if [ ! -e "$submissionFile" ]; then
-        logError "$submissionFile does not exist."
+        logError "[tira-run-eval] $submissionFile does not exist."
         usage
     fi
 
@@ -160,7 +160,7 @@ main() {
     . "$submissionFile"
 
     # Copy the input run into the virtual machine into the tmp folder.
-    logInfo "$user@$host: copying input run into the virtual machine..."
+    logInfo "[tira-run-eval] $user@$host: copying input run into the virtual machine..."
     sshpass -p "$userpw" scp -o UserKnownHostsFile=/dev/null \
         -o StrictHostKeyChecking=no -o LogLevel=error -r \
         -P "$sshport" "$localInputRun" "$user@$host:/tmp/$inputRunName"
@@ -178,8 +178,8 @@ main() {
     fi
 
     # Execute program on vm.
-    logInfo "$user@$host: establishing SSH connection and executing command..."
-    logInfo "\t$cmd"
+    logInfo "[tira-run-eval] $user@$host: establishing SSH connection and executing command..."
+    logInfo "[tira-run-eval] \t$cmd"
     sshpass -p "$userpw" ssh "$user@$host" -p "$sshport" -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no \
         -o LogLevel=error -t \
         -t "mkdir -p $outputDir;\
@@ -189,17 +189,17 @@ main() {
             exit"
 
     # Copy outputDir from vm to localhost.
-    logInfo "$user@$host: copying $outputRunDir from VM..."
+    logInfo "[tira-run-eval] $user@$host: copying $outputRunDir from VM..."
     sshpass -p "$userpw" scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=error \
         -r -P "$sshport" "$user@$host:$outputRunDir" "$localInputRun/../"
 
     # Remove outputDir on vm.
-    logInfo "$user@$host: removing $outputDir from VM..."
+    logInfo "[tira-run-eval] $user@$host: removing $outputDir from VM..."
     sshpass -p "$userpw" ssh "$user@$host" -p "$sshport" -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no \
         -o LogLevel=error -t -t "rm -rf $outputRunDir; exit"
 
     # Remove inputRun on vm.
-    logInfo "$user@$host: removing /tmp/$inputRunName from VM..."
+    logInfo "[tira-run-eval] $user@$host: removing /tmp/$inputRunName from VM..."
     sshpass -p "$userpw" ssh "$user@$host" -p "$sshport" -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no \
         -o LogLevel=error -t -t "rm -rf /tmp/$inputRunName; exit"
 
@@ -219,7 +219,7 @@ main() {
     chmod -R ug+rw "$localInputRun/../$outputDirName"
     chmod ug+rw "$localInputRun/.."
 
-    logInfo "$user@$host: done."
+    logInfo "[tira-run-eval] $user@$host: done."
 }
 
 #
