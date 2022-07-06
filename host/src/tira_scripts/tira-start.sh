@@ -59,7 +59,7 @@ eval set -- "${FLAGS_ARGV}"
 main() {
 
     # This is a critical command so it prints a prompt.
-    logInfo "This command starts all VMs on this host."
+    logInfo "[tira-start] This command starts all VMs on this host."
     yes_no_promt "Do you want to continue?" "Process aborted."
 
     # Get all VMs on host.
