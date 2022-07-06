@@ -64,7 +64,7 @@ main() {
 
     # Check number of parameters.
     if [ "$#" -ne 7 ]; then
-        logError "Wrong amount of parameters: $# but expected 7, see:"
+        logError "[tira-run-copy-to-local] Wrong amount of parameters: $# but expected 7, see:"
         usage
     fi
 
@@ -86,7 +86,7 @@ main() {
     fi
 
     # Copy vmRunDir from vm to localhost.
-    logInfo "$user@$host: copying $vmRunDir from VM..."
+    logInfo "[tira-run-copy-to-local] $user@$host: copying $vmRunDir from VM..."
     localRunDir="$runDir/$inputDatasetName/$user"
 
     mkdir -p "$localRunDir"
@@ -118,7 +118,7 @@ main() {
     chmod -R ug+rw "$localRunDir/$runName"
     chmod ug+rw "$localRunDir"
 
-    logInfo "$user@$host: done."
+    logInfo "[tira-run-copy-to-local] $user@$host: done."
 }
 
 #
