@@ -71,6 +71,8 @@ const app = createApp({
     watch: {},
     computed: {},  // for values that should be computed when accessed
 })
+
+app.config.compilerOptions.delimiters = ['[[', ']]']
 app.mount("#tira-admin-mount")
 
 
