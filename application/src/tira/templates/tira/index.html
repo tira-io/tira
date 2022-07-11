@@ -43,8 +43,10 @@
                                @closeModal="closeModal()" />
                 </div>
             </div>
-            <a uk-toggle="target: #edit-organization-modal" class="uk-button uk-button-large uk-button-default uk-text-large">
-                  <span class="uk-padding-small">Edit Organizations</span><i class="fas fa-edit"></i></a>
+            <div v-if="role === 'admin'">
+                <a uk-toggle="target: #edit-organization-modal" class="uk-button uk-button-large uk-button-default uk-text-large">
+                      <span class="uk-padding-small">Edit Organizations</span><i class="fas fa-edit"></i></a>
+            </div>
             <div id="edit-organization-modal" uk-modal>
                 <div class="uk-modal-dialog uk-modal-body uk-width-4-5">
                     <button class="uk-modal-close-default" type="button" uk-close></button>
