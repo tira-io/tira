@@ -27,7 +27,7 @@
                     <h1>[[ taskName ]] <span class="uk-text-lead uk-text-muted">by [[ organizerName ]]</span></h1>
                 </div>
                 <div>
-                    <a uk-toggle="target: #task-edit-modal" class="uk-button uk-button-default uk-text-large"
+                    <a v-if="role === 'admin'" uk-toggle="target: #task-edit-modal" class="uk-button uk-button-default uk-text-large"
                        uk-tooltip="title: Edit Task;">
                         <span class="uk-padding-small">Edit</span><i class="fas fa-edit"></i></a>
                     <a class="uk-button uk-button-default uk-text-large"
