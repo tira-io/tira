@@ -12,7 +12,7 @@ require('../../static/tira/css/tira-style.css');
 const app = createApp({
     data() {
         return {
-            role: '{{ role|safe }}',
+            role: '',
             selected: "overview",
             reloading: [],
             notifications: [],
@@ -67,6 +67,13 @@ const app = createApp({
                 this.createGroupError = error.message
             })
         },
+    },
+    beforeMount() {
+        this.apiCall(`/api/role`).then(message => {
+            this.role = message.role
+        }).catch(error => {
+            this.addNotification('error', error)
+        })
     },
     watch: {},
     computed: {},  // for values that should be computed when accessed
