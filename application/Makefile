@@ -1,9 +1,9 @@
-.PHONY: help setup run-develop build-docker clean
+.PHONY: help setup setup-webpack webpack run-develop build-docker clean
 
 VENV_NAME?=venv
 PYTHON=${VENV_NAME}/bin/python3
-VERSION_APPLICATION=0.0.12
-VERSION_GRPC=0.0.12
+VERSION_APPLICATION=0.0.13-webpack
+VERSION_GRPC=0.0.13
 
 
 .DEFAULT: help
