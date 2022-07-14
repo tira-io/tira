@@ -58,7 +58,7 @@ main() {
 
     # Display the hosts.txt file if the NFS server is mounted.
     if [ ! -e "$_CONFIG_FILE_tira_hosts" ]; then
-        logError "no NFS server mounted!"
+        logError "[tira-host-list] no NFS server mounted!"
         exit 1
     fi
     logInfo "Registered hosts:"
