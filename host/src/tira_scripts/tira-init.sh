@@ -87,11 +87,11 @@ main() {
     install=${FLAGS_install}
     remove=${FLAGS_remove}
     if [ "$scriptPath" != "/usr/lib/tira" ]; then
-        logWarn "Be carefully, tira-scripts should be stored in /usr/lib/tira and not in $scriptpath."
+        logWarn "[tira-init] Be careful, tira-scripts should be stored in /usr/lib/tira and not in $scriptpath."
     fi
 
     if [ "$install" = "${FLAGS_TRUE}" ] && [ "$remove" = "${FLAGS_TRUE}" ]; then
-        logError "Parameters install and remove cannot be combined, see:"
+        logError "[tira-init] Parameters install and remove cannot be combined, see:"
         usage
     fi
 
@@ -105,7 +105,7 @@ main() {
         return
     fi
 
-    logError "Parameter needed, see:"
+    logError "[tira-init] Parameter needed, see:"
     usage
 }
 
