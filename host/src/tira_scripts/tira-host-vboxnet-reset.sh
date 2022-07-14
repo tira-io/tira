@@ -58,8 +58,8 @@ main() {
 
     # Removing existing vboxnet.
     for iface in $ifaces; do
-        logInfo "removing $iface..."
-        VBoxManage hostonlyif remove "$iface" || logError "could not remove $iface"
+        logInfo "[tira-host-vboxnet-reset] removing $iface..."
+        VBoxManage hostonlyif remove "$iface" || logError "[tira-host-vboxnet-reset] could not remove $iface"
     done
 
     # Get host number.
@@ -75,10 +75,10 @@ main() {
     for id in $(seq 0 50); do
         iface="vboxnet$id"
         ip="10.$hostnumber.$id.1"
-        logInfo "configuring $iface..."
-        VBoxManage hostonlyif create || logError "could not create $iface"
+        logInfo "[tira-host-vboxnet-reset] configuring $iface..."
+        VBoxManage hostonlyif create || logError "[tira-host-vboxnet-reset] could not create $iface"
         sleep 2
-        VBoxManage hostonlyif ipconfig "$iface" --ip "$ip" || logError "could not set ip $ip to $iface"
+        VBoxManage hostonlyif ipconfig "$iface" --ip "$ip" || logError "[tira-host-vboxnet-reset] could not set ip $ip to $iface"
     done
 }
 
