@@ -53,7 +53,7 @@ main() {
 
     # Print usage screen if wrong parameter count.
     if [ "$#" -ne 4 ]; then
-        logError "Missing arguments see:"
+        logError "[tira-configure-vm-alpine] Missing arguments see:"
         usage
     fi
 
