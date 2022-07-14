@@ -40,10 +40,10 @@ Authors:
 #    Install tira auto completion script.
 #
 install_auto_script() {
-    logInfo "Install autocomplete script. sudo needed."
+    logInfo "[tira-autocomplete] Install autocomplete script. sudo needed."
     autocomplete_script="$scriptPath/core/tira"
     if [ ! -d "/etc/bash_completion.d" ]; then
-        logError "There is no bash_completion.d directory in /etc/, please install bash_completion."
+        logError "[tira-autocomplete] There is no bash_completion.d directory in /etc/, please install bash_completion."
         exit 1
     fi
     sudo cp "$autocomplete_script" "/etc/bash_completion.d/tira" >/dev/null
@@ -53,14 +53,14 @@ install_auto_script() {
 #    Remove tira auto completion script.
 #
 remove_auto_script() {
-    logInfo "Remove autocomplete script. sudo needed."
+    logInfo "[tira-autocomplete] Remove autocomplete script. sudo needed."
     autocomplete_script="$scriptPath/core/tira"
     if [ ! -d "/etc/bash_completion.d" ]; then
-        logError "There is no bash_completion.d directory in /etc/, please install bash_completion."
+        logError "[tira-autocomplete] There is no bash_completion.d directory in /etc/, please install bash_completion."
         exit 1
     fi
     if [ ! -f "/etc/bash_completion.d/tira" ]; then
-        logError "Tira autocomplete was not installed, exit."
+        logError "[tira-autocomplete] Tira autocomplete was not installed, exit."
         exit 1
     fi
     sudo rm -rf "/etc/bash_completion.d/tira"
@@ -86,7 +86,7 @@ main() {
     remove="${FLAGS_remove}"
 
     if [ "$install" = "${FLAGS_TRUE}" ] && [ "$remove" = "${FLAGS_TRUE}" ]; then
-        logError "Parameters install and remove cannot be combined, see:"
+        logError "[tira-autocomplete] Parameters install and remove cannot be combined, see:"
         usage
     fi
 
@@ -100,7 +100,7 @@ main() {
         return
     fi
 
-    logError "Parameter needed, see:"
+    logError "[tira-autocomplete] Parameter needed, see:"
     usage
 }
 
