@@ -13,7 +13,10 @@ def repo_url(git_repository_id):
     gl = gitlab_client()
     project = gl.projects.get(git_repository_id)
     
-    return project.http_url_to_repo.replace(settings.GIT_CI_SERVER_HOST, settings.GIT_USER_NAME + ':' + settings.GIT_PRIVATE_TOKEN + '@' + settings.GIT_CI_SERVER_HOST)
+    return project.http_url_to_repo.replace(
+        settings.GIT_CI_SERVER_HOST,
+        settings.GIT_USER_NAME + ':' + settings.GIT_PRIVATE_TOKEN + '@' + settings.GIT_CI_SERVER_HOST
+    )
 
 def dict_to_gitlab_key_value_file(d):
     return '\n'.join([(k + '=' + v).strip() for (k,v) in d.items()])
