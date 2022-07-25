@@ -37,7 +37,7 @@ export default {
               <i class="fas fa-user dataset-detail-icon uk-text-success"></i>
           </div>
       </td>
-      <td class="uk-table-shrink uk-padding-remove-vertical" v-if="role === 'admin'"> [&gt; Icons &lt;]
+      <td class="uk-table-shrink uk-padding-remove-vertical" v-if="role === 'admin'"> <!-- Icons -->
           <div uk-tooltip="This run is on the leaderbords" v-if="evaluation.published">
               <i class="fas fa-users dataset-detail-icon uk-text-success"></i>
           </div>
