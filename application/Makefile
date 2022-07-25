@@ -23,16 +23,16 @@ setup:
 	chmod o+x src
 	mkdir -p src/config
 	make venv
+	make webpack
 
-setup-webpack:
-	cd ./src/tira/frontend/; \
-	npm init; \
-	npm add vue@next webpack-bundle-tracker@0.4.3 uikit; \
-	npm add --dev vue-loader@v16.8.2 webpack-cli webpack webpack-dev-server typescript ts-loader @vue/compiler-sfc style-loader css-loader
+#setup-webpack:
+#	npm add vue@next webpack-bundle-tracker@0.4.3 uikit; \
+#	npm add --dev vue-loader@v16.8.2 webpack-cli webpack webpack-dev-server typescript ts-loader @vue/compiler-sfc style-loader css-loader
 
 webpack:
 	cd ./src/tira/frontend/; \
-	npm run plain
+	npm install
+	npm run build
 
 # Requirements are in setup.py, so whenever setup.py is changed, re-run installation of dependencies.
 venv:
