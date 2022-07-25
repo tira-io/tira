@@ -1,9 +1,9 @@
-.PHONY: help setup run-develop build-docker clean
+.PHONY: help setup setup-webpack webpack run-develop build-docker clean
 
 VENV_NAME?=venv
 PYTHON=${VENV_NAME}/bin/python3
-VERSION_APPLICATION=0.0.12
-VERSION_GRPC=0.0.12
+VERSION_APPLICATION=0.0.13
+VERSION_GRPC=0.0.13
 
 
 .DEFAULT: help
@@ -24,8 +24,19 @@ setup:
 	test -d $(VENV_NAME) || mkdir -p src/config/
 	cp config/tira-application-config.dev.yml src/config/settings.yml
 	make venv
+	make webpack
 	sh -c ". $(VENV_NAME)/bin/activate && \
 	python3 src/manage.py index_model"
+
+#setup-webpack:
+#	npm add vue@next webpack-bundle-tracker@0.4.3 uikit; \
+#	npm add --dev vue-loader@v16.8.2 webpack-cli webpack webpack-dev-server typescript ts-loader @vue/compiler-sfc style-loader css-loader
+
+webpack:
+	cd ./src/tira/frontend/; \
+	npm install
+	npm run build
+
 
 # Requirements are in setup.py, so whenever setup.py is changed, re-run installation of dependencies.
 venv:

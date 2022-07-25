@@ -1,3 +1,4 @@
+<script charset="utf-8">
 export default {
     data() {
         return {
@@ -5,7 +6,6 @@ export default {
             datasetNameInput: '',
             selectedTask: '',
             publish: '',
-            uploadName: '',
             evaluatorWorkingDirectory: '',
             evaluatorCommand: '',
             evaluationMeasures: '',
@@ -62,7 +62,6 @@ export default {
                 'name': this.datasetNameInput,
                 'task': this.selectedTask.task_id,
                 'publish': this.publish,
-                'upload_name': this.uploadName,
                 'evaluator_working_directory': this.evaluatorWorkingDirectory,
                 'evaluator_command': this.evaluatorCommand,
                 'evaluation_measures': this.evaluationMeasures,
@@ -90,26 +89,6 @@ export default {
                 }
             }
             return {}
-        },
-        setup(){
-            this.get(`/api/task-list`).then(message => {
-                this.taskList = message.context.task_list
-                this.get(`/api/dataset/${this.dataset_id}`).then(message => {
-                    const dataset = message.context.dataset
-                    const evaluator = message.context.evaluator
-                    this.datasetNameInput = dataset.display_name
-                    this.publish = !dataset.is_confidential
-                    this.uploadName = dataset.default_upload_name
-                    this.evaluatorWorkingDirectory = evaluator.working_dir
-                    this.evaluatorCommand = evaluator.command
-                    this.evaluationMeasures = evaluator.measures
-                    this.selectedTask = this.getTaskById(dataset.task)
-                }).catch(error => {
-                    this.$emit('addnotification', 'error', `Error loading task: ${error}`)
-                })
-            }).catch(error => {
-                this.$emit('addnotification', 'error', `Error loading task list: ${error}`)
-            })
         }
     },
     watch: {
@@ -117,19 +96,33 @@ export default {
             if(newName === ""){
                 this.evaluatorWorkingDirectory = '/home/' + this.selectedTask.master_vm_id + '/'
             }
-        },
-        dataset_id(newId, oldId){
-            this.setup()
         }
-
     },
     beforeMount() {
-        this.setup()
-    },
-    template: `
+        this.get(`/api/task-list`).then(message => {
+            this.taskList = message.context.task_list
+            this.get(`/api/dataset/${this.dataset_id}`).then(message => {
+                const dataset = message.context.dataset
+                const evaluator = message.context.evaluator
+                this.datasetNameInput = dataset.display_name
+                this.publish = !dataset.is_confidential
+                this.evaluatorWorkingDirectory = evaluator.working_dir
+                this.evaluatorCommand = evaluator.command
+                this.evaluationMeasures = evaluator.measures
+                this.selectedTask = this.getTaskById(dataset.task)
+            }).catch(error => {
+                this.$emit('addnotification', 'error', `Error loading task: ${error}`)
+            })
+        }).catch(error => {
+            this.$emit('addnotification', 'error', `Error loading task list: ${error}`)
+        })
+    }
+}
+</script>
+<template>
 <div class="uk-grid-small uk-margin-small" uk-grid>
     <div class="uk-margin-right">
-        <h2>Edit Dataset <span class="uk-text-lead uk-text-muted">ID: [[ this.dataset_id ]]</span></h2>
+        <h2>Edit Dataset <span class="uk-text-lead uk-text-muted">ID: {{ this.dataset_id }}</span></h2>
     </div>
 </div>
 <div class="uk-margin-small">
@@ -142,19 +135,13 @@ export default {
         <div class="uk-width-1-3">
             <label>Task* <select class="uk-select" v-model="this.selectedTask"
                    :class="{'uk-form-danger': (this.editDatasetError !== '' && this.selectedTask === '')}">
-                <option v-for="task in this.taskList" :value="task">[[ task.task_id ]]</option>
+                <option v-for="task in this.taskList" :value="task">{{ task.task_id }}</option>
             </select></label>
         </div>
         <div class="uk-width-1-3">
             <div>
                 <label><input class="uk-checkbox" type="checkbox" name="checkbox-publish" v-model="publish"> Public Dataset</label>
             </div>
-        </div>
-    </div>
-    <div class="uk-grid-small uk-margin-small" uk-grid>
-        <div class="uk-width-1-3">
-            <label>Name of uploaded run results<input type="text" class="uk-input" placeholder="predictions.ndjson"
-                   v-model="uploadName" /></label>
         </div>
     </div>
     <div class="uk-margin-right">
@@ -182,8 +169,8 @@ export default {
     <div class="uk-margin-small">
         <button class="uk-button uk-button-primary uk-margin-right" @click="saveDataset">Save</button>
         <button class="uk-button uk-button-danger" @click="deleteDataset">Delete</button>
-        <span class="uk-text-danger uk-margin-small-left">[[ this.editDatasetError ]]</span>
+        <span class="uk-text-danger uk-margin-small-left">{{ this.editDatasetError }}</span>
     </div>
     *mandatory
-</div>`
-}
+</div>
+</template>
