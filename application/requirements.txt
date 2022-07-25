@@ -9,3 +9,5 @@ randomname
 tqdm
 mysql
 mysqlclient
+python-gitlab
+GitPython

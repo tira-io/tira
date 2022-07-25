@@ -6,6 +6,7 @@ from grpc import RpcError, StatusCode
 from tira.authentication import auth
 from tira.checks import check_permissions, check_resources_exist, check_conditional_permissions
 from tira.forms import *
+from tira.git_runner import run_evaluate_with_git_workflow
 from django.http import JsonResponse
 from django.conf import settings
 from http import HTTPStatus
@@ -290,20 +291,10 @@ def run_execute(request, task_id, vm_id, software_id):
     return response
 
 
-@check_conditional_permissions(private_run_ok=True)
-@check_resources_exist('json')
 @host_call
-def run_eval(request, vm_id, dataset_id, run_id):
-    """ Get the evaluator for dataset_id from the model.
-     Then, send a GRPC-call to the host running the evaluator with the run data.
-     Then, log vm_id and run_id to the evaluation log as ongoing.
-    """
-    # check if evaluation already exists
-    if EvaluationLog.objects.filter(vm_id=vm_id):
-        return JsonResponse({'status': '1', 'message': "An evaluation is already in progress."},
-                            status=HTTPStatus.PRECONDITION_FAILED)
-
-    evaluator = model.get_evaluator(dataset_id)
+def _master_vm_eval_call(vm_id, dataset_id, run_id, evaluator):
+    """ Called when the evaluation is done via master vm.
+     This method calls the grpc client """
     host = reroute_host(evaluator["host"])
     grpc_client = GrpcClient(host)
     response = grpc_client.run_eval(vm_id=evaluator["vm_id"],
@@ -315,6 +306,34 @@ def run_eval(request, vm_id, dataset_id, run_id):
                                     optional_parameters="")
     del grpc_client
     return response
+
+
+def _git_runner_vm_eval_call(vm_id, dataset_id, run_id, evaluator):
+    """ called when the evaluation is done via git runner.
+     This method calls the git utilities in git_runner.py to start the git CI
+     """
+    response = run_evaluate_with_git_workflow(evaluator['task_id'], dataset_id, vm_id, run_id, evaluator['git_runner_image'],
+                                              evaluator['git_runner_command'], evaluator['git_repository_id'])
+    return response
+
+
+@check_conditional_permissions(private_run_ok=True)
+@check_resources_exist('json')
+def run_eval(request, vm_id, dataset_id, run_id):
+    """ Get the evaluator for dataset_id from the model.
+     Then, send a GRPC-call to the host running the evaluator with the run data.
+     Then, log vm_id and run_id to the evaluation log as ongoing.
+    """
+    # check if evaluation already exists
+    if EvaluationLog.objects.filter(vm_id=vm_id):
+        return JsonResponse({'status': '1', 'message': "An evaluation is already in progress."},
+                            status=HTTPStatus.PRECONDITION_FAILED)
+
+    evaluator = model.get_evaluator(dataset_id)
+    if evaluator.is_git_runner:
+        return _git_runner_vm_eval_call(vm_id, dataset_id, run_id, evaluator)
+
+    return _master_vm_eval_call(vm_id, dataset_id, run_id, evaluator)
 
 
 @check_conditional_permissions(private_run_ok=True)

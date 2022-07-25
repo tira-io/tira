@@ -1,0 +1,86 @@
+stages:
+  - Preparation
+  - Run Software
+  - Persist Software Result
+  - Evaluate Software Result
+  - Persist Evaluation Result
+
+prepare-tira-environment:
+  stage: Preparation
+  image: webis/tira-git:0.0.17
+  artifacts:
+    reports:
+      dotenv: task.env
+  script:
+    - tira-test-runner-is-trustworthy.sh
+    - tira-specify-task-to-run.py > task.env
+    - cat task.env
+  tags:
+    - no-internet
+
+run-user-software:
+  stage: Run Software
+  dependencies:
+    - prepare-tira-environment
+  artifacts:
+    untracked: true
+    reports:
+      dotenv: task.env
+  image: "${TIRA_IMAGE_TO_EXECUTE}"
+  script:
+    - test -n "${TIRA_OUTPUT_DIR}" && mkdir -p ${TIRA_OUTPUT_DIR}
+    - echo "${TIRA_COMMAND_TO_EXECUTE}"
+    - eval "${TIRA_COMMAND_TO_EXECUTE}"
+    - env|grep 'TIRA' > task.env
+  allow_failure: true
+  tags:
+    - no-internet
+    - read-tira-data-datasets
+
+persist-software-result:
+  stage: Persist Software Result
+  image: webis/tira-git:0.0.17
+  artifacts:
+    untracked: true
+    reports:
+      dotenv: task.env
+  script:
+    - tira-persist-software-result.py
+  dependencies: 
+    - run-user-software
+  tags:
+    - write-tira-data-runs
+    - tira-git-credentials
+
+evaluate-software-result:
+  stage: Evaluate Software Result
+  dependencies: 
+    - persist-software-result
+  artifacts:
+    untracked: true
+    reports:
+      dotenv: task.env
+  image: "${TIRA_EVALUATION_IMAGE_TO_EXECUTE}"
+  script:
+    - test -n "${TIRA_EVALUATION_OUTPUT_DIR}" && mkdir -p ${TIRA_EVALUATION_OUTPUT_DIR}
+    - echo "${TIRA_EVALUATION_COMMAND_TO_EXECUTE}"
+    - eval "${TIRA_EVALUATION_COMMAND_TO_EXECUTE}"
+    - env|grep 'TIRA' > task.env
+  allow_failure: true
+  tags:
+    - no-internet
+    - read-tira-data-datasets-truth
+    - read-tira-data-runs
+
+persist-evaluation-result:
+  stage: Persist Evaluation Result
+  image: webis/tira-git:0.0.17
+  script:
+    - tira-persist-evaluation-result.sh
+    - env
+  dependencies: 
+    - evaluate-software-result
+  tags:
+    - write-tira-data-runs
+    - tira-git-credentials
+
