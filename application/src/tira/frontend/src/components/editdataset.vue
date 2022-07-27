@@ -9,6 +9,10 @@ export default {
             evaluatorWorkingDirectory: '',
             evaluatorCommand: '',
             evaluationMeasures: '',
+            isGitRunner: false,
+            gitRunnerImage: '',
+            gitRunnerCommand: '',
+            gitRepositoryId: '',
             taskList: [],
         }
     },
@@ -65,6 +69,10 @@ export default {
                 'evaluator_working_directory': this.evaluatorWorkingDirectory,
                 'evaluator_command': this.evaluatorCommand,
                 'evaluation_measures': this.evaluationMeasures,
+                'is_git_runner': this.isGitRunner,
+                'git_runner_image': this.gitRunnerImage,
+                'git_runner_command': this.gitRunnerCommand,
+                'git_repository_id': this.gitRepositoryId
             }).then(message => {
                 this.$emit('addnotification', 'success', message.message)
                 this.$emit('closemodal')
@@ -162,6 +170,24 @@ export default {
                    v-model="selectedTask.master_vm_id" disabled></label>
         </div>
     </div>
+       <div class="uk-margin-right">
+        <h2>Evaluator (when using GIT CI)</h2>
+        <div>
+            <label><input class="uk-checkbox" type="checkbox" name="checkbox-gitci" v-model="isGitCi"> using GitCi</label>
+        </div>
+    </div> 
+    <div class="uk-grid-small uk-margin-small" uk-grid>
+        <div class="uk-width-1-3">
+            <label> Image to be run <input type="text" class="uk-input" v-model="gitRunnerImage" /></label>
+        </div>
+        <div class="uk-width-1-3">
+            <label>Git Runner Command <input type="text" class="uk-input" v-model="gitRunnerCommand" /></label>
+        </div>
+        <div class="uk-width-1-3">
+            <label>Git Repository ID <input type="text" class="uk-input" v-model="gitRepositoryId" ></label>
+        </div>
+    </div>   
+    
     <div class="uk-margin-small">
         <label><textarea rows="4" class="uk-textarea" placeholder="Measure Name,measure_key\nName will be displayed to the users.\nmeasure_key must be as output by the evaluation software."
                v-model="evaluationMeasures" /> Evaluation Measures</label>
