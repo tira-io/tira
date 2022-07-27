@@ -1,10 +1,15 @@
 from django.conf import settings
 from git import Repo
 import tempfile
+import logging
 import gitlab
 from pathlib import Path
 import shutil
 from datetime import datetime as dt
+
+from tira.grpc_client import new_transaction
+
+logger = logging.getLogger("tira")
 
 def gitlab_client():
     return gitlab.Gitlab('https://' + settings.GIT_CI_SERVER_HOST, private_token=settings.GIT_PRIVATE_TOKEN)
@@ -50,7 +55,12 @@ def __commit_and_push(repo, dataset_id, vm_id, run_id, identifier):
     repo.index.commit("Evaluate software: " + identifier)
     repo.remote().push(identifier)
 
-def run_evaluate_with_git_workflow(task_id, dataset_id, vm_id, run_id, transaction_id, evaluator_image, evaluator_command, git_repository_id):
+def run_evaluate_with_git_workflow(task_id, dataset_id, vm_id, run_id, git_runner_image,
+                                   git_runner_command, git_repository_id):
+    msg = f"start run_eval with git: {task_id} - {dataset_id} - {vm_id} - {run_id}"
+    transaction_id = new_transaction(msg, in_grpc=False)
+    logger.info(msg)
+
     identifier = 'eval---' + dataset_id + '---' + vm_id + '---' + run_id + '---started-' + str(dt.now().strftime('%Y-%m-%d-%H-%M-%S'))
     
     with tempfile.TemporaryDirectory() as tmp_dir:
