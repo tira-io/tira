@@ -499,8 +499,13 @@ class HybridDatabase(object):
             vm_id = ''
             host = ''
 
-        return {"vm_id": vm_id, "host": host, "command": evaluator.command,
-                "working_dir": evaluator.working_directory, 'measures': evaluator.measures}
+        if not task_id:
+            task_id = modeldb.Dataset.objects.get(evaluator=evaluator).default_task.task_id
+
+        return {"vm_id": vm_id, "host": host, "command": evaluator.command, "task_id": task_id,
+                "working_dir": evaluator.working_directory, 'measures': evaluator.measures,
+                "is_git_runner": evaluator.is_git_runner, "git_runner_image": evaluator.git_runner_image,
+                "git_runner_command": evaluator.git_runner_command, "git_repository_id": evaluator.git_repository_id,}
 
     @staticmethod
     def get_vm_evaluations_by_dataset(dataset_id, vm_id, only_public_results=True):
