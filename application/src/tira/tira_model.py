@@ -223,6 +223,7 @@ def add_uploaded_run(task_id, vm_id, dataset_id, uploaded_file):
     """ Add the uploaded file as a new result and return it """
     return model.add_uploaded_run(task_id, vm_id, dataset_id, uploaded_file)
 
+
 # ------------------------------------------------------------
 # add methods to add new data to the model
 # ------------------------------------------------------------
@@ -254,8 +255,11 @@ def add_software(task_id: str, vm_id: str):
     return model.add_software(task_id, vm_id)
 
 
-def add_evaluator(vm_id: str, task_id: str, dataset_id: str, command: str, working_directory: str, measures):
-    return model.add_evaluator(vm_id, task_id, dataset_id, command, working_directory, measures)
+def add_evaluator(vm_id: str, task_id: str, dataset_id: str, command: str, working_directory: str, measures,
+                  is_git_runner: bool = False, git_runner_image: str = None, git_runner_command: str = None,
+                  git_repository_id: str = None):
+    return model.add_evaluator(vm_id, task_id, dataset_id, command, working_directory, measures, is_git_runner,
+                               git_runner_image, git_runner_command, git_repository_id)
 
 
 def add_run(dataset_id, vm_id, run_id):
@@ -296,10 +300,13 @@ def edit_task(task_id: str, task_name: str, task_description: str, master_vm_id:
 
 
 def edit_dataset(task_id: str, dataset_id: str, dataset_name: str, command: str,
-                 working_directory: str, measures: str, upload_name: str, is_confidential: bool = False):
+                 working_directory: str, measures: str, upload_name: str, is_confidential: bool = False,
+                 is_git_runner: bool = False, git_runner_image: str = None, git_runner_command: str = None,
+                 git_repository_id: str = None):
     """ Update the datasets's data """
     return model.edit_dataset(task_id, dataset_id, dataset_name, command, working_directory,
-                              measures, upload_name, is_confidential)
+                              measures, upload_name, is_confidential, is_git_runner, git_runner_image,
+                              git_runner_command, git_repository_id)
 
 
 def delete_software(task_id, vm_id, software_id):
@@ -323,6 +330,7 @@ def delete_dataset(dataset_id: str):
 
 def edit_organizer(organizer_id: str, name: str, years: str, web: str):
     return model.edit_organizer(organizer_id, name, years, web)
+
 
 # ------------------------------------------------------------
 # add methods to check for existence
