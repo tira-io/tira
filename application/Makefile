@@ -12,6 +12,8 @@ help:
 	@echo "       setup venv, compile protobuf, give permissions to tira, and make migrations"
 	@echo "make run-develop"
 	@echo "       run server as tira user"
+	@echo "make run-git-develop"
+	@echo "       run git-runner-script in development mode"
 	@echo "make build-docker"
 	@echo "       build the docker containers "
 	@echo "make clean"
@@ -50,6 +52,12 @@ run-develop: venv
 	sh -c ". $(VENV_NAME)/bin/activate && \
 	python3 src/manage.py run_develop"
 
+run-git-develop: venv
+	cat config/tira-application-config.dev.yml |grep -v '^GIT_' > src/config/settings.yml
+	kubectl -n services-tira get configmap tira-application-test-config -o json| jq --raw-output '.data."settings-test.yml"'|grep '^GIT_' >> src/config/settings.yml
+	sh -c ". $(VENV_NAME)/bin/activate && cd src &&\
+		python3 -m tira.git_runner_cli"
+
 run-docker:
 	docker run -td --rm \
         --name=tira-application \
@@ -64,7 +72,6 @@ run-docker:
 
 build-docker:
 	docker build --tag webis/tira-application:${VERSION_APPLICATION} -f Dockerfile.application ..
-	docker build --tag webis/tira-application-grpc:${VERSION_GRPC} -f Dockerfile.application-grpc ..
 
 clean:
 	rm -r $(VENV_NAME)
