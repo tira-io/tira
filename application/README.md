@@ -17,6 +17,11 @@ The following steps will setup a self-contained, local tira application and a mo
    ~$ make run-develop  # This updates the config and runs the server within the venv.
    ```
 
+3. In case you want to develop using the tira-git integration, run
+   ```bash
+   ~$ make run-git-develop  # This updates the config using kubernetes and runs and runs src/tira/git_runner_cli.py within the venv.
+   ```
+
 ## Docker
 
 You can run tira in a docker container for a simple deployment. 
