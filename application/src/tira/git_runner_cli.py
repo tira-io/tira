@@ -8,10 +8,11 @@ def main():
     """
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'django_admin.settings')
     django.setup()
-    from tira.git_runner import create_user_repository
+    from tira.git_runner import create_user_repository, create_task_repository
     
-    print("Create user repository")
-    create_user_repository('delete-me-maik-22')
+    #print("Create user repository")
+    #create_user_repository('delete-me-maik-22')
+    create_task_repository('delete-me-maik-223')
 
 if __name__ == '__main__':
     main()

@@ -7,6 +7,8 @@ import gitlab
 from pathlib import Path
 import shutil
 from datetime import datetime as dt
+import os
+import stat
 
 from tira.grpc_client import new_transaction
 
@@ -71,6 +73,30 @@ def run_evaluate_with_git_workflow(task_id, dataset_id, vm_id, run_id, git_runne
         
         __commit_and_push(repo, dataset_id, vm_id, run_id, identifier)
 
+def __write_to_file(file_name, content):
+    with open(file_name, 'w') as f:
+        f.write(content)
+
+def create_task_repository(task_name):
+    gitlab_ci = render_to_string('tira/git_task_repository_gitlab_ci.yml', context={})
+    readme = render_to_string('tira/git_task_repository_readme.md', context={'task_name': task_name})
+    project = gitlab_client().projects.create({'name': task_name, 'namespace_id': str(int(settings.GIT_USER_REPOSITORY_NAMESPACE_ID)), "default_branch": settings.GIT_USER_REPOSITORY_BRANCH})
+    tira_cmd_script = render_to_string('tira/tira_git_cmd.sh', context={'project_id': project.id, 'ci_server_host': settings.GIT_CI_SERVER_HOST})
+    
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        repo = Repo.init(tmp_dir)
+        __write_to_file(str(tmp_dir) + '/.gitlab-ci.yml', gitlab_ci)
+        __write_to_file(str(tmp_dir) + '/README.md', readme)
+        __write_to_file(str(tmp_dir) + '/tira', tira_cmd_script)
+        os.chmod(str(tmp_dir) + '/tira', os.stat(str(tmp_dir) + '/tira').st_mode | stat.S_IEXEC)
+
+        repo.create_remote('origin', repo_url(project.id))
+        repo.index.add(['README.md', '.gitlab-ci.yml', 'tira'])
+        repo.index.commit('Initial commit')
+        repo.remote().push(settings.GIT_USER_REPOSITORY_BRANCH, o= 'ci.skip')
+
+    return project.id
+
 def __initialize_user_repository(git_repository_id, repo_name, token):
     project_readme = render_to_string('tira/git_user_repository_readme.md', context={
         'user_name': repo_name.replace('tira-user-', ''),
@@ -81,8 +107,7 @@ def __initialize_user_repository(git_repository_id, repo_name, token):
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         repo = Repo.init(tmp_dir)
-        with open(str(tmp_dir) + '/README.md', 'w') as f:
-            f.write(project_readme)
+        __write_to_file(str(tmp_dir) + '/README.md', project_readme)
         
         repo.create_remote('origin', repo_url(git_repository_id))
         repo.index.add(['README.md'])
