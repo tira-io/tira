@@ -23,7 +23,7 @@ def new_transaction(message, in_grpc=True):
     """
     transaction_id = str(uuid4())
     _ = TransactionLog.objects.create(transaction_id=transaction_id, completed=False, last_message=message)
-    if in_grpc
+    if in_grpc:
         return tira_host_pb2.Transaction(transactionId=transaction_id)
 
     return transaction_id

@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.template.loader import render_to_string
 from git import Repo
 import tempfile
 import logging
@@ -27,7 +28,7 @@ def dict_to_gitlab_key_value_file(d):
     return '\n'.join([(k + '=' + v).strip() for (k,v) in d.items()])
 
 def __clone_repository_and_create_new_branch(repo_url, branch_name, directory):
-    repo = Repo.clone_from(, directory, branch='main')
+    repo = Repo.clone_from(repo_url, directory, branch='main')
     repo.head.reference = repo.create_head(branch_name)
         
     return repo
@@ -64,9 +65,34 @@ def run_evaluate_with_git_workflow(task_id, dataset_id, vm_id, run_id, git_runne
     identifier = 'eval---' + dataset_id + '---' + vm_id + '---' + run_id + '---started-' + str(dt.now().strftime('%Y-%m-%d-%H-%M-%S'))
     
     with tempfile.TemporaryDirectory() as tmp_dir:
-        repo = __clone_repository_into_new_branch(repo_url(git_repository_id), identifier, tmp_dir)
+        repo = __clone_repository_and_create_new_branch(repo_url(git_repository_id), identifier, tmp_dir)
         
         __write_metadata_for_evaluation_job_to_repository(tmp_dir, task_id, transaction_id, dataset_id, vm_id, run_id, identifier)
         
         __commit_and_push(repo, dataset_id, vm_id, run_id, identifier)
+
+def __initialize_user_repository(git_repository_id, repo_name, token):
+    project_readme = render_to_string('tira/git_user_repository_readme.md', context={
+        'user_name': repo_name.replace('tira-user-', ''),
+        'repo_name': repo_name,
+        'token': token,
+        'image_prefix': settings.GIT_REGISTRY_PREFIX +'/' + repo_name +'/'
+    })
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        repo = Repo.init(tmp_dir)
+        with open(str(tmp_dir) + '/README.md', 'w') as f:
+            f.write(project_readme)
+        
+        repo.create_remote('origin', repo_url(git_repository_id))
+        repo.index.add(['README.md'])
+        repo.index.commit('Initial commit')
+        repo.remote().push(settings.GIT_USER_REPOSITORY_BRANCH)
+
+def create_user_repository(repo):
+    gl = gitlab_client()
+    repo = 'tira-user-' + repo
+    project = gl.projects.create({'name': repo, 'namespace_id': str(int(settings.GIT_USER_REPOSITORY_NAMESPACE_ID)), "default_branch": settings.GIT_USER_REPOSITORY_BRANCH})
+    token = project.access_tokens.create({"name": repo, "scopes": ['read_registry', 'write_registry'], "access_level": 30})
+    __initialize_user_repository(project.id, repo, token.token)
 
