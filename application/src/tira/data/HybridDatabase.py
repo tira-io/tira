@@ -820,12 +820,13 @@ class HybridDatabase(object):
         })
 
         # add evaluator to master vm
-        if vm_id:
+        if vm_id and not is_git_runner:
             vm = modeldb.VirtualMachine.objects.get(vm_id=vm_id)
-            vmhe, _ = modeldb.VirtualMachineHasEvaluator.objects.update_or_create(evaluator_id=evaluator_id,
-                                                                                  vm=vm)
-        self._fdb_add_evaluator_to_dataset(task_id, dataset_id, evaluator_id)
-        self._fdb_add_evaluator_to_vm(vm_id, evaluator_id, command, working_directory, measures)
+            vmhe, _ = modeldb.VirtualMachineHasEvaluator.objects.update_or_create(evaluator_id=evaluator_id, vm=vm)
+
+        if not is_git_runner:
+            self._fdb_add_evaluator_to_dataset(task_id, dataset_id, evaluator_id)
+            self._fdb_add_evaluator_to_vm(vm_id, evaluator_id, command, working_directory, measures)
 
         modeldb.Dataset.objects.filter(dataset_id=dataset_id).update(evaluator=ev)
 
@@ -1213,12 +1214,16 @@ class HybridDatabase(object):
     def delete_dataset(self, dataset_id):
         ds = modeldb.Dataset.objects.select_related('default_task', 'evaluator').get(dataset_id=dataset_id)
         task_id = ds.default_task.task_id
-        evaluator_id = ds.evaluator.evaluator_id
         vm_id = ds.default_task.vm.vm_id
-        ds.delete()
+        try:
+            evaluator_id = ds.evaluator.evaluator_id
+            self._fdb_delete_evaluator_from_vm(vm_id, evaluator_id)
+        except AttributeError as e:
+            logger.exception(f"Exception deleting evaluator while deleting dataset {dataset_id}. "
+                             f"Maybe It never existed?", e)
         self._fdb_delete_dataset_from_task(task_id, dataset_id)
         self._fdb_delete_dataset(task_id, dataset_id)
-        self._fdb_delete_evaluator_from_vm(vm_id, evaluator_id)
+        ds.delete()
 
     def edit_organizer(self, organizer_id, name, years, web):
         org, _ = modeldb.Organizer.objects.update_or_create(organizer_id=organizer_id, defaults={

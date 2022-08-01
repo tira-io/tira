@@ -102,6 +102,7 @@ def get_task(request, context, task_id):
 def get_dataset(request, context, dataset_id):
     context["dataset"] = model.get_dataset(dataset_id)
     context["evaluator"] = model.get_evaluator(dataset_id)
+    print(context["evaluator"])
     return JsonResponse({'status': 0, "context": context})
 
 

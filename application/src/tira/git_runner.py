@@ -15,11 +15,13 @@ from tira.grpc_client import new_transaction
 logger = logging.getLogger('tira')
 
 
-def create_task_repository(task_name):
+def create_task_repository(task_id):
+    logger.info(f"Creating task repository for task {task_id} ...")
+
     gitlab_ci = render_to_string('tira/git_task_repository_gitlab_ci.yml', context={})
-    readme = render_to_string('tira/git_task_repository_readme.md', context={'task_name': task_name})
+    readme = render_to_string('tira/git_task_repository_readme.md', context={'task_name': task_id})
     project = gitlab_client().projects.create(
-        {'name': task_name, 'namespace_id': str(int(settings.GIT_USER_REPOSITORY_NAMESPACE_ID)),
+        {'name': task_id, 'namespace_id': str(int(settings.GIT_USER_REPOSITORY_NAMESPACE_ID)),
          "default_branch": settings.GIT_USER_REPOSITORY_BRANCH})
     tira_cmd_script = render_to_string('tira/tira_git_cmd.sh', context={'project_id': project.id,
                                                                         'ci_server_host': settings.GIT_CI_SERVER_HOST})
@@ -36,6 +38,7 @@ def create_task_repository(task_name):
         repo.index.commit('Initial commit')
         repo.remote().push(settings.GIT_USER_REPOSITORY_BRANCH, o='ci.skip')
 
+    logger.info(f"Created task repository for task {task_id} with new id {project.id}")
     return project.id
 
 

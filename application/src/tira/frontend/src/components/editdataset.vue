@@ -13,6 +13,7 @@ export default {
             gitRunnerImage: '',
             gitRunnerCommand: '',
             gitRepositoryId: '',
+            useExistingRepo: true,
             taskList: [],
         }
     },
@@ -72,7 +73,8 @@ export default {
                 'is_git_runner': this.isGitRunner,
                 'git_runner_image': this.gitRunnerImage,
                 'git_runner_command': this.gitRunnerCommand,
-                'git_repository_id': this.gitRepositoryId
+                'git_repository_id': this.gitRepositoryId,
+                'use_existing_repository': this.useExistingRepo
             }).then(message => {
                 this.$emit('addnotification', 'success', message.message)
                 this.$emit('closemodal')
@@ -117,6 +119,10 @@ export default {
                 this.evaluatorWorkingDirectory = evaluator.working_dir
                 this.evaluatorCommand = evaluator.command
                 this.evaluationMeasures = evaluator.measures
+                    this.isGitRunner = evaluator.is_git_runner
+                    this.gitRunnerImage = evaluator.git_runner_image
+                    this.gitRunnerCommand = evaluator.git_runner_command
+                    this.gitRepositoryId = evaluator.git_repository_id
                 this.selectedTask = this.getTaskById(dataset.task)
             }).catch(error => {
                 this.$emit('addnotification', 'error', `Error loading task: ${error}`)
@@ -155,13 +161,21 @@ export default {
     <div class="uk-margin-right">
         <h2>Evaluator</h2>
     </div>
-    <div class="uk-grid-small uk-margin-small" uk-grid>
+    <div>
+        <div>
+            <label><input class="uk-radio" type="radio" name="radio3" :value="false" v-model="isGitRunner"> Master VM</label>&nbsp;
+            <label><input class="uk-radio" type="radio" name="radio3" :value="true" v-model="isGitRunner"> Git CI</label>
+        </div>
+    </div>
+    <div v-if="isGitRunner === false" class="uk-grid-small uk-margin-small" uk-grid>
         <div class="uk-width-1-3">
-            <label>Evaluator Working Directory <input type="text" class="uk-input" placeholder="/path/to/directory - Defaults to home."
+            <label> Evaluator Working Directory
+            <input type="text" class="uk-input"
                    v-model="evaluatorWorkingDirectory" /></label>
         </div>
         <div class="uk-width-1-3">
-            <label>Evaluator Command <input type="text" class="uk-input" placeholder="Command to be run from working directory"
+            <label>Evaluator Command
+            <input type="text" class="uk-input" placeholder="Command to be run from working directory"
                    v-model="evaluatorCommand" /></label>
         </div>
         <div class="uk-width-1-3">
@@ -170,23 +184,20 @@ export default {
                    v-model="selectedTask.master_vm_id" disabled></label>
         </div>
     </div>
-       <div class="uk-margin-right">
-        <h2>Evaluator (when using GIT CI)</h2>
-        <div>
-            <label><input class="uk-checkbox" type="checkbox" name="checkbox-gitci" v-model="isGitCi"> using GitCi</label>
-        </div>
-    </div> 
-    <div class="uk-grid-small uk-margin-small" uk-grid>
-        <div class="uk-width-1-3">
+    <div v-if="isGitRunner === true" class="uk-grid-small uk-margin-small" uk-grid>
+        <div class="uk-width-1-2">
             <label> Image to be run <input type="text" class="uk-input" v-model="gitRunnerImage" /></label>
         </div>
-        <div class="uk-width-1-3">
+        <div class="uk-width-1-2">
             <label>Git Runner Command <input type="text" class="uk-input" v-model="gitRunnerCommand" /></label>
         </div>
-        <div class="uk-width-1-3">
+        <div class="uk-width-1-1">
+            <label><input class="uk-checkbox" type="checkbox" name="checkbox-gitci" v-model="useExistingRepo"> use existing repository</label>
+        </div>
+        <div v-if="useExistingRepo" class="uk-width-1-1">
             <label>Git Repository ID <input type="text" class="uk-input" v-model="gitRepositoryId" ></label>
         </div>
-    </div>   
+    </div>     
     
     <div class="uk-margin-small">
         <label><textarea rows="4" class="uk-textarea" placeholder="Measure Name,measure_key\nName will be displayed to the users.\nmeasure_key must be as output by the evaluation software."
