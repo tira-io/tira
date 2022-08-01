@@ -1,3 +1,4 @@
+<script charset="utf-8">
 export default {
     data() {
         return {
@@ -106,8 +107,10 @@ export default {
         datasetNameInput(newName, oldName) {
             this.datasetId = this.string_to_slug(newName)
         }
-    },
-    template: `
+    }
+}
+</script>
+<template>
 <div>
     Does not work yet. Empty fields will not be changed.
 </div>
@@ -150,8 +153,8 @@ export default {
     </div>
     <div class="uk-margin-small">
         <button class="uk-button uk-button-primary" @click="modify">Modify</button>
-        <span class="uk-text-danger uk-margin-small-left">[[ this.modifyVmError ]]</span>
+        <span class="uk-text-danger uk-margin-small-left">{{ this.modifyVmError }}</span>
     </div>
     *mandatory
-</div>`
-}
+</div>
+</template>

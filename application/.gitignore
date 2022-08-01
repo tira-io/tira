@@ -5,3 +5,7 @@ src/__init__.py
 src/config
 src/tira/migrations/*.py
 
+src/tira/frontend/node_modules/
+src/tira/static/tira/dist/*
+package-lock.json
+src/tira/frontend/webpack-stats.json

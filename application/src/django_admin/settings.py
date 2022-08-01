@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'webpack_loader',
 ]
 
 MIDDLEWARE = [
@@ -301,3 +302,11 @@ STATICFILES_DIRS = [
 ]
 
 STATIC_ROOT = "/var/www/public"
+
+WEBPACK_LOADER = {
+    'DEFAULT': {
+        'CACHE': DEBUG,
+        'BUNDLE_DIR_NAME': '/bundles/',
+        'STATS_FILE': BASE_DIR / 'tira' / 'frontend' / 'webpack-stats.json'
+    }
+}

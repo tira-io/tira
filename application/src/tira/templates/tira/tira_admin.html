@@ -1,5 +1,6 @@
 {% extends 'tira/base.html' %}
 {% load static %}
+{% load render_bundle from webpack_loader %}
 {% block title %}TIRA - Admin{% endblock %}
 {% block description %}TIRA - Admin{% endblock %}
 {% block navbar %}{% include "tira/navbar.html" with nav_active='admin' %}{% endblock %}
@@ -152,6 +153,8 @@
     </main>
 </div>
 
+{% render_bundle 'tiraadmin' %}
+
 {% if include_navigation %}
 <script src="https://assets.webis.de/js/thirdparty/jquery/jquery.slim.min.js"></script>
 <script src="https://assets.webis.de/js/thirdparty/fontawesome/fontawesome.min.js"></script>
@@ -161,81 +164,7 @@
 <script src="https://assets.webis.de/js/selection.js"></script>
 <script src="https://assets.webis.de/js/tables.js"></script>
 
-<script src="https://unpkg.com/vue@3"></script>
+<!--<script src="https://unpkg.com/vue@3"></script>-->
 <!--<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>-->
 <!--https://vuejs.org/examples/#modal-->
-<script type="module">
-    import NotificationBar from '{% static "tira/js/components/notificationbar.js" %}'
-    import CreateVm from '{% static "tira/js/components/createvm.js" %}'
-    import AddTask from '{% static "tira/js/components/addtask.js" %}'
-    import AddDataset from '{% static "tira/js/components/adddataset.js" %}'
-    import ModifyVm from '{% static "tira/js/components/modifyvm.js" %}'
-
-    const app = Vue.createApp({
-        data() {
-            return {
-                role: '{{ role|safe }}',
-                selected: "overview",
-                reloading: [],
-                notifications: [],
-                createGroupError: '',
-                createGroupId: '',
-                batchInput: '',
-                csrf: document.querySelector('[name=csrfmiddlewaretoken]').value
-            }
-        },
-        components: {
-            NotificationBar, CreateVm, AddTask, AddDataset, ModifyVm
-        },
-        methods: {
-            async apiCall(url) {
-                console.log(url)
-                const response = await fetch(url)
-                if (!response.ok) {
-                    throw new Error(`${await response.text()}`);
-                }
-                let results = await response.json()
-                console.log(results)
-                if (results.status === 0) {
-                    return results.message
-                }
-                throw new Error(results.message);
-            },
-            setSelected(sel) {
-                this.selected = sel
-            },
-            reload(selection) {
-                this.reloading.push(selection)
-                this.reload = selection
-                this.apiCall(`/tira-admin/reload/${selection}`).then(results => {
-                    this.addNotification('success', results.message)
-                }).catch(error => {
-                    this.addNotification('error', error.message)
-                }).finally(() => {
-                    this.reloading = this.reloading.filter(function (ele) {
-                        return ele !== selection
-                    })
-                })
-            },
-            addNotification(type, message) {
-                this.notifications.push({'type': type, 'message': message})
-            },
-            createGroup() {
-                // spinner
-                this.apiCall(`/tira-admin/create-group/${this.createGroupId}`).then(results => {
-                    this.addNotification('success', results.message)
-                    this.createGroupId = ''
-                }).catch(error => {
-                    this.createGroupError = error.message
-                })
-            },
-        },
-        watch: {},
-        computed: {},  // for values that should be computed when accessed
-    })
-    app.config.compilerOptions.delimiters = ['[[', ']]']
-    app.mount("#tira-admin-mount")
-</script>
-
-
 {% endblock %}

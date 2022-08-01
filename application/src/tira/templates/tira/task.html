@@ -1,5 +1,6 @@
 {% extends 'tira/base.html' %}
 {% load static %}
+{% load render_bundle from webpack_loader %}
 {% block title %}TIRA Users{% endblock %}
 {% block description %}TIRA Users{% endblock %}
 {% block navbar %}{% include "tira/navbar.html" with nav_active='tasks' %}{% endblock %}
@@ -26,7 +27,7 @@
                     <h1>[[ taskName ]] <span class="uk-text-lead uk-text-muted">by [[ organizerName ]]</span></h1>
                 </div>
                 <div>
-                    <a uk-toggle="target: #task-edit-modal" class="uk-button uk-button-default uk-text-large"
+                    <a v-if="role === 'admin'" uk-toggle="target: #task-edit-modal" class="uk-button uk-button-default uk-text-large"
                        uk-tooltip="title: Edit Task;">
                         <span class="uk-padding-small">Edit</span><i class="fas fa-edit"></i></a>
                     <a class="uk-button uk-button-default uk-text-large"
@@ -149,7 +150,7 @@
         {% endif %}
     </main>
 </div>
-
+{% render_bundle 'task' %}
 
 {% if not include_navigation %}
 <script src="https://assets.webis.de/js/thirdparty/jquery/jquery.slim.min.js"></script>
@@ -159,140 +160,6 @@
 <script src="https://assets.webis.de/js/filter.js"></script>
 <script src="https://assets.webis.de/js/selection.js"></script>
 <script src="https://assets.webis.de/js/tables.js"></script>
-
-<script src="https://unpkg.com/vue@3"></script>
-<!--<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>-->
-<!--https://vuejs.org/examples/#modal-->
-<script type="module">
-    import NotificationBar from '{% static "tira/js/components/notificationbar.js" %}'
-    import Leaderboard from '{% static "tira/js/components/leaderboard.js" %}'
-    import ReviewList from '{% static "tira/js/components/reviewlist.js" %}'
-    import EditTask from '{% static "tira/js/components/edittask.js" %}'
-    import EditDataset from '{% static "tira/js/components/editdataset.js" %}'
-    import AddDataset from '{% static "tira/js/components/adddataset.js" %}'
-
-    const app = Vue.createApp({
-        data() {
-            return {
-                task_id: '{{ task_id }}',
-                taskName: JSON.parse('{{ task_name|safe }}'),
-                organizerName: JSON.parse('{{ organizer|safe }}'),
-                website: JSON.parse('{{ web|safe }}'),
-                taskDescription: {{ task_description|safe }},
-                datasets: JSON.parse('{{ datasets|safe }}'),
-                test_ids: JSON.parse('{{ test_dataset_ids|safe }}'),
-                training_ids: JSON.parse('{{ training_dataset_ids|safe }}'),
-                role: '{{ role|safe }}',
-                evaluations: {},
-                vms: {},
-                notifications: [],
-                loading: false,
-                selected: "{{ selected_dataset_id }}",
-                hide_private: true,
-                hide_reviewed: true,
-                csrf: document.querySelector('[name=csrfmiddlewaretoken]').value
-            }
-        },
-        components: {
-            Leaderboard, ReviewList, NotificationBar, EditTask, EditDataset, AddDataset
-        },
-        methods: {
-            addNotification(type, message) {
-                this.notifications.push({'type': type, 'message': message})
-            },
-            closeModal() {
-                UIkit.modal(document.getElementById('add-dataset-modal')).hide();
-                UIkit.modal(document.getElementById('edit-dataset-modal')).hide();
-            },
-            deleteDataset(dsId) {
-                this.selected = ""
-                UIkit.modal(document.getElementById('edit-dataset-modal')).hide();
-                delete this.datasets[dsId]
-            },
-            addDataset(dataset) {
-                this.datasets[dataset.dataset_id] = dataset
-                this.selected = dataset.dataset_id
-            },
-            updateTask(message) {
-                let modal = document.getElementById('task-edit-modal')
-                UIkit.modal(modal).hide();
-                this.taskName = message.task_name
-                this.organizerName = message.organizer
-                this.website = message.web
-                this.taskDescription = message.task_description
-            },
-            get_nav_item(dsid) {
-                let title = this.datasets[dsid].dataset_id
-                if (this.datasets[dsid].display_name !== "") {
-                    title = this.datasets[dsid].display_name
-                }
-
-                return `${title} (<span class="uk-text-bold">${this.datasets[dsid]["evaluations_public_count"]}</span>/${this.datasets[dsid]["evaluations_count"]} Evaluations)`
-            },
-            async getEvaluations(selected) {
-                try {
-                    const res = await fetch(`/api/evaluations/${this.task_id}/${this.selected}`)
-                    let ev = await res.json()
-                    this.evaluations[selected] = {
-                        "ev_keys": ev.context.ev_keys,
-                        "evaluations": ev.context.evaluations
-                    }
-                } catch (error) {
-                    console.log(error)
-                }
-            },
-            async getSubmissions(selected) {
-                try {
-                    const res = await fetch(`/api/submissions/${this.task_id}/${this.selected}`)
-                    let ev = await res.json()
-                    this.vms[selected] = ev.context.vms
-                } catch (error) {
-                }
-            },
-            setSelected(dsId) {
-                this.selected = dsId
-                let dropdown = document.getElementById('dropdownDatasetSelector')
-                UIkit.dropdown(dropdown).hide(false)
-            }
-        },
-        computed: {
-            get_selected() {
-                if (this.selected === "") {
-                    return "Select a Dataset"
-                }
-                if (this.datasets[this.selected].display_name !== "") {
-                    return this.datasets[this.selected].display_name
-                }
-                return this.selected
-            }
-        },  // for values that should be computed when accessed
-        watch: {
-            selected(newSelected, oldSelected) {
-                if (!(newSelected in this.evaluations)) {
-                    this.getEvaluations(newSelected)
-                    if (this.role === 'admin') {
-                        this.getSubmissions(newSelected)
-                    }
-
-                }
-            },
-            website(newWebsite, oldWebsite) {
-                if (!(newWebsite.startsWith('http://') || newWebsite.startsWith('https://'))) {
-                    this.website = `https://${newWebsite}`
-                }
-            }
-        },
-        beforeMount() {
-            if (this.selected !== "") {
-                this.getEvaluations(this.selected)
-                if (this.role === 'admin') {
-                    this.getSubmissions(this.selected)
-                }
-            }
-        },
-    })
-    app.config.compilerOptions.delimiters = ['[[', ']]']
-    app.mount("#vue-task-mount")
-</script>
-
+<script>initWebisTableFiltering();</script>
+<script>initTableSorting();</script>
 {% endblock %}

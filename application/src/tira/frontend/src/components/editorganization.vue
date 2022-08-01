@@ -1,3 +1,68 @@
+<template>
+  <div class="uk-grid-small uk-margin-small" uk-grid>
+      <div class="uk-margin-right">
+          <h2>Edit Organization <span class="uk-text-lead uk-text-muted">ID: {{ this.selectedOrganizer.organizer_id }}</span></h2>
+      </div>
+  </div>
+  <div class="uk-margin-small">
+      <div class="uk-grid-small uk-margin-small" uk-grid>
+          <div class="uk-width-1-4">
+              <label><select class="uk-select" v-model="this.selectedOrganizer"
+                     :class="{'uk-form-danger': (this.editOrganizerError !== '' && this.editOrganizerError === '')}">
+                  <option disabled value="">Please select an organizer</option>
+                  <option v-for="organizer in this.organizerList" :value="organizer">{{ organizer.name }}</option>
+              </select>Organizer*</label>
+          </div>
+          <div class="uk-width-1-4">
+              <label><input class="uk-input" type="text"
+                     :class="{'uk-form-danger': (this.editOrganizerError !== '' && this.name === '')}"
+                     v-model="this.name" /> Organization Name</label>
+          </div>
+          <div class="uk-width-1-4">
+              <label><input class="uk-input" type="text"
+                     :class="{'uk-form-danger': (this.editOrganizerError !== '' && this.years === '')}"
+                     v-model="this.years" /> Active Years</label>
+          </div>
+          <div class="uk-width-1-4">
+              <label><input class="uk-input" type="text"
+                     :class="{'uk-form-danger': (this.editOrganizerError !== '' && this.web === '')}"
+                     v-model="this.web" /> Website</label>
+          </div>
+      </div>
+      <div class="uk-margin-small">
+          <button class="uk-button uk-button-primary" @click="editOrganizer">Save Changes</button>
+          <span class="uk-text-danger uk-margin-small-left">{{ this.editOrganizerError }}</span>
+      </div>
+  </div>
+  <div class="uk-margin-small">
+      <div class="uk-margin-right">
+          <h2>Add Organization <span class="uk-text-lead uk-text-muted">ID: {{ this.newOrgId }}</span></h2>
+      </div>
+      <div class="uk-grid-small uk-margin-small" uk-grid>
+          <div class="uk-width-1-3">
+              <label><input class="uk-input" type="text"
+                     :class="{'uk-form-danger': (this.addOrganizerError !== '' && this.newName === '')}"
+                     v-model="this.newName" /> Organization Name</label>
+          </div>
+          <div class="uk-width-1-3">
+              <label><input class="uk-input" type="text"
+                     :class="{'uk-form-danger': (this.addOrganizerError !== '' && this.newYears === '')}"
+                     v-model="this.newYears" /> Active Years</label>
+          </div>
+          <div class="uk-width-1-3">
+              <label><input class="uk-input" type="text"
+                     :class="{'uk-form-danger': (this.addOrganizerError !== '' && this.newWeb === '')}"
+                     v-model="this.newWeb" /> Website</label>
+          </div>
+      </div>
+      <div class="uk-margin-small">
+          <button class="uk-button uk-button-primary" @click="addOrganizer">Add Organization</button>
+          <span class="uk-text-danger uk-margin-small-left">{{ this.addOrganizerError }}</span>
+      </div>
+  </div>
+</template>
+<script>
+  
 export default {
     data() {
         return {
@@ -142,66 +207,5 @@ export default {
             this.web = newOrg.web
         }
     },
-    template: `
-<div class="uk-grid-small uk-margin-small" uk-grid>
-    <div class="uk-margin-right">
-        <h2>Edit Organization <span class="uk-text-lead uk-text-muted">ID: [[ this.selectedOrganizer.organizer_id ]]</span></h2>
-    </div>
-</div>
-<div class="uk-margin-small">
-    <div class="uk-grid-small uk-margin-small" uk-grid>
-        <div class="uk-width-1-4">
-            <label><select class="uk-select" v-model="this.selectedOrganizer"
-                   :class="{'uk-form-danger': (this.editOrganizerError !== '' && this.editOrganizerError === '')}">
-                <option disabled value="">Please select an organizer</option>
-                <option v-for="organizer in this.organizerList" :value="organizer">[[ organizer.name ]]</option>
-            </select>Organizer*</label>
-        </div>
-        <div class="uk-width-1-4">
-            <label><input class="uk-input" type="text"
-                   :class="{'uk-form-danger': (this.editOrganizerError !== '' && this.name === '')}"
-                   v-model="this.name" /> Organization Name</label>
-        </div>
-        <div class="uk-width-1-4">
-            <label><input class="uk-input" type="text"
-                   :class="{'uk-form-danger': (this.editOrganizerError !== '' && this.years === '')}"
-                   v-model="this.years" /> Active Years</label>
-        </div>
-        <div class="uk-width-1-4">
-            <label><input class="uk-input" type="text"
-                   :class="{'uk-form-danger': (this.editOrganizerError !== '' && this.web === '')}"
-                   v-model="this.web" /> Website</label>
-        </div>
-    </div>
-    <div class="uk-margin-small">
-        <button class="uk-button uk-button-primary" @click="editOrganizer">Save Changes</button>
-        <span class="uk-text-danger uk-margin-small-left">[[ this.editOrganizerError ]]</span>
-    </div>
-</div>
-<div class="uk-margin-small">
-    <div class="uk-margin-right">
-        <h2>Add Organization <span class="uk-text-lead uk-text-muted">ID: [[ this.newOrgId ]]</span></h2>
-    </div>
-    <div class="uk-grid-small uk-margin-small" uk-grid>
-        <div class="uk-width-1-3">
-            <label><input class="uk-input" type="text"
-                   :class="{'uk-form-danger': (this.addOrganizerError !== '' && this.newName === '')}"
-                   v-model="this.newName" /> Organization Name</label>
-        </div>
-        <div class="uk-width-1-3">
-            <label><input class="uk-input" type="text"
-                   :class="{'uk-form-danger': (this.addOrganizerError !== '' && this.newYears === '')}"
-                   v-model="this.newYears" /> Active Years</label>
-        </div>
-        <div class="uk-width-1-3">
-            <label><input class="uk-input" type="text"
-                   :class="{'uk-form-danger': (this.addOrganizerError !== '' && this.newWeb === '')}"
-                   v-model="this.newWeb" /> Website</label>
-        </div>
-    </div>
-    <div class="uk-margin-small">
-        <button class="uk-button uk-button-primary" @click="addOrganizer">Add Organization</button>
-        <span class="uk-text-danger uk-margin-small-left">[[ this.addOrganizerError ]]</span>
-    </div>
-</div>`
 }
+</script>
