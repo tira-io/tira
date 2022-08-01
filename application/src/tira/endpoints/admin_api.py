@@ -175,6 +175,10 @@ def admin_add_dataset(request):
         git_runner_command = data["git_runner_command"]
         git_repository_id = data["git_repository_id"]
 
+        if not git_repository_id:
+
+
+
         master_vm_id = model.get_task(task_id)["master_vm_id"]
 
         if not model.task_exists(task_id):
