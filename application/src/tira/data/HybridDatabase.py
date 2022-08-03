@@ -869,6 +869,21 @@ class HybridDatabase(object):
 
         return False
 
+def rename_software(self, task_id, vm_id, software_id, new_id):
+    def update (x, y):
+        return y if y is not None else x
+
+    s = self._load_softwares(vm_id, task_id)
+    date = now()
+    for software in s:
+        if software.id == software_id:
+            software.id = update(software_id, new_id)
+            software.lastEditDate = date
+            
+    self._save_softwares(task_id, vm_id, s)
+    modeldb.Software.objects.filter(software_id=software_id, vm__vm_id=vm_id).update(software_id=software.id)
+
+
     def update_review(self, dataset_id, vm_id, run_id,
                       reviewer_id: str = None, review_date: str = None, has_errors: bool = None,
                       has_no_errors: bool = None, no_errors: bool = None, missing_output: bool = None,

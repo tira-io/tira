@@ -1,3 +1,6 @@
+from email.policy import HTTP
+from http.client import BAD_GATEWAY, BAD_REQUEST
+from re import S
 from django.template.loader import render_to_string
 from django.db.utils import IntegrityError
 import logging
@@ -252,6 +255,23 @@ def software_save(request, task_id, vm_id, software_id):
 
         return JsonResponse({'status': '1', "message": message}, status=HTTPStatus.BAD_REQUEST)
     return JsonResponse({'status': 1, 'message': f"GET is not implemented for add dataset"})
+
+@check_permissions
+@check_resources_exist('json')
+def software_rename(request, task_id, vm_id, software_id, new_id):
+
+    software = model.rename_software(task_id, vm_id, software_id, new_id)
+
+    message = 'failed to rename software for an unknown reason'
+
+    try:
+        if software:
+            return JsonResponse({'status': '1','message': f'Saved {software_id}', 'last_edit': software.lastEditDate},
+                                status=HTTPStatus.ACCEPTED)
+    except Exception as e:
+        message = str(e)
+
+    return JsonResponse({'status': '1', 'message': message}, status=HTTPStatus.BAD_REQUEST)
 
 
 @check_permissions

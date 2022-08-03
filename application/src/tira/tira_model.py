@@ -287,6 +287,9 @@ def update_software(task_id, vm_id, software_id, command: str = None, working_di
     return model.update_software(task_id, vm_id, software_id, command, working_directory, dataset,
                                  run, deleted)
 
+def rename_software(task_id, vm_id, software_id, new_id):
+    return model.rename_software(task_id, vm_id, software_id, new_id)
+
 
 def edit_task(task_id: str, task_name: str, task_description: str, master_vm_id: str, organizer: str, website: str,
               help_command: str = None, help_text: str = None):
