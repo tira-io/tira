@@ -870,14 +870,12 @@ class HybridDatabase(object):
         return False
 
     def rename_software(self, task_id, vm_id, software_id, new_id):
-        def update (x, y):
-            return y if y is not None else x
 
         s = self._load_softwares(vm_id, task_id)
         date = now()
-        for software in s:
+        for software in s.softwares:
             if software.id == software_id:
-                software.id = update(software_id, new_id)
+                software.id = new_id
                 software.lastEditDate = date
 
                 self._save_softwares(task_id, vm_id, s)
