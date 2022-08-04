@@ -172,7 +172,7 @@
 
         <ul uk-tab id="tira-software-tab">
             {% for sw in software %}
-            <li><a href="#">{{ sw.software.id }}</a></li>
+            <li class="id_element"><a href="#">{{ sw.software.id }}</a></li>
             {% endfor %}
             {% if not is_default %}
             <li id="add-software">
