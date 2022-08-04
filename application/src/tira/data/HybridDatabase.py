@@ -871,7 +871,7 @@ class HybridDatabase(object):
 
     def rename_software(self, task_id, vm_id, software_id, new_id):
 
-        s = self._load_softwares(vm_id, task_id)
+        s = self._load_softwares(task_id, vm_id)
         date = now()
         for software in s.softwares:
             if software.id == software_id:
