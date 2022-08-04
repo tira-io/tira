@@ -465,8 +465,9 @@ function addSoftwareEvents(taskId, vmId, is_default) {
         $('.software-save-button').click(function () {
             saveSoftware(taskId, vmId, $(this).data("tiraSoftwareId"));
         })
-        $('#tira-software-tab').children().dblclick(function() {
+        $('.id_element').on('dblclick', function() {
             const child_id = $(this).text();
+            
             var $el = $(this);
             var $input = $('<input id="testinput" type="text" contenteditable="true"/>').val( $el.text() );
             $el.replaceWith( $input );
