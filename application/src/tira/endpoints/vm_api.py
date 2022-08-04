@@ -258,7 +258,10 @@ def software_save(request, task_id, vm_id, software_id):
 
 @check_permissions
 @check_resources_exist('json')
-def software_rename(request, task_id, vm_id, software_id, new_id):
+def software_rename(request, task_id, vm_id, software_id):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        new_id = data.get("new_id")
 
     software = model.rename_software(task_id, vm_id, software_id, new_id)
 
@@ -266,7 +269,7 @@ def software_rename(request, task_id, vm_id, software_id, new_id):
 
     try:
         if software:
-            return JsonResponse({'status': '1','message': f'Saved {software_id}', 'last_edit': software.lastEditDate},
+            return JsonResponse({'status': '1','message': f'Renamed {software_id} to {new_id}', 'last_edit': software.lastEditDate},
                                 status=HTTPStatus.ACCEPTED)
     except Exception as e:
         message = str(e)
