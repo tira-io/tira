@@ -260,6 +260,7 @@ async function renameSoftware(taskId, vmId, softwareId, newId) {
     if (!response.ok) {
         throw new Error(`Error ${response.status}`);
     }
+    document.location.reload();
 }
 
 function deleteSoftware(tid, vmid, softwareId, form) {
