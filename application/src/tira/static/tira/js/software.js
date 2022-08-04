@@ -248,6 +248,7 @@ async function renameSoftware(taskId, vmId, softwareId, newId) {
     })
     const params = {
         csrfmiddlewaretoken: token,
+        action: 'post',
         new_id: newId,
     }
 
@@ -256,7 +257,9 @@ async function renameSoftware(taskId, vmId, softwareId, newId) {
         headers,
         body: JSON.stringify(params)
     })
-
+    if (!response.ok) {
+        throw new Error(`Error ${response.status}`);
+    }
 }
 
 function deleteSoftware(tid, vmid, softwareId, form) {
@@ -462,8 +465,16 @@ function addSoftwareEvents(taskId, vmId, is_default) {
             saveSoftware(taskId, vmId, $(this).data("tiraSoftwareId"));
         })
         $('#tira-software-tab').children().dblclick(function() {
-            renameSoftware(taskId, vmId, softwareId=$(this).text(), newId="testing-ajax");
-            //console.log($(this).text());
+            const child_id = $(this).text();
+            var $el = $(this);
+            var $input = $('<input id="testinput" type="text" contenteditable="true"/>').val( $el.text() );
+            $el.replaceWith( $input );
+            $('#testinput').on('keyup', function(e) {
+                if (e.key === 'Enter' || e.keyCode === 13) {
+                    new_id = $('#testinput').val();
+                    renameSoftware(taskId, vmId, child_id, new_id);
+                }
+            })
         })
         $('.software-delete-button').click(function () {
             let formId = '#' + $(this).data("tiraSoftwareId") + '-row'
