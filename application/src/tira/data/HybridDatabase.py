@@ -873,6 +873,7 @@ class HybridDatabase(object):
 
         s = self._load_softwares(task_id, vm_id)
         date = now()
+
         for software in s.softwares:
             if software.id == software_id:
                 software.id = new_id
@@ -883,6 +884,15 @@ class HybridDatabase(object):
                 return software
 
         return False
+
+    def check_software_ids(self, task_id, vm_id, new_id):
+
+        s = self._load_softwares(task_id, vm_id)
+        id_list = []
+        for software in s.softwares:
+            if (software.id == new_id):
+                return False
+        return True
 
 
     def update_review(self, dataset_id, vm_id, run_id,

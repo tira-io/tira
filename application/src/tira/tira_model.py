@@ -290,6 +290,9 @@ def update_software(task_id, vm_id, software_id, command: str = None, working_di
 def rename_software(task_id, vm_id, software_id, new_id):
     return model.rename_software(task_id, vm_id, software_id, new_id)
 
+def check_software_ids(task_id, vm_id, new_id):
+    return model.check_software_ids(task_id, vm_id, new_id)
+
 
 def edit_task(task_id: str, task_name: str, task_description: str, master_vm_id: str, organizer: str, website: str,
               help_command: str = None, help_text: str = None):
