@@ -66,31 +66,31 @@ main() {
 
     # Print usage screen if wrong parameter count.
     if [ "$#" -eq 0 ]; then
-        logError "Missing arguments see:"
+        logError "[tira-vm-import] Missing arguments see:"
         usage
     fi
 
     ovafile="$1"
     if [ ! -f "$ovafile" ]; then
-        logError "$ovafile is not a valid file."
+        logError "[tira-vm-import] $ovafile is not a valid file."
         exit 1
     fi
 
-    logInfo "Import ova file."
+    logInfo "[tira-vm-import] Import ova file."
     vmimportname=$(VBoxManage import "$ovafile" -n | grep " 1: Suggested VM name \"" | sed "s| 1: Suggested VM name \"||g" | sed "s|\"||g")
     username=$(get_username "$(basename $ovafile)")
 
-    logInfo "extracted username: $username"
+    logInfo "[tira-vm-import] extracted username: $username"
     vm_info=$(get_vm_info_from_tira "$username")
 
     if [ "$vm_info" = "" ]; then
-        logError "VM-Name/user $vmname_or_user is not registred."
+        logError "[tira-vm-import] VM-Name/user $vmname_or_user is not registred."
         exit 1
     fi
 
-    logInfo "Name of imported vm: $vmimportname"
-    logInfo "$username"
-    logInfo "$vm_info"
+    logInfo "[tira-vm-import] Name of imported vm: $vmimportname"
+    logInfo "[tira-vm-import] $username"
+    logInfo "[tira-vm-import] $vm_info"
 
     VBoxManage import "$ovafile"
 

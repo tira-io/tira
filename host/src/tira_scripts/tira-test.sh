@@ -89,9 +89,9 @@ check_grub_timeout_settings_ubuntu() {
     res=$($scriptPath/tira-vm-ssh.sh "$vmname" -C 'grep -xq "GRUB_RECORDFAIL_TIMEOUT=1" /etc/default/grub; echo $?' 2> /dev/null < /dev/null | tail -1)
 
     if [[ "$res" = "0"* ]]; then
-        logOK "$FUNCNAME"
+        logOK "[tira-test] $FUNCNAME"
     else
-        logFail "$FUNCNAME vm: $vmname"
+        logFail "[tira-test] $FUNCNAME vm: $vmname"
     fi
 }
 
@@ -104,9 +104,9 @@ check_access_shares_ubuntu() {
     res=$($scriptPath/tira-vm-ssh.sh "$vmname" -C 'ls -1 /media/training-datasets/* > /dev/null 2>&1; echo $?' 2> /dev/null < /dev/null | tail -1)
 
     if [[ "$res" = "0"* ]]; then
-        logOK "$FUNCNAME"
+        logOK "[tira-test] $FUNCNAME"
     else
-        logFail "$FUNCNAME vm: $vmname"
+        logFail "[tira-test] $FUNCNAME vm: $vmname"
     fi
 }
 
@@ -119,9 +119,9 @@ check_access_shares_windows() {
     res=$($scriptPath/tira-vm-ssh.sh "$vmname" -C 'ls -1 //VBOXSVR/training-datasets/* > /dev/null 2>&1; echo $?' 2> /dev/null < /dev/null | tail -1)
 
     if [[ "$res" = "0"* ]]; then
-        logOK "$FUNCNAME"
+        logOK "[tira-test] $FUNCNAME"
     else
-        logFail "$FUNCNAME vm: $vmname"
+        logFail "[tira-test] $FUNCNAME vm: $vmname"
     fi
 }
 
@@ -134,9 +134,9 @@ check_ssh_nodns_ubuntu() {
     res=$($scriptPath/tira-vm-ssh.sh "$vmname" -C 'grep -q "UseDNS no" /etc/ssh/sshd_config; echo $?' 2> /dev/null < /dev/null | tail -1)
 
     if [[ "$res" = "0"* ]]; then
-        logOK "$FUNCNAME"
+        logOK "[tira-test] $FUNCNAME"
     else
-        logFail "$FUNCNAME vm: $vmname"
+        logFail "[tira-test] $FUNCNAME vm: $vmname"
     fi
 }
 
@@ -149,9 +149,9 @@ check_ssh_nodns_windows() {
     res=$($scriptPath/tira-vm-ssh.sh "$vmname" -C 'grep -q "UseDNS no" /etc/sshd_config; echo $?' 2> /dev/null < /dev/null | tail -1)
 
     if [[ "$res" = "0"* ]]; then
-        logOK "$FUNCNAME"
+        logOK "[tira-test] $FUNCNAME"
     else
-        logFail "$FUNCNAME vm: $vmname"
+        logFail "[tira-test] $FUNCNAME vm: $vmname"
     fi
 }
 
@@ -198,10 +198,10 @@ check_vm() {
                 check_windows_vm "$vmname" "$vm_info"
             fi
         else
-            logWarn "VM $vmname is not running."
+            logWarn "[tira-test] VM $vmname is not running."
         fi
     else
-        logWarn "VM $vmname is not registered correctly."
+        logWarn "[tira-test] VM $vmname is not registered correctly."
     fi
 }
 
@@ -213,11 +213,11 @@ main() {
     vmlist="${FLAGS_vmlist}"
 
     if [ "$vm" != "" ] && [ "$vmlist" != "" ]; then
-        logError "Parameters are wrong, it is not possible to specify a list and a single vm for a check."
+        logError "[tira-test] Parameters are wrong, it is not possible to specify a list and a single vm for a check."
         return 1
     fi
     if [ "$vmlist" != "" ] && [ ! -f "$vmlist" ]; then
-        logError "$vmlist is not a valid file."
+        logError "[tira-test] $vmlist is not a valid file."
         return 1
     fi
 
@@ -240,8 +240,8 @@ main() {
         awk 'BEGIN { FS=" " }{ print $2}' < "$_CONFIG_FILE_tira_vms" > "$tmp_file"
 
         while read vmname; do
-            logInfo "$vmname"
-            check_vm "$vmname"
+            logInfo "[tira-test] $vmname"
+            check_vm "[tira-test] $vmname"
         done < "$tmp_file"
         rm -rf "$tmp_file"
         return 0

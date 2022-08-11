@@ -70,10 +70,10 @@ eval set -- "${FLAGS_ARGV}"
 #    Creates a TIRA host on a local machine or via remote control.
 #
 main() {
-    logCall "$(basename "$0") $@"
+    logCall "[tira-run-execute-new] $(basename "$0") $@"
     # Check number of parameters.
     if [ "$#" -ne 4 ] && [ "$#" -ne 5 ]; then
-        logError "Wrong amount of parameters: $# but expected 4 or 5, see:"
+        logError "tira-run-execute-new] Wrong amount of parameters: $# but expected 4 or 5, see:"
         usage
     fi
 
@@ -87,7 +87,7 @@ main() {
     outputDirName="$4"
 
     taskname="${FLAGS_taskname}"
-    logInfo "Task: $taskname"
+    logInfo "tira-run-execute-new] Task: $taskname"
 
     # Check for additional parameters.
     if [ "$#" -eq 6 ]; then
@@ -101,7 +101,7 @@ main() {
     # TODO: Remove the construct of submission files altogether."
     submissionFile=$(find "$submissionFileDir" -type f -name "$submissionFileName")
     if [ ! -e "$submissionFile" ]; then
-        logError "$submissionFileName does not exist, check path: $submissionFile."
+        logError "tira-run-execute-new] $submissionFileName does not exist, check path: $submissionFile."
         usage
     fi
     # Source submission file to populate its variables (e.g., $user, $host, etc.)
@@ -169,9 +169,9 @@ main() {
     fi
     dataServer=$(get_data_server_from_tira_dataset_definition "$datasetPrototex")
 
-    logInfo "Input dataset: $inputDataset"
-    logInfo "Output dir: $outputDir"
-    logInfo "Data server: $dataServer"
+    logInfo "tira-run-execute-new] Input dataset: $inputDataset"
+    logInfo "tira-run-execute-new] Output dir: $outputDir"
+    logInfo "tira-run-execute-new] Data server: $dataServer"
 
     # Define input run directory.
     if [ "$inputRunPath" != "none" ]; then
@@ -181,7 +181,7 @@ main() {
            # The path must be Windows style, or else the software won't find it
             inputRun="C:/Windows/Temp/inputRun"
         fi
-        logInfo "$user@$host: input run $inputRunPath to be found at $inputRun"
+        logInfo "tira-run-execute-new] $user@$host: input run $inputRunPath to be found at $inputRun"
     else
         inputRun="none"
     fi
@@ -191,7 +191,7 @@ main() {
 
     # Get hostname (webisxx) for remote sandboxing/unsandboxing.
     hostname=$(echo "$host" | cut -d'.' -f 1)
-    logTodo "webis specific code"
+    # TODO "webis specific code"
     if [ "$hostname" != "webis*" ]; then
         hostname="localhost"
     fi
@@ -269,7 +269,7 @@ main() {
 
     # Copy the input run into the virtual machine into the tmp folder.
     if [ "$inputRunPath" != "none" ]; then
-        logInfo "$user@$host: copying input run into the virtual machine..."
+        logInfo "tira-run-execute-new] $user@$host: copying input run into the virtual machine..."
         sshpass -p "$userpw" \
           scp \
             -o UserKnownHostsFile=/dev/null \
@@ -292,10 +292,10 @@ main() {
     fi
 
     # Execute program on vm.
-    logTodo "How can we avoid keeping an ssh connection open during executing a software in a VM?"
+    # TODO "How can we avoid keeping an ssh connection open during executing a software in a VM?"
 
-    logInfo "$user@$host: establishing SSH connection and executing command..."
-    logInfo "\t$cmd"
+    logInfo "tira-run-execute-new] $user@$host: establishing SSH connection and executing command..."
+    logInfo "tira-run-execute-new] \t$cmd"
     # This SSH connection can last for a very long time, so that a keep alive signal is necessary.
     sshpass -p "$userpw" \
       ssh "$user@$host" \
@@ -322,7 +322,7 @@ main() {
         -t \
         -t "rm ~/.bashrc"
     # Copy outputDir from vm to localhost.
-    logInfo "$user@$host: copying $outputDir from VM..."
+    logInfo "tira-run-execute-new] $user@$host: copying $outputDir from VM..."
     localRunDir="$runDir/$inputDatasetName/$user"
     mkdir -p "$localRunDir"
     sshpass -p "$userpw" \
@@ -337,7 +337,7 @@ main() {
     chmod -R 775 "$localRunDir/$outputDirName"
 
     # Remove outputDir on vm.
-    logInfo "$user@$host: removing $outputDir from VM..."
+    logInfo "tira-run-execute-new] $user@$host: removing $outputDir from VM..."
     sshpass -p "$userpw" \
       ssh "$user@$host" \
         -p "$sshport" \
@@ -348,7 +348,7 @@ main() {
         -t "rm -rf $outputRunDir; exit"
 
     # Remove inputRun on vm.
-    logInfo "$user@$host: removing $outputDir from VM..."
+    logInfo "tira-run-execute-new] $user@$host: removing $outputDir from VM..."
     sshpass -p "$userpw" \
       ssh "$user@$host" \
         -p "$sshport" \
@@ -359,7 +359,7 @@ main() {
         -t "rm -rf $inputRun; exit"
 
     # Determine size of the run.
-    logInfo "executing command: (du -sb $localRunDir/$outputDirName && du -hs $localRunDir/$outputDirName) | cut -f1 > $localRunDir/$outputDirName/size.txt"
+    logInfo "tira-run-execute-new] executing command: (du -sb $localRunDir/$outputDirName && du -hs $localRunDir/$outputDirName) | cut -f1 > $localRunDir/$outputDirName/size.txt"
     (du -sb "$localRunDir/$outputDirName" && du -hs "$localRunDir/$outputDirName") | cut -f1 > "$localRunDir/$outputDirName/size.txt"
     # Count lines.
     find "$localRunDir/$outputDirName/output" -type f -exec cat {} + | wc -l | tee -a "$localRunDir/$outputDirName/size.txt" >/dev/null

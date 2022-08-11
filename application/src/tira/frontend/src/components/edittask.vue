@@ -1,3 +1,4 @@
+<script>
 export default {
     data() {
         return {
@@ -120,11 +121,13 @@ export default {
         }).catch(error => {
             this.$emit('addnotification', 'error', `Error loading organizer list: ${error}`)
         })
-    },
-    template: `
+    }
+}
+</script>
+<template>
 <div class="uk-grid-small uk-margin-small" uk-grid>
     <div class="uk-margin-right">
-        <h2>Edit Task <span class="uk-text-lead uk-text-muted">ID: [[ this.task_id ]]</span></h2>
+        <h2>Edit Task <span class="uk-text-lead uk-text-muted">ID: {{ this.task_id }}</span></h2>
     </div>
 </div>
 <div class="uk-margin-small">
@@ -140,7 +143,7 @@ export default {
             <select id="host-select" class="uk-select" v-model="this.selectedOrganizer"
                    :class="{'uk-form-danger': (this.taskError !== '' && this.selectedOrganizer === '')}">
                 <option disabled value="">Please select an organizer</option>
-                <option v-for="organizer in this.organizerList" :value="organizer">[[ organizer.name ]]</option>
+                <option v-for="organizer in this.organizerList" :value="organizer">{{ organizer.name }}</option>
             </select></label>
         </div>
         <div class="uk-width-1-3">
@@ -170,12 +173,13 @@ export default {
     </div>
     <div class="uk-margin-small uk-grid-collapse" uk-grid>
         <div class="uk-width-expand">
-            <span class="uk-text-danger uk-margin-small-left">[[ this.taskError ]]</span>
+            <span class="uk-text-danger uk-margin-small-left">{{ this.taskError }}</span>
         </div>
         <div>
             <button class="uk-button uk-button-primary" @click="saveTask">Save</button>
             <button class="uk-button uk-button-danger" @click="deleteTask">Delete Task</button>
         </div>
     </div>
-</div>`
-}
+</div>
+</template>
+

@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'webpack_loader',
 ]
 
 MIDDLEWARE = [
@@ -233,6 +234,14 @@ def logger_config(log_dir: Path):
         }
     }
 
+# Git Integration
+GIT_CI_SERVER_HOST = custom_settings.get('GIT_CI_SERVER_HOST', 'git.webis.de')
+GIT_PRIVATE_TOKEN = custom_settings['GIT_PRIVATE_TOKEN']
+GIT_USER_NAME = custom_settings['GIT_USER_NAME']
+GIT_USER_PASSWORD = custom_settings['GIT_USER_PASSWORD']
+GIT_USER_REPOSITORY_NAMESPACE_ID = int(custom_settings.get('GIT_USER_REPOSITORY_NAMESPACE_ID', '146'))
+GIT_REGISTRY_PREFIX = custom_settings.get('GIT_REGISTRY_PREFIX', 'registry.webis.de/code-research/tira')
+GIT_USER_REPOSITORY_BRANCH = custom_settings.get('GIT_USER_REPOSITORY_BRANCH', 'main')
 
 # Logging
 ld = Path(custom_settings.get("logging_dir", TIRA_ROOT / "log" / "tira-application"))
@@ -293,3 +302,11 @@ STATICFILES_DIRS = [
 ]
 
 STATIC_ROOT = "/var/www/public"
+
+WEBPACK_LOADER = {
+    'DEFAULT': {
+        'CACHE': DEBUG,
+        'BUNDLE_DIR_NAME': '/bundles/',
+        'STATS_FILE': BASE_DIR / 'tira' / 'frontend' / 'webpack-stats.json'
+    }
+}

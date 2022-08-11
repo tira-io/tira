@@ -57,7 +57,7 @@ main() {
 
     # Print usage screen if wrong parameter count.
     if [ "$#" -ne 8 ]; then
-        logError "Missing arguments see:"
+        logError "[tira-configure-vm] Missing arguments see:"
         usage
     fi
 
@@ -73,7 +73,7 @@ main() {
     vmid=$((sshport - 44400))
 
     if [ ! -f "$ova" ]; then
-        logError "OVA does not exist."
+        logError "[tira-configure-vm] OVA does not exist."
         exit 1
     fi
 

@@ -84,9 +84,9 @@ Authors:
 #
 apt_get_install() {
     if sudo apt-get -qq install "$1"; then
-        logInfo "$1 installation was successful."
+        logInfo "[tira-host-create] $1 installation was successful."
     else
-        logError "Installing $1 failed. Aborting."
+        logError "[tira-host-create] Installing $1 failed. Aborting."
         exit 1
     fi
 }
@@ -106,23 +106,23 @@ main() {
 
     # Print usage screen if wrong parameter count.
     if [ "$#" -le 1 ]; then
-        logError "Missing arguments see:"
+        logError "[tira-host-create] Missing arguments see:"
         usage
     fi
 
     networkinterface="$2"
     if [ "$(network_interface_available "$networkinterface")" != "true" ]; then
-        logError "$networkinterface does not exist. Aborting."
+        logError "[tira-host-create] $networkinterface does not exist. Aborting."
         exit 1
     fi
 
     # Host-create is a critical command so it prints a prompt.
-    logInfo "This command turns this machine into a TIRA HOST."
+    logInfo "[tira-host-create] This command turns this machine into a TIRA HOST."
 
 #    yes_no_promt "Do you wish to continue?" "Process aborted."
 
     # Create local TIRA directory.
-    logInfo "Creating TIRA directory. ($_CONFIG_tira_username password needed)"
+    logInfo "[tira-host-create] Creating TIRA directory. ($_CONFIG_tira_username password needed)"
     su "$_CONFIG_tira_username" -c "mkdir -p \"$_CONFIG_FILE_tira_local_home\""
     su "$_CONFIG_tira_username" -c "echo \"$_CONFIG_tira_local_home_log_file_header\" > \"$_CONFIG_FILE_tira_local_home/vms.txt\""
 
@@ -179,12 +179,12 @@ main() {
 
     # Check if network-manager is running.
     if [ "$(sudo service network-manager status | grep "start/running")" != "" ]; then
-        logInfo "Patch network-manager for compatibility with dnsmasq."
+        logInfo "[tira-host-create] Patch network-manager for compatibility with dnsmasq."
         sudo sed -i "s|dns=dnsmasq|#dns=dnsmasq|g" /etc/NetworkManager/NetworkManager.conf
         sudo service network-manager restart
 	    sleep 10 # because it change something with the network configuration therefore a sleep is necessary
     else
-        logInfo "There is not network-manager service on this host."
+        logInfo "[tira-host-create] There is not network-manager service on this host."
     fi
 
     # apt_get_install "rdesktop"
@@ -207,8 +207,8 @@ main() {
 
 
     # Configuration of Virtual Box
-    logInfo "Configuring Virtual Box for user $_CONFIG_tira_username"
-    logInfo "Please input tira user password:"
+    logInfo "[tira-host-create] Configuring Virtual Box for user $_CONFIG_tira_username"
+    logInfo "[tira-host-create] Please input tira user password:"
     su "$_CONFIG_tira_username" -c "VBoxManage setproperty vrdeauthlibrary \"VBoxAuthSimple\""
     # Create first virtualbox network interface (vboxnet0)
     VBoxManage hostonlyif create
@@ -233,13 +233,13 @@ main() {
     tmp_file=$(tempfile)
     echo "" > "$tmp_file"
 
-    logTodo "50 interfaces?"
+    #TODO  "50 interfaces?"
     for id in $(seq 1 50); do
         echo "dhcp-range=interface:vboxnet${id},10.${hostnumber}.${id}.100,10.${hostnumber}.${id}.100,255.255.255.0,5m" >> "$tmp_file"
     done
     sudo mv "$tmp_file" /etc/dnsmasq.d/tira
 
-    logTodo "check if dnsmasq can be started!"
+    #TODO "check if dnsmasq can be started!"
     sudo service dnsmasq restart
     sleep 3
 
@@ -261,7 +261,7 @@ main() {
 
     # tira_call exchange-keys -p "$TIRA_PASSWORD"
 
-    logInfo "Tira host was successfuly created!"
+    logInfo "[tira-host-create] Tira host was successfuly created!"
 }
 
 #

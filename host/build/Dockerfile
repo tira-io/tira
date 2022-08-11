@@ -2,13 +2,12 @@ FROM phusion/baseimage:bionic-1.0.0
 
 ARG TIRA_PASSWORD
 ARG VBOXVERSION
+ARG PYCHARM_VERSION
 
 # install prerequisite packages and virtualbox
 RUN apt-get update && apt-get install -y iputils-ping net-tools ca-certificates wget tree sudo bash-completion \
     openssh-client openssh-server sshpass iptables dkms ufw iproute2 module-init-tools supervisor \
 		curl dnsmasq lsb-release rdesktop python2.7 python-pip python3 python3-pip bsdmainutils rdesktop dnsutils
-
-RUN python3 -m pip install --upgrade pip && python3 -m pip install grpcio grpcio-tools watchdog[watchmedo]
 
 RUN wget https://download.virtualbox.org/virtualbox/6.1.18/virtualbox-6.1_6.1.18-142142~Ubuntu~bionic_amd64.deb -O /tmp/virtualbox-6.1_6.1.18-142142~Ubuntu~bionic_amd64.deb
 RUN sudo apt-get install -y --no-install-recommends --allow-unauthenticated /tmp/virtualbox-6.1_6.1.18-142142~Ubuntu~bionic_amd64.deb
@@ -17,6 +16,7 @@ RUN wget https://download.virtualbox.org/virtualbox/6.1.18/Oracle_VM_VirtualBox_
 RUN echo "y" | sudo VBoxManage extpack install /tmp/Oracle_VM_VirtualBox_Extension_Pack-6.1.18-142142.vbox-extpack
 RUN rm /tmp/Oracle_VM_VirtualBox_Extension_Pack-6.1.18-142142.vbox-extpack && rm /tmp/virtualbox-6.1_6.1.18-142142~Ubuntu~bionic_amd64.deb
 
+RUN python3 -m pip install --upgrade pip && python3 -m pip install grpcio==1.36.1 grpcio-tools==1.36.1 watchdog[watchmedo] pydevd-pycharm~=$PYCHARM_VERSION
 
 RUN mkdir -m 777 mnt/input && \
     mkdir -m 777 mnt/output && \

@@ -52,6 +52,7 @@ class HybridDatabase(object):
         #             self.datasets_dir_path, self.softwares_dir_path, self.runs_dir_path)
 
     def build_model(self):
+        self.vm_list_file.touch(exist_ok=True)
         dbops.index(self.organizers_file_path, self.users_file_path, self.vm_dir_path, self.tasks_dir_path,
                     self.datasets_dir_path, self.softwares_dir_path, self.runs_dir_path)
 
@@ -177,6 +178,7 @@ class HybridDatabase(object):
         Required Parameters are also required in the function
         """
         review = self.load_review(dataset_id, vm_id, run_id)
+
         def update(x, y):
             return y if y is not None else x
 
@@ -511,8 +513,13 @@ class HybridDatabase(object):
             vm_id = ''
             host = ''
 
-        return {"vm_id": vm_id, "host": host, "command": evaluator.command,
-                "working_dir": evaluator.working_directory, 'measures': evaluator.measures}
+        if not task_id:
+            task_id = modeldb.Dataset.objects.get(evaluator=evaluator).default_task.task_id
+
+        return {"vm_id": vm_id, "host": host, "command": evaluator.command, "task_id": task_id,
+                "working_dir": evaluator.working_directory, 'measures': evaluator.measures,
+                "is_git_runner": evaluator.is_git_runner, "git_runner_image": evaluator.git_runner_image,
+                "git_runner_command": evaluator.git_runner_command, "git_repository_id": evaluator.git_repository_id, }
 
     @staticmethod
     def get_vm_evaluations_by_dataset(dataset_id, vm_id, only_public_results=True):
@@ -797,31 +804,41 @@ class HybridDatabase(object):
         ds.evaluatorId = evaluator_id
         open(dataset_file_path, 'w').write(str(ds))
 
-    def add_evaluator(self, vm_id, task_id, dataset_id, command, working_directory, measures):
+    def add_evaluator(self, vm_id, task_id, dataset_id, command, working_directory, measures, is_git_runner,
+                      git_runner_image, git_runner_command, git_repository_id):
         """ Add a new Evaluator to the model (and the filedatabase as long as needed)
 
-        :param vm_id: vm id as string as usual
-        :param task_id: task_id as string as usual
-        :param dataset_id: dataset_id as string as usual
-        :param command: The command (including vairables) that should be executed to run the evaluator
-        :param working_directory: the directory in the master vm from where command should be executed
-        :param measures: a string: the header columns of the measures, colon-separated
+        @param vm_id: vm id as string as usual
+        @param task_id: task_id as string as usual
+        @param dataset_id: dataset_id as string as usual
+        @param command: The command (including variables) that should be executed to run the evaluator
+        @param working_directory: the directory in the master vm from where command should be executed
+        @param measures: a string: the header columns of the measures, colon-separated
+        @param is_git_runner: a bool. If true, run_evaluations are done via git CI (see git_runner.py)
+        @param git_repository_id: the repo ID where the new run will be conducted
+        @param git_runner_command: the command for the runner
+        @param git_runner_image: which image should be run for the evalution
          """
         evaluator_id = f"{dataset_id}-evaluator"
 
         ev, _ = modeldb.Evaluator.objects.update_or_create(evaluator_id=evaluator_id, defaults={
             'command': command,
             'working_directory': working_directory,
-            'measures': measures
+            'measures': measures,
+            'is_git_runner': is_git_runner,
+            'git_runner_image': git_runner_image,
+            'git_runner_command': git_runner_command,
+            'git_repository_id': git_repository_id
         })
 
         # add evaluator to master vm
-        if vm_id:
+        if vm_id and not is_git_runner:
             vm = modeldb.VirtualMachine.objects.get(vm_id=vm_id)
-            vmhe, _ = modeldb.VirtualMachineHasEvaluator.objects.update_or_create(evaluator_id=evaluator_id,
-                                                                                  vm=vm)
-        self._fdb_add_evaluator_to_dataset(task_id, dataset_id, evaluator_id)
-        self._fdb_add_evaluator_to_vm(vm_id, evaluator_id, command, working_directory, measures)
+            vmhe, _ = modeldb.VirtualMachineHasEvaluator.objects.update_or_create(evaluator_id=evaluator_id, vm=vm)
+
+        if not is_git_runner:
+            self._fdb_add_evaluator_to_dataset(task_id, dataset_id, evaluator_id)
+            self._fdb_add_evaluator_to_vm(vm_id, evaluator_id, command, working_directory, measures)
 
         modeldb.Dataset.objects.filter(dataset_id=dataset_id).update(evaluator=ev)
 
@@ -1110,8 +1127,14 @@ class HybridDatabase(object):
 
         open(vm_file_path, 'w').write(str(vm))
 
-    def edit_dataset(self, task_id, dataset_id, dataset_name, command, working_directory, measures, upload_name, is_confidential):
+    def edit_dataset(self, task_id, dataset_id, dataset_name, command, working_directory, measures, upload_name,
+                     is_confidential, is_git_runner, git_runner_image, git_runner_command, git_repository_id):
         """
+
+        @param is_git_runner: a bool. If true, run_evaluations are done via git CI (see git_runner.py)
+        @param git_repository_id: the repo ID where the new run will be conducted
+        @param git_runner_command: the command for the runner
+        @param git_runner_image: which image should be run for the evalution
 
         """
         for_task = modeldb.Task.objects.get(task_id=task_id)
@@ -1126,16 +1149,20 @@ class HybridDatabase(object):
         dataset_type = 'test' if is_confidential else 'training'
 
         ev = modeldb.Evaluator.objects.filter(dataset__dataset_id=dataset_id)
-        ev.update(command=command, working_directory=working_directory, measures=measures)
+        ev.update(command=command, working_directory=working_directory, measures=measures,
+                  is_git_runner=is_git_runner, git_runner_image=git_runner_image,
+                  git_runner_command=git_runner_command, git_repository_id=git_repository_id)
         ev_id = modeldb.Evaluator.objects.get(dataset__dataset_id=dataset_id).evaluator_id
 
         self._fdb_edit_dataset(task_id, dataset_id, dataset_name, dataset_type, ev_id)
-        
+
         try:
             vm_id = modeldb.VirtualMachineHasEvaluator.objects.filter(evaluator__evaluator_id=ev_id)[0].vm.vm_id
             self._fdb_edit_evaluator_to_vm(vm_id, ev_id, command, working_directory, measures)
         except Exception as e:
-            logger.exception(f"failed to query 'VirtualMachineHasEvaluator' for evauator {ev_id}. Will not save changes made to the Filestore.", e)
+            logger.exception(
+                f"failed to query 'VirtualMachineHasEvaluator' for evauator {ev_id}. Will not save changes made to the Filestore.",
+                e)
 
         return self._dataset_to_dict(ds)
 
@@ -1177,11 +1204,11 @@ class HybridDatabase(object):
         task_file_path = self.tasks_dir_path / f'{task_id}.prototext'
         task = Parse(open(task_file_path, "r").read(), modelpb.Tasks.Task())
         for ind, ds in enumerate(task.testDataset):
-            if ds.datasetId == dataset_id:
+            if ds == dataset_id:
                 del task.testDataset[ind]
 
         for ind, ds in enumerate(task.trainingDataset):
-            if ds.datasetId == dataset_id:
+            if ds == dataset_id:
                 del task.trainingDataset[ind]
 
         open(task_file_path, 'w').write(str(task))
@@ -1197,14 +1224,18 @@ class HybridDatabase(object):
         open(vm_file_path, 'w').write(str(vm))
 
     def delete_dataset(self, dataset_id):
-        ds = modeldb.Dataset.objects.select_related('default_task', 'evaluator').filter(dataset_id=dataset_id)
+        ds = modeldb.Dataset.objects.select_related('default_task', 'evaluator').get(dataset_id=dataset_id)
         task_id = ds.default_task.task_id
-        evaluator_id = ds.evaluator.evaluator_id
         vm_id = ds.default_task.vm.vm_id
-        ds.delete()
+        try:
+            evaluator_id = ds.evaluator.evaluator_id
+            self._fdb_delete_evaluator_from_vm(vm_id, evaluator_id)
+        except AttributeError as e:
+            logger.exception(f"Exception deleting evaluator while deleting dataset {dataset_id}. "
+                             f"Maybe It never existed?", e)
         self._fdb_delete_dataset_from_task(task_id, dataset_id)
         self._fdb_delete_dataset(task_id, dataset_id)
-        self._fdb_delete_evaluator_from_vm(vm_id, evaluator_id)
+        ds.delete()
 
     def edit_organizer(self, organizer_id, name, years, web):
         org, _ = modeldb.Organizer.objects.update_or_create(organizer_id=organizer_id, defaults={
@@ -1235,4 +1266,3 @@ class HybridDatabase(object):
     @staticmethod
     def software_exists(task_id: str, vm_id: str, software_id: str) -> bool:
         return modeldb.Software.objects.filter(software_id=software_id, vm__vm_id=vm_id).exists()
-

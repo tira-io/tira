@@ -1,3 +1,4 @@
+<script>
 export default {
     props: ['runs', 'vm_id', 'task_id', 'dataset_id', 'for_review', 'hide_reviewed'],
     computed: {
@@ -7,14 +8,15 @@ export default {
             }
             return this.runs
         }
-    },
-    template: `
+    }
+}
+</script>
+<template>
 <div class="scrollable-table">
 <table class="uk-margin-small uk-table uk-table-divider uk-table-small uk-table-middle">
     <thead>
     <tr>
         <th></th>
-        <th class="uk-table-shrink"></th>
         <th class="uk-table-shrink"></th>
         <th class="uk-table-shrink"></th>
         <th class="uk-table-shrink"></th>
@@ -56,31 +58,22 @@ export default {
                 <i class="fas fa-users-slash dataset-detail-icon"></i>
             </div>
         </td>
-        <td class="uk-table-shrink uk-padding-remove-vertical"> <!-- is upload  -->
-            <div uk-tooltip="This run is was uploaded" v-if="run.is_upload">
-                <i class="fas fa-upload dataset-detail-icon"></i>
-            </div>
-            <div uk-tooltip="This run is is from a software" v-if="!run.is_upload">
-                <i class="fas fa-cogs dataset-detail-icon"></i>
-            </div>
-        </td>
-<!--        Note: the style attribute below is a hack, since disraptor ignores fa-flip-horizontal-->
-        <td class="uk-table-shrink uk-text-nowrap"><span v-if="run.run.is_evaluation"><i class="fas fa-level-up-alt" style="transform: scaleX(-1);"></i></span>&nbsp;[[ run.run.run_id ]]</td>
-        <td class="uk-table-shrink uk-text-nowrap" ><a :href="'#run-' + vm_id + '-' + run.run.input_run_id" v-if="run.run.input_run_id != ''">[[ run.run.input_run_id ]]</a>
+        <td class="uk-table-shrink uk-text-nowrap"><span v-if="run.run.input_run_id != 'none'"><i class="fas fa-level-up-alt fa-flip-horizontal"></i></span>&nbsp;{{ run.run.run_id }}</td>
+        <td class="uk-table-shrink uk-text-nowrap" ><a :href="'#run-' + vm_id + '-' + run.run.input_run_id" v-if="run.run.input_run_id != 'none'">{{ run.run.input_run_id }}</a>
         </td>
         <td class="uk-padding-remove-vertical uk-text-nowrap uk-text-truncate" v-if="for_review">
-           <span v-if="run.review.reviewer" class="uk-text-bold">[[ run.review.reviewer ]]&nbsp;</span> 
+           <span v-if="run.review.reviewer" class="uk-text-bold">{{ run.review.reviewer }}&nbsp;</span> 
            <span v-if="run.review.hasErrorOutput">Output Error -&nbsp;</span>
            <span v-else-if="run.review.otherErrors">Software Error -&nbsp;</span>
-           <span v-if="run.review.comment != ''">[[ run.review.comment ]]</span>
+           <span v-if="run.review.comment != ''">{{ run.review.comment }}</span>
            </td>
-        <td class="uk-padding-remove-vertical uk-text-truncate" v-else>[[ dataset_id ]]</td>
+        <td class="uk-padding-remove-vertical uk-text-truncate" v-else>{{ dataset_id }}</td>
         
         <td class="uk-align-right uk-table-expand uk-text-nowrap uk-margin-remove uk-padding-remove-vertical uk-padding-remove-right">
             <a class="uk-button uk-button-small uk-button-default run-evaluate-button uk-background-default"
                data-tira-dataset="{{ run.dataset }}" data-tira-vm-id="{{ vm_id }}"
                data-tira-run-id="{{ run.run_id }}"
-               v-if="!(for_review) && !run.run.is_evaluation">
+               v-if="!(for_review) && run.run.input_run_id === 'none'">
                 <div id="run-evaluate-spinner-{{ run.run_id }}" class="run-evaluate-spinner" uk-spinner="ratio: 0.4"></div> evaluate</a>
             <a class="uk-button uk-button-small uk-button-default uk-background-default"
                :href="'/task/' + task_id + '/user/' + vm_id + '/dataset/' + dataset_id + '/run/' + run.run.run_id"><i class="fas fa-search"></i> inspect</a>
@@ -96,6 +89,4 @@ export default {
     </tbody>
 </table>
 </div>
-`
-}
-
+</template>

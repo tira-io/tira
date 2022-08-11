@@ -62,20 +62,20 @@ main() {
     all="${FLAGS_all}"
 
     if [ "$list" = "" ] && [ "$all" = "${FLAGS_FALSE}" ]; then
-        logError "This script need at least one parameter."
+        logError "[tira-backup] This script need at least one parameter."
         usage
     fi
 
     tmp_file=$(tempfile)
 
     if [ "$list" != "" ]; then
-        logInfo "This command creates backups of all VMs stored in file $list."
+        logInfo "[tira-backup] This command creates backups of all VMs stored in file $list."
         sed "s/ *| */|/g" "$list" \
             | awk 'BEGIN { FS="|" }{ if (NF > 1) { print $1, $2}}' \
             > "$tmp_file"
     fi
     if [ "$all" = "${FLAGS_TRUE}" ]; then
-        logInfo "This command creates backups of all registred VMs."
+        logInfo "[tira-backup] This command creates backups of all registred VMs."
         awk 'BEGIN { FS=" " }{ print $1, $2}' < "$_CONFIG_FILE_tira_vms" \
             > "$tmp_file"
     fi
@@ -88,23 +88,23 @@ main() {
         # Check if it is a valid host.
         hostmatch=$(grep "$host" < "$_CONFIG_FILE_tira_hosts")
         if [ "$hostmatch" = "" ]; then
-            logWarn "$host is not registred, ignoring."
+            logWarn "[tira-backup] $host is not registred, ignoring."
             continue
         fi
 
         # Check if it is a valid vmname.
         vmmatch=$(grep "$vmname" < "$_CONFIG_FILE_tira_vms" | grep "$host")
         if [ "$vmmatch" = "" ]; then
-            logWarn "$vmname is not registred on $host, ignoring."
+            logWarn "[tira-backup] $vmname is not registred on $host, ignoring."
             continue
         fi
 
         # Extract username from $vmname.
         user="$(echo "$vmname" | cut -d '-' -f 1)"
-        logInfo "Processing $vmname on $host of user $user."
+        logInfo "[tira-backup] Processing $vmname on $host of user $user."
 
         tira_call vm-backup -r "$host" "$vmname" "$user" < /dev/null
-        logInfo "Done!"
+        logInfo "[tira-backup] Done!"
 
     done < "$tmp_file"
 

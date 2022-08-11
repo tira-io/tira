@@ -54,7 +54,7 @@ main() {
 
     # Print usage screen if wrong parameter count.
     if [ "$#" -ne 4 ]; then
-        logError "Missing arguments see:"
+        logError "[tira-configure-vm-windows] Missing arguments see:"
         usage
     fi
 
@@ -68,7 +68,7 @@ main() {
     pwtiradefault="$_CONFIG_tira_default_template_admin_password"
 
     # Add user, change admin pw.
-    logTodo "test net user $user $pw /Add /EXPIRES:NEVER"
+    # TODO "test net user $user $pw /Add /EXPIRES:NEVER"
     sshpass -p "$pwtiradefault" \
       ssh "$usertira@${ip}00" \
         -o ConnectTimeout=10 \

@@ -61,14 +61,14 @@ check_all_vm_stopped() {
     for vmname in $vms; do
         get_vm_state "$vmname" state
         if [ "$state" = "running" ];  then
-            logError "VM $vmname is running!"
+            logError "[tira-stop] VM $vmname is running!"
             err=true
         fi
     done
     if [ "$err" = "true" ]; then
-        logError "Not every vm is stopped!"
+        logError "[tira-stop] Not every vm is stopped!"
     else
-        logInfo "Every vm is stopped."
+        logInfo "[tira-stop] Every vm is stopped."
     fi
 }
 
@@ -78,7 +78,7 @@ check_all_vm_stopped() {
 main() {
 
     # This is a critical command so it prints a prompt.
-    logInfo "This command stops all VMs on this host."
+    logInfo "[tira-stop] This command stops all VMs on this host."
     yes_no_promt "Do you want to continue?" "Process aborted."
 
     # "yes" was choosen.

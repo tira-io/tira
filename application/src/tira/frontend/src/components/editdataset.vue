@@ -1,3 +1,4 @@
+<script charset="utf-8">
 export default {
     data() {
         return {
@@ -5,10 +6,14 @@ export default {
             datasetNameInput: '',
             selectedTask: '',
             publish: '',
-            uploadName: '',
             evaluatorWorkingDirectory: '',
             evaluatorCommand: '',
             evaluationMeasures: '',
+            isGitRunner: false,
+            gitRunnerImage: '',
+            gitRunnerCommand: '',
+            gitRepositoryId: '',
+            useExistingRepo: true,
             taskList: [],
         }
     },
@@ -62,10 +67,14 @@ export default {
                 'name': this.datasetNameInput,
                 'task': this.selectedTask.task_id,
                 'publish': this.publish,
-                'upload_name': this.uploadName,
                 'evaluator_working_directory': this.evaluatorWorkingDirectory,
                 'evaluator_command': this.evaluatorCommand,
                 'evaluation_measures': this.evaluationMeasures,
+                'is_git_runner': this.isGitRunner,
+                'git_runner_image': this.gitRunnerImage,
+                'git_runner_command': this.gitRunnerCommand,
+                'git_repository_id': this.gitRepositoryId,
+                'use_existing_repository': this.useExistingRepo
             }).then(message => {
                 this.$emit('addnotification', 'success', message.message)
                 this.$emit('closemodal')
@@ -107,10 +116,13 @@ export default {
                 const evaluator = message.context.evaluator
                 this.datasetNameInput = dataset.display_name
                 this.publish = !dataset.is_confidential
-                this.uploadName = dataset.default_upload_name
                 this.evaluatorWorkingDirectory = evaluator.working_dir
                 this.evaluatorCommand = evaluator.command
                 this.evaluationMeasures = evaluator.measures
+                    this.isGitRunner = evaluator.is_git_runner
+                    this.gitRunnerImage = evaluator.git_runner_image
+                    this.gitRunnerCommand = evaluator.git_runner_command
+                    this.gitRepositoryId = evaluator.git_repository_id
                 this.selectedTask = this.getTaskById(dataset.task)
             }).catch(error => {
                 this.$emit('addnotification', 'error', `Error loading task: ${error}`)
@@ -118,11 +130,13 @@ export default {
         }).catch(error => {
             this.$emit('addnotification', 'error', `Error loading task list: ${error}`)
         })
-    },
-    template: `
+    }
+}
+</script>
+<template>
 <div class="uk-grid-small uk-margin-small" uk-grid>
     <div class="uk-margin-right">
-        <h2>Edit Dataset <span class="uk-text-lead uk-text-muted">ID: [[ this.dataset_id ]]</span></h2>
+        <h2>Edit Dataset <span class="uk-text-lead uk-text-muted">ID: {{ this.dataset_id }}</span></h2>
     </div>
 </div>
 <div class="uk-margin-small">
@@ -135,7 +149,7 @@ export default {
         <div class="uk-width-1-3">
             <label>Task* <select class="uk-select" v-model="this.selectedTask"
                    :class="{'uk-form-danger': (this.editDatasetError !== '' && this.selectedTask === '')}">
-                <option v-for="task in this.taskList" :value="task">[[ task.task_id ]]</option>
+                <option v-for="task in this.taskList" :value="task">{{ task.task_id }}</option>
             </select></label>
         </div>
         <div class="uk-width-1-3">
@@ -144,22 +158,24 @@ export default {
             </div>
         </div>
     </div>
-    <div class="uk-grid-small uk-margin-small" uk-grid>
-        <div class="uk-width-1-3">
-            <label>Name of uploaded run results<input type="text" class="uk-input" placeholder="predictions.ndjson"
-                   v-model="uploadName" /></label>
-        </div>
-    </div>
     <div class="uk-margin-right">
         <h2>Evaluator</h2>
     </div>
-    <div class="uk-grid-small uk-margin-small" uk-grid>
+    <div>
+        <div>
+            <label><input class="uk-radio" type="radio" name="radio3" :value="false" v-model="isGitRunner"> Master VM</label>&nbsp;
+            <label><input class="uk-radio" type="radio" name="radio3" :value="true" v-model="isGitRunner"> Git CI</label>
+        </div>
+    </div>
+    <div v-if="isGitRunner === false" class="uk-grid-small uk-margin-small" uk-grid>
         <div class="uk-width-1-3">
-            <label>Evaluator Working Directory <input type="text" class="uk-input" placeholder="/path/to/directory - Defaults to home."
+            <label> Evaluator Working Directory
+            <input type="text" class="uk-input"
                    v-model="evaluatorWorkingDirectory" /></label>
         </div>
         <div class="uk-width-1-3">
-            <label>Evaluator Command <input type="text" class="uk-input" placeholder="Command to be run from working directory"
+            <label>Evaluator Command
+            <input type="text" class="uk-input" placeholder="Command to be run from working directory"
                    v-model="evaluatorCommand" /></label>
         </div>
         <div class="uk-width-1-3">
@@ -168,6 +184,21 @@ export default {
                    v-model="selectedTask.master_vm_id" disabled></label>
         </div>
     </div>
+    <div v-if="isGitRunner === true" class="uk-grid-small uk-margin-small" uk-grid>
+        <div class="uk-width-1-2">
+            <label> Image to be run <input type="text" class="uk-input" v-model="gitRunnerImage" /></label>
+        </div>
+        <div class="uk-width-1-2">
+            <label>Git Runner Command <input type="text" class="uk-input" v-model="gitRunnerCommand" /></label>
+        </div>
+        <div class="uk-width-1-1">
+            <label><input class="uk-checkbox" type="checkbox" name="checkbox-gitci" v-model="useExistingRepo"> use existing repository</label>
+        </div>
+        <div v-if="useExistingRepo" class="uk-width-1-1">
+            <label>Git Repository ID <input type="text" class="uk-input" v-model="gitRepositoryId" ></label>
+        </div>
+    </div>     
+    
     <div class="uk-margin-small">
         <label><textarea rows="4" class="uk-textarea" placeholder="Measure Name,measure_key\nName will be displayed to the users.\nmeasure_key must be as output by the evaluation software."
                v-model="evaluationMeasures" /> Evaluation Measures</label>
@@ -175,8 +206,8 @@ export default {
     <div class="uk-margin-small">
         <button class="uk-button uk-button-primary uk-margin-right" @click="saveDataset">Save</button>
         <button class="uk-button uk-button-danger" @click="deleteDataset">Delete</button>
-        <span class="uk-text-danger uk-margin-small-left">[[ this.editDatasetError ]]</span>
+        <span class="uk-text-danger uk-margin-small-left">{{ this.editDatasetError }}</span>
     </div>
     *mandatory
-</div>`
-}
+</div>
+</template>

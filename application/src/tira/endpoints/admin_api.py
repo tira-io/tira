@@ -9,6 +9,7 @@ from http import HTTPStatus
 import json
 
 import tira.tira_model as model
+import tira.git_runner as git_runner
 
 logger = logging.getLogger("tira")
 logger.info("ajax_routes: Logger active")
@@ -170,6 +171,14 @@ def admin_add_dataset(request):
         working_directory = data["evaluator_working_directory"]
         measures = data["evaluation_measures"]
 
+        is_git_runner = data["is_git_runner"]
+        git_runner_image = data["git_runner_image"]
+        git_runner_command = data["git_runner_command"]
+        git_repository_id = data["git_repository_id"]
+
+        if not data["use_existing_repository"]:
+            git_repository_id = git_runner.create_task_repository(task_id)
+
         master_vm_id = model.get_task(task_id)["master_vm_id"]
 
         if not model.task_exists(task_id):
@@ -183,7 +192,8 @@ def admin_add_dataset(request):
             elif data['type'] == 'test':
                 ds, paths = model.add_dataset(task_id, dataset_id_prefix, "test", dataset_name, upload_name)
 
-            model.add_evaluator(master_vm_id, task_id, ds['dataset_id'], command, working_directory, measures)
+            model.add_evaluator(master_vm_id, task_id, ds['dataset_id'], command, working_directory, not measures,
+                                is_git_runner, git_runner_image, git_runner_command, git_repository_id)
             path_string = '\n '.join(paths)
             return JsonResponse(
                 {'status': 0, 'context': ds, 'message': f"Created new dataset with id {ds['dataset_id']}. "
@@ -214,6 +224,10 @@ def admin_edit_dataset(request, dataset_id):
         Display Name of Measure2,key_of_measure_2\n
         ...
         `
+    - is_git_runner
+    - git_runner_image
+    - git_runner_command
+    - git_repository_id
     """
     if request.method == "POST":
         data = json.loads(request.body)
@@ -226,13 +240,24 @@ def admin_edit_dataset(request, dataset_id):
         working_directory = data["evaluator_working_directory"]
         measures = data["evaluation_measures"]
 
+        is_git_runner = data["is_git_runner"]
+        git_runner_image = data["git_runner_image"]
+        git_runner_command = data["git_runner_command"]
+        git_repository_id = data["git_repository_id"]
+
+        print(data["use_existing_repository"])
+        print(data["git_repository_id"])
+        if not data["use_existing_repository"]:
+            git_repository_id = git_runner.create_task_repository(task_id)
+
         upload_name = data["upload_name"]
 
         if not model.task_exists(task_id):
             return JsonResponse({'status': 1, "message": f"Task with ID {task_id} does not exist"})
 
         ds = model.edit_dataset(task_id, dataset_id, dataset_name, command, working_directory,
-                                measures, upload_name, is_confidential)
+                                measures, upload_name, is_confidential, is_git_runner, git_runner_image,
+                                git_runner_command, git_repository_id)
 
         return JsonResponse(
             {'status': 0, 'context': ds, 'message': f"Updated Dataset {ds['dataset_id']}."})

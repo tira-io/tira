@@ -59,7 +59,7 @@ main() {
 
     # Print usage screen if wrong parameter count.
     if [ "$#" -eq 0 ]; then
-        logError "Missing arguments see:"
+        logError "[discourse-delete-vm-group] Missing arguments see:"
         usage
     fi
 
@@ -67,12 +67,12 @@ main() {
     vm_info=$(get_vm_info_from_tira "$vmname_or_user")
 
     if [ "$vm_info" = "" ]; then
-        logError "VM-Name/user $vmname_or_user is not registered. Use tira vm-list to get a list of all vms."
+        logError "[discourse-delete-vm-group] VM-Name/user $vmname_or_user is not registered. Use tira vm-list to get a list of all vms."
         exit 1
     fi
 
     user=$(echo "$vm_info" | grep "userName=" | sed "s|userName=||g")
-    logInfo "Delete group of user ${user}"
+    logInfo "[discourse-delete-vm-group] Delete group of user ${user}"
 
     delete_group
 }

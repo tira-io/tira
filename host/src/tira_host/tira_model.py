@@ -1,8 +1,8 @@
 #!/usr/bin/env python
-
+import time
 from configparser import ConfigParser
 from datetime import datetime
-from google.protobuf.text_format import Parse, MessageToString
+from google.protobuf.text_format import Parse, MessageToString, ParseError
 from pathlib import Path
 import logging
 from proto import TiraClientWebMessages_pb2 as modelpb
@@ -34,8 +34,6 @@ class FileDatabase(FileSystemEventHandler):
     SUBMISSIONS_PATH = tira_root / Path("state/softwares")
 
     def __init__(self, on_modified_callback=None):
-        logger.info("Start loading TIRA database")
-
         self.grpc_service = None
         self.organizers = None  # dict of host objects host_id: modelpb.Host
         self.vms = None  # dict of vm_id: modelpb.User
@@ -54,6 +52,8 @@ class FileDatabase(FileSystemEventHandler):
         self.build_model()
 
     def build_model(self):
+        logger.info("Loading TIRA database...")
+
         self._parse_organizer_list()
         self._parse_vm_list()
         self._parse_task_list()
@@ -65,6 +65,7 @@ class FileDatabase(FileSystemEventHandler):
 
     def on_modified(self, event):
         logger.info(f"Reload {self.users_file_path}...")
+        time.sleep(5)
         self.build_model()
         if self.on_modified_callback:
             self.on_modified_callback()
@@ -80,7 +81,11 @@ class FileDatabase(FileSystemEventHandler):
 
     def _parse_vm_list(self):
         users = modelpb.Users()
-        Parse(open(self.users_file_path, "r").read(), users)
+        try:
+            Parse(open(self.users_file_path, "r").read(), users)
+        except ParseError as e:
+            logger.error(f"Exception while parsing {self.users_file_path}: {e}")
+
         self.vms = {user.userName: user for user in users.users}
 
     def _parse_dataset_list(self):
@@ -301,6 +306,9 @@ class FileDatabase(FileSystemEventHandler):
         command: command to execute to run the evaluator. NOTE: contains variables the host needs to resolve
         working_dir: where to execute the command
         """
+        if dataset_id not in self.datasets:
+            self.build_model()
+
         dataset = self.datasets[dataset_id]
         evaluator_id = dataset.evaluatorId
         if task_id is None:

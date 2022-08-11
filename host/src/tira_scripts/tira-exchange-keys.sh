@@ -64,11 +64,11 @@ exchange_keys() {
     hostname="$2"
     tirapw="$3"
 
-    logInfo "Key exchange from $this_host to $hostname."
+    logInfo "[tira-exchange-keys] Key exchange from $this_host to $hostname."
     output=$( (ssh_key_exchange "$_CONFIG_tira_username@$hostname" "$tirapw") 2>&1)
 
     if [ "$output" = "" ]; then
-        logInfo "Key exchange from $hostname to $this_host."
+        logInfo "[tira-exchange-keys] Key exchange from $hostname to $this_host."
         # Run function ssh_key_exchange on $hostname via ssh.
         typeset -f | ssh "$_CONFIG_tira_username@$hostname"  \
             -o UserKnownHostsFile=/dev/null \
@@ -76,7 +76,7 @@ exchange_keys() {
             -o LogLevel=error \
             "$(cat); ssh_key_exchange $_CONFIG_tira_username@$this_host $tirapw"
     else
-        logError "Problems with $hostname (permission denied," \
+        logError "[tira-exchange-keys] Problems with $hostname (permission denied," \
             "$_CONFIG_tira_username user does not exists or wrong password)."
     fi
 }
@@ -86,14 +86,14 @@ exchange_keys() {
 #
 main() {
 
-    logInfo "SSH key exchange."
+    logInfo "[tira-exchange-keys] SSH key exchange."
 
     this_host="$(hostname)"
     tirapw="${FLAGS_password}"
-    logInfo "$_CONFIG_FILE_tira_hosts"
+    logInfo "[tira-exchange-keys] $_CONFIG_FILE_tira_hosts"
 
     if [ ! -f "$_CONFIG_FILE_tira_hosts" ]; then
-        logError "$_CONFIG_FILE_tira_hosts does not exist. Exit."
+        logError "[tira-exchange-keys] $_CONFIG_FILE_tira_hosts does not exist. Exit."
         exit 1
     fi
     if [ "$tirapw" = "" ]; then
@@ -102,7 +102,7 @@ main() {
 
     # Exchange key with all tira hosts.
     if [ "$1" = "" ]; then
-        logInfo "Exchange keys with all registred hosts"
+        logInfo "[tira-exchange-keys] Exchange keys with all registred hosts"
         # Iterate over all registred host.
         while read hostname; do
             exchange_keys "$this_host" "$hostname" "$tirapw"

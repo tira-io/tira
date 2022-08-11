@@ -21,7 +21,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n\"de.webis.tira.client.web.generatedB\020TiraHostMessagesH\001',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x0ftira_host.proto\x12\x0etira.generated\x1a\x1bgoogle/protobuf/empty.proto\"!\n\x11RequestVmCommands\x12\x0c\n\x04vmId\x18\x01 \x01(\t\"I\n\x0fRequestVmCreate\x12\x0f\n\x07ovaFile\x18\x01 \x01(\t\x12\x0e\n\x06userId\x18\x02 \x01(\t\x12\x15\n\rbulkCommandId\x18\x03 \x01(\t\"\xc8\x01\n\x15RequestRunExecuteEval\x12\x16\n\x0esubmissionFile\x18\x01 \x01(\t\x12\x16\n\x0einputDatasetId\x18\x02 \x01(\t\x12\x14\n\x0cinputRunPath\x18\x03 \x01(\t\x12\x15\n\routputDirName\x18\x04 \x01(\t\x12\x11\n\tsandboxed\x18\x05 \x01(\t\x12\r\n\x05runId\x18\x06 \x01(\t\x12\x14\n\x0csnapshotName\x18\x07 \x01(\t\x12\x1a\n\x12optionalParameters\x18\x08 \x01(\t\"L\n\x0bTransaction\x12&\n\x06status\x18\x01 \x01(\x0e\x32\x16.tira.generated.Status\x12\x15\n\rtransactionId\x18\x02 \x01(\t\"j\n\nSetVmState\x12&\n\x06status\x18\x01 \x01(\x0e\x32\x16.tira.generated.Status\x12&\n\x05state\x18\x02 \x01(\x0e\x32\x17.tira.generated.VmState\x12\x0c\n\x04vmId\x18\x03 \x01(\t\"\xf1\x01\n\x06VmInfo\x12&\n\x06status\x18\x01 \x01(\x0e\x32\x16.tira.generated.Status\x12\x0f\n\x07guestOs\x18\x02 \x01(\t\x12\x12\n\nmemorySize\x18\x03 \x01(\t\x12\x14\n\x0cnumberOfCpus\x18\x04 \x01(\t\x12\x0f\n\x07sshPort\x18\x05 \x01(\t\x12\x0f\n\x07rdpPort\x18\x06 \x01(\t\x12\x0c\n\x04host\x18\x07 \x01(\t\x12\x15\n\rsshPortStatus\x18\x08 \x01(\x08\x12\x15\n\rrdpPortStatus\x18\t \x01(\x08\x12&\n\x05state\x18\n \x01(\x0e\x32\x17.tira.generated.VmState\"\xd4\x02\n\x0c\x43ommandState\x12\x10\n\x08hostname\x18\x01 \x01(\t\x12\x36\n\x08\x63ommands\x18\x02 \x03(\x0b\x32$.tira.generated.CommandState.Command\x1a\xf9\x01\n\x07\x43ommand\x12\n\n\x02id\x18\x01 \x01(\t\x12\x15\n\rcommandString\x18\x02 \x01(\t\x12\x11\n\tstartTime\x18\x03 \x01(\t\x12\x0f\n\x07\x65ndTime\x18\x04 \x01(\t\x12;\n\x06status\x18\x05 \x01(\x0e\x32+.tira.generated.CommandState.Command.Status\x12\x0f\n\x07logFile\x18\x06 \x01(\t\x12\x12\n\nreturnCode\x18\x07 \x01(\x05\x12\x15\n\rbulkCommandId\x18\x08 \x01(\t\".\n\x06Status\x12\x0b\n\x07RUNNING\x10\x00\x12\x0b\n\x07SUCCESS\x10\x01\x12\n\n\x06\x46\x41ILED\x10\x02*!\n\x06Status\x12\x0b\n\x07SUCCESS\x10\x00\x12\n\n\x06\x46\x41ILED\x10\x01*\x98\x01\n\x07VmState\x12\r\n\tUNDEFINED\x10\x00\x12\x0b\n\x07RUNNING\x10\x01\x12\x0f\n\x0bPOWERED_OFF\x10\x02\x12\x0f\n\x0bPOWERING_ON\x10\x03\x12\x10\n\x0cPOWERING_OFF\x10\x04\x12\x0e\n\nSANDBOXING\x10\x05\x12\x10\n\x0cUNSANDBOXING\x10\x06\x12\r\n\tEXECUTING\x10\x07\x12\x0c\n\x08\x41RCHIVED\x10\x08\x32\x97\t\n\x0fTiraHostService\x12M\n\tvm_backup\x12!.tira.generated.RequestVmCommands\x1a\x1b.tira.generated.Transaction\"\x00\x12K\n\tvm_create\x12\x1f.tira.generated.RequestVmCreate\x1a\x1b.tira.generated.Transaction\"\x00\x12M\n\tvm_delete\x12!.tira.generated.RequestVmCommands\x1a\x1b.tira.generated.Transaction\"\x00\x12\x46\n\x07vm_info\x12!.tira.generated.RequestVmCommands\x1a\x16.tira.generated.VmInfo\"\x00\x12@\n\x07vm_list\x12\x16.google.protobuf.Empty\x1a\x1b.tira.generated.Transaction\"\x00\x12N\n\nvm_metrics\x12!.tira.generated.RequestVmCommands\x1a\x1b.tira.generated.Transaction\"\x00\x12N\n\nvm_sandbox\x12!.tira.generated.RequestVmCommands\x1a\x1b.tira.generated.Transaction\"\x00\x12O\n\x0bvm_shutdown\x12!.tira.generated.RequestVmCommands\x1a\x1b.tira.generated.Transaction\"\x00\x12O\n\x0bvm_snapshot\x12!.tira.generated.RequestVmCommands\x1a\x1b.tira.generated.Transaction\"\x00\x12L\n\x08vm_start\x12!.tira.generated.RequestVmCommands\x1a\x1b.tira.generated.Transaction\"\x00\x12K\n\x07vm_stop\x12!.tira.generated.RequestVmCommands\x1a\x1b.tira.generated.Transaction\"\x00\x12P\n\x0cvm_unsandbox\x12!.tira.generated.RequestVmCommands\x1a\x1b.tira.generated.Transaction\"\x00\x12S\n\x0brun_execute\x12%.tira.generated.RequestRunExecuteEval\x1a\x1b.tira.generated.Transaction\"\x00\x12P\n\x08run_eval\x12%.tira.generated.RequestRunExecuteEval\x1a\x1b.tira.generated.Transaction\"\x00\x12\x39\n\x05\x61live\x12\x16.google.protobuf.Empty\x1a\x16.google.protobuf.Empty\"\x00\x32\xb4\x01\n\x16TiraApplicationService\x12\x46\n\tset_state\x12\x1a.tira.generated.SetVmState\x1a\x1b.tira.generated.Transaction\"\x00\x12R\n\x14\x63omplete_transaction\x12\x1b.tira.generated.Transaction\x1a\x1b.tira.generated.Transaction\"\x00\x42\x38\n\"de.webis.tira.client.web.generatedB\x10TiraHostMessagesH\x01\x62\x06proto3'
+  serialized_pb=b'\n\x0ftira_host.proto\x12\x0etira.generated\x1a\x1bgoogle/protobuf/empty.proto\"]\n\x0bTransaction\x12&\n\x06status\x18\x01 \x01(\x0e\x32\x16.tira.generated.Status\x12\x15\n\rtransactionId\x18\x02 \x01(\t\x12\x0f\n\x07message\x18\x03 \x01(\t\"F\n\x04VmId\x12\x30\n\x0btransaction\x18\x01 \x01(\x0b\x32\x1b.tira.generated.Transaction\x12\x0c\n\x04vmId\x18\x02 \x01(\t\"\x87\x01\n\x08VmCreate\x12\x30\n\x0btransaction\x18\x01 \x01(\x0b\x32\x1b.tira.generated.Transaction\x12\x0c\n\x04vmId\x18\x02 \x01(\t\x12\x10\n\x08userName\x18\x03 \x01(\t\x12\x0f\n\x07ovaFile\x18\x04 \x01(\t\x12\n\n\x02ip\x18\x05 \x01(\t\x12\x0c\n\x04host\x18\x06 \x01(\t\"\xb0\x01\n\tVmDetails\x12\x30\n\x0btransaction\x18\x01 \x01(\x0b\x32\x1b.tira.generated.Transaction\x12\x0c\n\x04vmId\x18\x02 \x01(\t\x12\x10\n\x08userName\x18\x03 \x01(\t\x12\x15\n\rinitialUserPw\x18\x04 \x01(\t\x12\n\n\x02ip\x18\x05 \x01(\t\x12\x0c\n\x04host\x18\x06 \x01(\t\x12\x0f\n\x07sshPort\x18\x07 \x01(\t\x12\x0f\n\x07rdpPort\x18\x08 \x01(\t\"c\n\x06VmList\x12\x30\n\x0btransaction\x18\x01 \x01(\x0b\x32\x1b.tira.generated.Transaction\x12\'\n\x07vmsInfo\x18\x02 \x03(\x0b\x32\x16.tira.generated.VmInfo\"i\n\x05RunId\x12\x30\n\x0btransaction\x18\x01 \x01(\x0b\x32\x1b.tira.generated.Transaction\x12\x0c\n\x04vmId\x18\x02 \x01(\t\x12\x11\n\tdatasetId\x18\x03 \x01(\t\x12\r\n\x05runId\x18\x04 \x01(\t\"\xcf\x01\n\nRunDetails\x12\x30\n\x0btransaction\x18\x01 \x01(\x0b\x32\x1b.tira.generated.Transaction\x12$\n\x05runId\x18\x02 \x01(\x0b\x32\x15.tira.generated.RunId\x12)\n\ninputRunId\x18\x03 \x01(\x0b\x32\x15.tira.generated.RunId\x12\x1a\n\x12optionalParameters\x18\x04 \x01(\t\x12\x0e\n\x06taskId\x18\x05 \x01(\t\x12\x12\n\nsoftwareId\x18\x06 \x01(\t\"\xcf\x01\n\x11\x45valuationResults\x12\x30\n\x0btransaction\x18\x01 \x01(\x0b\x32\x1b.tira.generated.Transaction\x12$\n\x05runId\x18\x02 \x01(\x0b\x32\x15.tira.generated.RunId\x12;\n\x08measures\x18\x03 \x03(\x0b\x32).tira.generated.EvaluationResults.Measure\x1a%\n\x07Measure\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\"j\n\x10\x45xecutionResults\x12\x30\n\x0btransaction\x18\x01 \x01(\x0b\x32\x1b.tira.generated.Transaction\x12$\n\x05runId\x18\x02 \x01(\x0b\x32\x15.tira.generated.RunId\"o\n\x07VmState\x12\x30\n\x0btransaction\x18\x01 \x01(\x0b\x32\x1b.tira.generated.Transaction\x12$\n\x05state\x18\x02 \x01(\x0e\x32\x15.tira.generated.State\x12\x0c\n\x04vmId\x18\x03 \x01(\t\"\xbc\x02\n\x06VmInfo\x12\x30\n\x0btransaction\x18\x01 \x01(\x0b\x32\x1b.tira.generated.Transaction\x12\x0f\n\x07guestOs\x18\x03 \x01(\t\x12\x12\n\nmemorySize\x18\x04 \x01(\t\x12\x14\n\x0cnumberOfCpus\x18\x05 \x01(\t\x12\x0f\n\x07sshPort\x18\x06 \x01(\t\x12\x0f\n\x07rdpPort\x18\x07 \x01(\t\x12\x0c\n\x04host\x18\x08 \x01(\t\x12\x15\n\rsshPortStatus\x18\t \x01(\x08\x12\x15\n\rrdpPortStatus\x18\n \x01(\x08\x12$\n\x05state\x18\x0b \x01(\x0e\x32\x15.tira.generated.State\x12\x0c\n\x04vmId\x18\x0c \x01(\t\x12\x10\n\x08userName\x18\r \x01(\t\x12\x15\n\rinitialUserPw\x18\x0e \x01(\t\x12\n\n\x02ip\x18\x0f \x01(\t*\xb0\x01\n\x06Status\x12\x0b\n\x07SUCCESS\x10\x00\x12\n\n\x06\x46\x41ILED\x10\x01\x12\t\n\x05NO_VM\x10\x02\x12\x15\n\x11VM_IN_WRONG_STATE\x10\x03\x12\x11\n\rVM_IN_ARCHIVE\x10\x04\x12\x15\n\x11VM_NOT_ACCESSIBLE\x10\x05\x12\n\n\x06NO_RUN\x10\x06\x12\x11\n\rRUN_MALFORMED\x10\x07\x12\x13\n\x0fINPUT_MALFORMED\x10\x08\x12\r\n\tHOST_BUSY\x10\t*\x96\x01\n\x05State\x12\r\n\tUNDEFINED\x10\x00\x12\x0b\n\x07RUNNING\x10\x01\x12\x0f\n\x0bPOWERED_OFF\x10\x02\x12\x0f\n\x0bPOWERING_ON\x10\x03\x12\x10\n\x0cPOWERING_OFF\x10\x04\x12\x0e\n\nSANDBOXING\x10\x05\x12\x10\n\x0cUNSANDBOXING\x10\x06\x12\r\n\tEXECUTING\x10\x07\x12\x0c\n\x08\x41RCHIVED\x10\x08\x32\xc4\x08\n\x0fTiraHostService\x12@\n\tvm_backup\x12\x14.tira.generated.VmId\x1a\x1b.tira.generated.Transaction\"\x00\x12\x44\n\tvm_create\x12\x18.tira.generated.VmCreate\x1a\x1b.tira.generated.Transaction\"\x00\x12@\n\tvm_delete\x12\x14.tira.generated.VmId\x1a\x1b.tira.generated.Transaction\"\x00\x12\x39\n\x07vm_info\x12\x14.tira.generated.VmId\x1a\x16.tira.generated.VmInfo\"\x00\x12@\n\x07vm_list\x12\x1b.tira.generated.Transaction\x1a\x16.tira.generated.VmList\"\x00\x12\x41\n\nvm_metrics\x12\x14.tira.generated.VmId\x1a\x1b.tira.generated.Transaction\"\x00\x12\x41\n\nvm_sandbox\x12\x14.tira.generated.VmId\x1a\x1b.tira.generated.Transaction\"\x00\x12\x42\n\x0bvm_shutdown\x12\x14.tira.generated.VmId\x1a\x1b.tira.generated.Transaction\"\x00\x12\x42\n\x0bvm_snapshot\x12\x14.tira.generated.VmId\x1a\x1b.tira.generated.Transaction\"\x00\x12?\n\x08vm_start\x12\x14.tira.generated.VmId\x1a\x1b.tira.generated.Transaction\"\x00\x12>\n\x07vm_stop\x12\x14.tira.generated.VmId\x1a\x1b.tira.generated.Transaction\"\x00\x12\x43\n\x0cvm_unsandbox\x12\x14.tira.generated.VmId\x1a\x1b.tira.generated.Transaction\"\x00\x12H\n\x0brun_execute\x12\x1a.tira.generated.RunDetails\x1a\x1b.tira.generated.Transaction\"\x00\x12@\n\trun_abort\x12\x14.tira.generated.VmId\x1a\x1b.tira.generated.Transaction\"\x00\x12\x45\n\x08run_eval\x12\x1a.tira.generated.RunDetails\x1a\x1b.tira.generated.Transaction\"\x00\x12\x43\n\x05\x61live\x12\x1b.tira.generated.Transaction\x1a\x1b.tira.generated.Transaction\"\x00\x32\xf8\x03\n\x16TiraApplicationService\x12\x43\n\tset_state\x12\x17.tira.generated.VmState\x1a\x1b.tira.generated.Transaction\"\x00\x12M\n\x11\x63onfirm_vm_create\x12\x19.tira.generated.VmDetails\x1a\x1b.tira.generated.Transaction\"\x00\x12H\n\x11\x63onfirm_vm_delete\x12\x14.tira.generated.VmId\x1a\x1b.tira.generated.Transaction\"\x00\x12T\n\x10\x63onfirm_run_eval\x12!.tira.generated.EvaluationResults\x1a\x1b.tira.generated.Transaction\"\x00\x12V\n\x13\x63onfirm_run_execute\x12 .tira.generated.ExecutionResults\x1a\x1b.tira.generated.Transaction\"\x00\x12R\n\x14\x63omplete_transaction\x12\x1b.tira.generated.Transaction\x1a\x1b.tira.generated.Transaction\"\x00\x42\x38\n\"de.webis.tira.client.web.generatedB\x10TiraHostMessagesH\x01\x62\x06proto3'
   ,
   dependencies=[google_dot_protobuf_dot_empty__pb2.DESCRIPTOR,])
 
@@ -42,18 +42,58 @@ _STATUS = _descriptor.EnumDescriptor(
       serialized_options=None,
       type=None,
       create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='NO_VM', index=2, number=2,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='VM_IN_WRONG_STATE', index=3, number=3,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='VM_IN_ARCHIVE', index=4, number=4,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='VM_NOT_ACCESSIBLE', index=5, number=5,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='NO_RUN', index=6, number=6,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='RUN_MALFORMED', index=7, number=7,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='INPUT_MALFORMED', index=8, number=8,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
+    _descriptor.EnumValueDescriptor(
+      name='HOST_BUSY', index=9, number=9,
+      serialized_options=None,
+      type=None,
+      create_key=_descriptor._internal_create_key),
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1150,
-  serialized_end=1183,
+  serialized_start=1717,
+  serialized_end=1893,
 )
 _sym_db.RegisterEnumDescriptor(_STATUS)
 
 Status = enum_type_wrapper.EnumTypeWrapper(_STATUS)
-_VMSTATE = _descriptor.EnumDescriptor(
-  name='VmState',
-  full_name='tira.generated.VmState',
+_STATE = _descriptor.EnumDescriptor(
+  name='State',
+  full_name='tira.generated.State',
   filename=None,
   file=DESCRIPTOR,
   create_key=_descriptor._internal_create_key,
@@ -106,14 +146,22 @@ _VMSTATE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1186,
-  serialized_end=1338,
+  serialized_start=1896,
+  serialized_end=2046,
 )
-_sym_db.RegisterEnumDescriptor(_VMSTATE)
+_sym_db.RegisterEnumDescriptor(_STATE)
 
-VmState = enum_type_wrapper.EnumTypeWrapper(_VMSTATE)
+State = enum_type_wrapper.EnumTypeWrapper(_STATE)
 SUCCESS = 0
 FAILED = 1
+NO_VM = 2
+VM_IN_WRONG_STATE = 3
+VM_IN_ARCHIVE = 4
+VM_NOT_ACCESSIBLE = 5
+NO_RUN = 6
+RUN_MALFORMED = 7
+INPUT_MALFORMED = 8
+HOST_BUSY = 9
 UNDEFINED = 0
 RUNNING = 1
 POWERED_OFF = 2
@@ -124,195 +172,6 @@ UNSANDBOXING = 6
 EXECUTING = 7
 ARCHIVED = 8
 
-
-_COMMANDSTATE_COMMAND_STATUS = _descriptor.EnumDescriptor(
-  name='Status',
-  full_name='tira.generated.CommandState.Command.Status',
-  filename=None,
-  file=DESCRIPTOR,
-  create_key=_descriptor._internal_create_key,
-  values=[
-    _descriptor.EnumValueDescriptor(
-      name='RUNNING', index=0, number=0,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='SUCCESS', index=1, number=1,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='FAILED', index=2, number=2,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-  ],
-  containing_type=None,
-  serialized_options=None,
-  serialized_start=1102,
-  serialized_end=1148,
-)
-_sym_db.RegisterEnumDescriptor(_COMMANDSTATE_COMMAND_STATUS)
-
-
-_REQUESTVMCOMMANDS = _descriptor.Descriptor(
-  name='RequestVmCommands',
-  full_name='tira.generated.RequestVmCommands',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='vmId', full_name='tira.generated.RequestVmCommands.vmId', index=0,
-      number=1, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=64,
-  serialized_end=97,
-)
-
-
-_REQUESTVMCREATE = _descriptor.Descriptor(
-  name='RequestVmCreate',
-  full_name='tira.generated.RequestVmCreate',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='ovaFile', full_name='tira.generated.RequestVmCreate.ovaFile', index=0,
-      number=1, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='userId', full_name='tira.generated.RequestVmCreate.userId', index=1,
-      number=2, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='bulkCommandId', full_name='tira.generated.RequestVmCreate.bulkCommandId', index=2,
-      number=3, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=99,
-  serialized_end=172,
-)
-
-
-_REQUESTRUNEXECUTEEVAL = _descriptor.Descriptor(
-  name='RequestRunExecuteEval',
-  full_name='tira.generated.RequestRunExecuteEval',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='submissionFile', full_name='tira.generated.RequestRunExecuteEval.submissionFile', index=0,
-      number=1, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='inputDatasetId', full_name='tira.generated.RequestRunExecuteEval.inputDatasetId', index=1,
-      number=2, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='inputRunPath', full_name='tira.generated.RequestRunExecuteEval.inputRunPath', index=2,
-      number=3, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='outputDirName', full_name='tira.generated.RequestRunExecuteEval.outputDirName', index=3,
-      number=4, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='sandboxed', full_name='tira.generated.RequestRunExecuteEval.sandboxed', index=4,
-      number=5, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='runId', full_name='tira.generated.RequestRunExecuteEval.runId', index=5,
-      number=6, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='snapshotName', full_name='tira.generated.RequestRunExecuteEval.snapshotName', index=6,
-      number=7, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='optionalParameters', full_name='tira.generated.RequestRunExecuteEval.optionalParameters', index=7,
-      number=8, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=175,
-  serialized_end=375,
-)
 
 
 _TRANSACTION = _descriptor.Descriptor(
@@ -337,47 +196,8 @@ _TRANSACTION = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=377,
-  serialized_end=453,
-)
-
-
-_SETVMSTATE = _descriptor.Descriptor(
-  name='SetVmState',
-  full_name='tira.generated.SetVmState',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
     _descriptor.FieldDescriptor(
-      name='status', full_name='tira.generated.SetVmState.status', index=0,
-      number=1, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='state', full_name='tira.generated.SetVmState.state', index=1,
-      number=2, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='vmId', full_name='tira.generated.SetVmState.vmId', index=2,
+      name='message', full_name='tira.generated.Transaction.message', index=2,
       number=3, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
@@ -395,8 +215,523 @@ _SETVMSTATE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=455,
-  serialized_end=561,
+  serialized_start=64,
+  serialized_end=157,
+)
+
+
+_VMID = _descriptor.Descriptor(
+  name='VmId',
+  full_name='tira.generated.VmId',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='transaction', full_name='tira.generated.VmId.transaction', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='vmId', full_name='tira.generated.VmId.vmId', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=159,
+  serialized_end=229,
+)
+
+
+_VMCREATE = _descriptor.Descriptor(
+  name='VmCreate',
+  full_name='tira.generated.VmCreate',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='transaction', full_name='tira.generated.VmCreate.transaction', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='vmId', full_name='tira.generated.VmCreate.vmId', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='userName', full_name='tira.generated.VmCreate.userName', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='ovaFile', full_name='tira.generated.VmCreate.ovaFile', index=3,
+      number=4, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='ip', full_name='tira.generated.VmCreate.ip', index=4,
+      number=5, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='host', full_name='tira.generated.VmCreate.host', index=5,
+      number=6, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=232,
+  serialized_end=367,
+)
+
+
+_VMDETAILS = _descriptor.Descriptor(
+  name='VmDetails',
+  full_name='tira.generated.VmDetails',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='transaction', full_name='tira.generated.VmDetails.transaction', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='vmId', full_name='tira.generated.VmDetails.vmId', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='userName', full_name='tira.generated.VmDetails.userName', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='initialUserPw', full_name='tira.generated.VmDetails.initialUserPw', index=3,
+      number=4, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='ip', full_name='tira.generated.VmDetails.ip', index=4,
+      number=5, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='host', full_name='tira.generated.VmDetails.host', index=5,
+      number=6, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='sshPort', full_name='tira.generated.VmDetails.sshPort', index=6,
+      number=7, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='rdpPort', full_name='tira.generated.VmDetails.rdpPort', index=7,
+      number=8, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=370,
+  serialized_end=546,
+)
+
+
+_VMLIST = _descriptor.Descriptor(
+  name='VmList',
+  full_name='tira.generated.VmList',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='transaction', full_name='tira.generated.VmList.transaction', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='vmsInfo', full_name='tira.generated.VmList.vmsInfo', index=1,
+      number=2, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=548,
+  serialized_end=647,
+)
+
+
+_RUNID = _descriptor.Descriptor(
+  name='RunId',
+  full_name='tira.generated.RunId',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='transaction', full_name='tira.generated.RunId.transaction', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='vmId', full_name='tira.generated.RunId.vmId', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='datasetId', full_name='tira.generated.RunId.datasetId', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='runId', full_name='tira.generated.RunId.runId', index=3,
+      number=4, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=649,
+  serialized_end=754,
+)
+
+
+_RUNDETAILS = _descriptor.Descriptor(
+  name='RunDetails',
+  full_name='tira.generated.RunDetails',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='transaction', full_name='tira.generated.RunDetails.transaction', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='runId', full_name='tira.generated.RunDetails.runId', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='inputRunId', full_name='tira.generated.RunDetails.inputRunId', index=2,
+      number=3, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='optionalParameters', full_name='tira.generated.RunDetails.optionalParameters', index=3,
+      number=4, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='taskId', full_name='tira.generated.RunDetails.taskId', index=4,
+      number=5, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='softwareId', full_name='tira.generated.RunDetails.softwareId', index=5,
+      number=6, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=757,
+  serialized_end=964,
+)
+
+
+_EVALUATIONRESULTS_MEASURE = _descriptor.Descriptor(
+  name='Measure',
+  full_name='tira.generated.EvaluationResults.Measure',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='key', full_name='tira.generated.EvaluationResults.Measure.key', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='value', full_name='tira.generated.EvaluationResults.Measure.value', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1137,
+  serialized_end=1174,
+)
+
+_EVALUATIONRESULTS = _descriptor.Descriptor(
+  name='EvaluationResults',
+  full_name='tira.generated.EvaluationResults',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='transaction', full_name='tira.generated.EvaluationResults.transaction', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='runId', full_name='tira.generated.EvaluationResults.runId', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='measures', full_name='tira.generated.EvaluationResults.measures', index=2,
+      number=3, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[_EVALUATIONRESULTS_MEASURE, ],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=967,
+  serialized_end=1174,
+)
+
+
+_EXECUTIONRESULTS = _descriptor.Descriptor(
+  name='ExecutionResults',
+  full_name='tira.generated.ExecutionResults',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='transaction', full_name='tira.generated.ExecutionResults.transaction', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='runId', full_name='tira.generated.ExecutionResults.runId', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1176,
+  serialized_end=1282,
+)
+
+
+_VMSTATE = _descriptor.Descriptor(
+  name='VmState',
+  full_name='tira.generated.VmState',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='transaction', full_name='tira.generated.VmState.transaction', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='state', full_name='tira.generated.VmState.state', index=1,
+      number=2, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='vmId', full_name='tira.generated.VmState.vmId', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1284,
+  serialized_end=1395,
 )
 
 
@@ -409,72 +744,100 @@ _VMINFO = _descriptor.Descriptor(
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='status', full_name='tira.generated.VmInfo.status', index=0,
-      number=1, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
+      name='transaction', full_name='tira.generated.VmInfo.transaction', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
       name='guestOs', full_name='tira.generated.VmInfo.guestOs', index=1,
-      number=2, type=9, cpp_type=9, label=1,
+      number=3, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
       name='memorySize', full_name='tira.generated.VmInfo.memorySize', index=2,
-      number=3, type=9, cpp_type=9, label=1,
+      number=4, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
       name='numberOfCpus', full_name='tira.generated.VmInfo.numberOfCpus', index=3,
-      number=4, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='sshPort', full_name='tira.generated.VmInfo.sshPort', index=4,
       number=5, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='rdpPort', full_name='tira.generated.VmInfo.rdpPort', index=5,
+      name='sshPort', full_name='tira.generated.VmInfo.sshPort', index=4,
       number=6, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='host', full_name='tira.generated.VmInfo.host', index=6,
+      name='rdpPort', full_name='tira.generated.VmInfo.rdpPort', index=5,
       number=7, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='sshPortStatus', full_name='tira.generated.VmInfo.sshPortStatus', index=7,
-      number=8, type=8, cpp_type=7, label=1,
-      has_default_value=False, default_value=False,
+      name='host', full_name='tira.generated.VmInfo.host', index=6,
+      number=8, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='rdpPortStatus', full_name='tira.generated.VmInfo.rdpPortStatus', index=8,
+      name='sshPortStatus', full_name='tira.generated.VmInfo.sshPortStatus', index=7,
       number=9, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
+      name='rdpPortStatus', full_name='tira.generated.VmInfo.rdpPortStatus', index=8,
+      number=10, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
       name='state', full_name='tira.generated.VmInfo.state', index=9,
-      number=10, type=14, cpp_type=8, label=1,
+      number=11, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='vmId', full_name='tira.generated.VmInfo.vmId', index=10,
+      number=12, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='userName', full_name='tira.generated.VmInfo.userName', index=11,
+      number=13, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='initialUserPw', full_name='tira.generated.VmInfo.initialUserPw', index=12,
+      number=14, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='ip', full_name='tira.generated.VmInfo.ip', index=13,
+      number=15, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
@@ -490,170 +853,44 @@ _VMINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=564,
-  serialized_end=805,
-)
-
-
-_COMMANDSTATE_COMMAND = _descriptor.Descriptor(
-  name='Command',
-  full_name='tira.generated.CommandState.Command',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='id', full_name='tira.generated.CommandState.Command.id', index=0,
-      number=1, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='commandString', full_name='tira.generated.CommandState.Command.commandString', index=1,
-      number=2, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='startTime', full_name='tira.generated.CommandState.Command.startTime', index=2,
-      number=3, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='endTime', full_name='tira.generated.CommandState.Command.endTime', index=3,
-      number=4, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='status', full_name='tira.generated.CommandState.Command.status', index=4,
-      number=5, type=14, cpp_type=8, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='logFile', full_name='tira.generated.CommandState.Command.logFile', index=5,
-      number=6, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='returnCode', full_name='tira.generated.CommandState.Command.returnCode', index=6,
-      number=7, type=5, cpp_type=1, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='bulkCommandId', full_name='tira.generated.CommandState.Command.bulkCommandId', index=7,
-      number=8, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-    _COMMANDSTATE_COMMAND_STATUS,
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=899,
-  serialized_end=1148,
-)
-
-_COMMANDSTATE = _descriptor.Descriptor(
-  name='CommandState',
-  full_name='tira.generated.CommandState',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='hostname', full_name='tira.generated.CommandState.hostname', index=0,
-      number=1, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='commands', full_name='tira.generated.CommandState.commands', index=1,
-      number=2, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[_COMMANDSTATE_COMMAND, ],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=808,
-  serialized_end=1148,
+  serialized_start=1398,
+  serialized_end=1714,
 )
 
 _TRANSACTION.fields_by_name['status'].enum_type = _STATUS
-_SETVMSTATE.fields_by_name['status'].enum_type = _STATUS
-_SETVMSTATE.fields_by_name['state'].enum_type = _VMSTATE
-_VMINFO.fields_by_name['status'].enum_type = _STATUS
-_VMINFO.fields_by_name['state'].enum_type = _VMSTATE
-_COMMANDSTATE_COMMAND.fields_by_name['status'].enum_type = _COMMANDSTATE_COMMAND_STATUS
-_COMMANDSTATE_COMMAND.containing_type = _COMMANDSTATE
-_COMMANDSTATE_COMMAND_STATUS.containing_type = _COMMANDSTATE_COMMAND
-_COMMANDSTATE.fields_by_name['commands'].message_type = _COMMANDSTATE_COMMAND
-DESCRIPTOR.message_types_by_name['RequestVmCommands'] = _REQUESTVMCOMMANDS
-DESCRIPTOR.message_types_by_name['RequestVmCreate'] = _REQUESTVMCREATE
-DESCRIPTOR.message_types_by_name['RequestRunExecuteEval'] = _REQUESTRUNEXECUTEEVAL
+_VMID.fields_by_name['transaction'].message_type = _TRANSACTION
+_VMCREATE.fields_by_name['transaction'].message_type = _TRANSACTION
+_VMDETAILS.fields_by_name['transaction'].message_type = _TRANSACTION
+_VMLIST.fields_by_name['transaction'].message_type = _TRANSACTION
+_VMLIST.fields_by_name['vmsInfo'].message_type = _VMINFO
+_RUNID.fields_by_name['transaction'].message_type = _TRANSACTION
+_RUNDETAILS.fields_by_name['transaction'].message_type = _TRANSACTION
+_RUNDETAILS.fields_by_name['runId'].message_type = _RUNID
+_RUNDETAILS.fields_by_name['inputRunId'].message_type = _RUNID
+_EVALUATIONRESULTS_MEASURE.containing_type = _EVALUATIONRESULTS
+_EVALUATIONRESULTS.fields_by_name['transaction'].message_type = _TRANSACTION
+_EVALUATIONRESULTS.fields_by_name['runId'].message_type = _RUNID
+_EVALUATIONRESULTS.fields_by_name['measures'].message_type = _EVALUATIONRESULTS_MEASURE
+_EXECUTIONRESULTS.fields_by_name['transaction'].message_type = _TRANSACTION
+_EXECUTIONRESULTS.fields_by_name['runId'].message_type = _RUNID
+_VMSTATE.fields_by_name['transaction'].message_type = _TRANSACTION
+_VMSTATE.fields_by_name['state'].enum_type = _STATE
+_VMINFO.fields_by_name['transaction'].message_type = _TRANSACTION
+_VMINFO.fields_by_name['state'].enum_type = _STATE
 DESCRIPTOR.message_types_by_name['Transaction'] = _TRANSACTION
-DESCRIPTOR.message_types_by_name['SetVmState'] = _SETVMSTATE
+DESCRIPTOR.message_types_by_name['VmId'] = _VMID
+DESCRIPTOR.message_types_by_name['VmCreate'] = _VMCREATE
+DESCRIPTOR.message_types_by_name['VmDetails'] = _VMDETAILS
+DESCRIPTOR.message_types_by_name['VmList'] = _VMLIST
+DESCRIPTOR.message_types_by_name['RunId'] = _RUNID
+DESCRIPTOR.message_types_by_name['RunDetails'] = _RUNDETAILS
+DESCRIPTOR.message_types_by_name['EvaluationResults'] = _EVALUATIONRESULTS
+DESCRIPTOR.message_types_by_name['ExecutionResults'] = _EXECUTIONRESULTS
+DESCRIPTOR.message_types_by_name['VmState'] = _VMSTATE
 DESCRIPTOR.message_types_by_name['VmInfo'] = _VMINFO
-DESCRIPTOR.message_types_by_name['CommandState'] = _COMMANDSTATE
 DESCRIPTOR.enum_types_by_name['Status'] = _STATUS
-DESCRIPTOR.enum_types_by_name['VmState'] = _VMSTATE
+DESCRIPTOR.enum_types_by_name['State'] = _STATE
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
-
-RequestVmCommands = _reflection.GeneratedProtocolMessageType('RequestVmCommands', (_message.Message,), {
-  'DESCRIPTOR' : _REQUESTVMCOMMANDS,
-  '__module__' : 'tira_host_pb2'
-  # @@protoc_insertion_point(class_scope:tira.generated.RequestVmCommands)
-  })
-_sym_db.RegisterMessage(RequestVmCommands)
-
-RequestVmCreate = _reflection.GeneratedProtocolMessageType('RequestVmCreate', (_message.Message,), {
-  'DESCRIPTOR' : _REQUESTVMCREATE,
-  '__module__' : 'tira_host_pb2'
-  # @@protoc_insertion_point(class_scope:tira.generated.RequestVmCreate)
-  })
-_sym_db.RegisterMessage(RequestVmCreate)
-
-RequestRunExecuteEval = _reflection.GeneratedProtocolMessageType('RequestRunExecuteEval', (_message.Message,), {
-  'DESCRIPTOR' : _REQUESTRUNEXECUTEEVAL,
-  '__module__' : 'tira_host_pb2'
-  # @@protoc_insertion_point(class_scope:tira.generated.RequestRunExecuteEval)
-  })
-_sym_db.RegisterMessage(RequestRunExecuteEval)
 
 Transaction = _reflection.GeneratedProtocolMessageType('Transaction', (_message.Message,), {
   'DESCRIPTOR' : _TRANSACTION,
@@ -662,12 +899,76 @@ Transaction = _reflection.GeneratedProtocolMessageType('Transaction', (_message.
   })
 _sym_db.RegisterMessage(Transaction)
 
-SetVmState = _reflection.GeneratedProtocolMessageType('SetVmState', (_message.Message,), {
-  'DESCRIPTOR' : _SETVMSTATE,
+VmId = _reflection.GeneratedProtocolMessageType('VmId', (_message.Message,), {
+  'DESCRIPTOR' : _VMID,
   '__module__' : 'tira_host_pb2'
-  # @@protoc_insertion_point(class_scope:tira.generated.SetVmState)
+  # @@protoc_insertion_point(class_scope:tira.generated.VmId)
   })
-_sym_db.RegisterMessage(SetVmState)
+_sym_db.RegisterMessage(VmId)
+
+VmCreate = _reflection.GeneratedProtocolMessageType('VmCreate', (_message.Message,), {
+  'DESCRIPTOR' : _VMCREATE,
+  '__module__' : 'tira_host_pb2'
+  # @@protoc_insertion_point(class_scope:tira.generated.VmCreate)
+  })
+_sym_db.RegisterMessage(VmCreate)
+
+VmDetails = _reflection.GeneratedProtocolMessageType('VmDetails', (_message.Message,), {
+  'DESCRIPTOR' : _VMDETAILS,
+  '__module__' : 'tira_host_pb2'
+  # @@protoc_insertion_point(class_scope:tira.generated.VmDetails)
+  })
+_sym_db.RegisterMessage(VmDetails)
+
+VmList = _reflection.GeneratedProtocolMessageType('VmList', (_message.Message,), {
+  'DESCRIPTOR' : _VMLIST,
+  '__module__' : 'tira_host_pb2'
+  # @@protoc_insertion_point(class_scope:tira.generated.VmList)
+  })
+_sym_db.RegisterMessage(VmList)
+
+RunId = _reflection.GeneratedProtocolMessageType('RunId', (_message.Message,), {
+  'DESCRIPTOR' : _RUNID,
+  '__module__' : 'tira_host_pb2'
+  # @@protoc_insertion_point(class_scope:tira.generated.RunId)
+  })
+_sym_db.RegisterMessage(RunId)
+
+RunDetails = _reflection.GeneratedProtocolMessageType('RunDetails', (_message.Message,), {
+  'DESCRIPTOR' : _RUNDETAILS,
+  '__module__' : 'tira_host_pb2'
+  # @@protoc_insertion_point(class_scope:tira.generated.RunDetails)
+  })
+_sym_db.RegisterMessage(RunDetails)
+
+EvaluationResults = _reflection.GeneratedProtocolMessageType('EvaluationResults', (_message.Message,), {
+
+  'Measure' : _reflection.GeneratedProtocolMessageType('Measure', (_message.Message,), {
+    'DESCRIPTOR' : _EVALUATIONRESULTS_MEASURE,
+    '__module__' : 'tira_host_pb2'
+    # @@protoc_insertion_point(class_scope:tira.generated.EvaluationResults.Measure)
+    })
+  ,
+  'DESCRIPTOR' : _EVALUATIONRESULTS,
+  '__module__' : 'tira_host_pb2'
+  # @@protoc_insertion_point(class_scope:tira.generated.EvaluationResults)
+  })
+_sym_db.RegisterMessage(EvaluationResults)
+_sym_db.RegisterMessage(EvaluationResults.Measure)
+
+ExecutionResults = _reflection.GeneratedProtocolMessageType('ExecutionResults', (_message.Message,), {
+  'DESCRIPTOR' : _EXECUTIONRESULTS,
+  '__module__' : 'tira_host_pb2'
+  # @@protoc_insertion_point(class_scope:tira.generated.ExecutionResults)
+  })
+_sym_db.RegisterMessage(ExecutionResults)
+
+VmState = _reflection.GeneratedProtocolMessageType('VmState', (_message.Message,), {
+  'DESCRIPTOR' : _VMSTATE,
+  '__module__' : 'tira_host_pb2'
+  # @@protoc_insertion_point(class_scope:tira.generated.VmState)
+  })
+_sym_db.RegisterMessage(VmState)
 
 VmInfo = _reflection.GeneratedProtocolMessageType('VmInfo', (_message.Message,), {
   'DESCRIPTOR' : _VMINFO,
@@ -675,21 +976,6 @@ VmInfo = _reflection.GeneratedProtocolMessageType('VmInfo', (_message.Message,),
   # @@protoc_insertion_point(class_scope:tira.generated.VmInfo)
   })
 _sym_db.RegisterMessage(VmInfo)
-
-CommandState = _reflection.GeneratedProtocolMessageType('CommandState', (_message.Message,), {
-
-  'Command' : _reflection.GeneratedProtocolMessageType('Command', (_message.Message,), {
-    'DESCRIPTOR' : _COMMANDSTATE_COMMAND,
-    '__module__' : 'tira_host_pb2'
-    # @@protoc_insertion_point(class_scope:tira.generated.CommandState.Command)
-    })
-  ,
-  'DESCRIPTOR' : _COMMANDSTATE,
-  '__module__' : 'tira_host_pb2'
-  # @@protoc_insertion_point(class_scope:tira.generated.CommandState)
-  })
-_sym_db.RegisterMessage(CommandState)
-_sym_db.RegisterMessage(CommandState.Command)
 
 
 DESCRIPTOR._options = None
@@ -701,15 +987,15 @@ _TIRAHOSTSERVICE = _descriptor.ServiceDescriptor(
   index=0,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=1341,
-  serialized_end=2516,
+  serialized_start=2049,
+  serialized_end=3141,
   methods=[
   _descriptor.MethodDescriptor(
     name='vm_backup',
     full_name='tira.generated.TiraHostService.vm_backup',
     index=0,
     containing_service=None,
-    input_type=_REQUESTVMCOMMANDS,
+    input_type=_VMID,
     output_type=_TRANSACTION,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,
@@ -719,7 +1005,7 @@ _TIRAHOSTSERVICE = _descriptor.ServiceDescriptor(
     full_name='tira.generated.TiraHostService.vm_create',
     index=1,
     containing_service=None,
-    input_type=_REQUESTVMCREATE,
+    input_type=_VMCREATE,
     output_type=_TRANSACTION,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,
@@ -729,7 +1015,7 @@ _TIRAHOSTSERVICE = _descriptor.ServiceDescriptor(
     full_name='tira.generated.TiraHostService.vm_delete',
     index=2,
     containing_service=None,
-    input_type=_REQUESTVMCOMMANDS,
+    input_type=_VMID,
     output_type=_TRANSACTION,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,
@@ -739,7 +1025,7 @@ _TIRAHOSTSERVICE = _descriptor.ServiceDescriptor(
     full_name='tira.generated.TiraHostService.vm_info',
     index=3,
     containing_service=None,
-    input_type=_REQUESTVMCOMMANDS,
+    input_type=_VMID,
     output_type=_VMINFO,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,
@@ -749,8 +1035,8 @@ _TIRAHOSTSERVICE = _descriptor.ServiceDescriptor(
     full_name='tira.generated.TiraHostService.vm_list',
     index=4,
     containing_service=None,
-    input_type=google_dot_protobuf_dot_empty__pb2._EMPTY,
-    output_type=_TRANSACTION,
+    input_type=_TRANSACTION,
+    output_type=_VMLIST,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,
   ),
@@ -759,7 +1045,7 @@ _TIRAHOSTSERVICE = _descriptor.ServiceDescriptor(
     full_name='tira.generated.TiraHostService.vm_metrics',
     index=5,
     containing_service=None,
-    input_type=_REQUESTVMCOMMANDS,
+    input_type=_VMID,
     output_type=_TRANSACTION,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,
@@ -769,7 +1055,7 @@ _TIRAHOSTSERVICE = _descriptor.ServiceDescriptor(
     full_name='tira.generated.TiraHostService.vm_sandbox',
     index=6,
     containing_service=None,
-    input_type=_REQUESTVMCOMMANDS,
+    input_type=_VMID,
     output_type=_TRANSACTION,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,
@@ -779,7 +1065,7 @@ _TIRAHOSTSERVICE = _descriptor.ServiceDescriptor(
     full_name='tira.generated.TiraHostService.vm_shutdown',
     index=7,
     containing_service=None,
-    input_type=_REQUESTVMCOMMANDS,
+    input_type=_VMID,
     output_type=_TRANSACTION,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,
@@ -789,7 +1075,7 @@ _TIRAHOSTSERVICE = _descriptor.ServiceDescriptor(
     full_name='tira.generated.TiraHostService.vm_snapshot',
     index=8,
     containing_service=None,
-    input_type=_REQUESTVMCOMMANDS,
+    input_type=_VMID,
     output_type=_TRANSACTION,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,
@@ -799,7 +1085,7 @@ _TIRAHOSTSERVICE = _descriptor.ServiceDescriptor(
     full_name='tira.generated.TiraHostService.vm_start',
     index=9,
     containing_service=None,
-    input_type=_REQUESTVMCOMMANDS,
+    input_type=_VMID,
     output_type=_TRANSACTION,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,
@@ -809,7 +1095,7 @@ _TIRAHOSTSERVICE = _descriptor.ServiceDescriptor(
     full_name='tira.generated.TiraHostService.vm_stop',
     index=10,
     containing_service=None,
-    input_type=_REQUESTVMCOMMANDS,
+    input_type=_VMID,
     output_type=_TRANSACTION,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,
@@ -819,7 +1105,7 @@ _TIRAHOSTSERVICE = _descriptor.ServiceDescriptor(
     full_name='tira.generated.TiraHostService.vm_unsandbox',
     index=11,
     containing_service=None,
-    input_type=_REQUESTVMCOMMANDS,
+    input_type=_VMID,
     output_type=_TRANSACTION,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,
@@ -829,7 +1115,17 @@ _TIRAHOSTSERVICE = _descriptor.ServiceDescriptor(
     full_name='tira.generated.TiraHostService.run_execute',
     index=12,
     containing_service=None,
-    input_type=_REQUESTRUNEXECUTEEVAL,
+    input_type=_RUNDETAILS,
+    output_type=_TRANSACTION,
+    serialized_options=None,
+    create_key=_descriptor._internal_create_key,
+  ),
+  _descriptor.MethodDescriptor(
+    name='run_abort',
+    full_name='tira.generated.TiraHostService.run_abort',
+    index=13,
+    containing_service=None,
+    input_type=_VMID,
     output_type=_TRANSACTION,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,
@@ -837,9 +1133,9 @@ _TIRAHOSTSERVICE = _descriptor.ServiceDescriptor(
   _descriptor.MethodDescriptor(
     name='run_eval',
     full_name='tira.generated.TiraHostService.run_eval',
-    index=13,
+    index=14,
     containing_service=None,
-    input_type=_REQUESTRUNEXECUTEEVAL,
+    input_type=_RUNDETAILS,
     output_type=_TRANSACTION,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,
@@ -847,10 +1143,10 @@ _TIRAHOSTSERVICE = _descriptor.ServiceDescriptor(
   _descriptor.MethodDescriptor(
     name='alive',
     full_name='tira.generated.TiraHostService.alive',
-    index=14,
+    index=15,
     containing_service=None,
-    input_type=google_dot_protobuf_dot_empty__pb2._EMPTY,
-    output_type=google_dot_protobuf_dot_empty__pb2._EMPTY,
+    input_type=_TRANSACTION,
+    output_type=_TRANSACTION,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,
   ),
@@ -867,15 +1163,55 @@ _TIRAAPPLICATIONSERVICE = _descriptor.ServiceDescriptor(
   index=1,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=2519,
-  serialized_end=2699,
+  serialized_start=3144,
+  serialized_end=3648,
   methods=[
   _descriptor.MethodDescriptor(
     name='set_state',
     full_name='tira.generated.TiraApplicationService.set_state',
     index=0,
     containing_service=None,
-    input_type=_SETVMSTATE,
+    input_type=_VMSTATE,
+    output_type=_TRANSACTION,
+    serialized_options=None,
+    create_key=_descriptor._internal_create_key,
+  ),
+  _descriptor.MethodDescriptor(
+    name='confirm_vm_create',
+    full_name='tira.generated.TiraApplicationService.confirm_vm_create',
+    index=1,
+    containing_service=None,
+    input_type=_VMDETAILS,
+    output_type=_TRANSACTION,
+    serialized_options=None,
+    create_key=_descriptor._internal_create_key,
+  ),
+  _descriptor.MethodDescriptor(
+    name='confirm_vm_delete',
+    full_name='tira.generated.TiraApplicationService.confirm_vm_delete',
+    index=2,
+    containing_service=None,
+    input_type=_VMID,
+    output_type=_TRANSACTION,
+    serialized_options=None,
+    create_key=_descriptor._internal_create_key,
+  ),
+  _descriptor.MethodDescriptor(
+    name='confirm_run_eval',
+    full_name='tira.generated.TiraApplicationService.confirm_run_eval',
+    index=3,
+    containing_service=None,
+    input_type=_EVALUATIONRESULTS,
+    output_type=_TRANSACTION,
+    serialized_options=None,
+    create_key=_descriptor._internal_create_key,
+  ),
+  _descriptor.MethodDescriptor(
+    name='confirm_run_execute',
+    full_name='tira.generated.TiraApplicationService.confirm_run_execute',
+    index=4,
+    containing_service=None,
+    input_type=_EXECUTIONRESULTS,
     output_type=_TRANSACTION,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,
@@ -883,7 +1219,7 @@ _TIRAAPPLICATIONSERVICE = _descriptor.ServiceDescriptor(
   _descriptor.MethodDescriptor(
     name='complete_transaction',
     full_name='tira.generated.TiraApplicationService.complete_transaction',
-    index=1,
+    index=5,
     containing_service=None,
     input_type=_TRANSACTION,
     output_type=_TRANSACTION,

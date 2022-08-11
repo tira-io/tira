@@ -1,3 +1,4 @@
+<script charset="utf-8">
 export default {
     data() {
         return {
@@ -106,8 +107,10 @@ export default {
         }).catch(error => {
             this.$emit('addnotification', 'error', `Error loading host list: ${error}`)
         })
-    },
-    template: `
+    }
+}
+</script>
+<template>
 <div>
     Does not work yet.
 </div>
@@ -129,7 +132,7 @@ export default {
                   v-model="batchInput"/>
     </div>
     <button class="uk-button uk-button-primary" @click="createInBatches" >Create VMs</button>
-    <span class="uk-text-danger uk-margin-small-left">[[ this.createVmError ]]</span>
+    <span class="uk-text-danger uk-margin-small-left">{{ this.createVmError }}</span>
 </div>
 <div v-else>
     <div class="uk-grid-small uk-margin-small" uk-grid>
@@ -144,7 +147,7 @@ export default {
             <select id="ova-select" class="uk-select" v-model="this.selectedOva"
                    :class="{'uk-form-danger': (this.createVmError !== '' && this.selectedOva === '')}">
                 <option disabled value="">Please select a vm template</option>
-                <option v-for="ova in this.ovaList" :value="ova">[[ ova ]]</option>
+                <option v-for="ova in this.ovaList" :value="ova">{{ ova }}</option>
             </select>
         </div>
         <div class="uk-width-1-4">
@@ -152,11 +155,11 @@ export default {
             <select id="host-select" class="uk-select" v-model="this.selectedHost"
                    :class="{'uk-form-danger': (this.createVmError !== '' && this.selectedHost === '')}">
                 <option disabled value="">Please select a host</option>
-                <option v-for="host in this.hostList" :value="host">[[ host ]]</option>
+                <option v-for="host in this.hostList" :value="host">{{ host }}</option>
             </select>
         </div>
     </div>
     <button class="uk-button uk-button-primary" @click="createVm">Create VM</button>
-    <span class="uk-text-danger uk-margin-small-left">[[ this.createVmError ]]</span>
-</div>`
-}
+    <span class="uk-text-danger uk-margin-small-left">{{ this.createVmError }}</span>
+</div>
+</template>

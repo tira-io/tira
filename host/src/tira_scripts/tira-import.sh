@@ -192,13 +192,13 @@ main() {
 
     # Print usage screen if wrong parameter count.
     if [ "$#" -eq 0 ]; then
-        logError "Missing arguments see:"
+        logError "[tira-import] Missing arguments see:"
         usage
     fi
 
     ovalist="$1"
     if [ ! -f "$ovalist" ]; then
-        logError "$ovalist is not a valid file."
+        logError "[tira-import] $ovalist is not a valid file."
         exit 1
     fi
 
@@ -228,7 +228,7 @@ main() {
             tira_call vm-import "$ovafile" < /dev/null
 
             if [ $? != 0 ]; then
-               logError "OVA file import returned error: $ovafile"
+               logError "[tira-import] OVA file import returned error: $ovafile"
                exit 1
             fi
 
@@ -244,7 +244,7 @@ main() {
             echo "$newhostname $newvmname" >> "$_CONFIG_FILE_tira_vms"
             patch_entry "$username" "$newhostname" "$newportssh" "$newportrdp" "$newvmid" "$newipvm" "$newvmname"
 
-            logInfo "Done!"
+            logInfo "[tira-import] Done."
         fi
     done < "$ovalist"
 

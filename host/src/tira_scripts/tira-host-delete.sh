@@ -77,11 +77,11 @@ eval set -- "${FLAGS_ARGV}"
 main() {
 
     # Host-delete is a critical command so it prints a prompt.
-    logInfo "This command deletes your TIRA host."
+    logInfo "[tira-host-delete] This command deletes your TIRA host."
 
     yes_no_promt "Do you want to continue?"
 
-    logTodo "first check if this host is a tira host! (mounted tira nfs, ~/.tira and so on), maybe use check_config"
+    #TODO "first check if this host is a tira host! (mounted tira nfs, ~/.tira and so on), maybe use check_config"
 
     # Remove host's entry in the hosts.txt file and create a log in hostlog.txt.
     if [ -e "$_CONFIG_FILE_tira_hosts" ]; then
@@ -128,13 +128,13 @@ main() {
     get_tira_vms vms
     # Shutdown and delete all VMs.
     for vmname in $vms; do
-        logInfo "poweroff $vmname..."
+        logInfo "[tira-host-delete] poweroff $vmname..."
         tira_call vm-stop "$vmname"
         sleep 3
 
-        logInfo "delete $vmname..."
+        logInfo "[tira-host-delete] delete $vmname..."
         tira_call vm-delete "$vmname"
-        logInfo "$vmname was deleted!"
+        logInfo "[tira-host-delete] $vmname was deleted!"
     done
 
     sleep 2
@@ -149,7 +149,7 @@ main() {
     # Delete local TIRA directory.
     sudo rm -rf "/home/$_CONFIG_tira_username/.tira"
 
-    logInfo "Host deleted!"
+    logInfo "[tira-host-delete] Host deleted!"
 }
 
 #

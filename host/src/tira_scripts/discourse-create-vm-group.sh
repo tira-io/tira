@@ -87,7 +87,7 @@ main() {
 
     # Print usage screen if wrong parameter count.
     if [ "$#" -eq 0 ]; then
-        logError "Missing arguments see:"
+        logError "[discourse-create-vm-group] Missing arguments see:"
         usage
     fi
 
@@ -95,7 +95,7 @@ main() {
     vm_info=$(get_vm_info_from_tira "$vmname_or_user")
 
     if [ "$vm_info" = "" ]; then
-        logError "VM-Name/user $vmname_or_user is not registered. Use tira vm-list to get a list of all vms."
+        logError "[discourse-create-vm-group] VM-Name/user $vmname_or_user is not registered. Use tira vm-list to get a list of all vms."
         exit 1
     fi
 
@@ -106,7 +106,7 @@ main() {
     host=$(echo "$vm_info" | grep "host=" | sed "s|host=||g")
     api_key=$(cat /etc/discourse/client-api-key)
 
-    logInfo "Create group with\n\tuser=${user}\n\tpw=${pw}\n\tssh-port=${port}\n\trdp_port=${rdp_port}\n\thost=${host}\n\tapi-key=${api_key}"
+    logInfo "[discourse-create-vm-group] Create group with\n\tuser=${user}\n\tpw=${pw}\n\tssh-port=${port}\n\trdp_port=${rdp_port}\n\thost=${host}\n\tapi-key=${api_key}"
 
     create_group
     invite_users

@@ -59,13 +59,13 @@ main() {
 
     # Check if NFS is mounted.
     if [ ! -e "$_CONFIG_FILE_tira_vms" ] || [ ! -e "$_CONFIG_FILE_tira_hosts" ] ; then
-        logError "No NFS server mounted."
+        logError "[tira-status] No NFS server mounted."
         exit 1
     fi
 
-    logInfo "Registered hosts:"
+    logInfo "tira-status] Registered hosts:"
     cat "$_CONFIG_FILE_tira_hosts"
-    logInfo "Registered VMs:"
+    logInfo "tira-status] Registered VMs:"
     cat "$_CONFIG_FILE_tira_vms"
 }
 

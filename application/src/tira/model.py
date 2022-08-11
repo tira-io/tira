@@ -102,6 +102,10 @@ class Evaluator(models.Model):
     working_directory = models.CharField(max_length=150, default="")
     measures = models.CharField(max_length=150, default="")
     is_deprecated = models.BooleanField(default=False)
+    is_git_runner = models.BooleanField(default=False)
+    git_runner_image = models.CharField(max_length=100, null=True, default=None)
+    git_runner_command = models.CharField(max_length=280, null=True, default=None)
+    git_repository_id = models.CharField(max_length=100, null=True, default=None)
 
 
 class VirtualMachineHasEvaluator(models.Model):
@@ -152,7 +156,7 @@ class Upload(models.Model):
     """ Because I've fallen over this several times:
     - there is exactly one 'Upload' per vm. It's the equivalent to "software',
     the uploaded instance is a 'run' ...
-    - The dataset is only associated for compatibility with Software. It's probably always zero.
+    - The dataset is only associated for compatibility with Software. It's probably always none.
     """
     vm = models.ForeignKey(VirtualMachine, on_delete=models.CASCADE)
     task = models.ForeignKey(Task, on_delete=models.SET_NULL, null=True)
