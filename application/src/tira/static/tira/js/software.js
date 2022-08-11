@@ -466,15 +466,16 @@ function addSoftwareEvents(taskId, vmId, is_default) {
             saveSoftware(taskId, vmId, $(this).data("tiraSoftwareId"));
         })
         $('.id_element').on('dblclick', function() {
-            const child_id = $(this).text();
+            const software_id = $(this).text();
             
             var $el = $(this);
-            var $input = $('<input id="testinput" type="text" contenteditable="true"/>').val( $el.text() );
+            var $input = $('<input id="sw_input" type="text" contenteditable="true"/>').val( $el.text() );
             $el.replaceWith( $input );
-            $('#testinput').on('keyup', function(e) {
+            $('#sw_input').focus();
+            $('#sw_input').on('keyup', function(e) {
                 if (e.key === 'Enter' || e.keyCode === 13) {
-                    new_id = $('#testinput').val();
-                    renameSoftware(taskId, vmId, child_id, new_id);
+                    new_id = $('#sw_input').val();
+                    renameSoftware(taskId, vmId, software_id, new_id);
                 }
             })
         })
