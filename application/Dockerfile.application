@@ -47,7 +47,7 @@ RUN npm run build
 WORKDIR /tira/application/src
 #RUN python3 -m pip install --no-cache-dir -r requirements.txt
 
-RUN python3 manage.py collectstatic
+RUN mkdir -p /tira/model/src && python3 manage.py collectstatic
 
 RUN apk del .build-deps
 
