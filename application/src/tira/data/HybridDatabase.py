@@ -222,7 +222,13 @@ class HybridDatabase(object):
         """ Return the users list. """
         return [self._vm_as_dict(vm) for vm in modeldb.VirtualMachine.objects.all()]
 
-    def _task_to_dict(self, task):
+    def _task_to_dict(self, task, include_dataset_stats=False):
+        def _add_dataset_stats(res, dataset_set):
+            res["dataset_last_created"] = dataset_set.latest('created').created.year
+            res["dataset_first_created"] = dataset_set.earliest('created').created.year
+            res["dataset_last_modified"] = dataset_set.latest('last_modified').created
+            return res
+
         if task.organizer:
             org_name = task.organizer.name
             org_year = task.organizer.years
@@ -235,34 +241,40 @@ class HybridDatabase(object):
             logger.error(f"Task with id {task.task_id} has no master vm associated")
             master_vm_id = "None"
 
-        return {"task_id": task.task_id, "task_name": task.task_name, "task_description": task.task_description,
-                "organizer": org_name,
-                "web": task.web,
-                "year": org_year,
-                "master_vm_id": master_vm_id,
-                "dataset_count": task.dataset_set.count(),
-                "software_count": task.software_set.count(),
-                "max_std_out_chars_on_test_data": task.max_std_out_chars_on_test_data,
-                "max_std_err_chars_on_test_data": task.max_std_err_chars_on_test_data,
-                "max_file_list_chars_on_test_data": task.max_file_list_chars_on_test_data,
-                "command_placeholder": task.command_placeholder, "command_description": task.command_description,
-                "dataset_label": task.dataset_label,
-                "max_std_out_chars_on_test_data_eval": task.max_std_out_chars_on_test_data_eval,
-                "max_std_err_chars_on_test_data_eval": task.max_std_err_chars_on_test_data_eval,
-                "max_file_list_chars_on_test_data_eval": task.max_file_list_chars_on_test_data_eval}
+        result = {"task_id": task.task_id, "task_name": task.task_name, "task_description": task.task_description,
+                  "organizer": org_name,
+                  "web": task.web,
+                  "year": org_year,
+                  "master_vm_id": master_vm_id,
+                  "dataset_count": task.dataset_set.count(),
+                  "software_count": task.software_set.count(),
+                  "max_std_out_chars_on_test_data": task.max_std_out_chars_on_test_data,
+                  "max_std_err_chars_on_test_data": task.max_std_err_chars_on_test_data,
+                  "max_file_list_chars_on_test_data": task.max_file_list_chars_on_test_data,
+                  "command_placeholder": task.command_placeholder, "command_description": task.command_description,
+                  "dataset_label": task.dataset_label,
+                  "max_std_out_chars_on_test_data_eval": task.max_std_out_chars_on_test_data_eval,
+                  "max_std_err_chars_on_test_data_eval": task.max_std_err_chars_on_test_data_eval,
+                  "max_file_list_chars_on_test_data_eval": task.max_file_list_chars_on_test_data_eval}
 
-    def _tasks_to_dict(self, tasks):
+        if include_dataset_stats:
+            _add_dataset_stats(result, task.dataset_set)
+        return result
+
+    def _tasks_to_dict(self, tasks, include_dataset_stats=False):
         for task in tasks:
             if not task.organizer:
                 continue
 
-            yield self._task_to_dict(task)
+            yield self._task_to_dict(task, include_dataset_stats)
 
-    def get_tasks(self) -> list:
-        return list(self._tasks_to_dict(modeldb.Task.objects.select_related('organizer').all()))
+    def get_tasks(self, include_dataset_stats=False) -> list:
+        return list(self._tasks_to_dict(modeldb.Task.objects.select_related('organizer').all(),
+                                        include_dataset_stats))
 
-    def get_task(self, task_id: str) -> dict:
-        return self._task_to_dict(modeldb.Task.objects.select_related('organizer').get(task_id=task_id))
+    def get_task(self, task_id: str, include_dataset_stats) -> dict:
+        return self._task_to_dict(modeldb.Task.objects.select_related('organizer').get(task_id=task_id),
+                                  include_dataset_stats)
 
     def _dataset_to_dict(self, dataset):
         evaluator_id = None if not dataset.evaluator else dataset.evaluator.evaluator_id
@@ -278,10 +290,10 @@ class HybridDatabase(object):
             "software_count": modeldb.Software.objects.filter(dataset__dataset_id=dataset.dataset_id).count(),
             "runs_count": runs.count(),
             'evaluations_count': runs.filter(evaluator__isnull=False).count(),
-            'evaluations_public_count': modeldb.Review.objects.filter(
-                run__run_id__in=[r.run_id for r in runs.filter(evaluator__isnull=False)]
-                ).filter(published=True).count(),
-            "default_upload_name": dataset.default_upload_name
+            'evaluations_public_count': modeldb.Review.objects.filter(run__run_id__in=[r.run_id for r in runs.filter(evaluator__isnull=False)]
+                                                                      ).filter(published=True).count(),
+            "default_upload_name": dataset.default_upload_name,
+            "date": dataset.date
         }
 
     def get_dataset(self, dataset_id: str) -> dict:

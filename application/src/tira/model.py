@@ -123,6 +123,8 @@ class Dataset(models.Model):
     data_server = models.CharField(max_length=150, null=True, default=None)
     released = models.CharField(max_length=30, default="")
     default_upload_name = models.CharField(max_length=50, default="predictions.ndjson")
+    created = models.DateField(auto_now_add=True)
+    last_modified = models.DateField(auto_now=True)
 
 
 class TaskHasDataset(models.Model):
@@ -178,11 +180,6 @@ class Run(models.Model):
     access_token = models.CharField(max_length=150, default="")
 
 
-# class RunHasInputRun(models.Model):
-#     run = models.OneToOneField(Run, on_delete=models.CASCADE)
-#     input_run = models.ForeignKey(Run, on_delete=models.SET_NULL, null=True, related_name="has_input")
-
-
 class SoftwareHasInputRun(models.Model):
     software = models.OneToOneField(Software, on_delete=models.CASCADE)
     input_run = models.ForeignKey(Run, on_delete=models.SET_NULL, null=True)
@@ -211,5 +208,3 @@ class Review(models.Model):
     has_no_errors = models.BooleanField(default=False)
     published = models.BooleanField(default=False)
     blinded = models.BooleanField(default=True)
-
-
