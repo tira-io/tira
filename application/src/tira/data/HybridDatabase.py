@@ -224,9 +224,14 @@ class HybridDatabase(object):
 
     def _task_to_dict(self, task, include_dataset_stats=False):
         def _add_dataset_stats(res, dataset_set):
-            res["dataset_last_created"] = dataset_set.latest('created').created.year
-            res["dataset_first_created"] = dataset_set.earliest('created').created.year
-            res["dataset_last_modified"] = dataset_set.latest('last_modified').created
+            if not dataset_set:
+                res["dataset_last_created"] = ''
+                res["dataset_first_created"] = ''
+                res["dataset_last_modified"] = ''
+            else:
+                res["dataset_last_created"] = dataset_set.latest('created').created.year
+                res["dataset_first_created"] = dataset_set.earliest('created').created.year
+                res["dataset_last_modified"] = dataset_set.latest('last_modified').created
             return res
 
         if task.organizer:
@@ -258,7 +263,8 @@ class HybridDatabase(object):
                   "max_file_list_chars_on_test_data_eval": task.max_file_list_chars_on_test_data_eval}
 
         if include_dataset_stats:
-            _add_dataset_stats(result, task.dataset_set)
+            _add_dataset_stats(result, task.dataset_set.all())
+
         return result
 
     def _tasks_to_dict(self, tasks, include_dataset_stats=False):
