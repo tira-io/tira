@@ -7,7 +7,7 @@ RUN apk update &&\
     apk add --update --no-cache python3 zip py3-virtualenv mariadb-dev npm
 # NOTE: We'll install it here, so rebuilding the image when testing application code is faster.
 # If we install requirements after copying the code, the install layer has to be redone every time.
-RUN python3 -m pip install --no-cache-dir grpcio==1.36.1 protobuf uwsgi Django pyyaml grpcio-tools==1.36.1 requests randomname tqdm mysql mysqlclient python-gitlab GitPython webpack-loader==0.6.0
+RUN python3 -m pip install --no-cache-dir grpcio==1.36.1 protobuf uwsgi Django pyyaml grpcio-tools==1.36.1 requests randomname tqdm mysql mysqlclient python-gitlab GitPython django-webpack-loader==0.6.0
 
 RUN addgroup --gid 1010 tira && \
 	adduser --disabled-password --uid 1010 --ingroup tira tira && \
