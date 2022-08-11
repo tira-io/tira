@@ -236,6 +236,19 @@ function addSoftware(tid, vmid) {
 }
 
 async function renameSoftware(taskId, vmId, softwareId, newId) {
+    if (newId.length === 0){
+        alert("Software name cannot be empty.");
+        document.location.reload();
+
+        return False
+    }
+    else if (!/^[A-Za-z0-9]*$/.test(newId)){
+        alert("Please only use alphanumeric characters.");
+        document.location.reload();
+
+        return False
+    }
+
     let token = $('input[name=csrfmiddlewaretoken]').val()
     if (checkInputFields(softwareId) === false){
         return false
@@ -258,7 +271,9 @@ async function renameSoftware(taskId, vmId, softwareId, newId) {
         body: JSON.stringify(params)
     })
     if (!response.ok) {
-        throw new Error(`Error ${response.status}`);
+        alert("Software either not found or new name already taken.");
+        document.location.reload();
+        // throw new Error(`Error ${response.status}`);
     }
     document.location.reload();
 }
