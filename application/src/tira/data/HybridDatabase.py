@@ -299,7 +299,8 @@ class HybridDatabase(object):
             'evaluations_public_count': modeldb.Review.objects.filter(run__run_id__in=[r.run_id for r in runs.filter(evaluator__isnull=False)]
                                                                       ).filter(published=True).count(),
             "default_upload_name": dataset.default_upload_name,
-            "date": dataset.date
+            "created": dataset.created,
+            "last_modified": dataset.last_modified
         }
 
     def get_dataset(self, dataset_id: str) -> dict:
@@ -520,7 +521,8 @@ class HybridDatabase(object):
             host = ''
 
         if not task_id:
-            task_id = modeldb.Dataset.objects.get(evaluator=evaluator).default_task.task_id
+            dataset = modeldb.Dataset.objects.filter(evaluator=evaluator).latest('last_modified')
+            task_id = dataset.default_task.task_id
 
         return {"vm_id": vm_id, "host": host, "command": evaluator.command, "task_id": task_id,
                 "working_dir": evaluator.working_directory, 'measures': evaluator.measures,
@@ -1272,3 +1274,4 @@ class HybridDatabase(object):
     @staticmethod
     def software_exists(task_id: str, vm_id: str, software_id: str) -> bool:
         return modeldb.Software.objects.filter(software_id=software_id, vm__vm_id=vm_id).exists()
+
