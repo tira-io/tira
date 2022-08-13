@@ -64,7 +64,7 @@ def run_evaluate_with_git_workflow(task_id, dataset_id, vm_id, run_id, git_runne
         repo = __clone_repository_and_create_new_branch(repo_url(git_repository_id), identifier, tmp_dir)
 
         __write_metadata_for_evaluation_job_to_repository(tmp_dir, task_id, transaction_id, dataset_id, vm_id, run_id,
-                                                          identifier)
+                                                          identifier, git_runner_image, git_runner_command)
 
         __commit_and_push(repo, dataset_id, vm_id, run_id, identifier)
 
@@ -95,7 +95,7 @@ def __clone_repository_and_create_new_branch(repo_url, branch_name, directory):
 
 
 def __write_metadata_for_evaluation_job_to_repository(tmp_dir, task_id, transaction_id, dataset_id, vm_id,
-                                                      run_id, identifier):
+                                                      run_id, identifier, git_runner_image, git_runner_command):
     job_dir = Path(tmp_dir) / dataset_id / vm_id / run_id
     job_dir.mkdir(parents=True, exist_ok=True)
 
@@ -110,6 +110,8 @@ def __write_metadata_for_evaluation_job_to_repository(tmp_dir, task_id, transact
             'TIRA_TASK_ID': task_id,
             'TIRA_EVALUATOR_TRANSACTION_ID': transaction_id,
             'TIRA_GIT_ID': identifier,
+            'TIRA_EVALUATION_IMAGE_TO_EXECUTE': git_runner_image,
+            'TIRA_EVALUATION_COMMAND_TO_EXECUTE': git_runner_command,
         }
     
     open(job_dir / 'job-to-execute.txt', 'w').write(_dict_to_gitlab_key_value_file(metadata))
