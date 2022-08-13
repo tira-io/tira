@@ -103,8 +103,10 @@ def __write_metadata_for_evaluation_job_to_repository(tmp_dir, task_id, transact
             # The pipeline executed first a pseudo software so the following three values are
             # only dummy values so that the software runs successful.
             'TIRA_IMAGE_TO_EXECUTE': 'ubuntu:18.04',
+            'TIRA_VM_ID': vm_id,
             'TIRA_COMMAND_TO_EXECUTE': 'echo \'No software to execute. Only evaluation\'',
             'TIRA_SOFTWARE_ID': '-1',
+            'TIRA_DATASET_ID': dataset_id,
 
             # The actual important stuff for the evaluator:
             'TIRA_TASK_ID': task_id,
