@@ -330,7 +330,7 @@ def run_eval(request, vm_id, dataset_id, run_id):
                             status=HTTPStatus.PRECONDITION_FAILED)
 
     evaluator = model.get_evaluator(dataset_id)
-    if evaluator.is_git_runner:
+    if 'is_git_runner' in evaluator and evaluator['is_git_runner']:
         return _git_runner_vm_eval_call(vm_id, dataset_id, run_id, evaluator)
 
     return _master_vm_eval_call(vm_id, dataset_id, run_id, evaluator)
