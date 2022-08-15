@@ -27,9 +27,9 @@
                     <h1>[[ taskName ]] <span class="uk-text-lead uk-text-muted">by [[ organizerName ]]</span></h1>
                 </div>
                 <div>
-                    <a v-if="role === 'admin'" uk-toggle="target: #task-edit-modal" class="uk-button uk-button-default uk-text-large"
-                       uk-tooltip="title: Edit Task;">
-                        <span class="uk-padding-small">Edit</span><i class="fas fa-edit"></i></a>
+<!--                    <a v-if="role === 'admin'" uk-toggle="target: #task-edit-modal" class="uk-button uk-button-default uk-text-large"-->
+<!--                       uk-tooltip="title: Edit Task;">-->
+<!--                        <span class="uk-padding-small">Edit</span><i class="fas fa-edit"></i></a>-->
                     <a class="uk-button uk-button-default uk-text-large"
                        uk-tooltip="title: Task Website;"
                        target="_blank"
@@ -45,6 +45,10 @@
             <div class="uk-margin-small">
                 [[ taskDescription ]]
             </div>
+            <edit-task :csrf="csrf"
+                       @addNotification="(type, message) => addNotification(type, message)"
+                       @updateTask="(message) => updateTask(message)"
+                       :task_id="task_id"/>
         </div>
 
         <div class="uk-container uk-margin-medium">
@@ -149,16 +153,6 @@
                 </div>
             </div>
             <review-list :vms="vms[selected]" :task_id="task_id" :dataset_id="selected" :hide_reviewed="hide_reviewed"/>
-        </div>
-
-        <div id="task-edit-modal" uk-modal>
-            <div class="uk-modal-dialog uk-modal-body uk-width-4-5">
-                <button class="uk-modal-close-default" type="button" uk-close></button>
-                <edit-task :csrf="csrf"
-                           @addNotification="(type, message) => addNotification(type, message)"
-                           @updateTask="(message) => updateTask(message)"
-                           :task_id="task_id"/>
-            </div>
         </div>
         {% endif %}
     </main>

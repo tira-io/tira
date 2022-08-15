@@ -153,6 +153,7 @@ class GrpcClient:
             t = TransactionLog.objects.get(transaction_id=transaction.transactionId)
             _ = EvaluationLog.objects.update_or_create(vm_id=vm_id, run_id=run_id, running_on=vm_id,
                                                        transaction=t)
+
         logger.debug("Application received run-eval response: " + str(response.message))
         return response
 

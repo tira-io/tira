@@ -11,6 +11,8 @@ import os
 import stat
 
 from tira.grpc_client import new_transaction
+from tira.model import TransactionLog, EvaluationLog
+from .proto import tira_host_pb2, tira_host_pb2_grpc
 
 logger = logging.getLogger('tira')
 
@@ -53,7 +55,7 @@ def create_user_repository(repo):
 
 
 def run_evaluate_with_git_workflow(task_id, dataset_id, vm_id, run_id, git_runner_image,
-                                   git_runner_command, git_repository_id):
+                                   git_runner_command, git_repository_id, evaluator_id):
     msg = f"start run_eval with git: {task_id} - {dataset_id} - {vm_id} - {run_id}"
     transaction_id = new_transaction(msg, in_grpc=False)
     logger.info(msg)
@@ -64,9 +66,15 @@ def run_evaluate_with_git_workflow(task_id, dataset_id, vm_id, run_id, git_runne
         repo = __clone_repository_and_create_new_branch(repo_url(git_repository_id), identifier, tmp_dir)
 
         __write_metadata_for_evaluation_job_to_repository(tmp_dir, task_id, transaction_id, dataset_id, vm_id, run_id,
-                                                          identifier, git_runner_image, git_runner_command)
+                                                          identifier, git_runner_image, git_runner_command, evaluator_id)
 
         __commit_and_push(repo, dataset_id, vm_id, run_id, identifier)
+
+        t = TransactionLog.objects.get(transaction_id=transaction_id)
+        _ = EvaluationLog.objects.update_or_create(vm_id=vm_id, run_id=run_id, running_on=vm_id,
+                                                   transaction=t)
+
+    return transaction_id
 
 
 def gitlab_client():
@@ -95,7 +103,7 @@ def __clone_repository_and_create_new_branch(repo_url, branch_name, directory):
 
 
 def __write_metadata_for_evaluation_job_to_repository(tmp_dir, task_id, transaction_id, dataset_id, vm_id,
-                                                      run_id, identifier, git_runner_image, git_runner_command):
+                                                      run_id, identifier, git_runner_image, git_runner_command, evaluator_id):
     job_dir = Path(tmp_dir) / dataset_id / vm_id / run_id
     job_dir.mkdir(parents=True, exist_ok=True)
 
@@ -114,6 +122,7 @@ def __write_metadata_for_evaluation_job_to_repository(tmp_dir, task_id, transact
             'TIRA_GIT_ID': identifier,
             'TIRA_EVALUATION_IMAGE_TO_EXECUTE': git_runner_image,
             'TIRA_EVALUATION_COMMAND_TO_EXECUTE': git_runner_command,
+            'TIRA_EVALUATION_SOFTWARE_ID': evaluator_id,
         }
     
     open(job_dir / 'job-to-execute.txt', 'w').write(_dict_to_gitlab_key_value_file(metadata))

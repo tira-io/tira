@@ -284,7 +284,7 @@ class HybridDatabase(object):
 
     def _dataset_to_dict(self, dataset):
         evaluator_id = None if not dataset.evaluator else dataset.evaluator.evaluator_id
-        runs = modeldb.Run.objects.filter(input_dataset__dataset_id=dataset.dataset_id)
+        runs = modeldb.Run.objects.filter(input_dataset__dataset_id=dataset.dataset_id, deleted=False)
         return {
             "display_name": dataset.display_name,
             "evaluator_id": evaluator_id,
@@ -525,6 +525,7 @@ class HybridDatabase(object):
             task_id = dataset.default_task.task_id
 
         return {"vm_id": vm_id, "host": host, "command": evaluator.command, "task_id": task_id,
+                "evaluator_id": evaluator.evaluator_id,
                 "working_dir": evaluator.working_directory, 'measures': evaluator.measures,
                 "is_git_runner": evaluator.is_git_runner, "git_runner_image": evaluator.git_runner_image,
                 "git_runner_command": evaluator.git_runner_command, "git_repository_id": evaluator.git_repository_id, }
@@ -1275,3 +1276,5 @@ class HybridDatabase(object):
     def software_exists(task_id: str, vm_id: str, software_id: str) -> bool:
         return modeldb.Software.objects.filter(software_id=software_id, vm__vm_id=vm_id).exists()
 
+# modeldb.EvaluationLog.objects.latest('last_update').delete()
+# print(f"{el.vm_id} = {el.run_id} = {el.running_on}")

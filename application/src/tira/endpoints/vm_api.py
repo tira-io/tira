@@ -312,9 +312,13 @@ def _git_runner_vm_eval_call(vm_id, dataset_id, run_id, evaluator):
     """ called when the evaluation is done via git runner.
      This method calls the git utilities in git_runner.py to start the git CI
      """
-    response = run_evaluate_with_git_workflow(evaluator['task_id'], dataset_id, vm_id, run_id, evaluator['git_runner_image'],
-                                              evaluator['git_runner_command'], evaluator['git_repository_id'])
-    return response
+    try:
+        transaction_id = run_evaluate_with_git_workflow(evaluator['task_id'], dataset_id, vm_id, run_id, evaluator['git_runner_image'],
+                                                        evaluator['git_runner_command'], evaluator['git_repository_id'], evaluator['evaluator_id'])
+    except Exception as e:
+        return JsonResponse({'status': 1, 'message': e}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+    return JsonResponse({'status': 0, 'message': transaction_id}, status=HTTPStatus.ACCEPTED)
 
 
 @check_conditional_permissions(private_run_ok=True)
@@ -331,6 +335,7 @@ def run_eval(request, vm_id, dataset_id, run_id):
 
     evaluator = model.get_evaluator(dataset_id)
     if 'is_git_runner' in evaluator and evaluator['is_git_runner']:
+        print("start git runner")
         return _git_runner_vm_eval_call(vm_id, dataset_id, run_id, evaluator)
 
     return _master_vm_eval_call(vm_id, dataset_id, run_id, evaluator)

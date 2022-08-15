@@ -43,7 +43,7 @@ class EvaluationLog(models.Model):
     vm_id = models.CharField(max_length=280)
     run_id = models.CharField(max_length=280)
     running_on = models.CharField(max_length=280)  # the vm_id of the master vm for the dataset that is evaluated on
-    transaction = models.ForeignKey(TransactionLog, on_delete=models.SET_NULL, null=True)
+    transaction = models.ForeignKey(TransactionLog, on_delete=models.CASCADE, null=True)
     last_update = models.DateTimeField(auto_now=True)
 
     class Meta:

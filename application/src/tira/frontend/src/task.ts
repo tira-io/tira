@@ -37,6 +37,7 @@ const app = createApp({
             selected: "",
             hide_private: true,
             hide_reviewed: true,
+            hide_configuration: true,
             csrf: (<HTMLInputElement>document.querySelector('[name=csrfmiddlewaretoken]')).value
         }
     },
@@ -163,21 +164,21 @@ const app = createApp({
             } else {
                 console.log("selected is empty")
                 console.log(this.datasets)
-                let newest = Object.values(this.datasets).reduce(function(prev, curr) {
-                    let newer = function(a, b) {
-                        const aSplits = a['created'].split("-")
-                        const bSplits = b['created'].split("-")
-                        if (parseInt(aSplits[0]) > parseInt(bSplits[0]) ||
-                            (parseInt(aSplits[0]) === parseInt(bSplits[0]) && parseInt(aSplits[1]) > parseInt(bSplits[1])) ||
-                            (parseInt(aSplits[0]) === parseInt(bSplits[0]) && parseInt(aSplits[1]) === parseInt(bSplits[1]) && parseInt(aSplits[2]) > parseInt(bSplits[2]))) {
-                            return a
-                        }
-                        return b
+                function newer(a: object, b: object): object {
+                    const aSplits = a['created'].split("-")
+                    const bSplits = b['created'].split("-")
+                    if (parseInt(aSplits[0]) > parseInt(bSplits[0]) ||
+                        (parseInt(aSplits[0]) === parseInt(bSplits[0]) && parseInt(aSplits[1]) > parseInt(bSplits[1])) ||
+                        (parseInt(aSplits[0]) === parseInt(bSplits[0]) && parseInt(aSplits[1]) === parseInt(bSplits[1]) && parseInt(aSplits[2]) > parseInt(bSplits[2]))) {
+                        return a
                     }
-                    return newer(prev, curr)
+                    return b
+                }
+                let newest: unknown = Object.values(this.datasets).reduce(function(prev, curr) {
+                        return newer((prev as object), (curr as object))
                     }
                 )
-                this.selected = newest['dataset_id']
+                this.selected = (newest as object)['dataset_id']
             }
         }).catch(error => {
             this.addNotification('error', error)

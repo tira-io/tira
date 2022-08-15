@@ -115,6 +115,7 @@ class TiraApplicationService(tira_host_pb2_grpc.TiraApplicationService):
         model.add_run(request.runId.datasetId, request.runId.vmId, request.runId.runId)
         
         EvaluationLog.objects.filter(vm_id=request.runId.vmId, run_id=request.runId.runId).delete()
+        EvaluationLog.objects.filter(transaction__transaction_id=request.transaction.transactionId).delete()
         _ = TransactionLog.objects.filter(transaction_id=request.transaction.transactionId).update(
             completed=False,
             last_status=str(request.transaction.status),
