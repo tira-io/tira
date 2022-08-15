@@ -35,30 +35,33 @@ export default {
               'uk-background-default': (run.review.noErrors || run.review.hasErrors || run.review.hasErrorOutput || run.review.otherErrors) && for_review}">
         <td :id="'run-' + vm_id + '-' + run.run.run_id"></td>
         <td class="uk-table-shrink uk-padding-remove-vertical"> <!-- run status Icon -->
-            <div uk-tooltip="This run is OK" v-if="run.review.noErrors">
-                <i class="fas fa-check dataset-detail-icon uk-text-success"></i>
+            <div uk-tooltip="This run is OK" v-if="run.review.noErrors" class="dataset-detail-icon uk-text-success">
+                <font-awesome-icon icon="fas fa-check"/>
             </div>
-            <div uk-tooltip="This run has errors" v-else-if="run.review.hasErrors">
-                <i class="fas fa-times dataset-detail-icon uk-text-danger"></i>
+            <div uk-tooltip="This run has errors" v-else-if="run.review.hasErrors" class="dataset-detail-icon uk-text-danger">
+                <font-awesome-icon icon="fas fa-times"/>
             </div>
         </td>
         <td class="uk-table-shrink uk-padding-remove-vertical"> <!-- run visibility Icon -->
-            <div uk-tooltip="This run is blinded" v-if="run.review.blinded">
-                <i class="fas fa-user-slash dataset-detail-icon"></i>
+            <div uk-tooltip="This run is blinded" v-if="run.review.blinded" class="dataset-detail-icon">
+                <font-awesome-icon icon="fas fa-user-slash"/>
             </div>
-            <div uk-tooltip="This run is visible to the participant" v-else>
-                <i class="fas fa-user dataset-detail-icon uk-text-success"></i>
+            <div uk-tooltip="This run is visible to the participant" v-else class="dataset-detail-icon uk-text-success">
+                <font-awesome-icon icon="fas fa-user" />
             </div>
         </td>
         <td class="uk-table-shrink uk-padding-remove-vertical"> <!-- published run Icon -->
-            <div uk-tooltip="This run is on the leaderboards" v-if="run.review.published">
-                <i class="fas fa-users dataset-detail-icon uk-text-success"></i>
+            <div uk-tooltip="This run is on the leaderboards" v-if="run.review.published" class="dataset-detail-icon uk-text-success">
+                <font-awesome-icon icon="fas fa-users" />
             </div>
-            <div uk-tooltip="This run is not published" v-else>
-                <i class="fas fa-users-slash dataset-detail-icon"></i>
+            <div uk-tooltip="This run is not published" v-else class="dataset-detail-icon">
+                <font-awesome-icon icon="fas fa-users-slash" />
             </div>
         </td>
-        <td class="uk-table-shrink uk-text-nowrap"><span v-if="run.run.input_run_id != 'none'"><i class="fas fa-level-up-alt fa-flip-horizontal"></i></span>&nbsp;{{ run.run.run_id }}</td>
+        <td class="uk-table-shrink uk-text-nowrap"><span v-if="run.run.input_run_id != 'none'">
+                <font-awesome-icon icon="fas fa-level-up-alt" />
+
+            </span>&nbsp;{{ run.run.run_id }}</td>
         <td class="uk-table-shrink uk-text-nowrap" ><a :href="'#run-' + vm_id + '-' + run.run.input_run_id" v-if="run.run.input_run_id != 'none'">{{ run.run.input_run_id }}</a>
         </td>
         <td class="uk-padding-remove-vertical uk-text-nowrap uk-text-truncate" v-if="for_review">
@@ -76,10 +79,16 @@ export default {
                v-if="!(for_review) && run.run.input_run_id === 'none'">
                 <div id="run-evaluate-spinner-{{ run.run_id }}" class="run-evaluate-spinner" uk-spinner="ratio: 0.4"></div> evaluate</a>
             <a class="uk-button uk-button-small uk-button-default uk-background-default"
-               :href="'/task/' + task_id + '/user/' + vm_id + '/dataset/' + dataset_id + '/run/' + run.run.run_id"><i class="fas fa-search"></i> inspect</a>
+               :href="'/task/' + task_id + '/user/' + vm_id + '/dataset/' + dataset_id + '/run/' + run.run.run_id">
+
+                <font-awesome-icon icon="fas fa-search" />
+                inspect</a>
             <a class="uk-button uk-button-small uk-button-default uk-background-default"
                target="_blank"
-               :href="'/task/' + task_id + '/user/' + vm_id + '/dataset/' + dataset_id + '/download/' + run.run.run_id + '.zip'"><i class="fas fa-download"></i> download</a>
+               :href="'/task/' + task_id + '/user/' + vm_id + '/dataset/' + dataset_id + '/download/' + run.run.run_id + '.zip'">
+
+                <font-awesome-icon icon="fas fa-download" />
+                download</a>
             <a class="uk-button uk-button-small uk-button-danger run-delete-button"
                v-if="!(for_review)"
                data-tira-dataset="{{ run.dataset }}" data-tira-vm-id="{{ vm_id }}"

@@ -5,8 +5,15 @@ import EditTask from './components/edittask.vue'
 import EditDataset from './components/editdataset.vue'
 import AddDataset from './components/adddataset.vue'
 
+import Vue from 'vue'
 import {createApp} from 'vue'
 import UIkit from 'uikit'
+// Fontawesome Icons
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faCheck, faTimes, faUserSlash, faUsers, faUsersSlash, faLevelUpAlt, faUser, faSearch, faDownload } from '@fortawesome/free-solid-svg-icons'
+
+library.add(faCheck, faTimes, faUserSlash, faUsers, faUsersSlash, faLevelUpAlt, faUser, faSearch, faDownload)
 
 // CSS
 require('../../static/tira/css/tira-style.css');
@@ -164,6 +171,7 @@ const app = createApp({
         }
     },
 })
+app.component('font-awesome-icon', FontAwesomeIcon)
 
 app.config.compilerOptions.delimiters = ['[[', ']]']
 app.mount("#vue-task-mount")
