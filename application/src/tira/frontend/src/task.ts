@@ -19,7 +19,7 @@ const app = createApp({
             organizerName: "",
             website: "",
             taskDescription: "",
-            datasets: "",
+            datasets: {},
             test_ids: "",
             training_ids: "",
             role: '',
@@ -53,7 +53,7 @@ const app = createApp({
         },
         closeModal() {
             UIkit.modal(document.getElementById('add-dataset-modal')).hide();
-            UIkit.modal(document.getElementById('edit-dataset-modal')).hide();
+            // UIkit.modal(document.getElementById('edit-dataset-modal')).hide();
         },
         deleteDataset(dsId) {
             this.selected = ""
@@ -77,7 +77,7 @@ const app = createApp({
             if (this.datasets[dsid].display_name !== "") {
                 title = this.datasets[dsid].display_name
             }
-            return `${title} (<span class="uk-text-bold">${this.datasets[dsid]["software_count"]}</span> Softwares)`
+            return `${title} (<span class="uk-text-bold">${this.datasets[dsid]["runs_count"]}</span> Runs)`
         },
         async getEvaluations(selected) {
             try {
@@ -148,6 +148,30 @@ const app = createApp({
             this.test_ids = JSON.parse(message.context.test_dataset_ids)
             this.training_ids = JSON.parse(message.context.training_dataset_ids)
             this.selected_dataset_id = message.context.selected_dataset_id
+            if (this.selected !== "") {
+                this.getEvaluations(this.selected)
+                if (this.role === 'admin') {
+                    this.getSubmissions(this.selected)
+                }
+            } else {
+                console.log("selected is empty")
+                console.log(this.datasets)
+                let newest = Object.values(this.datasets).reduce(function(prev, curr) {
+                    let newer = function(a, b) {
+                        const aSplits = a['created'].split("-")
+                        const bSplits = b['created'].split("-")
+                        if (parseInt(aSplits[0]) > parseInt(bSplits[0]) ||
+                            (parseInt(aSplits[0]) === parseInt(bSplits[0]) && parseInt(aSplits[1]) > parseInt(bSplits[1])) ||
+                            (parseInt(aSplits[0]) === parseInt(bSplits[0]) && parseInt(aSplits[1]) === parseInt(bSplits[1]) && parseInt(aSplits[2]) > parseInt(bSplits[2]))) {
+                            return a
+                        }
+                        return b
+                    }
+                    return newer(prev, curr)
+                    }
+                )
+                this.selected = newest['dataset_id']
+            }
         }).catch(error => {
             this.addNotification('error', error)
         })
@@ -156,12 +180,7 @@ const app = createApp({
         }).catch(error => {
             this.addNotification('error', error)
         })
-        if (this.selected !== "") {
-            this.getEvaluations(this.selected)
-            if (this.role === 'admin') {
-                this.getSubmissions(this.selected)
-            }
-        }
+
     },
 })
 

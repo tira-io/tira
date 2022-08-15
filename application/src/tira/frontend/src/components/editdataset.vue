@@ -1,3 +1,103 @@
+<template>
+<span class="uk-text-danger uk-margin-small-left" v-if="this.editDatasetError !== ''">{{ this.editDatasetError }}</span>
+<div class="uk-margin-small uk-grid-small" uk-grid>
+    <div class="uk-card uk-card-small uk-card-default uk-card-body uk-width-1-1">
+      <div class="uk-grid-small uk-margin-small" uk-grid>
+
+        <h3 class="uk-card-title uk-width-1-1">
+          <div class="uk-grid-small uk-margin-small" uk-grid>
+            <span class="uk-text-muted">ID: {{ this.dataset_id }}</span>
+            <div class="uk-width-expand"></div>
+            <div>
+              <div class="uk-button uk-button-primary uk-button-small" @click="saveDataset">Save</div>
+              <div class="uk-button uk-button-danger uk-button-small" @click="deleteDataset"><i class="fas fa-trash-alt"></i></div>
+            </div>
+          </div>
+        </h3>
+
+        <div class="uk-width-1-4">
+            <label>Dataset Name* <input class="uk-input" type="text"
+                   :class="{'uk-form-danger': (this.editDatasetError !== '' && this.datasetNameInput === '')}"
+                   v-model="datasetNameInput" /></label>
+        </div>
+        <div class="uk-width-1-4">
+            <label>Task* <select class="uk-select" v-model="this.selectedTask"
+                   :class="{'uk-form-danger': (this.editDatasetError !== '' && this.selectedTask === '')}">
+                <option v-for="task in this.taskList" :value="task">{{ task.task_id }}</option>
+            </select></label>
+        </div>
+        <div class="uk-width-1-4">
+            <div>
+              <label>Name of uploaded run results<input type="text" class="uk-input" placeholder="predictions.ndjson"
+                     v-model="uploadName" /></label>
+            </div>
+        </div>
+
+        <div class="uk-width-1-4">
+            <div>
+              <label><input class="uk-checkbox" type="checkbox" name="checkbox-publish" v-model="publish"> Public Dataset</label>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <div class="uk-card uk-card-small uk-card-default uk-card-body uk-width-1-1">
+          <h3 class="uk-card-title uk-width-1-1">
+          <div class="uk-grid-small uk-margin-small" uk-grid>
+            <span>Evaluator</span>
+            <div class="uk-width-expand"></div>
+            <div>
+              <div class="uk-button uk-button-primary uk-margin-small-right uk-button-small" @click="saveDataset">Save</div>
+            </div>
+          </div>
+        </h3>
+      <div class="uk-margin-small">
+        <div>
+            <label><input class="uk-radio" type="radio" name="radio3" :value="false" v-model="isGitRunner"> Master VM</label>&nbsp;
+            <label><input class="uk-radio" type="radio" name="radio3" :value="true" v-model="isGitRunner"> Git CI</label>
+        </div>
+        </div>
+        <div v-if="isGitRunner === false" class="uk-grid-small uk-margin-small" uk-grid>
+            <div class="uk-width-1-3">
+                <label> Evaluator Working Directory
+                <input type="text" class="uk-input"
+                       v-model="evaluatorWorkingDirectory" /></label>
+            </div>
+            <div class="uk-width-1-3">
+                <label>Evaluator Command
+                <input type="text" class="uk-input" placeholder="Command to be run from working directory"
+                       v-model="evaluatorCommand" /></label>
+            </div>
+            <div class="uk-width-1-3">
+                <label>Master VM
+                <input class="uk-input uk-disabled" type="text" placeholder="id-lowercase-with-dashes"
+                       v-model="selectedTask.master_vm_id" disabled></label>
+            </div>
+        </div>
+        <div v-if="isGitRunner === true" class="uk-grid-small uk-margin-small" uk-grid>
+            <div class="uk-width-1-2">
+                <label> Image to be run <input type="text" class="uk-input" v-model="gitRunnerImage" /></label>
+            </div>
+            <div class="uk-width-1-2">
+                <label>Git Runner Command <input type="text" class="uk-input" v-model="gitRunnerCommand" /></label>
+            </div>
+            <div class="uk-width-1-1">
+                <label><input class="uk-checkbox" type="checkbox" name="checkbox-gitci" v-model="useExistingRepo"> use existing repository</label>
+            </div>
+            <div v-if="useExistingRepo" class="uk-width-1-1">
+                <label>Git Repository ID <input type="text" class="uk-input" v-model="gitRepositoryId" ></label>
+            </div>
+        </div>
+
+        <div class="uk-margin-small">
+            <label>Evaluation Measures <textarea rows="4" class="uk-textarea" placeholder="Measure Name,measure_key
+            Name will be displayed to the users.
+            measure_key must be as output by the evaluation software."
+                   v-model="evaluationMeasures" /></label>
+        </div>
+    </div>
+</div>
+</template>
 <script charset="utf-8">
 export default {
     data() {
@@ -6,6 +106,7 @@ export default {
             datasetNameInput: '',
             selectedTask: '',
             publish: '',
+            uploadName: '',
             evaluatorWorkingDirectory: '',
             evaluatorCommand: '',
             evaluationMeasures: '',
@@ -67,6 +168,7 @@ export default {
                 'name': this.datasetNameInput,
                 'task': this.selectedTask.task_id,
                 'publish': this.publish,
+                'upload_name': this.uploadName,
                 'evaluator_working_directory': this.evaluatorWorkingDirectory,
                 'evaluator_command': this.evaluatorCommand,
                 'evaluation_measures': this.evaluationMeasures,
@@ -99,6 +201,30 @@ export default {
                 }
             }
             return {}
+        },
+        setup(){
+            this.get(`/api/task-list`).then(message => {
+                this.taskList = message.context.task_list
+                this.get(`/api/dataset/${this.dataset_id}`).then(message => {
+                    const dataset = message.context.dataset
+                    const evaluator = message.context.evaluator
+                    this.datasetNameInput = dataset.display_name
+                    this.publish = !dataset.is_confidential
+                    this.uploadName = dataset.default_upload_name
+                    this.evaluatorWorkingDirectory = evaluator.working_dir
+                    this.evaluatorCommand = evaluator.command
+                    this.evaluationMeasures = evaluator.measures
+                    this.isGitRunner = evaluator.is_git_runner
+                    this.gitRunnerImage = evaluator.git_runner_image
+                    this.gitRunnerCommand = evaluator.git_runner_command
+                    this.gitRepositoryId = evaluator.git_repository_id
+                    this.selectedTask = this.getTaskById(dataset.task)
+                }).catch(error => {
+                    this.$emit('addnotification', 'error', `Error loading task: ${error}`)
+                })
+            }).catch(error => {
+                this.$emit('addnotification', 'error', `Error loading task list: ${error}`)
+            })
         }
     },
     watch: {
@@ -106,108 +232,14 @@ export default {
             if(newName === ""){
                 this.evaluatorWorkingDirectory = '/home/' + this.selectedTask.master_vm_id + '/'
             }
+        },
+        dataset_id(newId, oldId){
+            this.setup()
         }
+
     },
     beforeMount() {
-        this.get(`/api/task-list`).then(message => {
-            this.taskList = message.context.task_list
-            this.get(`/api/dataset/${this.dataset_id}`).then(message => {
-                const dataset = message.context.dataset
-                const evaluator = message.context.evaluator
-                this.datasetNameInput = dataset.display_name
-                this.publish = !dataset.is_confidential
-                this.evaluatorWorkingDirectory = evaluator.working_dir
-                this.evaluatorCommand = evaluator.command
-                this.evaluationMeasures = evaluator.measures
-                    this.isGitRunner = evaluator.is_git_runner
-                    this.gitRunnerImage = evaluator.git_runner_image
-                    this.gitRunnerCommand = evaluator.git_runner_command
-                    this.gitRepositoryId = evaluator.git_repository_id
-                this.selectedTask = this.getTaskById(dataset.task)
-            }).catch(error => {
-                this.$emit('addnotification', 'error', `Error loading task: ${error}`)
-            })
-        }).catch(error => {
-            this.$emit('addnotification', 'error', `Error loading task list: ${error}`)
-        })
+        this.setup()
     }
 }
 </script>
-<template>
-<div class="uk-grid-small uk-margin-small" uk-grid>
-    <div class="uk-margin-right">
-        <h2>Edit Dataset <span class="uk-text-lead uk-text-muted">ID: {{ this.dataset_id }}</span></h2>
-    </div>
-</div>
-<div class="uk-margin-small">
-    <div class="uk-grid-small uk-margin-small" uk-grid>
-        <div class="uk-width-1-3">
-            <label>Dataset Name* <input class="uk-input" type="text"
-                   :class="{'uk-form-danger': (this.editDatasetError !== '' && this.datasetNameInput === '')}"
-                   v-model="datasetNameInput" /></label>
-        </div>
-        <div class="uk-width-1-3">
-            <label>Task* <select class="uk-select" v-model="this.selectedTask"
-                   :class="{'uk-form-danger': (this.editDatasetError !== '' && this.selectedTask === '')}">
-                <option v-for="task in this.taskList" :value="task">{{ task.task_id }}</option>
-            </select></label>
-        </div>
-        <div class="uk-width-1-3">
-            <div>
-                <label><input class="uk-checkbox" type="checkbox" name="checkbox-publish" v-model="publish"> Public Dataset</label>
-            </div>
-        </div>
-    </div>
-    <div class="uk-margin-right">
-        <h2>Evaluator</h2>
-    </div>
-    <div>
-        <div>
-            <label><input class="uk-radio" type="radio" name="radio3" :value="false" v-model="isGitRunner"> Master VM</label>&nbsp;
-            <label><input class="uk-radio" type="radio" name="radio3" :value="true" v-model="isGitRunner"> Git CI</label>
-        </div>
-    </div>
-    <div v-if="isGitRunner === false" class="uk-grid-small uk-margin-small" uk-grid>
-        <div class="uk-width-1-3">
-            <label> Evaluator Working Directory
-            <input type="text" class="uk-input"
-                   v-model="evaluatorWorkingDirectory" /></label>
-        </div>
-        <div class="uk-width-1-3">
-            <label>Evaluator Command
-            <input type="text" class="uk-input" placeholder="Command to be run from working directory"
-                   v-model="evaluatorCommand" /></label>
-        </div>
-        <div class="uk-width-1-3">
-            <label>Master VM
-            <input class="uk-input uk-disabled" type="text" placeholder="id-lowercase-with-dashes"
-                   v-model="selectedTask.master_vm_id" disabled></label>
-        </div>
-    </div>
-    <div v-if="isGitRunner === true" class="uk-grid-small uk-margin-small" uk-grid>
-        <div class="uk-width-1-2">
-            <label> Image to be run <input type="text" class="uk-input" v-model="gitRunnerImage" /></label>
-        </div>
-        <div class="uk-width-1-2">
-            <label>Git Runner Command <input type="text" class="uk-input" v-model="gitRunnerCommand" /></label>
-        </div>
-        <div class="uk-width-1-1">
-            <label><input class="uk-checkbox" type="checkbox" name="checkbox-gitci" v-model="useExistingRepo"> use existing repository</label>
-        </div>
-        <div v-if="useExistingRepo" class="uk-width-1-1">
-            <label>Git Repository ID <input type="text" class="uk-input" v-model="gitRepositoryId" ></label>
-        </div>
-    </div>     
-    
-    <div class="uk-margin-small">
-        <label><textarea rows="4" class="uk-textarea" placeholder="Measure Name,measure_key\nName will be displayed to the users.\nmeasure_key must be as output by the evaluation software."
-               v-model="evaluationMeasures" /> Evaluation Measures</label>
-   </div>
-    <div class="uk-margin-small">
-        <button class="uk-button uk-button-primary uk-margin-right" @click="saveDataset">Save</button>
-        <button class="uk-button uk-button-danger" @click="deleteDataset">Delete</button>
-        <span class="uk-text-danger uk-margin-small-left">{{ this.editDatasetError }}</span>
-    </div>
-    *mandatory
-</div>
-</template>
