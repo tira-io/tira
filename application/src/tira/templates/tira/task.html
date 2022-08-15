@@ -72,9 +72,9 @@
                 <div v-if="loading" uk-spinner="ratio: 0.5"></div>
                 <div v-else><i src="fa-solid fa-check"></i></div>
                 {% if role == 'admin' %}
-                <a uk-toggle="target: #edit-dataset-modal" class="uk-button uk-button-default uk-text-large"
-                   v-if="this.selected !== ''"><span class="uk-padding-small">Edit Dataset</span><i
-                        class="fas fa-edit"></i></a>
+<!--                <a uk-toggle="target: #edit-dataset-modal" class="uk-button uk-button-default uk-text-large"-->
+<!--                   v-if="this.selected !== ''"><span class="uk-padding-small">Edit Dataset</span><i-->
+<!--                        class="fas fa-edit"></i></a>-->
                 <a uk-toggle="target: #add-dataset-modal" class="uk-button uk-button-default uk-text-large">
                     <span class="uk-padding-small">Add Dataset +</span></a>
                 {% endif %}
@@ -91,19 +91,32 @@
                              @closeModal="closeModal()"/>
             </div>
         </div>
-        <div id="edit-dataset-modal" uk-modal>
-            <div class="uk-modal-dialog uk-modal-body uk-width-4-5">
-                <button class="uk-modal-close-default" type="button" uk-close></button>
-                <edit-dataset :csrf="csrf"
-                              :dataset_id="selected"
-                              @addNotification="(type, message) => addNotification(type, message)"
-                              @closeModal="closeModal()"
-                              @deleteDataset="(dsId) => deleteDataset(dsId)"
-                              @editDataset="(dataset) => addDataset(dataset)"
-                              v-if="selected !== ''"/>
-            </div>
+<!--        <div id="edit-dataset-modal" uk-modal>-->
+<!--            <div class="uk-modal-dialog uk-modal-body uk-width-4-5">-->
+<!--                <button class="uk-modal-close-default" type="button" uk-close></button>-->
+<!--                <edit-dataset :csrf="csrf"-->
+<!--                              :dataset_id="selected"-->
+<!--                              @addNotification="(type, message) => addNotification(type, message)"-->
+<!--                              @closeModal="closeModal()"-->
+<!--                              @deleteDataset="(dsId) => deleteDataset(dsId)"-->
+<!--                              @editDataset="(dataset) => addDataset(dataset)"-->
+<!--                              v-if="selected !== ''"/>-->
+<!--            </div>-->
+<!--        </div>-->
+        {% endif %}
+
+
+        {% if role == 'admin' %}
+        <div class="uk-container uk-margin-medium">
+        <edit-dataset :csrf="csrf"
+                      :dataset_id="selected"
+                      @addNotification="(type, message) => addNotification(type, message)"
+                      @deleteDataset="(dsId) => deleteDataset(dsId)"
+                      @editDataset="(dataset) => addDataset(dataset)"
+                      v-if="selected !== ''"/>
         </div>
         {% endif %}
+
 
         <div v-if="selected != '' && evaluations[selected]" class="uk-container uk-margin-medium">
             <div class="uk-grid-collapse" uk-grid>
