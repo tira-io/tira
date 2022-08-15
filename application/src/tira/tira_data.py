@@ -49,6 +49,8 @@ def get_run_file_list(dataset_id, vm_id, run_id):
         file_list = ["", "There are no files in the Output"]
     else:
         file_list = open(run_dir / "file-list.txt").read().split("\n")
+    if len(size) < 5:
+        size.extend(["0"] * (5 - len(size)))
 
     return {"size": size[1], "lines": size[2], "files": size[3], "dirs": size[4], "file_list": file_list}
 
