@@ -9,8 +9,12 @@
             <span class="uk-text-muted">ID: {{ this.dataset_id }}</span>
             <div class="uk-width-expand"></div>
             <div>
-              <div class="uk-button uk-button-primary uk-button-small" @click="saveDataset">Save</div>
-              <div class="uk-button uk-button-danger uk-button-small" @click="deleteDataset"><i class="fas fa-trash-alt"></i></div>
+              <div class="uk-button uk-button-primary uk-button-small" @click="saveDataset">
+                <font-awesome-icon icon="fas fa-save" />
+              </div>
+              <div class="uk-button uk-button-danger uk-button-small" @click="deleteDataset">
+                <font-awesome-icon icon="fas fa-trash-alt"/>
+              </div>
             </div>
           </div>
         </h3>
@@ -47,7 +51,9 @@
             <span>Evaluator</span>
             <div class="uk-width-expand"></div>
             <div>
-              <div class="uk-button uk-button-primary uk-margin-small-right uk-button-small" @click="saveDataset">Save</div>
+              <div class="uk-button uk-button-primary uk-margin-small-right uk-button-small" @click="saveDataset">
+                <font-awesome-icon icon="fas fa-save" />
+              </div>
             </div>
           </div>
         </h3>
@@ -88,13 +94,6 @@
                 <label>Git Repository ID <input type="text" class="uk-input" v-model="gitRepositoryId" ></label>
             </div>
         </div>
-
-        <div class="uk-margin-small">
-            <label>Evaluation Measures <textarea rows="4" class="uk-textarea" placeholder="Measure Name,measure_key
-            Name will be displayed to the users.
-            measure_key must be as output by the evaluation software."
-                   v-model="evaluationMeasures" /></label>
-        </div>
     </div>
 </div>
 </template>
@@ -109,7 +108,6 @@ export default {
             uploadName: '',
             evaluatorWorkingDirectory: '',
             evaluatorCommand: '',
-            evaluationMeasures: '',
             isGitRunner: false,
             gitRunnerImage: '',
             gitRunnerCommand: '',
@@ -171,7 +169,6 @@ export default {
                 'upload_name': this.uploadName,
                 'evaluator_working_directory': this.evaluatorWorkingDirectory,
                 'evaluator_command': this.evaluatorCommand,
-                'evaluation_measures': this.evaluationMeasures,
                 'is_git_runner': this.isGitRunner,
                 'git_runner_image': this.gitRunnerImage,
                 'git_runner_command': this.gitRunnerCommand,
@@ -188,8 +185,7 @@ export default {
         },
         deleteDataset() {
             this.get(`/tira-admin/delete-dataset/${this.dataset_id}`).then(message => {
-                this.$emit('deletedataset', dataset_id)
-                this.$emit('closemodal')
+                this.$emit('deletedataset', this.dataset_id)
             }).catch(error => {
                 this.$emit('addnotification', 'error', error)
             })

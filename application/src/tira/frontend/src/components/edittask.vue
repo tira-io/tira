@@ -1,3 +1,60 @@
+<template>
+<span class="uk-text-danger uk-margin-small-left" v-if="this.taskError !== ''">{{ this.taskError }}</span>
+<div class="uk-card uk-card-small uk-card-default uk-card-body uk-width-1-1">
+    <div class="uk-grid-small uk-margin-small" uk-grid>
+
+      <h3 class="uk-card-title uk-width-1-1">
+        <div class="uk-grid-small uk-margin-small" uk-grid>
+          <span class="uk-text-muted">ID: {{ this.task_id }}</span>
+          <div class="uk-width-expand"></div>
+          <div>
+            <div class="uk-button uk-button-primary uk-button-small" @click="saveTask"><font-awesome-icon icon="fas fa-save" /></div>
+            <div class="uk-button uk-button-danger uk-button-small" @click="deleteTask"><font-awesome-icon icon="fas fa-trash-alt" /></div>
+          </div>
+        </div>
+      </h3>
+      <div class="uk-width-2-5">
+          <label>Task Name*
+          <input class="uk-input" type="text" placeholder="Name of the Task"
+                 :class="{'uk-form-danger': (this.taskError !== '' && this.taskNameInput === '')}"
+                 v-model="taskNameInput" /></label>
+      </div>
+      <div class="uk-width-1-5">
+          <label>Organizer*
+          <select id="host-select" class="uk-select" v-model="this.selectedOrganizer"
+                 :class="{'uk-form-danger': (this.taskError !== '' && this.selectedOrganizer === '')}">
+              <option disabled value="">Please select an organizer</option>
+              <option v-for="organizer in this.organizerList" :value="organizer">{{ organizer.name }}</option>
+          </select></label>
+      </div>
+      <div class="uk-width-1-5">
+          <label>Website
+          <input id="website-input" class="uk-input" type="text" placeholder="Website URL"
+                 v-model="websiteInput" /></label>
+      </div>
+      <div class="uk-margin-small uk-width-1-5">
+          <label>Master VM ID*
+          <input type="text" class="uk-input" v-model="masterVmId" /></label>
+      </div>
+
+      <div class="uk-margin-small uk-width-5-5">
+          <label>Task Description*
+          <textarea id="task-description-input" rows="3" class="uk-textarea" placeholder="Task Description"
+                 :class="{'uk-form-danger': (this.taskError !== '' && this.taskDescription === '')}"
+                 v-model="taskDescription" /> </label>
+      </div>
+      <div class="uk-margin-small uk-width-5-5">
+          <label> Help Command
+          <input type="text" class="uk-input" placeholder="mySoftware -c $inputDataset -r $inputRun -o $outputDir"
+                 v-model="helpCommand" /></label>
+      </div>
+      <div class="uk-margin-small uk-width-5-5">
+          <label> Help Text<textarea rows="6" class="uk-textarea" placeholder="Available variables: \n<code>$inputDataset</code>, \n<code>$inputRun</code>, \n<code>$outputDir</code>, \n<code>$dataServer</code>, and \n<code>$token</code>."
+                 v-model="helpText" /></label>
+      </div>
+    </div>
+</div>
+</template>
 <script>
 export default {
     data() {
@@ -124,64 +181,3 @@ export default {
     }
 }
 </script>
-<template>
-<span class="uk-text-danger uk-margin-small-left" v-if="this.taskError !== ''">{{ this.taskError }}</span>
-<div class="uk-card uk-card-small uk-card-default uk-card-body uk-width-1-1">
-    <div class="uk-grid-small uk-margin-small" uk-grid>
-
-      <h3 class="uk-card-title uk-width-1-1">
-        <div class="uk-grid-small uk-margin-small" uk-grid>
-          <span class="uk-text-muted">ID: {{ this.task_id }}</span>
-          <div class="uk-width-expand"></div>
-          <div>
-            <div class="uk-button uk-button-primary uk-button-small" @click="saveTask">Save</div>
-            <div class="uk-button uk-button-danger uk-button-small" @click="deleteTask"><i class="fas fa-trash-alt"></i></div>
-          </div>
-        </div>
-      </h3>
-      <div class="uk-width-2-5">
-          <label>Task Name*
-          <input class="uk-input" type="text" placeholder="Name of the Task"
-                 :class="{'uk-form-danger': (this.taskError !== '' && this.taskNameInput === '')}"
-                 v-model="taskNameInput" /></label>
-      </div>
-      <div class="uk-width-1-5">
-          <label>Organizer*
-          <select id="host-select" class="uk-select" v-model="this.selectedOrganizer"
-                 :class="{'uk-form-danger': (this.taskError !== '' && this.selectedOrganizer === '')}">
-              <option disabled value="">Please select an organizer</option>
-              <option v-for="organizer in this.organizerList" :value="organizer">{{ organizer.name }}</option>
-          </select></label>
-      </div>
-      <div class="uk-width-1-5">
-          <label>Website
-          <input id="website-input" class="uk-input" type="text" placeholder="Website URL"
-                 v-model="websiteInput" /></label>
-      </div>
-      <div class="uk-margin-small uk-width-1-5">
-          <label>Master VM ID*
-          <input type="text" class="uk-input" v-model="masterVmId" /></label>
-      </div>
-
-      <div class="uk-margin-small uk-width-5-5">
-          <label>Task Description*
-          <textarea id="task-description-input" rows="3" class="uk-textarea" placeholder="Task Description"
-                 :class="{'uk-form-danger': (this.taskError !== '' && this.taskDescription === '')}"
-                 v-model="taskDescription" /> </label>
-      </div>
-      <div class="uk-margin-small uk-width-5-5">
-          <label> Help Command
-          <input type="text" class="uk-input" placeholder="mySoftware -c $inputDataset -r $inputRun -o $outputDir"
-                 v-model="helpCommand" /></label>
-      </div>
-      <div class="uk-margin-small uk-width-5-5">
-          <label> Help Text<textarea rows="6" class="uk-textarea" placeholder="Available variables: \n<code>$inputDataset</code>, \n<code>$inputRun</code>, \n<code>$outputDir</code>, \n<code>$dataServer</code>, and \n<code>$token</code>."
-                 v-model="helpText" /></label>
-      </div>
-    </div>
-
-</div>
-
-
-</template>
-

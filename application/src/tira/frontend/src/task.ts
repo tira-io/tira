@@ -11,9 +11,9 @@ import UIkit from 'uikit'
 // Fontawesome Icons
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faCheck, faTimes, faUserSlash, faUsers, faUsersSlash, faLevelUpAlt, faUser, faSearch, faDownload } from '@fortawesome/free-solid-svg-icons'
+import { faCheck, faTimes, faUserSlash, faUsers, faUsersSlash, faLevelUpAlt, faUser, faSearch, faDownload, faSave, faTrashAlt, faCog } from '@fortawesome/free-solid-svg-icons'
 
-library.add(faCheck, faTimes, faUserSlash, faUsers, faUsersSlash, faLevelUpAlt, faUser, faSearch, faDownload)
+library.add(faCheck, faTimes, faUserSlash, faUsers, faUsersSlash, faLevelUpAlt, faUser, faSearch, faDownload, faSave, faTrashAlt, faCog)
 
 // CSS
 require('../../static/tira/css/tira-style.css');
@@ -37,7 +37,9 @@ const app = createApp({
             selected: "",
             hide_private: true,
             hide_reviewed: true,
-            hide_configuration: true,
+            editTaskToggle: false,
+            editDatasetToggle: false,
+            addDatasetToggle: false,
             csrf: (<HTMLInputElement>document.querySelector('[name=csrfmiddlewaretoken]')).value
         }
     },
@@ -59,18 +61,17 @@ const app = createApp({
         addNotification(type, message) {
             this.notifications.push({'type': type, 'message': message})
         },
-        closeModal() {
-            UIkit.modal(document.getElementById('add-dataset-modal')).hide();
-            // UIkit.modal(document.getElementById('edit-dataset-modal')).hide();
-        },
         deleteDataset(dsId) {
-            this.selected = ""
+            console.log("delete dataset")
+            this.editDatasetToggle = false
             delete this.datasets[dsId]
+            this.selected = ""
         },
         addDataset(dataset) {
-            console.log(dataset)
             this.datasets[dataset.dataset_id] = dataset
             this.selected = dataset.dataset_id
+            this.addDatasetToggle = false
+            this.editDatasetToggle = true
         },
         updateTask(message) {
             let modal = document.getElementById('task-edit-modal')
@@ -162,8 +163,6 @@ const app = createApp({
                     this.getSubmissions(this.selected)
                 }
             } else {
-                console.log("selected is empty")
-                console.log(this.datasets)
                 function newer(a: object, b: object): object {
                     const aSplits = a['created'].split("-")
                     const bSplits = b['created'].split("-")

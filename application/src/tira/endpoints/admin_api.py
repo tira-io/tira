@@ -163,20 +163,24 @@ def admin_add_dataset(request):
     if request.method == "POST":
         data = json.loads(request.body)
 
+        if not all(k in data.keys() for k in ['dataset_id', 'name', 'task']):
+            return JsonResponse({'status': 1, 'message': f"Error: Task, dataset name, and dataset ID must be set."})
+
         dataset_id_prefix = data["dataset_id"]
         dataset_name = data["name"]
         task_id = data["task"]
-        upload_name = data["upload_name"]
-        command = data["evaluator_command"]
-        working_directory = data["evaluator_working_directory"]
-        measures = data["evaluation_measures"]
 
-        is_git_runner = data["is_git_runner"]
-        git_runner_image = data["git_runner_image"]
-        git_runner_command = data["git_runner_command"]
-        git_repository_id = data["git_repository_id"]
+        upload_name = data.get("upload_name", "predictions.jsonl")
+        command = data.get("evaluator_command", "")
+        working_directory = data.get("evaluator_working_directory", "")
+        measures = data.get("evaluation_measures", "")
 
-        if not data["use_existing_repository"]:
+        is_git_runner = data.get("is_git_runner", False)
+        git_runner_image = data.get("git_runner_image", "")
+        git_runner_command = data.get("git_runner_command", "")
+        git_repository_id = data.get("git_repository_id", "")
+
+        if not data.get("use_existing_repository", True):
             git_repository_id = git_runner.create_task_repository(task_id)
 
         master_vm_id = model.get_task(task_id)["master_vm_id"]

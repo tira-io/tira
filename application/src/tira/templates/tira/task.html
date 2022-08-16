@@ -27,9 +27,10 @@
                     <h1>[[ taskName ]] <span class="uk-text-lead uk-text-muted">by [[ organizerName ]]</span></h1>
                 </div>
                 <div>
-<!--                    <a v-if="role === 'admin'" uk-toggle="target: #task-edit-modal" class="uk-button uk-button-default uk-text-large"-->
-<!--                       uk-tooltip="title: Edit Task;">-->
-<!--                        <span class="uk-padding-small">Edit</span><i class="fas fa-edit"></i></a>-->
+                    <a v-if="role === 'admin'" class="uk-button uk-button-default uk-text-large" @click="editTaskToggle = !editTaskToggle"
+                       :class="{ 'uk-button-default': !editTaskToggle, 'uk-button-primary': editTaskToggle }"
+                       uk-tooltip="title: Edit Task Settings;">
+                        <font-awesome-icon icon="fas fa-cog" /></a>
                     <a class="uk-button uk-button-default uk-text-large"
                        uk-tooltip="title: Task Website;"
                        target="_blank"
@@ -48,6 +49,7 @@
             <edit-task :csrf="csrf"
                        @addNotification="(type, message) => addNotification(type, message)"
                        @updateTask="(message) => updateTask(message)"
+                       v-if="role === 'admin' && editTaskToggle"
                        :task_id="task_id"/>
         </div>
 
@@ -75,43 +77,27 @@
                 </div>
                 <div v-if="loading" uk-spinner="ratio: 0.5"></div>
                 <div v-else><i src="fa-solid fa-check"></i></div>
-                {% if role == 'admin' %}
-<!--                <a uk-toggle="target: #edit-dataset-modal" class="uk-button uk-button-default uk-text-large"-->
-<!--                   v-if="this.selected !== ''"><span class="uk-padding-small">Edit Dataset</span><i-->
-<!--                        class="fas fa-edit"></i></a>-->
-                <a uk-toggle="target: #add-dataset-modal" class="uk-button uk-button-default uk-text-large">
-                    <span class="uk-padding-small">Add Dataset +</span></a>
-                {% endif %}
+                <span v-if="role === 'admin'" class="uk-padding-remove">
+                    <a  class="uk-button uk-text-large" @click="editDatasetToggle = !editDatasetToggle; addDatasetToggle = false"
+                       :class="{ 'uk-button-default': !editDatasetToggle, 'uk-button-primary': editDatasetToggle }"
+                       uk-tooltip="title: Edit Dataset Settings;">
+                        <font-awesome-icon icon="fas fa-cog" /></a>
+                    <a class="uk-button uk-text-large"
+                       @click="addDatasetToggle = !addDatasetToggle; editDatasetToggle = false"
+                       :class="{ 'uk-button-default': addDatasetToggle === false, 'uk-button-primary': addDatasetToggle === true }"
+                       uk-tooltip="title: Add a new Dataset;">
+                        <span class="uk-padding-small"><font-awesome-icon icon="fas fa-plus" /></span></a>
+                </span>
             </div>
         </div>
-        {% if role == 'admin' %}
-        <div id="add-dataset-modal" uk-modal>
-            <div class="uk-modal-dialog uk-modal-body uk-width-4-5">
-                <button class="uk-modal-close-default" type="button" uk-close></button>
-                <add-dataset :csrf="csrf"
-                             :task_id="task_id"
-                             @addNotification="(type, message) => addNotification(type, message)"
-                             @addDataset="(dataset) => addDataset(dataset)"
-                             @closeModal="closeModal()"/>
-            </div>
+        <div class="uk-container uk-margin-medium" v-if="role == 'admin' && addDatasetToggle">
+            <add-dataset :csrf="csrf"
+                         :task_id="task_id"
+                         @addNotification="(type, message) => addNotification(type, message)"
+                         @addDataset="(dataset) => addDataset(dataset)"/>
         </div>
-<!--        <div id="edit-dataset-modal" uk-modal>-->
-<!--            <div class="uk-modal-dialog uk-modal-body uk-width-4-5">-->
-<!--                <button class="uk-modal-close-default" type="button" uk-close></button>-->
-<!--                <edit-dataset :csrf="csrf"-->
-<!--                              :dataset_id="selected"-->
-<!--                              @addNotification="(type, message) => addNotification(type, message)"-->
-<!--                              @closeModal="closeModal()"-->
-<!--                              @deleteDataset="(dsId) => deleteDataset(dsId)"-->
-<!--                              @editDataset="(dataset) => addDataset(dataset)"-->
-<!--                              v-if="selected !== ''"/>-->
-<!--            </div>-->
-<!--        </div>-->
-        {% endif %}
 
-
-        {% if role == 'admin' %}
-        <div class="uk-container uk-margin-medium">
+        <div class="uk-container uk-margin-medium" v-if="role == 'admin' && editDatasetToggle">
         <edit-dataset :csrf="csrf"
                       :dataset_id="selected"
                       @addNotification="(type, message) => addNotification(type, message)"
@@ -119,8 +105,6 @@
                       @editDataset="(dataset) => addDataset(dataset)"
                       v-if="selected !== ''"/>
         </div>
-        {% endif %}
-
 
         <div v-if="selected != '' && evaluations[selected]" class="uk-container uk-margin-medium">
             <div class="uk-grid-collapse" uk-grid>

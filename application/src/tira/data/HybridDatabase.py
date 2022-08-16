@@ -798,7 +798,7 @@ class HybridDatabase(object):
         ev.evaluatorId = evaluator_id
         ev.command = command
         ev.workingDirectory = working_directory
-        ev.measures = measures  # ",".join([x[0].strip('\r') for x in measures])
+        ev.measures = str(measures)  # ",".join([x[0].strip('\r') for x in measures])
         # ev.measureKeys.extend([x[1].strip('\r') for x in measures])
         vm.evaluators.append(ev)
         open(vm_file_path, 'w').write(str(vm))
