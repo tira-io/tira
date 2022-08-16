@@ -3,6 +3,13 @@
         {% csrf_token %}
         <div class="uk-grid-medium uk-margin-small" uk-grid>
             <div class="uk-width-1-6">
+                <label class="uk-form-label" for="{{ software.id }}-name">Software Name</label>
+                <div class="uk-form-controls">
+                    <input class="uk-input" id="{{ software.id }}-name" type="text"
+                        placeholder="{{ software.id }}">
+                </div>
+            </div>
+            <div class="uk-width-1-6">
                 <label class="uk-form-label" for="{{ software.id }}-working-dir">Working Directory</label>
                 <div class="uk-form-controls">
                     <input class="uk-input" id="{{ software.id }}-working-dir" type="text"
