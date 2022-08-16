@@ -240,6 +240,7 @@ def software_save(request, task_id, vm_id, software_id):
             return JsonResponse({'status': 1, 'message': f"Cannot save, the dataset {new_dataset} does not exist."})
 
         software = model.update_software(task_id, vm_id, software_id,
+                                         data.get("softwareName"),
                                          data.get("command"),
                                          data.get("working_dir"),
                                          data.get("input_dataset"),
@@ -255,27 +256,7 @@ def software_save(request, task_id, vm_id, software_id):
 
         return JsonResponse({'status': '1', "message": message}, status=HTTPStatus.BAD_REQUEST)
     return JsonResponse({'status': 1, 'message': f"GET is not implemented for add dataset"})
-
-@check_permissions
-@check_resources_exist('json')
-def software_rename(request, task_id, vm_id, software_id):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        new_id = data.get("new_id")
-
-    software = model.rename_software(task_id, vm_id, software_id, new_id)
-
-    message = 'failed to rename software for an unknown reason'
-
-    try:
-        if software:
-            return JsonResponse({'status': '1','message': f'Renamed {software_id} to {new_id}', 'last_edit': software.lastEditDate},
-                                status=HTTPStatus.ACCEPTED)
-    except Exception as e:
-        message = str(e)
-
-    return JsonResponse({'status': '1', 'message': message}, status=HTTPStatus.BAD_REQUEST)
-
+    
 
 @check_permissions
 @check_resources_exist('json')

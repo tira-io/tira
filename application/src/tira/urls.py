@@ -20,7 +20,6 @@ urlpatterns = [
     # grpc client endpoints
     path('task/<str:task_id>/vm/<str:vm_id>/software_add', vm_api.software_add, name='software_add'),
     path('task/<str:task_id>/vm/<str:vm_id>/software_save/<str:software_id>', vm_api.software_save, name='software_save'),
-    path('task/<str:task_id>/vm/<str:vm_id>/software_rename/<str:software_id>', vm_api.software_rename, name='software_rename'),
     path('task/<str:task_id>/vm/<str:vm_id>/software_delete/<str:software_id>', vm_api.software_delete, name='software_delete'),
     path('task/<str:task_id>/vm/<str:vm_id>/upload/<str:dataset_id>', vm_api.upload, name='upload'),
 

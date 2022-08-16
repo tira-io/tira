@@ -282,13 +282,10 @@ def update_run(dataset_id, vm_id, run_id, deleted: bool = None):
     return model.update_run(dataset_id, vm_id, run_id, deleted)
 
 
-def update_software(task_id, vm_id, software_id, command: str = None, working_directory: str = None,
+def update_software(task_id, vm_id, software_id, softwareName: str = None, command: str = None, working_directory: str = None,
                     dataset: str = None, run: str = None, deleted: bool = False):
-    return model.update_software(task_id, vm_id, software_id, command, working_directory, dataset,
+    return model.update_software(task_id, vm_id, software_id, softwareName, command, working_directory, dataset,
                                  run, deleted)
-
-def rename_software(task_id, vm_id, software_id, new_id):
-    return model.rename_software(task_id, vm_id, software_id, new_id)
 
 def check_software_ids(task_id, vm_id, new_id):
     return model.check_software_ids(task_id, vm_id, new_id)

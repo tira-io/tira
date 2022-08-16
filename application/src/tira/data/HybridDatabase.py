@@ -838,7 +838,7 @@ class HybridDatabase(object):
                                              dataset=None, creation_date=date, last_edit_date=date)
         return self._software_to_dict(sw)
 
-    def update_software(self, task_id, vm_id, software_id, command: str = None, working_directory: str = None,
+    def update_software(self, task_id, vm_id, software_id, softwareName: str = None, command: str = None, working_directory: str = None,
                         dataset: str = None, run: str = None, deleted: bool = False):
         def update(x, y):
             return y if y is not None else x
@@ -847,6 +847,7 @@ class HybridDatabase(object):
         date = now()
         for software in s.softwares:
             if software.id == software_id:
+                software.id = update(software.id, softwareName)
                 software.command = update(software.command, command)
                 software.workingDirectory = update(software.workingDirectory, working_directory)
                 software.dataset = update(software.dataset, dataset)
@@ -856,6 +857,7 @@ class HybridDatabase(object):
 
                 self._save_softwares(task_id, vm_id, s)
                 modeldb.Software.objects.filter(software_id=software_id, vm__vm_id=vm_id).update(
+                    software_id=software.id,
                     command=software.command, working_directory=software.workingDirectory,
                     deleted=software.deleted,
                     dataset=modeldb.Dataset.objects.get(dataset_id=software.dataset),

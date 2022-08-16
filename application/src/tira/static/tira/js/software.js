@@ -235,49 +235,6 @@ function addSoftware(tid, vmid) {
     })
 }
 
-async function renameSoftware(taskId, vmId, softwareId, newId) {
-    if (newId.length === 0){
-        alert("Software name cannot be empty.");
-        document.location.reload();
-
-        return False
-    }
-    else if (!/^[A-Za-z0-9]*$/.test(newId)){
-        alert("Please only use alphanumeric characters.");
-        document.location.reload();
-
-        return False
-    }
-
-    let token = $('input[name=csrfmiddlewaretoken]').val()
-    if (checkInputFields(softwareId) === false){
-        return false
-    }
-
-    const headers = new Headers({
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'X-CSRFToken': token
-    })
-    const params = {
-        csrfmiddlewaretoken: token,
-        action: 'post',
-        new_id: newId,
-    }
-
-    const response = await fetch(`/task/${taskId}/vm/${vmId}/software_rename/${softwareId}`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify(params)
-    })
-    if (!response.ok) {
-        alert("Software either not found or new name already taken.");
-        document.location.reload();
-        // throw new Error(`Error ${response.status}`);
-    }
-    document.location.reload();
-}
-
 function deleteSoftware(tid, vmid, softwareId, form) {
     $.ajax({
         type: 'GET',
@@ -319,14 +276,21 @@ async function upload(tid, vmid) {
     }
 }
 
-function checkInputFields(softwareId, command, inputDataset) {
+function checkInputFields(softwareId, softwareName, command, inputDataset) {
     let check = true
     let serr = $('#' + softwareId + '-form-error')
+    let snerr = $('#' + softwareId + '-name')
     let scommanderr = $('#' + softwareId + '-command-input')
     let siderr = $('#' + softwareId + '-input-dataset')
     let err_str = ''
+    snerr.removeClass("uk-form-danger")
     scommanderr.removeClass("uk-form-danger")
     siderr.removeClass("uk-form-danger")
+    if (softwareName === ""){
+        err_str += 'The software name can not be empty<br>';
+        snerr.addClass("uk-form-danger");
+        check = false;
+    }
     if (command === ""){
         err_str += 'The command can not be empty<br>';
         scommanderr.addClass("uk-form-danger");
@@ -343,9 +307,10 @@ function checkInputFields(softwareId, command, inputDataset) {
 
 async function saveSoftware(taskId, vmId, softwareId) {
     let token = $('input[name=csrfmiddlewaretoken]').val()
+    let softwareName = $(`#${softwareId}-name`).val()
     let command = $(`#${softwareId}-command-input`).val()
     let inputDataset = $(`#${softwareId}-input-dataset`).val()
-    if (checkInputFields(softwareId, command, inputDataset) === false){
+    if (checkInputFields(softwareId, softwareName, command, inputDataset) === false){
         return false
     }
 
@@ -355,6 +320,7 @@ async function saveSoftware(taskId, vmId, softwareId) {
         'X-CSRFToken': token
     })
     const params = {
+        softwareName: softwareName,
         command: command,
         working_dir: $(`#${softwareId}-working-dir`).val(),
         input_dataset: inputDataset,
@@ -479,20 +445,6 @@ function addSoftwareEvents(taskId, vmId, is_default) {
 
         $('.software-save-button').click(function () {
             saveSoftware(taskId, vmId, $(this).data("tiraSoftwareId"));
-        })
-        $('.id_element').on('dblclick', function() {
-            const software_id = $(this).text();
-            
-            var $el = $(this);
-            var $input = $('<input id="sw_input" type="text" contenteditable="true"/>').val( $el.text() );
-            $el.replaceWith( $input );
-            $('#sw_input').focus();
-            $('#sw_input').on('keyup', function(e) {
-                if (e.key === 'Enter' || e.keyCode === 13) {
-                    new_id = $('#sw_input').val();
-                    renameSoftware(taskId, vmId, software_id, new_id);
-                }
-            })
         })
         $('.software-delete-button').click(function () {
             let formId = '#' + $(this).data("tiraSoftwareId") + '-row'
