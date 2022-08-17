@@ -11,9 +11,9 @@ import UIkit from 'uikit'
 // Fontawesome Icons
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faCheck, faTimes, faUserSlash, faUsers, faUsersSlash, faLevelUpAlt, faUser, faSearch, faDownload, faSave, faTrashAlt, faCog } from '@fortawesome/free-solid-svg-icons'
+import { faCheck, faTimes, faUserSlash, faUsers, faUsersSlash, faLevelUpAlt, faUser, faSearch, faDownload, faSave, faTrashAlt, faCog, faPlus } from '@fortawesome/free-solid-svg-icons'
 
-library.add(faCheck, faTimes, faUserSlash, faUsers, faUsersSlash, faLevelUpAlt, faUser, faSearch, faDownload, faSave, faTrashAlt, faCog)
+library.add(faCheck, faTimes, faUserSlash, faUsers, faUsersSlash, faLevelUpAlt, faUser, faSearch, faDownload, faSave, faTrashAlt, faCog, faPlus)
 
 // CSS
 require('../../static/tira/css/tira-style.css');
