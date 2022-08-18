@@ -871,29 +871,6 @@ class HybridDatabase(object):
 
         return False
 
-    def rename_software(self, task_id, vm_id, software_id, new_id):
-
-        s = self._load_softwares(task_id, vm_id)
-        date = now()
-        
-        for software in s.softwares:
-            ### check if new_id value already exists in the software list
-            ### only return false if they existing software with the same id is not yet deleted
-            if software.id == new_id and software.deleted == 'false':
-                return False
-
-        for software in s.softwares:
-            if software.id == software_id:
-                software.id = new_id
-                software.lastEditDate = date
-
-                self._save_softwares(task_id, vm_id, s)
-                modeldb.Software.objects.filter(software_id=software_id, vm__vm_id=vm_id).update(software_id=software.id)
-
-                return software
-
-        return False
-
     def update_review(self, dataset_id, vm_id, run_id,
                       reviewer_id: str = None, review_date: str = None, has_errors: bool = None,
                       has_no_errors: bool = None, no_errors: bool = None, missing_output: bool = None,
