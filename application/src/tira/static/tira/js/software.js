@@ -286,8 +286,23 @@ function checkInputFields(softwareId, softwareName, command, inputDataset) {
     snerr.removeClass("uk-form-danger")
     scommanderr.removeClass("uk-form-danger")
     siderr.removeClass("uk-form-danger")
-    if (softwareName === ""){
-        err_str += 'The software name can not be empty<br>';
+    // The following function apparently is much faster than using regex to see whether
+    // a string is alphanumeric
+    function isAlphaNumeric(str) {
+        var code, i, len;
+      
+        for (i = 0, len = str.length; i < len; i++) {
+          code = str.charCodeAt(i);
+          if (!(code > 47 && code < 58) && // numeric (0-9)
+              !(code > 96 && code < 123) && // lower alpha (a-z)
+              !(code === 45)) { // allow en dash in names ( - )
+            return false;
+          }
+        }
+        return true;
+      };
+    if (!isAlphaNumeric(softwareName)){
+        err_str += 'The software name must only use lower case and must not be in use already.<br>';
         snerr.addClass("uk-form-danger");
         check = false;
     }
@@ -308,6 +323,10 @@ function checkInputFields(softwareId, softwareName, command, inputDataset) {
 async function saveSoftware(taskId, vmId, softwareId) {
     let token = $('input[name=csrfmiddlewaretoken]').val()
     let softwareName = $(`#${softwareId}-name`).val()
+    // if user left the name field empty / did not change the name, keep same name
+    if (softwareName === ""){
+        softwareName = softwareId
+    }
     let command = $(`#${softwareId}-command-input`).val()
     let inputDataset = $(`#${softwareId}-input-dataset`).val()
     if (checkInputFields(softwareId, softwareName, command, inputDataset) === false){
