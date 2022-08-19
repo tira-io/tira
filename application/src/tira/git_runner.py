@@ -20,9 +20,15 @@ logger = logging.getLogger('tira')
 def create_task_repository(task_id):
     logger.info(f"Creating task repository for task {task_id} ...")
 
+    gl = gitlab_client()
+
+    for potential_existing_projects in gl.projects.list(search=task_id):
+        if potential_existing_projects.name == task_id and int(potential_existing_projects.namespace['id']) == int(settings.GIT_USER_REPOSITORY_NAMESPACE_ID):
+            return int(potential_existing_projects.id)
+
     gitlab_ci = render_to_string('tira/git_task_repository_gitlab_ci.yml', context={})
     readme = render_to_string('tira/git_task_repository_readme.md', context={'task_name': task_id})
-    project = gitlab_client().projects.create(
+    project = gl.projects.create(
         {'name': task_id, 'namespace_id': str(int(settings.GIT_USER_REPOSITORY_NAMESPACE_ID)),
          "default_branch": settings.GIT_USER_REPOSITORY_BRANCH})
     tira_cmd_script = render_to_string('tira/tira_git_cmd.sh', context={'project_id': project.id,

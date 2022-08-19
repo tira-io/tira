@@ -23,4 +23,11 @@ class Command(BaseCommand):
     """
 
     def handle(self, *args, **options):
-        create_task_repository('delete-me-maik-223')
+        if 'create_task_repository' in options and options['create_task_repository']:
+            print(f'Create a repository for {options["create_task_repository"]}.')
+            repo_id = create_task_repository(options['create_task_repository'])
+            print(f'The new repository has the id ${repo_id}')
+
+    def add_arguments(self, parser):
+        parser.add_argument('--create_task_repository', default=None, type=str)
+
