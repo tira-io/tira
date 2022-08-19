@@ -1,5 +1,6 @@
 <li id="docker-row">
-{% if not docker_image %}
+
+{% if not docker_software %}
     <form id="docker-form" class="docker_form">
         Please upload your docker images according to your personalized documentation.
         All docker images that you have uploaded appear in the selectbox below so that you can add them to TIRA to run the image on datasets.
@@ -10,7 +11,7 @@
                 <label class="uk-form-label" for="adddockerform">Docker Image</label>
                 <select class="uk-select upload-select" id="docker-image">
                         <option value="None" selected>Select Docker Image</option>
-                        {% for image in docker.images %}
+                        {% for image in docker.docker_images %}
                         <option value="{{ image }}">{{ image }}</option>
                         {% endfor %}
                 </select>
@@ -34,28 +35,28 @@
     </form>
 {% endif %}
 
-{% if docker_image %}    
-        <form id="{{ docker_image.id }}-docker-form" class="docker_form">
+{% if docker_software %}
+        <form id="{{ docker_software.docker_software_id }}-docker-form" class="docker_form">
             <div class="uk-grid-medium" uk-grid>
                 <div class="uk-width-1-4">
-                    <label class="uk-form-label" for="{{ docker_image.id }}-docker-existing-image-unused">Image (immutable for reproducibility)</label>
+                    <label class="uk-form-label" for="{{ docker_software.docker_software_id }}-docker-existing-image-unused">Image (immutable for reproducibility)</label>
                     <div class="uk-form-controls">
-                        <select class="uk-select upload-select" id="{{ docker_image.id }}-docker-existing-image-unused" disabled>
-                            <option value="None" selected>{{ docker_image.image_user_name }}</option>
+                        <select class="uk-select upload-select" id="{{ docker_software.docker_software_id }}-docker-existing-image-unused" disabled>
+                            <option value="None" selected>{{ docker_software.user_image_name }}</option>
                         </select>
                     </div>
                 </div>
                 <div class="uk-width-1-4">
-                    <label class="uk-form-label" for="{{ docker_image.id }}-existing-command">Command (immutable for reproducibility)</label>
+                    <label class="uk-form-label" for="{{ docker_software.docker_software_id }}-existing-command">Command (immutable for reproducibility)</label>
                     <div class="uk-form-controls">
-                        <input class="uk-input command-input" id="{{ docker_image.id }}-existing-command" type="text"
-                               value="{{ docker_image.command }}" placeholder="Command" readonly disabled>
+                        <input class="uk-input command-input" id="{{ docker_software.docker_software_id }}-existing-command" type="text"
+                               value="{{ docker_software.command }}" placeholder="Command" readonly disabled>
                     </div>
                 </div>
                 <div class="uk-width-1-4">
-                    <label class="uk-form-label" for="{{ docker_image.id }}-docker-input-dataset">Run on Dataset</label>
+                    <label class="uk-form-label" for="{{ docker_software.docker_software_id }}-docker-input-dataset">Run on Dataset</label>
                     <div class="uk-form-controls">
-                        <select class="uk-select upload-select" id="{{ docker_image.id }}-docker-input-dataset">
+                        <select class="uk-select upload-select" id="{{ docker_software.docker_software_id }}-docker-input-dataset">
                             {% if not upload.dataset %}
                             <option value="None" selected>Select Dataset</option>
                             {% else %}
@@ -74,9 +75,9 @@
                     <label class="uk-form-label">&nbsp;</label>
                     <div>
                         <button class="uk-button uk-button uk-button-primary uk-width-expand docker-run-button" 
-                                data-tira-run-docker-image-id="{{ docker_image.id }}">Run</button>
+                                data-tira-run-docker-software-id="{{ docker_software.docker_software_id }}">Run</button>
                     </div>
-                    <div id="{{ docker_image.id }}-docker-form-error" class="uk-text-danger uk-width-expand"></div>
+                    <div id="{{ docker_software.docker_software_id }}-docker-form-error" class="uk-text-danger uk-width-expand"></div>
                 </div>
             </div>
             <br><br>
@@ -100,7 +101,7 @@
                 </tr>
                 </thead>
                 <tbody id="uploads-runs-tbody">
-                {% for run in docker_image.runs %}
+                {% for run in docker_software.runs %}
                 <tr class="uk-padding-remove" id="upload-{{ run.run_id }}-run">
                    <td></td>
                    <td class="uk-table-shrink uk-padding-remove-vertical">
@@ -166,8 +167,8 @@
             <div class="uk-grid-medium" uk-grid>
                 <div class="uk-width-3-5"></div>
                 <div class="docker-form-buttons uk-width-expand">
-                    Delete Image and all runs <b>(Attention)</b>:  <button class="uk-button uk-button-small uk-button-danger docker-delete-button"
-                            data-tira-docker-id="{{ docker_image.id }}"><i class="fas fa-trash-alt"></i></button>
+                    Delete Docker Software and all runs <b>(Attention)</b>:  <button class="uk-button uk-button-small uk-button-danger docker-delete-button"
+                            data-tira-docker-software-id="{{ docker_software.docker_software_id }}"><i class="fas fa-trash-alt"></i></button>
                 </div>
             </div>
             

@@ -175,8 +175,8 @@
             <li><a href="#">{{ sw.software.id }}</a></li>
             {% endfor %}
             {% if docker %}
-            {% for di in docker.existing_images %}
-            <li><a href="#">{{ di.name }}</a></li>
+            {% for ds in docker.docker_softwares %}
+            <li><a href="#">{{ ds.display_name }}</a></li>
             {% endfor %}
             {% endif %}
             {% if not is_default %}
@@ -189,7 +189,7 @@
             </li>
             {% if docker %}
             <li>
-                <a href="#">Add Docker Image</a>
+                <a href="#">Add Docker Software</a>
             </li>
             {% endif %}
         </ul>
@@ -198,15 +198,17 @@
                 {% include "tira/software_form.html" with software=sw.software runs=sw.runs task_id=task.task_id vm_id=vm_id%}
             {% endfor %}
             {% if docker %}
-            {% for di in docker.existing_images %}
-                {% include "tira/docker_form.html" with docker_image=di task_id=task.task_id vm_id=vm_id%}
+            {% for ds in docker.docker_softwares %}
+                {% include "tira/docker_form.html" with docker_software=ds task_id=task.task_id vm_id=vm_id%}
             {% endfor %}
             {% endif %}
             {% if not is_default %}
             <li id="add-software-row"></li>
             {% endif %}
             {% include "tira/upload_form.html" with task_id=task.task_id vm_id=vm_id upload=upload %}
+            {% if docker %}
             {% include "tira/docker_form.html" with task_id=task.task_id docker=docker %}
+            {% endif %}
         </ul>
 
     </div>

@@ -325,9 +325,9 @@ class HybridDatabase(object):
                 for d in modeldb.TaskHasDataset.objects.filter(task=task_id)
                 if not (d.dataset.is_deprecated and not include_deprecated)]
 
-    def get_docker_image(self, docker_image_id: str) -> dict:
+    def get_docker_software(self, docker_software_id: str) -> dict:
         try:
-            return self._docker_image_to_dict(modeldb.DockerImage.objects.get(image_id=docker_image_id))
+            return self._docker_software_to_dict(modeldb.DockerSoftware.objects.get(docker_software_id=docker_software_id))
         except modeldb.Dataset.DoesNotExist:
             return {}
 
@@ -467,33 +467,33 @@ class HybridDatabase(object):
                 "dataset": None if not upload.dataset else upload.dataset.dataset_id,
                 "last_edit": upload.last_edit_date, "runs": list(_runs_by_upload(upload))}
 
-    def _docker_image_to_dict(self, di):
-        return {'id': di.image_id, 'image_display_name': di.image_display_name,
-                'name': di.image_display_name, 'image_user_name': di.image_user_name,
-                'command': di.command, 'image_internal_name': di.image_internal_name,
-                'task_id': di.task.task_id}
 
-    def get_docker_images_with_runs(self, task_id, vm_id):
-        def _runs_by_docker_image(di):
-            runs = modeldb.Run.objects.select_related('docker_image', 'task')\
-                      .filter(docker_image__image_id=di['id'], task__task_id=di['task_id']).all()
+    def _docker_software_to_dict(self, ds):
+        return {'docker_software_id': ds.docker_software_id, 'display_name': ds.display_name,
+                'user_image_name': ds.user_image_name, 'command': ds.command,
+                'tira_image_name': ds.tira_image_name, 'task_id': ds.task.task_id,
+                'vm_id': ds.vm.vm_id}
+
+
+    def get_docker_softwares_with_runs(self, task_id, vm_id):
+        def _runs_by_docker_software(di):
+            runs = modeldb.Run.objects.select_related('docker_software', 'task')\
+                      .filter(docker_software__docker_software_id=di['docker_software_id'], task__task_id=di['task_id']).all()
                     
             for r in runs:
                 yield self._run_as_dict(r)
     
-        docker_images = modeldb.DockerImage.objects.filter(vm__vm_id=vm_id, task__task_id=task_id, deleted=False)
-        docker_images = [self._docker_image_to_dict(di) for di in docker_images]
+        docker_softwares = modeldb.DockerSoftware.objects.filter(vm__vm_id=vm_id, task__task_id=task_id, deleted=False)
+        docker_softwares = [self._docker_software_to_dict(ds) for ds in docker_softwares]
         
-        for i in docker_images:
-            i['runs'] = list(_runs_by_docker_image(i))
-        
-        print(docker_images)
-        return docker_images
+        for i in docker_softwares:
+            i['runs'] = list(_runs_by_docker_software(i))
+
+        return docker_softwares
 
 
-    def delete_docker(self, task_id, vm_id, docker_id):
-        print('Delete: ', vm_id, task_id, docker_id)
-        return modeldb.DockerImage.objects.filter(vm_id=vm_id, task_id=task_id, image_id=docker_id).update(deleted=True)
+    def delete_docker_software(self, task_id, vm_id, docker_software_id):
+        return modeldb.DockerSoftware.objects.filter(vm_id=vm_id, task_id=task_id, docker_software_id=docker_software_id).update(deleted=True)
 
 
     def get_vms_with_reviews(self, dataset_id: str):
@@ -1083,14 +1083,14 @@ class HybridDatabase(object):
                 "last_edit_date": upload.last_edit_date}
 
 
-    def add_docker_image(self, task_id, vm_id, image, command):
-        modeldb.DockerImage.objects.create(
+    def add_docker_software(self, task_id, vm_id, user_image_name, command):
+        modeldb.DockerSoftware.objects.create(
             vm=modeldb.VirtualMachine.objects.get(vm_id=vm_id),
             task=modeldb.Task.objects.get(task_id=task_id),
             command=command,
-            image_internal_name='ToDo: rename it as discussed with Johannes',
-            image_user_name=image,
-            image_display_name=randomname.get_name()
+            tira_image_name='ToDo: rename it as discussed with Johannes',
+            user_image_name=user_image_name,
+            display_name=randomname.get_name()
         )
 
 

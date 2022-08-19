@@ -98,15 +98,15 @@ def load_docker_data(task_id, vm_id):
     if len(git_runners_for_task) == 0 or any(not i for i in git_runners_for_task):
         return False
     
-    return {"available_images": ['my-cool-image:0.0.1', 'my-cool-image:0.0.2'], "existing_images": model.get_docker_images_with_runs(task_id, vm_id)}
+    return {"docker_images": ['my-cool-image:0.0.1', 'my-cool-image:0.0.2'], "docker_softwares": model.get_docker_softwares_with_runs(task_id, vm_id)}
 
-def get_docker_image(docker_image_id: int) -> dict:
+def get_docker_software(docker_software_id: int) -> dict:
     """
-    Return the docker image as dict with keys:
+    Return the docker software as dict with keys:
     
-    {'id', 'image_display_name', 'name', 'image_user_name', 'command', 'image_internal_name'}
+    {'docker_software_id', 'display_name', 'user_image_name', 'command', 'tira_image_name', 'task_id', vm_id'}
     """ 
-    return model.get_docker_image(docker_image_id)
+    return model.get_docker_software(docker_software_id)
 
 
 def get_organizer(organizer_id: str):
@@ -209,11 +209,11 @@ def get_upload_with_runs(task_id, vm_id):
     return model.get_upload_with_runs(task_id, vm_id)
 
 
-def get_docker_images_with_runs(task_id, vm_id):
+def get_docker_softwares_with_runs(task_id, vm_id):
     """
-    Returns the docker images as dictionaries.
+    Returns the docker softwares as dictionaries.
     """
-    return model.get_docker_images_with_runs(task_id, vm_id)
+    return model.get_docker_softwares_with_runs(task_id, vm_id)
 
 
 def get_run_review(dataset_id: str, vm_id: str, run_id: str) -> dict:
@@ -250,9 +250,9 @@ def add_uploaded_run(task_id, vm_id, dataset_id, uploaded_file):
     return model.add_uploaded_run(task_id, vm_id, dataset_id, uploaded_file)
 
 
-def add_docker_image(task_id, vm_id, image, command):
-    """ Add the added docker image to the user of the vm and return it """
-    return model.add_docker_image(task_id, vm_id, image, command)
+def add_docker_software(task_id, vm_id, image, command):
+    """ Add the docker software to the user of the vm and return it """
+    return model.add_docker_software(task_id, vm_id, image, command)
 
 
 # ------------------------------------------------------------
@@ -340,11 +340,11 @@ def edit_dataset(task_id: str, dataset_id: str, dataset_name: str, command: str,
                               git_runner_command, git_repository_id)
 
 
-def delete_docker(task_id, vm_id, docker_id):
+def delete_docker_software(task_id, vm_id, docker_software_id):
     """
-    Delete a given Docker image.
+    Delete a given Docker software.
     """
-    return model.delete_docker(task_id, vm_id, docker_id)
+    return model.delete_docker_software(task_id, vm_id, docker_software_id)
 
 
 def delete_software(task_id, vm_id, software_id):
