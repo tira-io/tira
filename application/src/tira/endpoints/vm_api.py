@@ -430,21 +430,9 @@ def run_execute_docker_software(request, task_id, vm_id, dataset_id, docker_soft
     if not docker_software:
         return JsonResponse({"status": 0, "message": f"There is no docker image with id {docker_software_id}"})
 
-    import tira.model as modeldb
-    run_id = get_tira_id()
-    
-    #activate later
-    #run_docker_software_with_git_workflow(task_id, dataset_id, vm_id, run_id, evaluator['git_runner_image'],
-    #                                   evaluator['git_runner_command'], evaluator['git_repository_id'], evaluator['evaluator_id'],
-    #                                   docker_software['tira_image_name'], docker_software['command'])
-    
-    # This is only temporary
-    evaluator = modeldb.Evaluator.objects.get(evaluator_id=evaluator['evaluator_id'])
-    d = modeldb.Dataset.objects.get(dataset_id=dataset_id)
-    t = modeldb.Task.objects.get(task_id=task_id)
-    i = modeldb.DockerSoftware.objects.get(docker_software_id=docker_software_id)
-    run = modeldb.Run.objects.create(run_id=run_id, evaluator=evaluator, input_dataset=d, task=t, docker_software=i)
-    modeldb.Review.objects.update_or_create(run=run)
+    run_docker_software_with_git_workflow(task_id, dataset_id, vm_id, get_tira_id(), evaluator['git_runner_image'],
+                                          evaluator['git_runner_command'], evaluator['git_repository_id'], evaluator['evaluator_id'],
+                                          docker_software['tira_image_name'], docker_software['command'])
     
     return JsonResponse({'status': 'Accepted'}, status=HTTPStatus.ACCEPTED)
 

@@ -136,10 +136,11 @@ def run_docker_software_with_git_workflow(task_id, dataset_id, vm_id, run_id, gi
                                        git_runner_command, git_repository_id, evaluator_id,
                                        user_image_to_execute, user_command_to_execute):
     msg = f"start run_docker_image with git: {task_id} - {dataset_id} - {vm_id} - {run_id}"
-    raise ValueError('ToDo Add ')
     transaction_id = start_git_workflow(task_id, dataset_id, vm_id, run_id, git_runner_image,
                        git_runner_command, git_repository_id, evaluator_id,
                        user_image_to_execute, user_command_to_execute)
+
+    # TODO: add transaction to log
 
     return transaction_id
 
