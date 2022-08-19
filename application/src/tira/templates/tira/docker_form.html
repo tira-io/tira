@@ -1,0 +1,178 @@
+<li id="docker-row">
+
+{% if not docker_software %}
+    <form id="docker-form" class="docker_form">
+        Please upload your docker images according to your personalized documentation.
+        All docker images that you have uploaded appear in the selectbox below so that you can add them to TIRA to run the image on datasets.
+        We add a detailed documentation on how to upload docker images soon.<br><br>
+        {% csrf_token %}
+        <div class="uk-grid-medium" uk-grid>
+            <div class="uk-width-1-2">
+                <label class="uk-form-label" for="adddockerform">Docker Image</label>
+                <select class="uk-select upload-select" id="docker-image">
+                        <option value="None" selected>Select Docker Image</option>
+                        {% for image in docker.docker_images %}
+                        <option value="{{ image }}">{{ image }}</option>
+                        {% endfor %}
+                </select>
+            </div>
+            <div class="uk-width-1-2">
+                <label class="uk-form-label" for="docker-command">Command</label>
+                <div class="uk-form-controls">
+                    <input class="uk-input command-input" id="docker-command" type="text"
+                           value="" placeholder="Dummy Command">
+                </div>
+            </div>
+            <div class="docker-form-buttons uk-width-expand">
+                <label class="uk-form-label" for="docker-add-button">&nbsp;</label>
+                <div>
+                    <button class="uk-button uk-button uk-button-primary uk-width-expand" id="docker-add-button">add</button>
+                </div>
+                <div id="docker-form-error" class="uk-text-danger uk-width-expand"></div>
+            </div>
+        </div>
+        </div>
+    </form>
+{% endif %}
+
+{% if docker_software %}
+        <form id="{{ docker_software.docker_software_id }}-docker-form" class="docker_form">
+            <div class="uk-grid-medium" uk-grid>
+                <div class="uk-width-1-4">
+                    <label class="uk-form-label" for="{{ docker_software.docker_software_id }}-docker-existing-image-unused">Image (immutable for reproducibility)</label>
+                    <div class="uk-form-controls">
+                        <select class="uk-select upload-select" id="{{ docker_software.docker_software_id }}-docker-existing-image-unused" disabled>
+                            <option value="None" selected>{{ docker_software.user_image_name }}</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="uk-width-1-4">
+                    <label class="uk-form-label" for="{{ docker_software.docker_software_id }}-existing-command">Command (immutable for reproducibility)</label>
+                    <div class="uk-form-controls">
+                        <input class="uk-input command-input" id="{{ docker_software.docker_software_id }}-existing-command" type="text"
+                               value="{{ docker_software.command }}" placeholder="Command" readonly disabled>
+                    </div>
+                </div>
+                <div class="uk-width-1-4">
+                    <label class="uk-form-label" for="{{ docker_software.docker_software_id }}-docker-input-dataset">Run on Dataset</label>
+                    <div class="uk-form-controls">
+                        <select class="uk-select upload-select" id="{{ docker_software.docker_software_id }}-docker-input-dataset">
+                            {% if not upload.dataset %}
+                            <option value="None" selected>Select Dataset</option>
+                            {% else %}
+                            <option value="{{ upload.dataset }}" selected>{{ upload.dataset }}</option>
+                            {% endif %}
+                            {% for dataset in datasets %}
+                            {% if not dataset.is_deprecated %}
+                            <option value="{{ dataset.dataset_id }}">{{ dataset.dataset_id }}</option>
+                            {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="docker-form-buttons uk-width-expand">
+                    <label class="uk-form-label">&nbsp;</label>
+                    <div>
+                        <button class="uk-button uk-button uk-button-primary uk-width-expand docker-run-button" 
+                                data-tira-run-docker-software-id="{{ docker_software.docker_software_id }}">Run</button>
+                    </div>
+                    <div id="{{ docker_software.docker_software_id }}-docker-form-error" class="uk-text-danger uk-width-expand"></div>
+                </div>
+            </div>
+            <br><br>
+            <div class="uk-grid-medium" uk-grid>
+                <div class="uk-width-1-1">
+                    You can not change the image and the command in retrospect to ensure reproducibility. The original docker image is also used when you upload a new image with the same name and tag as TIRA snapshots the image. To add a new version of a docker image or use a different command, you should add multiple docker docker images. If this image contains errors that also make the runs created via the image invalid, you can delete the image below.
+                </div>
+            </div>
+
+            <table class="uk-margin-small uk-table uk-table-divider uk-table-small uk-table-responsive uk-table-middle">
+                <thead>
+                <tr>
+                    <th></th>
+                    <th class="uk-table-shrink"></th>
+                    <th class="uk-table-shrink"></th>
+                    <th class="uk-table-shrink"></th>
+                    <th class="header uk-table-shrink uk-text-nowrap"><span>Run</span></th>
+                    <th class="header uk-table-shrink uk-text-nowrap"><span>Input Run</span></th>
+                    <th class="header uk-table-expand"><span>Dataset</span></th>
+                    <th class="header uk-text-center uk-width-1-4">Actions</th>
+                </tr>
+                </thead>
+                <tbody id="uploads-runs-tbody">
+                {% for run in docker_software.runs %}
+                <tr class="uk-padding-remove" id="upload-{{ run.run_id }}-run">
+                   <td></td>
+                   <td class="uk-table-shrink uk-padding-remove-vertical">
+                       {% if run.review.noErrors == True %}
+                        <div uk-tooltip="title: This run is OK; delay: 500">
+                            <i class="fas fa-check dataset-detail-icon uk-text-success"></i>
+                        </div>
+                        {% elif run.review.hasErrors == True %}
+                        <div uk-tooltip="title: This run has errors; delay: 500">
+                            <i class="fas fa-times dataset-detail-icon uk-text-danger"></i>
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td class="uk-table-shrink uk-padding-remove-vertical">
+                        {% if run.review.blinded == True %}
+                        <div uk-tooltip="title: This run is blinded; delay: 500">
+                            <i class="fas fa-user-slash dataset-detail-icon"></i>
+                        </div>
+                        {% else %}
+                        <div uk-tooltip="title: You can inspect the results of this run; delay: 500">
+                            <i class="fas fa-user dataset-detail-icon uk-text-success"></i>
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td class="uk-table-shrink uk-padding-remove-vertical"> <!-- Icons -->
+                        {% if run.review.published == True %}
+                        <div uk-tooltip="title: This run is on the leaderboards; delay: 500">
+                            <i class="fas fa-users dataset-detail-icon uk-text-success"></i>
+                        </div>
+                        {% else %}
+                        <div uk-tooltip="title: This run is not published; delay: 500">
+                            <i class="fas fa-users-slash dataset-detail-icon"></i>
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td class="uk-table-shrink uk-text-nowrap uk-padding-remove-vertical">
+                        {% if run.input_run_id != "none" and run.input_run_id != "" %}<i class="fas fa-level-up-alt fa-flip-horizontal"></i>{% endif %}
+                        &nbsp;{{ run.run_id }}
+                    </td>
+                    <td class="uk-table-shrink uk-text-nowrap uk-padding-remove-vertical">
+                        {% if run.input_run_id != "none" and run.input_run_id != "" %}{{ run.input_run_id }}{% endif %}
+                    </td>
+                    <td class="uk-padding-remove-vertical">{{ run.dataset }}</td>
+                    <td class="uk-align-right uk-table-expand uk-margin-remove uk-padding-remove-vertical uk-padding-remove-right">
+                        {% if run.input_run_id == "none" or run.input_run_id == "" %}
+                        <a class="uk-button uk-button-small uk-button-default run-evaluate-button"
+                           data-tira-dataset="{{ run.dataset }}" data-tira-vm-id="{{ vm_id }}"
+                           data-tira-run-id="{{ run.run_id }}">
+                            <div id="run-evaluate-spinner-{{ run.run_id }}" class="run-evaluate-spinner" uk-spinner="ratio: 0.4"></div> evaluate</a>
+                        {% endif %}
+                        <a class="uk-button uk-button-small uk-button-default"
+                           href="{% url 'tira:review' task_id=task_id vm_id=vm_id dataset_id=run.dataset run_id=run.run_id %}">inspect</a>
+                        <a class="uk-button uk-button-small uk-button-danger run-delete-button"
+                           data-tira-dataset="{{ run.dataset }}" data-tira-vm-id="{{ vm_id }}"
+                           data-tira-run-id="{{ run.run_id }}">delete</a>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+            <br><br>
+            <div class="uk-grid-medium" uk-grid>
+                <div class="uk-width-3-5"></div>
+                <div class="docker-form-buttons uk-width-expand">
+                    Delete Docker Software and all runs <b>(Attention)</b>:  <button class="uk-button uk-button-small uk-button-danger docker-delete-button"
+                            data-tira-docker-software-id="{{ docker_software.docker_software_id }}"><i class="fas fa-trash-alt"></i></button>
+                </div>
+            </div>
+            
+    </form>
+{% endif %}
+
+</li>

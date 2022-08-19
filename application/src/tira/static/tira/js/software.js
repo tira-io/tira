@@ -199,7 +199,7 @@ function addSoftware(tid, vmid) {
     let len = $('#tira-software-tab').length
     $.ajax({
         type: 'GET',
-        url: `/task/${tid}/vm/${vmid}/software_add`,
+        url: `/task/${tid}/vm/${vmid}/add_software/vm`,
         data: {},
         success: function (data) {
             // data is the rendered html of the new software form
@@ -238,7 +238,7 @@ function addSoftware(tid, vmid) {
 function deleteSoftware(tid, vmid, softwareId, form) {
     $.ajax({
         type: 'GET',
-        url: `/task/${tid}/vm/${vmid}/software_delete/${softwareId}`,
+        url: `/task/${tid}/vm/${vmid}/delete_software/vm/${softwareId}`,
         //TODO: Maybe rename keys
         data: {},
         success: function (data) {
@@ -247,6 +247,20 @@ function deleteSoftware(tid, vmid, softwareId, form) {
         },
         error: function (jqXHR, textStatus, throwError) {
             warningAlert("Deleting Software " + softwareId + " ", throwError, jqXHR.responseJSON)
+        }
+    })
+}
+
+function deleteDockerSoftware(tid, vmid, docker_software_id) {
+    $.ajax({
+        type: 'GET',
+        url: `/task/${tid}/vm/${vmid}/delete_software/docker/${docker_software_id}`,
+        data: {},
+        success: function (data) {
+            location.reload()
+        },
+        error: function (jqXHR, textStatus, throwError) {
+            warningAlert("Deleting Docker " + docker_software_id + " ", throwError, jqXHR.responseJSON)
         }
     })
 }
@@ -274,6 +288,78 @@ async function upload(tid, vmid) {
         $('#upload-form-error').html('')
         location.reload();
     }
+}
+
+async function addDockerSoftware(tid, vmid) {
+    let csrf = $('input[name=csrfmiddlewaretoken]').val()
+    let command = $('#docker-command').val()
+    let image = $('#docker-image').val()
+    
+    if (image  == 'None') {
+        $('#docker-form-error').html('Error: Please specify an docker image!')
+        return;
+    }
+    
+    if (command +''  == 'undefined' || command  == 'None' || command == '') {
+        $('#docker-form-error').html('Error: Please specify an command!')
+        return;
+    }
+    
+    $('#docker-form-error').html('')
+    
+    let formData = new FormData();
+    const headers = new Headers({'X-CSRFToken': csrf})
+    formData.append("command", command);
+    formData.append("image", image);
+    const response = await fetch(`/task/${tid}/vm/${vmid}/add_software/docker`, {
+      method: "POST",
+      headers,
+      body: formData
+    });
+
+    let r = await response.json()
+    console.log(response)
+    console.log(r)
+    if (!response.ok) {
+        warningAlert(`Uploading failed with status ${response.status}: ${await response.text()}`, undefined, undefined)
+    } else if (r.status === 0){
+        $('#docker-form-error').html('Error: ' + r.message)
+    } else {
+        $('#docker-form-error').html('')
+        location.reload();
+    }
+}
+
+async function runDockerSoftware(taskId, vmId, docker_software_id) {
+    let csrf = $('input[name=csrfmiddlewaretoken]').val()
+    let dataset = $('#' + docker_software_id + '-docker-input-dataset').val()
+            
+    if (dataset +''  == 'undefined' || dataset  == 'None' || dataset == '') {
+        $('#' + docker_software_id + '-docker-form-error').html('Error: Please specify an Dataset!')
+        return;
+    }
+    
+    $('#' + docker_software_id + '-docker-form-error').html('')
+
+    $.ajax({
+        type: 'POST',
+        url: `/grpc/${taskId}/${vmId}/run_execute/docker/${dataset}/${docker_software_id}`,
+        headers: {
+            'X-CSRFToken': csrf
+        },
+        data: {
+            csrfmiddlewaretoken: csrf,
+            action: 'post'
+        },
+        success: function (data) {
+            //for the moment.
+            location.reload()
+            //pollRunningSoftware(vmId)
+        },
+        error: function (jqXHR, textStatus, throwError) {
+            warningAlert("Running Docker Software failed ", throwError, jqXHR.responseJSON)
+        }
+    })
 }
 
 function checkInputFields(softwareId, command, inputDataset) {
@@ -320,7 +406,7 @@ async function saveSoftware(taskId, vmId, softwareId) {
         action: 'post'
     }
 
-    const response = await fetch(`/task/${taskId}/vm/${vmId}/software_save/${softwareId}`, {
+    const response = await fetch(`/task/${taskId}/vm/${vmId}/save_software/vm/${softwareId}`, {
         method: "POST",
         headers,
         body: JSON.stringify(params)
@@ -350,36 +436,6 @@ async function saveSoftware(taskId, vmId, softwareId) {
     $(`#${softwareId}-last-edit`).text(`last edit: ${results.last_edit}`)
 
     return results
-    // $.ajax({
-    //     type: 'POST',
-    //     url: `/task/${taskId}/vm/${vmId}/software_save/${softwareId}`,
-    //     headers: {
-    //         'X-CSRFToken': token
-    //     },
-    //     data: {
-    //         command: command,
-    //         working_dir: $(`#${softwareId}-working-dir`).val(),
-    //         input_dataset: inputDataset,
-    //         input_run: $(`#${softwareId}-input-run`).val(),
-    //         csrfmiddlewaretoken: token,
-    //         action: 'post'
-    //     },
-    //     success: function (data) {
-    //         $('.software-save-button').html('<i class="fas fa-check"></i>');
-    //         setTimeout(function () {
-    //             $('.software-save-button').html('<i class="fas fa-save"></i>');
-    //         }, 5000)
-    //         $(`#${softwareId}-last-edit`).text(`last edit: ${data.last_edit}`)
-    //     },
-    //     error: function (jqXHR, textStatus, throwError) {
-    //         warningAlert("Saving Software " + softwareId + " ", throwError, jqXHR.responseJSON)
-    //         $('.software-save-button').html('<i class="fas fa-times"></i>');
-    //         setTimeout(function () {
-    //             $('.software-save-button').html('<i class="fas fa-save"></i>');
-    //         }, 2000)
-    //
-    //     }
-    // })
 }
 
 function runSoftware (taskId, vmId, softwareId) {
@@ -391,7 +447,7 @@ function runSoftware (taskId, vmId, softwareId) {
         // 1. make ajax call
         $.ajax({
             type: 'POST',
-            url: `/grpc/${taskId}/${vmId}/run_execute/${softwareId}`,
+            url: `/grpc/${taskId}/${vmId}/run_execute/vm/${softwareId}`,
             headers: {
                 'X-CSRFToken': $('input[name=csrfmiddlewaretoken]').val()
             },
@@ -451,6 +507,19 @@ function addSoftwareEvents(taskId, vmId, is_default) {
     $('#upload-button').click(function (e) {
         e.preventDefault()
         upload(taskId, vmId);
+    })
+    $('#docker-add-button').click(function (e) {
+        e.preventDefault()
+        addDockerSoftware(taskId, vmId);
+    })
+    $('.docker-delete-button').click(function (e) {
+            e.preventDefault()
+            deleteDockerSoftware(taskId, vmId, $(this).data("tiraDockerSoftwareId"));
+    })
+    $('.docker-run-button').click(function (e) {
+            e.preventDefault()
+            docker_software_id = $(this).data('tiraRunDockerSoftwareId')
+            runDockerSoftware(taskId, vmId, docker_software_id);
     })
     $('.run-delete-button').click(function () {
         deleteRun($(this).data('tiraDataset'),

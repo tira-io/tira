@@ -20,9 +20,11 @@ urlpatterns = [
     path('logout', views.logout, name='logout'),
 
     # grpc client endpoints
-    path('task/<str:task_id>/vm/<str:vm_id>/software_add', vm_api.software_add, name='software_add'),
-    path('task/<str:task_id>/vm/<str:vm_id>/software_save/<str:software_id>', vm_api.software_save, name='software_save'),
-    path('task/<str:task_id>/vm/<str:vm_id>/software_delete/<str:software_id>', vm_api.software_delete, name='software_delete'),
+    path('task/<str:task_id>/vm/<str:vm_id>/add_software/vm', vm_api.software_add, name='software_add'),
+    path('task/<str:task_id>/vm/<str:vm_id>/add_software/docker', vm_api.docker_software_add, name='docker_software_add'),
+    path('task/<str:task_id>/vm/<str:vm_id>/save_software/vm/<str:software_id>', vm_api.software_save, name='software_save'),
+    path('task/<str:task_id>/vm/<str:vm_id>/delete_software/vm/<str:software_id>', vm_api.software_delete, name='software_delete'),
+    path('task/<str:task_id>/vm/<str:vm_id>/delete_software/docker/<str:docker_software_id>', vm_api.docker_software_delete, name='docker_delete'),
     path('task/<str:task_id>/vm/<str:vm_id>/upload/<str:dataset_id>', vm_api.upload, name='upload'),
 
     path('grpc/<str:vm_id>/vm_info', vm_api.vm_info, name='vm_info'),
@@ -33,7 +35,9 @@ urlpatterns = [
     path('grpc/<str:vm_id>/vm_shutdown', vm_api.vm_shutdown, name="vm_shutdown"),
     path('grpc/<str:vm_id>/run_abort', vm_api.run_abort, name="run_abort"),
     path('grpc/<str:vm_id>/vm_running_evaluations', vm_api.vm_running_evaluations, name="vm_running_evaluations"),
-    path('grpc/<str:task_id>/<str:vm_id>/run_execute/<str:software_id>', vm_api.run_execute, name="run_execute"),
+    path('grpc/<str:task_id>/<str:vm_id>/run_execute/vm/<str:software_id>', vm_api.run_execute, name="run_execute"),
+    path('grpc/<str:task_id>/<str:vm_id>/run_execute/docker/<str:dataset_id>/<str:docker_software_id>', vm_api.run_execute_docker_software, name='run_execute_docker_software'),
+    
     path('grpc/<str:vm_id>/run_eval/<str:dataset_id>/<str:run_id>', vm_api.run_eval, name="run_eval"),
     path('grpc/<str:vm_id>/run_delete/<str:dataset_id>/<str:run_id>', vm_api.run_delete, name="run_delete"),
 

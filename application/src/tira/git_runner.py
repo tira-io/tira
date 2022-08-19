@@ -20,9 +20,15 @@ logger = logging.getLogger('tira')
 def create_task_repository(task_id):
     logger.info(f"Creating task repository for task {task_id} ...")
 
+    gl = gitlab_client()
+
+    for potential_existing_projects in gl.projects.list(search=task_id):
+        if potential_existing_projects.name == task_id and int(potential_existing_projects.namespace['id']) == int(settings.GIT_USER_REPOSITORY_NAMESPACE_ID):
+            return int(potential_existing_projects.id)
+
     gitlab_ci = render_to_string('tira/git_task_repository_gitlab_ci.yml', context={})
     readme = render_to_string('tira/git_task_repository_readme.md', context={'task_name': task_id})
-    project = gitlab_client().projects.create(
+    project = gl.projects.create(
         {'name': task_id, 'namespace_id': str(int(settings.GIT_USER_REPOSITORY_NAMESPACE_ID)),
          "default_branch": settings.GIT_USER_REPOSITORY_BRANCH})
     tira_cmd_script = render_to_string('tira/tira_git_cmd.sh', context={'project_id': project.id,
@@ -57,6 +63,34 @@ def create_user_repository(repo):
 def run_evaluate_with_git_workflow(task_id, dataset_id, vm_id, run_id, git_runner_image,
                                    git_runner_command, git_repository_id, evaluator_id):
     msg = f"start run_eval with git: {task_id} - {dataset_id} - {vm_id} - {run_id}"
+    transaction_id = start_git_workflow(task_id, dataset_id, vm_id, run_id, git_runner_image,
+                                        git_runner_command, git_repository_id, evaluator_id,
+                                        'ubuntu:18.04',
+                                        'echo \'No software to execute. Only evaluation\'')
+
+    t = TransactionLog.objects.get(transaction_id=transaction_id)
+    _ = EvaluationLog.objects.update_or_create(vm_id=vm_id, run_id=run_id, running_on=vm_id,
+                                               transaction=t)
+
+    return transaction_id
+
+
+def run_docker_software_with_git_workflow(task_id, dataset_id, vm_id, run_id, git_runner_image,
+                                       git_runner_command, git_repository_id, evaluator_id,
+                                       user_image_to_execute, user_command_to_execute):
+    msg = f"start run_docker_image with git: {task_id} - {dataset_id} - {vm_id} - {run_id}"
+    raise ValueError('ToDo Add ')
+    transaction_id = start_git_workflow(task_id, dataset_id, vm_id, run_id, git_runner_image,
+                       git_runner_command, git_repository_id, evaluator_id,
+                       user_image_to_execute, user_command_to_execute)
+
+    return transaction_id
+
+
+def start_git_workflow(task_id, dataset_id, vm_id, run_id, git_runner_image,
+                       git_runner_command, git_repository_id, evaluator_id,
+                       user_image_to_execute, user_command_to_execute):
+    msg = f"start git-workflow with git: {task_id} - {dataset_id} - {vm_id} - {run_id}"
     transaction_id = new_transaction(msg, in_grpc=False)
     logger.info(msg)
 
@@ -65,8 +99,9 @@ def run_evaluate_with_git_workflow(task_id, dataset_id, vm_id, run_id, git_runne
     with tempfile.TemporaryDirectory() as tmp_dir:
         repo = __clone_repository_and_create_new_branch(repo_url(git_repository_id), identifier, tmp_dir)
 
-        __write_metadata_for_evaluation_job_to_repository(tmp_dir, task_id, transaction_id, dataset_id, vm_id, run_id,
-                                                          identifier, git_runner_image, git_runner_command, evaluator_id)
+        __write_metadata_for_ci_job_to_repository(tmp_dir, task_id, transaction_id, dataset_id, vm_id, run_id,
+                                                  identifier, git_runner_image, git_runner_command, evaluator_id,
+                                                  user_image_to_execute, user_command_to_execute)
 
         __commit_and_push(repo, dataset_id, vm_id, run_id, identifier)
 
@@ -102,19 +137,21 @@ def __clone_repository_and_create_new_branch(repo_url, branch_name, directory):
     return repo
 
 
-def __write_metadata_for_evaluation_job_to_repository(tmp_dir, task_id, transaction_id, dataset_id, vm_id,
-                                                      run_id, identifier, git_runner_image, git_runner_command, evaluator_id):
+def __write_metadata_for_ci_job_to_repository(tmp_dir, task_id, transaction_id, dataset_id, vm_id, run_id, identifier,
+                                                      git_runner_image, git_runner_command, evaluator_id,
+                                                      user_image_to_execute, user_command_to_execute):
     job_dir = Path(tmp_dir) / dataset_id / vm_id / run_id
     job_dir.mkdir(parents=True, exist_ok=True)
 
     metadata = {
             # The pipeline executed first a pseudo software so the following three values are
             # only dummy values so that the software runs successful.
-            'TIRA_IMAGE_TO_EXECUTE': 'ubuntu:18.04',
+            'TIRA_IMAGE_TO_EXECUTE': user_image_to_execute,
             'TIRA_VM_ID': vm_id,
-            'TIRA_COMMAND_TO_EXECUTE': 'echo \'No software to execute. Only evaluation\'',
+            'TIRA_COMMAND_TO_EXECUTE': user_command_to_execute,
             'TIRA_SOFTWARE_ID': '-1',
             'TIRA_DATASET_ID': dataset_id,
+            'TIRA_RUN_ID': run_id,
 
             # The actual important stuff for the evaluator:
             'TIRA_TASK_ID': task_id,
@@ -154,3 +191,4 @@ def __initialize_user_repository(git_repository_id, repo_name, token):
         repo.index.add(['README.md'])
         repo.index.commit('Initial commit')
         repo.remote().push(settings.GIT_USER_REPOSITORY_BRANCH)
+

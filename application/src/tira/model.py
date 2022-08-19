@@ -167,11 +167,24 @@ class Upload(models.Model):
         unique_together = (("vm", 'task'),)
 
 
+class DockerSoftware(models.Model):
+    docker_software_id = models.AutoField(primary_key=True)
+    vm = models.ForeignKey(VirtualMachine, on_delete=models.CASCADE)
+    task = models.ForeignKey(Task, on_delete=models.SET_NULL, null=True)
+    command = models.TextField(default="")
+    display_name = models.TextField(default="")
+    user_image_name = models.TextField(default="")
+    tira_image_name = models.TextField(default="")
+    task = models.ForeignKey(Task, on_delete=models.SET_NULL, null=True, default=None)
+    deleted = models.BooleanField(default=False)
+
+
 class Run(models.Model):
     run_id = models.CharField(max_length=150, primary_key=True)
     software = models.ForeignKey(Software, on_delete=models.SET_NULL, null=True)
     evaluator = models.ForeignKey(Evaluator, on_delete=models.SET_NULL, null=True)
     upload = models.ForeignKey(Upload, on_delete=models.SET_NULL, null=True)
+    docker_software = models.ForeignKey(DockerSoftware, on_delete=models.SET_NULL, null=True)
     input_dataset = models.ForeignKey(Dataset, on_delete=models.SET_NULL, null=True)
     input_run = models.ForeignKey('self', on_delete=models.SET_NULL, null=True)
     task = models.ForeignKey(Task, on_delete=models.SET_NULL, null=True)

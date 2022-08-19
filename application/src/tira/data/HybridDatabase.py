@@ -325,6 +325,12 @@ class HybridDatabase(object):
                 for d in modeldb.TaskHasDataset.objects.filter(task=task_id)
                 if not (d.dataset.is_deprecated and not include_deprecated)]
 
+    def get_docker_software(self, docker_software_id: str) -> dict:
+        try:
+            return self._docker_software_to_dict(modeldb.DockerSoftware.objects.get(docker_software_id=docker_software_id))
+        except modeldb.Dataset.DoesNotExist:
+            return {}
+
     def get_organizer(self, organizer_id: str):
         organizer = modeldb.Organizer.objects.get(organizer_id=organizer_id)
         return {
@@ -460,6 +466,35 @@ class HybridDatabase(object):
         return {"task_id": upload.task.task_id, "vm_id": upload.vm.vm_id,
                 "dataset": None if not upload.dataset else upload.dataset.dataset_id,
                 "last_edit": upload.last_edit_date, "runs": list(_runs_by_upload(upload))}
+
+
+    def _docker_software_to_dict(self, ds):
+        return {'docker_software_id': ds.docker_software_id, 'display_name': ds.display_name,
+                'user_image_name': ds.user_image_name, 'command': ds.command,
+                'tira_image_name': ds.tira_image_name, 'task_id': ds.task.task_id,
+                'vm_id': ds.vm.vm_id}
+
+
+    def get_docker_softwares_with_runs(self, task_id, vm_id):
+        def _runs_by_docker_software(di):
+            runs = modeldb.Run.objects.select_related('docker_software', 'task')\
+                      .filter(docker_software__docker_software_id=di['docker_software_id'], task__task_id=di['task_id']).all()
+                    
+            for r in runs:
+                yield self._run_as_dict(r)
+    
+        docker_softwares = modeldb.DockerSoftware.objects.filter(vm__vm_id=vm_id, task__task_id=task_id, deleted=False)
+        docker_softwares = [self._docker_software_to_dict(ds) for ds in docker_softwares]
+        
+        for i in docker_softwares:
+            i['runs'] = list(_runs_by_docker_software(i))
+
+        return docker_softwares
+
+
+    def delete_docker_software(self, task_id, vm_id, docker_software_id):
+        return modeldb.DockerSoftware.objects.filter(vm_id=vm_id, task_id=task_id, docker_software_id=docker_software_id).update(deleted=True)
+
 
     def get_vms_with_reviews(self, dataset_id: str):
         """ returns a list of dicts with:
@@ -1046,6 +1081,18 @@ class HybridDatabase(object):
 
         return {"run": self._run_as_dict(db_run),
                 "last_edit_date": upload.last_edit_date}
+
+
+    def add_docker_software(self, task_id, vm_id, user_image_name, command):
+        modeldb.DockerSoftware.objects.create(
+            vm=modeldb.VirtualMachine.objects.get(vm_id=vm_id),
+            task=modeldb.Task.objects.get(task_id=task_id),
+            command=command,
+            tira_image_name='ToDo: rename it as discussed with Johannes',
+            user_image_name=user_image_name,
+            display_name=randomname.get_name()
+        )
+
 
     def update_run(self, dataset_id, vm_id, run_id, deleted: bool = None):
         """ updates the run specified by dataset_id, vm_id, and run_id with the values given in the parameters.
