@@ -68,6 +68,7 @@ def create_user_repository(repo):
 def docker_images_in_user_repository(user):
     ret = []
     repo = __existing_repository('tira-user-' + user)
+    print('---->' + user)
     if not repo:
         return ret
 
@@ -108,7 +109,7 @@ def add_new_tag_to_docker_image_repository(repository_name, old_tag, new_tag):
     if not manifest.ok:
         raise ValueError(manifest.content.decode('UTF-8'))
 
-    print(repository_name + ':' + new_tag)
+    return repository_name + ':' + new_tag
     
 
 def __existing_repository(repo):

@@ -8,7 +8,7 @@ from contextlib import contextmanager
 from django.core.management.base import BaseCommand, CommandError
 from django.core.management import call_command
 
-from tira.git_runner import create_user_repository, create_task_repository, docker_images_in_user_repository, tag_docker_image_in_task_repository, add_new_tag_to_docker_image_repository
+from tira.git_runner import create_user_repository, create_task_repository, docker_images_in_user_repository,  add_new_tag_to_docker_image_repository
 
 grpc_port = settings.APPLICATION_GRPC_PORT
 listen_addr = f'[::]:{grpc_port}'

@@ -4,6 +4,8 @@ p.stat().st_mtime - change time
 from pathlib import Path
 import logging
 from tira.data.HybridDatabase import HybridDatabase
+from tira.git_runner import docker_images_in_user_repository, add_new_tag_to_docker_image_repository
+import randomname
 
 logger = logging.getLogger("tira")
 
@@ -98,7 +100,9 @@ def load_docker_data(task_id, vm_id):
     if len(git_runners_for_task) == 0 or any(not i for i in git_runners_for_task):
         return False
     
-    return {"docker_images": ['my-cool-image:0.0.1', 'my-cool-image:0.0.2'], "docker_softwares": model.get_docker_softwares_with_runs(task_id, vm_id)}
+    docker_images = [i for i in docker_images_in_user_repository(vm_id) if '-tira-docker-software-id-' not in i]
+    
+    return {"docker_images": docker_images, "docker_softwares": model.get_docker_softwares_with_runs(task_id, vm_id)}
 
 def get_docker_software(docker_software_id: int) -> dict:
     """
@@ -252,7 +256,12 @@ def add_uploaded_run(task_id, vm_id, dataset_id, uploaded_file):
 
 def add_docker_software(task_id, vm_id, image, command):
     """ Add the docker software to the user of the vm and return it """
-    return model.add_docker_software(task_id, vm_id, image, command)
+    
+    image, old_tag = image.split(':')
+    new_tag = old_tag + '-tira-docker-software-id-' + randomname.get_name().lower()
+    tira_image_name = add_new_tag_to_docker_image_repository(image, old_tag, new_tag)
+    
+    return model.add_docker_software(task_id, vm_id, image + ':' + old_tag, command, tira_image_name)
 
 
 # ------------------------------------------------------------

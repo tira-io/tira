@@ -1083,12 +1083,12 @@ class HybridDatabase(object):
                 "last_edit_date": upload.last_edit_date}
 
 
-    def add_docker_software(self, task_id, vm_id, user_image_name, command):
+    def add_docker_software(self, task_id, vm_id, user_image_name, command, tira_image_name):
         modeldb.DockerSoftware.objects.create(
             vm=modeldb.VirtualMachine.objects.get(vm_id=vm_id),
             task=modeldb.Task.objects.get(task_id=task_id),
             command=command,
-            tira_image_name='ToDo: rename it as discussed with Johannes',
+            tira_image_name=tira_image_name,
             user_image_name=user_image_name,
             display_name=randomname.get_name()
         )
