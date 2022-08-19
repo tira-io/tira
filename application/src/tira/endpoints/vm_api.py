@@ -330,7 +330,7 @@ def run_eval(request, vm_id, dataset_id, run_id):
      Then, log vm_id and run_id to the evaluation log as ongoing.
     """
     # check if evaluation already exists
-    if EvaluationLog.objects.filter(vm_id=vm_id):
+    if EvaluationLog.objects.filter(run_id=run_id):
         return JsonResponse({'status': '1', 'message': "An evaluation is already in progress."},
                             status=HTTPStatus.PRECONDITION_FAILED)
 

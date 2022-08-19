@@ -1323,5 +1323,5 @@ class HybridDatabase(object):
     def software_exists(task_id: str, vm_id: str, software_id: str) -> bool:
         return modeldb.Software.objects.filter(software_id=software_id, vm__vm_id=vm_id).exists()
 
-# modeldb.EvaluationLog.objects.latest('last_update').delete()
+print(modeldb.EvaluationLog.objects.filter(vm_id='princess-knight').values())
 # print(f"{el.vm_id} = {el.run_id} = {el.running_on}")
