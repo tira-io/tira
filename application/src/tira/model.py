@@ -175,7 +175,6 @@ class DockerSoftware(models.Model):
     display_name = models.TextField(default="")
     user_image_name = models.TextField(default="")
     tira_image_name = models.TextField(default="")
-    task = models.ForeignKey(Task, on_delete=models.SET_NULL, null=True, default=None)
     deleted = models.BooleanField(default=False)
 
 
@@ -221,3 +220,4 @@ class Review(models.Model):
     has_no_errors = models.BooleanField(default=False)
     published = models.BooleanField(default=False)
     blinded = models.BooleanField(default=True)
+
