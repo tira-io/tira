@@ -92,9 +92,11 @@ def get_datasets_by_task(task_id: str, include_deprecated=False) -> list:
 
 def load_docker_data(task_id, vm_id):
     datasets = get_datasets_by_task(task_id)
-    print(datasets)
+    git_runners_for_task = [get_evaluator(i['dataset_id'])['is_git_runner'] for i in datasets]
     
     # We enable the docker part only if all evaluators use the docker variant.
+    if len(git_runners_for_task) == 0 or any(not i for i in git_runners_for_task):
+        return False
     
     return {"available_images": ['my-cool-image:0.0.1', 'my-cool-image:0.0.2'], "existing_images": model.get_docker_images_with_runs(task_id, vm_id)}
 
