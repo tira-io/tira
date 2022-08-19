@@ -132,6 +132,7 @@ class TaskHasDataset(models.Model):
 
 class Software(models.Model):
     software_id = models.CharField(max_length=150)
+    software_name = models.CharField(max_length=150, default=software_id)
     vm = models.ForeignKey(VirtualMachine, on_delete=models.CASCADE)
     task = models.ForeignKey(Task, on_delete=models.SET_NULL, null=True)
     count = models.CharField(max_length=150)

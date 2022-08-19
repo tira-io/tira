@@ -620,7 +620,7 @@ class HybridDatabase(object):
 
     @staticmethod
     def _software_to_dict(software):
-        return {"id": software.software_id, "count": software.count,
+        return {"id": software.software_id, "name": software.software_name, "count": software.count,
                 "task_id": software.task.task_id, "vm_id": software.vm.vm_id,
                 "command": software.command, "working_directory": software.working_directory,
                 "dataset": None if not software.dataset else software.dataset.dataset_id,
@@ -831,7 +831,7 @@ class HybridDatabase(object):
 
         s.softwares.append(software)
         self._save_softwares(task_id, vm_id, s)
-        sw = modeldb.Software.objects.create(software_id=new_software_id,
+        sw = modeldb.Software.objects.create(software_id=new_software_id, software_name=new_software_id,
                                              vm=modeldb.VirtualMachine.objects.get(vm_id=vm_id),
                                              task=modeldb.Task.objects.get(task_id=task_id),
                                              count="", command="", working_directory="",
@@ -847,7 +847,6 @@ class HybridDatabase(object):
         date = now()
         for software in s.softwares:
             if software.id == software_id:
-                software.id = update(software.id, softwareName)
                 software.command = update(software.command, command)
                 software.workingDirectory = update(software.workingDirectory, working_directory)
                 software.dataset = update(software.dataset, dataset)
@@ -856,8 +855,11 @@ class HybridDatabase(object):
                 software.lastEditDate = date
 
                 self._save_softwares(task_id, vm_id, s)
+                # if modeldb.Software.objects.filter(software_name=softwareName, vm__vm_id=vm_id).exists():
+                #     return False
+
                 modeldb.Software.objects.filter(software_id=software_id, vm__vm_id=vm_id).update(
-                    software_id=software.id,
+                    software_name=softwareName,
                     command=software.command, working_directory=software.workingDirectory,
                     deleted=software.deleted,
                     dataset=modeldb.Dataset.objects.get(dataset_id=software.dataset),
