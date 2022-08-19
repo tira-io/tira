@@ -110,12 +110,15 @@ class TiraApplicationService(tira_host_pb2_grpc.TiraApplicationService):
         """
         django.db.connection.close()
         logger.debug(f" Application Server received run-eval confirmation with: \n"
-                     f"{request.runId.runId} and {len(request.measures)} measures.")
-        
+                     f"{request.runId.runId} - {request.runId.vmId} - {request.transaction.transactionId} and {len(request.measures)} measures.")
+        print(f" Application Server received run-eval confirmation with: \n"
+                     f"{request.runId.runId} - {request.runId.vmId} - {request.transaction.transactionId} and {len(request.measures)} measures.")
+
         model.add_run(request.runId.datasetId, request.runId.vmId, request.runId.runId)
         
         EvaluationLog.objects.filter(vm_id=request.runId.vmId, run_id=request.runId.runId).delete()
         EvaluationLog.objects.filter(transaction__transaction_id=request.transaction.transactionId).delete()
+
         _ = TransactionLog.objects.filter(transaction_id=request.transaction.transactionId).update(
             completed=False,
             last_status=str(request.transaction.status),
