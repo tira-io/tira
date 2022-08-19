@@ -9,26 +9,25 @@ import shutil
 from datetime import datetime as dt
 import os
 import stat
+import json
 
 from tira.grpc_client import new_transaction
 from tira.model import TransactionLog, EvaluationLog
 from .proto import tira_host_pb2, tira_host_pb2_grpc
+import requests
 
 logger = logging.getLogger('tira')
 
 
 def create_task_repository(task_id):
     logger.info(f"Creating task repository for task {task_id} ...")
-
-    gl = gitlab_client()
-
-    for potential_existing_projects in gl.projects.list(search=task_id):
-        if potential_existing_projects.name == task_id and int(potential_existing_projects.namespace['id']) == int(settings.GIT_USER_REPOSITORY_NAMESPACE_ID):
-            return int(potential_existing_projects.id)
+    repo = __existing_repository(task_id)
+    if repo:
+        return int(repo.id)
 
     gitlab_ci = render_to_string('tira/git_task_repository_gitlab_ci.yml', context={})
     readme = render_to_string('tira/git_task_repository_readme.md', context={'task_name': task_id})
-    project = gl.projects.create(
+    project = gitlab_client().projects.create(
         {'name': task_id, 'namespace_id': str(int(settings.GIT_USER_REPOSITORY_NAMESPACE_ID)),
          "default_branch": settings.GIT_USER_REPOSITORY_BRANCH})
     tira_cmd_script = render_to_string('tira/tira_git_cmd.sh', context={'project_id': project.id,
@@ -53,12 +52,69 @@ def create_task_repository(task_id):
 def create_user_repository(repo):
     gl = gitlab_client()
     repo = 'tira-user-' + repo
+    existing_repo = __existing_repository(repo)
+    if existing_repo:
+        return existing_repo.id
+    
     project = gl.projects.create({'name': repo, 'namespace_id': str(int(settings.GIT_USER_REPOSITORY_NAMESPACE_ID)),
                                   "default_branch": settings.GIT_USER_REPOSITORY_BRANCH})
     token = project.access_tokens.create(
         {"name": repo, "scopes": ['read_registry', 'write_registry'], "access_level": 30})
     __initialize_user_repository(project.id, repo, token.token)
+    
+    return project.id
 
+
+def docker_images_in_user_repository(user):
+    ret = []
+    repo = __existing_repository('tira-user-' + user)
+    if not repo:
+        return ret
+
+    for registry_repository in repo.repositories.list():
+        for registry in registry_repository.manager.list():
+            for image in registry.tags.list():
+                ret += [image.location]
+    
+    return ret
+
+
+def add_new_tag_to_docker_image_repository(repository_name, old_tag, new_tag):
+    """
+    Background for the implementation:
+    https://dille.name/blog/2018/09/20/how-to-tag-docker-images-without-pulling-them/
+    https://gitlab.com/gitlab-org/gitlab/-/issues/23156
+    """
+    repository_name = repository_name.split(settings.GIT_CONTAINER_REGISTRY_HOST + '/')[-1]
+    
+    token = requests.get(f'https://{settings.GIT_CI_SERVER_HOST}:{settings.GIT_PRIVATE_TOKEN}@git.webis.de/jwt/auth?client_id=docker&offline_token=true&service=container_registry&scope=repository:{repository_name}:push,pull')
+    
+    if not token.ok:
+        raise ValueError(token.content.decode('UTF-8'))
+    
+    token = json.loads(token.content.decode('UTF-8'))['token']
+    headers = {'Accept': 'application/vnd.docker.distribution.manifest.v2+json',
+               'Content-Type': 'application/vnd.docker.distribution.manifest.v2+json',
+               'Authorization':'Bearer ' + token}
+    
+    manifest = requests.get(f'https://registry.webis.de/v2/{repository_name}/manifests/{old_tag}', headers=headers)
+
+    if not manifest.ok:
+        raise ValueError('-->' + manifest.content.decode('UTF-8'))
+    manifest = manifest.content.decode('UTF-8')
+
+    manifest = requests.put(f'https://registry.webis.de/v2/{repository_name}/manifests/{new_tag}', headers=headers, data=manifest)
+
+    if not manifest.ok:
+        raise ValueError(manifest.content.decode('UTF-8'))
+
+    print(repository_name + ':' + new_tag)
+    
+
+def __existing_repository(repo):
+    for potential_existing_projects in gitlab_client().projects.list(search=repo):
+        if potential_existing_projects.name == repo and int(potential_existing_projects.namespace['id']) == int(settings.GIT_USER_REPOSITORY_NAMESPACE_ID):
+            return potential_existing_projects
 
 def run_evaluate_with_git_workflow(task_id, dataset_id, vm_id, run_id, git_runner_image,
                                    git_runner_command, git_repository_id, evaluator_id):

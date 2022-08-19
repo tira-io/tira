@@ -8,7 +8,7 @@ from contextlib import contextmanager
 from django.core.management.base import BaseCommand, CommandError
 from django.core.management import call_command
 
-from tira.git_runner import create_user_repository, create_task_repository
+from tira.git_runner import create_user_repository, create_task_repository, docker_images_in_user_repository, tag_docker_image_in_task_repository, add_new_tag_to_docker_image_repository
 
 grpc_port = settings.APPLICATION_GRPC_PORT
 listen_addr = f'[::]:{grpc_port}'
@@ -24,10 +24,19 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if 'create_task_repository' in options and options['create_task_repository']:
-            print(f'Create a repository for {options["create_task_repository"]}.')
+            print(f'Create a task-repository for {options["create_task_repository"]}.')
             repo_id = create_task_repository(options['create_task_repository'])
+            print(f'The new task-repository has the id ${repo_id}')
+        
+        if 'create_user_repository' in options and options['create_user_repository']:
+            print(f'Create a user repository for {options["create_user_repository"]}.')
+            repo_id = create_user_repository(options['create_user_repository'])
             print(f'The new repository has the id ${repo_id}')
+            print(add_new_tag_to_docker_image_repository('registry.webis.de/code-research/tira/tira-user-del-maik-user-repo/my-software', '0.0.3', '0.0.1-tira-docker-software-id-name-x'))
+            print('Images: ' + str(docker_images_in_user_repository(options['create_user_repository'])))
+            
 
     def add_arguments(self, parser):
         parser.add_argument('--create_task_repository', default=None, type=str)
+        parser.add_argument('--create_user_repository', default=None, type=str)
 
