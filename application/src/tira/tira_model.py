@@ -90,6 +90,14 @@ def get_datasets_by_task(task_id: str, include_deprecated=False) -> list:
     return model.get_datasets_by_task(task_id, include_deprecated)
 
 
+def load_docker_data(task_id, vm_id):
+    datasets = get_datasets_by_task(task_id)
+    print(datasets)
+    
+    # We enable the docker part only if all evaluators use the docker variant.
+    
+    return {"available_images": ['my-cool-image:0.0.1', 'my-cool-image:0.0.2'], "existing_images": model.get_docker_images_with_runs(task_id, vm_id)}
+
 def get_docker_image(docker_image_id: int) -> dict:
     """
     Return the docker image as dict with keys:

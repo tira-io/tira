@@ -6,7 +6,7 @@ from grpc import RpcError, StatusCode
 from tira.authentication import auth
 from tira.checks import check_permissions, check_resources_exist, check_conditional_permissions
 from tira.forms import *
-from tira.git_runner import run_evaluate_with_git_workflow
+from tira.git_runner import run_evaluate_with_git_workflow, run_docker_image_with_git_workflow
 from django.http import JsonResponse
 from django.conf import settings
 from http import HTTPStatus
@@ -433,9 +433,10 @@ def docker_execute(request, task_id, vm_id, dataset_id, docker_image_id):
     import tira.model as modeldb
     run_id = get_tira_id()
     
-    run_docker_image_with_git_workflow(task_id, dataset_id, vm_id, run_id, evaluator['git_runner_image'],
-                                       evaluator['git_runner_command'], evaluator['git_repository_id'], evaluator['evaluator_id'],
-                                       docker_image['image_internal_name'], docker_image['command'])
+    #activate later
+    #run_docker_image_with_git_workflow(task_id, dataset_id, vm_id, run_id, evaluator['git_runner_image'],
+    #                                   evaluator['git_runner_command'], evaluator['git_repository_id'], evaluator['evaluator_id'],
+    #                                   docker_image['image_internal_name'], docker_image['command'])
     
     # This is only temporary
     evaluator = modeldb.Evaluator.objects.get(evaluator_id=evaluator['evaluator_id'])

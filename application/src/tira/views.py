@@ -135,10 +135,9 @@ def dataset(request, context, task_id, dataset_id):
 @add_context
 def software_detail(request, context, task_id, vm_id):
     """ render the detail of the user page: vm-stats, softwares, and runs """
-
     software = model.get_software_with_runs(task_id, vm_id)
     upload = model.get_upload_with_runs(task_id, vm_id)
-    docker_images = model.get_docker_images_with_runs(task_id, vm_id)
+    docker = model.load_docker_data(task_id, vm_id)
 
     context["task"] = model.get_task(task_id)
     context["vm_id"] = vm_id
@@ -146,12 +145,10 @@ def software_detail(request, context, task_id, vm_id):
     context["software"] = software
     context["datasets"] = model.get_datasets_by_task(task_id)
     context["upload"] = upload
-    context["docker"] = {"images": ['my-cool-image:0.0.1', 'my-cool-image:0.0.2']}
-    context["docker_images"] = docker_images
+    context["docker"] = docker
     context["is_default"] = vm_id.endswith("default")
 
-    return render(request, 'tira/software.html', context)
-
+    return render(request, 'tira/software.html', context) 
 
 @check_conditional_permissions(private_run_ok=True)
 @check_resources_exist('http')

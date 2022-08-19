@@ -58,13 +58,13 @@ def run_evaluate_with_git_workflow(task_id, dataset_id, vm_id, run_id, git_runne
                                    git_runner_command, git_repository_id, evaluator_id):
     msg = f"start run_eval with git: {task_id} - {dataset_id} - {vm_id} - {run_id}"
     transaction_id = start_git_workflow(task_id, dataset_id, vm_id, run_id, git_runner_image,
-                       git_runner_command, git_repository_id, evaluator_id,
-                       'ubuntu:18.04',
-                       'echo \'No software to execute. Only evaluation\'')
+                                        git_runner_command, git_repository_id, evaluator_id,
+                                        'ubuntu:18.04',
+                                        'echo \'No software to execute. Only evaluation\'')
 
-        t = TransactionLog.objects.get(transaction_id=transaction_id)
-        _ = EvaluationLog.objects.update_or_create(vm_id=vm_id, run_id=run_id, running_on=vm_id,
-                                                   transaction=t)
+    t = TransactionLog.objects.get(transaction_id=transaction_id)
+    _ = EvaluationLog.objects.update_or_create(vm_id=vm_id, run_id=run_id, running_on=vm_id,
+                                               transaction=t)
 
     return transaction_id
 
