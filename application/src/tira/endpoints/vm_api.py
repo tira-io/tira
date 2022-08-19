@@ -433,6 +433,10 @@ def docker_execute(request, task_id, vm_id, dataset_id, docker_image_id):
     import tira.model as modeldb
     run_id = get_tira_id()
     
+    run_docker_image_with_git_workflow(task_id, dataset_id, vm_id, run_id, evaluator['git_runner_image'],
+                                       evaluator['git_runner_command'], evaluator['git_repository_id'], evaluator['evaluator_id'],
+                                       docker_image['image_internal_name'], docker_image['command'])
+    
     # This is only temporary
     evaluator = modeldb.Evaluator.objects.get(evaluator_id=evaluator['evaluator_id'])
     d = modeldb.Dataset.objects.get(dataset_id=dataset_id)
