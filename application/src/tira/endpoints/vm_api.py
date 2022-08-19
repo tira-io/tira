@@ -313,8 +313,9 @@ def _git_runner_vm_eval_call(vm_id, dataset_id, run_id, evaluator):
      This method calls the git utilities in git_runner.py to start the git CI
      """
     try:
-        transaction_id = run_evaluate_with_git_workflow(evaluator['task_id'], dataset_id, vm_id, run_id, evaluator['git_runner_image'],
-                                                        evaluator['git_runner_command'], evaluator['git_repository_id'], evaluator['evaluator_id'])
+        transaction_id = run_evaluate_with_git_workflow(evaluator['task_id'], dataset_id, vm_id, run_id,
+                                                        evaluator['git_runner_image'], evaluator['git_runner_command'],
+                                                        evaluator['git_repository_id'], evaluator['evaluator_id'])
     except Exception as e:
         return JsonResponse({'status': 1, 'message': e}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
@@ -335,7 +336,6 @@ def run_eval(request, vm_id, dataset_id, run_id):
 
     evaluator = model.get_evaluator(dataset_id)
     if 'is_git_runner' in evaluator and evaluator['is_git_runner']:
-        print("start git runner")
         return _git_runner_vm_eval_call(vm_id, dataset_id, run_id, evaluator)
 
     return _master_vm_eval_call(vm_id, dataset_id, run_id, evaluator)
@@ -373,4 +373,73 @@ def upload(request, task_id, vm_id, dataset_id):
         return JsonResponse({"status": 1, "message": "ok", "context": new_run})
     else:
         return JsonResponse({"status": 0, "message": "GET is not allowed here."})
+
+
+@check_permissions
+@check_resources_exist("json")
+def docker_image(request, task_id, vm_id):
+    if request.method == 'POST':
+        if not task_id or task_id is None or task_id == 'None':
+            return JsonResponse({"status": 0, "message": "Please specify the associated task_id."})
+        
+        if 'image' not in request.POST or not request.POST.get('image'):
+            return JsonResponse({"status": 0, "message": "Please specify the associated docker image."})
+
+        if 'command' not in request.POST or not request.POST.get('command'):
+            return JsonResponse({"status": 0, "message": "Please specify the associated docker command."})
+        
+        new_image = model.add_docker_image(task_id, vm_id, request.POST.get('image'), request.POST.get('command'))
+        return JsonResponse({"status": 1, "message": "ok", "context": new_image})
+    else:
+        return JsonResponse({"status": 0, "message": "GET is not allowed here."})  
+
+
+@check_permissions
+@check_resources_exist('json')
+def docker_delete(request, task_id, vm_id, docker_id):
+    delete_ok = model.delete_docker(task_id, vm_id, docker_id)
+
+    if delete_ok:
+        return JsonResponse({'status': 'Accepted'}, status=HTTPStatus.ACCEPTED)
+    else:
+        return JsonResponse({'status': 'Failed', 'message': 'Docker image not found. Cannot delete.'},
+                            status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+@check_permissions
+@check_resources_exist('json')
+def docker_execute(request, task_id, vm_id, dataset_id, docker_image_id):
+    if not task_id or task_id is None or task_id == 'None':
+        return JsonResponse({"status": 0, "message": "Please specify the associated task_id."})
+
+    if not vm_id or vm_id is None or vm_id == 'None':
+        return JsonResponse({"status": 0, "message": "Please specify the associated vm_id."})
+
+    if not dataset_id or dataset_id is None or dataset_id == 'None':
+        return JsonResponse({"status": 0, "message": "Please specify the associated dataset_id."})
+
+    evaluator = model.get_evaluator(dataset_id)
+    
+    if not evaluator or 'is_git_runner' not in evaluator or not evaluator['is_git_runner'] or 'git_runner_image' not in evaluator or not evaluator['git_runner_image'] or 'git_runner_command' not in evaluator or not evaluator['git_runner_command'] or 'git_repository_id' not in evaluator or not evaluator['git_repository_id']:
+        return JsonResponse({"status": 0, "message": "The dataset is misconfigured. Docker-execute only available for git-evaluators"})
+
+    if not docker_image_id or docker_image_id is None or docker_image_id == 'None':
+        return JsonResponse({"status": 0, "message": "Please specify the associated docker_image_id."})
+
+    docker_image = model.get_docker_image(docker_image_id)
+    
+    if not docker_image:
+        return JsonResponse({"status": 0, "message": f"There is no docker image with id {docker_image_id}"})
+
+    import tira.model as modeldb
+    run_id = get_tira_id()
+    
+    # This is only temporary
+    evaluator = modeldb.Evaluator.objects.get(evaluator_id=evaluator['evaluator_id'])
+    d = modeldb.Dataset.objects.get(dataset_id=dataset_id)
+    t = modeldb.Task.objects.get(task_id=task_id)
+    i = modeldb.DockerImage.objects.get(image_id=docker_image_id)
+    run = modeldb.Run.objects.create(run_id=run_id, evaluator=evaluator, input_dataset=d, task=t, docker_image=i)
+    modeldb.Review.objects.update_or_create(run=run)
+    
+    return JsonResponse({'status': 'Accepted'}, status=HTTPStatus.ACCEPTED)
 

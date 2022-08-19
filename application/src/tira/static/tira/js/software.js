@@ -251,6 +251,20 @@ function deleteSoftware(tid, vmid, softwareId, form) {
     })
 }
 
+function deleteDocker(tid, vmid, dockerId) {
+    $.ajax({
+        type: 'GET',
+        url: `/task/${tid}/vm/${vmid}/docker_delete/${dockerId}`,
+        data: {},
+        success: function (data) {
+            location.reload()
+        },
+        error: function (jqXHR, textStatus, throwError) {
+            warningAlert("Deleting Docker " + softwareId + " ", throwError, jqXHR.responseJSON)
+        }
+    })
+}
+
 async function upload(tid, vmid) {
     let csrf = $('input[name=csrfmiddlewaretoken]').val()
     let dataset = $('#upload-input-dataset').val()
@@ -274,6 +288,78 @@ async function upload(tid, vmid) {
         $('#upload-form-error').html('')
         location.reload();
     }
+}
+
+async function add_docker_image(tid, vmid) {
+    let csrf = $('input[name=csrfmiddlewaretoken]').val()
+    let command = $('#docker-command').val()
+    let image = $('#docker-image').val()
+    
+    if (image  == 'None') {
+        $('#docker-form-error').html('Error: Please specify an image!')
+        return;
+    }
+    
+    if (command +''  == 'undefined' || command  == 'None' || command == '') {
+        $('#docker-form-error').html('Error: Please specify an command!')
+        return;
+    }
+    
+    $('#docker-form-error').html('')
+    
+    let formData = new FormData();
+    const headers = new Headers({'X-CSRFToken': csrf})
+    formData.append("command", command);
+    formData.append("image", image);
+    const response = await fetch(`/task/${tid}/vm/${vmid}/docker`, {
+      method: "POST",
+      headers,
+      body: formData
+    });
+
+    let r = await response.json()
+    console.log(response)
+    console.log(r)
+    if (!response.ok) {
+        warningAlert(`Uploading failed with status ${response.status}: ${await response.text()}`, undefined, undefined)
+    } else if (r.status === 0){
+        $('#docker-form-error').html('Error: ' + r.message)
+    } else {
+        $('#docker-form-error').html('')
+        location.reload();
+    }
+}
+
+async function runDockerImage(taskId, vmId, docker_image_id) {
+    let csrf = $('input[name=csrfmiddlewaretoken]').val()
+    let dataset = $('#' + docker_image_id + '-docker-input-dataset').val()
+            
+    if (dataset +''  == 'undefined' || dataset  == 'None' || dataset == '') {
+        $('#' + docker_image_id + '-docker-form-error').html('Error: Please specify an Dataset!')
+        return;
+    }
+    
+    $('#' + docker_image_id + '-docker-form-error').html('')
+
+    $.ajax({
+        type: 'POST',
+        url: `/grpc/${taskId}/${vmId}/docker_execute/${dataset}/${docker_image_id}`,
+        headers: {
+            'X-CSRFToken': csrf
+        },
+        data: {
+            csrfmiddlewaretoken: csrf,
+            action: 'post'
+        },
+        success: function (data) {
+            //for the moment.
+            location.reload()
+            //pollRunningSoftware(vmId)
+        },
+        error: function (jqXHR, textStatus, throwError) {
+            warningAlert("Running Docker image failed ", throwError, jqXHR.responseJSON)
+        }
+    })
 }
 
 function checkInputFields(softwareId, command, inputDataset) {
@@ -451,6 +537,19 @@ function addSoftwareEvents(taskId, vmId, is_default) {
     $('#upload-button').click(function (e) {
         e.preventDefault()
         upload(taskId, vmId);
+    })
+    $('#docker-add-button').click(function (e) {
+        e.preventDefault()
+        add_docker_image(taskId, vmId);
+    })
+    $('.docker-delete-button').click(function (e) {
+            e.preventDefault()
+            deleteDocker(taskId, vmId, $(this).data("tiraDockerId"));
+    })
+    $('.docker-run-button').click(function (e) {
+            e.preventDefault()
+            docker_image_id = $(this).data('tiraRunDockerImageId')
+            runDockerImage(taskId, vmId, docker_image_id);
     })
     $('.run-delete-button').click(function () {
         deleteRun($(this).data('tiraDataset'),

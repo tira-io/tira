@@ -138,6 +138,7 @@ def software_detail(request, context, task_id, vm_id):
 
     software = model.get_software_with_runs(task_id, vm_id)
     upload = model.get_upload_with_runs(task_id, vm_id)
+    docker_images = model.get_docker_images_with_runs(task_id, vm_id)
 
     context["task"] = model.get_task(task_id)
     context["vm_id"] = vm_id
@@ -145,6 +146,8 @@ def software_detail(request, context, task_id, vm_id):
     context["software"] = software
     context["datasets"] = model.get_datasets_by_task(task_id)
     context["upload"] = upload
+    context["docker"] = {"images": ['my-cool-image:0.0.1', 'my-cool-image:0.0.2']}
+    context["docker_images"] = docker_images
     context["is_default"] = vm_id.endswith("default")
 
     return render(request, 'tira/software.html', context)

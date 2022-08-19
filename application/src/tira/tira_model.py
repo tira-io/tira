@@ -90,6 +90,15 @@ def get_datasets_by_task(task_id: str, include_deprecated=False) -> list:
     return model.get_datasets_by_task(task_id, include_deprecated)
 
 
+def get_docker_image(docker_image_id: int) -> dict:
+    """
+    Return the docker image as dict with keys:
+    
+    {'id', 'image_display_name', 'name', 'image_user_name', 'command', 'image_internal_name'}
+    """ 
+    return model.get_docker_image(docker_image_id)
+
+
 def get_organizer(organizer_id: str):
     # TODO should return as dict
     return model.get_organizer(organizer_id)
@@ -190,8 +199,15 @@ def get_upload_with_runs(task_id, vm_id):
     return model.get_upload_with_runs(task_id, vm_id)
 
 
+def get_docker_images_with_runs(task_id, vm_id):
+    """
+    Returns the docker images as dictionaries.
+    """
+    return model.get_docker_images_with_runs(task_id, vm_id)
+
+
 def get_run_review(dataset_id: str, vm_id: str, run_id: str) -> dict:
-    """ Retunrs a review as dict with the following keys:
+    """ Returns a review as dict with the following keys:
 
         {"reviewer", "noErrors", "missingOutput", "extraneousOutput", "invalidOutput", "hasErrorOutput",
         "otherErrors", "comment", "hasErrors", "hasWarnings", "hasNoErrors", "published", "blinded"}
@@ -222,6 +238,11 @@ def get_users_vms():
 def add_uploaded_run(task_id, vm_id, dataset_id, uploaded_file):
     """ Add the uploaded file as a new result and return it """
     return model.add_uploaded_run(task_id, vm_id, dataset_id, uploaded_file)
+
+
+def add_docker_image(task_id, vm_id, image, command):
+    """ Add the added docker image to the user of the vm and return it """
+    return model.add_docker_image(task_id, vm_id, image, command)
 
 
 # ------------------------------------------------------------
@@ -307,6 +328,13 @@ def edit_dataset(task_id: str, dataset_id: str, dataset_name: str, command: str,
     return model.edit_dataset(task_id, dataset_id, dataset_name, command, working_directory,
                               measures, upload_name, is_confidential, is_git_runner, git_runner_image,
                               git_runner_command, git_repository_id)
+
+
+def delete_docker(task_id, vm_id, docker_id):
+    """
+    Delete a given Docker image.
+    """
+    return model.delete_docker(task_id, vm_id, docker_id)
 
 
 def delete_software(task_id, vm_id, software_id):

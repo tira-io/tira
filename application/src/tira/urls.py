@@ -24,7 +24,10 @@ urlpatterns = [
     path('task/<str:task_id>/vm/<str:vm_id>/software_save/<str:software_id>', vm_api.software_save, name='software_save'),
     path('task/<str:task_id>/vm/<str:vm_id>/software_delete/<str:software_id>', vm_api.software_delete, name='software_delete'),
     path('task/<str:task_id>/vm/<str:vm_id>/upload/<str:dataset_id>', vm_api.upload, name='upload'),
-
+    path('task/<str:task_id>/vm/<str:vm_id>/docker', vm_api.docker_image, name='docker'),
+    path('task/<str:task_id>/vm/<str:vm_id>/docker_delete/<str:docker_id>', vm_api.docker_delete, name='docker_delete'),
+    path('grpc/<str:task_id>/<str:vm_id>/docker_execute/<str:dataset_id>/<str:docker_image_id>', vm_api.docker_execute, name='docker_execute'),
+    
     path('grpc/<str:vm_id>/vm_info', vm_api.vm_info, name='vm_info'),
     path('grpc/<str:vm_id>/vm_state', vm_api.vm_state, name='vm_state'),
     path('grpc/<str:vm_id>/vm_start', vm_api.vm_start, name='vm_start'),
