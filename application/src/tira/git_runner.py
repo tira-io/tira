@@ -10,6 +10,10 @@ from datetime import datetime as dt
 import os
 import stat
 import json
+from slugify import slugify
+from tqdm import tqdm
+from glob import glob
+import subprocess
 
 from tira.grpc_client import new_transaction
 from tira.model import TransactionLog, EvaluationLog
@@ -111,7 +115,41 @@ def add_new_tag_to_docker_image_repository(repository_name, old_tag, new_tag):
         raise ValueError(manifest.content.decode('UTF-8'))
 
     return original_repository_name + ':' + new_tag
-    
+
+
+def archive_repository(repo_name):
+    repo = __existing_repository(repo_name)
+    if not repo:
+        print(f'Repository not found "{repo_name}".')
+        return
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        print(f'Clone repository {repo.name}')
+        repo = Repo.clone_from(repo_url(repo.id), tmp_dir, branch='main')
+        Path(tmp_dir + '/docker-softwares').mkdir(parents=True, exist_ok=True)
+        
+        print("Export docker images:")
+        downloaded_images = set()
+        for job_file in tqdm(sorted(list(glob(tmp_dir + '/*/*/*/job-executed-on*.txt')))):
+            job = [i.split('=') for i in open(job_file, 'r')]
+            job = {k:v for k,v in job}
+            image = job['TIRA_IMAGE_TO_EXECUTE'].strip()
+
+            if image in downloaded_images:
+                continue
+
+            downloaded_images.add(image)
+            image_name = (slugify(image) + '.tar').replace('/', '-')
+
+            cmd = ['skopeo', 'copy', '--src-creds', 
+                   f'{settings.GIT_CI_SERVER_HOST}:{settings.GIT_PRIVATE_TOKEN}',
+                   f'docker://{image}', f'docker-archive:{tmp_dir}/docker-softwares/{image_name}']
+
+            subprocess.check_output(cmd)
+
+        shutil.make_archive(repo_name, 'zip', tmp_dir)
+        print(f'The repository is archived into {repo_name}.zip')
+
 
 def __existing_repository(repo):
     for potential_existing_projects in gitlab_client().projects.list(search=repo):

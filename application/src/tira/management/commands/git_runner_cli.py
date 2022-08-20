@@ -8,7 +8,7 @@ from contextlib import contextmanager
 from django.core.management.base import BaseCommand, CommandError
 from django.core.management import call_command
 
-from tira.git_runner import create_user_repository, create_task_repository, docker_images_in_user_repository,  add_new_tag_to_docker_image_repository
+from tira.git_runner import create_user_repository, create_task_repository, docker_images_in_user_repository,  add_new_tag_to_docker_image_repository, archive_repository
 
 grpc_port = settings.APPLICATION_GRPC_PORT
 listen_addr = f'[::]:{grpc_port}'
@@ -23,6 +23,8 @@ class Command(BaseCommand):
     """
 
     def handle(self, *args, **options):
+        if 'archive_repository' in options and options['archive_repository']:
+            archive_repository(options['archive_repository'])
         if 'create_task_repository' in options and options['create_task_repository']:
             print(f'Create a task-repository for {options["create_task_repository"]}.')
             repo_id = create_task_repository(options['create_task_repository'])
@@ -39,4 +41,5 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('--create_task_repository', default=None, type=str)
         parser.add_argument('--create_user_repository', default=None, type=str)
+        parser.add_argument('--archive_repository', default=None, type=str)
 
