@@ -68,8 +68,8 @@ def create_user_repository(repo):
 def docker_images_in_user_repository(user):
     ret = []
     repo = __existing_repository('tira-user-' + user)
-    print('---->' + user)
     if not repo:
+        create_user_repository(user)
         return ret
 
     for registry_repository in repo.repositories.list():
