@@ -242,7 +242,7 @@ def admin_edit_dataset(request, dataset_id):
 
         command = data["evaluator_command"]
         working_directory = data["evaluator_working_directory"]
-        measures = data["evaluation_measures"]
+        measures = "" # here for legacy reasons. TIRA uses the measures provided by the evaluator
 
         is_git_runner = data["is_git_runner"]
         git_runner_image = data["git_runner_image"]
