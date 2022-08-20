@@ -86,6 +86,7 @@ def add_new_tag_to_docker_image_repository(repository_name, old_tag, new_tag):
     https://dille.name/blog/2018/09/20/how-to-tag-docker-images-without-pulling-them/
     https://gitlab.com/gitlab-org/gitlab/-/issues/23156
     """
+    original_repository_name = repository_name
     repository_name = repository_name.split(settings.GIT_CONTAINER_REGISTRY_HOST + '/')[-1]
     
     token = requests.get(f'https://{settings.GIT_CI_SERVER_HOST}:{settings.GIT_PRIVATE_TOKEN}@git.webis.de/jwt/auth?client_id=docker&offline_token=true&service=container_registry&scope=repository:{repository_name}:push,pull')
@@ -109,7 +110,7 @@ def add_new_tag_to_docker_image_repository(repository_name, old_tag, new_tag):
     if not manifest.ok:
         raise ValueError(manifest.content.decode('UTF-8'))
 
-    return repository_name + ':' + new_tag
+    return original_repository_name + ':' + new_tag
     
 
 def __existing_repository(repo):
