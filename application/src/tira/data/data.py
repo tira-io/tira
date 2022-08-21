@@ -266,7 +266,7 @@ def parse_run(runs_dir_path, dataset_id, vm_id, run_id):
             'software': software,
             'docker_software': docker_software,
             'input_dataset': dataset,
-            'task': software.task,
+            'task': software.task if software else docker_software.task,
             'downloadable': run.downloadable,
             'deleted': run.deleted,
             'access_token': run.accessToken
