@@ -234,22 +234,30 @@ def parse_run(runs_dir_path, dataset_id, vm_id, run_id):
         logger.exception(e)
         return
 
+    docker_software = None
+    software = None
+    
+    if 'docker-software-' in run.softwareId:
+        docker_software = str(int(run.softwareId.split('docker-software-')[-1]))
+
     try:  # Software and evaluators differ just by their name in the files.
         task_id = run.taskId
-        try:
-            software = modeldb.Software.objects.get(software_id=run.softwareId, vm=vm, task__task_id=run.taskId)
-        except modeldb.Software.DoesNotExist:
-            if "eval" in run.softwareId:
-                raise modeldb.Software.DoesNotExist()
-            if task_id:
-                print(f"No task {task_id} found for run {run.runId} on vm {vm.vm_id}")
-                for s in modeldb.Software.objects.filter(vm=vm).all():
-                    print(s.software_id, s.task.task_id)
-                return
-            software = modeldb.Software.objects.filter(software_id=run.softwareId, vm=vm).all()[0]
+        
+        if not docker_software:
+            try:
+                software = modeldb.Software.objects.get(software_id=run.softwareId, vm=vm, task__task_id=run.taskId)
+            except modeldb.Software.DoesNotExist:
+                if "eval" in run.softwareId:
+                    raise modeldb.Software.DoesNotExist()
+                if task_id:
+                    print(f"No task {task_id} found for run {run.runId} on vm {vm.vm_id}")
+                    for s in modeldb.Software.objects.filter(vm=vm).all():
+                        print(s.software_id, s.task.task_id)
+                    software = modeldb.Software.objects.filter(software_id=run.softwareId, vm=vm).all()[0]
 
         r, _ = modeldb.Run.objects.update_or_create(run_id=run.runId, defaults={
             'software': software,
+            'docker_software': docker_software,
             'input_dataset': dataset,
             'task': software.task,
             'downloadable': run.downloadable,

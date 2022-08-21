@@ -432,7 +432,7 @@ def run_execute_docker_software(request, task_id, vm_id, dataset_id, docker_soft
 
     run_docker_software_with_git_workflow(task_id, dataset_id, vm_id, get_tira_id(), evaluator['git_runner_image'],
                                           evaluator['git_runner_command'], evaluator['git_repository_id'], evaluator['evaluator_id'],
-                                          docker_software['tira_image_name'], docker_software['command'])
+                                          docker_software['tira_image_name'], docker_software['command'], 'docker-software-' + docker_software_id)
     
     return JsonResponse({'status': 'Accepted'}, status=HTTPStatus.ACCEPTED)
 
