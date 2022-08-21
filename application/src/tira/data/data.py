@@ -208,6 +208,16 @@ def parse_runs_for_vm(runs_dir_path, dataset_id, vm_id):
             logger.exception(e)
 
 
+def __get_docker_software_of_run_or_none(run):
+    if 'docker-software-' not in run.softwareId:
+        return None
+    try:
+        docker_software_id = str(int(run.softwareId.split('docker-software-')[-1]))
+        
+        return modeldb.DockerSoftware.objects.get(docker_software_id=docker_software_id)
+    except:
+        return None
+
 def parse_run(runs_dir_path, dataset_id, vm_id, run_id):
     run_dir = runs_dir_path / dataset_id / vm_id / run_id
 
@@ -234,11 +244,8 @@ def parse_run(runs_dir_path, dataset_id, vm_id, run_id):
         logger.exception(e)
         return
 
-    docker_software = None
+    docker_software = __get_docker_software_of_run_or_none(run)
     software = None
-    
-    if 'docker-software-' in run.softwareId:
-        docker_software = str(int(run.softwareId.split('docker-software-')[-1]))
 
     try:  # Software and evaluators differ just by their name in the files.
         task_id = run.taskId
