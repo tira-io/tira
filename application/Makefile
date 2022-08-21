@@ -71,7 +71,7 @@ run-docker:
 		webis/tira-application-grpc:${VERSION_GRPC}
 
 build-docker:
-	#docker build --tag webis/tira-application:${VERSION_APPLICATION} -f Dockerfile.application ..
+	docker build --tag webis/tira-application:${VERSION_APPLICATION} -f Dockerfile.application ..
 	docker build --tag webis/tira-application-grpc:${VERSION_GRPC} -f Dockerfile.application-grpc ..
 
 clean:
