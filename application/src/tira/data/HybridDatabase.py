@@ -479,9 +479,13 @@ class HybridDatabase(object):
         def _runs_by_docker_software(di):
             runs = modeldb.Run.objects.select_related('docker_software', 'task')\
                       .filter(docker_software__docker_software_id=di['docker_software_id'], task__task_id=di['task_id']).all()
-                    
+            eval_runs = modeldb.Run.objects.filter(input_run__run_id__in = [i.run_id for i in runs])
+
             for r in runs:
                 yield self._run_as_dict(r)
+            for r in eval_runs:
+                yield self._run_as_dict(r)
+
     
         docker_softwares = modeldb.DockerSoftware.objects.filter(vm__vm_id=vm_id, task__task_id=task_id, deleted=False)
         docker_softwares = [self._docker_software_to_dict(ds) for ds in docker_softwares]
