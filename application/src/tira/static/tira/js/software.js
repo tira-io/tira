@@ -286,23 +286,9 @@ function checkInputFields(softwareId, softwareName, command, inputDataset) {
     snerr.removeClass("uk-form-danger")
     scommanderr.removeClass("uk-form-danger")
     siderr.removeClass("uk-form-danger")
-    // The following function apparently is much faster than using regex to see whether
-    // a string is alphanumeric
-    function isAlphaNumeric(str) {
-        var code, i, len;
-      
-        for (i = 0, len = str.length; i < len; i++) {
-          code = str.charCodeAt(i);
-          if (!(code > 47 && code < 58) && // numeric (0-9)
-              !(code > 96 && code < 123) && // lower alpha (a-z)
-              !(code === 45)) { // allow en dash in names ( - )
-            return false;
-          }
-        }
-        return true;
-      };
-    if (!isAlphaNumeric(softwareName)){
-        err_str += 'The name must be alphanumeric (- allowed)<br>';
+
+    if (!/^[a-z]+\-?[a-z]+$/i.test(softwareName)){
+        err_str += "The software name can not use special characters besides ' - ' (see the generated names).<br>";
         snerr.addClass("uk-form-danger");
         check = false;
     }

@@ -864,10 +864,10 @@ class HybridDatabase(object):
                         dataset=modeldb.Dataset.objects.get(dataset_id=software.dataset),
                         last_edit_date=date)
                 else:
-                    if modeldb.Software.objects.filter(software_name=softwareName, task__task_id=task_id, vm__vm_id=vm_id).exists():
+                    if modeldb.Software.objects.filter(software_name=softwareName.lower(), task__task_id=task_id, vm__vm_id=vm_id).exists():
                         return False
                     modeldb.Software.objects.filter(software_id=software_id, vm__vm_id=vm_id).update(
-                        software_name=softwareName,
+                        software_name=softwareName.lower(),
                         command=software.command, working_directory=software.workingDirectory,
                         deleted=software.deleted,
                         dataset=modeldb.Dataset.objects.get(dataset_id=software.dataset),
