@@ -845,6 +845,7 @@ class HybridDatabase(object):
 
         s = self._load_softwares(task_id, vm_id)
         date = now()
+
         for software in s.softwares:
             if software.id == software_id:
                 software.command = update(software.command, command)
@@ -855,15 +856,22 @@ class HybridDatabase(object):
                 software.lastEditDate = date
 
                 self._save_softwares(task_id, vm_id, s)
-                # if modeldb.Software.objects.filter(software_name=softwareName, vm__vm_id=vm_id).exists():
-                #     return False
 
-                modeldb.Software.objects.filter(software_id=software_id, vm__vm_id=vm_id).update(
-                    software_name=softwareName,
-                    command=software.command, working_directory=software.workingDirectory,
-                    deleted=software.deleted,
-                    dataset=modeldb.Dataset.objects.get(dataset_id=software.dataset),
-                    last_edit_date=date)
+                if softwareName == "":
+                    modeldb.Software.objects.filter(software_id=software_id, vm__vm_id=vm_id).update(
+                        command=software.command, working_directory=software.workingDirectory,
+                        deleted=software.deleted,
+                        dataset=modeldb.Dataset.objects.get(dataset_id=software.dataset),
+                        last_edit_date=date)
+                else:
+                    if modeldb.Software.objects.filter(software_name=softwareName, task__task_id=task_id, vm__vm_id=vm_id).exists():
+                        return False
+                    modeldb.Software.objects.filter(software_id=software_id, vm__vm_id=vm_id).update(
+                        software_name=softwareName,
+                        command=software.command, working_directory=software.workingDirectory,
+                        deleted=software.deleted,
+                        dataset=modeldb.Dataset.objects.get(dataset_id=software.dataset),
+                        last_edit_date=date)
                 if run:
                     modeldb.SoftwareHasInputRun.objects.filter(
                         software=modeldb.Software.objects.get(software_id=software_id, vm__vm_id=vm_id),

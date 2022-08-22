@@ -302,7 +302,7 @@ function checkInputFields(softwareId, softwareName, command, inputDataset) {
         return true;
       };
     if (!isAlphaNumeric(softwareName)){
-        err_str += 'The software name must only use lower case and must not be in use already.<br>';
+        err_str += 'The name must be alphanumeric (- allowed)<br>';
         snerr.addClass("uk-form-danger");
         check = false;
     }
@@ -323,10 +323,6 @@ function checkInputFields(softwareId, softwareName, command, inputDataset) {
 async function saveSoftware(taskId, vmId, softwareId) {
     let token = $('input[name=csrfmiddlewaretoken]').val()
     let softwareName = $(`#${softwareId}-name`).val()
-    // if user left the name field empty / did not change the name, keep same name
-    if (softwareName === ""){
-        softwareName = softwareId
-    }
     let command = $(`#${softwareId}-command-input`).val()
     let inputDataset = $(`#${softwareId}-input-dataset`).val()
     if (checkInputFields(softwareId, softwareName, command, inputDataset) === false){
