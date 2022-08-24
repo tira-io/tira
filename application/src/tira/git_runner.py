@@ -14,6 +14,7 @@ from slugify import slugify
 from tqdm import tqdm
 from glob import glob
 import subprocess
+import markdown
 
 from tira.grpc_client import new_transaction
 from tira.model import TransactionLog, EvaluationLog
@@ -82,6 +83,19 @@ def docker_images_in_user_repository(user):
                 ret += [image.location]
     
     return ret
+
+
+def help_on_uploading_docker_image(user):
+    repo = __existing_repository('tira-user-' + user)
+    if not repo:
+        create_user_repository(user)
+        return help_on_uploading_docker_image(user)
+    
+    # Hacky at the moment
+    ret = repo.files.get('README.md', ref='main').decode().decode('UTF-8').split('## Create an docker image')[1]
+    ret = '## Create an docker image\n\n' + ret
+    
+    return markdown.markdown(ret)
 
 
 def add_new_tag_to_docker_image_repository(repository_name, old_tag, new_tag):

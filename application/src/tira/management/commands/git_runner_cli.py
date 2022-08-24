@@ -8,7 +8,7 @@ from contextlib import contextmanager
 from django.core.management.base import BaseCommand, CommandError
 from django.core.management import call_command
 
-from tira.git_runner import create_user_repository, create_task_repository, docker_images_in_user_repository,  add_new_tag_to_docker_image_repository, archive_repository
+from tira.git_runner import create_user_repository, create_task_repository, docker_images_in_user_repository,  add_new_tag_to_docker_image_repository, archive_repository, help_on_uploading_docker_image
 
 grpc_port = settings.APPLICATION_GRPC_PORT
 listen_addr = f'[::]:{grpc_port}'
@@ -36,6 +36,7 @@ class Command(BaseCommand):
             print(f'The new repository has the id ${repo_id}')
             print(add_new_tag_to_docker_image_repository('registry.webis.de/code-research/tira/tira-user-del-maik-user-repo/my-software', '0.0.3', '0.0.1-tira-docker-software-id-name-x'))
             print('Images: ' + str(docker_images_in_user_repository(options['create_user_repository'])))
+        print(help_on_uploading_docker_image('princess-knight'))
             
 
     def add_arguments(self, parser):

@@ -4,7 +4,7 @@ p.stat().st_mtime - change time
 from pathlib import Path
 import logging
 from tira.data.HybridDatabase import HybridDatabase
-from tira.git_runner import docker_images_in_user_repository, add_new_tag_to_docker_image_repository
+from tira.git_runner import docker_images_in_user_repository, add_new_tag_to_docker_image_repository, help_on_uploading_docker_image
 import randomname
 
 logger = logging.getLogger("tira")
@@ -102,7 +102,11 @@ def load_docker_data(task_id, vm_id):
     
     docker_images = [i for i in docker_images_in_user_repository(vm_id) if '-tira-docker-software-id-' not in i]
     
-    return {"docker_images": docker_images, "docker_softwares": model.get_docker_softwares_with_runs(task_id, vm_id)}
+    return {
+        "docker_images": docker_images,
+        "docker_softwares": model.get_docker_softwares_with_runs(task_id, vm_id),
+        "docker_software_help": help_on_uploading_docker_image(vm_id),
+    }
 
 def get_docker_software(docker_software_id: int) -> dict:
     """
