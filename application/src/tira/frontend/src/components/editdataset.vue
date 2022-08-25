@@ -88,7 +88,7 @@
                 <label>Git Runner Command <input type="text" class="uk-input" v-model="gitRunnerCommand" /></label>
             </div>
             <div class="uk-width-1-1">
-                <label><input class="uk-checkbox" type="checkbox" name="checkbox-gitci" v-model="useExistingRepo"> use custom repository</label>
+                <label><input class="uk-checkbox" type="checkbox" name="checkbox-gitci" v-model="useExistingRepo"> use custom repository (Do only change as expert) </label>
             </div>
             <div v-if="useExistingRepo" class="uk-width-1-1">
                 <label>Git Repository ID <input type="text" class="uk-input" v-model="gitRepositoryId" ></label>
@@ -112,7 +112,7 @@ export default {
             gitRunnerImage: '',
             gitRunnerCommand: '',
             gitRepositoryId: '',
-            useExistingRepo: true,
+            useExistingRepo: false,
             taskList: [],
         }
     },

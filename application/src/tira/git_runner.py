@@ -46,6 +46,7 @@ def create_task_repository(task_id):
         os.chmod(str(tmp_dir) + '/tira', os.stat(str(tmp_dir) + '/tira').st_mode | stat.S_IEXEC)
 
         repo.create_remote('origin', repo_url(project.id))
+        __ensure_branch_is_main(repo)
         repo.index.add(['README.md', '.gitlab-ci.yml', 'tira'])
         repo.index.commit('Initial commit')
         repo.remote().push(settings.GIT_USER_REPOSITORY_BRANCH, o='ci.skip')
@@ -53,6 +54,13 @@ def create_task_repository(task_id):
     logger.info(f"Created task repository for task {task_id} with new id {project.id}")
     return project.id
 
+
+def __ensure_branch_is_main(repo):
+    try:
+        # for some git versions we need to manually switch, may fail if the branch is already correct
+        repo.git.checkout('-b', settings.GIT_USER_REPOSITORY_BRANCH)
+    except:
+        pass
 
 def create_user_repository(repo):
     gl = gitlab_client()
@@ -300,6 +308,7 @@ def __initialize_user_repository(git_repository_id, repo_name, token):
         __write_to_file(str(tmp_dir) + '/README.md', project_readme)
         
         repo.create_remote('origin', repo_url(git_repository_id))
+        __ensure_branch_is_main(repo)
         repo.index.add(['README.md'])
         repo.index.commit('Initial commit')
         repo.remote().push(settings.GIT_USER_REPOSITORY_BRANCH)
