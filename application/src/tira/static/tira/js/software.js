@@ -3,50 +3,51 @@ let pollingSoftware=false;
 let pollingEvaluation=false;
 let state=0;
 
-function setupPollingAfterPageLoad(vmid, is_default) {
-    $('.run-evaluate-spinner').hide()
-    if(is_default != "True"){
-        loadVmInfo(vmid)
-        pollRunningSoftware(vmid)
-        setState()
-    } else {
-        state = 42
-    }
-    pollRunningEvaluations(vmid)
-}
+// function setupPollingAfterPageLoad(vmid, is_default) {
+//     $('.run-evaluate-spinner').hide()
+//     if(is_default != "True"){
+//         loadVmInfo(vmid)
+//         pollRunningSoftware(vmid)
+//         setState()
+//     } else {
+//         state = 42
+//     }
+//     pollRunningEvaluations(vmid)
+// }
 
-function loadVmInfo(vmid) {
-    $.ajax({
-        type: 'GET',
-        url: `/grpc/${vmid}/vm_info`,
-        data: {},
-        success: function (data) {
-            if (data.status === 'Accepted') {
-                setInfo(data.message.host, data.message.guestOs,
-                        data.message.memorySize, data.message.numberOfCpus);
+// function loadVmInfo(vmid) {
+//     $.ajax({
+//         type: 'GET',
+//         url: `/grpc/${vmid}/vm_info`,
+//         data: {},
+//         success: function (data) {
+//             if (data.status === 'Accepted') {
+//                 setInfo(data.message.host, data.message.guestOs,
+//                         data.message.memorySize, data.message.numberOfCpus);
+//
+//                 setState(data.message.state);
+//                 setPorts(data.message.sshPort, data.message.sshPortStatus,
+//                          data.message.rdpPort, data.message.rdpPortStatus,);
+//
+//                 if (isTransitionState(data.message.state) && pollingState === false){
+//                     pollingState=true;
+//                     pollVmState(vmid);
+//                 } else if (data.message.state === 1 && (!data.message.sshPortStatus || !data.message.rdpPortStatus) ) {
+//                     pollingState=true;
+//                     pollVmState(vmid);
+//                 }
+//
+//             } else {
+//                 setConnectionError(data.message)
+//             }
+//         },
+//         error: function (jqXHR, textStatus, throwError) {
+//             setConnectionError(jqXHR.responseJSON.message)
+//         }
+//     })
+// }
 
-                setState(data.message.state);
-                setPorts(data.message.sshPort, data.message.sshPortStatus,
-                         data.message.rdpPort, data.message.rdpPortStatus,);
-
-                if (isTransitionState(data.message.state) && pollingState === false){
-                    pollingState=true;
-                    pollVmState(vmid);
-                } else if (data.message.state === 1 && (!data.message.sshPortStatus || !data.message.rdpPortStatus) ) {
-                    pollingState=true;
-                    pollVmState(vmid);
-                }
-
-            } else {
-                setConnectionError(data.message)
-            }
-        },
-        error: function (jqXHR, textStatus, throwError) {
-            setConnectionError(jqXHR.responseJSON.message)
-        }
-    })
-}
-
+// TODO set the values for connection errors
 function setConnectionError(msg) {
     setInfo(msg, null, null, null, true);
     setState(10);
@@ -56,89 +57,89 @@ function setConnectionError(msg) {
 /*
 ** VM STATE CONTROL
  */
-function startVM(vmid) {
-    disableButton('vm-power-on-button')
-    setState(0)
-    $.ajax({
-        type: 'GET',
-        url: `/grpc/${vmid}/vm_start`,
-        data: {},
-        success: function (data) {
-            //in this case, the host accepted our request and we are powering on.
-            if (data.status === 0) {
-                setState(3)
-                pollVmState(vmid)
-            }
-        },
-        error: function (jqXHR, textStatus, throwError) {
-            warningAlert("Starting VM", throwError, jqXHR.responseJSON)
-            loadVmInfo(vmid)
-        }
-    })
-}
+// function startVM(vmid) {
+//     disableButton('vm-power-on-button')
+//     setState(0)
+//     $.ajax({
+//         type: 'GET',
+//         url: `/grpc/${vmid}/vm_start`,
+//         data: {},
+//         success: function (data) {
+//             //in this case, the host accepted our request and we are powering on.
+//             if (data.status === 0) {
+//                 setState(3)
+//                 pollVmState(vmid)
+//             }
+//         },
+//         error: function (jqXHR, textStatus, throwError) {
+//             warningAlert("Starting VM", throwError, jqXHR.responseJSON)
+//             loadVmInfo(vmid)
+//         }
+//     })
+// }
 
-function shutdownVM(vmid) {
-    disableButton('vm-shutdown-button')
-    setState(0)
-    $.ajax({
-        type: 'GET',
-        url: `/grpc/${vmid}/vm_shutdown`,
-        data: {},
-        success: function (data) {
-            if (data.status === 0) {
-                setState(4)
-                pollVmState(vmid)
-            }
-        },
-        error: function (jqXHR, textStatus, throwError) {
-            warningAlert("Shutting VM down", throwError, jqXHR.responseJSON)
-            loadVmInfo(vmid)
-        }
-    })
-}
+// function shutdownVM(vmid) {
+//     disableButton('vm-shutdown-button')
+//     setState(0)
+//     $.ajax({
+//         type: 'GET',
+//         url: `/grpc/${vmid}/vm_shutdown`,
+//         data: {},
+//         success: function (data) {
+//             if (data.status === 0) {
+//                 setState(4)
+//                 pollVmState(vmid)
+//             }
+//         },
+//         error: function (jqXHR, textStatus, throwError) {
+//             warningAlert("Shutting VM down", throwError, jqXHR.responseJSON)
+//             loadVmInfo(vmid)
+//         }
+//     })
+// }
 
-function stopVM(vmid) {
-    disableButton('vm-stop-button')
-    setState(0)
-    $.ajax({
-        type: 'GET',
-        url: `/grpc/${vmid}/vm_stop`,
-        data: {},
-        success: function (data) {
-            if (data.status === 0) {
-                setState(4)
-                pollVmState(vmid)
-            }
-        },
-        error: function (jqXHR, textStatus, throwError) {
-            warningAlert("Stopping VM", throwError, jqXHR.responseJSON)
-            loadVmInfo(vmid)
-        }
-    })
-}
+// function stopVM(vmid) {
+//     disableButton('vm-stop-button')
+//     setState(0)
+//     $.ajax({
+//         type: 'GET',
+//         url: `/grpc/${vmid}/vm_stop`,
+//         data: {},
+//         success: function (data) {
+//             if (data.status === 0) {
+//                 setState(4)
+//                 pollVmState(vmid)
+//             }
+//         },
+//         error: function (jqXHR, textStatus, throwError) {
+//             warningAlert("Stopping VM", throwError, jqXHR.responseJSON)
+//             loadVmInfo(vmid)
+//         }
+//     })
+// }
 
-function pollVmState(vmid, pollTimeout=5000) {
-    setTimeout(function () {
-        // TODO handle on fail.
-        $.ajax({
-            type: 'GET',
-            url: `/grpc/${vmid}/vm_state`,
-            data: {},
-            success: function (data) {
-                if (isTransitionState(data.state)){
-                    setState(data.state);
-                    pollVmState(vmid);
-                } else {
-                    pollingState = false
-                    loadVmInfo(vmid)
-                }
-            },
-            error: function (jqXHR, textStatus, throwError) {
-                console.log("Polling vm state", throwError, jqXHR.responseJSON)
-            }
-        })
-    }, pollTimeout);
-}
+// function pollVmState(vmid, pollTimeout=5000) {
+//     setTimeout(function () {
+//         // TODO handle on fail.
+//         $.ajax({
+//             type: 'GET',
+//             url: `/grpc/${vmid}/vm_state`,
+//             data: {},
+//             success: function (data) {
+//                 if (isTransitionState(data.state)){
+//                     setState(data.state);
+//                     pollVmState(vmid);
+//                 } else {
+//                     pollingState = false
+//                     loadVmInfo(vmid)
+//                 }
+//             },
+//             error: function (jqXHR, textStatus, throwError) {
+//                 console.log("Polling vm state", throwError, jqXHR.responseJSON)
+//             }
+//         })
+//     }, pollTimeout);
+// }
 
 function pollRunningSoftware(vmid) {
     setTimeout(function () {
@@ -468,93 +469,93 @@ function runSoftware (taskId, vmId, softwareId) {
     })
 }
 
-function addSoftwareEvents(taskId, vmId, is_default) {
-    if(is_default != "True"){
-        $('#vm-power-on-button').click(function () {
-            startVM(vmId)
-        });
-        $('#vm-shutdown-button').click(function () {
-            shutdownVM(vmId)
-        });
-        $('#vm-stop-button').click(function () {
-            stopVM(vmId)
-        });
-        $('#vm-abort-run-button').click(function () {
-            abortRun(vmId)
-        });
-        $('#add-software').click(function () {
-            addSoftware(taskId, vmId);
-        });
-
-        $('.software-run-button').click(function () {
-            runSoftware(taskId, vmId, $(this).data('tiraSoftwareId'))
-        });
-
-        $('.software-save-button').click(function () {
-            saveSoftware(taskId, vmId, $(this).data("tiraSoftwareId"));
-        })
-        $('.software-delete-button').click(function () {
-            let formId = '#' + $(this).data("tiraSoftwareId") + '-row'
-            deleteSoftware(taskId, vmId, $(this).data("tiraSoftwareId"), $(formId));
-        })
-        $('.software-select').change(function () {
-            updateSoftwareRunButton()
-        });
-        $('.command-input').change(function () {
-            updateSoftwareRunButton()
-        });
-    }
-    $('#upload-button').click(function (e) {
-        e.preventDefault()
-        upload(taskId, vmId);
-    })
-    $('#docker-add-button').click(function (e) {
-        e.preventDefault()
-        addDockerSoftware(taskId, vmId);
-    })
-    $('.docker-delete-button').click(function (e) {
-            e.preventDefault()
-            deleteDockerSoftware(taskId, vmId, $(this).data("tiraDockerSoftwareId"));
-    })
-    $('.docker-run-button').click(function (e) {
-            e.preventDefault()
-            docker_software_id = $(this).data('tiraRunDockerSoftwareId')
-            runDockerSoftware(taskId, vmId, docker_software_id);
-    })
-    $('.run-delete-button').click(function () {
-        deleteRun($(this).data('tiraDataset'),
-            $(this).data('tiraVmId'),
-            $(this).data('tiraRunId'), $(this).parent().parent())
-    })
-    $('.run-evaluate-button').click(function () {
-        evaluateRun($(this).data('tiraDataset'),
-                     $(this).data('tiraVmId'),
-                     $(this).data('tiraRunId'))
-    });
-}
+// function addSoftwareEvents(taskId, vmId, is_default) {
+//     if(is_default != "True"){
+//         $('#vm-power-on-button').click(function () {
+//             startVM(vmId)
+//         });
+//         $('#vm-shutdown-button').click(function () {
+//             shutdownVM(vmId)
+//         });
+//         $('#vm-stop-button').click(function () {
+//             stopVM(vmId)
+//         });
+//         $('#vm-abort-run-button').click(function () {
+//             abortRun(vmId)
+//         });
+//         $('#add-software').click(function () {
+//             addSoftware(taskId, vmId);
+//         });
+//
+//         $('.software-run-button').click(function () {
+//             runSoftware(taskId, vmId, $(this).data('tiraSoftwareId'))
+//         });
+//
+//         $('.software-save-button').click(function () {
+//             saveSoftware(taskId, vmId, $(this).data("tiraSoftwareId"));
+//         })
+//         $('.software-delete-button').click(function () {
+//             let formId = '#' + $(this).data("tiraSoftwareId") + '-row'
+//             deleteSoftware(taskId, vmId, $(this).data("tiraSoftwareId"), $(formId));
+//         })
+//         $('.software-select').change(function () {
+//             updateSoftwareRunButton()
+//         });
+//         $('.command-input').change(function () {
+//             updateSoftwareRunButton()
+//         });
+//     }
+//     $('#upload-button').click(function (e) {
+//         e.preventDefault()
+//         upload(taskId, vmId);
+//     })
+//     $('#docker-add-button').click(function (e) {
+//         e.preventDefault()
+//         addDockerSoftware(taskId, vmId);
+//     })
+//     $('.docker-delete-button').click(function (e) {
+//             e.preventDefault()
+//             deleteDockerSoftware(taskId, vmId, $(this).data("tiraDockerSoftwareId"));
+//     })
+//     $('.docker-run-button').click(function (e) {
+//             e.preventDefault()
+//             docker_software_id = $(this).data('tiraRunDockerSoftwareId')
+//             runDockerSoftware(taskId, vmId, docker_software_id);
+//     })
+//     $('.run-delete-button').click(function () {
+//         deleteRun($(this).data('tiraDataset'),
+//             $(this).data('tiraVmId'),
+//             $(this).data('tiraRunId'), $(this).parent().parent())
+//     })
+//     $('.run-evaluate-button').click(function () {
+//         evaluateRun($(this).data('tiraDataset'),
+//                      $(this).data('tiraVmId'),
+//                      $(this).data('tiraRunId'))
+//     });
+// }
 
 
 /*
 ** RUN MANAGEMENT
  */
-function abortRun(vmId) {
-    disableButton('vm-abort-run-button')
-    setState(0)
-    $.ajax({
-        type: 'GET',
-        url: `/grpc/${vmId}/run_abort`,
-        data: {},
-        success: function (data) {
-            if (data.status === 0) {
-                pollVmState(vmId);
-            }
-        },
-        error: function (jqXHR, textStatus, throwError) {
-            warningAlert("Aborting the run " + runId + " ", throwError, jqXHR.responseJSON)
-            loadVmInfo(vmId)
-        }
-    })
-}
+// function abortRun(vmId) {
+//     disableButton('vm-abort-run-button')
+//     setState(0)
+//     $.ajax({
+//         type: 'GET',
+//         url: `/grpc/${vmId}/run_abort`,
+//         data: {},
+//         success: function (data) {
+//             if (data.status === 0) {
+//                 pollVmState(vmId);
+//             }
+//         },
+//         error: function (jqXHR, textStatus, throwError) {
+//             warningAlert("Aborting the run " + runId + " ", throwError, jqXHR.responseJSON)
+//             loadVmInfo(vmId)
+//         }
+//     })
+// }
 
 function deleteRun(datasetId, vmId, runId, row) {
     if(datasetId === ""){

@@ -11,6 +11,7 @@ module.exports = (env = {}) => {
       index: './src/index.ts',
       tiraadmin: './src/tira_admin.ts',
       task: './src/task.ts',
+      user: './src/user.ts',
     },
     output: {
       filename: '[name].js',

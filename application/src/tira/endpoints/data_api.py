@@ -112,8 +112,26 @@ def get_organizer(request, context, organizer_id):
     org = model.get_organizer(organizer_id)
     return JsonResponse({'status': 0, "context": org})
 
+
 @add_context
 def get_role(request, context):
     return JsonResponse({'status': 0, 'role': context['role']})
 
 
+@check_resources_exist("json")
+@add_context
+def get_user(request, context, task_id, user_id):
+    software = model.get_software_with_runs(task_id, user_id)
+    upload = model.get_upload_with_runs(task_id, user_id)
+    docker = model.load_docker_data(task_id, user_id)
+
+    context["task"] = model.get_task(task_id)
+    context["user_id"] = user_id
+    context["vm"] = model.get_vm(user_id)
+    context["software"] = software
+    context["datasets"] = model.get_datasets_by_task(task_id)
+    context["upload"] = upload
+    context["docker"] = docker
+    context["is_default"] = user_id.endswith("default")
+
+    return JsonResponse({'status': 0, "context": context})
