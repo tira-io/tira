@@ -333,9 +333,15 @@ async function addDockerSoftware(tid, vmid) {
 async function runDockerSoftware(taskId, vmId, docker_software_id) {
     let csrf = $('input[name=csrfmiddlewaretoken]').val()
     let dataset = $('#' + docker_software_id + '-docker-input-dataset').val()
+    let resources = $('#' + docker_software_id + '-docker-resources').val()
             
     if (dataset +''  == 'undefined' || dataset  == 'None' || dataset == '') {
         $('#' + docker_software_id + '-docker-form-error').html('Error: Please specify an Dataset!')
+        return;
+    }
+    
+    if (resources +''  == 'undefined' || resources  == 'None' || resources == '') {
+        $('#' + docker_software_id + '-docker-form-error').html('Error: Please specify an the resources to execute!')
         return;
     }
     
@@ -343,7 +349,7 @@ async function runDockerSoftware(taskId, vmId, docker_software_id) {
 
     $.ajax({
         type: 'POST',
-        url: `/grpc/${taskId}/${vmId}/run_execute/docker/${dataset}/${docker_software_id}`,
+        url: `/grpc/${taskId}/${vmId}/run_execute/docker/${dataset}/${docker_software_id}/${resources}`,
         headers: {
             'X-CSRFToken': csrf
         },

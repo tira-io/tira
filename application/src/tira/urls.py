@@ -36,7 +36,7 @@ urlpatterns = [
     path('grpc/<str:vm_id>/run_abort', vm_api.run_abort, name="run_abort"),
     path('grpc/<str:vm_id>/vm_running_evaluations', vm_api.vm_running_evaluations, name="vm_running_evaluations"),
     path('grpc/<str:task_id>/<str:vm_id>/run_execute/vm/<str:software_id>', vm_api.run_execute, name="run_execute"),
-    path('grpc/<str:task_id>/<str:vm_id>/run_execute/docker/<str:dataset_id>/<str:docker_software_id>', vm_api.run_execute_docker_software, name='run_execute_docker_software'),
+    path('grpc/<str:task_id>/<str:vm_id>/run_execute/docker/<str:dataset_id>/<str:docker_software_id>/<str:docker_resources>', vm_api.run_execute_docker_software, name='run_execute_docker_software'),
     
     path('grpc/<str:vm_id>/run_eval/<str:dataset_id>/<str:run_id>', vm_api.run_eval, name="run_eval"),
     path('grpc/<str:vm_id>/run_delete/<str:dataset_id>/<str:run_id>', vm_api.run_delete, name="run_delete"),

@@ -199,7 +199,7 @@
             {% endfor %}
             {% if docker %}
             {% for ds in docker.docker_softwares %}
-                {% include "tira/docker_form.html" with docker_software=ds task_id=task.task_id vm_id=vm_id%}
+                {% include "tira/docker_form.html" with docker_software=ds docker_resources=docker.resources task_id=task.task_id vm_id=vm_id%}
             {% endfor %}
             {% endif %}
             {% if not is_default %}
