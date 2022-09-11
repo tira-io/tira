@@ -272,6 +272,8 @@ def __write_metadata_for_ci_job_to_repository(tmp_dir, task_id, transaction_id, 
             'TIRA_SOFTWARE_ID': tira_software_id,
             'TIRA_DATASET_ID': dataset_id,
             'TIRA_RUN_ID': run_id,
+            'TIRA_CPU_COUNT': 2,
+            'TIRA_MEMORY_IN_GIBIBYTE': 4,
 
             # The actual important stuff for the evaluator:
             'TIRA_TASK_ID': task_id,
