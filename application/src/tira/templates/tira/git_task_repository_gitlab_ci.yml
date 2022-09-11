@@ -7,7 +7,9 @@ stages:
 
 prepare-tira-environment:
   stage: Preparation
-  image: webis/tira-git:0.0.40
+  image:
+    name: webis/tira-git:0.0.40
+    pull_policy: if-not-present
   artifacts:
     reports:
       dotenv: task.env
@@ -26,7 +28,15 @@ run-user-software:
     untracked: true
     reports:
       dotenv: task.env
-  image: "${TIRA_IMAGE_TO_EXECUTE}"
+  image:
+    name: "${TIRA_IMAGE_TO_EXECUTE}"
+    pull_policy: if-not-present
+  timeout: "24 hours"
+  variables:
+   KUBERNETES_CPU_REQUEST: ${TIRA_CPU_COUNT}
+   KUBERNETES_CPU_LIMIT: ${TIRA_CPU_COUNT}
+   KUBERNETES_MEMORY_REQUEST: "${TIRA_MEMORY_IN_GIBIBYTE} Gi"
+   KUBERNETES_MEMORY_LIMIT: "${TIRA_MEMORY_IN_GIBIBYTE} Gi"
   script:
     - test -n "${TIRA_OUTPUT_DIR}" && mkdir -p ${TIRA_OUTPUT_DIR}
     - echo "${TIRA_COMMAND_TO_EXECUTE}"
@@ -35,11 +45,12 @@ run-user-software:
   allow_failure: true
   tags:
     - no-internet
-    - read-tira-data-datasets
 
 persist-software-result:
   stage: Persist Software Result
-  image: webis/tira-git:0.0.40
+  image:
+    name: webis/tira-git:0.0.40
+    pull_policy: if-not-present
   artifacts:
     untracked: true
     reports:
@@ -49,18 +60,19 @@ persist-software-result:
   dependencies: 
     - run-user-software
   tags:
-    - write-tira-data-runs
-    - tira-git-credentials
+    - write-tira-data
 
 evaluate-software-result:
   stage: Evaluate Software Result
-  dependencies: 
+  dependencies:
     - persist-software-result
   artifacts:
     untracked: true
     reports:
       dotenv: task.env
-  image: "${TIRA_EVALUATION_IMAGE_TO_EXECUTE}"
+  image:
+    name: "${TIRA_EVALUATION_IMAGE_TO_EXECUTE}"
+    pull_policy: if-not-present
   script:
     - test -n "${TIRA_EVALUATION_OUTPUT_DIR}" && mkdir -p ${TIRA_EVALUATION_OUTPUT_DIR}
     - echo "${TIRA_EVALUATION_COMMAND_TO_EXECUTE}"
@@ -69,18 +81,17 @@ evaluate-software-result:
   allow_failure: true
   tags:
     - no-internet
-    - read-tira-data-datasets-truth
-    - read-tira-data-runs
+    - read-tira-data
 
 persist-evaluation-result:
   stage: Persist Evaluation Result
-  image: webis/tira-git:0.0.40
+  image:
+    name: webis/tira-git:0.0.40
+    pull_policy: if-not-present
   script:
     - tira-persist-evaluation-result.sh
-    - env
   dependencies: 
     - evaluate-software-result
   tags:
-    - write-tira-data-runs
-    - tira-git-credentials
+    - write-tira-data
 
