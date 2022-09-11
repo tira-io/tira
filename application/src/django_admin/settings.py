@@ -244,8 +244,8 @@ GIT_REGISTRY_PREFIX = custom_settings.get('GIT_REGISTRY_PREFIX', 'registry.webis
 GIT_USER_REPOSITORY_BRANCH = custom_settings.get('GIT_USER_REPOSITORY_BRANCH', 'main')
 GIT_CONTAINER_REGISTRY_HOST = custom_settings.get('GIT_CONTAINER_REGISTRY_HOST', 'registry.webis.de')
 GIT_CI_AVAILABLE_RESOURCES = {
-    'Small (2 CPU Cores, 10GB of RAM)': {'cores': 2, 'ram': 10},
-    'Large (8 CPU Cores, 40GB of RAM)': {'cores': 8, 'ram': 40},
+    'small-resources': {'cores': 2, 'ram': 10, 'description': 'Small (2 CPU Cores, 10GB of RAM)', 'key': 'small-resources'},
+    'large-resources': {'cores': 8, 'ram': 40, 'description': 'Large (8 CPU Cores, 40GB of RAM)', 'key': 'large-resources'},
 }
 
 # Logging

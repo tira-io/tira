@@ -64,7 +64,7 @@
                     <label class="uk-form-label" for="{{ docker_software.docker_software_id }}-docker-resources">Resources for Execution</label>
                     <select class="uk-select upload-select" id="{{ docker_software.docker_software_id }}-docker-resources">
                         {% for resource in docker_resources %}
-                        <option value="{{ resource }}">{{ resource }}</option>
+                        <option value="{{ resource.key }}">{{ resource.description }}</option>
                         {% endfor %}
                     </select>
                 </div>
