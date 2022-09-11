@@ -48,10 +48,31 @@ class HybridDatabase(object):
 
     def __init__(self):
         pass
-        # dbops.index(self.organizers_file_path, self.users_file_path, self.vm_dir_path, self.tasks_dir_path,
-        #             self.datasets_dir_path, self.softwares_dir_path, self.runs_dir_path)
 
-    def build_model(self):
+    def create_model(self, admin_user_name='admin', admin_password='admin'):
+        self.users_file_path.parent.mkdir(exist_ok=True, parents=True)
+        self.tasks_dir_path.mkdir(exist_ok=True, parents=True)
+        self.organizers_file_path.parent.mkdir(exist_ok=True, parents=True)
+        self.vm_dir_path.mkdir(exist_ok=True, parents=True)
+        self.host_list_file.parent.mkdir(exist_ok=True, parents=True)
+        self.ova_dir.mkdir(exist_ok=True, parents=True)
+        self.datasets_dir_path.mkdir(exist_ok=True, parents=True)
+        self.softwares_dir_path.mkdir(exist_ok=True, parents=True)
+        self.data_path.mkdir(exist_ok=True, parents=True)
+        self.runs_dir_path.mkdir(exist_ok=True, parents=True)
+        (self.tira_root / "state/virtual-machines").mkdir(exist_ok=True, parents=True)
+        (self.tira_root / "state/softwares").mkdir(exist_ok=True, parents=True)
+
+        self.users_file_path.touch(exist_ok=True)
+        self.vm_list_file.touch(exist_ok=True)
+        self.host_list_file.touch(exist_ok=True)
+        self.organizers_file_path.touch(exist_ok=True)
+
+        modeldb.VirtualMachine.objects.create(vm_id=admin_user_name, user_password=admin_password,
+                                              roles='reviewer')
+        self._save_vm(vm_id=admin_user_name, user_name=admin_user_name, initial_user_password=admin_password)
+
+    def index_model_from_files(self):
         self.vm_list_file.touch(exist_ok=True)
         dbops.index(self.organizers_file_path, self.users_file_path, self.vm_dir_path, self.tasks_dir_path,
                     self.datasets_dir_path, self.softwares_dir_path, self.runs_dir_path)
