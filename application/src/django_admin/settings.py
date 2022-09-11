@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/3.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
-
+import logging
 from pathlib import Path
 import os
 import yaml
@@ -34,7 +34,9 @@ ALLOWED_HOSTS = custom_settings.get("allowed_hosts", [])
 
 TIRA_ROOT = Path(custom_settings.get("tira_root", BASE_DIR.parents[1] / "model" / "src"))
 if not TIRA_ROOT.is_dir():
-    raise FileNotFoundError(f"TIRA_ROOT must point to an existing tira model but points to {TIRA_ROOT} instead.")
+    logging.warning(f"{TIRA_ROOT} does not exists and will be created now.")
+
+(TIRA_ROOT / "state").mkdir(parents=True, exist_ok=True)
 
 DEPLOYMENT = custom_settings.get("deployment", "legacy")
 LEGACY_USER_FILE = Path(custom_settings.get("legacy_users_file", TIRA_ROOT / "model" / "users" / "users.prototext"))
