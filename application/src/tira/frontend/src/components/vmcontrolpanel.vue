@@ -105,40 +105,6 @@
                 :disabled="![5,6,7].includes(vmstate)">Abort Run</button>
     </div>
 </div>
-
-<div id="modal-command-help" class="uk-modal-container" uk-modal>
-    <div class="uk-modal-dialog uk-modal-body uk-margin-auto-vertical">
-        <button class="uk-modal-close-default" type="button" uk-close></button>
-        <h2 class="uk-modal-title">Commands Help for {{ task.task_name }}</h2>
-        <p>
-        The <em>Command</em> will be executed on your Virtual Machine. By default, it will be run from your user's home directory.
-            You can select a different location in the <em>Working Directory</em> input.
-        </p>
-        <table v-if="isDefaultCommand"
-            class="uk-table uk-table-small uk-table-divider uk-align-center uk-margin-bottom">
-            <thead>
-                <tr><td colspan="2">You can use the following variables in your Commands:</td></tr>
-                <tr><th>Variable</th><th>Description</th></tr>
-            </thead>
-            <tfoot>
-            <tr><td class="uk-text-bold">$inputDataset</td><td>This will resolve to the full path to the directory that contains the <em>dataset you have selected</em>.</td></tr>
-            <tr><td class="uk-text-bold">$outputDir</td><td>This will resolve to the full path to the directory where <em>your software must write it's output</em></td></tr>
-            </tfoot>
-        </table>
-        <div v-if="!isDefaultCommand">{{ task.command_description }}</div>
-
-        <div v-if="isDefaultCommandPlaceholder">
-            <label class="uk-form-label">Example Command in TIRA</label>
-            <pre><code>my-software/run.sh -i $inputDataset -o $outputDir</code></pre>
-            <label class="uk-form-label">Example Command in the Virtual Machine</label>
-            <pre><code>my-software/run.sh -i /media/training-datasets/{{ task.task_id }}/&lt;Input Dataset&gt; -o /tmp/{{ vm_id }}/&lt;RUN&gt;/output</code></pre>
-        </div>
-        <div v-if="!isDefaultCommandPlaceholder">
-            <label class="uk-form-label">Example Command in TIRA</label>
-            <pre><code>{{ task.command_placeholder }}</code></pre>
-        </div>
-    </div>
-</div>
 </template>
 <script>
 export default {
@@ -205,12 +171,6 @@ export default {
         },
         sshConnectionExample() {
             return `ssh ${this.vm.vm_id}@${this.vm.host} -p ${this.vm.ssh} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no`
-        },
-        isDefaultCommand() {
-            return (this.task.command_description === 'Available variables: <code>$inputDataset</code>, <code>$inputRun</code>, <code>$outputDir</code>, <code>$dataServer</code>, and <code>$token</code>.')
-        },
-        isDefaultCommandPlaceholder() {
-            return (this.task.command_placeholder === 'mySoftware -c $inputDataset -r $inputRun -o $outputDir')
         }
     }
 }

@@ -18,8 +18,24 @@
     <div class="uk-container">
         <h1>[[ userDisplayName ]] <span class="uk-text-muted uk-text-lead">on Task [[ task.task_name ]]</span></h1>
     </div>
+
+    <div class="uk-container uk-margin-medium">
+        <a class="uk-button uk-button-default uk-width-1-3"
+                :class="{ 'tira-button-selected': selectedSubmissionType === 'upload'}"
+                @click="selectedSubmissionType = 'upload'">
+            Upload Submission<font-awesome-icon class="uk-margin-small-left" icon="fas fa-upload" /></a>
+        <a class="uk-button uk-button-default uk-width-1-3"
+                :class="{ 'tira-button-selected': selectedSubmissionType === 'docker'}"
+                @click="selectedSubmissionType = 'docker'">
+            Docker Submission<font-awesome-icon class="uk-margin-small-left" icon="fas fa-box-open" /></a>
+        <a class="uk-button uk-button-default uk-width-1-3"
+                :class="{ 'tira-button-selected': selectedSubmissionType === 'vm'}"
+                @click="selectedSubmissionType = 'vm'">
+            Virtual Machine Submission<font-awesome-icon class="uk-margin-small-left" icon="fas fa-terminal" /></a>
+    </div>
+
     <!-- VM State and general options   -->
-    <div v-if="!isDefault" class="uk-container uk-margin-medium">
+    <div v-if="!isDefault && selectedSubmissionType === 'vm'" class="uk-container uk-margin-medium">
         {{ isDefault }}
         <vm-control-panel
                           :csrf="csrf"
@@ -34,7 +50,7 @@
                           @pollVmInfo="loadVmInfo()"
             />
     </div>
-    <div v-if="isDefault" class="uk-container uk-margin-medium">
+    <div v-if="isDefault && selectedSubmissionType === 'vm'" class="uk-container uk-margin-medium">
         <div class="uk-card uk-card-body uk-card-default">
             <b>No Virtual Machine.</b>
             <br>
@@ -44,50 +60,50 @@
             Please contact your task organizer to obtain a TIRA virtual machine.
         </div>
     </div>
-
-    <div class="uk-container uk-margin-small">
-        <h2>Software</h2>
-
-        <ul uk-tab id="tira-software-tab">
-            {% for sw in software %}
-            <li><a href="#">{{ sw.software.id }}</a></li>
-            {% endfor %}
-            {% if docker %}
-            {% for ds in docker.docker_softwares %}
-            <li><a href="#">{{ ds.display_name }}</a></li>
-            {% endfor %}
-            {% endif %}
-            {% if not is_default %}
-            <li id="add-software">
-                <a><span class="uk-margin-small-right">+</span>Add Software</a>
-            </li>
-            {% endif %}
-            <li>
-                <a href="#">Uploads</a>
-            </li>
-            {% if docker %}
-            <li>
-                <a href="#">Add Docker Software</a>
-            </li>
-            {% endif %}
-        </ul>
-        <ul class="uk-switcher uk-margin" id="tira-software-forms">
-            {% for sw in software %}
-                {% include "tira/software_form.html" with software=sw.software runs=sw.runs task_id=task.task_id vm_id=vm_id%}
-            {% endfor %}
-            {% if docker %}
-            {% for ds in docker.docker_softwares %}
-                {% include "tira/docker_form.html" with docker_software=ds task_id=task.task_id vm_id=vm_id%}
-            {% endfor %}
-            {% endif %}
-            {% if not is_default %}
-            <li id="add-software-row"></li>
-            {% endif %}
-            {% include "tira/upload_form.html" with task_id=task.task_id vm_id=vm_id upload=upload %}
-            {% if docker %}
-            {% include "tira/docker_form.html" with task_id=task.task_id docker=docker %}
-            {% endif %}
-        </ul>
+    <div v-if="loaded('upload')" class="uk-container uk-margin-small">
+        <upload-submission-panel
+                :csrf="csrf"
+                :upload="upload"
+                :taskid="task.task_id"
+                :userid="vm.vm_id"
+                :datasets="datasets"
+                :running_evaluations="runningEvaluations"
+                @addNotification="(type, message) => addNotification(type, message)"
+                @removeRun="(runId, type) => removeRun(runId, type)"
+                @pollEvaluations="pollRunningEvaluations()"
+        />
+    </div>
+    <div v-else-if="loaded('docker')" class="uk-container uk-margin-small">
+        <docker-submission-panel
+            :csrf="csrf"
+            :docker="docker"
+            :user_id="vm.vm_id"
+            :datasets="datasets"
+            :running_evaluations="runningEvaluations"
+            :task="task"
+            @addNotification="(type, message) => addNotification(type, message)"
+            @removeRun="(runId, type) => removeRun(runId, type)"
+            @pollEvaluations="pollRunningEvaluations()"
+            @pollRunningContainer="pollRunningContainers()"
+            @addcontainer="(newSoftware) => addContainer(newContainer)"
+            @deletecontainer="(softwareId) => deleteContainer(containerId)"
+            />
+    </div>
+    <div v-else-if="loaded('vm')" class="uk-container uk-margin-small">
+        <vm-submission-panel
+                :csrf="csrf"
+                :software="software"
+                :user_id="vm.vm_id"
+                :datasets="datasets"
+                :running_evaluations="runningEvaluations"
+                :task="task"
+                @addNotification="(type, message) => addNotification(type, message)"
+                @removeRun="(runId, type) => removeRun(runId, type)"
+                @pollEvaluations="pollRunningEvaluations()"
+                @pollRunningSoftware="pollVmState()"
+                @addSoftware="(newSoftware) => addSoftware(newSoftware)"
+                @deleteSoftware="(softwareId) => deleteSoftware(softwareId)"
+                />
     </div>
 </main>
 

@@ -1,9 +1,21 @@
 import NotificationBar from './components/notificationbar.vue'
 import VmControlPanel from './components/vmcontrolpanel.vue'
+import UploadSubmissionPanel from './components/uploadsubmissionpanel.vue'
+import DockerSubmissionPanel from './components/dockersubmissionpanel.vue'
+import VmSubmissionPanel from './components/vmsubmissionpanel.vue'
+import SubmissionResultsPanel from './components/submissionresultspanel.vue'
 
 import {createApp} from 'vue';
 import UIkit from 'uikit';
-import {FontAwesomeIcon} from "@fortawesome/vue-fontawesome";
+
+// Fontawesome Icons
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faCheck, faTimes, faUserSlash, faUsers, faUsersSlash, faLevelUpAlt, faUser, faSearch,
+    faDownload, faSave, faTrashAlt, faCog, faPlus, faBoxOpen, faTerminal, faUpload, faFolderPlus } from '@fortawesome/free-solid-svg-icons'
+
+library.add(faCheck, faTimes, faUserSlash, faUsers, faUsersSlash, faLevelUpAlt, faUser, faSearch, faDownload, faSave, faTrashAlt, faCog, faPlus, faBoxOpen, faTerminal, faUpload, faFolderPlus)
+
 
 // CSS
 require('../../static/tira/css/tira-style.css');
@@ -41,12 +53,14 @@ const app = createApp({
                 vmInfo: false,
             },
             pollEvaluationsInterval: null,
+            runningEvaluations: [],
             pollStateInterval: null,
+            selectedSubmissionType: 'upload',
             csrf: (<HTMLInputElement>document.querySelector('[name=csrfmiddlewaretoken]')).value
         }
     },
     components: {
-        NotificationBar, VmControlPanel
+        NotificationBar, VmControlPanel, UploadSubmissionPanel, DockerSubmissionPanel, VmSubmissionPanel, SubmissionResultsPanel
     },
     methods: {
         async get(url) {
@@ -65,9 +79,41 @@ const app = createApp({
             this.notifications.push({'type': type, 'message': message})
         },
         closeModal() {
-            // TODO
+            // TODO Review Modals
             const inspectModal = document.getElementById('inspect-modal')
             UIkit.modal(inspectModal).hide();
+        },
+        removeRun(runId, type) {
+            if (type === 'upload') {
+                this.upload.runs = this.upload.runs.filter(e => {
+                    return e.run_id !== runId
+                })
+            }
+            if (type === 'docker') {
+                this.docker.runs = this.docker.runs.filter(e => {
+                    return e.run_id !== runId
+                })
+            }
+            if (type === 'vm') {
+                this.software.runs = this.software.runs.filter(e => {
+                    return e.run_id !== runId
+                })
+            }
+
+        },
+        addSoftware(newSoftware) {
+            this.software.push(newSoftware)
+        },
+        deleteSoftware(softwareId) {
+            this.software = this.software.filter(e => {
+                return e.software.id !== softwareId
+            })
+        },
+        addContainer(newContainer) {
+            // TODO add container to view
+        },
+        deleteContainer(containerId) {
+            // TODO remove container from view
         },
         // addSoftwareEvents() {
         //     if(is_default != "True"){
@@ -156,13 +202,17 @@ const app = createApp({
             this.get(`/grpc/${this.vm.vm_id}/vm_state`).then(message => {
                 if (this.isInTransition){
                     if (this.isSoftwareRunning){
+                        this.pollStateInterval = setInterval(this.pollVmState, 10000)
                         this.polling.software=true;
                     }
                     this.vmState = message.state;
                 } else {
                     // Note: It's easiest to reload the page here instead of adding the runs to the table via JS. TODO
                     clearInterval(this.pollState)
-                    if (this.polling.software) location.reload();
+                    this.pollStateInterval = null
+                    if (this.polling.software) {
+                        console.log('TODO: switched to stable state, poll for the new run.')
+                    }
                 }
             }).catch(error => {
                 this.addNotification('error', error)
@@ -172,19 +222,42 @@ const app = createApp({
             console.log('poll running evaluations')
             this.get(`/grpc/${this.vm.vm_id}/vm_running_evaluations`).then(message => {
                 if (message.running_evaluations === true){
+                    this.pollEvaluationsInterval = setInterval(this.pollRunningEvaluations, 10000)  // Note: https://stackoverflow.com/questions/61683534/continuous-polling-of-backend-in-vue-js
+                    this.get(`/grpc/${this.vm.vm_id}/get_running_evaluations`).then(message => {
+                        console.log('running evaluations: ', message)
+                        this.runningEvaluations = message.running_evaluations
+                    }).catch(error => {
+                        this.addNotification('error', error)
+                    })
                     this.polling.evaluation=true;
                 } else {
                     // Note: It's easiest to reload the page here instead of adding the runs to the table via JS. TODO
                     clearInterval(this.pollEvaluationsInterval)
+                    this.pollEvaluationsInterval = null
+                    console.log("clear eval poll interval")
                     if (this.polling.evaluation) {
-                        setTimeout(function () {
-                            location.reload()
-                        }, 3000);
+                        console.log("polling evaluations succeeded")
+                        // setTimeout(function () {
+                        //     location.reload()
+                        // }, 3000);
                     }
                 }
             }).catch(error => {
                 this.addNotification('error', error)
             })
+        },
+        loaded(submissionType) {
+            if (this.selectedSubmissionType === submissionType) {
+               if (submissionType === 'upload' && this.upload) {
+                   return true
+               } else if (submissionType === 'docker') {
+                   return true
+               } else if (submissionType === 'vm' && this.software && !this.isDefault) {
+                   return true
+               } else if (submissionType === 'vm') {  // TODO for testing
+                   return true
+               }
+            }
         }
     },
     beforeMount() {
@@ -204,9 +277,9 @@ const app = createApp({
                 this.isDefault = message.context.is_default
                 if(!this.isDefault) {
                     this.loadVmInfo()
-                    this.pollStateInterval = setInterval(this.pollVmState, 10000)
+                    this.pollVmState()
                 }
-                this.pollEvaluationsInterval = setInterval(this.pollRunningEvaluations, 10000)  // Note: https://stackoverflow.com/questions/61683534/continuous-polling-of-backend-in-vue-js
+                this.pollRunningEvaluations()
             })
         }).catch(error => {
             this.addNotification('error', error)

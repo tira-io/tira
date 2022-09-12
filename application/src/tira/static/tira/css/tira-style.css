@@ -79,6 +79,31 @@ a.uk-button-primary {
     border-color: #006b1b;
 }
 
+.tira-button-selected, .tira-button-selected:hover {
+    border-color: #006b1b;
+    color: #006b1b;
+}
+
+@keyframes flash-green-keyframes {
+  from {background-color: #006b1b;}
+  to {background-color: white;}
+}
+
+@keyframes flash-red-keyframes {
+  from {background-color: darkred;}
+  to {background-color: white;}
+}
+
+.flash-red {
+  animation-name: flash-red-keyframes;
+  animation-duration: 3s;
+}
+
+.flash-green {
+  animation-name: flash-green-keyframes;
+  animation-duration: 3s;
+}
+
 @media (max-width: 800px) {
     .index-main-cover {
         height: 200px

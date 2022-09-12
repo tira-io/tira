@@ -252,117 +252,6 @@ function deleteSoftware(tid, vmid, softwareId, form) {
     })
 }
 
-function deleteDockerSoftware(tid, vmid, docker_software_id) {
-    $.ajax({
-        type: 'GET',
-        url: `/task/${tid}/vm/${vmid}/delete_software/docker/${docker_software_id}`,
-        data: {},
-        success: function (data) {
-            location.reload()
-        },
-        error: function (jqXHR, textStatus, throwError) {
-            warningAlert("Deleting Docker " + docker_software_id + " ", throwError, jqXHR.responseJSON)
-        }
-    })
-}
-
-async function upload(tid, vmid) {
-    let csrf = $('input[name=csrfmiddlewaretoken]').val()
-    let dataset = $('#upload-input-dataset').val()
-    let formData = new FormData();
-    const headers = new Headers({'X-CSRFToken': csrf})
-    formData.append("file", uploadresultsinput.files[0]);
-    const response = await fetch(`/task/${tid}/vm/${vmid}/upload/${dataset}`, {
-      method: "POST",
-      headers,
-      body: formData
-    });
-
-    let r = await response.json()
-    console.log(response)
-    console.log(r)
-    if (!response.ok) {
-        warningAlert(`Uploading failed with status ${response.status}: ${await response.text()}`, undefined, undefined)
-    } else if (r.status === 0){
-        $('#upload-form-error').html('Error: ' + r.message)
-    } else {
-        $('#upload-form-error').html('')
-        location.reload();
-    }
-}
-
-async function addDockerSoftware(tid, vmid) {
-    let csrf = $('input[name=csrfmiddlewaretoken]').val()
-    let command = $('#docker-command').val()
-    let image = $('#docker-image').val()
-    
-    if (image  == 'None') {
-        $('#docker-form-error').html('Error: Please specify an docker image!')
-        return;
-    }
-    
-    if (command +''  == 'undefined' || command  == 'None' || command == '') {
-        $('#docker-form-error').html('Error: Please specify an command!')
-        return;
-    }
-    
-    $('#docker-form-error').html('')
-    
-    let formData = new FormData();
-    const headers = new Headers({'X-CSRFToken': csrf})
-    formData.append("command", command);
-    formData.append("image", image);
-    const response = await fetch(`/task/${tid}/vm/${vmid}/add_software/docker`, {
-      method: "POST",
-      headers,
-      body: formData
-    });
-
-    let r = await response.json()
-    console.log(response)
-    console.log(r)
-    if (!response.ok) {
-        warningAlert(`Uploading failed with status ${response.status}: ${await response.text()}`, undefined, undefined)
-    } else if (r.status === 0){
-        $('#docker-form-error').html('Error: ' + r.message)
-    } else {
-        $('#docker-form-error').html('')
-        location.reload();
-    }
-}
-
-async function runDockerSoftware(taskId, vmId, docker_software_id) {
-    let csrf = $('input[name=csrfmiddlewaretoken]').val()
-    let dataset = $('#' + docker_software_id + '-docker-input-dataset').val()
-            
-    if (dataset +''  == 'undefined' || dataset  == 'None' || dataset == '') {
-        $('#' + docker_software_id + '-docker-form-error').html('Error: Please specify an Dataset!')
-        return;
-    }
-    
-    $('#' + docker_software_id + '-docker-form-error').html('')
-
-    $.ajax({
-        type: 'POST',
-        url: `/grpc/${taskId}/${vmId}/run_execute/docker/${dataset}/${docker_software_id}`,
-        headers: {
-            'X-CSRFToken': csrf
-        },
-        data: {
-            csrfmiddlewaretoken: csrf,
-            action: 'post'
-        },
-        success: function (data) {
-            //for the moment.
-            location.reload()
-            //pollRunningSoftware(vmId)
-        },
-        error: function (jqXHR, textStatus, throwError) {
-            warningAlert("Running Docker Software failed ", throwError, jqXHR.responseJSON)
-        }
-    })
-}
-
 function checkInputFields(softwareId, command, inputDataset) {
     let check = true
     let serr = $('#' + softwareId + '-form-error')
@@ -469,6 +358,94 @@ function runSoftware (taskId, vmId, softwareId) {
     })
 }
 
+function deleteDockerSoftware(tid, vmid, docker_software_id) {
+    $.ajax({
+        type: 'GET',
+        url: `/task/${tid}/vm/${vmid}/delete_software/docker/${docker_software_id}`,
+        data: {},
+        success: function (data) {
+            location.reload()
+        },
+        error: function (jqXHR, textStatus, throwError) {
+            warningAlert("Deleting Docker " + docker_software_id + " ", throwError, jqXHR.responseJSON)
+        }
+    })
+}
+
+async function addDockerSoftware(tid, vmid) {
+    let csrf = $('input[name=csrfmiddlewaretoken]').val()
+    let command = $('#docker-command').val()
+    let image = $('#docker-image').val()
+    
+    if (image  == 'None') {
+        $('#docker-form-error').html('Error: Please specify an docker image!')
+        return;
+    }
+    
+    if (command +''  == 'undefined' || command  == 'None' || command == '') {
+        $('#docker-form-error').html('Error: Please specify an command!')
+        return;
+    }
+    
+    $('#docker-form-error').html('')
+    
+    let formData = new FormData();
+    const headers = new Headers({'X-CSRFToken': csrf})
+    formData.append("command", command);
+    formData.append("image", image);
+    const response = await fetch(`/task/${tid}/vm/${vmid}/add_software/docker`, {
+      method: "POST",
+      headers,
+      body: formData
+    });
+
+    let r = await response.json()
+    console.log(response)
+    console.log(r)
+    if (!response.ok) {
+        warningAlert(`Uploading failed with status ${response.status}: ${await response.text()}`, undefined, undefined)
+    } else if (r.status === 0){
+        $('#docker-form-error').html('Error: ' + r.message)
+    } else {
+        $('#docker-form-error').html('')
+        location.reload();
+    }
+}
+
+async function runDockerSoftware(taskId, vmId, docker_software_id) {
+    let csrf = $('input[name=csrfmiddlewaretoken]').val()
+    let dataset = $('#' + docker_software_id + '-docker-input-dataset').val()
+            
+    if (dataset +''  == 'undefined' || dataset  == 'None' || dataset == '') {
+        $('#' + docker_software_id + '-docker-form-error').html('Error: Please specify an Dataset!')
+        return;
+    }
+    
+    $('#' + docker_software_id + '-docker-form-error').html('')
+
+    $.ajax({
+        type: 'POST',
+        url: `/grpc/${taskId}/${vmId}/run_execute/docker/${dataset}/${docker_software_id}`,
+        headers: {
+            'X-CSRFToken': csrf
+        },
+        data: {
+            csrfmiddlewaretoken: csrf,
+            action: 'post'
+        },
+        success: function (data) {
+            //for the moment.
+            location.reload()
+            //pollRunningSoftware(vmId)
+        },
+        error: function (jqXHR, textStatus, throwError) {
+            warningAlert("Running Docker Software failed ", throwError, jqXHR.responseJSON)
+        }
+    })
+}
+
+
+
 // function addSoftwareEvents(taskId, vmId, is_default) {
 //     if(is_default != "True"){
 //         $('#vm-power-on-button').click(function () {
@@ -556,47 +533,6 @@ function runSoftware (taskId, vmId, softwareId) {
 //         }
 //     })
 // }
-
-function deleteRun(datasetId, vmId, runId, row) {
-    if(datasetId === ""){
-        datasetId=null
-    }
-    $.ajax({
-        type: 'GET',
-        url: `/grpc/${vmId}/run_delete/${datasetId}/${runId}`,
-        data: {},
-        success: function (data) {
-            row.remove();
-        },
-        error: function (jqXHR, textStatus, throwError) {
-            warningAlert("Deleting the run " + runId + " ", throwError, jqXHR.responseJSON)
-            loadVmInfo(vmId)
-        }
-    })
-}
-
-function evaluateRun(datasetId, vmId, runId, row) {
-    disableButton("run-evaluate-button")
-    let spinner_id = 'run-evaluate-spinner-' + runId
-    $('#' + spinner_id).show()
-
-    $.ajax({
-        type: 'GET',
-        url: `/grpc/${vmId}/run_eval/${datasetId}/${runId}`,
-        data: {},
-        success: function (data) {
-            pollingEvaluation=true;
-            pollRunningEvaluations(vmId)
-        },
-        error: function (jqXHR, textStatus, throwError) {
-            warningAlert("Evaluating the run " + runId + " ", throwError, jqXHR.responseJSON)
-            loadVmInfo(vmId)
-            $('#run-evaluate-spinner-' + runId).hide()
-            enableButton("run-evaluate-button")
-        }
-    })
-}
-
 
 /*
 ** UTILITY

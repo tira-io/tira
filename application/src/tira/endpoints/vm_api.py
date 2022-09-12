@@ -117,7 +117,17 @@ def vm_state(request, vm_id):
 @check_resources_exist('json')
 def vm_running_evaluations(request, vm_id):
     results = EvaluationLog.objects.filter(vm_id=vm_id)
+    print(results)
     return JsonResponse({'running_evaluations': True if results else False}, status=HTTPStatus.ACCEPTED)
+
+
+@check_permissions
+@check_resources_exist('json')
+def get_running_evaluations(request, vm_id):
+    results = EvaluationLog.objects.filter(vm_id=vm_id)
+    return JsonResponse({'running_evaluations': [{"vm_id": r.vm_id, "run_id": r.run_id,
+                                                  "running_on": r.running_on, "last_update": r.last_update}
+                                                 for r in results]}, status=HTTPStatus.ACCEPTED)
 
 
 @check_conditional_permissions(restricted=True)
@@ -207,8 +217,8 @@ def vm_info(request, vm_id):
 def software_add(request, task_id, vm_id):
     software = model.add_software(task_id, vm_id)
     if not software:
-        return JsonResponse({'status': 'Failed'}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
-
+        return JsonResponse({'status': 1, 'message': 'Failed to create a new Software.'},
+                            status=HTTPStatus.INTERNAL_SERVER_ERROR)
     context = {
         "user_id": auth.get_user_id(request),
         "include_navigation": include_navigation,
@@ -225,7 +235,7 @@ def software_add(request, task_id, vm_id):
         }
     }
     html = render_to_string('tira/software_form.html', context=context, request=request)
-    return JsonResponse({'html': html, 'software_id': context["software"]['id']}, status=HTTPStatus.ACCEPTED)
+    return JsonResponse({'html': html, 'context': context, 'software_id': context["software"]['id']}, status=HTTPStatus.ACCEPTED)
 
 
 @check_permissions
@@ -251,7 +261,7 @@ def software_save(request, task_id, vm_id, software_id):
         except Exception as e:
             message = str(e)
 
-        return JsonResponse({'status': '1', "message": message}, status=HTTPStatus.BAD_REQUEST)
+        return JsonResponse({'status': 1, "message": message}, status=HTTPStatus.BAD_REQUEST)
     return JsonResponse({'status': 1, 'message': f"GET is not implemented for add dataset"})
 
 
