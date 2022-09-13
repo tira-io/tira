@@ -16,7 +16,12 @@
 
 <main class="uk-section uk-section-default">
     <div class="uk-container">
-        <h1><span v-if="loading">[[ userId ]]</span><span v-else>loading user <font-awesome-icon icon="far fa-circle-notch" spin /></span> <span class="uk-text-muted uk-text-lead">on Task <span v-if="loading">[[ task.task_name ]]</span><span v-else>loading task <font-awesome-icon icon="far fa-circle-notch" spin /></span></span></h1>
+        <h1><span v-if="!loading">[[ userId ]]</span><span v-else>loading user <font-awesome-icon icon="far fa-circle-notch" spin /></span> <span class="uk-text-muted uk-text-lead">on Task <span v-if="!loading">[[ task.task_name ]]</span><span v-else>loading task <font-awesome-icon icon="far fa-circle-notch" spin /></span></span></h1>
+    </div>
+
+    <div v-if="!loading" class="uk-container uk-margin-medium">
+        <RunningProcessList
+        />
     </div>
 
     <div class="uk-container uk-margin-medium">
@@ -33,50 +38,6 @@
                 @click="selectedSubmissionType = 'vm'">
             Virtual Machine Submission<font-awesome-icon class="uk-margin-small-left" icon="fas fa-terminal" /></a>
     </div>
-
-    <div class="uk-container uk-margin-small">
-        <h2>Software</h2>
-
-        <ul uk-tab id="tira-software-tab">
-            {% for sw in software %}
-            <li><a href="#">{{ sw.software.id }}</a></li>
-            {% endfor %}
-            {% if docker %}
-            {% for ds in docker.docker_softwares %}
-            <li><a href="#">{{ ds.display_name }}</a></li>
-            {% endfor %}
-            {% endif %}
-            {% if not is_default %}
-            <li id="add-software">
-                <a><span class="uk-margin-small-right">+</span>Add Software</a>
-            </li>
-            {% endif %}
-            <li>
-                <a href="#">Uploads</a>
-            </li>
-            {% if docker %}
-            <li>
-                <a href="#">Add Docker Software</a>
-            </li>
-            {% endif %}
-        </ul>
-        <ul class="uk-switcher uk-margin" id="tira-software-forms">
-            {% for sw in software %}
-                {% include "tira/software_form.html" with software=sw.software runs=sw.runs task_id=task.task_id vm_id=vm_id%}
-            {% endfor %}
-            {% if docker %}
-            {% for ds in docker.docker_softwares %}
-                {% include "tira/docker_form.html" with docker_software=ds docker_resources=docker.resources task_id=task.task_id vm_id=vm_id%}
-            {% endfor %}
-            {% endif %}
-            {% if not is_default %}
-            <li id="add-software-row"></li>
-            {% endif %}
-            {% include "tira/upload_form.html" with task_id=task.task_id vm_id=vm_id upload=upload %}
-            {% if docker %}
-            {% include "tira/docker_form.html" with task_id=task.task_id docker=docker %}
-            {% endif %}
-        </ul>
 
     <!-- VM State and general options   -->
     <div v-if="!isDefault && selectedSubmissionType === 'vm'" class="uk-container uk-margin-medium">
@@ -128,7 +89,7 @@
             @addNotification="(type, message) => addNotification(type, message)"
             @removeRun="(runId, type) => removeRun(runId, type)"
             @pollEvaluations="pollRunningEvaluations()"
-            @pollRunningContainer="pollRunningContainers()"
+            @pollRunningContainer="pollRunningSoftware()"
             @addcontainer="(newSoftware) => addContainer(newContainer)"
             @deletecontainer="(softwareId) => deleteContainer(containerId)"
             />
