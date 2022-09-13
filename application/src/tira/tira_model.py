@@ -116,6 +116,7 @@ def load_docker_data(task_id, vm_id):
     return {
         "docker_images": docker_images,
         "docker_softwares": model.get_docker_softwares_with_runs(task_id, vm_id),
+        "resources": list(settings.GIT_CI_AVAILABLE_RESOURCES.values()),
         "docker_software_help": help_on_uploading_docker_image(vm_id),
         "resources": list(settings.GIT_CI_AVAILABLE_RESOURCES.values()),
     }
