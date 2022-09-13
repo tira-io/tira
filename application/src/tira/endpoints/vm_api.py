@@ -117,7 +117,6 @@ def vm_state(request, vm_id):
 @check_resources_exist('json')
 def vm_running_evaluations(request, vm_id):
     results = EvaluationLog.objects.filter(vm_id=vm_id)
-    print(results)
     return JsonResponse({'running_evaluations': True if results else False}, status=HTTPStatus.ACCEPTED)
 
 

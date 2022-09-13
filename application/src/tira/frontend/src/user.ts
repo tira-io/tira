@@ -110,61 +110,13 @@ const app = createApp({
             })
         },
         addContainer(newContainer) {
-            // TODO add container to view
+            this.docker.docker_softwares.push(newContainer.context)
         },
         deleteContainer(containerId) {
-            // TODO remove container from view
+            this.docker.docker_softwares = this.docker.docker_softwares.filter(e => {
+                return e.docker_software_id !== containerId
+            })
         },
-        // addSoftwareEvents() {
-        //     if(is_default != "True"){
-        //         $('#add-software').click(function () {
-        //             addSoftware(taskId, vmId);
-        //         });
-        //         $('.software-run-button').click(function () {
-        //             runSoftware(taskId, vmId, $(this).data('tiraSoftwareId'))
-        //         });
-        //         $('.software-save-button').click(function () {
-        //             saveSoftware(taskId, vmId, $(this).data("tiraSoftwareId"));
-        //         })
-        //         $('.software-delete-button').click(function () {
-        //             let formId = '#' + $(this).data("tiraSoftwareId") + '-row'
-        //             deleteSoftware(taskId, vmId, $(this).data("tiraSoftwareId"), $(formId));
-        //         })
-        //         $('.software-select').change(function () {
-        //             updateSoftwareRunButton()
-        //         });
-        //         $('.command-input').change(function () {
-        //             updateSoftwareRunButton()
-        //         });
-        //     }
-        //     $('#upload-button').click(function (e) {
-        //         e.preventDefault()
-        //         upload(taskId, vmId);
-        //     })
-        //     $('#docker-add-button').click(function (e) {
-        //         e.preventDefault()
-        //         addDockerSoftware(taskId, vmId);
-        //     })
-        //     $('.docker-delete-button').click(function (e) {
-        //             e.preventDefault()
-        //             deleteDockerSoftware(taskId, vmId, $(this).data("tiraDockerSoftwareId"));
-        //     })
-        //     $('.docker-run-button').click(function (e) {
-        //             e.preventDefault()
-        //             docker_software_id = $(this).data('tiraRunDockerSoftwareId')
-        //             runDockerSoftware(taskId, vmId, docker_software_id);
-        //     })
-        //     $('.run-delete-button').click(function () {
-        //         deleteRun($(this).data('tiraDataset'),
-        //             $(this).data('tiraVmId'),
-        //             $(this).data('tiraRunId'), $(this).parent().parent())
-        //     })
-        //     $('.run-evaluate-button').click(function () {
-        //         evaluateRun($(this).data('tiraDataset'),
-        //                      $(this).data('tiraVmId'),
-        //                      $(this).data('tiraRunId'))
-        //     });
-        // },
         loadVmInfo() {
             console.log('load vm info', this.vm)
             this.polling.vmInfo = true
@@ -225,26 +177,26 @@ const app = createApp({
                     this.pollEvaluationsInterval = setInterval(this.pollRunningEvaluations, 10000)  // Note: https://stackoverflow.com/questions/61683534/continuous-polling-of-backend-in-vue-js
                     this.get(`/grpc/${this.vm.vm_id}/get_running_evaluations`).then(message => {
                         console.log('running evaluations: ', message)
+                        // NOTE: this should update the running evaluations.
                         this.runningEvaluations = message.running_evaluations
                     }).catch(error => {
                         this.addNotification('error', error)
                     })
                     this.polling.evaluation=true;
                 } else {
-                    // Note: It's easiest to reload the page here instead of adding the runs to the table via JS. TODO
                     clearInterval(this.pollEvaluationsInterval)
                     this.pollEvaluationsInterval = null
                     console.log("clear eval poll interval")
                     if (this.polling.evaluation) {
                         console.log("polling evaluations succeeded")
-                        // setTimeout(function () {
-                        //     location.reload()
-                        // }, 3000);
                     }
                 }
             }).catch(error => {
                 this.addNotification('error', error)
             })
+        },
+        pollRunningContainers() {
+            console.log('poll running containers')
         },
         loaded(submissionType) {
             if (this.selectedSubmissionType === submissionType) {
