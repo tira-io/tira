@@ -23,8 +23,9 @@
         <div class="uk-grid-medium" uk-grid>
             <div class="uk-width-1-2">
                 <label class="uk-form-label">Docker Image
-                <select class="uk-select upload-select" v-model="containerImage" >
-                    <option value="None" :disabled="containerImage !== 'None'">Select Docker Image</option>
+                <select :disabled="!docker.docker_images" class="uk-select upload-select" v-model="containerImage" >
+                    <option v-if="docker.docker_images" value="None" :disabled="containerImage !== 'None'">Select Docker Image</option>
+                    <option v-else value="None" disabled>Upload an image first</option>
                     <option v-for="image in docker.docker_images" :value="image">{{ image }}</option>
                 </select>
                 </label>
@@ -32,6 +33,7 @@
             <div class="uk-width-1-2">
                 <label class="uk-form-label">Command
                 <input class="uk-input command-input" type="text"
+                       :disabled="!docker.docker_images"
                        :value="containerCommand" placeholder="cat 'some data' >> tmp.txt"></label>
             </div>
             <div class="docker-form-buttons uk-width-expand">
@@ -140,7 +142,7 @@ export default {
             selectedContainerId: null,
             selectedContainer: null,
             selectedRuns: null,
-            containerImage: null,
+            containerImage: "None",
             containerCommand: "",
             dockerFormError: "",
             containerCommanderError: false,
