@@ -123,7 +123,7 @@ def add_new_tag_to_docker_image_repository(repository_name, old_tag, new_tag):
     token = json.loads(token.content.decode('UTF-8'))['token']
     headers = {'Accept': 'application/vnd.docker.distribution.manifest.v2+json',
                'Content-Type': 'application/vnd.docker.distribution.manifest.v2+json',
-               'Authorization':'Bearer ' + token}
+               'Authorization': 'Bearer ' + token}
     
     manifest = requests.get(f'https://registry.webis.de/v2/{repository_name}/manifests/{old_tag}', headers=headers)
 

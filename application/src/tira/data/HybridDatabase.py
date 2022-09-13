@@ -488,13 +488,11 @@ class HybridDatabase(object):
                 "dataset": None if not upload.dataset else upload.dataset.dataset_id,
                 "last_edit": upload.last_edit_date, "runs": list(_runs_by_upload(upload))}
 
-
     def _docker_software_to_dict(self, ds):
         return {'docker_software_id': ds.docker_software_id, 'display_name': ds.display_name,
                 'user_image_name': ds.user_image_name, 'command': ds.command,
                 'tira_image_name': ds.tira_image_name, 'task_id': ds.task.task_id,
                 'vm_id': ds.vm.vm_id}
-
 
     def get_docker_softwares_with_runs(self, task_id, vm_id):
         def _runs_by_docker_software(di):
@@ -506,7 +504,6 @@ class HybridDatabase(object):
                 yield self._run_as_dict(r)
             for r in eval_runs:
                 yield self._run_as_dict(r)
-
     
         docker_softwares = modeldb.DockerSoftware.objects.filter(vm__vm_id=vm_id, task__task_id=task_id, deleted=False)
         docker_softwares = [self._docker_software_to_dict(ds) for ds in docker_softwares]
@@ -516,10 +513,8 @@ class HybridDatabase(object):
 
         return docker_softwares
 
-
     def delete_docker_software(self, task_id, vm_id, docker_software_id):
         return modeldb.DockerSoftware.objects.filter(vm_id=vm_id, task_id=task_id, docker_software_id=docker_software_id).update(deleted=True)
-
 
     def get_vms_with_reviews(self, dataset_id: str):
         """ returns a list of dicts with:

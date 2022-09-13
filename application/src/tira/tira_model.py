@@ -93,6 +93,16 @@ def get_datasets_by_task(task_id: str, include_deprecated=False) -> list:
 
 
 def load_docker_data(task_id, vm_id):
+    """
+    Get the docker data for a particular user (vm_id) from the git registry.
+
+    @return: a dict with three keys:
+        - docker_images: a list of strings (the image's names)
+        - docker_softwares: A list of all submitted containers with their run results as a dict with keys:
+            - docker_software_id: str, display_name: str, user_image_name: str, command: str,
+              tira_image_name: str, task_id: str, vm_id: str, runs: list (same as get_runs)
+        - docker_software_help: A string with the help instructions
+    """
     datasets = get_datasets_by_task(task_id)
     git_runners_for_task = [get_evaluator(i['dataset_id'])['is_git_runner'] for i in datasets]
     
@@ -107,6 +117,7 @@ def load_docker_data(task_id, vm_id):
         "docker_softwares": model.get_docker_softwares_with_runs(task_id, vm_id),
         "docker_software_help": help_on_uploading_docker_image(vm_id),
     }
+
 
 def get_docker_software(docker_software_id: int) -> dict:
     """
