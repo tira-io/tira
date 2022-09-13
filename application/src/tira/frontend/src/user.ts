@@ -4,6 +4,7 @@ import UploadSubmissionPanel from './components/uploadsubmissionpanel.vue'
 import DockerSubmissionPanel from './components/dockersubmissionpanel.vue'
 import VmSubmissionPanel from './components/vmsubmissionpanel.vue'
 import SubmissionResultsPanel from './components/submissionresultspanel.vue'
+import RunningProcessList from './components/runningprocesslist.vue'
 
 import {createApp} from 'vue';
 import UIkit from 'uikit';
@@ -54,7 +55,9 @@ const app = createApp({
                 vmInfo: false,
             },
             pollEvaluationsInterval: null,
+            pollSoftwareInterval: null,
             runningEvaluations: [],
+            runningSoftware: [],
             pollStateInterval: null,
             selectedSubmissionType: 'upload',
             loading: true,
@@ -62,7 +65,8 @@ const app = createApp({
         }
     },
     components: {
-        NotificationBar, VmControlPanel, UploadSubmissionPanel, DockerSubmissionPanel, VmSubmissionPanel, SubmissionResultsPanel
+        NotificationBar, VmControlPanel, UploadSubmissionPanel, DockerSubmissionPanel, VmSubmissionPanel,
+        SubmissionResultsPanel, RunningProcessList
     },
     methods: {
         async get(url) {
@@ -158,7 +162,6 @@ const app = createApp({
             this.get(`/grpc/${this.vm.vm_id}/vm_state`).then(message => {
                 if (this.isInTransition){
                     if (this.isSoftwareRunning){
-
                         if (!this.polling.state) {
                             this.polling.state = true
                             this.pollStateInterval = setInterval(this.pollVmState, 10000)  // Note: https://stackoverflow.com/questions/61683534/continuous-polling-of-backend-in-vue-js
@@ -182,9 +185,10 @@ const app = createApp({
         pollRunningEvaluations() {  // TODO, this should also update the evaluations when it succeeds.
             console.log('poll running evaluations')
             this.get(`/grpc/${this.vm.vm_id}/vm_running_evaluations`).then(message => {
+                console.log('found running evaluations', message)
                 if (message.running_evaluations === true){
                     if (!this.polling.evaluation) {
-                        this.polling.evaluation = true
+                        this.polling.evaluation=true;
                         this.pollEvaluationsInterval = setInterval(this.pollRunningEvaluations, 10000)  // Note: https://stackoverflow.com/questions/61683534/continuous-polling-of-backend-in-vue-js
                     }
                     this.get(`/grpc/${this.vm.vm_id}/get_running_evaluations`).then(message => {
@@ -194,7 +198,6 @@ const app = createApp({
                     }).catch(error => {
                         this.addNotification('error', error)
                     })
-                    this.polling.evaluation=true;
                 } else {
                     clearInterval(this.pollEvaluationsInterval)
                     this.pollEvaluationsInterval = null
@@ -209,8 +212,31 @@ const app = createApp({
                 this.addNotification('error', error)
             })
         },
-        pollRunningContainers() {
+        pollRunningSoftware() {
             console.log('poll running containers')
+
+            this.get(`/api/task/${this.task.task_id}/user/${this.userId}/software/running`).then(message => {
+                console.log('containers: ', message.context.running_software)
+                if (message.context.running_software.length > 1) {
+                    this.runningSoftware = message.context.running_software
+                    if (!this.polling.software) {
+                        this.polling.software = true
+                        this.pollSoftwareInterval = setInterval(this.pollRunningSoftware, 10000)  // Note: https://stackoverflow.com/questions/61683534/continuous-polling-of-backend-in-vue-js
+                    }
+                } else {
+                    clearInterval(this.pollSoftwareInterval)
+                    this.pollSoftwareInterval = null
+                    console.log("clear software poll interval")
+                    if (this.polling.software) {
+                        this.polling.software = false
+                        this.runningSoftware = []  // When the call finished, clear all running evaluations.
+                        console.log("polling software finished")
+                    }
+                }
+            }).catch(error => {
+                this.addNotification('error', error.message)
+            })
+
         },
         loaded(submissionType) {
             if (this.selectedSubmissionType === submissionType) {
@@ -232,7 +258,6 @@ const app = createApp({
             this.role = message.role
             let pageUrlSplits = window.location.pathname.split("/")
             this.get(`/api/task/${pageUrlSplits.at(-3)}/user/${pageUrlSplits.at(-1)}`).then(message => {
-                console.log(message.context)
                 this.task = message.context.task
                 this.userId = message.context.user_id
                 this.vm = message.context.vm
@@ -246,6 +271,7 @@ const app = createApp({
                     this.pollVmState()
                 }
                 this.pollRunningEvaluations()
+                this.pollRunningSoftware()
                 this.loading = false
             })
         }).catch(error => {

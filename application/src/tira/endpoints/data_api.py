@@ -135,3 +135,14 @@ def get_user(request, context, task_id, user_id):
     context["is_default"] = user_id.endswith("default")
 
     return JsonResponse({'status': 0, "context": context})
+
+
+@check_resources_exist("json")
+@add_context
+def get_running_software(request, context, task_id, user_id):
+    from datetime import datetime as dt
+    context['running_software'] = [
+        {"run_id": "12-34-56", "execution": {"scheduling": "done", "execution": "running", "evaluation": "pending"}, "stdOutput": "XYZ", "started_at": dt.now()},
+        {"run_id": "23-34-56", "execution": {"scheduling": "running", "execution": "pending", "evaluation": "pending"}, "stdOutput": "XYZ", "started_at": dt.now()}
+    ]
+    return JsonResponse({'status': 0, "context": context})

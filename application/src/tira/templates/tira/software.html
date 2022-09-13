@@ -16,11 +16,14 @@
 
 <main class="uk-section uk-section-default">
     <div class="uk-container">
-        <h1><span v-if="!loading">[[ userId ]]</span><span v-else>loading user <font-awesome-icon icon="far fa-circle-notch" spin /></span> <span class="uk-text-muted uk-text-lead">on Task <span v-if="!loading">[[ task.task_name ]]</span><span v-else>loading task <font-awesome-icon icon="far fa-circle-notch" spin /></span></span></h1>
+        <h1><span v-if="!loading">[[ userId ]]</span><span v-else>loading user <font-awesome-icon icon="fas fa-circle-notch" spin /></span> <span class="uk-text-muted uk-text-lead">on Task <span v-if="!loading">[[ task.task_name ]]</span><span v-else>loading task <font-awesome-icon icon="fas fa-circle-notch" spin /></span></span></h1>
     </div>
-
-    <div v-if="!loading" class="uk-container uk-margin-medium">
-        <RunningProcessList
+    {{ runningSoftware }}
+    <div v-if="!loading && runningSoftware.length > 0" class="uk-container uk-margin-medium">
+        <running-process-list
+            :running_software="runningSoftware"
+            :running_evaluations="runningEvaluations"
+            @addNotification="(type, message) => addNotification(type, message)"
         />
     </div>
 
@@ -40,31 +43,6 @@
     </div>
 
     <!-- VM State and general options   -->
-    <div v-if="!isDefault && selectedSubmissionType === 'vm'" class="uk-container uk-margin-medium">
-        {{ isDefault }}
-        <vm-control-panel
-                          :csrf="csrf"
-                          :vm="vm"
-                          :task="task"
-                          :vmstatus="vmStatus"
-                          :vmstate="vmState"
-                          :polling="polling"
-                          :statelabels="stateLabels"
-                          @addNotification="(type, message) => addNotification(type, message)"
-                          @pollState="pollVmState()"
-                          @pollVmInfo="loadVmInfo()"
-            />
-    </div>
-    <div v-if="isDefault && selectedSubmissionType === 'vm'" class="uk-container uk-margin-medium">
-        <div class="uk-card uk-card-body uk-card-default">
-            <b>No Virtual Machine.</b>
-            <br>
-            Your TIRA account is currently not associated with a virtual machine.
-            Without a VM, you can only use 'Upload' to submit results.
-            <br>
-            Please contact your task organizer to obtain a TIRA virtual machine.
-        </div>
-    </div>
     <div v-if="loaded('upload')" class="uk-container uk-margin-small">
         <upload-submission-panel
                 :csrf="csrf"
@@ -95,6 +73,29 @@
             />
     </div>
     <div v-else-if="loaded('vm')" class="uk-container uk-margin-small">
+        <vm-control-panel
+              v-if="!isDefault"
+              :csrf="csrf"
+              :vm="vm"
+              :task="task"
+              :vmstatus="vmStatus"
+              :vmstate="vmState"
+              :polling="polling"
+              :statelabels="stateLabels"
+              @addNotification="(type, message) => addNotification(type, message)"
+              @pollState="pollVmState()"
+              @pollVmInfo="loadVmInfo()"
+            />
+
+        <div v-if="isDefault" class="uk-card uk-card-body uk-card-default">
+            <b>No Virtual Machine.</b>
+            <br>
+            Your TIRA account is currently not associated with a virtual machine.
+            Without a VM, you can only use 'Upload' to submit results.
+            <br>
+            Please contact your task organizer to obtain a TIRA virtual machine.
+        </div>
+
         <vm-submission-panel
                 :csrf="csrf"
                 :software="software"
