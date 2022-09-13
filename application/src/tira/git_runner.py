@@ -123,7 +123,7 @@ def add_new_tag_to_docker_image_repository(repository_name, old_tag, new_tag):
     token = json.loads(token.content.decode('UTF-8'))['token']
     headers = {'Accept': 'application/vnd.docker.distribution.manifest.v2+json',
                'Content-Type': 'application/vnd.docker.distribution.manifest.v2+json',
-               'Authorization':'Bearer ' + token}
+               'Authorization': 'Bearer ' + token}
     
     manifest = requests.get(f'https://registry.webis.de/v2/{repository_name}/manifests/{old_tag}', headers=headers)
 
@@ -259,7 +259,7 @@ def __clone_repository_and_create_new_branch(repo_url, branch_name, directory):
 
 def __write_metadata_for_ci_job_to_repository(tmp_dir, task_id, transaction_id, dataset_id, vm_id, run_id, identifier,
                                                       git_runner_image, git_runner_command, evaluator_id,
-                                                      user_image_to_execute, user_command_to_execute, tira_software_id, 
+                                                      user_image_to_execute, user_command_to_execute, tira_software_id,
                                                       resources):
     job_dir = Path(tmp_dir) / dataset_id / vm_id / run_id
     job_dir.mkdir(parents=True, exist_ok=True)

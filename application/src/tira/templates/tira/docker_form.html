@@ -1,4 +1,5 @@
 <li id="docker-row">
+{#for docker_software in docker.docker_softwares  docker_resources=docker.resources  #}
 
 {% if not docker_software %}
     <form id="docker-form" class="docker_form">
@@ -6,16 +7,16 @@
         All docker images that you have uploaded appear in the selectbox below so that you can add them to TIRA to run the image on datasets.
         We add a detailed documentation on how to upload docker images soon.<br><br>
 
-    <!-- The modal that shows the Command Help -->
-    <div id="modal-docker-software-help" class="uk-modal-container" uk-modal>
-        <div class="uk-modal-dialog uk-modal-body uk-margin-auto-vertical">
-            <button class="uk-modal-close-default" type="button" uk-close></button>
-            <h1 class="uk-modal-title">How to Upload Docker Images</h1>
-            {% autoescape off %}
-            {{ docker.docker_software_help }}
-            {% endautoescape %}
+        <!-- The modal that shows the Command Help -->
+        <div id="modal-docker-software-help" class="uk-modal-container" uk-modal>
+            <div class="uk-modal-dialog uk-modal-body uk-margin-auto-vertical">
+                <button class="uk-modal-close-default" type="button" uk-close></button>
+                <h1 class="uk-modal-title">How to Upload Docker Images</h1>
+                {% autoescape off %}
+                {{ docker.docker_software_help }}
+                {% endautoescape %}
+            </div>
         </div>
-    </div>
         
         
         {% csrf_token %}
@@ -194,7 +195,6 @@
                             data-tira-docker-software-id="{{ docker_software.docker_software_id }}"><i class="fas fa-trash-alt"></i></button>
                 </div>
             </div>
-            
     </form>
 {% endif %}
 

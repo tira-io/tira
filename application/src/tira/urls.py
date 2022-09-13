@@ -12,6 +12,7 @@ urlpatterns = [
     path('task/<str:task_id>/dataset/<str:dataset_id>', views.dataset, name='dataset'),
     path('task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/download/<str:run_id>.zip', views.download_rundir, name='download_rundir'),
     path('task/<str:task_id>/user/<str:vm_id>', views.software_detail, name='software-detail'),
+    path('task/<str:task_id>/user/<str:vm_id>', views.user, name='user'),
     path('task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/run/<str:run_id>', views.review, name='review'),
     # path('software/<str:task_id>', views.software, name='software'),
 
@@ -35,9 +36,10 @@ urlpatterns = [
     path('grpc/<str:vm_id>/vm_shutdown', vm_api.vm_shutdown, name="vm_shutdown"),
     path('grpc/<str:vm_id>/run_abort', vm_api.run_abort, name="run_abort"),
     path('grpc/<str:vm_id>/vm_running_evaluations', vm_api.vm_running_evaluations, name="vm_running_evaluations"),
+    path('grpc/<str:vm_id>/get_running_evaluations', vm_api.get_running_evaluations, name="get_running_evaluations"),
     path('grpc/<str:task_id>/<str:vm_id>/run_execute/vm/<str:software_id>', vm_api.run_execute, name="run_execute"),
     path('grpc/<str:task_id>/<str:vm_id>/run_execute/docker/<str:dataset_id>/<str:docker_software_id>/<str:docker_resources>', vm_api.run_execute_docker_software, name='run_execute_docker_software'),
-    
+
     path('grpc/<str:vm_id>/run_eval/<str:dataset_id>/<str:run_id>', vm_api.run_eval, name="run_eval"),
     path('grpc/<str:vm_id>/run_delete/<str:dataset_id>/<str:run_id>', vm_api.run_delete, name="run_delete"),
 
@@ -75,7 +77,8 @@ urlpatterns = [
     path('api/dataset/<str:dataset_id>', data_api.get_dataset, name='get_dataset'),
     path('api/datasets_by_task/<str:task_id>', data_api.get_dataset_for_task, name='get_dataset_for_task'),
     path('api/organizer/<str:organizer_id>', data_api.get_organizer, name='get_organizer'),
-    path('api/role', data_api.get_role, name='get_role')
+    path('api/role', data_api.get_role, name='get_role'),
+    path('api/task/<str:task_id>/user/<str:user_id>', data_api.get_user, name='get_user'),
 ]
 
 app_name = 'tira'

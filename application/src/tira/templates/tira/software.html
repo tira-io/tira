@@ -1,172 +1,39 @@
 {% extends 'tira/base.html' %}
 {% load static %}
-{% block title %}TIRA - My Software{% endblock %}
-{% block description %}TIRA - My Software{% endblock %}
+{% load render_bundle from webpack_loader %}
+{% block title %}My TIRA{% endblock %}
+{% block description %}My TIRA{% endblock %}
 {% block navbar %}{% include "tira/navbar.html" with nav_active='software' %}{% endblock %}
 
 {% block content %}
-<nav class="uk-container">
-<ul class="uk-breadcrumb">
-<li><a href="{% url 'tira:index' %}">Tira.io</a></li>
-<li><a href="{% url 'tira:task' task_id=task.task_id%}">{{ task.task_name }}</a></li>
-<li class="uk-disabled"><a href="#">{{ vm_id }}</a></li>
-</ul>
-</nav>
+{% csrf_token %}
+
+
+<div id="vue-user-mount">
+<div>
+    <notification-bar v-for="notification in notifications" :notification="notification" />
+</div>
 
 <main class="uk-section uk-section-default">
     <div class="uk-container">
-        <h1>Submissions to {{ task.task_name }} &mdash; <span class="uk-text-muted">{{ vm_id }}</span></h1>
+        <h1><span v-if="loading">[[ userId ]]</span><span v-else>loading user <font-awesome-icon icon="far fa-circle-notch" spin /></span> <span class="uk-text-muted uk-text-lead">on Task <span v-if="loading">[[ task.task_name ]]</span><span v-else>loading task <font-awesome-icon icon="far fa-circle-notch" spin /></span></span></h1>
     </div>
-    {% if vm_id == 'no-vm-assigned' %}
-     <div class="uk-container uk-margin-medium">
-        <div class="uk-grid-small uk-grid-match" uk-grid>
-            <div class="uk-card uk-card-body uk-card-default">
-                <b>No Virtual Machine.</b>
-                Your TIRA account is currently not associated with a virtual machine. Please contact us to obtain one.
-            </div>
-        </div>
-     </div>
-    {% else %}
-    <!-- VM State and general options   -->
+
     <div class="uk-container uk-margin-medium">
-
-        {% if not is_default %}
-        <div class="uk-grid-small uk-grid-match" uk-grid>
-            <div class="uk-card uk-card-small uk-card-body uk-card-default uk-width-1-2">
-                <table>
-                    <tr>
-                        <td>Host</td>
-                        <td id="vm-info-host">
-                            <div id="vm-info-spinner" uk-spinner="ratio: 0.5"></div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>OS</td>
-                        <td id="vm-info-guestOs"></td>
-                    </tr>
-                    <tr>
-                        <td>RAM</td>
-                        <td id="vm-info-memorySize"></td>
-                    </tr>
-                    <tr>
-                        <td>CPU</td>
-                        <td id="vm-info-numberOfCpus"></td>
-                    </tr>
-                </table>
-            </div>
-            <div class="uk-card uk-card-small uk-card-body uk-card-default uk-width-1-4" id="vm_state">
-                <table class="">
-                    <tr>
-                        <td>State</td>
-                        <td>
-                            <div id="vm-state-spinner" uk-spinner="ratio: 0.5"></div>
-                            <div id="vm-state-running"
-                                 uk-tooltip="title: This machine is idle.; delay: 500"
-                                 class="uk-label uk-label-success">running</div>
-                            <div id="vm-state-powering-on"
-                                 uk-tooltip="title: This machine is powering on, please stand by.; delay: 500"
-                                 class="uk-label uk-label-warning">powering on</div>
-                            <div id="vm-state-powering-off"
-                                 uk-tooltip="title: This machine is powering off, please stand by.; delay: 500"
-                                 class="uk-label uk-label-warning">powering off</div>
-                            <div id="vm-state-stopped"
-                                 uk-tooltip="title: This machine is turned off. You can start the machine with 'POWER ON'; delay: 500"
-                                 class="uk-label uk-label-danger">stopped</div>
-                            <div id="vm-state-sandboxed"
-                                 uk-tooltip="title: This machine is sandboxed and running a software. You can not connect to or use the VM, nor start other runs until it finishes or the run is aborted. Running a software may take a long time.; delay: 500"
-                                 class="uk-label uk-label-warning">executing RUN</div>
-                            <div id="vm-state-sandboxing"
-                                 uk-tooltip="title: This machine is moved to the sandbox, please stand by.; delay: 500"
-                                 class="uk-label uk-label-warning">sandboxing</div>
-                            <div id="vm-state-unsandboxing"
-                                 uk-tooltip="title: This machine is being removed from the sandbox, please stand by.; delay: 500"
-                                 class="uk-label uk-label-warning">unsandboxing</div>
-                            <div id="vm-state-archived"
-                                 uk-tooltip="title: This machine is in the archives. Please contact the support to get it reinstated.; delay: 500"
-                                 class="uk-label uk-label-success">archived</div>
-                            <div id="vm-state-unarchiving"
-                                 uk-tooltip="title: This machine is being reanimated.; delay: 500"
-                                 class="uk-label uk-label-warning">unarchiving</div>
-                            <div id="vm-state-undefined"
-                                 uk-tooltip="title: The state of this machine is not defined. Please contact the support.; delay: 500"
-                                 class="uk-label uk-label-danger">undefined</div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="uk-table-shrink uk-text-nowrap uk-table-middle">
-                            SSH <span id="vm-state-ssh" class="uk-text-lead uk-text-small">port ... </span>&nbsp;&nbsp;
-                        </td>
-                        <td>
-                            <div id="vm-state-ssh-open"
-                                 uk-tooltip="title: You can connect to this machine via secure shell (SSH). Consult the user documentation for an explanation on how to connect to VMs.; delay: 500"
-                                 class="uk-label uk-label-success">open</div>
-                            <div id="vm-state-ssh-closed"
-                                 uk-tooltip="title: SSH is closed and you can not connect. If the machine is running, but this port is closed, consult the FAQ or the support forums.; delay: 500"
-                                 class="uk-label uk-label-danger">closed</div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="uk-table-shrink uk-text-nowrap uk-table-middle">
-                            RDP <span id="vm-state-rdp" class="uk-text-lead uk-text-small">port ... </span>&nbsp;&nbsp;
-                        </td>
-                        <td>
-                            <div id="vm-state-rdp-open"
-                                 uk-tooltip="title: You can connect to this machine via remote desktop (RDP). Consult the user documentation for an explanation on how to connect to VMs.; delay: 500"
-                                 class="uk-label uk-label-success">open</div>
-                            <div id="vm-state-rdp-closed"
-                                 uk-tooltip="title: Remote desktop (RDP) is closed and you can not connect. If the machine is running, but this port is closed, consult the FAQ or the support forums.; delay: 500"
-                                 class="uk-label uk-label-danger">closed</div>
-                        </td>
-                    </tr>
-                </table>
-
-                <!-- The modal that shows the connection information -->
-                <button class="uk-button uk-button-default uk-margin-small-right uk-margin-small-top" type="button" uk-toggle="target: #modal-close-default">Connection Info</button>
-                <div id="modal-close-default" class="uk-modal-container" uk-modal>
-                    <div class="uk-modal-dialog uk-modal-body uk-margin-auto-vertical">
-                        <button class="uk-modal-close-default" type="button" uk-close></button>
-                        <h2 class="uk-modal-title">Connection Info:</h2>
-                        <table class="uk-table-small uk-margin-bottom">
-                            <tr><td class="uk-text-bold">Host:</td><td>{{ vm.host }}</td></tr>
-                            <tr><td><span class="uk-text-bold">User: </span></td><td>{{ vm.vm_id }}</td><td><span class="uk-text-bold">SSH Port: </span></td><td>{{ vm.ssh }}</td></tr>
-                            <tr><td><span class="uk-text-bold">Password: </span></td><td>{{ vm.user_password }}</td><td><span class="uk-text-bold">RDP Port: </span></td><td>{{ vm.rdp }}</td></tr>
-                        </table>
-                        <label class="uk-form-label" for="form-stacked-text">SSH Example</label>
-                        <div class="uk-form-controls">
-                            <input class="uk-input uk-width-3-4" id="form-stacked-text" type="text"
-                                   value="ssh {{ vm.vm_id }}@{{ vm.host }} -p {{ vm.ssh }} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no">
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="uk-width-1-4">
-                <button id="vm-power-on-button"
-                        uk-tooltip="title: Start the machine.; delay: 500"
-                        class="uk-button uk-button-disabled uk-text-center uk-width-1-1" disabled>Power On</button>
-                <button id="vm-shutdown-button"
-                        uk-tooltip="title: Gracefully shut down the machine. This only works when the machine is idle.; delay: 500"
-                        class="uk-button uk-button-disabled uk-text-center uk-width-1-1" disabled>Shut Down</button>
-                <button id="vm-stop-button"
-                        uk-tooltip="title: Pull the plug. Use with great care.; delay: 500"
-                        class="uk-button uk-button-disabled uk-text-center uk-width-1-1" disabled>Stop VM</button>
-                <button id="vm-abort-run-button"
-                        uk-tooltip="title: Abort a run and attempt to unsandbox.; delay: 500"
-                        class="uk-button uk-button-disabled uk-text-center uk-width-1-1" disabled>Abort Run</button>
-            </div>
-        </div>
-        {% else %}
-        <div class="uk-container uk-margin-medium">
-            <div class="uk-grid-small uk-grid-match" uk-grid>
-                <div class="uk-card uk-card-body uk-card-default">
-                    <b>No Virtual Machine.</b>
-                    Your TIRA account is currently not associated with a virtual machine.
-                    Without a VM, you can only use 'Upload' to submit results.
-                    Please contact your task organizer to obtain a TIRA virtual machine.
-                </div>
-            </div>
-        </div>
-        {% endif %}
+        <a class="uk-button uk-button-default uk-width-1-3"
+                :class="{ 'tira-button-selected': selectedSubmissionType === 'upload'}"
+                @click="selectedSubmissionType = 'upload'">
+            Upload Submission<font-awesome-icon class="uk-margin-small-left" icon="fas fa-upload" /></a>
+        <a class="uk-button uk-button-default uk-width-1-3"
+                :class="{ 'tira-button-selected': selectedSubmissionType === 'docker'}"
+                @click="selectedSubmissionType = 'docker'">
+            Docker Submission<font-awesome-icon class="uk-margin-small-left" icon="fas fa-box-open" /></a>
+        <a class="uk-button uk-button-default uk-width-1-3"
+                :class="{ 'tira-button-selected': selectedSubmissionType === 'vm'}"
+                @click="selectedSubmissionType = 'vm'">
+            Virtual Machine Submission<font-awesome-icon class="uk-margin-small-left" icon="fas fa-terminal" /></a>
     </div>
+
     <div class="uk-container uk-margin-small">
         <h2>Software</h2>
 
@@ -211,59 +78,105 @@
             {% endif %}
         </ul>
 
+    <!-- VM State and general options   -->
+    <div v-if="!isDefault && selectedSubmissionType === 'vm'" class="uk-container uk-margin-medium">
+        {{ isDefault }}
+        <vm-control-panel
+                          :csrf="csrf"
+                          :vm="vm"
+                          :task="task"
+                          :vmstatus="vmStatus"
+                          :vmstate="vmState"
+                          :polling="polling"
+                          :statelabels="stateLabels"
+                          @addNotification="(type, message) => addNotification(type, message)"
+                          @pollState="pollVmState()"
+                          @pollVmInfo="loadVmInfo()"
+            />
     </div>
-    {% endif %}
-    <!-- The modal that shows the Command Help -->
-    <div id="modal-command-help" class="uk-modal-container" uk-modal>
-        <div class="uk-modal-dialog uk-modal-body uk-margin-auto-vertical">
-            <button class="uk-modal-close-default" type="button" uk-close></button>
-            <h2 class="uk-modal-title">Commands Help for {{ task.task_name }}</h2>
-            <p>
-            The <em>Command</em> will be executed on your Virtual Machine. By default, it will be run from your user's home directory.
-                You can select a different location in the <em>Working Directory</em> input.
-            </p>
-            {% if task.command_description == 'Available variables: <code>$inputDataset</code>, <code>$inputRun</code>, <code>$outputDir</code>, <code>$dataServer</code>, and <code>$token</code>.' %}
-            <table class="uk-table uk-table-small uk-table-divider uk-align-center uk-margin-bottom">
-                <thead>
-                    <tr><td colspan="2">You can use the following variables in your Commands:</td></tr>
-                    <tr><th>Variable</th><th>Description</th></tr>
-                </thead>
-                <tfoot>
-                <tr><td class="uk-text-bold">$inputDataset</td><td>This will resolve to the full path to the directory that contains the <em>dataset you have selected</em>.</td></tr>
-                <tr><td class="uk-text-bold">$outputDir</td><td>This will resolve to the full path to the directory where <em>your software must write it's output</em></td></tr>
-                </tfoot>
-            </table>
-            {% else %}
-            {% autoescape off %}
-            {{ task.command_description }}
-            {% endautoescape %}
-            {% endif %}
-
-            {% if task.command_placeholder == 'mySoftware -c $inputDataset -r $inputRun -o $outputDir' %}
-            <label class="uk-form-label">Example Command in TIRA</label>
-            <pre><code>my-software/run.sh -i $inputDataset -o $outputDir</code></pre>
-            <label class="uk-form-label">Example Command in the Virtual Machine</label>
-            <pre><code>my-software/run.sh -i /media/training-datasets/{{ task.task_id }}/&lt;Input Dataset&gt; -o /tmp/{{ vm_id }}/&lt;RUN&gt;/output</code></pre>
-            {% else %}
-            <label class="uk-form-label">Example Command in TIRA</label>
-            <pre><code>{{ task.command_placeholder }}</code></pre>
-            {% endif %}
+    <div v-if="isDefault && selectedSubmissionType === 'vm'" class="uk-container uk-margin-medium">
+        <div class="uk-card uk-card-body uk-card-default">
+            <b>No Virtual Machine.</b>
+            <br>
+            Your TIRA account is currently not associated with a virtual machine.
+            Without a VM, you can only use 'Upload' to submit results.
+            <br>
+            Please contact your task organizer to obtain a TIRA virtual machine.
         </div>
+    </div>
+    <div v-if="loaded('upload')" class="uk-container uk-margin-small">
+        <upload-submission-panel
+                :csrf="csrf"
+                :upload="upload"
+                :taskid="task.task_id"
+                :userid="vm.vm_id"
+                :datasets="datasets"
+                :running_evaluations="runningEvaluations"
+                @addNotification="(type, message) => addNotification(type, message)"
+                @removeRun="(runId, type) => removeRun(runId, type)"
+                @pollEvaluations="pollRunningEvaluations()"
+        />
+    </div>
+    <div v-else-if="loaded('docker')" class="uk-container uk-margin-small">
+        <docker-submission-panel
+            :csrf="csrf"
+            :docker="docker"
+            :user_id="vm.vm_id"
+            :datasets="datasets"
+            :running_evaluations="runningEvaluations"
+            :task="task"
+            @addNotification="(type, message) => addNotification(type, message)"
+            @removeRun="(runId, type) => removeRun(runId, type)"
+            @pollEvaluations="pollRunningEvaluations()"
+            @pollRunningContainer="pollRunningContainers()"
+            @addcontainer="(newSoftware) => addContainer(newContainer)"
+            @deletecontainer="(softwareId) => deleteContainer(containerId)"
+            />
+    </div>
+    <div v-else-if="loaded('vm')" class="uk-container uk-margin-small">
+        <vm-submission-panel
+                :csrf="csrf"
+                :software="software"
+                :user_id="vm.vm_id"
+                :datasets="datasets"
+                :running_evaluations="runningEvaluations"
+                :task="task"
+                @addNotification="(type, message) => addNotification(type, message)"
+                @removeRun="(runId, type) => removeRun(runId, type)"
+                @pollEvaluations="pollRunningEvaluations()"
+                @pollRunningSoftware="pollVmState()"
+                @addSoftware="(newSoftware) => addSoftware(newSoftware)"
+                @deleteSoftware="(softwareId) => deleteSoftware(softwareId)"
+                />
     </div>
 </main>
 
-{% if not include_navigation %}
+</div>
+
+{% render_bundle 'user' %}
+
+{#{% if not include_navigation %}#}
+{#<script src="https://assets.webis.de/js/thirdparty/jquery/jquery.slim.min.js"></script>#}
+{#{% endif %}#}
+{#<script src="https://assets.webis.de/js/thirdparty/fontawesome/fontawesome.min.js"></script>#}
+{#<script src="https://assets.webis.de/js/thirdparty/fontawesome/solid.min.js"></script>#}
+{#<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>#}
+
+{% if include_navigation %}
 <script src="https://assets.webis.de/js/thirdparty/jquery/jquery.slim.min.js"></script>
-{% endif %}
 <script src="https://assets.webis.de/js/thirdparty/fontawesome/fontawesome.min.js"></script>
 <script src="https://assets.webis.de/js/thirdparty/fontawesome/solid.min.js"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+{% endif %}
+<script src="https://assets.webis.de/js/filter.js"></script>
+<script src="https://assets.webis.de/js/selection.js"></script>
+<script src="https://assets.webis.de/js/tables.js"></script>
 
-<script src="{% static 'tira/js/util.js' %}"></script>
-<script src="{% static 'tira/js/software.js' %}"></script>
-<script>
-    addSoftwareEvents("{{ task.task_id }}", "{{ vm_id }}", "{{ is_default }}")
-    setupPollingAfterPageLoad("{{ vm_id }}", "{{ is_default }}")
-</script>
+{# TODO #}
+{#<script src="{% static 'tira/js/util.js' %}"></script>#}
+{#<script src="{% static 'tira/js/software.js' %}"></script>#}
+{#<script>#}
+{#    addSoftwareEvents("{{ task.task_id }}", "{{ vm_id }}", "{{ is_default }}")#}
+{#    setupPollingAfterPageLoad("{{ vm_id }}", "{{ is_default }}")#}
+{#</script>#}
 
 {% endblock %}

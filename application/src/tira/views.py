@@ -130,6 +130,20 @@ def dataset(request, context, task_id, dataset_id):
     return render(request, 'tira/task.html', context)
 
 
+@check_resources_exist('http')
+@add_context
+def user(request, context, vm_id):
+    """ The tasks view. It shows the task information and all associated datasets.
+    If a dataset is selected, the leaderboard is shown.
+
+    To admins, it shows, in addition, a review overview page.
+    """
+    role = context["role"]
+    if context["role"] != auth.ROLE_GUEST:
+        context["vm_id"] = auth.get_vm_id(request, context["user_id"])
+    return render(request, 'tira/software.html', context)
+
+
 @check_permissions
 @check_resources_exist('http')
 @add_context
