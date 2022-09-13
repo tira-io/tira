@@ -1,7 +1,4 @@
 <template>
-<h2>Upload Submissions</h2>
-
-
 <div class="uk-card uk-card-body uk-card-default uk-card-small">
 <form class="upload_form">
     <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf }}">

@@ -432,7 +432,7 @@ class HybridDatabase(object):
                     .filter(input_dataset__dataset_id=dataset_id, software__vm__vm_id=vm_id)
                 if (run.deleted or not return_deleted)]
 
-    def _get_ordered_runs_from_reviews(self, reviews, vm_id, preloaded=True, is_upload=False):
+    def _get_ordered_runs_from_reviews(self, reviews, vm_id, preloaded=True, is_upload=False, is_docker=False):
         """ yields all runs with reviews and their evaluation runs with reviews produced by software from a given vm
             evaluation runs (which have a run as input run) are yielded directly after the runs they use.
 
@@ -444,6 +444,8 @@ class HybridDatabase(object):
         """
         if is_upload:
             reviews_qs = reviews.filter(run__upload__vm__vm_id=vm_id).all()
+        elif is_docker:
+            reviews_qs = reviews.filter(run__docker_software__vm__vm_id=vm_id).all()
         else:
             reviews_qs = reviews.filter(run__software__vm__vm_id=vm_id).all()
 
@@ -495,21 +497,19 @@ class HybridDatabase(object):
                 'vm_id': ds.vm.vm_id}
 
     def get_docker_softwares_with_runs(self, task_id, vm_id):
-        def _runs_by_docker_software(di):
-            runs = modeldb.Run.objects.select_related('docker_software', 'task')\
-                      .filter(docker_software__docker_software_id=di['docker_software_id'], task__task_id=di['task_id']).all()
-            eval_runs = modeldb.Run.objects.filter(input_run__run_id__in = [i.run_id for i in runs])
+        def _runs_by_docker_software(ds):
+            reviews = modeldb.Review.objects.select_related("run", "run__upload", "run__evaluator", "run__input_run",
+                                                            "run__input_dataset").filter(run__docker_software=ds).all()
 
-            for r in runs:
-                yield self._run_as_dict(r)
-            for r in eval_runs:
-                yield self._run_as_dict(r)
+            for r in self._get_ordered_runs_from_reviews(reviews, vm_id, preloaded=False, is_docker=True):
+                run = r['run']
+                run['review'] = r["review"]
+                yield run
     
         docker_softwares = modeldb.DockerSoftware.objects.filter(vm__vm_id=vm_id, task__task_id=task_id, deleted=False)
-        docker_softwares = [self._docker_software_to_dict(ds) for ds in docker_softwares]
-        
-        for i in docker_softwares:
-            i['runs'] = list(_runs_by_docker_software(i))
+
+        docker_softwares = [{**self._docker_software_to_dict(ds), 'runs': list(_runs_by_docker_software(ds))}
+                            for ds in docker_softwares]
 
         return docker_softwares
 
@@ -1342,3 +1342,4 @@ class HybridDatabase(object):
     def software_exists(task_id: str, vm_id: str, software_id: str) -> bool:
         return modeldb.Software.objects.filter(software_id=software_id, vm__vm_id=vm_id).exists()
 
+# print(modeldb.EvaluationLog.objects.filter(vm_id='princess-knight').delete())

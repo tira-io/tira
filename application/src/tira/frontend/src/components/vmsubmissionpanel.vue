@@ -1,18 +1,14 @@
 <template>
-<h2>Virtual Machine Submission</h2>
-
-<div class="uk-width-1-1 uk-margin-small">
-  <button v-for="sw in software"
-          class="uk-button uk-button-default uk-button-small"
-          @click="selectedSoftwareId=sw.software.id"
-          :class="{ 'tira-button-selected': selectedSoftwareId === sw.software.id }">
-            {{ sw.software.id }}</button>
-  <button class="uk-button uk-button-primary uk-button-small" @click="addSoftware()">
+<button class="uk-button uk-button-primary uk-button-small uk-margin-medium-right" @click="addSoftware()">
     Add Software <font-awesome-icon icon="fas fa-folder-plus" /></button>
-</div>
 
-<div v-if="selectedSoftware">
-<div class="uk-card uk-card-body uk-card-default uk-card-small">
+<button v-for="sw in software"
+        class="uk-button uk-button-default uk-button-small"
+        @click="selectedSoftwareId=sw.software.id"
+        :class="{ 'tira-button-selected': selectedSoftwareId === sw.software.id }">
+          {{ sw.software.id }}</button>
+
+<div v-if="selectedSoftware" class="uk-card uk-card-body uk-card-default uk-card-small">
     <form class="software_form">
         <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf }}">  <!-- TODO: this might not be needed anymore -->
         <div class="uk-grid-medium uk-margin-small" uk-grid>
@@ -67,7 +63,7 @@
     </div>
 </div>
 
-<div class="uk-margin-small">
+<div v-if="selectedSoftware" class="uk-margin-small">
     <submission-results-panel
         v-if="selectedRuns"
         :runs="selectedRuns"
@@ -78,7 +74,6 @@
         @removeRun="(runId) => removeRun(runId)"
         @pollEvaluations="pollEvaluations()"
     />
-</div>
 </div>
 
 <div id="modal-command-help" class="uk-modal-container" uk-modal>

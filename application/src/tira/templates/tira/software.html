@@ -16,7 +16,7 @@
 
 <main class="uk-section uk-section-default">
     <div class="uk-container">
-        <h1>[[ userDisplayName ]] <span class="uk-text-muted uk-text-lead">on Task [[ task.task_name ]]</span></h1>
+        <h1><span v-if="loading">[[ userId ]]</span><span v-else>loading user <font-awesome-icon icon="far fa-circle-notch" spin /></span> <span class="uk-text-muted uk-text-lead">on Task <span v-if="loading">[[ task.task_name ]]</span><span v-else>loading task <font-awesome-icon icon="far fa-circle-notch" spin /></span></span></h1>
     </div>
 
     <div class="uk-container uk-margin-medium">

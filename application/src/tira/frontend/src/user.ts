@@ -11,10 +11,11 @@ import UIkit from 'uikit';
 // Fontawesome Icons
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faCheck, faTimes, faUserSlash, faUsers, faUsersSlash, faLevelUpAlt, faUser, faSearch,
-    faDownload, faSave, faTrashAlt, faCog, faPlus, faBoxOpen, faTerminal, faUpload, faFolderPlus } from '@fortawesome/free-solid-svg-icons'
+import { faCheck, faTimes, faUserSlash, faUsers, faUsersSlash, faLevelUpAlt, faUser, faSearch, faCircleNotch,
+    faDownload, faSave, faTrashAlt, faCog, faPlus, faBoxOpen, faTerminal, faUpload, faFolderPlus, faQuestion } from '@fortawesome/free-solid-svg-icons'
 
-library.add(faCheck, faTimes, faUserSlash, faUsers, faUsersSlash, faLevelUpAlt, faUser, faSearch, faDownload, faSave, faTrashAlt, faCog, faPlus, faBoxOpen, faTerminal, faUpload, faFolderPlus)
+library.add(faCheck, faTimes, faUserSlash, faUsers, faUsersSlash, faLevelUpAlt, faUser, faSearch, faDownload, faSave,
+    faTrashAlt, faCog, faPlus, faBoxOpen, faTerminal, faUpload, faFolderPlus, faQuestion, faCircleNotch)
 
 
 // CSS
@@ -56,6 +57,7 @@ const app = createApp({
             runningEvaluations: [],
             pollStateInterval: null,
             selectedSubmissionType: 'upload',
+            loading: true,
             csrf: (<HTMLInputElement>document.querySelector('[name=csrfmiddlewaretoken]')).value
         }
     },
@@ -145,7 +147,9 @@ const app = createApp({
                 }
                 this.polling.vmInfo = false
             }).catch(error => {
-                this.addNotification('error', error)
+                // TODO: When the tira-host is unavailable (planned occurrence) the server will still throw a 500.
+                // I've removed this notification here because it distresses the users.
+                // this.addNotification('error', error)
                 this.polling.vmInfo = false
             })
         },
@@ -154,27 +158,35 @@ const app = createApp({
             this.get(`/grpc/${this.vm.vm_id}/vm_state`).then(message => {
                 if (this.isInTransition){
                     if (this.isSoftwareRunning){
-                        this.pollStateInterval = setInterval(this.pollVmState, 10000)
-                        this.polling.software=true;
+
+                        if (!this.polling.state) {
+                            this.polling.state = true
+                            this.pollStateInterval = setInterval(this.pollVmState, 10000)  // Note: https://stackoverflow.com/questions/61683534/continuous-polling-of-backend-in-vue-js
+                        }
+                        this.polling.state=true;
                     }
                     this.vmState = message.state;
                 } else {
-                    // Note: It's easiest to reload the page here instead of adding the runs to the table via JS. TODO
                     clearInterval(this.pollState)
                     this.pollStateInterval = null
-                    if (this.polling.software) {
-                        console.log('TODO: switched to stable state, poll for the new run.')
+                    if (this.polling.state) {
+                        this.get(`/api/task/${this.task.task_id}/user/${this.vm.vm_id}`).then(message => {
+                            this.software = message.context.software  // NOTE: this should add the new runs
+                        })
                     }
                 }
             }).catch(error => {
                 this.addNotification('error', error)
             })
         },
-        pollRunningEvaluations() {
+        pollRunningEvaluations() {  // TODO, this should also update the evaluations when it succeeds.
             console.log('poll running evaluations')
             this.get(`/grpc/${this.vm.vm_id}/vm_running_evaluations`).then(message => {
                 if (message.running_evaluations === true){
-                    this.pollEvaluationsInterval = setInterval(this.pollRunningEvaluations, 10000)  // Note: https://stackoverflow.com/questions/61683534/continuous-polling-of-backend-in-vue-js
+                    if (!this.polling.evaluation) {
+                        this.polling.evaluation = true
+                        this.pollEvaluationsInterval = setInterval(this.pollRunningEvaluations, 10000)  // Note: https://stackoverflow.com/questions/61683534/continuous-polling-of-backend-in-vue-js
+                    }
                     this.get(`/grpc/${this.vm.vm_id}/get_running_evaluations`).then(message => {
                         console.log('running evaluations: ', message)
                         // NOTE: this should update the running evaluations.
@@ -188,6 +200,8 @@ const app = createApp({
                     this.pollEvaluationsInterval = null
                     console.log("clear eval poll interval")
                     if (this.polling.evaluation) {
+                        this.polling.evaluation = false
+                        this.runningEvaluations = []  // When the call finished, clear all running evaluations.
                         console.log("polling evaluations succeeded")
                     }
                 }
@@ -232,6 +246,7 @@ const app = createApp({
                     this.pollVmState()
                 }
                 this.pollRunningEvaluations()
+                this.loading = false
             })
         }).catch(error => {
             this.addNotification('error', error)

@@ -10,7 +10,9 @@
         <th class="header uk-table-shrink uk-text-nowrap"><span>Run</span></th>
         <th class="header uk-table-shrink uk-text-nowrap"><span>Input Run</span></th>
         <th class="header uk-table-expand">Dataset</th>
-        <th class="header uk-text-center uk-width-1-4">Actions</th>
+        <th class="header uk-table-shrink uk-text-nowrap"></th>
+        <th class="header uk-table-shrink uk-text-nowrap"></th>
+        <th class="header uk-table-shrink uk-text-nowrap"></th>
     </tr>
     </thead>
     <tbody>
@@ -21,13 +23,16 @@
               'uk-background-default': !(run.review.noErrors || run.review.hasErrors || run.review.hasErrorOutput || run.review.otherErrors),
               'table-background-yellow': run.review.published // when on leaderboard
             }">
-        <td :id="'run-' + user_id + '-' + run.run_id"></td>
+        <td class="uk-table-shrink uk-padding-remove uk-margin-remove" :id="'run-' + user_id + '-' + run.run_id"></td>
         <td class="uk-table-shrink uk-padding-remove-vertical"> <!-- run status Icon -->
             <div uk-tooltip="This run is OK" v-if="run.review.noErrors" class="dataset-detail-icon uk-text-success">
                 <font-awesome-icon icon="fas fa-check"/>
             </div>
             <div uk-tooltip="This run has errors" v-else-if="run.review.hasErrors" class="dataset-detail-icon uk-text-danger">
                 <font-awesome-icon icon="fas fa-times"/>
+            </div>
+            <div uk-tooltip="This run has not been reviewed yet. A task organizer will check each run and confirm it's validity." v-else class="dataset-detail-icon">
+                <font-awesome-icon icon="fas fa-question" />
             </div>
         </td>
         <td class="uk-table-shrink uk-padding-remove-vertical"> <!-- run visibility Icon -->
@@ -48,7 +53,7 @@
         </td>
         <td class="uk-table-shrink uk-text-nowrap">
             <span v-if="run.input_run_id !== ''">
-                <font-awesome-icon icon="fas fa-level-up-alt" />
+                <font-awesome-icon icon="fas fa-level-up-alt" flip="horizontal"/>
             </span>&nbsp;{{ run.run_id }}</td>
         <td class="uk-table-shrink uk-text-nowrap" ><a :href="'#run-' + user_id + '-' + run.input_run_id" v-if="run.input_run_id != 'none'">{{ run.input_run_id }}</a>
         </td>
@@ -61,109 +66,34 @@
 <!--           </td>-->
         <td class="uk-padding-remove-vertical uk-text-truncate">{{ run.dataset }}</td>
 
-        <td class="uk-align-right uk-table-expand uk-text-nowrap uk-margin-remove uk-padding-remove-vertical uk-padding-remove-right">
+
+        <td class="uk-table-shrink uk-text-nowrap uk-padding-remove uk-margin-remove uk-preserve-width">
             <a class="uk-button uk-button-small run-evaluate-button uk-background-default"
                :class="{ 'uk-button-disabled': runningEvaluationIds.includes(run.run_id), 'uk-button-default': !runningEvaluationIds.includes(run.run_id)}"
                :disabled="runningEvaluationIds.includes(run.run_id)"
                @click="evaluateRun(run.dataset, run.run_id)"
                v-if="run.input_run_id === ''">
-                <div v-show="runningEvaluationIds.includes(run.run_id)" class="run-evaluate-spinner" uk-spinner="ratio: 0.4"></div> evaluate</a>
+<!--                <div v-show="runningEvaluationIds.includes(run.run_id)" class="run-evaluate-spinner" uk-spinner="ratio: 0.4"></div>-->
+                <font-awesome-icon v-show="runningEvaluationIds.includes(run.run_id)" icon="fas fa-cog" spin />
+                <font-awesome-icon v-show="!runningEvaluationIds.includes(run.run_id)" icon="fas fa-cog" />
+                evaluate</a>
+        </td>
+        <td class="uk-table-shrink uk-text-nowrap uk-padding-remove uk-margin-remove uk-preserve-width">
             <a class="uk-button uk-button-small uk-button-default uk-background-default"
                target="_blank"
                :href="'/task/' + task_id + '/user/'  + user_id + '/dataset/' + run.dataset + '/run/' + run.run_id">
                 <font-awesome-icon icon="fas fa-search" />
                 inspect</a>
-            <a class="uk-button uk-button-small uk-button-default uk-background-default"
-               v-if="run.input_run_id === 'none'"
-               target="_blank"
-               :href="'/task/' + task_id + '/user/' + user_id + '/dataset/' + run.dataset + '/download/' + run.run_id + '.zip'">
-                <font-awesome-icon icon="fas fa-download" />
-                </a>
-            <a class="uk-button uk-button-small uk-button-danger run-delete-button"
+        </td>
+        <td class="uk-table-shrink uk-text-nowrap uk-padding-remove uk-margin-remove uk-preserve-width">
+            <a class="uk-button uk-button-small uk-button-danger"
                @click="deleteRun(run.dataset, run.run_id)">
               <font-awesome-icon icon="fas fa-trash-alt" /></a>
-          </td>
+        </td>
     </tr>
     </tbody>
 </table>
 </div>
-<!--
-<table class="uk-margin-small uk-table uk-table-divider uk-table-small uk-table-responsive uk-table-middle">
-    <thead>
-    <tr>
-        <th></th>
-        <th class="uk-table-shrink"></th>
-        <th class="uk-table-shrink"></th>
-        <th class="uk-table-shrink"></th>
-        <th class="header uk-table-shrink uk-text-nowrap"><span>Run</span></th>
-        <th class="header uk-table-shrink uk-text-nowrap"><span>Input Run</span></th>
-        <th class="header uk-table-expand"><span>Dataset</span></th>
-        <th class="header uk-text-center uk-width-1-4">Actions</th>
-    </tr>
-    </thead>
-    <tbody id="uploads-runs-tbody">
-    {% for run in upload.runs %}
-    <tr class="uk-padding-remove" id="upload-{{ run.run_id }}-run">
-        <td></td>
-        <td class="uk-table-shrink uk-padding-remove-vertical">
-            {% if run.review.noErrors == True %}
-            <div uk-tooltip="title: This run is OK; delay: 500">
-                <i class="fas fa-check dataset-detail-icon uk-text-success"></i>
-            </div>
-            {% elif run.review.hasErrors == True %}
-            <div uk-tooltip="title: This run has errors; delay: 500">
-                <i class="fas fa-times dataset-detail-icon uk-text-danger"></i>
-            </div>
-            {% endif %}
-        </td>
-        <td class="uk-table-shrink uk-padding-remove-vertical">
-            {% if run.review.blinded == True %}
-            <div uk-tooltip="title: This run is blinded; delay: 500">
-                <i class="fas fa-user-slash dataset-detail-icon"></i>
-            </div>
-            {% else %}
-            <div uk-tooltip="title: You can inspect the results of this run; delay: 500">
-                <i class="fas fa-user dataset-detail-icon uk-text-success"></i>
-            </div>
-            {% endif %}
-        </td>
-        <td class="uk-table-shrink uk-padding-remove-vertical">
-            {% if run.review.published == True %}
-            <div uk-tooltip="title: This run is on the leaderboards; delay: 500">
-                <i class="fas fa-users dataset-detail-icon uk-text-success"></i>
-            </div>
-            {% else %}
-            <div uk-tooltip="title: This run is not published; delay: 500">
-                <i class="fas fa-users-slash dataset-detail-icon"></i>
-            </div>
-            {% endif %}
-        </td>
-        <td class="uk-table-shrink uk-text-nowrap uk-padding-remove-vertical">
-            {% if run.input_run_id != "none" and run.input_run_id != "" %}<i class="fas fa-level-up-alt fa-flip-horizontal"></i>{% endif %}
-            &nbsp;{{ run.run_id }}
-        </td>
-        <td class="uk-table-shrink uk-text-nowrap uk-padding-remove-vertical">
-            {% if run.input_run_id != "none" and run.input_run_id != "" %}{{ run.input_run_id }}{% endif %}
-        </td>
-        <td class="uk-padding-remove-vertical">{{ run.dataset }}</td>
-        <td class="uk-align-right uk-table-expand uk-margin-remove uk-padding-remove-vertical uk-padding-remove-right">
-            {% if run.input_run_id == "none" or run.input_run_id == "" %}
-            <a class="uk-button uk-button-small uk-button-default run-evaluate-button"
-               data-tira-dataset="{{ run.dataset }}" data-tira-vm-id="{{ user_id }}"
-               data-tira-run-id="{{ run.run_id }}">
-                <div id="run-evaluate-spinner-{{ run.run_id }}" class="run-evaluate-spinner" uk-spinner="ratio: 0.4"></div> evaluate</a>
-            {% endif %}
-            <a class="uk-button uk-button-small uk-button-default"
-               href="{% url 'tira:review' task_id=task_id vm_id=user_id dataset_id=run.dataset run_id=run.run_id %}">inspect</a>
-            <a class="uk-button uk-button-small uk-button-danger run-delete-button"
-               data-tira-dataset="{{ run.dataset }}" data-tira-vm-id="{{ user_id }}"
-               data-tira-run-id="{{ run.run_id }}">delete</a>
-        </td>
-    </tr>
-    {% endfor %}
-    </tbody>
-</table>
--->
 </template>
 
 <script>
