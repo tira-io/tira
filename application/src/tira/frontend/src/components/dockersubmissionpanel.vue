@@ -60,6 +60,19 @@
                 </select>
                 </label>
             </div>
+            <div class="uk-width-1-1">
+                <label class="uk-form-label">Resources for Execution
+                    <select class="uk-select" v-model="selectedResources"
+                            @change="checkContainerRunValid()"
+                            :class="{ 'uk-form-danger': containerResourceError}">
+                        <option :disabled="selectedResources !== 'None'" value="None">Select Resources</option>
+                        <option v-for="resource in docker.resources" :value="resource.key">{{ resource.description }}</option>
+                    </select>
+                </label>
+                <select class="uk-select">
+                    <option value="None" selected>{{ selectedContainer.user_image_name }}</option>
+                </select>
+            </div>
 
             <div class="uk-width-1-3">
                 <label class="uk-form-label">Command (immutable for reproducibility)
@@ -70,7 +83,7 @@
 
             <div class="uk-width-1-3">
                 <label class="uk-form-label">Run on Dataset
-                    <select class="uk-select upload-select" v-model="selectedDataset"
+                    <select class="uk-select" v-model="selectedDataset"
                             @change="checkContainerRunValid()"
                             :class="{ 'uk-form-danger': containerDatasetError}">
                         <option :disabled="selectedDataset !== 'None'" value="None">Select Dataset</option>
@@ -132,8 +145,10 @@ export default {
             dockerFormError: "",
             containerCommanderError: false,
             containerDatasetError: false,
+            containerResourceError: false,
             selectedDataset: "None",
             selectedContainerCommand: null,
+            selectedResources: null,
         }
     },
     methods: {
@@ -197,10 +212,16 @@ export default {
         checkContainerRunValid() {
             this.dockerFormError = ''
             this.containerDatasetError = false
+            this.containerResourceError = false
 
             if (this.selectedDataset +''  === 'undefined' || this.selectedDataset  === 'None' || this.selectedDataset === '') {
                 this.dockerFormError = 'Error: Please select a dataset!'
                 this.containerDatasetError = true
+                return false
+            }
+            if (this.selectedResources +''  === 'undefined' || this.selectedResources  === 'None' || this.selectedResources === '') {
+                this.dockerFormError = 'Error: Please specify an the resources to execute!'
+                this.containerResourceError = true
                 return false
             }
             return true
@@ -218,7 +239,7 @@ export default {
         async runContainer () {
             if (!this.checkContainerRunValid()) return;
 
-            const response = await fetch(`/grpc/${this.task.task_id}/${this.user_id}/run_execute/docker/${this.selectedDataset}/${this.selectedContainerId}`, {
+            const response = await fetch(`/grpc/${this.task.task_id}/${this.user_id}/run_execute/docker/${this.selectedDataset}/${this.selectedContainerId}/${this.selectedResources}`, {
                 method: "POST",
                 headers: new Headers({
                 'Accept': 'application/json',
@@ -248,6 +269,7 @@ export default {
     watch: {
         selectedContainerId(newSelectedContainerId, oldSelectedContainerId) {
             this.containerDatasetError = false
+            this.containerResourceError = false
             this.dockerFormError = ""
             // If we delete the last image
             if (newSelectedContainerId == null) {

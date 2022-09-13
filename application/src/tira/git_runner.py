@@ -185,7 +185,7 @@ def run_evaluate_with_git_workflow(task_id, dataset_id, vm_id, run_id, git_runne
                                         git_runner_command, git_repository_id, evaluator_id,
                                         'ubuntu:18.04',
                                         'echo \'No software to execute. Only evaluation\'',
-                                        '-1')
+                                        '-1', list(settings.GIT_CI_AVAILABLE_RESOURCES.keys())[0])
 
     t = TransactionLog.objects.get(transaction_id=transaction_id)
     _ = EvaluationLog.objects.update_or_create(vm_id=vm_id, run_id=run_id, running_on=vm_id,
@@ -196,11 +196,11 @@ def run_evaluate_with_git_workflow(task_id, dataset_id, vm_id, run_id, git_runne
 
 def run_docker_software_with_git_workflow(task_id, dataset_id, vm_id, run_id, git_runner_image,
                                        git_runner_command, git_repository_id, evaluator_id,
-                                       user_image_to_execute, user_command_to_execute, tira_software_id):
+                                       user_image_to_execute, user_command_to_execute, tira_software_id, resources):
     msg = f"start run_docker_image with git: {task_id} - {dataset_id} - {vm_id} - {run_id}"
     transaction_id = start_git_workflow(task_id, dataset_id, vm_id, run_id, git_runner_image,
                        git_runner_command, git_repository_id, evaluator_id,
-                       user_image_to_execute, user_command_to_execute, tira_software_id)
+                       user_image_to_execute, user_command_to_execute, tira_software_id, resources)
 
     # TODO: add transaction to log
 
@@ -209,7 +209,7 @@ def run_docker_software_with_git_workflow(task_id, dataset_id, vm_id, run_id, gi
 
 def start_git_workflow(task_id, dataset_id, vm_id, run_id, git_runner_image,
                        git_runner_command, git_repository_id, evaluator_id,
-                       user_image_to_execute, user_command_to_execute, tira_software_id):
+                       user_image_to_execute, user_command_to_execute, tira_software_id, resources):
     msg = f"start git-workflow with git: {task_id} - {dataset_id} - {vm_id} - {run_id}"
     transaction_id = new_transaction(msg, in_grpc=False)
     logger.info(msg)
@@ -221,7 +221,7 @@ def start_git_workflow(task_id, dataset_id, vm_id, run_id, git_runner_image,
 
         __write_metadata_for_ci_job_to_repository(tmp_dir, task_id, transaction_id, dataset_id, vm_id, run_id,
                                                   identifier, git_runner_image, git_runner_command, evaluator_id,
-                                                  user_image_to_execute, user_command_to_execute, tira_software_id)
+                                                  user_image_to_execute, user_command_to_execute, tira_software_id, resources)
 
         __commit_and_push(repo, dataset_id, vm_id, run_id, identifier)
 
@@ -259,7 +259,8 @@ def __clone_repository_and_create_new_branch(repo_url, branch_name, directory):
 
 def __write_metadata_for_ci_job_to_repository(tmp_dir, task_id, transaction_id, dataset_id, vm_id, run_id, identifier,
                                                       git_runner_image, git_runner_command, evaluator_id,
-                                                      user_image_to_execute, user_command_to_execute, tira_software_id):
+                                                      user_image_to_execute, user_command_to_execute, tira_software_id,
+                                                      resources):
     job_dir = Path(tmp_dir) / dataset_id / vm_id / run_id
     job_dir.mkdir(parents=True, exist_ok=True)
 
@@ -272,8 +273,8 @@ def __write_metadata_for_ci_job_to_repository(tmp_dir, task_id, transaction_id, 
             'TIRA_SOFTWARE_ID': tira_software_id,
             'TIRA_DATASET_ID': dataset_id,
             'TIRA_RUN_ID': run_id,
-            'TIRA_CPU_COUNT': '2',
-            'TIRA_MEMORY_IN_GIBIBYTE': '10',
+            'TIRA_CPU_COUNT': str(settings.GIT_CI_AVAILABLE_RESOURCES[resources]['cores']),
+            'TIRA_MEMORY_IN_GIBIBYTE': str(settings.GIT_CI_AVAILABLE_RESOURCES[resources]['ram']),
 
             # The actual important stuff for the evaluator:
             'TIRA_TASK_ID': task_id,
