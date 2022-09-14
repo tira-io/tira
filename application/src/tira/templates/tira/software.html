@@ -15,11 +15,11 @@
 </div>
 
 <main class="uk-section uk-section-default">
-    <div class="uk-container">
+    <div class="uk-container uk-margin-medium">
         <h1><span v-if="!loading">[[ userId ]]</span><span v-else>loading user <font-awesome-icon icon="fas fa-circle-notch" spin /></span> <span class="uk-text-muted uk-text-lead">on Task <span v-if="!loading">[[ task.task_name ]]</span><span v-else>loading task <font-awesome-icon icon="fas fa-circle-notch" spin /></span></span></h1>
     </div>
     {{ runningSoftware }}
-    <div v-if="!loading && runningSoftware.length > 0" class="uk-container uk-margin-medium">
+    <div v-if="!loading && runningSoftware.length > 0" class="uk-container">
         <running-process-list
             :running_software="runningSoftware"
             :running_evaluations="runningEvaluations"

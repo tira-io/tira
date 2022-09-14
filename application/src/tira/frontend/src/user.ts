@@ -239,6 +239,9 @@ const app = createApp({
 
         },
         loaded(submissionType) {
+            if (this.loading) {
+                return false
+            }
             if (this.selectedSubmissionType === submissionType) {
                if (submissionType === 'upload' && this.upload) {
                    return true
@@ -246,7 +249,7 @@ const app = createApp({
                    return true
                } else if (submissionType === 'vm' && this.software && !this.isDefault) {
                    return true
-               } else if (submissionType === 'vm') {  // TODO for testing
+               } else if (submissionType === 'vm') {  // TODO for testing, maybe we can leave this in
                    return true
                }
             }
@@ -298,7 +301,23 @@ const app = createApp({
                 this.pollStateInterval = setInterval(this.pollVmState, 10000)
 
             }
-        }
+        },
+        runningSoftware(newRunningSoftware, oldRunningSoftware) {
+        /* Check if a container finished by comparing the new and old lists of running containers.
+        *  Reload the submission if true.
+        *  */
+            let newRunningSoftwareIds = newRunningSoftware.map(software => {
+                return software.run_id
+            })
+            for (let ind in oldRunningSoftware) {
+                if (!newRunningSoftwareIds.includes(oldRunningSoftware[ind].run_id)) {
+                    this.get(`/api/task/${this.task.task_id}/user/${this.userId}`).then(message => {
+                        this.docker = message.context.docker
+                    })
+                    return
+                }
+            }
+        },
     }
 })
 app.component('font-awesome-icon', FontAwesomeIcon)
