@@ -8,6 +8,7 @@ from tira.views import add_context
 from django.http import JsonResponse
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
+from tira.git_runner import yield_all_running_pipelines
 
 include_navigation = True if settings.DEPLOYMENT == "legacy" else False
 
@@ -140,9 +141,15 @@ def get_user(request, context, task_id, user_id):
 @check_resources_exist("json")
 @add_context
 def get_running_software(request, context, task_id, user_id):
+    context['running_software'] = []
     from datetime import datetime as dt
-    context['running_software'] = [
-        {"run_id": "12-34-56", "execution": {"scheduling": "done", "execution": "running", "evaluation": "pending"}, "stdOutput": "XYZ", "started_at": dt.now()},
-        {"run_id": "23-34-56", "execution": {"scheduling": "running", "execution": "pending", "evaluation": "pending"}, "stdOutput": "XYZ", "started_at": dt.now()}
-    ]
+    
+    for dataset in model.get_datasets_by_task(task_id):
+        evaluator = model.get_evaluator(dataset.dataset_id)
+        if 'git_repository_id' not in evaluator:
+            continue
+        
+        for job in yield_all_running_pipelines(evaluator['git_repository_id'], user_id):
+            context['running_software'] += [job]
+
     return JsonResponse({'status': 0, "context": context})

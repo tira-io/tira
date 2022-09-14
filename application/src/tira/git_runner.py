@@ -9,6 +9,7 @@ import shutil
 from datetime import datetime as dt
 import os
 import stat
+import string
 import json
 from slugify import slugify
 from tqdm import tqdm
@@ -316,3 +317,52 @@ def __initialize_user_repository(git_repository_id, repo_name, token):
         repo.index.commit('Initial commit')
         repo.remote().push(settings.GIT_USER_REPOSITORY_BRANCH)
 
+
+def clean_job_suffix(ret):
+    if "[32;1m$ env|grep 'TIRA' > task.env" in ret:
+        ret = ret.split("[32;1m$ env|grep 'TIRA' > task.env")[0]
+    if "section_end:" in ret:
+        ret = ret.split("section_end:")[0]
+
+    return ret.strip()
+
+
+def clean_job_output(ret):
+    ret = ''.join(filter(lambda x: x in string.printable, ret.strip()))
+    if '$ eval "${TIRA_COMMAND_TO_EXECUTE}"[0;m' in ret:
+        return clean_job_suffix(ret.split('$ eval "${TIRA_COMMAND_TO_EXECUTE}"[0;m')[1])
+    elif '$ eval "${TIRA_EVALUATION_COMMAND_TO_EXECUTE}"[0;m' in ret:
+        return clean_job_suffix(ret.split('$ eval "${TIRA_EVALUATION_COMMAND_TO_EXECUTE}"[0;m')[1])
+    else:
+        raise ValueError('The format of the output seems to be changed...\n\n' + ret)
+
+
+def yield_all_running_pipelines(git_repository_id, user_id):
+    gl = gitlab_client()
+    gl_project = gl.projects.get(int(git_repository_id))
+    for status in ['scheduled', 'running', 'pending', 'created', 'waiting_for_resource', 'preparing']:
+        for pipeline in gl_project.pipelines.list(status=status):
+            user_software_job = None
+            evaluation_job = None
+            for job in pipeline.jobs.list():
+                if 'run-user-software' == job.name:
+                    user_software_job = job
+                if 'evaluate-software-result' == job.name:
+                    evaluation_job = job
+
+            p = (pipeline.ref + '---started-').split( '---started-')[0]
+            if ('---' + user_id + '---') not in p:
+                continue
+            
+            execution = {'scheduling': 'running', 'execution': 'pending', 'evaluation': 'pending'}
+            if user_software_job.status == 'running':
+                execution = {'scheduling': 'done', 'execution': 'running', 'evaluation': 'pending'}
+            elif user_software_job.status != 'created':
+                execution = {'scheduling': 'done', 'execution': 'done', 'evaluation': 'running'}
+
+            stdout = 'Output for runs on the test-data is hidden.'
+            if ('-training---' + user_id + '---') in p:
+                user_software_job = gl_project.jobs.get(user_software_job.id)
+                stdout = clean_job_output(user_software_job.trace().decode('UTF-8'))
+            
+            yield {'run_id': p.split('---')[-1], 'execution': execution, 'stdOutput': stdout, 'started_at': p.split('---')[-1]}
