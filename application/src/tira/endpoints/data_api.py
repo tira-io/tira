@@ -145,7 +145,7 @@ def get_running_software(request, context, task_id, user_id):
     from datetime import datetime as dt
     
     for dataset in model.get_datasets_by_task(task_id):
-        evaluator = model.get_evaluator(dataset.dataset_id)
+        evaluator = model.get_evaluator(dataset['dataset_id'])
         if 'git_repository_id' not in evaluator:
             continue
         
