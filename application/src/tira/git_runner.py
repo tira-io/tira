@@ -334,7 +334,8 @@ def clean_job_output(ret):
     elif '$ eval "${TIRA_EVALUATION_COMMAND_TO_EXECUTE}"[0;m' in ret:
         return clean_job_suffix(ret.split('$ eval "${TIRA_EVALUATION_COMMAND_TO_EXECUTE}"[0;m')[1])
     else:
-        raise ValueError('The format of the output seems to be changed...\n\n' + ret)
+        # Job not jet started.
+        return ''
 
 
 def yield_all_running_pipelines(git_repository_id, user_id):
