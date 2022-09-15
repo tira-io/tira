@@ -363,7 +363,12 @@ def yield_all_running_pipelines(git_repository_id, user_id):
 
             stdout = 'Output for runs on the test-data is hidden.'
             if ('-training---' + user_id + '---') in p:
-                user_software_job = gl_project.jobs.get(user_software_job.id)
-                stdout = clean_job_output(user_software_job.trace().decode('UTF-8'))
+                try:
+                    stdout = ''
+                    user_software_job = gl_project.jobs.get(user_software_job.id)
+                    stdout = clean_job_output(user_software_job.trace().decode('UTF-8'))
+                except:
+                    # Job is not started or similar
+                    pass
             
             yield {'run_id': p.split('---')[-1], 'execution': execution, 'stdOutput': stdout, 'started_at': p.split('---')[-1]}
