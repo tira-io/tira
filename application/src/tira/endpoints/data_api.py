@@ -142,23 +142,16 @@ def get_user(request, context, task_id, user_id):
 @add_context
 def get_running_software(request, context, task_id, user_id):
     context['running_software'] = []
-    from datetime import datetime as dt
     
     for dataset in model.get_datasets_by_task(task_id):
         evaluator = model.get_evaluator(dataset['dataset_id'])
-        if 'git_repository_id' not in evaluator:
+
+        git_repository_id = evaluator.get('git_repository_id', None)
+
+        if not git_repository_id:
             continue
-        
-        git_repository_id = None
-        try:
-            git_repository_id = int(evaluator['git_repository_id'])
-        except:
-            pass
-        
-        if git_repository_id is None:
-            continue
-        
-        for job in yield_all_running_pipelines(git_repository_id, user_id):
-            context['running_software'] += [job]
+
+        context['running_software'] = list(yield_all_running_pipelines(int(evaluator['git_repository_id']),
+                                                                       user_id))
 
     return JsonResponse({'status': 0, "context": context})

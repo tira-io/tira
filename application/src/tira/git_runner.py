@@ -350,7 +350,7 @@ def yield_all_running_pipelines(git_repository_id, user_id):
                 if 'evaluate-software-result' == job.name:
                     evaluation_job = job
 
-            p = (pipeline.ref + '---started-').split( '---started-')[0]
+            p = (pipeline.ref + '---started-').split('---started-')[0]
             if ('---' + user_id + '---') not in p:
                 continue
             
