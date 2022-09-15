@@ -93,6 +93,7 @@
     </tr>
     </tbody>
 </table>
+<div v-if="runs.length === 0" class="uk-text-center">There are no runs yet.</div>
 </div>
 </template>
 
@@ -144,7 +145,6 @@ export default {
     },
     beforeMount() {
         this.runningEvaluationIds = this.running_evaluations.map(e => {return e.run_id})
-        console.log('running evaluation ids (uploads)', this.runningEvaluationIds)
     }
 }
 </script>

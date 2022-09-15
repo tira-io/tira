@@ -6,17 +6,17 @@ import VmSubmissionPanel from './components/vmsubmissionpanel.vue'
 import SubmissionResultsPanel from './components/submissionresultspanel.vue'
 import RunningProcessList from './components/runningprocesslist.vue'
 
-import {createApp} from 'vue';
+import {createApp, createCommentVNode} from 'vue';
 import UIkit from 'uikit';
 
 // Fontawesome Icons
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faCheck, faTimes, faUserSlash, faUsers, faUsersSlash, faLevelUpAlt, faUser, faSearch, faCircleNotch,
-    faDownload, faSave, faTrashAlt, faCog, faPlus, faBoxOpen, faTerminal, faUpload, faFolderPlus, faQuestion } from '@fortawesome/free-solid-svg-icons'
+    faDownload, faSave, faTrashAlt, faCog, faPlus, faBoxOpen, faTerminal, faUpload, faFolderPlus, faQuestion, faInfo } from '@fortawesome/free-solid-svg-icons'
 
 library.add(faCheck, faTimes, faUserSlash, faUsers, faUsersSlash, faLevelUpAlt, faUser, faSearch, faDownload, faSave,
-    faTrashAlt, faCog, faPlus, faBoxOpen, faTerminal, faUpload, faFolderPlus, faQuestion, faCircleNotch)
+    faTrashAlt, faCog, faPlus, faBoxOpen, faTerminal, faUpload, faFolderPlus, faQuestion, faCircleNotch, faInfo)
 
 
 // CSS
@@ -32,12 +32,12 @@ const app = createApp({
             vm: '',
             vmState: 10,
             vmStatus: {
-                host: '',
-                os: '',
-                ram: '',
-                cpus: '',
-                isSshOpen: '',
-                isRdpOpen: '',
+                host: '-',
+                os: '-',
+                ram: '-',
+                cpus: '-',
+                isSshOpen: false,
+                isRdpOpen: false,
                 connectionError: false
             },
             stateLabels: {0: "error", 1: "running", 2: "stopped", 3: "powering on", 4: "powering off", 5: "sandboxing",
@@ -128,58 +128,62 @@ const app = createApp({
             this.polling.vmInfo = true
             this.get(`/grpc/${this.vm.vm_id}/vm_info`).then(message => {
                 console.log('load vm info: ', message)
-                if (message.status === 'Accepted') {
-                    this.state = message.state
-                    this.vmStatus.os = message.guestOs
-                    this.vmStatus.host = message.host
-                    this.vmStatus.ram = message.memorySize
-                    this.vmStatus.cpus = message.numberOfCpus
-                    this.vmState = message.state
-                    this.vmStatus.isSshOpen = message.sshPortStatus
-                    this.vmStatus.isRdpOpen = message.rdpPortStatus
-
-                    if (this.isInTransition(message.state) && !this.polling.state){
-                        this.pollStateInterval = setInterval(this.pollVmState, 10000)
-                        this.polling.state = true;
-                    } else if (message.state === 1 && (!message.sshPortStatus || !message.rdpPortStatus) ) {
-                        this.polling.state = true;
-                        this.pollStateInterval = setInterval(this.pollVmState, 10000)
-                    }
-                } else {
-                    this.vmStatus.connectionError = true
-                    this.vmState = 10
+                this.vmStatus = {
+                    host: message.context.host,
+                    os: message.context.guestOs,
+                    ram: message.context.memorySize,
+                    cpus: message.context.numberOfCpus,
+                    isSshOpen: message.context.sshPortStatus,
+                    isRdpOpen: message.context.rdpPortStatus,
+                    connectionError: false
                 }
-                this.polling.vmInfo = false
+                this.vmState = message.context.state
             }).catch(error => {
-                // TODO: When the tira-host is unavailable (planned occurrence) the server will still throw a 500.
-                // I've removed this notification here because it distresses the users.
-                // this.addNotification('error', error)
-                this.polling.vmInfo = false
+                this.vmStatus = {
+                    host: '-',
+                    os: '-',
+                    ram: '-',
+                    cpus: '-',
+                    isSshOpen: false,
+                    isRdpOpen: false,
+                    connectionError: true
+                }
+                this.vmState = 10
             })
+            this.polling.vmInfo = false
         },
         pollVmState() {
             console.log('poll state')
             this.get(`/grpc/${this.vm.vm_id}/vm_state`).then(message => {
+                console.log('state message: ', message)
+                this.vmState = parseInt(message.state)
                 if (this.isInTransition){
-                    if (this.isSoftwareRunning){
-                        if (!this.polling.state) {
-                            this.polling.state = true
-                            this.pollStateInterval = setInterval(this.pollVmState, 10000)  // Note: https://stackoverflow.com/questions/61683534/continuous-polling-of-backend-in-vue-js
-                        }
-                        this.polling.state=true;
+                    if (!this.polling.state) {
+                        this.polling.state = true
+                        this.pollStateInterval = setInterval(this.pollVmState, 10000)  // Note: https://stackoverflow.com/questions/61683534/continuous-polling-of-backend-in-vue-js
                     }
-                    this.vmState = message.state;
-                } else {
-                    clearInterval(this.pollState)
+                }
+                else if (this.vmState === 1 && (!this.vmStatus.isSshOpen || !this.vmStatus.isRdpOpen) ) {
+                    this.loadVmInfo()
+                    if (!this.polling.state) {
+                        this.polling.state = true
+                        this.pollStateInterval = setInterval(this.pollVmState, 10000)  // Note: https://stackoverflow.com/questions/61683534/continuous-polling-of-backend-in-vue-js
+                    }
+                }
+                else {
+                    clearInterval(this.pollStateInterval)
                     this.pollStateInterval = null
                     if (this.polling.state) {
                         this.get(`/api/task/${this.task.task_id}/user/${this.vm.vm_id}`).then(message => {
                             this.software = message.context.software  // NOTE: this should add the new runs
                         })
+                        this.polling.state = false
                     }
                 }
             }).catch(error => {
                 this.addNotification('error', error)
+                clearInterval(this.pollStateInterval)
+                this.pollStateInterval = null
             })
         },
         pollRunningEvaluations() {  // TODO, this should also update the evaluations when it succeeds.
@@ -210,14 +214,14 @@ const app = createApp({
                 }
             }).catch(error => {
                 this.addNotification('error', error)
+                clearInterval(this.pollEvaluationsInterval)
+                this.pollEvaluationsInterval = null
             })
         },
         pollRunningSoftware() {
             console.log('poll running containers')
-
             this.get(`/api/task/${this.task.task_id}/user/${this.userId}/software/running`).then(message => {
-                console.log('containers: ', message.context.running_software)
-                if (message.context.running_software.length > 1) {
+                if (message.context.running_software.length > 0) {
                     this.runningSoftware = message.context.running_software
                     if (!this.polling.software) {
                         this.polling.software = true
@@ -235,6 +239,8 @@ const app = createApp({
                 }
             }).catch(error => {
                 this.addNotification('error', error.message)
+                clearInterval(this.pollSoftwareInterval)
+                this.pollSoftwareInterval = null
             })
 
         },
@@ -286,7 +292,7 @@ const app = createApp({
             return this.userId.replace(/-default/, '')
         },
         isInTransition() {
-            return [3, 4, 5, 6, 7].includes(this.vmState);
+            return [3, 4, 5, 6, 7, 9].includes(this.vmState);
         },
         isSoftwareRunning() {
             return [5, 6, 7].includes(this.vmState);
@@ -296,12 +302,6 @@ const app = createApp({
         }
     },
     watch: {
-        vmState(newState, oldState){
-            if (newState === 0) {
-                this.pollStateInterval = setInterval(this.pollVmState, 10000)
-
-            }
-        },
         runningSoftware(newRunningSoftware, oldRunningSoftware) {
         /* Check if a container finished by comparing the new and old lists of running containers.
         *  Reload the submission if true.

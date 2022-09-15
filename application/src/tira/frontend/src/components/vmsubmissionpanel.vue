@@ -14,13 +14,13 @@
         <div class="uk-grid-medium uk-margin-small" uk-grid>
             <div class="uk-width-1-6">
                 <label class="uk-form-label"> Working Directory
-                <input class="uk-input" type="text" @change="checkInputFields()"
+                <input class="uk-input" type="text" @change="checkInputFields(true)"
                        v-model="selectedWorkingDir" :placeholder="workingDirPlaceholder">
                 </label>
             </div>
             <div class="uk-width-1-2">
                 <label class="uk-form-label">Command
-                <input class="uk-input" type="text" @change="checkInputFields()"
+                <input class="uk-input" type="text" @change="checkInputFields(true)"
                        :class="{ 'uk-form-danger': softwareCommanderError}"
                        v-model="selectedCommand" placeholder="ls $inputDataset >> $outputDir/test.txt"></label>
             </div>
@@ -28,7 +28,7 @@
                 <div class="uk-form-controls">
                     <label class="uk-form-label">Input Dataset
                     <select class="uk-select upload-select" v-model="selectedDataset"
-                            @change="checkInputFields()"
+                            @change="checkInputFields(true)"
                             :class="{ 'uk-form-danger': softwareIdError}">
                         <option :disabled="selectedDataset !== 'None'" value="None">Select Dataset</option>
                         <option v-for="dataset in datasetOptions" :value="dataset.at(0)">{{ dataset.at(1) }}</option>
@@ -278,22 +278,27 @@ export default {
             }
             this.$emit('pollRunningSoftware')
         },
-        checkInputFields() {
-            this.softwareFormError = ""
-            let check = true
-            if (this.selectedCommand === ""){
-                this.softwareFormError += 'The command can not be empty<br>';
-                this.softwareCommanderError = true
-                check = false
-            } else {
+        checkInputFields(mutate=false) {
+            if (mutate) {
+                this.softwareFormError = ""
                 this.softwareCommanderError = false
+                this.softwareIdError = false
+            }
+
+            let check = true
+            if (this.selectedCommand === "") {
+                if (mutate) {
+                  this.softwareFormError += 'The command can not be empty<br>';
+                  this.softwareCommanderError = true
+                }
+                check = false
             }
             if (this.selectedDataset === "" || this.selectedDataset === "None" || this.selectedDataset === null){
-                this.softwareFormError += 'The input dataset can not be empty<br>';
-                this.softwareIdError = true
+                if (mutate) {
+                    this.softwareFormError += 'The input dataset can not be empty<br>';
+                    this.softwareIdError = true
+                }
                 check = false
-            } else {
-                this.softwareIdError = false
             }
             return check
         },

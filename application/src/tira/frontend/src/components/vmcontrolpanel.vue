@@ -1,24 +1,24 @@
 <template>
 <div class="uk-grid-small uk-grid-match" uk-grid>
     <div class="uk-card uk-card-small uk-card-body uk-card-default uk-width-1-2">
-        <table>
+        <table class="uk-margin-small uk-table uk-table-divider uk-table-small uk-table-middle">
             <tr>
-                <td>Host</td>
-                <td id="vm-info-host">
-                    <div v-show="polling.vmInfo" uk-spinner="ratio: 0.5"></div>
+                <td class="uk-table-shrink" >Host</td>
+                <td class="uk-text-nowrap">
+                    {{ vm_status.host }} <div v-show="polling.vmInfo" uk-spinner="ratio: 0.4"></div>
                 </td>
             </tr>
             <tr>
-                <td>OS</td>
-                <td>{{ vmstatus.os }}</td>
+                <td class="uk-table-shrink" >OS</td>
+                <td class="uk-text-nowrap">{{ vm_status.os }}</td>
             </tr>
             <tr>
-                <td>RAM</td>
-                <td>{{ vmstatus.ram }}</td>
+                <td class="uk-table-shrink" >RAM</td>
+                <td>{{ vm_status.ram }}</td>
             </tr>
             <tr>
-                <td>CPU</td>
-                <td>{{ vmstatus.cpus }}</td>
+                <td class="uk-table-shrink" >CPU</td>
+                <td>{{ vm_status.cpus }}</td>
             </tr>
         </table>
     </div>
@@ -27,7 +27,7 @@
             <tr>
                 <td>State</td>
                 <td>
-                    <div v-show="polling.state" uk-spinner="ratio: 0.5"></div>
+                    <div v-show="polling.state" uk-spinner="ratio: 0.4"></div>
                     <div :uk-tooltip="stateToolTip"
                          class="uk-label"
                          :class="{ 'uk-label-success': successState, 'uk-label-warning': warningState, 'uk-label-danger': dangerState}" >
@@ -40,10 +40,10 @@
                     SSH <span class="uk-text-lead uk-text-small">port {{ vm.ssh }} </span>&nbsp;&nbsp;
                 </td>
                 <td>
-                    <div v-if="vmstatus.isSshOpen"
+                    <div v-if="vm_status.isSshOpen"
                          uk-tooltip="title: You can connect to this machine via secure shell (SSH). Consult the user documentation for an explanation on how to connect to VMs.; delay: 500"
                          class="uk-label uk-label-success">open</div>
-                    <div v-if="!vmstatus.isSshOpen"
+                    <div v-if="!vm_status.isSshOpen"
                          uk-tooltip="title: SSH is closed and you can not connect. If the machine is running, but this port is closed, consult the FAQ or the support forums.; delay: 500"
                          class="uk-label uk-label-danger">closed</div>
                 </td>
@@ -53,10 +53,10 @@
                     RDP <span class="uk-text-lead uk-text-small">port {{ vm.rdp }} </span>&nbsp;&nbsp;
                 </td>
                 <td>
-                    <div v-if="vmstatus.isRdpOpen"
+                    <div v-if="vm_status.isRdpOpen"
                          uk-tooltip="title: You can connect to this machine via remote desktop (RDP). Consult the user documentation for an explanation on how to connect to VMs.; delay: 500"
                          class="uk-label uk-label-success">open</div>
-                    <div v-if="!vmstatus.isRdpOpen"
+                    <div v-if="!vm_status.isRdpOpen"
                          uk-tooltip="title: Remote desktop (RDP) is closed and you can not connect. If the machine is running, but this port is closed, consult the FAQ or the support forums.; delay: 500"
                          class="uk-label uk-label-danger">closed</div>
                 </td>
@@ -86,23 +86,23 @@
         <button @click="vmAction(`/grpc/${this.vm.vm_id}/vm_start`, 3)"
                 uk-tooltip="title: Start the machine.; delay: 500"
                 class="uk-button uk-text-center uk-width-1-1"
-                :class="{ 'uk-button-disabled': vmstate !== 2, 'uk-button-primary': vmstate === 2}"
-                :disabled="vmstate !== 2">Power On</button>
+                :class="{ 'uk-button-disabled': vm_state !== 2, 'uk-button-primary': vm_state === 2}"
+                :disabled="vm_state !== 2">Power On</button>
         <button @click="vmAction(`/grpc/${this.vm.vm_id}/vm_shutdown`, 4)"
                 uk-tooltip="title: Gracefully shut down the machine. This only works when the machine is idle.; delay: 500"
                 class="uk-button uk-text-center uk-width-1-1"
-                :class="{ 'uk-button-disabled': vmstate !== 1, 'uk-button-danger': vmstate === 1}"
-                :disabled="vmstate !== 1">Shut Down</button>
+                :class="{ 'uk-button-disabled': vm_state !== 1, 'uk-button-danger': vm_state === 1}"
+                :disabled="vm_state !== 1">Shut Down</button>
         <button @click="vmAction(`/grpc/${this.vm.vm_id}/vm_stop`, 4)"
                 uk-tooltip="title: Pull the plug. Use with great care.; delay: 500"
                 class="uk-button uk-text-center uk-width-1-1"
-                :class="{ 'uk-button-disabled': ![3,4].includes(vmstate), 'uk-button-danger': [3,4].includes(vmstate)}"
-                :disabled="![3,4].includes(vmstate)">Stop VM</button>
+                :class="{ 'uk-button-disabled': ![3,4].includes(vm_state), 'uk-button-danger': [3,4].includes(vm_state)}"
+                :disabled="![3,4].includes(vm_state)">Stop VM</button>
         <button @click="vmAction(`/grpc/${this.vm.vm_id}/run_abort`, 0)"
                 uk-tooltip="title: Abort a run and attempt to unsandbox.; delay: 500"
                 class="uk-button uk-text-center uk-width-1-1"
-                :class="{ 'uk-button-disabled': ![5,6,7].includes(vmstate), 'uk-button-danger': [5,6,7].includes(vmstate)}"
-                :disabled="![5,6,7].includes(vmstate)">Abort Run</button>
+                :class="{ 'uk-button-disabled': ![5,6,7].includes(vm_state), 'uk-button-danger': [5,6,7].includes(vm_state)}"
+                :disabled="![5,6,7].includes(vm_state)">Abort Run</button>
     </div>
 </div>
 </template>
@@ -126,7 +126,7 @@ export default {
         }
     },
     emits: ['addnotification', 'closemodal', 'pollstate', "pollvminfo"],
-    props: ['csrf', 'dataset_id', 'vm', 'vmstatus', 'polling', 'statelabels', 'vmstate', 'task'],
+    props: ['csrf', 'dataset_id', 'vm', 'vm_status', 'polling', 'state_labels', 'vm_state', 'task'],
     methods: {
         async get(url) {
             const response = await fetch(url)
@@ -142,7 +142,7 @@ export default {
         vmAction(endpoint, newState){
             this.get(endpoint).then(message => {
                 if (message.status === 0) {
-                    this.vmstate = newState
+                    this.vm_state = newState
                     this.$emit('pollState')
                 }
             }).catch(error => {
@@ -155,19 +155,19 @@ export default {
     },
     computed: {
         stateToolTip() {
-            return `title: ${this.stateToolTips[this.vmstate]}; delay: 500`
+            return `title: ${this.stateToolTips[this.vm_state]}; delay: 500`
         },
         stateLabel() {
-            return this.statelabels[this.vmstate]
+            return this.state_labels[this.vm_state]
         },
         warningState() {
-            return [3, 5, 6, 7, 9].includes(this.vmstate)
+            return [3, 5, 6, 7, 9].includes(this.vm_state)
         },
         successState() {
-            return [1, 8].includes(this.vmstate)
+            return [1, 8].includes(this.vm_state)
         },
         dangerState() {
-            return [0, 2, 10].includes(this.vmstate)
+            return [0, 2, 10].includes(this.vm_state)
         },
         sshConnectionExample() {
             return `ssh ${this.vm.vm_id}@${this.vm.host} -p ${this.vm.ssh} -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no`

@@ -1,12 +1,12 @@
 <template>
 <button class="uk-button uk-button-default uk-button-small"
-        :class="{ 'uk-button-primary': !showNewImageForm && docker.docker_images, 'tira-button-selected': showNewImageForm}"
+        :class="{ 'uk-button-primary': !showNewImageForm, 'tira-button-selected': showNewImageForm}"
         @click="showNewImageForm = true; selectedContainerId = null; showUploadVm=false">
     Add Container <font-awesome-icon icon="fas fa-folder-plus" /></button>
 <button class="uk-button uk-button-default uk-button-small uk-margin-medium-right"
         :class="{ 'uk-button-primary': !docker.docker_images && !showUploadVm, 'tira-button-selected': showUploadVm}"
         @click="showUploadVm = true; selectedContainerId = null; showNewImageForm=false">
-  <span v-if="!docker.docker_images || showUploadVm">Upload Images</span> <font-awesome-icon icon="fas fa-info" /></button>
+  <span v-if="!docker.docker_images || (Array.isArray(docker.docker_images) && docker.docker_images.length === 0) || showUploadVm">Upload Images</span>&nbsp;<font-awesome-icon class="uk-preserve-width" icon="fas fa-info" /></button>
 <button v-for="docker_software in docker.docker_softwares"
         class="uk-button uk-button-default uk-button-small uk-margin-small-horizontal"
         @click="selectedContainerId=docker_software.docker_software_id; showNewImageForm=false; showUploadVm=false"
@@ -34,11 +34,11 @@
                 </label>
             </div>
             <div class="uk-width-1-2">
+              <label class="uk-form-label">&nbsp;
               <button class="uk-button" @click="addContainer()"
                         :disabled="checkContainerValid(false)"
                         :class="{ 'uk-button-primary': checkContainerValid(false), 'uk-button-disabled': !checkContainerValid(false)}"
-                >
-                  add container</button>
+                >add container</button></label>
             </div>
             <div class="uk-text-danger uk-width-expand">{{ dockerFormError }}</div>
 

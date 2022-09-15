@@ -110,23 +110,23 @@ def vm_state(request, vm_id):
     except IntegrityError as e:
         logger.warning(f"failed to read state for vm {vm_id} with {e}")
         state = 0
-    return JsonResponse({'state': state}, status=HTTPStatus.ACCEPTED)
+    return JsonResponse({'status': 0, 'state': state})
 
 
 @check_permissions
 @check_resources_exist('json')
 def vm_running_evaluations(request, vm_id):
     results = EvaluationLog.objects.filter(vm_id=vm_id)
-    return JsonResponse({'running_evaluations': True if results else False}, status=HTTPStatus.ACCEPTED)
+    return JsonResponse({'status': 0, 'running_evaluations': True if results else False})
 
 
 @check_permissions
 @check_resources_exist('json')
 def get_running_evaluations(request, vm_id):
     results = EvaluationLog.objects.filter(vm_id=vm_id)
-    return JsonResponse({'running_evaluations': [{"vm_id": r.vm_id, "run_id": r.run_id,
+    return JsonResponse({'status': 0, 'running_evaluations': [{"vm_id": r.vm_id, "run_id": r.run_id,
                                                   "running_on": r.running_on, "last_update": r.last_update}
-                                                 for r in results]}, status=HTTPStatus.ACCEPTED)
+                                                 for r in results]})
 
 
 @check_conditional_permissions(restricted=True)
@@ -173,7 +173,7 @@ def vm_info(request, vm_id):
     try:
         grpc_client = GrpcClient(host)
         response_vm_info = grpc_client.vm_info(vm_id=vm_id)
-        # _ = TransitionLog.objects.update_or_create(vm_id=vm_id, defaults={'vm_state': response_vm_info.state})
+        _ = TransitionLog.objects.update_or_create(vm_id=vm_id, defaults={'vm_state': response_vm_info.state})
         del grpc_client
     except RpcError as e:
         ex_message = "FAILED"
@@ -183,17 +183,15 @@ def vm_info(request, vm_id):
                 ex_message = "Host Unavailable"  # This happens if the GRPC Server is not running
             if e.code() == StatusCode.INVALID_ARGUMENT:  # .code() is implemented by the _channel._InteractiveRpcError
                 ex_message = "VM is archived"  # If there is no VM with the requested name on the host.
-                                               # Nikolay thinks its a good idea to raise a grpc exception,
-                                               #   instead of returning the status code from the grpc specification.
+                _ = TransitionLog.objects.update_or_create(vm_id=vm_id, defaults={'vm_state': 8})
         except Exception as e2:  # There is a RpcError but not an Interactive one. This should not happen
             logger.exception(f"/grpc/{vm_id}/vm-info: Unexpected Execption occured: {e2}")
-
-        return JsonResponse({'status': 'Rejected', 'message': ex_message}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+        return JsonResponse({'status': 1, 'message': ex_message}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
     except Exception as e:
         logger.exception(f"/grpc/{vm_id}/vm-info: connection to {host} failed with {e}")
-        return JsonResponse({'status': 'Rejected', 'message': "SERVER_ERROR"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+        return JsonResponse({'status': 1, 'message': "SERVER_ERROR"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
-    return JsonResponse({'status': 'Accepted', 'message': {
+    return JsonResponse({'status': 0, 'context': {
         "guestOs": response_vm_info.guestOs,
         "memorySize": response_vm_info.memorySize,
         "numberOfCpus": response_vm_info.numberOfCpus,
@@ -203,7 +201,7 @@ def vm_info(request, vm_id):
         "sshPortStatus": response_vm_info.sshPortStatus,
         "rdpPortStatus": response_vm_info.rdpPortStatus,
         "state": response_vm_info.state,
-    }}, status=HTTPStatus.ACCEPTED)
+    }})
 
 
 # ---------------------------------------------------------------------
@@ -234,7 +232,7 @@ def software_add(request, task_id, vm_id):
         }
     }
     html = render_to_string('tira/software_form.html', context=context, request=request)
-    return JsonResponse({'html': html, 'context': context, 'software_id': context["software"]['id']}, status=HTTPStatus.ACCEPTED)
+    return JsonResponse({'status': 0, 'html': html, 'context': context, 'software_id': context["software"]['id']}, status=HTTPStatus.ACCEPTED)
 
 
 @check_permissions
@@ -255,7 +253,7 @@ def software_save(request, task_id, vm_id, software_id):
         message = "failed to save software for an unknown reasons"
         try:
             if software:
-                return JsonResponse({'status': 'Accepted', "message": f"Saved {software_id}", 'last_edit': software.lastEditDate},
+                return JsonResponse({'status': 0, "message": f"Saved {software_id}", 'last_edit': software.lastEditDate},
                                     status=HTTPStatus.ACCEPTED)
         except Exception as e:
             message = str(e)
@@ -270,9 +268,9 @@ def software_delete(request, task_id, vm_id, software_id):
     delete_ok = model.delete_software(task_id, vm_id, software_id)
 
     if delete_ok:
-        return JsonResponse({'status': 'Accepted'}, status=HTTPStatus.ACCEPTED)
+        return JsonResponse({'status': 0}, status=HTTPStatus.ACCEPTED)
     else:
-        return JsonResponse({'status': 'Failed', 'message': 'Software not found. Cannot delete.'},
+        return JsonResponse({'status': 1, 'message': 'Software not found. Cannot delete.'},
                             status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
@@ -283,7 +281,7 @@ def run_execute(request, task_id, vm_id, software_id):
     vm = model.get_vm(vm_id)
     software = model.get_software(task_id, vm_id, software_id=software_id)
     if not model.dataset_exists(software["dataset"]):
-        return JsonResponse({'status': '1', 'message': f'The dataset {software["dataset"]} does not exist'})
+        return JsonResponse({'status': 1, 'message': f'The dataset {software["dataset"]} does not exist'})
     host = reroute_host(vm['host'])
     future_run_id = get_tira_id()
     grpc_client = GrpcClient(host)
@@ -353,7 +351,7 @@ def run_eval(request, vm_id, dataset_id, run_id):
 @check_conditional_permissions(private_run_ok=True)
 def run_delete(request, dataset_id, vm_id, run_id):
     model.delete_run(dataset_id, vm_id, run_id)
-    return JsonResponse({'status': 'Accepted'}, status=HTTPStatus.ACCEPTED)
+    return JsonResponse({'status': 0}, status=HTTPStatus.ACCEPTED)
 
 
 @check_permissions
@@ -375,13 +373,13 @@ def run_abort(request, vm_id):
 def upload(request, task_id, vm_id, dataset_id):
     if request.method == 'POST':
         if not dataset_id or dataset_id is None or dataset_id == 'None':
-            return JsonResponse({"status": 0, "message": "Please specify the associated dataset."})
+            return JsonResponse({"status": 1, "message": "Please specify the associated dataset."})
 
         uploaded_file = request.FILES['file']
         new_run = model.add_uploaded_run(task_id, vm_id, dataset_id, uploaded_file)
-        return JsonResponse({"status": 1, "message": "ok", "context": new_run})
+        return JsonResponse({"status": 0, "message": "ok", "context": new_run})
     else:
-        return JsonResponse({"status": 0, "message": "GET is not allowed here."})
+        return JsonResponse({"status": 1, "message": "GET is not allowed here."})
 
 
 @check_permissions
@@ -389,18 +387,18 @@ def upload(request, task_id, vm_id, dataset_id):
 def docker_software_add(request, task_id, vm_id):
     if request.method == 'POST':
         if not task_id or task_id is None or task_id == 'None':
-            return JsonResponse({"status": 0, "message": "Please specify the associated task_id."})
+            return JsonResponse({"status": 1, "message": "Please specify the associated task_id."})
         
         if not request.POST.get('image'):
-            return JsonResponse({"status": 0, "message": "Please specify the associated docker image."})
+            return JsonResponse({"status": 1, "message": "Please specify the associated docker image."})
 
         if not request.POST.get('command'):
-            return JsonResponse({"status": 0, "message": "Please specify the associated docker command."})
+            return JsonResponse({"status": 1, "message": "Please specify the associated docker command."})
         
         new_docker_software = model.add_docker_software(task_id, vm_id, request.POST.get('image'), request.POST.get('command'))
-        return JsonResponse({"status": 1, "message": "ok", "context": new_docker_software})
+        return JsonResponse({"status": 0, "message": "ok", "context": new_docker_software})
     else:
-        return JsonResponse({"status": 0, "message": "GET is not allowed here."})  
+        return JsonResponse({"status": 1, "message": "GET is not allowed here."})
 
 
 @check_permissions
@@ -409,40 +407,40 @@ def docker_software_delete(request, task_id, vm_id, docker_software_id):
     delete_ok = model.delete_docker_software(task_id, vm_id, docker_software_id)
 
     if delete_ok:
-        return JsonResponse({'status': 'Accepted'}, status=HTTPStatus.ACCEPTED)
+        return JsonResponse({'status': 0}, status=HTTPStatus.ACCEPTED)
     else:
-        return JsonResponse({'status': 'Failed', 'message': 'Docker software not found. Cannot delete.'},
+        return JsonResponse({'status': 1, 'message': 'Docker software not found. Cannot delete.'},
                             status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 @check_permissions
 @check_resources_exist('json')
 def run_execute_docker_software(request, task_id, vm_id, dataset_id, docker_software_id, docker_resources):
     if not task_id or task_id is None or task_id == 'None':
-        return JsonResponse({"status": 0, "message": "Please specify the associated task_id."})
+        return JsonResponse({"status": 1, "message": "Please specify the associated task_id."})
 
     if not vm_id or vm_id is None or vm_id == 'None':
-        return JsonResponse({"status": 0, "message": "Please specify the associated vm_id."})
+        return JsonResponse({"status": 1, "message": "Please specify the associated vm_id."})
 
     if not dataset_id or dataset_id is None or dataset_id == 'None':
-        return JsonResponse({"status": 0, "message": "Please specify the associated dataset_id."})
+        return JsonResponse({"status": 1, "message": "Please specify the associated dataset_id."})
 
     evaluator = model.get_evaluator(dataset_id)
     
     if not evaluator or 'is_git_runner' not in evaluator or not evaluator['is_git_runner'] or 'git_runner_image' not in evaluator or not evaluator['git_runner_image'] or 'git_runner_command' not in evaluator or not evaluator['git_runner_command'] or 'git_repository_id' not in evaluator or not evaluator['git_repository_id']:
-        return JsonResponse({"status": 0, "message": "The dataset is misconfigured. Docker-execute only available for git-evaluators"})
+        return JsonResponse({"status": 1, "message": "The dataset is misconfigured. Docker-execute only available for git-evaluators"})
 
     if not docker_software_id or docker_software_id is None or docker_software_id == 'None':
-        return JsonResponse({"status": 0, "message": "Please specify the associated docker_software_id."})
+        return JsonResponse({"status": 1, "message": "Please specify the associated docker_software_id."})
 
     docker_software = model.get_docker_software(docker_software_id)
     
     if not docker_software:
-        return JsonResponse({"status": 0, "message": f"There is no docker image with id {docker_software_id}"})
+        return JsonResponse({"status": 1, "message": f"There is no docker image with id {docker_software_id}"})
 
     run_docker_software_with_git_workflow(task_id, dataset_id, vm_id, get_tira_id(), evaluator['git_runner_image'],
                                           evaluator['git_runner_command'], evaluator['git_repository_id'], evaluator['evaluator_id'],
                                           docker_software['tira_image_name'], docker_software['command'],
                                           'docker-software-' + docker_software_id, docker_resources)
     
-    return JsonResponse({'status': 'Accepted'}, status=HTTPStatus.ACCEPTED)
+    return JsonResponse({'status': 0}, status=HTTPStatus.ACCEPTED)
 

@@ -1,7 +1,7 @@
 <template>
 <div class="uk-card uk-card-body uk-card-default uk-card-small">
     <ul data-uk-accordion>
-        <li v-for="process in running_software">
+        <li v-for="process in running_software" class="uk-margin-small-top">
             <a class="uk-accordion-title" href="#">
                 <span class="uk-lead">{{ process.run_id }}&nbsp;</span>
                 <span class="uk-text-small uk-text-muted uk-margin-medium-right">{{ process.started_at }}</span>

@@ -57,7 +57,13 @@
         />
     </div>
     <div v-else-if="loaded('docker')" class="uk-container uk-margin-small">
+        <div v-if="docker === false" class="uk-card uk-card-body uk-card-default">
+            <b>Docker Integration is not enabled for {{ task.task_id }}</b>
+            <br>
+            If you want to submit via docker container, please contact your task organizers.
+        </div>
         <docker-submission-panel
+            v-else
             :csrf="csrf"
             :docker="docker"
             :user_id="vm.vm_id"
@@ -73,20 +79,6 @@
             />
     </div>
     <div v-else-if="loaded('vm')" class="uk-container uk-margin-small">
-        <vm-control-panel
-              v-if="!isDefault"
-              :csrf="csrf"
-              :vm="vm"
-              :task="task"
-              :vmstatus="vmStatus"
-              :vmstate="vmState"
-              :polling="polling"
-              :statelabels="stateLabels"
-              @addNotification="(type, message) => addNotification(type, message)"
-              @pollState="pollVmState()"
-              @pollVmInfo="loadVmInfo()"
-            />
-
         <div v-if="isDefault" class="uk-card uk-card-body uk-card-default">
             <b>No Virtual Machine.</b>
             <br>
@@ -95,8 +87,22 @@
             <br>
             Please contact your task organizer to obtain a TIRA virtual machine.
         </div>
-
-        <vm-submission-panel
+        <div v-if="!isDefault" class="uk-margin-medium-bottom">
+            <vm-control-panel
+              :csrf="csrf"
+              :vm="vm"
+              :task="task"
+              :vm_status="vmStatus"
+              :vm_state="vmState"
+              :polling="polling"
+              :state_labels="stateLabels"
+              @addNotification="(type, message) => addNotification(type, message)"
+              @pollState="pollVmState()"
+              @pollVmInfo="loadVmInfo()"
+            />
+        </div>
+        <div v-if="!isDefault" class="uk-margin-medium-bottom">
+            <vm-submission-panel
                 :csrf="csrf"
                 :software="software"
                 :user_id="vm.vm_id"
@@ -110,6 +116,7 @@
                 @addSoftware="(newSoftware) => addSoftware(newSoftware)"
                 @deleteSoftware="(softwareId) => deleteSoftware(softwareId)"
                 />
+        </div>
     </div>
 </main>
 
