@@ -149,7 +149,16 @@ def get_running_software(request, context, task_id, user_id):
         if 'git_repository_id' not in evaluator:
             continue
         
-        for job in yield_all_running_pipelines(evaluator['git_repository_id'], user_id):
+        git_repository_id = None
+        try:
+            git_repository_id = int(evaluator['git_repository_id'])
+        except:
+            pass
+        
+        if git_repository_id is None:
+            continue
+        
+        for job in yield_all_running_pipelines(git_repository_id, user_id):
             context['running_software'] += [job]
 
     return JsonResponse({'status': 0, "context": context})
