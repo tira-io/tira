@@ -1,6 +1,5 @@
 <template>
-<button class="uk-button uk-button-default uk-button-small"
-        :class="{ 'uk-button-primary': !showNewImageForm, 'tira-button-selected': showNewImageForm}"
+<button class="uk-button uk-button-default uk-button-small" :class="{ 'uk-button-primary': !showNewImageForm, 'tira-button-selected': showNewImageForm}"
         @click="showNewImageForm = true; selectedContainerId = null; showUploadVm=false">
     Add Container <font-awesome-icon icon="fas fa-folder-plus" /></button>
 <button class="uk-button uk-button-default uk-button-small uk-margin-medium-right"
@@ -22,23 +21,23 @@
                 <label class="uk-form-label">Command
                 <input class="uk-input command-input" type="text"
                        :disabled="!docker.docker_images"
-                       :value="addContainerCommand" placeholder="cat 'some data' >> tmp.txt"></label>
+                       v-model="addContainerCommand" placeholder="cat 'some data' >> tmp.txt"></label>
             </div>
             <div class="uk-width-1-2">
                 <label class="uk-form-label">Docker Image
                 <select :disabled="!docker.docker_images" class="uk-select upload-select" v-model="containerImage" >
                     <option v-if="docker.docker_images" value="None" :disabled="containerImage !== 'None'">Select Docker Image</option>
                     <option v-else value="None" disabled>Upload an image first</option>
-                    <option v-for="image in docker.docker_images" :value="image">{{ image }}</option>
+                    <option v-for="image in docker.docker_images" v-model="containerImage">{{ image }}</option>
                 </select>
                 </label>
             </div>
             <div class="uk-width-1-2">
               <label class="uk-form-label">&nbsp;
-              <button class="uk-button" @click="addContainer()"
-                        :disabled="checkContainerValid(false)"
-                        :class="{ 'uk-button-primary': checkContainerValid(false), 'uk-button-disabled': !checkContainerValid(false)}"
-                >add container</button></label>
+              <a class="uk-button" @click="addContainer()"
+                        :disabled="!checkContainerValid(false)"
+                        :class="{ 'uk-button-primary': checkContainerValid(false), 'uk-button-default': !checkContainerValid(false)}"
+                >add container</a></label>
             </div>
             <div class="uk-text-danger uk-width-expand">{{ dockerFormError }}</div>
 
@@ -90,16 +89,16 @@
             </div>
             <div>
                 <label>&nbsp;
-                <button class="uk-button uk-button-small uk-button-default uk-margin-small"
+                <a class="uk-button uk-button-small uk-button-default uk-margin-small"
                         :disabled="!checkContainerRunValid()"
                         :class="{ 'uk-button-primary': checkContainerRunValid(), 'uk-button-disabled': !checkContainerRunValid()}"
                         @click="runContainer()">
-                    Run Container</button></label>
+                    Run Container</a></label>
 
                 <label>&nbsp;
-                <button uk-tooltip="title: Attention! This deletes the container and ALL RUNS; delay: 1"
+                <a uk-tooltip="title: Attention! This deletes the container and ALL RUNS; delay: 1"
                         class="uk-button uk-button-small uk-button-danger uk-margin-small">
-                    <font-awesome-icon icon="fas fa-trash-alt" /></button></label>
+                    <font-awesome-icon icon="fas fa-trash-alt" /></a></label>
             </div>
             <div class="uk-text-danger uk-width-expand">{{ dockerFormError }}</div>
         </div>
@@ -177,7 +176,7 @@ export default {
             let formData = new FormData();
             const headers = new Headers({'X-CSRFToken': this.csrf})
             formData.append("command", this.addContainerCommand);
-            formData.append("image", image);
+            formData.append("image", this.containerImage);
             const response = await fetch(`/task/${this.task.task_id}/vm/${this.user_id}/add_software/docker`, {
               method: "POST",
               headers,
@@ -188,7 +187,7 @@ export default {
             console.log(response)
             console.log(r)
             if (!response.ok) {
-                this.addNotification('error', `SUploading failed with ${response.status}: ${await response.text()}`)
+                this.addNotification('error', `Uploading failed with ${response.status}: ${await response.text()}`)
             } else if (r.status === 0){
                 this.dockerFormError = 'Error: ' + r.message
             } else {

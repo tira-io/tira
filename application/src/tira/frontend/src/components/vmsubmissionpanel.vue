@@ -348,6 +348,11 @@ export default {
             }
 
             for (let sw in this.software) {
+                /* Fix Ember related problem where the Ember extends the native JS Array by '_super'.
+                   Reference: https://github.com/emberjs/ember.js/issues/19289
+                   The check may be removed once this issue is marked solved.
+                */
+                if (sw === '_super') { continue; }
                 if (this.software[sw].software.id === newSelectedSoftwareId) {
                     this.selectedRuns = this.software[sw].runs
                     this.selectedSoftware = this.software[sw].software
