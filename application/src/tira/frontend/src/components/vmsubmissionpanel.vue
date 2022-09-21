@@ -160,17 +160,17 @@ export default {
         },
         addSoftware() {
             this.get(`/task/${this.task.task_id}/vm/${this.user_id}/add_software/vm`).then(message => {
-                 const new_software = {"software":
-                     {"id": message.context.software.id,
-                      "count": "",
-                      "task_id": message.context.task,
-                      "vm_id": message.context.vm_id,
-                      "command": message.context.software.command,
-                      "working_directory": message.context.software.working_directory,
-                      "dataset": message.context.software.dataset,
-                      "run": "none",
-                      "creation_date": message.context.software.creation_date,
-                      "last_edit": message.context.software.last_edit_date},
+                const new_software = {"software":
+                    {"id": message.context.software.id,
+                    "count": "",
+                    "task_id": message.context.task,
+                    "vm_id": message.context.vm_id,
+                    "command": message.context.software.command,
+                    "working_directory": message.context.software.working_directory,
+                    "dataset": message.context.software.dataset,
+                    "run": "none",
+                    "creation_date": message.context.software.creation_date,
+                    "last_edit": message.context.software.last_edit_date},
                     "runs": []}
                 this.$emit('addsoftware', new_software)
                 this.selectedSoftwareId = message.context.software.id
@@ -184,7 +184,10 @@ export default {
                 .then(message => {
                     this.$emit('deletesoftware', this.selectedSoftwareId)
                     if (this.software.length > 1) {
-                        this.selectedSoftwareId = this.software[this.software.length-1].software.id
+                        let listWithoutSoftware = this.software.filter(e => { return e.software.id !== this.selectedSoftwareId })
+                        this.selectedSoftwareId = listWithoutSoftware[listWithoutSoftware.length-1].software.id
+                        console.log("software id changed")
+                        console.log(this.selectedSoftwareId)
                     } else {
                         this.selectedSoftwareId = null
                     }
