@@ -28,7 +28,7 @@
                 <select :disabled="!docker.docker_images" class="uk-select upload-select" v-model="containerImage" >
                     <option v-if="docker.docker_images" value="None" :disabled="containerImage !== 'None'">Select Docker Image</option>
                     <option v-else value="None" disabled>Upload an image first</option>
-                    <option v-for="image in docker.docker_images" v-model="containerImage">{{ image }}</option>
+                    <option v-for="image in docker.docker_images" :value="image">{{ image }}</option>
                 </select>
                 </label>
             </div>
@@ -97,7 +97,8 @@
 
                 <label>&nbsp;
                 <a uk-tooltip="title: Attention! This deletes the container and ALL RUNS; delay: 1"
-                        class="uk-button uk-button-small uk-button-danger uk-margin-small">
+                        class="uk-button uk-button-small uk-button-danger uk-margin-small"
+                        @click="deleteContainer()">
                     <font-awesome-icon icon="fas fa-trash-alt" /></a></label>
             </div>
             <div class="uk-text-danger uk-width-expand">{{ dockerFormError }}</div>
@@ -188,7 +189,7 @@ export default {
             console.log(r)
             if (!response.ok) {
                 this.addNotification('error', `Uploading failed with ${response.status}: ${await response.text()}`)
-            } else if (r.status === 0){
+            } else if (r.status === 1){
                 this.dockerFormError = 'Error: ' + r.message
             } else {
                 this.dockerFormError = ''

@@ -74,8 +74,8 @@
             @removeRun="(runId, type) => removeRun(runId, type)"
             @pollEvaluations="pollRunningEvaluations()"
             @pollRunningContainer="pollRunningSoftware()"
-            @addcontainer="(newSoftware) => addContainer(newContainer)"
-            @deletecontainer="(softwareId) => deleteContainer(containerId)"
+            @addcontainer="(newContainer) => addContainer(newContainer)"
+            @deletecontainer="(containerId) => deleteContainer(containerId)"
             />
     </div>
     <div v-else-if="loaded('vm')" class="uk-container uk-margin-small">
