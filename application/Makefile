@@ -2,8 +2,8 @@
 
 VENV_NAME?=venv
 PYTHON=${VENV_NAME}/bin/python3
-VERSION_APPLICATION=0.0.13
-VERSION_GRPC=0.0.13
+VERSION_APPLICATION=0.0.14
+VERSION_GRPC=0.0.14
 
 
 .DEFAULT: help
@@ -39,6 +39,11 @@ webpack:
 	npm install; \
 	npm run build
 
+webpack-watch:
+	cd ./src/tira/frontend/;\
+	npm install; \
+	npm run plain
+
 
 # Requirements are in setup.py, so whenever setup.py is changed, re-run installation of dependencies.
 venv:
@@ -56,7 +61,7 @@ run-git-develop: venv
 	cat config/tira-application-config.dev.yml |grep -v '^GIT_' > src/config/settings.yml
 	kubectl -n services-tira get configmap tira-application-test-config -o json| jq --raw-output '.data."settings-test.yml"'|grep '^GIT_' >> src/config/settings.yml
 	sh -c ". $(VENV_NAME)/bin/activate && cd src &&\
-		python3 -m tira.git_runner_cli"
+		python3 manage.py git_runner_cli"
 
 run-docker:
 	docker run -td --rm \
