@@ -23,7 +23,7 @@
         <running-process-list
             :running_software="runningSoftware"
             :running_evaluations="runningEvaluations"
-            @addNotification="(type, message) => addNotification(type, message)"
+            @addnotification="(type, message) => addNotification(type, message)"
         />
     </div>
 
@@ -51,9 +51,9 @@
                 :userid="vm.vm_id"
                 :datasets="datasets"
                 :running_evaluations="runningEvaluations"
-                @addNotification="(type, message) => addNotification(type, message)"
-                @removeRun="(runId, type) => removeRun(runId, type)"
-                @pollEvaluations="pollRunningEvaluations()"
+                @addnotification="(type, message) => addNotification(type, message)"
+                @removerun="(runId, type) => removeRun(runId, type)"
+                @pollevaluations="pollRunningEvaluations()"
         />
     </div>
     <div v-else-if="loaded('docker')" class="uk-container uk-margin-small">
@@ -70,10 +70,10 @@
             :datasets="datasets"
             :running_evaluations="runningEvaluations"
             :task="task"
-            @addNotification="(type, message) => addNotification(type, message)"
-            @removeRun="(runId, type) => removeRun(runId, type)"
-            @pollEvaluations="pollRunningEvaluations()"
-            @pollRunningContainer="pollRunningSoftware()"
+            @addnotification="(type, message) => addNotification(type, message)"
+            @removerun="(runId, type) => removeRun(runId, type)"
+            @pollevaluations="pollRunningEvaluations()"
+            @pollrunningcontainer="pollRunningSoftware()"
             @addcontainer="(newContainer) => addContainer(newContainer)"
             @deletecontainer="(containerId) => deleteContainer(containerId)"
             />
@@ -96,9 +96,9 @@
               :vm_state="vmState"
               :polling="polling"
               :state_labels="stateLabels"
-              @addNotification="(type, message) => addNotification(type, message)"
-              @pollState="pollVmState()"
-              @pollVmInfo="loadVmInfo()"
+              @addnotification="(type, message) => addNotification(type, message)"
+              @pollstate="pollVmState()"
+              @pollvminfo="loadVmInfo()"
             />
         </div>
         <div v-if="!isDefault" class="uk-margin-medium-bottom">
@@ -109,12 +109,12 @@
                 :datasets="datasets"
                 :running_evaluations="runningEvaluations"
                 :task="task"
-                @addNotification="(type, message) => addNotification(type, message)"
-                @removeRun="(runId, type) => removeRun(runId, type)"
-                @pollEvaluations="pollRunningEvaluations()"
-                @pollRunningSoftware="pollVmState()"
-                @addSoftware="(newSoftware) => addSoftware(newSoftware)"
-                @deleteSoftware="(softwareId) => deleteSoftware(softwareId)"
+                @addnotification="(type, message) => addNotification(type, message)"
+                @removerun="(runId, type) => removeRun(runId, type)"
+                @pollevaluations="pollRunningEvaluations()"
+                @pollrunningsoftware="pollVmState()"
+                @addsoftware="(newSoftware) => addSoftware(newSoftware)"
+                @deletesoftware="(softwareId) => deleteSoftware(softwareId)"
                 />
         </div>
     </div>

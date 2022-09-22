@@ -271,7 +271,7 @@ export default {
                 this.addNotification('error', `Running Container ${this.selectedContainerId} failed with ${response.status}`)
                 return
             }
-            this.$emit('pollRunningContainer')
+            this.$emit('pollrunningcontainer')
         },
     },
     computed: {
