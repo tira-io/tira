@@ -18,7 +18,7 @@ prepare-tira-environment:
     - tira-specify-task-to-run.py > task.env
     - cat task.env
   tags:
-    - no-internet
+    - tira-evaluator
 
 run-user-software:
   stage: Run Software
@@ -35,8 +35,8 @@ run-user-software:
   variables:
    KUBERNETES_CPU_REQUEST: ${TIRA_CPU_COUNT}
    KUBERNETES_CPU_LIMIT: ${TIRA_CPU_COUNT}
-   KUBERNETES_MEMORY_REQUEST: "${TIRA_MEMORY_IN_GIBIBYTE} Gi"
-   KUBERNETES_MEMORY_LIMIT: "${TIRA_MEMORY_IN_GIBIBYTE} Gi"
+   KUBERNETES_MEMORY_REQUEST: "${TIRA_MEMORY_IN_GIBIBYTE}Gi"
+   KUBERNETES_MEMORY_LIMIT: "${TIRA_MEMORY_IN_GIBIBYTE}Gi"
   script:
     - test -n "${TIRA_OUTPUT_DIR}" && mkdir -p ${TIRA_OUTPUT_DIR}
     - echo "${TIRA_COMMAND_TO_EXECUTE}"
@@ -44,7 +44,7 @@ run-user-software:
     - env|grep 'TIRA' > task.env
   allow_failure: true
   tags:
-    - no-internet
+    - tira-user-software-runner
 
 persist-software-result:
   stage: Persist Software Result
@@ -80,8 +80,7 @@ evaluate-software-result:
     - env|grep 'TIRA' > task.env
   allow_failure: true
   tags:
-    - no-internet
-    - read-tira-data
+    - tira-evaluator
 
 persist-evaluation-result:
   stage: Persist Evaluation Result
