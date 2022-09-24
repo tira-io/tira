@@ -416,7 +416,7 @@ class HybridDatabase(object):
                 "input_run_id": "" if not run.input_run or run.input_run.run_id == 'none' or run.input_run.run_id == 'None'
                 else run.input_run.run_id,
                 "is_evaluation": False if not run.input_run or run.input_run.run_id == 'none' or run.input_run.run_id == 'None' else True,
-                "dataset": run.input_dataset.dataset_id,
+                "dataset": "" if not run.input_dataset else run.input_dataset.dataset_id,
                 "downloadable": run.downloadable}
 
     def get_run(self, dataset_id: str, vm_id: str, run_id: str, return_deleted: bool = False) -> dict:
