@@ -220,6 +220,7 @@ def __get_docker_software_of_run_or_none(run):
 
 def parse_run(runs_dir_path, dataset_id, vm_id, run_id):
     run_dir = runs_dir_path / dataset_id / vm_id / run_id
+    return_message = ''
 
     if (run_dir / "run.prototext").exists():
         run = Parse(open(run_dir / "run.prototext", "r").read(), modelpb.Run())
@@ -228,21 +229,21 @@ def parse_run(runs_dir_path, dataset_id, vm_id, run_id):
         run = modelpb.Run()
         run.ParseFromString(open(run_dir / "run.bin", "rb").read())
     else:
-        return
+        return f'Run is skipped: No "run.prototext" or "run.bin" exists in {run_dir}'
 
     try:
         vm = modeldb.VirtualMachine.objects.get(vm_id=vm_id)
     except modeldb.VirtualMachine.DoesNotExist as e:
         # If the vm was deleted but runs still exist, we land here. We skip indexing these runs.
         logger.exception(e)
-        return
+        return f'Run is skipped: VM does not exist {e}'
 
     try:
         dataset = modeldb.Dataset.objects.get(dataset_id=run.inputDataset)
     except modeldb.Dataset.DoesNotExist as e:
         # If the dataset was deleted, but there are still runs left.
         logger.exception(e)
-        return
+        return f'Run is skipped: Dataset does not exist {e}'
 
     docker_software = __get_docker_software_of_run_or_none(run)
     software = None
@@ -271,6 +272,7 @@ def parse_run(runs_dir_path, dataset_id, vm_id, run_id):
             'deleted': run.deleted,
             'access_token': run.accessToken
         })
+        return_message += f'|Run added: {r}|'
 
     except (modeldb.Software.DoesNotExist, IndexError) as e:
         try:
@@ -279,7 +281,7 @@ def parse_run(runs_dir_path, dataset_id, vm_id, run_id):
             print("Evaluator does not exist")
             print(run)
 
-            return
+            return f'Run is skipped: Evaluator does not exist'
         if run.taskId:
             task = modeldb.Task.objects.get(task_id=run.taskId)
         else:
@@ -292,17 +294,21 @@ def parse_run(runs_dir_path, dataset_id, vm_id, run_id):
             'deleted': run.deleted,
             'access_token': run.accessToken
         })
+        
+        return_message += f'|Evaluator-Run added: {r}|'
+        
     except Exception as e:
         print()
         print(e)
         print(run)
         print()
-        return
+        return f'Adding a run had an exception {e}'
 
     if run.inputRun:
         input_run, _ = modeldb.Run.objects.update_or_create(run_id=run.inputRun)
         r.input_run = input_run
         r.save()
+        return_message += f'|Run updated: {r}|'
 
     # parse the reviews
     review_file = run_dir / "run-review.bin"
@@ -314,6 +320,7 @@ def parse_run(runs_dir_path, dataset_id, vm_id, run_id):
         review = modelpb.RunReview()
         review.ParseFromString(open(review_file, "rb").read())
     run, _ = modeldb.Run.objects.update_or_create(run_id=review.runId)
+    return_message += f'|Run updated during parsing of reviews: {r}|'
     modeldb.Review.objects.update_or_create(run=run, defaults={
         'reviewer_id': review.reviewerId,
         'review_date': review.reviewDate,
@@ -341,4 +348,6 @@ def parse_run(runs_dir_path, dataset_id, vm_id, run_id):
         for measure in evaluation.measure:
             modeldb.Evaluation.objects.update_or_create(
                 measure_key=measure.key, run=r, measure_value=measure.value)
+
+    return return_message
 
