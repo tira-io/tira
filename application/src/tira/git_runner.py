@@ -91,7 +91,7 @@ def docker_images_in_user_repository(user):
             for image in registry.tags.list():
                 ret += [image.location]
     
-    return ret
+    return sorted(list(set(ret)))
 
 
 def help_on_uploading_docker_image(user):
