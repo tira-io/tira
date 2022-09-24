@@ -153,5 +153,8 @@ def get_running_software(request, context, task_id, user_id):
 
         context['running_software'] = list(yield_all_running_pipelines(int(evaluator['git_repository_id']),
                                                                        user_id))
+        for software in context['running_software']:
+            if 'pipeline' in software:
+                del software['pipeline']
 
     return JsonResponse({'status': 0, "context": context})
