@@ -358,6 +358,7 @@ def stop_job_and_clean_up(git_repository_id, user_id, run_id):
 def yield_all_running_pipelines(git_repository_id, user_id):
     gl = gitlab_client()
     gl_project = gl.projects.get(int(git_repository_id))
+    already_covered_run_ids = set()
     for status in ['scheduled', 'running', 'pending', 'created', 'waiting_for_resource', 'preparing']:
         for pipeline in gl_project.pipelines.list(status=status):
             user_software_job = None
@@ -387,17 +388,23 @@ def yield_all_running_pipelines(git_repository_id, user_id):
                 except:
                     # Job is not started or similar
                     pass
+            run_id = p.split('---')[-1]
             
-            yield {'run_id': p.split('---')[-1], 'execution': execution, 'stdOutput': stdout, 'started_at': p.split('---')[-1], 'pipeline': pipeline}
-    yield from yield_all_failed_pipelines(gl_project, user_id)
+            already_covered_run_ids.add(run_id)
+            yield {'run_id': run_id, 'execution': execution, 'stdOutput': stdout, 'started_at': p.split('---')[-1], 'pipeline': pipeline}
+    yield from yield_all_failed_pipelines(gl_project, user_id, already_covered_run_ids)
 
 
-def yield_all_failed_pipelines(gl_project, user_id):
+def yield_all_failed_pipelines(gl_project, user_id, already_covered_run_ids):
     for branch in gl_project.branches.list():
         branch = branch.name
         p = (branch + '---started-').split('---started-')[0]
         if ('---' + user_id + '---') not in p:
             continue
-
-        yield {'run_id': p.split('---')[-1], 'execution': {'scheduling': 'failed', 'execution': 'failed', 'evaluation': 'failed'}, 'stdOutput': 'Job did not run.', 'started_at': p.split('---')[-1], 'branch': branch}
+        run_id = p.split('---')[-1]
+        
+        if run_id in already_covered_run_ids:
+            continue
+        
+        yield {'run_id': run_id, 'execution': {'scheduling': 'failed', 'execution': 'failed', 'evaluation': 'failed'}, 'stdOutput': 'Job did not run.', 'started_at': p.split('---')[-1], 'branch': branch}
 
