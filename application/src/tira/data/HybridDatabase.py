@@ -1004,7 +1004,7 @@ class HybridDatabase(object):
         Runs the auto reviewer to generate an initial review.
         Also loads evaluations if present
          """
-        dbops.parse_run(self.runs_dir_path, dataset_id, vm_id, run_id)
+        return dbops.parse_run(self.runs_dir_path, dataset_id, vm_id, run_id)
 
     def _list_files(self, startpath):
         import os
