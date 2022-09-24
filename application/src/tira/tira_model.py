@@ -104,11 +104,7 @@ def load_docker_data(task_id, vm_id):
               tira_image_name: str, task_id: str, vm_id: str, runs: list (same as get_runs)
         - docker_software_help: A string with the help instructions
     """
-    datasets = get_datasets_by_task(task_id)
-    git_runners_for_task = [get_evaluator(i['dataset_id'])['is_git_runner'] for i in datasets]
-    
-    # We enable the docker part only if all evaluators use the docker variant.
-    if len(git_runners_for_task) == 0 or any(not i for i in git_runners_for_task):
+    if not git_pipeline_is_enabled_for_task(task_id):
         return False
     
     docker_images = [i for i in docker_images_in_user_repository(vm_id) if '-tira-docker-software-id-' not in i]
@@ -121,6 +117,13 @@ def load_docker_data(task_id, vm_id):
         "resources": list(settings.GIT_CI_AVAILABLE_RESOURCES.values()),
     }
 
+
+def git_pipeline_is_enabled_for_task(task_id):
+    datasets = get_datasets_by_task(task_id)
+    git_runners_for_task = [get_evaluator(i['dataset_id'])['is_git_runner'] for i in datasets]
+    
+    # We enable the docker part only if all evaluators use the docker variant.
+    return len(git_runners_for_task) > 0 and all(i for i in git_runners_for_task)
 
 def get_docker_software(docker_software_id: int) -> dict:
     """
