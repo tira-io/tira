@@ -276,6 +276,7 @@ def __write_metadata_for_ci_job_to_repository(tmp_dir, task_id, transaction_id, 
             'TIRA_RUN_ID': run_id,
             'TIRA_CPU_COUNT': str(settings.GIT_CI_AVAILABLE_RESOURCES[resources]['cores']),
             'TIRA_MEMORY_IN_GIBIBYTE': str(settings.GIT_CI_AVAILABLE_RESOURCES[resources]['ram']),
+            'TIRA_DATASET_TYPE': 'training' if 'training' in dataset_id else 'test',
 
             # The actual important stuff for the evaluator:
             'TIRA_TASK_ID': task_id,
