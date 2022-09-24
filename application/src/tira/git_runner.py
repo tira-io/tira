@@ -344,13 +344,14 @@ def stop_job_and_clean_up(git_repository_id, user_id, run_id):
     
     for pipeline in yield_all_running_pipelines(git_repository_id, user_id):
         if run_id == pipeline['run_id']:
-            branch = pipeline['pipeline'].ref
+            branch = pipeline['branch'] if 'branch' in pipeline else pipeline['pipeline'].ref
             if ('---' + user_id + '---') not in branch:
                 continue
             if ('---' + run_id + '---') not in branch:
                 continue
 
-            pipeline['pipeline'].cancel()
+            if 'pipeline' in pipeline:
+                pipeline['pipeline'].cancel()
             gl_project.branches.delete(branch)
 
 
@@ -388,4 +389,15 @@ def yield_all_running_pipelines(git_repository_id, user_id):
                     pass
             
             yield {'run_id': p.split('---')[-1], 'execution': execution, 'stdOutput': stdout, 'started_at': p.split('---')[-1], 'pipeline': pipeline}
+    yield from yield_all_failed_pipelines(gl_project, user_id)
+
+
+def yield_all_failed_pipelines(gl_project, user_id):
+    for branch in gl_project.branches.list():
+        branch = branch.name
+        p = (branch + '---started-').split('---started-')[0]
+        if ('---' + user_id + '---') not in p:
+            continue
+
+        yield {'run_id': p.split('---')[-1], 'execution': {'scheduling': 'failed', 'execution': 'failed', 'evaluation': 'failed'}, 'stdOutput': 'Job did not run.', 'started_at': p.split('---')[-1], 'branch': branch}
 
