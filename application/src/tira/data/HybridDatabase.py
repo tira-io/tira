@@ -644,8 +644,12 @@ class HybridDatabase(object):
                     input_run = run.input_run
                     if input_run.software:
                         vm_id = run.input_run.software.vm.vm_id
+                    elif input_run.docker_software:
+                        vm_id = run.input_run.docker_software.vm.vm_id
                     elif input_run.upload:
                         vm_id = run.input_run.upload.vm.vm_id
+                    else:
+                        vm_id = "None"
 
                 except AttributeError as e:
                     logger.error(f"The vm or software of run {run.run_id} does not exist. Maybe either was deleted?", e)
