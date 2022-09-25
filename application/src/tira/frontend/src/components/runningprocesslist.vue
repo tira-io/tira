@@ -12,7 +12,7 @@
                     </span>
                     <font-awesome-icon v-if="state === 'done'" class="uk-text-success" icon="fas fa-check"/>
                     <font-awesome-icon v-else-if="state === 'running'" icon="fas fa-circle-notch" spin/>
-                    <font-awesome-icon v-else-if="state === 'fail'" class="uk-text-danger" icon="fas fa-cross"/>
+                    <font-awesome-icon v-else-if="state === 'failed'" class="uk-text-danger" icon="fas fa-times"/>
                 </span>
             </a>
             <div class="uk-accordion-content">
@@ -40,8 +40,8 @@ export default {
              return `${label} <font-awesome-icon icon="far fa-circle-notch" spin/>`
         } else if (key === 'pending') {
              return ''
-        } else if (key === 'fail') {
-             return `${label} <font-awesome-icon class="uk-text-danger" icon="fas fa-cross"/>`
+        } else if (key === 'failed') {
+             return `${label} <font-awesome-icon class="uk-text-danger" icon="fas fa-times"/>`
         }
         return ''
       }
