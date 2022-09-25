@@ -40,10 +40,10 @@
     </form>
     <div class="uk-text-danger"><span v-html="softwareFormError"></span></div>
     <div class="software-form-buttons">
-        <a class="uk-button uk-button-small uk-button-disabled uk-width-1-6"
-           :class="{ 'uk-button-disabled': !checkInputFields(), 'uk-button-primary': checkInputFields() }"
+        <a class="uk-button uk-button-small uk-width-1-6"
+           :class="{ 'uk-button-default': !checkInputFields(), 'uk-button-primary': checkInputFields() }"
                 uk-tooltip="title: If the VM is 'running': Execute this software. Only one Software can be executed at a time. Software will be saved when executing a run.; delay: 500"
-                @click="runSoftware()"
+                @click="checkInputFields(true) && runSoftware()"
                 :disabled="!checkInputFields()">
           run</a>
         <a class="uk-button uk-button-small uk-button-default"
@@ -256,7 +256,7 @@ export default {
         },
         async runSoftware () {
             // 0. save software
-            if (!saveSoftware()) {
+            if (!this.saveSoftware()) {
                 return false
             }
             const response = await fetch(`/grpc/${this.task.task_id}/${this.user_id}/run_execute/vm/${this.selectedSoftwareId}`, {
@@ -288,22 +288,21 @@ export default {
                 this.softwareIdError = false
             }
 
-            let check = true
             if (this.selectedCommand === "") {
                 if (mutate) {
                   this.softwareFormError += 'The command can not be empty<br>';
                   this.softwareCommanderError = true
                 }
-                check = false
+                return false
             }
             if (this.selectedDataset === "" || this.selectedDataset === "None" || this.selectedDataset === null){
                 if (mutate) {
                     this.softwareFormError += 'The input dataset can not be empty<br>';
                     this.softwareIdError = true
                 }
-                check = false
+                return false
             }
-            return check
+            return true
         },
     },
     computed: {
