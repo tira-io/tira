@@ -1101,9 +1101,12 @@ class HybridDatabase(object):
             'has_no_errors': review.hasNoErrors,
             'published': review.published,
             'blinded': review.blinded
-        })
+        }) 
 
-        return {"run": self._run_as_dict(db_run),
+        returned_run = self._run_as_dict(db_run)
+        returned_run['review'] = self.get_run_review(dataset_id, vm_id, run.runId)
+
+        return {"run": returned_run,
                 "last_edit_date": upload.last_edit_date}
 
     def add_docker_software(self, task_id, vm_id, user_image_name, command, tira_image_name):

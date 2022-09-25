@@ -88,7 +88,7 @@ export default {
             let r = await response.json()
             if (!response.ok) {
                 this.$emit('addnotification', 'error', `Uploading failed with status ${response.status}: ${await response.text()}`)
-            } else if (r.status === 0){
+            } else if (r.status === 1){
                 this.uploadFormError = 'Error: ' + r.message
             } else {
                 this.uploadFormError = ''
@@ -97,6 +97,7 @@ export default {
                 this.fileHandle = null
                 this.upload.last_edit = r.last_edit_date
             }
+            this.$refs.file.value = null 
             this.uploading = false
         },
         saveFileRef() {
