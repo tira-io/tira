@@ -34,7 +34,7 @@
             </div>
             <div class="uk-width-1-2">
               <label class="uk-form-label">&nbsp;
-              <a class="uk-button" @click="addContainer()"
+              <a class="uk-button" @click="checkContainerValid(true) && addContainer()"
                         :disabled="!checkContainerValid(false)"
                         :class="{ 'uk-button-primary': checkContainerValid(false), 'uk-button-default': !checkContainerValid(false)}"
                 >add container</a></label>
@@ -90,9 +90,8 @@
             <div>
                 <label>&nbsp;
                 <a class="uk-button uk-button-small uk-button-default uk-margin-small"
-                        :disabled="!checkContainerRunValid()"
                         :class="{ 'uk-button-primary': checkContainerRunValid(), 'uk-button-disabled': !checkContainerRunValid()}"
-                        @click="runContainer()">
+                        @click="checkContainerRunValid(true) && runContainer()">
                     Run Container</a></label>
 
                 <label>&nbsp;
@@ -197,28 +196,25 @@ export default {
             }
         },
         checkContainerValid(updateView=false) {
-            this.dockerFormError = ''
             this.containerImageError = false
             this.containerCommanderError = false
-            let check = true
             if (this.containerImage  === 'None') {
                 if (updateView) {
                     this.dockerFormError = 'Error: Please specify an docker image!'
                     this.containerImageError = true
-                    check = false
                 }
+                return false
             }
             if (this.addContainerCommand === 'undefined' || this.addContainerCommand  === 'None' || this.addContainerCommand === '') {
                 if (updateView) {
                     this.dockerFormError = 'Error: Please specify a docker command!'
                     this.containerCommanderError = true
                 }
-                check = false
+                return false
             }
-            return check
+            return true
         },
         checkContainerRunValid(updateView=false) {
-            this.dockerFormError = ''
             this.containerDatasetError = false
             this.containerResourceError = false
 
