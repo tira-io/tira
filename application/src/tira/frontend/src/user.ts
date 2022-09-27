@@ -13,10 +13,10 @@ import UIkit from 'uikit';
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faCheck, faTimes, faUserSlash, faUsers, faUsersSlash, faLevelUpAlt, faUser, faSearch, faCircleNotch,
-    faDownload, faSave, faTrashAlt, faCog, faPlus, faBoxOpen, faTerminal, faUpload, faFolderPlus, faQuestion, faInfo } from '@fortawesome/free-solid-svg-icons'
+    faDownload, faSave, faTrashAlt, faCog, faPlus, faBoxOpen, faTerminal, faUpload, faFolderPlus, faQuestion, faInfo, faBan } from '@fortawesome/free-solid-svg-icons'
 
 library.add(faCheck, faTimes, faUserSlash, faUsers, faUsersSlash, faLevelUpAlt, faUser, faSearch, faDownload, faSave,
-    faTrashAlt, faCog, faPlus, faBoxOpen, faTerminal, faUpload, faFolderPlus, faQuestion, faCircleNotch, faInfo)
+    faTrashAlt, faCog, faPlus, faBoxOpen, faTerminal, faUpload, faFolderPlus, faQuestion, faCircleNotch, faInfo, faBan)
 
 
 // CSS
@@ -88,6 +88,14 @@ const app = createApp({
             // TODO Review Modals
             const inspectModal = document.getElementById('inspect-modal')
             UIkit.modal(inspectModal).hide();
+        },
+        stopRun(runId) {
+            this.get(`/grpc/${this.task.task_id}/${this.vm.vm_id}/stop_docker_software/${runId}`).then(message => {
+                console.log(message)
+            }).catch(error => {
+                console.log(error)
+            })
+            
         },
         removeRun(runId, type) {
             if (type === 'upload') {

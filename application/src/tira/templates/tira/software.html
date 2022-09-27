@@ -23,6 +23,8 @@
         <running-process-list
             :running_software="runningSoftware"
             :running_evaluations="runningEvaluations"
+            :user_id="userId"
+            @stoprun="runId => stopRun(runId)"
             @addnotification="(type, message) => addNotification(type, message)"
         />
     </div>

@@ -3,6 +3,12 @@
     <ul data-uk-accordion>
         <li v-for="process in running_software" class="uk-margin-small-top">
             <a class="uk-accordion-title" href="#">
+                <a 
+                    class="uk-margin-medium-right"
+                    onclick="event.stopPropagation()"
+                    @click="stopRun(process.run_id)">
+                    <font-awesome-icon class="uk-text-danger" icon="fas fa-ban"/>
+                </a>
                 <span class="uk-lead">{{ process.run_id }}&nbsp;</span>
                 <span class="uk-text-small uk-text-muted uk-margin-medium-right">{{ process.started_at }}</span>
                 <span class="uk-margin-medium-right" v-for="(state, label) in process.execution">
@@ -29,7 +35,7 @@
 export default {
   name: "runningprocesslist",
   props: ["running_evaluations", "running_software"],
-  emits: ['addnotification'],
+  emits: ['stoprun', 'addnotification'],
   data() {
     return {
       executionIndicator(key, label) {
@@ -48,6 +54,9 @@ export default {
     }
   },
   methods: {
+    stopRun(run_id) {
+        this.$emit('stoprun', run_id)
+    },
   }
 }
 </script>

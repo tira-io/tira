@@ -92,10 +92,13 @@ export default {
                 this.uploadFormError = 'Error: ' + r.message
             } else {
                 this.uploadFormError = ''
-                console.log(r.context)
-                this.upload.runs.push(r.context.run)
+                console.log(r.new_run)
+                this.upload.runs.push(r.new_run.run)
                 this.fileHandle = null
                 this.upload.last_edit = r.last_edit_date
+                if (r.started_evaluation) {
+                    this.$emit('pollevaluations')
+                }
             }
             this.$refs.file.value = null 
             this.uploading = false

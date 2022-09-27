@@ -42,6 +42,7 @@ urlpatterns = [
 
     path('grpc/<str:vm_id>/run_eval/<str:dataset_id>/<str:run_id>', vm_api.run_eval, name="run_eval"),
     path('grpc/<str:vm_id>/run_delete/<str:dataset_id>/<str:run_id>', vm_api.run_delete, name="run_delete"),
+    path('grpc/<str:task_id>/<str:user_id>/stop_docker_software/<str:run_id>', vm_api.stop_docker_software, name="stop_docker_software"),
 
     path('tira-admin', views.admin, name='tira-admin'),
 

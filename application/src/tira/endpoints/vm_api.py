@@ -6,7 +6,7 @@ from grpc import RpcError, StatusCode
 from tira.authentication import auth
 from tira.checks import check_permissions, check_resources_exist, check_conditional_permissions
 from tira.forms import *
-from tira.git_runner import run_evaluate_with_git_workflow, run_docker_software_with_git_workflow
+from tira.git_runner import run_evaluate_with_git_workflow, run_docker_software_with_git_workflow, stop_job_and_clean_up
 from django.http import JsonResponse
 from django.conf import settings
 from http import HTTPStatus
@@ -377,7 +377,10 @@ def upload(request, task_id, vm_id, dataset_id):
 
         uploaded_file = request.FILES['file']
         new_run = model.add_uploaded_run(task_id, vm_id, dataset_id, uploaded_file)
-        return JsonResponse({"status": 0, "message": "ok", "context": new_run})
+        if model.git_pipeline_is_enabled_for_task(task_id):
+            run_eval(request=request, vm_id=vm_id, dataset_id=dataset_id, run_id=new_run["run"]["run_id"])
+            return JsonResponse({"status": 0, "message": "ok", "new_run": new_run, "started_evaluation": True})
+        return JsonResponse({"status": 0, "message": "ok", "new_run": new_run, "started_evaluation": False})
     else:
         return JsonResponse({"status": 1, "message": "GET is not allowed here."})
 
@@ -444,3 +447,13 @@ def run_execute_docker_software(request, task_id, vm_id, dataset_id, docker_soft
     
     return JsonResponse({'status': 0}, status=HTTPStatus.ACCEPTED)
 
+def stop_docker_software(request, task_id, user_id, run_id):
+    if not request.method == 'GET':
+        return JsonResponse({"status": 1, "message": "Only GET is allowed here"})
+    else:
+        datasets = model.get_datasets_by_task(task_id)
+        for dataset in datasets:
+
+            stop_job_and_clean_up(model.get_evaluator(dataset["dataset_id"])["git_repository_id"], user_id, run_id)
+
+        return JsonResponse({"status": 0, "message": "Run successfully stopped"})

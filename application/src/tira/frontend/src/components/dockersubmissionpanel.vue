@@ -34,7 +34,8 @@
             </div>
             <div class="uk-width-1-2">
               <label class="uk-form-label">&nbsp;
-              <a class="uk-button" @click="checkContainerValid(true) && addContainer()"
+              <a class="uk-button" 
+                        @click="checkContainerValid(true) && addContainer()"
                         :disabled="!checkContainerValid(false)"
                         :class="{ 'uk-button-primary': checkContainerValid(false), 'uk-button-default': !checkContainerValid(false)}"
                 >add container</a></label>
