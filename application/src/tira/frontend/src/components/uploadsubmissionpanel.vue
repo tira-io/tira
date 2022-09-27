@@ -25,9 +25,9 @@
             <div>
                 <span v-show="uploading" uk-spinner="ratio: 0.5"></span>
                 <a class="uk-button uk-button uk-width-expand"
-                   :class="{ 'uk-button-disabled': uploading, 'uk-button-primary': !uploading}"
+                   :class="{ 'uk-button-default': uploading, 'uk-button-primary': !uploading}"
                    :disabled="uploading"
-                   @click="fileUpload()">upload</a>
+                   @click="uploading && fileUpload()">upload</a>
             </div>
         </div>
     </div>
