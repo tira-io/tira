@@ -88,7 +88,7 @@ def docker_images_in_user_repository(user):
 
     for registry_repository in repo.repositories.list():
         for registry in registry_repository.manager.list():
-            for image in registry.tags.list():
+            for image in registry.tags.list(get_all=True):
                 ret += [image.location]
     
     return sorted(list(set(ret)))
