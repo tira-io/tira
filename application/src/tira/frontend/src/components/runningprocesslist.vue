@@ -4,10 +4,12 @@
         <li v-for="process in running_software" class="uk-margin-small-top">
             <a class="uk-accordion-title" href="#">
                 <a 
+                    uk-tooltip="Abort run"
                     class="uk-margin-medium-right"
                     onclick="event.stopPropagation()"
                     @click="stopRun(process.run_id)">
-                    <font-awesome-icon class="uk-text-danger" icon="fas fa-ban"/>
+                    <font-awesome-icon v-if="!aborting" class="uk-text-danger" icon="fas fa-ban"/>
+                    <font-awesome-icon v-else-if="aborting" icon="fas fa-ban" spin/>
                 </a>
                 <span class="uk-lead">{{ process.run_id }}&nbsp;</span>
                 <span class="uk-text-small uk-text-muted uk-margin-medium-right">{{ process.started_at }}</span>
@@ -38,6 +40,7 @@ export default {
   emits: ['stoprun', 'addnotification'],
   data() {
     return {
+      aborting: false,
       executionIndicator(key, label) {
         console.log(key, label)
         if (key === 'done') {
@@ -55,6 +58,7 @@ export default {
   },
   methods: {
     stopRun(run_id) {
+        this.aborting = true
         this.$emit('stoprun', run_id)
     },
   }

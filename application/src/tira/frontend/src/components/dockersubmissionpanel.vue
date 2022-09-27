@@ -92,7 +92,8 @@
                 <label>&nbsp;
                 <a class="uk-button uk-button-small uk-button-default uk-margin-small"
                         :class="{ 'uk-button-primary': checkContainerRunValid(), 'uk-button-disabled': !checkContainerRunValid()}"
-                        @click="checkContainerRunValid(true) && runContainer()">
+                        @click="checkContainerRunValid(true) && runContainer()"
+                        ref="runContainerButton">
                     Run Container</a></label>
 
                 <label>&nbsp;
@@ -247,6 +248,7 @@ export default {
         },
         async runContainer () {
             if (!this.checkContainerRunValid(true)) return;
+            this.$refs['runContainerButton'].text = "Starting..."
 
             const response = await fetch(`/grpc/${this.task.task_id}/${this.user_id}/run_execute/docker/${this.selectedDataset}/${this.selectedContainerId}/${this.selectedResources}`, {
                 method: "POST",
@@ -269,6 +271,7 @@ export default {
                 return
             }
             this.$emit('pollrunningcontainer')
+            this.$refs['runContainerButton'].text = "Run Container"
         },
     },
     computed: {
