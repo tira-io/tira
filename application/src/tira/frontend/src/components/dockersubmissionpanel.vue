@@ -271,7 +271,7 @@ export default {
                 return
             }
             this.$emit('pollrunningcontainer')
-            this.$refs['runContainerButton'].text = "Run Container"
+            setTimeout(function() { this.$refs['runContainerButton'].text = "Run Container" }, 10000);
         },
     },
     computed: {
