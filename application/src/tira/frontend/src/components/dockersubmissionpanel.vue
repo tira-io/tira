@@ -21,7 +21,11 @@
                 <label class="uk-form-label">Command
                 <input class="uk-input command-input" type="text"
                        :disabled="!docker.docker_images"
-                       v-model="addContainerCommand" placeholder="cat 'some data' >> tmp.txt"></label>
+                       v-model="addContainerCommand" :placeholder="task.command_placeholder"></label>
+            </div>
+            <div class="uk-width-1-1">
+                <a @click="toggleCommandHelp = !toggleCommandHelp" :command_description="task.command_description"><u>Toggle Command Help</u></a><br>
+                <span v-show="toggleCommandHelp">{{ task.command_description }}</span>
             </div>
             <div class="uk-width-1-2">
                 <label class="uk-form-label">Docker Image
@@ -149,6 +153,7 @@ export default {
             selectedDataset: "None",
             selectedContainerCommand: null,
             selectedResources: "None",
+            toggleCommandHelp: false,
         }
     },
     methods: {
