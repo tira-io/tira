@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 from glob import glob
 import docker
+import pandas as pd
 
 
 def __extract_image_and_command(identifier):
