@@ -179,10 +179,8 @@ def archive_repository(repo_name):
             for run in runs:
                 result_out_dir = (Path(job_file.split('/job-executed-on')[0]) / ('run' if run['is_evaluation'] else 'evaluation'))
                 result_out_dir.mkdir(parents=True, exist_ok=True)
-                print(dir(settings))
                 shutil.copytree(Path(settings.TIRA_ROOT)/ 'data' / 'runs' / job['TIRA_DATASET_ID'] / job['TIRA_VM_ID'] / run['run_id'], result_out_dir / run['run_id'])
-            
-            print(runs)
+
             downloaded_images.add(image)
             image_name = (slugify(image) + '.tar').replace('/', '-')
 
