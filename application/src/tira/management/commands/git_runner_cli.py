@@ -51,7 +51,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if 'archive_repository' in options and options['archive_repository']:
-            self.archive_repository(options['archive_repository'])
+            archive_repository(options['archive_repository'])
 
         if 'create_task_repository' in options and options['create_task_repository']:
             self.run_command_create_task_repository(options)
