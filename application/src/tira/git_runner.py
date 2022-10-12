@@ -163,10 +163,9 @@ def archive_repository(repo_name):
             job = [i.split('=') for i in open(job_file, 'r')]
             job = {k.strip():v.strip() for k,v in job}
             image = job['TIRA_IMAGE_TO_EXECUTE'].strip()
-
-            if image in downloaded_images or settings.GIT_REGISTRY_PREFIX.lower() not in image.lower():
+            if settings.GIT_REGISTRY_PREFIX.lower() not in image.lower():
                 continue
-
+            
             try:
                 software_metadata = get_docker_software(int(job["TIRA_SOFTWARE_ID"].replace('docker-software-', '')))
                 runs = get_docker_softwares_with_runs(job["TIRA_TASK_ID"], job["TIRA_VM_ID"])
@@ -177,24 +176,26 @@ def archive_repository(repo_name):
             runs = [i for i in runs if (i['input_run_id'] == job['TIRA_RUN_ID'] or i['run_id'] == job['TIRA_RUN_ID'])]
             
             for run in runs:
-                result_out_dir = (Path(job_file.split('/job-executed-on')[0]) / ('run' if run['is_evaluation'] else 'evaluation'))
+                result_out_dir = (Path(job_file.split('/job-executed-on')[0]) / ('evaluation' if run['is_evaluation'] else 'run'))
                 result_out_dir.mkdir(parents=True, exist_ok=True)
                 shutil.copytree(Path(settings.TIRA_ROOT)/ 'data' / 'runs' / job['TIRA_DATASET_ID'] / job['TIRA_VM_ID'] / run['run_id'], result_out_dir / run['run_id'])
 
-            downloaded_images.add(image)
             image_name = (slugify(image) + '.tar').replace('/', '-')
 
             cmd = ['skopeo', 'copy', '--src-creds', 
                    f'{settings.GIT_CI_SERVER_HOST}:{settings.GIT_PRIVATE_TOKEN}',
                    f'docker://{image}', f'docker-archive:{tmp_dir}/docker-softwares/{image_name}']
 
-            subprocess.check_output(cmd)
+            if image not in downloaded_images:
+                subprocess.check_output(cmd)
 
             dockerhub_image = f'docker.io/webis/{job["TIRA_TASK_ID"]}-submissions:' + (image_name.split('-tira-user-')[1]).replace('.tar', '').strip()
             
             cmd = ['skopeo', 'copy', f'docker-archive:{tmp_dir}/docker-softwares/{image_name}', f'docker://{dockerhub_image}']
-            subprocess.check_output(cmd)
+            if image not in downloaded_images:
+                subprocess.check_output(cmd)
 
+            downloaded_images.add(image)
             softwares.add(json.dumps({
             	"TIRA_IMAGE_TO_EXECUTE": dockerhub_image,
             	"TIRA_VM_ID": job["TIRA_VM_ID"],
@@ -214,6 +215,8 @@ def archive_repository(repo_name):
         open((Path(tmp_dir) / '.tira' / 'submitted-software.jsonl').absolute(), 'w').write('\n'.join(softwares))
         open((Path(tmp_dir) / '.tira' / 'evaluators.jsonl').absolute(), 'w').write('\n'.join(evaluations))
         open((Path(tmp_dir) / 'tira.py').absolute(), 'w').write(render_to_string('tira/tira_git_cmd.py', context={}))
+        open((Path(tmp_dir) / 'requirements.txt').absolute(), 'w').write('docker==5.0.3\npandas\njupyterlab')
+        open((Path(tmp_dir) / 'Makefile').absolute(), 'w').write(render_to_string('tira/tira_git_makefile', context={}))
         #open((Path(tmp_dir) / 'README.md').absolute(), 'a+').write(render_to_string('tira/tira_git_cmd.py', context={}))
         
         print(f'Archive repository into {repo_name}.zip')
