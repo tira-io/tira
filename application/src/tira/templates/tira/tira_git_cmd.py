@@ -9,10 +9,39 @@ from packaging import version
 import shutil
 
 
+def all_softwares():
+    ret = []
+    for software_id, software_definition in ___load_softwares().items():
+        ret += [{'approach': software_id, 'team': software_definition['TIRA_VM_ID'], 'image': software_definition['TIRA_IMAGE_TO_EXECUTE'], 'command': software_definition['TIRA_COMMAND_TO_EXECUTE']}]
+        
+    return pd.DataFrame(ret)
+
+
+def all_datasets():
+    ret = []
+    for i in glob('*/training-datasets/'):
+        cnt = 0
+        for j in glob(i + '*'):
+            cnt += len(list(open(j)))
+        
+        ret += [{'dataset': i.split('/training-datasets/')[0], 'records': cnt}]
+    
+    return pd.DataFrame(ret).sort_values('dataset')
+
+
 def ___load_softwares():
     softwares = [json.loads(i) for i in open('.tira/submitted-software.jsonl')]
     
     return {i['TIRA_TASK_ID'] + '/' + i['TIRA_VM_ID'] + '/' + i['TIRA_SOFTWARE_NAME']: i for i in softwares}
+
+
+def load_data(approach):
+    ret = []
+    
+    for i in glob(approach + '*/training-datasets-truth/*.json*'):
+        ret += [pd.read_json(i, orient='records', lines=True)]
+    
+    return pd.concat(ret)
 
 
 def __num(s):
@@ -65,6 +94,14 @@ def all_evaluated_appraoches():
             except:
                 pass
 
+    return pd.DataFrame(ret)
+
+
+def all_evaluators():
+    ret = []
+    for i in __load_evaluators().values():
+        ret += [{'dataset': i['TIRA_DATASET_ID'], 'image': i['TIRA_EVALUATION_IMAGE_TO_EXECUTE'], 'command': i['TIRA_EVALUATION_COMMAND_TO_EXECUTE']}]
+    
     return pd.DataFrame(ret)
 
 
