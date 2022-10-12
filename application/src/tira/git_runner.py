@@ -141,8 +141,8 @@ def add_new_tag_to_docker_image_repository(repository_name, old_tag, new_tag):
     return original_repository_name + ':' + new_tag
 
 
-def archive_repository(repo_name):
-    from tira.tira_model import get_docker_software, get_docker_softwares_with_runs
+def archive_repository(repo_name, persist_all_images=False):
+    from tira.tira_model import get_docker_software, get_docker_softwares_with_runs, get_dataset
     from django.template.loader import render_to_string
     repo = __existing_repository(repo_name)
     if not repo:
@@ -151,6 +151,7 @@ def archive_repository(repo_name):
 
     softwares = set()
     evaluations = set()
+    datasets = {}
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         print(f'Clone repository {repo.name}. Working in {tmp_dir}')
@@ -165,6 +166,8 @@ def archive_repository(repo_name):
             image = job['TIRA_IMAGE_TO_EXECUTE'].strip()
             if settings.GIT_REGISTRY_PREFIX.lower() not in image.lower():
                 continue
+            
+            datasets[job['TIRA_DATASET_ID']] = get_dataset(job['TIRA_DATASET_ID'])
             
             try:
                 software_metadata = get_docker_software(int(job["TIRA_SOFTWARE_ID"].replace('docker-software-', '')))
@@ -186,13 +189,13 @@ def archive_repository(repo_name):
                    f'{settings.GIT_CI_SERVER_HOST}:{settings.GIT_PRIVATE_TOKEN}',
                    f'docker://{image}', f'docker-archive:{tmp_dir}/docker-softwares/{image_name}']
 
-            if image not in downloaded_images:
+            if persist_all_images and image not in downloaded_images:
                 subprocess.check_output(cmd)
 
             dockerhub_image = f'docker.io/webis/{job["TIRA_TASK_ID"]}-submissions:' + (image_name.split('-tira-user-')[1]).replace('.tar', '').strip()
             
             cmd = ['skopeo', 'copy', f'docker-archive:{tmp_dir}/docker-softwares/{image_name}', f'docker://{dockerhub_image}']
-            if image not in downloaded_images:
+            if persist_all_images and image not in downloaded_images:
                 subprocess.check_output(cmd)
 
             downloaded_images.add(image)
@@ -217,7 +220,15 @@ def archive_repository(repo_name):
         open((Path(tmp_dir) / 'tira.py').absolute(), 'w').write(render_to_string('tira/tira_git_cmd.py', context={}))
         open((Path(tmp_dir) / 'requirements.txt').absolute(), 'w').write('docker==5.0.3\npandas\njupyterlab')
         open((Path(tmp_dir) / 'Makefile').absolute(), 'w').write(render_to_string('tira/tira_git_makefile', context={}))
+        open((Path(tmp_dir) / 'Tutorial.ipynb').absolute(), 'w').write(render_to_string('tira/tira_git_tutorial.ipynb', context={}))
         #open((Path(tmp_dir) / 'README.md').absolute(), 'a+').write(render_to_string('tira/tira_git_cmd.py', context={}))
+        
+        
+        print(f'Archive datasets')
+        for dataset_name, dataset_definition in datasets.items():
+            if 'is_confidential' in dataset_definition and not dataset_definition['is_confidential']:
+                for i in ['training-datasets', 'training-datasets-truth']:
+                    shutil.copytree(Path(settings.TIRA_ROOT)/ 'data' / 'datasets' / i / job['TIRA_TASK_ID'] / dataset_name, Path(tmp_dir) / dataset_name / i)    
         
         print(f'Archive repository into {repo_name}.zip')
         shutil.make_archive(repo_name, 'zip', tmp_dir)

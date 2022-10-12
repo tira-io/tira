@@ -6,6 +6,7 @@ from glob import glob
 import docker
 import pandas as pd
 from packaging import version
+import shutil
 
 
 def ___load_softwares():
@@ -115,6 +116,7 @@ def __normalize_command(cmd):
     
     if 'inputRun' in cmd:
         to_normalize['outputDir'] = '/tira-data/eval_output'
+        to_normalize['inputDataset'] = '/tira-data/input_truth'
     
     for k,v in to_normalize.items():
         cmd = cmd.replace('$' + k, v).replace('${' + k + '}', v)
@@ -122,44 +124,62 @@ def __normalize_command(cmd):
     return cmd
 
 
-def run(identifier=None, image=None, command=None, data=None, evaluate=False, verbose=False):
-    if image is None or command is None:
-        image, command = __extract_image_and_command(identifier)
-    client = docker.DockerClient(base_url='unix://var/run/docker.sock')
-    
+def persist_dataset(data, verbose):
     tmp_dir = Path(tempfile.TemporaryDirectory().name)
     input_dir = tmp_dir / 'input'
     output_dir = tmp_dir / 'output'
     eval_output_dir = tmp_dir / 'eval_output'
 
-    os.makedirs(str(input_dir.absolute()), exist_ok=True)
     os.makedirs(str(output_dir.absolute()), exist_ok=True)
     os.makedirs(str(eval_output_dir.absolute()), exist_ok=True)
 
-    if verbose:
-        print(f'Write {len(data)} records to {input_dir}/input.jsonl')
-    
-    data.to_json(input_dir / 'input.jsonl', lines=True, orient='records')
+    if type(data) == pd.DataFrame:
+        if verbose:
+            print(f'Write {len(data)} records to {input_dir}/input.jsonl')
+        os.makedirs(str(input_dir.absolute()), exist_ok=True)
+        data.to_json(input_dir / 'input.jsonl', lines=True, orient='records')
+        shutil.copytree(input_dir, tmp_dir / 'input_truth')
+    else:
+        shutil.copytree(Path(data) / 'training-datasets', input_dir)
+        shutil.copytree(Path(data) / 'training-datasets-truth', tmp_dir / 'input_truth')
+
+    return tmp_dir
+
+
+def run(identifier=None, image=None, command=None, data=None, evaluate=False, verbose=False):
+    if image is None or command is None:
+        image, command = __extract_image_and_command(identifier)
+    try:
+        client = docker.from_env()
+        
+        assert len(client.images.list()) >= 0
+        assert len(client.containers.list()) >= 0
+    except Exception as e:
+        raise ValueError('It seems like docker is not installed?', e)
+
+    data_dir = persist_dataset(data, verbose)
     command = __normalize_command(command)
     
     if verbose:
         print(f'Run software with: docker run --rm -ti -v {tmp_dir}:/tira-data --entrypoint sh {image} {command}')
     
-    client.containers.run(image, entrypoint='sh', command=f'-c "{command}"', volumes={str(tmp_dir): {'bind': '/tira-data/', 'mode': 'rw'}})
+    client.containers.run(image, entrypoint='sh', command=f'-c "{command}"', volumes={str(data_dir): {'bind': '/tira-data/', 'mode': 'rw'}})
     
     if evaluate:
+        if type(evaluate) is not str:
+            evaluate = data
         evaluate, image, command = __extract_image_and_command(evaluate, evaluator=True)
         command = __normalize_command(command)
         if verbose:
             print(f'Evaluate software with: docker run --rm -ti -v {tmp_dir}:/tira-data --entrypoint sh {image} {command}')
         
-        client.containers.run(image, entrypoint='sh', command=f'-c "{command}"', volumes={str(tmp_dir): {'bind': '/tira-data/', 'mode': 'rw'}})
+        client.containers.run(image, entrypoint='sh', command=f'-c "{command}"', volumes={str(data_dir): {'bind': '/tira-data/', 'mode': 'rw'}})
 
     if evaluate:
         approach_name = identifier if identifier else f'"{command}"@{image}'
         eval_results = {'approach': approach_name, 'evaluate': evaluate}
-        eval_results.update(__load_output(eval_output_dir, evaluation=True, verbose=verbose))
-        return __load_output(output_dir, verbose=verbose), pd.DataFrame([eval_results])
+        eval_results.update(__load_output(Path(data_dir) / 'eval_output', evaluation=True, verbose=verbose))
+        return __load_output(Path(data_dir) / 'output', verbose=verbose), pd.DataFrame([eval_results])
     else:
-        return __load_output(output_dir, verbose=verbose)
+        return __load_output(Path(data_dir) / 'output', verbose=verbose)
 
