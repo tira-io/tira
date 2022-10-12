@@ -141,7 +141,7 @@ def add_new_tag_to_docker_image_repository(repository_name, old_tag, new_tag):
     return original_repository_name + ':' + new_tag
 
 
-def archive_repository(repo_name, persist_all_images=False):
+def archive_repository(repo_name, persist_all_images=True):
     from tira.tira_model import get_docker_software, get_docker_softwares_with_runs, get_dataset
     from django.template.loader import render_to_string
     repo = __existing_repository(repo_name)
