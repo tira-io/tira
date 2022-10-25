@@ -37,6 +37,7 @@ def get_dataset_for_task(request, context, task_id):
 @add_context
 def get_evaluations_by_dataset(request, context, task_id, dataset_id):
     role = context["role"]
+
     ev_keys, evaluations = model.get_evaluations_with_keys_by_dataset(dataset_id, True if role == "admin" else None)
 
     context["task_id"] = task_id

@@ -164,6 +164,7 @@ def software_detail(request, context, task_id, vm_id):
 
     return render(request, 'tira/software.html', context) 
 
+
 @check_conditional_permissions(private_run_ok=True)
 @check_resources_exist('http')
 @add_context

@@ -625,7 +625,11 @@ class HybridDatabase(object):
             except ValueError:
                 return fl
 
-        def format_evalutation(r, ks):
+        def format_evaluation(r, ks):
+            """
+            @param r: a queryset of modeldb.Run
+            @param ks: a list of keys of evaluation parameters
+            """
             def if_exists(evals):
                 for k in ks:
                     ev = evals.filter(run__run_id=run.run_id, measure_key=k).all()
@@ -634,6 +638,7 @@ class HybridDatabase(object):
                     else:
                         yield "-"
 
+            # print(r.all().values())
             for run in r:
                 if run.run_id in exclude:
                     continue
@@ -642,6 +647,9 @@ class HybridDatabase(object):
                     continue
                 try:
                     input_run = run.input_run
+                    # print(input_run.software)
+                    # print(input_run.docker_software)
+                    # print(input_run.upload)
                     if input_run.software:
                         vm_id = run.input_run.software.vm.vm_id
                     elif input_run.docker_software:
@@ -649,6 +657,8 @@ class HybridDatabase(object):
                     elif input_run.upload:
                         vm_id = run.input_run.upload.vm.vm_id
                     else:
+                        logger.error(
+                            f"The input run {run.run_id} has no vm assigned. Assigning None instead")
                         vm_id = "None"
 
                 except AttributeError as e:
@@ -672,7 +682,7 @@ class HybridDatabase(object):
         exclude = {review.run.run_id for review in modeldb.Review.objects.select_related('run').filter(
             run__input_dataset__dataset_id=dataset_id, published=False, run__software=None).all()
                    if not include_unpublished}
-        return keys, list(format_evalutation(runs, keys))
+        return keys, list(format_evaluation(runs, keys))
 
     def get_software_with_runs(self, task_id, vm_id):
         def _runs_by_software(software):
@@ -1048,6 +1058,7 @@ class HybridDatabase(object):
         run.inputDataset = dataset_id
         run.deleted = False
         run.downloadable = True
+        run.taskId = task_id
         # Third add to database
         upload = modeldb.Upload.objects.get(vm__vm_id=vm_id, task__task_id=task_id)
         upload.last_edit_date = now()
@@ -1350,3 +1361,14 @@ class HybridDatabase(object):
         return modeldb.Software.objects.filter(software_id=software_id, vm__vm_id=vm_id).exists()
 
 # modeldb.EvaluationLog.objects.filter(vm_id='nlptasks-master').delete()
+# print(modeldb.Run.objects.all().exclude(upload=None).values())
+
+# Note: To Reindex faulty runs
+# dataset_ids = set([run.input_dataset_id for run in modeldb.Run.objects.filter(upload=None, software=None, docker_software=None, evaluator=None)])
+# runs_dir = settings.TIRA_ROOT / Path("data/runs")
+# for d in dataset_ids:
+#     if not d:
+#         print("d is None")
+#         continue
+#     for vm_dir in (runs_dir / d).glob("*"):
+#         print(dbops.parse_runs_for_vm(runs_dir, d, vm_dir.stem, verbose=True))
