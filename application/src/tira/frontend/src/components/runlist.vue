@@ -1,16 +1,3 @@
-<script>
-export default {
-    props: ['runs', 'vm_id', 'task_id', 'dataset_id', 'for_review', 'hide_reviewed'],
-    computed: {
-        getRuns() {
-            if (this.hide_reviewed) {
-                return this.runs.filter(run => (run.review.noErrors || run.review.hasErrors || run.review.hasErrorOutput || run.review.otherErrors) === false)
-            }
-            return this.runs
-        }
-    }
-}
-</script>
 <template>
 <div class="scrollable-table">
 <table class="uk-margin-small uk-table uk-table-divider uk-table-small uk-table-middle">
@@ -22,8 +9,9 @@ export default {
         <th class="uk-table-shrink"></th>
         <th class="header uk-table-shrink uk-text-nowrap"><span>Run</span></th>
         <th class="header uk-table-shrink uk-text-nowrap"><span>Input Run</span></th>
-        <th class="header uk-table-expand"><span v-if="for_review">Review</span><span v-else>Dataset</span></th>
-        <th class="header uk-text-center uk-width-1-4">Actions</th>
+        <th class="header uk-table-expand"><span>Review</span></th>
+        <th class="header uk-table-shrink uk-text-nowrap"></th>
+        <th class="header uk-table-shrink uk-text-nowrap"></th>
     </tr>
     </thead>
     <tbody>
@@ -33,13 +21,16 @@ export default {
               'uk-background-default': !(run.review.noErrors || run.review.hasErrors || run.review.hasErrorOutput || run.review.otherErrors) && !for_review,
               'table-background-yellow': !(run.review.noErrors || run.review.hasErrors || run.review.hasErrorOutput || run.review.otherErrors) && for_review,
               'uk-background-default': (run.review.noErrors || run.review.hasErrors || run.review.hasErrorOutput || run.review.otherErrors) && for_review}">
-        <td :id="'run-' + vm_id + '-' + run.run.run_id"></td>
+        <td class="uk-table-shrink uk-padding-remove uk-margin-remove" :id="'run-' + vm_id + '-' + run.run.run_id"></td>
         <td class="uk-table-shrink uk-padding-remove-vertical"> <!-- run status Icon -->
             <div uk-tooltip="This run is OK" v-if="run.review.noErrors" class="dataset-detail-icon uk-text-success">
                 <font-awesome-icon icon="fas fa-check"/>
             </div>
             <div uk-tooltip="This run has errors" v-else-if="run.review.hasErrors" class="dataset-detail-icon uk-text-danger">
                 <font-awesome-icon icon="fas fa-times"/>
+            </div>
+            <div uk-tooltip="This run has not been reviewed yet. A task organizer will check each run and confirm it's validity." v-else class="dataset-detail-icon">
+                <font-awesome-icon icon="fas fa-question" />
             </div>
         </td>
         <td class="uk-table-shrink uk-padding-remove-vertical"> <!-- run visibility Icon -->
@@ -58,9 +49,8 @@ export default {
                 <font-awesome-icon icon="fas fa-users-slash" />
             </div>
         </td>
-        <td class="uk-table-shrink uk-text-nowrap"><span v-if="run.run.input_run_id != 'none'">
-                <font-awesome-icon icon="fas fa-level-up-alt" />
-
+        <td class="uk-table-shrink uk-text-nowrap"><span v-if="run.run.input_run_id != ''">
+                <font-awesome-icon icon="fas fa-level-up-alt" flip="horizontal"/>
             </span>&nbsp;{{ run.run.run_id }}</td>
         <td class="uk-table-shrink uk-text-nowrap" ><a :href="'#run-' + vm_id + '-' + run.run.input_run_id" v-if="run.run.input_run_id != 'none'">{{ run.run.input_run_id }}</a>
         </td>
@@ -71,31 +61,34 @@ export default {
            <span v-if="run.review.comment != ''">{{ run.review.comment }}</span>
            </td>
         <td class="uk-padding-remove-vertical uk-text-truncate" v-else>{{ dataset_id }}</td>
-        
-        <td class="uk-align-right uk-table-expand uk-text-nowrap uk-margin-remove uk-padding-remove-vertical uk-padding-remove-right">
-            <a class="uk-button uk-button-small uk-button-default run-evaluate-button uk-background-default"
-               data-tira-dataset="{{ run.dataset }}" data-tira-vm-id="{{ vm_id }}"
-               data-tira-run-id="{{ run.run_id }}"
-               v-if="!(for_review) && run.run.input_run_id === 'none'">
-                <div id="run-evaluate-spinner-{{ run.run_id }}" class="run-evaluate-spinner" uk-spinner="ratio: 0.4"></div> evaluate</a>
+        <td class="uk-table-shrink uk-text-nowrap uk-padding-remove uk-margin-remove uk-preserve-width">
             <a class="uk-button uk-button-small uk-button-default uk-background-default"
-               :href="'/task/' + task_id + '/user/' + vm_id + '/dataset/' + dataset_id + '/run/' + run.run.run_id">
-
-                <font-awesome-icon icon="fas fa-search" />
-                inspect</a>
+                 :href="'/task/' + task_id + '/user/' + vm_id + '/dataset/' + dataset_id + '/run/' + run.run.run_id">
+                  <font-awesome-icon icon="fas fa-search" />
+                  REVIEW</a>
+        </td>
+        <td class="uk-table-shrink uk-text-nowrap uk-padding-remove uk-margin-remove uk-preserve-width">
             <a class="uk-button uk-button-small uk-button-default uk-background-default"
                target="_blank"
                :href="'/task/' + task_id + '/user/' + vm_id + '/dataset/' + dataset_id + '/download/' + run.run.run_id + '.zip'">
-
                 <font-awesome-icon icon="fas fa-download" />
-                download</a>
-            <a class="uk-button uk-button-small uk-button-danger run-delete-button"
-               v-if="!(for_review)"
-               data-tira-dataset="{{ run.dataset }}" data-tira-vm-id="{{ vm_id }}"
-               data-tira-run-id="{{ run.run_id }}">delete</a>
-          </td>         
+                </a>
+        </td>
     </tr>
     </tbody>
 </table>
 </div>
 </template>
+<script>
+export default {
+    props: ['runs', 'vm_id', 'task_id', 'dataset_id', 'for_review', 'hide_reviewed'],
+    computed: {
+        getRuns() {
+            if (this.hide_reviewed) {
+                return this.runs.filter(run => (run.review.noErrors || run.review.hasErrors || run.review.hasErrorOutput || run.review.otherErrors) === false)
+            }
+            return this.runs
+        }
+    }
+}
+</script>
