@@ -1,6 +1,6 @@
 import NotificationBar from './components/notificationbar.vue'
 import Leaderboard from './components/leaderboard.vue'
-import ReviewList from './components/reviewlist.vue'
+import ReviewAccordion from './components/reviewaccordion.vue'
 import EditTask from './components/edittask.vue'
 import EditDataset from './components/editdataset.vue'
 import AddDataset from './components/adddataset.vue'
@@ -13,11 +13,11 @@ import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faCheck, faTimes, faUserSlash, faUsers, faUsersSlash, faLevelUpAlt, faUser, faSearch, faDownload, faSave,
     faTrashAlt, faCog, faPlus, faSort, faSortUp, faSortDown, faSortAmountUp, faSortAlphaUp,
-    faSortNumericUp, faSortAmountDown, faSortAlphaDown, faSortNumericDown } from '@fortawesome/free-solid-svg-icons'
+    faSortNumericUp, faSortAmountDown, faSortAlphaDown, faSortNumericDown, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons'
 
 library.add(faCheck, faTimes, faUserSlash, faUsers, faUsersSlash, faLevelUpAlt, faUser, faSearch, faDownload, faSave,
     faTrashAlt, faCog, faPlus, faSort, faSortUp, faSortDown, faSortAmountUp, faSortAlphaUp,
-    faSortNumericUp, faSortAmountDown, faSortAlphaDown, faSortNumericDown)
+    faSortNumericUp, faSortAmountDown, faSortAlphaDown, faSortNumericDown, faEye, faEyeSlash)
 
 // CSS
 require('../../static/tira/css/tira-style.css');
@@ -40,7 +40,7 @@ const app = createApp({
             loading: false,
             selected: "",
             hide_private: true,
-            hide_reviewed: true,
+            hide_reviewed: false,
             editTaskToggle: false,
             editDatasetToggle: false,
             addDatasetToggle: false,
@@ -48,7 +48,7 @@ const app = createApp({
         }
     },
     components: {
-        Leaderboard, ReviewList, NotificationBar, EditTask, EditDataset, AddDataset
+        Leaderboard, ReviewAccordion, NotificationBar, EditTask, EditDataset, AddDataset
     },
     methods: {
         async get(url) {
@@ -66,7 +66,6 @@ const app = createApp({
             this.notifications.push({'type': type, 'message': message})
         },
         deleteDataset(dsId) {
-            console.log("delete dataset")
             this.editDatasetToggle = false
             delete this.datasets[dsId]
             this.selected = ""

@@ -137,16 +137,10 @@ def check_resources_exist(reply_as='json'):
                 if not model.vm_exists(kwargs["vm_id"]):
                     logger.error(f"{resolve(request.path_info).url_name}: vm_id does not exist")
                     if "task_id" in kwargs:
-                        # if kwargs["vm_id"] == "no-vm-assigned":
-                        #     return return_fail('No vm was assigned, please request a vm.', request_vm_instead=True)
                         return return_fail(f'There is no vm with id {kwargs["vm_id"]} matching your request.',
                                            request_vm_instead=True)
 
                     return return_fail(f"vm_id {kwargs['vm_id']} does not exist", request_vm_instead=True)
-                # TODO uncommented so uploads work without a live vm
-                # elif not model.get_vm(kwargs["vm_id"]).get('host', None):
-                #     return return_fail(f'The requested account has no live vm with id: {kwargs["vm_id"]}',
-                #                        request_vm_instead=True)
 
             if "dataset_id" in kwargs:
                 if not model.dataset_exists(kwargs["dataset_id"]):
@@ -171,9 +165,7 @@ def check_resources_exist(reply_as='json'):
                     return return_fail("software_id does not exist")
 
             if "run_id" in kwargs:
-                if "dataset_id" not in kwargs or "vm_id" not in kwargs:
-                    raise AttributeError("Can't validate run_id: need dataset_id and vm_id in kwargs")
-                if not model.run_exists(kwargs["vm_id"], kwargs["dataset_id"], kwargs["run_id"]):
+                if not model.run_exists(kwargs.get("vm_id", None), kwargs.get("dataset_id", None), kwargs["run_id"]):
                     logger.error(f"{resolve(request.path_info).url_name}: run_id does not exist")
                     return return_fail("run_id does not exist")
 

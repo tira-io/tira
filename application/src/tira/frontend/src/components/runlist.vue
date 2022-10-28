@@ -62,10 +62,13 @@
            </td>
         <td class="uk-padding-remove-vertical uk-text-truncate" v-else>{{ dataset_id }}</td>
         <td class="uk-table-shrink uk-text-nowrap uk-padding-remove uk-margin-remove uk-preserve-width">
-            <a class="uk-button uk-button-small uk-button-default uk-background-default"
-                 :href="'/task/' + task_id + '/user/' + vm_id + '/dataset/' + dataset_id + '/run/' + run.run.run_id">
-                  <font-awesome-icon icon="fas fa-search" />
-                  REVIEW</a>
+            <review-button
+                :task_id="task_id" :user_id="vm_id" :dataset_id="dataset_id" :run_id="run.run.run_id"
+                @addNotification="(type, message) => addNotification(type, message)"/>
+<!--            <a class="uk-button uk-button-small uk-button-default uk-background-default"-->
+<!--                 :href="'/task/' + task_id + '/user/' + vm_id + '/dataset/' + dataset_id + '/run/' + run.run.run_id">-->
+<!--                  <font-awesome-icon icon="fas fa-search" />-->
+<!--                  REVIEW</a>-->
         </td>
         <td class="uk-table-shrink uk-text-nowrap uk-padding-remove uk-margin-remove uk-preserve-width">
             <a class="uk-button uk-button-small uk-button-default uk-background-default"
@@ -80,8 +83,18 @@
 </div>
 </template>
 <script>
+import ReviewButton from "./reviewbutton";
 export default {
     props: ['runs', 'vm_id', 'task_id', 'dataset_id', 'for_review', 'hide_reviewed'],
+    components: {
+        ReviewButton,
+    },
+    emits: ['addnotification'],
+    methods: {
+      addNotification(t, m) {
+        this.$emit('addnotification', t, m)
+      }
+    },
     computed: {
         getRuns() {
             if (this.hide_reviewed) {
@@ -92,3 +105,4 @@ export default {
     }
 }
 </script>
+<!-- TODO delete -->

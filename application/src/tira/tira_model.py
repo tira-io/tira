@@ -259,6 +259,15 @@ def get_evaluations_with_keys_by_dataset(dataset_id, include_unpublished=False):
     return model.get_evaluations_with_keys_by_dataset(dataset_id, include_unpublished)
 
 
+def get_evaluation(run_id: str):
+    """ Get the evaluation of this run
+
+    @param run_id: the id of the run
+    @return: a dict with {measure_key: measure_value}
+    """
+    return model.get_evaluation(run_id)
+
+
 def get_software_with_runs(task_id, vm_id):
     """
     Construct a dictionary that has the software as a key and as value a list of runs with that software

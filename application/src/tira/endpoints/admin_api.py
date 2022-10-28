@@ -7,6 +7,7 @@ from django.http import HttpResponse, JsonResponse
 from django.core.serializers.json import DjangoJSONEncoder
 from http import HTTPStatus
 import json
+from datetime import datetime as dt
 
 import tira.tira_model as model
 import tira.git_runner as git_runner
@@ -314,3 +315,31 @@ def admin_create_group(request, vm_id):
     vm = model.get_vm(vm_id)
     message = auth.create_group(vm)
     return JsonResponse({'status': 0, 'message': message})
+
+
+@check_conditional_permissions(restricted=True)
+@check_resources_exist('json')
+def admin_edit_review(request, dataset_id, vm_id, run_id):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        no_errors = data["no_errors"]
+        output_error = data["output_error"]
+        software_error = data["software_error"]
+        comment = data["comment"]
+
+        # sanity checks
+        if no_errors and (output_error or software_error):
+            JsonResponse({'status': 1, 'message': f"Error type is not clearly selected."})
+
+        username = auth.get_user_id(request)
+        has_errors = output_error or software_error
+        has_no_errors = (not has_errors)
+
+        s = model.update_review(dataset_id, vm_id, run_id, username, str(dt.utcnow()),
+                                has_errors, has_no_errors, no_errors=no_errors,
+                                invalid_output=output_error,
+                                has_error_output=output_error, other_errors=software_error, comment=comment
+                                )
+        return JsonResponse({'status': 0, 'message': f"Updated review for run {run_id}"})
+
+    return JsonResponse({'status': 1, 'message': f"GET is not implemented for edit organizer"})

@@ -3,6 +3,7 @@ import json
 from tira.forms import *
 import tira.tira_model as model
 from tira.checks import check_permissions, check_resources_exist, check_conditional_permissions
+from tira.tira_data import get_run_runtime, get_run_file_list, get_stderr, get_stdout, get_tira_log
 from tira.views import add_context
 
 from django.http import JsonResponse
@@ -38,6 +39,21 @@ def get_dataset_for_task(request, context, task_id):
 @check_resources_exist('json')
 @add_context
 def get_evaluations_by_dataset(request, context, task_id, dataset_id):
+    """ Return all evaluation results for all submission to a dataset
+    The frontend calls this to build the leaderboard
+    in the task page when a task is selected from the dropdown
+
+    @param request:
+    @param context:
+    @param task_id:
+    @param dataset_id:
+    @return: {
+    ...
+    ev_keys: a list of the keys of the evaluation measures (different for each task/dataset)
+    evaluations: a list of dicts {vm_id, run_id, input_run_id, published, blinded, measures} , one for each vm
+                 measures is a list sorted by the keys in ev_keys
+    }
+    """
     role = context["role"]
 
     ev_keys, evaluations = model.get_evaluations_with_keys_by_dataset(dataset_id, True if role == "admin" else None)
@@ -50,12 +66,29 @@ def get_evaluations_by_dataset(request, context, task_id, dataset_id):
     return JsonResponse({'status': 1, "context": context})
 
 
+@check_permissions
+@add_context
+def get_evaluation(request, context, run_id):
+    run = model.get_run(None, None, run_id)
+    review = model.get_run_review(None, None, run_id)
+
+    if not run['is_evaluation'] or (review["blinded"] and not context['role'] == 'admin'):
+        return JsonResponse({'status': 1, "message": f"Run {run_id} is not an evaluation run."})
+
+    dataset = model.get_dataset(run['dataset'])
+    if dataset['is_confidential'] and not context['role'] == 'admin':
+        return JsonResponse({'status': 1, "message": f"Run {run_id} is not an evaluation run."})
+
+    evaluation = model.get_evaluation(run_id)
+    context["evaluation"] = evaluation
+    return JsonResponse({'status': 0, "context": context})
+
+
 @check_resources_exist("json")
 @add_context
 def get_submissions_by_dataset(request, context, task_id, dataset_id):
     role = context["role"]
     vms = model.get_vms_with_reviews(dataset_id) if role == "admin" else None
-
     context["task_id"] = task_id
     context["dataset_id"] = dataset_id
     context["vms"] = vms
@@ -161,3 +194,25 @@ def get_running_software(request, context, task_id, user_id):
 
     return JsonResponse({'status': 0, "context": context})
 
+
+@check_permissions
+@check_resources_exist("json")
+@add_context
+def get_review(request, context, dataset_id, user_id, run_id):
+    context["dataset"] = model.get_dataset(dataset_id)
+    context["run"] = model.get_run(None, None, run_id)
+    context["review"] = model.get_run_review(dataset_id, user_id, run_id)
+    context["runtime"] = get_run_runtime(dataset_id, user_id, run_id)
+    context["files"] = get_run_file_list(dataset_id, user_id, run_id)
+    if context['role'] == 'admin':
+        context["files"]["file_list"][0] = "output/"
+        context["stdout"] = get_stdout(dataset_id, user_id, run_id)
+        context["stderr"] = get_stderr(dataset_id, user_id, run_id)
+        context["tira_log"] = get_tira_log(dataset_id, user_id, run_id)
+    else:
+        context["files"]["file_list"] = []
+        context["stdout"] = "hidden"
+        context["stderr"] = "hidden"
+        context["tira_log"] = "hidden"
+
+    return JsonResponse({'status': 0, "context": context})

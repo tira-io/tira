@@ -79,11 +79,11 @@
                 evaluate</a>
         </td>
         <td class="uk-table-shrink uk-text-nowrap uk-padding-remove uk-margin-remove uk-preserve-width">
-            <a class="uk-button uk-button-small uk-button-default uk-background-default"
-               target="_blank"
-               :href="'/task/' + task_id + '/user/'  + user_id + '/dataset/' + run.dataset + '/run/' + run.run_id">
-                <font-awesome-icon icon="fas fa-search" />
-                inspect</a>
+          <review-button :task_id="task_id" :user_id="vm.vm_id" :dataset_id="run.run.dataset"
+                         :run_id="run.run.run_id" :csrf="csrf"
+                          @add-notification="(type, message) => this.$emit('add-notification', type, message)"
+                          @update-review="newReview => updateReview(newReview)"
+          />
         </td>
         <td class="uk-table-shrink uk-text-nowrap uk-padding-remove uk-margin-remove uk-preserve-width">
             <a class="uk-button uk-button-small uk-button-danger"
@@ -98,14 +98,19 @@
 </template>
 
 <script>
+import ReviewButton from "./reviewbutton";
+
 export default {
     name: "submissionresultspanel",
-    props: ['runs', 'task_id', 'user_id', 'running_evaluations'],
-    emits: ['addnotification', 'pollevaluations', 'removerun'],
+    props: ['runs', 'task_id', 'user_id', 'running_evaluations', 'csrf'],
+    emits: ['add-notification', 'poll-evaluations', 'remove-run'],
     data() {
         return {
             runningEvaluationIds: []
         }
+    },
+    components: {
+        ReviewButton
     },
     methods: {
         async get(url) {
@@ -119,15 +124,31 @@ export default {
             }
             return results
         },
+        updateReview(newReview) {
+          for (const run of this.runs){
+            if (run.run.run_id === newReview.run_id) {
+              run.review.blinded = !newReview.isVisibleToParticipant
+              run.review.published = newReview.isOnLeaderboard
+              run.noErrors =newReview.no_errors
+              run.hasErrors = !newReview.no_errors
+              run.comment =newReview. comment
+              run.hasErrorOutput = newReview.output_error
+              run.otherErrors = newReview.software_error
+              run.reviewer = newReview.reviewer
+              run.reviewed = newReview.no_errors || newReview.output_error || newReview.software_error
+            }
+          }
+        },
+
         deleteRun(datasetId, runId) {
             if(datasetId === ""){
                 datasetId=null
             }
             this.get(`/grpc/${this.user_id}/run_delete/${datasetId}/${runId}`).then(message => {
                 console.log(message)
-                this.$emit('removeRun', runId)
+                this.$emit('remove-run', runId)
             }).catch(error => {
-                this.$emit('addnotification', 'error', error.message)
+                this.$emit('add-notification', 'error', error.message)
             })
         },
         evaluateRun(datasetId, runId) {
@@ -137,9 +158,9 @@ export default {
             }
             this.get(`/grpc/${this.user_id}/run_eval/${datasetId}/${runId}`).then(message => {
                 console.log(message)
-                this.$emit('pollevaluations')
+                this.$emit('poll-evaluations')
             }).catch(error => {
-                this.$emit('addnotification', 'error', error.message)
+                this.$emit('add-notification', 'error', error.message)
             })
         }
     },

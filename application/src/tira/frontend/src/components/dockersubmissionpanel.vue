@@ -117,6 +117,7 @@
         :runs="selectedRuns"
         :task_id="task.task_id"
         :user_id="user_id"
+        :csrf="csrf"
         :running_evaluations="running_evaluations"
         @addNotification="(type, message) => addNotification(type, message)"
         @removeRun="(runId) => removeRun(runId)"

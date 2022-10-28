@@ -41,26 +41,38 @@
 </form>
 </div>
 <div class="uk-margin-small">
-    <submission-results-panel
+<!--    <submission-results-panel-->
+<!--        v-if="upload.runs"-->
+<!--        :runs="upload.runs"-->
+<!--        :task_id="taskid"-->
+<!--        :user_id="userid"-->
+<!--        :csrf="csrf"-->
+<!--        :running_evaluations="running_evaluations"-->
+<!--        @addNotification="(type, message) => addNotification(type, message)"-->
+<!--        @removeRun="(runId) => removeRun(runId)"-->
+<!--        @pollEvaluations="pollEvaluations()"-->
+<!--    />-->
+    <review-list
         v-if="upload.runs"
         :runs="upload.runs"
         :task_id="taskid"
         :user_id="userid"
-        :running_evaluations="running_evaluations"
+        display="participant"
+        :csrf="csrf"
         @addNotification="(type, message) => addNotification(type, message)"
         @removeRun="(runId) => removeRun(runId)"
-        @pollEvaluations="pollEvaluations()"
-    />
+        @pollEvaluations="pollEvaluations()"/>
 </div>
 </template>
 
 <script>
 import SubmissionResultsPanel from './submissionresultspanel.vue'
+import ReviewList from './reviewlist'
 
 export default {
     name: "uploadsubmissionpanel",
     components: {
-        SubmissionResultsPanel
+        SubmissionResultsPanel, ReviewList
     },
     props: ['csrf', 'datasets', 'upload', "taskid", "userid", "running_evaluations"],
     emits: ['addnotification', 'pollevaluations', 'removerun'],

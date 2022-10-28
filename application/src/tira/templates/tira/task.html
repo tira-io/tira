@@ -127,6 +127,7 @@
         {% if role == 'admin' %}
         <div v-if="selected !== '' && role === 'admin' && vms[selected]" class="uk-container uk-margin-medium">
 
+
             <div class="uk-grid-collapse" uk-grid>
                 <div class="uk-width-expand">
                     <h2>Participants</h2>
@@ -136,7 +137,9 @@
                     <label for="check-hide-reviewed">Hide already reviewed runs</label>
                 </div>
             </div>
-            <review-list :vms="vms[selected]" :task_id="task_id" :dataset_id="selected" :hide_reviewed="hide_reviewed"/>
+            <review-accordion @add-notification="(type, message) => addNotification(type, message)"
+                             :vms="vms[selected]" :task_id="task_id" :hide_reviewed="hide_reviewed"
+                             :csrf="csrf" />
         </div>
         {% endif %}
     </main>

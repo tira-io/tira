@@ -8,11 +8,11 @@
       <th class="uk-table-shrink" v-if="role == 'admin'">&nbsp;</th>
       <th class="header uk-table-shrink uk-text-nowrap" @click="sort('vm_id')">
           <span>Virtual Machine&nbsp;</span>
-          <sort-icon :row_key="'vm_id'" :selected_key="currentSort" :direction="currentSortDir" icon_type="letter"/>
+          <sort-icon :row_key="'vm_id'" :selected_key="currentSort" :direction="currentSortDir"/>
       </th>
       <th class="header uk-table-shrink uk-text-nowrap" @click="sort('run_id')">
           <span>Run&nbsp;</span>
-          <sort-icon :row_key="'run_id'" :selected_key="currentSort" :direction="currentSortDir" icon_type="number"/>
+          <sort-icon :row_key="'run_id'" :selected_key="currentSort" :direction="currentSortDir"/>
       </th>
       <th class="header uk-table-shrink uk-text-nowrap" @click="sort(key)" v-for="key in keys">
           <span>{{ key }}&nbsp;</span>
@@ -30,18 +30,18 @@
       <td class="uk-table-shrink uk-padding-remove uk-margin-remove" :id="dataset_id + '-' + evaluation.vm_id + '-' + evaluation.run_id"></td>
       <td class="uk-table-shrink uk-padding-remove-vertical" v-if="role === 'admin'">
           <div uk-tooltip="This run is blinded" v-if="evaluation.blinded" class="dataset-detail-icon">
-              <font-awesome-icon icon="fas fa-user-slash"/>
+              <font-awesome-icon icon="fas fa-eye-slash"/>
           </div>
           <div uk-tooltip="This run is visible to the participant" v-else class="dataset-detail-icon uk-text-success">
-              <font-awesome-icon icon="fas fa-user" />
+              <font-awesome-icon icon="fas fa-eye" />
           </div>
       </td>
       <td class="uk-table-shrink uk-padding-remove-vertical" v-if="role === 'admin'"> <!-- Icons -->
           <div uk-tooltip="This run is on the leaderboards" v-if="evaluation.published" class="dataset-detail-icon uk-text-success">
-              <font-awesome-icon icon="fas fa-users" />
+              <font-awesome-icon icon="fas fa-sort-amount-up" />
           </div>
           <div uk-tooltip="This run is not published" v-else class="dataset-detail-icon">
-              <font-awesome-icon icon="fas fa-users-slash" />
+              <font-awesome-icon icon="fas fa-sort-amount-up" />
           </div>
       </td>
       <td class="uk-table-shrink uk-text-nowrap uk-padding-remove-vertical">{{ evaluation.vm_id }}</td>
@@ -93,6 +93,10 @@ export default {
   computed: {
     filteredEvaluations: function () {
       let result = this.hide_private ? this.evaluation.filter(i => i.published === true) : this.evaluation
+      result.map(i => {
+        i.vm_id = i.vm_id.replace(/-default/, '')
+      })
+
       result.sort((a, b) => {
         let modifier = 1;
         if(this.currentSortDir === 'desc') modifier = -1;
