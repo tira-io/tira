@@ -82,10 +82,10 @@
         </div>
         <div v-if="isGitRunner === true" class="uk-grid-small uk-margin-small" uk-grid>
             <div class="uk-width-1-2">
-                <label> Image to be run <input type="text" class="uk-input" v-model="gitRunnerImage" /></label>
+                <label> Image to be run <input type="text" class="uk-input" v-model="gitRunnerImage" placeholder="ubuntu:18.04"/></label>
             </div>
             <div class="uk-width-1-2">
-                <label>Git Runner Command <input type="text" class="uk-input" v-model="gitRunnerCommand" /></label>
+                <label>Git Runner Command <input type="text" class="uk-input" v-model="gitRunnerCommand" placeholder="echo 'Hello Evaluator' "/></label>
             </div>
             <div class="uk-width-1-1">
                 <label><input class="uk-checkbox" type="checkbox" name="checkbox-gitci" v-model="useExistingRepo"> use custom repository (Do only change as expert) </label>
@@ -158,6 +158,14 @@ export default {
             }
             if (this.datasetNameInput === '') {
                 this.editDatasetError += 'Please provide a name for the new Dataset;\n'
+            }
+            if (this.isGitRunner) {
+                if (this.gitRunnerImage === '') {
+                    this.editDatasetError += 'Please provide an image for the evaluator;\n'
+                }
+                if (this.gitRunnerCommand === '') {
+                    this.editDatasetError += 'Please provide a command for the evaluator;\n'
+                }
             }
             if (this.editDatasetError !== '') {
                 return
