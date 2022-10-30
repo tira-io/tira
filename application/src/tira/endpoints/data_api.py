@@ -149,10 +149,10 @@ def get_running_software(request, context, task_id, user_id):
     repositories = set([i['git_repository_id'] for i in evaluators_for_task if i['is_git_runner'] and i['git_repository_id']])
                 
     for git_repository_id in sorted(list(repositories)):
-        context['running_software'] = list(yield_all_running_pipelines(int(git_repository_id), user_id, cache))
-        for software in context['running_software']:
-            if 'pipeline' in software:
-                del software['pipeline']
+        context['running_software'] += list(yield_all_running_pipelines(int(git_repository_id), user_id, cache))
+    for software in context['running_software']:
+        if 'pipeline' in software:
+            del software['pipeline']
 
     return JsonResponse({'status': 0, "context": context})
 

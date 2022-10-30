@@ -7,7 +7,8 @@ from grpc import RpcError, StatusCode
 from tira.authentication import auth
 from tira.checks import check_permissions, check_resources_exist, check_conditional_permissions
 from tira.forms import *
-from tira.git_runner import run_evaluate_with_git_workflow, run_docker_software_with_git_workflow, stop_job_and_clean_up
+from tira.git_runner import run_evaluate_with_git_workflow, run_docker_software_with_git_workflow, \
+    stop_job_and_clean_up, yield_all_running_pipelines_for_repository
 from django.http import JsonResponse
 from django.conf import settings
 from http import HTTPStatus
@@ -445,6 +446,14 @@ def run_execute_docker_software(request, task_id, vm_id, dataset_id, docker_soft
                                           evaluator['git_runner_command'], evaluator['git_repository_id'], evaluator['evaluator_id'],
                                           docker_software['tira_image_name'], docker_software['command'],
                                           'docker-software-' + docker_software_id, docker_resources)
+
+    running_pipelines = list(yield_all_running_pipelines_for_repository(
+        evaluator['git_repository_id'],
+        cache,
+        force_cache_refresh=True)
+    )
+    print('Refreshed Cache for repo ' + str(evaluator['git_repository_id']) + ' with ' +
+          str(len(running_pipelines)) + ' jobs.')
     
     return JsonResponse({'status': 0}, status=HTTPStatus.ACCEPTED)
 
