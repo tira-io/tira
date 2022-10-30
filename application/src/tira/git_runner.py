@@ -118,7 +118,7 @@ def help_on_uploading_docker_image(user, cache=None, force_cache_refresh=False):
     repo = __existing_repository('tira-user-' + user)
     if not repo:
         create_user_repository(user)
-        return help_on_uploading_docker_image(user)
+        return help_on_uploading_docker_image(user, cache)
     
     # Hacky at the moment
     ret = repo.files.get('README.md', ref='main').decode().decode('UTF-8').split('## Create an docker image')[1]

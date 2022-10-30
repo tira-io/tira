@@ -455,6 +455,6 @@ def stop_docker_software(request, task_id, user_id, run_id):
         datasets = model.get_datasets_by_task(task_id)
         for dataset in datasets:
 
-            stop_job_and_clean_up(model.get_evaluator(dataset["dataset_id"])["git_repository_id"], user_id, run_id)
+            stop_job_and_clean_up(model.get_evaluator(dataset["dataset_id"])["git_repository_id"], user_id, run_id, cache)
 
         return JsonResponse({"status": 0, "message": "Run successfully stopped"})

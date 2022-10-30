@@ -4,6 +4,7 @@ p.stat().st_mtime - change time
 from pathlib import Path
 import logging
 from tira.data.HybridDatabase import HybridDatabase
+from django.core.cache import cache
 from tira.git_runner import docker_images_in_user_repository, add_new_tag_to_docker_image_repository, help_on_uploading_docker_image
 import randomname
 from django.conf import settings
@@ -107,13 +108,13 @@ def load_docker_data(task_id, vm_id, cache):
     if not git_pipeline_is_enabled_for_task(task_id, cache):
         return False
     
-    docker_images = [i for i in docker_images_in_user_repository(vm_id) if '-tira-docker-software-id-' not in i]
+    docker_images = [i for i in docker_images_in_user_repository(vm_id, cache) if '-tira-docker-software-id-' not in i]
     
     return {
         "docker_images": docker_images,
         "docker_softwares": model.get_docker_softwares_with_runs(task_id, vm_id),
         "resources": list(settings.GIT_CI_AVAILABLE_RESOURCES.values()),
-        "docker_software_help": help_on_uploading_docker_image(vm_id),
+        "docker_software_help": help_on_uploading_docker_image(vm_id, cache),
         "resources": list(settings.GIT_CI_AVAILABLE_RESOURCES.values()),
     }
 

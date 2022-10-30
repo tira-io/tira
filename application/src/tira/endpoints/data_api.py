@@ -7,6 +7,7 @@ from tira.views import add_context
 
 from django.http import JsonResponse
 from django.conf import settings
+from django.core.cache import cache
 from django.core.serializers.json import DjangoJSONEncoder
 from tira.git_runner import yield_all_running_pipelines
 
@@ -125,7 +126,7 @@ def get_role(request, context):
 def get_user(request, context, task_id, user_id):
     software = model.get_software_with_runs(task_id, user_id)
     upload = model.get_upload_with_runs(task_id, user_id)
-    docker = model.load_docker_data(task_id, user_id)
+    docker = model.load_docker_data(task_id, user_id, cache)
 
     context["task"] = model.get_task(task_id)
     context["user_id"] = user_id
@@ -144,18 +145,14 @@ def get_user(request, context, task_id, user_id):
 def get_running_software(request, context, task_id, user_id):
     context['running_software'] = []
     
-    for dataset in model.get_datasets_by_task(task_id):
-        evaluator = model.get_evaluator(dataset['dataset_id'])
-
-        git_repository_id = evaluator.get('git_repository_id', None)
-
-        if not git_repository_id:
-            continue
-
-        context['running_software'] = list(yield_all_running_pipelines(int(evaluator['git_repository_id']),
-                                                                       user_id))
+    evaluators_for_task = model.get_evaluators_for_task(task_id, cache)
+    repositories = set([i['git_repository_id'] for i in evaluators_for_task if i['is_git_runner'] and i['git_repository_id']])
+                
+    for git_repository_id in sorted(list(repositories)):
+        context['running_software'] = list(yield_all_running_pipelines(int(git_repository_id), user_id, cache))
         for software in context['running_software']:
             if 'pipeline' in software:
                 del software['pipeline']
 
     return JsonResponse({'status': 0, "context": context})
+

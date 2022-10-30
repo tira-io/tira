@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import JsonResponse, FileResponse
 from django.conf import settings
+from django.core.cache import cache
 from django.core.serializers.json import DjangoJSONEncoder
 import logging
 
@@ -151,7 +152,7 @@ def software_detail(request, context, task_id, vm_id):
     """ render the detail of the user page: vm-stats, softwares, and runs """
     software = model.get_software_with_runs(task_id, vm_id)
     upload = model.get_upload_with_runs(task_id, vm_id)
-    docker = model.load_docker_data(task_id, vm_id)
+    docker = model.load_docker_data(task_id, vm_id, cache)
 
     context["task"] = model.get_task(task_id)
     context["vm_id"] = vm_id
