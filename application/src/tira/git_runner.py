@@ -478,11 +478,14 @@ def all_running_pipelines_for_repository(git_repository_id, cache=None, force_ca
         for pipeline in gl_project.pipelines.list(status=status):
             user_software_job = None
             evaluation_job = None
+            prepare_environment_job = None
             for job in pipeline.jobs.list():
                 if 'run-user-software' == job.name:
                     user_software_job = job
                 if 'evaluate-software-result' == job.name:
                     evaluation_job = job
+                if 'prepare-tira-environment' == job.name:
+                    prepare_environment_job = job
 
             p = (pipeline.ref + '---started-').split('---started-')[0]
             
@@ -501,6 +504,39 @@ def all_running_pipelines_for_repository(git_repository_id, cache=None, force_ca
                 except:
                     # Job is not started or similar
                     pass
+
+            actual_job_config = {
+                'cores': 'Loading...',
+                'ram': 'Loading...',
+                'dataset_type': 'Loading...',
+                'dataset': 'Loading...',
+                'software_id': 'Loading...',
+                'task_id': 'Loading...',
+            }
+
+            if prepare_environment_job is not None:
+                try:
+                    prepare_environment_job = gl_project.jobs.get(prepare_environment_job.id)
+                    job_config = prepare_environment_job.trace().decode('UTF-8').split('task.env')[-2].split('\n')
+                    job_config = {i.split('=')[0]:i.split('=')[1] for i in job_config if len(i.split('=')) == 2}
+
+                    actual_job_config['cores'] = str(int(job_config['TIRA_CPU_COUNT'])) + ' CPU Cores'
+                    actual_job_config['ram'] = str(int(job_config['TIRA_MEMORY_IN_GIBIBYTE'])) + 'GB of RAM'
+                    actual_job_config['dataset_type'] = job_config['TIRA_DATASET_TYPE']
+                    actual_job_config['dataset'] = job_config['TIRA_DATASET_ID']
+                    actual_job_config['software_id'] = job_config['TIRA_SOFTWARE_ID']
+                    actual_job_config['task_id'] = job_config['TIRA_TASK_ID']
+
+                    from tira.tira_model import model
+                    job_config = model.get_docker_software(int(actual_job_config['software_id'].split('docker-software-')[-1]))
+
+                    actual_job_config['software_name'] = job_config['display_name']
+                    actual_job_config['image'] = job_config['user_image_name']
+                    actual_job_config['command'] = job_config['command']
+                except:
+                    # Job is not started or similar
+                    pass
+
             run_id = p.split('---')[-1]
             
             already_covered_run_ids.add(run_id)
@@ -510,6 +546,7 @@ def all_running_pipelines_for_repository(git_repository_id, cache=None, force_ca
                 'stdOutput': stdout,
                 'started_at': p.split('---')[-1],
                 'pipeline_name': p,
+                'job_config': actual_job_config,
                 'pipeline': pipeline
             }]
             

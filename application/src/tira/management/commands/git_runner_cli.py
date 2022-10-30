@@ -36,7 +36,7 @@ class Command(BaseCommand):
         if 'user_id' not in options or not options['user_id']:
             raise ValueError('Please pass --user_id as argument.')
 
-        print(list(yield_all_running_pipelines(options['running_jobs'], options['user_id'], cache)))
+        print(list(yield_all_running_pipelines(options['running_jobs'], options['user_id'], cache, True)))
 
     def run_command_stop_job_and_clean_up(self, options):
         if 'user_id' not in options or not options['user_id']:
