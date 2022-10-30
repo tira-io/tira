@@ -7,6 +7,7 @@ import time
 from contextlib import contextmanager
 from django.core.management.base import BaseCommand, CommandError
 from django.core.management import call_command
+from django.core.cache import cache
 
 from tira.git_runner import create_user_repository, create_task_repository, docker_images_in_user_repository,  add_new_tag_to_docker_image_repository, archive_repository, help_on_uploading_docker_image, yield_all_running_pipelines, stop_job_and_clean_up
 
@@ -35,7 +36,7 @@ class Command(BaseCommand):
         if 'user_id' not in options or not options['user_id']:
             raise ValueError('Please pass --user_id as argument.')
 
-        print(list(yield_all_running_pipelines(options['running_jobs'], options['user_id'])))
+        print(list(yield_all_running_pipelines(options['running_jobs'], options['user_id'], cache)))
 
     def run_command_stop_job_and_clean_up(self, options):
         if 'user_id' not in options or not options['user_id']:

@@ -451,8 +451,9 @@ def stop_job_and_clean_up(git_repository_id, user_id, run_id, cache=None):
 
 
 def yield_all_running_pipelines(git_repository_id, user_id, cache=None, force_cache_refresh=False):
-    for pipeline in yield_all_running_pipelines_for_repository(git_repository_id, cache, force_cache_refresh):
+    for pipeline in all_running_pipelines_for_repository(git_repository_id, cache, force_cache_refresh):
         pipeline = deepcopy(pipeline)
+
         if ('---' + user_id + '---') not in pipeline['pipeline_name']:
             continue
 
@@ -462,7 +463,7 @@ def yield_all_running_pipelines(git_repository_id, user_id, cache=None, force_ca
         yield pipeline
 
 
-def yield_all_running_pipelines_for_repository(git_repository_id, cache=None, force_cache_refresh=False):
+def all_running_pipelines_for_repository(git_repository_id, cache=None, force_cache_refresh=False):
     cache_key = 'all-running-pipelines-repo-' + str(git_repository_id)
     if cache:
         ret = cache.get(cache_key)        
@@ -512,16 +513,18 @@ def yield_all_running_pipelines_for_repository(git_repository_id, cache=None, fo
                 'pipeline': pipeline
             }]
             
-    ret += [i for i in __yield_all_failed_pipelines_for_repository(gl_project, already_covered_run_ids)]
+    ret += __all_failed_pipelines_for_repository(gl_project, already_covered_run_ids)
     
     if cache:
         logger.info(f"Cache refreshed for key {cache_key} ...")
         cache.set(cache_key, ret)
     
-    yield from ret
+    return ret
 
 
-def __yield_all_failed_pipelines_for_repository(gl_project, already_covered_run_ids):
+def __all_failed_pipelines_for_repository(gl_project, already_covered_run_ids):
+    ret = []
+
     for branch in gl_project.branches.list():
         branch = branch.name
         p = (branch + '---started-').split('---started-')[0]
@@ -530,5 +533,7 @@ def __yield_all_failed_pipelines_for_repository(gl_project, already_covered_run_
         if run_id in already_covered_run_ids:
             continue
         
-        yield {'run_id': run_id, 'execution': {'scheduling': 'failed', 'execution': 'failed', 'evaluation': 'failed'}, 'pipeline_name': p, 'stdOutput': 'Job did not run.', 'started_at': p.split('---')[-1], 'branch': branch}
+        ret += [{'run_id': run_id, 'execution': {'scheduling': 'failed', 'execution': 'failed', 'evaluation': 'failed'}, 'pipeline_name': p, 'stdOutput': 'Job did not run.', 'started_at': p.split('---')[-1], 'branch': branch}]
+
+    return ret
 

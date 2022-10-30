@@ -9,7 +9,7 @@ import time
 import datetime
 
 logger = logging.getLogger("cache_daemon")
-from tira.git_runner import yield_all_running_pipelines_for_repository, all_user_repositories, docker_images_in_user_repository
+from tira.git_runner import all_running_pipelines_for_repository, all_user_repositories, docker_images_in_user_repository
 
 
 class Command(BaseCommand):
@@ -29,7 +29,7 @@ class Command(BaseCommand):
                     for git_repository_id in repositories:
                         try:
                             print(task['task_id'] + '--->' + str(git_repository_id))
-                            running_pipelines = list(yield_all_running_pipelines_for_repository(git_repository_id, cache, force_cache_refresh=True))
+                            running_pipelines = all_running_pipelines_for_repository(git_repository_id, cache, force_cache_refresh=True)
                             print('Refreshed Cache: ' + task['task_id'] + ' on repo ' + str(git_repository_id) + ' has ' + str(len(running_pipelines)) + ' jobs.')
                         except:
                             continue
