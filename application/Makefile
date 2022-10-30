@@ -2,7 +2,7 @@
 
 VENV_NAME?=venv
 PYTHON=${VENV_NAME}/bin/python3
-VERSION_APPLICATION=0.0.15
+VERSION_APPLICATION=0.0.16
 VERSION_GRPC=0.0.15
 
 
@@ -28,7 +28,8 @@ setup:
 	make venv
 	make webpack
 	sh -c ". $(VENV_NAME)/bin/activate && \
-	python3 src/manage.py index_model"
+	python3 src/manage.py index_model && \
+	python3 src/manage.py createcachetable"
 
 #setup-webpack:
 #    npm add vue@next webpack-bundle-tracker@0.4.3 uikit; \

@@ -18,6 +18,7 @@ import subprocess
 import markdown
 from itertools import chain
 
+from copy import deepcopy
 from tira.grpc_client import new_transaction
 from tira.model import TransactionLog, EvaluationLog
 from .proto import tira_host_pb2, tira_host_pb2_grpc
@@ -80,7 +81,13 @@ def create_user_repository(repo):
     return project.id
 
 
-def docker_images_in_user_repository(user):
+def docker_images_in_user_repository(user, cache=None, force_cache_refresh=False):
+    cache_key = 'docker-images-in-user-repository-tira-user-' + user
+    if cache:
+        ret = cache.get(cache_key)        
+        if ret is not None and not force_cache_refresh:
+            return ret
+
     ret = []
     repo = __existing_repository('tira-user-' + user)
     if not repo:
@@ -92,10 +99,22 @@ def docker_images_in_user_repository(user):
             for image in registry.tags.list(get_all=True):
                 ret += [image.location]
     
-    return sorted(list(set(ret)))
+    ret = sorted(list(set(ret)))
+    
+    if cache:
+        logger.info(f"Cache refreshed for key {cache_key} ...")
+        cache.set(cache_key, ret)
+
+    return ret
 
 
-def help_on_uploading_docker_image(user):
+def help_on_uploading_docker_image(user, cache=None, force_cache_refresh=False):
+    cache_key = 'help-on-uploading-docker-image-tira-user-' + user
+    if cache:
+        ret = cache.get(cache_key)        
+        if ret is not None and not force_cache_refresh:
+            return ret
+
     repo = __existing_repository('tira-user-' + user)
     if not repo:
         create_user_repository(user)
@@ -105,7 +124,13 @@ def help_on_uploading_docker_image(user):
     ret = repo.files.get('README.md', ref='main').decode().decode('UTF-8').split('## Create an docker image')[1]
     ret = '## Create an docker image\n\n' + ret
     
-    return markdown.markdown(ret)
+    ret = markdown.markdown(ret)
+    
+    if cache:
+        logger.info(f"Cache refreshed for key {cache_key} ...")
+        cache.set(cache_key, ret)
+    
+    return ret
 
 
 def add_new_tag_to_docker_image_repository(repository_name, old_tag, new_tag):
@@ -233,6 +258,14 @@ def archive_repository(repo_name, persist_all_images=True):
         print(f'Archive repository into {repo_name}.zip')
         shutil.make_archive(repo_name, 'zip', tmp_dir)
         print(f'The repository is archived into {repo_name}.zip')
+
+
+def all_user_repositories():
+    ret = []
+    for potential_existing_projects in gitlab_client().projects.list(search='tira-user-'):
+        if 'tira-user-' in potential_existing_projects.name and int(potential_existing_projects.namespace['id']) == int(settings.GIT_USER_REPOSITORY_NAMESPACE_ID):
+            ret += [potential_existing_projects.name]
+    return set(ret)
 
 
 def __existing_repository(repo):
@@ -400,11 +433,11 @@ def clean_job_output(ret):
         return ''
 
 
-def stop_job_and_clean_up(git_repository_id, user_id, run_id):
+def stop_job_and_clean_up(git_repository_id, user_id, run_id, cache=None):
     gl = gitlab_client()
     gl_project = gl.projects.get(int(git_repository_id))
     
-    for pipeline in yield_all_running_pipelines(git_repository_id, user_id):
+    for pipeline in yield_all_running_pipelines(git_repository_id, user_id, cache, True):
         if run_id == pipeline['run_id']:
             branch = pipeline['branch'] if 'branch' in pipeline else pipeline['pipeline'].ref
             if ('---' + user_id + '---') not in branch:
@@ -417,7 +450,26 @@ def stop_job_and_clean_up(git_repository_id, user_id, run_id):
             gl_project.branches.delete(branch)
 
 
-def yield_all_running_pipelines(git_repository_id, user_id):
+def yield_all_running_pipelines(git_repository_id, user_id, cache=None, force_cache_refresh=False):
+    for pipeline in yield_all_running_pipelines_for_repository(git_repository_id, cache, force_cache_refresh):
+        pipeline = deepcopy(pipeline)
+        if ('---' + user_id + '---') not in pipeline['pipeline_name']:
+            continue
+
+        if ('-training---' + user_id + '---') not in pipeline['pipeline_name']:
+            pipeline['stdOutput'] = 'Output for runs on the test-data is hidden.'
+
+        yield pipeline
+
+
+def yield_all_running_pipelines_for_repository(git_repository_id, cache=None, force_cache_refresh=False):
+    cache_key = 'all-running-pipelines-repo-' + str(git_repository_id)
+    if cache:
+        ret = cache.get(cache_key)        
+        if ret is not None and not force_cache_refresh:
+            return ret
+
+    ret = []
     gl = gitlab_client()
     gl_project = gl.projects.get(int(git_repository_id))
     already_covered_run_ids = set()
@@ -432,8 +484,6 @@ def yield_all_running_pipelines(git_repository_id, user_id):
                     evaluation_job = job
 
             p = (pipeline.ref + '---started-').split('---started-')[0]
-            if ('---' + user_id + '---') not in p:
-                continue
             
             execution = {'scheduling': 'running', 'execution': 'pending', 'evaluation': 'pending'}
             if user_software_job.status == 'running':
@@ -442,7 +492,7 @@ def yield_all_running_pipelines(git_repository_id, user_id):
                 execution = {'scheduling': 'done', 'execution': 'done', 'evaluation': 'running'}
 
             stdout = 'Output for runs on the test-data is hidden.'
-            if ('-training---' + user_id + '---') in p:
+            if '-training---' in p:
                 try:
                     stdout = ''
                     user_software_job = gl_project.jobs.get(user_software_job.id)
@@ -453,20 +503,32 @@ def yield_all_running_pipelines(git_repository_id, user_id):
             run_id = p.split('---')[-1]
             
             already_covered_run_ids.add(run_id)
-            yield {'run_id': run_id, 'execution': execution, 'stdOutput': stdout, 'started_at': p.split('---')[-1], 'pipeline': pipeline}
-    yield from yield_all_failed_pipelines(gl_project, user_id, already_covered_run_ids)
+            ret += [{
+                'run_id': run_id,
+                'execution': execution,
+                'stdOutput': stdout,
+                'started_at': p.split('---')[-1],
+                'pipeline_name': p,
+                'pipeline': pipeline
+            }]
+            
+    ret += [i for i in __yield_all_failed_pipelines_for_repository(gl_project, already_covered_run_ids)]
+    
+    if cache:
+        logger.info(f"Cache refreshed for key {cache_key} ...")
+        cache.set(cache_key, ret)
+    
+    yield from ret
 
 
-def yield_all_failed_pipelines(gl_project, user_id, already_covered_run_ids):
+def __yield_all_failed_pipelines_for_repository(gl_project, already_covered_run_ids):
     for branch in gl_project.branches.list():
         branch = branch.name
         p = (branch + '---started-').split('---started-')[0]
-        if ('---' + user_id + '---') not in p:
-            continue
         run_id = p.split('---')[-1]
         
         if run_id in already_covered_run_ids:
             continue
         
-        yield {'run_id': run_id, 'execution': {'scheduling': 'failed', 'execution': 'failed', 'evaluation': 'failed'}, 'stdOutput': 'Job did not run.', 'started_at': p.split('---')[-1], 'branch': branch}
+        yield {'run_id': run_id, 'execution': {'scheduling': 'failed', 'execution': 'failed', 'evaluation': 'failed'}, 'pipeline_name': p, 'stdOutput': 'Job did not run.', 'started_at': p.split('---')[-1], 'branch': branch}
 

@@ -10,9 +10,6 @@ from django.core.management import call_command
 
 from tira.git_runner import create_user_repository, create_task_repository, docker_images_in_user_repository,  add_new_tag_to_docker_image_repository, archive_repository, help_on_uploading_docker_image, yield_all_running_pipelines, stop_job_and_clean_up
 
-grpc_port = settings.APPLICATION_GRPC_PORT
-listen_addr = f'[::]:{grpc_port}'
-
 logger = logging.getLogger("tira")
 
 

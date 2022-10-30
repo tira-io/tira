@@ -1,5 +1,6 @@
 from django.template.loader import render_to_string
 from django.db.utils import IntegrityError
+from django.core.cache import cache
 import logging
 
 from grpc import RpcError, StatusCode
@@ -377,7 +378,7 @@ def upload(request, task_id, vm_id, dataset_id):
 
         uploaded_file = request.FILES['file']
         new_run = model.add_uploaded_run(task_id, vm_id, dataset_id, uploaded_file)
-        if model.git_pipeline_is_enabled_for_task(task_id):
+        if model.git_pipeline_is_enabled_for_task(task_id, cache):
             run_eval(request=request, vm_id=vm_id, dataset_id=dataset_id, run_id=new_run["run"]["run_id"])
             return JsonResponse({"status": 0, "message": "ok", "new_run": new_run, "started_evaluation": True})
         return JsonResponse({"status": 0, "message": "ok", "new_run": new_run, "started_evaluation": False})

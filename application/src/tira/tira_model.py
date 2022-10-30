@@ -93,7 +93,7 @@ def get_datasets_by_task(task_id: str, include_deprecated=False) -> list:
     return model.get_datasets_by_task(task_id, include_deprecated)
 
 
-def load_docker_data(task_id, vm_id):
+def load_docker_data(task_id, vm_id, cache):
     """
     Get the docker data for a particular user (vm_id) from the git registry.
 
@@ -104,7 +104,7 @@ def load_docker_data(task_id, vm_id):
               tira_image_name: str, task_id: str, vm_id: str, runs: list (same as get_runs)
         - docker_software_help: A string with the help instructions
     """
-    if not git_pipeline_is_enabled_for_task(task_id):
+    if not git_pipeline_is_enabled_for_task(task_id, cache):
         return False
     
     docker_images = [i for i in docker_images_in_user_repository(vm_id) if '-tira-docker-software-id-' not in i]
@@ -118,12 +118,31 @@ def load_docker_data(task_id, vm_id):
     }
 
 
-def git_pipeline_is_enabled_for_task(task_id):
-    datasets = get_datasets_by_task(task_id)
-    git_runners_for_task = [get_evaluator(i['dataset_id'])['is_git_runner'] for i in datasets]
-    
+def git_pipeline_is_enabled_for_task(task_id, cache):
+    evaluators_for_task = get_evaluators_for_task(task_id, cache)
+    git_runners_for_task = [i['is_git_runner'] for i in evaluators_for_task]
+        
     # We enable the docker part only if all evaluators use the docker variant.
     return len(git_runners_for_task) > 0 and all(i for i in git_runners_for_task)
+
+
+def get_evaluators_for_task(task_id, cache, force_cache_refresh=False):
+    cache_key = 'get-evaluators-for-task-' + str(task_id)
+    ret = cache.get(cache_key)       
+    if ret is not None and not force_cache_refresh:
+        return ret
+        
+    datasets = get_datasets_by_task(task_id)
+    
+    try:
+        ret = [get_evaluator(i['dataset_id']) for i in datasets]
+    except:
+        ret = []
+
+    logger.info(f"Cache refreshed for key {cache_key} ...")
+    cache.set(cache_key, ret)
+    
+    return ret           
 
 def get_docker_software(docker_software_id: int) -> dict:
     """
@@ -319,8 +338,13 @@ def add_software(task_id: str, vm_id: str):
 def add_evaluator(vm_id: str, task_id: str, dataset_id: str, command: str, working_directory: str, measures,
                   is_git_runner: bool = False, git_runner_image: str = None, git_runner_command: str = None,
                   git_repository_id: str = None):
-    return model.add_evaluator(vm_id, task_id, dataset_id, command, working_directory, measures, is_git_runner,
+    ret = model.add_evaluator(vm_id, task_id, dataset_id, command, working_directory, measures, is_git_runner,
                                git_runner_image, git_runner_command, git_repository_id)
+
+    from django.core.cache import cache
+    get_evaluators_for_task(task_id=task_id, cache=cache, force_cache_refresh=True)
+
+    return ret
 
 
 def add_run(dataset_id, vm_id, run_id):

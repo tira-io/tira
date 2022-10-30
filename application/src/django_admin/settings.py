@@ -246,8 +246,21 @@ GIT_REGISTRY_PREFIX = custom_settings.get('GIT_REGISTRY_PREFIX', 'registry.webis
 GIT_USER_REPOSITORY_BRANCH = custom_settings.get('GIT_USER_REPOSITORY_BRANCH', 'main')
 GIT_CONTAINER_REGISTRY_HOST = custom_settings.get('GIT_CONTAINER_REGISTRY_HOST', 'registry.webis.de')
 GIT_CI_AVAILABLE_RESOURCES = {
-    'small-resources': {'cores': 2, 'ram': 10, 'description': 'Small (2 CPU Cores, 10GB of RAM)', 'key': 'small-resources'},
-    'large-resources': {'cores': 8, 'ram': 40, 'description': 'Large (8 CPU Cores, 40GB of RAM)', 'key': 'large-resources'},
+    'small-resources': {'cores': 1, 'ram': 10, 'description': 'Small (1 CPU Cores, 10GB of RAM)', 'key': 'small-resources'},
+    'medium-resources': {'cores': 2, 'ram': 20, 'description': 'Large (2 CPU Cores, 20GB of RAM)', 'key': 'medium-resources'},
+    'large-resources': {'cores': 4, 'ram': 40, 'description': 'Large (4 CPU Cores, 40GB of RAM)', 'key': 'large-resources'},
+}
+
+# Caching
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'tira_database_cache_table',
+        'TIMEOUT': 900, # 900 seconds (i.e., 15 minutes) as timeout, to use for the cache
+        'OPTIONS': {
+            'MAX_ENTRIES': 100000
+        }
+    }
 }
 
 # Logging
