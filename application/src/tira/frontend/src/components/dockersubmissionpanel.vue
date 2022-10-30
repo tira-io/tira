@@ -5,7 +5,7 @@
 <button class="uk-button uk-button-default uk-button-small uk-margin-medium-right"
         :class="{ 'uk-button-primary': !docker.docker_images && !showUploadVm, 'tira-button-selected': showUploadVm}"
         @click="showUploadVm = true; selectedContainerId = null; showNewImageForm=false">
-  <span v-if="!docker.docker_images || (Array.isArray(docker.docker_images) && docker.docker_images.length === 0) || showUploadVm">Upload Images</span>&nbsp;<font-awesome-icon class="uk-preserve-width" icon="fas fa-info" /></button>
+        <font-awesome-icon class="uk-preserve-width" icon="fas fa-info" /> Upload Images</button>
 <button v-for="docker_software in docker.docker_softwares"
         class="uk-button uk-button-default uk-button-small uk-margin-small-horizontal"
         @click="selectedContainerId=docker_software.docker_software_id; showNewImageForm=false; showUploadVm=false"
@@ -272,7 +272,7 @@ export default {
             }
             let results = await response.json()
             if (results.status === 1) {
-                this.addNotification('error', `Running Container ${this.selectedContainerId} failed with ${response.status}`)
+                this.addNotification('error', `Running Container ${this.selectedContainerId} failed with ${response.status}. Message = ${response.message}`)
                 return
             }
             this.$emit('pollrunningcontainer')
