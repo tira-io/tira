@@ -9,9 +9,12 @@ from django.core.management.base import BaseCommand, CommandError
 from django.core.management import call_command
 from django.core.cache import cache
 
-from tira.git_runner import create_user_repository, create_task_repository, docker_images_in_user_repository,  add_new_tag_to_docker_image_repository, archive_repository, help_on_uploading_docker_image, yield_all_running_pipelines, stop_job_and_clean_up
+from tira.git_runner import create_user_repository, create_task_repository, docker_images_in_user_repository,\
+    add_new_tag_to_docker_image_repository, archive_repository, help_on_uploading_docker_image,\
+    yield_all_running_pipelines, stop_job_and_clean_up, start_git_workflow
 from tira.tira_model import load_refresh_timestamp_for_cache_key
 
+from tira.util import get_tira_id
 logger = logging.getLogger("tira")
 
 
@@ -66,9 +69,25 @@ class Command(BaseCommand):
         if 'stop_job_and_clean_up' in options and options['stop_job_and_clean_up']:
             self.run_command_stop_job_and_clean_up(options)
 
+        if 'run_image' in options and options['run_image']:
+            start_git_workflow(task_id='clickbait-spoiling',
+                               dataset_id='task-1-type-classification-validation-20220924-training',
+                               vm_id='princess-knight',
+                               run_id=get_tira_id(),
+                               git_runner_image='webis/pan-clickbait-spoiling-evaluator:0.0.10',
+                               git_runner_command="""bash -c '/clickbait-spoiling-eval.py --task 2 --ground_truth_spoiler $inputDataset --input_run $inputRun --output_prototext ${outputDir}/evaluation.prototext'""",
+                               git_repository_id=2761,
+                               evaluator_id='task-2-spoiler-generation-validation-20220924-training-evaluator',
+                               user_image_to_execute='registry.webis.de/code-research/tira/tira-user-princess-knight/naive-baseline-task2:0.0.1-tira-docker-software-id-genteel-upstream',
+                               user_command_to_execute='/naive-baseline-task-2.py --input $inputDataset/input.jsonl --output $outputDir/run.jsonl',
+                               tira_software_id='17',
+                               resources='small-resources-gpu'
+            )
+
     def add_arguments(self, parser):
         parser.add_argument('--create_task_repository', default=None, type=str)
         parser.add_argument('--create_user_repository', default=None, type=str)
+        parser.add_argument('--run_image', default=None, type=str)
         parser.add_argument('--archive_repository', default=None, type=str)
         parser.add_argument('--running_jobs', default=None, type=str)
         parser.add_argument('--stop_job_and_clean_up', default=None, type=str)

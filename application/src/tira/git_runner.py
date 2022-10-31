@@ -318,7 +318,7 @@ def start_git_workflow(task_id, dataset_id, vm_id, run_id, git_runner_image,
                                                   identifier, git_runner_image, git_runner_command, evaluator_id,
                                                   user_image_to_execute, user_command_to_execute, tira_software_id, resources)
 
-        __commit_and_push(repo, dataset_id, vm_id, run_id, identifier)
+        __commit_and_push(repo, dataset_id, vm_id, run_id, identifier, git_repository_id, resources)
 
         t = TransactionLog.objects.get(transaction_id=transaction_id)
         _ = EvaluationLog.objects.update_or_create(vm_id=vm_id, run_id=run_id, running_on=vm_id,
@@ -370,6 +370,7 @@ def __write_metadata_for_ci_job_to_repository(tmp_dir, task_id, transaction_id, 
             'TIRA_RUN_ID': run_id,
             'TIRA_CPU_COUNT': str(settings.GIT_CI_AVAILABLE_RESOURCES[resources]['cores']),
             'TIRA_MEMORY_IN_GIBIBYTE': str(settings.GIT_CI_AVAILABLE_RESOURCES[resources]['ram']),
+            'TIRA_GPU': str(settings.GIT_CI_AVAILABLE_RESOURCES[resources]['gpu']),
             'TIRA_DATASET_TYPE': 'training' if 'training' in dataset_id else 'test',
 
             # The actual important stuff for the evaluator:
@@ -384,10 +385,19 @@ def __write_metadata_for_ci_job_to_repository(tmp_dir, task_id, transaction_id, 
     open(job_dir / 'job-to-execute.txt', 'w').write(_dict_to_gitlab_key_value_file(metadata))
 
 
-def __commit_and_push(repo, dataset_id, vm_id, run_id, identifier):
+def __commit_and_push(repo, dataset_id, vm_id, run_id, identifier, git_repository_id, resources):
     repo.index.add([str(Path(dataset_id) / vm_id / run_id / 'job-to-execute.txt')])
     repo.index.commit("Evaluate software: " + identifier)
-    repo.remote().push(identifier)
+    gpu_resources = str(settings.GIT_CI_AVAILABLE_RESOURCES[resources]['gpu']).strip()
+
+    if gpu_resources == '0':
+        repo.remote().push(identifier)
+    else:
+        repo.remote().push(identifier, **{'o': 'ci.skip'})
+
+        gl = gitlab_client()
+        gl_project = gl.projects.get(int(git_repository_id))
+        gl_project.pipelines.create({'ref': identifier, 'variables': [{'key': 'TIRA_GPU', 'value': gpu_resources}]})
 
 
 def __write_to_file(file_name, content):
@@ -508,6 +518,7 @@ def all_running_pipelines_for_repository(git_repository_id, cache=None, force_ca
             actual_job_config = {
                 'cores': 'Loading...',
                 'ram': 'Loading...',
+                'gpu': 'Loading...',
                 'dataset_type': 'Loading...',
                 'dataset': 'Loading...',
                 'software_id': 'Loading...',
@@ -522,6 +533,7 @@ def all_running_pipelines_for_repository(git_repository_id, cache=None, force_ca
 
                     actual_job_config['cores'] = str(int(job_config['TIRA_CPU_COUNT'])) + ' CPU Cores'
                     actual_job_config['ram'] = str(int(job_config['TIRA_MEMORY_IN_GIBIBYTE'])) + 'GB of RAM'
+                    actual_job_config['gpu'] = str(job_config['TIRA_GPU_COUNT']) + ' GPUs'
                     actual_job_config['dataset_type'] = job_config['TIRA_DATASET_TYPE']
                     actual_job_config['dataset'] = job_config['TIRA_DATASET_ID']
                     actual_job_config['software_id'] = job_config['TIRA_SOFTWARE_ID']

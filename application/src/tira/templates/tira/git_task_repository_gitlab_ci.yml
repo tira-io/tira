@@ -38,6 +38,7 @@ run-user-software:
    KUBERNETES_CPU_LIMIT: ${TIRA_CPU_COUNT}
    KUBERNETES_MEMORY_REQUEST: "${TIRA_MEMORY_IN_GIBIBYTE}Gi"
    KUBERNETES_MEMORY_LIMIT: "${TIRA_MEMORY_IN_GIBIBYTE}Gi"
+   TIRA_GPU: "0"
   script:
     - env|grep 'TIRA' > task.env
     - test -n "${TIRA_OUTPUT_DIR}" && mkdir -p ${TIRA_OUTPUT_DIR}
@@ -47,6 +48,7 @@ run-user-software:
   allow_failure: true
   tags:
     - tira-user-software-runner
+    - ${TIRA_GPU}-gpu
 
 persist-software-result:
   stage: Persist Software Result
