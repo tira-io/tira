@@ -133,13 +133,16 @@ def load_docker_data(task_id, vm_id, cache, force_cache_refresh):
         return False
     
     docker_images = [i for i in docker_images_in_user_repository(vm_id, cache, force_cache_refresh) if '-tira-docker-software-id-' not in i]
-    
+    last_refresh = load_refresh_timestamp_for_cache_key(cache, 'docker-images-in-user-repository-tira-user-' + vm_id)
+
     return {
         "docker_images": docker_images,
         "docker_softwares": model.get_docker_softwares_with_runs(task_id, vm_id),
         "resources": list(settings.GIT_CI_AVAILABLE_RESOURCES.values()),
         "docker_software_help": help_on_uploading_docker_image(vm_id, cache, force_cache_refresh),
-        "docker_images_last_refresh": load_refresh_timestamp_for_cache_key(cache, 'docker-images-in-user-repository-tira-user-' + vm_id)
+        "docker_images_last_refresh": last_refresh,
+        "docker_images_next_refresh": last_refresh + datetime.timedelta(seconds=60),
+
     }
 
 
