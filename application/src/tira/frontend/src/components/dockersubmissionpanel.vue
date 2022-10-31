@@ -66,7 +66,7 @@
                 </label>
             </div>
             <div class="uk-width-1-2">
-                <label class="uk-form-label">Unused Image (immutable for reproducibility)
+                <label class="uk-form-label">Used Image (immutable for reproducibility)
                 <select class="uk-select" :uk-tooltip="immutableHelp" disabled>
                     <option value="None" selected>{{ selectedContainer.user_image_name }}</option>
                 </select>
