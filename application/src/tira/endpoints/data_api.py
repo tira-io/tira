@@ -126,7 +126,7 @@ def get_role(request, context):
 def get_user(request, context, task_id, user_id):
     software = model.get_software_with_runs(task_id, user_id)
     upload = model.get_upload_with_runs(task_id, user_id)
-    docker = model.load_docker_data(task_id, user_id, cache)
+    docker = model.load_docker_data(task_id, user_id, cache, force_cache_refresh=False)
 
     context["task"] = model.get_task(task_id)
     context["user_id"] = user_id
@@ -147,9 +147,11 @@ def get_running_software(request, context, task_id, user_id):
     
     evaluators_for_task = model.get_evaluators_for_task(task_id, cache)
     repositories = set([i['git_repository_id'] for i in evaluators_for_task if i['is_git_runner'] and i['git_repository_id']])
-                
+
+
     for git_repository_id in sorted(list(repositories)):
         context['running_software'] += list(yield_all_running_pipelines(int(git_repository_id), user_id, cache))
+        context['running_software_last_refresh'] = model.load_refresh_timestamp_for_cache_key(cache, 'all-running-pipelines-repo-' + str(i['git_repository_id']))
     for software in context['running_software']:
         if 'pipeline' in software:
             del software['pipeline']

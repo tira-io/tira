@@ -8,6 +8,7 @@ from django.core.cache import cache
 from tira.git_runner import docker_images_in_user_repository, add_new_tag_to_docker_image_repository, help_on_uploading_docker_image
 import randomname
 from django.conf import settings
+import datetime
 
 logger = logging.getLogger("tira")
 
@@ -94,7 +95,30 @@ def get_datasets_by_task(task_id: str, include_deprecated=False) -> list:
     return model.get_datasets_by_task(task_id, include_deprecated)
 
 
-def load_docker_data(task_id, vm_id, cache):
+def load_refresh_timestamp_for_cache_key(cache, key):
+    try:
+        from django.db import connections, router
+        db = router.db_for_read(cache.cache_model_class)
+        connection = connections[db]
+        quote_name = connection.ops.quote_name
+
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT %s FROM %s WHERE %s = '%s'" % (
+                    quote_name("expires"),
+                    quote_name(cache._table),
+                    quote_name("cache_key"),
+                    cache.make_and_validate_key(key),
+                )
+            )
+
+            ret = cursor.fetchall()
+            if len(ret) > 0:
+                return ret[0][0] - datetime.timedelta(seconds=settings.CACHES['default']['TIMEOUT'])
+    except:
+        return 'Unknown'
+
+
+def load_docker_data(task_id, vm_id, cache, force_cache_refresh):
     """
     Get the docker data for a particular user (vm_id) from the git registry.
 
@@ -105,22 +129,22 @@ def load_docker_data(task_id, vm_id, cache):
               tira_image_name: str, task_id: str, vm_id: str, runs: list (same as get_runs)
         - docker_software_help: A string with the help instructions
     """
-    if not git_pipeline_is_enabled_for_task(task_id, cache):
+    if not git_pipeline_is_enabled_for_task(task_id, cache, force_cache_refresh):
         return False
     
-    docker_images = [i for i in docker_images_in_user_repository(vm_id, cache) if '-tira-docker-software-id-' not in i]
+    docker_images = [i for i in docker_images_in_user_repository(vm_id, cache, force_cache_refresh) if '-tira-docker-software-id-' not in i]
     
     return {
         "docker_images": docker_images,
         "docker_softwares": model.get_docker_softwares_with_runs(task_id, vm_id),
         "resources": list(settings.GIT_CI_AVAILABLE_RESOURCES.values()),
-        "docker_software_help": help_on_uploading_docker_image(vm_id, cache),
-        "resources": list(settings.GIT_CI_AVAILABLE_RESOURCES.values()),
+        "docker_software_help": help_on_uploading_docker_image(vm_id, cache, force_cache_refresh),
+        "docker_images_last_refresh": load_refresh_timestamp_for_cache_key(cache, 'docker-images-in-user-repository-tira-user-' + vm_id)
     }
 
 
-def git_pipeline_is_enabled_for_task(task_id, cache):
-    evaluators_for_task = get_evaluators_for_task(task_id, cache)
+def git_pipeline_is_enabled_for_task(task_id, cache, force_cache_refresh):
+    evaluators_for_task = get_evaluators_for_task(task_id, cache, force_cache_refresh)
     git_runners_for_task = [i['is_git_runner'] for i in evaluators_for_task]
         
     # We enable the docker part only if all evaluators use the docker variant.

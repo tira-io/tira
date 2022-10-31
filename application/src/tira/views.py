@@ -152,7 +152,7 @@ def software_detail(request, context, task_id, vm_id):
     """ render the detail of the user page: vm-stats, softwares, and runs """
     software = model.get_software_with_runs(task_id, vm_id)
     upload = model.get_upload_with_runs(task_id, vm_id)
-    docker = model.load_docker_data(task_id, vm_id, cache)
+    docker = model.load_docker_data(task_id, vm_id, cache, force_cache_refresh=False)
 
     context["task"] = model.get_task(task_id)
     context["vm_id"] = vm_id
