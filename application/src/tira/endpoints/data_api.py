@@ -153,7 +153,7 @@ def get_running_software(request, context, task_id, user_id):
     for git_repository_id in sorted(list(repositories)):
         context['running_software'] += list(yield_all_running_pipelines(int(git_repository_id), user_id, cache))
         context['running_software_last_refresh'] = model.load_refresh_timestamp_for_cache_key(cache, 'all-running-pipelines-repo-' + str(git_repository_id))
-        context['running_software_next_refresh'] = str(context['running_software_next_refresh'] + datetime.timedelta(seconds=15))
+        context['running_software_next_refresh'] = str(context['running_software_last_refresh'] + datetime.timedelta(seconds=15))
         context['running_software_last_refresh'] = str(context['running_software_last_refresh'])
     for software in context['running_software']:
         if 'pipeline' in software:
