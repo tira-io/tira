@@ -249,7 +249,7 @@ GIT_CI_AVAILABLE_RESOURCES = {
     'small-resources': {'cores': 1, 'ram': 10, 'gpu': 0, 'description': 'Small (1 CPU Cores, 10GB of RAM)', 'key': 'small-resources'},
     'medium-resources': {'cores': 2, 'ram': 20, 'gpu': 0, 'description': 'Large (2 CPU Cores, 20GB of RAM)', 'key': 'medium-resources'},
     'large-resources': {'cores': 4, 'ram': 40, 'gpu': 0, 'description': 'Large (4 CPU Cores, 40GB of RAM)', 'key': 'large-resources'},
-    'small-resources-gpu': {'cores': 1, 'ram': 10, 'gpu': '1-nvidia-1080', 'description': 'Small + GPU (1 CPU Cores, 10GB of RAM, 1)', 'key': 'small-resources'},
+    'small-resources-gpu': {'cores': 1, 'ram': 10, 'gpu': '1-nvidia-1080', 'description': 'Small + GPU (1 CPU Cores, 10GB of RAM, 1)', 'key': 'small-resources-gpu'},
 }
 
 # Caching
