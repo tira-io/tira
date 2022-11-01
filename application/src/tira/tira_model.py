@@ -8,6 +8,7 @@ from django.core.cache import cache
 from tira.git_runner import docker_images_in_user_repository, add_new_tag_to_docker_image_repository, help_on_uploading_docker_image
 import randomname
 from django.conf import settings
+from django.db import connections, router
 import datetime
 
 logger = logging.getLogger("tira")
@@ -97,7 +98,6 @@ def get_datasets_by_task(task_id: str, include_deprecated=False) -> list:
 
 def load_refresh_timestamp_for_cache_key(cache, key):
     try:
-        from django.db import connections, router
         db = router.db_for_read(cache.cache_model_class)
         connection = connections[db]
         quote_name = connection.ops.quote_name
@@ -115,7 +115,7 @@ def load_refresh_timestamp_for_cache_key(cache, key):
             if len(ret) > 0:
                 return ret[0][0] - datetime.timedelta(seconds=settings.CACHES['default']['TIMEOUT'])
     except:
-        return 'Unknown'
+        return datetime.datetime.now()
 
 
 def load_docker_data(task_id, vm_id, cache, force_cache_refresh):
@@ -142,7 +142,6 @@ def load_docker_data(task_id, vm_id, cache, force_cache_refresh):
         "docker_software_help": help_on_uploading_docker_image(vm_id, cache, force_cache_refresh),
         "docker_images_last_refresh": str(last_refresh),
         "docker_images_next_refresh": str(last_refresh + datetime.timedelta(seconds=60)),
-
     }
 
 

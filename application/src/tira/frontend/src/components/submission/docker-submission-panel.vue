@@ -17,16 +17,22 @@
     <form id="docker-form" class="docker_form">
         <input type="hidden" name="csrfmiddlewaretoken" :value="csrf">  <!-- TODO: this might not be needed anymore -->
         <div class="uk-grid uk-grid-small" data-uk-grid>
-            <div class="uk-width-1-1">
-                <label class="uk-form-label">Command
-                <input class="uk-input command-input" type="text"
+            <div class="uk-width-4-5">
+                <label class="uk-form-label" for="docker-command-input">Command
+                <input id="docker-command-input" class="uk-input command-input" type="text"
                        :disabled="!docker.docker_images"
-                       v-model="addContainerCommand" :placeholder="task.command_placeholder"></label>
+                       v-model="addContainerCommand" :placeholder="task.command_placeholder">
+                </label>
             </div>
-            <div class="uk-width-1-1">
-                <a @click="toggleCommandHelp = !toggleCommandHelp" :command_description="task.command_description"><u>Toggle Command Help</u></a><br>
-                <span v-show="toggleCommandHelp">{{ task.command_description }}</span>
+            <div>
+                <label class="uk-form-label uk-width-4-5">&nbsp;</label>
+                <div>
+                    <a class="uk-button uk-button-default"
+                              uk-tooltip="title: Click to show the help for Commands; delay: 500"
+                              uk-toggle="target: #modal-command-help"><font-awesome-icon icon="fas fa-info" /></a>
+                </div>
             </div>
+
             <div class="uk-width-1-2">
                 <label class="uk-form-label" for="selector_docker_image">Docker Image</label>
                 <select id="selector_docker_image" :disabled="!docker.docker_images" class="uk-select upload-select" v-model="containerImage" >
@@ -36,9 +42,10 @@
                 </select>
                 
             </div>
-            <div class="uk-width-1-2">
-              <label class="uk-form-label" for="add_container_button">&nbsp;</label>
-              <div><a class="uk-button" id="add_container_button" 
+
+            <div>
+              <label class="uk-form-label" for="add-container-button">&nbsp;</label>
+              <div><a class="uk-button" id="add-container-button"
                         @click="checkContainerValid(true) && addContainer()"
                         :disabled="!checkContainerValid(false)"
                         :class="{ 'uk-button-primary': checkContainerValid(false), 'uk-button-default': !checkContainerValid(false)}"
@@ -109,6 +116,13 @@
             <div class="uk-text-danger uk-width-expand">{{ dockerFormError }}</div>
         </div>
     </form>
+</div>
+<div id="modal-command-help" class="uk-modal-container" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-margin-auto-vertical">
+        <button class="uk-modal-close-default" type="button" uk-close></button>
+        <h2 class="uk-modal-title">Docker Commands Help for {{ task.task_name }}</h2>
+        <p v-html="task.command_description"></p>
+    </div>
 </div>
 
 <div v-if="!showNewImageForm && ! showUploadVm" class="uk-margin-small">

@@ -476,9 +476,12 @@ def yield_all_running_pipelines(git_repository_id, user_id, cache=None, force_ca
 def all_running_pipelines_for_repository(git_repository_id, cache=None, force_cache_refresh=False):
     cache_key = 'all-running-pipelines-repo-' + str(git_repository_id)
     if cache:
-        ret = cache.get(cache_key)        
-        if ret is not None and not force_cache_refresh:
-            return ret
+        try:
+            ret = cache.get(cache_key)
+            if ret is not None and not force_cache_refresh:
+                return ret
+        except ModuleNotFoundError as e:
+            logger.exception(f"Could not find cache module {cache_key}.")
 
     ret = []
     gl = gitlab_client()
@@ -539,8 +542,8 @@ def all_running_pipelines_for_repository(git_repository_id, cache=None, force_ca
                     actual_job_config['software_id'] = job_config['TIRA_SOFTWARE_ID']
                     actual_job_config['task_id'] = job_config['TIRA_TASK_ID']
 
-                    from tira.tira_model import model
-                    job_config = model.get_docker_software(int(actual_job_config['software_id'].split('docker-software-')[-1]))
+                    from tira.tira_model import tmodel
+                    job_config = tmodel.get_docker_software(int(actual_job_config['software_id'].split('docker-software-')[-1]))
 
                     actual_job_config['software_name'] = job_config['display_name']
                     actual_job_config['image'] = job_config['user_image_name']
