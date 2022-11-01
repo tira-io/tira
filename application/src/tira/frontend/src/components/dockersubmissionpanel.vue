@@ -85,7 +85,7 @@
             <div class="uk-width-1-4">
                 <label class="uk-form-label">Run on Dataset
                     <select class="uk-select" v-model="selectedDataset"
-                            @change="checkContainerRunValid(true)"
+                            @change="checkContainerRunValid(true); this.dockerFormError=''"
                             :class="{ 'uk-form-danger': containerDatasetError}">
                         <option :disabled="selectedDataset !== 'None'" value="None">Select Dataset</option>
                         <option v-for="dataset in datasetOptions" :value="dataset.at(0)">{{ dataset.at(1) }}</option>
@@ -154,6 +154,7 @@ export default {
             selectedContainerCommand: null,
             selectedResources: "None",
             toggleCommandHelp: false,
+            startingContainer: false,
         }
     },
     methods: {
@@ -239,6 +240,9 @@ export default {
                 }
                 return false
             }
+            if (this.startingContainer === true) {
+                return false
+            }
             return true
         },
         deleteContainer() {
@@ -253,6 +257,7 @@ export default {
         },
         async runContainer () {
             if (!this.checkContainerRunValid(true)) return;
+            this.startingContainer = true
             this.$refs['runContainerButton'].text = "Starting..."
 
             const response = await fetch(`/grpc/${this.task.task_id}/${this.user_id}/run_execute/docker/${this.selectedDataset}/${this.selectedContainerId}/${this.selectedResources}`, {
@@ -277,6 +282,7 @@ export default {
             }
             this.$emit('pollrunningcontainer')
             this.$refs['runContainerButton'].text = "Run Container"
+            this.startingContainer = false
         },
     },
     computed: {
