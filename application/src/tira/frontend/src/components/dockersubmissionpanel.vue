@@ -28,21 +28,21 @@
                 <span v-show="toggleCommandHelp">{{ task.command_description }}</span>
             </div>
             <div class="uk-width-1-2">
-                <label class="uk-form-label">Docker Image
-                <select :disabled="!docker.docker_images" class="uk-select upload-select" v-model="containerImage" >
+                <label class="uk-form-label" for="selector_docker_image">Docker Image</label>
+                <select id="selector_docker_image" :disabled="!docker.docker_images" class="uk-select upload-select" v-model="containerImage" >
                     <option v-if="docker.docker_images" value="None" :disabled="containerImage !== 'None'">Select Docker Image</option>
                     <option v-else value="None" disabled>Upload an image first</option>
                     <option v-for="image in docker.docker_images" :value="image">{{ image }}</option>
                 </select>
-                </label>
+                
             </div>
             <div class="uk-width-1-2">
-              <label class="uk-form-label">&nbsp;
-              <a class="uk-button" 
+              <label class="uk-form-label" for="add_container_button">&nbsp;</label>
+              <div><a class="uk-button" id="add_container_button" 
                         @click="checkContainerValid(true) && addContainer()"
                         :disabled="!checkContainerValid(false)"
                         :class="{ 'uk-button-primary': checkContainerValid(false), 'uk-button-default': !checkContainerValid(false)}"
-                >add container</a></label>
+                >add container</a></div>
             </div>
             <div class="uk-text-danger uk-width-expand">{{ dockerFormError }}</div>
 
