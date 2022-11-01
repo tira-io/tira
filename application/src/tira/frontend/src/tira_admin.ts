@@ -1,8 +1,8 @@
-import NotificationBar from './components/notificationbar.vue'
-import CreateVm from './components/createvm.vue'
-import AddTask from './components/addtask.vue'
-import AddDataset from './components/adddataset.vue'
-import ModifyVm from './components/modifyvm.vue'
+import NotificationBar from './components/elements/notification-bar.vue'
+import CreateVm from './components/utility/createvm.vue'
+import AddTask from './components/data-edit-forms/add-task.vue'
+import AddDataset from './components/data-edit-forms/add-dataset.vue'
+import ModifyVm from './components/utility/modifyvm.vue'
 
 import {createApp} from 'vue'
 

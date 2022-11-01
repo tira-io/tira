@@ -29,7 +29,7 @@
 </ul>
 </template>
 <script>
-import ReviewList from "./reviewlist";
+import ReviewList from "../runs/review-list";
 
 export default {
   data() {

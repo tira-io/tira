@@ -108,7 +108,7 @@
 </template>
 <script>
 export default {
-    name: "vmcontrolpanel",
+    name: "vm-control-panel",
     data() {
         return {
             stateToolTips: [

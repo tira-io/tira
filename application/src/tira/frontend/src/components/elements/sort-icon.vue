@@ -14,7 +14,7 @@
 
 <script>
 export default {
-  name: "sorticon",
+  name: "sort-icon",
   props: {
     row_key: String,
     /**

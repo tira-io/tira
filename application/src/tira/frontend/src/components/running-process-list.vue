@@ -35,7 +35,7 @@
 
 <script>
 export default {
-  name: "runningprocesslist",
+  name: "running-process-list",
   props: ["running_evaluations", "running_software"],
   emits: ['stoprun', 'addnotification'],
   data() {

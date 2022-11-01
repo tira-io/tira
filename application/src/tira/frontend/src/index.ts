@@ -1,6 +1,6 @@
-import NotificationBar from './components/notificationbar.vue'
-import AddTask from './components/addtask.vue'
-import EditOrganization from './components/editorganization.vue'
+import NotificationBar from './components/elements/notification-bar.vue'
+import AddTask from './components/data-edit-forms/add-task.vue'
+import EditOrganization from './components/data-edit-forms/edit-organization.vue'
 
 import {createApp} from 'vue';
 import UIkit from 'uikit';

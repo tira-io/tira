@@ -229,7 +229,7 @@ pre {
 </style>
 
 <script>
-import { get, submitPost } from "../utils/getpost";
+import { get, submitPost } from "../../utils/getpost";
 
 export default {
   name: "review",

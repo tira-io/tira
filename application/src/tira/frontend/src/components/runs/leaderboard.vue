@@ -64,7 +64,7 @@
 </div>
 </template>
 <script>
-import SortIcon from "./sorticon";
+import SortIcon from "../elements/sort-icon";
 
 export default {
   props: ['keys', 'evaluation', 'role', 'dataset_id', 'task_id', 'hide_private'],

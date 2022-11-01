@@ -13,9 +13,9 @@
 </template>
 
 <script>
-import Review from "./review";
+import Review from "../runs/review";
 export default {
-  name: "reviewbutton",
+  name: "review-button",
   props: {
     task_id: String,
     user_id: String,

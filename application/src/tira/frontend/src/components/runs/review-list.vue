@@ -104,8 +104,8 @@
 </div>
 </template>
 <script>
-import ReviewButton from "./reviewbutton";
-import { get } from "../utils/getpost"
+import ReviewButton from "../elements/review-button";
+import { get } from "../../utils/getpost"
 
 export default {
   data() {
@@ -177,7 +177,6 @@ export default {
       })
     },
     evaluateRun(datasetId, runId) {
-      console.log('runs', this.runs)
       if(datasetId === ""){
         datasetId=null
       }
@@ -191,7 +190,6 @@ export default {
   mounted() {
   },
   beforeMount() {
-    console.log('runs@reviewlist: ', this.runs)
     this.runningEvaluationIds = this.running_evaluations.map(e => {return e.run_id})
   }
 }
