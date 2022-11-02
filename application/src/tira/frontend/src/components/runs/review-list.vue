@@ -92,11 +92,17 @@
 
                 </a>
         </td>
+        <!-- Delete Button -->
         <td class="uk-table-shrink uk-text-nowrap uk-padding-remove uk-margin-remove uk-preserve-width"
          v-if="display==='participant'">
-            <a class="uk-button uk-button-small uk-button-danger"
+            <a class="uk-button uk-button-small"
+               :class="{'uk-button-disabled': inputRunIdCache.includes(run.input_run_id), 'uk-button-danger': inputRunIdCache.includes(run.input_run_id)}"
+               :disabled="inputRunIdCache.includes(run.input_run_id)"
                @click="deleteRun(run.dataset, run.run_id)">
-              <font-awesome-icon icon="fas fa-trash-alt" /></a>
+              <font-awesome-icon icon="fas fa-trash-alt" v-if="!inputRunIdCache.includes(run.input_run_id)"
+                uk-tooltip="Please delete the evaluation before deleting the run."/>
+              <font-awesome-icon icon="fas fa-trash-alt" v-else/>
+            </a>
         </td>
     </tr>
     </tbody>
@@ -110,7 +116,8 @@ import { get } from "../../utils/getpost"
 export default {
   data() {
     return {
-      runningEvaluationIds: []
+      runningEvaluationIds: [],
+      inputRunIdCache: [],
     }
   },
   props: {
@@ -163,8 +170,12 @@ export default {
       }
     },
     deleteRun(datasetId, runId) {
+      if (runId in this.inputRunIds) {
+        return
+      }
+
       if (this.display === 'review') {
-        this.$emit('removeRun', runId)
+        // Note: in review mode, the button should not show up and, hence, does nothing.
         return
       }
       if(datasetId === ""){
@@ -185,12 +196,23 @@ export default {
       }).catch(error => {
         this.$emit('addNotification', 'error', error.message)
       })
+    },
+    updateInputRunIdCache() {
+      this.inputRunIdCache = this.runs.map(a => {return a.input_run_id})
+          .filter(a => { if (a !== '') return a })
+    }
+  },
+  watch: {
+    runs(newRuns, oldRuns) {
+        this.updateInputRunIdCache()
     }
   },
   mounted() {
+
   },
   beforeMount() {
     this.runningEvaluationIds = this.running_evaluations.map(e => {return e.run_id})
+    this.updateInputRunIdCache()
   }
 }
 </script>
