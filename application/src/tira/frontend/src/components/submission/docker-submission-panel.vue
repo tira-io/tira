@@ -149,7 +149,7 @@ export default {
         ReviewList
     },
     props: ['csrf', 'datasets', 'docker', 'user_id', 'running_evaluations', 'task'],
-    emits: ['addNotification', 'pollEvaluations', 'removeEun', 'addContainer', 'deleteContainer', 'pollRunningContainer'],
+    emits: ['addNotification', 'pollEvaluations', 'removeRun', 'addContainer', 'deleteContainer', 'pollRunningContainer'],
     data() {
         return {
             runningEvaluationIds: [],
