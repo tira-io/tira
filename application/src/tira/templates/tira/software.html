@@ -24,8 +24,8 @@
             :running_software="runningSoftware"
             :running_evaluations="runningEvaluations"
             :user_id="userId"
-            @stoprun="runId => stopRun(runId)"
-            @addnotification="(type, message) => addNotification(type, message)"
+            @stop-run="runId => stopRun(runId)"
+            @add-notification="(type, message) => addNotification(type, message)"
         />
     </div>
 
@@ -53,9 +53,9 @@
                 :userid="vm.vm_id"
                 :datasets="datasets"
                 :running_evaluations="runningEvaluations"
-                @addnotification="(type, message) => addNotification(type, message)"
-                @removerun="(runId, type) => removeRun(runId, type)"
-                @pollevaluations="pollRunningEvaluations()"
+                @add-notification="(type, message) => addNotification(type, message)"
+                @remove-run="(runId, type) => removeRun(runId, type)"
+                @poll-evaluations="pollRunningEvaluations()"
         />
     </div>
     <div v-else-if="loaded('docker')" class="uk-container uk-margin-small">
@@ -72,12 +72,12 @@
             :datasets="datasets"
             :running_evaluations="runningEvaluations"
             :task="task"
-            @addnotification="(type, message) => addNotification(type, message)"
-            @removerun="(runId, type) => removeRun(runId, type)"
-            @pollevaluations="pollRunningEvaluations()"
-            @pollrunningcontainer="pollRunningSoftware()"
-            @addcontainer="(newContainer) => addContainer(newContainer)"
-            @deletecontainer="(containerId) => deleteContainer(containerId)"
+            @add-notification="(type, message) => addNotification(type, message)"
+            @remove-run="(runId, type) => removeRun(runId, type)"
+            @poll-evaluations="pollRunningEvaluations()"
+            @poll-running-container="pollRunningSoftware()"
+            @add-container="(newContainer) => addContainer(newContainer)"
+            @delete-container="(containerId) => deleteContainer(containerId)"
             />
     </div>
     <div v-else-if="loaded('vm')" class="uk-container uk-margin-small">
@@ -99,8 +99,8 @@
               :polling="polling"
               :state_labels="stateLabels"
               @add-notification="(type, message) => addNotification(type, message)"
-              @pollstate="pollVmState()"
-              @pollvminfo="loadVmInfo()"
+              @poll-state="pollVmState()"
+              @poll-vm-info="loadVmInfo()"
             />
         </div>
         <div v-if="!isDefault" class="uk-margin-medium-bottom">
@@ -111,12 +111,12 @@
                 :datasets="datasets"
                 :running_evaluations="runningEvaluations"
                 :task="task"
-                @addNotification="(type, message) => addNotification(type, message)"
-                @removeRun="(runId, type) => removeRun(runId, type)"
-                @pollEvaluations="pollRunningEvaluations()"
-                @pollRunningSoftware="pollVmState()"
-                @addSoftware="(newSoftware) => addSoftware(newSoftware)"
-                @deleteSoftware="(softwareId) => deleteSoftware(softwareId)"
+                @add-notification="(type, message) => addNotification(type, message)"
+                @remove-run="(runId, type) => removeRun(runId, type)"
+                @poll-evaluations="pollRunningEvaluations()"
+                @poll-running-software="pollVmState()"
+                @add-software="(newSoftware) => addSoftware(newSoftware)"
+                @delete-software="(softwareId) => deleteSoftware(softwareId)"
                 />
         </div>
     </div>
@@ -141,13 +141,5 @@
 <script src="https://assets.webis.de/js/filter.js"></script>
 <script src="https://assets.webis.de/js/selection.js"></script>
 <script src="https://assets.webis.de/js/tables.js"></script>
-
-{# TODO #}
-{#<script src="{% static 'tira/js/util.js' %}"></script>#}
-{#<script src="{% static 'tira/js/software.js' %}"></script>#}
-{#<script>#}
-{#    addSoftwareEvents("{{ task.task_id }}", "{{ vm_id }}", "{{ is_default }}")#}
-{#    setupPollingAfterPageLoad("{{ vm_id }}", "{{ is_default }}")#}
-{#</script>#}
 
 {% endblock %}

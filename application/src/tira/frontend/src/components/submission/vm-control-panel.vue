@@ -125,7 +125,7 @@ export default {
             ],
         }
     },
-    emits: ['addnotification', 'closemodal', 'pollstate', "pollvminfo"],
+    emits: ['addNotification', 'closeModal', 'pollState', "pollVmInfo"],
     props: ['csrf', 'dataset_id', 'vm', 'vm_status', 'polling', 'state_labels', 'vm_state', 'task'],
     methods: {
         async get(url) {
@@ -146,7 +146,7 @@ export default {
                     this.$emit('pollState')
                 }
             }).catch(error => {
-                this.$emit('addnotification', 'error', error.message)
+                this.$emit('addNotification', 'error', error.message)
                 this.$emit('pollVmInfo')
             })
         },

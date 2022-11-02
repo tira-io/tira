@@ -79,7 +79,7 @@
         <td class="uk-table-shrink uk-text-nowrap uk-padding-remove uk-margin-remove uk-preserve-width">
             <review-button :task_id="task_id" :user_id="user_id" :dataset_id="run.dataset"
                            :run_id="run.run_id" :csrf="csrf"
-                @add-notification="(type, message) => this.$emit('add-notification', type, message)"
+                @add-notification="(type, message) => this.$emit('addNotification', type, message)"
                 @update-review="newReview => updateReview(newReview)"
             />
         </td>
@@ -133,7 +133,7 @@ export default {
       default: []
     },
     csrf: String},
-  emits: ['add-notification', 'poll-evaluations', 'remove-run'],
+  emits: ['addNotification', 'pollEvaluations', 'removeRun'],
   components: {
       ReviewButton
   },
@@ -164,16 +164,16 @@ export default {
     },
     deleteRun(datasetId, runId) {
       if (this.display === 'review') {
-        this.$emit('remove-run', runId)
+        this.$emit('removeRun', runId)
         return
       }
       if(datasetId === ""){
         datasetId=null
       }
       this.get(`/grpc/${this.user_id}/run_delete/${datasetId}/${runId}`).then(message => {
-        this.$emit('remove-run', runId)
+        this.$emit('removeRun', runId)
       }).catch(error => {
-        this.$emit('add-notification', 'error', error.message)
+        this.$emit('addNotification', 'error', error.message)
       })
     },
     evaluateRun(datasetId, runId) {
@@ -181,9 +181,9 @@ export default {
         datasetId=null
       }
       this.get(`/grpc/${this.user_id}/run_eval/${datasetId}/${runId}`).then(message => {
-        this.$emit('poll-evaluations')
+        this.$emit('pollEvaluations')
       }).catch(error => {
-        this.$emit('add-notification', 'error', error.message)
+        this.$emit('addNotification', 'error', error.message)
       })
     }
   },

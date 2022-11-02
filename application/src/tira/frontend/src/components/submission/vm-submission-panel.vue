@@ -72,9 +72,9 @@
         display="participant"
         :csrf="csrf"
         :running_evaluations="running_evaluations"
-        @addNotification="(type, message) => $emit('add-notification', type, message)"
-        @removeRun="(runId) => $emit('remove-run', runId, 'vm')"
-        @pollEvaluations="$emit('poll-evaluations')"/>
+        @add-notification="(type, message) => $emit('addNotification', type, message)"
+        @remove-run="(runId) => $emit('removeRun', runId, 'vm')"
+        @poll-evaluations="$emit('pollEvaluations')"/>
 </div>
 
 <div id="modal-command-help" class="uk-modal-container" uk-modal>
@@ -121,7 +121,7 @@ export default {
         ReviewList
     },
     props: ['csrf', 'datasets', 'software', 'user_id', 'running_evaluations', 'task'],
-    emits: ['add-notification', 'poll-evaluations', 'poll-running-software', 'remove-run', 'add-software', 'delete-software'],
+    emits: ['addNotification', 'pollEvaluations', 'pollRunningSoftware', 'removeRun', 'addSoftware', 'deleteSoftware'],
     data() {
         return {
             runningEvaluationIds: [],
@@ -164,17 +164,17 @@ export default {
                     "creation_date": message.context.software.creation_date,
                     "last_edit": message.context.software.last_edit_date},
                     "runs": []}
-                this.$emit('add-software', new_software)
+                this.$emit('addSoftware', new_software)
                 this.selectedSoftwareId = message.context.software.id
             }).catch(error => {
-                this.$emit('add-notification', 'error', error.message)
+                this.$emit('addNotification', 'error', error.message)
             })
         },
         deleteSoftware() {
             // delete selected software
             this.get(`/task/${this.task.task_id}/vm/${this.user_id}/delete_software/vm/${this.selectedSoftwareId}`)
                 .then(message => {
-                    this.$emit('delete-software', this.selectedSoftwareId)
+                    this.$emit('deleteSoftware', this.selectedSoftwareId)
                     if (this.software.length > 1) {
                         let listWithoutSoftware = this.software.filter(e => { return e.software.id !== this.selectedSoftwareId })
                         this.selectedSoftwareId = listWithoutSoftware[listWithoutSoftware.length-1].software.id
@@ -185,7 +185,7 @@ export default {
                     }
                 })
                 .catch(error => {
-                    this.$emit('add-notification', 'error', error.message)
+                    this.$emit('addNotification', 'error', error.message)
                 })
         },
         async saveSoftware(confirm=true) {
@@ -271,7 +271,7 @@ export default {
                 this.addNotification('error', `Running Software ${this.selectedSoftwareId} failed with ${response.status}`)
                 return
             }
-            this.$emit('poll-running-software')
+            this.$emit('pollRunningSoftware')
         },
         checkInputFields(mutate=false) {
             if (mutate) {
