@@ -6,8 +6,8 @@
     <div class="uk-modal-dialog uk-modal-body uk-width-expand">
         <button class="uk-modal-close-default" type="button" data-uk-close></button>
         <review :task_id="task_id" :user_id="user_id" :dataset_id="dataset_id" :run_id="run_id" :csrf="csrf" v-if="show"
-                @add-notification="(type, message) => this.$emit('add-notification', type, message)"
-                @update-review="newReview => this.$emit('update-review', newReview)"/>
+                @add-notification="(type, message) => this.$emit('addNotification', type, message)"
+                @update-review="newReview => this.$emit('updateReview', newReview)"/>
     </div>
 </div>
 </template>
@@ -41,7 +41,7 @@ export default {
 
     },
   },
-  emits: ['add-notification', 'update-review'],
+  emits: ['addNotification', 'updateReview'],
   components: {
     Review
   },

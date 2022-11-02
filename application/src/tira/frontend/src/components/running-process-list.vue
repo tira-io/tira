@@ -37,10 +37,10 @@
 export default {
   name: "running-process-list",
   props: ["running_evaluations", "running_software"],
-  emits: ['stoprun', 'addnotification'],
+  emits: ['stopRun', 'addNotification'],
   data() {
     return {
-      aborted_processes: [], 
+      aborted_processes: [],
       executionIndicator(key, label) {
         console.log(key, label)
         if (key === 'done') {
@@ -60,7 +60,7 @@ export default {
     stopRun(run_id) {
       if(!(this.aborted_processes.includes(run_id))) {
         this.aborted_processes.push(run_id)
-        this.$emit('stoprun', run_id)
+        this.$emit('stopRun', run_id)
       }
     },
   }

@@ -24,10 +24,10 @@
             <label class="uk-form-label" for="upload-button">&nbsp;</label>
             <div>
                 <span v-show="uploading" uk-spinner="ratio: 0.5"></span>
-                <a class="uk-button uk-button uk-width-expand"
+                <a id="upload-button" class="uk-button uk-button uk-width-expand"
                    :class="{ 'uk-button-default': uploading, 'uk-button-primary': !uploading}"
                    :disabled="uploading"
-                   @click="uploading && fileUpload()">upload</a>
+                   @click="fileUpload()">upload</a>
             </div>
         </div>
     </div>
@@ -49,9 +49,9 @@
         display="participant"
         :csrf="csrf"
         :running_evaluations="running_evaluations"
-        @addNotification="(type, message) => $emit('addnotification', type, message)"
-        @removeRun="(runId) => $emit('remove-run', runId, 'upload')"
-        @pollEvaluations="() => $emit('poll-evaluations')"/>
+        @add-notification="(type, message) => $emit('addNotification', type, message)"
+        @remove-run="(runId) => $emit('removeRun', runId, 'upload')"
+        @poll-evaluations="() => $emit('pollEvaluations')"/>
 </div>
 </template>
 
@@ -64,7 +64,7 @@ export default {
         ReviewList
     },
     props: ['csrf', 'datasets', 'upload', "taskid", "userid", "running_evaluations"],
-    emits: ['add-notification', 'poll-evaluations', 'remove-run'],
+    emits: ['addNotification', 'pollEvaluations', 'removeRun'],
     data() {
       return {
         uploadDataset: '',
@@ -88,7 +88,7 @@ export default {
 
             let r = await response.json()
             if (!response.ok) {
-                this.$emit('add-notification', 'error', `Uploading failed with status ${response.status}: ${await response.text()}`)
+                this.$emit('addNotification', 'error', `Uploading failed with status ${response.status}: ${await response.text()}`)
             } else if (r.status === 1){
                 this.uploadFormError = 'Error: ' + r.message
             } else {
@@ -98,7 +98,7 @@ export default {
                 this.fileHandle = null
                 this.upload.last_edit = r.last_edit_date
                 if (r.started_evaluation) {
-                    this.$emit('poll-evaluations')
+                    this.$emit('pollEvaluations')
                 }
             }
             this.$refs.file.value = null 

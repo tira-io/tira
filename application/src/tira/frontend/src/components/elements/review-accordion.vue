@@ -18,7 +18,7 @@
         </div>
         <div class="uk-accordion-content uk-margin-remove-top" v-if="vm">
             <a :href="'/task/' + task_id + '/user/' + vm.vm_id">[manage user]</a>
-            <review-list @add-notification="(type, message) => $emit('add-notification', type, message)"
+            <review-list @add-notification="(type, message) => $emit('addNotification', type, message)"
                          @remove-run="() => console.log('removing runs is not implemented in the review accordion')"
                          @poll-evaluation="() => console.log('starting evaluations is not implemented in the review accordion')"
                          :runs="vm.runs"
@@ -42,7 +42,7 @@ export default {
     'task_id': String,
     'hide_reviewed': Boolean,
     'csrf': String},
-  emits: ['add-notification'],
+  emits: ['addNotification'],
   components: {
       ReviewList
   },

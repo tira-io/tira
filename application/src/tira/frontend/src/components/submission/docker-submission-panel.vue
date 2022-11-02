@@ -134,9 +134,9 @@
         :csrf="csrf"
         display="participant"
         :running_evaluations="running_evaluations"
-        @addNotification="(type, message) => $emit('add-notification', type, message)"
-        @removeRun="(runId) => $emit('remove-run', runId, 'docker')"
-        @pollEvaluations="() => $emit('poll-evaluations')"/>
+        @addNotification="(type, message) => $emit('addNotification', type, message)"
+        @removeRun="(runId) => $emit('removeRun', runId, 'docker')"
+        @pollEvaluations="() => $emit('pollEvaluations')"/>
 </div>
 </template>
 
@@ -149,7 +149,7 @@ export default {
         ReviewList
     },
     props: ['csrf', 'datasets', 'docker', 'user_id', 'running_evaluations', 'task'],
-    emits: ['add-notification', 'poll-evaluations', 'remove-run', 'add-container', 'delete-container', 'poll-running-container'],
+    emits: ['addNotification', 'pollEvaluations', 'removeEun', 'addContainer', 'deleteContainer', 'pollRunningContainer'],
     data() {
         return {
             runningEvaluationIds: [],
@@ -201,12 +201,12 @@ export default {
             console.log(response)
             console.log(r)
             if (!response.ok) {
-                this.$emit('add-notification', 'error', `Uploading failed with ${response.status}: ${await response.text()}`)
+                this.$emit('addNotification', 'error', `Uploading failed with ${response.status}: ${await response.text()}`)
             } else if (r.status === 1){
                 this.dockerFormError = 'Error: ' + r.message
             } else {
                 this.dockerFormError = ''
-                this.$emit('addcontainer', r)
+                this.$emit('addContainer', r)
             }
         },
         checkContainerValid(updateView=false) {
@@ -254,11 +254,11 @@ export default {
         deleteContainer() {
             this.get(`/task/${this.task.task_id}/vm/${this.user_id}/delete_software/docker/${this.selectedContainerId}`)
                 .then(message => {
-                    this.$emit('deletecontainer', this.selectedContainerId)
+                    this.$emit('deleteContainer', this.selectedContainerId)
                     this.showNewImageForm = true
                 })
                 .catch(error => {
-                    this.$emit('add-notification', 'error', error.message)
+                    this.$emit('addNotification', 'error', error.message)
                 })
         },
         async runContainer () {
@@ -279,14 +279,14 @@ export default {
                 })
             })
             if (!response.ok) {
-                this.$emit('add-notification', 'error', `Error fetching endpoint: ${url} with ${response.status}`)
+                this.$emit('addNotification', 'error', `Error fetching endpoint: ${url} with ${response.status}`)
             }
             let results = await response.json()
             if (results.status === 1) {
-                this.$emit('add-notification', 'error', `Running Container ${this.selectedContainerId} failed with ${response.status}. Message = ${response.message}`)
+                this.$emit('addNotification', 'error', `Running Container ${this.selectedContainerId} failed with ${response.status}. Message = ${response.message}`)
                 return
             }
-            this.$emit('pollrunningcontainer')
+            this.$emit('pollRunningContainer')
             this.$refs['runContainerButton'].text = "Run Container"
             this.startingContainer = false
         },
