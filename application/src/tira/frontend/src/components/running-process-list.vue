@@ -34,7 +34,7 @@
                         <div>
                             <label class="uk-form-label">Software Name
                             <input class="uk-input" type="text"
-                                   :value="process.software_name" readonly disabled>
+                                   :value="get_field(process, 'software_name')" readonly disabled>
                             </label>
                         </div>
                         <div class="uk-width-auto">
