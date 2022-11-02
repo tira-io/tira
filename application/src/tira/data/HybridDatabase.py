@@ -171,6 +171,7 @@ class HybridDatabase(object):
         open(new_vm_file_path, 'w').write(str(vm))
 
     def _save_review(self, dataset_id, vm_id, run_id, review):
+        """ Save the reivew to the protobuf dump. Create the file if it does not exist. """
         review_path = self.runs_dir_path / dataset_id / vm_id / run_id
         open(review_path / "run-review.prototext", 'w').write(str(review))
         open(review_path / "run-review.bin", 'wb').write(review.SerializeToString())
@@ -184,43 +185,6 @@ class HybridDatabase(object):
 
         open(run_dir / "run.prototext", 'w').write(str(run))
         open(run_dir / "run.bin", 'wb').write(run.SerializeToString())
-
-    # ------------------------------------------------------------
-    # add methods to add new data to the model
-    # ------------------------------------------------------------
-
-    def _update_review(self, dataset_id, vm_id, run_id,
-                       reviewer_id: str = None, review_date: str = None, has_errors: bool = None,
-                       has_no_errors: bool = None, no_errors: bool = None, missing_output: bool = None,
-                       extraneous_output: bool = None, invalid_output: bool = None, has_error_output: bool = None,
-                       other_errors: bool = None, comment: str = None, published: bool = None, blinded: bool = None,
-                       has_warnings: bool = False):
-        """ updates the review specified by dataset_id, vm_id, and run_id with the values given in the parameters.
-        Required Parameters are also required in the function
-        """
-        review = self.load_review(dataset_id, vm_id, run_id)
-
-        def update(x, y):
-            return y if y is not None else x
-
-        review.runId = run_id
-        review.reviewerId = update(review.reviewerId, reviewer_id)
-        review.reviewDate = update(review.reviewDate, review_date)
-        review.hasErrors = update(review.hasErrors, has_errors)
-        review.hasWarnings = update(review.hasWarnings, has_warnings)
-        review.hasNoErrors = update(review.hasNoErrors, has_no_errors)
-        review.noErrors = update(review.noErrors, no_errors)
-        review.missingOutput = update(review.missingOutput, missing_output)
-        review.extraneousOutput = update(review.extraneousOutput, extraneous_output)
-        review.invalidOutput = update(review.invalidOutput, invalid_output)
-        review.hasErrorOutput = update(review.hasErrorOutput, has_error_output)
-        review.otherErrors = update(review.otherErrors, other_errors)
-        review.comment = update(review.comment, comment)
-        review.published = update(review.published, published)
-        review.blinded = update(review.blinded, blinded)
-
-        self._save_review(dataset_id, vm_id, run_id, review)
-        return review
 
     #########################################
     # Public Interface Methods
@@ -442,6 +406,16 @@ class HybridDatabase(object):
             Otherwise assume they were preloaded
         :param is_upload: if true, get only uploaded runs
         """
+        def _run_dict(review_obj):
+            run = self._run_as_dict(review_obj.run)
+            run["review"] = self._review_as_dict(review_obj)
+            run["reviewed"] = True if not review_obj.has_errors \
+                                      and not review_obj.has_no_errors \
+                                      and not review_obj.has_warnings else False
+            run['is_upload'] = is_upload
+            run['is_docker'] = is_docker
+            return run
+
         if is_upload:
             reviews_qs = reviews.filter(run__upload__vm__vm_id=vm_id).all()
         elif is_docker:
@@ -450,34 +424,20 @@ class HybridDatabase(object):
             reviews_qs = reviews.filter(run__software__vm__vm_id=vm_id).all()
 
         for review in reviews_qs:
-            yield {"run": self._run_as_dict(review.run),
-                   "review": self._review_as_dict(review),
-                   "reviewed": True if not review.has_errors and not review.has_no_errors
-                                       and not review.has_warnings else False,
-                   'published': review.published,
-                   'blinded': review.blinded,
-                   'is_upload': is_upload}
+            yield _run_dict(review)
+
             r2 = reviews.filter(run__input_run__run_id=review.run.run_id).all() if preloaded \
                 else modeldb.Review.objects.select_related('run').filter(run__input_run__run_id=review.run.run_id).all()
 
             for review2 in r2:
-                yield {"run": self._run_as_dict(review2.run),
-                       "review": self._review_as_dict(review2),
-                       "reviewed": True if not review2.has_errors and not review2.has_no_errors
-                                           and not review2.has_warnings else False,
-                       'published': review2.published,
-                       'blinded': review2.blinded,
-                       'is_upload': is_upload}
+                yield _run_dict(review2)
 
     def get_upload_with_runs(self, task_id, vm_id):
         def _runs_by_upload(up):
             reviews = modeldb.Review.objects.select_related("run", "run__upload", "run__evaluator", "run__input_run",
                                                             "run__input_dataset").filter(run__upload=up).all()
 
-            for r in self._get_ordered_runs_from_reviews(reviews, vm_id, preloaded=False, is_upload=True):
-                run = r['run']
-                run['review'] = r["review"]
-                yield run
+            return list(self._get_ordered_runs_from_reviews(reviews, vm_id, preloaded=False, is_upload=True))
 
         try:
             upload = modeldb.Upload.objects.get(vm__vm_id=vm_id, task__task_id=task_id)
@@ -488,7 +448,7 @@ class HybridDatabase(object):
             upload.save()
         return {"task_id": upload.task.task_id, "vm_id": upload.vm.vm_id,
                 "dataset": None if not upload.dataset else upload.dataset.dataset_id,
-                "last_edit": upload.last_edit_date, "runs": list(_runs_by_upload(upload))}
+                "last_edit": upload.last_edit_date, "runs": _runs_by_upload(upload)}
 
     def _docker_software_to_dict(self, ds):
         return {'docker_software_id': ds.docker_software_id, 'display_name': ds.display_name,
@@ -501,14 +461,11 @@ class HybridDatabase(object):
             reviews = modeldb.Review.objects.select_related("run", "run__upload", "run__evaluator", "run__input_run",
                                                             "run__input_dataset").filter(run__docker_software=ds).all()
 
-            for r in self._get_ordered_runs_from_reviews(reviews, vm_id, preloaded=False, is_docker=True):
-                run = r['run']
-                run['review'] = r["review"]
-                yield run
+            return list(self._get_ordered_runs_from_reviews(reviews, vm_id, preloaded=False, is_docker=True))
     
         docker_softwares = modeldb.DockerSoftware.objects.filter(vm__vm_id=vm_id, task__task_id=task_id, deleted=False)
 
-        docker_softwares = [{**self._docker_software_to_dict(ds), 'runs': list(_runs_by_docker_software(ds))}
+        docker_softwares = [{**self._docker_software_to_dict(ds), 'runs': _runs_by_docker_software(ds)}
                             for ds in docker_softwares]
 
         return docker_softwares
@@ -525,27 +482,31 @@ class HybridDatabase(object):
          "published_count": published_count}
          """
         results = []
-        reviews = modeldb.Review.objects.select_related('run', 'run__software', 'run__evaluator', 'run__upload',
+        reviews = modeldb.Review.objects.select_related('run', 'run__software', 'run__docker_software',
+                                                        'run__evaluator', 'run__upload',
                                                         'run__input_run').filter(
             run__input_dataset__dataset_id=dataset_id).all()
 
         upload_vms = {vm_id["run__upload__vm__vm_id"] for vm_id in reviews.values('run__upload__vm__vm_id')}
         software_vms = {vm_id["run__software__vm__vm_id"] for vm_id in reviews.values('run__software__vm__vm_id')}
+        docker_vms = {vm_id["run__docker_software__vm__vm_id"] for vm_id in reviews.values('run__docker_software__vm__vm_id')}
 
-        for vm_id in upload_vms.union(software_vms):
+        for vm_id in upload_vms.union(software_vms).union(docker_vms):
             if not vm_id:
                 continue
-            r = []
+            runs = []
             if vm_id in upload_vms:
-                r += list(self._get_ordered_runs_from_reviews(reviews, vm_id, is_upload=True))
+                runs += list(self._get_ordered_runs_from_reviews(reviews, vm_id, is_upload=True))
             elif vm_id in software_vms:
-                r = list(self._get_ordered_runs_from_reviews(reviews, vm_id, is_upload=False))
+                runs += list(self._get_ordered_runs_from_reviews(reviews, vm_id, is_upload=False))
+            elif vm_id in docker_vms:
+                runs += list(self._get_ordered_runs_from_reviews(reviews, vm_id, is_docker=True))
 
             results.append({"vm_id": vm_id,
-                            "runs": r,
-                            "unreviewed_count": len([_['reviewed'] for _ in r if _['reviewed'] is True]),
-                            "blinded_count": len([_['blinded'] for _ in r if _['blinded'] is True]),
-                            "published_count": len([_['published'] for _ in r if _['published'] is True]),
+                            "runs": runs,
+                            "unreviewed_count": len([_['reviewed'] for _ in runs if _['reviewed'] is True]),
+                            "blinded_count": len([_['review']['blinded'] for _ in runs if _['review']['blinded'] is True]),
+                            "published_count": len([_['review']['published'] for _ in runs if _['review']['published'] is True]),
                             })
         return results
 
@@ -684,17 +645,24 @@ class HybridDatabase(object):
                    if not include_unpublished}
         return keys, list(format_evaluation(runs, keys))
 
+    def get_evaluation(self, run_id):
+        try:
+            evaluation = modeldb.Evaluation.objects.filter(run__run_id=run_id).all()
+            return {ev.measure_key: ev.measure_value for ev in evaluation}
+
+        except modeldb.Evaluation.DoesNotExist:
+            logger.exception(f"Tried to load evaluation for run {run_id}, but it does not exist")
+
+        return {}
+
     def get_software_with_runs(self, task_id, vm_id):
         def _runs_by_software(software):
             reviews = modeldb.Review.objects.select_related("run", "run__software", "run__evaluator", "run__input_run",
                                                             "run__input_dataset").filter(run__software=software).all()
-            for r in self._get_ordered_runs_from_reviews(reviews, vm_id, preloaded=False):
-                run = r['run']
-                run['review'] = r["review"]
-                yield run
+            return list(self._get_ordered_runs_from_reviews(reviews, vm_id, preloaded=False))
 
         return [{"software": self._software_to_dict(s),
-                 "runs": list(_runs_by_software(s))
+                 "runs": _runs_by_software(s)
                  } for s in modeldb.Software.objects.filter(vm__vm_id=vm_id, task__task_id=task_id, deleted=False)]
 
     @staticmethod
@@ -985,29 +953,51 @@ class HybridDatabase(object):
         """ updates the review specified by dataset_id, vm_id, and run_id with the values given in the parameters.
         Required Parameters are also required in the function
         """
+
+        def __update(x, y):
+            return y if y is not None else x
+
         try:
             # This changes the contents in the protobuf files
-            review = self._update_review(dataset_id, vm_id, run_id, reviewer_id, review_date, has_errors, has_no_errors,
-                                         no_errors,
-                                         missing_output, extraneous_output, invalid_output, has_error_output,
-                                         other_errors, comment, published, blinded, has_warnings)
-            modeldb.Review.objects.filter(run__run_id=run_id).update(
-                reviewer_id=review.reviewerId,
-                review_date=review.reviewDate,
-                no_errors=review.noErrors,
-                missing_output=review.missingOutput,
-                extraneous_output=review.extraneousOutput,
-                invalid_output=review.invalidOutput,
-                has_error_output=review.hasErrorOutput,
-                other_errors=review.otherErrors,
-                comment=review.comment,
-                has_errors=review.hasErrors,
-                has_warnings=review.hasWarnings,
-                has_no_errors=review.hasNoErrors,
-                published=review.published,
-                blinded=review.blinded
+            review = modeldb.Review.objects.prefetch_related('run').get(run__run_id=run_id)
+
+            review_proto = modelpb.RunReview(runId=run_id,
+                 reviewerId=__update(review.reviewer_id, reviewer_id),
+                 reviewDate=__update(review.review_date, review_date),
+                 hasErrors=__update(review.has_errors, has_errors),
+                 hasWarnings=__update(review.has_warnings, has_warnings),
+                 hasNoErrors=__update(review.has_no_errors, has_no_errors),
+                 noErrors=__update(review.no_errors, no_errors),
+                 missingOutput=__update(review.missing_output, missing_output),
+                 extraneousOutput=__update(review.extraneous_output, extraneous_output),
+                 invalidOutput=__update(review.invalid_output, invalid_output),
+                 hasErrorOutput=__update(review.has_error_output, has_error_output),
+                 otherErrors=__update(review.other_errors, other_errors),
+                 comment=__update(review.comment, comment),
+                 published=__update(review.published, published),
+                 blinded=__update(review.blinded, blinded),
             )
+
+            modeldb.Review.objects.filter(run__run_id=run_id).update(
+                reviewer_id=review_proto.reviewerId,
+                review_date=review_proto.reviewDate,
+                no_errors=review_proto.noErrors,
+                missing_output=review_proto.missingOutput,
+                extraneous_output=review_proto.extraneousOutput,
+                invalid_output=review_proto.invalidOutput,
+                has_error_output=review_proto.hasErrorOutput,
+                other_errors=review_proto.otherErrors,
+                comment=review_proto.comment,
+                has_errors=review_proto.hasErrors,
+                has_warnings=review_proto.hasWarnings,
+                has_no_errors=review_proto.hasNoErrors,
+                published=review_proto.published,
+                blinded=review_proto.blinded
+            )
+
+            self._save_review(dataset_id, vm_id, run_id, review_proto)
             return True
+
         except Exception as e:
             logger.exception(f"Exception while saving review ({dataset_id}, {vm_id}, {run_id}): {e}")
             return False

@@ -64,16 +64,17 @@
 </div>
 
 <div v-if="selectedSoftware" class="uk-margin-small">
-    <submission-results-panel
+    <review-list
         v-if="selectedRuns"
         :runs="selectedRuns"
         :task_id="task.task_id"
         :user_id="user_id"
+        display="participant"
+        :csrf="csrf"
         :running_evaluations="running_evaluations"
-        @addNotification="(type, message) => addNotification(type, message)"
-        @removeRun="(runId) => removeRun(runId)"
-        @pollEvaluations="pollEvaluations()"
-    />
+        @addNotification="(type, message) => $emit('add-notification', type, message)"
+        @removeRun="(runId) => $emit('remove-run', runId, 'vm')"
+        @pollEvaluations="$emit('poll-evaluations')"/>
 </div>
 
 <div id="modal-command-help" class="uk-modal-container" uk-modal>
@@ -112,15 +113,15 @@
 </template>
 
 <script>
-import SubmissionResultsPanel from "./submissionresultspanel";
+import ReviewList from "../runs/review-list";
 
 export default {
-    name: "vmsubmissionpanel",
+    name: "vm-submission-panel",
     components: {
-        SubmissionResultsPanel
+        ReviewList
     },
     props: ['csrf', 'datasets', 'software', 'user_id', 'running_evaluations', 'task'],
-    emits: ['addnotification', 'pollevaluations', 'pollrunningsoftware', 'removerun', 'addsoftware', 'deletesoftware'],
+    emits: ['add-notification', 'poll-evaluations', 'poll-running-software', 'remove-run', 'add-software', 'delete-software'],
     data() {
         return {
             runningEvaluationIds: [],
@@ -149,15 +150,6 @@ export default {
             }
             return results
         },
-        addNotification(type, message) {
-            this.$emit('addnotification', type, message)
-        },
-        pollEvaluations() {
-            this.$emit('pollevaluations')
-        },
-        removeRun(runId) {
-            this.$emit('removerun', runId, 'upload')
-        },
         addSoftware() {
             this.get(`/task/${this.task.task_id}/vm/${this.user_id}/add_software/vm`).then(message => {
                 const new_software = {"software":
@@ -172,17 +164,17 @@ export default {
                     "creation_date": message.context.software.creation_date,
                     "last_edit": message.context.software.last_edit_date},
                     "runs": []}
-                this.$emit('addsoftware', new_software)
+                this.$emit('add-software', new_software)
                 this.selectedSoftwareId = message.context.software.id
             }).catch(error => {
-                this.$emit('addnotification', 'error', error.message)
+                this.$emit('add-notification', 'error', error.message)
             })
         },
         deleteSoftware() {
             // delete selected software
             this.get(`/task/${this.task.task_id}/vm/${this.user_id}/delete_software/vm/${this.selectedSoftwareId}`)
                 .then(message => {
-                    this.$emit('deletesoftware', this.selectedSoftwareId)
+                    this.$emit('delete-software', this.selectedSoftwareId)
                     if (this.software.length > 1) {
                         let listWithoutSoftware = this.software.filter(e => { return e.software.id !== this.selectedSoftwareId })
                         this.selectedSoftwareId = listWithoutSoftware[listWithoutSoftware.length-1].software.id
@@ -193,7 +185,7 @@ export default {
                     }
                 })
                 .catch(error => {
-                    this.$emit('addnotification', 'error', error.message)
+                    this.$emit('add-notification', 'error', error.message)
                 })
         },
         async saveSoftware(confirm=true) {
@@ -279,7 +271,7 @@ export default {
                 this.addNotification('error', `Running Software ${this.selectedSoftwareId} failed with ${response.status}`)
                 return
             }
-            this.$emit('pollRunningSoftware')
+            this.$emit('poll-running-software')
         },
         checkInputFields(mutate=false) {
             if (mutate) {

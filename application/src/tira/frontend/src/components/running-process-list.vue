@@ -8,8 +8,8 @@
                     class="uk-margin-medium-right"
                     onclick="event.stopPropagation()"
                     @click="stopRun(process.run_id)">
-                    <font-awesome-icon v-if="!aborting" class="uk-text-danger" icon="fas fa-ban"/>
-                    <font-awesome-icon v-else-if="aborting" icon="fas fa-ban" spin/>
+                    <font-awesome-icon v-if="!(this.aborted_processes.includes(process.run_id))" class="uk-text-danger" icon="fas fa-ban"/>
+                    <font-awesome-icon v-else-if="this.aborted_processes.includes(process.run_id)" icon="fas fa-ban" spin/>
                 </a>
                 <span class="uk-lead">{{ process.run_id }}&nbsp;</span>
                 <span class="uk-text-small uk-text-muted uk-margin-medium-right">{{ process.started_at }}</span>
@@ -35,12 +35,12 @@
 
 <script>
 export default {
-  name: "runningprocesslist",
+  name: "running-process-list",
   props: ["running_evaluations", "running_software"],
   emits: ['stoprun', 'addnotification'],
   data() {
     return {
-      aborting: false,
+      aborted_processes: [], 
       executionIndicator(key, label) {
         console.log(key, label)
         if (key === 'done') {
@@ -58,8 +58,10 @@ export default {
   },
   methods: {
     stopRun(run_id) {
-        this.aborting = true
+      if(!(this.aborted_processes.includes(run_id))) {
+        this.aborted_processes.push(run_id)
         this.$emit('stoprun', run_id)
+      }
     },
   }
 }

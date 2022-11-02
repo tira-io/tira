@@ -1,13 +1,3 @@
-<script>
-import RunList from './runlist.vue'
-
-export default {
-  props: ['vms', 'task_id', 'dataset_id', 'hide_reviewed'],
-  components: {
-      RunList
-  }
-}
-</script>
 <template>
 <ul id="tira-run-accordion" class="uk-list uk-list-collapse uk-list-striped" uk-accordion="multiple: true">
     <li v-for="vm in vms">
@@ -21,15 +11,44 @@ export default {
                       {{ vm.unreviewed_count }} Unreviewed</span></td>
                   <td class="uk-width-1-5 uk-text-right">{{ vm.blinded_count }} Blinded</td>
                   <td class="uk-width-1-5 uk-text-right">
-                      <span v-if="vm.published_count == 0" class="uk-text-warning">
+                      <span v-if="vm.published_count === 0" class="uk-text-warning">
                       {{ vm.published_count }} Published</span></td>
                 </tr>
             </table>
         </div>
         <div class="uk-accordion-content uk-margin-remove-top" v-if="vm">
             <a :href="'/task/' + task_id + '/user/' + vm.vm_id">[manage user]</a>
-            <RunList :runs="vm.runs" :vm_id="vm.vm_id" :task_id="task_id" :dataset_id="dataset_id" :for_review="true" :hide_reviewed="hide_reviewed"/> 
+            <review-list @add-notification="(type, message) => $emit('add-notification', type, message)"
+                         @remove-run="() => console.log('removing runs is not implemented in the review accordion')"
+                         @poll-evaluation="() => console.log('starting evaluations is not implemented in the review accordion')"
+                         :runs="vm.runs"
+                         :task_id="task_id" :user_id="vm.vm_id" :hide_reviewed="hide_reviewed"
+                         :csrf="csrf"/>
         </div>
     </li>
 </ul>
 </template>
+<script>
+import ReviewList from "../runs/review-list";
+
+export default {
+  data() {
+    return {
+    }
+  },
+  name: "reviewaccordion",
+  props: {
+    'vms': Array,
+    'task_id': String,
+    'hide_reviewed': Boolean,
+    'csrf': String},
+  emits: ['add-notification'],
+  components: {
+      ReviewList
+  },
+  methods: {
+  },
+  mounted() {
+  }
+}
+</script>

@@ -41,29 +41,30 @@
 </form>
 </div>
 <div class="uk-margin-small">
-    <submission-results-panel
+    <review-list
         v-if="upload.runs"
         :runs="upload.runs"
         :task_id="taskid"
         :user_id="userid"
+        display="participant"
+        :csrf="csrf"
         :running_evaluations="running_evaluations"
-        @addNotification="(type, message) => addNotification(type, message)"
-        @removeRun="(runId) => removeRun(runId)"
-        @pollEvaluations="pollEvaluations()"
-    />
+        @addNotification="(type, message) => $emit('addnotification', type, message)"
+        @removeRun="(runId) => $emit('remove-run', runId, 'upload')"
+        @pollEvaluations="() => $emit('poll-evaluations')"/>
 </div>
 </template>
 
 <script>
-import SubmissionResultsPanel from './submissionresultspanel.vue'
+import ReviewList from '../runs/review-list'
 
 export default {
-    name: "uploadsubmissionpanel",
+    name: "upload-submission-panel",
     components: {
-        SubmissionResultsPanel
+        ReviewList
     },
     props: ['csrf', 'datasets', 'upload', "taskid", "userid", "running_evaluations"],
-    emits: ['addnotification', 'pollevaluations', 'removerun'],
+    emits: ['add-notification', 'poll-evaluations', 'remove-run'],
     data() {
       return {
         uploadDataset: '',
@@ -87,7 +88,7 @@ export default {
 
             let r = await response.json()
             if (!response.ok) {
-                this.$emit('addnotification', 'error', `Uploading failed with status ${response.status}: ${await response.text()}`)
+                this.$emit('add-notification', 'error', `Uploading failed with status ${response.status}: ${await response.text()}`)
             } else if (r.status === 1){
                 this.uploadFormError = 'Error: ' + r.message
             } else {
@@ -97,7 +98,7 @@ export default {
                 this.fileHandle = null
                 this.upload.last_edit = r.last_edit_date
                 if (r.started_evaluation) {
-                    this.$emit('pollevaluations')
+                    this.$emit('poll-evaluations')
                 }
             }
             this.$refs.file.value = null 
@@ -106,15 +107,6 @@ export default {
         saveFileRef() {
             this.fileHandle = this.$refs.file.files[0];
         },
-        addNotification(type, message) {
-            this.$emit('addnotification', type, message)
-        },
-        pollEvaluations() {
-            this.$emit('pollevaluations')
-        },
-        removeRun(runId) {
-            this.$emit('removerun', runId, 'upload')
-        }
     },
     computed: {
         datasetOptions() {

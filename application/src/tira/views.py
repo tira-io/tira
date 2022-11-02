@@ -170,7 +170,7 @@ def software_detail(request, context, task_id, vm_id):
 @check_resources_exist('http')
 @add_context
 def review(request, context, task_id, vm_id, dataset_id, run_id):
-    """
+    """ @deprecated use the REST enpoints instead (data/get_review and admin/edit_review)
      - no_errors = hasNoErrors
      - output_error -> invalid_output and has_error_output
      - software_error <-> other_error

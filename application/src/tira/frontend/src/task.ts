@@ -1,9 +1,9 @@
-import NotificationBar from './components/notificationbar.vue'
-import Leaderboard from './components/leaderboard.vue'
-import ReviewList from './components/reviewlist.vue'
-import EditTask from './components/edittask.vue'
-import EditDataset from './components/editdataset.vue'
-import AddDataset from './components/adddataset.vue'
+import NotificationBar from './components/elements/notification-bar.vue'
+import Leaderboard from './components/runs/leaderboard.vue'
+import ReviewAccordion from './components/elements/review-accordion.vue'
+import EditTask from './components/data-edit-forms/edit-task.vue'
+import EditDataset from './components/data-edit-forms/edit-dataset.vue'
+import AddDataset from './components/data-edit-forms/add-dataset.vue'
 
 import Vue from 'vue'
 import {createApp} from 'vue'
@@ -11,9 +11,13 @@ import UIkit from 'uikit'
 // Fontawesome Icons
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faCheck, faTimes, faUserSlash, faUsers, faUsersSlash, faLevelUpAlt, faUser, faSearch, faDownload, faSave, faTrashAlt, faCog, faPlus } from '@fortawesome/free-solid-svg-icons'
+import { faCheck, faTimes, faUserSlash, faUsers, faUsersSlash, faLevelUpAlt, faUser, faSearch, faDownload, faSave,
+    faTrashAlt, faCog, faPlus, faSort, faSortUp, faSortDown, faSortAmountUp, faSortAlphaUp,
+    faSortNumericUp, faSortAmountDown, faSortAlphaDown, faSortNumericDown, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons'
 
-library.add(faCheck, faTimes, faUserSlash, faUsers, faUsersSlash, faLevelUpAlt, faUser, faSearch, faDownload, faSave, faTrashAlt, faCog, faPlus)
+library.add(faCheck, faTimes, faUserSlash, faUsers, faUsersSlash, faLevelUpAlt, faUser, faSearch, faDownload, faSave,
+    faTrashAlt, faCog, faPlus, faSort, faSortUp, faSortDown, faSortAmountUp, faSortAlphaUp,
+    faSortNumericUp, faSortAmountDown, faSortAlphaDown, faSortNumericDown, faEye, faEyeSlash)
 
 // CSS
 require('../../static/tira/css/tira-style.css');
@@ -36,7 +40,7 @@ const app = createApp({
             loading: false,
             selected: "",
             hide_private: true,
-            hide_reviewed: true,
+            hide_reviewed: false,
             editTaskToggle: false,
             editDatasetToggle: false,
             addDatasetToggle: false,
@@ -44,7 +48,7 @@ const app = createApp({
         }
     },
     components: {
-        Leaderboard, ReviewList, NotificationBar, EditTask, EditDataset, AddDataset
+        Leaderboard, ReviewAccordion, NotificationBar, EditTask, EditDataset, AddDataset
     },
     methods: {
         async get(url) {
@@ -62,7 +66,6 @@ const app = createApp({
             this.notifications.push({'type': type, 'message': message})
         },
         deleteDataset(dsId) {
-            console.log("delete dataset")
             this.editDatasetToggle = false
             delete this.datasets[dsId]
             this.selected = ""

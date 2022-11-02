@@ -1,10 +1,9 @@
-import NotificationBar from './components/notificationbar.vue'
-import VmControlPanel from './components/vmcontrolpanel.vue'
-import UploadSubmissionPanel from './components/uploadsubmissionpanel.vue'
-import DockerSubmissionPanel from './components/dockersubmissionpanel.vue'
-import VmSubmissionPanel from './components/vmsubmissionpanel.vue'
-import SubmissionResultsPanel from './components/submissionresultspanel.vue'
-import RunningProcessList from './components/runningprocesslist.vue'
+import NotificationBar from './components/elements/notification-bar.vue'
+import VmControlPanel from './components/submission/vm-control-panel.vue'
+import UploadSubmissionPanel from './components/submission/upload-submission-panel.vue'
+import DockerSubmissionPanel from './components/submission/docker-submission-panel.vue'
+import VmSubmissionPanel from './components/submission/vm-submission-panel.vue'
+import RunningProcessList from './components/running-process-list.vue'
 
 import {createApp, createCommentVNode} from 'vue';
 import UIkit from 'uikit';
@@ -12,11 +11,34 @@ import UIkit from 'uikit';
 // Fontawesome Icons
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faCheck, faTimes, faUserSlash, faUsers, faUsersSlash, faLevelUpAlt, faUser, faSearch, faCircleNotch,
-    faDownload, faSave, faTrashAlt, faCog, faPlus, faBoxOpen, faTerminal, faUpload, faFolderPlus, faQuestion, faInfo, faBan } from '@fortawesome/free-solid-svg-icons'
+import {
+    faCheck,
+    faTimes,
+    faUserSlash,
+    faUsers,
+    faUsersSlash,
+    faLevelUpAlt,
+    faUser,
+    faSearch,
+    faCircleNotch,
+    faDownload,
+    faSave,
+    faTrashAlt,
+    faCog,
+    faPlus,
+    faBoxOpen,
+    faTerminal,
+    faUpload,
+    faFolderPlus,
+    faQuestion,
+    faInfo,
+    faBan,
+    faSortAmountUp, faEye, faEyeSlash, faSortNumericDown
+} from '@fortawesome/free-solid-svg-icons'
 
 library.add(faCheck, faTimes, faUserSlash, faUsers, faUsersSlash, faLevelUpAlt, faUser, faSearch, faDownload, faSave,
-    faTrashAlt, faCog, faPlus, faBoxOpen, faTerminal, faUpload, faFolderPlus, faQuestion, faCircleNotch, faInfo, faBan)
+    faTrashAlt, faCog, faPlus, faBoxOpen, faTerminal, faUpload, faFolderPlus, faQuestion, faCircleNotch, faInfo, faBan,
+    faSortAmountUp, faEye, faEyeSlash, faSortNumericDown)
 
 
 // CSS
@@ -66,7 +88,7 @@ const app = createApp({
     },
     components: {
         NotificationBar, VmControlPanel, UploadSubmissionPanel, DockerSubmissionPanel, VmSubmissionPanel,
-        SubmissionResultsPanel, RunningProcessList
+        RunningProcessList
     },
     methods: {
         async get(url) {

@@ -17,32 +17,39 @@
     <form id="docker-form" class="docker_form">
         <input type="hidden" name="csrfmiddlewaretoken" :value="csrf">  <!-- TODO: this might not be needed anymore -->
         <div class="uk-grid uk-grid-small" data-uk-grid>
-            <div class="uk-width-1-1">
-                <label class="uk-form-label">Command
-                <input class="uk-input command-input" type="text"
+            <div class="uk-width-4-5">
+                <label class="uk-form-label" for="docker-command-input">Command
+                <input id="docker-command-input" class="uk-input command-input" type="text"
                        :disabled="!docker.docker_images"
-                       v-model="addContainerCommand" :placeholder="task.command_placeholder"></label>
+                       v-model="addContainerCommand" :placeholder="task.command_placeholder">
+                </label>
             </div>
-            <div class="uk-width-1-1">
-                <a @click="toggleCommandHelp = !toggleCommandHelp" :command_description="task.command_description"><u>Toggle Command Help</u></a><br>
-                <span v-show="toggleCommandHelp">{{ task.command_description }}</span>
+            <div>
+                <label class="uk-form-label uk-width-4-5">&nbsp;</label>
+                <div>
+                    <a class="uk-button uk-button-default"
+                              uk-tooltip="title: Click to show the help for Commands; delay: 500"
+                              uk-toggle="target: #modal-command-help"><font-awesome-icon icon="fas fa-info" /></a>
+                </div>
             </div>
+
             <div class="uk-width-1-2">
-                <label class="uk-form-label">Docker Image
-                <select :disabled="!docker.docker_images" class="uk-select upload-select" v-model="containerImage" >
+                <label class="uk-form-label" for="selector_docker_image">Docker Image</label>
+                <select id="selector_docker_image" :disabled="!docker.docker_images" class="uk-select upload-select" v-model="containerImage" >
                     <option v-if="docker.docker_images" value="None" :disabled="containerImage !== 'None'">Select Docker Image</option>
                     <option v-else value="None" disabled>Upload an image first</option>
                     <option v-for="image in docker.docker_images" :value="image">{{ image }}</option>
                 </select>
-                </label>
+                
             </div>
-            <div class="uk-width-1-2">
-              <label class="uk-form-label">&nbsp;
-              <a class="uk-button" 
+
+            <div>
+              <label class="uk-form-label" for="add-container-button">&nbsp;</label>
+              <div><a class="uk-button" id="add-container-button"
                         @click="checkContainerValid(true) && addContainer()"
                         :disabled="!checkContainerValid(false)"
                         :class="{ 'uk-button-primary': checkContainerValid(false), 'uk-button-default': !checkContainerValid(false)}"
-                >add container</a></label>
+                >add container</a></div>
             </div>
             <div class="uk-text-danger uk-width-expand">{{ dockerFormError }}</div>
 
@@ -85,7 +92,7 @@
             <div class="uk-width-1-4">
                 <label class="uk-form-label">Run on Dataset
                     <select class="uk-select" v-model="selectedDataset"
-                            @change="checkContainerRunValid(true)"
+                            @change="checkContainerRunValid(true); this.dockerFormError=''"
                             :class="{ 'uk-form-danger': containerDatasetError}">
                         <option :disabled="selectedDataset !== 'None'" value="None">Select Dataset</option>
                         <option v-for="dataset in datasetOptions" :value="dataset.at(0)">{{ dataset.at(1) }}</option>
@@ -110,31 +117,39 @@
         </div>
     </form>
 </div>
+<div id="modal-command-help" class="uk-modal-container" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-margin-auto-vertical">
+        <button class="uk-modal-close-default" type="button" uk-close></button>
+        <h2 class="uk-modal-title">Docker Commands Help for {{ task.task_name }}</h2>
+        <p v-html="task.command_description"></p>
+    </div>
+</div>
 
 <div v-if="!showNewImageForm && ! showUploadVm" class="uk-margin-small">
-    <submission-results-panel
+    <review-list
         v-if="selectedRuns"
         :runs="selectedRuns"
         :task_id="task.task_id"
         :user_id="user_id"
+        :csrf="csrf"
+        display="participant"
         :running_evaluations="running_evaluations"
-        @addNotification="(type, message) => addNotification(type, message)"
-        @removeRun="(runId) => removeRun(runId)"
-        @pollEvaluations="pollEvaluations()"
-    />
+        @addNotification="(type, message) => $emit('add-notification', type, message)"
+        @removeRun="(runId) => $emit('remove-run', runId, 'docker')"
+        @pollEvaluations="() => $emit('poll-evaluations')"/>
 </div>
 </template>
 
 <script>
-import SubmissionResultsPanel from "./submissionresultspanel";
+import ReviewList from "../runs/review-list";
 
 export default {
-    name: "dockersubmissionpanel",
+    name: "docker-submission-panel",
     components: {
-        SubmissionResultsPanel
+        ReviewList
     },
     props: ['csrf', 'datasets', 'docker', 'user_id', 'running_evaluations', 'task'],
-    emits: ['addnotification', 'pollevaluations', 'removerun', 'addcontainer', 'deletecontainer', 'pollrunningcontainer'],
+    emits: ['add-notification', 'poll-evaluations', 'remove-run', 'add-container', 'delete-container', 'poll-running-container'],
     data() {
         return {
             runningEvaluationIds: [],
@@ -154,6 +169,7 @@ export default {
             selectedContainerCommand: null,
             selectedResources: "None",
             toggleCommandHelp: false,
+            startingContainer: false,
         }
     },
     methods: {
@@ -167,15 +183,6 @@ export default {
                 throw new Error(`${results.message}`);
             }
             return results
-        },
-        addNotification(type, message) {
-            this.$emit('addnotification', type, message)
-        },
-        pollEvaluations() {
-            this.$emit('pollevaluations')
-        },
-        removeRun(runId) {
-            this.$emit('removerun', runId, 'upload')
         },
         async addContainer() {
             this.checkContainerValid()
@@ -194,7 +201,7 @@ export default {
             console.log(response)
             console.log(r)
             if (!response.ok) {
-                this.addNotification('error', `Uploading failed with ${response.status}: ${await response.text()}`)
+                this.$emit('add-notification', 'error', `Uploading failed with ${response.status}: ${await response.text()}`)
             } else if (r.status === 1){
                 this.dockerFormError = 'Error: ' + r.message
             } else {
@@ -239,6 +246,9 @@ export default {
                 }
                 return false
             }
+            if (this.startingContainer === true) {
+                return false
+            }
             return true
         },
         deleteContainer() {
@@ -248,11 +258,12 @@ export default {
                     this.showNewImageForm = true
                 })
                 .catch(error => {
-                    this.$emit('addnotification', 'error', error.message)
+                    this.$emit('add-notification', 'error', error.message)
                 })
         },
         async runContainer () {
             if (!this.checkContainerRunValid(true)) return;
+            this.startingContainer = true
             this.$refs['runContainerButton'].text = "Starting..."
 
             const response = await fetch(`/grpc/${this.task.task_id}/${this.user_id}/run_execute/docker/${this.selectedDataset}/${this.selectedContainerId}/${this.selectedResources}`, {
@@ -268,15 +279,16 @@ export default {
                 })
             })
             if (!response.ok) {
-                this.addNotification('error', `Error fetching endpoint: ${url} with ${response.status}`)
+                this.$emit('add-notification', 'error', `Error fetching endpoint: ${url} with ${response.status}`)
             }
             let results = await response.json()
             if (results.status === 1) {
-                this.addNotification('error', `Running Container ${this.selectedContainerId} failed with ${response.status}. Message = ${response.message}`)
+                this.$emit('add-notification', 'error', `Running Container ${this.selectedContainerId} failed with ${response.status}. Message = ${response.message}`)
                 return
             }
             this.$emit('pollrunningcontainer')
             this.$refs['runContainerButton'].text = "Run Container"
+            this.startingContainer = false
         },
     },
     computed: {

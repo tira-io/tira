@@ -63,12 +63,14 @@ urlpatterns = [
     path('tira-admin/delete-dataset/<str:dataset_id>', admin_api.admin_delete_dataset, name='tira-admin-delete-dataset'),
     path('tira-admin/add-organizer/<str:organizer_id>', admin_api.admin_add_organizer, name='tira-admin-add-organizer'),
     path('tira-admin/edit-organizer/<str:organizer_id>', admin_api.admin_edit_organizer, name='tira-admin-edit-organizer'),
+    path('tira-admin/edit-review/<str:dataset_id>/<str:vm_id>/<str:run_id>', admin_api.admin_edit_review, name='tira-admin-edit-review'),
     path('tira-admin/create-group/<str:vm_id>', admin_api.admin_create_group, name='tira-admin-create-group'),
 
     path('publish/<str:vm_id>/<str:dataset_id>/<str:run_id>/<str:value>', organizer_api.publish, name='publish'),
     path('blind/<str:vm_id>/<str:dataset_id>/<str:run_id>/<str:value>', organizer_api.blind, name='blind'),
 
     path('api/evaluations/<str:task_id>/<str:dataset_id>', data_api.get_evaluations_by_dataset, name='get_evaluations_by_dataset'),
+    path('api/evaluation/<str:run_id>', data_api.get_evaluation, name='get_evaluation'),
     path('api/submissions/<str:task_id>/<str:dataset_id>', data_api.get_submissions_by_dataset, name='get_submissions_by_dataset'),
     path('api/ova-list', data_api.get_ova_list, name='get_ova_list'),
     path('api/host-list', data_api.get_host_list, name='get_host_list'),
@@ -81,6 +83,7 @@ urlpatterns = [
     path('api/role', data_api.get_role, name='get_role'),
     path('api/task/<str:task_id>/user/<str:user_id>', data_api.get_user, name='get_user'),
     path('api/task/<str:task_id>/user/<str:user_id>/software/running', data_api.get_running_software, name='get_running_software'),
+    path('api/review/<str:dataset_id>/<str:user_id>/<str:run_id>', data_api.get_review, name='get_review'),
 ]
 
 app_name = 'tira'
