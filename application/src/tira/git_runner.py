@@ -582,7 +582,7 @@ def __all_failed_pipelines_for_repository(gl_project, already_covered_run_ids):
         if run_id in already_covered_run_ids:
             continue
         
-        ret += [{'run_id': run_id, 'execution': {'scheduling': 'failed', 'execution': 'failed', 'evaluation': 'failed'}, 'pipeline_name': p, 'stdOutput': 'Job did not run.', 'started_at': p.split('---')[-1], 'branch': branch}]
+        ret += [{'run_id': run_id, 'execution': {'scheduling': 'failed', 'execution': 'failed', 'evaluation': 'failed'}, 'pipeline_name': p, 'stdOutput': 'Job did not run. (Maybe it is still submitted to the cluster or failed to start. It might take up to 5 minutes to submit a Job to the cluster.)', 'started_at': p.split('---')[-1], 'branch': branch}]
 
     return ret
 
