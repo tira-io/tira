@@ -23,18 +23,21 @@
         <div class="upload-form-buttons uk-width-expand">
             <label class="uk-form-label" for="upload-button">&nbsp;</label>
             <div>
-                <span v-show="uploading" uk-spinner="ratio: 0.5"></span>
-                <a id="upload-button" class="uk-button uk-button uk-width-expand"
-                   :class="{ 'uk-button-default': uploading, 'uk-button-primary': !uploading}"
-                   :disabled="uploading"
-                   @click="fileUpload()">upload</a>
+                <a id="upload-button" class="uk-button uk-width-expand"
+                   :class="{ 'uk-button-default': (uploading || fileHandle === null || uploadDataset === 'None'),
+                   'uk-button-primary': !(uploading || fileHandle === null || uploadDataset === 'None')}"
+                   :disabled="uploading || fileHandle === null || uploadDataset === 'None'"
+                   @click="fileUpload()">
+                  upload
+                </a>
             </div>
         </div>
     </div>
     <div class="uk-grid-collapse uk-margin-remove" uk-grid>
         <div class="uk-text-danger uk-width-expand">{{ uploadFormError}}</div>
         <div>
-            <span class="uk-text-small uk-text-lead" id="upload-last-edit">last edit: {{ upload.last_edit }}
+            <span class="uk-text-small uk-text-lead" id="upload-last-edit">
+                  <span v-show="uploading" uk-spinner="ratio: 0.3"></span> last edit: {{ upload.last_edit }}
         </span>
     </div>
     </div>
@@ -75,6 +78,7 @@ export default {
     },
     methods: {
         async fileUpload() {  // async
+            console.log(this.uploading, this.uploadDataset, this.fileHandle)
             // TODO: when successful, add new entry to uploads.runs
             this.uploading = true
             let formData = new FormData();

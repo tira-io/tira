@@ -145,7 +145,7 @@ def load_docker_data(task_id, vm_id, cache, force_cache_refresh):
     }
 
 
-def git_pipeline_is_enabled_for_task(task_id, cache, force_cache_refresh):
+def git_pipeline_is_enabled_for_task(task_id, cache, force_cache_refresh=False):
     evaluators_for_task = get_evaluators_for_task(task_id, cache, force_cache_refresh)
     git_runners_for_task = [i['is_git_runner'] for i in evaluators_for_task]
         
