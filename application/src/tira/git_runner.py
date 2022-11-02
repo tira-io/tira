@@ -555,8 +555,8 @@ def extract_job_configuration(gl_project, branch):
                     ret = {i.split('=')[0].strip():i.split('=')[1].strip() for i in diff_entry if len(i.split('=')) == 2}
 
     try:
-        from tira.tira_model import tmodel
-        software_from_db = tmodel.get_docker_software(int(ret['software_id'].split('docker-software-')[-1]))
+        from tira.tira_model import model
+        software_from_db = model.get_docker_software(int(ret['TIRA_SOFTWARE_ID'].split('docker-software-')[-1]))
     except:
         software_from_db = {}
 

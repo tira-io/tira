@@ -32,9 +32,9 @@
                 <div class="uk-container uk-margin-medium uk-padding-medium">
                     <div class="uk-grid-small uk-padding-small" data-uk-grid>
                         <div>
-                            <label class="uk-form-label">Pipeline Name
+                            <label class="uk-form-label">Software Name
                             <input class="uk-input" type="text"
-                                   :value="process.pipeline_name" readonly disabled>
+                                   :value="process.software_name" readonly disabled>
                             </label>
                         </div>
                         <div class="uk-width-auto">
@@ -78,6 +78,12 @@
                             <label class="uk-form-label">Memory
                             <input class="uk-input" type="text"
                                    :value="get_field(process, 'ram')" readonly disabled>
+                            </label>
+                        </div>
+                        <div class="uk-width-auto">
+                            <label class="uk-form-label">GPU
+                            <input class="uk-input" type="text"
+                                   :value="get_field(process, 'gpu')" readonly disabled>
                             </label>
                         </div>
                     </div>
