@@ -1269,12 +1269,23 @@ class HybridDatabase(object):
 
     def delete_run(self, dataset_id, vm_id, run_id):
         """ delete the run in the database and the run_dir with the software output/evaluation results
-            @return: false if another run uses this run as input_run
+
+        Do not delete if:
+          - another run uses this run as input_run
+          - the run is on the leaderboards
+          - the run was reviewed as 'no errors's
+
+            @return: true if it was deleted, false if it can not be deleted
          """
         run_dir = Path(self.runs_dir_path / dataset_id / vm_id / run_id)
         run = modeldb.Run.objects.get(run_id=run_id)
 
+
         if modeldb.Run.objects.filter(input_run=run).exists():
+            return False
+
+        review = modeldb.Review.objects.get(run=run)
+        if review.published or review.no_errors:
             return False
 
         try:
