@@ -526,6 +526,9 @@ def all_running_pipelines_for_repository(git_repository_id, cache=None, force_ca
                 'dataset': 'Loading...',
                 'software_id': 'Loading...',
                 'task_id': 'Loading...',
+                'software_name' = 'Loading...',
+                'image' = 'Loading...',
+                'command''Loading...'
             }
 
             if prepare_environment_job is not None:
