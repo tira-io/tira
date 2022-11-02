@@ -92,11 +92,17 @@
 
                 </a>
         </td>
+        <!-- Delete Button -->
         <td class="uk-table-shrink uk-text-nowrap uk-padding-remove uk-margin-remove uk-preserve-width"
          v-if="display==='participant'">
-            <a class="uk-button uk-button-small uk-button-danger"
+            <a class="uk-button uk-button-small"
+               :class="{'uk-button-disabled': !canBeDeleted(run.run_id), 'uk-button-danger': canBeDeleted(run.run_id)}"
+               :disabled="!canBeDeleted(run.run_id)"
                @click="deleteRun(run.dataset, run.run_id)">
-              <font-awesome-icon icon="fas fa-trash-alt" /></a>
+              <font-awesome-icon icon="fas fa-trash-alt" v-if="!canBeDeleted(run.run_id)"
+                uk-tooltip="Runs can not be deleted if they are visible, public, or serve as input run for an evaluation."/>
+              <font-awesome-icon icon="fas fa-trash-alt" v-else/>
+            </a>
         </td>
     </tr>
     </tbody>
@@ -110,7 +116,9 @@ import { get } from "../../utils/getpost"
 export default {
   data() {
     return {
-      runningEvaluationIds: []
+      runningEvaluationIds: [],
+      inputRunIdCache: [],
+      runCache: {}
     }
   },
   props: {
@@ -151,9 +159,9 @@ export default {
           if (run.run_id === newReview.run_id) {
             run.review.blinded = !newReview.isVisibleToParticipant
             run.review.published = newReview.isOnLeaderboard
-            run.review.noErrors =newReview.no_errors
-            run.review.hasErrors = !newReview.no_errors
-            run.review.comment =newReview. comment
+            run.review.noErrors = newReview.no_errors
+            run.review.hasErrors = (newReview.output_error || newReview.software_error)
+            run.review.comment = newReview.comment
             run.review.hasErrorOutput = newReview.output_error
             run.review.otherErrors = newReview.software_error
             run.review.reviewer = newReview.reviewer
@@ -163,10 +171,15 @@ export default {
       }
     },
     deleteRun(datasetId, runId) {
-      if (this.display === 'review') {
-        this.$emit('removeRun', runId)
+      if (!this.canBeDeleted(runId)) {
         return
       }
+      return
+      if (this.display === 'review') {
+        // Note: in review mode, the button should not show up and, hence, does nothing.
+        return
+      }
+
       if(datasetId === ""){
         datasetId=null
       }
@@ -185,12 +198,36 @@ export default {
       }).catch(error => {
         this.$emit('addNotification', 'error', error.message)
       })
+    },
+    updateRunCache() {
+      for (const run of this.runs) {
+        this.runCache[run.run_id] = run
+      }
+      this.inputRunIdCache = this.runs.map(a => {return a.input_run_id})
+          .filter(a => { if (a !== '') return a })
+      console.log(this.runCache)
+    },
+    canBeDeleted(runId) {
+      if (this.inputRunIdCache.includes(runId)) {
+        return false
+      }
+      else if (this.runCache[runId].review.published || this.runCache[runId].review.noErrors) {
+        return false
+      }
+      return true
+    },
+  },
+  watch: {
+    runs(newRuns, oldRuns) {
+        this.updateRunCache()
     }
   },
   mounted() {
+
   },
   beforeMount() {
     this.runningEvaluationIds = this.running_evaluations.map(e => {return e.run_id})
+    this.updateRunCache()
   }
 }
 </script>

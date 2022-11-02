@@ -352,8 +352,10 @@ def run_eval(request, vm_id, dataset_id, run_id):
 
 @check_conditional_permissions(private_run_ok=True)
 def run_delete(request, dataset_id, vm_id, run_id):
-    model.delete_run(dataset_id, vm_id, run_id)
-    return JsonResponse({'status': 0}, status=HTTPStatus.ACCEPTED)
+    delete_ok = model.delete_run(dataset_id, vm_id, run_id)
+    if delete_ok:
+        return JsonResponse({'status': 0}, status=HTTPStatus.ACCEPTED)
+    return JsonResponse({'status': 1, 'message': f"Can not delete run {run_id} since it is used as an input run."}, status=HTTPStatus.ACCEPTED)
 
 
 @check_permissions

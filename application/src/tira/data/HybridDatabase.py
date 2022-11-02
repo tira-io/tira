@@ -471,7 +471,12 @@ class HybridDatabase(object):
         return docker_softwares
 
     def delete_docker_software(self, task_id, vm_id, docker_software_id):
-        return modeldb.DockerSoftware.objects.filter(vm_id=vm_id, task_id=task_id, docker_software_id=docker_software_id).update(deleted=True)
+        software_qs = modeldb.DockerSoftware.objects.filter(vm_id=vm_id, task_id=task_id,
+                                                            docker_software_id=docker_software_id)
+        if software_qs.exists():
+            software_qs.delete()
+            return True
+        return False
 
     def get_vms_with_reviews(self, dataset_id: str):
         """ returns a list of dicts with:
@@ -1263,13 +1268,33 @@ class HybridDatabase(object):
         return found
 
     def delete_run(self, dataset_id, vm_id, run_id):
+        """ delete the run in the database and the run_dir with the software output/evaluation results
+
+        Do not delete if:
+          - another run uses this run as input_run
+          - the run is on the leaderboards
+          - the run was reviewed as 'no errors's
+
+            @return: true if it was deleted, false if it can not be deleted
+         """
         run_dir = Path(self.runs_dir_path / dataset_id / vm_id / run_id)
+        run = modeldb.Run.objects.get(run_id=run_id)
+
+
+        if modeldb.Run.objects.filter(input_run=run).exists():
+            return False
+
+        review = modeldb.Review.objects.get(run=run)
+        if review.published or review.no_errors:
+            return False
+
         try:
             rmtree(run_dir)
         except FileNotFoundError as e:
             logger.exception(f'Tried to delete {run_dir} but it was not found. Deleting the run from Database ... ')
 
         modeldb.Run.objects.filter(run_id=run_id).delete()
+        return True
 
     def _fdb_delete_task(self, task_id):
         task_file_path = self.tasks_dir_path / f'{task_id}.prototext'
