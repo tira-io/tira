@@ -492,14 +492,11 @@ def all_running_pipelines_for_repository(git_repository_id, cache=None, force_ca
         for pipeline in gl_project.pipelines.list(status=status):
             user_software_job = None
             evaluation_job = None
-            prepare_environment_job = None
             for job in pipeline.jobs.list():
                 if 'run-user-software' == job.name:
                     user_software_job = job
                 if 'evaluate-software-result' == job.name:
                     evaluation_job = job
-                if 'prepare-tira-environment' == job.name:
-                    prepare_environment_job = job
 
             p = (pipeline.ref + '---started-').split('---started-')[0]
             
@@ -519,43 +516,6 @@ def all_running_pipelines_for_repository(git_repository_id, cache=None, force_ca
                     # Job is not started or similar
                     pass
 
-            actual_job_config = {
-                'cores': 'Loading...',
-                'ram': 'Loading...',
-                'gpu': 'Loading...',
-                'dataset_type': 'Loading...',
-                'dataset': 'Loading...',
-                'software_id': 'Loading...',
-                'task_id': 'Loading...',
-                'software_name': 'Loading...',
-                'image': 'Loading...',
-                'command': 'Loading...'
-            }
-
-            if prepare_environment_job is not None:
-                try:
-                    prepare_environment_job = gl_project.jobs.get(prepare_environment_job.id)
-                    job_config = prepare_environment_job.trace().decode('UTF-8').split('task.env')[-2].split('\n')
-                    job_config = {i.split('=')[0]:i.split('=')[1] for i in job_config if len(i.split('=')) == 2}
-
-                    actual_job_config['cores'] = str(int(job_config['TIRA_CPU_COUNT'])) + ' CPU Cores'
-                    actual_job_config['ram'] = str(int(job_config['TIRA_MEMORY_IN_GIBIBYTE'])) + 'GB of RAM'
-                    actual_job_config['gpu'] = str(job_config['TIRA_GPU_COUNT']) + ' GPUs'
-                    actual_job_config['dataset_type'] = job_config['TIRA_DATASET_TYPE']
-                    actual_job_config['dataset'] = job_config['TIRA_DATASET_ID']
-                    actual_job_config['software_id'] = job_config['TIRA_SOFTWARE_ID']
-                    actual_job_config['task_id'] = job_config['TIRA_TASK_ID']
-
-                    from tira.tira_model import tmodel
-                    job_config = tmodel.get_docker_software(int(actual_job_config['software_id'].split('docker-software-')[-1]))
-
-                    actual_job_config['software_name'] = job_config['display_name']
-                    actual_job_config['image'] = job_config['user_image_name']
-                    actual_job_config['command'] = job_config['command']
-                except:
-                    # Job is not started or similar
-                    pass
-
             run_id = p.split('---')[-1]
             
             already_covered_run_ids.add(run_id)
@@ -565,7 +525,7 @@ def all_running_pipelines_for_repository(git_repository_id, cache=None, force_ca
                 'stdOutput': stdout,
                 'started_at': p.split('---')[-1],
                 'pipeline_name': p,
-                'job_config': actual_job_config,
+                'job_config': extract_job_configuration(gl_project, pipeline.ref),
                 'pipeline': pipeline
             }]
             
@@ -576,6 +536,42 @@ def all_running_pipelines_for_repository(git_repository_id, cache=None, force_ca
         cache.set(cache_key, ret)
     
     return ret
+
+
+def extract_job_configuration(gl_project, branch):
+    ret = {}
+
+    for commit in gl_project.commits.list(ref_name=branch, page=0, per_page=3):
+        if len(ret) > 0:
+            break
+
+        if branch in commit.title and 'Merge' not in commit.title:
+            for diff_entry in commit.diff():
+                if len(ret) > 0:
+                    break
+
+                if diff_entry['old_path'] == diff_entry['new_path'] and diff_entry['new_path'].endswith('/job-to-execute.txt'):
+                    diff_entry = diff_entry['diff'].replace('\n+', '\n').split('\n')
+                    ret = {i.split('=')[0].strip():i.split('=')[1].strip() for i in diff_entry if len(i.split('=')) == 2}
+
+    try:
+        from tira.tira_model import tmodel
+        software_from_db = tmodel.get_docker_software(int(ret['software_id'].split('docker-software-')[-1]))
+    except:
+        software_from_db = {}
+
+    return {
+        'software_name': software_from_db.get('display_name', 'Loading...'),
+        'image': software_from_db.get('user_image_name', 'Loading...'),
+        'command': software_from_db.get('command', 'Loading...'),
+        'cores': str(ret.get('TIRA_CPU_COUNT', 'Loading...')) + ' CPU Cores',
+        'ram': str(ret.get('TIRA_MEMORY_IN_GIBIBYTE', 'Loading...')) + 'GB of RAM',
+        'gpu': str(ret.get('TIRA_GPU', 'Loading...')) + ' GPUs',
+        'dataset_type': ret.get('TIRA_DATASET_TYPE', 'Loading...'),
+        'dataset': ret.get('TIRA_DATASET_ID', 'Loading...'),
+        'software_id': ret.get('TIRA_SOFTWARE_ID', 'Loading...'),
+        'task_id': ret.get('TIRA_TASK_ID', 'Loading...'),
+    }
 
 
 def __all_failed_pipelines_for_repository(gl_project, already_covered_run_ids):
@@ -589,7 +585,7 @@ def __all_failed_pipelines_for_repository(gl_project, already_covered_run_ids):
         if run_id in already_covered_run_ids:
             continue
         
-        ret += [{'run_id': run_id, 'execution': {'scheduling': 'failed', 'execution': 'failed', 'evaluation': 'failed'}, 'pipeline_name': p, 'stdOutput': 'Job did not run. (Maybe it is still submitted to the cluster or failed to start. It might take up to 5 minutes to submit a Job to the cluster.)', 'started_at': p.split('---')[-1], 'branch': branch}]
+        ret += [{'run_id': run_id, 'execution': {'scheduling': 'failed', 'execution': 'failed', 'evaluation': 'failed'}, 'pipeline_name': p, 'stdOutput': 'Job did not run. (Maybe it is still submitted to the cluster or failed to start. It might take up to 5 minutes to submit a Job to the cluster.)', 'started_at': p.split('---')[-1], 'branch': branch, 'job_config': extract_job_configuration(gl_project, pipeline.ref)}]
 
     return ret
 
