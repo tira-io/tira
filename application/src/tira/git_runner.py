@@ -479,6 +479,7 @@ def all_running_pipelines_for_repository(git_repository_id, cache=None, force_ca
         try:
             ret = cache.get(cache_key)
             if ret is not None and not force_cache_refresh:
+                print('get ret from cache', ret)
                 return ret
         except ModuleNotFoundError as e:
             logger.exception(f"Could not find cache module {cache_key}.")
