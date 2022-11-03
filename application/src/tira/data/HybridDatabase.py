@@ -1273,7 +1273,6 @@ class HybridDatabase(object):
         Do not delete if:
           - another run uses this run as input_run
           - the run is on the leaderboards
-          - the run was reviewed as 'no errors's
 
             @return: true if it was deleted, false if it can not be deleted
          """
@@ -1285,7 +1284,7 @@ class HybridDatabase(object):
             return False
 
         review = modeldb.Review.objects.get(run=run)
-        if review.published or review.no_errors:
+        if review.published:
             return False
 
         try:

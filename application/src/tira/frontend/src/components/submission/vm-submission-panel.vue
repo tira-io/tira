@@ -58,6 +58,7 @@
         <delete-confirm
             tooltip="Delete Software"
             :in-progress="false"
+            :disable="!softwareCanBeDeleted()"
             @confirmation="() => deleteSoftware()"
         />
 <!--        <a class="uk-button uk-button-small uk-button-danger software-delete-button"-->
@@ -303,6 +304,20 @@ export default {
             }
             return true
         },
+        softwareCanBeDeleted(){
+            if (this.selectedRuns.length === 0) {
+                return true
+            }
+            for (const run of this.selectedRuns) {
+                if (run.review.published ) {
+                    return false
+                }
+                if (run.is_evaluation && run.review.noErrors) {
+                    return false
+                }
+            }
+            return true
+        }
     },
     computed: {
         datasetOptions() {

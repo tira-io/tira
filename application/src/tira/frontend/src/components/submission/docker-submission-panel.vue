@@ -66,10 +66,11 @@
 <div v-else class="uk-card uk-card-body uk-card-default uk-card-small uk-padding-remove-top">
     <form id="docker-form" class="docker_form">
         <div class="uk-width-1-1 uk-margin-remove" data-uk-grid>
-          <div class="uk-width-expand"></div>
-          <delete-confirm
-                    tooltip="Attention! This deletes the container and ALL RUNS"
-                    @confirmation="() => deleteContainer()"/>
+            <div class="uk-width-expand"></div>
+            <delete-confirm
+                :tooltip="softwareCanBeDeleted() ? 'Attention! This deletes the container and ALL RUNS' : 'Software can not be deleted because there are still valid runs assigned.'"
+                @confirmation="() => deleteContainer()"
+                :disable="!softwareCanBeDeleted()" />
         </div>
         <div class="uk-grid-medium uk-margin-remove-top" data-uk-grid>
             <div class="uk-width-1-1">
@@ -291,6 +292,17 @@ export default {
             this.$refs['runContainerButton'].text = "Run Container"
             this.startingContainer = false
         },
+        softwareCanBeDeleted(){
+            for (const run of this.selectedContainer.runs) {
+                if (run.review.published ) {
+                    return false
+                }
+                if (run.is_evaluation && run.review.noErrors) {
+                    return false
+                }
+            }
+            return true
+        }
     },
     computed: {
         datasetOptions() {

@@ -43,11 +43,20 @@
             </div>
         </td>
         <td class="uk-table-shrink uk-padding-remove-vertical"> <!-- published run Icon -->
-            <div uk-tooltip="This run is on the leaderboards" v-if="run.review.published" class="dataset-detail-icon uk-text-success">
+            <div uk-tooltip="This evaluation is not on the leaderboards" v-if="run.is_evaluation && !run.review.published" class="dataset-detail-icon">
                 <font-awesome-icon icon="fas fa-sort-amount-up" />
             </div>
-            <div uk-tooltip="This run is not published" v-else class="dataset-detail-icon">
+            <div uk-tooltip="This evaluation is on the leaderboards" v-else-if="run.is_evaluation" class="dataset-detail-icon uk-text-success">
                 <font-awesome-icon icon="fas fa-sort-amount-up" />
+            </div>
+            <div uk-tooltip="This run comes from a dockerized submission" v-else-if="run.is_docker" class="dataset-detail-icon">
+                <font-awesome-icon icon="fab fa-docker" />
+            </div>
+            <div uk-tooltip="This run was uploaded" v-else-if="run.is_upload" class="dataset-detail-icon">
+                <font-awesome-icon icon="fas fa-upload" />
+            </div>
+            <div uk-tooltip="This run comes from a virtual machine submission" v-else class="dataset-detail-icon">
+                <font-awesome-icon icon="fas fa-terminal" />
             </div>
         </td>
         <td class="uk-table-shrink uk-text-nowrap"><span v-if="run.input_run_id !== ''">
@@ -89,18 +98,18 @@
                target="_blank"
                :href="'/task/' + task_id + '/user/' + user_id + '/dataset/' + run.dataset + '/download/' + run.run_id + '.zip'">
                 <font-awesome-icon icon="fas fa-download" />
-
                 </a>
         </td>
         <!-- Delete Button -->
         <td class="uk-table-shrink uk-text-nowrap uk-padding-remove uk-margin-remove uk-preserve-width"
          v-if="display==='participant'">
-            <a class="uk-button uk-button-small"
-               :class="{'uk-button-disabled': !canBeDeleted(run.run_id), 'uk-button-danger': canBeDeleted(run.run_id)}"
+            <a class="uk-button uk-button-small" :uk-tooltip="canBeDeletedTooltip(run.run_id)"
+               :class="{'uk-button-disabled': !canBeDeleted(run.run_id),
+                        'uk-text-muted': !canBeDeleted(run.run_id),
+                        'uk-button-danger': canBeDeleted(run.run_id)}"
                :disabled="!canBeDeleted(run.run_id)"
                @click="deleteRun(run.dataset, run.run_id)">
-              <font-awesome-icon icon="fas fa-trash-alt" v-if="!canBeDeleted(run.run_id)"
-                uk-tooltip="Runs can not be deleted if they are visible, public, or serve as input run for an evaluation."/>
+              <font-awesome-icon icon="fas fa-trash-alt" v-if="!canBeDeleted(run.run_id)"/>
               <font-awesome-icon icon="fas fa-trash-alt" v-else/>
             </a>
         </td>
@@ -112,6 +121,10 @@
 <script>
 import ReviewButton from "../elements/review-button";
 import { get } from "../../utils/getpost"
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { faDocker } from '@fortawesome/free-brands-svg-icons'
+
+library.add( faDocker )
 
 export default {
   data() {
@@ -205,16 +218,25 @@ export default {
       }
       this.inputRunIdCache = this.runs.map(a => {return a.input_run_id})
           .filter(a => { if (a !== '') return a })
-      console.log(this.runCache)
     },
     canBeDeleted(runId) {
       if (this.inputRunIdCache.includes(runId)) {
         return false
       }
-      else if (this.runCache[runId].review.published || this.runCache[runId].review.noErrors) {
+      else if (this.runCache[runId].review.published) {
         return false
       }
       return true
+    },
+    canBeDeletedTooltip(runId) {
+      if (this.inputRunIdCache.includes(runId)) {
+        return "title: This run cant be deleted. An evaluation depends on it.; delay: 1"
+      }
+      else if (this.runCache[runId].review.published) {
+        return "title: This run cant be deleted. Remove it from the leaderboard first.; delay: 1"
+      }
+      return "title: Delete this run!; delay: 1"
+
     },
   },
   watch: {

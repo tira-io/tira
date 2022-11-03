@@ -1,8 +1,11 @@
 <template>
-<a :uk-tooltip="tooltip"
-     class="uk-button uk-button-danger uk-button-small"
+<a :uk-tooltip="tip"
+     class="uk-button uk-button-small"
+    :class="{ 'uk-button-danger': !disable,
+               'uk-button-default': disable,
+               'uk-text-muted': disable,}"
      uk-toggle="target: #delete-confirm-modal"
-     @click="">
+     :disabled="disable">
     {{ actionTitle }}
     &nbsp;
     <font-awesome-icon v-if="!inProgress && icon==='trash'" icon="fas fa-trash"/>
@@ -37,7 +40,11 @@ props: {
     default: 'trash'
   },
   tooltip: String,
-  inProgress: Boolean
+  inProgress: Boolean,
+  disable: {
+    type: Boolean,
+    default: false
+  }
 },
 emits: ["confirmation"],
 computed: {
@@ -48,7 +55,7 @@ computed: {
         return 'cancel'
       }
   },
-  tooltip() {
+  tip() {
     return `title: ${this.tooltip}; delay: 1`
   }
 }
