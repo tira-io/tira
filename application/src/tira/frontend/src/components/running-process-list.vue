@@ -29,19 +29,19 @@
             </a>
             <div class="uk-accordion-content uk-background-muted">
                 <div class="uk-container uk-margin-medium uk-padding-medium">
-                    <div class="uk-width-1-1">
+                    <div class="uk-width-1-1 uk-margin-remove" data-uk-grid>
+                        <div class="uk-width-expand"></div>
                         <div class="uk-width-auto">
                             <a uk-tooltip="Abort run"
-                                 class="uk-button uk-button-default uk-margin-small-right uk-button-small"
+                                 class="uk-button uk-button-danger uk-button-small"
                                  @click="stopRun(process.run_id)"><!--                             onclick="event.stopPropagation()"-->
                                 Abort Run
-                                <font-awesome-icon v-if="!(this.aborted_processes.includes(process.run_id))" class="uk-text-danger" icon="fas fa-ban"/>
+                                <font-awesome-icon v-if="!(this.aborted_processes.includes(process.run_id))" icon="fas fa-ban"/>
                                 <font-awesome-icon v-else-if="this.aborted_processes.includes(process.run_id)" icon="fas fa-ban" spin/>
                             </a>
                         </div>
-                        <div class="uk-width-expand"></div>
                     </div>
-                    <div class="uk-grid-small uk-padding-small" data-uk-grid>
+                    <div class="uk-grid-small uk-padding-small uk-margin-remove-top" data-uk-grid>
                         <div class="uk-width-1-2">
                             <label class="uk-form-label">Image
                             <input class="uk-input" type="text"
@@ -64,7 +64,7 @@
                         </div>
                     </div>
 
-                    <div class="uk-padding-small">
+                    <div class="uk-padding-small uk-padding-remove-top">
                         <label class="uk-form-label">Software Output
                         <pre>{{ process.stdOutput }}</pre>
                         </label>
