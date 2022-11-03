@@ -32,13 +32,12 @@
                     <div class="uk-width-1-1 uk-margin-remove" data-uk-grid>
                         <div class="uk-width-expand"></div>
                         <div class="uk-width-auto">
-                            <a uk-tooltip="Abort run"
-                                 class="uk-button uk-button-danger uk-button-small"
-                                 @click="stopRun(process.run_id)"><!--                             onclick="event.stopPropagation()"-->
-                                Abort Run
-                                <font-awesome-icon v-if="!(this.aborted_processes.includes(process.run_id))" icon="fas fa-ban"/>
-                                <font-awesome-icon v-else-if="this.aborted_processes.includes(process.run_id)" icon="fas fa-ban" spin/>
-                            </a>
+                            <delete-confirm
+                                tooltip="Abort run"
+                                icon="cancel"
+                                :in-progress="(aborted_processes.includes(process.run_id))"
+                                @confirmation="() => stopRun(process.run_id)"
+                            />
                         </div>
                     </div>
                     <div class="uk-grid-small uk-padding-small uk-margin-remove-top" data-uk-grid>
@@ -85,8 +84,10 @@ pre {
 </style>
 
 <script>
+import DeleteConfirm from "./elements/delete-confirm";
 export default {
   name: "running-process-list",
+  components: {DeleteConfirm},
   props: ["running_evaluations", "running_software"],
   emits: ['stopRun', 'addNotification'],
   data() {
