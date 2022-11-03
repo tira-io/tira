@@ -12,9 +12,9 @@
               <div class="uk-button uk-button-primary uk-button-small" @click="saveDataset">
                 <font-awesome-icon icon="fas fa-save" />
               </div>
-              <div class="uk-button uk-button-danger uk-button-small" @click="deleteDataset">
-                <font-awesome-icon icon="fas fa-trash-alt"/>
-              </div>
+              <delete-confirm
+                tooltip="Attention! This deletes the Dataset and everything in it."
+                @confirmation="() => deleteDataset()"/>
             </div>
           </div>
         </h3>
@@ -98,6 +98,8 @@
 </div>
 </template>
 <script charset="utf-8">
+import DeleteConfirm from "../elements/delete-confirm";
+
 export default {
     data() {
         return {
@@ -116,6 +118,7 @@ export default {
             taskList: [],
         }
     },
+    components: { DeleteConfirm },
     emits: ['addnotification', 'closemodal', 'deletedataset', 'editdataset'],
     props: ['csrf', 'dataset_id'],
     methods: {

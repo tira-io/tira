@@ -54,9 +54,16 @@
         <a class="uk-button uk-button-small uk-button-default"
             uk-tooltip="title: Click to show the help for Commands; delay: 500"
                 uk-toggle="target: #modal-command-help"><font-awesome-icon icon="fas fa-info" /></a>
-        <a class="uk-button uk-button-small uk-button-danger software-delete-button"
-           @click="deleteSoftware()">
-          <font-awesome-icon icon="fas fa-trash-alt" /></a>
+
+        <delete-confirm
+            tooltip="Delete Software"
+            :in-progress="false"
+            :disable="!softwareCanBeDeleted()"
+            @confirmation="() => deleteSoftware()"
+        />
+<!--        <a class="uk-button uk-button-small uk-button-danger software-delete-button"-->
+<!--           @click="deleteSoftware()">-->
+<!--          <font-awesome-icon icon="fas fa-trash-alt" /></a>-->
         <div class="uk-align-right">
             <span class="uk-text-small uk-text-lead">last edit: {{ selectedSoftware.last_edit }}</span>
         </div>
@@ -114,11 +121,12 @@
 
 <script>
 import ReviewList from "../runs/review-list";
+import DeleteConfirm from "../elements/delete-confirm";
 
 export default {
     name: "vm-submission-panel",
     components: {
-        ReviewList
+        ReviewList, DeleteConfirm
     },
     props: ['csrf', 'datasets', 'software', 'user_id', 'running_evaluations', 'task'],
     emits: ['addNotification', 'pollEvaluations', 'pollRunningSoftware', 'removeRun', 'addSoftware', 'deleteSoftware'],
@@ -296,6 +304,20 @@ export default {
             }
             return true
         },
+        softwareCanBeDeleted(){
+            if (this.selectedRuns.length === 0) {
+                return true
+            }
+            for (const run of this.selectedRuns) {
+                if (run.review.published ) {
+                    return false
+                }
+                if (run.is_evaluation && run.review.noErrors) {
+                    return false
+                }
+            }
+            return true
+        }
     },
     computed: {
         datasetOptions() {

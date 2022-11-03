@@ -1,7 +1,8 @@
 <template>
 <div class="uk-card uk-card-body uk-card-default uk-card-small">
     <h3>Running Processes</h3>
-    <ul data-uk-accordion>
+    <hr class="uk-margin-small">
+    <ul class="uk-margin-remove-top" data-uk-accordion>
         <li v-for="process in running_software" class="uk-margin-remove">
             <a class="uk-accordion-title" href="#">
                 <table>
@@ -11,9 +12,9 @@
                             <span class="uk-text-small uk-text-muted uk-margin-medium-right">{{ process.run_id }}</span>
                         </td>
                         <td class="uk-table-expand"></td>
-                        <td class="uk-table-shrink uk-text-nowrap uk-preserve-width" v-for="(state, label) in process.execution">
-                            <span class="uk-margin-small-right"
-                                  :class="{ 'uk-text-muted': state === 'pending', 'uk-text-small': state === 'pending'}">{{ label }}
+                        <td class="uk-table-shrink uk-text-nowrap uk-width-1-6" v-for="(state, label) in process.execution">
+                            <span class="uk-margin-small-right uk-text-small"
+                                  :class="{ 'uk-text-muted': state === 'pending'}">{{ label }}
                                 <span v-if="state==='pending'" class="uk-text-small uk-text-muted">&nbsp;pending</span>
                             </span>
                             <span class="uk-margin-medium-right">
@@ -22,88 +23,47 @@
                                 <font-awesome-icon v-else-if="state === 'failed'" class="uk-text-danger" icon="fas fa-times"/>
                             </span>
                         </td>
-                        <td class="uk-width-1-5"></td>
+                        <td class="uk-width-1-6"></td>
                     </tr>
                 </table>
-
-
             </a>
             <div class="uk-accordion-content uk-background-muted">
                 <div class="uk-container uk-margin-medium uk-padding-medium">
-                    <div class="uk-grid-small uk-padding-small" data-uk-grid>
-                        <div>
-                            <label class="uk-form-label">Software Name
-                            <input class="uk-input" type="text"
-                                   :value="get_field(process, 'software_name')" readonly disabled>
-                            </label>
-                        </div>
-                        <div class="uk-width-auto">
-                            <label class="uk-form-label">Started
-                            <input class="uk-input" type="text"
-                                   :value="process.started_at" readonly disabled>
-                            </label>
-                        </div>
+                    <div class="uk-width-1-1 uk-margin-remove" data-uk-grid>
                         <div class="uk-width-expand"></div>
                         <div class="uk-width-auto">
-                            <label class="uk-form-label">&nbsp;
-                            <a uk-tooltip="Abort run"
-                                 class="uk-button uk-button-default uk-margin-small-right uk-button-small"
-                                 @click="stopRun(process.run_id)"><!--                             onclick="event.stopPropagation()"-->
-                                <font-awesome-icon v-if="!(this.aborted_processes.includes(process.run_id))" class="uk-text-danger" icon="fas fa-ban"/>
-                                <font-awesome-icon v-else-if="this.aborted_processes.includes(process.run_id)" icon="fas fa-ban" spin/>
-                            </a></label>
+                            <delete-confirm
+                                tooltip="Abort run"
+                                icon="cancel"
+                                :in-progress="(aborted_processes.includes(process.run_id))"
+                                @confirmation="() => stopRun(process.run_id)"
+                            />
                         </div>
                     </div>
-
-                    <div class="uk-grid-small uk-padding-small uk-margin-remove-top" data-uk-grid>
-                        <div class="uk-width-expand">
-                            <label class="uk-form-label">Dataset
-                            <input class="uk-input" type="text"
-                                   :value="get_field(process, 'dataset')" readonly disabled>
-                            </label>
-                        </div>
-                        <div class="uk-width-1-5">
-                            <label class="uk-form-label">Dataset Type
-                            <input class="uk-input" type="text"
-                                   :value="get_field(process, 'dataset_type')" readonly disabled>
-                            </label>
-                        </div>
-                        <div class="uk-width-auto">
-                            <label class="uk-form-label">CPU
-                            <input class="uk-input" type="text"
-                                   :value="get_field(process, 'cores')" readonly disabled>
-                            </label>
-                        </div>
-                        <div class="uk-width-auto">
-                            <label class="uk-form-label">Memory
-                            <input class="uk-input" type="text"
-                                   :value="get_field(process, 'ram')" readonly disabled>
-                            </label>
-                        </div>
-                        <div class="uk-width-auto">
-                            <label class="uk-form-label">GPU
-                            <input class="uk-input" type="text"
-                                   :value="get_field(process, 'gpu')" readonly disabled>
-                            </label>
-                        </div>
-                    </div>
-
                     <div class="uk-grid-small uk-padding-small uk-margin-remove-top" data-uk-grid>
                         <div class="uk-width-1-2">
                             <label class="uk-form-label">Image
                             <input class="uk-input" type="text"
                                    :value="get_field(process, 'image')" readonly disabled>
                             </label>
-                        </div>
-                        <div class="uk-width-1-2">
                             <label class="uk-form-label">Command
                             <input class="uk-input" type="text"
                                    :value="get_field(process, 'command')" readonly disabled>
                             </label>
                         </div>
+                        <div class="uk-width-1-2">
+                            <table class="uk-width-expand">
+                                <tr><td><strong>Started</strong></td><td>{{ process.started_at }}</td></tr>
+                                <tr><td><strong>Dataset</strong></td><td>{{ get_field(process, 'dataset') }}</td></tr>
+                                <tr><td><strong>Dataset Type</strong></td><td>{{ get_field(process, 'dataset_type') }}</td></tr>
+                                <tr><td><strong>CPU</strong></td><td>{{ get_field(process, 'cores') }}</td></tr>
+                                <tr><td><strong>Memory</strong></td><td>{{ get_field(process, 'ram') }}</td></tr>
+                                <tr><td><strong>GRU</strong></td><td>{{ get_field(process, 'gpu') }}</td></tr>
+                            </table>
+                        </div>
                     </div>
 
-                    <div class="uk-padding-small">
+                    <div class="uk-padding-small uk-padding-remove-top">
                         <label class="uk-form-label">Software Output
                         <pre>{{ process.stdOutput }}</pre>
                         </label>
@@ -124,8 +84,10 @@ pre {
 </style>
 
 <script>
+import DeleteConfirm from "./elements/delete-confirm";
 export default {
   name: "running-process-list",
+  components: {DeleteConfirm},
   props: ["running_evaluations", "running_software"],
   emits: ['stopRun', 'addNotification'],
   data() {
@@ -157,7 +119,7 @@ export default {
      * Helper function, because the job config is sometimes not there
      */
     get_field(process, field) {
-        if (typeof(process.job_config) != 'undefined') {
+        if ("job_config" in process) {
           return process.job_config[field]
         }
         return ""

@@ -9,7 +9,9 @@
           <div class="uk-width-expand"></div>
           <div>
             <div class="uk-button uk-button-primary uk-button-small" @click="saveTask"><font-awesome-icon icon="fas fa-save" /></div>
-            <div class="uk-button uk-button-danger uk-button-small" @click="deleteTask"><font-awesome-icon icon="fas fa-trash-alt" /></div>
+            <delete-confirm
+              tooltip="Attention! This deletes the task and everything in it."
+              @confirmation="() => deleteTask()"/>
           </div>
         </div>
       </h3>
@@ -56,6 +58,8 @@
 </div>
 </template>
 <script>
+import DeleteConfirm from "../elements/delete-confirm";
+
 export default {
     data() {
         return {
@@ -70,6 +74,7 @@ export default {
             organizerList: [],
         }
     },
+    components: { DeleteConfirm },
     emits: ['addnotification', 'updatetask'],
     props: ['csrf', 'task_id'],
     methods: {

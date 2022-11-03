@@ -247,17 +247,16 @@ def archive_repository(repo_name, persist_all_images=True):
         open((Path(tmp_dir) / 'Makefile').absolute(), 'w').write(render_to_string('tira/tira_git_makefile', context={}))
         open((Path(tmp_dir) / 'Tutorial.ipynb').absolute(), 'w').write(render_to_string('tira/tira_git_tutorial.ipynb', context={}))
         #open((Path(tmp_dir) / 'README.md').absolute(), 'a+').write(render_to_string('tira/tira_git_cmd.py', context={}))
-        
-        
-        print(f'Archive datasets')
+
+        logger.info(f'Archive datasets')
         for dataset_name, dataset_definition in datasets.items():
             if 'is_confidential' in dataset_definition and not dataset_definition['is_confidential']:
                 for i in ['training-datasets', 'training-datasets-truth']:
                     shutil.copytree(Path(settings.TIRA_ROOT)/ 'data' / 'datasets' / i / job['TIRA_TASK_ID'] / dataset_name, Path(tmp_dir) / dataset_name / i)    
         
-        print(f'Archive repository into {repo_name}.zip')
+        logger.info(f'Archive repository into {repo_name}.zip')
         shutil.make_archive(repo_name, 'zip', tmp_dir)
-        print(f'The repository is archived into {repo_name}.zip')
+        logger.info(f'The repository is archived into {repo_name}.zip')
 
 
 def all_user_repositories():
@@ -479,7 +478,7 @@ def all_running_pipelines_for_repository(git_repository_id, cache=None, force_ca
         try:
             ret = cache.get(cache_key)
             if ret is not None and not force_cache_refresh:
-                print('get ret from cache', ret)
+                logger.debug('get ret from cache', ret)
                 return ret
         except ModuleNotFoundError as e:
             logger.exception(f"Could not find cache module {cache_key}.")

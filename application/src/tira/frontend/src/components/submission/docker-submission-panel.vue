@@ -63,9 +63,16 @@
         <span v-html="docker.docker_software_help"></span>
     </div>
 </div>
-<div v-else class="uk-card uk-card-body uk-card-default uk-card-small">
+<div v-else class="uk-card uk-card-body uk-card-default uk-card-small uk-padding-remove-top">
     <form id="docker-form" class="docker_form">
-        <div class="uk-grid-medium" uk-grid>
+        <div class="uk-width-1-1 uk-margin-remove" data-uk-grid>
+            <div class="uk-width-expand"></div>
+            <delete-confirm
+                :tooltip="softwareCanBeDeleted() ? 'Attention! This deletes the container and ALL RUNS' : 'Software can not be deleted because there are still valid runs assigned.'"
+                @confirmation="() => deleteContainer()"
+                :disable="!softwareCanBeDeleted()" />
+        </div>
+        <div class="uk-grid-medium uk-margin-remove-top" data-uk-grid>
             <div class="uk-width-1-1">
                 <label class="uk-form-label">Command (immutable for reproducibility)
                 <input class="uk-input" type="text" :uk-tooltip="immutableHelp"
@@ -106,12 +113,6 @@
                         @click="checkContainerRunValid(true) && runContainer()"
                         ref="runContainerButton">
                     Run Container</a></label>
-
-                <label>&nbsp;
-                <a uk-tooltip="title: Attention! This deletes the container and ALL RUNS; delay: 1"
-                        class="uk-button uk-button-small uk-button-danger uk-margin-small"
-                        @click="deleteContainer()">
-                    <font-awesome-icon icon="fas fa-trash-alt" /></a></label>
             </div>
             <div class="uk-text-danger uk-width-expand">{{ dockerFormError }}</div>
         </div>
@@ -142,11 +143,12 @@
 
 <script>
 import ReviewList from "../runs/review-list";
+import DeleteConfirm from "../elements/delete-confirm";
 
 export default {
     name: "docker-submission-panel",
     components: {
-        ReviewList
+        ReviewList, DeleteConfirm
     },
     props: ['csrf', 'datasets', 'docker', 'user_id', 'running_evaluations', 'task'],
     emits: ['addNotification', 'pollEvaluations', 'removeRun', 'addContainer', 'deleteContainer', 'pollRunningContainer'],
@@ -290,6 +292,17 @@ export default {
             this.$refs['runContainerButton'].text = "Run Container"
             this.startingContainer = false
         },
+        softwareCanBeDeleted(){
+            for (const run of this.selectedContainer.runs) {
+                if (run.review.published ) {
+                    return false
+                }
+                if (run.is_evaluation && run.review.noErrors) {
+                    return false
+                }
+            }
+            return true
+        }
     },
     computed: {
         datasetOptions() {
