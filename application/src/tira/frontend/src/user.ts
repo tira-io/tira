@@ -183,9 +183,6 @@ const app = createApp({
             this.polling.vmInfo = false
         },
         pollVmState() {
-            if (this.polling.state) {
-                return
-            }
             console.log('poll state')
             this.get(`/grpc/${this.vm.vm_id}/vm_state`).then(message => {
                 console.log('state message: ', message)
@@ -220,9 +217,6 @@ const app = createApp({
             })
         },
         pollRunningEvaluations() {  // TODO, this should also update the evaluations when it succeeds.
-            if (this.polling.evaluation) {
-                return
-            }
             console.log('poll running evaluations')
             this.get(`/grpc/${this.vm.vm_id}/vm_running_evaluations`).then(message => {
                 console.log('found running evaluations', message)
@@ -255,9 +249,6 @@ const app = createApp({
             })
         },
         pollRunningSoftware() {
-            if (this.polling.software) {
-                return
-            }
             console.log('poll running containers')
             this.get(`/api/task/${this.task.task_id}/user/${this.userId}/software/running`).then(message => {
                 if (message.context.running_software.length > 0) {
