@@ -540,19 +540,22 @@ def all_running_pipelines_for_repository(git_repository_id, cache=None, force_ca
 
 def extract_job_configuration(gl_project, branch):
     ret = {}
+    
+    try:
+        for commit in gl_project.commits.list(ref_name=branch, page=0, per_page=3):
+            if len(ret) > 0:
+                break
 
-    for commit in gl_project.commits.list(ref_name=branch, page=0, per_page=3):
-        if len(ret) > 0:
-            break
+            if branch in commit.title and 'Merge' not in commit.title:
+                for diff_entry in commit.diff():
+                    if len(ret) > 0:
+                        break
 
-        if branch in commit.title and 'Merge' not in commit.title:
-            for diff_entry in commit.diff():
-                if len(ret) > 0:
-                    break
-
-                if diff_entry['old_path'] == diff_entry['new_path'] and diff_entry['new_path'].endswith('/job-to-execute.txt'):
-                    diff_entry = diff_entry['diff'].replace('\n+', '\n').split('\n')
-                    ret = {i.split('=')[0].strip():i.split('=')[1].strip() for i in diff_entry if len(i.split('=')) == 2}
+                    if diff_entry['old_path'] == diff_entry['new_path'] and diff_entry['new_path'].endswith('/job-to-execute.txt'):
+                        diff_entry = diff_entry['diff'].replace('\n+', '\n').split('\n')
+                        ret = {i.split('=')[0].strip():i.split('=')[1].strip() for i in diff_entry if len(i.split('=')) == 2}
+    except:
+        pass
 
     try:
         from tira.tira_model import model
