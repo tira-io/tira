@@ -17,7 +17,7 @@ logger.info("ajax_routes: Logger active")
 # ---------------------------------------------------------------------
 
 
-@check_conditional_permissions(restricted=True)
+@check_permissions
 @check_resources_exist('json')
 def publish(request, vm_id, dataset_id, run_id, value):
     value = (True if value == 'true' else False)

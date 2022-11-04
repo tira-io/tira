@@ -51,19 +51,19 @@
                         <td><strong>Input Run:</strong></td>
                         <td>{{ run.input_run_id }}</td>
                     </tr>
-                    <tr>
+                    <tr v-if="!this.run.is_evaluation">
                         <td><strong>Time:</strong></td>
                         <td>{{ runtime.time }}</td>
                     </tr>
-                    <tr>
+                    <tr v-if="!this.run.is_evaluation">
                         <td><strong>CPU Load:</strong></td>
                         <td>{{ runtime.cpu }}</td>
                     </tr>
-                    <tr>
+                    <tr v-if="!this.run.is_evaluation">
                         <td><strong>Page Faults:</strong></td>
                         <td>{{ runtime.pagefaults }}</td>
                     </tr>
-                    <tr>
+                    <tr v-if="!this.run.is_evaluation">
                         <td><strong>Swaps:</strong></td>
                         <td>{{ runtime.swaps }}</td>
                     </tr>
@@ -110,19 +110,25 @@
                 </form>
             </div>
         </div>
+<!--  Admin options below the review card -->
         <table class="uk-width-expand">
             <tr>
                 <td class="uk-table-expand"></td>
-                <td class="uk-table-shrink uk-text-nowrap">
-                  <button class="uk-button uk-button-default uk-button-small" @click="togglePublish()">
-                      <span v-if="!isOnLeaderboard">Add to leaderboard</span><span v-else>Remove from leaderboard</span>
-                      <span class="uk-margin-small-left uk-margin-small-right">
-                        <font-awesome-icon icon="fas fa-sort-amount-up"
-                            :class="{'uk-text-success': isOnLeaderboard}" />
-                      </span>
-                  </button>
+                <td class="uk-table-shrink uk-text-nowrap" v-if="run.is_evaluation">
+                    <button class="uk-button uk-button-small"
+                            :class="{ 'uk-button-disabled': !canSubmit, ' uk-button-default': canSubmit, 'uk-text-muted': !canSubmit }"
+                            @click="togglePublish()" :disabled="!canSubmit">
+                        <span v-if="!isOnLeaderboard && canSubmit">Submit to leaderboard</span>
+                        <span v-else-if="isOnLeaderboard">Remove from leaderboard</span>
+                        <span v-else data-uk-tooltip="title: Evaluation must be valid to be submitted.">
+                          Submit to leaderboard</span>
+                        <span class="uk-margin-small-left uk-margin-small-right">
+                          <font-awesome-icon icon="fas fa-sort-amount-up"
+                              :class="{'uk-text-success': isOnLeaderboard}" />
+                        </span>
+                    </button>
                 </td>
-                <td class="uk-table-shrink uk-text-nowrap">
+                <td class="uk-table-shrink uk-text-nowrap" v-if="role==='admin'">
                   <button class="uk-button uk-button-default uk-button-small" @click="toggleVisible()">
                       <span v-if="!isVisibleToParticipant">Reveal to Participant</span><span v-else>Hide from participant</span>
                       <span class="uk-margin-small-left uk-margin-small-right">
@@ -138,7 +144,7 @@
                            :href="'/task/' + task_id + '/user/' + user_id + '/dataset/' + dataset_id + '/download/' + run.run_id + '.zip'">
                       <span class="uk-margin-small-left uk-margin-small-right">Download <font-awesome-icon icon="fas fa-download" /></span>
                     </a>
-                    <a class="uk-button uk-button-small uk-button-disabled" disabled v-else
+                    <a class="uk-button uk-button-small uk-button-disabled uk-text-muted" disabled v-else
                            uk-tooltip="title: Can only be downloaded if the run is unblinded.; delay: 500">
                       <span class="uk-margin-small-left uk-margin-small-right">Download <font-awesome-icon icon="fas fa-download" /></span>
                     </a>
@@ -152,7 +158,7 @@
         <h2>
           <span class="uk-text-muted">Output</span>
         </h2>
-        <button class="uk-button uk-button-default uk-button-small" v-if="evaluation!==null"
+        <button class="uk-button uk-button-default uk-button-small" v-if="evaluation!==null" v-show="role==='admin' || isVisibleToParticipant"
               @click="selecedOutput='evaluation'"
               :class="{ 'tira-button-selected': selecedOutput === 'evaluation' }">
                 Results</button>
@@ -311,7 +317,7 @@ export default {
         this.isVisibleToParticipant = !this.isVisibleToParticipant
         this.reviewFormError = error
       })
-    },
+    }
   },
   computed: {
     fileList() {
@@ -334,6 +340,13 @@ export default {
         reviewer: this.review,
         comment: this.comment,
       }
+    },
+    canSubmit() {
+      if (this.no_errors) return true
+      return !(this.evaluation === null || this.evaluation === false ||
+          this.evaluation === "" || this.evaluation === "{}" ||
+          Object.keys(this.evaluation).length === 0 ||
+          Object.getPrototypeOf(this.evaluation) === Object.prototype)
     }
   },
   mounted() {
@@ -368,8 +381,6 @@ export default {
     }).catch(error => {
       this.$emit('add-notification', 'error', error)
     })
-
-
   },
   watch: {
     no_errors(newValue, oldValue) {
