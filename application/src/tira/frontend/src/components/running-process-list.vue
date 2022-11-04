@@ -58,7 +58,7 @@
                                 <tr><td><strong>Dataset Type</strong></td><td>{{ get_field(process, 'dataset_type') }}</td></tr>
                                 <tr><td><strong>CPU</strong></td><td>{{ get_field(process, 'cores') }}</td></tr>
                                 <tr><td><strong>Memory</strong></td><td>{{ get_field(process, 'ram') }}</td></tr>
-                                <tr><td><strong>GRU</strong></td><td>{{ get_field(process, 'gpu') }}</td></tr>
+                                <tr><td><strong>GPU</strong></td><td>{{ get_field(process, 'gpu') }}</td></tr>
                             </table>
                         </div>
                     </div>
