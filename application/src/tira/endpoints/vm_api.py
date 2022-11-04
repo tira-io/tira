@@ -272,7 +272,8 @@ def software_delete(request, task_id, vm_id, software_id):
     if delete_ok:
         return JsonResponse({'status': 0}, status=HTTPStatus.ACCEPTED)
     else:
-        return JsonResponse({'status': 1, 'message': 'Software not found. Cannot delete.'},
+        return JsonResponse({'status': 1, 'message': 'Cannot delete software, because it has a valid '
+                                                     'evaluation assigned (or it does not exist.)'},
                             status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
@@ -416,7 +417,8 @@ def docker_software_delete(request, task_id, vm_id, docker_software_id):
     if delete_ok:
         return JsonResponse({'status': 0}, status=HTTPStatus.ACCEPTED)
     else:
-        return JsonResponse({'status': 1, 'message': 'Docker software not found. Cannot delete.'},
+        return JsonResponse({'status': 1, 'message': 'Cannot delete docker software, because it has a valid '
+                                                     'evaluation assigned (or it does not exist.)'},
                             status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 @check_permissions

@@ -473,9 +473,15 @@ class HybridDatabase(object):
     def delete_docker_software(self, task_id, vm_id, docker_software_id):
         software_qs = modeldb.DockerSoftware.objects.filter(vm_id=vm_id, task_id=task_id,
                                                             docker_software_id=docker_software_id)
-        if software_qs.exists():
+
+        reviews_qs = modeldb.Review.objects.filter(run__input_run__docker_software__docker_software_id=docker_software_id,
+                                                   run__input_run__docker_software__task_id=task_id,
+                                                   run__input_run__docker_software__vm_id=vm_id, no_errors=True)
+
+        if not reviews_qs.exists() and software_qs.exists():
             software_qs.delete()
             return True
+
         return False
 
     def get_vms_with_reviews(self, dataset_id: str):
@@ -1255,6 +1261,16 @@ class HybridDatabase(object):
         return self._dataset_to_dict(ds)
 
     def delete_software(self, task_id, vm_id, software_id):
+        """ Delete a software.
+            Deletion is denied when
+            - there is a successful evlauation assigned.
+        """
+        reviews_qs = modeldb.Review.objects.filter(run__input_run__software__software_id=software_id,
+                                                   run__input_run__software__task_id=task_id,
+                                                   run__input_run__software__vm_id=vm_id, no_errors=True)
+        if reviews_qs.exists():
+            return False
+
         s = self._load_softwares(task_id, vm_id)
         found = False
         for software in s.softwares:
