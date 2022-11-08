@@ -27,6 +27,11 @@
         </div>
     </div>
     <div class="uk-margin-small">
+        <label>Featured
+            <input type="checkbox" class="uk-checkbox" v-model="featured" />
+        </label>
+    </div>
+    <div class="uk-margin-small">
         <label>Master VM ID*
         <input id="master-vm-id-input" type="text" class="uk-input" placeholder="new-task-master"
                v-model="masterVmId" /> </label>
@@ -68,6 +73,7 @@ export default {
             taskDescription: '',
             helpCommand: '',
             helpText: '',
+            featured: false,
             organizerList: [],
         }
     },
@@ -126,6 +132,7 @@ export default {
             this.submitPost('tira-admin/create-task', {
                 'task_id': this.taskId,
                 'name': this.taskNameInput,
+                'featured': this.featured,
                 'master_vm_id': this.masterVmId,
                 'organizer': this.selectedOrganizer.organizer_id,
                 'website': this.websiteInput,

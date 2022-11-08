@@ -38,7 +38,11 @@
           <label>Master VM ID*
           <input type="text" class="uk-input" v-model="masterVmId" /></label>
       </div>
-
+      <div class="uk-margin-small">
+        <label>Featured
+            <input type="checkbox" class="uk-checkbox" v-model="featured" />
+        </label>
+      </div>
       <div class="uk-margin-small uk-width-5-5">
           <label>Task Description*
           <textarea id="task-description-input" rows="3" class="uk-textarea" placeholder="Task Description"
@@ -68,6 +72,7 @@ export default {
             selectedOrganizer: '',
             websiteInput: '',
             masterVmId: '',
+            featured: false,
             taskDescription: '',
             helpCommand: '',
             helpText: '',
@@ -137,6 +142,7 @@ export default {
                 'name': this.taskNameInput,
                 'master_vm_id': this.masterVmId,
                 'organizer': this.selectedOrganizer.organizer_id,
+                'featured': this.featured,
                 'website': this.websiteInput,
                 'description': this.taskDescription,
                 'help_text': this.helpText,
@@ -172,6 +178,7 @@ export default {
                 let task = message.context.task
                 this.taskNameInput = task.task_name
                 this.websiteInput = task.web
+                this.featured = task.featured
                 this.masterVmId = task.master_vm_id
                 this.selectedOrganizer = this.getOrganizerByName(task.organizer)
                 this.taskDescription = task.task_description

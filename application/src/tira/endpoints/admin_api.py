@@ -106,6 +106,7 @@ def admin_create_task(request):
 
         task_id = data["task_id"]
         organizer = data["organizer"]
+        featured = data["featured"]
         master_vm_id = data["master_vm_id"]
 
         if not model.organizer_exists(organizer):
@@ -115,7 +116,7 @@ def admin_create_task(request):
         if not model.vm_exists(master_vm_id):
             return JsonResponse({'status': 1, 'message': f"VM with ID {master_vm_id} does not exist"})
 
-        new_task = model.create_task(task_id, data["name"], data["description"], master_vm_id,
+        new_task = model.create_task(task_id, data["name"], data["description"], featured, master_vm_id,
                                      organizer, data["website"],
                                      help_command=data["help_command"], help_text=data["help_text"])
         new_task = json.dumps(new_task, cls=DjangoJSONEncoder)
@@ -133,6 +134,7 @@ def admin_edit_task(request, task_id):
     if request.method == "POST":
         data = json.loads(request.body)
         organizer = data["organizer"]
+        featured = data["featured"]
         master_vm_id = data["master_vm_id"]
 
         if not model.organizer_exists(organizer):
@@ -140,7 +142,7 @@ def admin_edit_task(request, task_id):
         if not model.vm_exists(master_vm_id):
             return JsonResponse({'status': 1, 'message': f"VM with ID {master_vm_id} does not exist"})
 
-        task = model.edit_task(task_id, data["name"], data["description"], master_vm_id,
+        task = model.edit_task(task_id, data["name"], data["description"], featured, master_vm_id,
                                organizer, data["website"], help_command=data["help_command"],
                                help_text=data["help_text"])
 

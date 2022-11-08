@@ -235,6 +235,7 @@ class HybridDatabase(object):
                   "organizer": org_name,
                   "web": task.web,
                   "year": org_year,
+                  "featured": task.featured,
                   "master_vm_id": master_vm_id,
                   "dataset_count": task.dataset_set.count(),
                   "software_count": task.software_set.count(),
@@ -746,7 +747,7 @@ class HybridDatabase(object):
         task.commandDescription = help_text
         open(new_task_file_path, 'w').write(str(task))
 
-    def create_task(self, task_id, task_name, task_description, master_vm_id, organizer, website,
+    def create_task(self, task_id, task_name, task_description, featured, master_vm_id, organizer, website,
                     help_command=None, help_text=None):
         """ Add a new task to the database.
          CAUTION: This function does not do any sanity checks and will OVERWRITE existing tasks
@@ -756,7 +757,7 @@ class HybridDatabase(object):
                                                vm=modeldb.VirtualMachine.objects.get(vm_id=master_vm_id),
                                                task_description=task_description,
                                                organizer=modeldb.Organizer.objects.get(organizer_id=organizer),
-                                               web=website)
+                                               web=website, featured=featured)
         if help_command:
             new_task.command_placeholder = help_command
         if help_text:
@@ -1169,7 +1170,7 @@ class HybridDatabase(object):
         task.commandDescription = help_text
         open(task_file_path, 'w').write(str(task))
 
-    def edit_task(self, task_id: str, task_name: str, task_description: str, master_vm_id,
+    def edit_task(self, task_id: str, task_name: str, task_description: str, featured: bool, master_vm_id,
                   organizer: str, website: str, help_command: str = None, help_text: str = None):
 
         task = modeldb.Task.objects.filter(task_id=task_id)
@@ -1180,6 +1181,7 @@ class HybridDatabase(object):
             vm=vm,
             organizer=modeldb.Organizer.objects.get(organizer_id=organizer),
             web=website,
+            featured=featured,
         )
 
         if help_command:
