@@ -108,6 +108,9 @@ def admin_create_task(request):
         organizer = data["organizer"]
         featured = data["featured"]
         master_vm_id = data["master_vm_id"]
+        require_registration = data['require_registration']
+        require_groups = data['require_groups']
+        restrict_groups = data['restrict_groups']
 
         if not model.organizer_exists(organizer):
             return JsonResponse({'status': 1, 'message': f"Organizer with ID {organizer} does not exist"})
@@ -118,7 +121,9 @@ def admin_create_task(request):
 
         new_task = model.create_task(task_id, data["name"], data["description"], featured, master_vm_id,
                                      organizer, data["website"],
+                                     require_registration, require_groups, restrict_groups,
                                      help_command=data["help_command"], help_text=data["help_text"])
+
         new_task = json.dumps(new_task, cls=DjangoJSONEncoder)
         return JsonResponse({'status': 0, 'context': new_task,
                              'message': f"Created Task with Id: {data['task_id']}"})
@@ -136,6 +141,9 @@ def admin_edit_task(request, task_id):
         organizer = data["organizer"]
         featured = data["featured"]
         master_vm_id = data["master_vm_id"]
+        require_registration = data['require_registration']
+        require_groups = data['require_groups']
+        restrict_groups = data['restrict_groups']
 
         if not model.organizer_exists(organizer):
             return JsonResponse({'status': 1, 'message': f"Organizer with ID {organizer} does not exist"})
@@ -143,8 +151,8 @@ def admin_edit_task(request, task_id):
             return JsonResponse({'status': 1, 'message': f"VM with ID {master_vm_id} does not exist"})
 
         task = model.edit_task(task_id, data["name"], data["description"], featured, master_vm_id,
-                               organizer, data["website"], help_command=data["help_command"],
-                               help_text=data["help_text"])
+                               organizer, data["website"], require_registration, require_groups, restrict_groups,
+                               help_command=data["help_command"], help_text=data["help_text"])
 
         return JsonResponse({'status': 0, 'context': json.dumps(task, cls=DjangoJSONEncoder),
                              'message': f"Edited Task with Id: {task_id}"})

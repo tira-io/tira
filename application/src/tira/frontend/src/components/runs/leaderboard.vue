@@ -7,7 +7,7 @@
       <th class="uk-table-shrink" v-if="role == 'admin'">&nbsp;</th>
       <th class="uk-table-shrink" v-if="role == 'admin'">&nbsp;</th>
       <th class="header uk-table-shrink uk-text-nowrap" @click="sort('vm_id')">
-          <span>Virtual Machine&nbsp;</span>
+          <span>Team&nbsp;</span>
           <sort-icon :row_key="'vm_id'" :selected_key="currentSort" :direction="currentSortDir"/>
       </th>
       <th class="header uk-table-shrink uk-text-nowrap" @click="sort('run_id')">
@@ -44,6 +44,7 @@
               <font-awesome-icon icon="fas fa-sort-amount-up" />
           </div>
       </td>
+<!--    TODO show group name if not none, else show vm_id-->
       <td class="uk-table-shrink uk-text-nowrap uk-padding-remove-vertical">{{ evaluation.vm_id }}</td>
       <td class="uk-table-shrink uk-text-nowrap uk-padding-remove-vertical">{{ evaluation.run_id }}</td>
       <td class="uk-padding-remove-vertical uk-table-shrink uk-text-nowrap" v-for="measure in evaluation.measures">{{ measure }}</td>

@@ -26,9 +26,22 @@
                    v-model="websiteInput"></label>
         </div>
     </div>
-    <div class="uk-margin-small">
+    <div class="uk-margin-small uk-grid-small uk-child-width-1-4 uk-grid uk-text-center">
         <label>Featured
             <input type="checkbox" class="uk-checkbox" v-model="featured" />
+        </label>
+        <label uk-tooltip="title: When checked, users must register before submission.
+          They must provide their name, email, and affiliation. You can view the registration data afterwards.">
+          With Registration&nbsp;
+          <input type="checkbox" class="uk-checkbox" v-model="requireRegistration" />
+        </label>
+        <label uk-tooltip="title: When checked, users must register in a group.
+          Their runs will be displayed with the group's name. Other users can join these groups." >Require Groups&nbsp;
+          <input type="checkbox" class="uk-checkbox" v-model="requireGroups" />
+        </label>
+        <label uk-tooltip="title: When checked, users can not create (and name) their own groups.
+          They can only sign up to groups provided by you. You can create groups on the task page in edit mode." >Restrict Groups&nbsp;
+          <input type="checkbox" class="uk-checkbox" v-model="restrictGroups" />
         </label>
     </div>
     <div class="uk-margin-small">
@@ -61,127 +74,105 @@
 </div>
 </template>
 <script>
+import { slugify } from "../../utils/stringprocessing"
+import { get, submitPost } from "../../utils/getpost"
+
 export default {
-    data() {
-        return {
-            createTaskError: '',
-            taskNameInput: '',
-            taskId: '',
-            masterVmId: '',
-            selectedOrganizer: '',
-            websiteInput: '',
-            taskDescription: '',
-            helpCommand: '',
-            helpText: '',
-            featured: false,
-            organizerList: [],
-        }
+  data() {
+    return {
+      createTaskError: '',
+      taskNameInput: '',
+      taskId: '',
+      masterVmId: '',
+      selectedOrganizer: '',
+      websiteInput: '',
+      taskDescription: '',
+      helpCommand: '',
+      helpText: '',
+      featured: false,
+      requireRegistration: false,
+      requireGroups: false,
+      restrictGroups: false,
+      organizerList: [],
+    }
+  },
+  emits: ['addnotification', 'closemodal'],
+  props: ['csrf'],
+  methods: {
+    createTask() {
+      this.createTaskError = ''
+      if (this.selectedOrganizer === '') {
+        this.createTaskError += 'Please select an Organizer;\n'
+      }
+      if (this.taskNameInput === '') {
+        this.createTaskError += 'Please provide an id for the new VM;\n'
+      }
+      if (this.taskDescription === '') {
+        this.createTaskError += 'Please provide a description for you task;\n'
+      }
+      if (this.masterVmId === '') {
+        this.createTaskError += 'Please provide a master vm for you task;\n'
+      }
+      if (this.createTaskError !== '') {
+        return
+      }
+      submitPost('tira-admin/create-task', this.csrf, {
+        'task_id': this.taskId,
+        'name': this.taskNameInput,
+        'featured': this.featured,
+        'master_vm_id': this.masterVmId,
+        'organizer': this.selectedOrganizer.organizer_id,
+        'website': this.websiteInput,
+        'description': this.taskDescription,
+        'help_text': this.helpText,
+        'help_command': this.helpCommand,
+        'require_registration': this.requireRegistration,
+        'require_groups': this.requireGroups,
+        'restrict_groups': this.restrictGroups,
+      }).then(message => {
+        this.$emit('addnotification', 'success', message.message)
+        this.$emit('closemodal')
+      }).catch(error => {
+        console.log(error)
+        this.createTaskError = error
+      })
+    }
+  },
+  beforeMount() {
+    get(`/api/organizer-list`).then(message => {
+      this.organizerList = message.context.organizer_list
+    }).catch(error => {
+      this.$emit('addnotification', 'error', `Error loading organizer list: ${error}`)
+    })
+  },
+  watch: {
+    taskNameInput(newName, oldName) {
+      this.taskId = slugify(newName)
     },
-    emits: ['addnotification', 'closemodal'],
-    props: ['csrf'],
-    methods: {
-        async get(url) {
-            const response = await fetch(url)
-            if (!response.ok) {
-                throw new Error(`Error fetching endpoint: ${url} with ${response.status}`);
-            }
-            let results = await response.json()
-            if (results.status === 1) {
-                throw new Error(`${results.message}`);
-            }
-            return results
-        },
-        async submitPost(url, params) {
-            console.log(this.csrf);
-            const headers = new Headers({
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'X-CSRFToken': this.csrf})
-
-            const response = await fetch(url, {
-              method: "POST",
-              headers,
-              body: JSON.stringify(params)
-            })
-            if (!response.ok) {
-                throw new Error(`Error fetching endpoint: ${url} with ${response.status}`);
-            }
-            let results = await response.json()
-            if (results.status === 1) {
-                throw new Error(`${results.message}`);
-            }
-            return results
-        },
-        createTask() {
-            this.createTaskError = ''
-            if (this.selectedOrganizer === '') {
-                this.createTaskError += 'Please select an Organizer;\n'
-            }
-            if (this.taskNameInput === '') {
-                this.createTaskError += 'Please provide an id for the new VM;\n'
-            }
-            if (this.taskDescription === '') {
-                this.createTaskError += 'Please provide a description for you task;\n'
-            }
-            if (this.masterVmId === '') {
-                this.createTaskError += 'Please provide a master vm for you task;\n'
-            }
-            if (this.createTaskError !== '') {
-                return
-            }
-            this.submitPost('tira-admin/create-task', {
-                'task_id': this.taskId,
-                'name': this.taskNameInput,
-                'featured': this.featured,
-                'master_vm_id': this.masterVmId,
-                'organizer': this.selectedOrganizer.organizer_id,
-                'website': this.websiteInput,
-                'description': this.taskDescription,
-                'help_text': this.helpText,
-                'help_command': this.helpCommand,
-            }).then(message => {
-                this.$emit('addnotification', 'success', message.message)
-                this.$emit('closemodal')
-            }).catch(error => {
-                console.log(error)
-                this.createTaskError = error
-            })
-        },
-        string_to_slug (str) {
-            str = str.replace(/^\s+|\s+$/g, ''); // trim
-            str = str.toLowerCase();
-
-            // remove accents, swap ñ for n, etc
-            var from = "àáäâèéëêìíïîòóöôùúüûñç·/_,:;";
-            var to   = "aaaaeeeeiiiioooouuuunc------";
-            for (var i=0, l=from.length ; i<l ; i++) {
-                str = str.replace(new RegExp(from.charAt(i), 'g'), to.charAt(i));
-            }
-
-            str = str.replace(/\./g, '-')
-                .replace(/[^a-z0-9 -]/g, '') // remove invalid chars
-                .replace(/\s+/g, '-') // collapse whitespace and replace by -
-                .replace(/-+/g, '-'); // collapse dashes
-
-            return str;
-        },
-    },
-    beforeMount() {
-        this.get(`/api/organizer-list`).then(message => {
-            this.organizerList = message.context.organizer_list
-        }).catch(error => {
-            this.$emit('addnotification', 'error', `Error loading organizer list: ${error}`)
-        })
-    },
-    watch: {
-        taskNameInput(newName, oldName) {
-            this.taskId = this.string_to_slug(newName)
-        },
-        websiteInput(newWebsite, oldWebsite) {
-            if (!(newWebsite.startsWith('http://') || newWebsite.startsWith('https://'))) {
-                this.websiteInput = `https://${newWebsite}`
-            }
-        }
-    },
+    websiteInput(newWebsite, oldWebsite) {
+      if (!(newWebsite.startsWith('http://') || newWebsite.startsWith('https://'))) {
+        this.websiteInput = `https://${newWebsite}`
+      }
+    }
+  },
+  requireRegistration(newCheck, oldCheck) {
+    if (!newCheck){
+      this.requireGroups = false
+      this.restrictGroups = false
+    }
+  },
+  requireGroups(newCheck, oldCheck) {
+    if (newCheck){
+      this.requireRegistration = true
+    } else {
+      this.restrictGroups = false
+    }
+  },
+  restrictGroups(newCheck, oldCheck) {
+    if (newCheck){
+      this.requireGroups = true
+      this.requireRegistration = true
+    }
+  }
 }
 </script>

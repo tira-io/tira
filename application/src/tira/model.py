@@ -82,12 +82,11 @@ class Task(models.Model):
     organizer = models.ForeignKey(Organizer, on_delete=models.SET_NULL, null=True)
     web = models.CharField(max_length=150, default='')
     featured = models.BooleanField(default=False)
-#    require_registration = models.BooleanField(default=False)
-#    registered_users = models.ManyToManyField(VirtualMachine)  # object.member.add() or .create() TODO
+    require_registration = models.BooleanField(default=False)
 #    Set to true = users can not submit without a group
-#    require_groups = models.BooleanField(default=False)
+    require_groups = models.BooleanField(default=False)
 #    True = users can not create their own groups, they must join the given set
-#    restrict_groups = models.BooleanField(default=False)
+    restrict_groups = models.BooleanField(default=False)
     max_std_out_chars_on_test_data = models.IntegerField(default=0)
     max_std_err_chars_on_test_data = models.IntegerField(default=0)
     max_file_list_chars_on_test_data = models.IntegerField(default=0)
@@ -213,20 +212,21 @@ class Run(models.Model):
     #     unique_together = (("group_name", 'task'),)
 
 
-# class Registration(models.Model):  TODO
-#     vm = models.ForeignKey(VirtualMachine, on_delete=models.SET_NULL, null=True, default=None)
-#     task = models.ForeignKey(Task, on_delete=models.SET_NULL, null=True, default=None)
-#     name = models.ForeignKey(Task, on_delete=models.CASCADE)
-#     email = models.CharField(max_length=150)
-#     affiliation = models.CharField(max_length=150)
-#     country = models.CharField(max_length=150)
-#     i_am = models.CharField(max_length=150)
-#     i_participate_for = models.CharField(max_length=150)
-#     instructor_name = models.CharField(max_length=150, null=True, default=None)
-#     instructor_email = models.CharField(max_length=150, null=True, default=None)
+class Registration(models.Model):
+    registered_vm = models.ForeignKey(VirtualMachine, on_delete=models.SET_NULL, null=True, default=None)
+    registered_on_task = models.ForeignKey(Task, on_delete=models.SET_NULL, null=True, default=None)
+    name = models.CharField(max_length=150, null=True, default=None)
+    email = models.CharField(max_length=150, null=True, default=None)
+    affiliation = models.CharField(max_length=150, null=True, default=None)
+    country = models.CharField(max_length=150, null=True, default=None)
+    employment = models.CharField(max_length=150, null=True, default=None)  # student, researcher, etc.
+    participates_for = models.CharField(max_length=150, null=True, default=None)  # course, thesis, research, etc.
+    instructor_name = models.CharField(max_length=150, null=True, default=None)
+    instructor_email = models.CharField(max_length=150, null=True, default=None)
 
-    # class Meta:
-    #     unique_together = (("vm", 'task'),)
+    class Meta:
+        unique_together = (("registered_vm", 'registered_on_task'),)
+
 
 class SoftwareHasInputRun(models.Model):
     software = models.OneToOneField(Software, on_delete=models.CASCADE)
