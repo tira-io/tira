@@ -44,6 +44,7 @@ const app = createApp({
             editTaskToggle: false,
             editDatasetToggle: false,
             addDatasetToggle: false,
+            userIsRegistered: false,
             csrf: (<HTMLInputElement>document.querySelector('[name=csrfmiddlewaretoken]')).value
         }
     },
@@ -152,6 +153,9 @@ const app = createApp({
             this.organizerName = message.context.task.organizer
             this.website = message.context.task.web
             this.taskDescription = message.context.task.task_description
+            this.requireRegistration = message.context.task.require_registration
+            this.userIsRegistered = message.context.user_is_registered
+            console.log('userIsRegistered', this.userIsRegistered)
         }).catch(error => {
             this.addNotification('error', error)
         })

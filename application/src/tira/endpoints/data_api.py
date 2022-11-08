@@ -131,6 +131,7 @@ def get_task_list(request, context):
 @add_context
 def get_task(request, context, task_id):
     context["task"] = model.get_task(task_id)
+    context["user_is_registered"] = model.get_registration(task_id, context["user_id"]) is not None
     return JsonResponse({'status': 0, "context": context})
 
 

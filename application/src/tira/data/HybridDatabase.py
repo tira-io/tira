@@ -1375,6 +1375,27 @@ class HybridDatabase(object):
             'name': name, 'years': years, 'web': web})
         return org
 
+    def _registration_to_dict(self, registration):
+        return {
+            "user_id": registration.registered_vm.vm_id,
+            "task_id": registration.registered_on_task.task_id,
+            "name": registration.name,
+            "email": registration.email,
+            "affiliation": registration.affiliation,
+            "country": registration.country,
+            "employment": registration.employment,
+            "participates_for": registration.participates_for,
+            "instructor_name": registration.instructor_name,
+            "instructor_email": registration.instructor_email}
+
+    def get_registration(self, task_id, user_id):
+        reg = modeldb.Registration.objects.filter(registered_on_task__task_id=task_id,
+                                                  registered_vm__vm_id=user_id).first()
+        if reg:
+            return self._registration_to_dict(reg)
+
+        return None
+
     # methods to check for existence
     @staticmethod
     def task_exists(task_id: str) -> bool:

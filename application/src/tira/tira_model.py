@@ -462,6 +462,10 @@ def edit_organizer(organizer_id: str, name: str, years: str, web: str):
     return model.edit_organizer(organizer_id, name, years, web)
 
 
+def get_registration(task_id: str, user_id: str):
+    """ Get the registration data object (for user on task) and return it as dict. """
+    return model.get_registration(task_id, user_id)
+
 # ------------------------------------------------------------
 # add methods to check for existence
 # ------------------------------------------------------------

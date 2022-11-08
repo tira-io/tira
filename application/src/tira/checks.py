@@ -26,24 +26,32 @@ def check_permissions(func):
     @wraps(func)
     def func_wrapper(request, *args, **kwargs):
         vm_id = kwargs.get('vm_id', None)
+        user_id = kwargs.get('user_id', None)
+        if vm_id is None and user_id is not None:  # some endpoints say user_id instead of vm_id
+            vm_id = user_id
         dataset_id = kwargs.get('dataset_id', None)
         run_id = kwargs.get('run_id', None)
+        task_id = kwargs.get('task_id', None)
         role = auth.get_role(request, user_id=auth.get_user_id(request))
 
         if role == auth.ROLE_ADMIN or role == auth.ROLE_TIRA:
             return func(request, *args, **kwargs)
 
         if vm_id:
-            if not model.vm_exists(vm_id):
+            if not model.vm_exists(vm_id):  # If the resource does not exist
                 return redirect('tira:request_vm')
             role = auth.get_role(request, user_id=auth.get_user_id(request), vm_id=vm_id)
-            if run_id and dataset_id:
+            if run_id and dataset_id:  # this prevents participants from viewing hidden runs
                 if not model.run_exists(vm_id, dataset_id, run_id):
                     return Http404(f'The VM {vm_id} has no run with the id {run_id} on {dataset_id}.')
                 review = model.get_run_review(dataset_id, vm_id, run_id)
                 is_review_visible = (not review['blinded']) or review['published']
                 if not is_review_visible:
                     role = auth.ROLE_USER
+            if task_id:  # This checks if the registration requirement is fulfilled.
+                if model.get_task(task_id)["require_registration"]:
+                    if not model.get_registration(task_id, vm_id):
+                        return HttpResponseNotAllowed(f"Access forbidden. You must register first.")
 
         if role == auth.ROLE_PARTICIPANT:
             return func(request, *args, **kwargs)
