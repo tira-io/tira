@@ -14,9 +14,16 @@
     <notification-bar v-for="notification in notifications" :notification="notification" />
 </div>
 
+<nav class="uk-container">
+    <ul class="uk-breadcrumb">
+        <li><a href="{% url 'tira:index' %}">Tira.io</a></li>
+        <li><a href="{% url 'tira:task' task_id=task.task_id %}">[[ task.task_name ]]</a></li>
+    </ul>
+</nav>
+
 <main class="uk-section uk-section-default">
     <div class="uk-container uk-margin-medium">
-        <h1><span v-if="!loading">[[ userId ]]</span><span v-else>loading user <font-awesome-icon icon="fas fa-circle-notch" spin /></span> <span class="uk-text-muted uk-text-lead">on Task <span v-if="!loading">[[ task.task_name ]]</span><span v-else>loading task <font-awesome-icon icon="fas fa-circle-notch" spin /></span></span></h1>
+        <h1><span v-if="!loading">[[ userId ]]</span><span v-else>loading user <font-awesome-icon icon="fas fa-circle-notch" spin /></span> <span class="uk-text-muted uk-text-lead">on Task: <span v-if="!loading">[[ task.task_name ]]</span><span v-else>loading task <font-awesome-icon icon="fas fa-circle-notch" spin /></span></span></h1>
     </div>
     {{ runningSoftware }}
     <div v-if="!loading && runningSoftware.length > 0" class="uk-container">

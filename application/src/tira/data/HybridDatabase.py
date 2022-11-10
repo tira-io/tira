@@ -235,6 +235,10 @@ class HybridDatabase(object):
                   "organizer": org_name,
                   "web": task.web,
                   "year": org_year,
+                  "featured": task.featured,
+                  "require_registration": task.require_registration,
+                  "require_groups": task.require_groups,
+                  "restrict_groups": task.restrict_groups,
                   "master_vm_id": master_vm_id,
                   "dataset_count": task.dataset_set.count(),
                   "software_count": task.software_set.count(),
@@ -746,17 +750,18 @@ class HybridDatabase(object):
         task.commandDescription = help_text
         open(new_task_file_path, 'w').write(str(task))
 
-    def create_task(self, task_id, task_name, task_description, master_vm_id, organizer, website,
-                    help_command=None, help_text=None):
+    def create_task(self, task_id, task_name, task_description, featured, master_vm_id, organizer, website,
+                    require_registration, require_groups, restrict_groups, help_command=None, help_text=None):
         """ Add a new task to the database.
-         CAUTION: This function does not do any sanity checks and will OVERWRITE existing tasks
-         TODO add max_std_out_chars_on_test_data, max_std_err_chars_on_test_data, max_file_list_chars_on_test_data, dataset_label, max_std_out_chars_on_test_data_eval, max_std_err_chars_on_test_data_eval, max_file_list_chars_on_test_data_eval"""
+         CAUTION: This function does not do any sanity checks and will OVERWRITE existing tasks """
         new_task = modeldb.Task.objects.create(task_id=task_id,
                                                task_name=task_name,
                                                vm=modeldb.VirtualMachine.objects.get(vm_id=master_vm_id),
                                                task_description=task_description,
                                                organizer=modeldb.Organizer.objects.get(organizer_id=organizer),
-                                               web=website)
+                                               web=website, featured=featured, require_registration=require_registration,
+                                               require_groups=require_groups,
+                                               restrict_groups=restrict_groups)
         if help_command:
             new_task.command_placeholder = help_command
         if help_text:
@@ -1169,8 +1174,9 @@ class HybridDatabase(object):
         task.commandDescription = help_text
         open(task_file_path, 'w').write(str(task))
 
-    def edit_task(self, task_id: str, task_name: str, task_description: str, master_vm_id,
-                  organizer: str, website: str, help_command: str = None, help_text: str = None):
+    def edit_task(self, task_id: str, task_name: str, task_description: str, featured: bool, master_vm_id,
+                  organizer: str, website: str, require_registration: str, require_groups: str, restrict_groups: str,
+                  help_command: str = None, help_text: str = None):
 
         task = modeldb.Task.objects.filter(task_id=task_id)
         vm = modeldb.VirtualMachine.objects.get(vm_id=master_vm_id)
@@ -1180,6 +1186,10 @@ class HybridDatabase(object):
             vm=vm,
             organizer=modeldb.Organizer.objects.get(organizer_id=organizer),
             web=website,
+            featured=featured,
+            require_registration=require_registration,
+            require_groups=require_groups,
+            restrict_groups=restrict_groups,
         )
 
         if help_command:
@@ -1364,6 +1374,27 @@ class HybridDatabase(object):
         org, _ = modeldb.Organizer.objects.update_or_create(organizer_id=organizer_id, defaults={
             'name': name, 'years': years, 'web': web})
         return org
+
+    def _registration_to_dict(self, registration):
+        return {
+            "user_id": registration.registered_vm.vm_id,
+            "task_id": registration.registered_on_task.task_id,
+            "name": registration.name,
+            "email": registration.email,
+            "affiliation": registration.affiliation,
+            "country": registration.country,
+            "employment": registration.employment,
+            "participates_for": registration.participates_for,
+            "instructor_name": registration.instructor_name,
+            "instructor_email": registration.instructor_email}
+
+    def get_registration(self, task_id, user_id):
+        reg = modeldb.Registration.objects.filter(registered_on_task__task_id=task_id,
+                                                  registered_vm__vm_id=user_id).first()
+        if reg:
+            return self._registration_to_dict(reg)
+
+        return None
 
     # methods to check for existence
     @staticmethod

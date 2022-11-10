@@ -21,6 +21,7 @@ urlpatterns = [
     path('logout', views.logout, name='logout'),
 
     # grpc client endpoints
+    path('task/<str:task_id>/vm/<str:vm_id>/edit_registration', vm_api.edit_registration, name='edit_registration'),
     path('task/<str:task_id>/vm/<str:vm_id>/add_software/vm', vm_api.software_add, name='software_add'),
     path('task/<str:task_id>/vm/<str:vm_id>/add_software/docker', vm_api.docker_software_add, name='docker_software_add'),
     path('task/<str:task_id>/vm/<str:vm_id>/save_software/vm/<str:software_id>', vm_api.software_save, name='software_save'),
@@ -84,6 +85,7 @@ urlpatterns = [
     path('api/task/<str:task_id>/user/<str:user_id>', data_api.get_user, name='get_user'),
     path('api/task/<str:task_id>/user/<str:user_id>/software/running', data_api.get_running_software, name='get_running_software'),
     path('api/review/<str:dataset_id>/<str:user_id>/<str:run_id>', data_api.get_review, name='get_review'),
+    path('api/registration/<str:task_id>/<str:user_id>', data_api.get_registration, name='get_registration'),
 ]
 
 app_name = 'tira'

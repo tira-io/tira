@@ -58,6 +58,10 @@ class Organizer(models.Model):
 
 
 class VirtualMachine(models.Model):
+    """ This is the equivalent of a 'user' object  (for legacy reasons).
+    Typically, only the vm_id is set. The vm_id is the equivalent of the user name and ends
+        in '-default' if there is no virtual machine assigned to this user.
+    """
     vm_id = models.CharField(max_length=280, primary_key=True)
     user_password = models.CharField(max_length=280, default='tira')
     roles = models.CharField(max_length=100, default='guest')
@@ -77,6 +81,12 @@ class Task(models.Model):
     vm = models.ForeignKey(VirtualMachine, on_delete=models.SET_NULL, null=True)
     organizer = models.ForeignKey(Organizer, on_delete=models.SET_NULL, null=True)
     web = models.CharField(max_length=150, default='')
+    featured = models.BooleanField(default=False)
+    require_registration = models.BooleanField(default=False)
+#    Set to true = users can not submit without a group
+    require_groups = models.BooleanField(default=False)
+#    True = users can not create their own groups, they must join the given set
+    restrict_groups = models.BooleanField(default=False)
     max_std_out_chars_on_test_data = models.IntegerField(default=0)
     max_std_err_chars_on_test_data = models.IntegerField(default=0)
     max_file_list_chars_on_test_data = models.IntegerField(default=0)
@@ -190,6 +200,34 @@ class Run(models.Model):
     downloadable = models.BooleanField(default=False)
     deleted = models.BooleanField(default=False)
     access_token = models.CharField(max_length=150, default="")
+#    group = models.ForeignKey(Group, on_delete=models.SET_NULL, null=True, default=None)
+
+
+# class Group(models.Model):  TODO
+#     group_name = models.CharField(max_length=150)
+#     task = models.ForeignKey(Task, on_delete=models.CASCADE)
+#     owner = models.ForeignKey(VirtualMachine, on_delete=models.SET_NULL, null=True, default=None)
+#     member = models.ManyToManyField(VirtualMachine)  # object.member.add() or .create()
+    # class Meta:
+    #     unique_together = (("group_name", 'task'),)
+
+
+class Registration(models.Model):
+    registered_vm = models.ForeignKey(VirtualMachine, on_delete=models.CASCADE, null=True, default=None)
+    registered_on_task = models.ForeignKey(Task, on_delete=models.CASCADE, null=True, default=None)
+    name = models.CharField(max_length=150, null=True, default=None)
+    email = models.CharField(max_length=150, null=True, default=None)
+    affiliation = models.CharField(max_length=150, null=True, default=None)
+    country = models.CharField(max_length=150, null=True, default=None)
+    employment = models.CharField(max_length=150, null=True, default=None)  # student, researcher, etc.
+    participates_for = models.CharField(max_length=150, null=True, default=None)  # course, thesis, research, etc.
+    instructor_name = models.CharField(max_length=150, null=True, default=None)
+    instructor_email = models.CharField(max_length=150, null=True, default=None)
+    created = models.DateField(auto_now_add=True)
+    last_modified = models.DateField(auto_now=True)
+
+    class Meta:
+        unique_together = (("registered_vm", 'registered_on_task'),)
 
 
 class SoftwareHasInputRun(models.Model):
