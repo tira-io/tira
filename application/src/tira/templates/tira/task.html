@@ -37,11 +37,10 @@
                        :href="website">
                         <span class="uk-padding-small">Task Website</span><i
                             class="fas fa-external-link-alt uk-margin-small-left"></i></a>
-<!--                    TODO: if this is a user, check if (a) registration is required, and (b) if he is registered. If not, show a register button -->
                     <a class="uk-button uk-button-primary uk-text-large"
-                       uk-tooltip="title: Participate;"
-                       href="{% if role == 'guest' %}{% url 'tira:login' %}{% else %}{% url 'tira:software-detail' task_id=task_id vm_id=vm_id %}{% endif %}">
-                        <i class="fas fa-terminal uk-margin-right"></i>Submit</a>
+                         uk-tooltip="title: Go to the submission page for this task;" :href="submissionLink">
+                        <i class="fas fa-terminal uk-margin-right" ></i>Submit
+                    </a>
                 </div>
             </div>
             <div class="uk-margin-small">

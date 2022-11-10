@@ -466,6 +466,12 @@ def get_registration(task_id: str, user_id: str):
     """ Get the registration data object (for user on task) and return it as dict. """
     return model.get_registration(task_id, user_id)
 
+
+def edit_registration(task_id, user_id, name, email, affiliation, country, employment, participates_for, instructor_name, instructor_email):
+    """ """
+    return model.edit_registration(task_id, user_id)
+
+
 # ------------------------------------------------------------
 # add methods to check for existence
 # ------------------------------------------------------------
