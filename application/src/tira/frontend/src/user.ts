@@ -80,6 +80,8 @@ const app = createApp({
             pollSoftwareInterval: null,
             runningEvaluations: [],
             runningSoftware: [],
+            last_software_refresh: null,
+            next_software_refresh: null,
             pollStateInterval: null,
             selectedSubmissionType: 'upload',
             loading: true,
@@ -251,6 +253,8 @@ const app = createApp({
         pollRunningSoftware() {
             console.log('poll running containers')
             this.get(`/api/task/${this.task.task_id}/user/${this.userId}/software/running`).then(message => {
+                this.last_software_refresh = message.context.running_software_last_refresh
+                this.next_software_refresh = message.context.running_software_next_refresh
                 if (message.context.running_software.length > 0) {
                     this.runningSoftware = message.context.running_software
                     if (!this.polling.software) {

@@ -29,6 +29,8 @@
     <div v-if="!loading && runningSoftware.length > 0" class="uk-container">
         <running-process-list
             :running_software="runningSoftware"
+            :last_software_refresh="last_software_refresh"
+            :next_software_refresh="next_software_refresh"
             :running_evaluations="runningEvaluations"
             :user_id="userId"
             @stop-run="runId => stopRun(runId)"

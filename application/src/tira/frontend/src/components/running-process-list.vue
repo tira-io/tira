@@ -1,6 +1,10 @@
 <template>
 <div class="uk-card uk-card-body uk-card-default uk-card-small">
-    <h3>Running Processes</h3>
+    <div class="uk-grid-medium" uk-grid>
+      <div class="uk-text-lead uk-width-1-2">Running Processes &nbsp;</div>
+      <div class="uk-text-light uk-width-1-4">| Last Cache Refresh: {{ last_software_refresh }}&nbsp;</div>
+      <div class="uk-text-light uk-width-1-4">| Next Cache Refresh: {{ next_software_refresh }}</div>
+    </div>
     <hr class="uk-margin-small">
     <ul class="uk-margin-remove-top" data-uk-accordion>
         <li v-for="process in running_software" class="uk-margin-remove">
@@ -88,7 +92,7 @@ import DeleteConfirm from "./elements/delete-confirm";
 export default {
   name: "running-process-list",
   components: {DeleteConfirm},
-  props: ["running_evaluations", "running_software"],
+  props: ["running_evaluations", "running_software", "last_software_refresh", "next_software_refresh"],
   emits: ['stopRun', 'addNotification'],
   data() {
     return {
