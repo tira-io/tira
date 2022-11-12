@@ -9,8 +9,8 @@ class IrDatasetsLoader(object):
     """ Base class for loading datasets in a standarized format"""
 
     def load_dataset_for_fullrank(self, ir_datasets_id: str, output_path: Path, include_original=False) -> None:
-        """ Loads a dataset through the ir_datasets package by the given ir_datasets ID 
-        maps documents, queries, qrels to a standarized format in preparation for full-rank operations 
+        """ Loads a dataset through the ir_datasets package by the given ir_datasets ID.
+        Maps documents, queries, qrels to a standarized format in preparation for full-rank operations with PyTerrier.
         
         @param ir_datasets_id: the dataset ID as of ir_datasets
         @param output_path: the path to the directory where the output files will be stored
@@ -28,9 +28,8 @@ class IrDatasetsLoader(object):
         
 
     def load_dataset_for_rerank(self, ir_datasets_id: str, output_path: Path, include_original: bool, run_file: Path) -> None:
-        """ Loads a dataset through ir_datasets package by the given ir_datasets ID 
-        maps TREC-run-formatted data by a given file to a format fitted for re-rank operations by PyTerrier 
-        also maps all qrels related to the query-document-pairs
+        """ Loads a dataset through ir_datasets package by the given ir_datasets ID.
+        Maps qrels and TREC-run-formatted data by a given file to a format fitted for re-rank operations with PyTerrier.
         
         @param ir_datasets_id: the dataset ID as of ir_datasets
         @param output_path: the path to the directory where the output files will be created
@@ -43,7 +42,7 @@ class IrDatasetsLoader(object):
         docs = self.get_docs_by_ids(dataset, [id[1] for id in id_pairs])
         rerank = (self.construct_rerank_row(dataset, docs, id_pair[0], id_pair[1]) for id_pair in id_pairs)
         
-        qrels_mapped = self.get_qrels_for_rerank(dataset, id_pairs)
+        qrels_mapped = (self.map_qrel(qrel) for qrel in dataset.qrels_iter())
         
         self.write_lines_to_file(rerank, output_path/"rerank.jsonl")
         self.write_lines_to_file(qrels_mapped, output_path/"qrels.txt")
@@ -111,12 +110,6 @@ class IrDatasetsLoader(object):
             "original_doc": doc._asdict(),
         }
         return json.dumps(ret)
-
-
-    def get_qrels_for_rerank(self, dataset, id_pairs: list) -> Iterable[str]:
-        query_ids = (id[0] for id in id_pairs)
-        doc_ids = (id[1] for id in id_pairs)
-        return (self.map_qrel(qrel) for qrel in dataset.qrels_iter() if qrel.query_id in query_ids and qrel.doc_id in doc_ids)
 
 
     def write_lines_to_file(self, lines: Iterable[str], path: Path) -> None:
