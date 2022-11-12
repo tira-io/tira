@@ -28,6 +28,7 @@ const app = createApp({
         return {
             task_id: "",
             userId: '',
+            userVmsForTask: [],
             taskName: "",
             organizerName: "",
             website: "",
@@ -133,7 +134,13 @@ const app = createApp({
         },
         submissionLink() {
             const base = window.location.origin
-            return `${base}/task/${this.task_id}/user/${this.userId}`
+            
+            var team = this.userId
+            if (this.userVmsForTask && this.userVmsForTask.length > 0) {
+                team = this.userVmsForTask[0]
+            }
+            
+            return `${base}/task/${this.task_id}/user/${team}`
         },
     },  // for values that should be computed when accessed
     watch: {
@@ -157,13 +164,14 @@ const app = createApp({
         this.task_id = url_split[url_split.length - 1]
         this.get(`/api/task/${this.task_id}`).then(message => {
             this.userId = message.context.user_id
+            this.userVmsForTask = message.context.user_vms_for_task
             this.taskName = message.context.task.task_name
             this.organizerName = message.context.task.organizer
             this.website = message.context.task.web
             this.taskDescription = message.context.task.task_description
             this.requireRegistration = message.context.task.require_registration
             this.userIsRegistered = message.context.user_is_registered
-            console.log('userIsRegistered', this.userIsRegistered, this.userId)
+            console.log('user ', this.userId, ' is registered ( ', this.userIsRegistered, ' )  and has vms: ', this.userVmsForTask)
         }).catch(error => {
             this.addNotification('error', error)
         })

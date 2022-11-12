@@ -102,6 +102,22 @@ def _add_task_to_context(context, task_id, dataset_id):
     context["web"] = json.dumps(task['web'], cls=DjangoJSONEncoder)
 
 
+def _add_user_vms_to_context(request, context, task_id):
+    allowed_vms_for_task = None
+
+    if context["role"] != auth.ROLE_GUEST:
+        vm_id = auth.get_vm_id(request, context["user_id"])
+        vm_ids = []
+    
+        if allowed_vms_for_task is None or vm_id in allowed_vms_for_task:
+            context["vm_id"] = vm_id
+        
+        if getattr(auth, "get_vm_ids", None):
+            vm_ids = [i for i in auth.get_vm_ids(request, context["user_id"]) if allowed_vms_for_task is None or i in allowed_vms_for_task]
+        
+        context['user_vms_for_task'] = vm_ids
+
+
 @check_resources_exist('http')
 @add_context
 def task(request, context, task_id):
@@ -110,8 +126,7 @@ def task(request, context, task_id):
 
     To admins, it shows, in addition, a review overview page.
     """
-    if context["role"] != auth.ROLE_GUEST:
-        context["vm_id"] = auth.get_vm_id(request, context["user_id"])
+    _add_user_vms_to_context(request, context, task_id)
     _add_task_to_context(context, task_id, "")
     return render(request, 'tira/task.html', context)
 
@@ -124,9 +139,7 @@ def dataset(request, context, task_id, dataset_id):
 
     To admins, it shows, in addition, a review overview page.
     """
-    role = context["role"]
-    if context["role"] != auth.ROLE_GUEST:
-        context["vm_id"] = auth.get_vm_id(request, context["user_id"])
+    _add_user_vms_to_context(request, context, task_id)
     _add_task_to_context(context, task_id, dataset_id)
     return render(request, 'tira/task.html', context)
 

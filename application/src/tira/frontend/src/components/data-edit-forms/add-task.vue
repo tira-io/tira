@@ -66,6 +66,11 @@
                v-model="helpText" /> </label>
     </div>
     <div class="uk-margin-small">
+        <label>Allowed Teams for Task (leave empty if all teams are allowed)
+        <textarea id="task-teams-input" rows="3" class="uk-textarea" placeholder=""
+               v-model="taskTeams" /></label>
+    </div>
+    <div class="uk-margin-small">
         <button class="uk-button uk-button-primary" @click="createTask">Add Task</button>
         <span class="uk-text-danger uk-margin-small-left">{{ this.createTaskError }}</span>
     </div>
@@ -82,6 +87,7 @@ export default {
     return {
       createTaskError: '',
       taskNameInput: '',
+      taskTeams: '',
       taskId: '',
       masterVmId: '',
       selectedOrganizer: '',
@@ -129,6 +135,7 @@ export default {
         'require_registration': this.requireRegistration,
         'require_groups': this.requireGroups,
         'restrict_groups': this.restrictGroups,
+        'task_teams': this.taskTeams,
       }).then(message => {
         this.$emit('addnotification', 'success', message.message)
         this.$emit('closemodal')

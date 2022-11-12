@@ -72,6 +72,11 @@
           <label> Help Text<textarea rows="6" class="uk-textarea" placeholder="Available variables: \n<code>$inputDataset</code>, \n<code>$inputRun</code>, \n<code>$outputDir</code>, \n<code>$dataServer</code>, and \n<code>$token</code>."
                  v-model="helpText" /></label>
       </div>
+      <div class="uk-margin-small">
+        <label>Allowed Teams for Task (leave empty if all teams are allowed)
+        <textarea id="task-teams-input" rows="3" class="uk-textarea" placeholder=""
+               v-model="taskTeams" /></label>
+    </div>
     </div>
 </div>
 </template>
@@ -85,6 +90,7 @@ export default {
     return {
       taskError: '',
       taskNameInput: '',
+      taskTeams: '',
       selectedOrganizer: '',
       websiteInput: '',
       masterVmId: '',
@@ -138,6 +144,7 @@ export default {
         'require_registration': this.requireRegistration,
         'require_groups': this.requireGroups,
         'restrict_groups': this.restrictGroups,
+        'task_teams': this.taskTeams,
       }).then(message => {
         this.$emit('addnotification', 'success', message.message)
         this.$emit('updatetask', JSON.parse(message.context))
@@ -197,6 +204,7 @@ export default {
         this.requireRegistration = task.require_registration
         this.requireGroups = task.require_groups
         this.restrictGroups = task.restrict_groups
+        this.taskTeams = task.allowed_task_teams
       }).catch(error => {
         this.$emit('addnotification', 'error', `Error loading task: ${error}`)
       })

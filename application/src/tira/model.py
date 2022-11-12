@@ -92,6 +92,7 @@ class Task(models.Model):
     max_file_list_chars_on_test_data = models.IntegerField(default=0)
     command_placeholder = models.TextField(default="mySoftware -c $inputDataset -r $inputRun -o $outputDir")
     command_description = models.TextField(default="Available variables: <code>$inputDataset</code>, <code>$inputRun</code>, <code>$outputDir</code>, <code>$dataServer</code>, and <code>$token</code>.")
+    allowed_task_teams = models.TextField(default="")
     dataset_label = models.CharField(max_length=280, default="Input dataset")
     max_std_out_chars_on_test_data_eval = models.IntegerField(default=0)
     max_std_err_chars_on_test_data_eval = models.IntegerField(default=0)

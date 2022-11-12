@@ -248,11 +248,18 @@ class DisraptorAuthentication(Authentication):
     def get_vm_id(self, request, user_id=None):
         """ return the vm_id of the first vm_group ("tira-vm-<vm_id>") found.
          If there is no vm-group, return "no-vm-assigned"
-         TODO: once multiple vms are supported, this should return a list
+         """
+         
+        return self.get_vm_ids(request, user_id)[0]
+
+    @check_disraptor_token
+    def get_vm_ids(self, request, user_id=None):
+        """ returns a list of all vm_ids of the all vm_groups ("tira-vm-<vm_id>") found.
+         If there is no vm-group, a list with "no-vm-assigned" is returned
          """
         vms = self._get_user_groups(request)
         user_id = self._get_user_id(request)
-        return vms[0] if len(vms) >= 1 else Authentication.get_default_vm_id(user_id)
+        return vms if len(vms) >= 1 else [Authentication.get_default_vm_id(user_id)]
 
     def _discourse_api_key(self):
         return open(settings.DISRAPTOR_SECRET_FILE, "r").read().strip()

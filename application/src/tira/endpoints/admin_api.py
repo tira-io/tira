@@ -122,7 +122,7 @@ def admin_create_task(request):
         new_task = model.create_task(task_id, data["name"], data["description"], featured, master_vm_id,
                                      organizer, data["website"],
                                      require_registration, require_groups, restrict_groups,
-                                     help_command=data["help_command"], help_text=data["help_text"])
+                                     help_command=data["help_command"], help_text=data["help_text"], allowed_task_teams=data["task_teams"])
 
         new_task = json.dumps(new_task, cls=DjangoJSONEncoder)
         return JsonResponse({'status': 0, 'context': new_task,
@@ -152,7 +152,7 @@ def admin_edit_task(request, task_id):
 
         task = model.edit_task(task_id, data["name"], data["description"], featured, master_vm_id,
                                organizer, data["website"], require_registration, require_groups, restrict_groups,
-                               help_command=data["help_command"], help_text=data["help_text"])
+                               help_command=data["help_command"], help_text=data["help_text"], allowed_task_teams=data["task_teams"])
 
         return JsonResponse({'status': 0, 'context': json.dumps(task, cls=DjangoJSONEncoder),
                              'message': f"Edited Task with Id: {task_id}"})

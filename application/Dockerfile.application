@@ -1,4 +1,5 @@
-FROM webis/tira-application:basis-0.0.18
+# Only change in case of new / updated dependencies
+FROM webis/tira-application:basis-0.0.19
 
 # This Dockerfile ensures that all dependencies do rarely change by starting from a basis image
 # that contains already all dependencies (so that the minor versions do rarely change, but we
@@ -15,7 +16,8 @@ RUN cd /tira/application/src/tira/frontend/ && \
 	mkdir -p /tira/model/src && \
 	cd /tira/application/src && \
 	chown tira:tira -R /tira/application && \
-	python3 manage.py collectstatic
+	python3 manage.py collectstatic && \
+	rm ./config/settings.yml ./config/config.yml ./config/tira-application-config.dev.yml
 
 CMD sh -c "nginx && uwsgi --uid 1010 --gid 1010 --ini /tira/application/src/uwsgi.ini"
 

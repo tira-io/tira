@@ -1,4 +1,6 @@
-FROM webis/tira-application:basis-0.0.18
+# Only change in case of new / updated dependencies
+FROM webis/tira-application:basis-0.0.19 
+
 
 # This Dockerfile ensures that all dependencies do rarely change by starting from a basis image
 # that contains already all dependencies (so that the minor versions do rarely change, but we

@@ -81,6 +81,7 @@ export default {
   props: {
     taskId: String,
     userId: String,
+    userVmsForTask: Array, 
     requireRegistration: Boolean,
     userIsRegistered: Boolean,
     csrf: String,
@@ -109,7 +110,12 @@ export default {
   },
   computed: {
     submissionLink() {
-      return `task/${this.taskId}/user/${this.userId}`
+      var team = this.userId
+      if (this.userVmsForTask && this.userVmsForTask.length > 0) {
+        team = this.userVmsForTask[0]
+      }
+            
+      return `${base}/task/${this.task_id}/user/${team}`
     },
     showInstructor(){
       return this.showInstructorClasses.includes(this.selectedParticipation) || this.showInstructorClasses.includes(this.selectedEmployment)
