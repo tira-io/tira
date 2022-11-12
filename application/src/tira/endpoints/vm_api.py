@@ -17,6 +17,7 @@ from tira.model import TransitionLog, EvaluationLog, TransactionLog
 from tira.grpc_client import GrpcClient
 import tira.tira_model as model
 from tira.util import get_tira_id, reroute_host
+from tira.views import add_context
 from functools import wraps
 import json
 
@@ -272,7 +273,8 @@ def software_delete(request, task_id, vm_id, software_id):
     if delete_ok:
         return JsonResponse({'status': 0}, status=HTTPStatus.ACCEPTED)
     else:
-        return JsonResponse({'status': 1, 'message': 'Software not found. Cannot delete.'},
+        return JsonResponse({'status': 1, 'message': 'Cannot delete software, because it has a valid '
+                                                     'evaluation assigned (or it does not exist.)'},
                             status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
@@ -416,7 +418,8 @@ def docker_software_delete(request, task_id, vm_id, docker_software_id):
     if delete_ok:
         return JsonResponse({'status': 0}, status=HTTPStatus.ACCEPTED)
     else:
-        return JsonResponse({'status': 1, 'message': 'Docker software not found. Cannot delete.'},
+        return JsonResponse({'status': 1, 'message': 'Cannot delete docker software, because it has a valid '
+                                                     'evaluation assigned (or it does not exist.)'},
                             status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 @check_permissions
@@ -459,6 +462,7 @@ def run_execute_docker_software(request, task_id, vm_id, dataset_id, docker_soft
     
     return JsonResponse({'status': 0}, status=HTTPStatus.ACCEPTED)
 
+
 def stop_docker_software(request, task_id, user_id, run_id):
     if not request.method == 'GET':
         return JsonResponse({"status": 1, "message": "Only GET is allowed here"})
@@ -469,3 +473,12 @@ def stop_docker_software(request, task_id, user_id, run_id):
             stop_job_and_clean_up(model.get_evaluator(dataset["dataset_id"])["git_repository_id"], user_id, run_id, cache)
 
         return JsonResponse({"status": 0, "message": "Run successfully stopped"})
+
+
+@check_conditional_permissions(not_registered_ok=True)
+@check_resources_exist("json")
+@add_context
+def edit_registration(request, context, task_id, user_id):
+    """ save/edit the registration of a user on a task. """
+    # TODO edit Registration
+    pass

@@ -134,11 +134,7 @@ def dataset(request, context, task_id, dataset_id):
 @check_resources_exist('http')
 @add_context
 def user(request, context, vm_id):
-    """ The tasks view. It shows the task information and all associated datasets.
-    If a dataset is selected, the leaderboard is shown.
-
-    To admins, it shows, in addition, a review overview page.
-    """
+    """ TODO: this is apparently never called? """
     role = context["role"]
     if context["role"] != auth.ROLE_GUEST:
         context["vm_id"] = auth.get_vm_id(request, context["user_id"])
@@ -149,7 +145,9 @@ def user(request, context, vm_id):
 @check_resources_exist('http')
 @add_context
 def software_detail(request, context, task_id, vm_id):
-    """ render the detail of the user page: vm-stats, softwares, and runs """
+    """ render the detail of the user page: vm-stats, softwares, and runs
+        This is called if a user goes to his 'submission' page.
+    """
     software = model.get_software_with_runs(task_id, vm_id)
     upload = model.get_upload_with_runs(task_id, vm_id)
     docker = model.load_docker_data(task_id, vm_id, cache, force_cache_refresh=False)

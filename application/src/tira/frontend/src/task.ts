@@ -4,6 +4,7 @@ import ReviewAccordion from './components/elements/review-accordion.vue'
 import EditTask from './components/data-edit-forms/edit-task.vue'
 import EditDataset from './components/data-edit-forms/edit-dataset.vue'
 import AddDataset from './components/data-edit-forms/add-dataset.vue'
+import RegisterButton from './components/participant-management/register-button.vue'
 
 import Vue from 'vue'
 import {createApp} from 'vue'
@@ -13,11 +14,11 @@ import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faCheck, faTimes, faUserSlash, faUsers, faUsersSlash, faLevelUpAlt, faUser, faSearch, faDownload, faSave,
     faTrashAlt, faCog, faPlus, faSort, faSortUp, faSortDown, faSortAmountUp, faSortAlphaUp,
-    faSortNumericUp, faSortAmountDown, faSortAlphaDown, faSortNumericDown, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons'
+    faSortNumericUp, faSortAmountDown, faSortAlphaDown, faSortNumericDown, faEye, faEyeSlash, faSignInAlt } from '@fortawesome/free-solid-svg-icons'
 
 library.add(faCheck, faTimes, faUserSlash, faUsers, faUsersSlash, faLevelUpAlt, faUser, faSearch, faDownload, faSave,
     faTrashAlt, faCog, faPlus, faSort, faSortUp, faSortDown, faSortAmountUp, faSortAlphaUp,
-    faSortNumericUp, faSortAmountDown, faSortAlphaDown, faSortNumericDown, faEye, faEyeSlash)
+    faSortNumericUp, faSortAmountDown, faSortAlphaDown, faSortNumericDown, faEye, faEyeSlash, faSignInAlt)
 
 // CSS
 require('../../static/tira/css/tira-style.css');
@@ -26,6 +27,7 @@ const app = createApp({
     data() {
         return {
             task_id: "",
+            userId: '',
             taskName: "",
             organizerName: "",
             website: "",
@@ -44,11 +46,13 @@ const app = createApp({
             editTaskToggle: false,
             editDatasetToggle: false,
             addDatasetToggle: false,
+            userIsRegistered: false,
+            requireRegistration: false,
             csrf: (<HTMLInputElement>document.querySelector('[name=csrfmiddlewaretoken]')).value
         }
     },
     components: {
-        Leaderboard, ReviewAccordion, NotificationBar, EditTask, EditDataset, AddDataset
+        Leaderboard, ReviewAccordion, NotificationBar, EditTask, EditDataset, AddDataset, RegisterButton
     },
     methods: {
         async get(url) {
@@ -126,7 +130,11 @@ const app = createApp({
                 return this.datasets[this.selected].display_name
             }
             return this.selected
-        }
+        },
+        submissionLink() {
+            const base = window.location.origin
+            return `${base}/task/${this.task_id}/user/${this.userId}`
+        },
     },  // for values that should be computed when accessed
     watch: {
         selected(newSelected, oldSelected) {
@@ -145,13 +153,17 @@ const app = createApp({
         }
     },
     beforeMount() {
-        var url_split = window.location.toString().split('/')
+        const url_split = window.location.toString().split('/')
         this.task_id = url_split[url_split.length - 1]
         this.get(`/api/task/${this.task_id}`).then(message => {
+            this.userId = message.context.user_id
             this.taskName = message.context.task.task_name
             this.organizerName = message.context.task.organizer
             this.website = message.context.task.web
             this.taskDescription = message.context.task.task_description
+            this.requireRegistration = message.context.task.require_registration
+            this.userIsRegistered = message.context.user_is_registered
+            console.log('userIsRegistered', this.userIsRegistered, this.userId)
         }).catch(error => {
             this.addNotification('error', error)
         })

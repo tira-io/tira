@@ -131,6 +131,7 @@ def get_task_list(request, context):
 @add_context
 def get_task(request, context, task_id):
     context["task"] = model.get_task(task_id)
+    context["user_is_registered"] = model.get_registration(task_id, context["user_id"]) is not None
     return JsonResponse({'status': 0, "context": context})
 
 
@@ -182,7 +183,6 @@ def get_running_software(request, context, task_id, user_id):
     evaluators_for_task = model.get_evaluators_for_task(task_id, cache)
     repositories = set([i['git_repository_id'] for i in evaluators_for_task if i['is_git_runner'] and i['git_repository_id']])
 
-
     for git_repository_id in sorted(list(repositories)):
         context['running_software'] += list(yield_all_running_pipelines(int(git_repository_id), user_id, cache, force_cache_refresh=False))
         context['running_software_last_refresh'] = model.load_refresh_timestamp_for_cache_key(cache, 'all-running-pipelines-repo-' + str(git_repository_id))
@@ -217,3 +217,14 @@ def get_review(request, context, dataset_id, user_id, run_id):
         context["tira_log"] = "hidden"
 
     return JsonResponse({'status': 0, "context": context})
+
+
+@check_conditional_permissions(not_registered_ok=True)
+@check_resources_exist("json")
+@add_context
+def get_registration(request, context, task_id, user_id):
+    """ get the registration of a user on a task. If there is none """
+    # TODO model.get_registration()
+
+    # If not registered, create template and notify
+    pass

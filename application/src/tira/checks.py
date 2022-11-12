@@ -21,29 +21,38 @@ def check_permissions(func):
         - run_id: in addition to vm_id, checks if the requesting user can see the run. By default, permission is denied
         if the run is not visible.
 
+    # TODO at some point, this should not return http responses anymore but send a 'forbidden' json response
     :raises: django.core.exceptions.PermissionDenied
     """
     @wraps(func)
     def func_wrapper(request, *args, **kwargs):
         vm_id = kwargs.get('vm_id', None)
+        user_id = kwargs.get('user_id', None)
+        if vm_id is None and user_id is not None:  # some endpoints say user_id instead of vm_id
+            vm_id = user_id
         dataset_id = kwargs.get('dataset_id', None)
         run_id = kwargs.get('run_id', None)
+        task_id = kwargs.get('task_id', None)
         role = auth.get_role(request, user_id=auth.get_user_id(request))
 
         if role == auth.ROLE_ADMIN or role == auth.ROLE_TIRA:
             return func(request, *args, **kwargs)
 
         if vm_id:
-            if not model.vm_exists(vm_id):
+            if not model.vm_exists(vm_id):  # If the resource does not exist
                 return redirect('tira:request_vm')
             role = auth.get_role(request, user_id=auth.get_user_id(request), vm_id=vm_id)
-            if run_id and dataset_id:
+            if run_id and dataset_id:  # this prevents participants from viewing hidden runs
                 if not model.run_exists(vm_id, dataset_id, run_id):
                     return Http404(f'The VM {vm_id} has no run with the id {run_id} on {dataset_id}.')
                 review = model.get_run_review(dataset_id, vm_id, run_id)
                 is_review_visible = (not review['blinded']) or review['published']
                 if not is_review_visible:
                     role = auth.ROLE_USER
+            if task_id:  # This checks if the registration requirement is fulfilled.
+                if model.get_task(task_id)["require_registration"]:
+                    if not model.get_registration(task_id, vm_id):
+                        return HttpResponseNotAllowed(f"Access forbidden. You must register first.")
 
         if role == auth.ROLE_PARTICIPANT:
             return func(request, *args, **kwargs)
@@ -55,7 +64,8 @@ def check_permissions(func):
     return func_wrapper
 
 
-def check_conditional_permissions(restricted=False, public_data_ok=False, private_run_ok=False):
+def check_conditional_permissions(restricted=False, public_data_ok=False, private_run_ok=False,
+                                  not_registered_ok=False):
     """ A decorator that checks if the requesting user has the needed permissions to call the decorated function.
     This decorator redirects or blocks requests if the requesting user does not have permission.
     This decorator considers the resources requested in the decorated function:
@@ -63,10 +73,12 @@ def check_conditional_permissions(restricted=False, public_data_ok=False, privat
         - run_id: in addition to vm_id, checks if the requesting user can see the run. By default, permission is denied
         if the run is not visible.
 
-    :param restricted: if True, only admins can ever access the decorated function
-    :param public_data_ok: if True and if a run is requested, return with permissions if the user owns the VM and the
+    @param restricted: if True, only admins can ever access the decorated function
+    @param public_data_ok: if True and if a run is requested, return with permissions if the user owns the VM and the
         dataset is public, even if the run is blinded and not published
-    :param private_run_ok: if True, and if a run is requested, return with permissions even if the run is blinded
+    @param private_run_ok: if True, and if a run is requested, return with permissions even if the run is blinded
+    @param not_registered_ok: if True, and if a task is requests, return with permissions even if the user is not
+        registered yet.
 
     :raises: django.core.exceptions.PermissionDenied
     """
@@ -75,6 +87,10 @@ def check_conditional_permissions(restricted=False, public_data_ok=False, privat
         def func_wrapper(request, vm_id, *args, dataset_id=None, run_id=None, **kwargs):
             # Admins can access and do everything
             kwargs['vm_id'] = vm_id
+            user_id = kwargs.get('user_id', None)
+            task_id = kwargs.get('task_id', None)
+            if vm_id is None and user_id is not None:  # some endpoints say user_id instead of vm_id
+                vm_id = user_id
             if dataset_id:
                 kwargs['dataset_id'] = dataset_id
             if run_id:
@@ -86,7 +102,7 @@ def check_conditional_permissions(restricted=False, public_data_ok=False, privat
             elif restricted:
                 return HttpResponseNotAllowed(f"Access restricted.")
 
-            if vm_id:
+            if vm_id:  # First we determine the role of the user on the resource he requests
                 if not model.vm_exists(vm_id):
                     return redirect('tira:request_vm')
                 role_on_vm = auth.get_role(request, user_id=auth.get_user_id(request), vm_id=vm_id)
@@ -107,6 +123,11 @@ def check_conditional_permissions(restricted=False, public_data_ok=False, privat
                         role = role_on_vm
                 else:
                     role = role_on_vm
+
+                if task_id and not not_registered_ok:  # This checks if the registration requirement is fulfilled.
+                    if model.get_task(task_id)["require_registration"]:
+                        if not model.get_registration(task_id, vm_id):
+                            return HttpResponseNotAllowed(f"Access forbidden. You must register first.")
 
             if not restricted and role == auth.ROLE_PARTICIPANT:  # Participants can access when it is their resource, the resource is visible to them, and the call is not restricted
                 return func(request, *args, **kwargs)
