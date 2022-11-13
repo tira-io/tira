@@ -37,6 +37,7 @@ def add_context(func):
 @add_context
 def index(request, context):
     context["tasks"] = model.get_tasks(include_dataset_stats=True)
+    context["organizer_teams"] = auth.get_organizer_ids(request)
     if context["role"] != auth.ROLE_GUEST:
         context["vm_id"] = auth.get_vm_id(request, context["user_id"])
 

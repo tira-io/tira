@@ -5,6 +5,7 @@ import tira.tira_model as model
 from tira.checks import check_permissions, check_resources_exist, check_conditional_permissions
 from tira.tira_data import get_run_runtime, get_run_file_list, get_stderr, get_stdout, get_tira_log
 from tira.views import add_context, _add_user_vms_to_context
+from tira.authentication import auth
 
 from django.http import JsonResponse
 from django.conf import settings
@@ -154,7 +155,7 @@ def get_organizer(request, context, organizer_id):
 
 @add_context
 def get_role(request, context):
-    return JsonResponse({'status': 0, 'role': context['role']})
+    return JsonResponse({'status': 0, 'role': context['role'], 'organizer_teams': auth.get_organizer_ids(request)})
 
 
 @check_resources_exist("json")

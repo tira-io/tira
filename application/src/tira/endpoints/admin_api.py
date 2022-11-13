@@ -11,7 +11,6 @@ from datetime import datetime as dt
 
 import tira.tira_model as model
 import tira.git_runner as git_runner
-from tira.authentication import auth
 
 logger = logging.getLogger("tira")
 logger.info("ajax_routes: Logger active")

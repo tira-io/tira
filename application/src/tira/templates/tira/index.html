@@ -31,8 +31,8 @@
             <div class="uk-width-1-3" id="search-control">
                 <input type="text" class="uk-input" id="filter-field" placeholder="Type here to filter&hellip;"/>
             </div>
-            {% if role == 'admin' %}
-            <div v-if="role === 'admin'">
+            {% if role == 'admin' or organizer_teams %}
+            <div v-if="role === 'admin' || organizer_teams ">
                 <a uk-toggle="target: #add-task-modal" class="uk-button uk-button-large uk-button-default uk-text-large"><span class="uk-padding-small">Add Task +</span></a>
             </div>
             <div id="add-task-modal" uk-modal>
@@ -43,7 +43,7 @@
                                @closeModal="closeModal()" />
                 </div>
             </div>
-            <div v-if="role === 'admin'">
+            <div v-if="role === 'admin' || organizer_teams ">
                 <a uk-toggle="target: #edit-organization-modal" class="uk-button uk-button-large uk-button-default uk-text-large">
                       <span class="uk-padding-small">Edit Organizations</span><i class="fas fa-edit"></i></a>
             </div>
@@ -106,6 +106,20 @@
 </div>
 
 </div>
+
+{% if role == 'admin' or organizer_teams or vm_ids %}
+<div>
+    <ul>
+        {% if role == 'admin' or organizer_teams %}
+        <li><a href="https://www.tira.io/g?filter=tira_org_">Manage your Organizations</a></li>
+        <li><a href="https://www.tira.io/new-message?username=user&title=Request%20&body=message%20body">Contact your Organizer</a> (e.g., on the task page, on other pages, e.g., "Get a VM", etc. which writes prepared messages to the organizers.</li>
+        {% endif %}
+        {% if role == 'admin' or vm_ids %}
+        <li><a href="https://www.tira.io/g?filter=tira_vm_">Manage your Participation Teams</a></li>
+        {% endif %}
+    </ul>
+</div>
+{% endif %}
 
 {% render_bundle 'index' %}
 

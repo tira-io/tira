@@ -82,6 +82,11 @@ class Authentication(object):
     def create_group(self, vm_id):
         return {"status": 0, "message": f"create_group is not implemented for {self._AUTH_SOURCE}"}
 
+    def get_organizer_ids(self, request, user_id=None):
+        pass
+
+    def get_vm_ids(self, request, user_id=None):
+        pass
 
 class LegacyAuthentication(Authentication):
     _AUTH_SOURCE = "legacy"
@@ -158,6 +163,11 @@ class LegacyAuthentication(Authentication):
             return user_id
         return Authentication.get_default_vm_id(user_id)
 
+    def get_organizer_ids(self, request, user_id=None):
+        return []
+
+    def get_vm_ids(self, request, user_id=None):
+        return []
 
 def check_disraptor_token(func):
     @wraps(func)
@@ -206,14 +216,15 @@ class DisraptorAuthentication(Authentication):
 
     def _get_user_groups(self, request, group_type: str = "vm") -> list:
         """ read groups from the disraptor groups header.
-        @param group_type: {"vm"}, indicate the class of groups.
+        @param group_type: {"vm", "org"}, indicate the class of groups.
         """
         all_groups = request.headers.get('X-Disraptor-Groups', "None").split(",")
         user_id = f"{request.headers.get('X-Disraptor-User', None)}-default"
 
         if group_type == 'vm':  # if we check for groups of a virtual machine
             return [group["value"] for group in self._parse_tira_groups(all_groups) if group["key"] == "vm"] + [user_id]
-            # return [u.split("-")[2:] for u in all_groups if u.startswith("tira-vm-")]
+        if group_type == 'org':  # if we check for organizer groups of a user
+            return [group["value"] for group in self._parse_tira_groups(all_groups) if group["key"] == "org"]
 
     @check_disraptor_token
     def get_role(self, request, user_id: str = None, vm_id: str = None, task_id: str = None):
@@ -253,12 +264,24 @@ class DisraptorAuthentication(Authentication):
         return self.get_vm_ids(request, user_id)[0]
 
     @check_disraptor_token
+    def get_organizer_ids(self, request, user_id=None):
+        """ return the organizer ids of all organizer teams that the user is found in ("tira-org-<vm_id>").
+        If there is no vm-group, return the empty list
+        """
+
+        return self._get_user_groups(request, group_type='org')
+
+    @check_disraptor_token
     def get_vm_ids(self, request, user_id=None):
         """ returns a list of all vm_ids of the all vm_groups ("tira-vm-<vm_id>") found.
          If there is no vm-group, a list with "no-vm-assigned" is returned
          """
         vms = self._get_user_groups(request)
         user_id = self._get_user_id(request)
+        
+        if user_id == None:
+            return vms
+        
         return vms if len(vms) >= 1 else [Authentication.get_default_vm_id(user_id)]
 
     def _discourse_api_key(self):
