@@ -72,7 +72,7 @@ class IrDatasetsLoader(object):
             "qid": query.query_id,
             # TODO: change when .default_text() is implemented
             # "text": query.default_text()
-            "text": json.dumps(query._asdict()) 
+            "query": query['title'] 
         }
         if include_original:
             ret["original_doc"] = query._asdict()
@@ -101,12 +101,12 @@ class IrDatasetsLoader(object):
             "qid": query_id,
             # TODO: change when .default_text() is implemented
             #"query": query.default_text(),
-            "query": query._asdict(),
+            "query": query['title'],
             "original_query": query._asdict(),
             "docno": doc_id,
             # TODO: change when .default_text() is implemented
             #"text": doc.default_text(),
-            "text": doc._asdict(),
+            "text": json.dumps(doc._asdict()),
             "original_doc": doc._asdict(),
         }
         return json.dumps(ret)
