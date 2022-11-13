@@ -4,7 +4,7 @@ from tira.forms import *
 import tira.tira_model as model
 from tira.checks import check_permissions, check_resources_exist, check_conditional_permissions
 from tira.tira_data import get_run_runtime, get_run_file_list, get_stderr, get_stdout, get_tira_log
-from tira.views import add_context
+from tira.views import add_context, _add_user_vms_to_context
 
 from django.http import JsonResponse
 from django.conf import settings
@@ -132,6 +132,7 @@ def get_task_list(request, context):
 def get_task(request, context, task_id):
     context["task"] = model.get_task(task_id)
     context["user_is_registered"] = model.get_registration(task_id, context["user_id"]) is not None
+    _add_user_vms_to_context(request, context, task_id)
     return JsonResponse({'status': 0, "context": context})
 
 

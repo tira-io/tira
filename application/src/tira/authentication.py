@@ -264,7 +264,22 @@ class DisraptorAuthentication(Authentication):
     def _discourse_api_key(self):
         return open(settings.DISRAPTOR_SECRET_FILE, "r").read().strip()
 
-    def _create_discourse_group(self, vm):
+    def _create_discourse_group(self, group_name, group_bio, visibility_level=2):
+        """ Create a discourse group in the distaptor. 
+        :param vm: a vm dict as returned by tira_model.get_vm
+            {"vm_id", "user_password", "roles", "host", "admin_name", "admin_pw", "ip", "ssh", "rdp", "archived"}
+
+        """
+        ret = requests.post("https://www.tira.io/admin/groups",
+                            headers={"Api-Key": self._discourse_api_key(), "Accept": "application/json",
+                                     "Content-Type": "multipart/form-data"},
+                            data={"group[name]": group_name, "group[visibility_level]": visibility_level,
+                                  "group[members_visibility_level]": visibility_level, "group[bio_raw]": group_bio}
+                            )
+
+        return json.loads(ret.text).get('basic_group', {'id': group_name})["id"]
+        
+    def _create_discourse_vm_group(self, vm):
         """ Create the vm group in the distaptor. Members of this group will be owners of the vm and
             have all permissions.
         :param vm: a vm dict as returned by tira_model.get_vm
@@ -282,15 +297,8 @@ class DisraptorAuthentication(Authentication):
     </ul><br><br>
     Please contact us when you have questions.
     """
-
-        ret = requests.post("https://www.tira.io/admin/groups",
-                            headers={"Api-Key": self._discourse_api_key(), "Accept": "application/json",
-                                     "Content-Type": "multipart/form-data"},
-                            data={"group[name]": f"tira_vm_{vm['vm_id']}", "group[visibility_level]": 2,
-                                  "group[members_visibility_level]": 2, "group[bio_raw]": group_bio}
-                            )
-
-        return json.loads(ret.text).get('basic_group', {'id': f"tira_vm_{vm['vm_id']}"})["id"]
+    
+        return _create_discourse_group(f"tira_vm_{vm['vm_id']}", group_bio, 2)
 
     def _create_discourse_invite_link(self, group_id):
         """ Create the invite link to get permission to a discourse group """
@@ -303,12 +311,29 @@ class DisraptorAuthentication(Authentication):
 
         return json.loads(ret.text)['link']
 
+    def _add_user_as_owner_to_group(self, group_id, user_name):
+        """ Create the invite link to get permission to a discourse group """
+        
+        ret = requests.put(f"https://www.tira.io/admin/groups/{group_id}/owners.json",
+                            headers={"Api-Key": self._discourse_api_key(), "Accept": "application/json",
+                                     "Content-Type": "multipart/form-data"
+                                     },
+                            data={"group[usernames]": user_name, "group[notify_users]": "true"}
+                            )
+        
+        ret = json.loads(ret.text)
+        
+        if ret['success'] != 'OK' or ret['usernames'] != [user_name]:
+            raise ValueError(f'Could not make the user "{user_name}" an owner of the group with id "{group_id}".')
+
+        return ret
+
     def create_group(self, vm):
         """ Create the vm group in the distaptor. Members of this group will be owners of the vm and
             have all permissions.
         :param vm: a vm dict as returned by tira_model.get_vm
         """
-        vm_group = self._create_discourse_group(vm)
+        vm_group = self._create_discourse_vm_group(vm)
         invite_link = self._create_discourse_invite_link(vm_group)
         message = f"""Invite Mail: Please use this link to create your login for TIRA: {invite_link}. 
                       After login to TIRA, you can find the credentials and usage examples for your
@@ -316,5 +341,21 @@ class DisraptorAuthentication(Authentication):
 
         return message
 
+    def create_organizer_group(self, organizer_name, user_name):
+        group_bio = f"""Members of this team organize shared tasks in TIRA as  in shared tasks as {organizer_name}. <br><br>
+        
+        Please do not hesitate to design your page accorging to your needs."""
+        
+        group_id = self._create_discourse_group(f"tira_org_{organizer_name}", group_bio, 0)
+        self._add_user_as_owner_to_group(group_id, user_name)
+
+    def create_docker_group(self, organizer_name, user_name):
+        group_bio = f"""Members of this team participate in shared tasks as {team_name}. <br><br>
+        
+        Please do not hesitate to design your team's page accorging to your needs."""
+        
+        group_id = self._create_discourse_group(f"tira_vm_{team_name}", group_bio, 0)
+        self._add_user_as_owner_to_group(group_id, user_name)
 
 auth = Authentication(authentication_source=settings.DEPLOYMENT)
+

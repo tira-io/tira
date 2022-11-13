@@ -11,6 +11,7 @@ from datetime import datetime as dt
 
 import tira.tira_model as model
 import tira.git_runner as git_runner
+from tira.authentication import auth
 
 logger = logging.getLogger("tira")
 logger.info("ajax_routes: Logger active")
@@ -297,6 +298,7 @@ def admin_add_organizer(request, organizer_id):
         web = data["web"]
 
         model.edit_organizer(organizer_id, name, years, web)
+        auth.create_organizer_group(name, auth.get_user_id(request))
         return JsonResponse({'status': 0, 'message': f"Added Organizer {organizer_id}"})
 
     return JsonResponse({'status': 1, 'message': f"GET is not implemented for add organizer"})
