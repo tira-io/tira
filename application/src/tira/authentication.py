@@ -287,7 +287,7 @@ class DisraptorAuthentication(Authentication):
     def _discourse_api_key(self):
         return open(settings.DISRAPTOR_SECRET_FILE, "r").read().strip()
 
-    def _create_discourse_group(self, group_name, group_bio, visibility_level=2):
+    def _create_discourse_group(self, group_name, group_bio, visibility_level=2, members_visibility_level=2):
         """ Create a discourse group in the distaptor. 
         :param vm: a vm dict as returned by tira_model.get_vm
             {"vm_id", "user_password", "roles", "host", "admin_name", "admin_pw", "ip", "ssh", "rdp", "archived"}
@@ -297,7 +297,7 @@ class DisraptorAuthentication(Authentication):
                             headers={"Api-Key": self._discourse_api_key(), "Accept": "application/json",
                                      "Content-Type": "multipart/form-data"},
                             data={"group[name]": group_name, "group[visibility_level]": visibility_level,
-                                  "group[members_visibility_level]": visibility_level, "group[bio_raw]": group_bio}
+                                  "group[members_visibility_level]": members_visibility_level, "group[bio_raw]": group_bio}
                             )
 
         return json.loads(ret.text).get('basic_group', {'id': group_name})["id"]
@@ -372,7 +372,7 @@ class DisraptorAuthentication(Authentication):
         group_id = self._create_discourse_group(f"tira_org_{organizer_name}", group_bio, 0)
         self._add_user_as_owner_to_group(group_id, user_name)
 
-    def create_docker_group(self, organizer_name, user_name):
+    def create_docker_group(self, team_name, user_name):
         group_bio = f"""Members of this team participate in shared tasks as {team_name}. <br><br>
         
         Please do not hesitate to design your team's page accorging to your needs."""

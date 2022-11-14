@@ -1,14 +1,20 @@
 <template>
-<a v-if="!requireRegistration || userIsRegistered" class="uk-button uk-button-primary uk-text-large"
-     uk-tooltip="title: Go to the submission page for this task;"
-     :href="submissionLink" :disabled="!loaded">
+<div>
+<a  v-if="!requireRegistration || userIsRegistered" class="uk-button uk-button-primary uk-text-large"
+     uk-tooltip="title: Go to the submission page for this task;" :href="submissionLink" :disabled="!loaded">
     <font-awesome-icon icon="fas fa-terminal" class="uk-margin-right" />Submit
 </a>
 <a v-else-if="requireRegistration" class="uk-button uk-text-large" uk-toggle="target: #modal-register"
      :class="{'uk-button-primary': !userIsRegistered, 'uk-button-default': userIsRegistered}"
      uk-tooltip="title: This task requires a registration;" :disabled="!loaded">
     <font-awesome-icon icon="fas fa-user-edit" :class="{'uk-margin-right': !userIsRegistered}" />
-    <span v-if="!userIsRegistered">Register</span>
+    <span v-if="!userIsRegistered">Register new Team</span>
+</a>
+<a if="!userIsRegistered && requireRegistration" class="uk-button uk-text-large" 
+    :class="{'uk-button-primary': !userIsRegistered, 'uk-button-default': userIsRegistered}"
+     uk-tooltip="title: This task requires a registration. Join an existing team;" :disabled="!loaded">
+    <font-awesome-icon icon="fas fa-terminal" :class="{'uk-margin-right': !userIsRegistered}" />
+    <span >Join existing Team</span>
 </a>
 
 <div id="modal-register" class="uk-container uk-container-expand" data-uk-modal>
@@ -28,8 +34,18 @@
                 </div>
             </h3>
 
+            <div class="uk-width-2-2" uk-tooltip="How the task can call your team.">
+                <label>
+                    Team name* 
+                    <select class="uk-select" :class="{'uk-form-danger': (registrationError !== '' && group === '')}" v-model="group">
+                        <option class="uk-text-muted" disabled="true" value="">Please select a team name.</option>
+                        <option :class="{'uk-text-muted': g===''}" :disabled="g===''" v-for="g in groupList" :value="g">{{ g!=="" ? g : "Please select a team name." }}</option>
+                    </select>
+                </label>
+            </div>
+
             <div class="uk-width-1-2" uk-tooltip="How the task organizers can call you.">
-                <label>Name* <input class="uk-input" type="text" v-model="username"
+                <label>Full name* <input class="uk-input" type="text" v-model="username"
                        :class="{'uk-form-danger': (registrationError !== '' && username === '')}" />
                 </label>
             </div>
@@ -66,11 +82,24 @@
                 <label>Supervisor Email <input class="uk-input" type="text" v-model="instructorEmail" />
                 </label>
             </div>
+            <div class="uk-width-2-2">
+                <label>
+                    Team members (that are not you).<br>
+                    Full name, affiliation, country, email of each other member of your team.<br>
+                    One team member per line.
+                    <textarea class="uk-input" type="textarea" v-model="team" style="height: 125px;"  />
+                </label>
+            </div>
+            <div class="uk-width-2-2">
+                <label>
+                    Do you have any other questions?
+                    <textarea class="uk-input" type="textarea" v-model="questions"  style="height: 125px;" />
+                </label>
+            </div>
             <span v-if="registrationError" class="uk-width-1-1 uk-text-danger">{{ registrationError }}</span>
         </div>
     </div>
-<!--  TODO group selector -->
-<!--  TODO toggle new group / join other group via ID -->
+</div>
 </div>
 </template>
 <script>
@@ -82,6 +111,7 @@ export default {
     taskId: String,
     userId: String,
     userVmsForTask: Array, 
+    groupList: Array,
     requireRegistration: Boolean,
     userIsRegistered: Boolean,
     csrf: String,
@@ -92,30 +122,72 @@ export default {
       email: "",
       affiliation: "",
       country: "",
+      questions: "",
+      team: "",
       selectedEmployment: "",
       employmentList: ["", "Undergraduate Student", "PhD Student", "Academic Research", "Industry", "Private"],
+      group: "",
       selectedParticipation: "",
       participationList: ["", "Course", "Thesis", "Academic Research", "Industry Research", "Private Interest"],
       instructorName: "",
       instructorEmail: "",
       showInstructorClasses: ['Undergraduate Student', 'Course', 'Thesis'],
       registrationError: "",
-      loaded: false,
     }
   },
   methods: {
     submitRegistration() {
-
+      this.registrationError = ''
+      if (this.group === '') {
+        this.registrationError += 'Please select a Team Name;\n'
+      }
+      if (this.username === '') {
+        this.registrationError += 'Please provide a Full name;\n'
+      }
+      if (this.email === '') {
+        this.registrationError += 'Please provide an Email;\n'
+      }
+      if (this.affiliation === '') {
+        this.registrationError += 'Please provide an Affiliation;\n'
+      }
+      
+      if (this.registrationError !== '') {
+        return
+      }
+      
+      submitPost('/api/registration/add_registration/vm/'+ this.taskId, this.csrf, {
+        'username': this.username,
+        'email': this.email,
+        'affiliation': this.affiliation,
+        'country': this.country,
+        'employment': this.selectedEmployment,
+        'group': this.group,
+        'participation': this.selectedParticipation,
+        'instructorName': this.instructorName,
+        'instructorEmail': this.instructorEmail,
+        'questions': this.questions,
+        'team': this.team
+      }).then(message => {
+        this.$emit('addNotification', 'success', 'You are now registered for the team "' + this.group + '" and can submit runs.')
+        this.$emit('updateUserVmsForTask', this.group)
+        
+        this.$emit('closeModal')
+      }).catch(error => {
+        console.log(error)
+        this.registrationError = error
+      })
     }
   },
   computed: {
     submissionLink() {
+      const base = window.location.origin
+    
       var team = this.userId
       if (this.userVmsForTask && this.userVmsForTask.length > 0) {
         team = this.userVmsForTask[0]
       }
-            
-      return `${base}/task/${this.task_id}/user/${team}`
+      
+      return `${base}/task/${this.taskId}/user/${team}`
     },
     showInstructor(){
       return this.showInstructorClasses.includes(this.selectedParticipation) || this.showInstructorClasses.includes(this.selectedEmployment)
@@ -124,33 +196,6 @@ export default {
       return (this.username !== "" && this.email !== "" && this.affiliation !== "")
     }
   },
-  watch: {
-    userId(newId, oldId) {
-      this.username = newId.replace('-default', '')
-    }
-  },
-  emits: ['addNotification', 'updateReview'],
-  mounted() {
-    this.loaded=true
-  },
-  beforeMount() {
-    // this.get(`/api/dataset/${this.dataset_id}`).then(message => {
-    //       const dataset = message.context.dataset
-    //       const evaluator = message.context.evaluator
-    //       this.datasetNameInput = dataset.display_name
-    //       this.publish = !dataset.is_confidential
-    //       this.uploadName = dataset.default_upload_name
-    //       this.evaluatorWorkingDirectory = evaluator.working_dir
-    //       this.evaluatorCommand = evaluator.command
-    //       this.evaluationMeasures = evaluator.measures
-    //       this.isGitRunner = evaluator.is_git_runner
-    //       this.gitRunnerImage = evaluator.git_runner_image
-    //       this.gitRunnerCommand = evaluator.git_runner_command
-    //       this.gitRepositoryId = evaluator.git_repository_id
-    //       this.selectedTask = this.getTaskById(dataset.task)
-    //   }).catch(error => {
-    //       this.$emit('addnotification', 'error', `Error loading task: ${error}`)
-    //   })
-  }
+  emits: ['addNotification', 'updateUserVmsForTask', 'closeModal'],
 }
 </script>

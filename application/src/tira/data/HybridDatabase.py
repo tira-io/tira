@@ -737,6 +737,30 @@ class HybridDatabase(object):
 
         raise TiraModelWriteError(f"Failed to write VM {vm_id}")
 
+    def add_registration(self, data):
+        task = modeldb.Task.objects.select_related('organizer').get(task_id=data['task_id'])
+        
+        if data['group'] not in task.allowed_task_teams:
+            raise ValueError(f'Team name is not allowed "{data["group"]}". Allowed: {task.allowed_task_teams}')
+
+        modeldb.Registration.objects.create(initial_owner=data['initial_owner'],
+                                            team_name=data['group'],
+                                            team_members=data['team'],
+                                            registered_on_task=task,
+                                            name=data['username'],
+                                            email=data['email'],
+                                            affiliation=data['affiliation'],
+                                            country=data['country'],
+                                            employment=data['employment'],
+                                            participates_for=data['participation'],
+                                            instructor_name=data['instructorName'],
+                                            instructor_email=data['instructorEmail'],
+                                            questions=data['questions'])
+
+
+    def all_registered_teams(self):
+        return set([i['team_name'] for i in modeldb.Registration.objects.values('team_name')])
+
     def _fdb_create_task(self, task_id, task_name, task_description, master_vm_id, organizer_id, website,
                          help_command=None, help_text=None):
         new_task_file_path = self.tasks_dir_path / f'{task_id}.prototext'

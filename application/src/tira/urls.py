@@ -86,6 +86,7 @@ urlpatterns = [
     path('api/task/<str:task_id>/user/<str:user_id>/software/running', data_api.get_running_software, name='get_running_software'),
     path('api/review/<str:dataset_id>/<str:user_id>/<str:run_id>', data_api.get_review, name='get_review'),
     path('api/registration/<str:task_id>/<str:user_id>', data_api.get_registration, name='get_registration'),
+    path('api/registration/add_registration/<str:vm_id>/<str:task_id>', data_api.add_registration, name='add_registration'),
 ]
 
 app_name = 'tira'

@@ -13,6 +13,7 @@ const app = createApp({
         return {
             notifications: [],
             role: '',
+            organizerTeams: [],
             csrf: (<HTMLInputElement>document.querySelector('[name=csrfmiddlewaretoken]')).value
         }
     },
@@ -44,6 +45,7 @@ const app = createApp({
     beforeMount() {
        this.get(`/api/role`).then(message => {
            this.role = message.role
+           this.organizerTeams = message.organizer_teams
        }).catch(error => {
            this.addNotification('error', error)
        })

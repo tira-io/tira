@@ -10,6 +10,7 @@ import randomname
 from django.conf import settings
 from django.db import connections, router
 import datetime
+from tira.authentication import auth
 
 logger = logging.getLogger("tira")
 
@@ -340,6 +341,26 @@ def add_docker_software(task_id, vm_id, image, command):
     return model.add_docker_software(task_id, vm_id, image + ':' + old_tag, command, tira_image_name)
 
 
+def add_registration(data):
+    model.add_registration(data)
+
+
+def user_is_registered(task_id, request):
+    task = get_task(task_id)
+    allowed_task_teams = set([i.strip() for i in task['allowed_task_teams'].split() if i.strip()])
+    user_vm_ids = [i.strip() for i in auth.get_vm_ids(request) if i.strip()]
+
+    return user_vm_ids is not None and len(user_vm_ids) > 0 and (len(allowed_task_teams) == 0 or any([i in allowed_task_teams for i in user_vm_ids]))
+
+
+def remaining_team_names(task_id):
+    task = get_task(task_id)
+    allowed_task_teams = sorted(list(set([i.strip() for i in task['allowed_task_teams'].split() if i.strip()])))
+    already_used_teams = model.all_registered_teams()
+    
+    return [i for i in allowed_task_teams if i not in already_used_teams]
+
+
 # ------------------------------------------------------------
 # add methods to add new data to the model
 # ------------------------------------------------------------
@@ -460,16 +481,6 @@ def delete_dataset(dataset_id: str):
 
 def edit_organizer(organizer_id: str, name: str, years: str, web: str):
     return model.edit_organizer(organizer_id, name, years, web)
-
-
-def get_registration(task_id: str, user_id: str):
-    """ Get the registration data object (for user on task) and return it as dict. """
-    return model.get_registration(task_id, user_id)
-
-
-def edit_registration(task_id, user_id, name, email, affiliation, country, employment, participates_for, instructor_name, instructor_email):
-    """ """
-    return model.edit_registration(task_id, user_id)
 
 
 # ------------------------------------------------------------

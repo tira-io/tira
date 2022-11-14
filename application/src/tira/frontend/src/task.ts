@@ -40,6 +40,7 @@ const app = createApp({
             evaluations: {},
             vms: {},
             notifications: [],
+            remainingTeamNames: [],
             loading: false,
             selected: "",
             hide_private: true,
@@ -70,6 +71,10 @@ const app = createApp({
         addNotification(type, message) {
             this.notifications.push({'type': type, 'message': message})
         },
+        updateUserVmsForTask(newUserVm) {
+            this.userVmsForTask.push(newUserVm)
+            this.userIsRegistered = true
+        },
         deleteDataset(dsId) {
             this.editDatasetToggle = false
             delete this.datasets[dsId]
@@ -95,6 +100,10 @@ const app = createApp({
                 title = this.datasets[dsid].display_name
             }
             return `${title} (<span class="uk-text-bold">${this.datasets[dsid]["runs_count"]}</span> Runs)`
+        },
+        closeModal() {
+            const registerModal = document.getElementById('modal-register')
+            UIkit.modal(registerModal).hide();
         },
         async getEvaluations(selected) {
             try {
@@ -132,16 +141,6 @@ const app = createApp({
             }
             return this.selected
         },
-        submissionLink() {
-            const base = window.location.origin
-            
-            var team = this.userId
-            if (this.userVmsForTask && this.userVmsForTask.length > 0) {
-                team = this.userVmsForTask[0]
-            }
-            
-            return `${base}/task/${this.task_id}/user/${team}`
-        },
     },  // for values that should be computed when accessed
     watch: {
         selected(newSelected, oldSelected) {
@@ -157,7 +156,7 @@ const app = createApp({
             if (!(newWebsite.startsWith('http://') || newWebsite.startsWith('https://'))) {
                 this.website = `https://${newWebsite}`
             }
-        }
+        },
     },
     beforeMount() {
         const url_split = window.location.toString().split('/')
@@ -171,7 +170,8 @@ const app = createApp({
             this.taskDescription = message.context.task.task_description
             this.requireRegistration = message.context.task.require_registration
             this.userIsRegistered = message.context.user_is_registered
-            console.log('user ', this.userId, ' is registered ( ', this.userIsRegistered, ' )  and has vms: ', this.userVmsForTask)
+            this.remainingTeamNames = message.context.remaining_team_names
+            console.log('user ', this.userId, ' is registered ( ', this.userIsRegistered, ' ). The task requires registration ( ', this.requireRegistration, ' ) and has vms: ', this.userVmsForTask)
         }).catch(error => {
             this.addNotification('error', error)
         })

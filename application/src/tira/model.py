@@ -214,8 +214,10 @@ class Run(models.Model):
 
 
 class Registration(models.Model):
-    registered_vm = models.ForeignKey(VirtualMachine, on_delete=models.CASCADE, null=True, default=None)
-    registered_on_task = models.ForeignKey(Task, on_delete=models.CASCADE, null=True, default=None)
+    team_name = models.CharField(primary_key=True, max_length=50, default=None)
+    initial_owner = models.CharField(max_length=50, default=None)
+    team_members = models.CharField(max_length=500, null=True, default=None)
+    registered_on_task = models.ForeignKey(Task, on_delete=models.RESTRICT, null=True, default=None)
     name = models.CharField(max_length=150, null=True, default=None)
     email = models.CharField(max_length=150, null=True, default=None)
     affiliation = models.CharField(max_length=150, null=True, default=None)
@@ -224,11 +226,9 @@ class Registration(models.Model):
     participates_for = models.CharField(max_length=150, null=True, default=None)  # course, thesis, research, etc.
     instructor_name = models.CharField(max_length=150, null=True, default=None)
     instructor_email = models.CharField(max_length=150, null=True, default=None)
+    questions = models.CharField(max_length=500, null=True, default=None)
     created = models.DateField(auto_now_add=True)
     last_modified = models.DateField(auto_now=True)
-
-    class Meta:
-        unique_together = (("registered_vm", 'registered_on_task'),)
 
 
 class SoftwareHasInputRun(models.Model):

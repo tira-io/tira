@@ -37,10 +37,14 @@
                        :href="website">
                         <span class="uk-padding-small">Task Website</span><i
                             class="fas fa-external-link-alt uk-margin-small-left"></i></a>
-                    <a class="uk-button uk-button-primary uk-text-large"
-                         uk-tooltip="title: Go to the submission page for this task;" :href="submissionLink">
-                        <i class="fas fa-terminal uk-margin-right" ></i>Submit
-                    </a>
+                    <register-button
+                        :csrf=csrf :user-id="userId"
+                        :task-id="task_id" :user-vms-for-task="userVmsForTask" :group-list="remainingTeamNames"
+                        :require-registration="requireRegistration" :user-is-registered="userIsRegistered"
+                        @add-notification="(type, message) => addNotification(type, message)"
+                        @update-user-vms-for-task="(newUserVm) => updateUserVmsForTask(newUserVm)"
+                        @close-modal="closeModal()"
+                        />
                 </div>
             </div>
             <div class="uk-margin-small">
@@ -144,6 +148,7 @@
         {% endif %}
     </main>
 </div>
+
 {% render_bundle 'task' %}
 
 {% if not include_navigation %}
@@ -152,3 +157,4 @@
 <script src="https://assets.webis.de/js/thirdparty/fontawesome/fontawesome.min.js"></script>
 <script src="https://assets.webis.de/js/thirdparty/fontawesome/solid.min.js"></script>
 {% endblock %}
+

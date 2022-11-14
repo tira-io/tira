@@ -132,7 +132,8 @@ def get_task_list(request, context):
 @add_context
 def get_task(request, context, task_id):
     context["task"] = model.get_task(task_id)
-    context["user_is_registered"] = model.get_registration(task_id, context["user_id"]) is not None
+    context["user_is_registered"] = model.user_is_registered(task_id, request)
+    context["remaining_team_names"] = model.remaining_team_names(task_id)
     _add_user_vms_to_context(request, context, task_id)
     return JsonResponse({'status': 0, "context": context})
 
@@ -230,3 +231,22 @@ def get_registration(request, context, task_id, user_id):
 
     # If not registered, create template and notify
     pass
+
+@add_context
+def add_registration(request, context, task_id, vm_id):
+    """ get the registration of a user on a task. If there is none """
+
+    data = json.loads(request.body)
+    data['initial_owner'] = context['user_id']
+    data['task_id'] = task_id
+    model.add_registration(data)
+    from tira.authentication import DisraptorAuthentication
+    #a = DisraptorAuthentication(authentication_source='disraptor')
+
+    auth.create_docker_group(data['group'], data['initial_owner'])
+    auth.notify_organizers_of_new_participants(data, task_id)
+    
+    print(data)
+    
+    return JsonResponse({'status': 0, "context": context})
+
