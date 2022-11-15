@@ -1,10 +1,6 @@
 <template>
 <div class="uk-card uk-card-body uk-card-default uk-card-small">
-    <div class="uk-grid-medium" uk-grid>
-      <div class="uk-text-lead uk-width-1-2">Running Processes &nbsp;</div>
-      <div class="uk-text-light uk-width-1-4">| Last Cache Refresh: {{ last_software_refresh }}&nbsp;</div>
-      <div class="uk-text-light uk-width-1-4">| Next Cache Refresh: {{ next_software_refresh }}</div>
-    </div>
+    <div class="uk-text-lead">Running Processes &nbsp;</div>
     <hr class="uk-margin-small">
     <ul class="uk-margin-remove-top" data-uk-accordion>
         <li v-for="process in running_software" class="uk-margin-remove">
@@ -77,6 +73,11 @@
           <hr class="uk-margin-small">
         </li>
     </ul>
+    <div class="uk-grid-small" uk-grid>
+      <div class="uk-width-1-2">&nbsp;</div>
+      <div class="uk-text-light uk-width-1-6">Last Refresh: {{ last_software_refresh.slice(11,19) }}&nbsp;</div>
+      <div class="uk-text-light uk-width-1-6">Next Refresh: {{ next_software_refresh.slice(11,19) }}&nbsp;</div>
+    </div>
 </div>
 </template>
 
