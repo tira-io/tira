@@ -116,4 +116,4 @@ class IrDatasetsLoader(object):
         if(path.exists()):
             raise RuntimeError(f"File already exists: {path}")
         with path.open('wt') as file:
-            file.writelines(lines)
+            file.writelines('%s\n' % line for line in lines)
