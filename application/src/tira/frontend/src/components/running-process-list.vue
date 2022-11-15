@@ -77,6 +77,7 @@
       <div class="uk-width-1-2">&nbsp;</div>
       <div class="uk-text-light uk-width-1-6">Last Refresh: {{ last_software_refresh.slice(11,19) }}&nbsp;</div>
       <div class="uk-text-light uk-width-1-6">Next Refresh: {{ next_software_refresh.slice(11,19) }}&nbsp;</div>
+      <div class="uk-width-1-6"><a @click="update_cache()">Refresh Cache</a></div>
     </div>
 </div>
 </template>
@@ -94,7 +95,7 @@ export default {
   name: "running-process-list",
   components: {DeleteConfirm},
   props: ["running_evaluations", "running_software", "last_software_refresh", "next_software_refresh"],
-  emits: ['stopRun', 'addNotification'],
+  emits: ['stopRun', 'addNotification', 'pollRunningContainer'],
   data() {
     return {
       aborted_processes: [],
@@ -119,6 +120,10 @@ export default {
         this.aborted_processes.push(run_id)
         this.$emit('stopRun', run_id)
       }
+    },
+    update_cache() {
+      let force_cache_refresh = "True"
+      this.$emit('pollRunningContainer', force_cache_refresh)
     },
     /**
      * Helper function, because the job config is sometimes not there
