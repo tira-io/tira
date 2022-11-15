@@ -6,11 +6,11 @@ from typing import Iterable
 
 
 class IrDatasetsLoader(object):
-    """ Base class for loading datasets in a standarized format"""
+    """ Base class for loading datasets in a standardized format"""
 
     def load_dataset_for_fullrank(self, ir_datasets_id: str, output_path: Path, include_original=False) -> None:
         """ Loads a dataset through the ir_datasets package by the given ir_datasets ID.
-        Maps documents, queries, qrels to a standarized format in preparation for full-rank operations with PyTerrier.
+        Maps documents, queries, qrels to a standardized format in preparation for full-rank operations with PyTerrier.
         
         @param ir_datasets_id: the dataset ID as of ir_datasets
         @param output_path: the path to the directory where the output files will be stored
@@ -53,7 +53,7 @@ class IrDatasetsLoader(object):
         stores full document data too, if flag 'include_original' is set
 
         @param doc: the document as a namedtuple
-        @param include_original: flag which signals if the original document data should be stored with the mapped data
+        @param include_original: flag which signals if the original document data should be stored too
         :return ret: the mapped document 
         """
         ret = {
@@ -72,7 +72,7 @@ class IrDatasetsLoader(object):
             "qid": query.query_id,
             # TODO: change when .default_text() is implemented
             # "text": query.default_text()
-            "query": query['title'] 
+            "query": query.title
         }
         if include_original:
             ret["original_doc"] = query._asdict()
@@ -101,7 +101,7 @@ class IrDatasetsLoader(object):
             "qid": query_id,
             # TODO: change when .default_text() is implemented
             #"query": query.default_text(),
-            "query": query['title'],
+            "query": query.title,
             "original_query": query._asdict(),
             "docno": doc_id,
             # TODO: change when .default_text() is implemented
