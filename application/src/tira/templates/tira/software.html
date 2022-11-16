@@ -35,6 +35,7 @@
             :user_id="userId"
             @stop-run="runId => stopRun(runId)"
             @add-notification="(type, message) => addNotification(type, message)"
+            @poll-running-container="force_cache_refresh => pollRunningSoftware(force_cache_refresh)"
         />
     </div>
 

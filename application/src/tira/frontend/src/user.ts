@@ -250,9 +250,9 @@ const app = createApp({
                 this.pollEvaluationsInterval = null
             })
         },
-        pollRunningSoftware() {
+        pollRunningSoftware(force_cache_refresh="False") {
             console.log('poll running containers')
-            this.get(`/api/task/${this.task.task_id}/user/${this.userId}/software/running`).then(message => {
+            this.get(`/api/task/${this.task.task_id}/user/${this.userId}/software/running/${force_cache_refresh}`).then(message => {
                 this.last_software_refresh = message.context.running_software_last_refresh
                 this.next_software_refresh = message.context.running_software_next_refresh
                 if (message.context.running_software.length > 0) {
