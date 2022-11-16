@@ -17,7 +17,7 @@ logger = logging.getLogger("tira")
 
 class Command(BaseCommand):
     """Run ir_datasets_loader via cli.
-       Loads a dataset by a given ir_datasets ID and maps the data to standarized formats 
+       Loads a dataset by a given ir_datasets ID and maps the data to standardized formats 
        in preparation to full-rank or re-rank operations with PyTerrier
 
        @param --ir_dataset_id: required, string: the dataset ID as used by ir_datasets 
@@ -61,3 +61,4 @@ class Command(BaseCommand):
         parser.add_argument('--output_path', default=None, type=Path)
         parser.add_argument('--include_original', default=False, type=bool)
         parser.add_argument('--rerank', default=None, type=Path)
+
