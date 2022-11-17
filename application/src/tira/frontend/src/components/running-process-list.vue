@@ -77,7 +77,7 @@
       <div class="uk-width-1-2">&nbsp;</div>
       <div class="uk-text-light uk-width-1-6">Last Refresh: {{ last_software_refresh.slice(11,19) }}&nbsp;</div>
       <div class="uk-text-light uk-width-1-6">Next Refresh: {{ next_software_refresh.slice(11,19) }}&nbsp;</div>
-      <div class="uk-width-1-6"><a @click="update_cache()">Refresh Cache</a></div>
+      <div class="uk-width-1-6"><a @click="update_cache()">Refresh Now</a></div>
     </div>
 </div>
 </template>
