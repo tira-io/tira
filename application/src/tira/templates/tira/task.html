@@ -91,11 +91,23 @@
                        :class="{ 'uk-button-default': addDatasetToggle === false, 'uk-button-primary': addDatasetToggle === true }"
                        uk-tooltip="title: Add a new Dataset;">
                         <span class="uk-padding-small"><font-awesome-icon icon="fas fa-plus" /></span></a>
+                    <a class="uk-button uk-text-large"
+                       @click="importDatasetToggle = !importDatasetToggle; editDatasetToggle = false; addDatasetToggle = false"
+                       :class="{ 'uk-button-default': importDatasetToggle === false, 'uk-button-primary': importDatasetToggle === true }"
+                       uk-tooltip="title: Import existing Dataset;">
+                        <span class="uk-padding-small"><font-awesome-icon icon="fas fa-file-import" /></span></a>
                 </span>
             </div>
         </div>
         <div class="uk-container uk-margin-medium" v-if="role == 'admin' && addDatasetToggle">
             <add-dataset :csrf="csrf"
+                         :task_id="task_id"
+                         @addNotification="(type, message) => addNotification(type, message)"
+                         @addDataset="(dataset) => addDataset(dataset)"/>
+        </div>
+
+        <div class="uk-container uk-margin-medium" v-if="role == 'admin' && importDatasetToggle">
+            <import-dataset :csrf="csrf"
                          :task_id="task_id"
                          @addNotification="(type, message) => addNotification(type, message)"
                          @addDataset="(dataset) => addDataset(dataset)"/>

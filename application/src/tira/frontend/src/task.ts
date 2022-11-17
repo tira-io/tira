@@ -4,6 +4,7 @@ import ReviewAccordion from './components/elements/review-accordion.vue'
 import EditTask from './components/data-edit-forms/edit-task.vue'
 import EditDataset from './components/data-edit-forms/edit-dataset.vue'
 import AddDataset from './components/data-edit-forms/add-dataset.vue'
+import ImportDataset from './components/data-edit-forms/import-dataset.vue'
 import RegisterButton from './components/participant-management/register-button.vue'
 
 import Vue from 'vue'
@@ -14,7 +15,7 @@ import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faCheck, faTimes, faUserSlash, faUsers, faUsersSlash, faLevelUpAlt, faUser, faSearch, faDownload, faSave,
     faTrashAlt, faCog, faPlus, faSort, faSortUp, faSortDown, faSortAmountUp, faSortAlphaUp,
-    faSortNumericUp, faSortAmountDown, faSortAlphaDown, faSortNumericDown, faEye, faEyeSlash, faSignInAlt } from '@fortawesome/free-solid-svg-icons'
+    faSortNumericUp, faSortAmountDown, faSortAlphaDown, faSortNumericDown, faEye, faEyeSlash, faSignInAlt, faFileImport } from '@fortawesome/free-solid-svg-icons'
 
 library.add(faCheck, faTimes, faUserSlash, faUsers, faUsersSlash, faLevelUpAlt, faUser, faSearch, faDownload, faSave,
     faTrashAlt, faCog, faPlus, faSort, faSortUp, faSortDown, faSortAmountUp, faSortAlphaUp,
@@ -48,13 +49,14 @@ const app = createApp({
             editTaskToggle: false,
             editDatasetToggle: false,
             addDatasetToggle: false,
+            importDatasetToggle: false,
             userIsRegistered: false,
             requireRegistration: false,
             csrf: (<HTMLInputElement>document.querySelector('[name=csrfmiddlewaretoken]')).value
         }
     },
     components: {
-        Leaderboard, ReviewAccordion, NotificationBar, EditTask, EditDataset, AddDataset, RegisterButton
+        Leaderboard, ReviewAccordion, NotificationBar, EditTask, EditDataset, AddDataset, ImportDataset, RegisterButton
     },
     methods: {
         async get(url) {

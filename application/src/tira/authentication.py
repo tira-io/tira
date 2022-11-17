@@ -15,6 +15,7 @@ import tira.tira_model as model
 from google.protobuf.text_format import Parse
 
 from .proto import TiraClientWebMessages_pb2 as modelpb
+import urllib.parse
 
 logger = logging.getLogger(__name__)
 
@@ -299,7 +300,9 @@ class DisraptorAuthentication(Authentication):
                             data={"group[name]": group_name, "group[visibility_level]": visibility_level,
                                   "group[members_visibility_level]": members_visibility_level, "group[bio_raw]": group_bio}
                             )
-
+        
+        print(ret.text)
+        
         return json.loads(ret.text).get('basic_group', {'id': group_name})["id"]
         
     def _create_discourse_vm_group(self, vm):
@@ -346,10 +349,36 @@ class DisraptorAuthentication(Authentication):
         
         ret = json.loads(ret.text)
         
-        if ret['success'] != 'OK' or ret['usernames'] != [user_name]:
-            raise ValueError(f'Could not make the user "{user_name}" an owner of the group with id "{group_id}".')
+        if 'success' not in ret or ret['success'] != 'OK' or 'usernames' not in ret['usernames'] != [user_name]:
+            raise ValueError(f'Could not make the user "{user_name}" an owner of the group with id "{group_id}". Response: ' + str(ret))
 
         return ret
+
+    def notify_organizers_of_new_participants(self, data, task_id):
+        task = model.get_task(task_id)
+        print(task['organizer'])
+        message = urllib.parse.quote_plus('''Dear Organizers ''' + task['organizer'] + ''' of ''' + task_id + '''
+
+This message intends to inform you that there is a new registration for your task on ''' + task_id + ''' has a new registration:
+
+''' + json.dumps(data) + '''
+
+Best regards''')
+    
+        ret = requests.put(f"https://www.tira.io/posts",
+                           headers={"Api-Key": self._discourse_api_key(), "Accept": "application/json",
+                                     "Content-Type": "application/x-www-form-urlencoded"
+                                     },
+                            data={
+                                  'raw': message, 'title': urllib.parse.quote_plus('New Registration'),
+                                  'unlist_topic': False, 'is_warning': False, 'archetype': 'private_message',
+                                  'target_recipients': 'tira_org_' + task['organizer'],
+                                  'draft_key': 'new_private_message'
+                                  }
+                            )
+        ret = ret.text
+        print(ret)
+        print(json.loads(ret))
 
     def create_group(self, vm):
         """ Create the vm group in the distaptor. Members of this group will be owners of the vm and
@@ -377,7 +406,11 @@ class DisraptorAuthentication(Authentication):
         
         Please do not hesitate to design your team's page accorging to your needs."""
         
+        print('===>', team_name)
+        
         group_id = self._create_discourse_group(f"tira_vm_{team_name}", group_bio, 0)
+        model.get_vm(team_name, create_if_none=True)
+        print('asaa->', group_id)
         self._add_user_as_owner_to_group(group_id, user_name)
 
 auth = Authentication(authentication_source=settings.DEPLOYMENT)

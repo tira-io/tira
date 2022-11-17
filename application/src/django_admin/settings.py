@@ -252,6 +252,9 @@ GIT_CI_AVAILABLE_RESOURCES = {
     'small-resources-gpu': {'cores': 1, 'ram': 10, 'gpu': '1-nvidia-1080', 'description': 'Small w. GPU (1 CPU Cores, 10GB of RAM, 1 Nvidia GTX 1080 with 8GB)', 'key': 'small-resources-gpu'},
 }
 
+IR_MEASURES_IMAGE = custom_settings.get('IR_MEASURES_IMAGE', 'webis/tira-ir-measures-evaluator:0.0.1')
+IR_MEASURES_COMMAND = custom_settings.get('IR_MEASURES_COMMAND', 'echo "hello world"')
+
 # Caching
 CACHES = {
     'default': {

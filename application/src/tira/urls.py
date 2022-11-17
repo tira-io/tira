@@ -60,6 +60,7 @@ urlpatterns = [
     path('tira-admin/edit-task/<str:task_id>', admin_api.admin_edit_task, name='tira-admin-edit-task'),
     path('tira-admin/delete-task/<str:task_id>', admin_api.admin_delete_task, name='tira-admin-delete-task'),
     path('tira-admin/add-dataset', admin_api.admin_add_dataset, name='tira-admin-add-dataset'),
+    path('tira-admin/import-irds-dataset', admin_api.admin_import_ir_dataset, name='tira-admin-import-irds-dataset'),
     path('tira-admin/edit-dataset/<str:dataset_id>', admin_api.admin_edit_dataset, name='tira-admin-edit-dataset'),
     path('tira-admin/delete-dataset/<str:dataset_id>', admin_api.admin_delete_dataset, name='tira-admin-delete-dataset'),
     path('tira-admin/add-organizer/<str:organizer_id>', admin_api.admin_add_organizer, name='tira-admin-add-organizer'),
