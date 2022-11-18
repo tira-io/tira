@@ -161,6 +161,14 @@ def get_role(request, context):
 
 @check_resources_exist("json")
 @add_context
+def update_docker_images(request, context, task_id, user_id):
+    docker = model.load_docker_data(task_id, user_id, cache, force_cache_refresh=True)
+    context["docker"] = docker
+
+    return JsonResponse({'status': 0, "context": context})
+
+@check_resources_exist("json")
+@add_context
 def get_user(request, context, task_id, user_id):
     software = model.get_software_with_runs(task_id, user_id)
     upload = model.get_upload_with_runs(task_id, user_id)

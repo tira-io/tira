@@ -84,6 +84,7 @@ urlpatterns = [
     path('api/organizer/<str:organizer_id>', data_api.get_organizer, name='get_organizer'),
     path('api/role', data_api.get_role, name='get_role'),
     path('api/task/<str:task_id>/user/<str:user_id>', data_api.get_user, name='get_user'),
+    path('api/task/<str:task_id>/user/<str:user_id>/refresh-docker-images', data_api.update_docker_images, name="get_updated_docker_images"),
     path('api/task/<str:task_id>/user/<str:user_id>/software/running/<str:force_cache_refresh>', data_api.get_running_software, name='get_running_software'),
     path('api/review/<str:dataset_id>/<str:user_id>/<str:run_id>', data_api.get_review, name='get_review'),
     path('api/registration/<str:task_id>/<str:user_id>', data_api.get_registration, name='get_registration'),

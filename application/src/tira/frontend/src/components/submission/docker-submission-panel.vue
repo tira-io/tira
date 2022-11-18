@@ -139,6 +139,12 @@
         @removeRun="(runId) => $emit('removeRun', runId, 'docker')"
         @pollEvaluations="() => $emit('pollEvaluations')"/>
 </div>
+<div class="uk-grid-small" uk-grid>
+    <div class="uk-width-1-2">&nbsp;</div>
+    <div class="uk-width-1-6 uk-text-light">Last Refresh: {{ docker.docker_images_last_refresh.slice(11,19) }}&nbsp;</div>
+    <div class="uk-width-1-6 uk-text-light">Next Refresh: {{ docker.docker_images_next_refresh.slice(11,19) }}&nbsp;</div>
+    <div class="uk-width-1-6 uk-text-light"><a @click="update_docker_images_cache()">Refresh Images</a></div>
+</div>
 </template>
 
 <script>
@@ -151,7 +157,7 @@ export default {
         ReviewList, DeleteConfirm
     },
     props: ['csrf', 'datasets', 'docker', 'user_id', 'running_evaluations', 'task'],
-    emits: ['addNotification', 'pollEvaluations', 'removeRun', 'addContainer', 'deleteContainer', 'pollRunningContainer'],
+    emits: ['addNotification', 'pollEvaluations', 'removeRun', 'addContainer', 'deleteContainer', 'pollRunningContainer', 'refreshDockerImages'],
     data() {
         return {
             runningEvaluationIds: [],
@@ -302,6 +308,10 @@ export default {
                 }
             }
             return true
+        },
+        update_docker_images_cache() {
+            let force_cache_refresh = "True"
+            this.$emit('refreshDockerImages', force_cache_refresh)
         }
     },
     computed: {

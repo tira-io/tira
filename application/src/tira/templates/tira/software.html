@@ -88,6 +88,7 @@
             @poll-running-container="pollRunningSoftware()"
             @add-container="(newContainer) => addContainer(newContainer)"
             @delete-container="(containerId) => deleteContainer(containerId)"
+            @refresh-docker-images="(force_cache_refresh) => update_docker_images(force_cache_refresh)"
             />
     </div>
     <div v-else-if="loaded('vm')" class="uk-container uk-margin-small">

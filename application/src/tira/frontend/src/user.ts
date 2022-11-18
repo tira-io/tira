@@ -293,6 +293,11 @@ const app = createApp({
                    return true
                }
             }
+        },
+        update_docker_images() {
+            this.get(`/api/task/${this.task.task_id}/user/${this.userId}/refresh-docker-images`).then(message => {
+                this.docker = message.context.docker
+            })
         }
     },
     beforeMount() {
