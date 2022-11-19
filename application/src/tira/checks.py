@@ -51,7 +51,7 @@ def check_permissions(func):
                     role = auth.ROLE_USER
             if task_id:  # This checks if the registration requirement is fulfilled.
                 if model.get_task(task_id)["require_registration"]:
-                    if not model.get_registration(task_id, vm_id):
+                    if not model.user_is_registered(task_id, vm_id):
                         return HttpResponseNotAllowed(f"Access forbidden. You must register first.")
 
         if role == auth.ROLE_PARTICIPANT:
