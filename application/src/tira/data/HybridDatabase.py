@@ -1415,13 +1415,6 @@ class HybridDatabase(object):
             "instructor_name": registration.instructor_name,
             "instructor_email": registration.instructor_email}
 
-    def get_registration(self, task_id, user_id):
-        reg = modeldb.Registration.objects.filter(registered_on_task__task_id=task_id,
-                                                  registered_vm__vm_id=user_id).first()
-        if reg:
-            return self._registration_to_dict(reg)
-
-        return None
 
     # methods to check for existence
     @staticmethod

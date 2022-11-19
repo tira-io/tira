@@ -126,7 +126,7 @@ def check_conditional_permissions(restricted=False, public_data_ok=False, privat
 
                 if task_id and not not_registered_ok:  # This checks if the registration requirement is fulfilled.
                     if model.get_task(task_id)["require_registration"]:
-                        if not model.get_registration(task_id, vm_id):
+                        if not model.user_is_registered(task_id, vm_id):
                             return HttpResponseNotAllowed(f"Access forbidden. You must register first.")
 
             if not restricted and role == auth.ROLE_PARTICIPANT:  # Participants can access when it is their resource, the resource is visible to them, and the call is not restricted

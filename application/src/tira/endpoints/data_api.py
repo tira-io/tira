@@ -230,16 +230,6 @@ def get_review(request, context, dataset_id, user_id, run_id):
     return JsonResponse({'status': 0, "context": context})
 
 
-@check_conditional_permissions(not_registered_ok=True)
-@check_resources_exist("json")
-@add_context
-def get_registration(request, context, task_id, user_id):
-    """ get the registration of a user on a task. If there is none """
-    # TODO model.get_registration()
-
-    # If not registered, create template and notify
-    pass
-
 @add_context
 def add_registration(request, context, task_id, vm_id):
     """ get the registration of a user on a task. If there is none """
