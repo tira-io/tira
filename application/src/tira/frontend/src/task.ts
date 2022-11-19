@@ -74,7 +74,7 @@ const app = createApp({
             this.notifications.push({'type': type, 'message': message})
         },
         updateUserVmsForTask(newUserVm) {
-            this.userVmsForTask.push(newUserVm)
+            this.userVmsForTask = [newUserVm]
             this.userIsRegistered = true
         },
         deleteDataset(dsId) {
