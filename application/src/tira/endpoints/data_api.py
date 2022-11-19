@@ -241,6 +241,10 @@ def add_registration(request, context, task_id, vm_id):
 
     auth.create_docker_group(data['group'], data['initial_owner'])
     auth.notify_organizers_of_new_participants(data, task_id)
-    
+
+    context['user_is_registered'] = True
+    context['vm_id'] = data['group']
+    context['user_vms_for_task'] = [data['group']]
+
     return JsonResponse({'status': 0, "context": context})
 
