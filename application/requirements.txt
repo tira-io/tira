@@ -13,5 +13,5 @@ django-webpack-loader==0.6.0
 python-gitlab
 GitPython
 python-slugify
-ir-datasets
+git+https://github.com/allenai/ir_datasets@defaulttext
 markdown

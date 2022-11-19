@@ -1,5 +1,4 @@
 import sys
-import ir_datasets
 import json
 from pathlib import Path
 from typing import Iterable
@@ -16,6 +15,7 @@ class IrDatasetsLoader(object):
         @param output_path: the path to the directory where the output files will be stored
         @param include_original {False}: flag which signals if the original data of documents and queries should be included 
         """
+        import ir_datasets
         dataset = ir_datasets.load(ir_datasets_id)
         
         docs_mapped = (self.map_doc(doc, include_original) for doc in dataset.docs_iter())

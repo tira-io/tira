@@ -2,8 +2,6 @@ import logging
 
 from django.conf import settings
 
-from django.core.management import call_command
-
 from tira.authentication import auth
 from tira.checks import check_permissions, check_resources_exist, check_conditional_permissions
 from tira.forms import *
@@ -284,6 +282,33 @@ def admin_edit_dataset(request, dataset_id):
     return JsonResponse({'status': 1, 'message': f"GET is not implemented for add dataset"})
 
 
+def call_django_command_failsave(cmd):
+    from django.core.management import call_command
+    from io import StringIO
+    
+    captured_stdout = StringIO()
+    captured_stderr = StringIO()
+    
+    error = None
+    
+    sys.stdout = captured_stdout
+    sys.stderr = captured_stderr
+    
+    try:
+        call_command(cmd)
+    except Exception as e:
+        error = e
+    
+    sys.stdout = sys.__stdout__
+    sys.stderr = sys.__stderr__
+    
+    return {
+        'stdout': str(captured_stdout.getValue()),
+        'stderr': str(captured_stderr.getValue()),
+        'error': str(e)
+    }
+
+
 @check_permissions
 def admin_import_ir_dataset(request):
     """ Create multiple datasets for the pased ir-dataset.
@@ -310,7 +335,8 @@ def admin_import_ir_dataset(request):
             git_repository_id = git_runner.create_task_repository(task_id)
             master_vm_id = None
 
-            call_command('ir_datasets_loader_cli')
+            
+            command_out = call_django_command_failsave('ir_datasets_loader_cli')
 #            if not model.task_exists(task_id):
 #                return JsonResponse({'status': 1, "message": f"Task with ID {task_id} does not exist"})
 #            if data['type'] not in {'test', 'training'}:
@@ -318,7 +344,7 @@ def admin_import_ir_dataset(request):
 
             return JsonResponse(
                 {'status': 0, 'context': {}, 'message': f"Created new dataset with id .... "
-                                                        f"..."})
+                                                        f"..." + command_out})
 
 #        try:
 #            if data['type'] == 'training':

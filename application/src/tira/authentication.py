@@ -223,7 +223,13 @@ class DisraptorAuthentication(Authentication):
         user_id = f"{request.headers.get('X-Disraptor-User', None)}-default"
 
         if group_type == 'vm':  # if we check for groups of a virtual machine
-            return [group["value"] for group in self._parse_tira_groups(all_groups) if group["key"] == "vm"] + [user_id]
+            ret = [group["value"] for group in self._parse_tira_groups(all_groups) if group["key"] == "vm"]
+
+            # Some discourse vm groups are created manually, so we have to ensure that they also have a vm
+            for vm_id in ret:
+                _ = model.get_vm(vm_id, create_if_none=True)
+
+            return ret + [user_id]
         if group_type == 'org':  # if we check for organizer groups of a user
             return [group["value"] for group in self._parse_tira_groups(all_groups) if group["key"] == "org"]
 
