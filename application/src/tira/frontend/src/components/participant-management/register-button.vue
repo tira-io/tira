@@ -1,21 +1,24 @@
 <template>
 <div>
-<a  v-if="!requireRegistration || userIsRegistered" class="uk-button uk-button-primary uk-text-large"
-     uk-tooltip="title: Go to the submission page for this task;" :href="submissionLink" :disabled="!loaded">
-    <font-awesome-icon icon="fas fa-terminal" class="uk-margin-right" />Submit
-</a>
-<a v-else-if="requireRegistration" class="uk-button uk-text-large" uk-toggle="target: #modal-register"
-     :class="{'uk-button-primary': !userIsRegistered, 'uk-button-default': userIsRegistered}"
-     uk-tooltip="title: This task requires a registration;" :disabled="!loaded">
-    <font-awesome-icon icon="fas fa-user-edit" :class="{'uk-margin-right': !userIsRegistered}" />
-    <span v-if="!userIsRegistered">Register new Team</span>
-</a>
-<a if="!userIsRegistered && requireRegistration" class="uk-button uk-text-large" 
-    :class="{'uk-button-primary': !userIsRegistered, 'uk-button-default': userIsRegistered}"
-     uk-tooltip="title: This task requires a registration. Join an existing team;" :disabled="!loaded">
-    <font-awesome-icon icon="fas fa-terminal" :class="{'uk-margin-right': !userIsRegistered}" />
-    <span >Join existing Team</span>
-</a>
+    <a  v-if="!requireRegistration || userIsRegistered" class="uk-button uk-button-primary uk-text-large"
+         uk-tooltip="title: Go to the submission page for this task;" :href="submissionLink" :disabled="!loaded">
+        <font-awesome-icon icon="fas fa-terminal" class="uk-margin-right" />Submit
+    </a>
+    <a v-else-if="requireRegistration && userId" class="uk-button uk-text-large" uk-toggle="target: #modal-register"
+          :class="{'uk-button-primary': !userIsRegistered, 'uk-button-default': userIsRegistered}"
+          uk-tooltip="title: This task requires a registration;" :disabled="!loaded">
+
+        <font-awesome-icon icon="fas fa-user-edit" :class="{'uk-margin-right': !userIsRegistered}" />
+        <span v-if="!userIsRegistered">Register new Team</span>
+    </a>
+    <span v-else-if="requireRegistration && !userId">Please <a href='/login'>Login to TIRA</a> to register your Team and Submit</span>
+
+    <!--<a if="!userIsRegistered && requireRegistration" class="uk-button uk-text-large"
+        :class="{'uk-button-primary': !userIsRegistered, 'uk-button-default': userIsRegistered}"
+         uk-tooltip="title: This task requires a registration. Join an existing team;" :disabled="!loaded">
+        <font-awesome-icon icon="fas fa-terminal" :class="{'uk-margin-right': !userIsRegistered}" />
+        <span >Join existing Team</span>
+    </a>-->
 
 <div id="modal-register" class="uk-container uk-container-expand" data-uk-modal>
     <div class="uk-modal-dialog uk-modal-body uk-width-xlarge">

@@ -362,29 +362,31 @@ class DisraptorAuthentication(Authentication):
 
     def notify_organizers_of_new_participants(self, data, task_id):
         task = model.get_task(task_id)
-        print(task['organizer'])
-        message = urllib.parse.quote_plus('''Dear Organizers ''' + task['organizer'] + ''' of ''' + task_id + '''
+        message = '''Dear Organizers ''' + task['organizer'] + ''' of ''' + task_id + '''
 
 This message intends to inform you that there is a new registration for your task on ''' + task_id + ''' has a new registration:
 
 ''' + json.dumps(data) + '''
 
-Best regards''')
+Best regards'''
     
-        ret = requests.put(f"https://www.tira.io/posts",
+        ret = requests.post(f"https://www.tira.io/posts",
                            headers={"Api-Key": self._discourse_api_key(), "Accept": "application/json",
                                      "Content-Type": "application/x-www-form-urlencoded"
                                      },
                             data={
-                                  'raw': message, 'title': urllib.parse.quote_plus('New Registration'),
+                                  'raw': message,
+                                  'title': f'New Registration to {task_id} by {data["group"]}',
                                   'unlist_topic': False, 'is_warning': False, 'archetype': 'private_message',
-                                  'target_recipients': 'tira_org_' + task['organizer'],
+                                  'target_recipients': 'tira_org_' + task['organizer'].lower(),
                                   'draft_key': 'new_private_message'
                                   }
                             )
         ret = ret.text
-        print(ret)
-        print(json.loads(ret))
+        ret = json.loads(ret)
+        if 'error' in ret or 'id' not in ret:
+            raise ValueError(f'Could not write message to group. Got {ret}')
+
 
     def create_group(self, vm):
         """ Create the vm group in the distaptor. Members of this group will be owners of the vm and
