@@ -11,6 +11,7 @@ import requests
 from django.conf import settings
 from django.http import JsonResponse, Http404, HttpResponseNotAllowed
 import tira.tira_model as model
+from slugify import slugify
 
 from google.protobuf.text_format import Parse
 
@@ -378,7 +379,7 @@ Best regards'''
                                   'raw': message,
                                   'title': f'New Registration to {task_id} by {data["group"]}',
                                   'unlist_topic': False, 'is_warning': False, 'archetype': 'private_message',
-                                  'target_recipients': 'tira_org_' + task['organizer'].lower(),
+                                  'target_recipients': 'tira_org_' + slugify(task['organizer'].lower()),
                                   'draft_key': 'new_private_message'
                                   }
                             )
@@ -414,11 +415,8 @@ Best regards'''
         
         Please do not hesitate to design your team's page accorging to your needs."""
         
-        print('===>', team_name)
-        
-        group_id = self._create_discourse_group(f"tira_vm_{team_name}", group_bio, 0)
+        group_id = self._create_discourse_group(f"tira_vm_{slugify(team_name)}", group_bio, 0)
         model.get_vm(team_name, create_if_none=True)
-        print('asaa->', group_id)
         self._add_user_as_owner_to_group(group_id, user_name)
 
 auth = Authentication(authentication_source=settings.DEPLOYMENT)
