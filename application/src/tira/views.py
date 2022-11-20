@@ -107,7 +107,7 @@ def _add_task_to_context(context, task_id, dataset_id):
 
 
 def _add_user_vms_to_context(request, context, task_id):
-    allowed_vms_for_task = None
+    allowed_vms_for_task = model.all_allowed_task_teams(task_id)
 
     if context["role"] != auth.ROLE_GUEST:
         vm_id = auth.get_vm_id(request, context["user_id"])

@@ -182,6 +182,7 @@ def get_user(request, context, task_id, user_id):
     context["upload"] = upload
     context["docker"] = docker
     context["is_default"] = user_id.endswith("default")
+    _add_user_vms_to_context(request, context, task_id)
 
     return JsonResponse({'status': 0, "context": context})
 
