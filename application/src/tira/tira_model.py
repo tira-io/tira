@@ -345,19 +345,22 @@ def add_registration(data):
     model.add_registration(data)
 
 
+def all_allowed_task_teams(task_id):
+    task = get_task(task_id)
+    return set([i.strip() for i in task['allowed_task_teams'].split() if i.strip()])
+
+
 def user_is_registered(task_id, request):
     task = get_task(task_id)
-    allowed_task_teams = set([i.strip() for i in task['allowed_task_teams'].split() if i.strip()])
+    allowed_task_teams = all_allowed_task_teams(task_id)
     user_vm_ids = [i.strip() for i in auth.get_vm_ids(request) if i.strip()]
 
     return user_vm_ids is not None and len(user_vm_ids) > 0 and (len(allowed_task_teams) == 0 or any([i in allowed_task_teams for i in user_vm_ids]))
 
 
 def remaining_team_names(task_id):
-    task = get_task(task_id)
-    allowed_task_teams = sorted(list(set([i.strip() for i in task['allowed_task_teams'].split() if i.strip()])))
     already_used_teams = model.all_registered_teams()
-    
+    allowed_task_teams = sorted(list(all_allowed_task_teams(task_id)))
     return [i for i in allowed_task_teams if i not in already_used_teams]
 
 
