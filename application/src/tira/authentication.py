@@ -11,10 +11,12 @@ import requests
 from django.conf import settings
 from django.http import JsonResponse, Http404, HttpResponseNotAllowed
 import tira.tira_model as model
+from slugify import slugify
 
 from google.protobuf.text_format import Parse
 
 from .proto import TiraClientWebMessages_pb2 as modelpb
+import urllib.parse
 
 logger = logging.getLogger(__name__)
 
@@ -82,6 +84,11 @@ class Authentication(object):
     def create_group(self, vm_id):
         return {"status": 0, "message": f"create_group is not implemented for {self._AUTH_SOURCE}"}
 
+    def get_organizer_ids(self, request, user_id=None):
+        pass
+
+    def get_vm_ids(self, request, user_id=None):
+        pass
 
 class LegacyAuthentication(Authentication):
     _AUTH_SOURCE = "legacy"
@@ -158,6 +165,11 @@ class LegacyAuthentication(Authentication):
             return user_id
         return Authentication.get_default_vm_id(user_id)
 
+    def get_organizer_ids(self, request, user_id=None):
+        return []
+
+    def get_vm_ids(self, request, user_id=None):
+        return []
 
 def check_disraptor_token(func):
     @wraps(func)
@@ -206,14 +218,21 @@ class DisraptorAuthentication(Authentication):
 
     def _get_user_groups(self, request, group_type: str = "vm") -> list:
         """ read groups from the disraptor groups header.
-        @param group_type: {"vm"}, indicate the class of groups.
+        @param group_type: {"vm", "org"}, indicate the class of groups.
         """
         all_groups = request.headers.get('X-Disraptor-Groups', "None").split(",")
         user_id = f"{request.headers.get('X-Disraptor-User', None)}-default"
 
         if group_type == 'vm':  # if we check for groups of a virtual machine
-            return [group["value"] for group in self._parse_tira_groups(all_groups) if group["key"] == "vm"] + [user_id]
-            # return [u.split("-")[2:] for u in all_groups if u.startswith("tira-vm-")]
+            ret = [group["value"] for group in self._parse_tira_groups(all_groups) if group["key"] == "vm"]
+
+            # Some discourse vm groups are created manually, so we have to ensure that they also have a vm
+            for vm_id in ret:
+                _ = model.get_vm(vm_id, create_if_none=True)
+
+            return ret + [user_id]
+        if group_type == 'org':  # if we check for organizer groups of a user
+            return [group["value"] for group in self._parse_tira_groups(all_groups) if group["key"] == "org"]
 
     @check_disraptor_token
     def get_role(self, request, user_id: str = None, vm_id: str = None, task_id: str = None):
@@ -248,16 +267,52 @@ class DisraptorAuthentication(Authentication):
     def get_vm_id(self, request, user_id=None):
         """ return the vm_id of the first vm_group ("tira-vm-<vm_id>") found.
          If there is no vm-group, return "no-vm-assigned"
-         TODO: once multiple vms are supported, this should return a list
+         """
+         
+        return self.get_vm_ids(request, user_id)[0]
+
+    @check_disraptor_token
+    def get_organizer_ids(self, request, user_id=None):
+        """ return the organizer ids of all organizer teams that the user is found in ("tira-org-<vm_id>").
+        If there is no vm-group, return the empty list
+        """
+
+        return self._get_user_groups(request, group_type='org')
+
+    @check_disraptor_token
+    def get_vm_ids(self, request, user_id=None):
+        """ returns a list of all vm_ids of the all vm_groups ("tira-vm-<vm_id>") found.
+         If there is no vm-group, a list with "no-vm-assigned" is returned
          """
         vms = self._get_user_groups(request)
         user_id = self._get_user_id(request)
-        return vms[0] if len(vms) >= 1 else Authentication.get_default_vm_id(user_id)
+        
+        if user_id == None:
+            return vms
+        
+        return vms if len(vms) >= 1 else [Authentication.get_default_vm_id(user_id)]
 
     def _discourse_api_key(self):
         return open(settings.DISRAPTOR_SECRET_FILE, "r").read().strip()
 
-    def _create_discourse_group(self, vm):
+    def _create_discourse_group(self, group_name, group_bio, visibility_level=2, members_visibility_level=2):
+        """ Create a discourse group in the distaptor. 
+        :param vm: a vm dict as returned by tira_model.get_vm
+            {"vm_id", "user_password", "roles", "host", "admin_name", "admin_pw", "ip", "ssh", "rdp", "archived"}
+
+        """
+        ret = requests.post("https://www.tira.io/admin/groups",
+                            headers={"Api-Key": self._discourse_api_key(), "Accept": "application/json",
+                                     "Content-Type": "multipart/form-data"},
+                            data={"group[name]": group_name, "group[visibility_level]": visibility_level,
+                                  "group[members_visibility_level]": members_visibility_level, "group[bio_raw]": group_bio}
+                            )
+        
+        print(ret.text)
+        
+        return json.loads(ret.text).get('basic_group', {'id': group_name})["id"]
+        
+    def _create_discourse_vm_group(self, vm):
         """ Create the vm group in the distaptor. Members of this group will be owners of the vm and
             have all permissions.
         :param vm: a vm dict as returned by tira_model.get_vm
@@ -275,15 +330,8 @@ class DisraptorAuthentication(Authentication):
     </ul><br><br>
     Please contact us when you have questions.
     """
-
-        ret = requests.post("https://www.tira.io/admin/groups",
-                            headers={"Api-Key": self._discourse_api_key(), "Accept": "application/json",
-                                     "Content-Type": "multipart/form-data"},
-                            data={"group[name]": f"tira_vm_{vm['vm_id']}", "group[visibility_level]": 2,
-                                  "group[members_visibility_level]": 2, "group[bio_raw]": group_bio}
-                            )
-
-        return json.loads(ret.text).get('basic_group', {'id': f"tira_vm_{vm['vm_id']}"})["id"]
+    
+        return _create_discourse_group(f"tira_vm_{vm['vm_id']}", group_bio, 2)
 
     def _create_discourse_invite_link(self, group_id):
         """ Create the invite link to get permission to a discourse group """
@@ -296,12 +344,57 @@ class DisraptorAuthentication(Authentication):
 
         return json.loads(ret.text)['link']
 
+    def _add_user_as_owner_to_group(self, group_id, user_name):
+        """ Create the invite link to get permission to a discourse group """
+        
+        ret = requests.put(f"https://www.tira.io/admin/groups/{group_id}/owners.json",
+                            headers={"Api-Key": self._discourse_api_key(), "Accept": "application/json",
+                                     "Content-Type": "multipart/form-data"
+                                     },
+                            data={"group[usernames]": user_name, "group[notify_users]": "true"}
+                            )
+        
+        ret = json.loads(ret.text)
+        
+        if 'success' not in ret or ret['success'] != 'OK' or 'usernames' not in ret['usernames'] != [user_name]:
+            raise ValueError(f'Could not make the user "{user_name}" an owner of the group with id "{group_id}". Response: ' + str(ret))
+
+        return ret
+
+    def notify_organizers_of_new_participants(self, data, task_id):
+        task = model.get_task(task_id)
+        message = '''Dear Organizers ''' + task['organizer'] + ''' of ''' + task_id + '''
+
+This message intends to inform you that there is a new registration for your task on ''' + task_id + ''' has a new registration:
+
+''' + json.dumps(data) + '''
+
+Best regards'''
+    
+        ret = requests.post(f"https://www.tira.io/posts",
+                           headers={"Api-Key": self._discourse_api_key(), "Accept": "application/json",
+                                     "Content-Type": "application/x-www-form-urlencoded"
+                                     },
+                            data={
+                                  'raw': message,
+                                  'title': f'New Registration to {task_id} by {data["group"]}',
+                                  'unlist_topic': False, 'is_warning': False, 'archetype': 'private_message',
+                                  'target_recipients': 'tira_org_' + slugify(task['organizer'].lower()),
+                                  'draft_key': 'new_private_message'
+                                  }
+                            )
+        ret = ret.text
+        ret = json.loads(ret)
+        if 'error' in ret or 'id' not in ret:
+            raise ValueError(f'Could not write message to group. Got {ret}')
+
+
     def create_group(self, vm):
         """ Create the vm group in the distaptor. Members of this group will be owners of the vm and
             have all permissions.
         :param vm: a vm dict as returned by tira_model.get_vm
         """
-        vm_group = self._create_discourse_group(vm)
+        vm_group = self._create_discourse_vm_group(vm)
         invite_link = self._create_discourse_invite_link(vm_group)
         message = f"""Invite Mail: Please use this link to create your login for TIRA: {invite_link}. 
                       After login to TIRA, you can find the credentials and usage examples for your
@@ -309,5 +402,22 @@ class DisraptorAuthentication(Authentication):
 
         return message
 
+    def create_organizer_group(self, organizer_name, user_name):
+        group_bio = f"""Members of this team organize shared tasks in TIRA as  in shared tasks as {organizer_name}. <br><br>
+        
+        Please do not hesitate to design your page accorging to your needs."""
+        
+        group_id = self._create_discourse_group(f"tira_org_{organizer_name}", group_bio, 0)
+        self._add_user_as_owner_to_group(group_id, user_name)
+
+    def create_docker_group(self, team_name, user_name):
+        group_bio = f"""Members of this team participate in shared tasks as {team_name}. <br><br>
+        
+        Please do not hesitate to design your team's page accorging to your needs."""
+        
+        group_id = self._create_discourse_group(f"tira_vm_{slugify(team_name)}", group_bio, 0)
+        model.get_vm(team_name, create_if_none=True)
+        self._add_user_as_owner_to_group(group_id, user_name)
 
 auth = Authentication(authentication_source=settings.DEPLOYMENT)
+

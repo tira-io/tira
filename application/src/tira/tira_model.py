@@ -4,6 +4,13 @@ p.stat().st_mtime - change time
 from pathlib import Path
 import logging
 from tira.data.HybridDatabase import HybridDatabase
+from django.core.cache import cache
+from tira.git_runner import docker_images_in_user_repository, add_new_tag_to_docker_image_repository, help_on_uploading_docker_image
+import randomname
+from django.conf import settings
+from django.db import connections, router
+import datetime
+from tira.authentication import auth
 
 logger = logging.getLogger("tira")
 
@@ -48,15 +55,15 @@ def get_vm(vm_id: str, create_if_none=False):
     return model.get_vm(vm_id, create_if_none)
 
 
-def get_tasks() -> list:
-    return model.get_tasks()
+def get_tasks(include_dataset_stats=False) -> list:
+    return model.get_tasks(include_dataset_stats)
 
 
 def get_run(dataset_id: str, vm_id: str, run_id: str, return_deleted: bool = False) -> dict:
     return model.get_run(dataset_id, vm_id, run_id, return_deleted)
 
 
-def get_task(task_id: str) -> dict:
+def get_task(task_id: str, include_dataset_stats=False) -> dict:
     """ Get a dict with the task data as follows:
     {"task_id", "task_name", "task_description", "organizer", "web", "year", "dataset_count",
     "software_count", "max_std_out_chars_on_test_data", "max_std_err_chars_on_test_data",
@@ -64,7 +71,7 @@ def get_task(task_id: str) -> dict:
     "max_std_out_chars_on_test_data_eval", "max_std_err_chars_on_test_data_eval",
     "max_file_list_chars_on_test_data_eval"}
      """
-    return model.get_task(task_id)
+    return model.get_task(task_id, include_dataset_stats)
 
 
 def get_dataset(dataset_id: str) -> dict:
@@ -88,6 +95,90 @@ def get_datasets_by_task(task_id: str, include_deprecated=False) -> list:
     @return: a list of json-formatted datasets, as returned by get_dataset
     """
     return model.get_datasets_by_task(task_id, include_deprecated)
+
+
+def load_refresh_timestamp_for_cache_key(cache, key):
+    try:
+        db = router.db_for_read(cache.cache_model_class)
+        connection = connections[db]
+        quote_name = connection.ops.quote_name
+
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT %s FROM %s WHERE %s = '%s'" % (
+                    quote_name("expires"),
+                    quote_name(cache._table),
+                    quote_name("cache_key"),
+                    cache.make_and_validate_key(key),
+                )
+            )
+
+            ret = cursor.fetchall()
+            if len(ret) > 0:
+                return ret[0][0] - datetime.timedelta(seconds=settings.CACHES['default']['TIMEOUT'])
+    except:
+        return datetime.datetime.now()
+
+
+def load_docker_data(task_id, vm_id, cache, force_cache_refresh):
+    """
+    Get the docker data for a particular user (vm_id) from the git registry.
+
+    @return: a dict with three keys:
+        - docker_images: a list of strings (the image's names)
+        - docker_softwares: A list of all submitted containers with their run results as a dict with keys:
+            - docker_software_id: str, display_name: str, user_image_name: str, command: str,
+              tira_image_name: str, task_id: str, vm_id: str, runs: list (same as get_runs)
+        - docker_software_help: A string with the help instructions
+    """
+    if not git_pipeline_is_enabled_for_task(task_id, cache, force_cache_refresh):
+        return False
+    
+    docker_images = [i for i in docker_images_in_user_repository(vm_id, cache, force_cache_refresh) if '-tira-docker-software-id-' not in i]
+    last_refresh = load_refresh_timestamp_for_cache_key(cache, 'docker-images-in-user-repository-tira-user-' + vm_id)
+
+    return {
+        "docker_images": docker_images,
+        "docker_softwares": model.get_docker_softwares_with_runs(task_id, vm_id),
+        "resources": list(settings.GIT_CI_AVAILABLE_RESOURCES.values()),
+        "docker_software_help": help_on_uploading_docker_image(vm_id, cache, force_cache_refresh),
+        "docker_images_last_refresh": str(last_refresh),
+        "docker_images_next_refresh": str(None if last_refresh is None else (last_refresh + datetime.timedelta(seconds=60))),
+    }
+
+
+def git_pipeline_is_enabled_for_task(task_id, cache, force_cache_refresh=False):
+    evaluators_for_task = get_evaluators_for_task(task_id, cache, force_cache_refresh)
+    git_runners_for_task = [i['is_git_runner'] for i in evaluators_for_task]
+        
+    # We enable the docker part only if all evaluators use the docker variant.
+    return len(git_runners_for_task) > 0 and all(i for i in git_runners_for_task)
+
+
+def get_evaluators_for_task(task_id, cache, force_cache_refresh=False):
+    cache_key = 'get-evaluators-for-task-' + str(task_id)
+    ret = cache.get(cache_key)       
+    if ret is not None and not force_cache_refresh:
+        return ret
+        
+    datasets = get_datasets_by_task(task_id)
+    
+    try:
+        ret = [get_evaluator(i['dataset_id']) for i in datasets]
+    except:
+        ret = []
+
+    logger.info(f"Cache refreshed for key {cache_key} ...")
+    cache.set(cache_key, ret)
+    
+    return ret           
+
+def get_docker_software(docker_software_id: int) -> dict:
+    """
+    Return the docker software as dict with keys:
+    
+    {'docker_software_id', 'display_name', 'user_image_name', 'command', 'tira_image_name', 'task_id', vm_id'}
+    """ 
+    return model.get_docker_software(docker_software_id)
 
 
 def get_organizer(organizer_id: str):
@@ -168,6 +259,15 @@ def get_evaluations_with_keys_by_dataset(dataset_id, include_unpublished=False):
     return model.get_evaluations_with_keys_by_dataset(dataset_id, include_unpublished)
 
 
+def get_evaluation(run_id: str):
+    """ Get the evaluation of this run
+
+    @param run_id: the id of the run
+    @return: a dict with {measure_key: measure_value}
+    """
+    return model.get_evaluation(run_id)
+
+
 def get_software_with_runs(task_id, vm_id):
     """
     Construct a dictionary that has the software as a key and as value a list of runs with that software
@@ -190,8 +290,15 @@ def get_upload_with_runs(task_id, vm_id):
     return model.get_upload_with_runs(task_id, vm_id)
 
 
+def get_docker_softwares_with_runs(task_id, vm_id):
+    """
+    Returns the docker softwares as dictionaries.
+    """
+    return model.get_docker_softwares_with_runs(task_id, vm_id)
+
+
 def get_run_review(dataset_id: str, vm_id: str, run_id: str) -> dict:
-    """ Retunrs a review as dict with the following keys:
+    """ Returns a review as dict with the following keys:
 
         {"reviewer", "noErrors", "missingOutput", "extraneousOutput", "invalidOutput", "hasErrorOutput",
         "otherErrors", "comment", "hasErrors", "hasWarnings", "hasNoErrors", "published", "blinded"}
@@ -223,6 +330,37 @@ def add_uploaded_run(task_id, vm_id, dataset_id, uploaded_file):
     """ Add the uploaded file as a new result and return it """
     return model.add_uploaded_run(task_id, vm_id, dataset_id, uploaded_file)
 
+
+def add_docker_software(task_id, vm_id, image, command):
+    """ Add the docker software to the user of the vm and return it """
+    
+    image, old_tag = image.split(':')
+    new_tag = old_tag + '-tira-docker-software-id-' + randomname.get_name().lower()
+    tira_image_name = add_new_tag_to_docker_image_repository(image, old_tag, new_tag)
+    
+    return model.add_docker_software(task_id, vm_id, image + ':' + old_tag, command, tira_image_name)
+
+
+def add_registration(data):
+    model.add_registration(data)
+
+
+def user_is_registered(task_id, request):
+    task = get_task(task_id)
+    allowed_task_teams = set([i.strip() for i in task['allowed_task_teams'].split() if i.strip()])
+    user_vm_ids = [i.strip() for i in auth.get_vm_ids(request) if i.strip()]
+
+    return user_vm_ids is not None and len(user_vm_ids) > 0 and (len(allowed_task_teams) == 0 or any([i in allowed_task_teams for i in user_vm_ids]))
+
+
+def remaining_team_names(task_id):
+    task = get_task(task_id)
+    allowed_task_teams = sorted(list(set([i.strip() for i in task['allowed_task_teams'].split() if i.strip()])))
+    already_used_teams = model.all_registered_teams()
+    
+    return [i for i in allowed_task_teams if i not in already_used_teams]
+
+
 # ------------------------------------------------------------
 # add methods to add new data to the model
 # ------------------------------------------------------------
@@ -234,14 +372,15 @@ def add_vm(vm_id: str, user_name: str, initial_user_password: str, ip: str, host
     return model.add_vm(vm_id, user_name, initial_user_password, ip, host, ssh, rdp)
 
 
-def create_task(task_id: str, task_name: str, task_description: str, master_vm_id: str,
-                organizer: str, website: str, help_command: str = None, help_text: str = None):
+def create_task(task_id: str, task_name: str, task_description: str, featured: bool, master_vm_id: str,
+                organizer: str, website: str, require_registration: bool, require_groups: bool, restrict_groups: bool,
+                help_command: str = None, help_text: str = None, allowed_task_teams: str = None):
     """ Add a new task to the database.
      CAUTION: This function does not do any sanity checks and will OVERWRITE existing tasks
      :returns: The new task as json as returned by get_task
      """
-    return model.create_task(task_id, task_name, task_description, master_vm_id, organizer, website,
-                             help_command, help_text)
+    return model.create_task(task_id, task_name, task_description, featured, master_vm_id, organizer, website,
+                             require_registration, require_groups, restrict_groups, help_command, help_text, allowed_task_teams)
 
 
 def add_dataset(task_id: str, dataset_id: str, dataset_type: str, dataset_name: str, upload_name: str) -> list:
@@ -254,8 +393,16 @@ def add_software(task_id: str, vm_id: str):
     return model.add_software(task_id, vm_id)
 
 
-def add_evaluator(vm_id: str, task_id: str, dataset_id: str, command: str, working_directory: str, measures):
-    return model.add_evaluator(vm_id, task_id, dataset_id, command, working_directory, measures)
+def add_evaluator(vm_id: str, task_id: str, dataset_id: str, command: str, working_directory: str, measures,
+                  is_git_runner: bool = False, git_runner_image: str = None, git_runner_command: str = None,
+                  git_repository_id: str = None):
+    ret = model.add_evaluator(vm_id, task_id, dataset_id, command, working_directory, measures, is_git_runner,
+                               git_runner_image, git_runner_command, git_repository_id)
+
+    from django.core.cache import cache
+    get_evaluators_for_task(task_id=task_id, cache=cache, force_cache_refresh=True)
+
+    return ret
 
 
 def add_run(dataset_id, vm_id, run_id):
@@ -288,18 +435,29 @@ def update_software(task_id, vm_id, software_id, command: str = None, working_di
                                  run, deleted)
 
 
-def edit_task(task_id: str, task_name: str, task_description: str, master_vm_id: str, organizer: str, website: str,
-              help_command: str = None, help_text: str = None):
+def edit_task(task_id: str, task_name: str, task_description: str, featured: bool, master_vm_id: str, organizer: str, website: str,
+              require_registration: str, require_groups: str, restrict_groups: str,
+              help_command: str = None, help_text: str = None, allowed_task_teams=None):
     """ Update the task's data """
-    return model.edit_task(task_id, task_name, task_description, master_vm_id, organizer, website,
-                           help_command, help_text)
+    return model.edit_task(task_id, task_name, task_description, featured, master_vm_id, organizer, website,
+                           require_registration, require_groups, restrict_groups, help_command, help_text, allowed_task_teams)
 
 
 def edit_dataset(task_id: str, dataset_id: str, dataset_name: str, command: str,
-                 working_directory: str, measures: str, upload_name: str, is_confidential: bool = False):
+                 working_directory: str, measures: str, upload_name: str, is_confidential: bool = False,
+                 is_git_runner: bool = False, git_runner_image: str = None, git_runner_command: str = None,
+                 git_repository_id: str = None):
     """ Update the datasets's data """
     return model.edit_dataset(task_id, dataset_id, dataset_name, command, working_directory,
-                              measures, upload_name, is_confidential)
+                              measures, upload_name, is_confidential, is_git_runner, git_runner_image,
+                              git_runner_command, git_repository_id)
+
+
+def delete_docker_software(task_id, vm_id, docker_software_id):
+    """
+    Delete a given Docker software.
+    """
+    return model.delete_docker_software(task_id, vm_id, docker_software_id)
 
 
 def delete_software(task_id, vm_id, software_id):
@@ -323,6 +481,7 @@ def delete_dataset(dataset_id: str):
 
 def edit_organizer(organizer_id: str, name: str, years: str, web: str):
     return model.edit_organizer(organizer_id, name, years, web)
+
 
 # ------------------------------------------------------------
 # add methods to check for existence

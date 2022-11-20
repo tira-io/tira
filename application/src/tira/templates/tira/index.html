@@ -1,5 +1,5 @@
 {% extends 'tira/base.html' %}
-{% load static %}
+{% load render_bundle from webpack_loader %}
 {% block title %}TIRA{% endblock %}
 {% block description %}TIRA List of Tasks{% endblock %}
 {% block navbar %}{% include "tira/navbar.html" with nav_active='tasks' %}{% endblock %}
@@ -31,11 +31,11 @@
             <div class="uk-width-1-3" id="search-control">
                 <input type="text" class="uk-input" id="filter-field" placeholder="Type here to filter&hellip;"/>
             </div>
-            {% if role == 'admin' %}
-            <div v-if="role === 'admin'">
+            {% if role == 'admin' or organizer_teams %}
+            <div v-if="role === 'admin' || organizer_teams ">
                 <a uk-toggle="target: #add-task-modal" class="uk-button uk-button-large uk-button-default uk-text-large"><span class="uk-padding-small">Add Task +</span></a>
             </div>
-            <div id="add-task-modal" v-if="role === 'admin'" uk-modal>
+            <div id="add-task-modal" uk-modal>
                 <div class="uk-modal-dialog uk-modal-body uk-width-4-5">
                     <button class="uk-modal-close-default" type="button" uk-close></button>
                     <add-task :csrf="csrf"
@@ -43,11 +43,11 @@
                                @closeModal="closeModal()" />
                 </div>
             </div>
-            <div v-if="role === 'admin'">
+            <div v-if="role === 'admin' || organizer_teams ">
                 <a uk-toggle="target: #edit-organization-modal" class="uk-button uk-button-large uk-button-default uk-text-large">
-                        <span class="uk-padding-small">Edit Organizations</span><i class="fas fa-edit"></i></a></a>
+                      <span class="uk-padding-small">Edit Organizations</span><i class="fas fa-edit"></i></a>
             </div>
-            <div id="edit-organization-modal" v-if="role === 'admin'" uk-modal>
+            <div id="edit-organization-modal" uk-modal>
                 <div class="uk-modal-dialog uk-modal-body uk-width-4-5">
                     <button class="uk-modal-close-default" type="button" uk-close></button>
                     <edit-organization :csrf="csrf"
@@ -65,32 +65,31 @@
             <thead>
             <tr>
                 <th></th>
-<!--                <th class="header uk-text-center uk-padding-remove-right uk-padding-remove-left" uk-tooltip="title: Submissions;"><i class="fas fa-users-cog"></i></th>-->
-                <th class="header uk-table-expand"><span>Task</span></th>
-                <th class="header uk-text-right"><span>Year(s)</span></th>
-                <th class="header uk-text-right"><span>Organization</span></th>
-                <!--<th class="header uk-text-right"><span>Year</span></th>-->
-                <th class="header uk-margin-remove uk-padding-remove-vertical uk-padding-remove-right"></th>
+                <th class="header"><span>Task</span></th>
+                <th class="header">Featured</th>
+                <th class="header uk-text-right uk-text-nowrap"><span>Last Activity</span></th>
+                <th class="header uk-text-right uk-text-nowrap"><span>Latest Datasets</span></th>
+                <th class="header uk-text-right uk-text-nowrap"><span>Created</span></th>
+                <th class="header uk-text-right uk-text-nowrap"><span>Organization</span></th>
             </tr>
             </thead>
             <tbody>
             {% for task in tasks %}
             <tr>
                 <td id="task-{{ task.task_id }}"></td>
-<!--                <td class="uk-text-right uk-padding-remove-left"><sup class="uk-text-muted uk-text-small">{{ task.software_count }}</sup></td>-->
-                <td class="uk-text-nowrap">
+                <td class="">
                     <a href="{% url 'tira:task' task_id=task.task_id %}">{{ task.task_name }}</a>
                      <span class="uk-text-muted uk-text-small">({{ task.software_count }} submission)</span>
                 </td>
-                <td class="uk-text-right uk-text-nowrap">{{ task.year }}</td>
-                <td class="uk-text-right" >{{ task.organizer }}</td>
-                
-                <td class="uk-text-right uk-text-nowrap uk-margin-remove uk-padding-remove-vertical uk-padding-remove-right">
-                    <a class="uk-button uk-button-small uk-button-default uk-text-primary"
-                       uk-tooltip="title: Participate;"
-                       href="{% if role == 'guest' %}{% url 'tira:login' %}{% else %}{% url 'tira:software-detail' task_id=task.task_id vm_id=vm_id %}{% endif %}">
-                        <i class="fas fa-terminal"></i>&nbsp;&nbsp;Submit</a>
+                <td class="">
+                    {% if task.featured %}
+                        <span class="uk-text-success">Featured!</span>
+                    {% endif %}
                 </td>
+                <td class="uk-text-right uk-text-nowrap">{{ task.last_modified }}</td>
+                <td class="uk-text-right uk-text-nowrap">{{ task.dataset_last_created }}</td>
+                <td class="uk-text-right uk-text-nowrap">{{ task.dataset_first_created }}</td>
+                <td class="uk-text-right uk-text-nowrap" >{{ task.organizer }}</td>
             </tr>
             {% empty %}
             <tr>
@@ -105,7 +104,24 @@
         </div>
     </div>
 </div>
+
 </div>
+
+{% if role == 'admin' or organizer_teams or vm_ids %}
+<div>
+    <ul>
+        {% if role == 'admin' or organizer_teams %}
+        <li><a href="https://www.tira.io/g?filter=tira_org_">Manage your Organizations</a></li>
+        <li><a href="https://www.tira.io/new-message?username=user&title=Request%20&body=message%20body">Contact your Organizer</a> (e.g., on the task page, on other pages, e.g., "Get a VM", etc. which writes prepared messages to the organizers.</li>
+        {% endif %}
+        {% if role == 'admin' or vm_ids %}
+        <li><a href="https://www.tira.io/g?filter=tira_vm_">Manage your Participation Teams</a></li>
+        {% endif %}
+    </ul>
+</div>
+{% endif %}
+
+{% render_bundle 'index' %}
 
 {% if include_navigation %}
 <script src="https://assets.webis.de/js/thirdparty/jquery/jquery.slim.min.js"></script>
@@ -117,41 +133,5 @@
 <script src="https://assets.webis.de/js/tables.js"></script>
 <script>initWebisTableFiltering();</script>
 <script>initTableSorting();</script>
-
-<script src="https://unpkg.com/vue@3"></script>
-<!--<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>-->
-<!--https://vuejs.org/examples/#modal-->
-<script type="module">
-import NotificationBar from '{% static "tira/js/components/notificationbar.js" %}'
-import AddTask from '{% static "tira/js/components/addtask.js" %}'
-import EditOrganization from '{% static "tira/js/components/editorganization.js" %}'
-
-const app = Vue.createApp({
-    data() {
-        return {
-            notifications: [],
-            role: '{{ role|safe }}',
-            csrf: document.querySelector('[name=csrfmiddlewaretoken]').value
-        }
-    },
-    components: {
-        AddTask, NotificationBar, EditOrganization
-    },
-    methods: {
-        addNotification(type, message) {
-            this.notifications.push({'type': type, 'message': message})
-        },
-        closeModal() {
-            const addTaskModal = document.getElementById('add-task-modal')
-            UIkit.modal(addTaskModal).hide();
-            const editOrganizationModal = document.getElementById('edit-organization-modal')
-            UIkit.modal(editOrganizationModal).hide();
-        }
-    },
-})
-app.config.compilerOptions.delimiters = ['[[', ']]']
-app.mount("#vue-index-mount")
-</script>
-
 
 {% endblock %}

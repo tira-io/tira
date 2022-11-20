@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/3.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
-
+import logging
 from pathlib import Path
 import os
 import yaml
@@ -34,7 +34,9 @@ ALLOWED_HOSTS = custom_settings.get("allowed_hosts", [])
 
 TIRA_ROOT = Path(custom_settings.get("tira_root", BASE_DIR.parents[1] / "model" / "src"))
 if not TIRA_ROOT.is_dir():
-    raise FileNotFoundError(f"TIRA_ROOT must point to an existing tira model but points to {TIRA_ROOT} instead.")
+    logging.warning(f"{TIRA_ROOT} does not exists and will be created now.")
+
+(TIRA_ROOT / "state").mkdir(parents=True, exist_ok=True)
 
 DEPLOYMENT = custom_settings.get("deployment", "legacy")
 LEGACY_USER_FILE = Path(custom_settings.get("legacy_users_file", TIRA_ROOT / "model" / "users" / "users.prototext"))
@@ -67,6 +69,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'webpack_loader',
 ]
 
 MIDDLEWARE = [
@@ -233,6 +236,36 @@ def logger_config(log_dir: Path):
         }
     }
 
+# Git Integration
+GIT_CI_SERVER_HOST = custom_settings.get('GIT_CI_SERVER_HOST', 'git.webis.de')
+GIT_PRIVATE_TOKEN = custom_settings['GIT_PRIVATE_TOKEN']
+GIT_USER_NAME = custom_settings['GIT_USER_NAME']
+GIT_USER_PASSWORD = custom_settings['GIT_USER_PASSWORD']
+GIT_USER_REPOSITORY_NAMESPACE_ID = int(custom_settings.get('GIT_USER_REPOSITORY_NAMESPACE_ID', '146'))
+GIT_REGISTRY_PREFIX = custom_settings.get('GIT_REGISTRY_PREFIX', 'registry.webis.de/code-research/tira')
+GIT_USER_REPOSITORY_BRANCH = custom_settings.get('GIT_USER_REPOSITORY_BRANCH', 'main')
+GIT_CONTAINER_REGISTRY_HOST = custom_settings.get('GIT_CONTAINER_REGISTRY_HOST', 'registry.webis.de')
+GIT_CI_AVAILABLE_RESOURCES = {
+    'small-resources': {'cores': 1, 'ram': 10, 'gpu': 0, 'description': 'Small (1 CPU Cores, 10GB of RAM)', 'key': 'small-resources'},
+    'medium-resources': {'cores': 2, 'ram': 20, 'gpu': 0, 'description': 'Medium (2 CPU Cores, 20GB of RAM)', 'key': 'medium-resources'},
+    'large-resources': {'cores': 4, 'ram': 40, 'gpu': 0, 'description': 'Large (4 CPU Cores, 40GB of RAM)', 'key': 'large-resources'},
+    'small-resources-gpu': {'cores': 1, 'ram': 10, 'gpu': '1-nvidia-1080', 'description': 'Small w. GPU (1 CPU Cores, 10GB of RAM, 1 Nvidia GTX 1080 with 8GB)', 'key': 'small-resources-gpu'},
+}
+
+IR_MEASURES_IMAGE = custom_settings.get('IR_MEASURES_IMAGE', 'webis/tira-ir-measures-evaluator:0.0.1')
+IR_MEASURES_COMMAND = custom_settings.get('IR_MEASURES_COMMAND', 'echo "hello world"')
+
+# Caching
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'tira_database_cache_table',
+        'TIMEOUT': 900, # 900 seconds (i.e., 15 minutes) as timeout, to use for the cache
+        'OPTIONS': {
+            'MAX_ENTRIES': 100000
+        }
+    }
+}
 
 # Logging
 ld = Path(custom_settings.get("logging_dir", TIRA_ROOT / "log" / "tira-application"))
@@ -293,3 +326,11 @@ STATICFILES_DIRS = [
 ]
 
 STATIC_ROOT = "/var/www/public"
+
+WEBPACK_LOADER = {
+    'DEFAULT': {
+        'CACHE': DEBUG,
+        'BUNDLE_DIR_NAME': '/bundles/',
+        'STATS_FILE': BASE_DIR / 'tira' / 'frontend' / 'webpack-stats.json'
+    }
+}

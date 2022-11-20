@@ -110,18 +110,22 @@ class TiraApplicationService(tira_host_pb2_grpc.TiraApplicationService):
         """
         django.db.connection.close()
         logger.debug(f" Application Server received run-eval confirmation with: \n"
-                     f"{request.runId.runId} and {len(request.measures)} measures.")
-        
-        model.add_run(request.runId.datasetId, request.runId.vmId, request.runId.runId)
+                     f"{request.runId.runId} - {request.runId.vmId} - {request.transaction.transactionId} and {len(request.measures)} measures.")
+        print(f" Application Server received run-eval confirmation with: \n"
+                     f"{request.runId.runId} - {request.runId.vmId} - {request.transaction.transactionId} and {len(request.measures)} measures.")
+
+        result = model.add_run(request.runId.datasetId, request.runId.vmId, request.runId.runId)
         
         EvaluationLog.objects.filter(vm_id=request.runId.vmId, run_id=request.runId.runId).delete()
+        EvaluationLog.objects.filter(transaction__transaction_id=request.transaction.transactionId).delete()
+
         _ = TransactionLog.objects.filter(transaction_id=request.transaction.transactionId).update(
             completed=False,
             last_status=str(request.transaction.status),
             last_message=request.transaction.message)
 
         return tira_host_pb2.Transaction(status=tira_host_pb2.Status.SUCCESS,
-                                         message="Application accepted evaluation confirmation",
+                                         message=f"Application accepted evaluation confirmation with request.runId.datasetId={request.runId.datasetId}, request.runId.vmId={request.runId.vmId}, request.runId.runId={request.runId.runId}. Result {result}.",
                                          transactionId=request.transaction.transactionId)
 
     def confirm_run_execute(self, request, context):
@@ -131,11 +135,8 @@ class TiraApplicationService(tira_host_pb2_grpc.TiraApplicationService):
         django.db.connection.close()
         logger.debug(f" Application Server received run-eval confirmation with: \n"
                      f"{request.runId.runId}.")
-        
-        #
-        # model.add_run(request.runId.datasetId, request.runId.vmId, request.runId.runId)
-        #
-        model.add_run(request.runId.datasetId, request.runId.vmId, request.runId.runId)
+
+        result = model.add_run(request.runId.datasetId, request.runId.vmId, request.runId.runId)
         EvaluationLog.objects.filter(vm_id=request.runId.vmId, run_id=request.runId.runId).delete()
         _ = TransactionLog.objects.filter(transaction_id=request.transaction.transactionId).update(
             completed=False,
@@ -143,28 +144,8 @@ class TiraApplicationService(tira_host_pb2_grpc.TiraApplicationService):
             last_message=request.transaction.message)
 
         return tira_host_pb2.Transaction(status=tira_host_pb2.Status.SUCCESS,
-                                         message="Application accepted evaluation confirmation",
+                                         message=f"Application accepted run execute confirmation with: request.runId.datasetId={request.runId.datasetId}, request.runId.vmId={request.runId.vmId}, request.runId.runId={request.runId.runId}. Result {result}.",
                                          transactionId=request.transaction.transactionId)
-
-    # def confirm_run_execute(self, request, context):
-    #     """ This gets called if a run_execute finishes. We use this to load the new run in the database.
-    #     See tira_host.proto for request specification.
-    #     """
-    #     django.db.connection.close()
-    #     logger.debug(f" Application Server received run-eval confirmation with: \n"
-    #                  f"{request.runId.runId}.")
-    #     EvaluationLog.objects.filter(vm_id=request.runId.vmId, run_id=request.runId.runId).delete()
-    #
-    #     _ = TransactionLog.objects.filter(transaction_id=request.transaction.transactionId).update(
-    #         completed=False,
-    #         last_status=str(request.transaction.status),
-    #         last_message=request.transaction.message)
-    #
-    #     model.add_run(request.runId.datasetId, request.runId.vmId, request.runId.runId)
-    #
-    #     return tira_host_pb2.Transaction(status=tira_host_pb2.Status.SUCCESS,
-    #                                      message="Application accepted evaluation confirmation",
-    #                                      transactionId=request.transaction.transactionId)
 
     def heartbeat(self, request, context):
         """

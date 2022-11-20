@@ -48,10 +48,31 @@ class HybridDatabase(object):
 
     def __init__(self):
         pass
-        # dbops.index(self.organizers_file_path, self.users_file_path, self.vm_dir_path, self.tasks_dir_path,
-        #             self.datasets_dir_path, self.softwares_dir_path, self.runs_dir_path)
 
-    def build_model(self):
+    def create_model(self, admin_user_name='admin', admin_password='admin'):
+        self.users_file_path.parent.mkdir(exist_ok=True, parents=True)
+        self.tasks_dir_path.mkdir(exist_ok=True, parents=True)
+        self.organizers_file_path.parent.mkdir(exist_ok=True, parents=True)
+        self.vm_dir_path.mkdir(exist_ok=True, parents=True)
+        self.host_list_file.parent.mkdir(exist_ok=True, parents=True)
+        self.ova_dir.mkdir(exist_ok=True, parents=True)
+        self.datasets_dir_path.mkdir(exist_ok=True, parents=True)
+        self.softwares_dir_path.mkdir(exist_ok=True, parents=True)
+        self.data_path.mkdir(exist_ok=True, parents=True)
+        self.runs_dir_path.mkdir(exist_ok=True, parents=True)
+        (self.tira_root / "state/virtual-machines").mkdir(exist_ok=True, parents=True)
+        (self.tira_root / "state/softwares").mkdir(exist_ok=True, parents=True)
+
+        self.users_file_path.touch(exist_ok=True)
+        self.vm_list_file.touch(exist_ok=True)
+        self.host_list_file.touch(exist_ok=True)
+        self.organizers_file_path.touch(exist_ok=True)
+
+        modeldb.VirtualMachine.objects.create(vm_id=admin_user_name, user_password=admin_password,
+                                              roles='reviewer')
+        self._save_vm(vm_id=admin_user_name, user_name=admin_user_name, initial_user_password=admin_password)
+
+    def index_model_from_files(self):
         self.vm_list_file.touch(exist_ok=True)
         dbops.index(self.organizers_file_path, self.users_file_path, self.vm_dir_path, self.tasks_dir_path,
                     self.datasets_dir_path, self.softwares_dir_path, self.runs_dir_path)
@@ -150,6 +171,7 @@ class HybridDatabase(object):
         open(new_vm_file_path, 'w').write(str(vm))
 
     def _save_review(self, dataset_id, vm_id, run_id, review):
+        """ Save the reivew to the protobuf dump. Create the file if it does not exist. """
         review_path = self.runs_dir_path / dataset_id / vm_id / run_id
         open(review_path / "run-review.prototext", 'w').write(str(review))
         open(review_path / "run-review.bin", 'wb').write(review.SerializeToString())
@@ -163,42 +185,6 @@ class HybridDatabase(object):
 
         open(run_dir / "run.prototext", 'w').write(str(run))
         open(run_dir / "run.bin", 'wb').write(run.SerializeToString())
-
-    # ------------------------------------------------------------
-    # add methods to add new data to the model
-    # ------------------------------------------------------------
-
-    def _update_review(self, dataset_id, vm_id, run_id,
-                       reviewer_id: str = None, review_date: str = None, has_errors: bool = None,
-                       has_no_errors: bool = None, no_errors: bool = None, missing_output: bool = None,
-                       extraneous_output: bool = None, invalid_output: bool = None, has_error_output: bool = None,
-                       other_errors: bool = None, comment: str = None, published: bool = None, blinded: bool = None,
-                       has_warnings: bool = False):
-        """ updates the review specified by dataset_id, vm_id, and run_id with the values given in the parameters.
-        Required Parameters are also required in the function
-        """
-        review = self.load_review(dataset_id, vm_id, run_id)
-        def update(x, y):
-            return y if y is not None else x
-
-        review.runId = run_id
-        review.reviewerId = update(review.reviewerId, reviewer_id)
-        review.reviewDate = update(review.reviewDate, review_date)
-        review.hasErrors = update(review.hasErrors, has_errors)
-        review.hasWarnings = update(review.hasWarnings, has_warnings)
-        review.hasNoErrors = update(review.hasNoErrors, has_no_errors)
-        review.noErrors = update(review.noErrors, no_errors)
-        review.missingOutput = update(review.missingOutput, missing_output)
-        review.extraneousOutput = update(review.extraneousOutput, extraneous_output)
-        review.invalidOutput = update(review.invalidOutput, invalid_output)
-        review.hasErrorOutput = update(review.hasErrorOutput, has_error_output)
-        review.otherErrors = update(review.otherErrors, other_errors)
-        review.comment = update(review.comment, comment)
-        review.published = update(review.published, published)
-        review.blinded = update(review.blinded, blinded)
-
-        self._save_review(dataset_id, vm_id, run_id, review)
-        return review
 
     #########################################
     # Public Interface Methods
@@ -221,7 +207,18 @@ class HybridDatabase(object):
         """ Return the users list. """
         return [self._vm_as_dict(vm) for vm in modeldb.VirtualMachine.objects.all()]
 
-    def _task_to_dict(self, task):
+    def _task_to_dict(self, task, include_dataset_stats=False):
+        def _add_dataset_stats(res, dataset_set):
+            if not dataset_set:
+                res["dataset_last_created"] = ''
+                res["dataset_first_created"] = ''
+                res["dataset_last_modified"] = ''
+            else:
+                res["dataset_last_created"] = dataset_set.latest('created').created.year
+                res["dataset_first_created"] = dataset_set.earliest('created').created.year
+                res["dataset_last_modified"] = dataset_set.latest('last_modified').created
+            return res
+
         if task.organizer:
             org_name = task.organizer.name
             org_year = task.organizer.years
@@ -234,38 +231,50 @@ class HybridDatabase(object):
             logger.error(f"Task with id {task.task_id} has no master vm associated")
             master_vm_id = "None"
 
-        return {"task_id": task.task_id, "task_name": task.task_name, "task_description": task.task_description,
-                "organizer": org_name,
-                "web": task.web,
-                "year": org_year,
-                "master_vm_id": master_vm_id,
-                "dataset_count": task.dataset_set.count(),
-                "software_count": task.software_set.count(),
-                "max_std_out_chars_on_test_data": task.max_std_out_chars_on_test_data,
-                "max_std_err_chars_on_test_data": task.max_std_err_chars_on_test_data,
-                "max_file_list_chars_on_test_data": task.max_file_list_chars_on_test_data,
-                "command_placeholder": task.command_placeholder, "command_description": task.command_description,
-                "dataset_label": task.dataset_label,
-                "max_std_out_chars_on_test_data_eval": task.max_std_out_chars_on_test_data_eval,
-                "max_std_err_chars_on_test_data_eval": task.max_std_err_chars_on_test_data_eval,
-                "max_file_list_chars_on_test_data_eval": task.max_file_list_chars_on_test_data_eval}
+        result = {"task_id": task.task_id, "task_name": task.task_name, "task_description": task.task_description,
+                  "organizer": org_name,
+                  "web": task.web,
+                  "year": org_year,
+                  "featured": task.featured,
+                  "require_registration": task.require_registration,
+                  "require_groups": task.require_groups,
+                  "restrict_groups": task.restrict_groups,
+                  "allowed_task_teams": task.allowed_task_teams,
+                  "master_vm_id": master_vm_id,
+                  "dataset_count": task.dataset_set.count(),
+                  "software_count": task.software_set.count(),
+                  "max_std_out_chars_on_test_data": task.max_std_out_chars_on_test_data,
+                  "max_std_err_chars_on_test_data": task.max_std_err_chars_on_test_data,
+                  "max_file_list_chars_on_test_data": task.max_file_list_chars_on_test_data,
+                  "command_placeholder": task.command_placeholder, "command_description": task.command_description,
+                  "dataset_label": task.dataset_label,
+                  "max_std_out_chars_on_test_data_eval": task.max_std_out_chars_on_test_data_eval,
+                  "max_std_err_chars_on_test_data_eval": task.max_std_err_chars_on_test_data_eval,
+                  "max_file_list_chars_on_test_data_eval": task.max_file_list_chars_on_test_data_eval}
 
-    def _tasks_to_dict(self, tasks):
+        if include_dataset_stats:
+            _add_dataset_stats(result, task.dataset_set.all())
+
+        return result
+
+    def _tasks_to_dict(self, tasks, include_dataset_stats=False):
         for task in tasks:
             if not task.organizer:
                 continue
 
-            yield self._task_to_dict(task)
+            yield self._task_to_dict(task, include_dataset_stats)
 
-    def get_tasks(self) -> list:
-        return list(self._tasks_to_dict(modeldb.Task.objects.select_related('organizer').all()))
+    def get_tasks(self, include_dataset_stats=False) -> list:
+        return list(self._tasks_to_dict(modeldb.Task.objects.select_related('organizer').all(),
+                                        include_dataset_stats))
 
-    def get_task(self, task_id: str) -> dict:
-        return self._task_to_dict(modeldb.Task.objects.select_related('organizer').get(task_id=task_id))
+    def get_task(self, task_id: str, include_dataset_stats) -> dict:
+        return self._task_to_dict(modeldb.Task.objects.select_related('organizer').get(task_id=task_id),
+                                  include_dataset_stats)
 
     def _dataset_to_dict(self, dataset):
         evaluator_id = None if not dataset.evaluator else dataset.evaluator.evaluator_id
-        runs = modeldb.Run.objects.filter(input_dataset__dataset_id=dataset.dataset_id)
+        runs = modeldb.Run.objects.filter(input_dataset__dataset_id=dataset.dataset_id, deleted=False)
         return {
             "display_name": dataset.display_name,
             "evaluator_id": evaluator_id,
@@ -279,7 +288,9 @@ class HybridDatabase(object):
             'evaluations_count': runs.filter(evaluator__isnull=False).count(),
             'evaluations_public_count': modeldb.Review.objects.filter(run__run_id__in=[r.run_id for r in runs.filter(evaluator__isnull=False)]
                                                                       ).filter(published=True).count(),
-            "default_upload_name": dataset.default_upload_name
+            "default_upload_name": dataset.default_upload_name,
+            "created": dataset.created,
+            "last_modified": dataset.last_modified
         }
 
     def get_dataset(self, dataset_id: str) -> dict:
@@ -303,6 +314,12 @@ class HybridDatabase(object):
         return [self._dataset_to_dict(d.dataset)
                 for d in modeldb.TaskHasDataset.objects.filter(task=task_id)
                 if not (d.dataset.is_deprecated and not include_deprecated)]
+
+    def get_docker_software(self, docker_software_id: str) -> dict:
+        try:
+            return self._docker_software_to_dict(modeldb.DockerSoftware.objects.get(docker_software_id=docker_software_id))
+        except modeldb.Dataset.DoesNotExist:
+            return {}
 
     def get_organizer(self, organizer_id: str):
         organizer = modeldb.Organizer.objects.get(organizer_id=organizer_id)
@@ -368,7 +385,7 @@ class HybridDatabase(object):
                 "input_run_id": "" if not run.input_run or run.input_run.run_id == 'none' or run.input_run.run_id == 'None'
                 else run.input_run.run_id,
                 "is_evaluation": False if not run.input_run or run.input_run.run_id == 'none' or run.input_run.run_id == 'None' else True,
-                "dataset": run.input_dataset.dataset_id,
+                "dataset": "" if not run.input_dataset else run.input_dataset.dataset_id,
                 "downloadable": run.downloadable}
 
     def get_run(self, dataset_id: str, vm_id: str, run_id: str, return_deleted: bool = False) -> dict:
@@ -384,7 +401,7 @@ class HybridDatabase(object):
                     .filter(input_dataset__dataset_id=dataset_id, software__vm__vm_id=vm_id)
                 if (run.deleted or not return_deleted)]
 
-    def _get_ordered_runs_from_reviews(self, reviews, vm_id, preloaded=True, is_upload=False):
+    def _get_ordered_runs_from_reviews(self, reviews, vm_id, preloaded=True, is_upload=False, is_docker=False):
         """ yields all runs with reviews and their evaluation runs with reviews produced by software from a given vm
             evaluation runs (which have a run as input run) are yielded directly after the runs they use.
 
@@ -394,40 +411,38 @@ class HybridDatabase(object):
             Otherwise assume they were preloaded
         :param is_upload: if true, get only uploaded runs
         """
+        def _run_dict(review_obj):
+            run = self._run_as_dict(review_obj.run)
+            run["review"] = self._review_as_dict(review_obj)
+            run["reviewed"] = True if not review_obj.has_errors \
+                                      and not review_obj.has_no_errors \
+                                      and not review_obj.has_warnings else False
+            run['is_upload'] = is_upload
+            run['is_docker'] = is_docker
+            return run
+
         if is_upload:
             reviews_qs = reviews.filter(run__upload__vm__vm_id=vm_id).all()
+        elif is_docker:
+            reviews_qs = reviews.filter(run__docker_software__vm__vm_id=vm_id).all()
         else:
             reviews_qs = reviews.filter(run__software__vm__vm_id=vm_id).all()
 
         for review in reviews_qs:
-            yield {"run": self._run_as_dict(review.run),
-                   "review": self._review_as_dict(review),
-                   "reviewed": True if not review.has_errors and not review.has_no_errors
-                                       and not review.has_warnings else False,
-                   'published': review.published,
-                   'blinded': review.blinded,
-                   'is_upload': is_upload}
+            yield _run_dict(review)
+
             r2 = reviews.filter(run__input_run__run_id=review.run.run_id).all() if preloaded \
                 else modeldb.Review.objects.select_related('run').filter(run__input_run__run_id=review.run.run_id).all()
 
             for review2 in r2:
-                yield {"run": self._run_as_dict(review2.run),
-                       "review": self._review_as_dict(review2),
-                       "reviewed": True if not review2.has_errors and not review2.has_no_errors
-                                           and not review2.has_warnings else False,
-                       'published': review2.published,
-                       'blinded': review2.blinded,
-                       'is_upload': is_upload}
+                yield _run_dict(review2)
 
     def get_upload_with_runs(self, task_id, vm_id):
         def _runs_by_upload(up):
             reviews = modeldb.Review.objects.select_related("run", "run__upload", "run__evaluator", "run__input_run",
                                                             "run__input_dataset").filter(run__upload=up).all()
 
-            for r in self._get_ordered_runs_from_reviews(reviews, vm_id, preloaded=False, is_upload=True):
-                run = r['run']
-                run['review'] = r["review"]
-                yield run
+            return list(self._get_ordered_runs_from_reviews(reviews, vm_id, preloaded=False, is_upload=True))
 
         try:
             upload = modeldb.Upload.objects.get(vm__vm_id=vm_id, task__task_id=task_id)
@@ -438,7 +453,41 @@ class HybridDatabase(object):
             upload.save()
         return {"task_id": upload.task.task_id, "vm_id": upload.vm.vm_id,
                 "dataset": None if not upload.dataset else upload.dataset.dataset_id,
-                "last_edit": upload.last_edit_date, "runs": list(_runs_by_upload(upload))}
+                "last_edit": upload.last_edit_date, "runs": _runs_by_upload(upload)}
+
+    def _docker_software_to_dict(self, ds):
+        return {'docker_software_id': ds.docker_software_id, 'display_name': ds.display_name,
+                'user_image_name': ds.user_image_name, 'command': ds.command,
+                'tira_image_name': ds.tira_image_name, 'task_id': ds.task.task_id,
+                'vm_id': ds.vm.vm_id}
+
+    def get_docker_softwares_with_runs(self, task_id, vm_id):
+        def _runs_by_docker_software(ds):
+            reviews = modeldb.Review.objects.select_related("run", "run__upload", "run__evaluator", "run__input_run",
+                                                            "run__input_dataset").filter(run__docker_software=ds).all()
+
+            return list(self._get_ordered_runs_from_reviews(reviews, vm_id, preloaded=False, is_docker=True))
+    
+        docker_softwares = modeldb.DockerSoftware.objects.filter(vm__vm_id=vm_id, task__task_id=task_id, deleted=False)
+
+        docker_softwares = [{**self._docker_software_to_dict(ds), 'runs': _runs_by_docker_software(ds)}
+                            for ds in docker_softwares]
+
+        return docker_softwares
+
+    def delete_docker_software(self, task_id, vm_id, docker_software_id):
+        software_qs = modeldb.DockerSoftware.objects.filter(vm_id=vm_id, task_id=task_id,
+                                                            docker_software_id=docker_software_id)
+
+        reviews_qs = modeldb.Review.objects.filter(run__input_run__docker_software__docker_software_id=docker_software_id,
+                                                   run__input_run__docker_software__task_id=task_id,
+                                                   run__input_run__docker_software__vm_id=vm_id, no_errors=True)
+
+        if not reviews_qs.exists() and software_qs.exists():
+            software_qs.delete()
+            return True
+
+        return False
 
     def get_vms_with_reviews(self, dataset_id: str):
         """ returns a list of dicts with:
@@ -449,27 +498,31 @@ class HybridDatabase(object):
          "published_count": published_count}
          """
         results = []
-        reviews = modeldb.Review.objects.select_related('run', 'run__software', 'run__evaluator', 'run__upload',
+        reviews = modeldb.Review.objects.select_related('run', 'run__software', 'run__docker_software',
+                                                        'run__evaluator', 'run__upload',
                                                         'run__input_run').filter(
             run__input_dataset__dataset_id=dataset_id).all()
 
         upload_vms = {vm_id["run__upload__vm__vm_id"] for vm_id in reviews.values('run__upload__vm__vm_id')}
         software_vms = {vm_id["run__software__vm__vm_id"] for vm_id in reviews.values('run__software__vm__vm_id')}
+        docker_vms = {vm_id["run__docker_software__vm__vm_id"] for vm_id in reviews.values('run__docker_software__vm__vm_id')}
 
-        for vm_id in upload_vms.union(software_vms):
+        for vm_id in upload_vms.union(software_vms).union(docker_vms):
             if not vm_id:
                 continue
-            r = []
+            runs = []
             if vm_id in upload_vms:
-                r += list(self._get_ordered_runs_from_reviews(reviews, vm_id, is_upload=True))
+                runs += list(self._get_ordered_runs_from_reviews(reviews, vm_id, is_upload=True))
             elif vm_id in software_vms:
-                r = list(self._get_ordered_runs_from_reviews(reviews, vm_id, is_upload=False))
+                runs += list(self._get_ordered_runs_from_reviews(reviews, vm_id, is_upload=False))
+            elif vm_id in docker_vms:
+                runs += list(self._get_ordered_runs_from_reviews(reviews, vm_id, is_docker=True))
 
             results.append({"vm_id": vm_id,
-                            "runs": r,
-                            "unreviewed_count": len([_['reviewed'] for _ in r if _['reviewed'] is True]),
-                            "blinded_count": len([_['blinded'] for _ in r if _['blinded'] is True]),
-                            "published_count": len([_['published'] for _ in r if _['published'] is True]),
+                            "runs": runs,
+                            "unreviewed_count": len([_['reviewed'] for _ in runs if _['reviewed'] is True]),
+                            "blinded_count": len([_['review']['blinded'] for _ in runs if _['review']['blinded'] is True]),
+                            "published_count": len([_['review']['published'] for _ in runs if _['review']['published'] is True]),
                             })
         return results
 
@@ -499,8 +552,15 @@ class HybridDatabase(object):
             vm_id = ''
             host = ''
 
-        return {"vm_id": vm_id, "host": host, "command": evaluator.command,
-                "working_dir": evaluator.working_directory, 'measures': evaluator.measures}
+        if not task_id:
+            dataset = modeldb.Dataset.objects.filter(evaluator=evaluator).latest('last_modified')
+            task_id = dataset.default_task.task_id
+
+        return {"vm_id": vm_id, "host": host, "command": evaluator.command, "task_id": task_id,
+                "evaluator_id": evaluator.evaluator_id,
+                "working_dir": evaluator.working_directory, 'measures': evaluator.measures,
+                "is_git_runner": evaluator.is_git_runner, "git_runner_image": evaluator.git_runner_image,
+                "git_runner_command": evaluator.git_runner_command, "git_repository_id": evaluator.git_repository_id, }
 
     @staticmethod
     def get_vm_evaluations_by_dataset(dataset_id, vm_id, only_public_results=True):
@@ -542,7 +602,11 @@ class HybridDatabase(object):
             except ValueError:
                 return fl
 
-        def format_evalutation(r, ks):
+        def format_evaluation(r, ks):
+            """
+            @param r: a queryset of modeldb.Run
+            @param ks: a list of keys of evaluation parameters
+            """
             def if_exists(evals):
                 for k in ks:
                     ev = evals.filter(run__run_id=run.run_id, measure_key=k).all()
@@ -551,6 +615,7 @@ class HybridDatabase(object):
                     else:
                         yield "-"
 
+            # print(r.all().values())
             for run in r:
                 if run.run_id in exclude:
                     continue
@@ -559,10 +624,19 @@ class HybridDatabase(object):
                     continue
                 try:
                     input_run = run.input_run
+                    # print(input_run.software)
+                    # print(input_run.docker_software)
+                    # print(input_run.upload)
                     if input_run.software:
                         vm_id = run.input_run.software.vm.vm_id
+                    elif input_run.docker_software:
+                        vm_id = run.input_run.docker_software.vm.vm_id
                     elif input_run.upload:
                         vm_id = run.input_run.upload.vm.vm_id
+                    else:
+                        logger.error(
+                            f"The input run {run.run_id} has no vm assigned. Assigning None instead")
+                        vm_id = "None"
 
                 except AttributeError as e:
                     logger.error(f"The vm or software of run {run.run_id} does not exist. Maybe either was deleted?", e)
@@ -585,19 +659,26 @@ class HybridDatabase(object):
         exclude = {review.run.run_id for review in modeldb.Review.objects.select_related('run').filter(
             run__input_dataset__dataset_id=dataset_id, published=False, run__software=None).all()
                    if not include_unpublished}
-        return keys, list(format_evalutation(runs, keys))
+        return keys, list(format_evaluation(runs, keys))
+
+    def get_evaluation(self, run_id):
+        try:
+            evaluation = modeldb.Evaluation.objects.filter(run__run_id=run_id).all()
+            return {ev.measure_key: ev.measure_value for ev in evaluation}
+
+        except modeldb.Evaluation.DoesNotExist:
+            logger.exception(f"Tried to load evaluation for run {run_id}, but it does not exist")
+
+        return {}
 
     def get_software_with_runs(self, task_id, vm_id):
         def _runs_by_software(software):
             reviews = modeldb.Review.objects.select_related("run", "run__software", "run__evaluator", "run__input_run",
                                                             "run__input_dataset").filter(run__software=software).all()
-            for r in self._get_ordered_runs_from_reviews(reviews, vm_id, preloaded=False):
-                run = r['run']
-                run['review'] = r["review"]
-                yield run
+            return list(self._get_ordered_runs_from_reviews(reviews, vm_id, preloaded=False))
 
         return [{"software": self._software_to_dict(s),
-                 "runs": list(_runs_by_software(s))
+                 "runs": _runs_by_software(s)
                  } for s in modeldb.Software.objects.filter(vm__vm_id=vm_id, task__task_id=task_id, deleted=False)]
 
     @staticmethod
@@ -656,6 +737,30 @@ class HybridDatabase(object):
 
         raise TiraModelWriteError(f"Failed to write VM {vm_id}")
 
+    def add_registration(self, data):
+        task = modeldb.Task.objects.select_related('organizer').get(task_id=data['task_id'])
+        
+        if data['group'] not in task.allowed_task_teams:
+            raise ValueError(f'Team name is not allowed "{data["group"]}". Allowed: {task.allowed_task_teams}')
+
+        modeldb.Registration.objects.create(initial_owner=data['initial_owner'],
+                                            team_name=data['group'],
+                                            team_members=data['team'],
+                                            registered_on_task=task,
+                                            name=data['username'],
+                                            email=data['email'],
+                                            affiliation=data['affiliation'],
+                                            country=data['country'],
+                                            employment=data['employment'],
+                                            participates_for=data['participation'],
+                                            instructor_name=data['instructorName'],
+                                            instructor_email=data['instructorEmail'],
+                                            questions=data['questions'])
+
+
+    def all_registered_teams(self):
+        return set([i['team_name'] for i in modeldb.Registration.objects.values('team_name')])
+
     def _fdb_create_task(self, task_id, task_name, task_description, master_vm_id, organizer_id, website,
                          help_command=None, help_text=None):
         new_task_file_path = self.tasks_dir_path / f'{task_id}.prototext'
@@ -670,17 +775,19 @@ class HybridDatabase(object):
         task.commandDescription = help_text
         open(new_task_file_path, 'w').write(str(task))
 
-    def create_task(self, task_id, task_name, task_description, master_vm_id, organizer, website,
-                    help_command=None, help_text=None):
+    def create_task(self, task_id, task_name, task_description, featured, master_vm_id, organizer, website,
+                    require_registration, require_groups, restrict_groups, help_command=None, help_text=None, allowed_task_teams=None):
         """ Add a new task to the database.
-         CAUTION: This function does not do any sanity checks and will OVERWRITE existing tasks
-         TODO add max_std_out_chars_on_test_data, max_std_err_chars_on_test_data, max_file_list_chars_on_test_data, dataset_label, max_std_out_chars_on_test_data_eval, max_std_err_chars_on_test_data_eval, max_file_list_chars_on_test_data_eval"""
+         CAUTION: This function does not do any sanity checks and will OVERWRITE existing tasks """
         new_task = modeldb.Task.objects.create(task_id=task_id,
                                                task_name=task_name,
                                                vm=modeldb.VirtualMachine.objects.get(vm_id=master_vm_id),
                                                task_description=task_description,
                                                organizer=modeldb.Organizer.objects.get(organizer_id=organizer),
-                                               web=website)
+                                               web=website, featured=featured, require_registration=require_registration,
+                                               require_groups=require_groups,
+                                               restrict_groups=restrict_groups,
+                                               allowed_task_teams=allowed_task_teams)
         if help_command:
             new_task.command_placeholder = help_command
         if help_text:
@@ -770,7 +877,7 @@ class HybridDatabase(object):
         ev.evaluatorId = evaluator_id
         ev.command = command
         ev.workingDirectory = working_directory
-        ev.measures = measures  # ",".join([x[0].strip('\r') for x in measures])
+        ev.measures = str(measures)  # ",".join([x[0].strip('\r') for x in measures])
         # ev.measureKeys.extend([x[1].strip('\r') for x in measures])
         vm.evaluators.append(ev)
         open(vm_file_path, 'w').write(str(vm))
@@ -785,31 +892,41 @@ class HybridDatabase(object):
         ds.evaluatorId = evaluator_id
         open(dataset_file_path, 'w').write(str(ds))
 
-    def add_evaluator(self, vm_id, task_id, dataset_id, command, working_directory, measures):
+    def add_evaluator(self, vm_id, task_id, dataset_id, command, working_directory, measures, is_git_runner,
+                      git_runner_image, git_runner_command, git_repository_id):
         """ Add a new Evaluator to the model (and the filedatabase as long as needed)
 
-        :param vm_id: vm id as string as usual
-        :param task_id: task_id as string as usual
-        :param dataset_id: dataset_id as string as usual
-        :param command: The command (including vairables) that should be executed to run the evaluator
-        :param working_directory: the directory in the master vm from where command should be executed
-        :param measures: a string: the header columns of the measures, colon-separated
+        @param vm_id: vm id as string as usual
+        @param task_id: task_id as string as usual
+        @param dataset_id: dataset_id as string as usual
+        @param command: The command (including variables) that should be executed to run the evaluator
+        @param working_directory: the directory in the master vm from where command should be executed
+        @param measures: a string: the header columns of the measures, colon-separated
+        @param is_git_runner: a bool. If true, run_evaluations are done via git CI (see git_runner.py)
+        @param git_repository_id: the repo ID where the new run will be conducted
+        @param git_runner_command: the command for the runner
+        @param git_runner_image: which image should be run for the evalution
          """
         evaluator_id = f"{dataset_id}-evaluator"
 
         ev, _ = modeldb.Evaluator.objects.update_or_create(evaluator_id=evaluator_id, defaults={
             'command': command,
             'working_directory': working_directory,
-            'measures': measures
+            'measures': measures,
+            'is_git_runner': is_git_runner,
+            'git_runner_image': git_runner_image,
+            'git_runner_command': git_runner_command,
+            'git_repository_id': git_repository_id
         })
 
         # add evaluator to master vm
-        if vm_id:
+        if vm_id and not is_git_runner:
             vm = modeldb.VirtualMachine.objects.get(vm_id=vm_id)
-            vmhe, _ = modeldb.VirtualMachineHasEvaluator.objects.update_or_create(evaluator_id=evaluator_id,
-                                                                                  vm=vm)
-        self._fdb_add_evaluator_to_dataset(task_id, dataset_id, evaluator_id)
-        self._fdb_add_evaluator_to_vm(vm_id, evaluator_id, command, working_directory, measures)
+            vmhe, _ = modeldb.VirtualMachineHasEvaluator.objects.update_or_create(evaluator_id=evaluator_id, vm=vm)
+
+        if not is_git_runner:
+            self._fdb_add_evaluator_to_dataset(task_id, dataset_id, evaluator_id)
+            self._fdb_add_evaluator_to_vm(vm_id, evaluator_id, command, working_directory, measures)
 
         modeldb.Dataset.objects.filter(dataset_id=dataset_id).update(evaluator=ev)
 
@@ -878,29 +995,51 @@ class HybridDatabase(object):
         """ updates the review specified by dataset_id, vm_id, and run_id with the values given in the parameters.
         Required Parameters are also required in the function
         """
+
+        def __update(x, y):
+            return y if y is not None else x
+
         try:
             # This changes the contents in the protobuf files
-            review = self._update_review(dataset_id, vm_id, run_id, reviewer_id, review_date, has_errors, has_no_errors,
-                                         no_errors,
-                                         missing_output, extraneous_output, invalid_output, has_error_output,
-                                         other_errors, comment, published, blinded, has_warnings)
-            modeldb.Review.objects.filter(run__run_id=run_id).update(
-                reviewer_id=review.reviewerId,
-                review_date=review.reviewDate,
-                no_errors=review.noErrors,
-                missing_output=review.missingOutput,
-                extraneous_output=review.extraneousOutput,
-                invalid_output=review.invalidOutput,
-                has_error_output=review.hasErrorOutput,
-                other_errors=review.otherErrors,
-                comment=review.comment,
-                has_errors=review.hasErrors,
-                has_warnings=review.hasWarnings,
-                has_no_errors=review.hasNoErrors,
-                published=review.published,
-                blinded=review.blinded
+            review = modeldb.Review.objects.prefetch_related('run').get(run__run_id=run_id)
+
+            review_proto = modelpb.RunReview(runId=run_id,
+                 reviewerId=__update(review.reviewer_id, reviewer_id),
+                 reviewDate=__update(review.review_date, review_date),
+                 hasErrors=__update(review.has_errors, has_errors),
+                 hasWarnings=__update(review.has_warnings, has_warnings),
+                 hasNoErrors=__update(review.has_no_errors, has_no_errors),
+                 noErrors=__update(review.no_errors, no_errors),
+                 missingOutput=__update(review.missing_output, missing_output),
+                 extraneousOutput=__update(review.extraneous_output, extraneous_output),
+                 invalidOutput=__update(review.invalid_output, invalid_output),
+                 hasErrorOutput=__update(review.has_error_output, has_error_output),
+                 otherErrors=__update(review.other_errors, other_errors),
+                 comment=__update(review.comment, comment),
+                 published=__update(review.published, published),
+                 blinded=__update(review.blinded, blinded),
             )
+
+            modeldb.Review.objects.filter(run__run_id=run_id).update(
+                reviewer_id=review_proto.reviewerId,
+                review_date=review_proto.reviewDate,
+                no_errors=review_proto.noErrors,
+                missing_output=review_proto.missingOutput,
+                extraneous_output=review_proto.extraneousOutput,
+                invalid_output=review_proto.invalidOutput,
+                has_error_output=review_proto.hasErrorOutput,
+                other_errors=review_proto.otherErrors,
+                comment=review_proto.comment,
+                has_errors=review_proto.hasErrors,
+                has_warnings=review_proto.hasWarnings,
+                has_no_errors=review_proto.hasNoErrors,
+                published=review_proto.published,
+                blinded=review_proto.blinded
+            )
+
+            self._save_review(dataset_id, vm_id, run_id, review_proto)
             return True
+
         except Exception as e:
             logger.exception(f"Exception while saving review ({dataset_id}, {vm_id}, {run_id}): {e}")
             return False
@@ -911,7 +1050,7 @@ class HybridDatabase(object):
         Runs the auto reviewer to generate an initial review.
         Also loads evaluations if present
          """
-        dbops.parse_run(self.runs_dir_path, dataset_id, vm_id, run_id)
+        return dbops.parse_run(self.runs_dir_path, dataset_id, vm_id, run_id)
 
     def _list_files(self, startpath):
         import os
@@ -951,6 +1090,7 @@ class HybridDatabase(object):
         run.inputDataset = dataset_id
         run.deleted = False
         run.downloadable = True
+        run.taskId = task_id
         # Third add to database
         upload = modeldb.Upload.objects.get(vm__vm_id=vm_id, task__task_id=task_id)
         upload.last_edit_date = now()
@@ -1004,10 +1144,24 @@ class HybridDatabase(object):
             'has_no_errors': review.hasNoErrors,
             'published': review.published,
             'blinded': review.blinded
-        })
+        }) 
 
-        return {"run": self._run_as_dict(db_run),
+        returned_run = self._run_as_dict(db_run)
+        returned_run['review'] = self.get_run_review(dataset_id, vm_id, run.runId)
+
+        return {"run": returned_run,
                 "last_edit_date": upload.last_edit_date}
+
+    def add_docker_software(self, task_id, vm_id, user_image_name, command, tira_image_name):
+        docker_software = modeldb.DockerSoftware.objects.create(
+                vm=modeldb.VirtualMachine.objects.get(vm_id=vm_id),
+                task=modeldb.Task.objects.get(task_id=task_id),
+                command=command,
+                tira_image_name=tira_image_name,
+                user_image_name=user_image_name,
+                display_name=randomname.get_name()
+            )
+        return self._docker_software_to_dict(docker_software)
 
     def update_run(self, dataset_id, vm_id, run_id, deleted: bool = None):
         """ updates the run specified by dataset_id, vm_id, and run_id with the values given in the parameters.
@@ -1046,8 +1200,9 @@ class HybridDatabase(object):
         task.commandDescription = help_text
         open(task_file_path, 'w').write(str(task))
 
-    def edit_task(self, task_id: str, task_name: str, task_description: str, master_vm_id,
-                  organizer: str, website: str, help_command: str = None, help_text: str = None):
+    def edit_task(self, task_id: str, task_name: str, task_description: str, featured: bool, master_vm_id,
+                  organizer: str, website: str, require_registration: str, require_groups: str, restrict_groups: str,
+                  help_command: str = None, help_text: str = None, allowed_task_teams: str = None):
 
         task = modeldb.Task.objects.filter(task_id=task_id)
         vm = modeldb.VirtualMachine.objects.get(vm_id=master_vm_id)
@@ -1057,6 +1212,11 @@ class HybridDatabase(object):
             vm=vm,
             organizer=modeldb.Organizer.objects.get(organizer_id=organizer),
             web=website,
+            featured=featured,
+            require_registration=require_registration,
+            require_groups=require_groups,
+            restrict_groups=restrict_groups,
+            allowed_task_teams=allowed_task_teams,
         )
 
         if help_command:
@@ -1098,8 +1258,14 @@ class HybridDatabase(object):
 
         open(vm_file_path, 'w').write(str(vm))
 
-    def edit_dataset(self, task_id, dataset_id, dataset_name, command, working_directory, measures, upload_name, is_confidential):
+    def edit_dataset(self, task_id, dataset_id, dataset_name, command, working_directory, measures, upload_name,
+                     is_confidential, is_git_runner, git_runner_image, git_runner_command, git_repository_id):
         """
+
+        @param is_git_runner: a bool. If true, run_evaluations are done via git CI (see git_runner.py)
+        @param git_repository_id: the repo ID where the new run will be conducted
+        @param git_runner_command: the command for the runner
+        @param git_runner_image: which image should be run for the evalution
 
         """
         for_task = modeldb.Task.objects.get(task_id=task_id)
@@ -1114,20 +1280,34 @@ class HybridDatabase(object):
         dataset_type = 'test' if is_confidential else 'training'
 
         ev = modeldb.Evaluator.objects.filter(dataset__dataset_id=dataset_id)
-        ev.update(command=command, working_directory=working_directory, measures=measures)
+        ev.update(command=command, working_directory=working_directory, measures=measures,
+                  is_git_runner=is_git_runner, git_runner_image=git_runner_image,
+                  git_runner_command=git_runner_command, git_repository_id=git_repository_id)
         ev_id = modeldb.Evaluator.objects.get(dataset__dataset_id=dataset_id).evaluator_id
 
         self._fdb_edit_dataset(task_id, dataset_id, dataset_name, dataset_type, ev_id)
-        
+
         try:
             vm_id = modeldb.VirtualMachineHasEvaluator.objects.filter(evaluator__evaluator_id=ev_id)[0].vm.vm_id
             self._fdb_edit_evaluator_to_vm(vm_id, ev_id, command, working_directory, measures)
         except Exception as e:
-            logger.exception(f"failed to query 'VirtualMachineHasEvaluator' for evauator {ev_id}. Will not save changes made to the Filestore.", e)
+            logger.exception(
+                f"failed to query 'VirtualMachineHasEvaluator' for evauator {ev_id}. Will not save changes made to the Filestore.",
+                e)
 
         return self._dataset_to_dict(ds)
 
     def delete_software(self, task_id, vm_id, software_id):
+        """ Delete a software.
+            Deletion is denied when
+            - there is a successful evlauation assigned.
+        """
+        reviews_qs = modeldb.Review.objects.filter(run__input_run__software__software_id=software_id,
+                                                   run__input_run__software__task_id=task_id,
+                                                   run__input_run__software__vm_id=vm_id, no_errors=True)
+        if reviews_qs.exists():
+            return False
+
         s = self._load_softwares(task_id, vm_id)
         found = False
         for software in s.softwares:
@@ -1141,13 +1321,32 @@ class HybridDatabase(object):
         return found
 
     def delete_run(self, dataset_id, vm_id, run_id):
+        """ delete the run in the database and the run_dir with the software output/evaluation results
+
+        Do not delete if:
+          - another run uses this run as input_run
+          - the run is on the leaderboards
+
+            @return: true if it was deleted, false if it can not be deleted
+         """
         run_dir = Path(self.runs_dir_path / dataset_id / vm_id / run_id)
+        run = modeldb.Run.objects.get(run_id=run_id)
+
+
+        if modeldb.Run.objects.filter(input_run=run).exists():
+            return False
+
+        review = modeldb.Review.objects.get(run=run)
+        if review.published:
+            return False
+
         try:
             rmtree(run_dir)
         except FileNotFoundError as e:
             logger.exception(f'Tried to delete {run_dir} but it was not found. Deleting the run from Database ... ')
 
         modeldb.Run.objects.filter(run_id=run_id).delete()
+        return True
 
     def _fdb_delete_task(self, task_id):
         task_file_path = self.tasks_dir_path / f'{task_id}.prototext'
@@ -1187,17 +1386,35 @@ class HybridDatabase(object):
     def delete_dataset(self, dataset_id):
         ds = modeldb.Dataset.objects.select_related('default_task', 'evaluator').get(dataset_id=dataset_id)
         task_id = ds.default_task.task_id
-        evaluator_id = ds.evaluator.evaluator_id
         vm_id = ds.default_task.vm.vm_id
-        ds.delete()
+        try:
+            evaluator_id = ds.evaluator.evaluator_id
+            self._fdb_delete_evaluator_from_vm(vm_id, evaluator_id)
+        except AttributeError as e:
+            logger.exception(f"Exception deleting evaluator while deleting dataset {dataset_id}. "
+                             f"Maybe It never existed?", e)
         self._fdb_delete_dataset_from_task(task_id, dataset_id)
         self._fdb_delete_dataset(task_id, dataset_id)
-        self._fdb_delete_evaluator_from_vm(vm_id, evaluator_id)
+        ds.delete()
 
     def edit_organizer(self, organizer_id, name, years, web):
         org, _ = modeldb.Organizer.objects.update_or_create(organizer_id=organizer_id, defaults={
             'name': name, 'years': years, 'web': web})
         return org
+
+    def _registration_to_dict(self, registration):
+        return {
+            "user_id": registration.registered_vm.vm_id,
+            "task_id": registration.registered_on_task.task_id,
+            "name": registration.name,
+            "email": registration.email,
+            "affiliation": registration.affiliation,
+            "country": registration.country,
+            "employment": registration.employment,
+            "participates_for": registration.participates_for,
+            "instructor_name": registration.instructor_name,
+            "instructor_email": registration.instructor_email}
+
 
     # methods to check for existence
     @staticmethod
@@ -1224,3 +1441,15 @@ class HybridDatabase(object):
     def software_exists(task_id: str, vm_id: str, software_id: str) -> bool:
         return modeldb.Software.objects.filter(software_id=software_id, vm__vm_id=vm_id).exists()
 
+# modeldb.EvaluationLog.objects.filter(vm_id='nlptasks-master').delete()
+# print(modeldb.Run.objects.all().exclude(upload=None).values())
+
+# Note: To Reindex faulty runs
+# dataset_ids = set([run.input_dataset_id for run in modeldb.Run.objects.filter(upload=None, software=None, docker_software=None, evaluator=None)])
+# runs_dir = settings.TIRA_ROOT / Path("data/runs")
+# for d in dataset_ids:
+#     if not d:
+#         print("d is None")
+#         continue
+#     for vm_dir in (runs_dir / d).glob("*"):
+#         print(dbops.parse_runs_for_vm(runs_dir, d, vm_dir.stem, verbose=True))

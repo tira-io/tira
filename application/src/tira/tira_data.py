@@ -11,23 +11,21 @@ RUNS_DIR_PATH = DATA_ROOT / "runs"
 def get_run_runtime(dataset_id, vm_id, run_id):
     """ loads a runtime file (runtime.txt) and parses the string to return time, runtime_info"""
     run_dir = (RUNS_DIR_PATH / dataset_id / vm_id / run_id)
+    context = {"time": '0', "cpu": '0', "pagefaults": '0', "swaps": '0', 'error': ''}
     if not (run_dir / "runtime.txt").exists():
-        return None
+        return context
 
     runtime = open(run_dir / "runtime.txt", 'r').read()
     try:
-        time = runtime.split(" ")[2].strip("elapsed")
-        cpu = runtime.split(" ")[3]
-        pagefaults = runtime.split(" ")[6].strip("pagefaults").strip("(").strip(")")
-        swaps = runtime.split(" ")[7].strip("swaps")
+        context['time'] = runtime.split(" ")[2].strip("elapsed")
+        context['cpu'] = runtime.split(" ")[3]
+        context['pagefaults'] = runtime.split(" ")[6].strip("pagefaults").strip("(").strip(")")
+        context['swaps'] = runtime.split(" ")[7].strip("swaps")
     except IndexError as e:
         logger.exception(f"IndexError while parsing the runtime file {run_dir}/runtime.txt: {e}")
-        time = None
-        cpu = None
-        pagefaults = None
-        swaps = None
+        context['error'] = "IndexError while parsing the runtime file {run_dir}/runtime.txt"
 
-    return {"runtime": runtime, "time": time, "cpu": cpu, "pagefaults": pagefaults, "swaps": swaps}
+    return context
 
 
 def get_run_file_list(dataset_id, vm_id, run_id):
@@ -49,6 +47,8 @@ def get_run_file_list(dataset_id, vm_id, run_id):
         file_list = ["", "There are no files in the Output"]
     else:
         file_list = open(run_dir / "file-list.txt").read().split("\n")
+    if len(size) < 5:
+        size.extend(["0"] * (5 - len(size)))
 
     return {"size": size[1], "lines": size[2], "files": size[3], "dirs": size[4], "file_list": file_list}
 

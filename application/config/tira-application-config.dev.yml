@@ -24,3 +24,11 @@ database:
   password: TODO-ENTER-PASSWORD  # ignored when using sqlite3
   host: tira-mariadb  # ignored when using sqlite3
   port: 3306  # ignored when using sqlite3
+
+GIT_CI_SERVER_HOST: git.webis.de
+GIT_PRIVATE_TOKEN: OMMITTED-FROM-REPO
+GIT_USER_NAME: OMMITTED-FROM-REPO
+GIT_USER_PASSWORD: OMMITTED-FROM-REPO
+GIT_USER_REPOSITORY_NAMESPACE_ID: 146
+GIT_REGISTRY_PREFIX: registry.webis.de/code-research/tira
+GIT_USER_REPOSITORY_BRANCH: main

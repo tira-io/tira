@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import JsonResponse, FileResponse
 from django.conf import settings
+from django.core.cache import cache
 from django.core.serializers.json import DjangoJSONEncoder
 import logging
 
@@ -35,7 +36,11 @@ def add_context(func):
 
 @add_context
 def index(request, context):
-    context["tasks"] = model.get_tasks()
+    context["tasks"] = model.get_tasks(include_dataset_stats=True)
+    context["organizer_teams"] = auth.get_organizer_ids(request)
+    context["vm_ids"] = auth.get_vm_ids(request, None)
+    
+    
     if context["role"] != auth.ROLE_GUEST:
         context["vm_id"] = auth.get_vm_id(request, context["user_id"])
 
@@ -101,6 +106,22 @@ def _add_task_to_context(context, task_id, dataset_id):
     context["web"] = json.dumps(task['web'], cls=DjangoJSONEncoder)
 
 
+def _add_user_vms_to_context(request, context, task_id):
+    allowed_vms_for_task = None
+
+    if context["role"] != auth.ROLE_GUEST:
+        vm_id = auth.get_vm_id(request, context["user_id"])
+        vm_ids = []
+    
+        if allowed_vms_for_task is None or vm_id in allowed_vms_for_task:
+            context["vm_id"] = vm_id
+        
+        if getattr(auth, "get_vm_ids", None):
+            vm_ids = [i for i in auth.get_vm_ids(request, context["user_id"]) if allowed_vms_for_task is None or i in allowed_vms_for_task]
+        
+        context['user_vms_for_task'] = vm_ids
+
+
 @check_resources_exist('http')
 @add_context
 def task(request, context, task_id):
@@ -109,8 +130,7 @@ def task(request, context, task_id):
 
     To admins, it shows, in addition, a review overview page.
     """
-    if context["role"] != auth.ROLE_GUEST:
-        context["vm_id"] = auth.get_vm_id(request, context["user_id"])
+    _add_user_vms_to_context(request, context, task_id)
     _add_task_to_context(context, task_id, "")
     return render(request, 'tira/task.html', context)
 
@@ -123,21 +143,31 @@ def dataset(request, context, task_id, dataset_id):
 
     To admins, it shows, in addition, a review overview page.
     """
+    _add_user_vms_to_context(request, context, task_id)
+    _add_task_to_context(context, task_id, dataset_id)
+    return render(request, 'tira/task.html', context)
+
+
+@check_resources_exist('http')
+@add_context
+def user(request, context, vm_id):
+    """ TODO: this is apparently never called? """
     role = context["role"]
     if context["role"] != auth.ROLE_GUEST:
         context["vm_id"] = auth.get_vm_id(request, context["user_id"])
-    _add_task_to_context(context, task_id, dataset_id)
-    return render(request, 'tira/task.html', context)
+    return render(request, 'tira/software.html', context)
 
 
 @check_permissions
 @check_resources_exist('http')
 @add_context
 def software_detail(request, context, task_id, vm_id):
-    """ render the detail of the user page: vm-stats, softwares, and runs """
-
+    """ render the detail of the user page: vm-stats, softwares, and runs
+        This is called if a user goes to his 'submission' page.
+    """
     software = model.get_software_with_runs(task_id, vm_id)
     upload = model.get_upload_with_runs(task_id, vm_id)
+    docker = model.load_docker_data(task_id, vm_id, cache, force_cache_refresh=False)
 
     context["task"] = model.get_task(task_id)
     context["vm_id"] = vm_id
@@ -145,16 +175,17 @@ def software_detail(request, context, task_id, vm_id):
     context["software"] = software
     context["datasets"] = model.get_datasets_by_task(task_id)
     context["upload"] = upload
+    context["docker"] = docker
     context["is_default"] = vm_id.endswith("default")
 
-    return render(request, 'tira/software.html', context)
+    return render(request, 'tira/software.html', context) 
 
 
 @check_conditional_permissions(private_run_ok=True)
 @check_resources_exist('http')
 @add_context
 def review(request, context, task_id, vm_id, dataset_id, run_id):
-    """
+    """ @deprecated use the REST enpoints instead (data/get_review and admin/edit_review)
      - no_errors = hasNoErrors
      - output_error -> invalid_output and has_error_output
      - software_error <-> other_error

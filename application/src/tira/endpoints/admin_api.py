@@ -1,5 +1,7 @@
 import logging
 
+from django.conf import settings
+
 from tira.authentication import auth
 from tira.checks import check_permissions, check_resources_exist, check_conditional_permissions
 from tira.forms import *
@@ -7,8 +9,10 @@ from django.http import HttpResponse, JsonResponse
 from django.core.serializers.json import DjangoJSONEncoder
 from http import HTTPStatus
 import json
+from datetime import datetime as dt
 
 import tira.tira_model as model
+import tira.git_runner as git_runner
 
 logger = logging.getLogger("tira")
 logger.info("ajax_routes: Logger active")
@@ -104,7 +108,11 @@ def admin_create_task(request):
 
         task_id = data["task_id"]
         organizer = data["organizer"]
+        featured = data["featured"]
         master_vm_id = data["master_vm_id"]
+        require_registration = data['require_registration']
+        require_groups = data['require_groups']
+        restrict_groups = data['restrict_groups']
 
         if not model.organizer_exists(organizer):
             return JsonResponse({'status': 1, 'message': f"Organizer with ID {organizer} does not exist"})
@@ -113,9 +121,11 @@ def admin_create_task(request):
         if not model.vm_exists(master_vm_id):
             return JsonResponse({'status': 1, 'message': f"VM with ID {master_vm_id} does not exist"})
 
-        new_task = model.create_task(task_id, data["name"], data["description"], master_vm_id,
+        new_task = model.create_task(task_id, data["name"], data["description"], featured, master_vm_id,
                                      organizer, data["website"],
-                                     help_command=data["help_command"], help_text=data["help_text"])
+                                     require_registration, require_groups, restrict_groups,
+                                     help_command=data["help_command"], help_text=data["help_text"], allowed_task_teams=data["task_teams"])
+
         new_task = json.dumps(new_task, cls=DjangoJSONEncoder)
         return JsonResponse({'status': 0, 'context': new_task,
                              'message': f"Created Task with Id: {data['task_id']}"})
@@ -131,16 +141,20 @@ def admin_edit_task(request, task_id):
     if request.method == "POST":
         data = json.loads(request.body)
         organizer = data["organizer"]
+        featured = data["featured"]
         master_vm_id = data["master_vm_id"]
+        require_registration = data['require_registration']
+        require_groups = data['require_groups']
+        restrict_groups = data['restrict_groups']
 
         if not model.organizer_exists(organizer):
             return JsonResponse({'status': 1, 'message': f"Organizer with ID {organizer} does not exist"})
         if not model.vm_exists(master_vm_id):
             return JsonResponse({'status': 1, 'message': f"VM with ID {master_vm_id} does not exist"})
 
-        task = model.edit_task(task_id, data["name"], data["description"], master_vm_id,
-                               organizer, data["website"], help_command=data["help_command"],
-                               help_text=data["help_text"])
+        task = model.edit_task(task_id, data["name"], data["description"], featured, master_vm_id,
+                               organizer, data["website"], require_registration, require_groups, restrict_groups,
+                               help_command=data["help_command"], help_text=data["help_text"], allowed_task_teams=data["task_teams"])
 
         return JsonResponse({'status': 0, 'context': json.dumps(task, cls=DjangoJSONEncoder),
                              'message': f"Edited Task with Id: {task_id}"})
@@ -162,13 +176,25 @@ def admin_add_dataset(request):
     if request.method == "POST":
         data = json.loads(request.body)
 
+        if not all(k in data.keys() for k in ['dataset_id', 'name', 'task']):
+            return JsonResponse({'status': 1, 'message': f"Error: Task, dataset name, and dataset ID must be set."})
+
         dataset_id_prefix = data["dataset_id"]
         dataset_name = data["name"]
         task_id = data["task"]
-        upload_name = data["upload_name"]
-        command = data["evaluator_command"]
-        working_directory = data["evaluator_working_directory"]
-        measures = data["evaluation_measures"]
+
+        upload_name = data.get("upload_name", "predictions.jsonl")
+        command = data.get("evaluator_command", "")
+        working_directory = data.get("evaluator_working_directory", "")
+        measures = data.get("evaluation_measures", "")
+
+        is_git_runner = data.get("is_git_runner", False)
+        git_runner_image = data.get("git_runner_image", "")
+        git_runner_command = data.get("git_runner_command", "")
+        git_repository_id = data.get("git_repository_id", "")
+
+        if not data.get("use_existing_repository", True):
+            git_repository_id = git_runner.create_task_repository(task_id)
 
         master_vm_id = model.get_task(task_id)["master_vm_id"]
 
@@ -183,7 +209,8 @@ def admin_add_dataset(request):
             elif data['type'] == 'test':
                 ds, paths = model.add_dataset(task_id, dataset_id_prefix, "test", dataset_name, upload_name)
 
-            model.add_evaluator(master_vm_id, task_id, ds['dataset_id'], command, working_directory, measures)
+            model.add_evaluator(master_vm_id, task_id, ds['dataset_id'], command, working_directory, not measures,
+                                is_git_runner, git_runner_image, git_runner_command, git_repository_id)
             path_string = '\n '.join(paths)
             return JsonResponse(
                 {'status': 0, 'context': ds, 'message': f"Created new dataset with id {ds['dataset_id']}. "
@@ -214,6 +241,10 @@ def admin_edit_dataset(request, dataset_id):
         Display Name of Measure2,key_of_measure_2\n
         ...
         `
+    - is_git_runner
+    - git_runner_image
+    - git_runner_command
+    - git_repository_id
     """
     if request.method == "POST":
         data = json.loads(request.body)
@@ -224,7 +255,17 @@ def admin_edit_dataset(request, dataset_id):
 
         command = data["evaluator_command"]
         working_directory = data["evaluator_working_directory"]
-        measures = data["evaluation_measures"]
+        measures = "" # here for legacy reasons. TIRA uses the measures provided by the evaluator
+
+        is_git_runner = data["is_git_runner"]
+        git_runner_image = data["git_runner_image"]
+        git_runner_command = data["git_runner_command"]
+        git_repository_id = data["git_repository_id"]
+
+        print(data["use_existing_repository"])
+        print(data["git_repository_id"])
+        if not data["use_existing_repository"]:
+            git_repository_id = git_runner.create_task_repository(task_id)
 
         upload_name = data["upload_name"]
 
@@ -232,12 +273,98 @@ def admin_edit_dataset(request, dataset_id):
             return JsonResponse({'status': 1, "message": f"Task with ID {task_id} does not exist"})
 
         ds = model.edit_dataset(task_id, dataset_id, dataset_name, command, working_directory,
-                                measures, upload_name, is_confidential)
+                                measures, upload_name, is_confidential, is_git_runner, git_runner_image,
+                                git_runner_command, git_repository_id)
 
         return JsonResponse(
             {'status': 0, 'context': ds, 'message': f"Updated Dataset {ds['dataset_id']}."})
 
     return JsonResponse({'status': 1, 'message': f"GET is not implemented for add dataset"})
+
+
+def call_django_command_failsave(cmd):
+    from django.core.management import call_command
+    from io import StringIO
+    
+    captured_stdout = StringIO()
+    captured_stderr = StringIO()
+    
+    error = None
+    
+    sys.stdout = captured_stdout
+    sys.stderr = captured_stderr
+    
+    try:
+        call_command(cmd)
+    except Exception as e:
+        error = e
+    
+    sys.stdout = sys.__stdout__
+    sys.stderr = sys.__stderr__
+    
+    return {
+        'stdout': str(captured_stdout.getValue()),
+        'stderr': str(captured_stderr.getValue()),
+        'error': str(e)
+    }
+
+
+@check_permissions
+def admin_import_ir_dataset(request):
+    """ Create multiple datasets for the pased ir-dataset.
+     Return a json status message. """
+    if request.method == "POST":
+        data = json.loads(request.body)
+
+        if not all(k in data.keys() for k in ['dataset_id', 'name', 'task']):
+            return JsonResponse({'status': 1, 'message': f"Error: Task, dataset name, and dataset ID must be set."})
+
+        for dataset_type in ['full-rank', 're-rank', 'full-rank-unstructured', 're-rank-unstructured']:
+            dataset_id_prefix = data["dataset_id"] + dataset_type
+            dataset_name = data["name"] + dataset_type
+            task_id = data["task"]
+
+            upload_name = data.get("upload_name", "run.txt")
+            command = data.get("evaluator_command", "")
+            working_directory = data.get("evaluator_working_directory", "")
+            measures = data.get("evaluation_measures", "")
+
+            is_git_runner = data.get("is_git_runner", True)
+            git_runner_image = data.get("git_runner_image", settings.IR_MEASURES_IMAGE)
+            git_runner_command = data.get("git_runner_command", settings.IR_MEASURES_COMMAND)
+            git_repository_id = git_runner.create_task_repository(task_id)
+            master_vm_id = None
+
+            
+            command_out = call_django_command_failsave('ir_datasets_loader_cli')
+#            if not model.task_exists(task_id):
+#                return JsonResponse({'status': 1, "message": f"Task with ID {task_id} does not exist"})
+#            if data['type'] not in {'test', 'training'}:
+#                return JsonResponse({'status': 1, "message": f"Dataset type must be 'test' or 'training'"})
+
+            return JsonResponse(
+                {'status': 0, 'context': {}, 'message': f"Created new dataset with id .... "
+                                                        f"..." + command_out})
+
+#        try:
+#            if data['type'] == 'training':
+#                ds, paths = model.add_dataset(task_id, dataset_id_prefix, "training", dataset_name, upload_name)
+#            elif data['type'] == 'test':
+#                ds, paths = model.add_dataset(task_id, dataset_id_prefix, "test", dataset_name, upload_name)
+#
+#            model.add_evaluator(master_vm_id, task_id, ds['dataset_id'], command, working_directory, not measures,
+#                                is_git_runner, git_runner_image, git_runner_command, git_repository_id)
+#            path_string = '\n '.join(paths)
+#            return JsonResponse(
+#                {'status': 0, 'context': ds, 'message': f"Created new dataset with id {ds['dataset_id']}. "
+#                                                        f"Store your datasets in the following Paths:\n"
+#                                                        f"{path_string}"})
+#        except FileExistsError as e:
+#            logger.exception(e)
+#            return JsonResponse({'status': 1, 'message': f"A Dataset with this id already exists."})
+
+    return JsonResponse({'status': 1, 'message': f"GET is not implemented for add dataset"})
+
 
 
 @check_permissions
@@ -257,6 +384,7 @@ def admin_add_organizer(request, organizer_id):
         web = data["web"]
 
         model.edit_organizer(organizer_id, name, years, web)
+        auth.create_organizer_group(name, auth.get_user_id(request))
         return JsonResponse({'status': 0, 'message': f"Added Organizer {organizer_id}"})
 
     return JsonResponse({'status': 1, 'message': f"GET is not implemented for add organizer"})
@@ -285,3 +413,31 @@ def admin_create_group(request, vm_id):
     vm = model.get_vm(vm_id)
     message = auth.create_group(vm)
     return JsonResponse({'status': 0, 'message': message})
+
+
+@check_conditional_permissions(restricted=True)
+@check_resources_exist('json')
+def admin_edit_review(request, dataset_id, vm_id, run_id):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        no_errors = data["no_errors"]
+        output_error = data["output_error"]
+        software_error = data["software_error"]
+        comment = data["comment"]
+
+        # sanity checks
+        if no_errors and (output_error or software_error):
+            JsonResponse({'status': 1, 'message': f"Error type is not clearly selected."})
+
+        username = auth.get_user_id(request)
+        has_errors = output_error or software_error
+        has_no_errors = (not has_errors)
+
+        s = model.update_review(dataset_id, vm_id, run_id, username, str(dt.utcnow()),
+                                has_errors, has_no_errors, no_errors=no_errors,
+                                invalid_output=output_error,
+                                has_error_output=output_error, other_errors=software_error, comment=comment
+                                )
+        return JsonResponse({'status': 0, 'message': f"Updated review for run {run_id}"})
+
+    return JsonResponse({'status': 1, 'message': f"GET is not implemented for edit organizer"})

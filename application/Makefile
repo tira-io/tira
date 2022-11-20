@@ -1,9 +1,9 @@
-.PHONY: help setup run-develop build-docker clean
+.PHONY: help setup setup-webpack webpack run-develop build-docker clean
 
 VENV_NAME?=venv
 PYTHON=${VENV_NAME}/bin/python3
-VERSION_APPLICATION=0.0.12
-VERSION_GRPC=0.0.12
+VERSION_APPLICATION=0.0.22
+VERSION_GRPC=0.0.22
 
 
 .DEFAULT: help
@@ -12,6 +12,8 @@ help:
 	@echo "       setup venv, compile protobuf, give permissions to tira, and make migrations"
 	@echo "make run-develop"
 	@echo "       run server as tira user"
+	@echo "make run-git-develop"
+	@echo "       run git-runner-script in development mode"
 	@echo "make build-docker"
 	@echo "       build the docker containers "
 	@echo "make clean"
@@ -24,8 +26,25 @@ setup:
 	test -d $(VENV_NAME) || mkdir -p src/config/
 	cp config/tira-application-config.dev.yml src/config/settings.yml
 	make venv
+	make webpack
 	sh -c ". $(VENV_NAME)/bin/activate && \
-	python3 src/manage.py index_model"
+	python3 src/manage.py index_model && \
+	python3 src/manage.py createcachetable"
+
+#setup-webpack:
+#    npm add vue@next webpack-bundle-tracker@0.4.3 uikit; \
+#    npm add --dev vue-loader@v16.8.2 webpack-cli webpack webpack-dev-server typescript ts-loader @vue/compiler-sfc style-loader css-loader
+
+webpack:
+	cd ./src/tira/frontend/; \
+	npm install; \
+	npm run build
+
+webpack-watch:
+	cd ./src/tira/frontend/;\
+	npm install; \
+	npm run plain
+
 
 # Requirements are in setup.py, so whenever setup.py is changed, re-run installation of dependencies.
 venv:
@@ -36,6 +55,14 @@ venv:
 
 run-develop: venv
 	cp config/tira-application-config.dev.yml src/config/settings.yml
+	sh -c ". $(VENV_NAME)/bin/activate && \
+	python3 src/manage.py run_develop"
+
+run-git-develop: venv
+	cat config/tira-application-config.dev.yml |grep -v '^GIT_' > src/config/settings.yml
+	kubectl -n services-tira get configmap tira-application-test-config -o json| jq --raw-output '.data."settings-test.yml"'|grep '^GIT_' >> src/config/settings.yml
+	sh -c ". $(VENV_NAME)/bin/activate && cd src &&\
+		python3 manage.py git_runner_cli"
 	sh -c ". $(VENV_NAME)/bin/activate && \
 	python3 src/manage.py run_develop"
 
@@ -54,6 +81,14 @@ run-docker:
 build-docker:
 	docker build --tag webis/tira-application:${VERSION_APPLICATION} -f Dockerfile.application ..
 	docker build --tag webis/tira-application-grpc:${VERSION_GRPC} -f Dockerfile.application-grpc ..
+
+docker-publish:
+	docker push webis/tira-application:basis-${VERSION_APPLICATION}
+	docker push webis/tira-application:${VERSION_APPLICATION}
+	docker push webis/tira-application-grpc:${VERSION_GRPC}
+
+build-docker-basis:
+	docker build --tag webis/tira-application:basis-${VERSION_APPLICATION} -f Dockerfile.basis ..
 
 clean:
 	rm -r $(VENV_NAME)

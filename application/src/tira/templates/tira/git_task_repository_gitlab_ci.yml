@@ -1,0 +1,101 @@
+stages:
+  - Preparation
+  - Run Software
+  - Persist Software Result
+  - Evaluate Software Result
+  - Persist Evaluation Result
+
+prepare-tira-environment:
+  stage: Preparation
+  image:
+    name: webis/tira-git:0.0.57
+    pull_policy: if-not-present
+  artifacts:
+    untracked: true
+    reports:
+      dotenv: task.env
+  script:
+    - tira-test-runner-is-trustworthy.sh
+    - tira-specify-task-to-run.py > task.env
+    - cat task.env
+  tags:
+    - tira-evaluator
+
+run-user-software:
+  stage: Run Software
+  dependencies:
+    - prepare-tira-environment
+  artifacts:
+    untracked: true
+    reports:
+      dotenv: task.env
+  image:
+    name: "${TIRA_IMAGE_TO_EXECUTE}"
+    pull_policy: if-not-present
+  timeout: "24 hours"
+  variables:
+   KUBERNETES_CPU_REQUEST: ${TIRA_CPU_COUNT}
+   KUBERNETES_CPU_LIMIT: ${TIRA_CPU_COUNT}
+   KUBERNETES_MEMORY_REQUEST: "${TIRA_MEMORY_IN_GIBIBYTE}Gi"
+   KUBERNETES_MEMORY_LIMIT: "${TIRA_MEMORY_IN_GIBIBYTE}Gi"
+   TIRA_GPU: "0"
+  script:
+    - env|grep 'TIRA' > task.env
+    - test -n "${TIRA_OUTPUT_DIR}" && mkdir -p ${TIRA_OUTPUT_DIR}
+    - echo "${TIRA_COMMAND_TO_EXECUTE}"
+    - eval "${TIRA_COMMAND_TO_EXECUTE}"
+    - env|grep 'TIRA' > task.env
+  allow_failure: true
+  tags:
+    - tira-user-software-runner
+    - ${TIRA_GPU}-gpu
+
+persist-software-result:
+  stage: Persist Software Result
+  image:
+    name: webis/tira-git:0.0.57
+    pull_policy: if-not-present
+  artifacts:
+    untracked: true
+    reports:
+      dotenv: task.env
+  script:
+    - tira-persist-software-result.py
+  dependencies: 
+    - run-user-software
+  tags:
+    - write-tira-data
+
+evaluate-software-result:
+  stage: Evaluate Software Result
+  dependencies:
+    - persist-software-result
+  artifacts:
+    untracked: true
+    reports:
+      dotenv: task.env
+  image:
+    name: "${TIRA_EVALUATION_IMAGE_TO_EXECUTE}"
+    pull_policy: if-not-present
+  script:
+    - env|grep 'TIRA' > task.env
+    - test -n "${TIRA_EVALUATION_OUTPUT_DIR}" && mkdir -p ${TIRA_EVALUATION_OUTPUT_DIR}
+    - echo "${TIRA_EVALUATION_COMMAND_TO_EXECUTE}"
+    - eval "${TIRA_EVALUATION_COMMAND_TO_EXECUTE}"
+    - env|grep 'TIRA' > task.env
+  allow_failure: true
+  tags:
+    - tira-user-software-runner
+
+persist-evaluation-result:
+  stage: Persist Evaluation Result
+  image:
+    name: webis/tira-git:0.0.57
+    pull_policy: if-not-present
+  script:
+    - tira-persist-evaluation-result.sh
+  dependencies: 
+    - evaluate-software-result
+  tags:
+    - write-tira-data
+

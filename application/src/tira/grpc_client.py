@@ -17,13 +17,16 @@ logger = logging.getLogger("tira")
 grpc_port = settings.HOST_GRPC_PORT
 
 
-def new_transaction(message):
+def new_transaction(message, in_grpc=True):
     """ A convenience method to create a new transaction with a :@param message:, save it to the database,
     and wrap it in a protobuf Transaction to be returned.
     """
     transaction_id = str(uuid4())
     _ = TransactionLog.objects.create(transaction_id=transaction_id, completed=False, last_message=message)
-    return tira_host_pb2.Transaction(transactionId=transaction_id)
+    if in_grpc:
+        return tira_host_pb2.Transaction(transactionId=transaction_id)
+
+    return transaction_id
 
 
 def auto_transaction(msg):
@@ -150,6 +153,7 @@ class GrpcClient:
             t = TransactionLog.objects.get(transaction_id=transaction.transactionId)
             _ = EvaluationLog.objects.update_or_create(vm_id=vm_id, run_id=run_id, running_on=vm_id,
                                                        transaction=t)
+
         logger.debug("Application received run-eval response: " + str(response.message))
         return response
 

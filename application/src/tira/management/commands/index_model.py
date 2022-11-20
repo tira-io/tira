@@ -17,5 +17,4 @@ class Command(BaseCommand):
         call_command('makemigrations')
         call_command('makemigrations', 'tira')
         call_command('migrate')
-        hd = HybridDatabase()
-        hd.build_model()
+        HybridDatabase().create_model()
