@@ -4,6 +4,7 @@ import UploadSubmissionPanel from './components/submission/upload-submission-pan
 import DockerSubmissionPanel from './components/submission/docker-submission-panel.vue'
 import VmSubmissionPanel from './components/submission/vm-submission-panel.vue'
 import RunningProcessList from './components/running-process-list.vue'
+import SelectTeamButton from './components/select-team-button.vue'
 
 import {createApp, createCommentVNode} from 'vue';
 import UIkit from 'uikit';
@@ -51,6 +52,7 @@ const app = createApp({
             role: '',
             task: '',
             userId: '',
+            userVmsForTask: [],
             vm: '',
             vmState: 10,
             vmStatus: {
@@ -90,7 +92,7 @@ const app = createApp({
     },
     components: {
         NotificationBar, VmControlPanel, UploadSubmissionPanel, DockerSubmissionPanel, VmSubmissionPanel,
-        RunningProcessList
+        RunningProcessList, SelectTeamButton
     },
     methods: {
         async get(url) {
@@ -313,6 +315,7 @@ const app = createApp({
                 this.datasets = message.context.datasets
                 this.upload = message.context.upload
                 this.docker = message.context.docker
+                this.userVmsForTask = message.context.user_vms_for_task
                 this.isDefault = message.context.is_default
                 if(!this.isDefault) {
                     this.loadVmInfo()

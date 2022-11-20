@@ -349,6 +349,7 @@ def all_allowed_task_teams(task_id):
     task = get_task(task_id)
     return set([i.strip() for i in task['allowed_task_teams'].split() if i.strip()])
 
+
 def user_is_registered(task_id, request):
     task = get_task(task_id)
     allowed_task_teams = all_allowed_task_teams(task_id)

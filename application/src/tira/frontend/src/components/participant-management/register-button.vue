@@ -1,6 +1,6 @@
 <template>
 <div>
-    <a  v-if="!requireRegistration || userIsRegistered" class="uk-button uk-button-primary uk-text-large"
+    <a  v-if="(!requireRegistration || userIsRegistered) && userVmsForTask.length <= 1" class="uk-button uk-button-primary uk-text-large"
          uk-tooltip="title: Go to the submission page for this task;" :href="submissionLink" :disabled="!loaded">
         <font-awesome-icon icon="fas fa-terminal" class="uk-margin-right" />Submit
     </a>
@@ -12,6 +12,11 @@
         <span v-if="!userIsRegistered">Register new Team</span>
     </a>
     <span v-else-if="requireRegistration && !userId">Please <a href='/login'>Login to TIRA</a> to register your Team and Submit</span>
+
+    <span v-if="(!requireRegistration || userIsRegistered)  && userVmsForTask.length > 1">
+        <select-team-button :user-vms-for-task="userVmsForTask" :task-id="this.taskId" rendering="long" />
+    </span>
+
 
     <!--<a if="!userIsRegistered && requireRegistration" class="uk-button uk-text-large"
         :class="{'uk-button-primary': !userIsRegistered, 'uk-button-default': userIsRegistered}"
@@ -107,6 +112,7 @@
 </template>
 <script>
 import { get, submitPost } from "../../utils/getpost";
+import SelectTeamButton from '../select-team-button.vue'
 
 export default {
   name: "register-button",
@@ -200,5 +206,6 @@ export default {
     }
   },
   emits: ['addNotification', 'updateUserVmsForTask', 'closeModal'],
+  components: {SelectTeamButton},
 }
 </script>
