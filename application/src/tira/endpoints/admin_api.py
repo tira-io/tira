@@ -337,32 +337,24 @@ def admin_import_ir_dataset(request):
             git_repository_id = git_runner.create_task_repository(task_id)
             master_vm_id = None
 
-            command_out = call_django_command_failsave('ir_datasets_loader_cli', {'ir_datasets_id': data["dataset_id"], 'output_path': '/tmp/' + dataset_name})
-#            if not model.task_exists(task_id):
-#                return JsonResponse({'status': 1, "message": f"Task with ID {task_id} does not exist"})
-#            if data['type'] not in {'test', 'training'}:
-#                return JsonResponse({'status': 1, "message": f"Dataset type must be 'test' or 'training'"})
+            try:
+                if data['type'] == 'training':
+                    ds, (dataset_path, dataset_truth_path) = model.add_dataset(task_id, dataset_id_prefix, "training", dataset_name, upload_name)
+                elif data['type'] == 'test':
+                    ds, (dataset_path, dataset_truth_path) = model.add_dataset(task_id, dataset_id_prefix, "test", dataset_name, upload_name)
+
+            except FileExistsError as e:
+                logger.exception(e)
+                return JsonResponse({'status': 1, 'message': f"A Dataset with this id already exists."})
+            
+            model.add_evaluator(master_vm_id, task_id, ds['dataset_id'], command, working_directory, not measures,
+                                is_git_runner, git_runner_image, git_runner_command, git_repository_id)
+
+            command_out = call_django_command_failsave('ir_datasets_loader_cli', {'ir_datasets_id': data["dataset_id"], 'output_dataset_path': dataset_path, 'output_dataset_truth_path': dataset_truth_path})
 
             return JsonResponse(
                 {'status': 1 if command_out['error'] else 0, 'context': {}, 'message': f"Created new dataset with id .... "
                                                         f"..." + str(command_out)})
-
-#        try:
-#            if data['type'] == 'training':
-#                ds, paths = model.add_dataset(task_id, dataset_id_prefix, "training", dataset_name, upload_name)
-#            elif data['type'] == 'test':
-#                ds, paths = model.add_dataset(task_id, dataset_id_prefix, "test", dataset_name, upload_name)
-#
-#            model.add_evaluator(master_vm_id, task_id, ds['dataset_id'], command, working_directory, not measures,
-#                                is_git_runner, git_runner_image, git_runner_command, git_repository_id)
-#            path_string = '\n '.join(paths)
-#            return JsonResponse(
-#                {'status': 0, 'context': ds, 'message': f"Created new dataset with id {ds['dataset_id']}. "
-#                                                        f"Store your datasets in the following Paths:\n"
-#                                                        f"{path_string}"})
-#        except FileExistsError as e:
-#            logger.exception(e)
-#            return JsonResponse({'status': 1, 'message': f"A Dataset with this id already exists."})
 
     return JsonResponse({'status': 1, 'message': f"GET is not implemented for add dataset"})
 

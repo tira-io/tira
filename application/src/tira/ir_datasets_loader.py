@@ -14,12 +14,13 @@ class IrDatasetsLoader(object):
         except:
             raise ValueError(f'Could not load the dataset {ir_datasets_id}. Does it exist?')
 
-    def load_dataset_for_fullrank(self, ir_datasets_id: str, output_path: Path, include_original=False) -> None:
+    def load_dataset_for_fullrank(self, ir_datasets_id: str, output_dataset_path: Path, output_dataset_truth_path: Path,  include_original=False) -> None:
         """ Loads a dataset through the ir_datasets package by the given ir_datasets ID.
         Maps documents, queries, qrels to a standardized format in preparation for full-rank operations with PyTerrier.
         
         @param ir_datasets_id: the dataset ID as of ir_datasets
-        @param output_path: the path to the directory where the output files will be stored
+        @param output_dataset_path: the path to the directory where the output files will be stored
+        @param output_dataset_truth_path: the path to the directory where the output files will be stored
         @param include_original {False}: flag which signals if the original data of documents and queries should be included 
         """
         dataset = self.load_irds(ir_datasets_id)
@@ -28,17 +29,18 @@ class IrDatasetsLoader(object):
         queries_mapped = (self.map_query(query, include_original) for query in dataset.queries_iter())
         qrels_mapped = (self.map_qrel(qrel) for qrel in dataset.qrels_iter())
         
-        self.write_lines_to_file(docs_mapped, output_path/"documents.jsonl")
-        self.write_lines_to_file(queries_mapped, output_path/"queries.jsonl")
-        self.write_lines_to_file(qrels_mapped, output_path/"qrels.txt")
-        
+        self.write_lines_to_file(docs_mapped, output_dataset_path/"documents.jsonl")
+        self.write_lines_to_file(queries_mapped, output_dataset_path/"queries.jsonl")
+        self.write_lines_to_file(qrels_mapped, output_dataset_truth_path/"qrels.txt")
 
-    def load_dataset_for_rerank(self, ir_datasets_id: str, output_path: Path, include_original: bool, run_file: Path) -> None:
+
+    def load_dataset_for_rerank(self, ir_datasets_id: str, output_dataset_path: Path, output_dataset_truth_path: Path, include_original: bool, run_file: Path) -> None:
         """ Loads a dataset through ir_datasets package by the given ir_datasets ID.
         Maps qrels and TREC-run-formatted data by a given file to a format fitted for re-rank operations with PyTerrier.
         
         @param ir_datasets_id: the dataset ID as of ir_datasets
-        @param output_path: the path to the directory where the output files will be created
+        @param output_dataset_path: the path to the directory where the output files will be stored
+        @param output_dataset_truth_path: the path to the directory where the output files will be stored
         @param include_original {False}: flag which signals if the original data of documents and queries should be included
         @param run_file: the path to a file with data in TREC-run format
         """
@@ -50,8 +52,8 @@ class IrDatasetsLoader(object):
         
         qrels_mapped = (self.map_qrel(qrel) for qrel in dataset.qrels_iter())
         
-        self.write_lines_to_file(rerank, output_path/"rerank.jsonl")
-        self.write_lines_to_file(qrels_mapped, output_path/"qrels.txt")
+        self.write_lines_to_file(rerank, output_dataset_path/"rerank.jsonl")
+        self.write_lines_to_file(qrels_mapped, output_dataset_truth_path/"qrels.txt")
 
 
     def map_doc(self, doc: tuple, include_original=False) -> str:
@@ -65,8 +67,7 @@ class IrDatasetsLoader(object):
         ret = {
             "docno": doc.doc_id,
             # TODO: change when .default_text() is implemented
-            # "text": doc.default_text()      
-            "text": json.dumps(doc._asdict()) 
+            "text":doc.default_text()
         }
         if include_original:
             ret["original_doc"] = doc._asdict()
@@ -76,9 +77,8 @@ class IrDatasetsLoader(object):
     def map_query(self, query: tuple, include_original=False) -> str:
         ret = {
             "qid": query.query_id,
-            # TODO: change when .default_text() is implemented
-            # "text": query.default_text()
-            "query": json.dumps(query._asdict())
+            #"query": query.default_text()
+            "query": query.text,
         }
         if include_original:
             ret["original_doc"] = query._asdict()
