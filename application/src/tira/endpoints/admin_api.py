@@ -1,6 +1,7 @@
 import logging
 
 from django.conf import settings
+import traceback
 
 from tira.authentication import auth
 from tira.checks import check_permissions, check_resources_exist, check_conditional_permissions
@@ -298,7 +299,8 @@ def call_django_command_failsave(cmd, args):
     try:
         call_command(cmd, **args)
     except Exception as e:
-        error = e
+        error = str(e)
+        error += '\n\n' + traceback.format_exc()
     
     sys.stdout = sys.__stdout__
     sys.stderr = sys.__stderr__
@@ -306,7 +308,7 @@ def call_django_command_failsave(cmd, args):
     return {
         'stdout': str(captured_stdout.getvalue()),
         'stderr': str(captured_stderr.getvalue()),
-        'error': None if error is None else str(error)
+        'error': error
     }
 
 
