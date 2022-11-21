@@ -19,7 +19,7 @@ import { faCheck, faTimes, faUserSlash, faUsers, faUsersSlash, faLevelUpAlt, faU
 
 library.add(faCheck, faTimes, faUserSlash, faUsers, faUsersSlash, faLevelUpAlt, faUser, faSearch, faDownload, faSave,
     faTrashAlt, faCog, faPlus, faSort, faSortUp, faSortDown, faSortAmountUp, faSortAlphaUp,
-    faSortNumericUp, faSortAmountDown, faSortAlphaDown, faSortNumericDown, faEye, faEyeSlash, faSignInAlt)
+    faSortNumericUp, faSortAmountDown, faSortAlphaDown, faSortNumericDown, faEye, faEyeSlash, faSignInAlt, faFileImport)
 
 // CSS
 require('../../static/tira/css/tira-style.css');
