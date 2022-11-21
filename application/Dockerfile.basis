@@ -18,7 +18,8 @@ RUN addgroup --gid 1010 tira && \
 	mkdir /tira-tmp-debug && \
 	mkdir -p /tira/application/src/tira && \
 	mkdir -p /etc/nginx/logs && \
-	mkdir -p /mnt/ceph/tira
+	mkdir -p /mnt/ceph/tira && \
+	mkdir -p /root/.ir_datasets
 
 COPY application/requirements.txt application/src/tira/frontend /tira-dependencies/
 COPY protocol/build/python/* /tira/application/src/tira/proto/
@@ -32,7 +33,8 @@ RUN chown -R tira:tira /usr/local && \
 	touch /var/log/tira_debug.txt &&\
 	touch /tira/application/src/debug.log &&\
 	chown tira:tira /var/log/tira_debug.txt &&\
-	chown tira:tira  /tira/application/src/debug.log &&\
+	chown tira:tira /tira/application/src/debug.log &&\
+	chown -R tira:tira /root/.ir_datasets &&\
 	mkdir -p /home/tira/.tira &&\
 	mkdir -p /mnt/ceph/tira/log/tira-application &&\
 	mkdir /home/tira/.ssh &&\
