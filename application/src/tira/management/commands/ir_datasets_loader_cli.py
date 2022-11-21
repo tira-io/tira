@@ -39,22 +39,29 @@ class Command(BaseCommand):
         datasets_loader.load_dataset_for_rerank(ir_datasets_id, output_path, include_original, run_file)
 
 
+    def contains_all_required_args(self, options):
+        return 'ir_datasets_id' in options and options['ir_datasets_id'] \
+            and 'output_path' in options and options['output_path'] \
+            and 'rerank' in options
+
     def handle(self, *args, **options):
-        if 'ir_datasets_id' in options and options['ir_datasets_id'] and 'output_path' in options and options['output_path']:
-            if 'rerank' in options and not options['rerank']:
-                self.import_dataset_for_fullrank(
-                    options['ir_datasets_id'], 
-                    options['output_path'], 
-                    options['include_original']
-                )
-            if 'rerank' in options and options['rerank']:
-                self.import_dataset_for_rerank(
-                    options['ir_datasets_id'], 
-                    options['output_path'], 
-                    options['include_original'],     
-                    options['rerank']
-                )
+        if not self.contains_all_required_args(options):
+            return
         
+        if options['rerank']:
+            self.import_dataset_for_rerank(
+                options['ir_datasets_id'], 
+                Path(options['output_path']), 
+                options['include_original'],     
+                options['rerank']
+            )
+        else:
+            self.import_dataset_for_fullrank(
+                options['ir_datasets_id'], 
+                Path(options['output_path']), 
+                options['include_original']
+            )
+
 
     def add_arguments(self, parser):
         parser.add_argument('--ir_datasets_id', default=None, type=str)

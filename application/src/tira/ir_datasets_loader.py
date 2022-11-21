@@ -7,6 +7,13 @@ from typing import Iterable
 class IrDatasetsLoader(object):
     """ Base class for loading datasets in a standardized format"""
 
+    def load_irds(self, ir_datasets_id):
+        import ir_datasets
+        try:
+            return ir_datasets.load(ir_datasets_id)
+        except:
+            raise ValueError(f'Could not load the dataset {ir_datasets_id}. Does it exist?')
+
     def load_dataset_for_fullrank(self, ir_datasets_id: str, output_path: Path, include_original=False) -> None:
         """ Loads a dataset through the ir_datasets package by the given ir_datasets ID.
         Maps documents, queries, qrels to a standardized format in preparation for full-rank operations with PyTerrier.
@@ -15,8 +22,7 @@ class IrDatasetsLoader(object):
         @param output_path: the path to the directory where the output files will be stored
         @param include_original {False}: flag which signals if the original data of documents and queries should be included 
         """
-        import ir_datasets
-        dataset = ir_datasets.load(ir_datasets_id)
+        dataset = self.load_irds(ir_datasets_id)
         
         docs_mapped = (self.map_doc(doc, include_original) for doc in dataset.docs_iter())
         queries_mapped = (self.map_query(query, include_original) for query in dataset.queries_iter())
@@ -36,7 +42,7 @@ class IrDatasetsLoader(object):
         @param include_original {False}: flag which signals if the original data of documents and queries should be included
         @param run_file: the path to a file with data in TREC-run format
         """
-        dataset = ir_datasets.load(ir_datasets_id)  
+        dataset = self.load_irds(ir_datasets_id)
         
         id_pairs = self.extract_ids_from_run_file(run_file)
         docs = self.get_docs_by_ids(dataset, [id[1] for id in id_pairs])
@@ -72,7 +78,7 @@ class IrDatasetsLoader(object):
             "qid": query.query_id,
             # TODO: change when .default_text() is implemented
             # "text": query.default_text()
-            "query": query.title
+            "query": json.dumps(query._asdict())
         }
         if include_original:
             ret["original_doc"] = query._asdict()
@@ -115,6 +121,7 @@ class IrDatasetsLoader(object):
     def write_lines_to_file(self, lines: Iterable[str], path: Path) -> None:
         if(path.exists()):
             raise RuntimeError(f"File already exists: {path}")
+        path.parent.mkdir(parents=True, exist_ok=True)
         with path.open('wt') as file:
             file.writelines('%s\n' % line for line in lines)
 

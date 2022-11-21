@@ -282,9 +282,10 @@ def admin_edit_dataset(request, dataset_id):
     return JsonResponse({'status': 1, 'message': f"GET is not implemented for add dataset"})
 
 
-def call_django_command_failsave(cmd):
+def call_django_command_failsave(cmd, args):
     from django.core.management import call_command
     from io import StringIO
+    import sys
     
     captured_stdout = StringIO()
     captured_stderr = StringIO()
@@ -295,7 +296,7 @@ def call_django_command_failsave(cmd):
     sys.stderr = captured_stderr
     
     try:
-        call_command(cmd)
+        call_command(cmd, **args)
     except Exception as e:
         error = e
     
@@ -303,9 +304,9 @@ def call_django_command_failsave(cmd):
     sys.stderr = sys.__stderr__
     
     return {
-        'stdout': str(captured_stdout.getValue()),
-        'stderr': str(captured_stderr.getValue()),
-        'error': str(e)
+        'stdout': str(captured_stdout.getvalue()),
+        'stderr': str(captured_stderr.getvalue()),
+        'error': None if error is None else str(error)
     }
 
 
@@ -319,9 +320,10 @@ def admin_import_ir_dataset(request):
         if not all(k in data.keys() for k in ['dataset_id', 'name', 'task']):
             return JsonResponse({'status': 1, 'message': f"Error: Task, dataset name, and dataset ID must be set."})
 
-        for dataset_type in ['full-rank', 're-rank', 'full-rank-unstructured', 're-rank-unstructured']:
-            dataset_id_prefix = data["dataset_id"] + dataset_type
-            dataset_name = data["name"] + dataset_type
+        #for dataset_type in ['full-rank', 're-rank', 'full-rank-unstructured', 're-rank-unstructured']:
+        for dataset_type in ['full-rank']:
+            dataset_id_prefix = data["dataset_id"] + '-' + dataset_type
+            dataset_name = data["name"] + '-' + dataset_type
             task_id = data["task"]
 
             upload_name = data.get("upload_name", "run.txt")
@@ -335,16 +337,15 @@ def admin_import_ir_dataset(request):
             git_repository_id = git_runner.create_task_repository(task_id)
             master_vm_id = None
 
-            
-            command_out = call_django_command_failsave('ir_datasets_loader_cli')
+            command_out = call_django_command_failsave('ir_datasets_loader_cli', {'ir_datasets_id': data["dataset_id"], 'output_path': '/tmp/' + dataset_name})
 #            if not model.task_exists(task_id):
 #                return JsonResponse({'status': 1, "message": f"Task with ID {task_id} does not exist"})
 #            if data['type'] not in {'test', 'training'}:
 #                return JsonResponse({'status': 1, "message": f"Dataset type must be 'test' or 'training'"})
 
             return JsonResponse(
-                {'status': 0, 'context': {}, 'message': f"Created new dataset with id .... "
-                                                        f"..." + command_out})
+                {'status': 1 if command_out['error'] else 0, 'context': {}, 'message': f"Created new dataset with id .... "
+                                                        f"..." + str(command_out)})
 
 #        try:
 #            if data['type'] == 'training':

@@ -1,5 +1,5 @@
 <template>
-<span v-if="this.importDatasetError !== ''" class="uk-text-danger uk-margin-small-left">{{ this.addDatasetError }}</span>
+<span v-if="this.importDatasetError !== ''" class="uk-text-danger uk-margin-small-left">{{ this.importDatasetError }}</span>
 <div class="uk-card uk-card-small uk-card-default uk-card-body uk-width-1-1">
   <div class="uk-grid-small uk-margin-small" uk-grid>
 
@@ -15,13 +15,13 @@
     <div class="uk-width-2-5">
           <label>Dataset Name*
           <input class="uk-input" type="text" placeholder="Name of the Dataset"
-                 :class="{'uk-form-danger': (this.addDatasetError !== '' && this.datasetNameInput === '')}"
+                 :class="{'uk-form-danger': (this.importDatasetError !== '' && this.datasetNameInput === '')}"
                  v-model="datasetNameInput"></label>
       </div>
       <div class="uk-width-1-5">
           <label>Task*
           <select class="uk-select" v-model="this.selectedTask"
-                 :class="{'uk-form-danger': (this.addDatasetError !== '' && this.selectedTask === '')}">
+                 :class="{'uk-form-danger': (this.importDatasetError !== '' && this.selectedTask === '')}">
               <option disabled value="">Please select a task</option>
               <option v-for="task in this.taskList" :value="task">{{ task.task_id }}</option>
           </select></label>
@@ -78,7 +78,8 @@ export default {
               this.$emit('adddataset', message.context)
           }).catch(error => {
               console.log(error)
-              this.addDatasetError = error
+              this.importDatasetError = error
+              this.$emit('addnotification', 'error', error.message)
           })
       },
       getTaskById(task_id){
