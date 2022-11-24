@@ -185,7 +185,7 @@ def get_user(request, context, task_id, user_id):
     
     # is_default indicates whether the user has a docker-only team, i.e., no virtual machine.
     # This is the case if the user-vm ends with default or if no host or admin name is configured.
-    context["is_default"] = vm_id.endswith("default") or not vm['host'] or not vm['admin_name']
+    context["is_default"] = user_id.endswith("default") or not vm['host'] or not vm['admin_name']
 
     _add_user_vms_to_context(request, context, task_id)
 
