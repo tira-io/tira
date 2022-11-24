@@ -173,15 +173,20 @@ def get_user(request, context, task_id, user_id):
     software = model.get_software_with_runs(task_id, user_id)
     upload = model.get_upload_with_runs(task_id, user_id)
     docker = model.load_docker_data(task_id, user_id, cache, force_cache_refresh=False)
+    vm = model.get_vm(user_id)
 
     context["task"] = model.get_task(task_id)
     context["user_id"] = user_id
-    context["vm"] = model.get_vm(user_id)
+    context["vm"] = vm
     context["software"] = software
     context["datasets"] = model.get_datasets_by_task(task_id)
     context["upload"] = upload
     context["docker"] = docker
-    context["is_default"] = user_id.endswith("default")
+    
+    # is_default indicates whether the user has a docker-only team, i.e., no virtual machine.
+    # This is the case if the user-vm ends with default or if no host or admin name is configured.
+    context["is_default"] = vm_id.endswith("default") or not vm['host'] or not vm['admin_name']
+
     _add_user_vms_to_context(request, context, task_id)
 
     return JsonResponse({'status': 0, "context": context})
