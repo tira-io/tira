@@ -125,7 +125,12 @@
         <p v-html="task.command_description"></p>
     </div>
 </div>
-
+<div class="uk-grid-small" uk-grid>
+    <div class="uk-width-1-2">&nbsp;</div>
+    <div class="uk-width-1-6">&nbsp;</div>
+    <div class="uk-width-1-6 uk-text-light">Last Refresh: {{ docker.docker_images_last_refresh.slice(11,19) }}&nbsp;</div>
+    <div class="uk-width-1-6 uk-text-light"><a @click="update_docker_images_cache()">Refresh Images</a></div>
+</div>
 <div v-if="!showNewImageForm && ! showUploadVm" class="uk-margin-small">
     <review-list
         v-if="selectedRuns"
@@ -138,12 +143,6 @@
         @addNotification="(type, message) => $emit('addNotification', type, message)"
         @removeRun="(runId) => $emit('removeRun', runId, 'docker')"
         @pollEvaluations="() => $emit('pollEvaluations')"/>
-</div>
-<div class="uk-grid-small" uk-grid>
-    <div class="uk-width-1-2">&nbsp;</div>
-    <div class="uk-width-1-6 uk-text-light">Last Refresh: {{ docker.docker_images_last_refresh.slice(11,19) }}&nbsp;</div>
-    <div class="uk-width-1-6 uk-text-light">Next Refresh: {{ docker.docker_images_next_refresh.slice(11,19) }}&nbsp;</div>
-    <div class="uk-width-1-6 uk-text-light"><a @click="update_docker_images_cache()">Refresh Images</a></div>
 </div>
 </template>
 
