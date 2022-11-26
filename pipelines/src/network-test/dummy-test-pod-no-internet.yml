@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: dummy-test-pod-no-internet
+  namespace: kibi9872
+  labels:
+    role: no-internet
+spec:
+  containers:
+    - name: dummy-test-pod-no-internet
+      image: curlimages/curl
+      command: ['sleep', '120m']

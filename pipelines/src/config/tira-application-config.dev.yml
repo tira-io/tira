@@ -1,0 +1,26 @@
+# ---task/celebrity-profiling/user/hodge20a
+debug: true
+allowed_hosts:
+  - "127.0.0.1"
+django_secret: 'not-so-secret'
+# ---
+# tira_root: /mnt/ceph/tira
+# deployment = {disraptor, legacy}
+deployment: legacy
+# in the legacy deployment, a path to the users file is needed. With the default tira model this is TIRA_ROOT/model/users/users.prototext
+# legacy_users_file: model/users/users.prototext
+# disraptor_secret_file: /etc/discourse/client-api-key
+# The directory where logs are written to. Defaults to TIRA_ROOT/log/tira-application
+# logging_dir: /mnt/ceph/tira/log/tira-application
+# grpc_host can be local or remote. If local, it will call localhost (i.e. for testing). If remote, it will call the vm-host
+# When developing, set this option to local, otherwise you might accidentally remote-control the live-vms.
+grpc_host: local
+host_grpc_port: 50051
+application_grpc_port: 50052
+database:
+  engine: django.db.backends.sqlite3  # django.db.backends.mysql or django.db.backends.sqlite3
+  name: tira  # when backend is sqlite, this will be the name of the database below TIRA_ROOT/state
+  user: tira  # ignored when using sqlite3
+  password: TODO-ENTER-PASSWORD  # ignored when using sqlite3
+  host: tira-mariadb  # ignored when using sqlite3
+  port: 3306  # ignored when using sqlite3
