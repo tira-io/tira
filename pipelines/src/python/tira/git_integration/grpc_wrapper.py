@@ -1,18 +1,44 @@
+from datetime import timedelta
+from failsafe import Failsafe, RetryPolicy, Backoff
+import asyncio
+
+retry_policy = RetryPolicy(
+    allowed_retries=5,
+    backoff=Backoff(delay=timedelta(seconds=15), max_delay=timedelta(seconds=300), jitter=False),
+    on_retry=lambda: print("Something failed. I retry...")
+)
+
 def grpc_client(args):
+    print('load GRPC client...')
     import sys
     sys.path.append('/tira-git/src/tira_host')
     from grpc_client import TiraHostClient
 
-    return TiraHostClient(args.tira_application_host, args.tira_application_grpc_port)
+    ret = TiraHostClient(args.tira_application_host, args.tira_application_grpc_port)
+    print('GRPC client is loaded.')
+    
+    return ret
 
 
 def confirm_run_eval(args):
+    asyncio.get_event_loop().run_until_complete(
+        Failsafe(retry_policy=retry_policy).run(lambda: confirm_run_eval_async(args))
+    )
+
+
+async def confirm_run_eval_async(args):
     client = grpc_client(args)
     
     print(client.confirm_run_eval(vm_id=args.input_run_vm_id, dataset_id=args.dataset_id, run_id=args.run_id, transaction_id=args.transaction_id))
 
 
 def confirm_run_execute(args):
+    asyncio.get_event_loop().run_until_complete(
+        Failsafe(retry_policy=retry_policy).run(lambda: confirm_run_execute_async(args))
+    )
+
+
+async def confirm_run_execute_async(args):
     client = grpc_client(args)
 
     print(client.confirm_run_execute(vm_id=args.input_run_vm_id, dataset_id=args.dataset_id, run_id=args.run_id, transaction_id=args.transaction_id))
@@ -43,5 +69,6 @@ if __name__ == '__main__':
     elif args.task == 'confirm-run-execute':
         confirm_run_execute(args)
 
-    # docker run --net=host --rm -ti webis/tira-git:0.0.56 example python3 /tira/application/src/tira/git_integration/grpc_wrapper.py --input_run_vm_id princess-knight --dataset_id del-me-20220813-training --run_id 2022-08-20-13-36-23 --transaction_id 1 --task confirm-run-execute --tira_application_host 127.0.0.1 --tira_application_grpc_port 50052
+    # k -n services-tira port-forward tira-application-grpc-6d6f767945-hjqnr 50052
+    # docker run --net=host --rm -ti --entrypoint python3 webis/tira-git-pipelines:0.0.2 /tira/application/src/tira/git_integration/grpc_wrapper.py --input_run_vm_id princess-knight --dataset_id del-me-20220813-training --run_id 2022-08-20-13-36-23 --transaction_id 1 --task confirm-run-execute --tira_application_host 127.0.0.1 --tira_application_grpc_port 50052
 
