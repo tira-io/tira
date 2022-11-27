@@ -24,20 +24,7 @@ if [ -f "${DIR_TO_CHANGE}/job-to-execute.txt" ]; then
 
     git push -o ci.skip origin HEAD:$CI_COMMIT_BRANCH
 
-    echo "git fetch origin main"
-    git fetch origin main
-
-    echo "git checkout -b main origin/main"
-    git checkout -b main origin/main
-    
-    echo "git reset --hard origin/main"
-    git reset --hard origin/main
-    
-    echo "git merge origin/$CI_COMMIT_BRANCH"
-    git merge origin/$CI_COMMIT_BRANCH
-    
-    echo "git push origin main -o ci.skip"
-    git push origin main -o ci.skip
+    python3 -c 'from tira.git_integration.gitlab_integration import merge_to_main_failsave; merge_to_main_failsave()'
 else
     echo "The file ${DIR_TO_CHANGE}/job-to-execute.txt does not exist, I cant change it."
 fi

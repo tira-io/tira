@@ -4,6 +4,17 @@ import os
 import uuid
 import string
 from subprocess import check_output
+import tempfile
+
+from datetime import timedelta
+from failsafe import Failsafe, RetryPolicy, Backoff
+import asyncio
+
+retry_policy = RetryPolicy(
+    allowed_retries=5,
+    backoff=Backoff(delay=timedelta(seconds=15), max_delay=timedelta(seconds=150), jitter=False),
+    on_retry=lambda: print("Something failed. I retry...")
+)
 
 def read_creds(name):
     return open('/etc/tira-git-credentials/' + name).read().strip()
@@ -100,6 +111,53 @@ def delete_branch_of_repository():
     gl = gitlab_client()
     gl_project = gl.projects.get(int(os.environ['CI_PROJECT_ID']))
     gl_project.branches.delete(os.environ['TIRA_GIT_ID'])
+
+
+def run_cmd(cmd):
+    try:
+        print('Execute: ' + ' '.join(cmd))
+        ret = check_output(cmd)
+        print(ret)
+        
+        return ret
+    except Exception e:
+        print(f'Running "{cmd}" failed: {e}'
+
+
+def merge_to_main_failsave()
+    commit_branch = os.environ['CI_COMMIT_BRANCH']
+
+    try:
+        merge_to_main_in_existing_repository(commit_branch)
+    except Exception as e:
+        print(e)
+        repo_url = run_cmd(['git', 'remote', 'get-url' 'origin'])
+        asyncio.get_event_loop().run_until_complete(
+            Failsafe(retry_policy=retry_policy).run(lambda: merge_to_main_from_scratch(repo_url, commit_branch))
+        )
+
+
+async def merge_to_main_from_scratch(repo_url, commit_branch):
+    print('Merge to Main from scratch...')
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        print(f'Clone repository. Working in {tmp_dir}')
+        repo = Repo.clone_from(repo_url, tmp_dir, branch='main')
+        print(f'Repository is cloned.')
+        
+        run_cmd(['bash', '-c', f'cd {tmp_dir} && git fetch origin {commit_branch}'])
+        run_cmd(['bash', '-c', f'cd {tmp_dir} && git merge origin/{commit_branch}'])
+        run_cmd(['bash', '-c', f'cd {tmp_dir} && git push origin main -o ci.skip'])
+        print('Done: Everything is merged.')
+
+
+def merge_to_main_in_existing_repository(commit_branch):
+    print('Merge to Main from existing repository....')
+    run_cmd(['git', 'fetch', 'origin', 'main'])
+    run_cmd(['git', 'checkout', '-b', 'main', 'origin/main'])
+    run_cmd(['git', 'reset', '--hard', 'origin/main'])
+    run_cmd(['git', 'merge', f'origin/{commit_branch}'])
+    run_cmd(['git', 'push', 'origin', 'main', '-o', 'ci.skip'])
+    print('Done: Everything is merged.')
 
 
 if __name__ == '__main__':
