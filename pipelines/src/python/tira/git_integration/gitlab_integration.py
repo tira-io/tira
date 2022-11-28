@@ -122,6 +122,7 @@ def run_cmd(cmd):
         return ret
     except Exception as e:
         print(f'Running "{cmd}" failed: {e}')
+        raise e
 
 
 def merge_to_main_failsave():
