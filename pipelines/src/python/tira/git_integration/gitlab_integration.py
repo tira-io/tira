@@ -124,7 +124,7 @@ def run_cmd(cmd):
         print(f'Running "{cmd}" failed: {e}'
 
 
-def merge_to_main_failsave()
+def merge_to_main_failsave():
     commit_branch = os.environ['CI_COMMIT_BRANCH']
 
     try:
