@@ -120,7 +120,7 @@ def run_cmd(cmd):
         print(ret)
         
         return ret
-    except Exception e:
+    except Exception as e:
         print(f'Running "{cmd}" failed: {e}'
 
 
