@@ -121,7 +121,7 @@ def run_cmd(cmd):
         
         return ret
     except Exception as e:
-        print(f'Running "{cmd}" failed: {e}'
+        print(f'Running "{cmd}" failed: {e}')
 
 
 def merge_to_main_failsave():
@@ -161,7 +161,8 @@ def merge_to_main_in_existing_repository(commit_branch):
 
 
 if __name__ == '__main__':
-    print(list(yield_all_running_pipelines()))
+    print('Run something...')
+#    print(list(yield_all_running_pipelines()))
 #    print('#####################################################################')
 #    print(job_command('run-user-software') + '\n\n')
 #    print(job_trace('run-user-software'))
