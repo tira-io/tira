@@ -5,6 +5,7 @@ import uuid
 import string
 from subprocess import check_output
 import tempfile
+from git import Repo
 
 from datetime import timedelta
 from failsafe import Failsafe, RetryPolicy, Backoff
@@ -132,7 +133,7 @@ def merge_to_main_failsave():
         merge_to_main_in_existing_repository(commit_branch)
     except Exception as e:
         print(e)
-        repo_url = run_cmd(['git', 'remote', 'get-url' 'origin'])
+        repo_url = run_cmd(['git', 'remote', 'get-url', 'origin'])
         asyncio.get_event_loop().run_until_complete(
             Failsafe(retry_policy=retry_policy).run(lambda: merge_to_main_from_scratch(repo_url, commit_branch))
         )
