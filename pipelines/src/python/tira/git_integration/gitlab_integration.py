@@ -116,9 +116,9 @@ def delete_branch_of_repository():
 
 def run_cmd(cmd):
     try:
-        print('Execute: ' + ' '.join(cmd))
-        ret = check_output(cmd)
-        print(ret)
+        print('Execute: ' + ' '.join(cmd), flush=True)
+        ret = check_output(cmd).decode("utf8")
+        print(ret, flush=True)
         
         return ret
     except Exception as e:
@@ -133,7 +133,7 @@ def merge_to_main_failsave():
         merge_to_main_in_existing_repository(commit_branch)
     except Exception as e:
         print(e)
-        repo_url = run_cmd(['git', 'remote', 'get-url', 'origin'])
+        repo_url = run_cmd(['git', 'remote', 'get-url', 'origin']).strip()
         asyncio.get_event_loop().run_until_complete(
             Failsafe(retry_policy=retry_policy).run(lambda: merge_to_main_from_scratch(repo_url, commit_branch))
         )
@@ -146,6 +146,8 @@ async def merge_to_main_from_scratch(repo_url, commit_branch):
         repo = Repo.clone_from(repo_url, tmp_dir, branch='main')
         print(f'Repository is cloned.')
         
+        run_cmd(['bash', '-c', f'cd {tmp_dir} && git config user.email "tira-automation@tira.io"'])
+        run_cmd(['bash', '-c', f'cd {tmp_dir} && git config user.name "TIRA Automation"'])
         run_cmd(['bash', '-c', f'cd {tmp_dir} && git fetch origin {commit_branch}'])
         run_cmd(['bash', '-c', f'cd {tmp_dir} && git merge origin/{commit_branch}'])
         run_cmd(['bash', '-c', f'cd {tmp_dir} && git push origin main -o ci.skip'])
