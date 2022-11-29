@@ -367,7 +367,7 @@ export default {
       this.stderr = message.context.stderr
       this.tira_log = message.context.tira_log
       if (this.run.is_evaluation) {
-        this.get(`/api/evaluation/${this.run_id}`).then(message => {
+        this.get(`/api/evaluation/${this.user_id}/${this.run_id}`).then(message => {
           this.evaluation = message.context.evaluation
           this.selecedOutput = 'evaluation'
         })

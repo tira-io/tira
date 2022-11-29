@@ -72,7 +72,7 @@ urlpatterns = [
     path('blind/<str:vm_id>/<str:dataset_id>/<str:run_id>/<str:value>', organizer_api.blind, name='blind'),
 
     path('api/evaluations/<str:task_id>/<str:dataset_id>', data_api.get_evaluations_by_dataset, name='get_evaluations_by_dataset'),
-    path('api/evaluation/<str:run_id>', data_api.get_evaluation, name='get_evaluation'),
+    path('api/evaluation/<str:vm_id>/<str:run_id>', data_api.get_evaluation, name='get_evaluation'),
     path('api/submissions/<str:task_id>/<str:dataset_id>', data_api.get_submissions_by_dataset, name='get_submissions_by_dataset'),
     path('api/ova-list', data_api.get_ova_list, name='get_ova_list'),
     path('api/host-list', data_api.get_host_list, name='get_host_list'),
