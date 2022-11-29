@@ -227,6 +227,11 @@ def get_review(request, context, dataset_id, user_id, run_id):
         context["stdout"] = get_stdout(dataset_id, user_id, run_id)
         context["stderr"] = get_stderr(dataset_id, user_id, run_id)
         context["tira_log"] = get_tira_log(dataset_id, user_id, run_id)
+    elif context['role'] == 'user' and not context['dataset'].get('is_confidential', True):
+        context["files"]["file_list"][0] = "output/"
+        context["stdout"] = get_stdout(dataset_id, user_id, run_id)
+        context["stderr"] = get_stderr(dataset_id, user_id, run_id)
+        context["tira_log"] = "hidden"
     else:
         context["files"]["file_list"] = []
         context["stdout"] = "hidden"
