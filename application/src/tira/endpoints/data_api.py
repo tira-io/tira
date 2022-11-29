@@ -69,11 +69,12 @@ def get_evaluations_by_dataset(request, context, task_id, dataset_id):
 
 @check_permissions
 @add_context
-def get_evaluation(request, context, run_id):
+def get_evaluation(request, context, run_id, vm_id):
     run = model.get_run(None, None, run_id)
     review = model.get_run_review(None, None, run_id)
-
-    if not run['is_evaluation']:
+    
+    if not run['is_evaluation'] or not vm_id:
+        # We need the vm_id to get the check working, otherwise we have no direct link to the vm.
         return JsonResponse({'status': 1, "message": f"Run {run_id} is not an evaluation run."})
 
     dataset = model.get_dataset(run['dataset'])
@@ -228,10 +229,11 @@ def get_review(request, context, dataset_id, user_id, run_id):
         context["stdout"] = get_stdout(dataset_id, user_id, run_id)
         context["stderr"] = get_stderr(dataset_id, user_id, run_id)
         context["tira_log"] = get_tira_log(dataset_id, user_id, run_id)
-    elif context['role'] == 'user' and not context['dataset'].get('is_confidential', True):
+    elif (context['role'] == auth.ROLE_PARTICIPANT) and not context['dataset'].get('is_confidential', True):
         context["files"]["file_list"][0] = "output/"
         context["stdout"] = get_stdout(dataset_id, user_id, run_id)
         context["stderr"] = get_stderr(dataset_id, user_id, run_id)
+        context["review"]['blinded'] = False
         context["tira_log"] = "hidden"
     else:
         context["files"]["file_list"] = []
