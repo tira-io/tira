@@ -218,21 +218,21 @@ def get_running_software(request, context, task_id, user_id, force_cache_refresh
 @check_permissions
 @check_resources_exist("json")
 @add_context
-def get_review(request, context, dataset_id, user_id, run_id):
+def get_review(request, context, dataset_id, vm_id, run_id):
     context["dataset"] = model.get_dataset(dataset_id)
     context["run"] = model.get_run(None, None, run_id)
-    context["review"] = model.get_run_review(dataset_id, user_id, run_id)
-    context["runtime"] = get_run_runtime(dataset_id, user_id, run_id)
-    context["files"] = get_run_file_list(dataset_id, user_id, run_id)
+    context["review"] = model.get_run_review(dataset_id, vm_id, run_id)
+    context["runtime"] = get_run_runtime(dataset_id, vm_id, run_id)
+    context["files"] = get_run_file_list(dataset_id, vm_id, run_id)
     if context['role'] == 'admin':
         context["files"]["file_list"][0] = "output/"
-        context["stdout"] = get_stdout(dataset_id, user_id, run_id)
-        context["stderr"] = get_stderr(dataset_id, user_id, run_id)
-        context["tira_log"] = get_tira_log(dataset_id, user_id, run_id)
+        context["stdout"] = get_stdout(dataset_id, vm_id, run_id)
+        context["stderr"] = get_stderr(dataset_id, vm_id, run_id)
+        context["tira_log"] = get_tira_log(dataset_id, vm_id, run_id)
     elif (context['role'] == auth.ROLE_PARTICIPANT) and not context['dataset'].get('is_confidential', True):
         context["files"]["file_list"][0] = "output/"
-        context["stdout"] = get_stdout(dataset_id, user_id, run_id)
-        context["stderr"] = get_stderr(dataset_id, user_id, run_id)
+        context["stdout"] = get_stdout(dataset_id, vm_id, run_id)
+        context["stderr"] = get_stderr(dataset_id, vm_id, run_id)
         context["review"]['blinded'] = False
         context["tira_log"] = "hidden"
     else:
