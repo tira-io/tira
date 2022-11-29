@@ -73,15 +73,16 @@ def get_evaluation(request, context, run_id):
     run = model.get_run(None, None, run_id)
     review = model.get_run_review(None, None, run_id)
 
-    if not run['is_evaluation'] or (review["blinded"] and not context['role'] == 'admin'):
+    if not run['is_evaluation']:
         return JsonResponse({'status': 1, "message": f"Run {run_id} is not an evaluation run."})
 
     dataset = model.get_dataset(run['dataset'])
-    if dataset['is_confidential'] and not context['role'] == 'admin':
-        return JsonResponse({'status': 1, "message": f"Run {run_id} is not an evaluation run."})
+    
+    if context['role'] != 'admin' and review["blinded"] and dataset['is_confidential']:
+        return JsonResponse({'status': 1, "message": f"Run {run_id} is not unblinded."})
 
-    evaluation = model.get_evaluation(run_id)
-    context["evaluation"] = evaluation
+    context["evaluation"] = model.get_evaluation(run_id)
+
     return JsonResponse({'status': 0, "context": context})
 
 

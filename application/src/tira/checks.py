@@ -46,7 +46,8 @@ def check_permissions(func):
                 if not model.run_exists(vm_id, dataset_id, run_id):
                     return Http404(f'The VM {vm_id} has no run with the id {run_id} on {dataset_id}.')
                 review = model.get_run_review(dataset_id, vm_id, run_id)
-                is_review_visible = (not review['blinded']) or review['published']
+                dataset = model.get_dataset(dataset_id)
+                is_review_visible = (not review['blinded']) or review['published'] or not dataset['is_confidential']
                 if not is_review_visible:
                     role = auth.ROLE_USER
             if task_id:  # This checks if the registration requirement is fulfilled.
