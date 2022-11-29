@@ -417,7 +417,7 @@ def admin_edit_review(request, dataset_id, vm_id, run_id):
         data = json.loads(request.body)
         no_errors = data["no_errors"]
         output_error = data["output_error"]
-        software_error = data["software_error"]
+        software_error = data.get("software_error", False) # Sometimes the frontend does not send the software error field
         comment = data["comment"]
 
         # sanity checks
