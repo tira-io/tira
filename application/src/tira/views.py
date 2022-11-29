@@ -24,10 +24,17 @@ logger.info("Views: Logger active")
 def add_context(func):
     def func_wrapper(request, *args, **kwargs):
         uid = auth.get_user_id(request)
+        vm_id = None
+
+        if args and 'vm_id' in args:
+            vm_id = args['vm_id']
+        elif kwargs and 'vm_id' in kwargs:
+            vm_id = kwargs['vm_id']
+
         context = {
             "include_navigation": True if settings.DEPLOYMENT == "legacy" else False,
             "user_id": uid,
-            "role": auth.get_role(request, user_id=uid)
+            "role": auth.get_role(request, user_id=uid, vm_id=vm_id)
         }
         return func(request, context, *args, **kwargs, )
 
