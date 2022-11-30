@@ -4,7 +4,7 @@ FROM nginx:1.18-alpine
 RUN apk update &&\
     apk add --no-cache gcc linux-headers make musl-dev python3-dev build-base libxml2 libxslt libxml2-dev libxslt-dev pcre-dev &&\
     apk add --no-cache g++ &&\
-    apk add --update --no-cache python3 zip py3-virtualenv mariadb-dev npm git openssh-client
+    apk add --update --no-cache python3 zip py3-virtualenv mariadb-dev npm git openssh-client libc6-compat
 
 
 # NOTE: We'll install it here, so rebuilding the image when testing application code is faster.
