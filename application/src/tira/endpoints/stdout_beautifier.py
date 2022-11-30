@@ -23,7 +23,7 @@ def beautify_ansi_text(txt):
         ret = BeautifulSoup(ret, 'html.parser')
         return '\n\n'.join([str(i) for i in ret.select('pre')])
     except Exception as e:
-        print('Failed to beautify with {e}. Return original text')
+        print(f'Failed to beautify with {e}. Return original text')
         return txt
 
 if __name__ == '__main__':
