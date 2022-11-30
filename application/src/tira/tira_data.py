@@ -1,6 +1,7 @@
 from pathlib import Path
 import logging
 from django.conf import settings
+from tira.endpoints.stdout_beautifier import beautify_ansi_text
 
 logger = logging.getLogger("tira")
 
@@ -65,7 +66,7 @@ def get_stdout(dataset_id, vm_id, run_id):
         stdout = ''.join([f"[{max(stdout_len - output_lines, 0)} more lines]\n"] + stdout[-output_lines:])
     if not stdout:
         return "No Stdout recorded"
-    return stdout
+    return beautify_ansi_text(stdout)
 
 
 def get_stderr(dataset_id, vm_id, run_id):
@@ -75,7 +76,7 @@ def get_stderr(dataset_id, vm_id, run_id):
     stderr = open(run_dir / "stderr.txt", 'r').read()
     if not stderr:
         return "No Stderr recorded"
-    return stderr
+    return beautify_ansi_text(stderr)
 
 
 def get_tira_log(dataset_id, vm_id, run_id):
