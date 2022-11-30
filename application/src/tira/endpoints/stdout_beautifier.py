@@ -29,7 +29,7 @@ def beautify_ansi_text(txt):
 if __name__ == '__main__':
     print(beautify_ansi_text('''  [[92mo[0m] The file local-copy-of-input-run/run.jsonl is in JSONL format.
   [[92mo[0m] The file training-datasets-truth/clickbait-spoiling/task-2-spoiler-generation-validation-20220924-training/validation.jsonl is in JSONL format.
-  [[92mo[0m] Spoiler generations have correct format. Found 800
+  [[92mo[0m] Spoiler generations have correct format. Found 800 Here I try to escape </pre><script>window.alert('Assasa')</script>
   [[92mo[0m] Spoiler generations have correct format. Found 800
 '''))
 
