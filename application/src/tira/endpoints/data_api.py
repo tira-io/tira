@@ -229,7 +229,7 @@ def get_review(request, context, dataset_id, vm_id, run_id):
         context["stdout"] = get_stdout(dataset_id, vm_id, run_id)
         context["stderr"] = get_stderr(dataset_id, vm_id, run_id)
         context["tira_log"] = get_tira_log(dataset_id, vm_id, run_id)
-    elif (context['role'] == auth.ROLE_PARTICIPANT) and not context['dataset'].get('is_confidential', True):
+    elif (context['role'] == auth.ROLE_PARTICIPANT) and ((not context['dataset'].get('is_confidential', True)) or not context["review"]['blinded']):
         context["files"]["file_list"][0] = "output/"
         context["stdout"] = get_stdout(dataset_id, vm_id, run_id)
         context["stderr"] = get_stderr(dataset_id, vm_id, run_id)

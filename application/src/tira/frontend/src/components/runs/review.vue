@@ -205,7 +205,7 @@
 
         <!-- Show Stdout -->
         <div class="uk-card uk-card-body uk-card-default uk-card-small" v-if="selecedOutput==='stdout'">
-          <pre v-if="!isVisibleToParticipant || dataset.is_confidential" disabled>
+          <pre v-if="!isVisibleToParticipant && dataset.is_confidential" disabled>
 The Software Log has not been revealed to participants yet. Contact your task's organizer for a review.
           </pre>
           <pre v-else>{{ stdout }}</pre>
@@ -213,7 +213,7 @@ The Software Log has not been revealed to participants yet. Contact your task's 
 
         <!-- Show Stderr -->
         <div class="uk-card uk-card-body uk-card-default uk-card-small" v-if="selecedOutput==='stderr'">
-            <pre v-if="!isVisibleToParticipant || dataset.is_confidential">
+            <pre v-if="!isVisibleToParticipant && dataset.is_confidential">
 The Software Log has not been revealed to participants yet. Contact your task's organizer for a review.
             </pre>
             <pre v-else>{{ stderr }}</pre>
