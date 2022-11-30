@@ -3,9 +3,12 @@ import re
 from subprocess import run, PIPE
 from bs4 import BeautifulSoup
 import os
+import logging
 
 ansi_color_code_regex = re.compile("\[\\d+m")
 aha_exec = os.path.abspath(__file__).replace('stdout_beautifier.py', 'aha')
+
+logger = logging.getLogger('tira')
 
 def beautify_ansi_text(txt):
     try:
@@ -24,6 +27,8 @@ def beautify_ansi_text(txt):
         return '\n\n'.join([str(i) for i in ret.select('pre')])
     except Exception as e:
         print(f'Failed to beautify with {e}. Return original text')
+        logger.warn(f'Failed to beautify with {e}. Return original text', e)
+        
         return txt
 
 if __name__ == '__main__':
