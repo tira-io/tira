@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 import os
 import logging
 
-ansi_color_code_regex = re.compile("\[\\d+m")
+ansi_color_code_regex = re.compile("\[(\\d)+(;)*(\\d)*m")
 aha_exec = os.path.abspath(__file__).replace('stdout_beautifier.py', 'aha')
 
 logger = logging.getLogger('tira')
@@ -14,7 +14,7 @@ def is_start_of_ansi_code(txt, pos):
     if txt[pos] != '[':
         return False
     
-    matches = ansi_color_code_regex.search(txt[pos: pos+5])
+    matches = ansi_color_code_regex.search(txt[pos: pos+8])
     
     return matches and matches.span()[0] == 0
 
@@ -46,3 +46,9 @@ if __name__ == '__main__':
   [[92mo[0m] Spoiler generations have correct format. Found 800
 '''))
 
+    print(beautify_ansi_text('''[0;32m/opt/conda/lib/python3.7/site-packages/requests/adapters.py in [0;36msend[0;34m(self, request, stream, timeout, verify, cert, proxies)
+[1;32m    517                 [0;32mraise SSLError[0;34m(e[0;34m, request[0;34m=request[0;34m)[0;34m[0;34m
+[1;32m    518 [0;34m
+[0;32m--> 519[0;31m             [0;32mraise ConnectionError[0;34m(e[0;34m, request[0;34m=request[0;34m)[0;34m[0;34m
+[1;32m    520 [0;34m
+[1;32m    521         [0;32mexcept ClosedPoolError [0;32mas e[0;34m:[0;34m[0;34m'''))
