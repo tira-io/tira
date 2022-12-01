@@ -181,7 +181,7 @@
 
         <!-- Output -->
         <div class="uk-card uk-card-body uk-card-default uk-card-small" v-if="selecedOutput==='evaluation'">
-            <pre>{{ evaluation }}</pre>
+            <span v-html="evaluation"/>
         </div>
 
         <!-- Output -->
@@ -208,7 +208,7 @@
           <pre v-if="!isVisibleToParticipant && dataset.is_confidential" disabled>
 The Software Log has not been revealed to participants yet. Contact your task's organizer for a review.
           </pre>
-          <pre v-else>{{ stdout }}</pre>
+          <span v-html="stdout" />
         </div>
 
         <!-- Show Stderr -->
@@ -216,7 +216,7 @@ The Software Log has not been revealed to participants yet. Contact your task's 
             <pre v-if="!isVisibleToParticipant && dataset.is_confidential">
 The Software Log has not been revealed to participants yet. Contact your task's organizer for a review.
             </pre>
-            <pre v-else>{{ stderr }}</pre>
+            <span v-html="stdout" />
         </div>
 
         <!-- Show Tira log -->
