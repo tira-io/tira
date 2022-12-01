@@ -10,11 +10,19 @@ aha_exec = os.path.abspath(__file__).replace('stdout_beautifier.py', 'aha')
 
 logger = logging.getLogger('tira')
 
+def is_start_of_ansi_code(txt, pos):
+    if txt[pos] != '[':
+        return False
+    
+    matches = ansi_color_code_regex.search(txt[pos: pos+5])
+    
+    return matches and matches.span()[0] == 0
+
 def beautify_ansi_text(txt):
-    try:
+#    try:
         ret = ''
         for i in range(len(txt)):
-            if txt[i] == '[' and ansi_color_code_regex.search(txt[i: i+5]).span()[0] == 0:
+            if is_start_of_ansi_code(txt, i):
                 ret += '\033['
             else:
                 ret += txt[i]
@@ -25,11 +33,11 @@ def beautify_ansi_text(txt):
 
         ret = BeautifulSoup(ret, 'html.parser')
         return '\n\n'.join([str(i) for i in ret.select('pre')])
-    except Exception as e:
-        print(f'Failed to beautify with {e}. Return original text')
-        logger.warn(f'Failed to beautify with {e}. Return original text', e)
-        
-        return txt
+#    except Exception as e:
+#        print(f'Failed to beautify with {e}. Return original text')
+#        logger.warn(f'Failed to beautify with {e}. Return original text', e)
+#        
+#        return txt
 
 if __name__ == '__main__':
     print(beautify_ansi_text('''  [[92mo[0m] The file local-copy-of-input-run/run.jsonl is in JSONL format.
