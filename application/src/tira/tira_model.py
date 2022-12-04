@@ -133,7 +133,7 @@ def load_docker_data(task_id, vm_id, cache, force_cache_refresh):
     if not git_pipeline_is_enabled_for_task(task_id, cache, force_cache_refresh):
         return False
     
-    docker_images = [i for i in docker_images_in_user_repository(vm_id, cache, force_cache_refresh) if '-tira-docker-software-id-' not in i]
+    docker_images = [i for i in docker_images_in_user_repository(vm_id, cache, force_cache_refresh) if '-tira-docker-software-id-' not in i['image']]
     last_refresh = load_refresh_timestamp_for_cache_key(cache, 'docker-images-in-user-repository-tira-user-' + vm_id)
 
     return {
