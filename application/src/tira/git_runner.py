@@ -93,13 +93,23 @@ def docker_images_in_user_repository(user, cache=None, force_cache_refresh=False
     if not repo:
         create_user_repository(user)
         return ret
-
+    covered_images = set()
     for registry_repository in repo.repositories.list():
         for registry in registry_repository.manager.list():
             for image in registry.tags.list(get_all=True):
-                ret += [image.location]
+                if image.location in covered_images:
+                    continue
+                covered_images.add(image.location)
+                image_manifest = get_manifest_of_docker_image_image_repository(image.location.split(':')[0], image.location.split(':')[1])
+                
+                ret += [{'image': image.location,
+                         'architecture': image_manifest['architecture'],
+                         'created': image_manifest['created'].split('.')[0],
+                         'size': image_manifest['size'],
+                         'digest': image_manifest['digest']
+                       }]
     
-    ret = sorted(list(set(ret)))
+    ret = sorted(list(ret), key=lambda i: i['image'])
     
     if cache:
         logger.info(f"Cache refreshed for key {cache_key} ...")
@@ -131,6 +141,60 @@ def help_on_uploading_docker_image(user, cache=None, force_cache_refresh=False):
         cache.set(cache_key, ret)
     
     return ret
+
+
+def convert_size(size_bytes):
+    import math
+    if size_bytes == 0:
+        return "0B"
+    size_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
+    i = int(math.floor(math.log(size_bytes, 1024)))
+    p = math.pow(1024, i)
+    s = round(size_bytes / p, 2)
+   
+    return f"{s} {size_name[i]}"
+
+
+def get_manifest_of_docker_image_image_repository(repository_name, tag):
+    """
+    Background for the implementation:
+    https://dille.name/blog/2018/09/20/how-to-tag-docker-images-without-pulling-them/
+    https://gitlab.com/gitlab-org/gitlab/-/issues/23156
+    """
+    original_repository_name = repository_name
+    repository_name = repository_name.split(settings.GIT_CONTAINER_REGISTRY_HOST + '/')[-1]
+    
+    token = requests.get(f'https://{settings.GIT_CI_SERVER_HOST}:{settings.GIT_PRIVATE_TOKEN}@git.webis.de/jwt/auth?client_id=docker&offline_token=true&service=container_registry&scope=repository:{repository_name}:push,pull,blob,upload')
+    
+    if not token.ok:
+        raise ValueError(token.content.decode('UTF-8'))
+    
+    token = json.loads(token.content.decode('UTF-8'))['token']
+    headers = {'Accept': 'application/vnd.docker.distribution.manifest.v2+json',
+               'Content-Type': 'application/vnd.docker.distribution.manifest.v2+json',
+               'Authorization': 'Bearer ' + token}
+
+    manifest = requests.get(f'https://registry.webis.de/v2/{repository_name}/manifests/{tag}', headers=headers)
+
+    if not manifest.ok:
+        raise ValueError('-->' + manifest.content.decode('UTF-8'))
+    
+    image_metadata = json.loads(manifest.content.decode('UTF-8'))
+    size = convert_size(image_metadata['config']['size'] + sum([i['size'] for i in image_metadata['layers']]))
+    
+    image_config = requests.get(f'https://registry.webis.de/v2/{repository_name}/blobs/{image_metadata["config"]["digest"]}', headers=headers)
+
+    if not image_config.ok:
+        raise ValueError('-->' + image_config.content.decode('UTF-8'))
+    
+    image_config = json.loads(image_config.content.decode('UTF-8'))
+
+    return {
+        'architecture': image_config['architecture'],
+        'created': image_config['created'],
+        'size': size,
+        'digest': image_metadata["config"]["digest"].split(':')[-1][:12]
+    }
 
 
 def add_new_tag_to_docker_image_repository(repository_name, old_tag, new_tag):
@@ -225,18 +289,18 @@ def archive_repository(repo_name, persist_all_images=True):
 
             downloaded_images.add(image)
             softwares.add(json.dumps({
-            	"TIRA_IMAGE_TO_EXECUTE": dockerhub_image,
-            	"TIRA_VM_ID": job["TIRA_VM_ID"],
-            	"TIRA_COMMAND_TO_EXECUTE": job["TIRA_COMMAND_TO_EXECUTE"],
-            	"TIRA_TASK_ID": job["TIRA_TASK_ID"],
-            	"TIRA_SOFTWARE_ID": job["TIRA_SOFTWARE_ID"],
-            	"TIRA_SOFTWARE_NAME": software_metadata['display_name']
+                "TIRA_IMAGE_TO_EXECUTE": dockerhub_image,
+                "TIRA_VM_ID": job["TIRA_VM_ID"],
+                "TIRA_COMMAND_TO_EXECUTE": job["TIRA_COMMAND_TO_EXECUTE"],
+                "TIRA_TASK_ID": job["TIRA_TASK_ID"],
+                "TIRA_SOFTWARE_ID": job["TIRA_SOFTWARE_ID"],
+                "TIRA_SOFTWARE_NAME": software_metadata['display_name']
             }))
             
             evaluations.add(json.dumps({
-            	"TIRA_DATASET_ID": job['TIRA_DATASET_ID'].strip(),
-            	"TIRA_EVALUATION_IMAGE_TO_EXECUTE": job["TIRA_EVALUATION_IMAGE_TO_EXECUTE"].strip(),
-            	"TIRA_EVALUATION_COMMAND_TO_EXECUTE": job["TIRA_EVALUATION_COMMAND_TO_EXECUTE"].strip()
+                "TIRA_DATASET_ID": job['TIRA_DATASET_ID'].strip(),
+                "TIRA_EVALUATION_IMAGE_TO_EXECUTE": job["TIRA_EVALUATION_IMAGE_TO_EXECUTE"].strip(),
+                "TIRA_EVALUATION_COMMAND_TO_EXECUTE": job["TIRA_EVALUATION_COMMAND_TO_EXECUTE"].strip()
             }))
         
         (Path(tmp_dir) / '.tira').mkdir(parents=True, exist_ok=True)
