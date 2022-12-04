@@ -11,7 +11,7 @@ from django.core.cache import cache
 
 from tira.git_runner import create_user_repository, create_task_repository, docker_images_in_user_repository,\
     add_new_tag_to_docker_image_repository, archive_repository, help_on_uploading_docker_image,\
-    yield_all_running_pipelines, stop_job_and_clean_up, start_git_workflow
+    yield_all_running_pipelines, stop_job_and_clean_up, start_git_workflow, docker_images_in_user_repository
 from tira.tira_model import load_refresh_timestamp_for_cache_key
 
 from tira.util import get_tira_id
@@ -83,6 +83,8 @@ class Command(BaseCommand):
                                tira_software_id='17',
                                resources='small-resources-gpu'
             )
+        if 'docker_images_in_user_repository' in options and options['docker_images_in_user_repository']:
+            print(docker_images_in_user_repository(options['docker_images_in_user_repository']))
 
     def add_arguments(self, parser):
         parser.add_argument('--create_task_repository', default=None, type=str)
@@ -93,4 +95,5 @@ class Command(BaseCommand):
         parser.add_argument('--stop_job_and_clean_up', default=None, type=str)
         parser.add_argument('--user_id', default=None, type=str)
         parser.add_argument('--run_id', default=None, type=str)
+        parser.add_argument('--docker_images_in_user_repository', default=None, type=str)
 
