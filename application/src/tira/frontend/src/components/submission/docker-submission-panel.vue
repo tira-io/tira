@@ -38,7 +38,7 @@
                 <select id="selector_docker_image" :disabled="!docker.docker_images" class="uk-select upload-select" v-model="containerImage" >
                     <option v-if="docker.docker_images" value="None" :disabled="containerImage !== 'None'">Select Docker Image</option>
                     <option v-else value="None" disabled>Upload an image first</option>
-                    <option v-for="image in docker.docker_images" :value="image.image">{{ image.image }} (Architecture: {{image.architecture}}; Size: {{image.size}}; Created: {{image.created}}; Digest: {{image.digest}}</option>
+                    <option v-for="image in docker.docker_images" :disabled="image.architecture !== 'amd64'" :value="image.image">{{ image.image }} (Architecture: {{image.architecture}}; Size: {{image.size}}; Created: {{image.created}}; Digest: {{image.digest}}</option>
                 </select>
                 
             </div>
