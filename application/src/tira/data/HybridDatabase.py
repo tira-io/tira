@@ -1163,6 +1163,11 @@ class HybridDatabase(object):
             )
         return self._docker_software_to_dict(docker_software)
 
+    def update_docker_software_metadata(self, docker_software_id, display_name, description, paper_link):
+        software = modeldb.DockerSoftware.objects.update_or_create(docker_software_id = docker_software_id, 
+            defaults={"display_name": display_name, "description": description, "paper_link": paper_link})
+
+    
     def update_run(self, dataset_id, vm_id, run_id, deleted: bool = None):
         """ updates the run specified by dataset_id, vm_id, and run_id with the values given in the parameters.
             Required Parameters are also required in the function
