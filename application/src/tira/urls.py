@@ -24,6 +24,7 @@ urlpatterns = [
     path('task/<str:task_id>/vm/<str:vm_id>/edit_registration', vm_api.edit_registration, name='edit_registration'),
     path('task/<str:task_id>/vm/<str:vm_id>/add_software/vm', vm_api.software_add, name='software_add'),
     path('task/<str:task_id>/vm/<str:vm_id>/add_software/docker', vm_api.docker_software_add, name='docker_software_add'),
+    path('task/<str:task_id>/vm/<str:vm_id>/save_software/docker/<str:docker_software_id>', vm_api.docker_software_save, name='docker_software_save'),
     path('task/<str:task_id>/vm/<str:vm_id>/save_software/vm/<str:software_id>', vm_api.software_save, name='software_save'),
     path('task/<str:task_id>/vm/<str:vm_id>/delete_software/vm/<str:software_id>', vm_api.software_delete, name='software_delete'),
     path('task/<str:task_id>/vm/<str:vm_id>/delete_software/docker/<str:docker_software_id>', vm_api.docker_software_delete, name='docker_delete'),
