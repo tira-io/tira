@@ -100,7 +100,7 @@ def docker_images_in_user_repository(user, cache=None, force_cache_refresh=False
                 if image.location in covered_images:
                     continue
                 covered_images.add(image.location)
-                image_manifest = get_manifest_of_docker_image_image_repository(image.location.split(':')[0], image.location.split(':')[1])
+                image_manifest = get_manifest_of_docker_image_image_repository(image.location.split(':')[0], image.location.split(':')[1], cache, force_cache_refresh)
                 
                 ret += [{'image': image.location,
                          'architecture': image_manifest['architecture'],
@@ -155,7 +155,7 @@ def convert_size(size_bytes):
     return f"{s} {size_name[i]}"
 
 
-def get_manifest_of_docker_image_image_repository(repository_name, tag):
+def get_manifest_of_docker_image_image_repository(repository_name, tag, cache, force_cache_refresh):
     """
     Background for the implementation:
     https://dille.name/blog/2018/09/20/how-to-tag-docker-images-without-pulling-them/
@@ -164,37 +164,58 @@ def get_manifest_of_docker_image_image_repository(repository_name, tag):
     original_repository_name = repository_name
     repository_name = repository_name.split(settings.GIT_CONTAINER_REGISTRY_HOST + '/')[-1]
     
-    token = requests.get(f'https://{settings.GIT_CI_SERVER_HOST}:{settings.GIT_PRIVATE_TOKEN}@git.webis.de/jwt/auth?client_id=docker&offline_token=true&service=container_registry&scope=repository:{repository_name}:push,pull,blob,upload')
+    cache_key = f'docker-manifest-for-repo-{repository_name}-{tag}'
+    if cache:
+        ret = cache.get(cache_key)        
+        if ret is not None:
+            return ret
     
-    if not token.ok:
-        raise ValueError(token.content.decode('UTF-8'))
-    
-    token = json.loads(token.content.decode('UTF-8'))['token']
-    headers = {'Accept': 'application/vnd.docker.distribution.manifest.v2+json',
-               'Content-Type': 'application/vnd.docker.distribution.manifest.v2+json',
-               'Authorization': 'Bearer ' + token}
+    try:
+        token = requests.get(f'https://{settings.GIT_CI_SERVER_HOST}:{settings.GIT_PRIVATE_TOKEN}@git.webis.de/jwt/auth?client_id=docker&offline_token=true&service=container_registry&scope=repository:{repository_name}:push,pull,blob,upload')
 
-    manifest = requests.get(f'https://registry.webis.de/v2/{repository_name}/manifests/{tag}', headers=headers)
+        if not token.ok:
+            raise ValueError(token.content.decode('UTF-8'))
 
-    if not manifest.ok:
-        raise ValueError('-->' + manifest.content.decode('UTF-8'))
-    
-    image_metadata = json.loads(manifest.content.decode('UTF-8'))
-    size = convert_size(image_metadata['config']['size'] + sum([i['size'] for i in image_metadata['layers']]))
-    
-    image_config = requests.get(f'https://registry.webis.de/v2/{repository_name}/blobs/{image_metadata["config"]["digest"]}', headers=headers)
+        token = json.loads(token.content.decode('UTF-8'))['token']
+        headers = {'Accept': 'application/vnd.docker.distribution.manifest.v2+json',
+                   'Content-Type': 'application/vnd.docker.distribution.manifest.v2+json',
+                   'Authorization': 'Bearer ' + token}
 
-    if not image_config.ok:
-        raise ValueError('-->' + image_config.content.decode('UTF-8'))
-    
-    image_config = json.loads(image_config.content.decode('UTF-8'))
+        manifest = requests.get(f'https://registry.webis.de/v2/{repository_name}/manifests/{tag}', headers=headers)
 
-    return {
-        'architecture': image_config['architecture'],
-        'created': image_config['created'],
-        'size': size,
-        'digest': image_metadata["config"]["digest"].split(':')[-1][:12]
-    }
+        if not manifest.ok:
+            raise ValueError('-->' + manifest.content.decode('UTF-8'))
+    
+        image_metadata = json.loads(manifest.content.decode('UTF-8'))
+        size = convert_size(image_metadata['config']['size'] + sum([i['size'] for i in image_metadata['layers']]))
+    
+        image_config = requests.get(f'https://registry.webis.de/v2/{repository_name}/blobs/{image_metadata["config"]["digest"]}', headers=headers)
+
+        if not image_config.ok:
+            raise ValueError('-->' + image_config.content.decode('UTF-8'))
+    
+        image_config = json.loads(image_config.content.decode('UTF-8'))
+
+        ret = {
+            'architecture': image_config['architecture'],
+            'created': image_config['created'],
+            'size': size,
+            'digest': image_metadata["config"]["digest"].split(':')[-1][:12]
+        }
+    except Exception as e:
+        logger.warn('Exception during loading of metadata for docker image', e)
+        ret = {
+            'architecture': 'Loading...',
+            'created': 'Loading...',
+            'size': 'Loading...',
+            'digest': 'Loading...'
+        }
+    
+    if cache:
+        logger.info(f"Cache refreshed for key {cache_key} ...")
+        cache.set(cache_key, ret)
+    
+    return ret
 
 
 def add_new_tag_to_docker_image_repository(repository_name, old_tag, new_tag):
