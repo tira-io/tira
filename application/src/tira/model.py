@@ -187,6 +187,8 @@ class DockerSoftware(models.Model):
     user_image_name = models.TextField(default="")
     tira_image_name = models.TextField(default="")
     deleted = models.BooleanField(default=False)
+    description = models.TextField(default="")
+    paper_link = models.TextField(default="")
 
 
 class Run(models.Model):
