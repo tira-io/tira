@@ -79,7 +79,7 @@
                 <td id="task-{{ task.task_id }}"></td>
                 <td class="">
                     <a href="{% url 'tira:task' task_id=task.task_id %}">{{ task.task_name }}</a>
-                     <span class="uk-text-muted uk-text-small">({{ task.software_count }} submission)</span>
+                     <span class="uk-text-muted uk-text-small"> ({{ task.software_count }} submissions)</span>
                 </td>
                 <td class="">
                     {% if task.featured %}
