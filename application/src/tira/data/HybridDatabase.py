@@ -321,14 +321,25 @@ class HybridDatabase(object):
         except modeldb.Dataset.DoesNotExist:
             return {}
 
-    def get_organizer(self, organizer_id: str):
-        organizer = modeldb.Organizer.objects.get(organizer_id=organizer_id)
+    def _organizer_to_dict(self, organizer):
+        git_integrations = []
+        
+        for git_integration in organizer.git_integrations.all():
+            git_integrations += [{'namespace_url': git_integration.namespace_url, 'private_token': '<OMMITTED>'}]
+    
+        git_integrations += [{'namespace_url': '', 'private_token': ''}]
+        
         return {
             "organizer_id": organizer.organizer_id,
             "name": organizer.name,
             "years": organizer.years,
             "web": organizer.web,
+            "gitUrlToNamespace": git_integrations[0]['namespace_url'],
+            "gitPrivateToken": git_integrations[0]['private_token'],
         }
+
+    def get_organizer(self, organizer_id: str):
+        return self._organizer_to_dict(modeldb.Organizer.objects.get(organizer_id=organizer_id))
 
     def get_host_list(self) -> list:
         return [line.strip() for line in open(self.host_list_file, "r").readlines()]
@@ -337,11 +348,7 @@ class HybridDatabase(object):
         return [f"{ova_file.stem}.ova" for ova_file in self.ova_dir.glob("*.ova")]
 
     def get_organizer_list(self) -> list:
-        return [{"organizer_id": organizer.organizer_id,
-                 "name": organizer.name,
-                 "years": organizer.years,
-                 "web": organizer.web,
-                 } for organizer in modeldb.Organizer.objects.all()]
+        return [self._organizer_to_dict(organizer) for organizer in modeldb.Organizer.objects.all()]
 
     def get_vm_list(self):
         """ load the vm-info file which stores all active vms as such:
@@ -1402,10 +1409,25 @@ class HybridDatabase(object):
         self._fdb_delete_dataset(task_id, dataset_id)
         ds.delete()
 
-    def edit_organizer(self, organizer_id, name, years, web):
+    def edit_organizer(self, organizer_id, name, years, web, git_integrations=[]):
         org, _ = modeldb.Organizer.objects.update_or_create(organizer_id=organizer_id, defaults={
             'name': name, 'years': years, 'web': web})
+        org.git_integrations.set(git_integrations)
+        
         return org
+
+    def get_git_integration(self, namespace_url, private_token):
+        if not namespace_url or not namespace_url.strip():
+            return None
+
+        defaults = {'private_token': private_token}
+        
+        if not private_token or not private_token.strip or '<OMMITTED>'.lower() in private_token.lower():
+            defaults = {}
+        
+        git_integration, _ = modeldb.GitIntegration.objects.get_or_create(namespace_url=namespace_url, defaults=defaults)
+        
+        return git_integration
 
     def _registration_to_dict(self, registration):
         return {
