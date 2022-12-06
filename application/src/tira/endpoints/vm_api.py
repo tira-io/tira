@@ -409,6 +409,15 @@ def docker_software_add(request, task_id, vm_id):
     else:
         return JsonResponse({"status": 1, "message": "GET is not allowed here."})
 
+@check_permissions
+@check_resources_exist('json')
+def docker_software_save(request, task_id, vm_id, docker_software_id):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        print(data)
+        return JsonResponse({'status': 1, "message": "this is an error"}, status=HTTPStatus.BAD_REQUEST)
+    return JsonResponse({'status': 1, 'message': f"GET is not implemented for add dataset"})
+
 
 @check_permissions
 @check_resources_exist('json')
