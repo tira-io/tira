@@ -74,6 +74,36 @@
         </div>
         <div class="uk-grid-medium uk-margin-remove-top" data-uk-grid>
             <div class="uk-width-1-1">
+                <label class="uk-form-label">Software Name
+                <input class="uk-input" type="text" uk-tooltip="the name of your software"
+                       :value="selectedContainer.display_name" placeholder="name of your software">
+                </label>
+            </div>
+            <div class="uk-width-1-1">
+                <label class="uk-form-label">Software Description
+                <textarea id="software-description" rows="3" class="uk-textarea"
+               :v-model="selectedContainer.description" placeholder="description of your software"/>
+                </label>
+            </div>
+            <div class="uk-width-1-1">
+                <label class="uk-form-label">Paper
+                <input class="uk-input" type="text" uk-tooltip="the paper describing"
+                       :value="selectedContainer.paper_link" placeholder="paper describing the software">
+                </label>
+            </div>
+        </div>
+
+        <div>
+              <label class="uk-form-label" for="edit-software-button">&nbsp;</label>
+              <div><a class="uk-button uk-button-primary" id="edit-software-button"
+                        @click="editSoftware()"
+                >edit software</a></div>
+        </div>
+        <br>
+        <br>
+
+        <div class="uk-grid-medium uk-margin-remove-top" data-uk-grid>
+            <div class="uk-width-1-1">
                 <label class="uk-form-label">Command (immutable for reproducibility)
                 <input class="uk-input" type="text" :uk-tooltip="immutableHelp"
                        :value="selectedContainerCommand" placeholder="Command" readonly disabled>

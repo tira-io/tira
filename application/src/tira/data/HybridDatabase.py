@@ -459,7 +459,7 @@ class HybridDatabase(object):
         return {'docker_software_id': ds.docker_software_id, 'display_name': ds.display_name,
                 'user_image_name': ds.user_image_name, 'command': ds.command,
                 'tira_image_name': ds.tira_image_name, 'task_id': ds.task.task_id,
-                'vm_id': ds.vm.vm_id}
+                'vm_id': ds.vm.vm_id, 'description': ds.description, 'paper_link': ds.paper_link}
 
     def get_docker_softwares_with_runs(self, task_id, vm_id):
         def _runs_by_docker_software(ds):
