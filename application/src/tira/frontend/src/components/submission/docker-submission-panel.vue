@@ -74,6 +74,36 @@
         </div>
         <div class="uk-grid-medium uk-margin-remove-top" data-uk-grid>
             <div class="uk-width-1-1">
+                <label class="uk-form-label">Software Name
+                <input class="uk-input" type="text" uk-tooltip="the name of your software"
+                       v-model="selectedContainer.display_name" placeholder="name of your software">
+                </label>
+            </div>
+            <div class="uk-width-1-1">
+                <label class="uk-form-label">Software Description
+                <textarea id="software-description" rows="3" class="uk-textarea"
+               v-model="selectedContainer.description" placeholder="description of your software"/>
+                </label>
+            </div>
+            <div class="uk-width-1-1">
+                <label class="uk-form-label">Paper
+                <input class="uk-input" type="text" uk-tooltip="the paper describing"
+                       v-model="selectedContainer.paper_link" placeholder="paper describing the software">
+                </label>
+            </div>
+        </div>
+
+        <div>
+              <label class="uk-form-label" for="edit-software-button">&nbsp;</label>
+              <div><a class="uk-button uk-button-primary" id="edit-software-button"
+                        @click="editSoftware()"
+                >edit software</a></div>
+        </div>
+        <br>
+        <br>
+
+        <div class="uk-grid-medium uk-margin-remove-top" data-uk-grid>
+            <div class="uk-width-1-1">
                 <label class="uk-form-label">Command (immutable for reproducibility)
                 <input class="uk-input" type="text" :uk-tooltip="immutableHelp"
                        :value="selectedContainerCommand" placeholder="Command" readonly disabled>
@@ -176,7 +206,7 @@ export default {
             selectedContainerCommand: null,
             selectedResources: "None",
             toggleCommandHelp: false,
-            startingContainer: false,
+            startingContainer: false
         }
     },
     methods: {
@@ -214,6 +244,31 @@ export default {
             } else {
                 this.dockerFormError = ''
                 this.$emit('addContainer', r)
+            }
+        },
+        async editSoftware() {
+            const headers = new Headers({'X-CSRFToken': this.csrf})
+            const response = await fetch(`/task/${this.task.task_id}/vm/${this.user_id}/save_software/docker/${this.selectedContainerId}`, {
+              method: "POST",
+              headers,
+              body: JSON.stringify({
+                "display_name": this.selectedContainer.display_name,
+                "description": this.selectedContainer.description,
+                "paper_link": this.selectedContainer.paper_link})
+            });
+
+            for (let did in this.docker.docker_softwares) {
+                if (this.docker.docker_softwares[did].docker_software_id === this.selectedContainerId) {
+                    this.docker.docker_softwares[did].display_name = this.selectedContainer.display_name
+                    this.docker.docker_softwares[did].description = this.selectedContainer.description
+                    this.docker.docker_softwares[did].paper_link = this.selectedContainer.paper_link
+                }
+            }
+
+            let r = await response.json()
+            console.log(r)
+            if (!response.ok || r.status !== 0) {
+                this.$emit('addNotification', 'error', `Editing failed with ${response.status}: ${JSON.stringify(r)}`)
             }
         },
         checkContainerValid(updateView=false) {
@@ -354,6 +409,7 @@ export default {
                     this.selectedContainerCommand = this.docker.docker_softwares[did].command
                     this.containerImage = this.docker.docker_softwares[did].user_image_name
                     this.selectedDataset = "None"
+
                 }
             }
         }

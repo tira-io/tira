@@ -466,7 +466,7 @@ class HybridDatabase(object):
         return {'docker_software_id': ds.docker_software_id, 'display_name': ds.display_name,
                 'user_image_name': ds.user_image_name, 'command': ds.command,
                 'tira_image_name': ds.tira_image_name, 'task_id': ds.task.task_id,
-                'vm_id': ds.vm.vm_id}
+                'vm_id': ds.vm.vm_id, 'description': ds.description, 'paper_link': ds.paper_link}
 
     def get_docker_softwares_with_runs(self, task_id, vm_id):
         def _runs_by_docker_software(ds):
@@ -1170,6 +1170,11 @@ class HybridDatabase(object):
             )
         return self._docker_software_to_dict(docker_software)
 
+    def update_docker_software_metadata(self, docker_software_id, display_name, description, paper_link):
+        software = modeldb.DockerSoftware.objects.update_or_create(docker_software_id = docker_software_id, 
+            defaults={"display_name": display_name, "description": description, "paper_link": paper_link})
+
+    
     def update_run(self, dataset_id, vm_id, run_id, deleted: bool = None):
         """ updates the run specified by dataset_id, vm_id, and run_id with the values given in the parameters.
             Required Parameters are also required in the function
