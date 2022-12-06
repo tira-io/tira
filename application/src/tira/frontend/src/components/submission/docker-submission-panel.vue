@@ -76,19 +76,19 @@
             <div class="uk-width-1-1">
                 <label class="uk-form-label">Software Name
                 <input class="uk-input" type="text" uk-tooltip="the name of your software"
-                       :value="selectedContainer.display_name" placeholder="name of your software">
+                       v-model="softwareNameToEdit" placeholder="name of your software">
                 </label>
             </div>
             <div class="uk-width-1-1">
                 <label class="uk-form-label">Software Description
                 <textarea id="software-description" rows="3" class="uk-textarea"
-               :v-model="selectedContainer.description" placeholder="description of your software"/>
+               v-model="softwareDescriptionToEdit" placeholder="description of your software"/>
                 </label>
             </div>
             <div class="uk-width-1-1">
                 <label class="uk-form-label">Paper
                 <input class="uk-input" type="text" uk-tooltip="the paper describing"
-                       :value="selectedContainer.paper_link" placeholder="paper describing the software">
+                       v-model="paperLinkToEdit" placeholder="paper describing the software">
                 </label>
             </div>
         </div>
@@ -207,6 +207,9 @@ export default {
             selectedResources: "None",
             toggleCommandHelp: false,
             startingContainer: false,
+            softwareNameToEdit: "",
+            softwareDescriptionToEdit: "",
+            paperLinkToEdit: ""
         }
     },
     methods: {
@@ -244,6 +247,35 @@ export default {
             } else {
                 this.dockerFormError = ''
                 this.$emit('addContainer', r)
+            }
+        },
+        async editSoftware() {
+            const headers = new Headers({'X-CSRFToken': this.csrf})
+            const response = await fetch(`/task/${this.task.task_id}/vm/${this.user_id}/save_software/docker/${this.selectedContainerId}`, {
+              method: "POST",
+              headers,
+              body: JSON.stringify({
+                "display_name": this.softwareNameToEdit,
+                "description": this.softwareDescriptionToEdit,
+                "paper_link": this.paperLinkToEdit})
+            });
+
+            for (let did in this.docker.docker_softwares) {
+                console.log("!!!!!!!!!!!!!!" + this.docker.docker_softwares[did].docker_software_id)
+                console.log("?????????????" + this.selectedContainerId)
+                if (this.docker.docker_softwares[did].docker_software_id === this.selectedContainerId) {
+                    console.log("IM IN")
+                    this.docker.docker_softwares[did].display_name = this.softwareNameToEdit
+                    this.docker.docker_softwares[did].description = this.softwareDescriptionToEdit
+                    this.docker.docker_softwares[did].paper_link = this.paperLinkToEdit
+                }
+            }
+            console.log("DOCKER" + JSON.stringify(this.docker.docker_softwares))
+
+            let r = await response.json()
+            console.log(r)
+            if (!response.ok || r.status !== 0) {
+                this.$emit('addNotification', 'error', `Editing failed with ${response.status}: ${JSON.stringify(r)}`)
             }
         },
         checkContainerValid(updateView=false) {
@@ -384,6 +416,10 @@ export default {
                     this.selectedContainerCommand = this.docker.docker_softwares[did].command
                     this.containerImage = this.docker.docker_softwares[did].user_image_name
                     this.selectedDataset = "None"
+                    this.softwareNameToEdit = this.selectedContainer.display_name
+                    this.softwareDescriptionToEdit = this.selectedContainer.description
+                    this.paperLinkToEdit = this.selectedContainer.paper_link
+
                 }
             }
         }
