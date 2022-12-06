@@ -50,11 +50,23 @@ class EvaluationLog(models.Model):
         unique_together = (("vm_id", "run_id"),)
 
 
+class GitIntegration(models.Model):
+    namespace_url = models.CharField(max_length=280, primary_key=True)
+    host = models.CharField(max_length=100, default='')
+    private_token = models.CharField(max_length=100, default='')
+    user_name = models.CharField(max_length=100, default='')
+    user_password = models.CharField(max_length=100, default='')
+    gitlab_repository_namespace_id = models.IntegerField(default=None, null=True)
+    image_registry_prefix = models.CharField(max_length=150, default='')
+    user_repository_branch = models.CharField(max_length=100, default='main')
+
+
 class Organizer(models.Model):
     organizer_id = models.CharField(max_length=280, primary_key=True)
     name = models.CharField(max_length=100, default='tira')
     years = models.CharField(max_length=30, default='2022')
     web = models.CharField(max_length=300, default='https://www.tira.io')
+    git_integrations = models.ManyToManyField(GitIntegration, default=None)
 
 
 class VirtualMachine(models.Model):

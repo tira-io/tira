@@ -374,11 +374,7 @@ def admin_add_organizer(request, organizer_id):
     if request.method == "POST":
         data = json.loads(request.body)
 
-        name = data["name"]
-        years = data["years"]
-        web = data["web"]
-
-        model.edit_organizer(organizer_id, name, years, web)
+        model.edit_organizer(organizer_id, data["name"], data["years"], data["web"], data['gitUrlToNamespace'], data['gitPrivateToken'])
         auth.create_organizer_group(name, auth.get_user_id(request))
         return JsonResponse({'status': 0, 'message': f"Added Organizer {organizer_id}"})
 
@@ -390,12 +386,8 @@ def admin_add_organizer(request, organizer_id):
 def admin_edit_organizer(request, organizer_id):
     if request.method == "POST":
         data = json.loads(request.body)
-
-        name = data["name"]
-        years = data["years"]
-        web = data["web"]
-
-        model.edit_organizer(organizer_id, name, years, web)
+        
+        model.edit_organizer(organizer_id, data["name"], data["years"], data["web"], data['gitUrlToNamespace'], data['gitPrivateToken'])
         return JsonResponse({'status': 0, 'message': f"Updated Organizer {organizer_id}"})
 
     return JsonResponse({'status': 1, 'message': f"GET is not implemented for edit organizer"})

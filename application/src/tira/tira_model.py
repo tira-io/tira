@@ -482,8 +482,13 @@ def delete_dataset(dataset_id: str):
     return model.delete_dataset(dataset_id)
 
 
-def edit_organizer(organizer_id: str, name: str, years: str, web: str):
-    return model.edit_organizer(organizer_id, name, years, web)
+def edit_organizer(organizer_id: str, name: str, years: str, web: str, namespace_url: str, private_token: str):
+    git_integrations = []
+    git_integration = model.get_git_integration(namespace_url, private_token)
+    if git_integration:
+        git_integrations = [git_integration]
+
+    return model.edit_organizer(organizer_id, name, years, web, git_integrations)
 
 
 # ------------------------------------------------------------

@@ -28,6 +28,15 @@
                      :class="{'uk-form-danger': (this.editOrganizerError !== '' && this.web === '')}"
                      v-model="this.web" /> Website</label>
           </div>
+          <div class="uk-width-4-4">
+              <h4>Git Integration:</h4>
+          </div>
+          <div class="uk-width-1-2">
+              <label><input class="uk-input" type="text" v-model="this.gitUrlToNamespace" /> URL To Git Namespace</label>
+          </div>
+          <div class="uk-width-1-2">
+              <label><input class="uk-input" type="text" v-model="this.gitPrivateToken" /> Git Private Token</label>
+          </div>
       </div>
       <div class="uk-margin-small">
           <button class="uk-button uk-button-primary" @click="editOrganizer">Save Changes</button>
@@ -54,6 +63,15 @@
                      :class="{'uk-form-danger': (this.addOrganizerError !== '' && this.newWeb === '')}"
                      v-model="this.newWeb" /> Website</label>
           </div>
+          <div class="uk-width-4-4">
+              <h4>Git Integration:</h4>
+          </div>
+          <div class="uk-width-1-2">
+              <label><input class="uk-input" type="text" v-model="this.newGitUrlToNamespace" /> URL To Git Namespace</label>
+          </div>
+          <div class="uk-width-1-2">
+              <label><input class="uk-input" type="text" v-model="this.newGitPrivateToken" /> Git Private Token</label>
+          </div>
       </div>
       <div class="uk-margin-small">
           <button class="uk-button uk-button-primary" @click="addOrganizer">Add Organization</button>
@@ -76,6 +94,10 @@ export default {
             years: '',
             web: '',
             newWeb: '',
+            gitUrlToNamespace: '',
+            gitPrivateToken: '',
+            newGitUrlToNamespace: '',
+            newGitPrivateToken: '',
             organizerList: [],
         }
     },
@@ -135,6 +157,9 @@ export default {
                 'name': this.name,
                 'years': this.years,
                 'web': this.web,
+                'gitUrlToNamespace': this.gitUrlToNamespace,
+                'gitPrivateToken': this.gitPrivateToken
+                
             }).then(message => {
                 this.$emit('addnotification', 'success', message.message)
                 this.$emit('closemodal')
@@ -163,6 +188,8 @@ export default {
                 'name': this.newName,
                 'years': this.newYears,
                 'web': this.newWeb,
+                'gitUrlToNamespace': this.newGitUrlToNamespace,
+                'gitPrivateToken': this.newGitPrivateToken
             }).then(message => {
                 this.$emit('addnotification', 'success', message.message)
                 this.$emit('closemodal')
@@ -205,6 +232,8 @@ export default {
             this.name = newOrg.name
             this.years = newOrg.years
             this.web = newOrg.web
+            this.gitUrlToNamespace = newOrg.gitUrlToNamespace
+            this.gitPrivateToken = newOrg.gitPrivateToken
         }
     },
 }
