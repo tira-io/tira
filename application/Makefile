@@ -54,9 +54,7 @@ venv:
 		python3 -m pip install -r requirements.txt"
 
 run-develop: venv
-	cp config/tira-application-config.dev.yml src/config/settings.yml
-	sh -c ". $(VENV_NAME)/bin/activate && \
-	python3 src/manage.py run_develop"
+	$(VENV_NAME)/bin/python3 src/manage.py run_develop
 
 run-git-develop: venv
 	cat config/tira-application-config.dev.yml |grep -v '^GIT_' > src/config/settings.yml
@@ -92,3 +90,6 @@ build-docker-basis:
 
 clean:
 	rm -r $(VENV_NAME)
+
+forward-mysql:
+	kubectl -n services-tira port-forward $$(kubectl -n services-tira get pods| grep tira-mariadb | awk '{print $$1 }') 3306
