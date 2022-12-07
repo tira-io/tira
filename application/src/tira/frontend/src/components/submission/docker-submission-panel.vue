@@ -67,40 +67,51 @@
     <form id="docker-form" class="docker_form">
         <div class="uk-width-1-1 uk-margin-remove" data-uk-grid>
             <div class="uk-width-expand"></div>
+                     <a  class="uk-button uk-text-small" @click="editSoftwareMetadataToggle = !editSoftwareMetadataToggle"
+                       :class="{ 'uk-button-default': !editSoftwareMetadataToggle, 'uk-button-primary': editSoftwareMetadataToggle }"
+                       uk-tooltip="title: Edit Description of the Software;">Edit 
+                        <font-awesome-icon icon="fas fa-cog" /></a>
             <delete-confirm
                 :tooltip="softwareCanBeDeleted() ? 'Attention! This deletes the container and ALL RUNS' : 'Software can not be deleted because there are still valid runs assigned.'"
                 @confirmation="() => deleteContainer()"
                 :disable="!softwareCanBeDeleted()" />
         </div>
-        <div class="uk-grid-medium uk-margin-remove-top" data-uk-grid>
-            <div class="uk-width-1-1">
-                <label class="uk-form-label">Software Name
-                <input class="uk-input" type="text" uk-tooltip="the name of your software"
-                       v-model="selectedContainer.display_name" placeholder="name of your software">
-                </label>
+        
+        <div v-if="editSoftwareMetadataToggle">
+            <div class="uk-grid-medium uk-margin-remove-top" data-uk-grid>
+                <div class="uk-width-1-1">
+                    <label class="uk-form-label">Software Name
+                    <input class="uk-input" type="text" uk-tooltip="the name of your software"
+                           v-model="selectedContainer.display_name" placeholder="name of your software">
+                    </label>
+                </div>
+                <div class="uk-width-1-1">
+                    <label class="uk-form-label">Software Description
+                    <textarea id="software-description" rows="3" class="uk-textarea"
+                              v-model="selectedContainer.description" placeholder="description of your software"/>
+                    </label>
+                </div>
+                <div class="uk-width-1-1">
+                    <label class="uk-form-label">Paper (link to dblp)
+                    <input class="uk-input" type="text" uk-tooltip="the paper describing"
+                           v-model="selectedContainer.paper_link" placeholder="paper describing the software">
+                    </label>
+                </div>
             </div>
-            <div class="uk-width-1-1">
-                <label class="uk-form-label">Software Description
-                <textarea id="software-description" rows="3" class="uk-textarea"
-               v-model="selectedContainer.description" placeholder="description of your software"/>
-                </label>
+
+            <div>
+                  <label class="uk-form-label" for="edit-software-button">&nbsp;</label>
+                  <div>
+                      <a class="uk-button uk-button-primary" id="edit-software-button" @click="editSoftware()">Save Metadata</a>
+                  </div>
             </div>
-            <div class="uk-width-1-1">
-                <label class="uk-form-label">Paper
-                <input class="uk-input" type="text" uk-tooltip="the paper describing"
-                       v-model="selectedContainer.paper_link" placeholder="paper describing the software">
-                </label>
-            </div>
+            <br>
+            <br>
+        </div>
+        <div v-if="!editSoftwareMetadataToggle">
+            <p>{{selectedContainer.description}}</p>
         </div>
 
-        <div>
-              <label class="uk-form-label" for="edit-software-button">&nbsp;</label>
-              <div><a class="uk-button uk-button-primary" id="edit-software-button"
-                        @click="editSoftware()"
-                >edit software</a></div>
-        </div>
-        <br>
-        <br>
 
         <div class="uk-grid-medium uk-margin-remove-top" data-uk-grid>
             <div class="uk-width-1-1">
@@ -206,7 +217,8 @@ export default {
             selectedContainerCommand: null,
             selectedResources: "None",
             toggleCommandHelp: false,
-            startingContainer: false
+            startingContainer: false,
+            editSoftwareMetadataToggle: false,
         }
     },
     methods: {
@@ -257,18 +269,20 @@ export default {
                 "paper_link": this.selectedContainer.paper_link})
             });
 
-            for (let did in this.docker.docker_softwares) {
-                if (this.docker.docker_softwares[did].docker_software_id === this.selectedContainerId) {
-                    this.docker.docker_softwares[did].display_name = this.selectedContainer.display_name
-                    this.docker.docker_softwares[did].description = this.selectedContainer.description
-                    this.docker.docker_softwares[did].paper_link = this.selectedContainer.paper_link
-                }
-            }
-
             let r = await response.json()
             console.log(r)
             if (!response.ok || r.status !== 0) {
                 this.$emit('addNotification', 'error', `Editing failed with ${response.status}: ${JSON.stringify(r)}`)
+            } else {
+                for (let did in this.docker.docker_softwares) {
+                    if (this.docker.docker_softwares[did].docker_software_id === this.selectedContainerId) {
+                        this.docker.docker_softwares[did].display_name = this.selectedContainer.display_name
+                        this.docker.docker_softwares[did].description = this.selectedContainer.description
+                        this.docker.docker_softwares[did].paper_link = this.selectedContainer.paper_link
+                    }
+                }
+                
+                this.editSoftwareMetadataToggle = false
             }
         },
         checkContainerValid(updateView=false) {
@@ -409,7 +423,7 @@ export default {
                     this.selectedContainerCommand = this.docker.docker_softwares[did].command
                     this.containerImage = this.docker.docker_softwares[did].user_image_name
                     this.selectedDataset = "None"
-
+                    this.editSoftwareMetadataToggle = false
                 }
             }
         }
