@@ -131,13 +131,24 @@ class GitRunner:
             self.create_user_repository(user_name)
             return ret
 
+        covered_images = set()
         for registry_repository in repo.repositories.list():
             for registry in registry_repository.manager.list():
                 for image in registry.tags.list(get_all=True):
-                    ret += [image.location]
-        
-        ret = sorted(list(set(ret)))
-        
+                    if image.location in covered_images:
+                        continue
+                    covered_images.add(image.location)
+                   image_manifest = self.get_manifest_of_docker_image_image_repository(image.location.split(':')[0], image.location.split(':')[1], cache, force_cache_refresh)
+                
+                    ret += [{'image': image.location,
+                             'architecture': image_manifest['architecture'],
+                             'created': image_manifest['created'].split('.')[0],
+                             'size': image_manifest['size'],
+                             'digest': image_manifest['digest']
+                           }]
+    
+        ret = sorted(list(ret), key=lambda i: i['image'])
+
         if cache:
             logger.info(f"Cache refreshed for key {cache_key} ...")
             cache.set(cache_key, ret)
