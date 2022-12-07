@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.template.loader import render_to_string
 from git import Repo
 import tempfile
@@ -64,18 +63,18 @@ class GitRunner:
             self.__ensure_branch_is_main(repo)
             repo.index.add(['README.md', '.git-ci.yml', 'tira'])
             repo.index.commit('Initial commit')
-            repo.remote().push(settings.GIT_USER_REPOSITORY_BRANCH, o='ci.skip')
+            repo.remote().push(self.user_repository_branch, o='ci.skip')
 
         logger.info(f"Created task repository for task {task_id} with new id {project.id}")
         return project.id
 
-    def _create_task_repository_on_gitHoster(task_id):
+    def _create_task_repository_on_gitHoster(self, task_id):
         pass
 
     def __ensure_branch_is_main(self, repo):
         try:
             # for some git versions we need to manually switch, may fail if the branch is already correct
-            repo.git.checkout('-b', settings.GIT_USER_REPOSITORY_BRANCH)
+            repo.git.checkout('-b', self.user_repository_branch)
         except:
             pass
 
@@ -184,7 +183,7 @@ class GitRunner:
         """
         pass
 
-    def all_user_repositories():
+    def all_user_repositories(self):
         """
         Lists all user repositories in the organization.
 
@@ -310,9 +309,15 @@ class GitRunner:
 
 class GitLabRunner(GitRunner):
 
-    def __init__(self):
-        self.git_token = settings.GIT_PRIVATE_TOKEN
-        self.gitHoster_client = gitlab.Gitlab('https://' + settings.GIT_CI_SERVER_HOST, private_token=self.git_token)
+    def __init__(self, private_token, host, user_name, user_password, gitlab_repository_namespace_id, image_registry_prefix, user_repository_branch):
+        self.git_token = private_token
+        self.user_name = user_name
+        self.host = host
+        self.user_password = user_password
+        self.namespace_id = int(gitlab_repository_namespace_id)
+        self.image_registry_prefix = image_registry_prefix
+        self.user_repository_branch = user_repository_branch
+        self.gitHoster_client = gitlab.Gitlab('https://' + host, private_token=self.git_token)
 
     def template_ci(self):
         """
@@ -328,18 +333,18 @@ class GitLabRunner(GitRunner):
 
     def template_tira_cmd_script(self, project_id):
         return render_to_string('tira/tira_git_cmd.sh', context={'project_id': project_id,
-                                                                            'ci_server_host': settings.GIT_CI_SERVER_HOST})
+                                                                            'ci_server_host': self.host})
 
-    def add_new_tag_to_docker_image_repository(repository_name, old_tag, new_tag):
+    def add_new_tag_to_docker_image_repository(self, repository_name, old_tag, new_tag):
         """
         Background for the implementation:
         https://dille.name/blog/2018/09/20/how-to-tag-docker-images-without-pulling-them/
         https://gitlab.com/gitlab-org/gitlab/-/issues/23156
         """
         original_repository_name = repository_name
-        repository_name = repository_name.split(settings.GIT_CONTAINER_REGISTRY_HOST + '/')[-1]
+        repository_name = repository_name.split(self.image_registry_prefix + '/')[-1]
         
-        token = requests.get(f'https://{settings.GIT_CI_SERVER_HOST}:{settings.GIT_PRIVATE_TOKEN}@git.webis.de/jwt/auth?client_id=docker&offline_token=true&service=container_registry&scope=repository:{repository_name}:push,pull')
+        token = requests.get(f'https://{self.host}:{self.git_token}@git.webis.de/jwt/auth?client_id=docker&offline_token=true&service=container_registry&scope=repository:{repository_name}:push,pull')
         
         if not token.ok:
             raise ValueError(token.content.decode('UTF-8'))
@@ -374,14 +379,14 @@ class GitLabRunner(GitRunner):
 
         ret = []
         for potential_existing_projects in self.gitlab_client.projects.list(search='tira-user-'):
-            if 'tira-user-' in potential_existing_projects.name and int(potential_existing_projects.namespace['id']) == int     (settings.GIT_USER_REPOSITORY_NAMESPACE_ID):
+            if 'tira-user-' in potential_existing_projects.name and int(potential_existing_projects.namespace['id']) == self.namespace_id:
                 ret += [potential_existing_projects.name]
         return set(ret)
 
     def _create_task_repository_on_gitHoster(self, task_id):
         project = self.gitHoster_client.projects.create(
-            {'name': task_id, 'namespace_id': str(int(settings.GIT_USER_REPOSITORY_NAMESPACE_ID)),
-            "default_branch": settings.GIT_USER_REPOSITORY_BRANCH})
+            {'name': task_id, 'namespace_id': str(self.namespace_id),
+            "default_branch": self.user_repository_branch})
         return project
 
     def _create_access_token_gitHoster(self, project, repo):
@@ -442,7 +447,7 @@ class GitLabRunner(GitRunner):
             yield pipeline
 
 
-    def all_running_pipelines_for_repository(git_repository_id, cache=None, force_cache_refresh=False):
+    def all_running_pipelines_for_repository(self, git_repository_id, cache=None, force_cache_refresh=False):
         cache_key = 'all-running-pipelines-repo-' + str(git_repository_id)
         if cache:
             try:
@@ -506,7 +511,7 @@ class GitLabRunner(GitRunner):
         
         return ret
 
-    def extract_job_configuration(gl_project, branch):
+    def extract_job_configuration(self, gl_project, branch):
         ret = {}
         
         try:
@@ -544,7 +549,7 @@ class GitLabRunner(GitRunner):
             'task_id': ret.get('TIRA_TASK_ID', 'Loading...'),
         }
 
-    def __all_failed_pipelines_for_repository(gl_project, already_covered_run_ids):
+    def __all_failed_pipelines_for_repository(self, gl_project, already_covered_run_ids):
         ret = []
 
         for branch in gl_project.branches.list():
@@ -655,7 +660,7 @@ class GithubRunner(GitRunner):
         # create new repository and rename the default branch
         project = self.gitHoster_client.get_user().create_repo(name = task_id)
         for branch in project.get_branches():
-            project.rename_branch(branch=branch, new_name= settings.GIT_USER_REPOSITORY_BRANCH)
+            project.rename_branch(branch=branch, new_name= self.user_repository_branch)
         return project
 
     def _create_access_token_gitHoster(self, project ,repo):
