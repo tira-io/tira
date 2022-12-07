@@ -27,6 +27,19 @@ import requests
 logger = logging.getLogger('tira')
 
 
+def get_git_runner(git_integration):
+    from tira.git_runner_integration import GitLabRunner, GithubRunner
+    if 'github.com' in git_integration.namespace_url:
+        return GithubRunner()
+    else:
+        return GithubRunner(
+            git_integration.private_token, git_integration.host, git_integration.user_name,
+            git_integration.user_password, git_integration.gitlab_repository_namespace_id,
+            git_integration.image_registry_prefix, git_integration.user_repository_branch
+        )
+
+
+
 def create_task_repository(task_id):
     logger.info(f"Creating task repository for task {task_id} ...")
     repo = __existing_repository(task_id)
