@@ -50,7 +50,7 @@ class GitRunner:
         readme = self.template_readme(task_id)
         project = self._create_task_repository_on_gitHoster(task_id)
         
-        tira_cmd_script = self.template_tira_cmd_script()
+        tira_cmd_script = self.template_tira_cmd_script(project)
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             repo = Repo.init(tmp_dir)
@@ -331,9 +331,71 @@ class GitLabRunner(GitRunner):
         """
         render_to_string('tira/git_task_repository_readme.md', context={'task_name': task_id})
 
-    def template_tira_cmd_script(self, project_id):
-        return render_to_string('tira/tira_git_cmd.sh', context={'project_id': project_id,
+    def template_tira_cmd_script(self, project):
+        return render_to_string('tira/tira_git_cmd.sh', context={'project_id': project.id,
                                                                             'ci_server_host': self.host})
+
+    def get_manifest_of_docker_image_image_repository(self, repository_name, tag, cache, force_cache_refresh):
+        """
+        Background for the implementation:
+        https://dille.name/blog/2018/09/20/how-to-tag-docker-images-without-pulling-them/
+        https://gitlab.com/gitlab-org/gitlab/-/issues/23156
+        """
+        original_repository_name = repository_name
+        repository_name = repository_name.split(self.image_registry_prefix + '/')[-1]
+
+        cache_key = f'docker-manifest-for-repo-{repository_name}-{tag}'
+        if cache:
+            ret = cache.get(cache_key)        
+            if ret is not None:
+                return ret
+
+        try:
+            token = requests.get(f'https://{self.host}:{self.private_token}@git.webis.de/jwt/auth?client_id=docker&offline_token=true&service=container_registry&scope=repository:{repository_name}:push,pull,blob,upload')
+
+            if not token.ok:
+                raise ValueError(token.content.decode('UTF-8'))
+
+            token = json.loads(token.content.decode('UTF-8'))['token']
+            headers = {'Accept': 'application/vnd.docker.distribution.manifest.v2+json',
+                       'Content-Type': 'application/vnd.docker.distribution.manifest.v2+json',
+                       'Authorization': 'Bearer ' + token}
+
+            manifest = requests.get(f'https://registry.webis.de/v2/{repository_name}/manifests/{tag}', headers=headers)
+
+            if not manifest.ok:
+                raise ValueError('-->' + manifest.content.decode('UTF-8'))
+    
+            image_metadata = json.loads(manifest.content.decode('UTF-8'))
+            size = convert_size(image_metadata['config']['size'] + sum([i['size'] for i in image_metadata['layers']]))
+
+            image_config = requests.get(f'https://registry.webis.de/v2/{repository_name}/blobs/{image_metadata["config"]["digest"]}', headers=headers)
+
+            if not image_config.ok:
+                raise ValueError('-->' + image_config.content.decode('UTF-8'))
+
+            image_config = json.loads(image_config.content.decode('UTF-8'))
+
+            ret = {
+                'architecture': image_config['architecture'],
+                'created': image_config['created'],
+                'size': size,
+                'digest': image_metadata["config"]["digest"].split(':')[-1][:12]
+            }
+        except Exception as e:
+            logger.warn('Exception during loading of metadata for docker image', e)
+            ret = {
+                'architecture': 'Loading...',
+                'created': 'Loading...',
+                'size': 'Loading...',
+                'digest': 'Loading...'
+            }
+
+        if cache:
+            logger.info(f"Cache refreshed for key {cache_key} ...")
+            cache.set(cache_key, ret)
+
+        return ret
 
     def add_new_tag_to_docker_image_repository(self, repository_name, old_tag, new_tag):
         """
@@ -383,7 +445,17 @@ class GitLabRunner(GitRunner):
                 ret += [potential_existing_projects.name]
         return set(ret)
 
+    def __existing_repository(self, repo):
+        for potential_existing_projects in gitlab_client().projects.list(search=repo):
+            if potential_existing_projects.name == repo and int(potential_existing_projects.namespace['id']) == self.namespace_id:
+                return potential_existing_projects
+
     def _create_task_repository_on_gitHoster(self, task_id):
+        project = self.__existing_repository(task_id)
+        if project:
+            print(f'Repository found "{task_id}".')
+            return project
+    
         project = self.gitHoster_client.projects.create(
             {'name': task_id, 'namespace_id': str(self.namespace_id),
             "default_branch": self.user_repository_branch})
@@ -421,7 +493,7 @@ class GitLabRunner(GitRunner):
         gl = self.gitHoster_client
         gl_project = gl.projects.get(int(git_repository_id))
         
-        for pipeline in yield_all_running_pipelines(git_repository_id, user_id, cache, True):
+        for pipeline in self.yield_all_running_pipelines(git_repository_id, user_id, cache, True):
             if run_id == pipeline['run_id']:
                 branch = pipeline['branch'] if 'branch' in pipeline else pipeline['pipeline'].ref
                 if ('---' + user_id + '---') not in branch:
@@ -434,8 +506,8 @@ class GitLabRunner(GitRunner):
                 gl_project.branches.delete(branch)
 
 
-    def yield_all_running_pipelines(git_repository_id, user_id, cache=None, force_cache_refresh=False):
-        for pipeline in all_running_pipelines_for_repository(git_repository_id, cache, force_cache_refresh):
+    def yield_all_running_pipelines(self, git_repository_id, user_id, cache=None, force_cache_refresh=False):
+        for pipeline in self.all_running_pipelines_for_repository(git_repository_id, cache, force_cache_refresh):
             pipeline = deepcopy(pipeline)
 
             if ('---' + user_id + '---') not in pipeline['pipeline_name']:
@@ -499,11 +571,11 @@ class GitLabRunner(GitRunner):
                     'stdOutput': stdout,
                     'started_at': p.split('---')[-1],
                     'pipeline_name': p,
-                    'job_config': extract_job_configuration(gl_project, pipeline.ref),
+                    'job_config': self.extract_job_configuration(gl_project, pipeline.ref),
                     'pipeline': pipeline
                 }]
                 
-        ret += __all_failed_pipelines_for_repository(gl_project, already_covered_run_ids)
+        ret += self.__all_failed_pipelines_for_repository(gl_project, already_covered_run_ids)
         
         if cache:
             logger.info(f"Cache refreshed for key {cache_key} ...")
@@ -560,7 +632,7 @@ class GitLabRunner(GitRunner):
             if run_id in already_covered_run_ids:
                 continue
             
-            ret += [{'run_id': run_id, 'execution': {'scheduling': 'failed', 'execution': 'failed', 'evaluation': 'failed'}, 'pipeline_name': p, 'stdOutput': 'Job did not run. (Maybe it is still submitted to the cluster or failed to start. It might take up to 5 minutes to submit a Job to the cluster.)', 'started_at': p.split('---')[-1], 'branch': branch, 'job_config': extract_job_configuration(gl_project, branch)}]
+            ret += [{'run_id': run_id, 'execution': {'scheduling': 'failed', 'execution': 'failed', 'evaluation': 'failed'}, 'pipeline_name': p, 'stdOutput': 'Job did not run. (Maybe it is still submitted to the cluster or failed to start. It might take up to 5 minutes to submit a Job to the cluster.)', 'started_at': p.split('---')[-1], 'branch': branch, 'job_config': self.extract_job_configuration(gl_project, branch)}]
 
         return ret
 
