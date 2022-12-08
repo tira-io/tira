@@ -190,7 +190,7 @@
 <script>
 import ReviewList from "../runs/review-list";
 import DeleteConfirm from "../elements/delete-confirm";
-import submitPost from "../../utils/getpost"
+import { get, submitPost } from "../../utils/getpost";
 
 export default {
     name: "docker-submission-panel",
@@ -266,10 +266,10 @@ export default {
                 "paper_link": this.selectedContainer.paper_link
             }
 
-            await submitPost(
+            submitPost(
                 `/task/${this.task.task_id}/vm/${this.user_id}/save_software/docker/${this.selectedContainerId}`,
                 this.csrf,
-                params
+                {"display_name": this.selectedContainer.display_name, "description": this.selectedContainer.description, "paper_link": this.selectedContainer.paper_link}
             ).then(message => {
                 for (let did in this.docker.docker_softwares) {
                     if (this.docker.docker_softwares[did].docker_software_id === this.selectedContainerId) {
