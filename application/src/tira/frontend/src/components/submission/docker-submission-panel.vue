@@ -190,6 +190,7 @@
 <script>
 import ReviewList from "../runs/review-list";
 import DeleteConfirm from "../elements/delete-confirm";
+import submitPost from "../../utils/getpost"
 
 export default {
     name: "docker-submission-panel",
@@ -259,21 +260,17 @@ export default {
             }
         },
         async editSoftware() {
-            const headers = new Headers({'X-CSRFToken': this.csrf})
-            const response = await fetch(`/task/${this.task.task_id}/vm/${this.user_id}/save_software/docker/${this.selectedContainerId}`, {
-              method: "POST",
-              headers,
-              body: JSON.stringify({
+            let params = {
                 "display_name": this.selectedContainer.display_name,
                 "description": this.selectedContainer.description,
-                "paper_link": this.selectedContainer.paper_link})
-            });
+                "paper_link": this.selectedContainer.paper_link
+            }
 
-            let r = await response.json()
-            console.log(r)
-            if (!response.ok || r.status !== 0) {
-                this.$emit('addNotification', 'error', `Editing failed with ${response.status}: ${JSON.stringify(r)}`)
-            } else {
+            await submitPost(
+                `/task/${this.task.task_id}/vm/${this.user_id}/save_software/docker/${this.selectedContainerId}`,
+                this.csrf,
+                params
+            ).then(message => {
                 for (let did in this.docker.docker_softwares) {
                     if (this.docker.docker_softwares[did].docker_software_id === this.selectedContainerId) {
                         this.docker.docker_softwares[did].display_name = this.selectedContainer.display_name
@@ -283,7 +280,9 @@ export default {
                 }
                 
                 this.editSoftwareMetadataToggle = false
-            }
+            }).catch(error => {
+                this.$emit('addNotification', 'error', `Editing failed with ${error}`)
+            })
         },
         checkContainerValid(updateView=false) {
             this.containerImageError = false
