@@ -29,9 +29,9 @@ class Command(BaseCommand):
         print(add_new_tag_to_docker_image_repository('registry.webis.de/code-research/tira/tira-user-del-maik-user-repo/my-software', '0.0.3', '0.0.1-tira-docker-software-id-name-x'))
         print('Images: ' + str(git_runner.docker_images_in_user_repository(options['create_user_repository'])))
 
-    def run_command_create_task_repository(self, options):
+    def run_command_create_task_repository(self, options, git_runner):
         print(f'Create a task-repository for {options["create_task_repository"]}.')
-        repo_id = create_task_repository(options['create_task_repository'])
+        repo_id = git_runner.create_task_repository(options['create_task_repository'])
         print(f'The new task-repository has the id ${repo_id}')
 
     def run_command_running_jobs(self, options):
@@ -90,7 +90,6 @@ class Command(BaseCommand):
             )
         if 'docker_images_in_user_repository' in options and options['docker_images_in_user_repository']:
             print(git_runner.docker_images_in_user_repository(options['docker_images_in_user_repository']))
-            #print(docker_images_in_user_repository(options['docker_images_in_user_repository']))
 
     def add_arguments(self, parser):
         parser.add_argument('--create_task_repository', default=None, type=str)
