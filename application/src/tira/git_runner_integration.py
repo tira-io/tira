@@ -28,6 +28,18 @@ import requests
 logger = logging.getLogger('tira')
 
 
+def convert_size(size_bytes):
+    import math
+    if size_bytes == 0:
+        return "0B"
+    size_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
+    i = int(math.floor(math.log(size_bytes, 1024)))
+    p = math.pow(1024, i)
+    s = round(size_bytes / p, 2)
+   
+    return f"{s} {size_name[i]}"
+
+
 class GitRunner: 
     def create_task_repository(self, task_id):
         """
@@ -42,7 +54,7 @@ class GitRunner:
         Name of the task repository
         """
         logger.info(f"Creating task repository for task {task_id} ...")
-        repo = self.__existing_repository(task_id)
+        repo = self.existing_repository(task_id)
         if repo:
             return int(repo.id)
 
@@ -93,7 +105,7 @@ class GitRunner:
         """
         client = self.gitHoster_client
         repo = 'tira-user-' + user_name
-        existing_repo = self.__existing_repository(repo)
+        existing_repo = self.existing_repository(repo)
         if existing_repo:
             return existing_repo.id
         
@@ -105,7 +117,7 @@ class GitRunner:
         
         return project.id
 
-    def docker_images_in_user_repository(self, user_name):
+    def docker_images_in_user_repository(self, user_name, cache=None, force_cache_refresh=False):
         """   TODO  Dane
         List all docker images uploaded by the user with the name "user_name" to his user repository
 
@@ -126,7 +138,7 @@ class GitRunner:
                 return ret
 
         ret = []
-        repo = self.__existing_repository('tira-user-' + user_name)
+        repo = self.existing_repository('tira-user-' + user_name)
         if not repo:
             self.create_user_repository(user_name)
             return ret
@@ -138,7 +150,7 @@ class GitRunner:
                     if image.location in covered_images:
                         continue
                     covered_images.add(image.location)
-                   image_manifest = self.get_manifest_of_docker_image_image_repository(image.location.split(':')[0], image.location.split(':')[1], cache, force_cache_refresh)
+                    image_manifest = self.get_manifest_of_docker_image_image_repository(image.location.split(':')[0], image.location.split(':')[1], cache, force_cache_refresh)
                 
                     ret += [{'image': image.location,
                              'architecture': image_manifest['architecture'],
@@ -353,16 +365,17 @@ class GitLabRunner(GitRunner):
         https://gitlab.com/gitlab-org/gitlab/-/issues/23156
         """
         original_repository_name = repository_name
-        repository_name = repository_name.split(self.image_registry_prefix + '/')[-1]
+        registry_host = self.image_registry_prefix.split('/')[0]
+        repository_name = repository_name.split(registry_host + '/')[-1]
 
         cache_key = f'docker-manifest-for-repo-{repository_name}-{tag}'
         if cache:
-            ret = cache.get(cache_key)        
+            ret = cache.get(cache_key)
             if ret is not None:
                 return ret
 
         try:
-            token = requests.get(f'https://{self.host}:{self.private_token}@git.webis.de/jwt/auth?client_id=docker&offline_token=true&service=container_registry&scope=repository:{repository_name}:push,pull,blob,upload')
+            token = requests.get(f'https://{self.host}:{self.git_token}@git.webis.de/jwt/auth?client_id=docker&offline_token=true&service=container_registry&scope=repository:{repository_name}:push,pull,blob,upload')
 
             if not token.ok:
                 raise ValueError(token.content.decode('UTF-8'))
@@ -371,8 +384,7 @@ class GitLabRunner(GitRunner):
             headers = {'Accept': 'application/vnd.docker.distribution.manifest.v2+json',
                        'Content-Type': 'application/vnd.docker.distribution.manifest.v2+json',
                        'Authorization': 'Bearer ' + token}
-
-            manifest = requests.get(f'https://registry.webis.de/v2/{repository_name}/manifests/{tag}', headers=headers)
+            manifest = requests.get(f'https://{registry_host}/v2/{repository_name}/manifests/{tag}', headers=headers)
 
             if not manifest.ok:
                 raise ValueError('-->' + manifest.content.decode('UTF-8'))
@@ -380,7 +392,7 @@ class GitLabRunner(GitRunner):
             image_metadata = json.loads(manifest.content.decode('UTF-8'))
             size = convert_size(image_metadata['config']['size'] + sum([i['size'] for i in image_metadata['layers']]))
 
-            image_config = requests.get(f'https://registry.webis.de/v2/{repository_name}/blobs/{image_metadata["config"]["digest"]}', headers=headers)
+            image_config = requests.get(f'https://{registry_host}/v2/{repository_name}/blobs/{image_metadata["config"]["digest"]}', headers=headers)
 
             if not image_config.ok:
                 raise ValueError('-->' + image_config.content.decode('UTF-8'))
@@ -415,7 +427,8 @@ class GitLabRunner(GitRunner):
         https://gitlab.com/gitlab-org/gitlab/-/issues/23156
         """
         original_repository_name = repository_name
-        repository_name = repository_name.split(self.image_registry_prefix + '/')[-1]
+        registry_host = self.image_registry_prefix.split('/')[0]
+        repository_name = repository_name.split(registry_host + '/')[-1]
         
         token = requests.get(f'https://{self.host}:{self.git_token}@git.webis.de/jwt/auth?client_id=docker&offline_token=true&service=container_registry&scope=repository:{repository_name}:push,pull')
         
@@ -427,13 +440,13 @@ class GitLabRunner(GitRunner):
                 'Content-Type': 'application/vnd.docker.distribution.manifest.v2+json',
                 'Authorization': 'Bearer ' + token}
         
-        manifest = requests.get(f'https://registry.webis.de/v2/{repository_name}/manifests/{old_tag}', headers=headers)
+        manifest = requests.get(f'https://{registry_host}/v2/{repository_name}/manifests/{old_tag}', headers=headers)
 
         if not manifest.ok:
             raise ValueError('-->' + manifest.content.decode('UTF-8'))
         manifest = manifest.content.decode('UTF-8')
 
-        manifest = requests.put(f'https://registry.webis.de/v2/{repository_name}/manifests/{new_tag}', headers=headers, data=manifest)
+        manifest = requests.put(f'https://{registry_host}/v2/{repository_name}/manifests/{new_tag}', headers=headers, data=manifest)
 
         if not manifest.ok:
             raise ValueError(manifest.content.decode('UTF-8'))
@@ -451,18 +464,18 @@ class GitLabRunner(GitRunner):
         """
 
         ret = []
-        for potential_existing_projects in self.gitlab_client.projects.list(search='tira-user-'):
+        for potential_existing_projects in self.gitHoster_client.projects.list(search='tira-user-'):
             if 'tira-user-' in potential_existing_projects.name and int(potential_existing_projects.namespace['id']) == self.namespace_id:
                 ret += [potential_existing_projects.name]
         return set(ret)
 
-    def __existing_repository(self, repo):
-        for potential_existing_projects in gitlab_client().projects.list(search=repo):
+    def existing_repository(self, repo):
+        for potential_existing_projects in self.gitHoster_client.projects.list(search=repo):
             if potential_existing_projects.name == repo and int(potential_existing_projects.namespace['id']) == self.namespace_id:
                 return potential_existing_projects
 
     def _create_task_repository_on_gitHoster(self, task_id):
-        project = self.__existing_repository(task_id)
+        project = self.existing_repository(task_id)
         if project:
             print(f'Repository found "{task_id}".')
             return project
@@ -677,7 +690,6 @@ class GithubRunner(GitRunner):
                                                                             'ci_server_host': "https://github.com"})
 
     def add_new_tag_to_docker_image_repository(self, repository_name, old_tag, new_tag):
-
         for repo in self.gitHoster_client.get_user().get_repos():
             if repo.name == repository_name:
                 tags = repo.tags
@@ -747,9 +759,9 @@ class GithubRunner(GitRunner):
         return project
 
     def _create_access_token_gitHoster(self, project ,repo):
-        return self.git_token
+        raise ValueError('ToDo: Implement this.')
 
-        def yield_all_running_pipelines(self, git_repository_id):
+    def yield_all_running_pipelines(self, git_repository_id):
         """
         Yield all pipelines/workflows that are currently running, pending, or failed.
 
