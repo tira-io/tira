@@ -28,17 +28,22 @@ logger = logging.getLogger('tira')
 
 
 def all_git_runners():
+    ret = []
+    for git_integration in model.all_git_integrations():
+        ret += [get_git_runner(git_integration)]
+
+    return ret
 
 
 def get_git_runner(git_integration):
     from tira.git_runner_integration import GitLabRunner, GithubRunner
-    if 'github.com' in git_integration.namespace_url:
+    if 'github.com' in git_integration['namespace_url']:
         return GithubRunner()
     else:
-        return GithubRunner(
-            git_integration.private_token, git_integration.host, git_integration.user_name,
-            git_integration.user_password, git_integration.gitlab_repository_namespace_id,
-            git_integration.image_registry_prefix, git_integration.user_repository_branch
+        return GitLabRunner(
+            git_integration['private_token'], git_integration['host'], git_integration['user_name'],
+            git_integration['user_password'], git_integration['gitlab_repository_namespace_id'],
+            git_integration['image_registry_prefix'], git_integration['user_repository_branch']
         )
 
 
@@ -196,7 +201,6 @@ def get_manifest_of_docker_image_image_repository(repository_name, tag, cache, f
         headers = {'Accept': 'application/vnd.docker.distribution.manifest.v2+json',
                    'Content-Type': 'application/vnd.docker.distribution.manifest.v2+json',
                    'Authorization': 'Bearer ' + token}
-
         manifest = requests.get(f'https://registry.webis.de/v2/{repository_name}/manifests/{tag}', headers=headers)
 
         if not manifest.ok:
