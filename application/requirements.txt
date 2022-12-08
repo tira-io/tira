@@ -15,3 +15,5 @@ GitPython
 python-slugify
 git+https://github.com/allenai/ir_datasets@defaulttext
 markdown
+PyGithub
+ghapi
