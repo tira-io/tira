@@ -34,22 +34,22 @@ class Command(BaseCommand):
         repo_id = git_runner.create_task_repository(options['create_task_repository'])
         print(f'The new task-repository has the id ${repo_id}')
 
-    def run_command_running_jobs(self, options):
+    def run_command_running_jobs(self, options, git_runner):
         if 'user_id' not in options or not options['user_id']:
             raise ValueError('Please pass --user_id as argument.')
 
-        print(list(yield_all_running_pipelines(options['running_jobs'], options['user_id'], cache, True)))
+        print(list(git_runner.yield_all_running_pipelines(options['running_jobs'], options['user_id'], cache, True)))
 
         print(load_refresh_timestamp_for_cache_key(cache, 'all-running-pipelines-repo-' +options['running_jobs']))
 
-    def run_command_stop_job_and_clean_up(self, options):
+    def run_command_stop_job_and_clean_up(self, options, git_runner):
         if 'user_id' not in options or not options['user_id']:
             raise ValueError('Please pass --user_id as argument.')
 
         if 'run_id' not in options or not options['run_id']:
-            raise ValueError('Please pass --user_id as argument.')
+            raise ValueError('Please pass --run_id as argument.')
 
-        stop_job_and_clean_up(options['stop_job_and_clean_up'], options['user_id'], options['run_id'])
+        git_runner.stop_job_and_clean_up(options['stop_job_and_clean_up'], options['user_id'], options['run_id'])
 
     def handle(self, *args, **options):
         if 'organization' not in options or not options['organization']:
