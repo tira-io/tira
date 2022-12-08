@@ -40,6 +40,10 @@ def convert_size(size_bytes):
     return f"{s} {size_name[i]}"
 
 
+def write_to_file(file_name, content):
+    open(file_name, 'w').write(content)
+
+
 class GitRunner: 
     def create_task_repository(self, task_id):
         """
@@ -57,33 +61,35 @@ class GitRunner:
         repo = self.existing_repository(task_id)
         if repo:
             return int(repo.id)
-
-        template_ci = template_ci()
-        readme = self.template_readme(task_id)
+ 
         project = self._create_task_repository_on_gitHoster(task_id)
         
-        tira_cmd_script = self.template_tira_cmd_script(project)
-
         with tempfile.TemporaryDirectory() as tmp_dir:
             repo = Repo.init(tmp_dir)
-            self.__write_to_file(str(tmp_dir) + '/.git-ci.yml', template_ci)
-            self.__write_to_file(str(tmp_dir) + '/README.md', readme)
-            self.__write_to_file(str(tmp_dir) + '/tira', tira_cmd_script)
+            write_to_file(str(tmp_dir) + '/' + self.template_ci_file_name(), self.template_ci())
+            write_to_file(str(tmp_dir) + '/README.md', self.template_readme(task_id))
+            write_to_file(str(tmp_dir) + '/tira', self.template_tira_cmd_script(project))
             os.chmod(str(tmp_dir) + '/tira', os.stat(str(tmp_dir) + '/tira').st_mode | stat.S_IEXEC)
 
             repo.create_remote('origin', self.repo_url(project.id))
-            self.__ensure_branch_is_main(repo)
-            repo.index.add(['README.md', '.git-ci.yml', 'tira'])
+            self.ensure_branch_is_main(repo)
+            repo.index.add(['README.md', self.template_ci_file_name(), 'tira'])
             repo.index.commit('Initial commit')
             repo.remote().push(self.user_repository_branch, o='ci.skip')
 
         logger.info(f"Created task repository for task {task_id} with new id {project.id}")
         return project.id
 
-    def _create_task_repository_on_gitHoster(self, task_id):
-        pass
+    def template_ci_file_name(self):
+        raise ValueError('ToDo: Implement.')
 
-    def __ensure_branch_is_main(self, repo):
+    def _create_task_repository_on_gitHoster(self, task_id):
+        raise ValueError('ToDo: Implement.')
+
+    def repo_url(self, repo_id):
+        raise ValueError('ToDo: Implement.')
+
+    def ensure_branch_is_main(self, repo):
         try:
             # for some git versions we need to manually switch, may fail if the branch is already correct
             repo.git.checkout('-b', self.user_repository_branch)
@@ -185,7 +191,7 @@ class GitRunner:
         The personalized instructions on how to upload images 
         to be shown in the webinterface.
         """
-        pass
+        raise ValueError('ToDo: Implement.')
 
     def add_new_tag_to_docker_image_repository(self, repository_name, existing_tag, new_tag):
         """ TODO Niklas
@@ -204,7 +210,7 @@ class GitRunner:
         new_tag: str
         The to be added tag of the docker image.      
         """
-        pass
+        raise ValueError('ToDo: Implement.')
 
     def all_user_repositories(self):
         """
@@ -215,7 +221,7 @@ class GitRunner:
         user_repositories: Iterable[str]
         List of all user repositories in the organization.
         """
-        pass
+        raise ValueError('ToDo: Implement.')
 
     def run_and_evaluate_user_software(self, task_id, dataset_id, 
         user_name, run_id, user_software_id, user_docker_image, user_command, 
@@ -274,7 +280,7 @@ class GitRunner:
         transaction_id: str
         ID of the running transaction.
         """
-        pass
+        raise ValueError('ToDo: Implement.')
 
     def stop_job_and_clean_up(self, git_repository_id, user_name, run_id):
         """
@@ -301,7 +307,7 @@ class GitRunner:
         ----------
         -
         """
-        pass
+        raise ValueError('ToDo: Implement.')
 
     def yield_all_running_pipelines(self, git_repository_id):
         """ TODO
@@ -327,7 +333,7 @@ class GitRunner:
             'job_config',
             'pipeline'
         """
-        pass
+        raise ValueError('ToDo: Implement.')
 
 
 class GitLabRunner(GitRunner):
@@ -346,17 +352,28 @@ class GitLabRunner(GitRunner):
         """
         returns the CI-Pipeline template file as string
         """
-        return render_to_string('tira/git_task_repository_template_ci.yml', context={})
+        return render_to_string('tira/git_task_repository_gitlab_ci.yml', context={})
+
+    def template_ci_file_name(self):
+        return '.git-ci.yml'
 
     def template_readme(self, task_id):
         """
         returns the readme template file for Gitlab as string
         """
-        render_to_string('tira/git_task_repository_readme.md', context={'task_name': task_id})
+        return render_to_string('tira/git_task_repository_readme.md', context={'task_name': task_id})
 
     def template_tira_cmd_script(self, project):
         return render_to_string('tira/tira_git_cmd.sh', context={'project_id': project.id,
                                                                             'ci_server_host': self.host})
+
+    def repo_url(self, git_repository_id):
+        project = self.gitHoster_client.projects.get(git_repository_id)
+
+        return project.http_url_to_repo.replace(
+            self.host,
+            self.user_name + ':' + self.git_token + '@' + self.host
+        )
 
     def get_manifest_of_docker_image_image_repository(self, repository_name, tag, cache, force_cache_refresh):
         """
@@ -683,7 +700,7 @@ class GithubRunner(GitRunner):
         returns the readme template file for Github as string
         """
         # TODO: create readme template file for Github at tira/application/src/tira/templates/tira/git_task_repository_github_workflow.yml 
-        render_to_string('tira/git_task_repository_github_readme.md', context={'task_name': task_id})
+        return render_to_string('tira/git_task_repository_github_readme.md', context={'task_name': task_id})
 
     def template_tira_cmd_script(self, project_id):
         return render_to_string('tira/tira_git_cmd.sh', context={'project_id': project_id,
