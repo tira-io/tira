@@ -92,7 +92,7 @@
                     </label>
                 </div>
                 <div class="uk-width-1-1">
-                    <label class="uk-form-label">Paper (link to dblp)
+                    <label class="uk-form-label">DOI of the Paper (Please use the DOI from <a href="https://www.doi.org/">www.doi.org</a>)
                     <input class="uk-input" type="text" uk-tooltip="the paper describing"
                            v-model="selectedContainer.paper_link" placeholder="paper describing the software">
                     </label>
