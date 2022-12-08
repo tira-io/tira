@@ -1442,7 +1442,7 @@ class HybridDatabase(object):
         else:
             git_integration = modeldb.GitIntegration.objects.get(namespace_url=namespace_url)
         
-        return _git_integration_to_dict(git_integration) if return_dict else git_integration
+        return self._git_integration_to_dict(git_integration) if return_dict else git_integration
 
     def all_git_integrations(self):
         return modeldb.GitIntegration.objects.all()

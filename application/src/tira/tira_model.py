@@ -497,19 +497,18 @@ def all_git_integrations(self):
     return model.all_git_integrations()
 
 
-def get_git_integration(organizer_id, task_id):
+def get_git_integration(organizer_id=None, task_id=None):
     from django.core.cache import cache
     cache_key = f'tira-model-docker-get_git_integration-{organizer_id}-{task_id}'
     ret = cache.get(cache_key)        
     if ret is not None:
         return ret
-    
-    
+
     if not organizer_id:
         raise ValueError(f'Organizer Id can not be None. Got {organizer_id}')
     
     organizer = model.get_organizer(organizer_id)
-    namespace_url = organizer.gitUrlToNamespace
+    namespace_url = organizer['gitUrlToNamespace']
     
     ret = model.get_git_integration(namespace_url, '', return_dict=True, create_if_not_exists=False)
     cache.set(cache_key, ret)
