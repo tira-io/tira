@@ -506,7 +506,7 @@ class GitLabRunner(GitRunner):
         return project.access_tokens.create(
             {"name": repo, "scopes": ['read_registry', 'write_registry'], "access_level": 30})
 
-    def stop_job_and_clean_up(self, git_repository_id, user_name, run_id):
+    def stop_job_and_clean_up(self, git_repository_id, user_name, run_id, cache=None):
         """
         All runs that are currently running, pending, or failed 
         life in a dedicated branch.
@@ -534,10 +534,10 @@ class GitLabRunner(GitRunner):
         gl = self.gitHoster_client
         gl_project = gl.projects.get(int(git_repository_id))
         
-        for pipeline in self.yield_all_running_pipelines(git_repository_id, user_id, cache, True):
+        for pipeline in self.yield_all_running_pipelines(git_repository_id, user_name, cache, True):
             if run_id == pipeline['run_id']:
                 branch = pipeline['branch'] if 'branch' in pipeline else pipeline['pipeline'].ref
-                if ('---' + user_id + '---') not in branch:
+                if ('---' + user_name + '---') not in branch:
                     continue
                 if ('---' + run_id + '---') not in branch:
                     continue
