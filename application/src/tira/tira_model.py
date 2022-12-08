@@ -493,6 +493,30 @@ def edit_organizer(organizer_id: str, name: str, years: str, web: str, namespace
     return model.edit_organizer(organizer_id, name, years, web, git_integrations)
 
 
+def all_git_integrations(self):
+    return model.all_git_integrations()
+
+
+def get_git_integration(organizer_id, task_id):
+    from django.core.cache import cache
+    cache_key = f'tira-model-docker-get_git_integration-{organizer_id}-{task_id}'
+    ret = cache.get(cache_key)        
+    if ret is not None:
+        return ret
+    
+    
+    if not organizer_id:
+        raise ValueError(f'Organizer Id can not be None. Got {organizer_id}')
+    
+    organizer = model.get_organizer(organizer_id)
+    namespace_url = organizer.gitUrlToNamespace
+    
+    ret = model.get_git_integration(namespace_url, '', return_dict=True, create_if_not_exists=False)
+    cache.set(cache_key, ret)
+    
+    return ret
+
+
 # ------------------------------------------------------------
 # add methods to check for existence
 # ------------------------------------------------------------

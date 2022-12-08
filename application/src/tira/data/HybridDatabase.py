@@ -1416,7 +1416,19 @@ class HybridDatabase(object):
         
         return org
 
-    def get_git_integration(self, namespace_url, private_token):
+    def _git_integration_to_dict(self, git_integration):
+        return {
+            "namespace_url": git_integration.namespace_url,
+            "host": git_integration.host,
+            "private_token": git_integration.private_token,
+            "user_name": git_integration.user_name,
+            "user_password": git_integration.user_password,
+            "gitlab_repository_namespace_id": git_integration.gitlab_repository_namespace_id,
+            "image_registry_prefix": git_integration.image_registry_prefix,
+            "user_repository_branch": git_integration.user_repository_branch,
+        }
+
+    def get_git_integration(self, namespace_url, private_token, return_dict=False, create_if_not_exists=True):
         if not namespace_url or not namespace_url.strip():
             return None
 
@@ -1425,9 +1437,15 @@ class HybridDatabase(object):
         if not private_token or not private_token.strip or '<OMMITTED>'.lower() in private_token.lower():
             defaults = {}
         
-        git_integration, _ = modeldb.GitIntegration.objects.get_or_create(namespace_url=namespace_url, defaults=defaults)
+        if create_if_not_exists:
+            git_integration, _ = modeldb.GitIntegration.objects.get_or_create(namespace_url=namespace_url, defaults=defaults)            
+        else:
+            git_integration = modeldb.GitIntegration.objects.get(namespace_url=namespace_url)
         
-        return git_integration
+        return _git_integration_to_dict(git_integration) if return_dict else git_integration
+
+    def all_git_integrations(self):
+        return modeldb.GitIntegration.objects.all()
 
     def _registration_to_dict(self, registration):
         return {
