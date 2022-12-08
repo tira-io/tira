@@ -27,6 +27,9 @@ import requests
 logger = logging.getLogger('tira')
 
 
+def all_git_runners():
+
+
 def get_git_runner(git_integration):
     from tira.git_runner_integration import GitLabRunner, GithubRunner
     if 'github.com' in git_integration.namespace_url:
