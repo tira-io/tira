@@ -28,9 +28,14 @@ logger = logging.getLogger('tira')
 
 
 def all_git_runners():
+    from tira.tira_model import model
     ret = []
-    for git_integration in model.all_git_integrations():
-        ret += [get_git_runner(git_integration)]
+    for git_integration in model.all_git_integrations(return_dict=True):
+        try:
+            ret += [get_git_runner(git_integration)]
+        except Exception as e:
+            print(f'Could not load git integration: {git_integration}. Skip')
+            logger.warn(f'Could not load git integration: {git_integration}. Skip')
 
     return ret
 
