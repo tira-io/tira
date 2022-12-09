@@ -497,15 +497,18 @@ def all_git_integrations(self):
     return model.all_git_integrations()
 
 
-def get_git_integration(organizer_id=None, task_id=None, return_metadata_only=False):
+def get_git_integration(organizer_id=None, task_id=None, dataset_id=None, return_metadata_only=False):
     from django.core.cache import cache
-    cache_key = f'tira-model-docker-get_git_integration-{organizer_id}-{task_id}'
+    cache_key = f'tira-model-docker-get_git_integration-{organizer_id}-{task_id}-{dataset_id}'
     ret = cache.get(cache_key)        
     if ret is not None:
         return ret if return_metadata_only else get_git_runner(ret)
     
-    if not organizer_id and not task_id:
+    if not organizer_id and not task_id and not dataset_id:
         raise ValueError(f'Organizer Id or task_id must be passed. But both are none')
+
+    if dataset_id and not organizer_id and not task_id:
+        task_id = model.get_dataset(dataset_id)['task']
 
     if task_id and not organizer_id:
         organizer_id = model.get_task(task_id, include_dataset_stats=False)['organizer_id']
