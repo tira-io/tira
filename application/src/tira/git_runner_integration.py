@@ -481,7 +481,7 @@ class GitLabRunner(GitRunner):
         """
 
         ret = []
-        for potential_existing_projects in self.gitHoster_client.projects.list(search='tira-user-'):
+        for potential_existing_projects in self.gitHoster_client.projects.list(search='tira-user-', get_all=True):
             if 'tira-user-' in potential_existing_projects.name and int(potential_existing_projects.namespace['id']) == self.namespace_id:
                 ret += [potential_existing_projects.name]
         return set(ret)

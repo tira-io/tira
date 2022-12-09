@@ -5,7 +5,7 @@ from pathlib import Path
 import logging
 from tira.data.HybridDatabase import HybridDatabase
 from django.core.cache import cache
-from tira.git_runner import docker_images_in_user_repository, add_new_tag_to_docker_image_repository, help_on_uploading_docker_image
+from tira.git_runner import get_git_runner, docker_images_in_user_repository, add_new_tag_to_docker_image_repository, help_on_uploading_docker_image
 import randomname
 from django.conf import settings
 from django.db import connections, router
@@ -497,12 +497,18 @@ def all_git_integrations(self):
     return model.all_git_integrations()
 
 
-def get_git_integration(organizer_id=None, task_id=None):
+def get_git_integration(organizer_id=None, task_id=None, return_metadata_only=False):
     from django.core.cache import cache
     cache_key = f'tira-model-docker-get_git_integration-{organizer_id}-{task_id}'
     ret = cache.get(cache_key)        
     if ret is not None:
-        return ret
+        return ret if return_metadata_only else get_git_runner(ret)
+    
+    if not organizer_id and not task_id:
+        raise ValueError(f'Organizer Id or task_id must be passed. But both are none')
+
+    if task_id and not organizer_id:
+        organizer_id = model.get_task(task_id, include_dataset_stats=False)['organizer_id']
 
     if not organizer_id:
         raise ValueError(f'Organizer Id can not be None. Got {organizer_id}')
@@ -513,7 +519,7 @@ def get_git_integration(organizer_id=None, task_id=None):
     ret = model.get_git_integration(namespace_url, '', return_dict=True, create_if_not_exists=False)
     cache.set(cache_key, ret)
     
-    return ret
+    return ret if return_metadata_only else get_git_runner(ret)
 
 
 # ------------------------------------------------------------
