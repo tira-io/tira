@@ -13,7 +13,6 @@ import json
 from datetime import datetime as dt
 
 import tira.tira_model as model
-import tira.git_runner as git_runner
 
 logger = logging.getLogger("tira")
 logger.info("ajax_routes: Logger active")
@@ -195,7 +194,7 @@ def admin_add_dataset(request):
         git_repository_id = data.get("git_repository_id", "")
 
         if not data.get("use_existing_repository", True):
-            git_repository_id = git_runner.create_task_repository(task_id)
+            git_repository_id = model.get_git_integration(task_id=task_id).create_task_repository(task_id)
 
         master_vm_id = model.get_task(task_id)["master_vm_id"]
 
@@ -266,7 +265,7 @@ def admin_edit_dataset(request, dataset_id):
         print(data["use_existing_repository"])
         print(data["git_repository_id"])
         if not data["use_existing_repository"]:
-            git_repository_id = git_runner.create_task_repository(task_id)
+            git_repository_id = model.get_git_integration(task_id=task_id).create_task_repository(task_id)
 
         upload_name = data["upload_name"]
 
@@ -336,7 +335,7 @@ def admin_import_ir_dataset(request):
             is_git_runner = data.get("is_git_runner", True)
             git_runner_image = data.get("git_runner_image", settings.IR_MEASURES_IMAGE)
             git_runner_command = data.get("git_runner_command", settings.IR_MEASURES_COMMAND)
-            git_repository_id = git_runner.create_task_repository(task_id)
+            git_repository_id = model.get_git_integration(task_id=task_id).create_task_repository(task_id)
             master_vm_id = None
 
             try:
