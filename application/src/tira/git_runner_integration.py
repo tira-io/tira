@@ -196,7 +196,7 @@ class GitRunner:
             if ret is not None and not force_cache_refresh:
                 return ret
 
-        repo = self.__existing_repository('tira-user-' + user_name)
+        repo = self.existing_repository('tira-user-' + user_name)
         if not repo:
             self.create_user_repository(user_name)
             return self.help_on_uploading_docker_image(user_name, cache)
