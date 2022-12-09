@@ -96,6 +96,41 @@ class GitRunner:
         except:
             pass
 
+    def dict_to_key_value_file(self, d):
+        return '\n'.join([(k + '=' + v).strip() for (k,v) in d.items()])
+
+    def write_metadata_for_ci_job_to_repository(self, tmp_dir, task_id, transaction_id, dataset_id, vm_id, run_id, identifier,
+                                                  git_runner_image, git_runner_command, evaluator_id,
+                                                  user_image_to_execute, user_command_to_execute, tira_software_id,
+                                                  resources):
+        job_dir = Path(tmp_dir) / dataset_id / vm_id / run_id
+        job_dir.mkdir(parents=True, exist_ok=True)
+
+        metadata = {
+            # The pipeline executed first a pseudo software so the following three values are
+            # only dummy values so that the software runs successful.
+            'TIRA_IMAGE_TO_EXECUTE': user_image_to_execute,
+            'TIRA_VM_ID': vm_id,
+            'TIRA_COMMAND_TO_EXECUTE': user_command_to_execute,
+            'TIRA_SOFTWARE_ID': tira_software_id,
+            'TIRA_DATASET_ID': dataset_id,
+            'TIRA_RUN_ID': run_id,
+            'TIRA_CPU_COUNT': str(settings.GIT_CI_AVAILABLE_RESOURCES[resources]['cores']),
+            'TIRA_MEMORY_IN_GIBIBYTE': str(settings.GIT_CI_AVAILABLE_RESOURCES[resources]['ram']),
+            'TIRA_GPU': str(settings.GIT_CI_AVAILABLE_RESOURCES[resources]['gpu']),
+            'TIRA_DATASET_TYPE': 'training' if 'training' in dataset_id else 'test',
+
+            # The actual important stuff for the evaluator:
+            'TIRA_TASK_ID': task_id,
+            'TIRA_EVALUATOR_TRANSACTION_ID': transaction_id,
+            'TIRA_GIT_ID': identifier,
+            'TIRA_EVALUATION_IMAGE_TO_EXECUTE': git_runner_image,
+            'TIRA_EVALUATION_COMMAND_TO_EXECUTE': git_runner_command,
+            'TIRA_EVALUATION_SOFTWARE_ID': evaluator_id,
+        }
+    
+        open(job_dir / 'job-to-execute.txt', 'w').write(self.dict_to_key_value_file(metadata))
+
     def create_user_repository(self, user_name):
         """
         Create the repository for user with the name "user_name" in the organization.
@@ -496,7 +531,7 @@ class GitLabRunner(GitRunner):
         with tempfile.TemporaryDirectory() as tmp_dir:
             repo = self.__clone_repository_and_create_new_branch(self.repo_url(git_repository_id), identifier, tmp_dir)
 
-            __write_metadata_for_ci_job_to_repository(tmp_dir, task_id, transaction_id, dataset_id, vm_id, run_id,
+            self.write_metadata_for_ci_job_to_repository(tmp_dir, task_id, transaction_id, dataset_id, vm_id, run_id,
                                                       identifier, git_runner_image, git_runner_command, evaluator_id,
                                                       user_image_to_execute, user_command_to_execute, tira_software_id, resources)
 
