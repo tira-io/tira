@@ -173,8 +173,7 @@ class GitRunner:
 
         return ret
 
-
-    def help_on_uploading_docker_image(self, user_name):
+    def help_on_uploading_docker_image(self, user_name, cache=None, force_cache_refresh=False):
         """ TODO
         Each user repository has a readme.md , that contains instructions on 
         how to upload images to the repository.
@@ -191,7 +190,28 @@ class GitRunner:
         The personalized instructions on how to upload images 
         to be shown in the webinterface.
         """
-        raise ValueError('ToDo: Implement.')
+        cache_key = 'help-on-uploading-docker-image-tira-user-' + user
+        if cache:
+            ret = cache.get(cache_key)        
+            if ret is not None and not force_cache_refresh:
+                return ret
+
+        repo = self.__existing_repository('tira-user-' + user)
+        if not repo:
+            self.create_user_repository(user)
+            return self.help_on_uploading_docker_image(user, cache)
+    
+        # Hacky at the moment
+        ret = repo.files.get('README.md', ref='main').decode().decode('UTF-8').split('## Create an docker image')[1]
+        ret = '## Create an docker image\n\n' + ret
+    
+        ret = markdown.markdown(ret)
+    
+        if cache:
+            logger.info(f"Cache refreshed for key {cache_key} ...")
+            cache.set(cache_key, ret)
+    
+        return ret
 
     def add_new_tag_to_docker_image_repository(self, repository_name, existing_tag, new_tag):
         """ TODO Niklas
