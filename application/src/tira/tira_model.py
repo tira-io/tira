@@ -5,7 +5,7 @@ from pathlib import Path
 import logging
 from tira.data.HybridDatabase import HybridDatabase
 from django.core.cache import cache
-from tira.git_runner import get_git_runner, docker_images_in_user_repository, add_new_tag_to_docker_image_repository, help_on_uploading_docker_image
+from tira.git_runner import get_git_runner
 import randomname
 from django.conf import settings
 from django.db import connections, router
@@ -133,14 +133,15 @@ def load_docker_data(task_id, vm_id, cache, force_cache_refresh):
     if not git_pipeline_is_enabled_for_task(task_id, cache, force_cache_refresh):
         return False
     
-    docker_images = [i for i in docker_images_in_user_repository(vm_id, cache, force_cache_refresh) if '-tira-docker-software-id-' not in i['image']]
+    git_runner = model.get_git_integration(task_id=task_id)
+    docker_images = [i for i in git_runner.docker_images_in_user_repository(vm_id, cache, force_cache_refresh) if '-tira-docker-software-id-' not in i['image']]
     last_refresh = load_refresh_timestamp_for_cache_key(cache, 'docker-images-in-user-repository-tira-user-' + vm_id)
 
     return {
         "docker_images": docker_images,
         "docker_softwares": model.get_docker_softwares_with_runs(task_id, vm_id),
         "resources": list(settings.GIT_CI_AVAILABLE_RESOURCES.values()),
-        "docker_software_help": help_on_uploading_docker_image(vm_id, cache, force_cache_refresh),
+        "docker_software_help": git_runner.help_on_uploading_docker_image(vm_id, cache, force_cache_refresh),
         "docker_images_last_refresh": str(last_refresh),
         "docker_images_next_refresh": str(None if last_refresh is None else (last_refresh + datetime.timedelta(seconds=60))),
     }
@@ -338,7 +339,8 @@ def add_docker_software(task_id, vm_id, image, command):
     
     image, old_tag = image.split(':')
     new_tag = old_tag + '-tira-docker-software-id-' + randomname.get_name().lower()
-    tira_image_name = add_new_tag_to_docker_image_repository(image, old_tag, new_tag)
+    
+    tira_image_name = model.get_git_integration(task_id=task_id).add_new_tag_to_docker_image_repository(image, old_tag, new_tag)
     
     return model.add_docker_software(task_id, vm_id, image + ':' + old_tag, command, tira_image_name)
 
