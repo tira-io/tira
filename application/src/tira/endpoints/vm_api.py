@@ -7,8 +7,6 @@ from grpc import RpcError, StatusCode
 from tira.authentication import auth
 from tira.checks import check_permissions, check_resources_exist, check_conditional_permissions
 from tira.forms import *
-from tira.git_runner import run_evaluate_with_git_workflow, run_docker_software_with_git_workflow, \
-    stop_job_and_clean_up, all_running_pipelines_for_repository
 from django.http import JsonResponse
 from django.conf import settings
 from http import HTTPStatus
@@ -324,7 +322,8 @@ def _git_runner_vm_eval_call(vm_id, dataset_id, run_id, evaluator):
      This method calls the git utilities in git_runner.py to start the git CI
      """
     try:
-        transaction_id = run_evaluate_with_git_workflow(evaluator['task_id'], dataset_id, vm_id, run_id,
+        transaction_id = model.get_git_integration(dataset_id=dataset_id)\
+                              .run_evaluate_with_git_workflow(evaluator['task_id'], dataset_id, vm_id, run_id,
                                                         evaluator['git_runner_image'], evaluator['git_runner_command'],
                                                         evaluator['git_repository_id'], evaluator['evaluator_id'])
     except Exception as e:
@@ -462,12 +461,15 @@ def run_execute_docker_software(request, task_id, vm_id, dataset_id, docker_soft
     if not docker_software:
         return JsonResponse({"status": 1, "message": f"There is no docker image with id {docker_software_id}"})
 
-    run_docker_software_with_git_workflow(task_id, dataset_id, vm_id, get_tira_id(), evaluator['git_runner_image'],
-                                          evaluator['git_runner_command'], evaluator['git_repository_id'], evaluator['evaluator_id'],
-                                          docker_software['tira_image_name'], docker_software['command'],
-                                          'docker-software-' + docker_software_id, docker_resources)
+    git_runner = model.get_git_integration(task_id=task_id)
+    git_runner.run_docker_software_with_git_workflow(
+        task_id, dataset_id, vm_id, get_tira_id(), evaluator['git_runner_image'],
+        evaluator['git_runner_command'], evaluator['git_repository_id'], evaluator['evaluator_id'],
+        docker_software['tira_image_name'], docker_software['command'],
+        'docker-software-' + docker_software_id, docker_resources
+    )
 
-    running_pipelines = all_running_pipelines_for_repository(
+    running_pipelines = git_runner.all_running_pipelines_for_repository(
         evaluator['git_repository_id'],
         cache,
         force_cache_refresh=True
@@ -483,9 +485,12 @@ def stop_docker_software(request, task_id, user_id, run_id):
         return JsonResponse({"status": 1, "message": "Only GET is allowed here"})
     else:
         datasets = model.get_datasets_by_task(task_id)
+        git_runner = model.get_git_integration(task_id=task_id)
         for dataset in datasets:
-
-            stop_job_and_clean_up(model.get_evaluator(dataset["dataset_id"])["git_repository_id"], user_id, run_id, cache)
+            git_runner.stop_job_and_clean_up(
+                model.get_evaluator(dataset["dataset_id"])["git_repository_id"],
+                user_id, run_id, cache
+            )
 
         return JsonResponse({"status": 0, "message": "Run successfully stopped"})
 
