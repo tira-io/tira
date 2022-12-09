@@ -133,7 +133,7 @@ def load_docker_data(task_id, vm_id, cache, force_cache_refresh):
     if not git_pipeline_is_enabled_for_task(task_id, cache, force_cache_refresh):
         return False
     
-    git_runner = model.get_git_integration(task_id=task_id)
+    git_runner = get_git_integration(task_id=task_id)
     docker_images = [i for i in git_runner.docker_images_in_user_repository(vm_id, cache, force_cache_refresh) if '-tira-docker-software-id-' not in i['image']]
     last_refresh = load_refresh_timestamp_for_cache_key(cache, 'docker-images-in-user-repository-tira-user-' + vm_id)
 
@@ -340,7 +340,7 @@ def add_docker_software(task_id, vm_id, image, command):
     image, old_tag = image.split(':')
     new_tag = old_tag + '-tira-docker-software-id-' + randomname.get_name().lower()
     
-    tira_image_name = model.get_git_integration(task_id=task_id).add_new_tag_to_docker_image_repository(image, old_tag, new_tag)
+    tira_image_name = get_git_integration(task_id=task_id).add_new_tag_to_docker_image_repository(image, old_tag, new_tag)
     
     return model.add_docker_software(task_id, vm_id, image + ':' + old_tag, command, tira_image_name)
 
