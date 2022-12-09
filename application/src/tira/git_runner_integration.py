@@ -494,7 +494,7 @@ class GitLabRunner(GitRunner):
         identifier = f"eval---{dataset_id}---{vm_id}---{run_id}---started-{str(dt.now().strftime('%Y-%m-%d-%H-%M-%S'))}"
 
         with tempfile.TemporaryDirectory() as tmp_dir:
-            repo = __clone_repository_and_create_new_branch(repo_url(git_repository_id), identifier, tmp_dir)
+            repo = self.__clone_repository_and_create_new_branch(self.repo_url(git_repository_id), identifier, tmp_dir)
 
             __write_metadata_for_ci_job_to_repository(tmp_dir, task_id, transaction_id, dataset_id, vm_id, run_id,
                                                       identifier, git_runner_image, git_runner_command, evaluator_id,
@@ -507,6 +507,12 @@ class GitLabRunner(GitRunner):
                                                    transaction=t)
 
         return transaction_id
+
+    def __clone_repository_and_create_new_branch(self, repo_url, branch_name, directory):
+        repo = Repo.clone_from(repo_url, directory, branch='main')
+        repo.head.reference = repo.create_head(branch_name)
+
+        return repo
 
     def add_new_tag_to_docker_image_repository(self, repository_name, old_tag, new_tag):
         """
