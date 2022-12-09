@@ -190,16 +190,16 @@ class GitRunner:
         The personalized instructions on how to upload images 
         to be shown in the webinterface.
         """
-        cache_key = 'help-on-uploading-docker-image-tira-user-' + user
+        cache_key = 'help-on-uploading-docker-image-tira-user-' + user_name
         if cache:
             ret = cache.get(cache_key)        
             if ret is not None and not force_cache_refresh:
                 return ret
 
-        repo = self.__existing_repository('tira-user-' + user)
+        repo = self.__existing_repository('tira-user-' + user_name)
         if not repo:
-            self.create_user_repository(user)
-            return self.help_on_uploading_docker_image(user, cache)
+            self.create_user_repository(user_name)
+            return self.help_on_uploading_docker_image(user_name, cache)
     
         # Hacky at the moment
         ret = repo.files.get('README.md', ref='main').decode().decode('UTF-8').split('## Create an docker image')[1]
