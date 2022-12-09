@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.template.loader import render_to_string
 from git import Repo
 import tempfile
