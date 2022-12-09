@@ -221,10 +221,12 @@ class HybridDatabase(object):
 
         if task.organizer:
             org_name = task.organizer.name
+            org_id = task.organizer.organizer_id
             org_year = task.organizer.years
         else:
             org_name = ""
             org_year = ""
+            org_id = ""
         try:
             master_vm_id = task.vm.vm_id
         except AttributeError as e:
@@ -233,6 +235,7 @@ class HybridDatabase(object):
 
         result = {"task_id": task.task_id, "task_name": task.task_name, "task_description": task.task_description,
                   "organizer": org_name,
+                  "organizer_id": org_id,
                   "web": task.web,
                   "year": org_year,
                   "featured": task.featured,
@@ -1444,8 +1447,13 @@ class HybridDatabase(object):
         
         return self._git_integration_to_dict(git_integration) if return_dict else git_integration
 
-    def all_git_integrations(self):
-        return modeldb.GitIntegration.objects.all()
+    def all_git_integrations(self, return_dict=False):
+        ret = modeldb.GitIntegration.objects.all()
+        
+        if return_dict:
+            ret = [self._git_integration_to_dict(i) for i in ret]
+        
+        return ret
 
     def _registration_to_dict(self, registration):
         return {

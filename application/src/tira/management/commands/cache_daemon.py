@@ -9,7 +9,8 @@ import time
 import datetime
 
 logger = logging.getLogger("cache_daemon")
-from tira.git_runner import all_running_pipelines_for_repository, all_user_repositories, docker_images_in_user_repository
+from tira.tira_model import get_git_integration
+from tira.git_runner import all_git_runners
 
 
 class Command(BaseCommand):
@@ -29,26 +30,39 @@ class Command(BaseCommand):
                     for git_repository_id in repositories:
                         try:
                             print(task['task_id'] + '--->' + str(git_repository_id))
-                            running_pipelines = all_running_pipelines_for_repository(git_repository_id, cache, force_cache_refresh=True)
+                            git_integration = get_git_integration(task_id=task['task_id'])
+                            running_pipelines = git_integration.all_running_pipelines_for_repository(git_repository_id, cache, force_cache_refresh=True)
                             print('Refreshed Cache: ' + task['task_id'] + ' on repo ' + str(git_repository_id) + ' has ' + str(len(running_pipelines)) + ' jobs.')
-                        except:
+                        except Exception as e:
+                            print(f'Exception during refreshing the repository {git_repository_id}: e')
+                            logger.warn(f'Exception during refreshing the repository {git_repository_id}', e)
                             continue
 
                 time.sleep(0.1)
 
+    def refresh_user_images_in_repo(self, git_runner, sleep_time):
+        print(str(datetime.datetime.now()) + ': Start loop to keep the user images fresh (sleeped ' + str(int(sleep_time)) + ' seconds) ...')
+        for user in git_runner.all_user_repositories():
+            user = user.split('tira-user-')[-1]
+            print(user)
+            try:
+                images = git_runner.docker_images_in_user_repository(user, cache, force_cache_refresh=True)
+                print('Refreshed Cache: ' + user + ' has ' + str(len(images)) + ' images.')
+            except Exception as e:
+                print('Exception during refreshing image repository {user}: {e}')
+                continue
+            time.sleep(0.1)
+
     def keep_user_images_fresh(self, sleep_time):
         while True:
             time.sleep(int(sleep_time))
-            print(str(datetime.datetime.now()) + ': Start loop to keep the user images fresh (sleeped ' + str(int(sleep_time)) + ' seconds) ...')
-            for user in all_user_repositories():
-                user = user.split('tira-user-')[-1]
-                print(user)
+            print(str(datetime.datetime.now()) + ': Start loop over all git runners to keeo user images fresh (sleeped ' + str(int(sleep_time)) + ' seconds) ...')
+            for git_runner in all_git_runners():
                 try:
-                    images = docker_images_in_user_repository(user, cache, force_cache_refresh=True)
-                    print('Refreshed Cache: ' + user + ' has ' + str(len(images)) + ' images.')
-                except:
+                    self.refresh_user_images_in_repo(git_runner, sleep_time)
+                except Exception as e:
+                    print(f'Exception in keep_user_images_fresh: {e}')
                     continue
-                time.sleep(0.1)
                 
     def handle(self, *args, **options):
         call_command('createcachetable')
