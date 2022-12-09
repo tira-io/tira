@@ -9,7 +9,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.core.management import call_command
 from django.core.cache import cache
 
-from tira.git_runner import get_git_runner, docker_images_in_user_repository
+from tira.git_runner import get_git_runner
 from tira.tira_model import load_refresh_timestamp_for_cache_key, get_git_integration
 
 from tira.util import get_tira_id
