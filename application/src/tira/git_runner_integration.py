@@ -541,13 +541,26 @@ class GitLabRunner(GitRunner):
                                                       identifier, git_runner_image, git_runner_command, evaluator_id,
                                                       user_image_to_execute, user_command_to_execute, tira_software_id, resources)
 
-            __commit_and_push(repo, dataset_id, vm_id, run_id, identifier, git_repository_id, resources)
+            self.commit_and_push(repo, dataset_id, vm_id, run_id, identifier, git_repository_id, resources)
 
             t = TransactionLog.objects.get(transaction_id=transaction_id)
             _ = EvaluationLog.objects.update_or_create(vm_id=vm_id, run_id=run_id, running_on=vm_id,
                                                    transaction=t)
 
         return transaction_id
+
+    def commit_and_push(self, repo, dataset_id, vm_id, run_id, identifier, git_repository_id, resources):
+        repo.index.add([str(Path(dataset_id) / vm_id / run_id / 'job-to-execute.txt')])
+        repo.index.commit("Evaluate software: " + identifier)
+        gpu_resources = str(settings.GIT_CI_AVAILABLE_RESOURCES[resources]['gpu']).strip()
+
+        if gpu_resources == '0':
+            repo.remote().push(identifier)
+        else:
+            repo.remote().push(identifier, **{'o': 'ci.skip'})
+
+            gl_project = self.gitHoster_client.projects.get(int(git_repository_id))
+            gl_project.pipelines.create({'ref': identifier, 'variables': [{'key': 'TIRA_GPU', 'value': gpu_resources}]})
 
     def add_new_tag_to_docker_image_repository(self, repository_name, old_tag, new_tag):
         """
