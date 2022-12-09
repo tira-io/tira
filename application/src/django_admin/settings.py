@@ -237,14 +237,6 @@ def logger_config(log_dir: Path):
     }
 
 # Git Integration
-GIT_CI_SERVER_HOST = custom_settings.get('GIT_CI_SERVER_HOST', 'git.webis.de')
-GIT_PRIVATE_TOKEN = custom_settings['GIT_PRIVATE_TOKEN']
-GIT_USER_NAME = custom_settings['GIT_USER_NAME']
-GIT_USER_PASSWORD = custom_settings['GIT_USER_PASSWORD']
-GIT_USER_REPOSITORY_NAMESPACE_ID = int(custom_settings.get('GIT_USER_REPOSITORY_NAMESPACE_ID', '146'))
-GIT_REGISTRY_PREFIX = custom_settings.get('GIT_REGISTRY_PREFIX', 'registry.webis.de/code-research/tira')
-GIT_USER_REPOSITORY_BRANCH = custom_settings.get('GIT_USER_REPOSITORY_BRANCH', 'main')
-GIT_CONTAINER_REGISTRY_HOST = custom_settings.get('GIT_CONTAINER_REGISTRY_HOST', 'registry.webis.de')
 GIT_CI_AVAILABLE_RESOURCES = {
     'small-resources': {'cores': 1, 'ram': 10, 'gpu': 0, 'description': 'Small (1 CPU Cores, 10GB of RAM)', 'key': 'small-resources'},
     'medium-resources': {'cores': 2, 'ram': 20, 'gpu': 0, 'description': 'Medium (2 CPU Cores, 20GB of RAM)', 'key': 'medium-resources'},
