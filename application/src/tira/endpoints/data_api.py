@@ -11,7 +11,6 @@ from django.http import JsonResponse
 from django.conf import settings
 from django.core.cache import cache
 from django.core.serializers.json import DjangoJSONEncoder
-from tira.git_runner import yield_all_running_pipelines
 import datetime
 
 include_navigation = True if settings.DEPLOYMENT == "legacy" else False
@@ -201,9 +200,10 @@ def get_running_software(request, context, task_id, user_id, force_cache_refresh
     
     evaluators_for_task = model.get_evaluators_for_task(task_id, cache)
     repositories = set([i['git_repository_id'] for i in evaluators_for_task if i['is_git_runner'] and i['git_repository_id']])
+    git_runner = model.get_git_integration(task_id=task_id)
 
     for git_repository_id in sorted(list(repositories)):
-        context['running_software'] += list(yield_all_running_pipelines(int(git_repository_id), user_id, cache, force_cache_refresh=eval(force_cache_refresh)))
+        context['running_software'] += list(git_runner.yield_all_running_pipelines(int(git_repository_id), user_id, cache, force_cache_refresh=eval(force_cache_refresh)))
         context['running_software_last_refresh'] = model.load_refresh_timestamp_for_cache_key(cache, 'all-running-pipelines-repo-' + str(git_repository_id))
         context['running_software_next_refresh'] = str(context['running_software_last_refresh'] + datetime.timedelta(seconds=15))
         context['running_software_last_refresh'] = str(context['running_software_last_refresh'])
