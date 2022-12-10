@@ -181,7 +181,7 @@ class GitRunner:
             ensure_branch_is_main(repo)
             repo.index.add(['README.md'])
             repo.index.commit('Initial commit')
-            repo.remote().push(settings.GIT_USER_REPOSITORY_BRANCH)
+            repo.remote().push(self.user_repository_branch)
 
     def docker_images_in_user_repository(self, user_name, cache=None, force_cache_refresh=False):
         """   TODO  Dane
