@@ -327,7 +327,7 @@ def _git_runner_vm_eval_call(vm_id, dataset_id, run_id, evaluator):
                                                         evaluator['git_runner_image'], evaluator['git_runner_command'],
                                                         evaluator['git_repository_id'], evaluator['evaluator_id'])
     except Exception as e:
-        return JsonResponse({'status': 1, 'message': e}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+        return JsonResponse({'status': 1, 'message': str(e)}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
     return JsonResponse({'status': 0, 'message': transaction_id}, status=HTTPStatus.ACCEPTED)
 
