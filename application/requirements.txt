@@ -18,3 +18,4 @@ markdown
 PyGithub
 ghapi
 parameterized
+mockito
