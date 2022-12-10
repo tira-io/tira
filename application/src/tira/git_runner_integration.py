@@ -178,7 +178,7 @@ class GitRunner:
             write_to_file(str(tmp_dir) + '/README.md', project_readme)
         
             repo.create_remote('origin', self.repo_url(git_repository_id))
-            ensure_branch_is_main(repo)
+            self.ensure_branch_is_main(repo)
             repo.index.add(['README.md'])
             repo.index.commit('Initial commit')
             repo.remote().push(self.user_repository_branch)
