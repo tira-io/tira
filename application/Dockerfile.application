@@ -20,5 +20,8 @@ RUN cd /tira/application/src/tira/frontend/ && \
 	chmod +x /tira/application/src/tira/endpoints/aha && \
 	rm ./config/settings.yml ./config/config.yml ./config/tira-application-config.dev.yml
 
+RUN cd /tira/application/test/&& \
+        PYTHONPATH=':../src:.' python3 ../src/manage.py test --settings=settings_test
+
 CMD sh -c "nginx && uwsgi --uid 1010 --gid 1010 --ini /tira/application/src/uwsgi.ini"
 
