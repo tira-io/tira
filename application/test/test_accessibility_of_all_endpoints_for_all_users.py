@@ -10,6 +10,12 @@ ROUTES_TO_TEST = [
     route_to_test(url_pattern='task', params=None, groups=ADMIN, expected_status_code=200),
     route_to_test(url_pattern='tasks', params=None, groups=ADMIN, expected_status_code=200),
     route_to_test(url_pattern='task/<str:task_id>', params={'task_id': 'this-task-does-not-exist'}, groups=ADMIN, expected_status_code=404),
+    route_to_test(url_pattern='task/<str:task_id>', params={'task_id': 'shared-task-1'}, groups=ADMIN, expected_status_code=200),
+    
+    route_to_test(url_pattern='task/<str:task_id>/dataset/<str:dataset_id>', params={'task_id': 'shared-task-1', 'dataset_id': 'this-dataset-does-not-exist'}, groups=ADMIN, expected_status_code=404),
+    
+    route_to_test(url_pattern='task/<str:task_id>/dataset/<str:dataset_id>', params={'task_id': 'shared-task-1', 'dataset_id': 'dataset-1'}, groups=ADMIN, expected_status_code=200),
+    
 ]
 
 class TestAccessibilityOfEndpointsForAdminUser(TestCase):
@@ -18,8 +24,8 @@ class TestAccessibilityOfEndpointsForAdminUser(TestCase):
         cls.tested_urls = []
         tira_model.edit_organizer('organizer', 'organizer', 'years', 'web', [])
         tira_model.add_vm('master-vm-for-task-1', 'user_name', 'initial_user_password', 'ip', 'host', '123', '123')
-        #tira_model.create_task('shared-task-1', 'task_name', 'task_description', False, 'master-vm-for-task-1', 'organizer',
-        #        'website', False, False, False, 'help_command', '', '')
+        tira_model.create_task('shared-task-1', 'task_name', 'task_description', False, 'master-vm-for-task-1', 'organizer',
+                'website', False, False, False, 'help_command', '', '')
 
     @parameterized.expand(ROUTES_TO_TEST)
     def test_route(self, url_pattern, method_bound_to_url_pattern, request, expected_status_code):
