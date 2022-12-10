@@ -10,15 +10,66 @@ now = datetime.now().strftime("%Y%m%d")
 
 ADMIN = 'tira_reviewer'
 ROUTES_TO_TEST = [
-    route_to_test(url_pattern='', params=None, groups=ADMIN, expected_status_code=200),
-    route_to_test(url_pattern='task', params=None, groups=ADMIN, expected_status_code=200),
-    route_to_test(url_pattern='tasks', params=None, groups=ADMIN, expected_status_code=200),
-    route_to_test(url_pattern='task/<str:task_id>', params={'task_id': 'this-task-does-not-exist'}, groups=ADMIN, expected_status_code=404),
-    route_to_test(url_pattern='task/<str:task_id>', params={'task_id': 'shared-task-1'}, groups=ADMIN, expected_status_code=200),
-    
-    route_to_test(url_pattern='task/<str:task_id>/dataset/<str:dataset_id>', params={'task_id': 'shared-task-1', 'dataset_id': 'this-dataset-does-not-exist'}, groups=ADMIN, expected_status_code=404),
-    
-    route_to_test(url_pattern='task/<str:task_id>/dataset/<str:dataset_id>', params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-1-{now}-training'}, groups=ADMIN, expected_status_code=200),
+    route_to_test(
+        url_pattern='',
+        params=None,
+        groups=ADMIN,
+        expected_status_code=200
+    ),
+    route_to_test(
+        url_pattern='task',
+        params=None,
+        groups=ADMIN,
+        expected_status_code=200
+    ),
+    route_to_test(
+        url_pattern='tasks',
+        params=None,
+        groups=ADMIN,
+        expected_status_code=200
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>',
+        params={'task_id': 'this-task-does-not-exist'},
+        groups=ADMIN,
+        expected_status_code=404
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>',
+        params={'task_id': 'shared-task-1'},
+        groups=ADMIN,
+        expected_status_code=200
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>/dataset/<str:dataset_id>',
+        params={'task_id': 'shared-task-1', 'dataset_id': 'this-dataset-does-not-exist'},
+        groups=ADMIN,
+        expected_status_code=404
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>/dataset/<str:dataset_id>',
+        params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-1-{now}-training'},
+        groups=ADMIN,
+        expected_status_code=200
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>/dataset/<str:dataset_id>',
+        params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-2-{now}-test'},
+        groups=ADMIN,
+        expected_status_code=200
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/download/<str:run_id>.zip',
+        params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-1-{now}-training', 'vm_id': 'example_participant', 'run_id': 'run-does-not-exist'},
+        groups=ADMIN,
+        expected_status_code=404
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/download/<str:run_id>.zip',
+        params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-1-{now}-training', 'vm_id': 'example_participant', 'run_id': 'run-1'},
+        groups=ADMIN,
+        expected_status_code=200
+    ),
     
 ]
 
@@ -28,9 +79,11 @@ class TestAccessibilityOfEndpointsForAdminUser(TestCase):
         cls.tested_urls = []
         tira_model.edit_organizer('organizer', 'organizer', 'years', 'web', [])
         tira_model.add_vm('master-vm-for-task-1', 'user_name', 'initial_user_password', 'ip', 'host', '123', '123')
+        tira_model.add_vm('example_participant', 'user_name', 'initial_user_password', 'ip', 'host', '123', '123')
         tira_model.create_task('shared-task-1', 'task_name', 'task_description', False, 'master-vm-for-task-1', 'organizer',
                 'website', False, False, False, 'help_command', '', '')
         tira_model.add_dataset('shared-task-1', 'dataset-1', 'training', 'dataset-1', 'upload-name')
+        tira_model.add_dataset('shared-task-1', 'dataset-2', 'test', 'dataset-2', 'upload-name')
 
     @parameterized.expand(ROUTES_TO_TEST)
     def test_route(self, url_pattern, method_bound_to_url_pattern, request, expected_status_code):
