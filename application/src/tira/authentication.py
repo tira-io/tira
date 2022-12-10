@@ -156,7 +156,7 @@ class LegacyAuthentication(Authentication):
             vm_id = Authentication.get_default_vm_id(user_id)
             _ = model.get_vm(vm_id, create_if_none=True)
 
-        return request.session.get("user_id", None)
+        return user_id
 
     def get_vm_id(self, request, user_id):
         """ Note: in the old schema, user_id == vm_id"""
