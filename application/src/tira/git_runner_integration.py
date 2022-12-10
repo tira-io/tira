@@ -520,7 +520,7 @@ class GitLabRunner(GitRunner):
     def run_evaluate_with_git_workflow(self, task_id, dataset_id, vm_id, run_id, git_runner_image,
                                        git_runner_command, git_repository_id, evaluator_id):
         msg = f"start run_eval with git: {task_id} - {dataset_id} - {vm_id} - {run_id}"
-        transaction_id = start_git_workflow(task_id, dataset_id, vm_id, run_id, git_runner_image,
+        transaction_id = self.start_git_workflow(task_id, dataset_id, vm_id, run_id, git_runner_image,
                                             git_runner_command, git_repository_id, evaluator_id,
                                             'ubuntu:18.04',
                                             'echo \'No software to execute. Only evaluation\'',
