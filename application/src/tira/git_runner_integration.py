@@ -793,12 +793,15 @@ class GitLabRunner(GitRunner):
             logger.warn(f'Could not extract job configuration on "{branch}".', e)
             pass
 
-        try:
-            from tira.tira_model import model
-            software_from_db = model.get_docker_software(int(ret['TIRA_SOFTWARE_ID'].split('docker-software-')[-1]))
-        except Exception as e:
-            logger.warn(f'Could not extract the software from the database for "{json.dumps(ret)}": {str(e)}')
-            software_from_db = {}
+        if 'TIRA_COMMAND_TO_EXECUTE' in ret and "'No software to execute. Only evaluation'" in ret['TIRA_COMMAND_TO_EXECUTE'] and ('TIRA_SOFTWARE_ID' not in ret or '-1' == ret['TIRA_SOFTWARE_ID']):
+            software_from_db = {'display_name': 'Evaluate Run', 'image': 'evaluator', 'command': 'evaluator'}
+        else:
+            try:
+                from tira.tira_model import model
+                software_from_db = model.get_docker_software(int(ret['TIRA_SOFTWARE_ID'].split('docker-software-')[-1]))
+            except Exception as e:
+                logger.warn(f'Could not extract the software from the database for "{json.dumps(ret)}": {str(e)}')
+                software_from_db = {}
 
         return {
             'software_name': software_from_db.get('display_name', 'Loading...'),
