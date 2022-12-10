@@ -2,6 +2,7 @@ from django.test import TestCase
 from utils_for_testing import route_to_test, assert_all_url_patterns_are_tested, execute_method_behind_url_and_return_status_code
 from parameterized import parameterized
 import json
+from tira.tira_model import model as tira_model
 
 ADMIN = 'tira_reviewer'
 ROUTES_TO_TEST = [
@@ -15,6 +16,10 @@ class TestAccessibilityOfEndpointsForAdminUser(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.tested_urls = []
+        tira_model.edit_organizer('organizer', 'organizer', 'years', 'web', [])
+        tira_model.add_vm('master-vm-for-task-1', 'user_name', 'initial_user_password', 'ip', 'host', '123', '123')
+        #tira_model.create_task('shared-task-1', 'task_name', 'task_description', False, 'master-vm-for-task-1', 'organizer',
+        #        'website', False, False, False, 'help_command', '', '')
 
     @parameterized.expand(ROUTES_TO_TEST)
     def test_route(self, url_pattern, method_bound_to_url_pattern, request, expected_status_code):

@@ -150,6 +150,7 @@ class HybridDatabase(object):
     def _save_vm(self, vm_id=None, user_name=None, initial_user_password=None, ip=None, host=None, ssh=None, rdp=None,
                  overwrite=False):
         new_vm_file_path = self.vm_dir_path / f'{vm_id}.prototext'
+
         if not overwrite and new_vm_file_path.exists():
             raise TiraModelWriteError(f"Failed to write vm, vm exists and overwrite is not allowed here")
         elif overwrite and new_vm_file_path.exists():
@@ -169,6 +170,8 @@ class HybridDatabase(object):
         vm.portRdp = ssh if ssh else vm.portRdp
 
         open(new_vm_file_path, 'w').write(str(vm))
+        
+        return True
 
     def _save_review(self, dataset_id, vm_id, run_id, review):
         """ Save the reivew to the protobuf dump. Create the file if it does not exist. """
@@ -744,8 +747,8 @@ class HybridDatabase(object):
             except IntegrityError as e:
                 logger.exception(f"Failed to add new vm {vm_id} with ", e)
                 raise TiraModelIntegrityError(e)
-
-        raise TiraModelWriteError(f"Failed to write VM {vm_id}")
+        else:
+            raise TiraModelWriteError(f"Failed to write VM {vm_id}")
 
     def add_registration(self, data):
         task = modeldb.Task.objects.select_related('organizer').get(task_id=data['task_id'])
