@@ -5,30 +5,39 @@ import inspect
 from copy import deepcopy
 import os
 
-def route_to_test(url_pattern, params, groups, expected_status_code):
-    method_bound_to_url_pattern = None
-    mocked_request = mock()
-    mocked_request.headers = {
+def __mock_request(groups, url_pattern):
+    ret = mock()
+    ret.headers = {
         'X-Disraptor-App-Secret-Key': 'ignored-secret.',
         'X-Disraptor-User': 'ignored-user.',
         'X-Disraptor-Groups': groups,
     }
-    mocked_request.path_info = '/' + url_pattern
-    mocked_request.META = {
+    ret.path_info = '/' + url_pattern
+    ret.META = {
         'CSRF_COOKIE': 'aasa',
     }
+    ret.current_app = 'tira'
+    
+    return ret
+
+
+def __find_method(url_pattern):
+    method_bound_to_url_pattern = None
     
     for pattern in urlpatterns:
         if str(url_pattern) == str(pattern.pattern):
             method_bound_to_url_pattern = pattern.callback
-            
 
     assert method_bound_to_url_pattern, f'No method is bound to pattern "{url_pattern}".'
     
+    return method_bound_to_url_pattern
+
+
+def route_to_test(url_pattern, params, groups, expected_status_code):
     params = deepcopy({} if not params else params)
-    params['request'] = mocked_request
+    params['request'] = __mock_request(groups, url_pattern)
     
-    return (url_pattern, method_bound_to_url_pattern, params, expected_status_code)
+    return (url_pattern, __find_method(url_pattern), params, expected_status_code)
 
 
 def execute_method_behind_url_and_return_status_code(method_bound_to_url_pattern, request):
