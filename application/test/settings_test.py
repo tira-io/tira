@@ -32,7 +32,7 @@ SECRET_KEY = custom_settings.get("django_secret", 'not-so-secret')
 DEBUG = custom_settings.get("debug", True)
 ALLOWED_HOSTS = custom_settings.get("allowed_hosts", [])
 
-TIRA_ROOT = Path(custom_settings.get("tira_root", BASE_DIR.parents[1] / "model" / "src"))
+TIRA_ROOT = Path(custom_settings.get("tira_root", BASE_DIR / 'test' / 'tira-root' ))
 if not TIRA_ROOT.is_dir():
     logging.warning(f"{TIRA_ROOT} does not exists and will be created now.")
 
