@@ -6,9 +6,11 @@ from copy import deepcopy
 import os
 
 def __mock_request(groups, url_pattern):
+    if 'DISRAPTOR_APP_SECRET_KEY' not in os.environ:
+        os.environ['DISRAPTOR_APP_SECRET_KEY'] = 'my-disraptor-key'
     ret = mock()
     ret.headers = {
-        'X-Disraptor-App-Secret-Key': 'ignored-secret.',
+        'X-Disraptor-App-Secret-Key': 'my-disraptor-key',
         'X-Disraptor-User': 'ignored-user.',
         'X-Disraptor-Groups': groups,
     }
