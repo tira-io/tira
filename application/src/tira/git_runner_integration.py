@@ -784,13 +784,15 @@ class GitLabRunner(GitRunner):
                         if diff_entry['old_path'] == diff_entry['new_path'] and diff_entry['new_path'].endswith('/job-to-execute.txt'):
                             diff_entry = diff_entry['diff'].replace('\n+', '\n').split('\n')
                             ret = {i.split('=')[0].strip():i.split('=')[1].strip() for i in diff_entry if len(i.split('=')) == 2}
-        except:
+        except Exception as e:
+            logger.warn(f'Could not extract job configuration on "{branch}".', e)
             pass
 
         try:
             from tira.tira_model import model
             software_from_db = model.get_docker_software(int(ret['TIRA_SOFTWARE_ID'].split('docker-software-')[-1]))
-        except:
+        except Exception as e:
+            logger.warn(f'Could not extract the software from the database for "{json.dumps(ret)}".', e)
             software_from_db = {}
 
         return {
