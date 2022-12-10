@@ -94,6 +94,24 @@ ROUTES_TO_TEST = [
         groups=ADMIN,
         expected_status_code=200
     ),
+    route_to_test(
+        url_pattern='request_vm',
+        params={},
+        groups=ADMIN,
+        expected_status_code=200
+    ),
+    route_to_test(
+        url_pattern='login',
+        params={},
+        groups=ADMIN,
+        expected_status_code=200
+    ),
+    route_to_test(
+        url_pattern='logout',
+        params={},
+        groups=ADMIN,
+        expected_status_code=302
+    ),
 ]
 
 #ROUTES_TO_TEST = ROUTES_TO_TEST[-1:]
