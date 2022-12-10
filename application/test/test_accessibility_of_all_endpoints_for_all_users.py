@@ -66,7 +66,7 @@ ROUTES_TO_TEST = [
     ),
     route_to_test(
         url_pattern='task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/download/<str:run_id>.zip',
-        params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-1-{now}-test', 'vm_id': 'example_participant', 'run_id': 'run-1'},
+        params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-2-{now}-test', 'vm_id': 'example_participant', 'run_id': 'run-1'},
         groups=ADMIN,
         expected_status_code=200
     ),
@@ -79,6 +79,18 @@ ROUTES_TO_TEST = [
     route_to_test(
         url_pattern='task/<str:task_id>/user/<str:vm_id>',
         params={'task_id': 'shared-task-1', 'vm_id': 'example_participant'},
+        groups=ADMIN,
+        expected_status_code=200
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/run/<str:run_id>',
+        params={'task_id': 'shared-task-1', 'vm_id': 'example_participant', 'dataset_id': f'dataset-1-{now}-training', 'run_id': 'run-1'},
+        groups=ADMIN,
+        expected_status_code=200
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/run/<str:run_id>',
+        params={'task_id': 'shared-task-1', 'vm_id': 'example_participant', 'dataset_id': f'dataset-2-{now}-test', 'run_id': 'run-1'},
         groups=ADMIN,
         expected_status_code=200
     ),
