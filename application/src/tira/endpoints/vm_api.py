@@ -346,7 +346,14 @@ def run_eval(request, vm_id, dataset_id, run_id):
 
     evaluator = model.get_evaluator(dataset_id)
     if 'is_git_runner' in evaluator and evaluator['is_git_runner']:
-        return _git_runner_vm_eval_call(vm_id, dataset_id, run_id, evaluator)
+        ret = _git_runner_vm_eval_call(vm_id, dataset_id, run_id, evaluator)
+        running_pipelines = git_runner.all_running_pipelines_for_repository(
+            evaluator['git_repository_id'],
+            cache,
+            force_cache_refresh=True
+        )
+        
+        return ret
 
     return _master_vm_eval_call(vm_id, dataset_id, run_id, evaluator)
 
@@ -384,6 +391,7 @@ def upload(request, task_id, vm_id, dataset_id):
         new_run = model.add_uploaded_run(task_id, vm_id, dataset_id, uploaded_file)
         if model.git_pipeline_is_enabled_for_task(task_id, cache):
             run_eval(request=request, vm_id=vm_id, dataset_id=dataset_id, run_id=new_run["run"]["run_id"])
+
             return JsonResponse({"status": 0, "message": "ok", "new_run": new_run, "started_evaluation": True})
         return JsonResponse({"status": 0, "message": "ok", "new_run": new_run, "started_evaluation": False})
     else:
