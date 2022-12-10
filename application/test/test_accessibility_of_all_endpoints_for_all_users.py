@@ -70,6 +70,18 @@ ROUTES_TO_TEST = [
         groups=ADMIN,
         expected_status_code=200
     ),
+    route_to_test(
+        url_pattern='task/<str:task_id>/user/<str:vm_id>',
+        params={'task_id': 'shared-task-1', 'vm_id': 'participant-does-not-exist'},
+        groups=ADMIN,
+        expected_status_code=302
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>/user/<str:vm_id>',
+        params={'task_id': 'shared-task-1', 'vm_id': 'example_participant'},
+        groups=ADMIN,
+        expected_status_code=200
+    ),
 ]
 
 #ROUTES_TO_TEST = ROUTES_TO_TEST[-1:]
@@ -107,6 +119,5 @@ class TestAccessibilityOfEndpointsForAdminUser(TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        pass
-        #assert_all_url_patterns_are_tested(cls.tested_urls)    
+        assert_all_url_patterns_are_tested(cls.tested_urls)    
 
