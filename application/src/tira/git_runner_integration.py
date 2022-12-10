@@ -170,7 +170,7 @@ class GitRunner:
             'user_name': repo_name.replace('tira-user-', ''),
             'repo_name': repo_name,
             'token': token,
-            'image_prefix': settings.GIT_REGISTRY_PREFIX +'/' + repo_name +'/'
+            'image_prefix': self.image_registry_prefix +'/' + repo_name +'/'
         })
 
         with tempfile.TemporaryDirectory() as tmp_dir:
