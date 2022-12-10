@@ -2,24 +2,24 @@
 
 The following steps will setup a self-contained, local tira application and a mockup tira host. See [Development](#development) for more detailed options. 
 
-0. Install Python3, pip, virtualenv, and the mysql tools. For Ubuntu:
+1. Install Python3, pip, virtualenv, and the mysql tools. For Ubuntu:
    ```bash
    ~$ sudo apt-get update && sudo apt-get install python3 python3-pip python3-venv libmysqlclient-dev
    ```
 
-1. Setup the local environment
+2. Setup the local environment
    ```bash
    ~$ make setup  # This creates the virtual environment and prepares Django's database
    ```
 
-2. Setup the local environment
+3. Setup the local environment
    ```bash
    ~$ make run-develop  # This updates the config and runs the server within the venv.
    ```
 
-3. In case you want to develop using the tira-git integration, run
+4. Run all unit tests
    ```bash
-   ~$ make run-git-develop  # This updates the config using kubernetes and runs and runs src/tira/git_runner_cli.py within the venv.
+   ~$ make tests
    ```
 
 ## Docker
