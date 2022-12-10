@@ -153,7 +153,7 @@ def check_resources_exist(reply_as='json'):
                     return response
                 if request_vm_instead:
                     return redirect('tira:request_vm')
-                return Http404
+                return Http404(message)
 
             if "vm_id" in kwargs:
                 if not model.vm_exists(kwargs["vm_id"]):
