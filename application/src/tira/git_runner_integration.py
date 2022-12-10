@@ -161,9 +161,27 @@ class GitRunner:
 
         token = self._create_access_token_gitHoster(project, repo)
 
-        self.__initialize_user_repository(project.id, repo, token.token)
+        self.initialize_user_repository(project.id, repo, token.token)
         
         return project.id
+
+    def initialize_user_repository(self, git_repository_id, repo_name, token):
+        project_readme = render_to_string('tira/git_user_repository_readme.md', context={
+            'user_name': repo_name.replace('tira-user-', ''),
+            'repo_name': repo_name,
+            'token': token,
+            'image_prefix': settings.GIT_REGISTRY_PREFIX +'/' + repo_name +'/'
+        })
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            repo = Repo.init(tmp_dir)
+            write_to_file(str(tmp_dir) + '/README.md', project_readme)
+        
+            repo.create_remote('origin', self.repo_url(git_repository_id))
+            ::ensure_branch_is_main(repo)
+            repo.index.add(['README.md'])
+            repo.index.commit('Initial commit')
+            repo.remote().push(settings.GIT_USER_REPOSITORY_BRANCH)
 
     def docker_images_in_user_repository(self, user_name, cache=None, force_cache_refresh=False):
         """   TODO  Dane
