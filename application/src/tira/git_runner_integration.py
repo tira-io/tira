@@ -750,15 +750,17 @@ class GitLabRunner(GitRunner):
                 run_id = p.split('---')[-1]
                 
                 already_covered_run_ids.add(run_id)
-                ret += [{
-                    'run_id': run_id,
-                    'execution': execution,
-                    'stdOutput': stdout,
-                    'started_at': p.split('---')[-1],
-                    'pipeline_name': p,
-                    'job_config': self.extract_job_configuration(gl_project, pipeline.ref),
-                    'pipeline': pipeline
-                }]
+                job_config = self.extract_job_configuration(gl_project, pipeline.ref)
+                if job_config:
+                    ret += [{
+                        'run_id': run_id,
+                        'execution': execution,
+                        'stdOutput': stdout,
+                        'started_at': p.split('---')[-1],
+                        'pipeline_name': p,
+                        'job_config': job_config,
+                        'pipeline': pipeline
+                    }]
                 
         ret += self.__all_failed_pipelines_for_repository(gl_project, already_covered_run_ids)
         
@@ -770,7 +772,10 @@ class GitLabRunner(GitRunner):
 
     def extract_job_configuration(self, gl_project, branch):
         ret = {}
-        
+
+        if not branch or branch.strip().lower() == 'main':
+            return None
+
         try:
             for commit in gl_project.commits.list(ref_name=branch, page=0, per_page=3):
                 if len(ret) > 0:
@@ -792,7 +797,7 @@ class GitLabRunner(GitRunner):
             from tira.tira_model import model
             software_from_db = model.get_docker_software(int(ret['TIRA_SOFTWARE_ID'].split('docker-software-')[-1]))
         except Exception as e:
-            logger.warn(f'Could not extract the software from the database for "{json.dumps(ret)}".', e)
+            logger.warn(f'Could not extract the software from the database for "{json.dumps(ret)}": {str(e)}')
             software_from_db = {}
 
         return {
@@ -819,7 +824,11 @@ class GitLabRunner(GitRunner):
             if run_id in already_covered_run_ids:
                 continue
             
-            ret += [{'run_id': run_id, 'execution': {'scheduling': 'failed', 'execution': 'failed', 'evaluation': 'failed'}, 'pipeline_name': p, 'stdOutput': 'Job did not run. (Maybe it is still submitted to the cluster or failed to start. It might take up to 5 minutes to submit a Job to the cluster.)', 'started_at': p.split('---')[-1], 'branch': branch, 'job_config': self.extract_job_configuration(gl_project, branch)}]
+            job_config = self.extract_job_configuration(gl_project, branch)
+            if not job_config:
+                continue
+            
+            ret += [{'run_id': run_id, 'execution': {'scheduling': 'failed', 'execution': 'failed', 'evaluation': 'failed'}, 'pipeline_name': p, 'stdOutput': 'Job did not run. (Maybe it is still submitted to the cluster or failed to start. It might take up to 5 minutes to submit a Job to the cluster.)', 'started_at': p.split('---')[-1], 'branch': branch, 'job_config': job_config}]
 
         return ret
 
