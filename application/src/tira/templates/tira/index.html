@@ -32,7 +32,7 @@
                 <input type="text" class="uk-input" id="filter-field" placeholder="Type here to filter&hellip;"/>
             </div>
             {% if role == 'admin' or organizer_teams %}
-            <div v-if="role === 'admin' || organizer_teams ">
+            <div v-if="role === 'admin' || (organizer_teams && organizer_teams.length > 0) ">
                 <a uk-toggle="target: #add-task-modal" class="uk-button uk-button-large uk-button-default uk-text-large"><span class="uk-padding-small">Add Task +</span></a>
             </div>
             <div id="add-task-modal" uk-modal>
@@ -43,7 +43,7 @@
                                @closeModal="closeModal()" />
                 </div>
             </div>
-            <div v-if="role === 'admin' || organizer_teams ">
+            <div v-if="role === 'admin' || (organizer_teams && organizer_teams.length > 0) ">
                 <a uk-toggle="target: #edit-organization-modal" class="uk-button uk-button-large uk-button-default uk-text-large">
                       <span class="uk-padding-small">Edit Organizations</span><i class="fas fa-edit"></i></a>
             </div>
