@@ -11,6 +11,7 @@ from django.http import JsonResponse
 from django.conf import settings
 from django.core.cache import cache
 from django.core.serializers.json import DjangoJSONEncoder
+from http import HTTPStatus
 import datetime
 
 include_navigation = True if settings.DEPLOYMENT == "legacy" else False
@@ -247,18 +248,20 @@ def get_review(request, context, dataset_id, vm_id, run_id):
 @add_context
 def add_registration(request, context, task_id, vm_id):
     """ get the registration of a user on a task. If there is none """
+    try:
+        data = json.loads(request.body)
+        data['initial_owner'] = context['user_id']
+        data['task_id'] = task_id
+        model.add_registration(data)
 
-    data = json.loads(request.body)
-    data['initial_owner'] = context['user_id']
-    data['task_id'] = task_id
-    model.add_registration(data)
+        auth.create_docker_group(data['group'], data['initial_owner'])
+        auth.notify_organizers_of_new_participants(data, task_id)
 
-    auth.create_docker_group(data['group'], data['initial_owner'])
-    auth.notify_organizers_of_new_participants(data, task_id)
+        context['user_is_registered'] = True
+        context['vm_id'] = data['group']
+        context['user_vms_for_task'] = [data['group']]
 
-    context['user_is_registered'] = True
-    context['vm_id'] = data['group']
-    context['user_vms_for_task'] = [data['group']]
-
-    return JsonResponse({'status': 0, "context": context})
+        return JsonResponse({'status': 0, "context": context})
+    except Exception as e:
+        return JsonResponse({'status': 0, "message": f"Encountered an exception: {e}"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
