@@ -351,7 +351,7 @@ API_ACCESS_MATRIX = [
             PARTICIPANT: 302,
         },
     ),
-    # Skip for the moment, takes too long
+    # Skip for the moment, takes too long. Maybe mock later?
     #route_to_test(
     #    url_pattern='grpc/<str:vm_id>/vm_info',
     #    params={'vm_id': PARTICIPANT.split('_')[-1]},
@@ -388,7 +388,7 @@ API_ACCESS_MATRIX = [
             PARTICIPANT: 302,
         },
     ),
-    # Skip for the moment, takes too long
+    # Skip for the moment, takes too long. Maybe mock later?
     #route_to_test(
     #    url_pattern='grpc/<str:vm_id>/vm_start',
     #    params={'vm_id': PARTICIPANT.split('_')[-1]},
@@ -407,7 +407,7 @@ API_ACCESS_MATRIX = [
             PARTICIPANT: 302,
         },
     ),
-    # Skip for the moment, takes too long
+    # Skip for the moment, takes too long. Maybe mock later?
     #route_to_test(
     #    url_pattern='grpc/<str:vm_id>/vm_shutdown',
     #    params={'vm_id': PARTICIPANT.split('_')[-1]},
@@ -422,17 +422,39 @@ API_ACCESS_MATRIX = [
         params={'vm_id': 'does-not-exist'},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 302
+            GUEST: 302,
+            PARTICIPANT: 302,
         },
     ),
+    # Skip for the moment, takes too long. Maybe mock later?
+    #route_to_test(
+    #    url_pattern='grpc/<str:vm_id>/vm_stop',
+    #    params={'vm_id': PARTICIPANT.split('_')[-1]},
+    #    group_to_expected_status_code={
+    #        ADMIN: 200,
+    #        GUEST: 302,
+    #        PARTICIPANT: 200,
+    #    },
+    #),
     route_to_test(
         url_pattern='grpc/<str:vm_id>/run_abort',
         params={'vm_id': 'does-not-exist'},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 302
+            GUEST: 302,
+            PARTICIPANT: 302,
         },
     ),
+    # Skip for the moment, takes too long. Maybe mock later?
+    #route_to_test(
+    #    url_pattern='grpc/<str:vm_id>/run_abort',
+    #    params={'vm_id': PARTICIPANT.split('_')[-1]},
+    #    group_to_expected_status_code={
+    #        ADMIN: 200,
+    #        GUEST: 302,
+    #        PARTICIPANT: 200,
+    #    },
+    #),
     route_to_test(
         url_pattern='grpc/<str:vm_id>/vm_running_evaluations',
         params={'vm_id': 'does-not-exist'},
