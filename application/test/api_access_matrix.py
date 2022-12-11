@@ -329,7 +329,17 @@ API_ACCESS_MATRIX = [
         params={'task_id': 'shared-task-1', 'vm_id': 'example_participant', 'dataset_id': 0},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 302
+            GUEST: 302,
+            PARTICIPANT: 302
+        },
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>/vm/<str:vm_id>/upload/<str:dataset_id>',
+        params={'task_id': 'shared-task-1', 'vm_id': PARTICIPANT.split('_')[-1], 'dataset_id': 0},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 200
         },
     ),
     route_to_test(
@@ -337,15 +347,36 @@ API_ACCESS_MATRIX = [
         params={'vm_id': 'does-not-exist'},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 302
+            GUEST: 302,
+            PARTICIPANT: 302,
         },
     ),
+    # Skip for the moment, takes too long
+    #route_to_test(
+    #    url_pattern='grpc/<str:vm_id>/vm_info',
+    #    params={'vm_id': PARTICIPANT.split('_')[-1]},
+    #    group_to_expected_status_code={
+    #        ADMIN: 200,
+    #        GUEST: 302,
+    #        PARTICIPANT: 200,
+    #    },
+    #),
     route_to_test(
         url_pattern='grpc/<str:vm_id>/vm_state',
         params={'vm_id': 'does-not-exist'},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 302
+            GUEST: 302,
+            PARTICIPANT: 302,
+        },
+    ),
+    route_to_test(
+        url_pattern='grpc/<str:vm_id>/vm_state',
+        params={'vm_id': PARTICIPANT.split('_')[-1]},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 200,
         },
     ),
     route_to_test(
@@ -353,17 +384,39 @@ API_ACCESS_MATRIX = [
         params={'vm_id': 'does-not-exist'},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 302
+            GUEST: 302,
+            PARTICIPANT: 302,
         },
     ),
+    # Skip for the moment, takes too long
+    #route_to_test(
+    #    url_pattern='grpc/<str:vm_id>/vm_start',
+    #    params={'vm_id': PARTICIPANT.split('_')[-1]},
+    #    group_to_expected_status_code={
+    #        ADMIN: 200,
+    #        GUEST: 302,
+    #        PARTICIPANT: 302,
+    #    },
+    #),
     route_to_test(
         url_pattern='grpc/<str:vm_id>/vm_shutdown',
         params={'vm_id': 'does-not-exist'},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 302
+            GUEST: 302,
+            PARTICIPANT: 302,
         },
     ),
+    # Skip for the moment, takes too long
+    #route_to_test(
+    #    url_pattern='grpc/<str:vm_id>/vm_shutdown',
+    #    params={'vm_id': PARTICIPANT.split('_')[-1]},
+    #    group_to_expected_status_code={
+    #        ADMIN: 200,
+    #        GUEST: 302,
+    #        PARTICIPANT: 200,
+    #    },
+    #),
     route_to_test(
         url_pattern='grpc/<str:vm_id>/vm_stop',
         params={'vm_id': 'does-not-exist'},
