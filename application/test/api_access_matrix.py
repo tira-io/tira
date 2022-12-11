@@ -307,37 +307,58 @@ API_ACCESS_MATRIX = [
     route_to_test(
         url_pattern='tira-admin/reload/vms',
         params={},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405
+        },
     ),
     route_to_test(
         url_pattern='tira-admin/reload/datasets',
         params={},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405
+        },
     ),
     route_to_test(
         url_pattern='tira-admin/reload/tasks',
         params={},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405
+        },
     ),
     route_to_test(
         url_pattern='tira-admin/create-vm',
         params={},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405
+        },
     ),
     route_to_test(
         url_pattern='tira-admin/modify-vm',
         params={},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405
+        },
     ),
     route_to_test(
         url_pattern='tira-admin/edit-task/<str:task_id>',
         params={'task_id': 'shared-task-1'},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405
+        },
     ),
     route_to_test(
         url_pattern='tira-admin/delete-task/<str:task_id>',
         params={'task_id': 'task-does-not-exist'},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405
+        },
     ),
     route_to_test(
         url_pattern='tira-admin/add-dataset',
