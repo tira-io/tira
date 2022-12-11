@@ -6,6 +6,7 @@ now = datetime.now().strftime("%Y%m%d")
 
 ADMIN = 'tira_reviewer'
 GUEST = ''
+PARTICIPANT = 'tira_vm_PARTICIPANT-FOR-TEST-1'
 
 API_ACCESS_MATRIX = [
     route_to_test(
@@ -14,6 +15,7 @@ API_ACCESS_MATRIX = [
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 200,
+            PARTICIPANT: 200,
         },
     ),
     route_to_test(
@@ -22,6 +24,7 @@ API_ACCESS_MATRIX = [
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 200,
+            PARTICIPANT: 200,
         },
     ),
     route_to_test(
@@ -30,6 +33,7 @@ API_ACCESS_MATRIX = [
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 200,
+            PARTICIPANT: 200,
         },
     ),
     route_to_test(
@@ -38,6 +42,7 @@ API_ACCESS_MATRIX = [
         group_to_expected_status_code={
             ADMIN: 404,
             GUEST: 404,
+            PARTICIPANT: 404,
         },
     ),
     route_to_test(
@@ -45,7 +50,8 @@ API_ACCESS_MATRIX = [
         params={'task_id': 'shared-task-1'},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 200
+            GUEST: 200,
+            PARTICIPANT: 200,
         },
     ),
     route_to_test(
@@ -53,7 +59,8 @@ API_ACCESS_MATRIX = [
         params={'task_id': 'shared-task-1', 'dataset_id': 'this-dataset-does-not-exist'},
         group_to_expected_status_code={
             ADMIN: 404,
-            GUEST: 404
+            GUEST: 404,
+            PARTICIPANT: 404,
         },
     ),
     route_to_test(
@@ -61,7 +68,8 @@ API_ACCESS_MATRIX = [
         params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-1-{now}-training'},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 200
+            GUEST: 200,
+            PARTICIPANT: 200,
         },
     ),
     route_to_test(
@@ -69,7 +77,8 @@ API_ACCESS_MATRIX = [
         params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-2-{now}-test'},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 200
+            GUEST: 200,
+            PARTICIPANT: 200,
         },
     ),
     route_to_test(
@@ -77,7 +86,8 @@ API_ACCESS_MATRIX = [
         params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-1-{now}-training', 'vm_id': 'example_participant', 'run_id': 'run-1'},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 302, # TODO: FIX THIS. Should be 405
+            GUEST: 302, # TODO: Look at this again. Should be 405?
+            PARTICIPANT: 302, # TODO: Look at this again. Should be 405?
         },
     ),
     route_to_test(
