@@ -460,15 +460,36 @@ API_ACCESS_MATRIX = [
         params={'vm_id': 'does-not-exist'},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 302
+            GUEST: 302,
+            PARTICIPANT: 302,
         },
     ),
+    # Skip for the moment, takes too long. Maybe mock later?
+    #route_to_test(
+    #    url_pattern='grpc/<str:vm_id>/vm_running_evaluations',
+    #    params={'vm_id': PARTICIPANT.split('_')[-1]},
+    #    group_to_expected_status_code={
+    #        ADMIN: 200,
+    #        GUEST: 302,
+    #        PARTICIPANT: 200,
+    #    },
+    #),
     route_to_test(
         url_pattern='grpc/<str:vm_id>/get_running_evaluations',
         params={'vm_id': 'does-not-exist'},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 302
+            GUEST: 302,
+            PARTICIPANT: 302,
+        },
+    ),
+    route_to_test(
+        url_pattern='grpc/<str:vm_id>/get_running_evaluations',
+        params={'vm_id': PARTICIPANT.split('_')[-1]},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 200,
         },
     ),
     route_to_test(
@@ -476,15 +497,36 @@ API_ACCESS_MATRIX = [
         params={'task_id': 'shared-task-1', 'vm_id': 'does-not-exist', 'software_id': 'does-not-exist'},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 302
+            GUEST: 302,
+            PARTICIPANT: 302,
         },
     ),
+    # TODO Add later
+    #route_to_test(
+    #    url_pattern='grpc/<str:task_id>/<str:vm_id>/run_execute/vm/<str:software_id>',
+    #    params={'task_id': 'shared-task-1', 'vm_id': PARTICIPANT.split('_')[-1], 'software_id': f'software-of-{PARTICIPANT.split("_")[-1]}'},
+    #    group_to_expected_status_code={
+    #        ADMIN: 200,
+    #        GUEST: 302,
+    #        GUEST: 200,
+    #    },
+    #),
     route_to_test(
         url_pattern='grpc/<str:task_id>/<str:vm_id>/run_execute/docker/<str:dataset_id>/<str:docker_software_id>/<str:docker_resources>',
         params={'task_id': 'shared-task-1', 'vm_id': 'does-not-exist', 'dataset_id': 'does-not-exist', 'docker_software_id': 'does-not-exist'},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 302
+            GUEST: 302,
+            PARTICIPANT: 302,
+        },
+    ),
+    route_to_test(
+        url_pattern='grpc/<str:task_id>/<str:vm_id>/run_execute/docker/<str:dataset_id>/<str:docker_software_id>/<str:docker_resources>',
+        params={'task_id': 'shared-task-1', 'vm_id': PARTICIPANT.split('_')[-1], 'dataset_id': 'does-not-exist', 'docker_software_id': 'does-not-exist'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 200,
         },
     ),
     route_to_test(
