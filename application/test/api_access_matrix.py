@@ -481,6 +481,7 @@ API_ACCESS_MATRIX = [
     #        ADMIN: 200,
     #        GUEST: 302,
     #        PARTICIPANT: 200,
+    #        ORGANIZER: 302,
     #    },
     #),
     route_to_test(
@@ -490,6 +491,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 302,
             PARTICIPANT: 302,
+            ORGANIZER: 302,
         },
     ),
     # Skip for the moment, takes too long. Maybe mock later?
@@ -500,6 +502,7 @@ API_ACCESS_MATRIX = [
     #        ADMIN: 200,
     #        GUEST: 302,
     #        PARTICIPANT: 200,
+    #        ORGANIZER: 302,
     #    },
     #),
     route_to_test(
@@ -509,6 +512,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 302,
             PARTICIPANT: 302,
+            ORGANIZER: 302,
         },
     ),
     # Skip for the moment, takes too long. Maybe mock later?
@@ -519,6 +523,7 @@ API_ACCESS_MATRIX = [
     #        ADMIN: 200,
     #        GUEST: 302,
     #        PARTICIPANT: 200,
+    #        ORGANIZER: 302,
     #    },
     #),
     route_to_test(
@@ -528,6 +533,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 302,
             PARTICIPANT: 302,
+            ORGANIZER: 302,
         },
     ),
     route_to_test(
@@ -537,6 +543,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 302,
             PARTICIPANT: 200,
+            ORGANIZER: 302,
         },
     ),
     route_to_test(
@@ -546,6 +553,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 302,
             PARTICIPANT: 302,
+            ORGANIZER: 302,
         },
     ),
     # TODO Add later
@@ -555,7 +563,8 @@ API_ACCESS_MATRIX = [
     #    group_to_expected_status_code={
     #        ADMIN: 200,
     #        GUEST: 302,
-    #        GUEST: 200,
+    #        PARTICIPANT: 200,
+    #        ORGANIZER: 302,
     #    },
     #),
     route_to_test(
