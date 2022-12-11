@@ -221,7 +221,17 @@ API_ACCESS_MATRIX = [
         params={'task_id': 'shared-task-1', 'vm_id': 'example_participant'},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 302
+            GUEST: 302,
+            PARTICIPANT: 302
+        },
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>/vm/<str:vm_id>/add_software/vm',
+        params={'task_id': 'shared-task-1', 'vm_id': PARTICIPANT.split('_')[-1]},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 200,
         },
     ),
     route_to_test(
@@ -229,7 +239,17 @@ API_ACCESS_MATRIX = [
         params={'task_id': 'shared-task-1', 'vm_id': 'example_participant'},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 302
+            GUEST: 302,
+            PARTICIPANT: 302,
+        },
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>/vm/<str:vm_id>/add_software/docker',
+        params={'task_id': 'shared-task-1', 'vm_id': PARTICIPANT.split('_')[-1]},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 200,
         },
     ),
     route_to_test(
@@ -237,7 +257,17 @@ API_ACCESS_MATRIX = [
         params={'task_id': 'shared-task-1', 'vm_id': 'example_participant', 'docker_software_id': 0},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 302
+            GUEST: 302,
+            PARTICIPANT: 302,
+        },
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>/vm/<str:vm_id>/save_software/docker/<str:docker_software_id>',
+        params={'task_id': 'shared-task-1', 'vm_id': PARTICIPANT.split('_')[-1], 'docker_software_id': 0},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 200,
         },
     ),
     route_to_test(
@@ -245,7 +275,17 @@ API_ACCESS_MATRIX = [
         params={'task_id': 'shared-task-1', 'vm_id': 'example_participant', 'software_id': 0},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 302
+            GUEST: 302,
+            PARTICIPANT: 302,
+        },
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>/vm/<str:vm_id>/save_software/vm/<str:software_id>',
+        params={'task_id': 'shared-task-1', 'vm_id': PARTICIPANT.split('_')[-1], 'software_id': 0},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 200,
         },
     ),
     route_to_test(
@@ -253,7 +293,17 @@ API_ACCESS_MATRIX = [
         params={'task_id': 'shared-task-1', 'vm_id': 'example_participant', 'software_id': 0},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 302
+            GUEST: 302,
+            PARTICIPANT: 302,
+        },
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>/vm/<str:vm_id>/delete_software/vm/<str:software_id>',
+        params={'task_id': 'shared-task-1', 'vm_id': PARTICIPANT.split('_')[-1], 'software_id': 0},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 200,
         },
     ),
     route_to_test(
@@ -261,7 +311,17 @@ API_ACCESS_MATRIX = [
         params={'task_id': 'shared-task-1', 'vm_id': 'example_participant', 'software_id': 0},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 302
+            GUEST: 302,
+            PARTICIPANT: 302,
+        },
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>/vm/<str:vm_id>/delete_software/docker/<str:docker_software_id>',
+        params={'task_id': 'shared-task-1', 'vm_id': PARTICIPANT.split('_')[-1], 'software_id': 0},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 200,
         },
     ),
     route_to_test(
