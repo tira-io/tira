@@ -1,0 +1,34 @@
+{
+    "context": {
+        "include_navigation": false,
+        "organizer_list": [
+            {
+                "gitPrivateToken": "",
+                "gitUrlToNamespace": "",
+                "name": "organizer",
+                "organizer_id": "organizer",
+                "web": "web",
+                "years": "years"
+            },
+            {
+                "gitPrivateToken": "",
+                "gitUrlToNamespace": "",
+                "name": "organizer-2",
+                "organizer_id": "organizer-2",
+                "web": "web",
+                "years": "years"
+            },
+            {
+                "gitPrivateToken": "",
+                "gitUrlToNamespace": "",
+                "name": "EXAMPLE_ORGANIZER",
+                "organizer_id": "EXAMPLE_ORGANIZER",
+                "web": "web",
+                "years": "years"
+            }
+        ],
+        "role": "admin",
+        "user_id": "ignored-user."
+    },
+    "status": 0
+}

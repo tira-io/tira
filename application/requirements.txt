@@ -19,3 +19,4 @@ PyGithub
 ghapi
 parameterized
 mockito
+approvaltests

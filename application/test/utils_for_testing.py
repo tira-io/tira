@@ -30,6 +30,8 @@ def set_up_tira_environment():
     open('tira-root/model/users/users.prototext', 'w').write('')
 
     tira_model.edit_organizer('organizer', 'organizer', 'years', 'web', [])
+    tira_model.edit_organizer('organizer-2', 'organizer-2', 'years', 'web', [])
+    tira_model.edit_organizer('EXAMPLE_ORGANIZER', 'EXAMPLE_ORGANIZER', 'years', 'web', [])
     tira_model.add_vm('master-vm-for-task-1', 'user_name', 'initial_user_password', 'ip', 'host', '123', '123')
     tira_model.add_vm('example_participant', 'user_name', 'initial_user_password', 'ip', 'host', '123', '123')
     tira_model.add_vm('PARTICIPANT-FOR-TEST-1', 'user_name', 'initial_user_password', 'ip', 'host', '123', '123')
@@ -44,7 +46,7 @@ def set_up_tira_environment():
         
     tira_model.add_run(dataset_id='dataset-1', vm_id='example_participant', run_id='run-1')
 
-def __mock_request(groups, url_pattern, method, body):
+def mock_request(groups, url_pattern, method='GET', body=None):
     if 'DISRAPTOR_APP_SECRET_KEY' not in os.environ:
         os.environ['DISRAPTOR_APP_SECRET_KEY'] = 'my-disraptor-key'
     ret = mock()
@@ -66,7 +68,7 @@ def __mock_request(groups, url_pattern, method, body):
     return ret
 
 
-def __find_method(url_pattern):
+def method_for_url_pattern(url_pattern):
     method_bound_to_url_pattern = None
     
     for pattern in urlpatterns:
@@ -83,11 +85,11 @@ def route_to_test(url_pattern, params, group_to_expected_status_code, method='GE
     
     for group, expected_status_code in group_to_expected_status_code.items():
         params_for_group = deepcopy({} if not params else params)
-        params_for_group['request'] = __mock_request(group, url_pattern, method=method, body=body)
+        params_for_group['request'] = mock_request(group, url_pattern, method=method, body=body)
         
         metadata_for_groups[group] = {'params': params_for_group, 'expected_status_code': expected_status_code}
     
-    return (url_pattern, __find_method(url_pattern), metadata_for_groups, hide_stdout)
+    return (url_pattern, method_for_url_pattern(url_pattern), metadata_for_groups, hide_stdout)
 
 
 def execute_method_behind_url_and_return_status_code(method_bound_to_url_pattern, request, hide_stdout):
