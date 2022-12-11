@@ -61,16 +61,19 @@ def __find_method(url_pattern):
     return method_bound_to_url_pattern
 
 
-def route_to_test(url_pattern, params, groups, expected_status_code, method='GET', hide_stdout=False, body=None):
-    params = deepcopy({} if not params else params)
-    params['request'] = __mock_request(groups, url_pattern, method=method, body=body)
+def route_to_test(url_pattern, params, group_to_expected_status_code, method='GET', hide_stdout=False, body=None):
+    metadata_for_groups = {}
     
-    return (url_pattern, __find_method(url_pattern), params, expected_status_code, hide_stdout)
+    for group, expected_status_code in group_to_expected_status_code.items():
+        params_for_group = deepcopy({} if not params else params)
+        params_for_group['request'] = __mock_request(group, url_pattern, method=method, body=body)
+        
+        metadata_for_groups[group] = {'params': params_for_group, 'expected_status_code': expected_status_code}
+    
+    return (url_pattern, __find_method(url_pattern), metadata_for_groups, hide_stdout)
 
 
 def execute_method_behind_url_and_return_status_code(method_bound_to_url_pattern, request, hide_stdout):
-    #print(os.path.abspath(inspect.getfile(method_bound_to_url_pattern)))
-    #print(os.path.abspath(inspect.getfile(method_bound_to_url_pattern)))
     if hide_stdout:
         with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
             ret = method_bound_to_url_pattern(**request)
