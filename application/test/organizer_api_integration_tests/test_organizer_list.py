@@ -1,4 +1,5 @@
 from django.test import TestCase
+from api_access_matrix import ORGANIZER
 from utils_for_testing import method_for_url_pattern, mock_request, set_up_tira_environment
 
 
@@ -10,15 +11,25 @@ class TestOrganizerList(TestCase):
     def setUpClass(cls):
         set_up_tira_environment()
 
-#    def test_api_organizer_list_is_empty_for_non_existing_organizer(self):
-#        # Arrange
-#        request = mock_request('tira_org_non-existing-organizer', 'api/organizer-list')
-#        
-#        # Act
-#        actual = organizer_function(request)
-#        
-#        # Assert
- #       self.verify_as_json(actual, 'organizer_api_integration_tests/test_api_organizer_list_is_empty_for_non_existing_organizer.json')
+    def test_api_organizer_list_is_empty_for_non_existing_organizer(self):
+        # Arrange
+        request = mock_request('tira_org_non-existing-organizer', 'api/organizer-list')
+        
+        # Act
+        actual = organizer_function(request)
+        
+        # Assert
+        self.verify_as_json(actual, 'organizer_api_integration_tests/test_api_organizer_list_is_empty_for_non_existing_organizer.json')
+
+    def test_api_organizer_list_is_non_empty_for_existing_organizer(self):
+        # Arrange
+        request = mock_request(ORGANIZER, 'api/organizer-list')
+        
+        # Act
+        actual = organizer_function(request)
+        
+        # Assert
+        self.verify_as_json(actual, 'organizer_api_integration_tests/test_api_organizer_list_is_non_empty_for_existing_organizer.json')
 
     def test_api_organizer_list_is_complete_for_admin(self):
         # Arrange

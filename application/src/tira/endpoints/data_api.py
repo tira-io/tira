@@ -119,7 +119,13 @@ def get_host_list(request, context):
 @check_resources_exist("json")
 @add_context
 def get_organizer_list(request, context):
-    context["organizer_list"] = model.get_organizer_list()
+    organizer_list = model.get_organizer_list()
+    is_admin = context and 'role' in context and context['role'] == 'admin'
+    orga_groups_of_user = set(auth.get_organizer_ids(request))
+    
+    context["organizer_list"] = [i for i in organizer_list if is_admin or ('organizer_id' in i and i['organizer_id'] in orga_groups_of_user)]
+    
+    
     return JsonResponse({'status': 0, "context": context})
 
 

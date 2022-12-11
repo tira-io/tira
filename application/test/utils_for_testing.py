@@ -31,7 +31,7 @@ def set_up_tira_environment():
 
     tira_model.edit_organizer('organizer', 'organizer', 'years', 'web', [])
     tira_model.edit_organizer('organizer-2', 'organizer-2', 'years', 'web', [])
-    tira_model.edit_organizer('EXAMPLE_ORGANIZER', 'EXAMPLE_ORGANIZER', 'years', 'web', [])
+    tira_model.edit_organizer('EXAMPLE-ORGANIZER', 'EXAMPLE_ORGANIZER', 'years', 'web', [])
     tira_model.add_vm('master-vm-for-task-1', 'user_name', 'initial_user_password', 'ip', 'host', '123', '123')
     tira_model.add_vm('example_participant', 'user_name', 'initial_user_password', 'ip', 'host', '123', '123')
     tira_model.add_vm('PARTICIPANT-FOR-TEST-1', 'user_name', 'initial_user_password', 'ip', 'host', '123', '123')

@@ -7,7 +7,7 @@ now = datetime.now().strftime("%Y%m%d")
 ADMIN = 'tira_reviewer'
 GUEST = ''
 PARTICIPANT = 'tira_vm_PARTICIPANT-FOR-TEST-1'
-ORGANIZER = 'tira_org_EXAMPLE_ORGANIZER'
+ORGANIZER = 'tira_org_EXAMPLE-ORGANIZER'
 
 API_ACCESS_MATRIX = [
     route_to_test(
