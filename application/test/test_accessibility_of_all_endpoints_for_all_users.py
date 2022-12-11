@@ -202,6 +202,19 @@ ROUTES_TO_TEST = [
         groups=ADMIN,
         expected_status_code=200
     ),
+    route_to_test(
+        url_pattern='grpc/<str:task_id>/<str:vm_id>/run_execute/vm/<str:software_id>',
+        params={'task_id': 'shared-task-1', 'vm_id': 'does-not-exist', 'software_id': 'does-not-exist'},
+        groups=ADMIN,
+        expected_status_code=200
+    ),
+    route_to_test(
+        url_pattern='grpc/<str:task_id>/<str:vm_id>/run_execute/docker/<str:dataset_id>/<str:docker_software_id>/<str:docker_resources>',
+        params={'task_id': 'shared-task-1', 'vm_id': 'does-not-exist', 'dataset_id': 'does-not-exist', 'docker_software_id': 'does-not-exist'},
+        groups=ADMIN,
+        expected_status_code=200
+    ),
+    
 ]
 
 #ROUTES_TO_TEST = ROUTES_TO_TEST[-1:]
