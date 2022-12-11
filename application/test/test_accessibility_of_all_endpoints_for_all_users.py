@@ -221,12 +221,6 @@ ROUTES_TO_TEST = [
         expected_status_code=200
     ),
     route_to_test(
-        url_pattern='grpc/<str:vm_id>/run_delete/<str:dataset_id>/<str:run_id>',
-        params={'vm_id': 'does-not-exist', 'dataset_id': f'dataset-1-{now}-training', 'run_id': 'run-1'},
-        groups=ADMIN,
-        expected_status_code=202
-    ),
-    route_to_test(
         url_pattern='grpc/<str:task_id>/<str:user_id>/stop_docker_software/<str:run_id>',
         params={'user_id': 'example_participant', 'task_id': f'shared-task-1', 'run_id': 'run-1'},
         groups=ADMIN,
@@ -334,6 +328,24 @@ ROUTES_TO_TEST = [
         groups=ADMIN,
         expected_status_code=200,
     ),
+    route_to_test(
+        url_pattern='blind/<str:vm_id>/<str:dataset_id>/<str:run_id>/<str:value>',
+        params={'dataset_id': 'dataset-does-not-exist', 'vm_id': 'vm-id-does-not-exist', 'run_id': 'run-id-does-not-exist', 'value': 'does-not-exist'},
+        groups=ADMIN,
+        expected_status_code=200,
+    ),
+    route_to_test(
+        url_pattern='api/evaluations/<str:task_id>/<str:dataset_id>',
+        params={'task_id': 'task-does-not-exist', 'dataset_id': 'dataset-id-does-not-exist'},
+        groups=ADMIN,
+        expected_status_code=200,
+    ),
+    route_to_test(
+        url_pattern='api/evaluation/<str:vm_id>/<str:run_id>',
+        params={'vm_id': 'example-participant', 'run_id': 'run-1'},
+        groups=ADMIN,
+        expected_status_code=200,
+    ),
     
     # TODO: The following methods return 50X at the moment, we should improve the setup so that it returns 200. But for the moment 50X is enough to separate authenticated from unauthenticated.
     route_to_test(
@@ -363,7 +375,13 @@ ROUTES_TO_TEST = [
         expected_status_code=501,
     ),
 
-    
+    # Some commands that delete stuff must be executed as last
+    route_to_test(
+        url_pattern='grpc/<str:vm_id>/run_delete/<str:dataset_id>/<str:run_id>',
+        params={'vm_id': 'does-not-exist', 'dataset_id': f'dataset-1-{now}-training', 'run_id': 'run-1'},
+        groups=ADMIN,
+        expected_status_code=202
+    ),
 ]
 
 #ROUTES_TO_TEST = ROUTES_TO_TEST[-1:]
