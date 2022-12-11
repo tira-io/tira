@@ -172,7 +172,18 @@ ROUTES_TO_TEST = [
         groups=ADMIN,
         expected_status_code=200
     ),
-    
+    route_to_test(
+        url_pattern='grpc/<str:vm_id>/vm_shutdown',
+        params={'vm_id': 'does-not-exist'},
+        groups=ADMIN,
+        expected_status_code=200
+    ),
+    route_to_test(
+        url_pattern='grpc/<str:vm_id>/vm_stop',
+        params={'vm_id': 'does-not-exist'},
+        groups=ADMIN,
+        expected_status_code=200
+    ),
 ]
 
 #ROUTES_TO_TEST = ROUTES_TO_TEST[-1:]
