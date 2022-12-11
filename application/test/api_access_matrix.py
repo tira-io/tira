@@ -91,67 +91,106 @@ API_ACCESS_MATRIX = [
     route_to_test(
         url_pattern='task/<str:task_id>/user/<str:vm_id>',
         params={'task_id': 'shared-task-1', 'vm_id': 'participant-does-not-exist'},
-        group_to_expected_status_code={ADMIN: 302},
+        group_to_expected_status_code={
+            ADMIN: 302,
+            GUEST: 302
+        },
     ),
     route_to_test(
         url_pattern='task/<str:task_id>/user/<str:vm_id>',
         params={'task_id': 'shared-task-1', 'vm_id': 'example_participant'},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302
+        },
     ),
     route_to_test(
         url_pattern='task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/run/<str:run_id>',
         params={'task_id': 'shared-task-1', 'vm_id': 'example_participant', 'dataset_id': f'dataset-1-{now}-training', 'run_id': 'run-1'},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302
+        },
     ),
     route_to_test(
         url_pattern='task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/run/<str:run_id>',
         params={'task_id': 'shared-task-1', 'vm_id': 'example_participant', 'dataset_id': f'dataset-2-{now}-test', 'run_id': 'run-1'},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302
+        },
     ),
     route_to_test(
         url_pattern='request_vm',
         params={},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 200
+        },
     ),
     route_to_test(
         url_pattern='login',
         params={},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 200
+        },
     ),
     route_to_test(
         url_pattern='logout',
         params={},
-        group_to_expected_status_code={ADMIN: 302},
+        group_to_expected_status_code={
+            ADMIN: 302,
+            GUEST: 302
+       },
     ),
     route_to_test(
         url_pattern='task/<str:task_id>/vm/<str:vm_id>/add_software/vm',
         params={'task_id': 'shared-task-1', 'vm_id': 'example_participant'},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302
+        },
     ),
     route_to_test(
         url_pattern='task/<str:task_id>/vm/<str:vm_id>/add_software/docker',
         params={'task_id': 'shared-task-1', 'vm_id': 'example_participant'},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302
+        },
     ),
     route_to_test(
         url_pattern='task/<str:task_id>/vm/<str:vm_id>/save_software/docker/<str:docker_software_id>',
         params={'task_id': 'shared-task-1', 'vm_id': 'example_participant', 'docker_software_id': 0},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302
+        },
     ),
     route_to_test(
         url_pattern='task/<str:task_id>/vm/<str:vm_id>/save_software/vm/<str:software_id>',
         params={'task_id': 'shared-task-1', 'vm_id': 'example_participant', 'software_id': 0},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302
+        },
     ),
     route_to_test(
         url_pattern='task/<str:task_id>/vm/<str:vm_id>/delete_software/vm/<str:software_id>',
         params={'task_id': 'shared-task-1', 'vm_id': 'example_participant', 'software_id': 0},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302
+        },
     ),
     route_to_test(
         url_pattern='task/<str:task_id>/vm/<str:vm_id>/delete_software/docker/<str:docker_software_id>',
         params={'task_id': 'shared-task-1', 'vm_id': 'example_participant', 'software_id': 0},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302
+        },
     ),
     route_to_test(
         url_pattern='task/<str:task_id>/vm/<str:vm_id>/upload/<str:dataset_id>',
