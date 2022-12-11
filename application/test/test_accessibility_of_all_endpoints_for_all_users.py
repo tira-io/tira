@@ -256,7 +256,38 @@ ROUTES_TO_TEST = [
         groups=ADMIN,
         expected_status_code=200,
     ),
-    # TODO: This method returns 500 at the moment, we should improve the setup so that it returns 200. But for the moment 500 is enough to separate authenticated from unauthenticated.
+    route_to_test(
+        url_pattern='tira-admin/create-vm',
+        params={},
+        groups=ADMIN,
+        expected_status_code=200,
+    ),
+    route_to_test(
+        url_pattern='tira-admin/modify-vm',
+        params={},
+        groups=ADMIN,
+        expected_status_code=200,
+    ),
+    route_to_test(
+        url_pattern='tira-admin/edit-task/<str:task_id>',
+        params={'task_id': 'shared-task-1'},
+        groups=ADMIN,
+        expected_status_code=200,
+    ),
+    route_to_test(
+        url_pattern='tira-admin/delete-task/<str:task_id>',
+        params={'task_id': 'task-does-not-exist'},
+        groups=ADMIN,
+        expected_status_code=200,
+    ),
+    route_to_test(
+        url_pattern='tira-admin/add-dataset',
+        params={},
+        groups=ADMIN,
+        expected_status_code=200,
+    ),
+    
+    # TODO: The following methods return 50X at the moment, we should improve the setup so that it returns 200. But for the moment 50X is enough to separate authenticated from unauthenticated.
     route_to_test(
         url_pattern='tira-admin/reload-data',
         params={},
@@ -264,7 +295,6 @@ ROUTES_TO_TEST = [
         expected_status_code=500,
         hide_stdout=True
     ),
-    # TODO: This method returns 500 at the moment, we should improve the setup so that it returns 200. But for the moment 500 is enough to separate authenticated from unauthenticated.
     route_to_test(
         url_pattern='tira-admin/reload-runs/<str:vm_id>',
         params={'vm_id': 'does-not-exist'},
@@ -273,17 +303,19 @@ ROUTES_TO_TEST = [
         hide_stdout=True
     ),
     route_to_test(
-        url_pattern='tira-admin/create-vm',
-        params={},
-        groups=ADMIN,
-        expected_status_code=200,
-    ),
-    route_to_test(
         url_pattern='tira-admin/archive-vm',
         params={},
         groups=ADMIN,
         expected_status_code=501,
     ),
+    route_to_test(
+        url_pattern='tira-admin/create-task',
+        params={},
+        groups=ADMIN,
+        expected_status_code=501,
+    ),
+
+    
 ]
 
 #ROUTES_TO_TEST = ROUTES_TO_TEST[-1:]
