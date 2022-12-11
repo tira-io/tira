@@ -555,25 +555,46 @@ API_ACCESS_MATRIX = [
     route_to_test(
         url_pattern='api/task/<str:task_id>/user/<str:user_id>/software/running/<str:force_cache_refresh>',
         params={'task_id': 'task-id-does-not-exist', 'user_id': 'user-id-does-not-exist', 'force_cache_refresh': 'ignore'},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
+        },
     ),
     route_to_test(
         url_pattern='api/review/<str:dataset_id>/<str:vm_id>/<str:run_id>',
         params={'dataset_id': 'dataset-id-does-not-exist', 'vm_id': 'example_participant', 'run_id': 'run-1'},
-        group_to_expected_status_code={ADMIN: 200},
-    ),    
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405,
+        },
+    ),
+    route_to_test(
+        url_pattern='api/review/<str:dataset_id>/<str:vm_id>/<str:run_id>',
+        params={'dataset_id': f'dataset-1-{now}-training', 'vm_id': 'example_participant', 'run_id': 'run-1'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302, # TODO: Is this inconsistent with api/review/<str:dataset_id>/<str:vm_id>/<str:run_id> above?
+        },
+    ),
+    
     
     # TODO: The following methods return 50X at the moment, we should improve the setup so that it returns 200. But for the moment 50X is enough to separate authenticated from unauthenticated.
     route_to_test(
         url_pattern='tira-admin/reload-data',
         params={},
-        group_to_expected_status_code={ADMIN: 500},
+        group_to_expected_status_code={
+            ADMIN: 500,
+            GUEST: 405,
+        },
         hide_stdout=True
     ),
     route_to_test(
         url_pattern='tira-admin/reload-runs/<str:vm_id>',
         params={'vm_id': 'does-not-exist'},
-        group_to_expected_status_code={ADMIN: 500},
+        group_to_expected_status_code={
+            ADMIN: 500,
+            GUEST: 405,
+        },
         hide_stdout=True
     ),
     route_to_test(
