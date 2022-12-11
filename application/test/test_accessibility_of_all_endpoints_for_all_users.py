@@ -376,6 +376,30 @@ ROUTES_TO_TEST = [
         groups=ADMIN,
         expected_status_code=200,
     ),
+    route_to_test(
+        url_pattern='api/task/<str:task_id>',
+        params={'task_id': 'task-id-does-not-exist'},
+        groups=ADMIN,
+        expected_status_code=200,
+    ),
+    route_to_test(
+        url_pattern='api/dataset/<str:dataset_id>',
+        params={'dataset_id': 'dataset-id-does-not-exist'},
+        groups=ADMIN,
+        expected_status_code=200,
+    ),
+    route_to_test(
+        url_pattern='api/datasets_by_task/<str:task_id>',
+        params={'task_id': 'task-id-does-not-exist'},
+        groups=ADMIN,
+        expected_status_code=200,
+    ),
+    route_to_test(
+        url_pattern='api/organizer/<str:organizer_id>',
+        params={'organizer_id': 'organizer-id-id-does-not-exist'},
+        groups=ADMIN,
+        expected_status_code=200,
+    ),
     
     # TODO: The following methods return 50X at the moment, we should improve the setup so that it returns 200. But for the moment 50X is enough to separate authenticated from unauthenticated.
     route_to_test(
