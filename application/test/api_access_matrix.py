@@ -1073,13 +1073,23 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
-        url_pattern='tira-admin/create-task',
-        params={},
+        url_pattern='tira-admin/<str:organizer_id>/create-task',
+        params={'organizer_id': 'organizer-id-does-not-exist'},
         group_to_expected_status_code={
             ADMIN: 501,
             GUEST: 405,
             PARTICIPANT: 405,
             ORGANIZER: 405,
+        },
+    ),
+    route_to_test(
+        url_pattern='tira-admin/<str:organizer_id>/create-task',
+        params={'organizer_id': ORGANIZER.split('_')[-1]},
+        group_to_expected_status_code={
+            ADMIN: 501,
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER: 501,
         },
     ),
     route_to_test(

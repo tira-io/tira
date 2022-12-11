@@ -99,7 +99,7 @@ def admin_modify_vm(request):
 
 
 @check_permissions
-def admin_create_task(request):
+def admin_create_task(request, organizer_id):
     """ Create an entry in the model for the task. Use data supplied by a model.
      Return a json status message. """
 
@@ -107,22 +107,21 @@ def admin_create_task(request):
         data = json.loads(request.body)
 
         task_id = data["task_id"]
-        organizer = data["organizer"]
         featured = data["featured"]
         master_vm_id = data["master_vm_id"]
         require_registration = data['require_registration']
         require_groups = data['require_groups']
         restrict_groups = data['restrict_groups']
 
-        if not model.organizer_exists(organizer):
-            return JsonResponse({'status': 1, 'message': f"Organizer with ID {organizer} does not exist"})
+        if not model.organizer_exists(organizer_id):
+            return JsonResponse({'status': 1, 'message': f"Organizer with ID {organizer_id} does not exist"})
         if model.task_exists(task_id):
             return JsonResponse({'status': 1, 'message': f"Task with ID {task_id} already exist"})
         if not model.vm_exists(master_vm_id):
             return JsonResponse({'status': 1, 'message': f"VM with ID {master_vm_id} does not exist"})
 
         new_task = model.create_task(task_id, data["name"], data["description"], featured, master_vm_id,
-                                     organizer, data["website"],
+                                     organizer_id, data["website"],
                                      require_registration, require_groups, restrict_groups,
                                      help_command=data["help_command"], help_text=data["help_text"], allowed_task_teams=data["task_teams"])
 
@@ -130,7 +129,7 @@ def admin_create_task(request):
         return JsonResponse({'status': 0, 'context': new_task,
                              'message': f"Created Task with Id: {data['task_id']}"})
 
-    return JsonResponse({'status': 1, 'message': f"GET is not implemented for vm create"},
+    return JsonResponse({'status': 1, 'message': f"GET is not implemented for admin_create_task"},
                         status=HTTPStatus.NOT_IMPLEMENTED)
 
 

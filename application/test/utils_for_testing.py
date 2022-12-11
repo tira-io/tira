@@ -53,7 +53,7 @@ def set_up_tira_environment():
         
     tira_model.add_run(dataset_id='dataset-1', vm_id='example_participant', run_id='run-1')
 
-def mock_request(groups, url_pattern, method='GET', body=None):
+def mock_request(groups, url_pattern, method='GET', body=None, params=None):
     if 'DISRAPTOR_APP_SECRET_KEY' not in os.environ:
         os.environ['DISRAPTOR_APP_SECRET_KEY'] = 'my-disraptor-key'
     ret = mock()
@@ -63,6 +63,10 @@ def mock_request(groups, url_pattern, method='GET', body=None):
         'X-Disraptor-Groups': groups,
     }
     ret.path_info = '/' + url_pattern
+    
+    if params and 'organizer_id' in params and '<str:organizer_id>' in ret.path_info:
+        ret.path_info = ret.path_info.replace('<str:organizer_id>', params['organizer_id'])
+    
     ret.META = {
         'CSRF_COOKIE': 'aasa',
     }
@@ -92,7 +96,7 @@ def route_to_test(url_pattern, params, group_to_expected_status_code, method='GE
     
     for group, expected_status_code in group_to_expected_status_code.items():
         params_for_group = deepcopy({} if not params else params)
-        params_for_group['request'] = mock_request(group, url_pattern, method=method, body=body)
+        params_for_group['request'] = mock_request(group, url_pattern, method=method, body=body, params=params)
         
         metadata_for_groups[group] = {'params': params_for_group, 'expected_status_code': expected_status_code}
     
