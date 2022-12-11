@@ -760,7 +760,8 @@ API_ACCESS_MATRIX = [
         params={'task_id': 'task-id-does-not-exist', 'dataset_id': 'dataset-id-does-not-exist'},
         group_to_expected_status_code={
             ADMIN: 200, # TODO: Add more fine-grained tests, as admin gets different response
-            GUEST: 200
+            GUEST: 200,
+            PARTICIPANT: 200,
         },
     ),
     route_to_test(
@@ -769,6 +770,7 @@ API_ACCESS_MATRIX = [
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 405,
+            PARTICIPANT: 405,
         },
     ),
     route_to_test(
@@ -777,6 +779,7 @@ API_ACCESS_MATRIX = [
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 405,
+            PARTICIPANT: 405,
         },
     ),
     route_to_test(
@@ -785,6 +788,7 @@ API_ACCESS_MATRIX = [
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 405,
+            PARTICIPANT: 405,
         },
     ),
     route_to_test(
@@ -793,6 +797,7 @@ API_ACCESS_MATRIX = [
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 200,
+            PARTICIPANT: 200,
         },
     ),
     route_to_test(
