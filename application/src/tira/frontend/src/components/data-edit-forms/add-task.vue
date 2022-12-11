@@ -122,12 +122,11 @@ export default {
       if (this.createTaskError !== '') {
         return
       }
-      submitPost('tira-admin/create-task', this.csrf, {
+      submitPost('tira-admin/' + this.selectedOrganizer.organizer_id + '/create-task', this.csrf, {
         'task_id': this.taskId,
         'name': this.taskNameInput,
         'featured': this.featured,
         'master_vm_id': this.masterVmId,
-        'organizer': this.selectedOrganizer.organizer_id,
         'website': this.websiteInput,
         'description': this.taskDescription,
         'help_text': this.helpText,

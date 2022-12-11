@@ -423,9 +423,11 @@ Best regards'''
         model.get_vm(team_name, create_if_none=True)
         self._add_user_as_owner_to_group(group_id, user_name)
 
-    def user_is_organizer_for_endpoint(self, request=None, path=None, task_id=None):
+    def user_is_organizer_for_endpoint(self, request=None, path=None, task_id=None, organizer_id_from_params=None):
         if request is None or path is None:
             return False
+        if not path.startswith('/'):
+            path = '/' + path
 
         organizer_ids = self.get_organizer_ids(request)
         if not organizer_ids or len(organizer_ids) < 1:
@@ -438,7 +440,9 @@ Best regards'''
             except:
                 pass
         
-        return organizer_ids and (path in {'/api/organizer-list', 'api/organizer-list'} or (task and 'organizer_id' in task and task['organizer_id'] in organizer_ids))
+        return path == '/api/organizer-list' \
+               or (task and 'organizer_id' in task and task['organizer_id'] in organizer_ids) \
+               or (organizer_id_from_params in organizer_ids and path in set(f'/tira-admin/{i}/create-task' for i in organizer_ids))
 
 
 auth = Authentication(authentication_source=settings.DEPLOYMENT)

@@ -33,12 +33,13 @@ def check_permissions(func):
         dataset_id = kwargs.get('dataset_id', None)
         run_id = kwargs.get('run_id', None)
         task_id = kwargs.get('task_id', None)
+        organizer_id = kwargs.get('organizer_id', None)
         role = auth.get_role(request, user_id=auth.get_user_id(request))
 
         if role == auth.ROLE_ADMIN or role == auth.ROLE_TIRA:
             return func(request, *args, **kwargs)
 
-        if auth.user_is_organizer_for_endpoint(request=request, path=request.path_info, task_id=task_id):
+        if auth.user_is_organizer_for_endpoint(request=request, path=request.path_info, task_id=task_id, organizer_id_from_params=organizer_id):
             return func(request, *args, **kwargs)
 
         if vm_id:
