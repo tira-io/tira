@@ -875,7 +875,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 405,
             PARTICIPANT: 405,
-            ORGANIZER: 405, # TODO: Adapt
+            ORGANIZER: 200,
         },
     ),
     route_to_test(
