@@ -84,7 +84,7 @@ def admin_create_vm(request):  # TODO implement
 
 
 @check_permissions
-def admin_archive_vm():
+def admin_archive_vm(request):
     return JsonResponse({'status': 1, 'message': f"Not implemented"}, status=HTTPStatus.NOT_IMPLEMENTED)
 
 

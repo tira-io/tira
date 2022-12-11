@@ -278,6 +278,12 @@ ROUTES_TO_TEST = [
         groups=ADMIN,
         expected_status_code=200,
     ),
+    route_to_test(
+        url_pattern='tira-admin/archive-vm',
+        params={},
+        groups=ADMIN,
+        expected_status_code=501,
+    ),
 ]
 
 #ROUTES_TO_TEST = ROUTES_TO_TEST[-1:]
