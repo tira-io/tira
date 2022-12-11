@@ -805,6 +805,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 405,
             PARTICIPANT: 405,
+            ORGANIZER: 405,
         },
     ),
     route_to_test(
@@ -814,6 +815,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 200, # TODO Make consistent with "api/evaluation/<str:vm_id>/<str:run_id>"
             PARTICIPANT: 200,
+            ORGANIZER: 200,
         },
     ),
     route_to_test(
@@ -823,6 +825,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 302,  # TODO Make consistent with "api/evaluations/<str:task_id>/<str:dataset_id>"
             PARTICIPANT: 302,
+            ORGANIZER: 302,
         },
     ),
     route_to_test(
@@ -832,6 +835,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 302,  # TODO Make consistent with "api/evaluations/<str:task_id>/<str:dataset_id>"
             PARTICIPANT: 200,
+            ORGANIZER: 302,
         },
     ),
     route_to_test(
@@ -841,6 +845,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200, # TODO: Add more fine-grained tests, as admin gets different response
             GUEST: 200,
             PARTICIPANT: 200,
+            ORGANIZER: 200,
         },
     ),
     route_to_test(
@@ -850,6 +855,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 405,
             PARTICIPANT: 405,
+            ORGANIZER: 405,
         },
     ),
     route_to_test(
@@ -859,6 +865,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 405,
             PARTICIPANT: 405,
+            ORGANIZER: 405,
         },
     ),
     route_to_test(
@@ -868,6 +875,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 405,
             PARTICIPANT: 405,
+            ORGANIZER: 405, # TODO: Adapt
         },
     ),
     route_to_test(
@@ -877,6 +885,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 200,
             PARTICIPANT: 200,
+            ORGANIZER: 200,
         },
     ),
     route_to_test(
@@ -886,6 +895,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 200,
             PARTICIPANT: 200,
+            ORGANIZER: 200,
         },
     ),
     route_to_test(
@@ -895,6 +905,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 200,
             PARTICIPANT: 200,
+            ORGANIZER: 200,
         },
     ),
     route_to_test(
@@ -904,6 +915,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 200,
             PARTICIPANT: 200,
+            ORGANIZER: 200,
         },
     ),
     route_to_test(
@@ -913,6 +925,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 200,
             PARTICIPANT: 200,
+            ORGANIZER: 200,
         },
     ),
     route_to_test(
@@ -922,6 +935,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 200,
             PARTICIPANT: 200,
+            ORGANIZER: 200,
         },
     ),
     route_to_test(
@@ -931,6 +945,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
             PARTICIPANT: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
+            ORGANIZER: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
         },
     ),
     route_to_test(
@@ -940,6 +955,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
             PARTICIPANT: 200,
+            ORGANIZER: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
         },
     ),
     route_to_test(
@@ -949,6 +965,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
             PARTICIPANT: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
+            ORGANIZER: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
         },
     ),
     route_to_test(
@@ -958,6 +975,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
             PARTICIPANT: 200,
+            ORGANIZER: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
         },
     ),
     route_to_test(
@@ -967,6 +985,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
             PARTICIPANT: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
+            ORGANIZER: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
         },
     ),
     route_to_test(
@@ -976,6 +995,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
             PARTICIPANT: 200,
+            ORGANIZER: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
         },
     ),
     route_to_test(
@@ -985,6 +1005,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 405,
             PARTICIPANT: 405,
+            ORGANIZER: 405,
         },
     ),
     route_to_test(
@@ -994,6 +1015,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 302, # TODO: Is this inconsistent with api/review/<str:dataset_id>/<str:vm_id>/<str:run_id> above?
             PARTICIPANT: 302, # TODO: Is this inconsistent with api/review/<str:dataset_id>/<str:vm_id>/<str:run_id> above?
+            ORGANIZER: 302, # TODO: Is this inconsistent with api/review/<str:dataset_id>/<str:vm_id>/<str:run_id> above?
         },
     ),
     route_to_test(
@@ -1003,6 +1025,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 302, # TODO: Is this inconsistent with api/review/<str:dataset_id>/<str:vm_id>/<str:run_id> above?
             PARTICIPANT: 200,
+            ORGANIZER: 302, # TODO: Is this inconsistent with api/review/<str:dataset_id>/<str:vm_id>/<str:run_id> above?
         },
     ),
     
@@ -1014,6 +1037,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 500,
             GUEST: 405,
             PARTICIPANT: 405,
+            ORGANIZER: 405,
         },
         hide_stdout=True
     ),
@@ -1024,6 +1048,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 500,
             GUEST: 405,
             PARTICIPANT: 405,
+            ORGANIZER: 405,
         },
         hide_stdout=True
     ),
@@ -1034,6 +1059,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 501,
             GUEST: 405,
             PARTICIPANT: 405,
+            ORGANIZER: 405,
         },
     ),
     route_to_test(
@@ -1042,7 +1068,8 @@ API_ACCESS_MATRIX = [
         group_to_expected_status_code={
             ADMIN: 501,
             GUEST: 405,
-            PARTICIPANT: 405,   
+            PARTICIPANT: 405,
+            ORGANIZER: 405,
         },
     ),
     route_to_test(
@@ -1052,6 +1079,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 500,
             GUEST: 500, # TODO: Would we expect an 404 here?
             PARTICIPANT: 500, # TODO: Would we expect an 404 here?
+            ORGANIZER: 500, # TODO: Would we expect an 404 here?
         },
         body='{"group": "X"}',
     ),
@@ -1063,7 +1091,8 @@ API_ACCESS_MATRIX = [
         group_to_expected_status_code={
             ADMIN: 202,
             GUEST: 302,
-            PARTICIPANT: 302
+            PARTICIPANT: 302,
+            ORGANIZER: 302,
         }
     ),
     route_to_test(
@@ -1072,7 +1101,8 @@ API_ACCESS_MATRIX = [
         group_to_expected_status_code={
             ADMIN: 202,
             GUEST: 302,
-            PARTICIPANT: 202
+            PARTICIPANT: 202,
+            ORGANIZER: 302,
         }
     ),
 ]
