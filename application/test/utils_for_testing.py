@@ -7,7 +7,7 @@ import os
 import io
 from contextlib import redirect_stdout, redirect_stderr
 
-def __mock_request(groups, url_pattern, method):
+def __mock_request(groups, url_pattern, method, body):
     if 'DISRAPTOR_APP_SECRET_KEY' not in os.environ:
         os.environ['DISRAPTOR_APP_SECRET_KEY'] = 'my-disraptor-key'
     ret = mock()
@@ -23,6 +23,8 @@ def __mock_request(groups, url_pattern, method):
     ret.current_app = 'tira'
     if method:
         ret.method = method
+    if body:
+        ret.body = body
     
     return ret
 
@@ -39,9 +41,9 @@ def __find_method(url_pattern):
     return method_bound_to_url_pattern
 
 
-def route_to_test(url_pattern, params, groups, expected_status_code, method='GET', hide_stdout=False):
+def route_to_test(url_pattern, params, groups, expected_status_code, method='GET', hide_stdout=False, body=None):
     params = deepcopy({} if not params else params)
-    params['request'] = __mock_request(groups, url_pattern, method=method)
+    params['request'] = __mock_request(groups, url_pattern, method=method, body=body)
     
     return (url_pattern, __find_method(url_pattern), params, expected_status_code, hide_stdout)
 

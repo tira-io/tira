@@ -418,6 +418,18 @@ ROUTES_TO_TEST = [
         groups=ADMIN,
         expected_status_code=200,
     ),
+    route_to_test(
+        url_pattern='api/task/<str:task_id>/user/<str:user_id>/software/running/<str:force_cache_refresh>',
+        params={'task_id': 'task-id-does-not-exist', 'user_id': 'user-id-does-not-exist', 'force_cache_refresh': 'ignore'},
+        groups=ADMIN,
+        expected_status_code=200,
+    ),
+    route_to_test(
+        url_pattern='api/review/<str:dataset_id>/<str:vm_id>/<str:run_id>',
+        params={'dataset_id': 'dataset-id-does-not-exist', 'vm_id': 'example_participant', 'run_id': 'run-1'},
+        groups=ADMIN,
+        expected_status_code=200,
+    ),    
     
     # TODO: The following methods return 50X at the moment, we should improve the setup so that it returns 200. But for the moment 50X is enough to separate authenticated from unauthenticated.
     route_to_test(
@@ -445,6 +457,13 @@ ROUTES_TO_TEST = [
         params={},
         groups=ADMIN,
         expected_status_code=501,
+    ),
+    route_to_test(
+        url_pattern='api/registration/add_registration/<str:vm_id>/<str:task_id>',
+        params={'task_id': 'shared-task-1', 'vm_id': 'example_participant'},
+        groups=ADMIN,
+        expected_status_code=500,
+        body='{"group": "X"}',
     ),
 
     # Some commands that delete stuff must be executed as last
