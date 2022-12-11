@@ -314,8 +314,6 @@ class DisraptorAuthentication(Authentication):
                                   "group[members_visibility_level]": members_visibility_level, "group[bio_raw]": group_bio}
                             )
         
-        print(ret.text)
-        
         return json.loads(ret.text).get('basic_group', {'id': group_name})["id"]
         
     def _create_discourse_vm_group(self, vm):
@@ -433,8 +431,14 @@ Best regards'''
         if not organizer_ids or len(organizer_ids) < 1:
             return False
         
+        task = None
+        if task_id:
+            try:
+                task = model.get_task(task_id)
+            except:
+                pass
         
-        return organizer_ids and path in {'/api/organizer-list', 'api/organizer-list'}
+        return organizer_ids and (path in {'/api/organizer-list', 'api/organizer-list'} or (task and 'organizer_id' in task and task['organizer_id'] in organizer_ids))
 
 
 auth = Authentication(authentication_source=settings.DEPLOYMENT)
