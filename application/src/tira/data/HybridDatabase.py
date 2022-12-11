@@ -813,7 +813,6 @@ class HybridDatabase(object):
         return self._task_to_dict(new_task)
 
     def _fdb_add_dataset_to_task(self, task_id, dataset_id, dataset_type):
-        print(task_id)
         task_file_path = self.tasks_dir_path / f'{task_id}.prototext'
         task = Parse(open(task_file_path, "r").read(), modelpb.Tasks.Task())
         if dataset_type == 'test':

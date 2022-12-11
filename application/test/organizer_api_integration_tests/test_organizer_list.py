@@ -54,4 +54,3 @@ class TestOrganizerList(TestCase):
     def tearDownClass(cls):
         pass
 
-
