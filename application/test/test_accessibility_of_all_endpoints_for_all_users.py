@@ -214,7 +214,37 @@ ROUTES_TO_TEST = [
         groups=ADMIN,
         expected_status_code=200
     ),
+    route_to_test(
+        url_pattern='grpc/<str:vm_id>/run_eval/<str:dataset_id>/<str:run_id>',
+        params={'vm_id': 'does-not-exist', 'dataset_id': f'dataset-1-{now}-training', 'run_id': 'run-1'},
+        groups=ADMIN,
+        expected_status_code=200
+    ),
+    route_to_test(
+        url_pattern='grpc/<str:vm_id>/run_delete/<str:dataset_id>/<str:run_id>',
+        params={'vm_id': 'does-not-exist', 'dataset_id': f'dataset-1-{now}-training', 'run_id': 'run-1'},
+        groups=ADMIN,
+        expected_status_code=202
+    ),
+    route_to_test(
+        url_pattern='grpc/<str:task_id>/<str:user_id>/stop_docker_software/<str:run_id>',
+        params={'user_id': 'example_participant', 'task_id': f'shared_task_1', 'run_id': 'run-1'},
+        groups=ADMIN,
+        expected_status_code=200
+    ),
+    route_to_test(
+        url_pattern='tira-admin',
+        params={},
+        groups=ADMIN,
+        expected_status_code=200
+    ),
     
+    route_to_test(
+        url_pattern='tira-admin/reload/vms',
+        params={},
+        groups=ADMIN,
+        expected_status_code=200
+    ),
 ]
 
 #ROUTES_TO_TEST = ROUTES_TO_TEST[-1:]
