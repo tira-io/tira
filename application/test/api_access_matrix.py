@@ -443,17 +443,26 @@ API_ACCESS_MATRIX = [
     route_to_test(
         url_pattern='api/evaluations/<str:task_id>/<str:dataset_id>',
         params={'task_id': 'task-does-not-exist', 'dataset_id': 'dataset-id-does-not-exist'},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 200, # TODO Make consistent with "api/evaluation/<str:vm_id>/<str:run_id>"
+        },
     ),
     route_to_test(
         url_pattern='api/evaluation/<str:vm_id>/<str:run_id>',
         params={'vm_id': 'example-participant', 'run_id': 'run-1'},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,  # TODO Make consistent with "api/evaluations/<str:task_id>/<str:dataset_id>"
+        },
     ),
     route_to_test(
         url_pattern='api/submissions/<str:task_id>/<str:dataset_id>',
         params={'task_id': 'task-id-does-not-exist', 'dataset_id': 'dataset-id-does-not-exist'},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200, # TODO: Add more fine-grained tests, as admin gets different response
+            GUEST: 200
+        },
     ),
     route_to_test(
         url_pattern='api/ova-list',
