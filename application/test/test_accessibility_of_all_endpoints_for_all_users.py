@@ -286,7 +286,31 @@ ROUTES_TO_TEST = [
         groups=ADMIN,
         expected_status_code=200,
     ),
-    
+    route_to_test(
+        url_pattern='tira-admin/import-irds-dataset',
+        params={},
+        groups=ADMIN,
+        expected_status_code=200,
+    ),
+    route_to_test(
+        url_pattern='tira-admin/edit-dataset/<str:dataset_id>',
+        params={'dataset_id': 'does-not-exist'},
+        groups=ADMIN,
+        expected_status_code=200,
+    ),
+    route_to_test(
+        url_pattern='tira-admin/delete-dataset/<str:dataset_id>',
+        params={'dataset_id': 'does-not-exist'},
+        groups=ADMIN,
+        expected_status_code=200,
+    ),
+    route_to_test(
+        url_pattern='tira-admin/add-organizer/<str:organizer_id>',
+        params={'organizer_id': 'organizer-id-does-not-exist'},
+        groups=ADMIN,
+        expected_status_code=200,
+    ),
+
     # TODO: The following methods return 50X at the moment, we should improve the setup so that it returns 200. But for the moment 50X is enough to separate authenticated from unauthenticated.
     route_to_test(
         url_pattern='tira-admin/reload-data',
