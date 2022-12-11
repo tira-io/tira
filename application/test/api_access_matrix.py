@@ -471,3 +471,11 @@ API_ACCESS_MATRIX = [
         expected_status_code=202
     ),
 ]
+
+
+def access_matrix_for_user(user):
+    ret = []
+    for i in API_ACCESS_MATRIX:
+        ret += [i]
+    return ret
+
