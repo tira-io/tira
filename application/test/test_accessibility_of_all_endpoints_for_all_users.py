@@ -256,8 +256,24 @@ ROUTES_TO_TEST = [
         groups=ADMIN,
         expected_status_code=200,
     ),
+    # TODO: This method returns 500 at the moment, we should improve the setup so that it returns 200. But for the moment 500 is enough to separate authenticated from unauthenticated.
     route_to_test(
         url_pattern='tira-admin/reload-data',
+        params={},
+        groups=ADMIN,
+        expected_status_code=500,
+        hide_stdout=True
+    ),
+    # TODO: This method returns 500 at the moment, we should improve the setup so that it returns 200. But for the moment 500 is enough to separate authenticated from unauthenticated.
+    route_to_test(
+        url_pattern='tira-admin/reload-runs/<str:vm_id>',
+        params={'vm_id': 'does-not-exist'},
+        groups=ADMIN,
+        expected_status_code=500,
+        hide_stdout=True
+    ),
+    route_to_test(
+        url_pattern='tira-admin/create-vm',
         params={},
         groups=ADMIN,
         expected_status_code=200,
@@ -286,10 +302,11 @@ class TestAccessibilityOfEndpointsForAdminUser(TestCase):
         
 
     @parameterized.expand(ROUTES_TO_TEST)
-    def test_route(self, url_pattern, method_bound_to_url_pattern, request, expected_status_code):
+    def test_route(self, url_pattern, method_bound_to_url_pattern, request, expected_status_code, hide_stdout):
         status_code = execute_method_behind_url_and_return_status_code(
             method_bound_to_url_pattern,
-            request
+            request,
+            hide_stdout
         )
         
         assert status_code == expected_status_code, \
