@@ -534,15 +534,36 @@ API_ACCESS_MATRIX = [
         params={'vm_id': 'does-not-exist', 'dataset_id': f'dataset-1-{now}-training', 'run_id': 'run-1'},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 302
+            GUEST: 302,
+            PARTICIPANT: 302,
         },
     ),
+    # TODO Add later
+    #route_to_test(
+    #    url_pattern='grpc/<str:vm_id>/run_eval/<str:dataset_id>/<str:run_id>',
+    #    params={'vm_id': PARTICIPANT.split('_')[-1], 'dataset_id': f'dataset-1-{now}-training', 'run_id': 'run-1'},
+    #    group_to_expected_status_code={
+    #        ADMIN: 200,
+    #        GUEST: 302,
+    #        PARTICIPANT: 200,
+    #    },
+    #),
     route_to_test(
         url_pattern='grpc/<str:task_id>/<str:user_id>/stop_docker_software/<str:run_id>',
         params={'user_id': 'example_participant', 'task_id': f'shared-task-1', 'run_id': 'run-1'},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 302 # Was error
+            GUEST: 302, # Was error
+            PARTICIPANT: 302,
+        },
+    ),
+    route_to_test(
+        url_pattern='grpc/<str:task_id>/<str:user_id>/stop_docker_software/<str:run_id>',
+        params={'user_id':  PARTICIPANT.split('_')[-1], 'task_id': f'shared-task-1', 'run_id': 'run-1'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 200,
         },
     ),
     route_to_test(
@@ -550,7 +571,8 @@ API_ACCESS_MATRIX = [
         params={},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 405
+            GUEST: 405,
+            PARTICIPANT: 405,
         },
     ),
     route_to_test(
@@ -558,7 +580,8 @@ API_ACCESS_MATRIX = [
         params={},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 405
+            GUEST: 405,
+            PARTICIPANT: 405,
         },
     ),
     route_to_test(
@@ -566,7 +589,8 @@ API_ACCESS_MATRIX = [
         params={},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 405
+            GUEST: 405,
+            PARTICIPANT: 405,
         },
     ),
     route_to_test(
@@ -574,7 +598,8 @@ API_ACCESS_MATRIX = [
         params={},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 405
+            GUEST: 405,
+            PARTICIPANT: 405,
         },
     ),
     route_to_test(
@@ -582,7 +607,8 @@ API_ACCESS_MATRIX = [
         params={},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 405
+            GUEST: 405,
+            PARTICIPANT: 405,
         },
     ),
     route_to_test(
@@ -590,7 +616,8 @@ API_ACCESS_MATRIX = [
         params={},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 405
+            GUEST: 405,
+            PARTICIPANT: 405,
         },
     ),
     route_to_test(
@@ -598,7 +625,8 @@ API_ACCESS_MATRIX = [
         params={'task_id': 'shared-task-1'},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 405
+            GUEST: 405,
+            PARTICIPANT: 405,
         },
     ),
     route_to_test(
@@ -606,7 +634,8 @@ API_ACCESS_MATRIX = [
         params={'task_id': 'task-does-not-exist'},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 405
+            GUEST: 405,
+            PARTICIPANT: 405,
         },
     ),
     route_to_test(
@@ -614,7 +643,8 @@ API_ACCESS_MATRIX = [
         params={},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 405
+            GUEST: 405,
+            PARTICIPANT: 405,
         },
     ),
     route_to_test(
@@ -622,7 +652,8 @@ API_ACCESS_MATRIX = [
         params={},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 405
+            GUEST: 405,
+            PARTICIPANT: 405,
         },
     ),
     route_to_test(
@@ -630,7 +661,8 @@ API_ACCESS_MATRIX = [
         params={'dataset_id': 'does-not-exist'},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 405
+            GUEST: 405,
+            PARTICIPANT: 405,
         },
     ),
     route_to_test(
@@ -638,7 +670,8 @@ API_ACCESS_MATRIX = [
         params={'dataset_id': 'does-not-exist'},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 405
+            GUEST: 405,
+            PARTICIPANT: 405,
         },
     ),
     route_to_test(
@@ -646,7 +679,8 @@ API_ACCESS_MATRIX = [
         params={'organizer_id': 'organizer-id-does-not-exist'},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 405
+            GUEST: 405,
+            PARTICIPANT: 405,
         },
     ),
     route_to_test(
@@ -654,7 +688,8 @@ API_ACCESS_MATRIX = [
         params={'organizer_id': 'organizer-id-does-not-exist'},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 405
+            GUEST: 405,
+            PARTICIPANT: 405,
         },
     ),
     route_to_test(
@@ -662,7 +697,8 @@ API_ACCESS_MATRIX = [
         params={'dataset_id': 'dataset-does-not-exist', 'vm_id': 'vm-id-does-not-exist', 'run_id': 'run-id-does-not-exist'},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 405
+            GUEST: 405,
+            PARTICIPANT: 405,
         },
     ),
     route_to_test(
