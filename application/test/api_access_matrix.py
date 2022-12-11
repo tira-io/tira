@@ -467,47 +467,74 @@ API_ACCESS_MATRIX = [
     route_to_test(
         url_pattern='api/ova-list',
         params={},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405,
+        },
     ),
     route_to_test(
         url_pattern='api/host-list',
         params={},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405,
+        },
     ),
     route_to_test(
         url_pattern='api/organizer-list',
         params={},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405,
+        },
     ),
     route_to_test(
         url_pattern='api/task-list',
         params={},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 200,
+        },
     ),
     route_to_test(
         url_pattern='api/task/<str:task_id>',
         params={'task_id': 'task-id-does-not-exist'},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 200,
+        },
     ),
     route_to_test(
         url_pattern='api/dataset/<str:dataset_id>',
         params={'dataset_id': 'dataset-id-does-not-exist'},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 200,
+        },
     ),
     route_to_test(
         url_pattern='api/datasets_by_task/<str:task_id>',
         params={'task_id': 'task-id-does-not-exist'},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 200,
+        },
     ),
     route_to_test(
         url_pattern='api/organizer/<str:organizer_id>',
         params={'organizer_id': 'organizer-id-id-does-not-exist'},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 200,
+        },
     ),
     route_to_test(
         url_pattern='api/role',
         params={},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 200,
+        },
     ),
     route_to_test(
         url_pattern='api/task/<str:task_id>/user/<str:user_id>',
