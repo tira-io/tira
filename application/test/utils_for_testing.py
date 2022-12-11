@@ -5,7 +5,7 @@ import inspect
 from copy import deepcopy
 import os
 
-def __mock_request(groups, url_pattern):
+def __mock_request(groups, url_pattern, method):
     if 'DISRAPTOR_APP_SECRET_KEY' not in os.environ:
         os.environ['DISRAPTOR_APP_SECRET_KEY'] = 'my-disraptor-key'
     ret = mock()
@@ -19,6 +19,8 @@ def __mock_request(groups, url_pattern):
         'CSRF_COOKIE': 'aasa',
     }
     ret.current_app = 'tira'
+    if method:
+        ret.method = method
     
     return ret
 
@@ -35,9 +37,9 @@ def __find_method(url_pattern):
     return method_bound_to_url_pattern
 
 
-def route_to_test(url_pattern, params, groups, expected_status_code):
+def route_to_test(url_pattern, params, groups, expected_status_code, method='GET'):
     params = deepcopy({} if not params else params)
-    params['request'] = __mock_request(groups, url_pattern)
+    params['request'] = __mock_request(groups, url_pattern, method=method)
     
     return (url_pattern, __find_method(url_pattern), params, expected_status_code)
 

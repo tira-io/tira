@@ -155,16 +155,6 @@ def dataset(request, context, task_id, dataset_id):
     return render(request, 'tira/task.html', context)
 
 
-@check_resources_exist('http')
-@add_context
-def user(request, context, vm_id):
-    """ TODO: this is apparently never called? """
-    role = context["role"]
-    if context["role"] != auth.ROLE_GUEST:
-        context["vm_id"] = auth.get_vm_id(request, context["user_id"])
-    return render(request, 'tira/software.html', context)
-
-
 @check_permissions
 @check_resources_exist('http')
 @add_context
