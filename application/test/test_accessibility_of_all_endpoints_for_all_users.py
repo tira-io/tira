@@ -1,5 +1,5 @@
 from django.test import TestCase
-from api_access_matrix import API_ACCESS_MATRIX, ADMIN
+from api_access_matrix import access_matrix_for_user, ADMIN
 from utils_for_testing import set_up_tira_environment, assert_all_url_patterns_are_tested, execute_method_behind_url_and_return_status_code
 from parameterized import parameterized
 
@@ -10,7 +10,7 @@ class TestAccessibilityOfEndpointsForAdminUser(TestCase):
         cls.tested_urls = []
         set_up_tira_environment()
 
-    @parameterized.expand(API_ACCESS_MATRIX)
+    @parameterized.expand(access_matrix_for_user(ADMIN))
     def test_route(self, url_pattern, method_bound_to_url_pattern, request, expected_status_code, hide_stdout):
         status_code = execute_method_behind_url_and_return_status_code(
             method_bound_to_url_pattern,
