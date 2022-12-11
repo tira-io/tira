@@ -4,6 +4,8 @@ from mockito import when, mock, unstub
 import inspect
 from copy import deepcopy
 import os
+import io
+from contextlib import redirect_stdout, redirect_stderr
 
 def __mock_request(groups, url_pattern, method):
     if 'DISRAPTOR_APP_SECRET_KEY' not in os.environ:
@@ -37,17 +39,21 @@ def __find_method(url_pattern):
     return method_bound_to_url_pattern
 
 
-def route_to_test(url_pattern, params, groups, expected_status_code, method='GET'):
+def route_to_test(url_pattern, params, groups, expected_status_code, method='GET', hide_stdout=False):
     params = deepcopy({} if not params else params)
     params['request'] = __mock_request(groups, url_pattern, method=method)
     
-    return (url_pattern, __find_method(url_pattern), params, expected_status_code)
+    return (url_pattern, __find_method(url_pattern), params, expected_status_code, hide_stdout)
 
 
-def execute_method_behind_url_and_return_status_code(method_bound_to_url_pattern, request):
+def execute_method_behind_url_and_return_status_code(method_bound_to_url_pattern, request, hide_stdout):
     #print(os.path.abspath(inspect.getfile(method_bound_to_url_pattern)))
     #print(os.path.abspath(inspect.getfile(method_bound_to_url_pattern)))
-    ret = method_bound_to_url_pattern(**request)
+    if hide_stdout:
+        with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
+            ret = method_bound_to_url_pattern(**request)
+    else:
+        ret = method_bound_to_url_pattern(**request)
     
     if str(type(ret)) == "<class 'django.http.response.Http404'>":
         return 404
