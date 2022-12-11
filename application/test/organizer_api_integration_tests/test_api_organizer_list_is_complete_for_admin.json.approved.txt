@@ -22,7 +22,7 @@
                 "gitPrivateToken": "",
                 "gitUrlToNamespace": "",
                 "name": "EXAMPLE_ORGANIZER",
-                "organizer_id": "EXAMPLE_ORGANIZER",
+                "organizer_id": "EXAMPLE-ORGANIZER",
                 "web": "web",
                 "years": "years"
             }

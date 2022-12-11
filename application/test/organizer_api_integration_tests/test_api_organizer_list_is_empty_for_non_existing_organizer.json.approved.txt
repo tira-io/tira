@@ -1,0 +1,9 @@
+{
+    "context": {
+        "include_navigation": false,
+        "organizer_list": [],
+        "role": "user",
+        "user_id": "ignored-user."
+    },
+    "status": 0
+}

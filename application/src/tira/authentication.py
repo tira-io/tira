@@ -89,6 +89,9 @@ class Authentication(object):
 
     def get_vm_ids(self, request, user_id=None):
         pass
+    
+    def user_is_organizer_for_endpoint(self, request=None, path=None, task_id=None):
+        return False
 
 class LegacyAuthentication(Authentication):
     _AUTH_SOURCE = "legacy"
@@ -170,6 +173,9 @@ class LegacyAuthentication(Authentication):
 
     def get_vm_ids(self, request, user_id=None):
         return []
+
+    def user_is_organizer_for_endpoint(self, request=None, path=None, task_id=None):
+        return False
 
 def check_disraptor_token(func):
     @wraps(func)
@@ -418,6 +424,18 @@ Best regards'''
         group_id = self._create_discourse_group(f"tira_vm_{slugify(team_name)}", group_bio, 0)
         model.get_vm(team_name, create_if_none=True)
         self._add_user_as_owner_to_group(group_id, user_name)
+
+    def user_is_organizer_for_endpoint(self, request=None, path=None, task_id=None):
+        if request is None or path is None:
+            return False
+
+        organizer_ids = self.get_organizer_ids(request)
+        if not organizer_ids or len(organizer_ids) < 1:
+            return False
+        
+        
+        return organizer_ids and path in {'/api/organizer-list', 'api/organizer-list'}
+
 
 auth = Authentication(authentication_source=settings.DEPLOYMENT)
 

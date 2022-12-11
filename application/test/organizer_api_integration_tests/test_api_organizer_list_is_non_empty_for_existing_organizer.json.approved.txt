@@ -1,0 +1,18 @@
+{
+    "context": {
+        "include_navigation": false,
+        "organizer_list": [
+            {
+                "gitPrivateToken": "",
+                "gitUrlToNamespace": "",
+                "name": "EXAMPLE_ORGANIZER",
+                "organizer_id": "EXAMPLE-ORGANIZER",
+                "web": "web",
+                "years": "years"
+            }
+        ],
+        "role": "user",
+        "user_id": "ignored-user."
+    },
+    "status": 0
+}

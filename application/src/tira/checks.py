@@ -38,6 +38,9 @@ def check_permissions(func):
         if role == auth.ROLE_ADMIN or role == auth.ROLE_TIRA:
             return func(request, *args, **kwargs)
 
+        if auth.user_is_organizer_for_endpoint(request=request, path=request.path_info, task_id=task_id):
+            return func(request, *args, **kwargs)
+
         if vm_id:
             if not model.vm_exists(vm_id):  # If the resource does not exist
                 return redirect('tira:request_vm')
