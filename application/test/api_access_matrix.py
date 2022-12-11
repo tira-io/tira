@@ -869,6 +869,16 @@ API_ACCESS_MATRIX = [
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
+            PARTICIPANT: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
+        },
+    ),
+    route_to_test(
+        url_pattern='api/task/<str:task_id>/user/<str:user_id>/refresh-docker-images',
+        params={'task_id': 'task-id-does-not-exist', 'user_id':  PARTICIPANT.split('_')[-1]},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
+            PARTICIPANT: 200,
         },
     ),
     route_to_test(
@@ -877,6 +887,16 @@ API_ACCESS_MATRIX = [
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
+            PARTICIPANT: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
+        },
+    ),
+    route_to_test(
+        url_pattern='api/task/<str:task_id>/user/<str:user_id>/software/running/<str:force_cache_refresh>',
+        params={'task_id': 'task-id-does-not-exist', 'user_id': PARTICIPANT.split('_')[-1], 'force_cache_refresh': 'ignore'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
+            PARTICIPANT: 200,
         },
     ),
     route_to_test(
@@ -885,6 +905,7 @@ API_ACCESS_MATRIX = [
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 405,
+            PARTICIPANT: 405,
         },
     ),
     route_to_test(
