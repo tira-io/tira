@@ -574,6 +574,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 302,
             PARTICIPANT: 302,
+            ORGANIZER: 302,
         },
     ),
     route_to_test(
@@ -583,6 +584,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 302,
             PARTICIPANT: 200,
+            ORGANIZER: 302,
         },
     ),
     route_to_test(
@@ -592,6 +594,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 302,
             PARTICIPANT: 302,
+            ORGANIZER: 302,
         },
     ),
     # TODO Add later
@@ -602,6 +605,7 @@ API_ACCESS_MATRIX = [
     #        ADMIN: 200,
     #        GUEST: 302,
     #        PARTICIPANT: 200,
+    #        ORGANIZER: 302,
     #    },
     #),
     route_to_test(
@@ -611,6 +615,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 302, # Was error
             PARTICIPANT: 302,
+            ORGANIZER: 302,
         },
     ),
     route_to_test(
@@ -620,6 +625,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 302,
             PARTICIPANT: 200,
+            ORGANIZER: 302,
         },
     ),
     route_to_test(
@@ -629,6 +635,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 405,
             PARTICIPANT: 405,
+            ORGANIZER: 405,
         },
     ),
     route_to_test(
@@ -638,6 +645,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 405,
             PARTICIPANT: 405,
+            ORGANIZER: 405,
         },
     ),
     route_to_test(
@@ -647,6 +655,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 405,
             PARTICIPANT: 405,
+            ORGANIZER: 405,
         },
     ),
     route_to_test(
@@ -656,6 +665,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 405,
             PARTICIPANT: 405,
+            ORGANIZER: 405,
         },
     ),
     route_to_test(
@@ -665,6 +675,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 405,
             PARTICIPANT: 405,
+            ORGANIZER: 405,
         },
     ),
     route_to_test(
@@ -674,6 +685,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 405,
             PARTICIPANT: 405,
+            ORGANIZER: 405,
         },
     ),
     route_to_test(
@@ -683,6 +695,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 405,
             PARTICIPANT: 405,
+            ORGANIZER: 405,
         },
     ),
     route_to_test(
@@ -692,6 +705,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 405,
             PARTICIPANT: 405,
+            ORGANIZER: 405,
         },
     ),
     route_to_test(
@@ -701,6 +715,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 405,
             PARTICIPANT: 405,
+            ORGANIZER: 405,
         },
     ),
     route_to_test(
@@ -710,6 +725,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 405,
             PARTICIPANT: 405,
+            ORGANIZER: 405,
         },
     ),
     route_to_test(
@@ -719,6 +735,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 405,
             PARTICIPANT: 405,
+            ORGANIZER: 405,
         },
     ),
     route_to_test(
@@ -728,6 +745,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 405,
             PARTICIPANT: 405,
+            ORGANIZER: 405,
         },
     ),
     route_to_test(
@@ -737,6 +755,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 405,
             PARTICIPANT: 405,
+            ORGANIZER: 405,
         },
     ),
     route_to_test(
@@ -746,6 +765,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 405,
             PARTICIPANT: 405,
+            ORGANIZER: 405,
         },
     ),
     route_to_test(
@@ -755,6 +775,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 405,
             PARTICIPANT: 405,
+            ORGANIZER: 405,
         },
     ),
     route_to_test(
@@ -764,6 +785,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 405,
             PARTICIPANT: 405,
+            ORGANIZER: 405,
         },
     ),
     route_to_test(
@@ -773,6 +795,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 302, # TODO: Make consistent.
             PARTICIPANT: 302, # TODO: Make consistent.
+            ORGANIZER: 302, # TODO: Make consistent.
         },
     ),
     route_to_test(
