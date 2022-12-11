@@ -914,9 +914,18 @@ API_ACCESS_MATRIX = [
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 302, # TODO: Is this inconsistent with api/review/<str:dataset_id>/<str:vm_id>/<str:run_id> above?
+            PARTICIPANT: 302, # TODO: Is this inconsistent with api/review/<str:dataset_id>/<str:vm_id>/<str:run_id> above?
         },
     ),
-    
+    route_to_test(
+        url_pattern='api/review/<str:dataset_id>/<str:vm_id>/<str:run_id>',
+        params={'dataset_id': f'dataset-1-{now}-training', 'vm_id': PARTICIPANT.split('_')[-1], 'run_id': 'run-1'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302, # TODO: Is this inconsistent with api/review/<str:dataset_id>/<str:vm_id>/<str:run_id> above?
+            PARTICIPANT: 200,
+        },
+    ),
     
     # TODO: The following methods return 50X at the moment, we should improve the setup so that it returns 200. But for the moment 50X is enough to separate authenticated from unauthenticated.
     route_to_test(
@@ -925,6 +934,7 @@ API_ACCESS_MATRIX = [
         group_to_expected_status_code={
             ADMIN: 500,
             GUEST: 405,
+            PARTICIPANT: 405,
         },
         hide_stdout=True
     ),
@@ -934,6 +944,7 @@ API_ACCESS_MATRIX = [
         group_to_expected_status_code={
             ADMIN: 500,
             GUEST: 405,
+            PARTICIPANT: 405,
         },
         hide_stdout=True
     ),
@@ -943,6 +954,7 @@ API_ACCESS_MATRIX = [
         group_to_expected_status_code={
             ADMIN: 501,
             GUEST: 405,
+            PARTICIPANT: 405,
         },
     ),
     route_to_test(
@@ -950,7 +962,8 @@ API_ACCESS_MATRIX = [
         params={},
         group_to_expected_status_code={
             ADMIN: 501,
-            GUEST: 405,    
+            GUEST: 405,
+            PARTICIPANT: 405,   
         },
     ),
     route_to_test(
@@ -959,6 +972,7 @@ API_ACCESS_MATRIX = [
         group_to_expected_status_code={
             ADMIN: 500,
             GUEST: 500, # TODO: Would we expect an 404 here?
+            PARTICIPANT: 500, # TODO: Would we expect an 404 here?
         },
         body='{"group": "X"}',
     ),
@@ -970,6 +984,16 @@ API_ACCESS_MATRIX = [
         group_to_expected_status_code={
             ADMIN: 202,
             GUEST: 302,
+            PARTICIPANT: 302
+        }
+    ),
+    route_to_test(
+        url_pattern='grpc/<str:vm_id>/run_delete/<str:dataset_id>/<str:run_id>',
+        params={'vm_id': PARTICIPANT.split('_')[-1], 'dataset_id': f'dataset-1-{now}-training', 'run_id': 'run-1'},
+        group_to_expected_status_code={
+            ADMIN: 202,
+            GUEST: 302,
+            PARTICIPANT: 202
         }
     ),
 ]
