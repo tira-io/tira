@@ -182,7 +182,7 @@ export default {
                 this.addOrganizerError += 'Please provide a website for the Organizer;\n'
             }
             if (this.editOrganizerError !== '') {
-                addOrganizerError
+                this.addOrganizerError
             }
             this.submitPost(`/tira-admin/add-organizer/${this.newOrgId}`, {
                 'name': this.newName,
