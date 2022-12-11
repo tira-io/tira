@@ -37,6 +37,7 @@ def set_up_tira_environment():
                            'website', False, False, False, 'help_command', '', '')
     tira_model.add_dataset('shared-task-1', 'dataset-1', 'training', 'dataset-1', 'upload-name')
     tira_model.add_dataset('shared-task-1', 'dataset-2', 'test', 'dataset-2', 'upload-name')
+    tira_model.add_software(task_id='shared-task-1', vm_id='PARTICIPANT-FOR-TEST-1')
         
     with open('tira-root/data/runs/dataset-1/example_participant/run-1/run.prototext', 'w') as f:
         f.write(f'\nsoftwareId: "upload"\nrunId: "run-1"\ninputDataset: "dataset-1-{now}-training"\ndownloadable: true\ndeleted: false\n')
