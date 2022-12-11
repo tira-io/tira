@@ -488,7 +488,8 @@ def run_execute_docker_software(request, task_id, vm_id, dataset_id, docker_soft
     
     return JsonResponse({'status': 0}, status=HTTPStatus.ACCEPTED)
 
-
+@check_permissions
+@check_resources_exist('json')
 def stop_docker_software(request, task_id, user_id, run_id):
     if not request.method == 'GET':
         return JsonResponse({"status": 1, "message": "Only GET is allowed here"})

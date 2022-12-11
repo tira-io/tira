@@ -195,72 +195,114 @@ API_ACCESS_MATRIX = [
     route_to_test(
         url_pattern='task/<str:task_id>/vm/<str:vm_id>/upload/<str:dataset_id>',
         params={'task_id': 'shared-task-1', 'vm_id': 'example_participant', 'dataset_id': 0},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302
+        },
     ),
     route_to_test(
         url_pattern='grpc/<str:vm_id>/vm_info',
         params={'vm_id': 'does-not-exist'},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302
+        },
     ),
     route_to_test(
         url_pattern='grpc/<str:vm_id>/vm_state',
         params={'vm_id': 'does-not-exist'},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302
+        },
     ),
     route_to_test(
         url_pattern='grpc/<str:vm_id>/vm_start',
         params={'vm_id': 'does-not-exist'},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302
+        },
     ),
     route_to_test(
         url_pattern='grpc/<str:vm_id>/vm_shutdown',
         params={'vm_id': 'does-not-exist'},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302
+        },
     ),
     route_to_test(
         url_pattern='grpc/<str:vm_id>/vm_stop',
         params={'vm_id': 'does-not-exist'},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302
+        },
     ),
     route_to_test(
         url_pattern='grpc/<str:vm_id>/run_abort',
         params={'vm_id': 'does-not-exist'},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302
+        },
     ),
     route_to_test(
         url_pattern='grpc/<str:vm_id>/vm_running_evaluations',
         params={'vm_id': 'does-not-exist'},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302
+        },
     ),
     route_to_test(
         url_pattern='grpc/<str:vm_id>/get_running_evaluations',
         params={'vm_id': 'does-not-exist'},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302
+        },
     ),
     route_to_test(
         url_pattern='grpc/<str:task_id>/<str:vm_id>/run_execute/vm/<str:software_id>',
         params={'task_id': 'shared-task-1', 'vm_id': 'does-not-exist', 'software_id': 'does-not-exist'},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302
+        },
     ),
     route_to_test(
         url_pattern='grpc/<str:task_id>/<str:vm_id>/run_execute/docker/<str:dataset_id>/<str:docker_software_id>/<str:docker_resources>',
         params={'task_id': 'shared-task-1', 'vm_id': 'does-not-exist', 'dataset_id': 'does-not-exist', 'docker_software_id': 'does-not-exist'},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302
+        },
     ),
     route_to_test(
         url_pattern='grpc/<str:vm_id>/run_eval/<str:dataset_id>/<str:run_id>',
         params={'vm_id': 'does-not-exist', 'dataset_id': f'dataset-1-{now}-training', 'run_id': 'run-1'},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302
+        },
     ),
     route_to_test(
         url_pattern='grpc/<str:task_id>/<str:user_id>/stop_docker_software/<str:run_id>',
         params={'user_id': 'example_participant', 'task_id': f'shared-task-1', 'run_id': 'run-1'},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302 # Was error
+        },
     ),
     route_to_test(
         url_pattern='tira-admin',
         params={},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405
+        },
     ),
     route_to_test(
         url_pattern='tira-admin/reload/vms',
