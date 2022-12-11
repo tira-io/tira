@@ -194,7 +194,8 @@ API_ACCESS_MATRIX = [
         params={},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 200
+            GUEST: 200,
+            PARTICIPANT: 200,
         },
     ),
     route_to_test(
@@ -202,7 +203,8 @@ API_ACCESS_MATRIX = [
         params={},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 200
+            GUEST: 200,
+            PARTICIPANT: 200,
         },
     ),
     route_to_test(
@@ -210,7 +212,8 @@ API_ACCESS_MATRIX = [
         params={},
         group_to_expected_status_code={
             ADMIN: 302,
-            GUEST: 302
+            GUEST: 302,
+            PARTICIPANT: 302,
        },
     ),
     route_to_test(
