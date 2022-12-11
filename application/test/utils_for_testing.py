@@ -12,8 +12,23 @@ from tira.tira_model import model as tira_model
 
 #Used for some tests
 now = datetime.now().strftime("%Y%m%d")
+from pathlib import Path
+import shutil
+from django.core.management import call_command
+
 
 def set_up_tira_environment():
+    call_command('flush', interactive=False)
+    shutil.rmtree(Path('tira-root'))
+    Path('tira-root/model/virtual-machines/').mkdir(parents=True, exist_ok=True)
+    Path('tira-root/model/virtual-machine-hosts').mkdir(parents=True, exist_ok=True)
+    Path('tira-root/model/tasks/').mkdir(parents=True, exist_ok=True)
+    Path('tira-root/model/users/').mkdir(parents=True, exist_ok=True)
+    Path('tira-root/data/runs/dataset-1/example_participant/run-1').mkdir(parents=True, exist_ok=True)
+    open('tira-root/model/virtual-machines/virtual-machines.txt', 'w').write('')
+    open('tira-root/model/virtual-machine-hosts/virtual-machine-hosts.txt', 'w').write('')
+    open('tira-root/model/users/users.prototext', 'w').write('')
+
     tira_model.edit_organizer('organizer', 'organizer', 'years', 'web', [])
     tira_model.add_vm('master-vm-for-task-1', 'user_name', 'initial_user_password', 'ip', 'host', '123', '123')
     tira_model.add_vm('example_participant', 'user_name', 'initial_user_password', 'ip', 'host', '123', '123')
