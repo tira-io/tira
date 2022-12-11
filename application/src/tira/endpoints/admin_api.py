@@ -11,6 +11,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from http import HTTPStatus
 import json
 from datetime import datetime as dt
+from git_runner import check_that_git_integration_is_valid
 
 import tira.tira_model as model
 
@@ -372,6 +373,12 @@ def admin_add_organizer(request, organizer_id):
     if request.method == "POST":
         data = json.loads(request.body)
 
+        if data['gitUrlToNamespace']:
+            git_integration_is_valid, error_message = check_that_git_integration_is_valid(data['gitUrlToNamespace'], data['gitPrivateToken'])
+            
+            if not git_integration_is_valid:
+                return JsonResponse({'status': 1, 'message': error_message})
+
         model.edit_organizer(organizer_id, data["name"], data["years"], data["web"], data['gitUrlToNamespace'], data['gitPrivateToken'])
         auth.create_organizer_group(name, auth.get_user_id(request))
         return JsonResponse({'status': 0, 'message': f"Added Organizer {organizer_id}"})
@@ -384,6 +391,12 @@ def admin_add_organizer(request, organizer_id):
 def admin_edit_organizer(request, organizer_id):
     if request.method == "POST":
         data = json.loads(request.body)
+        
+        if data['gitUrlToNamespace']:
+            git_integration_is_valid, error_message = check_that_git_integration_is_valid(data['gitUrlToNamespace'], data['gitPrivateToken'])
+            
+            if not git_integration_is_valid:
+                return JsonResponse({'status': 1, 'message': error_message})
         
         model.edit_organizer(organizer_id, data["name"], data["years"], data["web"], data['gitUrlToNamespace'], data['gitPrivateToken'])
         return JsonResponse({'status': 0, 'message': f"Updated Organizer {organizer_id}"})
