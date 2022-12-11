@@ -5,57 +5,88 @@ from datetime import datetime
 now = datetime.now().strftime("%Y%m%d")
 
 ADMIN = 'tira_reviewer'
+GUEST = ''
 
 API_ACCESS_MATRIX = [
     route_to_test(
         url_pattern='',
         params=None,
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 200,
+        },
     ),
     route_to_test(
         url_pattern='task',
         params=None,
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 200,
+        },
     ),
     route_to_test(
         url_pattern='tasks',
         params=None,
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 200,
+        },
     ),
     route_to_test(
         url_pattern='task/<str:task_id>',
         params={'task_id': 'this-task-does-not-exist'},
-        group_to_expected_status_code={ADMIN: 404},
+        group_to_expected_status_code={
+            ADMIN: 404,
+            GUEST: 404,
+        },
     ),
     route_to_test(
         url_pattern='task/<str:task_id>',
         params={'task_id': 'shared-task-1'},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 200
+        },
     ),
     route_to_test(
         url_pattern='task/<str:task_id>/dataset/<str:dataset_id>',
         params={'task_id': 'shared-task-1', 'dataset_id': 'this-dataset-does-not-exist'},
-        group_to_expected_status_code={ADMIN: 404},
+        group_to_expected_status_code={
+            ADMIN: 404,
+            GUEST: 404
+        },
     ),
     route_to_test(
         url_pattern='task/<str:task_id>/dataset/<str:dataset_id>',
         params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-1-{now}-training'},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 200
+        },
     ),
     route_to_test(
         url_pattern='task/<str:task_id>/dataset/<str:dataset_id>',
         params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-2-{now}-test'},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 200
+        },
     ),
     route_to_test(
         url_pattern='task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/download/<str:run_id>.zip',
         params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-1-{now}-training', 'vm_id': 'example_participant', 'run_id': 'run-1'},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302, # TODO: FIX THIS. Should be 405
+        },
     ),
     route_to_test(
         url_pattern='task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/download/<str:run_id>.zip',
         params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-2-{now}-test', 'vm_id': 'example_participant', 'run_id': 'run-1'},
-        group_to_expected_status_code={ADMIN: 200},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405
+        },
     ),
     route_to_test(
         url_pattern='task/<str:task_id>/user/<str:vm_id>',
@@ -400,6 +431,8 @@ API_ACCESS_MATRIX = [
 def access_matrix_for_user(user):
     ret = []
     for i in API_ACCESS_MATRIX:
+        if user not in i[2]:
+            continue
         params = i[2][user]['params']
         expected_status_code = i[2][user]['expected_status_code']
         
