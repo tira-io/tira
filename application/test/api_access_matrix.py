@@ -559,7 +559,7 @@ API_ACCESS_MATRIX = [
     ),
     route_to_test(
         url_pattern='grpc/<str:task_id>/<str:user_id>/stop_docker_software/<str:run_id>',
-        params={'user_id':  PARTICIPANT.split('_')[-1], 'task_id': f'shared-task-1', 'run_id': 'run-1'},
+        params={'user_id': PARTICIPANT.split('_')[-1], 'task_id': f'shared-task-1', 'run_id': 'run-1'},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 302,
@@ -706,7 +706,8 @@ API_ACCESS_MATRIX = [
         params={'vm_id': 'vm-id-does-not-exist'},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 405
+            GUEST: 405,
+            PARTICIPANT: 405,
         },
     ),
     route_to_test(
@@ -715,6 +716,7 @@ API_ACCESS_MATRIX = [
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 302, # TODO: Make consistent.
+            PARTICIPANT: 302, # TODO: Make consistent.
         },
     ),
     route_to_test(
@@ -722,7 +724,8 @@ API_ACCESS_MATRIX = [
         params={'dataset_id': 'dataset-does-not-exist', 'vm_id': 'vm-id-does-not-exist', 'run_id': 'run-id-does-not-exist', 'value': 'does-not-exist'},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 405
+            GUEST: 405,
+            PARTICIPANT: 405,
         },
     ),
     route_to_test(
@@ -731,6 +734,7 @@ API_ACCESS_MATRIX = [
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 200, # TODO Make consistent with "api/evaluation/<str:vm_id>/<str:run_id>"
+            PARTICIPANT: 200,
         },
     ),
     route_to_test(
@@ -739,6 +743,16 @@ API_ACCESS_MATRIX = [
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 302,  # TODO Make consistent with "api/evaluations/<str:task_id>/<str:dataset_id>"
+            PARTICIPANT: 302,
+        },
+    ),
+    route_to_test(
+        url_pattern='api/evaluation/<str:vm_id>/<str:run_id>',
+        params={'vm_id': PARTICIPANT.split('_')[-1], 'run_id': 'run-1'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,  # TODO Make consistent with "api/evaluations/<str:task_id>/<str:dataset_id>"
+            PARTICIPANT: 200,
         },
     ),
     route_to_test(
