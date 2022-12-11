@@ -380,7 +380,7 @@ def admin_add_organizer(request, organizer_id):
                 return JsonResponse({'status': 1, 'message': error_message})
 
         model.edit_organizer(organizer_id, data["name"], data["years"], data["web"], data['gitUrlToNamespace'], data['gitPrivateToken'])
-        auth.create_organizer_group(name, auth.get_user_id(request))
+        auth.create_organizer_group(organizer_id, auth.get_user_id(request))
         return JsonResponse({'status': 0, 'message': f"Added Organizer {organizer_id}"})
 
     return JsonResponse({'status': 1, 'message': f"GET is not implemented for add organizer"})
