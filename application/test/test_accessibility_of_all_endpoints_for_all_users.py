@@ -243,11 +243,12 @@ ROUTES_TO_TEST = [
         url_pattern='tira-admin/reload/vms',
         params={},
         groups=ADMIN,
-        expected_status_code=200
+        expected_status_code=200,
+        method='GET'
     ),
 ]
 
-#ROUTES_TO_TEST = ROUTES_TO_TEST[-1:]
+ROUTES_TO_TEST = ROUTES_TO_TEST[-1:]
 
 class TestAccessibilityOfEndpointsForAdminUser(TestCase):
     @classmethod
