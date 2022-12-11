@@ -136,14 +136,24 @@ ROUTES_TO_TEST = [
         groups=ADMIN,
         expected_status_code=200
     ),
-    
     route_to_test(
         url_pattern='task/<str:task_id>/vm/<str:vm_id>/delete_software/vm/<str:software_id>',
         params={'task_id': 'shared-task-1', 'vm_id': 'example_participant', 'software_id': 0},
         groups=ADMIN,
         expected_status_code=200
     ),
-    
+    route_to_test(
+        url_pattern='task/<str:task_id>/vm/<str:vm_id>/delete_software/docker/<str:docker_software_id>',
+        params={'task_id': 'shared-task-1', 'vm_id': 'example_participant', 'software_id': 0},
+        groups=ADMIN,
+        expected_status_code=200
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>/vm/<str:vm_id>/upload/<str:dataset_id>',
+        params={'task_id': 'shared-task-1', 'vm_id': 'example_participant', 'dataset_id': 0},
+        groups=ADMIN,
+        expected_status_code=200
+    ),
 ]
 
 #ROUTES_TO_TEST = ROUTES_TO_TEST[-1:]
