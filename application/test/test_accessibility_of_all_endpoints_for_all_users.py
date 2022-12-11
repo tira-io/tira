@@ -228,7 +228,7 @@ ROUTES_TO_TEST = [
     ),
     route_to_test(
         url_pattern='grpc/<str:task_id>/<str:user_id>/stop_docker_software/<str:run_id>',
-        params={'user_id': 'example_participant', 'task_id': f'shared_task_1', 'run_id': 'run-1'},
+        params={'user_id': 'example_participant', 'task_id': f'shared-task-1', 'run_id': 'run-1'},
         groups=ADMIN,
         expected_status_code=200
     ),
@@ -238,17 +238,15 @@ ROUTES_TO_TEST = [
         groups=ADMIN,
         expected_status_code=200
     ),
-    
     route_to_test(
         url_pattern='tira-admin/reload/vms',
         params={},
         groups=ADMIN,
         expected_status_code=200,
-        method='GET'
     ),
 ]
 
-ROUTES_TO_TEST = ROUTES_TO_TEST[-1:]
+#ROUTES_TO_TEST = ROUTES_TO_TEST[-1:]
 
 class TestAccessibilityOfEndpointsForAdminUser(TestCase):
     @classmethod

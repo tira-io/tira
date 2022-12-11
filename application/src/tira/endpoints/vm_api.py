@@ -495,6 +495,10 @@ def stop_docker_software(request, task_id, user_id, run_id):
     else:
         datasets = model.get_datasets_by_task(task_id)
         git_runner = model.get_git_integration(task_id=task_id)
+
+        if not git_runner:
+            return JsonResponse({"status": 1, "message": f"No git integration found for task {task_id}"})
+
         for dataset in datasets:
             git_runner.stop_job_and_clean_up(
                 model.get_evaluator(dataset["dataset_id"])["git_repository_id"],
@@ -503,11 +507,3 @@ def stop_docker_software(request, task_id, user_id, run_id):
 
         return JsonResponse({"status": 0, "message": "Run successfully stopped"})
 
-
-@check_conditional_permissions(not_registered_ok=True)
-@check_resources_exist("json")
-@add_context
-def edit_registration(request, context, task_id, user_id):
-    """ save/edit the registration of a user on a task. """
-    # TODO edit Registration
-    pass

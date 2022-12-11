@@ -12,7 +12,6 @@ urlpatterns = [
     path('task/<str:task_id>/dataset/<str:dataset_id>', views.dataset, name='dataset'),
     path('task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/download/<str:run_id>.zip', views.download_rundir, name='download_rundir'),
     path('task/<str:task_id>/user/<str:vm_id>', views.software_detail, name='software-detail'),
-    path('task/<str:task_id>/user/<str:vm_id>', views.user, name='user'),
     path('task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/run/<str:run_id>', views.review, name='review'),
 
     path('request_vm', views.request_vm, name='request_vm'),
@@ -20,7 +19,6 @@ urlpatterns = [
     path('logout', views.logout, name='logout'),
 
     # grpc client endpoints
-    path('task/<str:task_id>/vm/<str:vm_id>/edit_registration', vm_api.edit_registration, name='edit_registration'),
     path('task/<str:task_id>/vm/<str:vm_id>/add_software/vm', vm_api.software_add, name='software_add'),
     path('task/<str:task_id>/vm/<str:vm_id>/add_software/docker', vm_api.docker_software_add, name='docker_software_add'),
     path('task/<str:task_id>/vm/<str:vm_id>/save_software/docker/<str:docker_software_id>', vm_api.docker_software_save, name='docker_software_save'),
