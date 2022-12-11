@@ -6,6 +6,26 @@ from copy import deepcopy
 import os
 import io
 from contextlib import redirect_stdout, redirect_stderr
+from datetime import datetime
+import json
+from tira.tira_model import model as tira_model
+
+#Used for some tests
+now = datetime.now().strftime("%Y%m%d")
+
+def set_up_tira_environment():
+    tira_model.edit_organizer('organizer', 'organizer', 'years', 'web', [])
+    tira_model.add_vm('master-vm-for-task-1', 'user_name', 'initial_user_password', 'ip', 'host', '123', '123')
+    tira_model.add_vm('example_participant', 'user_name', 'initial_user_password', 'ip', 'host', '123', '123')
+    tira_model.create_task('shared-task-1', 'task_name', 'task_description', False, 'master-vm-for-task-1', 'organizer',
+                           'website', False, False, False, 'help_command', '', '')
+    tira_model.add_dataset('shared-task-1', 'dataset-1', 'training', 'dataset-1', 'upload-name')
+    tira_model.add_dataset('shared-task-1', 'dataset-2', 'test', 'dataset-2', 'upload-name')
+        
+    with open('tira-root/data/runs/dataset-1/example_participant/run-1/run.prototext', 'w') as f:
+        f.write(f'\nsoftwareId: "upload"\nrunId: "run-1"\ninputDataset: "dataset-1-{now}-training"\ndownloadable: true\ndeleted: false\n')
+        
+    tira_model.add_run(dataset_id='dataset-1', vm_id='example_participant', run_id='run-1')
 
 def __mock_request(groups, url_pattern, method, body):
     if 'DISRAPTOR_APP_SECRET_KEY' not in os.environ:
