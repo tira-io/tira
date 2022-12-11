@@ -105,7 +105,7 @@ API_ACCESS_MATRIX = [
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 405,
-            PARTICIPANT: 405
+            PARTICIPANT: 405,
         },
     ),
     route_to_test(
@@ -113,7 +113,7 @@ API_ACCESS_MATRIX = [
         params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-2-{now}-test', 'vm_id': PARTICIPANT.split('_')[-1], 'run_id': 'run-1'},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 302,# TODO: Look at this again. Should be 405?
+            GUEST: 405,
             PARTICIPANT: 405,
         },
     ),
@@ -123,6 +123,7 @@ API_ACCESS_MATRIX = [
         group_to_expected_status_code={
             ADMIN: 302,
             GUEST: 302,
+            PARTICIPANT: 302,
         },
     ),
     route_to_test(
@@ -130,7 +131,26 @@ API_ACCESS_MATRIX = [
         params={'task_id': 'shared-task-1', 'vm_id': 'example_participant'},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 302
+            GUEST: 302,
+            PARTICIPANT: 302,
+        },
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>/user/<str:vm_id>',
+        params={'task_id': 'shared-task-1', 'vm_id': 'participant-does-not-exist'},
+        group_to_expected_status_code={
+            ADMIN: 302,
+            GUEST: 302,
+            PARTICIPANT: 302,
+        },
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>/user/<str:vm_id>',
+        params={'task_id': 'shared-task-1', 'vm_id': PARTICIPANT.split('_')[-1]},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 200,
         },
     ),
     route_to_test(
@@ -138,7 +158,8 @@ API_ACCESS_MATRIX = [
         params={'task_id': 'shared-task-1', 'vm_id': 'example_participant', 'dataset_id': f'dataset-1-{now}-training', 'run_id': 'run-1'},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 302
+            GUEST: 302,
+            PARTICIPANT: 302,
         },
     ),
     route_to_test(
@@ -146,7 +167,26 @@ API_ACCESS_MATRIX = [
         params={'task_id': 'shared-task-1', 'vm_id': 'example_participant', 'dataset_id': f'dataset-2-{now}-test', 'run_id': 'run-1'},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 302
+            GUEST: 302,
+           PARTICIPANT: 302,
+        },
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/run/<str:run_id>',
+        params={'task_id': 'shared-task-1', 'vm_id': PARTICIPANT.split('_')[-1], 'dataset_id': f'dataset-1-{now}-training', 'run_id': 'run-1'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 200,
+        },
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/run/<str:run_id>',
+        params={'task_id': 'shared-task-1', 'vm_id': PARTICIPANT.split('_')[-1], 'dataset_id': f'dataset-2-{now}-test', 'run_id': 'run-1'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 200, # TODO: This should definitively be 302? As it is a test dataset that was not unblinded?
         },
     ),
     route_to_test(
