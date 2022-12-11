@@ -7,6 +7,7 @@ now = datetime.now().strftime("%Y%m%d")
 ADMIN = 'tira_reviewer'
 GUEST = ''
 PARTICIPANT = 'tira_vm_PARTICIPANT-FOR-TEST-1'
+ORGANIZER = 'tira_org_EXAMPLE_ORGANIZER'
 
 API_ACCESS_MATRIX = [
     route_to_test(
@@ -16,6 +17,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 200,
             PARTICIPANT: 200,
+            ORGANIZER: 200,
         },
     ),
     route_to_test(
@@ -25,6 +27,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 200,
             PARTICIPANT: 200,
+            ORGANIZER: 200,
         },
     ),
     route_to_test(
@@ -34,6 +37,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 200,
             PARTICIPANT: 200,
+            ORGANIZER: 200,
         },
     ),
     route_to_test(
@@ -43,6 +47,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 404,
             GUEST: 404,
             PARTICIPANT: 404,
+            ORGANIZER: 404,
         },
     ),
     route_to_test(
@@ -52,6 +57,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 200,
             PARTICIPANT: 200,
+            ORGANIZER: 200,
         },
     ),
     route_to_test(
@@ -61,6 +67,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 404,
             GUEST: 404,
             PARTICIPANT: 404,
+            ORGANIZER: 404,
         },
     ),
     route_to_test(
@@ -70,6 +77,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 200,
             PARTICIPANT: 200,
+            ORGANIZER: 200,
         },
     ),
     route_to_test(
@@ -79,6 +87,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 200,
             PARTICIPANT: 200,
+            ORGANIZER: 200,
         },
     ),
     route_to_test(
@@ -88,6 +97,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 302, # TODO: Look at this again. Should be 405?
             PARTICIPANT: 302, # TODO: Look at this again. Should be 405?
+            ORGANIZER: 302, # TODO: Look at this again. Should be 405?
         },
     ),
     route_to_test(
@@ -97,6 +107,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 302, # TODO: Look at this again. Should be 405?
             PARTICIPANT: 200,
+            ORGANIZER: 302, # TODO: Look at this again. Should be 405?
         },
     ),
     route_to_test(
@@ -106,6 +117,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 405,
             PARTICIPANT: 405,
+            ORGANIZER: 405,
         },
     ),
     route_to_test(
@@ -115,6 +127,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 405,
             PARTICIPANT: 405,
+            ORGANIZER: 405,
         },
     ),
     route_to_test(
@@ -124,6 +137,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 302,
             GUEST: 302,
             PARTICIPANT: 302,
+            ORGANIZER: 302,
         },
     ),
     route_to_test(
@@ -133,6 +147,7 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 302,
             PARTICIPANT: 302,
+            ORGANIZER: 302,
         },
     ),
     route_to_test(
