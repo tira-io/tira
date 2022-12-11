@@ -11,7 +11,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from http import HTTPStatus
 import json
 from datetime import datetime as dt
-from git_runner import check_that_git_integration_is_valid
+from tira.git_runner import check_that_git_integration_is_valid
 
 import tira.tira_model as model
 

@@ -432,7 +432,7 @@ Best regards'''
         organizer_ids = self.get_organizer_ids(request)
         if not organizer_ids or len(organizer_ids) < 1:
             return False
-        
+
         task = None
         if task_id:
             try:
@@ -440,9 +440,13 @@ Best regards'''
             except:
                 pass
         
+        existing_organizer_ids = set([i['organizer_id'] for i in model.get_organizer_list()])
+
         return path == '/api/organizer-list' \
                or (task and 'organizer_id' in task and task['organizer_id'] in organizer_ids) \
-               or (organizer_id_from_params in organizer_ids and path in set(f'/tira-admin/{i}/create-task' for i in organizer_ids))
+               or (organizer_id_from_params in organizer_ids and path in set(f'/tira-admin/{i}/create-task' for i in organizer_ids)) \
+               or (organizer_id_from_params in organizer_ids and path in set(f'/tira-admin/edit-organizer/{i}' for i in organizer_ids)) \
+               or (path.startswith('/tira-admin/add-organizer/') and organizer_id_from_params not in existing_organizer_ids)
 
 
 auth = Authentication(authentication_source=settings.DEPLOYMENT)

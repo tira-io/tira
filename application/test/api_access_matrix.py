@@ -9,6 +9,7 @@ GUEST = ''
 PARTICIPANT = 'tira_vm_PARTICIPANT-FOR-TEST-1'
 ORGANIZER = 'tira_org_EXAMPLE-ORGANIZER'
 
+
 API_ACCESS_MATRIX = [
     route_to_test(
         url_pattern='',
@@ -760,12 +761,22 @@ API_ACCESS_MATRIX = [
     ),
     route_to_test(
         url_pattern='tira-admin/add-organizer/<str:organizer_id>',
+        params={'organizer_id': 'organizer-2'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER: 405, # We expect 405 for existing organizer 'organizer-2'
+        },
+    ),
+    route_to_test(
+        url_pattern='tira-admin/add-organizer/<str:organizer_id>',
         params={'organizer_id': 'organizer-id-does-not-exist'},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 405,
             PARTICIPANT: 405,
-            ORGANIZER: 405,
+            ORGANIZER: 200, # We expect 200 for non-existing organizer.
         },
     ),
     route_to_test(
@@ -776,6 +787,26 @@ API_ACCESS_MATRIX = [
             GUEST: 405,
             PARTICIPANT: 405,
             ORGANIZER: 405,
+        },
+    ),
+    route_to_test(
+        url_pattern='tira-admin/edit-organizer/<str:organizer_id>',
+        params={'organizer_id': 'organizer-2'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER: 405,
+        },
+    ),
+    route_to_test(
+        url_pattern='tira-admin/edit-organizer/<str:organizer_id>',
+        params={'organizer_id': 'EXAMPLE-ORGANIZER'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER: 200,
         },
     ),
     route_to_test(
