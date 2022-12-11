@@ -600,17 +600,26 @@ API_ACCESS_MATRIX = [
     route_to_test(
         url_pattern='tira-admin/archive-vm',
         params={},
-        group_to_expected_status_code={ADMIN: 501},
+        group_to_expected_status_code={
+            ADMIN: 501,
+            GUEST: 405,
+        },
     ),
     route_to_test(
         url_pattern='tira-admin/create-task',
         params={},
-        group_to_expected_status_code={ADMIN: 501},
+        group_to_expected_status_code={
+            ADMIN: 501,
+            GUEST: 405,    
+        },
     ),
     route_to_test(
         url_pattern='api/registration/add_registration/<str:vm_id>/<str:task_id>',
         params={'task_id': 'shared-task-1', 'vm_id': 'example_participant'},
-        group_to_expected_status_code={ADMIN: 500},
+        group_to_expected_status_code={
+            ADMIN: 500,
+            GUEST: 500, # TODO: Would we expect an 404 here?
+        },
         body='{"group": "X"}',
     ),
 
@@ -618,7 +627,10 @@ API_ACCESS_MATRIX = [
     route_to_test(
         url_pattern='grpc/<str:vm_id>/run_delete/<str:dataset_id>/<str:run_id>',
         params={'vm_id': 'does-not-exist', 'dataset_id': f'dataset-1-{now}-training', 'run_id': 'run-1'},
-        group_to_expected_status_code={ADMIN: 202}
+        group_to_expected_status_code={
+            ADMIN: 202,
+            GUEST: 302,
+        }
     ),
 ]
 
