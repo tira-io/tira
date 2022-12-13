@@ -55,7 +55,8 @@ venv:
 		python3 -m pip install -r requirements.txt"
 
 run-develop: venv
-	$(VENV_NAME)/bin/python3 src/manage.py run_develop
+	$(VENV_NAME)/bin/python3 src/manage.py migrate --fake \
+	&& $(VENV_NAME)/bin/python3 src/manage.py run_develop
 
 run-docker:
 	docker run -td --rm \
