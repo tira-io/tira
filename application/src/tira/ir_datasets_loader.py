@@ -26,12 +26,13 @@ class IrDatasetsLoader(object):
         dataset = self.load_irds(ir_datasets_id)
         
         docs_mapped = (self.map_doc(doc, include_original) for doc in dataset.docs_iter())
-        queries_mapped = (self.map_query(query, include_original) for query in dataset.queries_iter())
-        qrels_mapped = (self.map_qrel(qrel) for qrel in dataset.qrels_iter())
+        queries_mapped = [self.map_query(query, include_original) for query in dataset.queries_iter()]
+        qrels_mapped = [self.map_qrel(qrel) for qrel in dataset.qrels_iter()]
         
         self.write_lines_to_file(docs_mapped, output_dataset_path/"documents.jsonl")
         self.write_lines_to_file(queries_mapped, output_dataset_path/"queries.jsonl")
         self.write_lines_to_file(qrels_mapped, output_dataset_truth_path/"qrels.txt")
+        self.write_lines_to_file(queries_mapped, output_dataset_truth_path/"queries.jsonl")
 
 
     def load_dataset_for_rerank(self, ir_datasets_id: str, output_dataset_path: Path, output_dataset_truth_path: Path, include_original: bool, run_file: Path) -> None:
