@@ -19,11 +19,13 @@ class IrDatasetsLoader(object):
         dataset = ir_datasets.load(ir_datasets_id)
         
         docs_mapped = (self.map_doc(doc, include_original) for doc in dataset.docs_iter())
-        queries_mapped = (self.map_query(query, include_original) for query in dataset.queries_iter())
+        queries_mapped_jsonl = (self.map_query_as_jsonl(query, include_original) for query in dataset.queries_iter())
+        queries_mapped_xml = (self.map_query_as_xml(query, include_original) for query in dataset.queries_iter())
         qrels_mapped = (self.map_qrel(qrel) for qrel in dataset.qrels_iter())
         
         self.write_lines_to_file(docs_mapped, output_path/"documents.jsonl")
         self.write_lines_to_file(queries_mapped, output_path/"queries.jsonl")
+        self.write_lines_to_xml_file(ir_datasets_id, queries_mapped_xml, output_path/"queries.xml")
         self.write_lines_to_file(qrels_mapped, output_path/"qrels.txt")
         
 
@@ -67,16 +69,33 @@ class IrDatasetsLoader(object):
         return json.dumps(ret)
 
 
-    def map_query(self, query: tuple, include_original=False) -> str:
+    def map_query_as_jsonl(self, query: tuple, include_original=False) -> str:
         ret = {
             "qid": query.query_id,
             # TODO: change when .default_text() is implemented
             # "text": query.default_text()
-            "query": query.title
+            "query": query.text
         }
         if include_original:
             ret["original_doc"] = query._asdict()
         return json.dumps(ret)
+
+
+    def map_query_as_xml(self, query: tuple, include_original=False) -> str:
+        # TODO: change when .default_text() is implemented
+        # "text": query.default_text()
+        soup = BeautifulSoup()
+        soup.append(soup.new_tag('topic', attrs={ 'number': query.query_id }))
+        soup.topic.append(soup.new_tag('query'))
+        soup.query.append(soup.new_string(query.text))
+
+        if include_original:
+            soup.topic.append(soup.new_tag('original_doc'))
+            for key, value in query._asdict().items():
+                soup.original_doc.append(soup.new_tag(str(key)))
+                tag = soup.original_doc.find(key)
+                tag.append(soup.new_string(str(value)))
+        return soup
 
 
     def map_qrel(self, qrel: tuple) -> str:
@@ -117,3 +136,15 @@ class IrDatasetsLoader(object):
             raise RuntimeError(f"File already exists: {path}")
         with path.open('wt') as file:
             file.writelines('%s\n' % line for line in lines)
+    
+
+    def write_lines_to_xml_file(self, ir_datasets_id: str, lines: Iterable[str], path: Path) -> None:
+        if(path.exists()):
+            raise RuntimeError(f"File already exists: {path}")
+        soup = BeautifulSoup()
+        soup.append(soup.new_tag('topics', attrs={ 'ir-dataset-id': ir_datasets_id }))
+        root = soup.find('topics')
+        for line in lines:
+            root.append(line)
+        with path.open('wt') as file:
+            file.write(soup.prettify())
