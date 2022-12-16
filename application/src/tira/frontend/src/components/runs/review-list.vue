@@ -73,20 +73,20 @@
 <!--           <span v-if="run.review.comment !== ''">{{ run.review.comment }}</span>-->
 <!--        </td>-->
         <!--      Buttons -->
-<!--        <td class="uk-table-shrink uk-text-nowrap uk-padding-remove uk-margin-remove uk-preserve-width"-->
-<!--            v-if="display==='participant'">-->
-<!--            <a class="uk-button uk-button-small run-evaluate-button uk-background-default"-->
-<!--               :class="{ 'uk-button-disabled': runningEvaluationIds.includes(run.run_id), 'uk-button-default': !runningEvaluationIds.includes(run.run_id)}"-->
-<!--               :disabled="runningEvaluationIds.includes(run.run_id)"-->
-<!--               @click="evaluateRun(run.dataset, run.run_id)"-->
-<!--               v-if="run.input_run_id === ''">-->
-<!--  &lt;!&ndash;                <div v-show="runningEvaluationIds.includes(run.run_id)" class="run-evaluate-spinner" uk-spinner="ratio: 0.4"></div>&ndash;&gt;-->
-<!--                <font-awesome-icon v-show="runningEvaluationIds.includes(run.run_id)" icon="fas fa-cog" spin />-->
-<!--                <font-awesome-icon v-show="!runningEvaluationIds.includes(run.run_id)" icon="fas fa-cog" />-->
-<!--                evaluate</a>-->
-<!--        </td>-->
+        <td class="uk-table-shrink uk-text-nowrap uk-padding-remove uk-margin-remove uk-preserve-width"
+            v-if="display==='review'">
+            <a class="uk-button uk-button-small run-evaluate-button uk-background-default"
+               :class="{ 'uk-button-disabled': runningEvaluationIds.includes(run.run_id), 'uk-button-default': !runningEvaluationIds.includes(run.run_id)}"
+               :disabled="runningEvaluationIds.includes(run.run_id)"
+               @click="evaluateRun(run.dataset, run.run_id)"
+               v-if="run.input_run_id === ''">
+  <!--                <div v-show="runningEvaluationIds.includes(run.run_id)" class="run-evaluate-spinner" uk-spinner="ratio: 0.4"></div>-->
+                <font-awesome-icon v-show="runningEvaluationIds.includes(run.run_id)" icon="fas fa-cog" spin />
+                <font-awesome-icon v-show="!runningEvaluationIds.includes(run.run_id)" icon="fas fa-cog" />
+                evaluate</a>
+        </td>
         <td class="uk-table-shrink uk-text-nowrap uk-padding-remove uk-margin-remove uk-preserve-width">
-            <evaluation-button :task_id="task_id" :user_id="user_id" :dataset_id="run.dataset"
+            <evaluation-button v-if="run.evaluation_run_id" :task_id="task_id" :user_id="user_id" :dataset_id="run.dataset"
                            :run_id="run.evaluation_run_id" :csrf="csrf"
                 @add-notification="(type, message) => this.$emit('addNotification', type, message)"
                 @update-review="newReview => updateReview(newReview)"
