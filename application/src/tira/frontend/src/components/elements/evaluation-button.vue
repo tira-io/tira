@@ -1,7 +1,7 @@
 <template>
 <a class="uk-button uk-button-small uk-button-default uk-background-default" @click="toggleModal">
     <font-awesome-icon icon="fas fa-search" />
-    INSPECT</a>
+    EVALUATION</a>
 <div :id="modalId" class="uk-container uk-container-expand" data-uk-modal>
     <div class="uk-modal-dialog uk-modal-body uk-width-expand">
         <button class="uk-modal-close-default" type="button" data-uk-close></button>
@@ -15,7 +15,7 @@
 <script>
 import Review from "../runs/review";
 export default {
-  name: "review-button",
+  name: "evaluation-button",
   props: {
     task_id: String,
     user_id: String,
