@@ -73,17 +73,24 @@
 <!--           <span v-if="run.review.comment !== ''">{{ run.review.comment }}</span>-->
 <!--        </td>-->
         <!--      Buttons -->
-        <td class="uk-table-shrink uk-text-nowrap uk-padding-remove uk-margin-remove uk-preserve-width"
-            v-if="display==='participant'">
-            <a class="uk-button uk-button-small run-evaluate-button uk-background-default"
-               :class="{ 'uk-button-disabled': runningEvaluationIds.includes(run.run_id), 'uk-button-default': !runningEvaluationIds.includes(run.run_id)}"
-               :disabled="runningEvaluationIds.includes(run.run_id)"
-               @click="evaluateRun(run.dataset, run.run_id)"
-               v-if="run.input_run_id === ''">
-  <!--                <div v-show="runningEvaluationIds.includes(run.run_id)" class="run-evaluate-spinner" uk-spinner="ratio: 0.4"></div>-->
-                <font-awesome-icon v-show="runningEvaluationIds.includes(run.run_id)" icon="fas fa-cog" spin />
-                <font-awesome-icon v-show="!runningEvaluationIds.includes(run.run_id)" icon="fas fa-cog" />
-                evaluate</a>
+<!--        <td class="uk-table-shrink uk-text-nowrap uk-padding-remove uk-margin-remove uk-preserve-width"-->
+<!--            v-if="display==='participant'">-->
+<!--            <a class="uk-button uk-button-small run-evaluate-button uk-background-default"-->
+<!--               :class="{ 'uk-button-disabled': runningEvaluationIds.includes(run.run_id), 'uk-button-default': !runningEvaluationIds.includes(run.run_id)}"-->
+<!--               :disabled="runningEvaluationIds.includes(run.run_id)"-->
+<!--               @click="evaluateRun(run.dataset, run.run_id)"-->
+<!--               v-if="run.input_run_id === ''">-->
+<!--  &lt;!&ndash;                <div v-show="runningEvaluationIds.includes(run.run_id)" class="run-evaluate-spinner" uk-spinner="ratio: 0.4"></div>&ndash;&gt;-->
+<!--                <font-awesome-icon v-show="runningEvaluationIds.includes(run.run_id)" icon="fas fa-cog" spin />-->
+<!--                <font-awesome-icon v-show="!runningEvaluationIds.includes(run.run_id)" icon="fas fa-cog" />-->
+<!--                evaluate</a>-->
+<!--        </td>-->
+        <td class="uk-table-shrink uk-text-nowrap uk-padding-remove uk-margin-remove uk-preserve-width">
+            <evaluation-button :task_id="task_id" :user_id="user_id" :dataset_id="run.dataset"
+                           :run_id="run.evaluation_run_id" :csrf="csrf"
+                @add-notification="(type, message) => this.$emit('addNotification', type, message)"
+                @update-review="newReview => updateReview(newReview)"
+            />
         </td>
         <td class="uk-table-shrink uk-text-nowrap uk-padding-remove uk-margin-remove uk-preserve-width">
             <review-button :task_id="task_id" :user_id="user_id" :dataset_id="run.dataset"
@@ -123,6 +130,7 @@ import ReviewButton from "../elements/review-button";
 import { get } from "../../utils/getpost"
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { faDocker } from '@fortawesome/free-brands-svg-icons'
+import EvaluationButton from "../elements/evaluation-button.vue";
 
 library.add( faDocker )
 
@@ -156,14 +164,15 @@ export default {
     csrf: String},
   emits: ['addNotification', 'pollEvaluations', 'removeRun'],
   components: {
+    EvaluationButton,
       ReviewButton
   },
   methods: {
     getRuns() {
       if (this.hide_reviewed) {
-          return this.runs.filter(run => (run.review.noErrors || run.review.hasErrors || run.review.hasErrorOutput || run.review.otherErrors) === false)
+        return this.runs.filter(run => (run.review.noErrors || run.review.hasErrors || run.review.hasErrorOutput || run.review.otherErrors) === false)
       }
-      return this.runs
+      return this.runs.filter(run => run.is_evaluation === false)
     },
     get: get,
     updateReview(newReview) {
@@ -215,6 +224,9 @@ export default {
     updateRunCache() {
       for (const run of this.runs) {
         this.runCache[run.run_id] = run
+        if (run.is_evaluation) {
+          this.runCache[run.input_run_id].evaluation_run_id = run.run_id
+        }
       }
       this.inputRunIdCache = this.runs.map(a => {return a.input_run_id})
           .filter(a => { if (a !== '') return a })
