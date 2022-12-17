@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/sh
 cd test
 
 export PYTHONPATH=':../src:.'
