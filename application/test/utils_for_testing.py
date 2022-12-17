@@ -18,8 +18,11 @@ from django.core.management import call_command
 
 
 def set_up_tira_environment():
+
+    shutil.rmtree(Path('tira-root'), ignore_errors=True)
+        
     call_command('flush', interactive=False)
-    shutil.rmtree(Path('tira-root'))
+    
     Path('tira-root/model/virtual-machines/').mkdir(parents=True, exist_ok=True)
     Path('tira-root/model/virtual-machine-hosts').mkdir(parents=True, exist_ok=True)
     Path('tira-root/model/tasks/').mkdir(parents=True, exist_ok=True)

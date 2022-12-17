@@ -44,8 +44,10 @@ webpack-watch:
 	npm run plain
 
 
-tests: venv
-	@cd test && PYTHONPATH=':../src:.' ../venv/bin/python3 ../src/manage.py test --settings=settings_test
+tests: venv webpack
+	. ./venv/bin/activate \
+	&& ./test/run_all_tests.sh
+
 
 # Requirements are in setup.py, so whenever setup.py is changed, re-run installation of dependencies.
 venv:
