@@ -4,6 +4,7 @@ src/venv
 src/__init__.py
 src/config
 src/tira/migrations/*.py
+test/test-database
 
 src/tira/frontend/node_modules/
 src/tira/static/tira/dist/*

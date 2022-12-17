@@ -47,7 +47,7 @@ GRPC_HOST = custom_settings.get("grpc_host", "local")  # can be local or remote
 
 TIRA_DB = {
     'ENGINE': 'django.db.backends.sqlite3',
-    'NAME': 'tests/sqlite3',
+    'NAME': 'test-database/sqlite3',
     'USER': 'tira',
     'PASSWORD': 'replace-with-db-password',
     'HOST': 'tira-mariadb',

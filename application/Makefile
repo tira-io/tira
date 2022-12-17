@@ -43,9 +43,13 @@ webpack-watch:
 	npm install; \
 	npm run plain
 
+src/tira/frontend/webpack-stats.json:
+	@cd ./src/tira/frontend/; \
+	npm install; \
+	npm run build
 
-tests: venv webpack
-	. ./venv/bin/activate \
+tests: venv src/tira/frontend/webpack-stats.json
+	@. ./venv/bin/activate \
 	&& ./test/run_all_tests.sh
 
 

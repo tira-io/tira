@@ -4,6 +4,9 @@ cd test
 export PYTHONPATH=':../src:.'
 export DJANGO_SETTINGS_MODULE=settings_test
 
+rm -Rf test-database
+mkdir test-database
+
 python3 ../src/manage.py reset_db --no-input
 python3 ../src/manage.py makemigrations tira
 
