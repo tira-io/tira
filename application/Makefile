@@ -43,9 +43,15 @@ webpack-watch:
 	npm install; \
 	npm run plain
 
+src/tira/frontend/webpack-stats.json:
+	@cd ./src/tira/frontend/; \
+	npm install; \
+	npm run build
 
-tests: venv
-	@cd test && PYTHONPATH=':../src:.' ../venv/bin/python3 ../src/manage.py test --settings=settings_test
+tests: venv src/tira/frontend/webpack-stats.json
+	@. ./venv/bin/activate \
+	&& ./test/run_all_tests.sh
+
 
 # Requirements are in setup.py, so whenever setup.py is changed, re-run installation of dependencies.
 venv:

@@ -20,3 +20,4 @@ ghapi
 parameterized
 mockito
 approvaltests
+django-extensions
