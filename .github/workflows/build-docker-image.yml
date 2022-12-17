@@ -20,5 +20,8 @@ jobs:
         run: |
           cd application
           echo running on branch ${GITHUB_REF##*/}
+          docker login --username ${{ secrets.DOCKER_USERNAME }} --password ${{ secrets.DOCKER_TOKEN }} registry.webis.de
           docker build --tag webis/tira-application:build-from-branch-${GITHUB_REF##*/} -f Dockerfile.application ..
+          docker tag webis/tira-application:build-from-branch-${GITHUB_REF##*/} registry.webis.de/code-lib/public-images/tira-application:build-from-branch-${GITHUB_REF##*/}
+          docker push registry.webis.de/code-lib/public-images/tira-application:build-from-branch-${GITHUB_REF##*/}
 
