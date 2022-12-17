@@ -2,7 +2,7 @@ name: Docker Image
 on: [push]
 
 jobs:
-  build:
+  image:
 
     runs-on: ubuntu-latest
     timeout-minutes: 5
