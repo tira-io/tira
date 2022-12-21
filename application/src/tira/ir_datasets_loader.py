@@ -1,5 +1,4 @@
 import sys
-import ir_datasets
 import json
 from pathlib import Path
 from typing import Iterable
@@ -8,46 +7,57 @@ from typing import Iterable
 class IrDatasetsLoader(object):
     """ Base class for loading datasets in a standardized format"""
 
-    def load_dataset_for_fullrank(self, ir_datasets_id: str, output_path: Path, include_original=False) -> None:
+    def load_irds(self, ir_datasets_id):
+        import ir_datasets
+        try:
+            return ir_datasets.load(ir_datasets_id)
+        except:
+            raise ValueError(f'Could not load the dataset {ir_datasets_id}. Does it exist?')
+
+    def load_dataset_for_fullrank(self, ir_datasets_id: str, output_dataset_path: Path, output_dataset_truth_path: Path,  include_original=False) -> None:
         """ Loads a dataset through the ir_datasets package by the given ir_datasets ID.
         Maps documents, queries, qrels to a standardized format in preparation for full-rank operations with PyTerrier.
-        
+
         @param ir_datasets_id: the dataset ID as of ir_datasets
-        @param output_path: the path to the directory where the output files will be stored
-        @param include_original {False}: flag which signals if the original data of documents and queries should be included 
+        @param output_dataset_path: the path to the directory where the output files will be stored
+        @param output_dataset_truth_path: the path to the directory where the output files will be stored
+        @param include_original {False}: flag which signals if the original data of documents and queries should be included
         """
-        dataset = ir_datasets.load(ir_datasets_id)
-        
+        dataset = self.load_irds(ir_datasets_id)
+
         docs_mapped = (self.map_doc(doc, include_original) for doc in dataset.docs_iter())
         queries_mapped_jsonl = (self.map_query_as_jsonl(query, include_original) for query in dataset.queries_iter())
         queries_mapped_xml = (self.map_query_as_xml(query, include_original) for query in dataset.queries_iter())
-        qrels_mapped = (self.map_qrel(qrel) for qrel in dataset.qrels_iter())
-        
-        self.write_lines_to_file(docs_mapped, output_path/"documents.jsonl")
-        self.write_lines_to_file(queries_mapped, output_path/"queries.jsonl")
-        self.write_lines_to_xml_file(ir_datasets_id, queries_mapped_xml, output_path/"queries.xml")
-        self.write_lines_to_file(qrels_mapped, output_path/"qrels.txt")
-        
+        qrels_mapped = [self.map_qrel(qrel) for qrel in dataset.qrels_iter()]
 
-    def load_dataset_for_rerank(self, ir_datasets_id: str, output_path: Path, include_original: bool, run_file: Path) -> None:
+        self.write_lines_to_file(docs_mapped, output_dataset_path/"documents.jsonl")
+        self.write_lines_to_file(queries_mapped_jsonl, output_dataset_path/"queries.jsonl")
+        self.write_lines_to_xml_file(queries_mapped_xml, output_dataset_path/"queries.xml")
+        self.write_lines_to_file(qrels_mapped, output_dataset_truth_path/"qrels.txt")
+        self.write_lines_to_file(queries_mapped_jsonl, output_dataset_truth_path/"queries.jsonl")
+        self.write_lines_to_xml_file(queries_mapped_xml, output_dataset_truth_path/"queries.xml")
+
+
+    def load_dataset_for_rerank(self, ir_datasets_id: str, output_dataset_path: Path, output_dataset_truth_path: Path, include_original: bool, run_file: Path) -> None:
         """ Loads a dataset through ir_datasets package by the given ir_datasets ID.
         Maps qrels and TREC-run-formatted data by a given file to a format fitted for re-rank operations with PyTerrier.
-        
+
         @param ir_datasets_id: the dataset ID as of ir_datasets
-        @param output_path: the path to the directory where the output files will be created
+        @param output_dataset_path: the path to the directory where the output files will be stored
+        @param output_dataset_truth_path: the path to the directory where the output files will be stored
         @param include_original {False}: flag which signals if the original data of documents and queries should be included
         @param run_file: the path to a file with data in TREC-run format
         """
-        dataset = ir_datasets.load(ir_datasets_id)  
-        
+        dataset = self.load_irds(ir_datasets_id)
+
         id_pairs = self.extract_ids_from_run_file(run_file)
         docs = self.get_docs_by_ids(dataset, [id[1] for id in id_pairs])
         rerank = (self.construct_rerank_row(dataset, docs, id_pair[0], id_pair[1]) for id_pair in id_pairs)
-        
+
         qrels_mapped = (self.map_qrel(qrel) for qrel in dataset.qrels_iter())
-        
-        self.write_lines_to_file(rerank, output_path/"rerank.jsonl")
-        self.write_lines_to_file(qrels_mapped, output_path/"qrels.txt")
+
+        self.write_lines_to_file(rerank, output_dataset_path/"rerank.jsonl")
+        self.write_lines_to_file(qrels_mapped, output_dataset_truth_path/"qrels.txt")
 
 
     def map_doc(self, doc: tuple, include_original=False) -> str:
@@ -56,13 +66,12 @@ class IrDatasetsLoader(object):
 
         @param doc: the document as a namedtuple
         @param include_original: flag which signals if the original document data should be stored too
-        :return ret: the mapped document 
+        :return ret: the mapped document
         """
         ret = {
             "docno": doc.doc_id,
             # TODO: change when .default_text() is implemented
-            # "text": doc.default_text()      
-            "text": json.dumps(doc._asdict()) 
+            "text":doc.default_text()
         }
         if include_original:
             ret["original_doc"] = doc._asdict()
@@ -73,8 +82,8 @@ class IrDatasetsLoader(object):
         ret = {
             "qid": query.query_id,
             # TODO: change when .default_text() is implemented
-            # "text": query.default_text()
-            "query": query.text
+            #"query": query.default_text()
+            "query": query.text,
         }
         if include_original:
             ret["original_doc"] = query._asdict()
@@ -87,6 +96,7 @@ class IrDatasetsLoader(object):
         soup = BeautifulSoup()
         soup.append(soup.new_tag('topic', attrs={ 'number': query.query_id }))
         soup.topic.append(soup.new_tag('query'))
+        # TODO: change when .default_text() is implemented
         soup.query.append(soup.new_string(query.text))
 
         if include_original:
@@ -134,6 +144,7 @@ class IrDatasetsLoader(object):
     def write_lines_to_file(self, lines: Iterable[str], path: Path) -> None:
         if(path.exists()):
             raise RuntimeError(f"File already exists: {path}")
+        path.parent.mkdir(parents=True, exist_ok=True)
         with path.open('wt') as file:
             file.writelines('%s\n' % line for line in lines)
     
@@ -141,6 +152,7 @@ class IrDatasetsLoader(object):
     def write_lines_to_xml_file(self, ir_datasets_id: str, lines: Iterable[str], path: Path) -> None:
         if(path.exists()):
             raise RuntimeError(f"File already exists: {path}")
+        path.parent.mkdir(parents=True, exist_ok=True)
         soup = BeautifulSoup()
         soup.append(soup.new_tag('topics', attrs={ 'ir-dataset-id': ir_datasets_id }))
         root = soup.find('topics')
