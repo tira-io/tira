@@ -93,4 +93,4 @@ clean:
 	rm -r $(VENV_NAME)
 
 forward-mysql:
-	kubectl -n services-tira port-forward $$(kubectl -n services-tira get pods| grep tira-mariadb | awk '{print $$1 }') 3306
+	kubectl -n services-tira port-forward $$(kubectl -n services-tira get pods| grep tira-mariadb-[0-9] | awk '{print $$1 }') 3306
