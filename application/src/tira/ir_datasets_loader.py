@@ -1,7 +1,9 @@
 import sys
 import json
+import copy
 from pathlib import Path
 from typing import Iterable
+from bs4 import BeautifulSoup
 
 
 class IrDatasetsLoader(object):
@@ -26,16 +28,16 @@ class IrDatasetsLoader(object):
         dataset = self.load_irds(ir_datasets_id)
 
         docs_mapped = (self.map_doc(doc, include_original) for doc in dataset.docs_iter())
-        queries_mapped_jsonl = (self.map_query_as_jsonl(query, include_original) for query in dataset.queries_iter())
-        queries_mapped_xml = (self.map_query_as_xml(query, include_original) for query in dataset.queries_iter())
+        queries_mapped_jsonl = [self.map_query_as_jsonl(query, include_original) for query in dataset.queries_iter()]
+        queries_mapped_xml = [self.map_query_as_xml(query, include_original) for query in dataset.queries_iter()]
         qrels_mapped = [self.map_qrel(qrel) for qrel in dataset.qrels_iter()]
 
         self.write_lines_to_file(docs_mapped, output_dataset_path/"documents.jsonl")
         self.write_lines_to_file(queries_mapped_jsonl, output_dataset_path/"queries.jsonl")
-        self.write_lines_to_xml_file(queries_mapped_xml, output_dataset_path/"queries.xml")
+        self.write_lines_to_xml_file(ir_datasets_id, queries_mapped_xml, output_dataset_path/"queries.xml")
         self.write_lines_to_file(qrels_mapped, output_dataset_truth_path/"qrels.txt")
         self.write_lines_to_file(queries_mapped_jsonl, output_dataset_truth_path/"queries.jsonl")
-        self.write_lines_to_xml_file(queries_mapped_xml, output_dataset_truth_path/"queries.xml")
+        self.write_lines_to_xml_file(ir_datasets_id, queries_mapped_xml, output_dataset_truth_path/"queries.xml")
 
 
     def load_dataset_for_rerank(self, ir_datasets_id: str, output_dataset_path: Path, output_dataset_truth_path: Path, include_original: bool, run_file: Path) -> None:
@@ -157,6 +159,6 @@ class IrDatasetsLoader(object):
         soup.append(soup.new_tag('topics', attrs={ 'ir-dataset-id': ir_datasets_id }))
         root = soup.find('topics')
         for line in lines:
-            root.append(line)
+            root.append(copy.deepcopy(line))
         with path.open('wt') as file:
             file.write(soup.prettify())
