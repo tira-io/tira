@@ -742,7 +742,7 @@ class GitLabRunner(GitRunner):
                     try:
                         stdout = ''
                         user_software_job = gl_project.jobs.get(user_software_job.id)
-                        stdout = clean_job_output(user_software_job.trace().decode('UTF-8'))
+                        stdout = self.clean_job_output(user_software_job.trace().decode('UTF-8'))
                     except:
                         # Job is not started or similar
                         pass
@@ -769,6 +769,24 @@ class GitLabRunner(GitRunner):
             cache.set(cache_key, ret)
         
         return ret
+
+    def clean_job_output(self, ret):
+        ret = ''.join(filter(lambda x: x in string.printable, ret.strip()))
+        if '$ eval "${TIRA_COMMAND_TO_EXECUTE}"[0;m' in ret:
+            return self.clean_job_suffix(ret.split('$ eval "${TIRA_COMMAND_TO_EXECUTE}"[0;m')[1])
+        elif '$ eval "${TIRA_EVALUATION_COMMAND_TO_EXECUTE}"[0;m' in ret:
+            return self.clean_job_suffix(ret.split('$ eval "${TIRA_EVALUATION_COMMAND_TO_EXECUTE}"[0;m')[1])
+        else:
+            # Job not jet started.
+            return ''
+
+    def clean_job_suffix(self, ret):
+        if "[32;1m$ env|grep 'TIRA' > task.env" in ret:
+            ret = ret.split("[32;1m$ env|grep 'TIRA' > task.env")[0]
+        if "section_end:" in ret:
+            ret = ret.split("section_end:")[0]
+
+        return ret.strip()
 
     def extract_job_configuration(self, gl_project, branch):
         ret = {}

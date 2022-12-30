@@ -55,7 +55,7 @@ class Command(BaseCommand):
         if 'organization' not in options or not options['organization']:
             raise ValueError('Please pass --organization')
         
-        git_runner = get_git_runner(get_git_integration(options['organization'], None))
+        git_runner = get_git_integration(options['organization'], None)
         print(f'Use {git_runner}.')
     
         if 'archive_repository' in options and options['archive_repository']:
