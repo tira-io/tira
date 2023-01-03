@@ -17,6 +17,16 @@
     <form id="docker-form" class="docker_form">
         <input type="hidden" name="csrfmiddlewaretoken" :value="csrf">  <!-- TODO: this might not be needed anymore -->
         <div class="uk-grid uk-grid-small" data-uk-grid>
+            <div v-if="role==='admin'" class="uk-width-4-5">
+                <label class="uk-form-label" for="docker-software-input-job">Input Job (For Multi-Stage Jobs)
+                       
+                <select id="docker-software-input-job" :disabled="!docker.docker_softwares" class="uk-select upload-select" v-model="addContainerInputJob" >
+                    <option v-if="docker.docker_softwares" value="None">No Input Job (For Single-Stage Jobs)</option>
+                    <option v-else value="None" disabled>No job exists</option>
+                    <option v-for="software in docker.docker_softwares" :value="software.docker_software_id">{{ software.display_name }}</option>
+                </select>
+                </label>
+            </div>
             <div class="uk-width-4-5">
                 <label class="uk-form-label" for="docker-command-input">Command
                 <input id="docker-command-input" class="uk-input command-input" type="text"
@@ -197,7 +207,7 @@ export default {
     components: {
         ReviewList, DeleteConfirm
     },
-    props: ['csrf', 'datasets', 'docker', 'user_id', 'running_evaluations', 'task'],
+    props: ['csrf', 'datasets', 'docker', 'user_id', 'running_evaluations', 'task', 'role'],
     emits: ['addNotification', 'pollEvaluations', 'removeRun', 'addContainer', 'deleteContainer', 'pollRunningContainer', 'refreshDockerImages'],
     data() {
         return {
@@ -217,6 +227,7 @@ export default {
             selectedDataset: "None",
             selectedContainerCommand: null,
             selectedResources: "None",
+            addContainerInputJob: "None",
             toggleCommandHelp: false,
             startingContainer: false,
             editSoftwareMetadataToggle: false,
@@ -241,6 +252,11 @@ export default {
             const headers = new Headers({'X-CSRFToken': this.csrf})
             formData.append("command", this.addContainerCommand);
             formData.append("image", this.containerImage);
+            
+            if (this.addContainerInputJob  !== 'None') {
+                formData.append("inputJob", this.addContainerInputJob)
+            }
+            
             const response = await fetch(`/task/${this.task.task_id}/vm/${this.user_id}/add_software/docker`, {
               method: "POST",
               headers,

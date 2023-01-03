@@ -83,6 +83,7 @@
             :datasets="datasets"
             :running_evaluations="runningEvaluations"
             :task="task"
+            :role="role"
             @add-notification="(type, message) => addNotification(type, message)"
             @remove-run="(runId, type) => removeRun(runId, type)"
             @poll-evaluations="pollRunningEvaluations()"

@@ -334,15 +334,16 @@ def add_uploaded_run(task_id, vm_id, dataset_id, uploaded_file):
 def update_docker_software_metadata(docker_software_id, display_name, description, paper_link):
     return model.update_docker_software_metadata(docker_software_id, display_name, description, paper_link)
 
-def add_docker_software(task_id, vm_id, image, command):
+def add_docker_software(task_id, vm_id, image, command, input_job=None):
     """ Add the docker software to the user of the vm and return it """
     
     image, old_tag = image.split(':')
     new_tag = old_tag + '-tira-docker-software-id-' + randomname.get_name().lower()
     
     tira_image_name = get_git_integration(task_id=task_id).add_new_tag_to_docker_image_repository(image, old_tag, new_tag)
-    
-    return model.add_docker_software(task_id, vm_id, image + ':' + old_tag, command, tira_image_name)
+
+
+    return model.add_docker_software(task_id, vm_id, image + ':' + old_tag, command, tira_image_name, input_job)
 
 
 def add_registration(data):
