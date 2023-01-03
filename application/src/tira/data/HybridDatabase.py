@@ -1164,14 +1164,19 @@ class HybridDatabase(object):
         return {"run": returned_run,
                 "last_edit_date": upload.last_edit_date}
 
-    def add_docker_software(self, task_id, vm_id, user_image_name, command, tira_image_name):
+    def add_docker_software(self, task_id, vm_id, user_image_name, command, tira_image_name, input_job=None):
+        input_docker_software = None
+        if input_job:
+            input_docker_software = modeldb.DockerSoftware.objects.get(docker_software_id=input_job)
+
         docker_software = modeldb.DockerSoftware.objects.create(
                 vm=modeldb.VirtualMachine.objects.get(vm_id=vm_id),
                 task=modeldb.Task.objects.get(task_id=task_id),
                 command=command,
                 tira_image_name=tira_image_name,
                 user_image_name=user_image_name,
-                display_name=randomname.get_name()
+                display_name=randomname.get_name(),
+                input_docker_software=input_docker_software,
             )
         return self._docker_software_to_dict(docker_software)
 

@@ -411,8 +411,11 @@ def docker_software_add(request, task_id, vm_id):
 
         if not request.POST.get('command'):
             return JsonResponse({"status": 1, "message": "Please specify the associated docker command."})
-        
-        new_docker_software = model.add_docker_software(task_id, vm_id, request.POST.get('image'), request.POST.get('command'))
+
+        new_docker_software = model.add_docker_software(task_id, vm_id,
+                                                        request.POST.get('image'), request.POST.get('command'),
+                                                        request.POST.get('inputJob', None)
+                                                        )
         return JsonResponse({"status": 0, "message": "ok", "context": new_docker_software})
     else:
         return JsonResponse({"status": 1, "message": "GET is not allowed here."})
