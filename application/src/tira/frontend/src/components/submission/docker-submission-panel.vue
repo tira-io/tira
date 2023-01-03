@@ -124,6 +124,13 @@
 
 
         <div class="uk-grid-medium uk-margin-remove-top" data-uk-grid>
+            <div v-if="selectedContainerInputDockerSoftware" class="uk-width-1-1">
+                <label class="uk-form-label">Input Docker Software (immutable for reproducibility)
+                <input class="uk-input" type="text"
+                       :value="selectedContainerInputDockerSoftware" placeholder="selectedContainerInputDockerSoftware" readonly disabled>
+                </label>
+            </div>
+            
             <div class="uk-width-1-1">
                 <label class="uk-form-label">Command (immutable for reproducibility)
                 <input class="uk-input" type="text" :uk-tooltip="immutableHelp"
@@ -216,6 +223,7 @@ export default {
             showUploadVm: false,
             selectedContainerId: null,
             selectedContainer: null,
+            selectedContainerInputDockerSoftware: null,
             selectedRuns: null,
             containerImage: "None",
             addContainerCommand: "",
@@ -436,6 +444,7 @@ export default {
                     this.selectedRuns = this.docker.docker_softwares[did].runs
                     this.selectedContainer = this.docker.docker_softwares[did]
                     this.selectedContainerCommand = this.docker.docker_softwares[did].command
+                    this.selectedContainerInputDockerSoftware = this.docker.docker_softwares[did].input_docker_software
                     this.containerImage = this.docker.docker_softwares[did].user_image_name
                     this.selectedDataset = "None"
                     this.editSoftwareMetadataToggle = false
