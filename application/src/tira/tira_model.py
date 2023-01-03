@@ -551,6 +551,18 @@ def organizer_exists(organizer_id: str) -> bool:
 def run_exists(vm_id: str, dataset_id: str, run_id: str) -> bool:
     return model.run_exists(vm_id, dataset_id, run_id)
 
-
 def software_exists(task_id: str, vm_id: str, software_id: str) -> bool:
     return model.software_exists(task_id, vm_id, software_id)
+
+def latest_output_of_software_on_dataset(task_id: str, vm_id: str, software_id: str, docker_software_id: int, dataset_id: str):
+    run_ids = model.all_matching_run_ids(vm_id, dataset_id, task_id, software_id, docker_software_id)
+
+    if run_ids and len(run_ids) > 0:
+        return {
+            'task_id': task_id,
+            'vm_id': vm_id,
+            'dataset_id': dataset_id,
+            'run_id': run_ids[0]
+        }
+    else:
+        return None

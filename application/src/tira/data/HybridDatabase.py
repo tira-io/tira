@@ -1496,6 +1496,28 @@ class HybridDatabase(object):
     def software_exists(task_id: str, vm_id: str, software_id: str) -> bool:
         return modeldb.Software.objects.filter(software_id=software_id, vm__vm_id=vm_id).exists()
 
+    @staticmethod
+    def all_matching_run_ids(vm_id: str, input_dataset_id: str, task_id: str, software_id: str, docker_software_id: int):
+        ret = []
+
+        if software_id:
+            ret += [i.run_id for i in modeldb.Run.objects.filter(
+                software__software_id=software_id, task__task_id=task_id, input_dataset__dataset_id=input_dataset_id
+            )]
+
+        if docker_software_id:
+            ret += [i.run_id for i in modeldb.Run.objects.filter(
+                docker_software__docker_software_id=docker_software_id, task__task_id=task_id,
+                input_dataset__dataset_id=input_dataset_id
+            )]
+
+        if vm_id:
+            ret += [i.run_id for i in modeldb.Run.objects.filter(
+                upload__vm__vm_id=vm_id, task__task_id=task_id, input_dataset__dataset_id=input_dataset_id
+            )]
+
+        return ret
+
 # modeldb.EvaluationLog.objects.filter(vm_id='nlptasks-master').delete()
 # print(modeldb.Run.objects.all().exclude(upload=None).values())
 
