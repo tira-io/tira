@@ -529,7 +529,7 @@ class GitLabRunner(GitRunner):
                                             git_runner_command, git_repository_id, evaluator_id,
                                             'ubuntu:18.04',
                                             'echo \'No software to execute. Only evaluation\'',
-                                            '-1', list(settings.GIT_CI_AVAILABLE_RESOURCES.keys())[0])
+                                            '-1', list(settings.GIT_CI_AVAILABLE_RESOURCES.keys())[0], None)
 
         t = TransactionLog.objects.get(transaction_id=transaction_id)
         _ = EvaluationLog.objects.update_or_create(vm_id=vm_id, run_id=run_id, running_on=vm_id,
