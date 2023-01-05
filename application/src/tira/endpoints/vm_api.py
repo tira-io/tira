@@ -475,7 +475,7 @@ def run_execute_docker_software(request, task_id, vm_id, dataset_id, docker_soft
 
     input_run = None
     if 'input_docker_software_id' in docker_software and docker_software['input_docker_software_id']:
-        input_run = model.latest_output_of_software_on_dataset(task_id, None, None, docker_software_id, dataset_id)
+        input_run = model.latest_output_of_software_on_dataset(task_id, None, None, int(docker_software['input_docker_software_id']), dataset_id)
         if not input_run or not input_run.get('dataset_id', None) or not input_run.get('run_id', None):
             return JsonResponse({"status": 1, "message":
                 f"The execution of your software depends on the execution of {docker_software['input_docker_software']}"
