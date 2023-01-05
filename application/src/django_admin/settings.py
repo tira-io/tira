@@ -21,6 +21,9 @@ custom_settings = {}
 for cfg in (BASE_DIR / "config").glob("*.yml"):
     custom_settings.update(yaml.load(open(cfg, "r").read(), Loader=yaml.FullLoader))
 
+if 'database' not in custom_settings:
+    custom_settings['database'] = {}
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
