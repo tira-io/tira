@@ -479,8 +479,8 @@ def run_execute_docker_software(request, task_id, vm_id, dataset_id, docker_soft
         if not input_run or not input_run.get('dataset_id', None) or not input_run.get('vm_id', None) or not input_run.get('run_id', None):
             return JsonResponse({"status": 1, "message":
                 f"The execution of your software depends on the execution of {docker_software['input_docker_software']}"
-                f", but {docker_software['input_docker_software']} was never executed on this dataset."
-                f"Please execute first {docker_software['input_docker_software']} on your specified dataset."})
+                f", but {docker_software['input_docker_software']} was never executed on this dataset. "
+                f"Please execute first {docker_software['input_docker_software']} on your specified dataset. Found the input {input_run}."})
 
 
     git_runner = model.get_git_integration(task_id=task_id)
