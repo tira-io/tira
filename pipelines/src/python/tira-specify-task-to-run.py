@@ -66,7 +66,7 @@ def identify_environment_variables(job_file):
     ]
     
     if 'TIRA_INPUT_RUN_DATASET_ID' in job_configuration and 'TIRA_INPUT_RUN_VM_ID' in job_configuration and 'TIRA_INPUT_RUN_RUN_ID' in job_configuration:
-        local_input_run_directory = os.environ['TIRA_INPUT_RUN_DATASET_ID'] / os.environ['TIRA_INPUT_RUN_VM_ID'] / os.environ['TIRA_INPUT_RUN_RUN_ID'] / 'output'
+        local_input_run_directory = job_configuration['TIRA_INPUT_RUN_DATASET_ID'] / job_configuration['TIRA_INPUT_RUN_VM_ID'] / job_configuration['TIRA_INPUT_RUN_RUN_ID'] / 'output'
         absolute_input_run_directory = settings.TIRA_ROOT / 'data' / 'runs' / local_input_run_directory
         absolute_input_run_directory = os.path.abspath(absolute_input_run_directory)
         local_input_run_directory = os.path.abspath(local_input_run_directory)
