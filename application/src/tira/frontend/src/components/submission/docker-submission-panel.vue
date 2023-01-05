@@ -365,29 +365,16 @@ export default {
             this.startingContainer = true
             this.$refs['runContainerButton'].text = "Starting..."
 
-            const response = await fetch(`/grpc/${this.task.task_id}/${this.user_id}/run_execute/docker/${this.selectedDataset}/${this.selectedContainerId}/${this.selectedResources}`, {
-                method: "POST",
-                headers: new Headers({
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'X-CSRFToken': this.csrf
-                }),
-                body: JSON.stringify({
-                    csrfmiddlewaretoken: this.csrf,
-                    action: 'post'
-                })
+            submitPost(`/grpc/${this.task.task_id}/${this.user_id}/run_execute/docker/${this.selectedDataset}/${this.selectedContainerId}/${this.selectedResources}`,this.csrf, {csrfmiddlewaretoken: this.csrf, action: 'post'}).then(message => {
+                this.$emit('pollRunningContainer')
+                this.$refs['runContainerButton'].text = "Run Container"
+                this.startingContainer = false
+            }).catch(error => {
+                this.$emit('add-notification', 'error', error)
+                this.$emit('pollRunningContainer')
+                this.$refs['runContainerButton'].text = "Run Container"
+                this.startingContainer = false
             })
-            if (!response.ok) {
-                this.$emit('addNotification', 'error', `Error fetching endpoint: ${url} with ${response.status}`)
-            }
-            let results = await response.json()
-            if (results.status === 1) {
-                this.$emit('addNotification', 'error', `Running Container ${this.selectedContainerId} failed with ${response.status}. Message = ${response.message}`)
-                return
-            }
-            this.$emit('pollRunningContainer')
-            this.$refs['runContainerButton'].text = "Run Container"
-            this.startingContainer = false
         },
         softwareCanBeDeleted(){
             for (const run of this.selectedContainer.runs) {
