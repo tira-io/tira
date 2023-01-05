@@ -137,7 +137,6 @@ class GitRunner:
         }
 
         if input_run:
-            metadata['TIRA_INPUT_RUN_TASK_ID'] = input_run['task_id']
             metadata['TIRA_INPUT_RUN_DATASET_ID'] = input_run['dataset_id']
             metadata['TIRA_INPUT_RUN_VM_ID'] = input_run['vm_id']
             metadata['TIRA_INPUT_RUN_RUN_ID'] = input_run['run_id']
