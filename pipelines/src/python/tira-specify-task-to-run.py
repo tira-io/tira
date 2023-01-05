@@ -24,7 +24,7 @@ def config(job_file):
     return ret
 
 
-def copy_from_to(source_directory, target_directory)
+def copy_from_to(source_directory, target_directory):
     if exists(source_directory) and not exists(target_directory):
         print(f'Copy input data from {source_directory} to {target_directory}', file=sys.stderr)
         shutil.copytree(source_directory, os.path.abspath(Path(target_directory)))
