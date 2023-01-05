@@ -473,12 +473,23 @@ def run_execute_docker_software(request, task_id, vm_id, dataset_id, docker_soft
     if not docker_software:
         return JsonResponse({"status": 1, "message": f"There is no docker image with id {docker_software_id}"})
 
+    input_run = None
+    if 'input_docker_software_id' in docker_software and docker_software['input_docker_software_id']:
+        input_run = model.latest_output_of_software_on_dataset(task_id, vm_id, None, docker_software_id, dataset_id)
+        if not input_run:
+            return JsonResponse({"status": 1, "message":
+                f"The execution of your software depends on the execution of {docker_software['input_docker_software']}"
+                f", but {docker_software['input_docker_software']} was never executed on this dataset."
+                f"Please execute first {docker_software['input_docker_software']} on your specified dataset."})
+
+
     git_runner = model.get_git_integration(task_id=task_id)
     git_runner.run_docker_software_with_git_workflow(
         task_id, dataset_id, vm_id, get_tira_id(), evaluator['git_runner_image'],
         evaluator['git_runner_command'], evaluator['git_repository_id'], evaluator['evaluator_id'],
         docker_software['tira_image_name'], docker_software['command'],
-        'docker-software-' + docker_software_id, docker_resources
+        'docker-software-' + docker_software_id, docker_resources,
+        input_run
     )
 
     running_pipelines = git_runner.all_running_pipelines_for_repository(

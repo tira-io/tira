@@ -109,7 +109,7 @@ class GitRunner:
     def write_metadata_for_ci_job_to_repository(self, tmp_dir, task_id, transaction_id, dataset_id, vm_id, run_id, identifier,
                                                   git_runner_image, git_runner_command, evaluator_id,
                                                   user_image_to_execute, user_command_to_execute, tira_software_id,
-                                                  resources):
+                                                  resources, input_run):
         job_dir = Path(tmp_dir) / dataset_id / vm_id / run_id
         job_dir.mkdir(parents=True, exist_ok=True)
 
@@ -135,6 +135,12 @@ class GitRunner:
             'TIRA_EVALUATION_COMMAND_TO_EXECUTE': git_runner_command,
             'TIRA_EVALUATION_SOFTWARE_ID': evaluator_id,
         }
+
+        if input_run:
+            metadata['TIRA_INPUT_RUN_TASK_ID'] = input_run['task_id']
+            metadata['TIRA_INPUT_RUN_DATASET_ID'] = input_run['dataset_id']
+            metadata['TIRA_INPUT_RUN_VM_ID'] = input_run['vm_id']
+            metadata['TIRA_INPUT_RUN_RUN_ID'] = input_run['run_id']
     
         open(job_dir / 'job-to-execute.txt', 'w').write(self.dict_to_key_value_file(metadata))
 
@@ -534,11 +540,12 @@ class GitLabRunner(GitRunner):
 
     def run_docker_software_with_git_workflow(self, task_id, dataset_id, vm_id, run_id, git_runner_image,
                                               git_runner_command, git_repository_id, evaluator_id,
-                                              user_image_to_execute, user_command_to_execute, tira_software_id, resources):
+                                              user_image_to_execute, user_command_to_execute, tira_software_id,
+                                              resources, input_run):
         msg = f"start run_docker_image with git: {task_id} - {dataset_id} - {vm_id} - {run_id}"
         transaction_id = self.start_git_workflow(task_id, dataset_id, vm_id, run_id, git_runner_image,
                            git_runner_command, git_repository_id, evaluator_id,
-                           user_image_to_execute, user_command_to_execute, tira_software_id, resources)
+                           user_image_to_execute, user_command_to_execute, tira_software_id, resources, input_run)
 
         # TODO: add transaction to log
 
@@ -546,7 +553,7 @@ class GitLabRunner(GitRunner):
 
     def start_git_workflow(self, task_id, dataset_id, vm_id, run_id, git_runner_image,
                            git_runner_command, git_repository_id, evaluator_id,
-                           user_image_to_execute, user_command_to_execute, tira_software_id, resources):
+                           user_image_to_execute, user_command_to_execute, tira_software_id, resources, input_run):
         msg = f"start git-workflow with git: {task_id} - {dataset_id} - {vm_id} - {run_id}"
         transaction_id = new_transaction(msg, in_grpc=False)
         logger.info(msg)
@@ -558,7 +565,8 @@ class GitLabRunner(GitRunner):
 
             self.write_metadata_for_ci_job_to_repository(tmp_dir, task_id, transaction_id, dataset_id, vm_id, run_id,
                                                       identifier, git_runner_image, git_runner_command, evaluator_id,
-                                                      user_image_to_execute, user_command_to_execute, tira_software_id, resources)
+                                                      user_image_to_execute, user_command_to_execute, tira_software_id,
+                                                      resources, input_run)
 
             self.commit_and_push(repo, dataset_id, vm_id, run_id, identifier, git_repository_id, resources)
 
