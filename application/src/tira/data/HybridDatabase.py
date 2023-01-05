@@ -1524,7 +1524,7 @@ class HybridDatabase(object):
                 upload__vm__vm_id=vm_id, task__task_id=task_id, input_dataset__dataset_id=input_dataset_id
             )]
 
-        return ret
+        return [i for i in ret if i]
 
 # modeldb.EvaluationLog.objects.filter(vm_id='nlptasks-master').delete()
 # print(modeldb.Run.objects.all().exclude(upload=None).values())
