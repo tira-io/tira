@@ -23,7 +23,7 @@ class IrDatasetsLoader(object):
         @param ir_datasets_id: the dataset ID as of ir_datasets
         @param output_dataset_path: the path to the directory where the output files will be stored
         @param output_dataset_truth_path: the path to the directory where the output files will be stored
-        @param include_original {False}: flag which signals if the original data of documents and queries should be included
+        @param include_original {False}: flag which signals if the original data of documents and queries should be included 
         """
         dataset = self.load_irds(ir_datasets_id)
 
@@ -31,7 +31,7 @@ class IrDatasetsLoader(object):
         queries_mapped_jsonl = [self.map_query_as_jsonl(query, include_original) for query in dataset.queries_iter()]
         queries_mapped_xml = [self.map_query_as_xml(query, include_original) for query in dataset.queries_iter()]
         qrels_mapped = [self.map_qrel(qrel) for qrel in dataset.qrels_iter()]
-
+        
         self.write_lines_to_file(docs_mapped, output_dataset_path/"documents.jsonl")
         self.write_lines_to_file(queries_mapped_jsonl, output_dataset_path/"queries.jsonl")
         self.write_lines_to_xml_file(ir_datasets_id, queries_mapped_xml, output_dataset_path/"queries.xml")
