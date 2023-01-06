@@ -18,10 +18,6 @@ import yaml
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 custom_settings = {}
-if next((BASE_DIR / "config").glob("*.yml"), None) is None:
-    raise RuntimeError(
-        "No configuration file found. Did you run `make setup`?"
-    )
 for cfg in (BASE_DIR / "config").glob("*.yml"):
     custom_settings.update(yaml.load(open(cfg, "r").read(), Loader=yaml.FullLoader))
 

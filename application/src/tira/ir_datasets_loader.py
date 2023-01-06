@@ -31,7 +31,7 @@ class IrDatasetsLoader(object):
         queries_mapped_jsonl = [self.map_query_as_jsonl(query, include_original) for query in dataset.queries_iter()]
         queries_mapped_xml = [self.map_query_as_xml(query, include_original) for query in dataset.queries_iter()]
         qrels_mapped = [self.map_qrel(qrel) for qrel in dataset.qrels_iter()]
-        
+
         self.write_lines_to_file(docs_mapped, output_dataset_path/"documents.jsonl")
         self.write_lines_to_file(queries_mapped_jsonl, output_dataset_path/"queries.jsonl")
         self.write_lines_to_xml_file(ir_datasets_id, queries_mapped_xml, output_dataset_path/"queries.xml")
@@ -68,7 +68,7 @@ class IrDatasetsLoader(object):
 
         @param doc: the document as a namedtuple
         @param include_original: flag which signals if the original document data should be stored too
-        :return ret: the mapped document
+        :return ret: the mapped document 
         """
         ret = {
             "docno": doc.doc_id,
@@ -83,7 +83,6 @@ class IrDatasetsLoader(object):
     def map_query_as_jsonl(self, query: tuple, include_original=False) -> str:
         ret = {
             "qid": query.query_id,
-            # TODO: change when .default_text() is implemented
             #"query": query.default_text()
             "query": query.text,
         }

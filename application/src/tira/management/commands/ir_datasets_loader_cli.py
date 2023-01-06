@@ -24,7 +24,7 @@ class Command(BaseCommand):
        @param --output_dataset_path: required, string: the path to the directory where the output will be stored
        @param --output_dataset_truth_path: required, string: the path to the directory where the output will be stored
        @param --include_original {False}: optional, boolean: flag to signal, if the original data should be included
-       @param --rerank: optional, string: if used, mapping will be in preparation for re-ranking operations and a path to file
+       @param --rerank: optional, string: if used, mapping will be in preparation for re-ranking operations and a path to file 
                         with TREC-run formatted data is required
     """
 
@@ -49,7 +49,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         if not self.contains_all_required_args(options):
             return
-
+        
         if options['rerank']:
             self.import_dataset_for_rerank(
                 options['ir_datasets_id'],
