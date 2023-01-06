@@ -101,8 +101,8 @@ class IrDatasetsLoader(object):
         if include_original:
             soup.topic.append(soup.new_tag('original_query'))
             for key, value in query._asdict().items():
-                soup.original_doc.append(soup.new_tag(str(key)))
-                tag = soup.original_doc.find(key)
+                soup.original_query.append(soup.new_tag(str(key)))
+                tag = soup.original_query.find(key)
                 tag.append(soup.new_string(str(value)))
         return soup
 
