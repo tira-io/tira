@@ -23,7 +23,7 @@ class Command(BaseCommand):
        @param --ir_dataset_id: required, string: the dataset ID as used by ir_datasets 
        @param --output_dataset_path: required, string: the path to the directory where the output will be stored
        @param --output_dataset_truth_path: required, string: the path to the directory where the output will be stored
-       @param --include_original {False}: optional, boolean: flag to signal, if the original data should be included
+       @param --include_original {True}: optional, boolean: flag to signal, if the original data should be included
        @param --rerank: optional, string: if used, mapping will be in preparation for re-ranking operations and a path to file 
                         with TREC-run formatted data is required
     """
@@ -42,19 +42,21 @@ class Command(BaseCommand):
 
     def contains_all_required_args(self, options):
         return 'ir_datasets_id' in options and options['ir_datasets_id'] \
-            and 'output_dataset_path' in options and options['output_dataset_path'] \
-            and 'output_dataset_truth_path' in options and options['output_dataset_truth_path'] \
-            and 'rerank' in options
+            and 'output_dataset_path' in options and options['output_dataset_path']
 
     def handle(self, *args, **options):
         if not self.contains_all_required_args(options):
             return
         
+        truth_path = Path(options['output_dataset_truth_path']) if 'output_dataset_truth_path' in options and options['output_dataset_truth_path'] else None
+        
         if options['rerank']:
+          
+        
             self.import_dataset_for_rerank(
                 options['ir_datasets_id'],
                 Path(options['output_dataset_path']),
-                Path(options['output_dataset_truth_path']),
+                truth_path,
                 options['include_original'],
                 options['rerank']
             )
@@ -62,7 +64,7 @@ class Command(BaseCommand):
             self.import_dataset_for_fullrank(
                 options['ir_datasets_id'],
                 Path(options['output_dataset_path']),
-                Path(options['output_dataset_truth_path']),
+                truth_path,
                 options['include_original']
             )
 
@@ -70,6 +72,6 @@ class Command(BaseCommand):
         parser.add_argument('--ir_datasets_id', default=None, type=str)
         parser.add_argument('--output_dataset_path', default=None, type=Path)
         parser.add_argument('--output_dataset_truth_path', default=None, type=Path)
-        parser.add_argument('--include_original', default=False, type=bool)
+        parser.add_argument('--include_original', default=True, type=bool)
         parser.add_argument('--rerank', default=None, type=Path)
 

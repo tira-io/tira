@@ -14,7 +14,7 @@ class IrDatasetsLoader(object):
         except:
             raise ValueError(f'Could not load the dataset {ir_datasets_id}. Does it exist?')
 
-    def load_dataset_for_fullrank(self, ir_datasets_id: str, output_dataset_path: Path, output_dataset_truth_path: Path,  include_original=False) -> None:
+    def load_dataset_for_fullrank(self, ir_datasets_id: str, output_dataset_path: Path, output_dataset_truth_path: Path,  include_original=True) -> None:
         """ Loads a dataset through the ir_datasets package by the given ir_datasets ID.
         Maps documents, queries, qrels to a standardized format in preparation for full-rank operations with PyTerrier.
         
@@ -31,8 +31,10 @@ class IrDatasetsLoader(object):
         
         self.write_lines_to_file(docs_mapped, output_dataset_path/"documents.jsonl")
         self.write_lines_to_file(queries_mapped, output_dataset_path/"queries.jsonl")
-        self.write_lines_to_file(qrels_mapped, output_dataset_truth_path/"qrels.txt")
-        self.write_lines_to_file(queries_mapped, output_dataset_truth_path/"queries.jsonl")
+        
+        if output_dataset_truth_path:
+            self.write_lines_to_file(qrels_mapped, output_dataset_truth_path/"qrels.txt")
+            self.write_lines_to_file(queries_mapped, output_dataset_truth_path/"queries.jsonl")
 
 
     def load_dataset_for_rerank(self, ir_datasets_id: str, output_dataset_path: Path, output_dataset_truth_path: Path, include_original: bool, run_file: Path) -> None:
@@ -54,10 +56,12 @@ class IrDatasetsLoader(object):
         qrels_mapped = (self.map_qrel(qrel) for qrel in dataset.qrels_iter())
         
         self.write_lines_to_file(rerank, output_dataset_path/"rerank.jsonl")
-        self.write_lines_to_file(qrels_mapped, output_dataset_truth_path/"qrels.txt")
+        
+        if output_dataset_truth_path:
+            self.write_lines_to_file(qrels_mapped, output_dataset_truth_path/"qrels.txt")
 
 
-    def map_doc(self, doc: tuple, include_original=False) -> str:
+    def map_doc(self, doc: tuple, include_original=True) -> str:
         """ Maps a document of any dataset (loaded through ir_datasets) to a standarized format
         stores full document data too, if flag 'include_original' is set
 
@@ -67,22 +71,20 @@ class IrDatasetsLoader(object):
         """
         ret = {
             "docno": doc.doc_id,
-            # TODO: change when .default_text() is implemented
             "text":doc.default_text()
         }
         if include_original:
-            ret["original_doc"] = doc._asdict()
+            ret["original_document"] = doc._asdict()
         return json.dumps(ret)
 
 
-    def map_query(self, query: tuple, include_original=False) -> str:
+    def map_query(self, query: tuple, include_original=True) -> str:
         ret = {
             "qid": query.query_id,
-            #"query": query.default_text()
-            "query": query.text,
+            "query": query.default_text(),
         }
         if include_original:
-            ret["original_doc"] = query._asdict()
+            ret["original_query"] = query._asdict()
         return json.dumps(ret)
 
 
@@ -106,15 +108,11 @@ class IrDatasetsLoader(object):
         doc = docs[doc_id]     
         ret = {
             "qid": query_id,
-            # TODO: change when .default_text() is implemented
-            #"query": query.default_text(),
-            "query": query.title,
+            "query": query.default_text(),
             "original_query": query._asdict(),
             "docno": doc_id,
-            # TODO: change when .default_text() is implemented
-            #"text": doc.default_text(),
-            "text": json.dumps(doc._asdict()),
-            "original_doc": doc._asdict(),
+            "text": doc.default_text(),
+            "original_document": doc._asdict(),
         }
         return json.dumps(ret)
 
