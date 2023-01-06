@@ -19,7 +19,7 @@ class IrDatasetsLoader(object):
     def load_dataset_for_fullrank(self, ir_datasets_id: str, output_dataset_path: Path, output_dataset_truth_path: Path,  include_original=False) -> None:
         """ Loads a dataset through the ir_datasets package by the given ir_datasets ID.
         Maps documents, queries, qrels to a standardized format in preparation for full-rank operations with PyTerrier.
-        
+
         @param ir_datasets_id: the dataset ID as of ir_datasets
         @param output_dataset_path: the path to the directory where the output files will be stored
         @param output_dataset_truth_path: the path to the directory where the output files will be stored
@@ -57,7 +57,7 @@ class IrDatasetsLoader(object):
         rerank = (self.construct_rerank_row(dataset, docs, id_pair[0], id_pair[1]) for id_pair in id_pairs)
 
         qrels_mapped = (self.map_qrel(qrel) for qrel in dataset.qrels_iter())
-
+        
         self.write_lines_to_file(rerank, output_dataset_path/"rerank.jsonl")
         self.write_lines_to_file(qrels_mapped, output_dataset_truth_path/"qrels.txt")
 
