@@ -4,6 +4,7 @@ import copy
 from pathlib import Path
 from typing import Iterable
 from bs4 import BeautifulSoup
+from tqdm import tqdm
 
 
 class IrDatasetsLoader(object):
@@ -27,7 +28,7 @@ class IrDatasetsLoader(object):
         """
         dataset = self.load_irds(ir_datasets_id)
 
-        docs_mapped = (self.map_doc(doc, include_original) for doc in dataset.docs_iter())
+        docs_mapped = (self.map_doc(doc, include_original) for doc in tqdm(dataset.docs_iter(), 'Load Documents'))
         queries_mapped_jsonl = [self.map_query_as_jsonl(query, include_original) for query in dataset.queries_iter()]
         queries_mapped_xml = [self.map_query_as_xml(query, include_original) for query in dataset.queries_iter()]
         qrels_mapped = [self.map_qrel(qrel) for qrel in dataset.qrels_iter()]
