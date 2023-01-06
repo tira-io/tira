@@ -49,7 +49,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         if not self.contains_all_required_args(options):
             return
-        
+
         if options['rerank']:
             self.import_dataset_for_rerank(
                 options['ir_datasets_id'],
