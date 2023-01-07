@@ -65,7 +65,8 @@ class Command(BaseCommand):
                 options['ir_datasets_id'],
                 Path(options['output_dataset_path']),
                 truth_path,
-                options['include_original']
+                options['include_original'],
+                skip_dpcuments = options['skip_documents']
             )
 
     def add_arguments(self, parser):
@@ -73,5 +74,6 @@ class Command(BaseCommand):
         parser.add_argument('--output_dataset_path', default=None, type=Path)
         parser.add_argument('--output_dataset_truth_path', default=None, type=Path)
         parser.add_argument('--include_original', default=True, type=bool)
+        parser.add_argument('--skip_documents', default=False, type=bool)
         parser.add_argument('--rerank', default=None, type=Path)
 
