@@ -17,7 +17,7 @@ class IrDatasetsLoader(object):
         except:
             raise ValueError(f'Could not load the dataset {ir_datasets_id}. Does it exist?')
 
-    def load_dataset_for_fullrank(self, ir_datasets_id: str, output_dataset_path: Path, output_dataset_truth_path: Path,  include_original=True, skip_documents=False) -> None:
+    def load_dataset_for_fullrank(self, ir_datasets_id: str, output_dataset_path: Path, output_dataset_truth_path: Path,  include_original=True, skip_documents=False, skip_qrels=False) -> None:
         """ Loads a dataset through the ir_datasets package by the given ir_datasets ID.
         Maps documents, queries, qrels to a standardized format in preparation for full-rank operations with PyTerrier.
         
@@ -34,11 +34,13 @@ class IrDatasetsLoader(object):
         
         queries_mapped_jsonl = [self.map_query_as_jsonl(query, include_original) for query in dataset.queries_iter()]
         queries_mapped_xml = [self.map_query_as_xml(query, include_original) for query in dataset.queries_iter()]
-        qrels_mapped = [self.map_qrel(qrel) for qrel in dataset.qrels_iter()]
+        
+        if not skip_qrels:
+            qrels_mapped = [self.map_qrel(qrel) for qrel in dataset.qrels_iter()]
+            self.write_lines_to_file(qrels_mapped, output_dataset_truth_path/"qrels.txt")
 
         self.write_lines_to_file(queries_mapped_jsonl, output_dataset_path/"queries.jsonl")
         self.write_lines_to_xml_file(ir_datasets_id, queries_mapped_xml, output_dataset_path/"queries.xml")
-        self.write_lines_to_file(qrels_mapped, output_dataset_truth_path/"qrels.txt")
         self.write_lines_to_file(queries_mapped_jsonl, output_dataset_truth_path/"queries.jsonl")
         self.write_lines_to_xml_file(ir_datasets_id, queries_mapped_xml, output_dataset_truth_path/"queries.xml")
 
