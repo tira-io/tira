@@ -440,7 +440,7 @@ class GitLabRunner(GitRunner):
         return render_to_string('tira/git_task_repository_gitlab_ci.yml', context={})
 
     def template_ci_file_name(self):
-        return '.git-ci.yml'
+        return '.gitlab-ci.yml'
 
     def template_readme(self, task_id):
         """
