@@ -28,10 +28,10 @@ class Command(BaseCommand):
                         with TREC-run formatted data is required
     """
 
-    def import_dataset_for_fullrank(self, ir_datasets_id: str, output_dataset_path: Path, output_dataset_truth_path: Path, include_original: bool):
+    def import_dataset_for_fullrank(self, ir_datasets_id: str, output_dataset_path: Path, output_dataset_truth_path: Path, include_original: bool, skip_documents: bool):
         print(f'Task: Full-Rank -> create files: \n documents.jsonl \n queries.jsonl \n qrels.txt \n at {output_dataset_path}/')
         datasets_loader = IrDatasetsLoader()
-        datasets_loader.load_dataset_for_fullrank(ir_datasets_id, output_dataset_path, output_dataset_truth_path, include_original)
+        datasets_loader.load_dataset_for_fullrank(ir_datasets_id, output_dataset_path, output_dataset_truth_path, include_original, skip_documents = skip_documents)
 
 
     def import_dataset_for_rerank(self, ir_datasets_id: str, output_dataset_path: Path, output_dataset_truth_path: Path, include_original: bool, run_file: Path):
@@ -66,7 +66,7 @@ class Command(BaseCommand):
                 Path(options['output_dataset_path']),
                 truth_path,
                 options['include_original'],
-                skip_dpcuments = options['skip_documents']
+                skip_documents = options['skip_documents']
             )
 
     def add_arguments(self, parser):
