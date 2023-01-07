@@ -28,10 +28,10 @@ class Command(BaseCommand):
                         with TREC-run formatted data is required
     """
 
-    def import_dataset_for_fullrank(self, ir_datasets_id: str, output_dataset_path: Path, output_dataset_truth_path: Path, include_original: bool, skip_documents: bool):
+    def import_dataset_for_fullrank(self, ir_datasets_id: str, output_dataset_path: Path, output_dataset_truth_path: Path, include_original: bool, skip_documents: bool, skip_qrels: bool):
         print(f'Task: Full-Rank -> create files: \n documents.jsonl \n queries.jsonl \n qrels.txt \n at {output_dataset_path}/')
         datasets_loader = IrDatasetsLoader()
-        datasets_loader.load_dataset_for_fullrank(ir_datasets_id, output_dataset_path, output_dataset_truth_path, include_original, skip_documents = skip_documents)
+        datasets_loader.load_dataset_for_fullrank(ir_datasets_id, output_dataset_path, output_dataset_truth_path, include_original, skip_documents = skip_documents, skip_qrels = skip_qrels)
 
 
     def import_dataset_for_rerank(self, ir_datasets_id: str, output_dataset_path: Path, output_dataset_truth_path: Path, include_original: bool, run_file: Path):
@@ -66,7 +66,8 @@ class Command(BaseCommand):
                 Path(options['output_dataset_path']),
                 truth_path,
                 options['include_original'],
-                skip_documents = options['skip_documents']
+                skip_documents = options['skip_documents'],
+                skip_qrels = options['skip_qrels']
             )
 
     def add_arguments(self, parser):
@@ -75,5 +76,6 @@ class Command(BaseCommand):
         parser.add_argument('--output_dataset_truth_path', default=None, type=Path)
         parser.add_argument('--include_original', default=True, type=bool)
         parser.add_argument('--skip_documents', default=False, type=bool)
+        parser.add_argument('--skip_qrels', default=False, type=bool)
         parser.add_argument('--rerank', default=None, type=Path)
 
