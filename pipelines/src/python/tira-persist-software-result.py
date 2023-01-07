@@ -76,7 +76,7 @@ def copy_to_local(absolute_src, relative_target):
     json.dump({'keep': True}, open(relative_target + '/.keep', 'w'))
 
 def identify_environment_variables():
-    eval_id = dt.now().strftime('%Y-%m-%d-%H-%M-%S')
+    eval_id = dt.now().strftime('%Y-%m-%d-%H-%M-%S') + '-evaluated-run-' + os.environ['TIRA_RUN_ID']
     ret = set()
     for (k,v) in os.environ.items() :
         if k.lower().startswith('tira') and k.upper() not in ['TIRA_EVALUATION_INPUT_DIR', 'TIRA_EVALUATION_OUTPUT_DIR', 'TIRA_FINAL_EVALUATION_OUTPUT_DIR', 'TIRA_EVALUATION_IMAGE_TO_EXECUTE', 'TIRA_EVALUATION_COMMAND_TO_EXECUTE', 'TIRA_EVALUATION_SOFTWARE_ID']:
