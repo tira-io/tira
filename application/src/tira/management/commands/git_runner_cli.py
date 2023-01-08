@@ -88,12 +88,18 @@ class Command(BaseCommand):
                                resources='small-resources-gpu',
                                
             )
+
+        if 'clean_repository' in options and options['clean_repository']:
+#            raise ValueError('ToDo: please insert the git authentication token with the name "tira-automation-bot-gitlab-admin-token" (maiks keepass) to git_runner.py method get_git_runner'
+            git_runner.clean_task_repository(options['clean_repository'])
+
         if 'docker_images_in_user_repository' in options and options['docker_images_in_user_repository']:
             print(git_runner.docker_images_in_user_repository(options['docker_images_in_user_repository']))
 
     def add_arguments(self, parser):
         parser.add_argument('--create_task_repository', default=None, type=str)
         parser.add_argument('--create_user_repository', default=None, type=str)
+        parser.add_argument('--clean_repository', default=None, type=str)
         parser.add_argument('--run_image', default=None, type=str)
         parser.add_argument('--archive_repository', default=None, type=str)
         parser.add_argument('--running_jobs', default=None, type=str)

@@ -642,6 +642,12 @@ class GitLabRunner(GitRunner):
             if potential_existing_projects.name == repo and int(potential_existing_projects.namespace['id']) == self.namespace_id:
                 return potential_existing_projects
 
+    def clean_task_repository(self, task_id):
+        project = self.existing_repository(task_id)
+        for pipeline in project.pipelines.list(get_all=True):
+            print('Delete Pipeline: ' + str(pipeline.id))
+            pipeline.delete()
+
     def _create_task_repository_on_gitHoster(self, task_id):
         project = self.existing_repository(task_id)
         if project:
