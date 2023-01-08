@@ -232,19 +232,13 @@ export default {
           .filter(a => { if (a !== '') return a })
     },
     canBeDeleted(runId) {
-      if (this.inputRunIdCache.includes(runId)) {
-        return false
-      }
-      else if (this.runCache[runId].review.published) {
+      if (this.runCache[runId].review.published) {
         return false
       }
       return true
     },
     canBeDeletedTooltip(runId) {
-      if (this.inputRunIdCache.includes(runId)) {
-        return "title: This run cant be deleted. An evaluation depends on it.; delay: 1"
-      }
-      else if (this.runCache[runId].review.published) {
+      if (this.runCache[runId].review.published) {
         return "title: This run cant be deleted. Remove it from the leaderboard first.; delay: 1"
       }
       return "title: Delete this run!; delay: 1"
