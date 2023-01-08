@@ -28,10 +28,10 @@ class Command(BaseCommand):
                         with TREC-run formatted data is required
     """
 
-    def import_dataset_for_fullrank(self, ir_datasets_id: str, output_dataset_path: Path, output_dataset_truth_path: Path, include_original: bool, skip_documents: bool, skip_qrels: bool):
+    def import_dataset_for_fullrank(self, ir_datasets_id: str, output_dataset_path: Path, output_dataset_truth_path: Path, include_original: bool, skip_documents: bool, skip_qrels: bool, skip_duplicate_ids: bool):
         print(f'Task: Full-Rank -> create files: \n documents.jsonl \n queries.jsonl \n qrels.txt \n at {output_dataset_path}/')
         datasets_loader = IrDatasetsLoader()
-        datasets_loader.load_dataset_for_fullrank(ir_datasets_id, output_dataset_path, output_dataset_truth_path, include_original, skip_documents = skip_documents, skip_qrels = skip_qrels)
+        datasets_loader.load_dataset_for_fullrank(ir_datasets_id, output_dataset_path, output_dataset_truth_path, include_original, skip_documents = skip_documents, skip_qrels = skip_qrels, skip_duplicate_ids = skip_duplicate_ids)
 
 
     def import_dataset_for_rerank(self, ir_datasets_id: str, output_dataset_path: Path, output_dataset_truth_path: Path, include_original: bool, run_file: Path):
@@ -67,7 +67,8 @@ class Command(BaseCommand):
                 truth_path,
                 options['include_original'],
                 skip_documents = options['skip_documents'],
-                skip_qrels = options['skip_qrels']
+                skip_qrels = options['skip_qrels'],
+                skip_duplicate_ids = options['skip_duplicate_ids']
             )
 
     def add_arguments(self, parser):
@@ -77,5 +78,6 @@ class Command(BaseCommand):
         parser.add_argument('--include_original', default=True, type=bool)
         parser.add_argument('--skip_documents', default=False, type=bool)
         parser.add_argument('--skip_qrels', default=False, type=bool)
+        parser.add_argument('--skip_duplicate_ids', default=True, type=bool)
         parser.add_argument('--rerank', default=None, type=Path)
 

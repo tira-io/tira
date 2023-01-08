@@ -17,7 +17,21 @@ class IrDatasetsLoader(object):
         except:
             raise ValueError(f'Could not load the dataset {ir_datasets_id}. Does it exist?')
 
-    def load_dataset_for_fullrank(self, ir_datasets_id: str, output_dataset_path: Path, output_dataset_truth_path: Path,  include_original=True, skip_documents=False, skip_qrels=False) -> None:
+
+    def yield_docs(self, dataset, include_original, skip_duplicate_ids):
+        already_covered_ids = set()
+        
+        for doc in tqdm(dataset.docs_iter(), 'Load Documents'):
+            if skip_duplicate_ids and doc.doc_id in already_covered_ids:
+                continue
+            
+            yield self.map_doc(doc, include_original)
+            if skip_duplicate_ids:
+                already_covered_ids.add(doc.doc_id)
+                
+        
+
+    def load_dataset_for_fullrank(self, ir_datasets_id: str, output_dataset_path: Path, output_dataset_truth_path: Path,  include_original=True, skip_documents=False, skip_qrels=False, skip_duplicate_ids=True) -> None:
         """ Loads a dataset through the ir_datasets package by the given ir_datasets ID.
         Maps documents, queries, qrels to a standardized format in preparation for full-rank operations with PyTerrier.
         
@@ -29,8 +43,7 @@ class IrDatasetsLoader(object):
         dataset = self.load_irds(ir_datasets_id)
 
         if not skip_documents:
-            docs_mapped = (self.map_doc(doc, include_original) for doc in tqdm(dataset.docs_iter(), 'Load Documents'))
-            self.write_lines_to_file(docs_mapped, output_dataset_path/"documents.jsonl")
+            self.write_lines_to_file(self.yield_docs(dataset, include_original, skip_duplicate_ids), output_dataset_path/"documents.jsonl")
         
         queries_mapped_jsonl = [self.map_query_as_jsonl(query, include_original) for query in dataset.queries_iter()]
         queries_mapped_xml = [self.map_query_as_xml(query, include_original) for query in dataset.queries_iter()]
