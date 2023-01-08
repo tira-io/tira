@@ -24,10 +24,11 @@ def config(job_file):
     return ret
 
 
-def copy_from_to(source_directory, target_directory):
+def copy_from_to(source_directory, target_directory, file_skip_list=()):
     if exists(source_directory) and not exists(target_directory):
         print(f'Copy input data from {source_directory} to {target_directory}', file=sys.stderr)
-        shutil.copytree(source_directory, os.path.abspath(Path(target_directory)))
+        ignore = shutil.ignore_patterns(*file_skip_list) if file_skip_list else None
+        shutil.copytree(source_directory, os.path.abspath(Path(target_directory)), ignore=ignore)
     else:
         print(f'Absolute input dataset {source_directory} exists: {exists(source_directory)}', file=sys.stderr)
         print(f'Relative input dataset {target_directory} exists: {exists(target_directory)}', file=sys.stderr)
@@ -52,6 +53,8 @@ def identify_environment_variables(job_file):
     absolute_input_dataset = '/mnt/ceph/tira/data/datasets/' + input_dataset
     input_dataset_truth = '/mnt/ceph/tira/data/datasets/' + job_configuration['TIRA_DATASET_TYPE'] + '-datasets-truth/' + job_configuration['TIRA_TASK_ID'] + '/' + tira_dataset_id + '/'
     
+    file_skip_list = []
+    
     ret = [
         'TIRA_INPUT_RUN=' + absolute_input_dataset,
         'TIRA_DATASET_ID=' + tira_dataset_id,
@@ -71,8 +74,8 @@ def identify_environment_variables(job_file):
         absolute_input_run_directory = os.path.abspath(absolute_input_run_directory)
         
         print(f'The software uses an input run. I will copy data from {absolute_input_run_directory} to {local_input_run_directory}', file=sys.stderr)
-        copy_from_to(absolute_input_run_directory, local_input_run_directory)
-        
+        copy_from_to(absolute_input_run_directory, local_input_run_directory, file_skip_list)
+        file_skip_list += ['documents.jsonl']
         ret += [
             'inputRun=' + local_input_run_directory,
         ]
@@ -86,7 +89,7 @@ def identify_environment_variables(job_file):
         if len([j for j in ret if i in j]) != 1:
             raise ValueError('I expected the variable "' + i + '" to be defined by the job, but it is missing.')
 
-    copy_from_to(absolute_input_dataset, input_dataset)
+    copy_from_to(absolute_input_dataset, input_dataset, file_skip_list)
     
     json.dump({'keep': True}, open(input_dataset + '/.keep', 'w'))
     
