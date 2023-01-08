@@ -197,7 +197,7 @@ export default {
         console.log(`Can not be deleted: ${runId}`)
         return
       }
-      return
+
       if (this.display === 'review') {
         // Note: in review mode, the button should not show up and, hence, does nothing.
         console.log(`Can not be deleted because review mode: ${runId}`)
@@ -234,15 +234,17 @@ export default {
           .filter(a => { if (a !== '') return a })
     },
     canBeDeleted(runId) {
-      if (this.runCache[runId].review.published) {
-        return false
-      }
-      return true
+      return !this.runCache[runId].review.published && !this.runCache[runId].review.noErrors
     },
     canBeDeletedTooltip(runId) {
       if (this.runCache[runId].review.published) {
         return "title: This run cant be deleted. Remove it from the leaderboard first.; delay: 1"
       }
+      
+      if (this.runCache[runId].review.noErrors) {
+        return "title: This run cant be deleted as the run is marked as valid. Please contact your organizer to delete this run.; delay: 1"
+      }
+      
       return "title: Delete this run!; delay: 1"
 
     },
