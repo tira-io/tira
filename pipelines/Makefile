@@ -1,4 +1,4 @@
-IMAGE_VERSION=0.0.19
+IMAGE_VERSION=0.0.20
 
 build-tira-git-docker:
 	cp -r ../host/src/tira_host src

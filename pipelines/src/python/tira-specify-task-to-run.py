@@ -77,12 +77,10 @@ def identify_environment_variables(job_file):
         print(f'The software uses an input run. I will copy data from {absolute_input_run_directory} to {local_input_run_directory}', file=sys.stderr)
         copy_from_to(absolute_input_run_directory, local_input_run_directory, file_skip_list)
         file_skip_list += ['documents.jsonl']
-        ret += [
-            'inputRun=' + local_input_run_directory,
-        ]
+        ret += ['inputRun=' + local_input_run_directory]
         tira_cleanup_command += ';rm -Rf ' + local_input_run_directory
     
-    ret['TIRA_CLEAN_UP_COMMAND'] = tira_cleanup_command
+    ret += ['TIRA_CLEAN_UP_COMMAND=' + tira_cleanup_command]
     
     with open(job_file, 'r') as f:
         for l in f:
