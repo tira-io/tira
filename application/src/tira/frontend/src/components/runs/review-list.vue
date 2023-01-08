@@ -194,11 +194,13 @@ export default {
     },
     deleteRun(datasetId, runId) {
       if (!this.canBeDeleted(runId)) {
+        console.log(`Can not be deleted: ${runId}`)
         return
       }
       return
       if (this.display === 'review') {
         // Note: in review mode, the button should not show up and, hence, does nothing.
+        console.log(`Can not be deleted because review mode: ${runId}`)
         return
       }
 
