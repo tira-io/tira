@@ -54,6 +54,7 @@ def identify_environment_variables(job_file):
     input_dataset_truth = '/mnt/ceph/tira/data/datasets/' + job_configuration['TIRA_DATASET_TYPE'] + '-datasets-truth/' + job_configuration['TIRA_TASK_ID'] + '/' + tira_dataset_id + '/'
     
     file_skip_list = []
+    tira_cleanup_command = 'rm -Rf ' + input_dataset
     
     ret = [
         'TIRA_INPUT_RUN=' + absolute_input_dataset,
@@ -79,6 +80,9 @@ def identify_environment_variables(job_file):
         ret += [
             'inputRun=' + local_input_run_directory,
         ]
+        tira_cleanup_command += ';rm -Rf ' + local_input_run_directory
+    
+    ret['TIRA_CLEAN_UP_COMMAND'] = tira_cleanup_command
     
     with open(job_file, 'r') as f:
         for l in f:
