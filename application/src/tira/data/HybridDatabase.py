@@ -531,9 +531,9 @@ class HybridDatabase(object):
             runs = []
             if vm_id in upload_vms:
                 runs += list(self._get_ordered_runs_from_reviews(reviews, vm_id, is_upload=True))
-            elif vm_id in software_vms:
+            if vm_id in software_vms:
                 runs += list(self._get_ordered_runs_from_reviews(reviews, vm_id, is_upload=False))
-            elif vm_id in docker_vms:
+            if vm_id in docker_vms:
                 runs += list(self._get_ordered_runs_from_reviews(reviews, vm_id, is_docker=True))
 
             results.append({"vm_id": vm_id,
