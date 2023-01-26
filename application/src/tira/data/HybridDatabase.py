@@ -390,6 +390,8 @@ class HybridDatabase(object):
             software = run.software.software_id
         elif run.evaluator:
             software = run.evaluator.evaluator_id
+        elif run.docker_software:
+            software = run.docker_software.display_name
         elif run.upload:
             software = 'upload'
 
