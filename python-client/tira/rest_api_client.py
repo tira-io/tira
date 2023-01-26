@@ -13,6 +13,9 @@ class Client():
         if not role or 'status' not in role or 'role' not in role or 0 != role['status']:
             raise ValueError('It seems like the api key is invalid. Got: ', role)
 
+    def datasets(self, task):
+        return self.json_response('/api/datasets_by_task/{task}')['context']['datasets']
+
     def submissions(self, task, dataset):
         response = self.json_response(f'/api/submissions/{task}/{dataset}')
         if 'status' not in response or 'context' not in response or response['status'] != 1:
