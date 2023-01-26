@@ -14,7 +14,7 @@ class Client():
             raise ValueError('It seems like the api key is invalid. Got: ', role)
 
     def datasets(self, task):
-        return self.json_response(f'/api/datasets_by_task/{task}')['context']['datasets']
+        return json.loads(self.json_response(f'/api/datasets_by_task/{task}')['context']['datasets'])
 
     def submissions(self, task, dataset):
         response = self.json_response(f'/api/submissions/{task}/{dataset}')
