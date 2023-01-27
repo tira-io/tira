@@ -37,7 +37,7 @@ class Client():
 
         if join_submissions:
             runs_to_join = {}
-            for _, i in tira.submissions(task, dataset).iterrows():
+            for _, i in self.submissions(task, dataset).iterrows():
                 i = i.to_dict()
                 runs_to_join[(i['team'], i['run_id'])] = {'software': i['software'], 'is_upload': i['is_upload'], 'is_docker': i['is_docker']}
 
