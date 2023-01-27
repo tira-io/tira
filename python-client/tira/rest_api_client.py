@@ -17,12 +17,7 @@ class Client():
         return json.loads(self.json_response(f'/api/datasets_by_task/{task}')['context']['datasets'])
 
     def submissions(self, task, dataset):
-        response = self.json_response(f'/api/submissions/{task}/{dataset}')
-        if 'status' not in response or 'context' not in response or response['status'] != 1:
-            raise ValueError('Got invalid response: ', json.dumps(response)[:150])
-        
-        response = response['context']
-        
+        response = self.json_response(f'/api/submissions/{task}/{dataset}')['context']
         ret = []
         
         for vm in response['vms']:
@@ -32,6 +27,32 @@ class Client():
                 del run['review']
 
                 ret += [{**{'task': response['task_id'], 'dataset': response['dataset_id'], 'team': vm['vm_id']}, **run}]
+
+        return pd.DataFrame(ret)
+
+    def evaluations(self, task, dataset, join_submissions=True):
+        response = self.json_response(f'/api/evaluations/{task}/{dataset}')['context']
+        ret = []
+        evaluation_keys = response['ev_keys']
+
+        if join_submissions:
+            runs_to_join = {}
+            for _, i in tira.submissions(task, dataset).iterrows():
+                i = i.to_dict()
+                runs_to_join[(i['team'], i['run_id'])] = {'software': i['software'], 'is_upload': i['is_upload'], 'is_docker': i['is_docker']}
+
+        for evaluation in response['evaluations']:
+            run = {'task': response['task_id'], 'dataset': response['dataset_id'], 'team': evaluation['vm_id'], 'run_id': evaluation['input_run_id']}
+
+            if join_submissions:
+                software = runs_to_join[(run['team'], run['run_id'])]
+                for k,v in software.items():
+                    run[k] = v
+
+            for measure_id, measure in zip(range(len(evaluation_keys)), evaluation_keys):
+                run[measure] = evaluation['measures'][measure_id]
+
+            ret += [run]
 
         return pd.DataFrame(ret)
 
