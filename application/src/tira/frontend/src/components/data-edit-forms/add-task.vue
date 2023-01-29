@@ -111,7 +111,7 @@ export default {
       requireGroups: false,
       restrictGroups: false,
       organizerList: [],
-      isIrTask: False,
+      isIrTask: false,
       irdsReRankingImage: '',
       irdsReRankingCommand: ''
     }
