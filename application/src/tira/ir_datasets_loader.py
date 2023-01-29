@@ -73,8 +73,9 @@ class IrDatasetsLoader(object):
         id_pairs = self.extract_ids_from_run_file(run_file)
         print('Get Documents')
         docs = self.get_docs_by_ids(dataset, [id[1] for id in id_pairs])
+        queries = {i.query_id:i for i in dataset.queries_iter()}
         print('Produce rerank data.')
-        rerank = (self.construct_rerank_row(dataset, docs, id_pair[0], id_pair[1]) for id_pair in id_pairs)
+        rerank = (self.construct_rerank_row(docs, queries, id_pair[0], id_pair[1]) for id_pair in id_pairs)
         print('Write rerank data.')
         self.write_lines_to_file(rerank, output_dataset_path/"rerank.jsonl")
         print('Done rerank data was written.')
@@ -141,9 +142,10 @@ class IrDatasetsLoader(object):
         return docstore.get_many(doc_ids)
         
 
-    def construct_rerank_row(self, dataset, docs: dict, query_id: str, doc_id: str) -> str:
-        query = [query for query in dataset.queries_iter() if query.query_id == query_id][0]
-        doc = docs[doc_id]     
+    def construct_rerank_row(self, docs: dict, queries: dict, query_id: str, doc_id: str) -> str:
+        query = queries[query_id]
+        doc = docs[doc_id]
+        
         ret = {
             "qid": query_id,
             "query": query.default_text(),
@@ -152,6 +154,7 @@ class IrDatasetsLoader(object):
             "text": doc.default_text(),
             "original_document": doc._asdict(),
         }
+
         return json.dumps(ret)
 
 
