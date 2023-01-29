@@ -71,14 +71,16 @@ class IrDatasetsLoader(object):
         dataset = self.load_irds(ir_datasets_id)
         
         id_pairs = self.extract_ids_from_run_file(run_file)
+        print('Get Documents')
         docs = self.get_docs_by_ids(dataset, [id[1] for id in id_pairs])
+        print('Produce rerank data.')
         rerank = (self.construct_rerank_row(dataset, docs, id_pair[0], id_pair[1]) for id_pair in id_pairs)
-        
-        qrels_mapped = (self.map_qrel(qrel) for qrel in dataset.qrels_iter())
-        
+        print('Write rerank data.')
         self.write_lines_to_file(rerank, output_dataset_path/"rerank.jsonl")
-        
+        print('Done rerank data was written.')
         if output_dataset_truth_path:
+            print('Write qrels data.')
+            qrels_mapped = (self.map_qrel(qrel) for qrel in dataset.qrels_iter())
             self.write_lines_to_file(qrels_mapped, output_dataset_truth_path/"qrels.txt")
 
 
