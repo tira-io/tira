@@ -76,7 +76,18 @@
         <label>Allowed Teams for Task (leave empty if all teams are allowed)
         <textarea id="task-teams-input" rows="3" class="uk-textarea" placeholder=""
                v-model="taskTeams" /></label>
-    </div>
+      </div>
+    
+      <div class="uk-width-1-1">
+        <label><input class="uk-checkbox" type="checkbox" name="checkbox-gitci" v-model="isIrTask"> The task is an information retrieval task (configure the ir_datasets integration) </label>
+      </div>
+      <div v-if="isIrTask" class="uk-width-1-1">
+        <label>IR-Datasets Re-Ranking Image <input type="text" class="uk-input" v-model="irdsReRankingImage" ></label>
+      </div>
+      <div v-if="isIrTask" class="uk-width-1-1">
+        <label>IR-Datasets Re-Ranking Command <input type="text" class="uk-input" v-model="irdsReRankingCommand" ></label>
+      </div>
+    
     </div>
 </div>
 </template>
@@ -102,6 +113,9 @@ export default {
       requireGroups: false,
       restrictGroups: false,
       organizerList: [],
+      isIrTask: False,
+      irdsReRankingImage: '',
+      irdsReRankingCommand: ''
     }
   },
   components: { DeleteConfirm },
