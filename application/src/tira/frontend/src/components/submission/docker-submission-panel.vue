@@ -107,12 +107,12 @@
                            v-model="selectedContainer.paper_link" placeholder="paper describing the software">
                     </label>
                 </div>
-                <div v-if="taskIsAnInformationRetrievalTask">
+                <div v-if="docker.task_is_an_information_retrieval_task">
                     <div class="uk-width-1-1">
-                        <label><input class="uk-checkbox" type="checkbox" name="checkbox-re-ranker" v-model="irReRanker"> This software is a re-ranker that re-ranks documents retrieved by some previous stage. </label>
+                        <label><input class="uk-checkbox" type="checkbox" name="checkbox-re-ranker" v-model="selectedContainer.ir_re_ranker"> This software is a re-ranker that re-ranks documents retrieved by some previous stage. </label>
                     </div>
                     <div class="uk-width-1-1">
-                        <label><input class="uk-checkbox" type="checkbox" name="checkbox-re-ranking-input" v-model="irReRankingInput"> The output of this software might be re-ranked by subsequent retrieval pipelines. </label>
+                        <label><input class="uk-checkbox" type="checkbox" name="checkbox-re-ranking-input" v-model="selectedContainer.ir_re_ranking_input"> The output of this software might be re-ranked by subsequent retrieval pipelines. </label>
                     </div>
                 </div>
             </div>
@@ -247,7 +247,6 @@ export default {
             toggleCommandHelp: false,
             startingContainer: false,
             editSoftwareMetadataToggle: false,
-            taskIsAnInformationRetrievalTask: false,
             irReRanker: false,
             irReRankingInput: false,
         }
@@ -304,13 +303,15 @@ export default {
             submitPost(
                 `/task/${this.task.task_id}/vm/${this.user_id}/save_software/docker/${this.selectedContainerId}`,
                 this.csrf,
-                {"display_name": this.selectedContainer.display_name, "description": this.selectedContainer.description, "paper_link": this.selectedContainer.paper_link}
+                {"display_name": this.selectedContainer.display_name, "description": this.selectedContainer.description, "paper_link": this.selectedContainer.paper_link, "ir_re_ranker": this.selectedContainer.ir_re_ranker, "ir_re_ranking_input": this.selectedContainer.ir_re_ranking_input}
             ).then(message => {
                 for (let did in this.docker.docker_softwares) {
                     if (this.docker.docker_softwares[did].docker_software_id === this.selectedContainerId) {
                         this.docker.docker_softwares[did].display_name = this.selectedContainer.display_name
                         this.docker.docker_softwares[did].description = this.selectedContainer.description
                         this.docker.docker_softwares[did].paper_link = this.selectedContainer.paper_link
+                        this.docker.docker_softwares[did].ir_re_ranker = this.selectedContainer.ir_re_ranker
+                        this.docker.docker_softwares[did].ir_re_ranking_input = this.selectedContainer.ir_re_ranking_input
                     }
                 }
                 

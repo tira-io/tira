@@ -143,6 +143,7 @@ def load_docker_data(task_id, vm_id, cache, force_cache_refresh):
         "resources": list(settings.GIT_CI_AVAILABLE_RESOURCES.values()),
         "docker_software_help": git_runner.help_on_uploading_docker_image(vm_id, cache, force_cache_refresh),
         "docker_images_last_refresh": str(last_refresh),
+        "task_is_an_information_retrieval_task": True if get_task(task_id, False).get('is_ir_task', False) else False,
         "docker_images_next_refresh": str(None if last_refresh is None else (last_refresh + datetime.timedelta(seconds=60))),
     }
 
@@ -331,8 +332,8 @@ def add_uploaded_run(task_id, vm_id, dataset_id, uploaded_file):
     """ Add the uploaded file as a new result and return it """
     return model.add_uploaded_run(task_id, vm_id, dataset_id, uploaded_file)
 
-def update_docker_software_metadata(docker_software_id, display_name, description, paper_link):
-    return model.update_docker_software_metadata(docker_software_id, display_name, description, paper_link)
+def update_docker_software_metadata(docker_software_id, display_name, description, paper_link, ir_re_ranker, ir_re_ranking_input):
+    return model.update_docker_software_metadata(docker_software_id, display_name, description, paper_link, ir_re_ranker, ir_re_ranking_input)
 
 def add_docker_software(task_id, vm_id, image, command, input_job=None):
     """ Add the docker software to the user of the vm and return it """

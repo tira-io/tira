@@ -430,7 +430,9 @@ def docker_software_save(request, task_id, vm_id, docker_software_id):
             model.update_docker_software_metadata(docker_software_id,
                                          data.get("display_name"),
                                          data.get("description"),
-                                         data.get("paper_link"))
+                                         data.get("paper_link"),
+                                         data.get("ir_re_ranker", False),
+                                         data.get("ir_re_ranking_input", False))
             return JsonResponse({'status': 0, "message": "Software edited successfully"})
         except Exception as e:
             return JsonResponse({'status': 1, 'message': f"Error while editing software: " + str(e)})

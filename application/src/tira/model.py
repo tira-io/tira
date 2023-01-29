@@ -206,6 +206,8 @@ class DockerSoftware(models.Model):
     deleted = models.BooleanField(default=False)
     description = models.TextField(default="")
     paper_link = models.TextField(default="")
+    ir_re_ranker = models.BooleanField(default=False)
+    ir_re_ranking_input = models.BooleanField(default=False)
 
 
 class Run(models.Model):

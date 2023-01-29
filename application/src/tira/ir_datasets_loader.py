@@ -72,11 +72,11 @@ class IrDatasetsLoader(object):
         @param run_file: the path to a file with data in TREC-run format
         """
         dataset = self.load_irds(ir_datasets_id)
+        queries = {i.query_id:i for i in dataset.queries_iter()}
         
         id_pairs = self.extract_ids_from_run_file(run_file)
         print('Get Documents')
         docs = self.get_docs_by_ids(dataset, [id[1] for id in id_pairs])
-        queries = {i.query_id:i for i in dataset.queries_iter()}
         print('Produce rerank data.')
         rerank = tqdm((self.construct_rerank_row(docs, queries, id_pair[0], id_pair[1]) for id_pair in id_pairs), 'Produce Rerank File.')
         print('Write rerank data.')

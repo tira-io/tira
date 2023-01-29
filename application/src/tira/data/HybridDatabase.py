@@ -480,7 +480,9 @@ class HybridDatabase(object):
                 'tira_image_name': ds.tira_image_name, 'task_id': ds.task.task_id,
                 'vm_id': ds.vm.vm_id, 'description': ds.description, 'paper_link': ds.paper_link,
                 'input_docker_software': ds.input_docker_software.display_name if ds.input_docker_software else None,
-                'input_docker_software_id': ds.input_docker_software.docker_software_id if ds.input_docker_software else None
+                'input_docker_software_id': ds.input_docker_software.docker_software_id if ds.input_docker_software else None,
+                "ir_re_ranker": True if ds.ir_re_ranker else False,
+                "ir_re_ranking_input": True if ds.ir_re_ranking_input else False
                 }
 
     def get_docker_softwares_with_runs(self, task_id, vm_id):
@@ -1189,9 +1191,12 @@ class HybridDatabase(object):
             )
         return self._docker_software_to_dict(docker_software)
 
-    def update_docker_software_metadata(self, docker_software_id, display_name, description, paper_link):
+
+    def update_docker_software_metadata(self, docker_software_id, display_name, description, paper_link,
+                                        ir_re_ranker, ir_re_ranking_input):
         software = modeldb.DockerSoftware.objects.update_or_create(docker_software_id = docker_software_id, 
-            defaults={"display_name": display_name, "description": description, "paper_link": paper_link})
+            defaults={"display_name": display_name, "description": description, "paper_link": paper_link,
+                      "ir_re_ranker": ir_re_ranker, "ir_re_ranking_input": ir_re_ranking_input})
 
     
     def update_run(self, dataset_id, vm_id, run_id, deleted: bool = None):
