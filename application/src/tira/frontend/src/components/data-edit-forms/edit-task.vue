@@ -87,7 +87,10 @@
       <div v-if="isIrTask" class="uk-width-1-1">
         <label>IR-Datasets Re-Ranking Command <input type="text" class="uk-input" v-model="irdsReRankingCommand" ></label>
       </div>
-    
+      <div v-if="isIrTask" class="uk-width-1-1">
+          <label>IR-Datasets Resources for Execution <input type="text" class="uk-input" v-model="irdsReRankingResources" ></label>
+      </div>
+
     </div>
 </div>
 </template>
@@ -115,7 +118,8 @@ export default {
       organizerList: [],
       isIrTask: false,
       irdsReRankingImage: '',
-      irdsReRankingCommand: ''
+      irdsReRankingCommand: '',
+      irdsReRankingResources: '',
     }
   },
   components: { DeleteConfirm },
@@ -159,6 +163,10 @@ export default {
         'require_groups': this.requireGroups,
         'restrict_groups': this.restrictGroups,
         'task_teams': this.taskTeams,
+        'is_information_retrieval_task': this.isIrTask,
+        'irds_re_ranking_image': this.irdsReRankingImage,
+        'irds_re_ranking_command': this.irdsReRankingCommand,
+        'irds_re_ranking_resource': this.irdsReRankingResources,
       }).then(message => {
         this.$emit('addnotification', 'success', message.message)
         this.$emit('updatetask', JSON.parse(message.context))
@@ -219,6 +227,10 @@ export default {
         this.requireGroups = task.require_groups
         this.restrictGroups = task.restrict_groups
         this.taskTeams = task.allowed_task_teams
+        this.isIrTask = task.is_information_retrieval_task
+        this.irdsReRankingImage = task.irds_re_ranking_image
+        this.irdsReRankingCommand = task.irds_re_ranking_command
+        this.irdsReRankingResources = task.irds_re_ranking_resource
       }).catch(error => {
         this.$emit('addnotification', 'error', `Error loading task: ${error}`)
       })

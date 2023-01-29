@@ -107,6 +107,14 @@
                            v-model="selectedContainer.paper_link" placeholder="paper describing the software">
                     </label>
                 </div>
+                <div v-if="taskIsAnInformationRetrievalTask">
+                    <div class="uk-width-1-1">
+                        <label><input class="uk-checkbox" type="checkbox" name="checkbox-re-ranker" v-model="irReRanker"> This software is a re-ranker that re-ranks documents retrieved by some previous stage. </label>
+                    </div>
+                    <div class="uk-width-1-1">
+                        <label><input class="uk-checkbox" type="checkbox" name="checkbox-re-ranking-input" v-model="irReRankingInput"> The output of this software might be re-ranked by subsequent retrieval pipelines. </label>
+                    </div>
+                </div>
             </div>
 
             <div>
@@ -239,6 +247,9 @@ export default {
             toggleCommandHelp: false,
             startingContainer: false,
             editSoftwareMetadataToggle: false,
+            taskIsAnInformationRetrievalTask: false,
+            irReRanker: false,
+            irReRankingInput: false,
         }
     },
     methods: {

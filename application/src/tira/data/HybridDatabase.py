@@ -247,6 +247,10 @@ class HybridDatabase(object):
                   "restrict_groups": task.restrict_groups,
                   "allowed_task_teams": task.allowed_task_teams,
                   "master_vm_id": master_vm_id,
+                  "is_ir_task": task.is_ir_task,
+                  "irds_re_ranking_image": task.irds_re_ranking_image,
+                  "irds_re_ranking_command": task.irds_re_ranking_command,
+                  "irds_re_ranking_resource": task.irds_re_ranking_resource,
                   "dataset_count": task.dataset_set.count(),
                   "software_count": task.software_set.count(),
                   "max_std_out_chars_on_test_data": task.max_std_out_chars_on_test_data,
@@ -1229,7 +1233,10 @@ class HybridDatabase(object):
 
     def edit_task(self, task_id: str, task_name: str, task_description: str, featured: bool, master_vm_id,
                   organizer: str, website: str, require_registration: str, require_groups: str, restrict_groups: str,
-                  help_command: str = None, help_text: str = None, allowed_task_teams: str = None):
+                  help_command: str = None, help_text: str = None, allowed_task_teams: str = None,
+                  is_ir_task: bool = False, irds_re_ranking_image: str = '', irds_re_ranking_command: str = '',
+                  irds_re_ranking_resource: str = ''
+                  ):
 
         task = modeldb.Task.objects.filter(task_id=task_id)
         vm = modeldb.VirtualMachine.objects.get(vm_id=master_vm_id)
@@ -1244,6 +1251,10 @@ class HybridDatabase(object):
             require_groups=require_groups,
             restrict_groups=restrict_groups,
             allowed_task_teams=allowed_task_teams,
+            is_ir_task=is_ir_task,
+            irds_re_ranking_image=irds_re_ranking_image,
+            irds_re_ranking_command=irds_re_ranking_command,
+            irds_re_ranking_resource=irds_re_ranking_resource
         )
 
         if help_command:

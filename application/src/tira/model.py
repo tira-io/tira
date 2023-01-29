@@ -109,6 +109,10 @@ class Task(models.Model):
     max_std_out_chars_on_test_data_eval = models.IntegerField(default=0)
     max_std_err_chars_on_test_data_eval = models.IntegerField(default=0)
     max_file_list_chars_on_test_data_eval = models.IntegerField(default=0)
+    is_ir_task  = models.BooleanField(default=False)
+    irds_re_ranking_image = models.CharField(max_length=150, default="")
+    irds_re_ranking_command = models.CharField(max_length=150, default="")
+    irds_re_ranking_resource = models.CharField(max_length=150, default="")
 
 
 class AllowedServer(models.Model):

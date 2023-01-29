@@ -80,6 +80,11 @@
     <div v-if="isIrTask" class="uk-width-1-1">
         <label>IR-Datasets Re-Ranking Command <input type="text" class="uk-input" v-model="irdsReRankingCommand" ></label>
     </div>
+    <div v-if="isIrTask" class="uk-width-1-1">
+        <label>IR-Datasets Resources for Execution <input type="text" class="uk-input" v-model="irdsReRankingResources" ></label>
+    </div>
+
+
 
     <div class="uk-margin-small">
         <button class="uk-button uk-button-primary" @click="createTask">Add Task</button>
@@ -113,7 +118,8 @@ export default {
       organizerList: [],
       isIrTask: false,
       irdsReRankingImage: '',
-      irdsReRankingCommand: ''
+      irdsReRankingCommand: '',
+      irdsReRankingResources: '',
     }
   },
   emits: ['addnotification', 'closemodal'],
@@ -149,6 +155,10 @@ export default {
         'require_groups': this.requireGroups,
         'restrict_groups': this.restrictGroups,
         'task_teams': this.taskTeams,
+        'is_information_retrieval_task': this.isIrTask,
+        'irds_re_ranking_image': this.irdsReRankingImage,
+        'irds_re_ranking_command': this.irdsReRankingCommand,
+        'irds_re_ranking_resource': this.irdsReRankingResources
       }).then(message => {
         this.$emit('addnotification', 'success', message.message)
         this.$emit('closemodal')

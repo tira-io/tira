@@ -445,10 +445,14 @@ def update_software(task_id, vm_id, software_id, command: str = None, working_di
 
 def edit_task(task_id: str, task_name: str, task_description: str, featured: bool, master_vm_id: str, organizer: str, website: str,
               require_registration: str, require_groups: str, restrict_groups: str,
-              help_command: str = None, help_text: str = None, allowed_task_teams=None):
+              help_command: str = None, help_text: str = None, allowed_task_teams=None, is_ir_task: bool = False,
+              irds_re_ranking_image: str = '', irds_re_ranking_command: str = '',
+              irds_re_ranking_resource: str = ''):
     """ Update the task's data """
     return model.edit_task(task_id, task_name, task_description, featured, master_vm_id, organizer, website,
-                           require_registration, require_groups, restrict_groups, help_command, help_text, allowed_task_teams)
+                           require_registration, require_groups, restrict_groups, help_command, help_text,
+                           allowed_task_teams, is_ir_task, irds_re_ranking_image, irds_re_ranking_command,
+                           irds_re_ranking_resource)
 
 
 def edit_dataset(task_id: str, dataset_id: str, dataset_name: str, command: str,
