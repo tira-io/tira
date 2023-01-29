@@ -5,6 +5,8 @@ from pathlib import Path
 from typing import Iterable
 from bs4 import BeautifulSoup
 from tqdm import tqdm
+import os
+import gzip
 
 
 class IrDatasetsLoader(object):
@@ -53,6 +55,7 @@ class IrDatasetsLoader(object):
             self.write_lines_to_file(qrels_mapped, output_dataset_truth_path/"qrels.txt")
 
         self.write_lines_to_file(queries_mapped_jsonl, output_dataset_path/"queries.jsonl")
+        self.write_lines_to_file([json.dumps({"ir_datasets_id": ir_datasets_id})], output_dataset_path/"metadata.json")
         self.write_lines_to_xml_file(ir_datasets_id, queries_mapped_xml, output_dataset_path/"queries.xml")
         self.write_lines_to_file(queries_mapped_jsonl, output_dataset_truth_path/"queries.jsonl")
         self.write_lines_to_xml_file(ir_datasets_id, queries_mapped_xml, output_dataset_truth_path/"queries.xml")
@@ -75,9 +78,9 @@ class IrDatasetsLoader(object):
         docs = self.get_docs_by_ids(dataset, [id[1] for id in id_pairs])
         queries = {i.query_id:i for i in dataset.queries_iter()}
         print('Produce rerank data.')
-        rerank = (self.construct_rerank_row(docs, queries, id_pair[0], id_pair[1]) for id_pair in id_pairs)
+        rerank = tqdm((self.construct_rerank_row(docs, queries, id_pair[0], id_pair[1]) for id_pair in id_pairs), 'Produce Rerank File.')
         print('Write rerank data.')
-        self.write_lines_to_file(rerank, output_dataset_path/"rerank.jsonl")
+        self.write_lines_to_file(rerank, output_dataset_path/"rerank.jsonl.gz")
         print('Done rerank data was written.')
         if output_dataset_truth_path:
             print('Write qrels data.')
@@ -132,6 +135,9 @@ class IrDatasetsLoader(object):
 
 
     def extract_ids_from_run_file(self, run_file: Path) -> list:
+        if not os.path.abspath(run_file).endswith('run.txt'):
+            run_file = run_file / 'run.txt'
+
         with run_file.open('r') as file:
             id_pairs = [line.split()[:3:2] for line in file]
             return id_pairs
@@ -139,8 +145,12 @@ class IrDatasetsLoader(object):
 
     def get_docs_by_ids(self, dataset, doc_ids: list) -> dict:
         docstore = dataset.docs_store()
-        return docstore.get_many(doc_ids)
-        
+        ret = {}
+        doc_ids = set(doc_ids)
+        for doc in tqdm(docstore.get_many_iter(doc_ids), total=len(doc_ids), desc='Get Docs'):
+            ret[doc.doc_id] = doc
+        return ret
+
 
     def construct_rerank_row(self, docs: dict, queries: dict, query_id: str, doc_id: str) -> str:
         query = queries[query_id]
@@ -162,8 +172,14 @@ class IrDatasetsLoader(object):
         if(path.exists()):
             raise RuntimeError(f"File already exists: {path}")
         path.parent.mkdir(parents=True, exist_ok=True)
-        with path.open('wt') as file:
-            file.writelines('%s\n' % line for line in lines)
+        
+        if os.path.abspath(path).endswith('.gz'):
+            with gzip.open(os.path.abspath(path), 'wb') as file:
+                for line in lines:
+                    file.write((line + '\n').encode('utf-8'))
+        else:
+            with path.open('wt') as file:
+                file.writelines('%s\n' % line for line in lines)
 
 
     def write_lines_to_xml_file(self, ir_datasets_id: str, lines: Iterable[str], path: Path) -> None:

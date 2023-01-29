@@ -8,6 +8,7 @@ from contextlib import contextmanager
 from django.core.management.base import BaseCommand, CommandError
 from django.core.management import call_command
 from django.core.cache import cache
+import json
 
 from pathlib import Path
 from tira.ir_datasets_loader import IrDatasetsLoader
@@ -41,11 +42,16 @@ class Command(BaseCommand):
 
 
     def contains_all_required_args(self, options):
+        if 'input_dataset_directory' in options:
+            metadata = json.load(open(options['input_dataset_directory'] + '/metadata.json'))
+            options['ir_datasets_id'] = metadata['ir_datasets_id']
+    
         return 'ir_datasets_id' in options and options['ir_datasets_id'] \
             and 'output_dataset_path' in options and options['output_dataset_path']
 
-    def handle(self, *args, **options):
+    def handle(self, *args, **options):            
         if not self.contains_all_required_args(options):
+            raise ValueError('Could not handle options' + str(options))
             return
         
         truth_path = Path(options['output_dataset_truth_path']) if 'output_dataset_truth_path' in options and options['output_dataset_truth_path'] else None
@@ -77,7 +83,7 @@ class Command(BaseCommand):
         parser.add_argument('--include_original', default=True, type=bool)
         parser.add_argument('--skip_documents', default=False, type=bool)
         parser.add_argument('--skip_qrels', default=False, type=bool)
-        parser.add_argument('--input_dataset_directory', default=None, type=bool)
+        parser.add_argument('--input_dataset_directory', default=None, type=str)
         parser.add_argument('--skip_duplicate_ids', default=True, type=bool)
         parser.add_argument('--rerank', default=None, type=Path)
 
