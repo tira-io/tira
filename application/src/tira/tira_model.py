@@ -11,6 +11,7 @@ from django.conf import settings
 from django.db import connections, router
 import datetime
 from tira.authentication import auth
+from tira.util import get_tira_id
 
 logger = logging.getLogger("tira")
 
@@ -572,3 +573,36 @@ def latest_output_of_software_on_dataset(task_id: str, vm_id: str, software_id: 
         }
     else:
         return None
+
+
+def create_re_rank_output_on_dataset(task_id: str, vm_id: str, software_id: str, docker_software_id: int,
+                                     dataset_id: str):
+    task = get_task(task_id, False)
+
+    is_ir_task = task.get("is_ir_task", False)
+    irds_re_ranking_image = task.get("irds_re_ranking_image", "")
+    irds_re_ranking_command = task.get("irds_re_ranking_command", "")
+    irds_re_ranking_resource = task.get("irds_re_ranking_resource", "")
+
+    if not is_ir_task or not irds_re_ranking_image or not irds_re_ranking_command or not irds_re_ranking_resource:
+        raise ValueError('This is not a irds-re-ranking task:' + str(task))
+
+    evaluator = model.get_evaluator(dataset_id)
+
+    if not evaluator or 'is_git_runner' not in evaluator or not evaluator[
+        'is_git_runner'] or 'git_runner_image' not in evaluator or not evaluator[
+        'git_runner_image'] or 'git_runner_command' not in evaluator or not evaluator[
+        'git_runner_command'] or 'git_repository_id' not in evaluator or not evaluator['git_repository_id']:
+        return ValueError("The dataset is misconfigured. Docker-execute only available for git-evaluators")
+
+    input_run = latest_output_of_software_on_dataset(task_id, vm_id, software_id, docker_software_id, dataset_id)
+    input_run['vm_id'] = vm_id
+    git_runner = get_git_integration(task_id=task_id)
+
+    git_runner.run_docker_software_with_git_workflow(
+        task_id, dataset_id, vm_id, get_tira_id(), evaluator['git_runner_image'],
+        evaluator['git_runner_command'], evaluator['git_repository_id'], evaluator['evaluator_id'],
+        irds_re_ranking_image, irds_re_ranking_command,
+        'irds-docker-software-' + get_tira_id(), irds_re_ranking_resource,
+        input_run
+    )

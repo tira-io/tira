@@ -241,10 +241,11 @@ def logger_config(log_dir: Path):
 
 # Git Integration
 GIT_CI_AVAILABLE_RESOURCES = {
-    'small-resources': {'cores': 1, 'ram': 10, 'gpu': 0, 'description': 'Small (1 CPU Cores, 10GB of RAM)', 'key': 'small-resources'},
-    'medium-resources': {'cores': 2, 'ram': 20, 'gpu': 0, 'description': 'Medium (2 CPU Cores, 20GB of RAM)', 'key': 'medium-resources'},
-    'large-resources': {'cores': 4, 'ram': 40, 'gpu': 0, 'description': 'Large (4 CPU Cores, 40GB of RAM)', 'key': 'large-resources'},
-    'small-resources-gpu': {'cores': 1, 'ram': 10, 'gpu': '1-nvidia-1080', 'description': 'Small w. GPU (1 CPU Cores, 10GB of RAM, 1 Nvidia GTX 1080 with 8GB)', 'key': 'small-resources-gpu'},
+    'small-resources': {'cores': 1, 'ram': 10, 'gpu': 0, 'data': 'no', 'description': 'Small (1 CPU Cores, 10GB of RAM)', 'key': 'small-resources'},
+    'medium-resources': {'cores': 2, 'ram': 20, 'gpu': 0, 'data': 'no', 'description': 'Medium (2 CPU Cores, 20GB of RAM)', 'key': 'medium-resources'},
+    'large-resources': {'cores': 4, 'ram': 40, 'gpu': 0, 'data': 'no', 'description': 'Large (4 CPU Cores, 40GB of RAM)', 'key': 'large-resources'},
+    'small-resources-gpu': {'cores': 1, 'ram': 10, 'gpu': '1-nvidia-1080', 'data': 'no', 'description': 'Small w. GPU (1 CPU Cores, 10GB of RAM, 1 Nvidia GTX 1080 with 8GB)', 'key': 'small-resources-gpu'},
+    'irds-data-mounted': {'cores': 1, 'ram': 10, 'gpu': '0', 'data': 'irds', 'description': 'Small (1 CPU Cores, 10GB of RAM, IRDS)', 'key': 'irds-data-mounted'},
 }
 
 IR_MEASURES_IMAGE = custom_settings.get('IR_MEASURES_IMAGE', 'webis/tira-ir-measures-evaluator:0.0.1')

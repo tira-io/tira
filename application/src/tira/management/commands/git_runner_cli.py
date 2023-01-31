@@ -10,7 +10,7 @@ from django.core.management import call_command
 from django.core.cache import cache
 
 from tira.git_runner import get_git_runner
-from tira.tira_model import load_refresh_timestamp_for_cache_key, get_git_integration
+from tira.tira_model import load_refresh_timestamp_for_cache_key, get_git_integration, create_re_rank_output_on_dataset
 
 from tira.util import get_tira_id
 logger = logging.getLogger("tira")
@@ -95,6 +95,10 @@ class Command(BaseCommand):
 
         if 'docker_images_in_user_repository' in options and options['docker_images_in_user_repository']:
             print(git_runner.docker_images_in_user_repository(options['docker_images_in_user_repository']))
+        
+        if 'rerank' in options and options['rerank']:
+            #244 = "BM25 (tira-ir-starter-pyterrier)"
+            create_re_rank_output_on_dataset(task_id='ir-benchmarks', vm_id='tira-ir-starter', software_id=None, docker_software_id=244, dataset_id='cranfield-20230107-training')
 
     def add_arguments(self, parser):
         parser.add_argument('--create_task_repository', default=None, type=str)
@@ -108,4 +112,5 @@ class Command(BaseCommand):
         parser.add_argument('--run_id', default=None, type=str)
         parser.add_argument('--docker_images_in_user_repository', default=None, type=str)
         parser.add_argument('--organization', default=None, type=str)
+        parser.add_argument('--rerank', default=None, type=str)
 
