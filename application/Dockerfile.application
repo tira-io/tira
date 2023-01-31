@@ -18,6 +18,7 @@ RUN cd /tira/application/src/tira/frontend/ && \
 	chown tira:tira -R /tira/application && \
 	python3 manage.py collectstatic && \
 	chmod +x /tira/application/src/tira/endpoints/aha && \
+	cp /tira/application/src/tira/management/commands/irds_cli.sh /irds_cli.sh && \
 	rm -f ./config/settings.yml ./config/config.yml ./config/tira-application-config.dev.yml
 
 RUN cd /tira/application/ && \

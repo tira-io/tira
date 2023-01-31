@@ -42,7 +42,7 @@ class Command(BaseCommand):
 
 
     def contains_all_required_args(self, options):
-        if 'input_dataset_directory' in options:
+        if 'input_dataset_directory' in options and options['input_dataset_directory']:
             metadata = json.load(open(options['input_dataset_directory'] + '/metadata.json'))
             options['ir_datasets_id'] = metadata['ir_datasets_id']
     
