@@ -513,6 +513,45 @@ class HybridDatabase(object):
 
         return False
 
+    def get_irds_docker_software_id(self, task_id, vm_id, software_id, docker_software_id):
+        task = self.get_task(task_id, False)
+
+        is_ir_task = task.get("is_ir_task", False)
+        irds_re_ranking_image = task.get("irds_re_ranking_image", "")
+        irds_re_ranking_command = task.get("irds_re_ranking_command", "")
+        irds_re_ranking_resource = task.get("irds_re_ranking_resource", "")
+        irds_display_name = 'IRDS-Job For ' + task_id + f' (vm: {vm_id}, software: {software_id}, docker: {docker_software_id})'
+
+        if not is_ir_task or not irds_re_ranking_image or not irds_re_ranking_command or not irds_re_ranking_resource:
+            raise ValueError('This is not a irds-re-ranking task:' + str(task))
+
+        task = modeldb.Task.objects.get(task_id=task_id)
+        vm = modeldb.VirtualMachine.objects.get(vm_id='froebe')
+
+        ret = modeldb.DockerSoftware.objects.filter(vm=vm, task=task, command=irds_re_ranking_command,
+                                                    tira_image_name=irds_re_ranking_image,
+                                                    user_image_name=irds_re_ranking_image,
+                                                    display_name=irds_display_name)
+
+        if len(ret) > 0:
+            return ret[0]
+
+        modeldb.DockerSoftware.objects.create(
+            vm=vm,
+            task=task,
+            command=irds_re_ranking_command,
+            tira_image_name=irds_re_ranking_image,
+            user_image_name=irds_re_ranking_image,
+            display_name=irds_display_name
+        )
+
+        ret = modeldb.DockerSoftware.objects.filter(vm=vm, task=task, command=irds_re_ranking_command,
+                                                    tira_image_name=irds_re_ranking_image,
+                                                    user_image_name=irds_re_ranking_image,
+                                                    display_name=irds_display_name)
+
+        return ret[0] if len(ret) > 0 else None
+
     def get_vms_with_reviews(self, dataset_id: str):
         """ returns a list of dicts with:
          {"vm_id": vm_id,

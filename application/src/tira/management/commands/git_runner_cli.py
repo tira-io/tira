@@ -98,7 +98,7 @@ class Command(BaseCommand):
         
         if 'rerank' in options and options['rerank']:
             #244 = "BM25 (tira-ir-starter-pyterrier)"
-            create_re_rank_output_on_dataset(task_id='ir-benchmarks', vm_id='tira-ir-starter', software_id=None, docker_software_id=244, dataset_id='cranfield-20230107-training')
+            print(create_re_rank_output_on_dataset(task_id='ir-benchmarks', vm_id='tira-ir-starter', software_id=None, docker_software_id=244, dataset_id='cranfield-20230107-training'))
 
     def add_arguments(self, parser):
         parser.add_argument('--create_task_repository', default=None, type=str)
