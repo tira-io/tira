@@ -62,16 +62,16 @@ class Client():
         return pd.DataFrame(ret)
 
     def download_zip_to_cache_directory(self, task, dataset, team, run_id):
-        target_dir = f'{self.__tira_cache_dir}/extracted_runs/{task}/{dataset}/{team}/{run_id}'
+        target_dir = f'{self.__tira_cache_dir}/extracted_runs/{task}/{dataset}/{team}'
 
-        if os.path.isdir(target_dir):
-            return target_dir + '/output'
+        if os.path.isdir(target_dir + f'/{run_id}'):
+            return target_dir + f'/{run_id}'/output'
 
         r = requests.get(f'https://www.tira.io/task/{task}/user/{team}/dataset/{dataset}/download/{run_id}.zip', headers={"Api-Key": self.__api_key})
         z = zipfile.ZipFile(io.BytesIO(r.content))
         z.extractall(target_dir)
     
-        return target_dir
+        return target_dir + f'/{run_id}'/output'
 
     def json_response(self, endpoint, params=None):
         headers = {"Api-Key": self.__api_key, "Accept": "application/json"}
