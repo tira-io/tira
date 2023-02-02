@@ -5,7 +5,7 @@
 <div :id="modalId" class="uk-container uk-container-expand" data-uk-modal>
     <div class="uk-modal-dialog uk-modal-body uk-width-expand">
         <button class="uk-modal-close-default" type="button" data-uk-close></button>
-        <review :task_id="task_id" :user_id="user_id" :dataset_id="dataset_id" :run_id="run_id" :csrf="csrf" v-if="show"
+        <review :task_id="task_id" :user_id="user_id" :dataset_id="dataset_id" :run_id="run_id" :csrf="csrf"
                 @add-notification="(type, message) => this.$emit('addNotification', type, message)"
                 @update-review="newReview => this.$emit('updateReview', newReview)"/>
     </div>
@@ -38,7 +38,7 @@ export default {
       } else {
         UIkit.modal(reviewModal).hide();
       }
-
+      this.show = !this.show
     },
   },
   emits: ['addNotification', 'updateReview'],
