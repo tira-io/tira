@@ -65,7 +65,7 @@ class Client():
         target_dir = f'{self.__tira_cache_dir}/extracted_runs/{task}/{dataset}/{team}'
 
         if os.path.isdir(target_dir + f'/{run_id}'):
-            return target_dir + f'/{run_id}'/output'
+            return target_dir + f'/{run_id}/output'
 
         r = requests.get(f'https://www.tira.io/task/{task}/user/{team}/dataset/{dataset}/download/{run_id}.zip', headers={"Api-Key": self.__api_key})
         z = zipfile.ZipFile(io.BytesIO(r.content))
