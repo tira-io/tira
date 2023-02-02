@@ -65,7 +65,7 @@ class Client():
         df_eval = self.evaluations(task=task, dataset=dataset)
 
         ret = df_eval[(df_eval['dataset'] == dataset) & (df_eval['software'] == software)]
-        ret = tira.download_zip_to_cache_directory(**ret[['task', 'dataset', 'team', 'run_id']].iloc[0].to_dict())
+        ret = self.download_zip_to_cache_directory(**ret[['task', 'dataset', 'team', 'run_id']].iloc[0].to_dict())
 
         return pd.read_csv(ret + '/run.txt', sep='\\s+', names=["query", "q0", "docid", "rank", "score", "system"])
 
