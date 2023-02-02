@@ -71,7 +71,7 @@ class Client():
         z = zipfile.ZipFile(io.BytesIO(r.content))
         z.extractall(target_dir)
     
-        return target_dir + f'/{run_id}'/output'
+        return target_dir + f'/{run_id}/output'
 
     def json_response(self, endpoint, params=None):
         headers = {"Api-Key": self.__api_key, "Accept": "application/json"}
