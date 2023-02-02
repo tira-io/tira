@@ -1,11 +1,16 @@
 import requests
 import json
 import pandas as pd
+import os
+import zipfile
+import io
 
 class Client():
     def __init__(self, api_key):
         self.__api_key = api_key
         self.fail_if_api_key_is_invalid()
+        self.__tira_cache_dir = os.environ.get('TIRA_CACHE_DIR', os.path.expanduser('~') + '/.tira')
+
 
     def fail_if_api_key_is_invalid(self):
         role = self.json_response('/api/role')
@@ -55,6 +60,18 @@ class Client():
             ret += [run]
 
         return pd.DataFrame(ret)
+
+    def download_zip_to_cache_directory(self, task, dataset, team, run_id):
+        target_dir = f'{self.__tira_cache_dir}/extracted_runs/{task}/{dataset}/{team}/{run_id}'
+
+        if os.path.isdir(target_dir):
+            return target_dir + '/output'
+
+        r = requests.get(f'https://www.tira.io/task/{task}/user/{team}/dataset/{dataset}/download/{run_id}.zip', headers={"Api-Key": self.__api_key})
+        z = zipfile.ZipFile(io.BytesIO(r.content))
+        z.extractall(target_dir)
+    
+        return target_dir
 
     def json_response(self, endpoint, params=None):
         headers = {"Api-Key": self.__api_key, "Accept": "application/json"}
