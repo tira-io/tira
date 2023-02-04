@@ -12,7 +12,7 @@ def __num(s):
             return s
 
 
-def load_output_of_directory(self, directory, evaluation=False, verbose=False):
+def load_output_of_directory(directory, evaluation=False, verbose=False):
     files = glob(str(directory) + '/*' )
 
     if evaluation:
