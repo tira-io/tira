@@ -4,7 +4,6 @@ import pandas as pd
 import os
 import zipfile
 import io
-from glob import glob
 
 
 class Client():
@@ -83,31 +82,8 @@ class Client():
     
         return target_dir + f'/{run_id}/output'
 
-    def load_output_of_directory(self, directory, evaluation=False, verbose=False):
-        files = glob(str(directory) + '/*' )
-    
-        if evaluation:
-            files = [i for i in files if i.endswith('.prototext')]
-    
-        if len(files) != 1:
-            raise ValueError('Expected exactly one output file. Got: ', files)
-    
-        files = files[0]
-    
-        if verbose:
-            print(f'Read file from {files}')
-    
-        if evaluation:
-            ret = {}
-            for i in [i for i in open(files, 'r').read().split('measure') if 'key:' in i and 'value:' in i]:
-                key = i.split('key:')[1].split('value')[0].split('"')[1]
-                value = i.split('key:')[1].split('value')[1].split('"')[1]
-            
-                ret[key.strip()] = __num(value.strip())
-            
-            return ret
-        else:
-            return pd.read_json(files, lines=True, orient='records')
+
+
 
     def json_response(self, endpoint, params=None):
         headers = {"Api-Key": self.__api_key, "Accept": "application/json"}
