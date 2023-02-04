@@ -4,6 +4,8 @@ import pandas as pd
 import os
 import zipfile
 import io
+from glob import glob
+
 
 class Client():
     def __init__(self, api_key):
