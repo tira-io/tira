@@ -81,7 +81,7 @@ class Client():
     
         return target_dir + f'/{run_id}/output'
 
-    def __load_output(directory, evaluation=False, verbose=False):
+    def load_output_of_directory(directory, evaluation=False, verbose=False):
         files = glob(str(directory) + '/*' )
     
         if evaluation:
