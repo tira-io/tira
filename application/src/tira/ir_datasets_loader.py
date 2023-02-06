@@ -162,8 +162,8 @@ class IrDatasetsLoader(object):
     def make_serializable(self, o: dict):
         for k in o.keys():
             value = o[k]
-            if value and value.__class__ and str(o.__class__.__name__) == 'bytes':
-                o[k] = b64encode(value)
+            if value and value.__class__ and str(value.__class__.__name__) == 'bytes':
+                o[k] = b64encode(value).decode('ascii')
         
         return o
 
