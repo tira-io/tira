@@ -20,6 +20,6 @@ docker run --rm -ti \
     -v /mnt/ceph/tira/data/datasets/:/mnt/ceph/tira/data/datasets/ \
     -v ${PWD}/cranfield-integration/:/tmp-out/ \
     --entrypoint /irds_cli.sh webis/tira-application:0.0.35 \
-        --input_dataset_directory /mnt/ceph/tira/data/datasets/training-datasets/ir-benchmarks/clueweb09-en-trec-web-2009-20230107-training/ \
+        --input_dataset_directory /mnt/ceph/tira/data/datasets/training-datasets/ir-benchmarks/cranfield-20230107-training/ \
         --output_dataset_path $outputDir /tmp-out/cranfield-rerank --rerank /tmp-out/cranfield-run
 
