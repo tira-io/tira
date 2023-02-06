@@ -139,7 +139,7 @@ class IrDatasetsLoader(object):
         if not os.path.abspath(run_file).endswith('run.txt'):
             run_file = run_file / 'run.txt'
 
-        run = pd.read_csv(os.path.abspath(run_file), sep='\\s+', names=["qid", "q0", "docno", "rank", "score", "system"])
+        run = pd.read_csv(os.path.abspath(run_file), sep='\\s+', names=["qid", "Q0", "docno", "rank", "score", "system"])
         run = run.copy().sort_values(["qid", "score", "docno"], ascending=[True, False, False]).reset_index()
         run = run.groupby("qid")[["qid", "Q0", "docno", "rank", "score", "system"]].head(1000)
 
