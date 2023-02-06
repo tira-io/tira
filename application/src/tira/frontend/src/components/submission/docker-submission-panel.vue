@@ -162,7 +162,7 @@
                     </select>
                 </label>
             </div>
-            <div v-if="!selectedContainer.ir_re_ranker" class="uk-width-1-4">
+            <div v-if="selectedContainer.ir_re_ranker" class="uk-width-1-4">
                 <label class="uk-form-label">Rerank Previous Stage
                     <select class="uk-select" v-model="selectedDataset"
                             @change="checkContainerRunValid(true); this.dockerFormError=''"
