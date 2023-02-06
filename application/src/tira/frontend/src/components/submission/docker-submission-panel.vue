@@ -431,7 +431,7 @@ export default {
             return this.rerankingDatasets.filter(k => !k.is_deprecated).map(k => {
                 return [k.dataset_id, k.display_name]
             })
-        }
+        },
         immutableHelp() {
             return "title: You can not change the image and the command in retrospect to ensure reproducibility. " +
                 "The frozen image will not be changed even if you update the image in the registry. " +

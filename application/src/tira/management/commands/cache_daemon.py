@@ -64,7 +64,7 @@ class Command(BaseCommand):
                     print(f'Exception in keep_user_images_fresh: {e}')
                     continue
 
-    def keep_reranking_datasets_fresh(self, sleep_time)
+    def keep_reranking_datasets_fresh(self, sleep_time):
         while True:
             time.sleep(int(sleep_time))
             print(str(datetime.datetime.now()) + ': Start keep_reranking_datasets_fresh (sleeped ' + str(int(sleep_time)) + ' seconds) ...')
