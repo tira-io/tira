@@ -9,7 +9,7 @@ import time
 import datetime
 
 logger = logging.getLogger("cache_daemon")
-from tira.tira_model import get_git_integration
+from tira.tira_model import get_git_integration, get_all_reranking_datasets
 from tira.git_runner import all_git_runners
 
 
@@ -63,7 +63,16 @@ class Command(BaseCommand):
                 except Exception as e:
                     print(f'Exception in keep_user_images_fresh: {e}')
                     continue
-                
+
+    def keep_reranking_datasets_fresh(self, sleep_time)
+        while True:
+            time.sleep(int(sleep_time))
+            print(str(datetime.datetime.now()) + ': Start keep_reranking_datasets_fresh (sleeped ' + str(int(sleep_time)) + ' seconds) ...')
+            try:
+                get_all_reranking_datasets(True)
+            except Exception as e:
+                print(f'Exception in keep_reranking_datasets_fresh: {e}')
+
     def handle(self, *args, **options):
         call_command('createcachetable')
         
@@ -72,8 +81,12 @@ class Command(BaseCommand):
 
         if 'keep_user_images_fresh' in options and options['keep_user_images_fresh']:
             self.keep_user_images_fresh(options['keep_user_images_fresh'])
+        
+        if 'keep_reranking_datasets_fresh' in options and options['keep_reranking_datasets_fresh']:
+            self.keep_reranking_datasets_fresh(options['keep_reranking_datasets_fresh'])
 
     def add_arguments(self, parser):
         parser.add_argument('--keep_running_softwares_fresh', default=None, type=str)
+        parser.add_argument('--keep_reranking_datasets_fresh', default=None, type=str)
         parser.add_argument('--keep_user_images_fresh', default=None, type=str)
 
