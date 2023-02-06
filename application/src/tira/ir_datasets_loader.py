@@ -73,7 +73,7 @@ class IrDatasetsLoader(object):
         @param run_file: the path to a file with data in TREC-run format
         """
         dataset = self.load_irds(ir_datasets_id)
-        queries = {i.query_id:i for i in dataset.queries_iter()}
+        queries = {str(i.query_id):i for i in dataset.queries_iter()}
         
         run = self.load_run_file(run_file)
         print('Get Documents')
@@ -160,14 +160,14 @@ class IrDatasetsLoader(object):
 
 
     def construct_rerank_row(self, docs: dict, queries: dict, rerank_line: dict) -> str:
-        query = queries[rerank_line["qid"]]
+        query = queries[str(rerank_line["qid"])]
         doc = docs.get(rerank_line["docno"], None)
         
         if not doc:
             return None
         
         ret = {
-            "qid": rerank_line["qid"],
+            "qid": query.query_id,
             "query": query.default_text(),
             "original_query": query._asdict(),
             "docno": rerank_line["docno"],
