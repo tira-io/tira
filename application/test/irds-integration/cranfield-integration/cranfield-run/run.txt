@@ -1,0 +1,5 @@
+10 Q0 7 251 3.6293122921963428 pyterrier.default_pipelines.wmodel_batch_retrieve
+10 Q0 933 697 -0.17401538966592991 pyterrier.default_pipelines.wmodel_batch_retrieve
+10 Q0 244 708 -0.17701648750976792 pyterrier.default_pipelines.wmodel_batch_retrieve
+10 Q0 1297 849 -0.21487497488469595 pyterrier.default_pipelines.wmodel_batch_retrieve
+10 Q0 942 709 -0.17756999542756582 pyterrier.default_pipelines.wmodel_batch_retrieve
