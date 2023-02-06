@@ -141,6 +141,8 @@ class GitRunner:
             metadata['TIRA_INPUT_RUN_DATASET_ID'] = input_run['dataset_id']
             metadata['TIRA_INPUT_RUN_VM_ID'] = input_run['vm_id']
             metadata['TIRA_INPUT_RUN_RUN_ID'] = input_run['run_id']
+            if input_run.get('replace_original_dataset', False):
+                metadata['TIRA_INPUT_RUN_REPLACES_ORIGINAL_DATASET'] = 'true'
     
         open(job_dir / 'job-to-execute.txt', 'w').write(self.dict_to_key_value_file(metadata))
 

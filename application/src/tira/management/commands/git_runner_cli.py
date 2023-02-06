@@ -10,7 +10,7 @@ from django.core.management import call_command
 from django.core.cache import cache
 
 from tira.git_runner import get_git_runner
-from tira.tira_model import load_refresh_timestamp_for_cache_key, get_git_integration, create_re_rank_output_on_dataset
+from tira.tira_model import load_refresh_timestamp_for_cache_key, get_git_integration, create_re_rank_output_on_dataset, get_all_reranking_datasets
 
 from tira.util import get_tira_id
 logger = logging.getLogger("tira")
@@ -112,6 +112,11 @@ class Command(BaseCommand):
                 print(f'/mnt/ceph/tira/data/runs/{tmp["dataset_id"]}/{tmp["vm_id"]}/{tmp["run_id"]}/')
             
             print(git_runner.extract_configuration_of_finished_job(2979, dataset_id='clinicaltrials-2017-trec-pm-2017-20230107-training', vm_id='tira-ir-starter', run_id='2023-01-12-15-02-11'))
+            
+            print('\n\nReranking Datasets:\n\n')
+            
+            for i in get_all_reranking_datasets(True).items():
+                print(i)
 
     def add_arguments(self, parser):
         parser.add_argument('--create_task_repository', default=None, type=str)

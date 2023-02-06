@@ -460,6 +460,27 @@ def run_execute_docker_software(request, task_id, vm_id, dataset_id, docker_soft
     if not vm_id or vm_id is None or vm_id == 'None':
         return JsonResponse({"status": 1, "message": "Please specify the associated vm_id."})
 
+    if not docker_software_id or docker_software_id is None or docker_software_id == 'None':
+        return JsonResponse({"status": 1, "message": "Please specify the associated docker_software_id."})
+
+    docker_software = model.get_docker_software(docker_software_id)
+
+    if not docker_software:
+        return JsonResponse({"status": 1, "message": f"There is no docker image with id {docker_software_id}"})
+
+    if 'ir_re_ranker' in docker_software and docker_software.get('ir_re_ranker', False):
+        reranking_datasets = model.get_all_reranking_datasets()
+
+        if dataset_id not in reranking_datasets:
+            return JsonResponse({"status": 1, "message":
+                f"The execution of your software depends on the reranking dataset {dataset_id}"
+                f", but {dataset_id} was never executed on this dataset. "
+                f"Please execute first the software on the specified dataset so that you can re-rank it."})
+
+        input_run = reranking_datasets[dataset_id]
+        input_run['replace_original_dataset'] = True
+        dataset_id = input_run['dataset_id']
+
     if not dataset_id or dataset_id is None or dataset_id == 'None':
         return JsonResponse({"status": 1, "message": "Please specify the associated dataset_id."})
 
@@ -467,14 +488,6 @@ def run_execute_docker_software(request, task_id, vm_id, dataset_id, docker_soft
     
     if not evaluator or 'is_git_runner' not in evaluator or not evaluator['is_git_runner'] or 'git_runner_image' not in evaluator or not evaluator['git_runner_image'] or 'git_runner_command' not in evaluator or not evaluator['git_runner_command'] or 'git_repository_id' not in evaluator or not evaluator['git_repository_id']:
         return JsonResponse({"status": 1, "message": "The dataset is misconfigured. Docker-execute only available for git-evaluators"})
-
-    if not docker_software_id or docker_software_id is None or docker_software_id == 'None':
-        return JsonResponse({"status": 1, "message": "Please specify the associated docker_software_id."})
-
-    docker_software = model.get_docker_software(docker_software_id)
-    
-    if not docker_software:
-        return JsonResponse({"status": 1, "message": f"There is no docker image with id {docker_software_id}"})
 
     input_run = None
     if 'input_docker_software_id' in docker_software and docker_software['input_docker_software_id']:

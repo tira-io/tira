@@ -428,7 +428,7 @@ export default {
                 return []
             }
             
-            return this.reranking_datasets.filter(k => !k.is_deprecated).map(k => {
+            return this.reranking_datasets.map(k => {
                 return [k.dataset_id, k.display_name]
             })
         },
