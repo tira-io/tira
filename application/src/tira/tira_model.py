@@ -576,7 +576,7 @@ def latest_output_of_software_on_dataset(task_id: str, vm_id: str, software_id: 
 
 
 def create_re_rank_output_on_dataset(task_id: str, vm_id: str, software_id: str, docker_software_id: int,
-                                     dataset_id: str):
+                                     dataset_id: str, return_none_if_not_exists=False):
     task = get_task(task_id, False)
 
     is_ir_task = task.get("is_ir_task", False)
@@ -591,6 +591,9 @@ def create_re_rank_output_on_dataset(task_id: str, vm_id: str, software_id: str,
     reranked_job = latest_output_of_software_on_dataset(task_id, vm_id, None, docker_irds_software_id, dataset_id)
     if reranked_job:
         return reranked_job
+
+    if return_none_if_not_exists:
+        return None
 
     evaluator = model.get_evaluator(dataset_id)
 
@@ -612,3 +615,30 @@ def create_re_rank_output_on_dataset(task_id: str, vm_id: str, software_id: str,
         'docker-software-' + docker_irds_software_id, irds_re_ranking_resource,
         input_run
     )
+
+
+def get_all_reranking_datasets(force_cache_refresh=False):
+    cache_key = 'get_all_reranking_datasets'
+    ret = cache.get(cache_key)
+    if ret is not None and not force_cache_refresh:
+        return ret
+
+    ret = {}
+
+    for reranking_software in model.get_reranking_docker_softwares():
+        for dataset in get_datasets_by_task(reranking_software['task_id']):
+            reranking_input = create_re_rank_output_on_dataset(
+                task_id=reranking_software['task_id'], vm_id=reranking_software['vm_id'],
+                software_id=None, docker_software_id=reranking_software['docker_software_id'],
+                dataset_id=dataset['dataset_id'], return_none_if_not_exists = True)
+
+            if reranking_input:
+                name = 'docker-id-' + str(reranking_software['docker_software_id']) + ' on ' + dataset['dataset_id']
+                reranking_input['display_name'] = reranking_software['display_name'] + ' on ' + dataset['dataset_id']
+
+                ret[name] = reranking_input
+
+    logger.info(f"Cache refreshed for key {cache_key} ...")
+    cache.set(cache_key, ret)
+
+    return ret

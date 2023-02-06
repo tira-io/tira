@@ -331,6 +331,9 @@ class HybridDatabase(object):
         except modeldb.Dataset.DoesNotExist:
             return {}
 
+    def get_reranking_docker_softwares(self):
+        return [self._docker_software_to_dict(i) for i in modeldb.DockerSoftware.objects.filter(ir_re_ranking_input=True)]
+
     def _organizer_to_dict(self, organizer):
         git_integrations = []
         
