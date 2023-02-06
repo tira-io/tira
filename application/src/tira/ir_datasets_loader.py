@@ -8,6 +8,7 @@ from tqdm import tqdm
 import pandas as pd
 import os
 import gzip
+from base64 import b64encode
 
 
 class IrDatasetsLoader(object):
@@ -99,7 +100,7 @@ class IrDatasetsLoader(object):
         """
         ret = {
             "docno": doc.doc_id,
-            "text":doc.default_text()
+            "text": doc.default_text()
         }
         if include_original:
             ret["original_document"] = doc._asdict()
@@ -158,6 +159,13 @@ class IrDatasetsLoader(object):
             ret[doc.doc_id] = doc
         return ret
 
+    def make_serializable(self, o: dict):
+        for k in o.keys():
+            value = o[k]
+            if value and value.__class__ and str(o.__class__.__name__) == 'bytes':
+                o[k] = b64encode(value)
+        
+        return o
 
     def construct_rerank_row(self, docs: dict, queries: dict, rerank_line: dict) -> str:
         query = queries[str(rerank_line["qid"])]
@@ -169,10 +177,10 @@ class IrDatasetsLoader(object):
         ret = {
             "qid": query.query_id,
             "query": query.default_text(),
-            "original_query": query._asdict(),
+            "original_query": self.make_serializable(query._asdict()),
             "docno": rerank_line["docno"],
             "text": doc.default_text(),
-            "original_document": doc._asdict(),
+            "original_document": self.make_serializable(doc._asdict()),
             "rank": rerank_line["rank"],
             "score": rerank_line["score"]
         }
