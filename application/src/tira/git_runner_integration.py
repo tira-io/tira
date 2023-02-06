@@ -298,6 +298,17 @@ class GitRunner:
         """
         raise ValueError('ToDo: Implement.')
 
+    def extract_configuration_of_finished_job(self, git_repository_id, dataset_id, vm_id, run_id):
+        gl_project = self.gitHoster_client.projects.get(int(git_repository_id))
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            repo = self.clone_repository_and_create_new_branch(self.repo_url(git_repository_id), 'dummy-br', tmp_dir)
+            f = glob(tmp_dir + '/' + dataset_id + '/' + vm_id + '/' + run_id + '/job-executed-on-*.txt')
+
+            if len(f) != 1:
+                return None
+
+            return open(f[0]).read()
+
     def all_user_repositories(self):
         """
         Lists all user repositories in the organization.

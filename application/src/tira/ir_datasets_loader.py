@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Iterable
 from bs4 import BeautifulSoup
 from tqdm import tqdm
+import pandas as pd
 import os
 import gzip
 
@@ -74,11 +75,11 @@ class IrDatasetsLoader(object):
         dataset = self.load_irds(ir_datasets_id)
         queries = {i.query_id:i for i in dataset.queries_iter()}
         
-        id_pairs = self.extract_ids_from_run_file(run_file)
+        run = self.load_run_file(run_file)
         print('Get Documents')
-        docs = self.get_docs_by_ids(dataset, [id[1] for id in id_pairs])
+        docs = self.get_docs_by_ids(dataset, list(set([i['docno'] for i in run])))
         print('Produce rerank data.')
-        rerank = tqdm((self.construct_rerank_row(docs, queries, id_pair[0], id_pair[1]) for id_pair in id_pairs), 'Produce Rerank File.')
+        rerank = tqdm((self.construct_rerank_row(docs, queries, i) for i in run), 'Produce Rerank File.')
         print('Write rerank data.')
         self.write_lines_to_file(rerank, output_dataset_path/"rerank.jsonl.gz")
         print('Done rerank data was written.')
@@ -134,13 +135,19 @@ class IrDatasetsLoader(object):
         return f"{qrel.query_id} {qrel.iteration} {qrel.doc_id} {qrel.relevance}"
 
 
-    def extract_ids_from_run_file(self, run_file: Path) -> list:
+    def load_run_file(self, run_file: Path) -> list:
         if not os.path.abspath(run_file).endswith('run.txt'):
             run_file = run_file / 'run.txt'
 
-        with run_file.open('r') as file:
-            id_pairs = [line.split()[:3:2] for line in file]
-            return id_pairs
+        run = pd.read_csv(os.path.abspath(run_file), sep='\\s+', names=["qid", "q0", "docid", "rank", "score", "system"])
+        run = run.copy().sort_values(["qid", "score", "docno"], ascending=[True, False, False]).reset_index()
+        run = run.groupby("qid")[["qid", "Q0", "docno", "rank", "score", "system"]].head(1000)
+
+        # Make sure that rank position starts by 1
+        run["rank"] = 1
+        run["rank"] = run.groupby("qid")["rank"].cumsum()
+        
+        return [i.to_dict() for _, i in run[['qid', 'Q0', 'docno', 'rank', 'score', 'system']].iterrows()]
         
 
     def get_docs_by_ids(self, dataset, doc_ids: list) -> dict:
@@ -152,17 +159,22 @@ class IrDatasetsLoader(object):
         return ret
 
 
-    def construct_rerank_row(self, docs: dict, queries: dict, query_id: str, doc_id: str) -> str:
-        query = queries[query_id]
-        doc = docs[doc_id]
+    def construct_rerank_row(self, docs: dict, queries: dict, rerank_line: dict) -> str:
+        query = queries[rerank_line["qid"]]
+        doc = docs.get(rerank_line["docno"], None)
+        
+        if not doc:
+            return None
         
         ret = {
-            "qid": query_id,
+            "qid": rerank_line["qid"],
             "query": query.default_text(),
             "original_query": query._asdict(),
-            "docno": doc_id,
+            "docno": rerank_line["docno"],
             "text": doc.default_text(),
             "original_document": doc._asdict(),
+            "rank": rerank_line["rank"],
+            "score": rerank_line["score"]
         }
 
         return json.dumps(ret)
@@ -176,10 +188,12 @@ class IrDatasetsLoader(object):
         if os.path.abspath(path).endswith('.gz'):
             with gzip.open(os.path.abspath(path), 'wb') as file:
                 for line in lines:
+                    if not line:
+                        contunue
                     file.write((line + '\n').encode('utf-8'))
         else:
             with path.open('wt') as file:
-                file.writelines('%s\n' % line for line in lines)
+                file.writelines('%s\n' % line for line in lines if line)
 
 
     def write_lines_to_xml_file(self, ir_datasets_id: str, lines: Iterable[str], path: Path) -> None:
