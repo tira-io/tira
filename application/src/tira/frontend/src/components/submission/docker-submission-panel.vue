@@ -162,7 +162,17 @@
                     </select>
                 </label>
             </div>
-            <div class="uk-width-1-4">
+            <div v-if="!selectedContainer.ir_re_ranker" class="uk-width-1-4">
+                <label class="uk-form-label">Rerank Previous Stage
+                    <select class="uk-select" v-model="selectedDataset"
+                            @change="checkContainerRunValid(true); this.dockerFormError=''"
+                            :class="{ 'uk-form-danger': containerDatasetError}">
+                        <option :disabled="selectedDataset !== 'None'" value="None">Select Reranking Input</option>
+                        <option v-for="dataset in rerankingDatasetOptions" :value="dataset.at(0)">{{ dataset.at(1) }}</option>
+                    </select>
+                </label>
+            </div>
+            <div v-if="!selectedContainer.ir_re_ranker" class="uk-width-1-4">
                 <label class="uk-form-label">Run on Dataset
                     <select class="uk-select" v-model="selectedDataset"
                             @change="checkContainerRunValid(true); this.dockerFormError=''"
@@ -413,6 +423,15 @@ export default {
                 return [k.dataset_id, k.display_name]
             })
         },
+        rerankingDatasetOptions() {
+            if (!this.rerankingDatasets) {
+                return []
+            }
+            
+            return this.rerankingDatasets.filter(k => !k.is_deprecated).map(k => {
+                return [k.dataset_id, k.display_name]
+            })
+        }
         immutableHelp() {
             return "title: You can not change the image and the command in retrospect to ensure reproducibility. " +
                 "The frozen image will not be changed even if you update the image in the registry. " +
