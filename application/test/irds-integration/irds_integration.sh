@@ -1,5 +1,7 @@
 #!/bin/sh
 
+docker pull webis/tira-application:0.0.35
+
 docker run --rm -ti \
     -v /mnt/ceph/storage/corpora/corpora-thirdparty:/mnt/ceph/storage/corpora/corpora-thirdparty:ro \
     -v /mnt/ceph/tira/state/ir_datasets:/root/.ir_datasets \
