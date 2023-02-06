@@ -169,7 +169,7 @@ class IrDatasetsLoader(object):
 
     def construct_rerank_row(self, docs: dict, queries: dict, rerank_line: dict) -> str:
         query = queries[str(rerank_line["qid"])]
-        doc = docs.get(rerank_line["docno"], None)
+        doc = docs.get(str(rerank_line["docno"]), None)
         
         if not doc:
             return None
@@ -197,7 +197,7 @@ class IrDatasetsLoader(object):
             with gzip.open(os.path.abspath(path), 'wb') as file:
                 for line in lines:
                     if not line:
-                        contunue
+                        continue
                     file.write((line + '\n').encode('utf-8'))
         else:
             with path.open('wt') as file:
