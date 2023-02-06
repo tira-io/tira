@@ -78,7 +78,7 @@ class IrDatasetsLoader(object):
         
         run = self.load_run_file(run_file)
         print('Get Documents')
-        docs = self.get_docs_by_ids(dataset, list(set(str([i['docno']) for i in run])))
+        docs = self.get_docs_by_ids(dataset, list(set([str(i['docno']) for i in run])))
         print('Produce rerank data.')
         rerank = tqdm((self.construct_rerank_row(docs, queries, i) for i in run), 'Produce Rerank File.')
         print('Write rerank data.')
