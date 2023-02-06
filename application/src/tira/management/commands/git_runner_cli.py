@@ -97,8 +97,21 @@ class Command(BaseCommand):
             print(git_runner.docker_images_in_user_repository(options['docker_images_in_user_repository']))
         
         if 'rerank' in options and options['rerank']:
-            #244 = "BM25 (tira-ir-starter-pyterrier)"
-            print(create_re_rank_output_on_dataset(task_id='ir-benchmarks', vm_id='tira-ir-starter', software_id=None, docker_software_id=244, dataset_id='cranfield-20230107-training'))
+            docker_software_id = 244 # "BM25 (tira-ir-starter-pyterrier)"
+            datasets = ['cranfield-20230107-training', 'antique-test-20230107-training', 'vaswani-20230107-training', 'msmarco-passage-trec-dl-2019-judged-20230107-training', 'medline-2004-trec-genomics-2004-20230107-training', 'wapo-v2-trec-core-2018-20230107-training', 'cord19-fulltext-trec-covid-20230107-training']
+            for dataset in datasets:
+                tmp = create_re_rank_output_on_dataset(task_id='ir-benchmarks', vm_id='tira-ir-starter', software_id=None, docker_software_id=docker_software_id, dataset_id=dataset)
+                if tmp:
+                    print(f'/mnt/ceph/tira/data/runs/{tmp["dataset_id"]}/{tmp["vm_id"]}/{tmp["run_id"]}/')
+                
+                
+            docker_software_id = 242 # "ChatNoir"
+            datasets = ['clueweb09-en-trec-web-2009-20230107-training', 'clueweb09-en-trec-web-2010-20230107-training', 'clueweb09-en-trec-web-2011-20230107-training', 'clueweb09-en-trec-web-2012-20230107-training', 'clueweb12-trec-web-2013-20230107-training', 'clueweb12-trec-web-2014-20230107-training']
+            for dataset in datasets:
+                tmp = create_re_rank_output_on_dataset(task_id='ir-benchmarks', vm_id='tira-ir-starter', software_id=None, docker_software_id=docker_software_id, dataset_id=dataset)
+                print(f'/mnt/ceph/tira/data/runs/{tmp["dataset_id"]}/{tmp["vm_id"]}/{tmp["run_id"]}/')
+            
+            print(git_runner.extract_configuration_of_finished_job(2979, dataset_id='clinicaltrials-2017-trec-pm-2017-20230107-training', vm_id='tira-ir-starter', run_id='2023-01-12-15-02-11'))
 
     def add_arguments(self, parser):
         parser.add_argument('--create_task_repository', default=None, type=str)
