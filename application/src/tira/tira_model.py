@@ -617,6 +617,9 @@ def create_re_rank_output_on_dataset(task_id: str, vm_id: str, software_id: str,
     )
 
 
+def get_all_reranking_datasets_for_task(task_id):
+    return [{'dataset_id': k, 'display_name': v['display_name']} for k, v in get_all_reranking_datasets().items() if v and v['task_id'] == task_id]
+
 def get_all_reranking_datasets(force_cache_refresh=False):
     cache_key = 'get_all_reranking_datasets'
     ret = cache.get(cache_key)

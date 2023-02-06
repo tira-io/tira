@@ -188,6 +188,7 @@ def get_user(request, context, task_id, user_id):
     context["vm"] = vm
     context["software"] = software
     context["datasets"] = model.get_datasets_by_task(task_id)
+    context["reranking_datasets"] = [] if not context["task"]["is_ir_task"] or not context["task"]["irds_re_ranking_command"] else model.get_all_reranking_datasets_for_task(task_id)
     context["upload"] = upload
     context["docker"] = docker
     

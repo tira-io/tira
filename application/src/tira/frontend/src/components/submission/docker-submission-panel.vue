@@ -232,7 +232,7 @@ export default {
     components: {
         ReviewList, DeleteConfirm
     },
-    props: ['csrf', 'datasets', 'docker', 'user_id', 'running_evaluations', 'task', 'role'],
+    props: ['csrf', 'datasets', 'reranking_datasets', 'docker', 'user_id', 'running_evaluations', 'task', 'role'],
     emits: ['addNotification', 'pollEvaluations', 'removeRun', 'addContainer', 'deleteContainer', 'pollRunningContainer', 'refreshDockerImages'],
     data() {
         return {
@@ -424,11 +424,11 @@ export default {
             })
         },
         rerankingDatasetOptions() {
-            if (!this.rerankingDatasets) {
+            if (!this.reranking_datasets) {
                 return []
             }
             
-            return this.rerankingDatasets.filter(k => !k.is_deprecated).map(k => {
+            return this.reranking_datasets.filter(k => !k.is_deprecated).map(k => {
                 return [k.dataset_id, k.display_name]
             })
         },
