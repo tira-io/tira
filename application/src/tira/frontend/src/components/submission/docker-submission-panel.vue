@@ -394,8 +394,8 @@ export default {
             if (!this.checkContainerRunValid(true)) return;
             this.startingContainer = true
             this.$refs['runContainerButton'].text = "Starting..."
-            reranking_dataset = 'none'
-            dataset = this.selectedDataset
+            var reranking_dataset = 'none'
+            var dataset = this.selectedDataset
 
             if (this.selectedContainer.ir_re_ranker) {
                 reranking_dataset = this.selectedRerankingDataset
