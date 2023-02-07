@@ -87,7 +87,7 @@ def load_rerank_data(default_input, load_default_text=True):
 
 
 def persist_and_normalize_run(run, system_name, depth, output_file):
-    run.to_csv(filename, sep=" ", header=False, index=False)
+    run.to_csv(output_file, sep=" ", header=False, index=False)
 
 
 def normalize_run(run, system_name, depth=1000):
