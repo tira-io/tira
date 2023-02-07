@@ -354,14 +354,14 @@ export default {
             this.containerDatasetError = false
             this.containerResourceError = false
 
-            if (!selectedContainer.ir_re_ranker && (this.selectedDataset +''  === 'undefined' || this.selectedDataset  === 'None' || this.selectedDataset === '')) {
+            if (!this.selectedContainer.ir_re_ranker && (this.selectedDataset +''  === 'undefined' || this.selectedDataset  === 'None' || this.selectedDataset === '')) {
                 if (updateView) {
                     this.dockerFormError = 'Error: Please select a dataset!'
                     this.containerDatasetError = true
                 }
                 return false
             }
-            if (selectedContainer.ir_re_ranker && (this.selectedRerankingDataset +''  === 'undefined' || this.selectedRerankingDataset  === 'None' || this.selectedRerankingDataset === '')) {
+            if (this.selectedContainer.ir_re_ranker && (this.selectedRerankingDataset +''  === 'undefined' || this.selectedRerankingDataset  === 'None' || this.selectedRerankingDataset === '')) {
                 if (updateView) {
                     this.dockerFormError = 'Error: Please select a dataset!'
                     this.containerDatasetError = true
@@ -397,7 +397,7 @@ export default {
             reranking_dataset = 'none'
             dataset = this.selectedDataset
 
-            if (selectedContainer.ir_re_ranker) {
+            if (this.selectedContainer.ir_re_ranker) {
                 reranking_dataset = this.selectedRerankingDataset
                 
                 for (const r of this.reranking_datasets) {
