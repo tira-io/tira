@@ -86,10 +86,10 @@ def load_rerank_data(default_input, load_default_text=True):
             return all_lines_to_pandas(input_file, load_default_text)
 
 
-def persist_and_normalize_run(run, system_name, depth, output_file):
+def persist_and_normalize_run(run, system_name, output_file, depth=1000):
     if not output_file.endswith('run.txt'):
         output_file = output_file + '/run.txt'
-    run.to_csv(output_file, sep=" ", header=False, index=False)
+    normalize_run(run, system_name, depth).to_csv(output_file, sep=" ", header=False, index=False)
 
 
 def normalize_run(run, system_name, depth=1000):
