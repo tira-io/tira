@@ -453,7 +453,7 @@ def docker_software_delete(request, task_id, vm_id, docker_software_id):
 
 @check_permissions
 @check_resources_exist('json')
-def run_execute_docker_software(request, task_id, vm_id, dataset_id, docker_software_id, docker_resources, rerank_dataset):
+def run_execute_docker_software(request, task_id, vm_id, dataset_id, docker_software_id, docker_resources, rerank_dataset=None):
     if not task_id or task_id is None or task_id == 'None':
         return JsonResponse({"status": 1, "message": "Please specify the associated task_id."})
 
@@ -468,7 +468,7 @@ def run_execute_docker_software(request, task_id, vm_id, dataset_id, docker_soft
     if not docker_software:
         return JsonResponse({"status": 1, "message": f"There is no docker image with id {docker_software_id}"})
 
-    if 'ir_re_ranker' in docker_software and docker_software.get('ir_re_ranker', False) and rerank_dataset.lower() != 'none':
+    if 'ir_re_ranker' in docker_software and docker_software.get('ir_re_ranker', False) and and rerank_dataset and rerank_dataset.lower() != 'none':
         reranking_datasets = model.get_all_reranking_datasets()
 
         if dataset_id not in reranking_datasets:
