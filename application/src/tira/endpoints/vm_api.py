@@ -468,6 +468,7 @@ def run_execute_docker_software(request, task_id, vm_id, dataset_id, docker_soft
     if not docker_software:
         return JsonResponse({"status": 1, "message": f"There is no docker image with id {docker_software_id}"})
 
+    input_run = None
     if 'ir_re_ranker' in docker_software and docker_software.get('ir_re_ranker', False) and rerank_dataset and rerank_dataset.lower() != 'none':
         reranking_datasets = model.get_all_reranking_datasets()
 
@@ -495,7 +496,6 @@ def run_execute_docker_software(request, task_id, vm_id, dataset_id, docker_soft
     if not evaluator or 'is_git_runner' not in evaluator or not evaluator['is_git_runner'] or 'git_runner_image' not in evaluator or not evaluator['git_runner_image'] or 'git_runner_command' not in evaluator or not evaluator['git_runner_command'] or 'git_repository_id' not in evaluator or not evaluator['git_repository_id']:
         return JsonResponse({"status": 1, "message": "The dataset is misconfigured. Docker-execute only available for git-evaluators"})
 
-    input_run = None
     if 'input_docker_software_id' in docker_software and docker_software['input_docker_software_id']:
         input_run = model.latest_output_of_software_on_dataset(task_id, None, None, int(docker_software['input_docker_software_id']), dataset_id)
         if not input_run or not input_run.get('dataset_id', None) or not input_run.get('run_id', None):
