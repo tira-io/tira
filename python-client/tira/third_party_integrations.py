@@ -104,7 +104,7 @@ def normalize_run(run, system_name, depth=1000):
     if 'Q0' not in run.columns:
         run['Q0'] = 0
 
-    run = run.groupby("qid")[["qid", "Q0", "docno", "rank", "score", "system"]].head(1000)
+    run = run.groupby("qid")[["qid", "Q0", "docno", "score", "system"]].head(depth)
 
     # Make sure that rank position starts by 1
     run["rank"] = 1
