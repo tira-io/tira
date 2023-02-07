@@ -637,7 +637,7 @@ def get_all_reranking_datasets(force_cache_refresh=False):
 
             if reranking_input:
                 name = 'docker-id-' + str(reranking_software['docker_software_id']) + '-on-' + dataset['dataset_id']
-                name = name.replaice(' ', '-').replaice('\\s', '-')
+                name = name.replace(' ', '-').replace('\\s', '-')
                 reranking_input['display_name'] = reranking_software['display_name'] + ' on ' + dataset['dataset_id']
 
                 ret[name] = reranking_input
