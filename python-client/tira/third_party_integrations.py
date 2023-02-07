@@ -60,6 +60,7 @@ def load_rerank_data(default_input):
 
     df = pd.read_json(default_input, lines=True)
     df['qid'] = df['qid'].astype('str')
+    df['docno'] = df['docno'].astype('str')
     
     return df
 
