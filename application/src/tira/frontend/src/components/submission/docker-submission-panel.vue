@@ -407,7 +407,7 @@ export default {
                 }
             }
 
-            submitPost(`/grpc/${this.task.task_id}/${this.user_id}/run_execute/docker/${dataset}/${this.selectedContainerId}/${this.selectedResources}/{reranking_dataset}`,this.csrf, {csrfmiddlewaretoken: this.csrf, action: 'post'}).then(message => {
+            submitPost(`/grpc/${this.task.task_id}/${this.user_id}/run_execute/docker/${dataset}/${this.selectedContainerId}/${this.selectedResources}/${reranking_dataset}`,this.csrf, {csrfmiddlewaretoken: this.csrf, action: 'post'}).then(message => {
                 this.$emit('pollRunningContainer')
                 this.$refs['runContainerButton'].text = "Run Container"
                 this.startingContainer = false
