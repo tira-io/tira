@@ -164,10 +164,10 @@
             </div>
             <div v-if="selectedContainer.ir_re_ranker" class="uk-width-1-4">
                 <label class="uk-form-label">Rerank Previous Stage
-                    <select class="uk-select" v-model="selectedDataset"
+                    <select class="uk-select" v-model="selectedRerankingDataset"
                             @change="checkContainerRunValid(true); this.dockerFormError=''"
                             :class="{ 'uk-form-danger': containerDatasetError}">
-                        <option :disabled="selectedDataset !== 'None'" value="None">Select Reranking Input</option>
+                        <option :disabled="selectedRerankingDataset !== 'None'" value="None">Select Reranking Input</option>
                         <option v-for="dataset in rerankingDatasetOptions" :value="dataset.at(0)">{{ dataset.at(1) }}</option>
                     </select>
                 </label>
@@ -251,6 +251,7 @@ export default {
             containerResourceError: false,
             containerImageError: false,
             selectedDataset: "None",
+            selectedRerankingDataset: "None",
             selectedContainerCommand: null,
             selectedResources: "None",
             addContainerInputJob: "None",
@@ -353,7 +354,14 @@ export default {
             this.containerDatasetError = false
             this.containerResourceError = false
 
-            if (this.selectedDataset +''  === 'undefined' || this.selectedDataset  === 'None' || this.selectedDataset === '') {
+            if (!selectedContainer.ir_re_ranker && (this.selectedDataset +''  === 'undefined' || this.selectedDataset  === 'None' || this.selectedDataset === '')) {
+                if (updateView) {
+                    this.dockerFormError = 'Error: Please select a dataset!'
+                    this.containerDatasetError = true
+                }
+                return false
+            }
+            if (selectedContainer.ir_re_ranker && (this.selectedRerankingDataset +''  === 'undefined' || this.selectedRerankingDataset  === 'None' || this.selectedRerankingDataset === '')) {
                 if (updateView) {
                     this.dockerFormError = 'Error: Please select a dataset!'
                     this.containerDatasetError = true
@@ -386,8 +394,20 @@ export default {
             if (!this.checkContainerRunValid(true)) return;
             this.startingContainer = true
             this.$refs['runContainerButton'].text = "Starting..."
+            reranking_dataset = 'none'
+            dataset = this.selectedDataset
 
-            submitPost(`/grpc/${this.task.task_id}/${this.user_id}/run_execute/docker/${this.selectedDataset}/${this.selectedContainerId}/${this.selectedResources}`,this.csrf, {csrfmiddlewaretoken: this.csrf, action: 'post'}).then(message => {
+            if (selectedContainer.ir_re_ranker) {
+                reranking_dataset = this.selectedRerankingDataset
+                
+                for (const r of this.reranking_datasets) {
+                    if (reranking_dataset == r.dataset_id) {
+                        dataset = r.original_dataset_id
+                    }
+                }
+            }
+
+            submitPost(`/grpc/${this.task.task_id}/${this.user_id}/run_execute/docker/${dataset}/${this.selectedContainerId}/${this.selectedResources}/{reranking_dataset}`,this.csrf, {csrfmiddlewaretoken: this.csrf, action: 'post'}).then(message => {
                 this.$emit('pollRunningContainer')
                 this.$refs['runContainerButton'].text = "Run Container"
                 this.startingContainer = false
@@ -465,6 +485,7 @@ export default {
                     this.selectedContainerInputDockerSoftware = this.docker.docker_softwares[did].input_docker_software
                     this.containerImage = this.docker.docker_softwares[did].user_image_name
                     this.selectedDataset = "None"
+                    this.selectedRerankingDataset = "None"
                     this.editSoftwareMetadataToggle = false
                 }
             }

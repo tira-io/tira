@@ -453,7 +453,7 @@ def docker_software_delete(request, task_id, vm_id, docker_software_id):
 
 @check_permissions
 @check_resources_exist('json')
-def run_execute_docker_software(request, task_id, vm_id, dataset_id, docker_software_id, docker_resources):
+def run_execute_docker_software(request, task_id, vm_id, dataset_id, docker_software_id, docker_resources, rerank_dataset):
     if not task_id or task_id is None or task_id == 'None':
         return JsonResponse({"status": 1, "message": "Please specify the associated task_id."})
 
@@ -468,7 +468,7 @@ def run_execute_docker_software(request, task_id, vm_id, dataset_id, docker_soft
     if not docker_software:
         return JsonResponse({"status": 1, "message": f"There is no docker image with id {docker_software_id}"})
 
-    if 'ir_re_ranker' in docker_software and docker_software.get('ir_re_ranker', False):
+    if 'ir_re_ranker' in docker_software and docker_software.get('ir_re_ranker', False) and rerank_dataset.lower() != 'none':
         reranking_datasets = model.get_all_reranking_datasets()
 
         if dataset_id not in reranking_datasets:
@@ -477,9 +477,15 @@ def run_execute_docker_software(request, task_id, vm_id, dataset_id, docker_soft
                 f", but {dataset_id} was never executed on this dataset. "
                 f"Please execute first the software on the specified dataset so that you can re-rank it."})
 
-        input_run = reranking_datasets[dataset_id]
+        input_run = reranking_datasets[rerank_dataset]
         input_run['replace_original_dataset'] = True
-        dataset_id = input_run['dataset_id']
+
+        if dataset_id != input_run['dataset_id']:
+            return JsonResponse({"status": 1, "message": "There seems to be a configuration error:" +
+                                                         f" The reranking dataset {input_run['dataset_id']} is not" +
+                                                         f" the specified dataset {dataset_id}."})
+
+        assert dataset_id == input_run['dataset_id']
 
     if not dataset_id or dataset_id is None or dataset_id == 'None':
         return JsonResponse({"status": 1, "message": "Please specify the associated dataset_id."})
