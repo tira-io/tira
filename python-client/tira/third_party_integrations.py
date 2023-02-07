@@ -1,5 +1,6 @@
 import os
 import json
+import gzip
 
 def ensure_pyterrier_is_loaded():
     import pyterrier as pt
@@ -47,9 +48,23 @@ def get_input_directory_and_output_directory(default_input):
     
     return (input_directory, output_directory)
 
-
-def load_rerank_data(default_input):
+def all_lines_to_pandas(input_file, load_default_text):
     import pandas as pd
+    ret = []
+    
+    for l in input_file:
+        l = json.loads(l)
+        if load_default_text:
+            del l['original_query']
+            del l['original_document']
+        l['qid'] = str(l['qid'])
+        l['docno'] = str(l['docno'])
+        ret += [l]
+    
+    return pd.DataFrame(ret)
+    
+                
+def load_rerank_data(default_input, load_default_text=True):
     default_input = get_input_directory_and_output_directory(default_input)[0]
     
     if not default_input.endswith('rerank.jsonl') and not default_input.endswith('rerank.jsonl.gz'):
@@ -57,12 +72,15 @@ def load_rerank_data(default_input):
             default_input = default_input + '/rerank.jsonl.gz'
         elif os.path.isfile(default_input + '/rerank.jsonl'):
             default_input = default_input + '/rerank.jsonl'
-
-    df = pd.read_json(default_input, lines=True)
-    df['qid'] = df['qid'].astype('str')
-    df['docno'] = df['docno'].astype('str')
     
-    return df
+    ret = []
+
+    if default_input.endswith('.gz'):
+        with gzip.open(default_input, 'rt', encoding='utf-8') as input_file:
+            return all_lines_to_pandas(input_file, load_default_text)
+    else:
+        with open(default_input, 'r') as input_file:
+            return all_lines_to_pandas(input_file, load_default_text)
 
 
 def normalize_run(run, system_name, depth=1000):
