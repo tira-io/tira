@@ -2,6 +2,7 @@ import os
 import json
 import gzip
 
+
 def ensure_pyterrier_is_loaded():
     import pyterrier as pt
     
@@ -14,6 +15,7 @@ def ensure_pyterrier_is_loaded():
     if not pt.started():
         print(f'Start PyTerrier with version={pt_version}, helper_version={pt_helper_version}, no_download=True')
         pt.init(version=pt_version, helper_version=pt_helper_version, no_download=True, boot_packages=["com.github.terrierteam:terrier-prf:-SNAPSHOT"])
+
 
 def get_preconfigured_chatnoir_client(config_directory, features=['TARGET_URI'], verbose=True, num_results=10, retries=25):
     from chatnoir_pyterrier import ChatNoirRetrieve
@@ -48,6 +50,7 @@ def get_input_directory_and_output_directory(default_input):
     
     return (input_directory, output_directory)
 
+
 def all_lines_to_pandas(input_file, load_default_text):
     import pandas as pd
     ret = []
@@ -81,6 +84,10 @@ def load_rerank_data(default_input, load_default_text=True):
     else:
         with open(default_input, 'r') as input_file:
             return all_lines_to_pandas(input_file, load_default_text)
+
+
+def persist_and_normalize_run(run, system_name, depth, output_file):
+    run.to_csv(filename, sep=" ", header=False, index=False)
 
 
 def normalize_run(run, system_name, depth=1000):
