@@ -471,10 +471,10 @@ def run_execute_docker_software(request, task_id, vm_id, dataset_id, docker_soft
     if 'ir_re_ranker' in docker_software and docker_software.get('ir_re_ranker', False) and rerank_dataset and rerank_dataset.lower() != 'none':
         reranking_datasets = model.get_all_reranking_datasets()
 
-        if dataset_id not in reranking_datasets:
+        if rerank_dataset not in reranking_datasets:
             return JsonResponse({"status": 1, "message":
-                f"The execution of your software depends on the reranking dataset {dataset_id}"
-                f", but {dataset_id} was never executed on this dataset. "
+                f"The execution of your software depends on the reranking dataset {rerank_dataset}"
+                f", but {rerank_dataset} was never executed on the dataset {dataset_id}. "
                 f"Please execute first the software on the specified dataset so that you can re-rank it."})
 
         input_run = reranking_datasets[rerank_dataset]
