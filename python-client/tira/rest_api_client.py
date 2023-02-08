@@ -62,13 +62,33 @@ class Client():
 
         return pd.DataFrame(ret)
 
-    def download_run(self, task, dataset, software):
+    def download_run(self, task, dataset, software, team=None, previous_stage=None):
         df_eval = self.evaluations(task=task, dataset=dataset)
 
         ret = df_eval[(df_eval['dataset'] == dataset) & (df_eval['software'] == software)]
-        ret = self.download_zip_to_cache_directory(**ret[['task', 'dataset', 'team', 'run_id']].iloc[0].to_dict())
+        if team:
+            ret = ret[ret['team'] == team]
+        
+        if previous_stage:
+            _, prev_team, prev_software = approach.split('/')
+            ret = ret[ret['input_run_id'] == prev_software]
 
+        ret = self.download_zip_to_cache_directory(**ret[['task', 'dataset', 'team', 'run_id']].iloc[0].to_dict())
         return pd.read_csv(ret + '/run.txt', sep='\\s+', names=["query", "q0", "docid", "rank", "score", "system"])
+
+    def pt_transformer_from_run(self, approach, dataset, previous_stage=None):
+        import pyterrier as pt
+        task, team, software = approach.split('/')
+        
+        if previous_stage and type(previous_stage) != str:
+            previous_stage = previous_stage.name
+
+        ret = self.download_run(task, dataset, software, team, previous_stage)
+        
+        ret = pt.Transformer.from_df(ret)
+        ret.name = approach
+    
+        return ret
 
     def download_zip_to_cache_directory(self, task, dataset, team, run_id):
         target_dir = f'{self.__tira_cache_dir}/extracted_runs/{task}/{dataset}/{team}'
