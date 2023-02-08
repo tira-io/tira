@@ -84,6 +84,10 @@ class Client():
             previous_stage = previous_stage.name
 
         ret = self.download_run(task, dataset, software, team, previous_stage)
+        ret['qid'] = ret['query'].astype(str)
+        ret['docid'] = ret['docid'].astype(str)
+        del ret['query']
+        del ret['docid']
         
         ret = pt.Transformer.from_df(ret)
         ret.name = approach
