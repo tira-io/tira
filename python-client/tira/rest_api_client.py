@@ -131,7 +131,7 @@ class Client():
         url = f'https://www.tira.io/grpc/{task}/{team}/run_execute/docker/{dataset}/{software_id}/{resources}'
         print(f'Start software...\n\t{url}\n')
 
-        ret = requests.post(url, headers={"Api-Key": self.__api_key, "Accept": "application/json", "content-type": "application/json", 'Cookie': 'csrftoken=Rtgzr0LxAXUz39pxwsSdpKez0W8Lu9mw'})
+        ret = requests.post(url, headers={"Api-Key": self.__api_key, "Accept": "application/json", "content-type": "application/json"})
     
         ret = ret.content.decode('utf8')
 
