@@ -7,14 +7,14 @@ import io
 
 
 class Client():
-    def __init__(self, api_key=None):
+    def __init__(self, api_key=None, cookie=None):
         self.__tira_cache_dir = os.environ.get('TIRA_CACHE_DIR', os.path.expanduser('~') + '/.tira')
 
         if api_key is None:
             self.__api_key = json.load(open(self.__tira_cache_dir + '/.tira-settings.json', 'r'))['api_key']
         else:
             self.__api_key = api_key
-
+        self.cookie = cookie
         self.fail_if_api_key_is_invalid()
 
 
@@ -131,13 +131,25 @@ class Client():
         url = f'https://www.tira.io/grpc/{task}/{team}/run_execute/docker/{dataset}/{software_id}/{resources}'
         print(f'Start software...\n\t{url}\n')
 
-        ret = requests.post(url, headers={"Api-Key": self.__api_key, "Accept": "application/json", "content-type": "application/json"})
-    
-        ret = ret.content.decode('utf8')
+        csrf_token = get_csrf_token()
+        headers = {   
+            #'Api-Key': self.__api_key,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Cookie': self.__cookie,
+            'x-csrftoken': csrf_token,
+        }
+
+        ret = requests.post(url, headers=headers, json={"csrfmiddlewaretoken": csrf_token, "action": "post"})
 
         print(ret)
         ret = json.loads(ret)
         assert ret['status'] == 0
+
+    def get_csrf_token(self):
+        ret = requests.get('https://www.tira.io/', headers={"Api-Key": self.__api_key})
+
+        return ret.content.decode('utf-8').split('name="csrfmiddlewaretoken" value="')[1].split('"')[0]
 
     def json_response(self, endpoint, params=None):
         headers = {"Api-Key": self.__api_key, "Accept": "application/json"}
