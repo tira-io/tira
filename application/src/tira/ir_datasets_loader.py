@@ -103,7 +103,7 @@ class IrDatasetsLoader(object):
             "text": doc.default_text()
         }
         if include_original:
-            ret["original_document"] = doc._asdict()
+            ret["original_document"] = self.make_serializable(doc._asdict())
         return json.dumps(ret)
 
 
