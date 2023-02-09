@@ -122,13 +122,13 @@ class Client():
     
         return target_dir + f'/{run_id}/output'
 
-    def run_software(self, approach, dataset, resources):
+    def run_software(self, approach, dataset, resources, rerank_dataset='none'):
         task, team, software = approach.split('/')
         software_id = self.docker_software_id(approach)
         if not software_id:
             raise ValueError(f'Could not find software id for "{approach}". Got: "{software_id}".')
         
-        url = f'https://www.tira.io/grpc/{task}/{team}/run_execute/docker/{dataset}/{software_id}/{resources}'
+        url = f'https://www.tira.io/grpc/{task}/{team}/run_execute/docker/{dataset}/{software_id}/{resources}/{rerank_dataset}'
         print(f'Start software...\n\t{url}\n')
 
         csrf_token = self.get_csrf_token()
