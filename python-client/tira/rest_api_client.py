@@ -141,7 +141,7 @@ class Client():
         }
 
         ret = requests.post(url, headers=headers, json={"csrfmiddlewaretoken": csrf_token, "action": "post"})
-
+        ret = ret.content.decode('utf8')
         print(ret)
         ret = json.loads(ret)
         assert ret['status'] == 0
