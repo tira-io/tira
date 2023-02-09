@@ -11,9 +11,9 @@ class Client():
         self.__tira_cache_dir = os.environ.get('TIRA_CACHE_DIR', os.path.expanduser('~') + '/.tira')
 
         if api_key is None:
-            self.__api_key = json.load(open(self.__tira_cache_dir + '/.tira-settings.json', 'r'))['api_key']
+            self.api_key = json.load(open(self.__tira_cache_dir + '/.tira-settings.json', 'r'))['api_key']
         else:
-            self.__api_key = api_key
+            self.api_key = api_key
         self.cookie = cookie
         self.fail_if_api_key_is_invalid()
 
@@ -116,7 +116,7 @@ class Client():
         if os.path.isdir(target_dir + f'/{run_id}'):
             return target_dir + f'/{run_id}/output'
 
-        r = requests.get(f'https://www.tira.io/task/{task}/user/{team}/dataset/{dataset}/download/{run_id}.zip', headers={"Api-Key": self.__api_key})
+        r = requests.get(f'https://www.tira.io/task/{task}/user/{team}/dataset/{dataset}/download/{run_id}.zip', headers={"Api-Key": self.api_key})
         z = zipfile.ZipFile(io.BytesIO(r.content))
         z.extractall(target_dir)
     
@@ -133,10 +133,10 @@ class Client():
 
         csrf_token = self.get_csrf_token()
         headers = {   
-            #'Api-Key': self.__api_key,
+            #'Api-Key': self.api_key,
             'Accept': 'application/json',
             'Content-Type': 'application/json',
-            'Cookie': self.__cookie,
+            'Cookie': self.cookie,
             'x-csrftoken': csrf_token,
         }
 
@@ -147,12 +147,12 @@ class Client():
         assert ret['status'] == 0
 
     def get_csrf_token(self):
-        ret = requests.get('https://www.tira.io/', headers={"Api-Key": self.__api_key})
+        ret = requests.get('https://www.tira.io/', headers={"Api-Key": self.api_key})
 
         return ret.content.decode('utf-8').split('name="csrfmiddlewaretoken" value="')[1].split('"')[0]
 
     def json_response(self, endpoint, params=None):
-        headers = {"Api-Key": self.__api_key, "Accept": "application/json"}
+        headers = {"Api-Key": self.api_key, "Accept": "application/json"}
         resp = requests.get(url='https://www.tira.io' + endpoint, headers=headers, params=params)
         
         return resp.json()
