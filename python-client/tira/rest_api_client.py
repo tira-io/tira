@@ -10,7 +10,7 @@ class Client():
     def __init__(self, api_key=None):
         self.__tira_cache_dir = os.environ.get('TIRA_CACHE_DIR', os.path.expanduser('~') + '/.tira')
 
-        if api_key = None:
+        if api_key is None:
             self.__api_key = json.load(self.__tira_cache_dir + '.tira-settings.json', open('r'))['api_key']
         else:
             self.__api_key = api_key
