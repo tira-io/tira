@@ -131,7 +131,7 @@ class Client():
         url = f'https://www.tira.io/grpc/{task}/{team}/run_execute/docker/{dataset}/{software_id}/{resources}'
         print(f'Start software...\n\t{url}\n')
 
-        csrf_token = get_csrf_token()
+        csrf_token = self.get_csrf_token()
         headers = {   
             #'Api-Key': self.__api_key,
             'Accept': 'application/json',
