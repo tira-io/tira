@@ -7,10 +7,15 @@ import io
 
 
 class Client():
-    def __init__(self, api_key):
-        self.__api_key = api_key
-        self.fail_if_api_key_is_invalid()
+    def __init__(self, api_key=None):
         self.__tira_cache_dir = os.environ.get('TIRA_CACHE_DIR', os.path.expanduser('~') + '/.tira')
+
+        if api_key = None:
+            self.__api_key = json.load(self.__tira_cache_dir + '.tira-settings.json', open('r'))['api_key']
+        else:
+            self.__api_key = api_key
+
+        self.fail_if_api_key_is_invalid()
 
 
     def fail_if_api_key_is_invalid(self):
@@ -21,6 +26,17 @@ class Client():
 
     def datasets(self, task):
         return json.loads(self.json_response(f'/api/datasets_by_task/{task}')['context']['datasets'])
+
+    def docker_software_id(self, approach):
+        task, team, software = approach.split('/')
+        docker_softwares = self.metadata_for_task(task, team)['context']['docker']['docker_softwares']
+
+        for i in docker_softwares:
+            if i['display_name'] == software:
+                return i['docker_software_id']
+
+    def metadata_for_task(self, task_name, team_name):
+        return self.json_response(f'/api/task/{task_name}/user/{team_name}')
 
     def submissions(self, task, dataset):
         response = self.json_response(f'/api/submissions/{task}/{dataset}')['context']
@@ -106,8 +122,22 @@ class Client():
     
         return target_dir + f'/{run_id}/output'
 
+    def run_software(self, approach, dataset, resources):
+        task, team, software = approach.split('/')
+        software_id = self.docker_software_id(approach)
+        if not software_id:
+            raise ValueError(f'Could not find software id for "{approach}". Got: "{software_id}".')
+        
+        url = f'https://www.tira.io/grpc/{task}/{team}/run_execute/docker/{dataset}/{software_id}/{resources}'
+        print(f'Start software...\n\t{url}\n')
 
+        ret = requests.post(url, headers={"Api-Key": discourse_api_key, "Accept": "application/json", "content-type": "application/json", 'Cookie': 'csrftoken=Rtgzr0LxAXUz39pxwsSdpKez0W8Lu9mw'})
+    
+        ret = ret.content.decode('utf8')
 
+        print(ret)
+        ret = json.loads(ret)
+        assert ret['status'] == 0
 
     def json_response(self, endpoint, params=None):
         headers = {"Api-Key": self.__api_key, "Accept": "application/json"}
