@@ -61,7 +61,7 @@ class Command(BaseCommand):
                 options['ir_datasets_id'],
                 Path(options['output_dataset_path']),
                 truth_path,
-                options['include_original'],
+                options['include_original'].lower() == 'true',
                 options['rerank'],
                 skip_qrels = options['skip_qrels'],
             )
@@ -70,7 +70,7 @@ class Command(BaseCommand):
                 options['ir_datasets_id'],
                 Path(options['output_dataset_path']),
                 truth_path,
-                options['include_original'],
+                options['include_original'].lower() == 'true',
                 skip_documents = options['skip_documents'],
                 skip_qrels = options['skip_qrels'],
                 skip_duplicate_ids = options['skip_duplicate_ids'],
@@ -81,7 +81,7 @@ class Command(BaseCommand):
         parser.add_argument('--ir_datasets_id', default=None, type=str)
         parser.add_argument('--output_dataset_path', default=None, type=Path)
         parser.add_argument('--output_dataset_truth_path', default=None, type=Path)
-        parser.add_argument('--include_original', default=True, type=bool)
+        parser.add_argument('--include_original', default='True', type=str)
         parser.add_argument('--skip_documents', default=False, type=bool)
         parser.add_argument('--skip_qrels', default=False, type=bool)
         parser.add_argument('--input_dataset_directory', default=None, type=str)
