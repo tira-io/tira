@@ -24,7 +24,7 @@ class IrDatasetsLoader(object):
 
     def yield_docs(self, dataset, include_original, skip_duplicate_ids, allowlist_path_ids):
         already_covered_ids = set()
-        allowed_ids = set
+        allowed_ids = set()
         if allowlist_path_ids:
             with open(allowlist_path_ids, 'r') as inp_file:
                 for i in inp_file:
