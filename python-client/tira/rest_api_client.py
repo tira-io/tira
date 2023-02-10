@@ -29,12 +29,15 @@ class Client():
         return json.loads(self.json_response(f'/api/datasets_by_task/{task}')['context']['datasets'])
 
     def docker_software_id(self, approach):
+        return self.docker_software(approach['docker_software_id']
+
+    def docker_software(self, approach):
         task, team, software = approach.split('/')
         docker_softwares = self.metadata_for_task(task, team)['context']['docker']['docker_softwares']
 
         for i in docker_softwares:
             if i['display_name'] == software:
-                return i['docker_software_id']
+                return i
 
     def metadata_for_task(self, task_name, team_name):
         return self.json_response(f'/api/task/{task_name}/user/{team_name}')
