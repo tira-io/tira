@@ -40,7 +40,7 @@ class IrDatasetsLoader(object):
                 
         
 
-    def load_dataset_for_fullrank(self, ir_datasets_id: str, output_dataset_path: Path, output_dataset_truth_path: Path,  include_original=True, skip_documents=False, skip_qrels=False, skip_duplicate_ids=True, allowlist_path_ids: Path) -> None:
+    def load_dataset_for_fullrank(self, ir_datasets_id: str, output_dataset_path: Path, output_dataset_truth_path: Path,  include_original=True, skip_documents=False, skip_qrels=False, skip_duplicate_ids=True, allowlist_path_ids: Path = None) -> None:
         """ Loads a dataset through the ir_datasets package by the given ir_datasets ID.
         Maps documents, queries, qrels to a standardized format in preparation for full-rank operations with PyTerrier.
         

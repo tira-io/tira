@@ -29,10 +29,10 @@ class Command(BaseCommand):
                         with TREC-run formatted data is required
     """
 
-    def import_dataset_for_fullrank(self, ir_datasets_id: str, output_dataset_path: Path, output_dataset_truth_path: Path, include_original: bool, skip_documents: bool, skip_qrels: bool, skip_duplicate_ids: bool):
+    def import_dataset_for_fullrank(self, ir_datasets_id: str, output_dataset_path: Path, output_dataset_truth_path: Path, include_original: bool, skip_documents: bool, skip_qrels: bool, skip_duplicate_ids: bool, allowlist_path_ids: bool):
         print(f'Task: Full-Rank -> create files: \n documents.jsonl \n queries.jsonl \n qrels.txt \n at {output_dataset_path}/')
         datasets_loader = IrDatasetsLoader()
-        datasets_loader.load_dataset_for_fullrank(ir_datasets_id, output_dataset_path, output_dataset_truth_path, include_original, skip_documents = skip_documents, skip_qrels = skip_qrels, skip_duplicate_ids = skip_duplicate_ids)
+        datasets_loader.load_dataset_for_fullrank(ir_datasets_id, output_dataset_path, output_dataset_truth_path, include_original, skip_documents = skip_documents, skip_qrels = skip_qrels, skip_duplicate_ids = skip_duplicate_ids, allowlist_path_ids = allowlist_path_ids)
 
 
     def import_dataset_for_rerank(self, ir_datasets_id: str, output_dataset_path: Path, output_dataset_truth_path: Path, include_original: bool, run_file: Path, skip_qrels: bool):
