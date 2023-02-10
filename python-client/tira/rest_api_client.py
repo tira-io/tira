@@ -29,7 +29,7 @@ class Client():
         return json.loads(self.json_response(f'/api/datasets_by_task/{task}')['context']['datasets'])
 
     def docker_software_id(self, approach):
-        return self.docker_software(approach['docker_software_id']
+        return self.docker_software(approach)['docker_software_id']
 
     def docker_software(self, approach):
         task, team, software = approach.split('/')
