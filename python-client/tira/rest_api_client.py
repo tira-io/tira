@@ -120,6 +120,22 @@ class Client():
     
         return target_dir + f'/{run_id}/output'
 
+    def get_authentication_cookie(self, user, password):
+        import requests
+
+        resp = requests.get('https://www.tira.io/session/csrf', headers={'x-requested-with': 'XMLHttpRequest'})
+
+        header = {
+            'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
+            'cookie': '_forum_session=' + resp.cookies['_forum_session'],
+            'x-csrf-token': resp.json()['csrf'],
+            'x-requested-with': 'XMLHttpRequest'
+        }
+
+        resp = requests.post('https://www.tira.io/session', data=f'login={user}&password={password}', headers=header)
+
+        return f'_t={resp.cookies["_t"]}; _forum_session={resp.cookies["_forum_session"]}'
+
     def run_software(self, approach, dataset, resources, rerank_dataset='none'):
         task, team, software = approach.split('/')
         authentication_cookie = self.get_authentication_cookie(self.load_settings()['user'], self.load_settings()['password'])
