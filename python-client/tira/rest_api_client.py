@@ -6,6 +6,7 @@ import zipfile
 import io
 import docker
 from tira.pyterrier_integration import PyTerrierIntegration
+from tira.local_execution_integration import LocalExecutionIntegration
 
 
 class Client():
