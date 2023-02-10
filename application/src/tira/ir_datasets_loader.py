@@ -24,16 +24,19 @@ class IrDatasetsLoader(object):
 
     def yield_docs(self, dataset, include_original, skip_duplicate_ids, allowlist_path_ids):
         already_covered_ids = set()
+        allowed_ids = set
         if allowlist_path_ids:
             with open(allowlist_path_ids, 'r') as inp_file:
                 for i in inp_file:
-                    already_covered_ids.add(i.strip())
-            print('I use a allow list of size ', len(already_covered_ids))
+                    allowed_ids.add(i.strip())
+            print('I use a allow list of size ', len(allowed_ids))
 
         for doc in tqdm(dataset.docs_iter(), 'Load Documents'):
             if skip_duplicate_ids and doc.doc_id in already_covered_ids:
                 continue
-            
+            if allowlist_path_ids and str(doc.doc_id) not in allowed_ids:
+                continue
+
             yield self.map_doc(doc, include_original)
             if skip_duplicate_ids:
                 already_covered_ids.add(doc.doc_id)
