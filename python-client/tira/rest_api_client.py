@@ -5,6 +5,7 @@ import os
 import zipfile
 import io
 import docker
+from tira.pyterrier_integration import PyTerrierIntegration
 
 
 class Client():
@@ -15,7 +16,9 @@ class Client():
             self.api_key = self.load_settings()['api_key']
         else:
             self.api_key = api_key
+        
         self.fail_if_api_key_is_invalid()
+        self.pt = PyTerrierIntegration(self)
 
     def load_settings(self):
         return json.load(open(self.__tira_cache_dir + '/.tira-settings.json', 'r'))
@@ -83,7 +86,7 @@ class Client():
 
         return pd.DataFrame(ret)
 
-    def download_run(self, task, dataset, software, team=None, previous_stage=None):
+    def download_run(self, task, dataset, software, team=None, previous_stage=None, return_metadata=False):
         df_eval = self.evaluations(task=task, dataset=dataset)
 
         ret = df_eval[(df_eval['dataset'] == dataset) & (df_eval['software'] == software)]
@@ -94,26 +97,15 @@ class Client():
             _, prev_team, prev_software = approach.split('/')
             ret = ret[ret['input_run_id'] == prev_software]
 
-        ret = self.download_zip_to_cache_directory(**ret[['task', 'dataset', 'team', 'run_id']].iloc[0].to_dict())
-        return pd.read_csv(ret + '/run.txt', sep='\\s+', names=["query", "q0", "docid", "rank", "score", "system"])
-
-    def pt_transformer_from_run(self, approach, dataset, previous_stage=None):
-        import pyterrier as pt
-        task, team, software = approach.split('/')
+        ret = ret[['task', 'dataset', 'team', 'run_id']].iloc[0].to_dict()
+        run_id = ret['run_id']
         
-        if previous_stage and type(previous_stage) != str:
-            previous_stage = previous_stage.name
-
-        ret = self.download_run(task, dataset, software, team, previous_stage)
-        ret['qid'] = ret['query'].astype(str)
-        ret['docid'] = ret['docid'].astype(str)
-        del ret['query']
-        del ret['docid']
-        
-        ret = pt.Transformer.from_df(ret)
-        ret.name = approach
-    
-        return ret
+        ret = self.download_zip_to_cache_directory(**ret)
+        ret = pd.read_csv(ret + '/run.txt', sep='\\s+', names=["query", "q0", "docid", "rank", "score", "system"])
+        if return_metadata:
+            return ret, run_id
+        else:
+            return ret
 
     def download_zip_to_cache_directory(self, task, dataset, team, run_id):
         target_dir = f'{self.__tira_cache_dir}/extracted_runs/{task}/{dataset}/{team}'

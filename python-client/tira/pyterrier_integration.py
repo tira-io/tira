@@ -1,35 +1,39 @@
-from pyterrier.transformer import Transformer
-from matchpy import Wildcard, Symbol, Operation, Arity
-import json
-
-class TiraRerankingTransformer(Transformer, Operation):
-    """
-    A Transformer that loads runs from TIRA that reranked some existing run.
-    """
-    arity = Arity.nullary
-
-    def __init__(self, approach, tira_client, **kwargs):
-        super().__init__(operands=[], **kwargs)
-        self.operands=[]
-        self.task, self.team, self.software = approach.split('/')
+class PyTerrierIntegration():
+    def __init__(self, tira_client):
         self.tira_client = tira_client
-        assert "qid" in self.df.columns
 
-    def transform(self, topics):
-        import numpy as np
-        assert "qid" in topics.columns
-        if 'tira_task' not in topics.columns or 'tira_dataset' not in columns or 'tira_first_stage_run_id':
-            raise ValueError('This run needs to know the tira metadata: tira_task, tira_dataset, and tira_first_stage_run_id needs to be in the columns of the dataframe')
+    def retriever(self, approach, dataset=None):
+        pass
 
-        tira_configurations = [json.loads(i) for i in topics[['tira_task', 'tira_dataset', 'tira_first_stage_run_id']].apply(lambda i: json.dumps(i)).unique()]
-        df = []
-        for tira_configuration in tira_configurations:
-            df += [self.tira_client.download_run(tira_configuration['tira_task'], tira_configuration['tira_dataset'], self.software, self.team, tira_configuration['tira_first_stage_run_id'])]
-        df = pd.concat(df)
+    def from_submission(self, approach, dataset=None):
+        software = self.tira_client.docker_software(approach)
+        
+        if not 'ir_re_ranker' in software or not software['ir_re_ranker']:
+            return from_retriever_submission(approch, dataset)
+        else:
+            from tira.pyterrier_util import TiraRerankingTransformer
+            
+            return TiraRerankingTransformer(approach, self.tira_client)
 
-        common_columns = np.intersect1d(topics.columns, self.df.columns)
+    def from_retriever_submission(self, approach, dataset):
+        import pyterrier as pt
+        task, team, software = approach.split('/')
 
-        # we drop columns in self.df that exist in the topics
-        self.df = self.df[[i in self.df.columns if i not in common_columns]]
+        if previous_stage and type(previous_stage) != str:
+            previous_stage = previous_stage.name
 
-        return topics.merge(self.df, on="qid")
+        ret, run_id = tira.download_run(task, dataset, software, team, None, return_metadata=True)
+        ret['qid'] = ret['query'].astype(str)
+        ret['docid'] = ret['docid'].astype(str)
+        del ret['query']
+        del ret['docid']
+
+        ret['tira_task'] = task
+        ret['tira_dataset'] = dataset
+        ret['tira_first_stage_run_id'] = run_id
+
+        return pt.Transformer.from_df(ret)
+
+    def reranker(self, approach):
+        pass
+
