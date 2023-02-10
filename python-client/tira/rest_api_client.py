@@ -7,16 +7,17 @@ import io
 
 
 class Client():
-    def __init__(self, api_key=None, cookie=None):
+    def __init__(self, api_key=None):
         self.__tira_cache_dir = os.environ.get('TIRA_CACHE_DIR', os.path.expanduser('~') + '/.tira')
 
         if api_key is None:
-            self.api_key = json.load(open(self.__tira_cache_dir + '/.tira-settings.json', 'r'))['api_key']
+            self.api_key = self.load_settings()['api_key']
         else:
             self.api_key = api_key
-        self.cookie = cookie
         self.fail_if_api_key_is_invalid()
 
+    def load_settings(self):
+        return json.load(open(self.__tira_cache_dir + '/.tira-settings.json', 'r'))
 
     def fail_if_api_key_is_invalid(self):
         role = self.json_response('/api/role')
@@ -124,6 +125,8 @@ class Client():
 
     def run_software(self, approach, dataset, resources, rerank_dataset='none'):
         task, team, software = approach.split('/')
+        authentication_cookie = self.get_authentication_cookie(self.load_settings()['user'], self.load_settings()['password'])
+        
         software_id = self.docker_software_id(approach)
         if not software_id:
             raise ValueError(f'Could not find software id for "{approach}". Got: "{software_id}".')
@@ -136,7 +139,7 @@ class Client():
             #'Api-Key': self.api_key,
             'Accept': 'application/json',
             'Content-Type': 'application/json',
-            'Cookie': self.cookie,
+            'Cookie': authentication_cookie,
             'x-csrftoken': csrf_token,
         }
 

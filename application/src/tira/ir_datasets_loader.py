@@ -22,9 +22,14 @@ class IrDatasetsLoader(object):
             raise ValueError(f'Could not load the dataset {ir_datasets_id}. Does it exist?')
 
 
-    def yield_docs(self, dataset, include_original, skip_duplicate_ids):
+    def yield_docs(self, dataset, include_original, skip_duplicate_ids, allowlist_path_ids):
         already_covered_ids = set()
-        
+        if allowlist_path_ids:
+            with open(allowlist_path_ids, 'r') as inp_file:
+                for i in inp_file:
+                    already_covered_ids.add(i.strip())
+            print('I use a allow list of size ', len(already_covered_ids))
+
         for doc in tqdm(dataset.docs_iter(), 'Load Documents'):
             if skip_duplicate_ids and doc.doc_id in already_covered_ids:
                 continue
@@ -35,7 +40,7 @@ class IrDatasetsLoader(object):
                 
         
 
-    def load_dataset_for_fullrank(self, ir_datasets_id: str, output_dataset_path: Path, output_dataset_truth_path: Path,  include_original=True, skip_documents=False, skip_qrels=False, skip_duplicate_ids=True) -> None:
+    def load_dataset_for_fullrank(self, ir_datasets_id: str, output_dataset_path: Path, output_dataset_truth_path: Path,  include_original=True, skip_documents=False, skip_qrels=False, skip_duplicate_ids=True, allowlist_path_ids: Path) -> None:
         """ Loads a dataset through the ir_datasets package by the given ir_datasets ID.
         Maps documents, queries, qrels to a standardized format in preparation for full-rank operations with PyTerrier.
         
@@ -43,11 +48,13 @@ class IrDatasetsLoader(object):
         @param output_dataset_path: the path to the directory where the output files will be stored
         @param output_dataset_truth_path: the path to the directory where the output files will be stored
         @param include_original {False}: flag which signals if the original data of documents and queries should be included 
+        @param skip_duplicate_ids: Should this pipeline skip duplicate ids?
+        @param allowlist_path_ids: skip ids not in the allowlist (e.g., for filtering the subcategories of the ClueWebs)
         """
         dataset = self.load_irds(ir_datasets_id)
 
         if not skip_documents:
-            self.write_lines_to_file(self.yield_docs(dataset, include_original, skip_duplicate_ids), output_dataset_path/"documents.jsonl")
+            self.write_lines_to_file(self.yield_docs(dataset, include_original, skip_duplicate_ids, allowlist_path_ids), output_dataset_path/"documents.jsonl")
         
         queries_mapped_jsonl = [self.map_query_as_jsonl(query, include_original) for query in dataset.queries_iter()]
         queries_mapped_xml = [self.map_query_as_xml(query, include_original) for query in dataset.queries_iter()]

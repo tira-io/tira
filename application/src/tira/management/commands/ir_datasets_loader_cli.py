@@ -73,7 +73,8 @@ class Command(BaseCommand):
                 options['include_original'],
                 skip_documents = options['skip_documents'],
                 skip_qrels = options['skip_qrels'],
-                skip_duplicate_ids = options['skip_duplicate_ids']
+                skip_duplicate_ids = options['skip_duplicate_ids'],
+                allowlist_path_ids = options['allowlist_path_ids']
             )
 
     def add_arguments(self, parser):
@@ -86,4 +87,5 @@ class Command(BaseCommand):
         parser.add_argument('--input_dataset_directory', default=None, type=str)
         parser.add_argument('--skip_duplicate_ids', default=True, type=bool)
         parser.add_argument('--rerank', default=None, type=Path)
+        parser.add_argument('--allowlist_path_ids', default=None, type=Path, required=False)
 
