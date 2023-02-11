@@ -88,7 +88,7 @@ class Client():
 
         return pd.DataFrame(ret)
 
-    def run_was_already_executed_on_dataset(approach, dataset):
+    def run_was_already_executed_on_dataset(self, approach, dataset):
         task, team, software = approach.split('/')
         
         df_eval = self.evaluations(task=task, dataset=dataset)
