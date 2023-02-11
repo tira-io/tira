@@ -89,6 +89,9 @@ class Client():
         return pd.DataFrame(ret)
 
     def run_was_already_executed_on_dataset(self, approach, dataset):
+        return get_run_execution_or_none(approach, dataset) is not None
+
+    def get_run_execution_or_none(self, approach, dataset, previous_stage=None):
         task, team, software = approach.split('/')
         
         df_eval = self.evaluations(task=task, dataset=dataset)
@@ -97,20 +100,17 @@ class Client():
         if team:
             ret = ret[ret['team'] == team]
 
-        return len(ret) > 0
-        
-    def download_run(self, task, dataset, software, team=None, previous_stage=None, return_metadata=False):
-        df_eval = self.evaluations(task=task, dataset=dataset)
-
-        ret = df_eval[(df_eval['dataset'] == dataset) & (df_eval['software'] == software)]
-        if team:
-            ret = ret[ret['team'] == team]
-        
         if previous_stage:
             _, prev_team, prev_software = approach.split('/')
             ret = ret[ret['input_run_id'] == prev_software]
 
-        ret = ret[['task', 'dataset', 'team', 'run_id']].iloc[0].to_dict()
+        if len(ret) <= 0:
+            return None
+
+        return ret[['task', 'dataset', 'team', 'run_id']].iloc[0].to_dict()
+        
+    def download_run(self, task, dataset, software, team=None, previous_stage=None, return_metadata=False):
+        ret = get_run_execution_or_none(approach, dataset, previous_stage)
         run_id = ret['run_id']
         
         ret = self.download_zip_to_cache_directory(**ret)
