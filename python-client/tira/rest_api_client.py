@@ -21,6 +21,7 @@ class Client():
         self.fail_if_api_key_is_invalid()
         self.pt = PyTerrierIntegration(self)
         self.local_execution = LocalExecutionIntegration(self)
+        self.json_cache = {}
 
     def load_settings(self):
         return json.load(open(self.__tira_cache_dir + '/.tira-settings.json', 'r'))
@@ -180,8 +181,14 @@ class Client():
         return ret.content.decode('utf-8').split('name="csrfmiddlewaretoken" value="')[1].split('"')[0]
 
     def json_response(self, endpoint, params=None):
+        cache_key = endpoint + '----' + ('' if not params else json.dumps(params))
+        
+        if cache_key in json_cache:
+            return json_cache[cache_key]
+        
         headers = {"Api-Key": self.api_key, "Accept": "application/json"}
         resp = requests.get(url='https://www.tira.io' + endpoint, headers=headers, params=params)
-        
-        return resp.json()
+        json_cache[cache_key] = resp.json()
+
+        return json_cache[cache_key]
 
