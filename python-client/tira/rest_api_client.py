@@ -55,9 +55,10 @@ class Client():
         
         for vm in response['vms']:
             for run in vm['runs']:
-                for k,v in run['review'].items():
-                    run['review_' + k] = v
-                del run['review']
+                if 'review' in run:
+                    for k,v in run['review'].items():
+                        run['review_' + k] = v
+                    del run['review']
 
                 ret += [{**{'task': response['task_id'], 'dataset': response['dataset_id'], 'team': vm['vm_id']}, **run}]
 
@@ -188,6 +189,10 @@ class Client():
         
         headers = {"Api-Key": self.api_key, "Accept": "application/json"}
         resp = requests.get(url='https://www.tira.io' + endpoint, headers=headers, params=params)
+        
+        if resp.status_code != 200:
+            raise ValueError('Got statuscode ', resp.status_code, 'for ', endpoint)
+        
         self.json_cache[cache_key] = resp.json()
 
         return self.json_cache[cache_key]
