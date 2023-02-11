@@ -89,7 +89,7 @@ class Client():
         return pd.DataFrame(ret)
 
     def run_was_already_executed_on_dataset(self, approach, dataset):
-        return get_run_execution_or_none(approach, dataset) is not None
+        return self.get_run_execution_or_none(approach, dataset) is not None
 
     def get_run_execution_or_none(self, approach, dataset, previous_stage=None):
         task, team, software = approach.split('/')
