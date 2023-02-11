@@ -12,6 +12,7 @@ from tira.local_execution_integration import LocalExecutionIntegration
 class Client():
     def __init__(self, api_key=None):
         self.__tira_cache_dir = os.environ.get('TIRA_CACHE_DIR', os.path.expanduser('~') + '/.tira')
+        self.json_cache = {}
 
         if api_key is None:
             self.api_key = self.load_settings()['api_key']
@@ -21,7 +22,6 @@ class Client():
         self.fail_if_api_key_is_invalid()
         self.pt = PyTerrierIntegration(self)
         self.local_execution = LocalExecutionIntegration(self)
-        self.json_cache = {}
 
     def load_settings(self):
         return json.load(open(self.__tira_cache_dir + '/.tira-settings.json', 'r'))
