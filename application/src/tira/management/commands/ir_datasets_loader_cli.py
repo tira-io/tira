@@ -45,6 +45,7 @@ class Command(BaseCommand):
         if 'input_dataset_directory' in options and options['input_dataset_directory']:
             metadata = json.load(open(options['input_dataset_directory'] + '/metadata.json'))
             options['ir_datasets_id'] = metadata['ir_datasets_id']
+            options['include_original'] = metadata.get('include_original', 'true')
     
         return 'ir_datasets_id' in options and options['ir_datasets_id'] \
             and 'output_dataset_path' in options and options['output_dataset_path']
