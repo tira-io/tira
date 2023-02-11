@@ -90,7 +90,7 @@ class IrDatasetsLoader(object):
         print('Get Documents')
         docs = self.get_docs_by_ids(dataset, list(set([str(i['docno']) for i in run])))
         print('Produce rerank data.')
-        rerank = tqdm((self.construct_rerank_row(docs, queries, i) for i in run), 'Produce Rerank File.')
+        rerank = tqdm((self.construct_rerank_row(docs, queries, i, include_original) for i in run), 'Produce Rerank File.')
         print('Write rerank data.')
         self.write_lines_to_file(rerank, output_dataset_path/"rerank.jsonl.gz")
         print('Done rerank data was written.')
@@ -177,7 +177,7 @@ class IrDatasetsLoader(object):
         
         return o
 
-    def construct_rerank_row(self, docs: dict, queries: dict, rerank_line: dict) -> str:
+    def construct_rerank_row(self, docs: dict, queries: dict, rerank_line: dict, include_original) -> str:
         query = queries[str(rerank_line["qid"])]
         doc = docs.get(str(rerank_line["docno"]), None)
         
@@ -190,10 +190,13 @@ class IrDatasetsLoader(object):
             "original_query": self.make_serializable(query._asdict()),
             "docno": rerank_line["docno"],
             "text": doc.default_text(),
-            "original_document": self.make_serializable(doc._asdict()),
+            
             "rank": rerank_line["rank"],
             "score": rerank_line["score"]
         }
+        
+        if include_original:
+            ret["original_document"] = self.make_serializable(doc._asdict()),
 
         return json.dumps(ret)
 
