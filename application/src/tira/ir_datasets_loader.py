@@ -190,7 +190,7 @@ class IrDatasetsLoader(object):
             "original_query": self.make_serializable(query._asdict()),
             "docno": rerank_line["docno"],
             "text": doc.default_text(),
-            
+            "original_document": {},
             "rank": rerank_line["rank"],
             "score": rerank_line["score"]
         }
