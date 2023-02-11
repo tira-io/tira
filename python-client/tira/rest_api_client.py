@@ -88,6 +88,17 @@ class Client():
 
         return pd.DataFrame(ret)
 
+    def run_was_already_executed_on_dataset(approach, dataset):
+        task, team, software = approach.split('/')
+        
+        df_eval = self.evaluations(task=task, dataset=dataset)
+
+        ret = df_eval[(df_eval['dataset'] == dataset) & (df_eval['software'] == software)]
+        if team:
+            ret = ret[ret['team'] == team]
+
+        return len(ret) > 0
+        
     def download_run(self, task, dataset, software, team=None, previous_stage=None, return_metadata=False):
         df_eval = self.evaluations(task=task, dataset=dataset)
 
