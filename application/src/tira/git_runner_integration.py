@@ -664,6 +664,9 @@ class GitLabRunner(GitRunner):
         project = self.existing_repository(task_id)
         for pipeline in project.pipelines.list(get_all=True):
             print('Delete Pipeline: ' + str(pipeline.id))
+            if pipeline.status not in {'skipped', 'canceled', 'failed', 'success'}:
+                print('Skip running pipeline ' + str(pipeline.id))
+                continue
             pipeline.delete()
 
     def _create_task_repository_on_gitHoster(self, task_id):
