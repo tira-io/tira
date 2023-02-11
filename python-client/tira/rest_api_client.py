@@ -184,7 +184,7 @@ class Client():
         cache_key = endpoint + '----' + ('' if not params else json.dumps(params))
         
         if cache_key in self.json_cache:
-            return json_cache[cache_key]
+            return self.json_cache[cache_key]
         
         headers = {"Api-Key": self.api_key, "Accept": "application/json"}
         resp = requests.get(url='https://www.tira.io' + endpoint, headers=headers, params=params)
