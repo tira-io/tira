@@ -78,7 +78,7 @@ class Client():
         for evaluation in response['evaluations']:
             run = {'task': response['task_id'], 'dataset': response['dataset_id'], 'team': evaluation['vm_id'], 'run_id': evaluation['input_run_id']}
 
-            if join_submissions:
+            if join_submissions and (run['team'], run['run_id']) in runs_to_join:
                 software = runs_to_join[(run['team'], run['run_id'])]
                 for k,v in software.items():
                     run[k] = v

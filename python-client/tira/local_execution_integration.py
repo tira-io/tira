@@ -19,15 +19,16 @@ class LocalExecutionIntegration():
 
     def run(self, identifier=None, image=None, command=None, input_dir=None, output_dir=None, evaluate=False, verbose=False, dry_run=False):
         if image is None or command is None:
-            ds = self.docker_software(identifier)
+            ds = tira_client.docker_software(identifier)
             image, command = ds['tira_image_name'], ds['command']
-        try:
-            client = docker.from_env()
+        if not dry_run:
+            try:
+                client = docker.from_env()
         
-            assert len(client.images.list()) >= 0
-            assert len(client.containers.list()) >= 0
-        except Exception as e:
-            raise ValueError('It seems like docker is not installed?', e)
+                assert len(client.images.list()) >= 0
+                assert len(client.containers.list()) >= 0
+            except Exception as e:
+                raise ValueError('It seems like docker is not installed?', e)
 
         command = self.__normalize_command(command)
     
