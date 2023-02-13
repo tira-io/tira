@@ -112,7 +112,7 @@ class Client():
         return ret[['task', 'dataset', 'team', 'run_id']].iloc[0].to_dict()
         
     def download_run(self, task, dataset, software, team=None, previous_stage=None, return_metadata=False):
-        ret = self.get_run_execution_or_none(approach, dataset, previous_stage)
+        ret = self.get_run_execution_or_none(f'{task}/{team}/{software}', dataset, previous_stage)
         run_id = ret['run_id']
         
         ret = self.download_zip_to_cache_directory(**ret)
