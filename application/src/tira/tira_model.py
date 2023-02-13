@@ -616,6 +616,19 @@ def create_re_rank_output_on_dataset(task_id: str, vm_id: str, software_id: str,
         input_run
     )
 
+def add_input_run_id_to_all_rerank_runs():
+    from tqdm import tqdm
+    reranking_datasets = get_all_reranking_datasets()
+    dataset_to_run_id = {}
+    for i in reranking_datasets.values():
+        if i['dataset_id'] in dataset_to_run_id:
+            raise ValueError('Amigious...')
+        dataset_to_run_id[i['dataset_id']] = i['run_id']
+
+    for i in tqdm(model.get_all_docker_software_rerankers()):
+        for run in model.get_runs_for_docker_software(i['docker_software_id']):
+            if 'input_run' not in run or not run['input_run']:
+                model.update_input_run_id_for_run(run['run_id'], dataset_to_run_id[run['dataset']])
 
 def get_all_reranking_datasets_for_task(task_id):
     return [{'dataset_id': k, 'display_name': v['display_name'], 'original_dataset_id': v['dataset_id']} for k, v in get_all_reranking_datasets().items() if v and v['task_id'] == task_id]

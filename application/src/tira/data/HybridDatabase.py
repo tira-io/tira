@@ -334,6 +334,20 @@ class HybridDatabase(object):
     def get_reranking_docker_softwares(self):
         return [self._docker_software_to_dict(i) for i in modeldb.DockerSoftware.objects.filter(ir_re_ranking_input=True)]
 
+    def get_all_docker_software_rerankers(self):
+        return [self._docker_software_to_dict(i) for i in modeldb.DockerSoftware.objects.filter(ir_re_ranker=True)]
+
+    def get_runs_for_docker_software(self, docker_software_id):
+        docker_software = modeldb.DockerSoftware.objects.get(docker_software_id=docker_software_id)
+        
+        return [self._run_as_dict(i) for i in modeldb.Run.objects.filter(docker_software = docker_software)]
+
+    def update_input_run_id_for_run(self, run_id, input_run_id):
+        print(f'Set input_run to {input_run_id} for run_id={run_id}')
+        run = modeldb.Run.objects.get(run_id=run_id)
+        run.input_run = modeldb.Run.objects.get(run_id=input_run_id) if input_run_id else None
+        run.save()
+
     def _organizer_to_dict(self, organizer):
         git_integrations = []
         
@@ -392,6 +406,7 @@ class HybridDatabase(object):
 
     @staticmethod
     def _run_as_dict(run):
+        is_evaluation = False if not run.input_run or run.input_run.run_id == 'none' or run.input_run.run_id == 'None' else True
         software = None
         if run.software:
             software = run.software.software_id
@@ -399,14 +414,17 @@ class HybridDatabase(object):
             software = run.evaluator.evaluator_id
         elif run.docker_software:
             software = run.docker_software.display_name
+            is_evaluation = False
         elif run.upload:
             software = 'upload'
+        
+        
 
         return {"software": software,
                 "run_id": run.run_id,
                 "input_run_id": "" if not run.input_run or run.input_run.run_id == 'none' or run.input_run.run_id == 'None'
                 else run.input_run.run_id,
-                "is_evaluation": False if not run.input_run or run.input_run.run_id == 'none' or run.input_run.run_id == 'None' else True,
+                "is_evaluation": is_evaluation,
                 "dataset": "" if not run.input_dataset else run.input_dataset.dataset_id,
                 "downloadable": run.downloadable}
 
