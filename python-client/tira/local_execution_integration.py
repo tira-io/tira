@@ -19,7 +19,7 @@ class LocalExecutionIntegration():
 
     def run(self, identifier=None, image=None, command=None, input_dir=None, output_dir=None, evaluate=False, verbose=False, dry_run=False):
         if image is None or command is None:
-            ds = tira_client.docker_software(identifier)
+            ds = self.tira_client.docker_software(identifier)
             image, command = ds['tira_image_name'], ds['command']
         if not dry_run:
             try:
