@@ -41,7 +41,7 @@ class LocalExecutionIntegration():
         output_dir = os.path.abspath(output_dir)
     
         if verbose:
-            print(f'docker run --rm -ti -v {input_dir}:/tira-data/input:ro -v {output_dir}:/tira-data/output:rw --entrypoint sh {image} {command}')
+            print(f'docker run --rm -ti -v {input_dir}:/tira-data/input:ro -v {output_dir}:/tira-data/output:rw --entrypoint sh {image} -c \'{command}\'')
     
         if dry_run:
             return
