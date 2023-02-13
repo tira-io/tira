@@ -30,6 +30,6 @@ class TiraRerankingTransformer(Transformer, Operation):
         common_columns = np.intersect1d(topics.columns, self.df.columns)
 
         # we drop columns in self.df that exist in the topics
-        self.df = df[[i in df.columns if i not in common_columns]]
+        self.df = df[[i for i in df.columns if i not in common_columns]]
 
         return topics.merge(self.df, on="qid")
