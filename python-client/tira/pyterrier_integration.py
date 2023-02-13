@@ -15,14 +15,11 @@ class PyTerrierIntegration():
             
             return TiraRerankingTransformer(approach, self.tira_client)
 
-    def from_retriever_submission(self, approach, dataset):
+    def from_retriever_submission(self, approach, dataset, previous_stage=None):
         import pyterrier as pt
         task, team, software = approach.split('/')
 
-        if previous_stage and type(previous_stage) != str:
-            previous_stage = previous_stage.name
-
-        ret, run_id = tira.download_run(task, dataset, software, team, None, return_metadata=True)
+        ret, run_id = tira.download_run(task, dataset, software, team, previous_stage, return_metadata=True)
         ret['qid'] = ret['query'].astype(str)
         ret['docid'] = ret['docid'].astype(str)
         del ret['query']
