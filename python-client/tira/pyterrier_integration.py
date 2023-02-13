@@ -9,7 +9,7 @@ class PyTerrierIntegration():
         software = self.tira_client.docker_software(approach)
         
         if not 'ir_re_ranker' in software or not software['ir_re_ranker']:
-            return self.from_retriever_submission(approch, dataset)
+            return self.from_retriever_submission(approach, dataset)
         else:
             from tira.pyterrier_util import TiraRerankingTransformer
             
