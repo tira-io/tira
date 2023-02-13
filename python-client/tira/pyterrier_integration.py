@@ -19,7 +19,7 @@ class PyTerrierIntegration():
         import pyterrier as pt
         task, team, software = approach.split('/')
 
-        ret, run_id = self.tira.download_run(task, dataset, software, team, previous_stage, return_metadata=True)
+        ret, run_id = self.tira_client.download_run(task, dataset, software, team, previous_stage, return_metadata=True)
         ret['qid'] = ret['query'].astype(str)
         ret['docid'] = ret['docid'].astype(str)
         del ret['query']
