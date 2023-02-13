@@ -1,3 +1,5 @@
+import os
+
 class LocalExecutionIntegration():
     def __init__(self, tira_client):
         self.tira_client = tira_client
