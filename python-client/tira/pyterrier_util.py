@@ -32,8 +32,9 @@ class TiraRerankingTransformer(Transformer):
 
         # we drop columns in topics that exist in the df
         keeping = topics.columns
-        drop_columns = common_columns[common_columns != "qid"]
+        drop_columns = [i for i in common_columns if i not in {"qid", "docno"}]
         if len(drop_columns) > 0:
             keeping = topics.columns[~ topics.columns.isin(drop_columns)]
 
-        return topics[keeping].merge(df, on="qid")
+        return topics[keeping].merge(df, how='left', left_on=["qid", "docno"], right_on=["qid", "docno"])
+
