@@ -69,7 +69,7 @@ def identify_environment_variables(job_file):
         'TIRA_JOB_FILE=' + job_file,
     ]
     
-    if 'TIRA_INPUT_RUN_DATASET_ID' in job_configuration and 'TIRA_INPUT_RUN_VM_ID' in job_configuration and 'TIRA_INPUT_RUN_RUN_ID' in job_configuration:
+    if 'TIRA_INPUT_RUN_DATASET_ID' in job_configuration and 'TIRA_INPUT_RUN_VM_ID' in job_configuration and 'TIRA_INPUT_RUN_RUN_ID' in job_configuration and 'TIRA_INPUT_RUN_REPLACES_ORIGINAL_DATASET' not in job_configuration:
         local_input_run_directory = job_configuration['TIRA_INPUT_RUN_DATASET_ID'] + '/' + job_configuration['TIRA_INPUT_RUN_VM_ID'] + '/' + job_configuration['TIRA_INPUT_RUN_RUN_ID'] + '/output'
         absolute_input_run_directory = settings.TIRA_ROOT / 'data' / 'runs' / job_configuration['TIRA_INPUT_RUN_DATASET_ID'] / job_configuration['TIRA_INPUT_RUN_VM_ID'] / job_configuration['TIRA_INPUT_RUN_RUN_ID'] / 'output'
         absolute_input_run_directory = os.path.abspath(absolute_input_run_directory)
@@ -90,6 +90,12 @@ def identify_environment_variables(job_file):
     for i in ['TIRA_TASK_ID', 'TIRA_IMAGE_TO_EXECUTE', 'TIRA_COMMAND_TO_EXECUTE']:
         if len([j for j in ret if i in j]) != 1:
             raise ValueError('I expected the variable "' + i + '" to be defined by the job, but it is missing.')
+
+    if 'TIRA_INPUT_RUN_DATASET_ID' in job_configuration and 'TIRA_INPUT_RUN_VM_ID' in job_configuration and 'TIRA_INPUT_RUN_RUN_ID' in job_configuration and 'TIRA_INPUT_RUN_REPLACES_ORIGINAL_DATASET' in job_configuration:
+        absolute_input_dataset = settings.TIRA_ROOT / 'data' / 'runs' / job_configuration['TIRA_INPUT_RUN_DATASET_ID'] / job_configuration['TIRA_INPUT_RUN_VM_ID'] / job_configuration['TIRA_INPUT_RUN_RUN_ID'] / 'output'
+        absolute_input_dataset = os.path.abspath(absolute_input_dataset)
+        
+        print(f'The software uses the output from {absolute_input_dataset} as input dataset.', file=sys.stderr)
 
     copy_from_to(absolute_input_dataset, input_dataset, file_skip_list)
     

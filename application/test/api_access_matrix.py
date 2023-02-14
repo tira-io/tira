@@ -569,8 +569,8 @@ API_ACCESS_MATRIX = [
     #    },
     #),
     route_to_test(
-        url_pattern='grpc/<str:task_id>/<str:vm_id>/run_execute/docker/<str:dataset_id>/<str:docker_software_id>/<str:docker_resources>',
-        params={'task_id': 'shared-task-1', 'vm_id': 'does-not-exist', 'dataset_id': 'does-not-exist', 'docker_software_id': 'does-not-exist'},
+        url_pattern='grpc/<str:task_id>/<str:vm_id>/run_execute/docker/<str:dataset_id>/<str:docker_software_id>/<str:docker_resources>/<str:rerank_dataset>',
+        params={'task_id': 'shared-task-1', 'vm_id': 'does-not-exist', 'dataset_id': 'does-not-exist', 'docker_software_id': 'does-not-exist', 'rerank_dataset': 'none'},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 302,
@@ -579,8 +579,8 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
-        url_pattern='grpc/<str:task_id>/<str:vm_id>/run_execute/docker/<str:dataset_id>/<str:docker_software_id>/<str:docker_resources>',
-        params={'task_id': 'shared-task-1', 'vm_id': PARTICIPANT.split('_')[-1], 'dataset_id': 'does-not-exist', 'docker_software_id': 'does-not-exist'},
+        url_pattern='grpc/<str:task_id>/<str:vm_id>/run_execute/docker/<str:dataset_id>/<str:docker_software_id>/<str:docker_resources>/<str:rerank_dataset>',
+        params={'task_id': 'shared-task-1', 'vm_id': PARTICIPANT.split('_')[-1], 'dataset_id': 'does-not-exist', 'docker_software_id': 'does-not-exist', 'rerank_dataset': 'none'},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 302,

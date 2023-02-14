@@ -226,7 +226,7 @@ export default {
     updateRunCache() {
       for (const run of this.runs) {
         this.runCache[run.run_id] = run
-        if (run.is_evaluation) {
+        if (run.is_evaluation && typeof(this.runCache[run.input_run_id]) !== "undefined" && this.runCache[run.input_run_id] !== null) {
           this.runCache[run.input_run_id].evaluation_run_id = run.run_id
         }
       }

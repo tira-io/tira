@@ -1,0 +1,10 @@
+1 Q0 clueweb09-en0077-70-27989 252 658.8284 pyterrier.chatnoir_pipelines.retrieve_by_default_text
+2 Q0 clueweb09-en0079-04-11025 265 503.7084 pyterrier.chatnoir_pipelines.retrieve_by_default_text
+1 Q0 clueweb09-en0018-29-36939 869 535.56305 pyterrier.chatnoir_pipelines.retrieve_by_default_text
+2 Q0 clueweb09-en0100-06-37162 23 1999.1766 pyterrier.chatnoir_pipelines.retrieve_by_default_text
+1 Q0 clueweb09-en0033-84-20377 147 733.553 pyterrier.chatnoir_pipelines.retrieve_by_default_text
+1 Q0 clueweb09-enwp00-36-05809 729 556.251 pyterrier.chatnoir_pipelines.retrieve_by_default_text
+2 Q0 clueweb09-en0019-92-04399 730 153.43933 pyterrier.chatnoir_pipelines.retrieve_by_default_text
+2 Q0 clueweb09-en0079-04-11049 379 432.00934 pyterrier.chatnoir_pipelines.retrieve_by_default_text
+2 Q0 clueweb09-en0092-65-35871 716 154.3972 pyterrier.chatnoir_pipelines.retrieve_by_default_text
+2 Q0 clueweb09-en0062-56-32234 187 600.6287 pyterrier.chatnoir_pipelines.retrieve_by_default_text

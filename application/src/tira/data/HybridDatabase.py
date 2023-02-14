@@ -247,6 +247,10 @@ class HybridDatabase(object):
                   "restrict_groups": task.restrict_groups,
                   "allowed_task_teams": task.allowed_task_teams,
                   "master_vm_id": master_vm_id,
+                  "is_ir_task": task.is_ir_task,
+                  "irds_re_ranking_image": task.irds_re_ranking_image,
+                  "irds_re_ranking_command": task.irds_re_ranking_command,
+                  "irds_re_ranking_resource": task.irds_re_ranking_resource,
                   "dataset_count": task.dataset_set.count(),
                   "software_count": task.software_set.count(),
                   "max_std_out_chars_on_test_data": task.max_std_out_chars_on_test_data,
@@ -327,6 +331,23 @@ class HybridDatabase(object):
         except modeldb.Dataset.DoesNotExist:
             return {}
 
+    def get_reranking_docker_softwares(self):
+        return [self._docker_software_to_dict(i) for i in modeldb.DockerSoftware.objects.filter(ir_re_ranking_input=True)]
+
+    def get_all_docker_software_rerankers(self):
+        return [self._docker_software_to_dict(i) for i in modeldb.DockerSoftware.objects.filter(ir_re_ranker=True)]
+
+    def get_runs_for_docker_software(self, docker_software_id):
+        docker_software = modeldb.DockerSoftware.objects.get(docker_software_id=docker_software_id)
+        
+        return [self._run_as_dict(i) for i in modeldb.Run.objects.filter(docker_software = docker_software)]
+
+    def update_input_run_id_for_run(self, run_id, input_run_id):
+        print(f'Set input_run to {input_run_id} for run_id={run_id}')
+        run = modeldb.Run.objects.get(run_id=run_id)
+        run.input_run = modeldb.Run.objects.get(run_id=input_run_id) if input_run_id else None
+        run.save()
+
     def _organizer_to_dict(self, organizer):
         git_integrations = []
         
@@ -385,19 +406,25 @@ class HybridDatabase(object):
 
     @staticmethod
     def _run_as_dict(run):
+        is_evaluation = False if not run.input_run or run.input_run.run_id == 'none' or run.input_run.run_id == 'None' else True
         software = None
         if run.software:
             software = run.software.software_id
         elif run.evaluator:
             software = run.evaluator.evaluator_id
+        elif run.docker_software:
+            software = run.docker_software.display_name
+            is_evaluation = False
         elif run.upload:
             software = 'upload'
+        
+        
 
         return {"software": software,
                 "run_id": run.run_id,
                 "input_run_id": "" if not run.input_run or run.input_run.run_id == 'none' or run.input_run.run_id == 'None'
                 else run.input_run.run_id,
-                "is_evaluation": False if not run.input_run or run.input_run.run_id == 'none' or run.input_run.run_id == 'None' else True,
+                "is_evaluation": is_evaluation,
                 "dataset": "" if not run.input_dataset else run.input_dataset.dataset_id,
                 "downloadable": run.downloadable}
 
@@ -474,7 +501,9 @@ class HybridDatabase(object):
                 'tira_image_name': ds.tira_image_name, 'task_id': ds.task.task_id,
                 'vm_id': ds.vm.vm_id, 'description': ds.description, 'paper_link': ds.paper_link,
                 'input_docker_software': ds.input_docker_software.display_name if ds.input_docker_software else None,
-                'input_docker_software_id': ds.input_docker_software.docker_software_id if ds.input_docker_software else None
+                'input_docker_software_id': ds.input_docker_software.docker_software_id if ds.input_docker_software else None,
+                "ir_re_ranker": True if ds.ir_re_ranker else False,
+                "ir_re_ranking_input": True if ds.ir_re_ranking_input else False
                 }
 
     def get_docker_softwares_with_runs(self, task_id, vm_id):
@@ -505,6 +534,45 @@ class HybridDatabase(object):
 
         return False
 
+    def get_irds_docker_software_id(self, task_id, vm_id, software_id, docker_software_id):
+        task = self.get_task(task_id, False)
+
+        is_ir_task = task.get("is_ir_task", False)
+        irds_re_ranking_image = task.get("irds_re_ranking_image", "")
+        irds_re_ranking_command = task.get("irds_re_ranking_command", "")
+        irds_re_ranking_resource = task.get("irds_re_ranking_resource", "")
+        irds_display_name = 'IRDS-Job For ' + task_id + f' (vm: {vm_id}, software: {software_id}, docker: {docker_software_id})'
+
+        if not is_ir_task or not irds_re_ranking_image or not irds_re_ranking_command or not irds_re_ranking_resource:
+            raise ValueError('This is not a irds-re-ranking task:' + str(task))
+
+        task = modeldb.Task.objects.get(task_id=task_id)
+        vm = modeldb.VirtualMachine.objects.get(vm_id='froebe')
+
+        ret = modeldb.DockerSoftware.objects.filter(vm=vm, task=task, command=irds_re_ranking_command,
+                                                    tira_image_name=irds_re_ranking_image,
+                                                    user_image_name=irds_re_ranking_image,
+                                                    display_name=irds_display_name)
+
+        if len(ret) > 0:
+            return ret[0]
+
+        modeldb.DockerSoftware.objects.create(
+            vm=vm,
+            task=task,
+            command=irds_re_ranking_command,
+            tira_image_name=irds_re_ranking_image,
+            user_image_name=irds_re_ranking_image,
+            display_name=irds_display_name
+        )
+
+        ret = modeldb.DockerSoftware.objects.filter(vm=vm, task=task, command=irds_re_ranking_command,
+                                                    tira_image_name=irds_re_ranking_image,
+                                                    user_image_name=irds_re_ranking_image,
+                                                    display_name=irds_display_name)
+
+        return ret[0] if len(ret) > 0 else None
+
     def get_vms_with_reviews(self, dataset_id: str):
         """ returns a list of dicts with:
          {"vm_id": vm_id,
@@ -529,9 +597,9 @@ class HybridDatabase(object):
             runs = []
             if vm_id in upload_vms:
                 runs += list(self._get_ordered_runs_from_reviews(reviews, vm_id, is_upload=True))
-            elif vm_id in software_vms:
+            if vm_id in software_vms:
                 runs += list(self._get_ordered_runs_from_reviews(reviews, vm_id, is_upload=False))
-            elif vm_id in docker_vms:
+            if vm_id in docker_vms:
                 runs += list(self._get_ordered_runs_from_reviews(reviews, vm_id, is_docker=True))
 
             results.append({"vm_id": vm_id,
@@ -1183,9 +1251,12 @@ class HybridDatabase(object):
             )
         return self._docker_software_to_dict(docker_software)
 
-    def update_docker_software_metadata(self, docker_software_id, display_name, description, paper_link):
+
+    def update_docker_software_metadata(self, docker_software_id, display_name, description, paper_link,
+                                        ir_re_ranker, ir_re_ranking_input):
         software = modeldb.DockerSoftware.objects.update_or_create(docker_software_id = docker_software_id, 
-            defaults={"display_name": display_name, "description": description, "paper_link": paper_link})
+            defaults={"display_name": display_name, "description": description, "paper_link": paper_link,
+                      "ir_re_ranker": ir_re_ranker, "ir_re_ranking_input": ir_re_ranking_input})
 
     
     def update_run(self, dataset_id, vm_id, run_id, deleted: bool = None):
@@ -1227,7 +1298,10 @@ class HybridDatabase(object):
 
     def edit_task(self, task_id: str, task_name: str, task_description: str, featured: bool, master_vm_id,
                   organizer: str, website: str, require_registration: str, require_groups: str, restrict_groups: str,
-                  help_command: str = None, help_text: str = None, allowed_task_teams: str = None):
+                  help_command: str = None, help_text: str = None, allowed_task_teams: str = None,
+                  is_ir_task: bool = False, irds_re_ranking_image: str = '', irds_re_ranking_command: str = '',
+                  irds_re_ranking_resource: str = ''
+                  ):
 
         task = modeldb.Task.objects.filter(task_id=task_id)
         vm = modeldb.VirtualMachine.objects.get(vm_id=master_vm_id)
@@ -1242,6 +1316,10 @@ class HybridDatabase(object):
             require_groups=require_groups,
             restrict_groups=restrict_groups,
             allowed_task_teams=allowed_task_teams,
+            is_ir_task=is_ir_task,
+            irds_re_ranking_image=irds_re_ranking_image,
+            irds_re_ranking_command=irds_re_ranking_command,
+            irds_re_ranking_resource=irds_re_ranking_resource
         )
 
         if help_command:

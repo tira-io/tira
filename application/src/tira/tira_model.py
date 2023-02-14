@@ -11,6 +11,7 @@ from django.conf import settings
 from django.db import connections, router
 import datetime
 from tira.authentication import auth
+from tira.util import get_tira_id
 
 logger = logging.getLogger("tira")
 
@@ -143,6 +144,7 @@ def load_docker_data(task_id, vm_id, cache, force_cache_refresh):
         "resources": list(settings.GIT_CI_AVAILABLE_RESOURCES.values()),
         "docker_software_help": git_runner.help_on_uploading_docker_image(vm_id, cache, force_cache_refresh),
         "docker_images_last_refresh": str(last_refresh),
+        "task_is_an_information_retrieval_task": True if get_task(task_id, False).get('is_ir_task', False) else False,
         "docker_images_next_refresh": str(None if last_refresh is None else (last_refresh + datetime.timedelta(seconds=60))),
     }
 
@@ -331,8 +333,8 @@ def add_uploaded_run(task_id, vm_id, dataset_id, uploaded_file):
     """ Add the uploaded file as a new result and return it """
     return model.add_uploaded_run(task_id, vm_id, dataset_id, uploaded_file)
 
-def update_docker_software_metadata(docker_software_id, display_name, description, paper_link):
-    return model.update_docker_software_metadata(docker_software_id, display_name, description, paper_link)
+def update_docker_software_metadata(docker_software_id, display_name, description, paper_link, ir_re_ranker, ir_re_ranking_input):
+    return model.update_docker_software_metadata(docker_software_id, display_name, description, paper_link, ir_re_ranker, ir_re_ranking_input)
 
 def add_docker_software(task_id, vm_id, image, command, input_job=None):
     """ Add the docker software to the user of the vm and return it """
@@ -445,10 +447,14 @@ def update_software(task_id, vm_id, software_id, command: str = None, working_di
 
 def edit_task(task_id: str, task_name: str, task_description: str, featured: bool, master_vm_id: str, organizer: str, website: str,
               require_registration: str, require_groups: str, restrict_groups: str,
-              help_command: str = None, help_text: str = None, allowed_task_teams=None):
+              help_command: str = None, help_text: str = None, allowed_task_teams=None, is_ir_task: bool = False,
+              irds_re_ranking_image: str = '', irds_re_ranking_command: str = '',
+              irds_re_ranking_resource: str = ''):
     """ Update the task's data """
     return model.edit_task(task_id, task_name, task_description, featured, master_vm_id, organizer, website,
-                           require_registration, require_groups, restrict_groups, help_command, help_text, allowed_task_teams)
+                           require_registration, require_groups, restrict_groups, help_command, help_text,
+                           allowed_task_teams, is_ir_task, irds_re_ranking_image, irds_re_ranking_command,
+                           irds_re_ranking_resource)
 
 
 def edit_dataset(task_id: str, dataset_id: str, dataset_name: str, command: str,
@@ -567,3 +573,99 @@ def latest_output_of_software_on_dataset(task_id: str, vm_id: str, software_id: 
         }
     else:
         return None
+
+
+def create_re_rank_output_on_dataset(task_id: str, vm_id: str, software_id: str, docker_software_id: int,
+                                     dataset_id: str, return_none_if_not_exists=False):
+    task = get_task(task_id, False)
+
+    is_ir_task = task.get("is_ir_task", False)
+    irds_re_ranking_image = task.get("irds_re_ranking_image", "")
+    irds_re_ranking_command = task.get("irds_re_ranking_command", "")
+    irds_re_ranking_resource = task.get("irds_re_ranking_resource", "")
+
+    if not is_ir_task or not irds_re_ranking_image or not irds_re_ranking_command or not irds_re_ranking_resource:
+        raise ValueError('This is not a irds-re-ranking task:' + str(task))
+    docker_irds_software_id = str(int(model.get_irds_docker_software_id(task_id, vm_id, software_id, docker_software_id).docker_software_id))
+
+    reranked_job = latest_output_of_software_on_dataset(task_id, vm_id, None, docker_irds_software_id, dataset_id)
+    if reranked_job:
+        return reranked_job
+
+    if return_none_if_not_exists:
+        return None
+
+    evaluator = model.get_evaluator(dataset_id)
+
+    if not evaluator or 'is_git_runner' not in evaluator or not evaluator[
+        'is_git_runner'] or 'git_runner_image' not in evaluator or not evaluator[
+        'git_runner_image'] or 'git_runner_command' not in evaluator or not evaluator[
+        'git_runner_command'] or 'git_repository_id' not in evaluator or not evaluator['git_repository_id']:
+        return ValueError("The dataset is misconfigured. Docker-execute only available for git-evaluators")
+
+    input_run = latest_output_of_software_on_dataset(task_id, vm_id, software_id, docker_software_id, dataset_id)
+    input_run['vm_id'] = vm_id
+    git_runner = get_git_integration(task_id=task_id)
+
+
+    git_runner.run_docker_software_with_git_workflow(
+        task_id, dataset_id, vm_id, get_tira_id(), evaluator['git_runner_image'],
+        evaluator['git_runner_command'], evaluator['git_repository_id'], evaluator['evaluator_id'],
+        irds_re_ranking_image, irds_re_ranking_command,
+        'docker-software-' + docker_irds_software_id, irds_re_ranking_resource,
+        input_run
+    )
+
+def add_input_run_id_to_all_rerank_runs():
+    from tqdm import tqdm
+    dataset_to_run_id = {}
+    for reranking_software in tqdm(model.get_reranking_docker_softwares(), 'Get input_run_ids'):
+        for dataset in get_datasets_by_task(reranking_software['task_id']):
+            ls = latest_output_of_software_on_dataset(
+                reranking_software['task_id'],
+                reranking_software['vm_id'],
+                None,
+                reranking_software['docker_software_id'],
+                dataset['dataset_id']
+            )
+            
+            if ls:
+                if dataset['dataset_id'] in dataset_to_run_id:
+            	    raise ValueError('Amigious...')
+            
+                dataset_to_run_id[dataset['dataset_id']] = ls['run_id']
+
+    for i in tqdm(model.get_all_docker_software_rerankers(), 'Update input ids'):
+        for run in model.get_runs_for_docker_software(i['docker_software_id']):
+            if 'input_run' not in run or not run['input_run']:
+                model.update_input_run_id_for_run(run['run_id'], dataset_to_run_id[run['dataset']])
+
+def get_all_reranking_datasets_for_task(task_id):
+    return [{'dataset_id': k, 'display_name': v['display_name'], 'original_dataset_id': v['dataset_id']} for k, v in get_all_reranking_datasets().items() if v and v['task_id'] == task_id]
+
+def get_all_reranking_datasets(force_cache_refresh=False):
+    cache_key = 'get_all_reranking_datasets'
+    ret = cache.get(cache_key)
+    if ret is not None and not force_cache_refresh:
+        return ret
+
+    ret = {}
+
+    for reranking_software in model.get_reranking_docker_softwares():
+        for dataset in get_datasets_by_task(reranking_software['task_id']):
+            reranking_input = create_re_rank_output_on_dataset(
+                task_id=reranking_software['task_id'], vm_id=reranking_software['vm_id'],
+                software_id=None, docker_software_id=reranking_software['docker_software_id'],
+                dataset_id=dataset['dataset_id'], return_none_if_not_exists = True)
+
+            if reranking_input:
+                name = 'docker-id-' + str(reranking_software['docker_software_id']) + '-on-' + dataset['dataset_id']
+                name = name.replace(' ', '-').replace('\\s', '-')
+                reranking_input['display_name'] = reranking_software['display_name'] + ' on ' + dataset['dataset_id']
+
+                ret[name] = reranking_input
+
+    logger.info(f"Cache refreshed for key {cache_key} ...")
+    cache.set(cache_key, ret)
+
+    return ret

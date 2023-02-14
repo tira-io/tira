@@ -69,6 +69,7 @@ const app = createApp({
             },
             software: '',
             datasets: '',
+            reranking_datasets: '',
             upload: '',
             docker: '',
             isDefault: '',
@@ -313,6 +314,7 @@ const app = createApp({
                 this.vm = message.context.vm
                 this.software = message.context.software
                 this.datasets = message.context.datasets
+                this.reranking_datasets = message.context.reranking_datasets
                 this.upload = message.context.upload
                 this.docker = message.context.docker
                 this.userVmsForTask = message.context.user_vms_for_task

@@ -14,6 +14,7 @@ python-gitlab
 GitPython
 python-slugify
 git+https://github.com/allenai/ir_datasets@defaulttext
+pandas
 markdown
 PyGithub
 ghapi

@@ -107,6 +107,14 @@
                            v-model="selectedContainer.paper_link" placeholder="paper describing the software">
                     </label>
                 </div>
+                <div v-if="docker.task_is_an_information_retrieval_task">
+                    <div class="uk-width-1-1">
+                        <label><input class="uk-checkbox" type="checkbox" name="checkbox-re-ranker" v-model="selectedContainer.ir_re_ranker"> This software is a re-ranker that re-ranks documents retrieved by some previous stage. </label>
+                    </div>
+                    <div class="uk-width-1-1">
+                        <label><input class="uk-checkbox" type="checkbox" name="checkbox-re-ranking-input" v-model="selectedContainer.ir_re_ranking_input"> The output of this software might be re-ranked by subsequent retrieval pipelines. </label>
+                    </div>
+                </div>
             </div>
 
             <div>
@@ -154,7 +162,17 @@
                     </select>
                 </label>
             </div>
-            <div class="uk-width-1-4">
+            <div v-if="selectedContainer.ir_re_ranker" class="uk-width-1-4">
+                <label class="uk-form-label">Rerank Previous Stage
+                    <select class="uk-select" v-model="selectedRerankingDataset"
+                            @change="checkContainerRunValid(true); this.dockerFormError=''"
+                            :class="{ 'uk-form-danger': containerDatasetError}">
+                        <option :disabled="selectedRerankingDataset !== 'None'" value="None">Select Reranking Input</option>
+                        <option v-for="dataset in rerankingDatasetOptions" :value="dataset.at(0)">{{ dataset.at(1) }}</option>
+                    </select>
+                </label>
+            </div>
+            <div v-if="!selectedContainer.ir_re_ranker" class="uk-width-1-4">
                 <label class="uk-form-label">Run on Dataset
                     <select class="uk-select" v-model="selectedDataset"
                             @change="checkContainerRunValid(true); this.dockerFormError=''"
@@ -214,7 +232,7 @@ export default {
     components: {
         ReviewList, DeleteConfirm
     },
-    props: ['csrf', 'datasets', 'docker', 'user_id', 'running_evaluations', 'task', 'role'],
+    props: ['csrf', 'datasets', 'reranking_datasets', 'docker', 'user_id', 'running_evaluations', 'task', 'role'],
     emits: ['addNotification', 'pollEvaluations', 'removeRun', 'addContainer', 'deleteContainer', 'pollRunningContainer', 'refreshDockerImages'],
     data() {
         return {
@@ -233,12 +251,15 @@ export default {
             containerResourceError: false,
             containerImageError: false,
             selectedDataset: "None",
+            selectedRerankingDataset: "None",
             selectedContainerCommand: null,
             selectedResources: "None",
             addContainerInputJob: "None",
             toggleCommandHelp: false,
             startingContainer: false,
             editSoftwareMetadataToggle: false,
+            irReRanker: false,
+            irReRankingInput: false,
         }
     },
     methods: {
@@ -293,13 +314,15 @@ export default {
             submitPost(
                 `/task/${this.task.task_id}/vm/${this.user_id}/save_software/docker/${this.selectedContainerId}`,
                 this.csrf,
-                {"display_name": this.selectedContainer.display_name, "description": this.selectedContainer.description, "paper_link": this.selectedContainer.paper_link}
+                {"display_name": this.selectedContainer.display_name, "description": this.selectedContainer.description, "paper_link": this.selectedContainer.paper_link, "ir_re_ranker": this.selectedContainer.ir_re_ranker, "ir_re_ranking_input": this.selectedContainer.ir_re_ranking_input}
             ).then(message => {
                 for (let did in this.docker.docker_softwares) {
                     if (this.docker.docker_softwares[did].docker_software_id === this.selectedContainerId) {
                         this.docker.docker_softwares[did].display_name = this.selectedContainer.display_name
                         this.docker.docker_softwares[did].description = this.selectedContainer.description
                         this.docker.docker_softwares[did].paper_link = this.selectedContainer.paper_link
+                        this.docker.docker_softwares[did].ir_re_ranker = this.selectedContainer.ir_re_ranker
+                        this.docker.docker_softwares[did].ir_re_ranking_input = this.selectedContainer.ir_re_ranking_input
                     }
                 }
                 
@@ -331,7 +354,14 @@ export default {
             this.containerDatasetError = false
             this.containerResourceError = false
 
-            if (this.selectedDataset +''  === 'undefined' || this.selectedDataset  === 'None' || this.selectedDataset === '') {
+            if (!this.selectedContainer.ir_re_ranker && (this.selectedDataset +''  === 'undefined' || this.selectedDataset  === 'None' || this.selectedDataset === '')) {
+                if (updateView) {
+                    this.dockerFormError = 'Error: Please select a dataset!'
+                    this.containerDatasetError = true
+                }
+                return false
+            }
+            if (this.selectedContainer.ir_re_ranker && (this.selectedRerankingDataset +''  === 'undefined' || this.selectedRerankingDataset  === 'None' || this.selectedRerankingDataset === '')) {
                 if (updateView) {
                     this.dockerFormError = 'Error: Please select a dataset!'
                     this.containerDatasetError = true
@@ -364,8 +394,20 @@ export default {
             if (!this.checkContainerRunValid(true)) return;
             this.startingContainer = true
             this.$refs['runContainerButton'].text = "Starting..."
+            var reranking_dataset = 'none'
+            var dataset = this.selectedDataset
 
-            submitPost(`/grpc/${this.task.task_id}/${this.user_id}/run_execute/docker/${this.selectedDataset}/${this.selectedContainerId}/${this.selectedResources}`,this.csrf, {csrfmiddlewaretoken: this.csrf, action: 'post'}).then(message => {
+            if (this.selectedContainer.ir_re_ranker) {
+                reranking_dataset = this.selectedRerankingDataset
+                
+                for (const r of this.reranking_datasets) {
+                    if (reranking_dataset == r.dataset_id) {
+                        dataset = r.original_dataset_id
+                    }
+                }
+            }
+
+            submitPost(`/grpc/${this.task.task_id}/${this.user_id}/run_execute/docker/${dataset}/${this.selectedContainerId}/${this.selectedResources}/${reranking_dataset}`,this.csrf, {csrfmiddlewaretoken: this.csrf, action: 'post'}).then(message => {
                 this.$emit('pollRunningContainer')
                 this.$refs['runContainerButton'].text = "Run Container"
                 this.startingContainer = false
@@ -398,6 +440,15 @@ export default {
                 return []
             }
             return this.datasets.filter(k => !k.is_deprecated).map(k => {
+                return [k.dataset_id, k.display_name]
+            })
+        },
+        rerankingDatasetOptions() {
+            if (!this.reranking_datasets) {
+                return []
+            }
+            
+            return this.reranking_datasets.map(k => {
                 return [k.dataset_id, k.display_name]
             })
         },
@@ -434,6 +485,7 @@ export default {
                     this.selectedContainerInputDockerSoftware = this.docker.docker_softwares[did].input_docker_software
                     this.containerImage = this.docker.docker_softwares[did].user_image_name
                     this.selectedDataset = "None"
+                    this.selectedRerankingDataset = "None"
                     this.editSoftwareMetadataToggle = false
                 }
             }

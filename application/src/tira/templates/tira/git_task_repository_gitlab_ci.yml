@@ -8,7 +8,7 @@ stages:
 prepare-tira-environment:
   stage: Preparation
   image:
-    name: webis/tira-git-pipelines:0.0.19
+    name: webis/tira-git-pipelines:0.0.20
     pull_policy: if-not-present
   artifacts:
     untracked: true
@@ -39,6 +39,7 @@ run-user-software:
    KUBERNETES_MEMORY_REQUEST: "${TIRA_MEMORY_IN_GIBIBYTE}Gi"
    KUBERNETES_MEMORY_LIMIT: "${TIRA_MEMORY_IN_GIBIBYTE}Gi"
    TIRA_GPU: "0"
+   TIRA_DATA: "no"
   script:
     - env|grep 'TIRA' > task.env
     - test -n "${TIRA_OUTPUT_DIR}" && mkdir -p ${TIRA_OUTPUT_DIR}
@@ -51,11 +52,12 @@ run-user-software:
   tags:
     - tira-user-software-runner
     - ${TIRA_GPU}-gpu
+    - ${TIRA_DATA}-data-mounted
 
 persist-software-result:
   stage: Persist Software Result
   image:
-    name: webis/tira-git-pipelines:0.0.19
+    name: webis/tira-git-pipelines:0.0.20
     pull_policy: if-not-present
   artifacts:
     untracked: true
@@ -92,7 +94,7 @@ evaluate-software-result:
 persist-evaluation-result:
   stage: Persist Evaluation Result
   image:
-    name: webis/tira-git-pipelines:0.0.19
+    name: webis/tira-git-pipelines:0.0.20
     pull_policy: if-not-present
   script:
     - tira-persist-evaluation-result.sh

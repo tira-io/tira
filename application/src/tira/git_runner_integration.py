@@ -125,6 +125,7 @@ class GitRunner:
             'TIRA_CPU_COUNT': str(settings.GIT_CI_AVAILABLE_RESOURCES[resources]['cores']),
             'TIRA_MEMORY_IN_GIBIBYTE': str(settings.GIT_CI_AVAILABLE_RESOURCES[resources]['ram']),
             'TIRA_GPU': str(settings.GIT_CI_AVAILABLE_RESOURCES[resources]['gpu']),
+            'TIRA_DATA': str(settings.GIT_CI_AVAILABLE_RESOURCES[resources]['data']),
             'TIRA_DATASET_TYPE': 'training' if 'training' in dataset_id else 'test',
 
             # The actual important stuff for the evaluator:
@@ -140,6 +141,8 @@ class GitRunner:
             metadata['TIRA_INPUT_RUN_DATASET_ID'] = input_run['dataset_id']
             metadata['TIRA_INPUT_RUN_VM_ID'] = input_run['vm_id']
             metadata['TIRA_INPUT_RUN_RUN_ID'] = input_run['run_id']
+            if input_run.get('replace_original_dataset', False):
+                metadata['TIRA_INPUT_RUN_REPLACES_ORIGINAL_DATASET'] = 'true'
     
         open(job_dir / 'job-to-execute.txt', 'w').write(self.dict_to_key_value_file(metadata))
 
@@ -296,6 +299,17 @@ class GitRunner:
         The to be added tag of the docker image.      
         """
         raise ValueError('ToDo: Implement.')
+
+    def extract_configuration_of_finished_job(self, git_repository_id, dataset_id, vm_id, run_id):
+        gl_project = self.gitHoster_client.projects.get(int(git_repository_id))
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            repo = self.clone_repository_and_create_new_branch(self.repo_url(git_repository_id), 'dummy-br', tmp_dir)
+            f = glob(tmp_dir + '/' + dataset_id + '/' + vm_id + '/' + run_id + '/job-executed-on-*.txt')
+
+            if len(f) != 1:
+                return None
+
+            return open(f[0]).read()
 
     def all_user_repositories(self):
         """
@@ -579,14 +593,18 @@ class GitLabRunner(GitRunner):
         repo.index.add([str(Path(dataset_id) / vm_id / run_id / 'job-to-execute.txt')])
         repo.index.commit("Evaluate software: " + identifier)
         gpu_resources = str(settings.GIT_CI_AVAILABLE_RESOURCES[resources]['gpu']).strip()
+        data_resources = str(settings.GIT_CI_AVAILABLE_RESOURCES[resources]['data']).strip()
 
-        if gpu_resources == '0':
+        if gpu_resources == '0' and data_resources == 'no':
             repo.remote().push(identifier)
         else:
             repo.remote().push(identifier, **{'o': 'ci.skip'})
 
             gl_project = self.gitHoster_client.projects.get(int(git_repository_id))
-            gl_project.pipelines.create({'ref': identifier, 'variables': [{'key': 'TIRA_GPU', 'value': gpu_resources}]})
+            gl_project.pipelines.create({'ref': identifier, 'variables': [
+                {'key': 'TIRA_GPU', 'value': gpu_resources},
+                {'key': 'TIRA_DATA', 'value': data_resources},
+            ]})
 
     def add_new_tag_to_docker_image_repository(self, repository_name, old_tag, new_tag):
         """
@@ -646,6 +664,9 @@ class GitLabRunner(GitRunner):
         project = self.existing_repository(task_id)
         for pipeline in project.pipelines.list(get_all=True):
             print('Delete Pipeline: ' + str(pipeline.id))
+            if pipeline.status not in {'skipped', 'canceled', 'failed', 'success'}:
+                print('Skip running pipeline ' + str(pipeline.id))
+                continue
             pipeline.delete()
 
     def _create_task_repository_on_gitHoster(self, task_id):
@@ -841,6 +862,7 @@ class GitLabRunner(GitRunner):
             'cores': str(ret.get('TIRA_CPU_COUNT', 'Loading...')) + ' CPU Cores',
             'ram': str(ret.get('TIRA_MEMORY_IN_GIBIBYTE', 'Loading...')) + 'GB of RAM',
             'gpu': str(ret.get('TIRA_GPU', 'Loading...')) + ' GPUs',
+            'data': str(ret.get('TIRA_DATA', 'Loading...')) + ' Mounts',
             'dataset_type': ret.get('TIRA_DATASET_TYPE', 'Loading...'),
             'dataset': ret.get('TIRA_DATASET_ID', 'Loading...'),
             'software_id': ret.get('TIRA_SOFTWARE_ID', 'Loading...'),

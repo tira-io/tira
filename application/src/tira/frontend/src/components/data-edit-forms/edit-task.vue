@@ -76,7 +76,21 @@
         <label>Allowed Teams for Task (leave empty if all teams are allowed)
         <textarea id="task-teams-input" rows="3" class="uk-textarea" placeholder=""
                v-model="taskTeams" /></label>
-    </div>
+      </div>
+    
+      <div class="uk-width-1-1">
+        <label><input class="uk-checkbox" type="checkbox" name="checkbox-gitci" v-model="isIrTask"> The task is an information retrieval task (configure the ir_datasets integration) </label>
+      </div>
+      <div v-if="isIrTask" class="uk-width-1-1">
+        <label>IR-Datasets Re-Ranking Image <input type="text" class="uk-input" v-model="irdsReRankingImage" ></label>
+      </div>
+      <div v-if="isIrTask" class="uk-width-1-1">
+        <label>IR-Datasets Re-Ranking Command <input type="text" class="uk-input" v-model="irdsReRankingCommand" ></label>
+      </div>
+      <div v-if="isIrTask" class="uk-width-1-1">
+          <label>IR-Datasets Resources for Execution <input type="text" class="uk-input" v-model="irdsReRankingResources" ></label>
+      </div>
+
     </div>
 </div>
 </template>
@@ -102,6 +116,10 @@ export default {
       requireGroups: false,
       restrictGroups: false,
       organizerList: [],
+      isIrTask: false,
+      irdsReRankingImage: '',
+      irdsReRankingCommand: '',
+      irdsReRankingResources: '',
     }
   },
   components: { DeleteConfirm },
@@ -145,6 +163,10 @@ export default {
         'require_groups': this.requireGroups,
         'restrict_groups': this.restrictGroups,
         'task_teams': this.taskTeams,
+        'is_information_retrieval_task': this.isIrTask,
+        'irds_re_ranking_image': this.irdsReRankingImage,
+        'irds_re_ranking_command': this.irdsReRankingCommand,
+        'irds_re_ranking_resource': this.irdsReRankingResources,
       }).then(message => {
         this.$emit('addnotification', 'success', message.message)
         this.$emit('updatetask', JSON.parse(message.context))
@@ -205,6 +227,10 @@ export default {
         this.requireGroups = task.require_groups
         this.restrictGroups = task.restrict_groups
         this.taskTeams = task.allowed_task_teams
+        this.isIrTask = task.is_information_retrieval_task
+        this.irdsReRankingImage = task.irds_re_ranking_image
+        this.irdsReRankingCommand = task.irds_re_ranking_command
+        this.irdsReRankingResources = task.irds_re_ranking_resource
       }).catch(error => {
         this.$emit('addnotification', 'error', `Error loading task: ${error}`)
       })
