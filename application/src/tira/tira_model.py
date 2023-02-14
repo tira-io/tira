@@ -618,14 +618,24 @@ def create_re_rank_output_on_dataset(task_id: str, vm_id: str, software_id: str,
 
 def add_input_run_id_to_all_rerank_runs():
     from tqdm import tqdm
-    reranking_datasets = get_all_reranking_datasets()
     dataset_to_run_id = {}
-    for i in reranking_datasets.values():
-        if i['dataset_id'] in dataset_to_run_id:
-            raise ValueError('Amigious...')
-        dataset_to_run_id[i['dataset_id']] = i['run_id']
+    for reranking_software in tqdm(model.get_reranking_docker_softwares(), 'Get input_run_ids'):
+        for dataset in get_datasets_by_task(reranking_software['task_id']):
+            ls = latest_output_of_software_on_dataset(
+                reranking_software['task_id'],
+                reranking_software['vm_id'],
+                None,
+                reranking_software['docker_software_id'],
+                dataset['dataset_id']
+            )
+            
+            if ls:
+                if dataset['dataset_id'] in dataset_to_run_id:
+            	    raise ValueError('Amigious...')
+            
+                dataset_to_run_id[dataset['dataset_id']] = ls['run_id']
 
-    for i in tqdm(model.get_all_docker_software_rerankers()):
+    for i in tqdm(model.get_all_docker_software_rerankers(), 'Update input ids'):
         for run in model.get_runs_for_docker_software(i['docker_software_id']):
             if 'input_run' not in run or not run['input_run']:
                 model.update_input_run_id_for_run(run['run_id'], dataset_to_run_id[run['dataset']])
