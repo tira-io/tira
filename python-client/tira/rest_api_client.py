@@ -73,7 +73,7 @@ class Client():
             runs_to_join = {}
             for _, i in self.submissions(task, dataset).iterrows():
                 i = i.to_dict()
-                runs_to_join[(i['team'], i['run_id'])] = {'software': i['software'], 'is_upload': i['is_upload'], 'is_docker': i['is_docker']}
+                runs_to_join[(i['team'], i['run_id'])] = {'software': i['software'], 'input_run_id': i['input_run_id'], 'is_upload': i['is_upload'], 'is_docker': i['is_docker']}
 
         for evaluation in response['evaluations']:
             run = {'task': response['task_id'], 'dataset': response['dataset_id'], 'team': evaluation['vm_id'], 'run_id': evaluation['input_run_id']}
