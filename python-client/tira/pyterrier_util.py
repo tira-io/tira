@@ -24,7 +24,7 @@ class TiraRerankingTransformer(Transformer):
             df += [self.tira_client.download_run(tira_configuration['tira_task'], tira_configuration['tira_dataset'], self.software, self.team, tira_configuration['tira_first_stage_run_id'])]
         df = pd.concat(df)
         df['qid'] = df['query'].astype(str)
-        df['docid'] = df['docid'].astype(str)
+        df['docno'] = df['docid'].astype(str)
         del df['query']
         del df['docid']
 
