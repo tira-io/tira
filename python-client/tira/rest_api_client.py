@@ -140,7 +140,7 @@ class Client():
         if os.path.isdir(target_dir + f'/{run_id}'):
             return target_dir + f'/{run_id}/output'
 
-        self.download_and_extract_zip(url, target_dir)
+        self.download_and_extract_zip(f'https://www.tira.io/task/{task}/user/{team}/dataset/{dataset}/download/{run_id}.zip', target_dir)
 
         return target_dir + f'/{run_id}/output'
 
