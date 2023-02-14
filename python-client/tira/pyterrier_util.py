@@ -1,5 +1,5 @@
 from pyterrier.transformer import Transformer
-from matchpy import Wildcard, Symbol, Operation, Arity
+from matchpy import Operation, Arity
 import json
 
 class TiraRerankingTransformer(Transformer, Operation):
@@ -13,7 +13,6 @@ class TiraRerankingTransformer(Transformer, Operation):
         self.operands=[]
         self.task, self.team, self.software = approach.split('/')
         self.tira_client = tira_client
-        assert "qid" in self.df.columns
 
     def transform(self, topics):
         import numpy as np
@@ -27,9 +26,9 @@ class TiraRerankingTransformer(Transformer, Operation):
             df += [self.tira_client.download_run(tira_configuration['tira_task'], tira_configuration['tira_dataset'], self.software, self.team, tira_configuration['tira_first_stage_run_id'])]
         df = pd.concat(df)
 
-        common_columns = np.intersect1d(topics.columns, self.df.columns)
+        common_columns = np.intersect1d(topics.columns, df.columns)
 
-        # we drop columns in self.df that exist in the topics
-        self.df = df[[i for i in df.columns if i not in common_columns]]
+        # we drop columns in df that exist in the topics
+        df = df[[i for i in df.columns if i not in common_columns]]
 
-        return topics.merge(self.df, on="qid")
+        return topics.merge(df, on="qid")
