@@ -5,6 +5,8 @@ import os
 import zipfile
 import io
 import docker
+from failsafe import Failsafe, RetryPolicy, Backoff
+from datetime import timedelta
 from tira.pyterrier_integration import PyTerrierIntegration
 from tira.local_execution_integration import LocalExecutionIntegration
 
@@ -22,6 +24,8 @@ class Client():
         self.fail_if_api_key_is_invalid()
         self.pt = PyTerrierIntegration(self)
         self.local_execution = LocalExecutionIntegration(self)
+
+        self.retry_policy = RetryPolicy(allowed_retries=3, backoff=Backoff(delay=timedelta(seconds=2), max_delay=timedelta(seconds=15)))
 
     def load_settings(self):
         return json.load(open(self.__tira_cache_dir + '/.tira-settings.json', 'r'))
@@ -135,11 +139,14 @@ class Client():
         if os.path.isdir(target_dir + f'/{run_id}'):
             return target_dir + f'/{run_id}/output'
 
+        await Failsafe(retry_policy=retry_policy).run(lambda i: download_and_extract_zip(url, target_dir))
+
+        return target_dir + f'/{run_id}/output'
+
+    def download_and_extract_zip(self, url, target_dir):
         r = requests.get(f'https://www.tira.io/task/{task}/user/{team}/dataset/{dataset}/download/{run_id}.zip', headers={"Api-Key": self.api_key})
         z = zipfile.ZipFile(io.BytesIO(r.content))
         z.extractall(target_dir)
-    
-        return target_dir + f'/{run_id}/output'
 
     def get_authentication_cookie(self, user, password):
         import requests
