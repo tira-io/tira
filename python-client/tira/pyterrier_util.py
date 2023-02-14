@@ -1,7 +1,7 @@
 from pyterrier.transformer import Transformer
 import json
 
-class TiraRerankingTransformer(Transformer, Operation):
+class TiraRerankingTransformer(Transformer):
     """
     A Transformer that loads runs from TIRA that reranked some existing run.
     """
