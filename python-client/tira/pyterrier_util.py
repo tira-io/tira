@@ -1,5 +1,7 @@
 from pyterrier.transformer import Transformer
 import json
+import pandas as pd
+
 
 class TiraRerankingTransformer(Transformer):
     """
