@@ -93,18 +93,23 @@ class Client():
     def run_was_already_executed_on_dataset(self, approach, dataset):
         return self.get_run_execution_or_none(approach, dataset) is not None
 
-    def get_run_execution_or_none(self, approach, dataset, previous_stage=None):
+    def get_run_execution_or_none(self, approach, dataset, previous_stage_run_id=None):
         task, team, software = approach.split('/')
         
         df_eval = self.evaluations(task=task, dataset=dataset)
 
         ret = df_eval[(df_eval['dataset'] == dataset) & (df_eval['software'] == software)]
+        if len(ret) <= 0:
+            return None
+        
         if team:
             ret = ret[ret['team'] == team]
 
-        if previous_stage:
-            _, prev_team, prev_software = approach.split('/')
-            ret = ret[ret['input_run_id'] == prev_software]
+        if len(ret) <= 0:
+            return None
+
+        if previous_stage_run_id:
+            ret = ret[ret['input_run_id'] == previous_stage_run_id]
 
         if len(ret) <= 0:
             return None
@@ -113,6 +118,8 @@ class Client():
         
     def download_run(self, task, dataset, software, team=None, previous_stage=None, return_metadata=False):
         ret = self.get_run_execution_or_none(f'{task}/{team}/{software}', dataset, previous_stage)
+        if not ret:
+            raise ValueError(f'I could not find a run for the filter criteria task="{task}", dataset="{dataset}", software="{software}", team={team}, previous_stage={previous_stage}')
         run_id = ret['run_id']
         
         ret = self.download_zip_to_cache_directory(**ret)
