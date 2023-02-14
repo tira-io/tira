@@ -32,4 +32,4 @@ class TiraRerankingTransformer(Transformer):
         if len(drop_columns) > 0:
             keeping = topics.columns[~ topics.columns.isin(drop_columns)]
 
-        return topics.merge(df, on="qid")
+        return topics[keeping].merge(df, on="qid")
