@@ -13,7 +13,7 @@ class TiraRerankingTransformer(Transformer):
     def transform(self, topics):
         import numpy as np
         assert "qid" in topics.columns
-        if 'tira_task' not in topics.columns or 'tira_dataset' not in columns or 'tira_first_stage_run_id':
+        if 'tira_task' not in topics.columns or 'tira_dataset' not in topics.columns or 'tira_first_stage_run_id' not in topics.columns:
             raise ValueError('This run needs to know the tira metadata: tira_task, tira_dataset, and tira_first_stage_run_id needs to be in the columns of the dataframe')
 
         tira_configurations = [json.loads(i) for i in topics[['tira_task', 'tira_dataset', 'tira_first_stage_run_id']].apply(lambda i: json.dumps(i)).unique()]
