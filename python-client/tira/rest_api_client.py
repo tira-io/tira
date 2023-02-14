@@ -5,14 +5,14 @@ import os
 import zipfile
 import io
 import docker
-from failsafe import Failsafe, RetryPolicy, Backoff
-from datetime import timedelta
+import time
+from random import random
 from tira.pyterrier_integration import PyTerrierIntegration
 from tira.local_execution_integration import LocalExecutionIntegration
 
 
 class Client():
-    def __init__(self, api_key=None):
+    def __init__(self, api_key=None, failsave_retries=5, failsave_max_delay=15):
         self.__tira_cache_dir = os.environ.get('TIRA_CACHE_DIR', os.path.expanduser('~') + '/.tira')
         self.json_cache = {}
 
@@ -25,7 +25,8 @@ class Client():
         self.pt = PyTerrierIntegration(self)
         self.local_execution = LocalExecutionIntegration(self)
 
-        self.retry_policy = RetryPolicy(allowed_retries=3, backoff=Backoff(delay=timedelta(seconds=2), max_delay=timedelta(seconds=15)))
+        self.failsave_retries = failsave_retries
+        self.failsave_max_delay = failsave_max_delay
 
     def load_settings(self):
         return json.load(open(self.__tira_cache_dir + '/.tira-settings.json', 'r'))
@@ -139,14 +140,22 @@ class Client():
         if os.path.isdir(target_dir + f'/{run_id}'):
             return target_dir + f'/{run_id}/output'
 
-        await Failsafe(retry_policy=retry_policy).run(lambda i: download_and_extract_zip(url, target_dir))
+        download_and_extract_zip(url, target_dir)
 
         return target_dir + f'/{run_id}/output'
 
     def download_and_extract_zip(self, url, target_dir):
-        r = requests.get(f'https://www.tira.io/task/{task}/user/{team}/dataset/{dataset}/download/{run_id}.zip', headers={"Api-Key": self.api_key})
-        z = zipfile.ZipFile(io.BytesIO(r.content))
-        z.extractall(target_dir)
+        for i in range(self.failsave_retries):
+            try:
+                r = requests.get(url, headers={"Api-Key": self.api_key})
+                z = zipfile.ZipFile(io.BytesIO(r.content))
+                z.extractall(target_dir)
+                
+                return
+            except:
+                sleep_time = 1+int(random()*self.failsave_max_delay)
+                print(f'Error occured while fetching {url}. I will sleep {sleep_time} seconds and continue.')
+                time.sleep(sleep_time)
 
     def get_authentication_cookie(self, user, password):
         import requests
