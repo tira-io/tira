@@ -1,16 +1,12 @@
 from pyterrier.transformer import Transformer
-from matchpy import Operation, Arity
 import json
 
 class TiraRerankingTransformer(Transformer, Operation):
     """
     A Transformer that loads runs from TIRA that reranked some existing run.
     """
-    arity = Arity.nullary
 
     def __init__(self, approach, tira_client, **kwargs):
-        super().__init__(operands=[], **kwargs)
-        self.operands=[]
         self.task, self.team, self.software = approach.split('/')
         self.tira_client = tira_client
 
