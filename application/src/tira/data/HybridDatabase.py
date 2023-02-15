@@ -1149,8 +1149,8 @@ class HybridDatabase(object):
 
     def _assess_uploaded_files(self, run_dir: Path, output_dir: Path):
         dirs = sum([1 if d.is_dir() else 0 for d in output_dir.glob("*")])
-        files = sum([1 if not d.is_dir() else 0 for d in output_dir.rglob("*")])
-        root_files = list(output_dir.glob("*"))
+        files = sum([1 if not d.is_dir() else 0 for d in output_dir.rglob("*[!.zip]")])
+        root_files = list(output_dir.glob("*[!.zip]"))
         if root_files and not root_files[0].is_dir():
             lines = len(open(root_files[0], 'r').readlines())
             size = root_files[0].stat().st_size
