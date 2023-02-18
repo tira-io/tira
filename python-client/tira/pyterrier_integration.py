@@ -17,6 +17,7 @@ class PyTerrierIntegration():
 
     def from_retriever_submission(self, approach, dataset, previous_stage=None, datasets=None):
         import pyterrier as pt
+        import pandas as pd
         task, team, software = approach.split('/')
         
         
