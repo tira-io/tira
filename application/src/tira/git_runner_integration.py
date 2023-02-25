@@ -468,10 +468,10 @@ class GitRunner:
         software, evaluators = [], []
         
         for s in tqdm(existing_software, 'Software'):
-            software += [self.archive_software(working_directory, s, download_images, persist_images, upload_images)]
+            software += [json.dumps(self.archive_software(working_directory, s, download_images, persist_images, upload_images))]
 
         for e in tqdm(existing_evaluators, 'Evaluators'):
-            evaluators += [self.archive_software(working_directory, e, download_images, persist_images, upload_images)]     
+            evaluators += [json.dumps(self.archive_software(working_directory, e, download_images, persist_images, upload_images))]
 
         open((Path(working_directory) / '.tira' / 'submitted-software.jsonl').absolute(), 'w').write('\n'.join(software))
         open((Path(working_directory) / '.tira' / 'evaluators.jsonl').absolute(), 'w').write('\n'.join(evaluators))
