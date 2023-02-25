@@ -446,9 +446,9 @@ class GitRunner:
         description = docker_image_details(image)
         
         Path(working_directory + '/docker-softwares').mkdir(parents=True, exist_ok=True)
-        image_name =working_directory + '/docker-softwares/' + description['image_id'] + '.tar'
+        image_name = working_directory + '/docker-softwares/' + description['image_id'] + '.tar'
 
-        if persist_images:
+        if persist_images and not os.path.file_exists(image_name):
             print(f'Run image save {image} -o {image_name}.')
             run_cmd(['docker', 'image', 'save', image, '-o', image_name])
 
@@ -456,7 +456,8 @@ class GitRunner:
             run_cmd(['docker', 'tag', image, dockerhub_image])
             print(f'Run image push {dockerhub_image}.')
             run_cmd(['docker', 'push', dockerhub_image])
-            
+
+        description['local_image'] = image_name
         software_definition['image_details'] = description
         
         return software_definition
