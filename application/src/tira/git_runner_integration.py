@@ -448,7 +448,7 @@ class GitRunner:
         Path(working_directory + '/docker-softwares').mkdir(parents=True, exist_ok=True)
         image_name = working_directory + '/docker-softwares/' + description['image_id'] + '.tar'
 
-        if persist_images and not os.path.file_exists(image_name):
+        if persist_images and not os.path.isfile(image_name):
             print(f'Run image save {image} -o {image_name}.')
             run_cmd(['docker', 'image', 'save', image, '-o', image_name])
 
