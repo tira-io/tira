@@ -478,13 +478,12 @@ class GitRunner:
         from tira.tira_model import get_docker_software, get_docker_softwares_with_runs, get_dataset
         from django.template.loader import render_to_string
         
-        repo = self.existing_repository(repo_name)
-
         softwares = set()
         evaluations = set()
         datasets = {}
 
         if not os.path.isdir(working_directory + '/.git'):
+            repo = self.existing_repository(repo_name)
             print(f'Clone repository {repo.name}. Working in {working_directory}')
             repo = Repo.clone_from(self.repo_url(repo.id), working_directory, branch='main')
         else:
