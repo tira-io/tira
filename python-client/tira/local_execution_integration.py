@@ -1,4 +1,6 @@
 import os
+import docker
+
 
 class LocalExecutionIntegration():
     def __init__(self, tira_client):
@@ -67,4 +69,4 @@ class LocalExecutionIntegration():
             eval_results.update(load_output_of_directory(Path(data_dir) / 'eval_output', evaluation=True, verbose=verbose))
             return load_output_of_directory(Path(data_dir) / 'output', verbose=verbose), pd.DataFrame([eval_results])
         else:
-            return load_output_of_directory(Path(data_dir) / 'output', verbose=verbose)
+            return output_dir

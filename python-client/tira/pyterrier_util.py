@@ -3,6 +3,7 @@ import json
 import pandas as pd
 import tempfile
 import gzip
+import os
 
 
 class TiraRerankingTransformer(Transformer):
@@ -45,9 +46,11 @@ class TiraLocalExecutionRerankingTransformer(Transformer):
     A Transformer that re-execues software submitted in TIRA.
     """
 
-    def __init__(self, approach, tira_client, **kwargs):
+    def __init__(self, approach, tira_client, verbose=False, **kwargs):
         self.task, self.team, self.software = approach.split('/')
+        self.approach = approach
         self.tira_client = tira_client
+        self.verbose = verbose
 
     def transform(self, topics):
         import numpy as np
@@ -57,28 +60,37 @@ class TiraLocalExecutionRerankingTransformer(Transformer):
             os.makedirs(tmp_directory + '/input')
             os.makedirs(tmp_directory + '/output')
             
-            with gzip.open(tmp_directory + '/input/re-rank.jsonl.gz', 'w') as f:
+            with gzip.open(tmp_directory + '/input/rerank.jsonl.gz', 'wt') as f:
                 for _, i in topics.iterrows():
+                    i = i.to_dict()
+                    
+                    for k in ['original_query', 'original_document']:
+                        if k not in i:
+                            i[k] = {}
+                    
+                    if 'text' not in i and 'body' in i:
+                        i['text'] = i['body']
+                    
+                    if 'text' not in i:
+                        raise ValueError(f'I expect a field "text", but only found fields {i.keys()}.')
+                    
                     f.write(json.dumps(i) + '\n')
-            
-            print([json.reads(i) for i in gzip.open(tmp_directory + '/input/re-rank.jsonl.gz', 'r')])
+
+            self.tira_client.local_execution.run(identifier=self.approach,
+                input_dir=tmp_directory + '/input/', output_dir=tmp_directory + '/output/',
+                evaluate=False, verbose=self.verbose, dry_run=False
+            )
         
-#        df = []
-#        for tira_configuration in tira_configurations:
-#            df += [self.tira_client.download_run(tira_configuration['tira_task'], tira_configuration['tira_dataset'], self.software, self.team, tira_configuration['tira_first_stage_run_id'])]
-#        df = pd.concat(df)
-#        df['qid'] = df['query'].astype(str)
-#        df['docno'] = df['docid'].astype(str)
-#        del df['query']
-#        del df['docid']
-#
-#        common_columns = np.intersect1d(topics.columns, df.columns)
-#
-#        # we drop columns in topics that exist in the df
-#        keeping = topics.columns
-#        drop_columns = [i for i in common_columns if i not in {"qid", "docno"}]
-#        if len(drop_columns) > 0:
-#            keeping = topics.columns[~ topics.columns.isin(drop_columns)]
-#
-#        return topics[keeping].merge(df, how='left', left_on=["qid", "docno"], right_on=["qid", "docno"])
+            df = pd.read_csv(tmp_directory + '/output/run.txt', sep='\\s+', names=["qid", "q0", "docno", "rank", "score", "system"])
+            df['qid'] = df['qid'].astype(str)
+            df['docno'] = df['docno'].astype(str)
+            common_columns = np.intersect1d(topics.columns, df.columns)
+
+            # we drop columns in topics that exist in the df
+            keeping = topics.columns
+            drop_columns = [i for i in common_columns if i not in {"qid", "docno"}]
+            if len(drop_columns) > 0:
+                keeping = topics.columns[~ topics.columns.isin(drop_columns)]
+
+            return topics[keeping].merge(df, how='left', left_on=["qid", "docno"], right_on=["qid", "docno"])
 

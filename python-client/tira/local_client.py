@@ -41,7 +41,7 @@ class Client():
     def all_softwares(self):
         ret = []
         for software_id, software_definition in self.___load_softwares().items():
-            ret += [{'approach': software_id, 'team': software_definition['TIRA_VM_ID'], 'image': software_definition['TIRA_IMAGE_TO_EXECUTE'], 'command': software_definition['TIRA_COMMAND_TO_EXECUTE']}]
+            ret += [{'approach': software_id, 'team': software_definition['TIRA_VM_ID'], 'image': software_definition['TIRA_IMAGE_TO_EXECUTE_IN_DOCKERHUB'], 'command': software_definition['TIRA_COMMAND_TO_EXECUTE']}]
 
         return pd.DataFrame(ret)
 
@@ -103,19 +103,12 @@ class Client():
 
         return pd.DataFrame(ret)
 
-    def docker_software_id(self, approach):
-        return self.docker_software(approach)['docker_software_id']
-
     def docker_software(self, approach):
-        task, team, software = approach.split('/')
-        docker_softwares = self.metadata_for_task(task, team)['context']['docker']['docker_softwares']
+        for _, i in self.all_softwares().iterrows():
+            if i['approach'] == approach:
+                return {'tira_image_name': i['image'], 'command': i['command']}
 
-        for i in docker_softwares:
-            if i['display_name'] == software:
-                return i
-
-    def metadata_for_task(self, task_name, team_name):
-        return self.json_response(f'/api/task/{task_name}/user/{team_name}')
+        raise ValueError(f'Could not find software "{approach}".')
 
     def submissions(self, task, dataset):
         response = self.json_response(f'/api/submissions/{task}/{dataset}')['context']
