@@ -16,7 +16,6 @@ import json
 from slugify import slugify
 from tqdm import tqdm
 from glob import glob
-import subprocess
 import markdown
 from itertools import chain
 
@@ -434,9 +433,10 @@ class GitRunner:
         """
         raise ValueError('ToDo: Implement.')
 
-    def archive_repository(self, repo_name, persist_all_images=True):
+    def archive_repository(self, repo_name, download_images=True, persist_images=True, upload_images=True, persist_datasets=True):
         from tira_model import get_docker_software, get_docker_softwares_with_runs, get_dataset
         from django.template.loader import render_to_string
+        from util import run_cmd
         repo = self.existing_repository(repo_name)
         if not repo:
             print(f'Repository not found "{repo_name}".')
@@ -451,9 +451,9 @@ class GitRunner:
             repo = Repo.clone_from(self.repo_url(repo.id), tmp_dir, branch='main')
             Path(tmp_dir + '/docker-softwares').mkdir(parents=True, exist_ok=True)
 
-            print("Export docker images:")
+            print("Exporting docker images...")
             downloaded_images = set()
-            for job_file in tqdm(sorted(list(glob(tmp_dir + '/*/*/*/job-executed-on*.txt')))):
+            for job_file in tqdm(sorted(list(glob(tmp_dir + '/*/*/*/job-executed-on*.txt'))), "Export Docker Images"):
                 job = [i.split('=') for i in open(job_file, 'r')]
                 job = {k.strip(): v.strip() for k, v in job}
                 image = job['TIRA_IMAGE_TO_EXECUTE'].strip()
@@ -484,20 +484,18 @@ class GitRunner:
 
                 image_name = (slugify(image) + '.tar').replace('/', '-')
 
-                cmd = ['skopeo', 'copy', '--src-creds',
-                       f'{settings.GIT_CI_SERVER_HOST}:{settings.GIT_PRIVATE_TOKEN}',
-                       f'docker://{image}', f'docker-archive:{tmp_dir}/docker-softwares/{image_name}']
-
-                if persist_all_images and image not in downloaded_images:
-                    subprocess.check_output(cmd)
+                if downloaded_images and image not in downloaded_images:
+                    run_cmd(['docker', 'pull', image])
 
                 dockerhub_image = f'docker.io/webis/{job["TIRA_TASK_ID"]}-submissions:' + (
                 image_name.split('-tira-user-')[1]).replace('.tar', '').strip()
 
-                cmd = ['skopeo', 'copy', f'docker-archive:{tmp_dir}/docker-softwares/{image_name}',
-                       f'docker://{dockerhub_image}']
-                if persist_all_images and image not in downloaded_images:
-                    subprocess.check_output(cmd)
+                if persist_images and image not in downloaded_images:
+                    run_cmd(['docker', 'image', 'save', image, '-o', image_name])
+
+                if upload_images and image not in downloaded_images:
+                    run_cmd(['docker', 'tag', image, dockerhub_image])
+                    run_cmd(['docker', 'push', dockerhub_image])
 
                 downloaded_images.add(image)
                 softwares.add(json.dumps({
@@ -527,13 +525,14 @@ class GitRunner:
                 render_to_string('tira/tira_git_tutorial.ipynb', context={}))
             # open((Path(tmp_dir) / 'README.md').absolute(), 'a+').write(render_to_string('tira/tira_git_cmd.py', context={}))
 
-            logger.info(f'Archive datasets')
-            for dataset_name, dataset_definition in datasets.items():
-                if 'is_confidential' in dataset_definition and not dataset_definition['is_confidential']:
-                    for i in ['training-datasets', 'training-datasets-truth']:
-                        shutil.copytree(
-                            Path(settings.TIRA_ROOT) / 'data' / 'datasets' / i / job['TIRA_TASK_ID'] / dataset_name,
-                            Path(tmp_dir) / dataset_name / i)
+            if persist_datasets:
+                logger.info(f'Archive datasets')
+                for dataset_name, dataset_definition in tqdm(datasets.items(), 'Archive Datasets'):
+                    if 'is_confidential' in dataset_definition and not dataset_definition['is_confidential']:
+                        for i in ['training-datasets', 'training-datasets-truth']:
+                            shutil.copytree(
+                                Path(settings.TIRA_ROOT) / 'data' / 'datasets' / i / job['TIRA_TASK_ID'] / dataset_name,
+                                Path(tmp_dir) / dataset_name / i)
 
             logger.info(f'Archive repository into {repo_name}.zip')
             shutil.make_archive(repo_name, 'zip', tmp_dir)

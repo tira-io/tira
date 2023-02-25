@@ -61,7 +61,10 @@ class Command(BaseCommand):
         if 'archive_repository' in options and options['archive_repository']:
             git_runner.archive_repository(
                 repo_name=options['archive_repository'],
-                persist_all_images=options['archive_repository_with_images'].lower() != 'false'
+                download_images=options['archive_repository_download_images'].lower() == 'true',
+                persist_images=options['archive_repository_persist_images'].lower() == 'true',
+                upload_images=options['archive_repository_upload_images'].lower() == 'true',
+                persist_datasets=options['archive_repository_persist_datasets'].lower() == 'true'
             )
 
         if 'create_task_repository' in options and options['create_task_repository']:
@@ -150,7 +153,10 @@ class Command(BaseCommand):
         parser.add_argument('--clean_repository', default=None, type=str)
         parser.add_argument('--run_image', default=None, type=str)
         parser.add_argument('--archive_repository', default=None, type=str)
-        parser.add_argument('--archive_repository_with_images', default='false', type=str)
+        parser.add_argument('--archive_repository_download_images', default='false', type=str)
+        parser.add_argument('--archive_repository_persist_images', default='false', type=str)
+        parser.add_argument('--archive_repository_upload_images', default='false', type=str)
+        parser.add_argument('--archive_repository_persist_datasets', default='false', type=str)
         parser.add_argument('--running_jobs', default=None, type=str)
         parser.add_argument('--stop_job_and_clean_up', default=None, type=str)
         parser.add_argument('--user_id', default=None, type=str)

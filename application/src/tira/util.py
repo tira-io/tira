@@ -93,3 +93,10 @@ def auto_reviewer(review_path, run_id):
         review.blinded = False
 
     return review
+
+def run_cmd(cmd, ignore_failure=False):
+    import subprocess
+    exit_code = subprocess.call(cmd)
+
+    if not ignore_failure and exit_code != 0:
+        raise ValueError(f'Command {cmd} did exit with return code {exit_code}.')
