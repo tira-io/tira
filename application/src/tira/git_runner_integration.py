@@ -439,7 +439,8 @@ class GitRunner:
         dockerhub_image = software_definition['TIRA_IMAGE_TO_EXECUTE'] if 'TIRA_IMAGE_TO_EXECUTE' in software_definition else None
         description = docker_image_details(image)
         
-        image_name = working_directory + '/docker-images/' + description['image_id'] + '.tar'
+        Path(working_directory + '/docker-softwares').mkdir(parents=True, exist_ok=True)
+        image_name =working_directory + '/docker-softwares/' + description['image_id'] + '.tar'
 
         if download_images:
             print(f'Run docker pull {image}.')
@@ -490,7 +491,6 @@ class GitRunner:
             print(f'Use existing repo in {working_directory}.')
             self.archive_all_softwares(working_directory, download_images, persist_images, upload_images)
             return
-            
 
         Path(working_directory + '/docker-softwares').mkdir(parents=True, exist_ok=True)
 
