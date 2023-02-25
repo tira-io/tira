@@ -437,14 +437,16 @@ class GitRunner:
         from tira.util import run_cmd, docker_image_details
         image = software_definition['TIRA_EVALUATION_IMAGE_TO_EXECUTE'] if 'TIRA_EVALUATION_IMAGE_TO_EXECUTE' in software_definition else software_definition['TIRA_IMAGE_TO_EXECUTE']
         dockerhub_image = software_definition['TIRA_IMAGE_TO_EXECUTE'] if 'TIRA_IMAGE_TO_EXECUTE' in software_definition else None
-        description = docker_image_details(image)
-        
-        Path(working_directory + '/docker-softwares').mkdir(parents=True, exist_ok=True)
-        image_name =working_directory + '/docker-softwares/' + description['image_id'] + '.tar'
+
 
         if download_images:
             print(f'Run docker pull {image}.')
             run_cmd(['docker', 'pull', image])
+
+        description = docker_image_details(image)
+        
+        Path(working_directory + '/docker-softwares').mkdir(parents=True, exist_ok=True)
+        image_name =working_directory + '/docker-softwares/' + description['image_id'] + '.tar'
 
         if persist_images:
             print(f'Run image save {image} -o {image_name}.')
