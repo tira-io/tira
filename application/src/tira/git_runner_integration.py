@@ -433,7 +433,7 @@ class GitRunner:
         """
         raise ValueError('ToDo: Implement.')
 
-    def archive_repository(self, repo_name, download_images=True, persist_images=True, upload_images=True, persist_datasets=True):
+    def archive_repository(self, repo_name, working_directory, download_images=True, persist_images=True, upload_images=True, persist_datasets=True):
         from tira_model import get_docker_software, get_docker_softwares_with_runs, get_dataset
         from django.template.loader import render_to_string
         from util import run_cmd
@@ -446,97 +446,100 @@ class GitRunner:
         evaluations = set()
         datasets = {}
 
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            print(f'Clone repository {repo.name}. Working in {tmp_dir}')
-            repo = Repo.clone_from(self.repo_url(repo.id), tmp_dir, branch='main')
-            Path(tmp_dir + '/docker-softwares').mkdir(parents=True, exist_ok=True)
+        if os.path.isdir(working_directory + '/.git'):
+            print(f'Clone repository {repo.name}. Working in {working_directory}')
+            repo = Repo.clone_from(self.repo_url(repo.id), working_directory, branch='main')
+        else:
+            print('Use existing repo in {working_directory}')
 
-            print("Exporting docker images...")
-            downloaded_images = set()
-            for job_file in tqdm(sorted(list(glob(tmp_dir + '/*/*/*/job-executed-on*.txt'))), "Export Docker Images"):
-                job = [i.split('=') for i in open(job_file, 'r')]
-                job = {k.strip(): v.strip() for k, v in job}
-                image = job['TIRA_IMAGE_TO_EXECUTE'].strip()
-                if settings.GIT_REGISTRY_PREFIX.lower() not in image.lower():
-                    continue
+        Path(working_directory + '/docker-softwares').mkdir(parents=True, exist_ok=True)
 
-                datasets[job['TIRA_DATASET_ID']] = get_dataset(job['TIRA_DATASET_ID'])
+        print("Exporting docker images...")
+        downloaded_images = set()
+        for job_file in tqdm(sorted(list(glob(working_directory + '/*/*/*/job-executed-on*.txt'))), "Export Docker Images"):
+            job = [i.split('=') for i in open(job_file, 'r')]
+            job = {k.strip(): v.strip() for k, v in job}
+            image = job['TIRA_IMAGE_TO_EXECUTE'].strip()
+            if settings.GIT_REGISTRY_PREFIX.lower() not in image.lower():
+                continue
 
-                try:
-                    software_metadata = get_docker_software(
-                        int(job["TIRA_SOFTWARE_ID"].replace('docker-software-', '')))
-                    runs = get_docker_softwares_with_runs(job["TIRA_TASK_ID"], job["TIRA_VM_ID"])
-                except:
-                    continue
-                runs = [i for i in runs if
-                        int(i['docker_software_id']) == (int(job["TIRA_SOFTWARE_ID"].replace('docker-software-', '')))]
-                runs = list(chain(*[i['runs'] for i in runs]))
-                runs = [i for i in runs if
-                        (i['input_run_id'] == job['TIRA_RUN_ID'] or i['run_id'] == job['TIRA_RUN_ID'])]
+            datasets[job['TIRA_DATASET_ID']] = get_dataset(job['TIRA_DATASET_ID'])
 
-                for run in runs:
-                    result_out_dir = (Path(job_file.split('/job-executed-on')[0]) / (
-                        'evaluation' if run['is_evaluation'] else 'run'))
-                    result_out_dir.mkdir(parents=True, exist_ok=True)
-                    shutil.copytree(
-                        Path(settings.TIRA_ROOT) / 'data' / 'runs' / job['TIRA_DATASET_ID'] / job['TIRA_VM_ID'] / run[
-                            'run_id'], result_out_dir / run['run_id'])
+            try:
+                software_metadata = get_docker_software(
+                    int(job["TIRA_SOFTWARE_ID"].replace('docker-software-', '')))
+                runs = get_docker_softwares_with_runs(job["TIRA_TASK_ID"], job["TIRA_VM_ID"])
+            except:
+                continue
+            runs = [i for i in runs if
+                    int(i['docker_software_id']) == (int(job["TIRA_SOFTWARE_ID"].replace('docker-software-', '')))]
+            runs = list(chain(*[i['runs'] for i in runs]))
+            runs = [i for i in runs if
+                    (i['input_run_id'] == job['TIRA_RUN_ID'] or i['run_id'] == job['TIRA_RUN_ID'])]
 
-                image_name = (slugify(image) + '.tar').replace('/', '-')
+            for run in runs:
+                result_out_dir = (Path(job_file.split('/job-executed-on')[0]) / (
+                    'evaluation' if run['is_evaluation'] else 'run'))
+                result_out_dir.mkdir(parents=True, exist_ok=True)
+                shutil.copytree(
+                    Path(settings.TIRA_ROOT) / 'data' / 'runs' / job['TIRA_DATASET_ID'] / job['TIRA_VM_ID'] / run[
+                        'run_id'], result_out_dir / run['run_id'])
 
-                if downloaded_images and image not in downloaded_images:
-                    run_cmd(['docker', 'pull', image])
+            image_name = (slugify(image) + '.tar').replace('/', '-')
 
-                dockerhub_image = f'docker.io/webis/{job["TIRA_TASK_ID"]}-submissions:' + (
-                image_name.split('-tira-user-')[1]).replace('.tar', '').strip()
+            if downloaded_images and image not in downloaded_images:
+                run_cmd(['docker', 'pull', image])
 
-                if persist_images and image not in downloaded_images:
-                    run_cmd(['docker', 'image', 'save', image, '-o', image_name])
+            dockerhub_image = f'docker.io/webis/{job["TIRA_TASK_ID"]}-submissions:' + (
+            image_name.split('-tira-user-')[1]).replace('.tar', '').strip()
 
-                if upload_images and image not in downloaded_images:
-                    run_cmd(['docker', 'tag', image, dockerhub_image])
-                    run_cmd(['docker', 'push', dockerhub_image])
+            if persist_images and image not in downloaded_images:
+                run_cmd(['docker', 'image', 'save', image, '-o', image_name])
 
-                downloaded_images.add(image)
-                softwares.add(json.dumps({
-                    "TIRA_IMAGE_TO_EXECUTE": dockerhub_image,
-                    "TIRA_VM_ID": job["TIRA_VM_ID"],
-                    "TIRA_COMMAND_TO_EXECUTE": job["TIRA_COMMAND_TO_EXECUTE"],
-                    "TIRA_TASK_ID": job["TIRA_TASK_ID"],
-                    "TIRA_SOFTWARE_ID": job["TIRA_SOFTWARE_ID"],
-                    "TIRA_SOFTWARE_NAME": software_metadata['display_name']
-                }))
+            if upload_images and image not in downloaded_images:
+                run_cmd(['docker', 'tag', image, dockerhub_image])
+                run_cmd(['docker', 'push', dockerhub_image])
 
-                evaluations.add(json.dumps({
-                    "TIRA_DATASET_ID": job['TIRA_DATASET_ID'].strip(),
-                    "TIRA_EVALUATION_IMAGE_TO_EXECUTE": job["TIRA_EVALUATION_IMAGE_TO_EXECUTE"].strip(),
-                    "TIRA_EVALUATION_COMMAND_TO_EXECUTE": job["TIRA_EVALUATION_COMMAND_TO_EXECUTE"].strip()
-                }))
+            downloaded_images.add(image)
+            softwares.add(json.dumps({
+                "TIRA_IMAGE_TO_EXECUTE": dockerhub_image,
+                "TIRA_VM_ID": job["TIRA_VM_ID"],
+                "TIRA_COMMAND_TO_EXECUTE": job["TIRA_COMMAND_TO_EXECUTE"],
+                "TIRA_TASK_ID": job["TIRA_TASK_ID"],
+                "TIRA_SOFTWARE_ID": job["TIRA_SOFTWARE_ID"],
+                "TIRA_SOFTWARE_NAME": software_metadata['display_name']
+            }))
 
-            (Path(tmp_dir) / '.tira').mkdir(parents=True, exist_ok=True)
-            open((Path(tmp_dir) / '.tira' / 'submitted-software.jsonl').absolute(), 'w').write('\n'.join(softwares))
-            open((Path(tmp_dir) / '.tira' / 'evaluators.jsonl').absolute(), 'w').write('\n'.join(evaluations))
-            open((Path(tmp_dir) / 'tira.py').absolute(), 'w').write(
-                render_to_string('tira/tira_git_cmd.py', context={}))
-            open((Path(tmp_dir) / 'requirements.txt').absolute(), 'w').write('docker==5.0.3\npandas\njupyterlab')
-            open((Path(tmp_dir) / 'Makefile').absolute(), 'w').write(
-                render_to_string('tira/tira_git_makefile', context={}))
-            open((Path(tmp_dir) / 'Tutorial.ipynb').absolute(), 'w').write(
-                render_to_string('tira/tira_git_tutorial.ipynb', context={}))
-            # open((Path(tmp_dir) / 'README.md').absolute(), 'a+').write(render_to_string('tira/tira_git_cmd.py', context={}))
+            evaluations.add(json.dumps({
+               "TIRA_DATASET_ID": job['TIRA_DATASET_ID'].strip(),
+               "TIRA_EVALUATION_IMAGE_TO_EXECUTE": job["TIRA_EVALUATION_IMAGE_TO_EXECUTE"].strip(),
+               "TIRA_EVALUATION_COMMAND_TO_EXECUTE": job["TIRA_EVALUATION_COMMAND_TO_EXECUTE"].strip()
+            }))
 
-            if persist_datasets:
-                logger.info(f'Archive datasets')
-                for dataset_name, dataset_definition in tqdm(datasets.items(), 'Archive Datasets'):
-                    if 'is_confidential' in dataset_definition and not dataset_definition['is_confidential']:
-                        for i in ['training-datasets', 'training-datasets-truth']:
-                            shutil.copytree(
-                                Path(settings.TIRA_ROOT) / 'data' / 'datasets' / i / job['TIRA_TASK_ID'] / dataset_name,
-                                Path(tmp_dir) / dataset_name / i)
+        (Path(working_directory) / '.tira').mkdir(parents=True, exist_ok=True)
+        open((Path(working_directory) / '.tira' / 'submitted-software.jsonl').absolute(), 'w').write('\n'.join(softwares))
+        open((Path(working_directory) / '.tira' / 'evaluators.jsonl').absolute(), 'w').write('\n'.join(evaluations))
+        open((Path(working_directory) / 'tira.py').absolute(), 'w').write(
+            render_to_string('tira/tira_git_cmd.py', context={}))
+        open((Path(working_directory) / 'requirements.txt').absolute(), 'w').write('docker==5.0.3\npandas\njupyterlab')
+        open((Path(working_directory) / 'Makefile').absolute(), 'w').write(
+            render_to_string('tira/tira_git_makefile', context={}))
+        open((Path(working_directory) / 'Tutorial.ipynb').absolute(), 'w').write(
+            render_to_string('tira/tira_git_tutorial.ipynb', context={}))
+        # open((Path(working_directory) / 'README.md').absolute(), 'a+').write(render_to_string('tira/tira_git_cmd.py', context={}))
 
-            logger.info(f'Archive repository into {repo_name}.zip')
-            shutil.make_archive(repo_name, 'zip', tmp_dir)
-            logger.info(f'The repository is archived into {repo_name}.zip')
+        if persist_datasets:
+            logger.info(f'Archive datasets')
+            for dataset_name, dataset_definition in tqdm(datasets.items(), 'Archive Datasets'):
+                if 'is_confidential' in dataset_definition and not dataset_definition['is_confidential']:
+                    for i in ['training-datasets', 'training-datasets-truth']:
+                        shutil.copytree(
+                            Path(settings.TIRA_ROOT) / 'data' / 'datasets' / i / job['TIRA_TASK_ID'] / dataset_name,
+                            Path(working_directory) / dataset_name / i)
+
+        logger.info(f'Archive repository into {repo_name}.zip')
+        #shutil.make_archive(repo_name, 'zip', working_directory)
+        logger.info(f'The repository is archived into {working_directory}')
 
 
 class GitLabRunner(GitRunner):

@@ -61,6 +61,7 @@ class Command(BaseCommand):
         if 'archive_repository' in options and options['archive_repository']:
             git_runner.archive_repository(
                 repo_name=options['archive_repository'],
+                working_directory='./' + options['archive_repository'],
                 download_images=options['archive_repository_download_images'].lower() == 'true',
                 persist_images=options['archive_repository_persist_images'].lower() == 'true',
                 upload_images=options['archive_repository_upload_images'].lower() == 'true',
