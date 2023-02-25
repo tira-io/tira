@@ -93,3 +93,20 @@ def auto_reviewer(review_path, run_id):
         review.blinded = False
 
     return review
+
+def run_cmd(cmd, ignore_failure=False):
+    import subprocess
+    exit_code = subprocess.call(cmd)
+
+    if not ignore_failure and exit_code != 0:
+        raise ValueError(f'Command {cmd} did exit with return code {exit_code}.')
+
+def docker_image_details(image):
+    import json
+    import subprocess
+    ret = subprocess.check_output(['docker', 'image', 'inspect', image])
+    ret = json.loads(ret)
+    if len(ret) != 1:
+        raise ValueError(f'Could not handle {ret}')
+    ret = ret[0]
+    return {'image_id': ret['Id'].split(':')[1], 'size': ret['Size'], 'virtual_size': ret['VirtualSize']}

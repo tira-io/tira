@@ -43,5 +43,6 @@ class PyTerrierIntegration():
         return pt.Transformer.from_df(pd.concat(df_ret))
 
     def reranker(self, approach):
-        pass
+        from tira.pyterrier_util import TiraLocalExecutionRerankingTransformer
+        return TiraLocalExecutionRerankingTransformer(approach, self.tira_client)
 
