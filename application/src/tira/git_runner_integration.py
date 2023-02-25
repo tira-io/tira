@@ -436,7 +436,7 @@ class GitRunner:
     def archive_software(self, working_directory, software_definition, download_images, persist_images, upload_images):
         from tira.util import run_cmd, docker_image_details
         image = software_definition['TIRA_EVALUATION_IMAGE_TO_EXECUTE'] if 'TIRA_EVALUATION_IMAGE_TO_EXECUTE' in software_definition else software_definition['TIRA_IMAGE_TO_EXECUTE']
-        dockerhub_image = software_definition['TIRA_IMAGE_TO_EXECUTE'] if 'TIRA_IMAGE_TO_EXECUTE' in software_definition else None
+        dockerhub_image = software_definition['TIRA_IMAGE_TO_EXECUTE_IN_DOCKERHUB'] if 'TIRA_IMAGE_TO_EXECUTE_IN_DOCKERHUB' in software_definition else None
 
 
         if download_images:
