@@ -474,7 +474,7 @@ class GitRunner:
             evaluators += [self.archive_software(working_directory, e, download_images, persist_images, upload_images)]     
 
         open((Path(working_directory) / '.tira' / 'submitted-software.jsonl').absolute(), 'w').write('\n'.join(software))
-        open((Path(working_directory) / '.tira' / 'evaluators.jsonl').absolute(), 'w').write('\n'.join(evaluations))
+        open((Path(working_directory) / '.tira' / 'evaluators.jsonl').absolute(), 'w').write('\n'.join(evaluators))
 
     def archive_repository(self, repo_name, working_directory, copy_runs=True, download_images=True, persist_images=True, upload_images=True, persist_datasets=True):
         from tira.tira_model import get_docker_software, get_docker_softwares_with_runs, get_dataset
