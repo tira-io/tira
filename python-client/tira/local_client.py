@@ -103,12 +103,18 @@ class Client():
 
         return pd.DataFrame(ret)
 
-    def docker_software(self, approach):
-        for _, i in self.all_softwares().iterrows():
-            if i['approach'] == approach:
-                return {'tira_image_name': i['image'], 'command': i['command']}
+    def docker_software(self, approach, software_id=None):
+        ret = []
 
-        raise ValueError(f'Could not find software "{approach}".')
+        for _, i in self.all_softwares().iterrows():
+            i_id = str(int(i['TIRA_SOFTWARE_ID'].split('docker-software-')[1]))
+            if (approach and i['approach'] == approach) or (software_id is not None and str(int(software_id)) == i_id):
+                ret += [{'tira_image_name': i['image'], 'command': i['command'], 'id': i_id, 'ids_of_previous_stages': i['TIRA_IDS_OF_PREVIOUS_STAGES']}]
+
+        if len(ret) == 1:
+            return ret[0]
+
+        raise ValueError(f'Could not find a unique software with approach="{approach}" or software_id="{software_id}". Found {ret}')
 
     def submissions(self, task, dataset):
         response = self.json_response(f'/api/submissions/{task}/{dataset}')['context']
