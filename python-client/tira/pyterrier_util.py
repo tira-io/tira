@@ -89,36 +89,20 @@ class TiraLocalExecutionRerankingTransformer(Transformer):
     A Transformer that re-execues software submitted in TIRA.
     """
 
-    def __init__(self, approach, tira_client, verbose=False, **kwargs):
+    def __init__(self, approach, tira_client, verbose=False, irds_id=None, **kwargs):
         self.task, self.team, self.software = approach.split('/')
         self.approach = approach
         self.tira_client = tira_client
         self.verbose = verbose
+        self.irds_id = irds_id
 
     def transform(self, topics):
         assert "qid" in topics.columns
         
         tmp_directory = tempfile.TemporaryDirectory('-pt-tira-local-execution-reranking-transformer').name
-        input_dir = tmp_directory + '/input'
+        input_dir = self.tira_client.create_rerank_file(run_df=topics, irds_dataset_id=self.irds_id)
         output_dir = tmp_directory + '/output'
-        os.makedirs(input_dir)
         os.makedirs(output_dir)
-            
-        with gzip.open(tmp_directory + '/input/rerank.jsonl.gz', 'wt') as f:
-            for _, i in topics.iterrows():
-                i = i.to_dict()
-
-                for k in ['original_query', 'original_document']:
-                    if k not in i:
-                        i[k] = {}
-
-                if 'text' not in i and 'body' in i:
-                    i['text'] = i['body']
-
-                if 'text' not in i:
-                    raise ValueError(f'I expect a field "text", but only found fields {i.keys()}.')
-
-                f.write(json.dumps(i) + '\n')
 
         self.tira_client.local_execution.run(identifier=self.approach,
             input_dir=input_dir, output_dir=output_dir,
