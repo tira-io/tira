@@ -5,6 +5,37 @@ import tempfile
 import gzip
 import os
 
+class TiraFullRankTransformer(Transformer):
+    """
+    A Transformer that re-executes some full-rank approach submitted to a shared task in TIRA.
+    """
+
+    def __init__(self, approach, tira_client, input_dir, **kwargs):
+        self.approach = approach
+        self.tira_client = tira_client
+        self.input_dir == input_dir
+
+    def transform(self, topics):
+        output_dir = tempfile.TemporaryDirectory('-pt-tira-local-execution-full-rank-transformer').name + '/output'
+        os.makedirs(output_dir)
+
+        self.tira_client.local_execution.run(identifier=self.approach,
+            input_dir=self.input_dir, output_dir=output_dir,
+            evaluate=False, verbose=self.verbose, dry_run=False
+        )
+
+        df = pd.read_csv(output_dir + '/run.txt', sep='\\s+', names=["qid", "q0", "docno", "rank", "score", "system"])
+        df['qid'] = df['qid'].astype(str)
+        df['docno'] = df['docno'].astype(str)
+        common_columns = np.intersect1d(topics.columns, df.columns)
+
+        # we drop columns in topics that exist in the df
+        keeping = topics.columns
+        drop_columns = [i for i in common_columns if i not in {"qid", "docno"}]
+        if len(drop_columns) > 0:
+            keeping = topics.columns[~ topics.columns.isin(drop_columns)]
+
+        return topics[keeping].merge(df, how='left', left_on=["qid", "docno"], right_on=["qid", "docno"])
 
 class TiraRerankingTransformer(Transformer):
     """

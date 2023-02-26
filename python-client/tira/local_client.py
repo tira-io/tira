@@ -17,6 +17,7 @@ class Client():
     def __init__(self, directory='.'):
         self.pt = PyTerrierIntegration(self)
         self.directory = directory + '/'
+        self.tira_cache_dir = os.environ.get('TIRA_CACHE_DIR', os.path.expanduser('~') + '/.tira')
         self.local_execution = LocalExecutionIntegration(self)
 
     def all_datasets(self):
