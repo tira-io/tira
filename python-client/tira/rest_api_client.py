@@ -13,7 +13,7 @@ from tira.local_execution_integration import LocalExecutionIntegration
 
 class Client():
     def __init__(self, api_key=None, failsave_retries=5, failsave_max_delay=15):
-        self.__tira_cache_dir = os.environ.get('TIRA_CACHE_DIR', os.path.expanduser('~') + '/.tira')
+        self.tira_cache_dir = os.environ.get('TIRA_CACHE_DIR', os.path.expanduser('~') + '/.tira')
         self.json_cache = {}
 
         if api_key is None:
@@ -29,7 +29,7 @@ class Client():
         self.failsave_max_delay = failsave_max_delay
 
     def load_settings(self):
-        return json.load(open(self.__tira_cache_dir + '/.tira-settings.json', 'r'))
+        return json.load(open(self.tira_cache_dir + '/.tira-settings.json', 'r'))
 
     def fail_if_api_key_is_invalid(self):
         role = self.json_response('/api/role')
@@ -135,7 +135,7 @@ class Client():
             return ret
 
     def download_zip_to_cache_directory(self, task, dataset, team, run_id):
-        target_dir = f'{self.__tira_cache_dir}/extracted_runs/{task}/{dataset}/{team}'
+        target_dir = f'{self.tira_cache_dir}/extracted_runs/{task}/{dataset}/{team}'
 
         if os.path.isdir(target_dir + f'/{run_id}'):
             return target_dir + f'/{run_id}/output'

@@ -17,6 +17,7 @@ class Client():
     def __init__(self, directory='.'):
         self.pt = PyTerrierIntegration(self)
         self.directory = directory + '/'
+        self.tira_cache_dir = os.environ.get('TIRA_CACHE_DIR', os.path.expanduser('~') + '/.tira')
         self.local_execution = LocalExecutionIntegration(self)
 
     def all_datasets(self):
@@ -41,7 +42,7 @@ class Client():
     def all_softwares(self):
         ret = []
         for software_id, software_definition in self.___load_softwares().items():
-            ret += [{'approach': software_id, 'team': software_definition['TIRA_VM_ID'], 'image': software_definition['TIRA_IMAGE_TO_EXECUTE_IN_DOCKERHUB'], 'command': software_definition['TIRA_COMMAND_TO_EXECUTE']}]
+            ret += [{'approach': software_id, 'id': str(int(software_definition['TIRA_SOFTWARE_ID'].split('docker-software-')[1])), 'team': software_definition['TIRA_VM_ID'], 'image': software_definition['TIRA_IMAGE_TO_EXECUTE_IN_DOCKERHUB'], 'command': software_definition['TIRA_COMMAND_TO_EXECUTE'], 'ids_of_previous_stages': [str(int(i)) for i in software_definition['TIRA_IDS_OF_PREVIOUS_STAGES']]}]
 
         return pd.DataFrame(ret)
 
@@ -103,12 +104,17 @@ class Client():
 
         return pd.DataFrame(ret)
 
-    def docker_software(self, approach):
-        for _, i in self.all_softwares().iterrows():
-            if i['approach'] == approach:
-                return {'tira_image_name': i['image'], 'command': i['command']}
+    def docker_software(self, approach, software_id=None):
+        ret = []
 
-        raise ValueError(f'Could not find software "{approach}".')
+        for _, i in self.all_softwares().iterrows():
+            if (approach and i['approach'] == approach) or (software_id is not None and str(int(software_id)) == i['id']):
+                ret += [{'tira_image_name': i['image'], 'command': i['command'], 'id': i['id'], 'ids_of_previous_stages': i['ids_of_previous_stages']}]
+
+        if len(ret) == 1:
+            return ret[0]
+
+        raise ValueError(f'Could not find a unique software with approach="{approach}" or software_id="{software_id}". Found {ret}')
 
     def submissions(self, task, dataset):
         response = self.json_response(f'/api/submissions/{task}/{dataset}')['context']

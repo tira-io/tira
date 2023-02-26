@@ -12,6 +12,14 @@ def __num(s):
             return s
 
 
+def run_cmd(cmd, ignore_failure=False):
+    import subprocess
+    exit_code = subprocess.call(cmd)
+
+    if not ignore_failure and exit_code != 0:
+        raise ValueError(f'Command {cmd} did exit with return code {exit_code}.')
+
+
 def load_output_of_directory(directory, evaluation=False, verbose=False):
     files = glob(str(directory) + '/*' )
 

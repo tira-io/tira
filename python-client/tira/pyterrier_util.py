@@ -6,6 +6,48 @@ import gzip
 import os
 
 
+def merge_runs(topics, run_file):
+    import numpy as np
+    df = pd.read_csv(run_file, sep='\\s+', names=["qid", "q0", "docno", "rank", "score", "system"])
+    df['qid'] = df['qid'].astype(str)
+    df['docno'] = df['docno'].astype(str)
+    topics['qid'] = topics['qid'].astype(str)
+
+    common_columns = np.intersect1d(topics.columns, df.columns)
+    join_on = ["qid", "docno"] if 'qid' in common_columns and 'docno' in common_columns else ['qid']
+
+    # we drop columns in topics that exist in the df
+    keeping = topics.columns
+    drop_columns = [i for i in common_columns if i not in {"qid", "docno"}]
+    if len(drop_columns) > 0:
+        keeping = topics.columns[~ topics.columns.isin(drop_columns)]
+
+    return topics[keeping].merge(df, how='left', left_on=join_on, right_on=join_on)
+
+
+class TiraFullRankTransformer(Transformer):
+    """
+    A Transformer that re-executes some full-rank approach submitted to a shared task in TIRA.
+    """
+
+    def __init__(self, approach, tira_client, input_dir, verbose=False, **kwargs):
+        self.approach = approach
+        self.tira_client = tira_client
+        self.input_dir = input_dir
+        self.verbose = verbose
+
+    def transform(self, topics):
+        output_dir = tempfile.TemporaryDirectory('-pt-tira-local-execution-full-rank-transformer').name + '/output'
+        os.makedirs(output_dir)
+
+        self.tira_client.local_execution.run(identifier=self.approach,
+            input_dir=self.input_dir, output_dir=output_dir,
+            evaluate=False, verbose=self.verbose, dry_run=False
+        )
+
+        return merge_runs(topics, output_dir + '/run.txt')
+
+
 class TiraRerankingTransformer(Transformer):
     """
     A Transformer that loads runs from TIRA that reranked some existing run.
@@ -41,56 +83,31 @@ class TiraRerankingTransformer(Transformer):
 
         return topics[keeping].merge(df, how='left', left_on=["qid", "docno"], right_on=["qid", "docno"])
 
+
 class TiraLocalExecutionRerankingTransformer(Transformer):
     """
     A Transformer that re-execues software submitted in TIRA.
     """
 
-    def __init__(self, approach, tira_client, verbose=False, **kwargs):
+    def __init__(self, approach, tira_client, verbose=False, irds_id=None, **kwargs):
         self.task, self.team, self.software = approach.split('/')
         self.approach = approach
         self.tira_client = tira_client
         self.verbose = verbose
+        self.irds_id = irds_id
 
     def transform(self, topics):
-        import numpy as np
         assert "qid" in topics.columns
         
-        with tempfile.TemporaryDirectory() as tmp_directory:
-            os.makedirs(tmp_directory + '/input')
-            os.makedirs(tmp_directory + '/output')
-            
-            with gzip.open(tmp_directory + '/input/rerank.jsonl.gz', 'wt') as f:
-                for _, i in topics.iterrows():
-                    i = i.to_dict()
-                    
-                    for k in ['original_query', 'original_document']:
-                        if k not in i:
-                            i[k] = {}
-                    
-                    if 'text' not in i and 'body' in i:
-                        i['text'] = i['body']
-                    
-                    if 'text' not in i:
-                        raise ValueError(f'I expect a field "text", but only found fields {i.keys()}.')
-                    
-                    f.write(json.dumps(i) + '\n')
+        tmp_directory = tempfile.TemporaryDirectory('-pt-tira-local-execution-reranking-transformer').name
+        input_dir = self.tira_client.create_rerank_file(run_df=topics, irds_dataset_id=self.irds_id)
+        output_dir = tmp_directory + '/output'
+        os.makedirs(output_dir)
 
-            self.tira_client.local_execution.run(identifier=self.approach,
-                input_dir=tmp_directory + '/input/', output_dir=tmp_directory + '/output/',
-                evaluate=False, verbose=self.verbose, dry_run=False
-            )
-        
-            df = pd.read_csv(tmp_directory + '/output/run.txt', sep='\\s+', names=["qid", "q0", "docno", "rank", "score", "system"])
-            df['qid'] = df['qid'].astype(str)
-            df['docno'] = df['docno'].astype(str)
-            common_columns = np.intersect1d(topics.columns, df.columns)
+        self.tira_client.local_execution.run(identifier=self.approach,
+            input_dir=input_dir, output_dir=output_dir,
+            evaluate=False, verbose=self.verbose, dry_run=False
+        )
 
-            # we drop columns in topics that exist in the df
-            keeping = topics.columns
-            drop_columns = [i for i in common_columns if i not in {"qid", "docno"}]
-            if len(drop_columns) > 0:
-                keeping = topics.columns[~ topics.columns.isin(drop_columns)]
-
-            return topics[keeping].merge(df, how='left', left_on=["qid", "docno"], right_on=["qid", "docno"])
+        return merge_runs(topics, tmp_directory + '/output/run.txt')
 
