@@ -13,7 +13,7 @@ class TiraFullRankTransformer(Transformer):
     def __init__(self, approach, tira_client, input_dir, **kwargs):
         self.approach = approach
         self.tira_client = tira_client
-        self.input_dir == input_dir
+        self.input_dir = input_dir
 
     def transform(self, topics):
         output_dir = tempfile.TemporaryDirectory('-pt-tira-local-execution-full-rank-transformer').name + '/output'
