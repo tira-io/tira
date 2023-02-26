@@ -3,7 +3,8 @@ class PyTerrierIntegration():
         self.tira_client = tira_client
 
     def retriever(self, approach, dataset=None):
-        input_dir = ensure_dataset_is_cached(dataset, dataset)
+        from tira.pyterrier_util import TiraFullRankTransformer
+        input_dir = self.ensure_dataset_is_cached(dataset, dataset)
         return TiraFullRankTransformer(approach, self.tira_client, input_dir)
 
     def ensure_dataset_is_cached(self, irds_dataset_id, dataset):
