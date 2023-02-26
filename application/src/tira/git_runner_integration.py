@@ -547,7 +547,8 @@ class GitRunner:
                 "TIRA_COMMAND_TO_EXECUTE": job["TIRA_COMMAND_TO_EXECUTE"],
                 "TIRA_TASK_ID": job["TIRA_TASK_ID"],
                 "TIRA_SOFTWARE_ID": job["TIRA_SOFTWARE_ID"],
-                "TIRA_SOFTWARE_NAME": software_metadata['display_name']
+                "TIRA_SOFTWARE_NAME": software_metadata['display_name'],
+                "TIRA_IDS_OF_PREVIOUS_STAGES": [] if 'input_docker_software_id' not in software_metadata or not software_metadata['input_docker_software_id'] else [software_metadata['input_docker_software_id']]
             }))
 
             evaluations.add(json.dumps({
