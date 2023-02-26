@@ -50,17 +50,15 @@ class PyTerrierIntegration():
         if run_df is None and run_file is None:
             raise ValueError('Please pass either run_df or run_file')
 
-        if not irds_dataset_id:
-            raise ValueError(f'Please pass a irds_dataset_id. Got {irds_dataset_id}.')
-
         if run_file is not None:
             return run_file
-
 
         run_file = tempfile.TemporaryDirectory('-rerank-run').name
         Path(run_file).mkdir(parents=True, exist_ok=True)
 
         if 'text' not in run_df.columns and 'body' not in run_df.columns:
+            if not irds_dataset_id:
+                raise ValueError(f'Please pass a irds_dataset_id. Got {irds_dataset_id}.')
             persist_and_normalize_run(run_df, 'system-is-ignored', run_file)
 
             cache_dir = self.tira_client.tira_cache_dir + '/pyterrier/' + irds_dataset_id
@@ -131,7 +129,7 @@ class PyTerrierIntegration():
 
         return pt.Transformer.from_df(pd.concat(df_ret))
 
-    def reranker(self, approach):
+    def reranker(self, approach, irds_id=None):
         from tira.pyterrier_util import TiraLocalExecutionRerankingTransformer
-        return TiraLocalExecutionRerankingTransformer(approach, self.tira_client)
+        return TiraLocalExecutionRerankingTransformer(approach, self.tira_client, irds_id=irds_id)
 
