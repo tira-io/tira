@@ -1,19 +1,20 @@
 import os
 import docker
 from copy import deepcopy
+import tempfile
 
 
 class LocalExecutionIntegration():
     def __init__(self, tira_client):
         self.tira_client = tira_client
 
-    def __normalize_command(self, cmd):
-        to_normalize = {'inputRun': '/tira-data/output',
+    def __normalize_command(self, cmd, evaluator):
+        to_normalize = {'inputRun': '/tira-data/input-run',
                         'outputDir': '/tira-data/output',
                         'inputDataset': '/tira-data/input'
                        }
 
-        if 'inputRun' in cmd:
+        if 'inputRun' in cmd and evaluator:
             to_normalize['outputDir'] = '/tira-data/eval_output'
             to_normalize['inputDataset'] = '/tira-data/input_truth'
     
@@ -22,9 +23,9 @@ class LocalExecutionIntegration():
     
         return cmd
 
-    def run(self, identifier=None, image=None, command=None, input_dir=None, output_dir=None, evaluate=False, verbose=False, dry_run=False, docker_software_id_to_output=None):
+    def run(self, identifier=None, image=None, command=None, input_dir=None, output_dir=None, evaluate=False, verbose=False, dry_run=False, docker_software_id_to_output=None, software_id=None):
         if image is None or command is None:
-            ds = self.tira_client.docker_software(identifier)
+            ds = self.tira_client.docker_software(approach=identifier, software_id=software_id)
             image, command, s_id, previous_stages = ds['tira_image_name'], ds['command'], ds['id'], ds['ids_of_previous_stages']
         if not dry_run:
             try:
@@ -35,7 +36,7 @@ class LocalExecutionIntegration():
             except Exception as e:
                 raise ValueError('It seems like docker is not installed?', e)
 
-        command = self.__normalize_command(command)
+        command = self.__normalize_command(command, False)
     
         if not input_dir or not output_dir:
             raise ValueError('please pass input_dir and output_dir')
@@ -48,9 +49,7 @@ class LocalExecutionIntegration():
             if previous_stage in docker_software_id_to_output.keys():
                 continue
 
-            tmp_ds = self.tira_client.docker_software(approach=None, software_id=previous_stage)
-
-            tmp_prev_stages = self.run(identifier=None, image=tmp_ds['tira_image_name'], command=tmp_ds['command'],
+            tmp_prev_stages = self.run(software_id=previous_stage, identifier=None, image=None, command=None,
                                   input_dir=input_dir, evaluate=False, verbose=verbose, dry_run=dry_run,
                                   output_dir=tempfile.TemporaryDirectory('-staged-execution-' + previous_stage).name + '/output', 
                                   docker_software_id_to_output=docker_software_id_to_output
@@ -63,17 +62,22 @@ class LocalExecutionIntegration():
     
         if dry_run:
             return
-    
-        client.containers.run(image, entrypoint='sh', command=f'-c "{command}"', volumes={
+
+        volumes = {
             str(input_dir): {'bind': '/tira-data/input', 'mode': 'ro'},
-            str(output_dir): {'bind': '/tira-data/output', 'mode': 'rw'}
-        })
+            str(output_dir): {'bind': '/tira-data/output', 'mode': 'rw'},
+        }
+        
+        for k, v in docker_software_id_to_output.items():
+            volumes[str(os.path.abspath(v))] = {'bind': '/tira-data/input-run', 'mode': 'ro'}
+    
+        client.containers.run(image, entrypoint='sh', command=f'-c "{command}"', volumes=volumes)
 
         if evaluate:
             if type(evaluate) is not str:
                 evaluate = data
             evaluate, image, command = __extract_image_and_command(evaluate, evaluator=True)
-            command = __normalize_command(command)
+            command = __normalize_command(command, True)
             if verbose:
                 print(f'Evaluate software with: docker run --rm -ti -v {input_dir}:/tira-data/input -v {output_dir}/:/tira-data/output --entrypoint sh {image} -c \'{command}\'')
         

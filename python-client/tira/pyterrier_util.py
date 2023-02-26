@@ -5,6 +5,26 @@ import tempfile
 import gzip
 import os
 
+
+def merge_runs(topics, run_file):
+    import numpy as np
+    df = pd.read_csv(run_file, sep='\\s+', names=["qid", "q0", "docno", "rank", "score", "system"])
+    df['qid'] = df['qid'].astype(str)
+    df['docno'] = df['docno'].astype(str)
+    topics['qid'] = topics['qid'].astype(str)
+
+    common_columns = np.intersect1d(topics.columns, df.columns)
+    join_on = ["qid", "docno"] if 'qid' in common_columns and 'docno' in common_columns else ['qid']
+
+    # we drop columns in topics that exist in the df
+    keeping = topics.columns
+    drop_columns = [i for i in common_columns if i not in {"qid", "docno"}]
+    if len(drop_columns) > 0:
+        keeping = topics.columns[~ topics.columns.isin(drop_columns)]
+
+    return topics[keeping].merge(df, how='left', left_on=join_on, right_on=join_on)
+
+
 class TiraFullRankTransformer(Transformer):
     """
     A Transformer that re-executes some full-rank approach submitted to a shared task in TIRA.
@@ -25,18 +45,8 @@ class TiraFullRankTransformer(Transformer):
             evaluate=False, verbose=self.verbose, dry_run=False
         )
 
-        df = pd.read_csv(output_dir + '/run.txt', sep='\\s+', names=["qid", "q0", "docno", "rank", "score", "system"])
-        df['qid'] = df['qid'].astype(str)
-        df['docno'] = df['docno'].astype(str)
-        common_columns = np.intersect1d(topics.columns, df.columns)
+        return merge_runs(topics, output_dir + '/run.txt')
 
-        # we drop columns in topics that exist in the df
-        keeping = topics.columns
-        drop_columns = [i for i in common_columns if i not in {"qid", "docno"}]
-        if len(drop_columns) > 0:
-            keeping = topics.columns[~ topics.columns.isin(drop_columns)]
-
-        return topics[keeping].merge(df, how='left', left_on=["qid", "docno"], right_on=["qid", "docno"])
 
 class TiraRerankingTransformer(Transformer):
     """
@@ -86,7 +96,6 @@ class TiraLocalExecutionRerankingTransformer(Transformer):
         self.verbose = verbose
 
     def transform(self, topics):
-        import numpy as np
         assert "qid" in topics.columns
         
         tmp_directory = tempfile.TemporaryDirectory('-pt-tira-local-execution-reranking-transformer').name
@@ -116,16 +125,5 @@ class TiraLocalExecutionRerankingTransformer(Transformer):
             evaluate=False, verbose=self.verbose, dry_run=False
         )
 
-        df = pd.read_csv(tmp_directory + '/output/run.txt', sep='\\s+', names=["qid", "q0", "docno", "rank", "score", "system"])
-        df['qid'] = df['qid'].astype(str)
-        df['docno'] = df['docno'].astype(str)
-        common_columns = np.intersect1d(topics.columns, df.columns)
-
-        # we drop columns in topics that exist in the df
-        keeping = topics.columns
-        drop_columns = [i for i in common_columns if i not in {"qid", "docno"}]
-        if len(drop_columns) > 0:
-            keeping = topics.columns[~ topics.columns.isin(drop_columns)]
-
-        return topics[keeping].merge(df, how='left', left_on=["qid", "docno"], right_on=["qid", "docno"])
+        return merge_runs(topics, tmp_directory + '/output/run.txt')
 
