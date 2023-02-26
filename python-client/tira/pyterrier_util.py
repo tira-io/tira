@@ -10,10 +10,11 @@ class TiraFullRankTransformer(Transformer):
     A Transformer that re-executes some full-rank approach submitted to a shared task in TIRA.
     """
 
-    def __init__(self, approach, tira_client, input_dir, **kwargs):
+    def __init__(self, approach, tira_client, input_dir, verbose=False, **kwargs):
         self.approach = approach
         self.tira_client = tira_client
         self.input_dir = input_dir
+        self.verbose = verbose
 
     def transform(self, topics):
         output_dir = tempfile.TemporaryDirectory('-pt-tira-local-execution-full-rank-transformer').name + '/output'
