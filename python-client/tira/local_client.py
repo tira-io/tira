@@ -41,7 +41,7 @@ class Client():
     def all_softwares(self):
         ret = []
         for software_id, software_definition in self.___load_softwares().items():
-            ret += [{'approach': software_id, 'team': software_definition['TIRA_VM_ID'], 'image': software_definition['TIRA_IMAGE_TO_EXECUTE_IN_DOCKERHUB'], 'command': software_definition['TIRA_COMMAND_TO_EXECUTE']}]
+            ret += [{'approach': software_id, 'id': str(int(software_definition['TIRA_SOFTWARE_ID'].split('docker-software-')[1])), 'team': software_definition['TIRA_VM_ID'], 'image': software_definition['TIRA_IMAGE_TO_EXECUTE_IN_DOCKERHUB'], 'command': software_definition['TIRA_COMMAND_TO_EXECUTE'], 'ids_of_previous_stages': [str(int(i)) for i in software_definition['TIRA_IDS_OF_PREVIOUS_STAGES']]}]
 
         return pd.DataFrame(ret)
 
@@ -107,9 +107,8 @@ class Client():
         ret = []
 
         for _, i in self.all_softwares().iterrows():
-            i_id = str(int(i['TIRA_SOFTWARE_ID'].split('docker-software-')[1]))
-            if (approach and i['approach'] == approach) or (software_id is not None and str(int(software_id)) == i_id):
-                ret += [{'tira_image_name': i['image'], 'command': i['command'], 'id': i_id, 'ids_of_previous_stages': i['TIRA_IDS_OF_PREVIOUS_STAGES']}]
+            if (approach and i['approach'] == approach) or (software_id is not None and str(int(software_id)) == i['id']):
+                ret += [{'tira_image_name': i['image'], 'command': i['command'], 'id': i['id'], 'ids_of_previous_stages': i['ids_of_previous_stages']}]
 
         if len(ret) == 1:
             return ret[0]

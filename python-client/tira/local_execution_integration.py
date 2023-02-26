@@ -52,7 +52,7 @@ class LocalExecutionIntegration():
 
             tmp_prev_stages = run(self, identifier=None, image=tmp_ds['tira_image_name'], command=tmp_ds['command'],
                                   input_dir=input_dir, evaluate=False, verbose=verbose, dry_run=dry_run,
-                                  output_dir=tempfile.TemporaryDirectory('-staged-execution-' + previous_stage), 
+                                  output_dir=tempfile.TemporaryDirectory('-staged-execution-' + previous_stage).name + '/output', 
                                   docker_software_id_to_output=docker_software_id_to_output
                                  )
             for k, v in tmp_prev_stages.items():

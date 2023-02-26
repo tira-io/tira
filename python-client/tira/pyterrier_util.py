@@ -57,7 +57,7 @@ class TiraLocalExecutionRerankingTransformer(Transformer):
         import numpy as np
         assert "qid" in topics.columns
         
-        tmp_directory = tempfile.TemporaryDirectory('-pt-tira-local-execution-reranking-transformer')
+        tmp_directory = tempfile.TemporaryDirectory('-pt-tira-local-execution-reranking-transformer').name
         input_dir = tmp_directory + '/input'
         output_dir = tmp_directory + '/output'
         os.makedirs(input_dir)
