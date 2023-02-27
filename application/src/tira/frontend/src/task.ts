@@ -207,11 +207,16 @@ const app = createApp({
         }).catch(error => {
             this.addNotification('error', error)
         })
-        this.get('/api/role').then(message => {
-            this.role = message.role
-        }).catch(error => {
-            this.addNotification('error', error)
-        })
+        
+        if (this.role !== '') {
+            this.role = 'fetching...'
+            this.get('/api/role').then(message => {
+                this.role = message.role
+            }).catch(error => {
+                this.role = ''
+                this.addNotification('error', error)
+            })
+        }
 
     },
 })
