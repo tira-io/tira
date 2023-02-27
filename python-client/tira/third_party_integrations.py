@@ -19,7 +19,7 @@ def ensure_pyterrier_is_loaded():
 
 def get_preconfigured_chatnoir_client(config_directory, features=['TARGET_URI'], verbose=True, num_results=10, retries=25):
     from chatnoir_pyterrier import ChatNoirRetrieve
-    from chatnoir_api import Index as ChatNoirIndex, html_contents
+    from chatnoir_api import Index as ChatNoirIndex
     from chatnoir_pyterrier.feature import Feature
 
     chatnoir_config = json.load(open(config_directory + '/chatnoir-credentials.json'))
