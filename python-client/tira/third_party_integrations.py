@@ -31,7 +31,7 @@ def get_preconfigured_chatnoir_client(config_directory, features=['TARGET_URI'],
     chatnoir.retries = retries
     chatnoir.index = getattr(ChatNoirIndex, chatnoir_config['index'])
     
-    print(f'ChatNoir Client will retrieve from index {chatnoir_config["index"]}')
+    print(f'ChatNoir Client will retrieve the top-{chatnoir.num_results} from index {chatnoir_config["index"]} with {chatnoir.retries} retries.')
     
     return chatnoir
 
