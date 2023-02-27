@@ -208,8 +208,9 @@ const app = createApp({
             this.addNotification('error', error)
         })
         
-        if (this.role !== '') {
+        if (this.role === '') {
             this.role = 'fetching...'
+            console.log('Fetch API-ROLE')
             this.get('/api/role').then(message => {
                 this.role = message.role
             }).catch(error => {
@@ -217,7 +218,6 @@ const app = createApp({
                 this.addNotification('error', error)
             })
         }
-
     },
 })
 app.component('font-awesome-icon', FontAwesomeIcon)
