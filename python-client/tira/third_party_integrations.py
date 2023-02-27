@@ -24,7 +24,7 @@ def get_preconfigured_chatnoir_client(config_directory, features=['TARGET_URI'],
 
     chatnoir_config = json.load(open(config_directory + '/chatnoir-credentials.json'))
 
-    chatnoir = ChatNoirRetrieve(api_key=chatnoir_config['apikey'])
+    chatnoir = ChatNoirRetrieve(api_key=chatnoir_config['apikey'], staging=chatnoir_config.get('staging', False))
     chatnoir.features = [getattr(Feature, i) for i in features]
     chatnoir.verbose = verbose
     chatnoir.num_results = num_results
