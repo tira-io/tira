@@ -686,7 +686,7 @@ class HybridDatabase(object):
             except ValueError:
                 return fl
 
-        def format_evaluation(r, ks):
+        def format_evaluation(r, ks, run_id_to_software_name):
             """
             @param r: a queryset of modeldb.Run
             @param ks: a list of keys of evaluation parameters
@@ -711,12 +711,15 @@ class HybridDatabase(object):
                     # print(input_run.software)
                     # print(input_run.docker_software)
                     # print(input_run.upload)
+                    software_name = ''
                     if input_run.software:
                         vm_id = run.input_run.software.vm.vm_id
                     elif input_run.docker_software:
                         vm_id = run.input_run.docker_software.vm.vm_id
+                        software_name = run.input_run.docker_software.display_name
                     elif input_run.upload:
                         vm_id = run.input_run.upload.vm.vm_id
+                        software_name = 'Run Upload'
                     else:
                         logger.error(
                             f"The input run {run.run_id} has no vm assigned. Assigning None instead")
@@ -729,11 +732,25 @@ class HybridDatabase(object):
                 rev = modeldb.Review.objects.get(run__run_id=run.run_id)
 
                 yield {"vm_id": vm_id,
-                       "run_id": run.run_id,
+                       "run_id": run.run_id if '-evaluated-run-' not in run.run_id else run.run_id.split('-evaluated-run-')[1],
                        'input_run_id': run.input_run.run_id,
+                       "input_software_name": software_name,
                        'published': rev.published,
                        'blinded': rev.blinded,
                        "measures": list(if_exists(evaluations))}
+
+        run_id_to_software_name = {}
+
+        for run in modeldb.Run.objects.filter(input_dataset=dataset_id).exclude(input_run__isnull=False).all():
+            docker_software = run.docker_software
+            if not docker_software:
+                continue
+
+            docker_software_name = docker_software.display_name
+            if not docker_software_name:
+                continue
+
+            run_id_to_software_name[run.run_id] = docker_software_name
 
         runs = modeldb.Run.objects.filter(input_dataset=dataset_id).exclude(input_run__isnull=True).all()
         evaluations = modeldb.Evaluation.objects.select_related('run', 'run__software__vm').filter(
@@ -743,7 +760,7 @@ class HybridDatabase(object):
         exclude = {review.run.run_id for review in modeldb.Review.objects.select_related('run').filter(
             run__input_dataset__dataset_id=dataset_id, published=False, run__software=None).all()
                    if not include_unpublished}
-        return keys, list(format_evaluation(runs, keys))
+        return keys, list(format_evaluation(runs, keys, run_id_to_software_name))
 
     def get_evaluation(self, run_id):
         try:

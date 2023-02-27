@@ -10,6 +10,10 @@
           <span>Team&nbsp;</span>
           <sort-icon :row_key="'vm_id'" :selected_key="currentSort" :direction="currentSortDir"/>
       </th>
+      <th class="header uk-table-shrink uk-text-nowrap" @click="sort('input_software_name')">
+          <span>Software&nbsp;</span>
+          <sort-icon :row_key="'input_software_name'" :selected_key="currentSort" :direction="currentSortDir"/>
+      </th>
       <th class="header uk-table-shrink uk-text-nowrap" @click="sort('run_id')">
           <span>Run&nbsp;</span>
           <sort-icon :row_key="'run_id'" :selected_key="currentSort" :direction="currentSortDir"/>
@@ -46,6 +50,7 @@
       </td>
 <!--    TODO show group name if not none, else show vm_id-->
       <td class="uk-table-shrink uk-text-nowrap uk-padding-remove-vertical">{{ evaluation.vm_id }}</td>
+      <td class="uk-table-shrink uk-text-nowrap uk-padding-remove-vertical">{{ evaluation.input_software_name }}</td>
       <td class="uk-table-shrink uk-text-nowrap uk-padding-remove-vertical">{{ evaluation.run_id }}</td>
       <td class="uk-padding-remove-vertical uk-table-shrink uk-text-nowrap" v-for="measure in evaluation.measures">{{ measure }}</td>
       <td class="uk-padding-remove-vertical uk-text-truncate"></td>
