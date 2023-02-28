@@ -144,7 +144,7 @@ class Client():
 
         return target_dir + f'/{run_id}/output'
     
-    def add_run_to_leaderboard(self, team, dataset):
+    def add_run_to_leaderboard(self, team, dataset, evaluation_run_id):
         return self.json_response(f'/publish/{team}/{dataset}/{evaluation_run_id}/true')
 
     def download_and_extract_zip(self, url, target_dir):
