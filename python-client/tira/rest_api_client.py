@@ -145,7 +145,11 @@ class Client():
         return target_dir + f'/{run_id}/output'
     
     def add_run_to_leaderboard(self, team, dataset, evaluation_run_id):
-        return self.json_response(f'/publish/{team}/{dataset}/{evaluation_run_id}/true')
+        ret = self.json_response(f'/publish/{team}/{dataset}/{evaluation_run_id}/true')
+        
+        if ('status' not in ret) or ('0' != ret['status']) or ('published' not in ret) or (not ret['published']):
+            raise ValueError(f'Adding the run to the leaderboard failed. Got {ret}')
+        
 
     def download_and_extract_zip(self, url, target_dir):
         for i in range(self.failsave_retries):
