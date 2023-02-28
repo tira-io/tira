@@ -24,6 +24,8 @@ class LocalExecutionIntegration():
         return cmd
 
     def run(self, identifier=None, image=None, command=None, input_dir=None, output_dir=None, evaluate=False, verbose=False, dry_run=False, docker_software_id_to_output=None, software_id=None):
+        previous_stages = []
+        s_id = 'unknown-software-id'
         if image is None or command is None:
             ds = self.tira_client.docker_software(approach=identifier, software_id=software_id)
             image, command, s_id, previous_stages = ds['tira_image_name'], ds['command'], ds['id'], ds['ids_of_previous_stages']
@@ -45,6 +47,7 @@ class LocalExecutionIntegration():
         output_dir = os.path.abspath(output_dir)
     
         docker_software_id_to_output = {} if not docker_software_id_to_output else deepcopy(docker_software_id_to_output)
+
         for previous_stage in previous_stages:
             if previous_stage in docker_software_id_to_output.keys():
                 continue
