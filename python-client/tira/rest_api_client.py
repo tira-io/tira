@@ -143,6 +143,9 @@ class Client():
         self.download_and_extract_zip(f'https://www.tira.io/task/{task}/user/{team}/dataset/{dataset}/download/{run_id}.zip', target_dir)
 
         return target_dir + f'/{run_id}/output'
+    
+    def add_run_to_leaderboard(self, team, dataset):
+        return self.json_response(f'/publish/{team}/{dataset}/{evaluation_run_id}/true')
 
     def download_and_extract_zip(self, url, target_dir):
         for i in range(self.failsave_retries):
