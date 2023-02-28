@@ -377,7 +377,7 @@ export default {
       // Showing an error notification on blinded reviews is confusing for participants, hence the following line is commented out to solve #355
       // this.$emit('add-notification', 'error', error)
     })
-
+    
     this.get('/api/role').then(message => {
       this.role = message.role
     }).catch(error => {

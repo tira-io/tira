@@ -17,8 +17,8 @@
     <form id="docker-form" class="docker_form">
         <input type="hidden" name="csrfmiddlewaretoken" :value="csrf">  <!-- TODO: this might not be needed anymore -->
         <div class="uk-grid uk-grid-small" data-uk-grid>
-            <div v-if="role==='admin'" class="uk-width-4-5">
-                <label class="uk-form-label" for="docker-software-input-job">Input Job (For Multi-Stage Jobs)
+            <div v-if="docker.task_is_an_information_retrieval_task" class="uk-width-4-5">
+                <label class="uk-form-label" for="docker-software-input-job">Previous Stage(s) (For software with multiple components)
                        
                 <select id="docker-software-input-job" :disabled="!docker.docker_softwares" class="uk-select upload-select" v-model="addContainerInputJob" >
                     <option v-if="docker.docker_softwares" value="None">No Input Job (For Single-Stage Jobs)</option>
@@ -26,6 +26,15 @@
                     <option v-for="software in docker.docker_softwares" :value="software.docker_software_id">{{ software.display_name }}</option>
                 </select>
                 </label>
+            </div>
+            <div class="uk-grid-margin">
+                <label class="uk-form-label" for="add-software-component-button">&nbsp;</label>
+                <div><a class="uk-button" id="add-software-component-button"
+                    @click="addSoftwareComponent()"
+                    :disabled="!checkContainerValid(false)"
+                    :class="{ 'uk-button-primary': checkContainerValid(false), 'uk-button-default': !checkContainerValid(false)}"
+                    >add stage</a>
+               </div>
             </div>
             <div class="uk-width-4-5">
                 <label class="uk-form-label" for="docker-command-input">Command

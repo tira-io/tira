@@ -86,15 +86,15 @@
                 evaluate</a>
         </td>
         <td class="uk-table-shrink uk-text-nowrap uk-padding-remove uk-margin-remove uk-preserve-width">
-            <evaluation-button v-if="run.evaluation_run_id" :task_id="task_id" :user_id="user_id" :dataset_id="run.dataset"
-                           :run_id="run.evaluation_run_id" :csrf="csrf"
+            <review-button v-if="run.evaluation_run_id" :task_id="task_id" :user_id="user_id" :dataset_id="run.dataset"
+                           :run_id="run.evaluation_run_id" :csrf="csrf" button_display_name="EVALUATION"
                 @add-notification="(type, message) => this.$emit('addNotification', type, message)"
                 @update-review="newReview => updateReview(newReview)"
             />
         </td>
         <td class="uk-table-shrink uk-text-nowrap uk-padding-remove uk-margin-remove uk-preserve-width">
             <review-button :task_id="task_id" :user_id="user_id" :dataset_id="run.dataset"
-                           :run_id="run.run_id" :csrf="csrf"
+                           :run_id="run.run_id" :csrf="csrf" button_display_name="INSPECT"
                 @add-notification="(type, message) => this.$emit('addNotification', type, message)"
                 @update-review="newReview => updateReview(newReview)"
             />
@@ -130,7 +130,6 @@ import ReviewButton from "../elements/review-button";
 import { get } from "../../utils/getpost"
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { faDocker } from '@fortawesome/free-brands-svg-icons'
-import EvaluationButton from "../elements/evaluation-button.vue";
 
 library.add( faDocker )
 
@@ -164,8 +163,7 @@ export default {
     csrf: String},
   emits: ['addNotification', 'pollEvaluations', 'removeRun'],
   components: {
-    EvaluationButton,
-      ReviewButton
+    ReviewButton
   },
   methods: {
     getRuns() {

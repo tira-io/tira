@@ -8,7 +8,7 @@ stages:
 prepare-tira-environment:
   stage: Preparation
   image:
-    name: webis/tira-git-pipelines:0.0.20
+    name: webis/tira-git-pipelines:0.0.21
     pull_policy: if-not-present
   artifacts:
     untracked: true
@@ -57,7 +57,7 @@ run-user-software:
 persist-software-result:
   stage: Persist Software Result
   image:
-    name: webis/tira-git-pipelines:0.0.20
+    name: webis/tira-git-pipelines:0.0.21
     pull_policy: if-not-present
   artifacts:
     untracked: true
@@ -94,7 +94,7 @@ evaluate-software-result:
 persist-evaluation-result:
   stage: Persist Evaluation Result
   image:
-    name: webis/tira-git-pipelines:0.0.20
+    name: webis/tira-git-pipelines:0.0.21
     pull_policy: if-not-present
   script:
     - tira-persist-evaluation-result.sh
@@ -102,4 +102,5 @@ persist-evaluation-result:
     - evaluate-software-result
   tags:
     - write-tira-data
+
 
