@@ -276,7 +276,6 @@ export default {
     dataset_id: String,
     run_id: String,
     csrf: String,
-    role: String,
   },
   emits: ['add-notification', 'update-review'],
   methods: {
@@ -377,6 +376,12 @@ export default {
       console.log(error)
       // Showing an error notification on blinded reviews is confusing for participants, hence the following line is commented out to solve #355
       // this.$emit('add-notification', 'error', error)
+    })
+    
+    this.get('/api/role').then(message => {
+      this.role = message.role
+    }).catch(error => {
+      this.$emit('add-notification', 'error', error)
     })
   },
   watch: {
