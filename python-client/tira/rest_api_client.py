@@ -153,6 +153,9 @@ class Client():
     def evaluate_run(self, team, dataset, run_id):
         ret = self.json_response(f'/grpc/{team}/run_eval/{dataset}/{run_id}')
         
+        if status not in ret or '0' != str(ret['status']):
+            raise ValueError(f'Failed to evaluate the run. Got {ret}')
+
         return ret
 
     def download_and_extract_zip(self, url, target_dir):
