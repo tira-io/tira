@@ -149,7 +149,11 @@ class Client():
         
         if ('status' not in ret) or ('0' != ret['status']) or ('published' not in ret) or (not ret['published']):
             raise ValueError(f'Adding the run to the leaderboard failed. Got {ret}')
+
+    def evaluate_run(self, team, dataset, run_id)
+        ret = self.json_response(f'/grpc/{team}/run_eval/{dataset}/{run_id}')
         
+        return ret
 
     def download_and_extract_zip(self, url, target_dir):
         for i in range(self.failsave_retries):
