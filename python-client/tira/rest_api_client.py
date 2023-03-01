@@ -224,7 +224,7 @@ class Client():
         headers = {"Api-Key": self.api_key, "Accept": "application/json"}
         resp = requests.get(url='https://www.tira.io' + endpoint, headers=headers, params=params)
         
-        if resp.status_code != 200:
+        if resp.status_code not in {200, 202}:
             raise ValueError('Got statuscode ', resp.status_code, 'for ', endpoint)
         
         self.json_cache[cache_key] = resp.json()
