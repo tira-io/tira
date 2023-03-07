@@ -64,7 +64,7 @@ class Command(BaseCommand):
                 truth_path,
                 options['include_original'].lower() == 'true',
                 options['rerank'],
-                skip_qrels = options['skip_qrels'] and options['output_dataset_truth_path'] != '/tmp',
+                skip_qrels = options['skip_qrels'] or options['output_dataset_truth_path'] == '/tmp',
             )
         else:
             self.import_dataset_for_fullrank(
@@ -73,7 +73,7 @@ class Command(BaseCommand):
                 truth_path,
                 options['include_original'].lower() == 'true',
                 skip_documents = options['skip_documents'],
-                skip_qrels = options['skip_qrels'] and options['output_dataset_truth_path'] != '/tmp',
+                skip_qrels = options['skip_qrels'] or options['output_dataset_truth_path'] == '/tmp',
                 skip_duplicate_ids = options['skip_duplicate_ids'],
                 allowlist_path_ids = options['allowlist_path_ids']
             )
