@@ -152,7 +152,7 @@ class Client():
 
     def evaluate_run(self, team, dataset, run_id):
         ret = self.json_response(f'/grpc/{team}/run_eval/{dataset}/{run_id}')
-        
+
         if status not in ret or '0' != str(ret['status']):
             raise ValueError(f'Failed to evaluate the run. Got {ret}')
 
@@ -228,7 +228,7 @@ class Client():
         resp = requests.get(url='https://www.tira.io' + endpoint, headers=headers, params=params)
         
         if resp.status_code not in {200, 202}:
-            raise ValueError('Got statuscode ', resp.status_code, 'for ', endpoint)
+            raise ValueError('Got statuscode ', resp.status_code, 'for ', endpoint, '. Got', resp)
         
         self.json_cache[cache_key] = resp.json()
 
