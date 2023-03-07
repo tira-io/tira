@@ -5,7 +5,7 @@ import os
 
 def parse_args():
     parser = argparse.ArgumentParser(prog = 'tira-run')
-    parser.add_argument('--input-directory', required=True)
+    parser.add_argument('--input-directory', required=False, default=str(os.path.abspath(".")))
     parser.add_argument('--image', required=True)
     parser.add_argument('--command', required=True)
     parser.add_argument('--output-directory', required=False, default=str(os.path.abspath("tira-output")))
