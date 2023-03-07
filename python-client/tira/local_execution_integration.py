@@ -73,8 +73,11 @@ class LocalExecutionIntegration():
         
         for k, v in docker_software_id_to_output.items():
             volumes[str(os.path.abspath(v))] = {'bind': '/tira-data/input-run', 'mode': 'ro'}
-    
-        client.containers.run(image, entrypoint='sh', command=f'-c "{command}"', volumes=volumes)
+
+        container = client.containers.run(image, entrypoint='sh', command=f'-c "{command}"', volumes=volumes, detach=True, remove=True)
+
+        for line in container.attach(stdout=True, stream=True, logs=True):
+            print(line.decode('utf-8'), flush=True)
 
         if evaluate:
             if type(evaluate) is not str:
