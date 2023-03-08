@@ -17,7 +17,7 @@ logger = logging.getLogger("tira")
 def serp(request, context, vm_id, dataset_id, task_id, run_id):
     if request.method == 'GET':
         try:
-            from diffir import diff
+            from diffir.run import diff
             run = model.get_run(dataset_id=None, vm_id=None, run_id=run_id)
             run_file = Path(settings.TIRA_ROOT) / "data" / "runs" / dataset_id / \
                        vm_id / run_id / 'output' / 'run.txt'
