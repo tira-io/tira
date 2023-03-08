@@ -6,6 +6,9 @@ FROM webis/tira-application:basis-0.0.39
 # still have the most recent version if we build everything from time to time from scratch).
 # If you Add new dependencies, please install the base image from scratch with build-docker-basis
 
+RUN apk add gcc gfortran python python-dev py-pip build-base wget freetype-dev libpng-dev openblas-dev py3-scipy \
+	&& pip3 install diffir
+
 COPY application /tira/application
 
 WORKDIR /tira/application/src
