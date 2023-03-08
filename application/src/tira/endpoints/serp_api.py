@@ -25,7 +25,7 @@ def serp(request, context, vm_id, dataset_id, task_id, run_id, topic, page):
                 raise ValueError(f'Error: The expected file {run_file} does not exist.')
 
             irds_id = load_irds_metadata_of_task(task_id, run['dataset'])['ir_datasets_id']
-            return HttpResponse(f'<h1>ToDo: Add ChatNoir Integration</h1> Load {run_file} for {irds_id}.')
+            return HttpResponse(f'<html><h1>ToDo: Add ChatNoir Integration</h1> Load {run_file} for {irds_id}.</html>')
         except Exception as e:
             logger.exception(e)
             return JsonResponse({"status": "0", "message": f"Encountered an exception: {e}"})
