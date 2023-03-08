@@ -89,10 +89,6 @@ docker-publish:
 build-docker-basis:
 	docker build --tag webis/tira-application:basis-${VERSION_APPLICATION} -f Dockerfile.basis ..
 
-build-docker-chatnoir:
-	docker build --tag webis/tira-application:${VERSION_APPLICATION}-chatnoir -f Dockerfile.application-with-chatnoir ..
-	docker push webis/tira-application:${VERSION_APPLICATION}-chatnoir
-
 clean:
 	rm -r $(VENV_NAME)
 
