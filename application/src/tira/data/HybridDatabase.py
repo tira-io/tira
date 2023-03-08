@@ -408,19 +408,20 @@ class HybridDatabase(object):
     def _run_as_dict(run):
         is_evaluation = False if not run.input_run or run.input_run.run_id == 'none' or run.input_run.run_id == 'None' else True
         software = None
+        vm = None
         if run.software:
             software = run.software.software_id
         elif run.evaluator:
             software = run.evaluator.evaluator_id
         elif run.docker_software:
             software = run.docker_software.display_name
+            vm = run.docker_software.vm.vm_id
             is_evaluation = False
         elif run.upload:
             software = 'upload'
-        
-        
 
         return {"software": software,
+                "vm": vm,
                 "run_id": run.run_id,
                 "input_run_id": "" if not run.input_run or run.input_run.run_id == 'none' or run.input_run.run_id == 'None'
                 else run.input_run.run_id,
