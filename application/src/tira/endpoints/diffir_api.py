@@ -24,8 +24,8 @@ def load_irds_metadata_of_task(task, dataset):
     return json.load(open(metadata_file, 'r'))
 
 
-@check_resources_exist('json')
 @add_context
+@check_permissions
 def diffir(request, context, task_id, run_id_1, run_id_2):
     if request.method == 'GET':
         try:

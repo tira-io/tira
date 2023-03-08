@@ -39,6 +39,9 @@ def check_permissions(func):
         if role == auth.ROLE_ADMIN or role == auth.ROLE_TIRA:
             return func(request, *args, **kwargs)
 
+        if 'run_id_1' in kwargs or 'run_id_2' in kwargs:
+            return HttpResponseNotAllowed(f"Access forbidden.")
+
         if auth.user_is_organizer_for_endpoint(request=request, path=request.path_info, task_id=task_id, organizer_id_from_params=organizer_id):
             return func(request, *args, **kwargs)
 

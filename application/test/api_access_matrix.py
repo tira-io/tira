@@ -102,6 +102,16 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
+        url_pattern='diffir/<str:task_id>/<str:run_id_1>/<str:run_id_2>',
+        params={'task_id': 'shared-task-1', 'run_id_1': '1', 'run_id_2': '2'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER: 405,
+        },
+    ),
+    route_to_test(
         url_pattern='task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/download/<str:run_id>.zip',
         params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-1-{now}-training', 'vm_id': PARTICIPANT.split('_')[-1], 'run_id': 'run-1'},
         group_to_expected_status_code={
@@ -124,6 +134,37 @@ API_ACCESS_MATRIX = [
     route_to_test(
         url_pattern='task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/download/<str:run_id>.zip',
         params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-2-{now}-test', 'vm_id': PARTICIPANT.split('_')[-1], 'run_id': 'run-1'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER: 405,
+        },
+    ),
+    route_to_test(
+        url_pattern='serp/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/<str:run_id>/<str:topic>/<str:page>',
+        params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-1-{now}-training', 'vm_id': PARTICIPANT.split('_')[-1], 'run_id': 'run-1', 'topic_num':'1', 'page': '1'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,  # TODO: Look at this again. Should be 405?
+            PARTICIPANT: 200,
+            ORGANIZER: 302,  # TODO: Look at this again. Should be 405?
+        },
+    ),
+    route_to_test(
+        url_pattern='serp/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/<str:run_id>/<str:topic>/<str:page>',
+        params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-2-{now}-test', 'vm_id': 'example_participant', 'run_id': 'run-1', 'topic_num': '1', 'page': '1'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER: 405,
+        },
+    ),
+    route_to_test(
+        url_pattern='serp/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/<str:run_id>/<str:topic>/<str:page>',
+        params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-2-{now}-test', 'vm_id': PARTICIPANT.split('_')[-1],
+                'run_id': 'run-1', 'topic_num': '1', 'page': '1'},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 405,
