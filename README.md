@@ -7,6 +7,37 @@ This repository contains the source code for all the following components of the
 - [Application](application): todo
 - [Protocol](protocol): todo
 
+## Setup Your Local Development Environment
+
+First, please clone the repository:
+```
+git clone git@github.com:tira-io/tira.git
+```
+
+Please change your directory to `application`:
+```
+cd application
+```
+
+Install your virtual environment via:
+```
+make venv
+```
+
+Then, to start TIRA locally, please start:
+
+```
+make webpack-watch
+```
+
+and 
+
+```
+make run-develop
+```
+
+Then, you can point your browser to the specified URL.
+
 ## Resources
 * [Wiki](../../wiki): Getting started with TIRA as a developer/administrator
 * [User Docs](https://www.tira.io/docs): Getting started with TIRA as a user
