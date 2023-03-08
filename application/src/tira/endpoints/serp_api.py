@@ -14,9 +14,10 @@ logger = logging.getLogger("tira")
 
 @add_context
 @check_permissions
-def serp(request, context, vm_id, dataset_id, task_id, run_id, topic, page):
+def serp(request, context, vm_id, dataset_id, task_id, run_id):
     if request.method == 'GET':
         try:
+            from diffir import diff
             run = model.get_run(dataset_id=None, vm_id=None, run_id=run_id)
             run_file = Path(settings.TIRA_ROOT) / "data" / "runs" / dataset_id / \
                        vm_id / run_id / 'output' / 'run.txt'
@@ -25,7 +26,13 @@ def serp(request, context, vm_id, dataset_id, task_id, run_id, topic, page):
                 raise ValueError(f'Error: The expected file {run_file} does not exist.')
 
             irds_id = load_irds_metadata_of_task(task_id, run['dataset'])['ir_datasets_id']
-            return HttpResponse(f'<html><h1>ToDo: Add ChatNoir Integration</h1> Load {run_file} for {irds_id}.</html>')
+            config = {
+                "dataset": irds_id, "measure": "qrel", "metric": "nDCG@10", "topk": 10,
+                "weight": {"weights_1": None, "weights_2": None}
+            }
+            _, ret = diff([abspath(run_file)], config=config, cli=False, web=True, print_html=False)
+
+            return HttpResponse(ret)
         except Exception as e:
             logger.exception(e)
             return JsonResponse({"status": "0", "message": f"Encountered an exception: {e}"})

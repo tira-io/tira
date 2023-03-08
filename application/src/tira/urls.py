@@ -89,7 +89,7 @@ urlpatterns = [
     path('api/registration/add_registration/<str:vm_id>/<str:task_id>', data_api.add_registration, name='add_registration'),
 
     path('diffir/<str:task_id>/<str:run_id_1>/<str:run_id_2>', diffir_api.diffir, name='diffir'),
-    path('serp/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/<str:run_id>/<str:topic>/<str:page>', serp_api.serp, name='serp'),
+    path('serp/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/<str:run_id>', serp_api.serp, name='serp'),
 
 ]
 

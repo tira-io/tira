@@ -142,8 +142,8 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
-        url_pattern='serp/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/<str:run_id>/<str:topic>/<str:page>',
-        params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-1-{now}-training', 'vm_id': PARTICIPANT.split('_')[-1], 'run_id': 'run-1', 'topic':'1', 'page': '1'},
+        url_pattern='serp/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/<str:run_id>',
+        params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-1-{now}-training', 'vm_id': PARTICIPANT.split('_')[-1], 'run_id': 'run-1'},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 302,  # TODO: Look at this again. Should be 405?
@@ -152,8 +152,8 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
-        url_pattern='serp/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/<str:run_id>/<str:topic>/<str:page>',
-        params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-2-{now}-test', 'vm_id': 'example_participant', 'run_id': 'run-1', 'topic': '1', 'page': '1'},
+        url_pattern='serp/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/<str:run_id>',
+        params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-2-{now}-test', 'vm_id': 'example_participant', 'run_id': 'run-1'},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 405,
@@ -162,9 +162,9 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
-        url_pattern='serp/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/<str:run_id>/<str:topic>/<str:page>',
+        url_pattern='serp/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/<str:run_id>',
         params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-2-{now}-test', 'vm_id': PARTICIPANT.split('_')[-1],
-                'run_id': 'run-1', 'topic': '1', 'page': '1'},
+                'run_id': 'run-1'},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 405,
