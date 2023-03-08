@@ -3,7 +3,7 @@ from django.urls import path
 from django.views.generic import TemplateView
 
 from . import views
-from .endpoints import organizer_api, admin_api, vm_api, data_api, diffir_api
+from .endpoints import organizer_api, admin_api, vm_api, data_api, diffir_api, serp_api
 
 urlpatterns = [
     path('', views.index, name='index'),
@@ -89,6 +89,8 @@ urlpatterns = [
     path('api/registration/add_registration/<str:vm_id>/<str:task_id>', data_api.add_registration, name='add_registration'),
 
     path('diffir/<str:task_id>/<str:run_id_1>/<str:run_id_2>', diffir_api.diffir, name='diffir'),
+    path('serp/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/<str:run_id>/<str:topic>/<str:page>', serp_api.serp, name='serp'),
+
 ]
 
 app_name = 'tira'
