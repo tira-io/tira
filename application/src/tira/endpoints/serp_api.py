@@ -14,7 +14,7 @@ logger = logging.getLogger("tira")
 
 @add_context
 @check_permissions
-def serp(request, context, vm_id, dataset_id, task_id, run_id, topic_num, page):
+def serp(request, context, vm_id, dataset_id, task_id, run_id, topic, page):
     if request.method == 'GET':
         try:
             run = model.get_run(dataset_id=None, vm_id=None, run_id=run_id)
