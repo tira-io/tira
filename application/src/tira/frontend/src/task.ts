@@ -161,7 +161,8 @@ const app = createApp({
         },
     },
     beforeMount() {
-        const url_split = window.location.toString().split('/')
+        const url_split = (window.location.toString() + '#').split('#')[0].split('/')
+        
         this.task_id = url_split[url_split.length - 1]
         this.get(`/api/task/${this.task_id}`).then(message => {
             this.userId = message.context.user_id
@@ -202,7 +203,12 @@ const app = createApp({
                         return newer((prev as object), (curr as object))
                     }
                 )
-                this.selected = (newest as object)['dataset_id']
+                
+                if (window.location.toString().includes('#')) {
+                    this.selected = window.location.toString().split('#')[1]
+                } else {
+                    this.selected = (newest as object)['dataset_id']
+                }
             }
         }).catch(error => {
             this.addNotification('error', error)

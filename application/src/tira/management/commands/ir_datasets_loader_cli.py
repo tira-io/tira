@@ -56,7 +56,9 @@ class Command(BaseCommand):
             return
         
         truth_path = Path(options['output_dataset_truth_path']) if 'output_dataset_truth_path' in options and options['output_dataset_truth_path'] else None
-        
+
+        skip_qrels = options['skip_qrels'] or str(options['output_dataset_truth_path']).strip() == '/tmp'
+
         if options['rerank']:
             self.import_dataset_for_rerank(
                 options['ir_datasets_id'],
@@ -64,7 +66,7 @@ class Command(BaseCommand):
                 truth_path,
                 options['include_original'].lower() == 'true',
                 options['rerank'],
-                skip_qrels = options['skip_qrels'],
+                skip_qrels = skip_qrels,
             )
         else:
             self.import_dataset_for_fullrank(
@@ -73,7 +75,7 @@ class Command(BaseCommand):
                 truth_path,
                 options['include_original'].lower() == 'true',
                 skip_documents = options['skip_documents'],
-                skip_qrels = options['skip_qrels'],
+                skip_qrels = skip_qrels,
                 skip_duplicate_ids = options['skip_duplicate_ids'],
                 allowlist_path_ids = options['allowlist_path_ids']
             )
@@ -81,7 +83,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('--ir_datasets_id', default=None, type=str)
         parser.add_argument('--output_dataset_path', default=None, type=Path)
-        parser.add_argument('--output_dataset_truth_path', default=None, type=Path)
+        parser.add_argument('--output_dataset_truth_path', default='/tmp', type=Path)
         parser.add_argument('--include_original', default='True', type=str)
         parser.add_argument('--skip_documents', default=False, type=bool)
         parser.add_argument('--skip_qrels', default=False, type=bool)
