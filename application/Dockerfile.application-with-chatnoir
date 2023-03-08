@@ -13,6 +13,15 @@ RUN cd /tira/application/src/chatnoir/chatnoir_ui \
         && make test \
 	&& make install
 
-RUN cd /tira/application/src/chatnoir/chatnoir \
-	&& pip3 install -r requirements.txt 
+WORKDIR /tira/application/src/chatnoir/chatnoir/
+
+RUN pip3 install -r requirements.txt \
+        && cp chatnoir/local_settings.example.py chatnoir/local_settings.py \
+	&& ./manage.py createcachetable \
+	&& ./manage.py migrate \
+	&& pip3 install django-webpack-loader==1.8.1
+
+COPY application/search.py /tira/application/src/chatnoir/chatnoir/chatnoir_search/search.py
+
+ENTRYPOINT ["./manage.py", "runserver", "0.0.0.0:8000"]
 
