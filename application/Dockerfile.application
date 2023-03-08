@@ -5,7 +5,6 @@ FROM webis/tira-application:basis-0.0.39
 # that contains already all dependencies (so that the minor versions do rarely change, but we
 # still have the most recent version if we build everything from time to time from scratch).
 # If you Add new dependencies, please install the base image from scratch with build-docker-basis
-
 COPY application /tira/application
 
 WORKDIR /tira/application/src

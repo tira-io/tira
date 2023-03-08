@@ -79,11 +79,13 @@ run-docker:
 
 build-docker:
 	docker build --tag webis/tira-application:${VERSION_APPLICATION} -f Dockerfile.application ..
+	docker build --tag webis/tira-application:${VERSION_APPLICATION}-diffir -f Dockerfile.application-diffir ..
 	docker build --tag webis/tira-application-grpc:${VERSION_GRPC} -f Dockerfile.application-grpc ..
 
 docker-publish:
 	docker push webis/tira-application:basis-${VERSION_APPLICATION}
 	docker push webis/tira-application:${VERSION_APPLICATION}
+	docker push webis/tira-application:${VERSION_APPLICATION}-diffir
 	docker push webis/tira-application-grpc:${VERSION_GRPC}
 
 build-docker-basis:
