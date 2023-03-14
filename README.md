@@ -21,7 +21,7 @@ cd application
 
 Install your virtual environment via:
 ```
-make venv
+make setup
 ```
 
 Then, to start TIRA locally, please start:

@@ -57,9 +57,10 @@
       <td class="uk-table-shrink uk-text-nowrap uk-padding-remove uk-margin-remove uk-preserve-width">
         <a class="uk-button uk-button-small uk-button-default uk-background-default"
            target="_blank"
+           :href="'/serp/' + task_id + '/user/' + evaluation.vm_id + '/dataset/' + dataset_id + '/' + evaluation.input_run_id"><i class="fas fa-download"></i> SERP</a>
+        <a class="uk-button uk-button-small uk-button-default uk-background-default"
+           target="_blank"
            :href="'/task/' + task_id + '/user/' + evaluation.vm_id + '/dataset/' + dataset_id + '/download/' + evaluation.input_run_id + '.zip'"><i class="fas fa-download"></i> run</a>
-      </td>
-      <td class="uk-table-shrink uk-text-nowrap uk-padding-remove uk-margin-remove uk-preserve-width">
         <a class="uk-button uk-button-small uk-button-default uk-background-default"
            target="_blank"
            :href="'/task/' + task_id + '/user/' + evaluation.vm_id + '/dataset/' + dataset_id + '/download/' + evaluation.run_id + '.zip'"><i class="fas fa-download"></i> result</a>

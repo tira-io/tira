@@ -8,6 +8,8 @@ def parse_args():
     parser.add_argument('--input-directory', required=False, default=str(os.path.abspath(".")))
     parser.add_argument('--image', required=True)
     parser.add_argument('--command', required=True)
+    parser.add_argument('--verbose', required=False, default=False, type=bool)
+    parser.add_argument('--dry-run', required=False, default=False, type=bool)
     parser.add_argument('--output-directory', required=False, default=str(os.path.abspath("tira-output")))
 
     return parser.parse_args()
@@ -15,5 +17,5 @@ def parse_args():
 def main():
     args = parse_args()
     tira_execution = LocalExecutionIntegration(None)
-    tira_execution.run(identifier=None, image=args.image, command=args.command, input_dir=args.input_directory, output_dir=args.output_directory)
+    tira_execution.run(identifier=None, image=args.image, command=args.command, input_dir=args.input_directory, output_dir=args.output_directory, verbose=args.verbose, dry_run=args.dry_run)
 
