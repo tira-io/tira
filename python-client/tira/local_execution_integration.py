@@ -5,7 +5,7 @@ import tempfile
 
 
 class LocalExecutionIntegration():
-    def __init__(self, tira_client):
+    def __init__(self, tira_client=None):
         self.tira_client = tira_client
 
     def __normalize_command(self, cmd, evaluator):
@@ -23,8 +23,28 @@ class LocalExecutionIntegration():
     
         return cmd
 
+    def construct_verbosity_output(self, input_dir, output_dir, image, command, original_args):
+        tira_run_input_dir = input_dir if not str(input_dir) == str(os.path.abspath(".")) else None
+        tira_run_output_dir = output_dir if not str(output_dir) == str(os.path.abspath("tira-output")) else None
+        tira_run_args = [(k, v if type(v) is not str else f'"{v}"') for k, v in original_args.items()]
+        tira_run_args = [i.strip() for i in ['' if not original_args[k] else f'{k}={v}' for k, v in tira_run_args] if i]
+    
+        return {
+            'tira-run-cli': f'tira-run ' + 
+                ('' if not tira_run_input_dir else f'--input-directory {tira_run_input_dir} ') +
+                ('' if not tira_run_output_dir else f'--output-directory {tira_run_output_dir} ') + 
+                (f'--approach {original_args["identifier"]} ' if 'identifier' in original_args else f'--image {image} --command \'{original_args["command"]}\''),
+
+            'tira-run-python': 'tira.run(' + 
+                (', '.join(tira_run_args))
+            + ')',
+
+            'docker': f'docker run --rm -ti -v {input_dir}:/tira-data/input:ro -v {output_dir}:/tira-data/output:rw --entrypoint sh {image} -c \'{command}\''
+        }
+
     def run(self, identifier=None, image=None, command=None, input_dir=None, output_dir=None, evaluate=False, verbose=False, dry_run=False, docker_software_id_to_output=None, software_id=None):
         previous_stages = []
+        original_args = {'identifier': identifier, 'image': image, 'command': command, 'input_dir': input_dir, 'output_dir': output_dir, 'evaluate': evaluate, 'verbose': verbose, 'dry_run': dry_run, 'docker_software_id_to_output': docker_software_id_to_output, 'software_id': software_id}
         s_id = 'unknown-software-id'
         if image is None or command is None:
             ds = self.tira_client.docker_software(approach=identifier, software_id=software_id)
@@ -60,11 +80,12 @@ class LocalExecutionIntegration():
             for k, v in tmp_prev_stages.items():
                 docker_software_id_to_output[k] = v
     
+        verbose_data = self.construct_verbosity_output(input_dir, output_dir, image, command, original_args)
         if verbose:
-            print(f'docker run --rm -ti -v {input_dir}:/tira-data/input:ro -v {output_dir}:/tira-data/output:rw --entrypoint sh {image} -c \'{command}\'')
+            print(f'Docker:\n\t{verbose_data["docker"]}\n\ntira-run (python):\n\t{verbose_data["tira-run-python"]}\n\ntira-run (CLI):\n\t{verbose_data["tira-run-cli"]}\n\n')
     
         if dry_run:
-            return
+            return verbose_data
 
         volumes = {
             str(input_dir): {'bind': '/tira-data/input', 'mode': 'ro'},

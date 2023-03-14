@@ -35,7 +35,7 @@ class Client():
         return pd.DataFrame(ret).sort_values('dataset')
 
     def ___load_softwares(self):
-        softwares = [json.loads(i) for i in open('.tira/submitted-software.jsonl')]
+        softwares = [json.loads(i) for i in open(self.directory + '.tira/submitted-software.jsonl')]
 
         return {i['TIRA_TASK_ID'] + '/' + i['TIRA_VM_ID'] + '/' + i['TIRA_SOFTWARE_NAME']: i for i in softwares}
 
@@ -46,8 +46,17 @@ class Client():
 
         return pd.DataFrame(ret)
 
+    def print_overview_of_all_software(self):
+        for _, i in self.all_softwares().iterrows():
+            execution_info = self.local_execution.run(
+                identifier=i['approach'], input_dir='/input',
+                output_dir='/output', verbose=True, dry_run=True
+            )
+            
+            print(f'Software {i["approach"].split("/")[-1]} by team {i["team"]} would be executed via ' + json.dumps(execution_info))
+
     def __load_evaluators(self):
-        evaluators = [json.loads(i) for i in open('.tira/evaluators.jsonl')]
+        evaluators = [json.loads(i) for i in open(self.directory + '.tira/evaluators.jsonl')]
         ret = {i['TIRA_DATASET_ID']: i for i in evaluators}
 
         for evaluator in evaluators:
