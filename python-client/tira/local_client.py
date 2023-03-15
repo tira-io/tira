@@ -49,8 +49,8 @@ class Client():
     def print_overview_of_all_software(self):
         for _, i in self.all_softwares().iterrows():
             execution_info = self.local_execution.run(
-                identifier=i['approach'], input_dir='/input',
-                output_dir='/output', verbose=False, dry_run=True
+                identifier=i['approach'], input_dir='$PWD/input',
+                output_dir='$PWD/output', verbose=False, dry_run=True
             )
             
             print(f'Software {i["approach"].split("/")[-1]} by team {i["team"]} would be executed via ' + json.dumps(execution_info))
