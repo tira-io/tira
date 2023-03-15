@@ -2,6 +2,6 @@
 FROM webis/tira-application:0.0.43
 
 RUN apk add gcc gfortran python python-dev py-pip build-base wget freetype-dev libpng-dev openblas-dev py3-scipy \
-	&& pip3 install --no-dependencies diffir \
+	&& pip3 install --no-dependencies git+http://github.com/mam10eks/diffir \
 	&& pip3 install nltk>=3.5 ir_measures>=0.1.4 mako~=1.1 pytrec_eval>=0.5 intervaltree>=3.1.0 rich>=9.13.0 pyahocorasick>=1.4.1
 
