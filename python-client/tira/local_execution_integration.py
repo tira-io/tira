@@ -30,20 +30,16 @@ class LocalExecutionIntegration():
         if type(tira_run_python_args['input_dir']) is str and tira_run_python_args['input_dir'].startswith('$PWD'):
             tail = tira_run_python_args['input_dir'][4:]
             if len(tail) == 0 or tail == '/' or tail == os.sep:
-                tira_run_python_args['input_dir'] = "os.getcwd()"
+                tira_run_python_args['input_dir'] = "./"
             elif tail.startswith('/') or tail.startswith(os.sep):
-                tira_run_python_args['input_dir'] = f'os.path.join(os.getcdw(), "{tail[1:]}")'
-            else:
-                tira_run_python_args['input_dir'] = f'"{tira_run_python_args["input_dir"]}"'
+                tira_run_python_args['input_dir'] = tail[1:]
         if type(tira_run_python_args['output_dir']) is str and tira_run_python_args['output_dir'].startswith('$PWD'):
             tail = tira_run_python_args['output_dir'][4:]
             if len(tail) == 0 or tail == '/' or tail == os.sep:
-                tira_run_python_args['output_dir'] = "os.getcwd()"
+                tira_run_python_args['output_dir'] = "./"
             elif tail.startswith('/') or tail.startswith(os.sep):
-                tira_run_python_args['output_dir'] = f"os.path.join(os.getcdw(), {tail[1:]})"
-            else:
-                tira_run_python_args['output_dir'] = f'"{tira_run_python_args["output_dir"]}"'
-        tira_run_args = [(k, v if type(v) is not str or k in ['input_dir', 'output_dir'] else f'"{v}"') for k, v in tira_run_python_args.items()]
+                tira_run_python_args['output_dir'] = tail[1:]
+        tira_run_args = [(k, v if type(v) is not str else f'"{v}"') for k, v in tira_run_python_args.items()]
         tira_run_args = [i.strip() for i in ['' if not tira_run_python_args[k] else f'{k}={v}' for k, v in tira_run_args] if i]
     
         return {
