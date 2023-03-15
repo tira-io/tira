@@ -49,8 +49,9 @@ class Client():
     def print_overview_of_all_software(self):
         pre_text = """# Software for [$TASK_ID](https://www.tira.io/task/$TASK_ID)
 
-For each software it is shown below how to run it
-
+<p id="instructions">Place <code>todo-replace</code> in a directory <code>$PWD/input</code>.
+Then run the software as described below to produce results in <code>$PWD/output</code>.</p>
+<p>For each software three ways to run it are shown below:</p>
 <ul>
 <li id="description-docker"><b>Docker</b>: on the command line (requires
 <a href="https://docs.docker.com/engine/installation/">Docker</a>
@@ -66,18 +67,19 @@ and the
 <a href="https://pypi.org/project/tira/">Python TIRA package</a>
 )</li>
 </ul>
-
-All commands use the task-specific files that have to be placed inside \u0060$PWD/input\u0060, namely
-\u0060todo-replace\u0060, and replicate the results of the respective submission into \u0060$PWD/output/\u0060.
 """
 
-        toc = ['## Table of contents']
+        toc = ['## List of software']
         template_toc_team = '- [Team \u0060$TEAM\u0060](#team-$TEAM_LINK)'
         template_toc_software = '  - [Software \u0060$SOFTWARE\u0060](#software-$SOFTWARE_LINK)'
 
         content = []
-        template_team_header = '\n## Team \u0060$TEAM\u0060'
+        template_team_header = '\n## Team \u0060$TEAM\u0060\n[See generic instructions above](#instructions)'
         template_software = """### Software \u0060$SOFTWARE\u0060
+- [Docker](#description-docker):
+  \u0060\u0060\u0060bash
+  $CMD_TIRA_DOCKER
+  \u0060\u0060\u0060
 - [TIRA (CLI)](#description-tira-cli):
   \u0060\u0060\u0060bash
   $CMD_TIRA_CLI
@@ -85,10 +87,6 @@ All commands use the task-specific files that have to be placed inside \u0060$PW
 - [TIRA (Python)](#description-tira-python):
   \u0060\u0060\u0060python
   $CMD_TIRA_PYTHON
-  \u0060\u0060\u0060
-- [Docker](#description-docker):
-  \u0060\u0060\u0060bash
-  $CMD_TIRA_DOCKER
   \u0060\u0060\u0060
 """
         separator = '---'
@@ -108,7 +106,7 @@ All commands use the task-specific files that have to be placed inside \u0060$PW
             team_link = team_name.lower().replace(' ', '-')
 
             if team_name != prev_team:
-                toc.append(template_toc_team.replace('$TEAM_LINK', software_link).replace('$TEAM', team_name))
+                toc.append(template_toc_team.replace('$TEAM_LINK', team_link).replace('$TEAM', team_name))
 
                 if len(prev_team) == 0:
                     pre_text = pre_text.replace('$TASK_ID', '/'.join(i["approach"].split("/")[:-2]))
