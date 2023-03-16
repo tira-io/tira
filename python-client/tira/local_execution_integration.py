@@ -46,7 +46,7 @@ class LocalExecutionIntegration():
             'tira-run-cli': f'tira-run ' + 
                 ('' if not tira_run_input_dir else f'--input-directory {tira_run_input_dir} ') +
                 ('' if not tira_run_output_dir else f'--output-directory {tira_run_output_dir} ') + 
-                (f'--approach {original_args["identifier"]} ' if 'identifier' in original_args else f'--image {image} --command \'{original_args["command"]}\''),
+                (f'--approach {original_args["identifier"]} ' if 'identifier' in original_args and original_args['identifier'] is not None else f'--image {image} --command \'{original_args["command"]}\''),
 
             'tira-run-python': 'tira.run(' + 
                 (', '.join(tira_run_args))
