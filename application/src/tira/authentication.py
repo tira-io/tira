@@ -90,7 +90,8 @@ class Authentication(object):
     def get_vm_ids(self, request, user_id=None):
         pass
     
-    def user_is_organizer_for_endpoint(self, request=None, path=None, task_id=None):
+    def user_is_organizer_for_endpoint(self, request, path, task_id, organizer_id_from_params,
+                                       dataset_id_from_params, run_id_from_params, vm_id_from_params):
         return False
 
 class LegacyAuthentication(Authentication):
@@ -174,7 +175,8 @@ class LegacyAuthentication(Authentication):
     def get_vm_ids(self, request, user_id=None):
         return []
 
-    def user_is_organizer_for_endpoint(self, request=None, path=None, task_id=None):
+    def user_is_organizer_for_endpoint(self, request, path, task_id, organizer_id_from_params,
+                                       dataset_id_from_params, run_id_from_params, vm_id_from_params):
         return False
 
 def check_disraptor_token(func):
@@ -423,7 +425,9 @@ Best regards'''
         model.get_vm(team_name, create_if_none=True)
         self._add_user_as_owner_to_group(group_id, user_name)
 
-    def user_is_organizer_for_endpoint(self, request=None, path=None, task_id=None, organizer_id_from_params=None):
+    def user_is_organizer_for_endpoint(self, request, path, task_id, organizer_id_from_params,
+                                       dataset_id_from_params, run_id_from_params, vm_id_from_params,
+                                       ):
         if request is None or path is None:
             return False
         if not path.startswith('/'):
@@ -431,6 +435,25 @@ Best regards'''
 
         organizer_ids = self.get_organizer_ids(request)
         if not organizer_ids or len(organizer_ids) < 1:
+            return False
+
+        organizer_id_from_dataset_id, organizer_id_from_run_id = None, None
+
+        if run_id_from_params:
+            try:
+                dataset_id_from_run = model.get_run(run_id=run_id_from_params, vm_id=None, dataset_id=None)['dataset']
+                organizer_id_from_run_id = model.get_dataset(dataset_id_from_run)['organizer_id']
+            except:
+                return False
+
+        if dataset_id_from_params:
+            try:
+                organizer_id_from_dataset_id = model.get_dataset(dataset_id_from_params).get('organizer_id', None)
+            except:
+                return False
+
+        potentially_inconsistent_ids = [organizer_id_from_params, organizer_id_from_dataset_id, organizer_id_from_run_id]
+        if len(set([i for i in potentially_inconsistent_ids if i is not None])) > 1:
             return False
 
         task = None
@@ -444,9 +467,12 @@ Best regards'''
 
         return path == '/api/organizer-list' \
                or (task and 'organizer_id' in task and task['organizer_id'] in organizer_ids) \
-               or (organizer_id_from_params in organizer_ids and path in set(f'/tira-admin/{i}/create-task' for i in organizer_ids)) \
-               or (organizer_id_from_params in organizer_ids and path in set(f'/tira-admin/edit-organizer/{i}' for i in organizer_ids)) \
-               or (path.startswith('/tira-admin/add-organizer/') and organizer_id_from_params not in existing_organizer_ids)
+               or (organizer_id_from_params and organizer_id_from_params in organizer_ids and path in set(f'/tira-admin/{i}/create-task' for i in organizer_ids)) \
+               or (organizer_id_from_params and organizer_id_from_params in organizer_ids and path in set(f'/tira-admin/edit-organizer/{i}' for i in organizer_ids)) \
+               or (path.startswith('/tira-admin/add-organizer/') and organizer_id_from_params and organizer_id_from_params not in existing_organizer_ids) \
+               or (organizer_id_from_run_id and organizer_id_from_run_id in organizer_ids and path.startswith(f'/task/{organizer_id_from_run_id}/vm/')) \
+               or (organizer_id_from_run_id and organizer_id_from_run_id in organizer_ids and organizer_id_from_dataset_id and path == f'/api/review/{dataset_id_from_params}/{vm_id_from_params}/{run_id_from_params}') \
+               or (organizer_id_from_run_id and organizer_id_from_run_id in organizer_ids and organizer_id_from_dataset_id and path == f'/tira-admin/edit-review/{dataset_id_from_params}/{vm_id_from_params}/{run_id_from_params}')
 
 
 auth = Authentication(authentication_source=settings.DEPLOYMENT)

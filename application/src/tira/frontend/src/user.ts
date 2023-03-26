@@ -308,6 +308,11 @@ const app = createApp({
         this.get(`/api/role`).then(message => {
             this.role = message.role
             let pageUrlSplits = window.location.pathname.split("/")
+
+            if(message.organizer_teams.contains(pageUrlSplits.at(-3))) {
+                this.role = 'admin'
+            }
+
             this.get(`/api/task/${pageUrlSplits.at(-3)}/user/${pageUrlSplits.at(-1)}`).then(message => {
                 this.task = message.context.task
                 this.userId = message.context.user_id

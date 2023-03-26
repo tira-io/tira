@@ -217,6 +217,10 @@ const app = createApp({
         
         this.get('/api/role').then(message => {
             this.role = message.role
+            
+            if(message.organizer_teams.contains(this.organizerName)) {
+                this.role = 'admin'
+            }
         }).catch(error => {
             this.addNotification('error', error)
         })
