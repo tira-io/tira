@@ -34,10 +34,6 @@
           <input id="website-input" class="uk-input" type="text" placeholder="Website URL"
                  v-model="websiteInput" /></label>
       </div>
-      <div class="uk-margin-small uk-width-1-5">
-          <label>Master VM ID*
-          <input type="text" class="uk-input" v-model="masterVmId" /></label>
-      </div>
       <div class="uk-margin-small uk-grid-small uk-width-1-1 uk-child-width-auto uk-grid">
           <label>Featured
               <input type="checkbox" class="uk-checkbox uk-margin-small-right" v-model="featured" />
@@ -140,9 +136,6 @@ export default {
       }
       if (this.taskNameInput === '') {
         this.taskError += 'Please provide a name for your task;\n'
-      }
-      if (this.masterVmId === '') {
-        this.taskError += 'Please provide a master vm;\n'
       }
       if (this.taskDescription === '') {
         this.taskError += 'Please provide a description for you task;\n'

@@ -45,11 +45,6 @@
         </label>
     </div>
     <div class="uk-margin-small">
-        <label>Master VM ID*
-        <input id="master-vm-id-input" type="text" class="uk-input" placeholder="new-task-master"
-               v-model="masterVmId" /> </label>
-    </div>
-    <div class="uk-margin-small">
         <label>Task Description*
         <textarea id="task-description-input" rows="3" class="uk-textarea" placeholder="Task Description"
                :class="{'uk-form-danger': (this.createTaskError !== '' && this.taskDescription === '')}"
@@ -136,9 +131,6 @@ export default {
       if (this.taskDescription === '') {
         this.createTaskError += 'Please provide a description for you task;\n'
       }
-      if (this.masterVmId === '') {
-        this.createTaskError += 'Please provide a master vm for you task;\n'
-      }
       if (this.createTaskError !== '') {
         return
       }
@@ -162,6 +154,7 @@ export default {
       }).then(message => {
         this.$emit('addnotification', 'success', message.message)
         this.$emit('closemodal')
+        location.reload()
       }).catch(error => {
         console.log(error)
         this.createTaskError = error

@@ -26,7 +26,7 @@ class Client():
             cnt = 0
             for j in glob(i + '*'):
                 cnt += len(list(open(j)))
-        
+
             ret += [{'dataset': i.split('/training-datasets/')[0], 'records': cnt}]
 
         for i in set([j.split('/')[1] for j in glob(self.directory + '**/**/**/job-executed-on-*.txt')]):
@@ -47,13 +47,87 @@ class Client():
         return pd.DataFrame(ret)
 
     def print_overview_of_all_software(self):
-        for _, i in self.all_softwares().iterrows():
+        pre_text = """# Software for [$TASK_ID](https://www.tira.io/task/$TASK_ID)
+
+<p id="instructions">Place <code>todo-replace</code> in a directory <code>$PWD/input</code>.
+Then run the software as described below to produce results in <code>$PWD/output</code>.</p>
+<p>For each software three ways to run it are shown below:</p>
+<ul>
+<li id="description-docker"><b>Docker</b>: on the command line (requires
+<a href="https://docs.docker.com/engine/installation/">Docker</a>
+)</li>
+<li id="description-tira-cli"><b>TIRA (CLI)</b>: on the command line with <code>tira-run</code> (requires
+<a href="https://docs.docker.com/engine/installation/">Docker</a>
+and the
+<a href="https://pypi.org/project/tira/">Python TIRA package</a>
+)</li>
+<li id="description-tira-python"><b>TIRA (Python)</b>: in a Python script (requires
+<a href="https://docs.docker.com/engine/installation/">Docker</a>
+and the
+<a href="https://pypi.org/project/tira/">Python TIRA package</a>
+)</li>
+</ul>
+"""
+
+        toc = ['## List of software']
+        template_toc_team = '- [Team \u0060$TEAM\u0060](#team-$TEAM_LINK)'
+        template_toc_software = '  - [Software \u0060$SOFTWARE\u0060](#software-$SOFTWARE_LINK)'
+
+        content = []
+        template_team_header = '\n## Team \u0060$TEAM\u0060\n[See generic instructions above](#instructions)'
+        template_software = """### Software \u0060$SOFTWARE\u0060
+- [Docker](#description-docker):
+  \u0060\u0060\u0060bash
+  $CMD_TIRA_DOCKER
+  \u0060\u0060\u0060
+- [TIRA (CLI)](#description-tira-cli):
+  \u0060\u0060\u0060bash
+  $CMD_TIRA_CLI
+  \u0060\u0060\u0060
+- [TIRA (Python)](#description-tira-python):
+  \u0060\u0060\u0060python
+  $CMD_TIRA_PYTHON
+  \u0060\u0060\u0060
+"""
+        separator = '---'
+
+        softwares = self.all_softwares().sort_values(by=['approach'])
+
+        prev_team = ''
+        for _, i in softwares.iterrows():
             execution_info = self.local_execution.run(
-                identifier=i['approach'], input_dir='/input',
-                output_dir='/output', verbose=True, dry_run=True
+                identifier=i['approach'], input_dir='$PWD/input',
+                output_dir='$PWD/output', verbose=False, dry_run=True
             )
-            
-            print(f'Software {i["approach"].split("/")[-1]} by team {i["team"]} would be executed via ' + json.dumps(execution_info))
+
+            software_name = i["approach"].split("/")[-1]
+            software_link = software_name.lower().replace(' ', '-')
+            team_name = i["team"]
+            team_link = team_name.lower().replace(' ', '-')
+
+            if team_name != prev_team:
+                toc.append(template_toc_team.replace('$TEAM_LINK', team_link).replace('$TEAM', team_name))
+
+                if len(prev_team) == 0:
+                    pre_text = pre_text.replace('$TASK_ID', '/'.join(i["approach"].split("/")[:-2]))
+                else:
+                    content.append(separator)
+                content.append(template_team_header.replace('$TEAM', team_name))
+                prev_team = team_name
+
+            toc.append(template_toc_software.replace('$SOFTWARE_LINK', software_link).replace('$SOFTWARE', software_name))
+
+            content.append(
+                template_software
+                .replace('$SOFTWARE', software_name)
+                .replace('$CMD_TIRA_CLI', execution_info['tira-run-cli'])
+                .replace('$CMD_TIRA_PYTHON', execution_info['tira-run-python'])
+                .replace('$CMD_TIRA_DOCKER', execution_info['docker'])
+            )
+
+        print(pre_text)
+        print('\n'.join(toc))
+        print('\n'.join(content))
 
     def __load_evaluators(self):
         evaluators = [json.loads(i) for i in open(self.directory + '.tira/evaluators.jsonl')]
@@ -99,11 +173,11 @@ class Client():
             job_dir = glob(evaluation + '/../job-executed-on*.txt')
             if len(job_dir) != 1:
                 raise ValueError('Can not handle multiple job definitions: ', job_dir)
-            
+
             job_definition = self.__load_job_data(job_dir[0])
             job_identifier = job_definition['TIRA_TASK_ID'] + '/' + job_definition['TIRA_VM_ID'] + '/' + id_to_software_name[int(job_definition['TIRA_SOFTWARE_ID'].split('docker-software-')[1])]
-        
-            for eval_run in glob(f"{evaluation}/*/output/"):        
+
+            for eval_run in glob(f"{evaluation}/*/output/"):
                 try:
                     i = {'approach': job_identifier, 'dataset': job_definition['TIRA_DATASET_ID']}
                     i.update(self.__load_output(eval_run, evaluation=True))
@@ -128,7 +202,7 @@ class Client():
     def submissions(self, task, dataset):
         response = self.json_response(f'/api/submissions/{task}/{dataset}')['context']
         ret = []
-        
+
         for vm in response['vms']:
             for run in vm['runs']:
                 if 'review' in run:
@@ -171,13 +245,13 @@ class Client():
 
     def get_run_execution_or_none(self, approach, dataset, previous_stage_run_id=None):
         task, team, software = approach.split('/')
-        
+
         df_eval = self.evaluations(task=task, dataset=dataset)
 
         ret = df_eval[(df_eval['dataset'] == dataset) & (df_eval['software'] == software)]
         if len(ret) <= 0:
             return None
-        
+
         if team:
             ret = ret[ret['team'] == team]
 
@@ -191,13 +265,13 @@ class Client():
             return None
 
         return ret[['task', 'dataset', 'team', 'run_id']].iloc[0].to_dict()
-        
+
     def download_run(self, task, dataset, software, team=None, previous_stage=None, return_metadata=False):
         ret = self.get_run_execution_or_none(f'{task}/{team}/{software}', dataset, previous_stage)
         if not ret:
             raise ValueError(f'I could not find a run for the filter criteria task="{task}", dataset="{dataset}", software="{software}", team={team}, previous_stage={previous_stage}')
         run_id = ret['run_id']
-        
+
         ret = self.download_zip_to_cache_directory(**ret)
         ret = pd.read_csv(ret + '/run.txt', sep='\\s+', names=["query", "q0", "docid", "rank", "score", "system"])
         if return_metadata:
@@ -221,7 +295,7 @@ class Client():
                 r = requests.get(url, headers={"Api-Key": self.api_key})
                 z = zipfile.ZipFile(io.BytesIO(r.content))
                 z.extractall(target_dir)
-                
+
                 return
             except:
                 sleep_time = 1+int(random()*self.failsave_max_delay)

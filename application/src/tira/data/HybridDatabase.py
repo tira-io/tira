@@ -293,6 +293,7 @@ class HybridDatabase(object):
             "year": dataset.released,
             "task": dataset.default_task.task_id,
             'organizer': dataset.default_task.organizer.name,
+            'organizer_id': dataset.default_task.organizer.organizer_id,
             "software_count": modeldb.Software.objects.filter(dataset__dataset_id=dataset.dataset_id).count(),
             "runs_count": runs.count(),
             'evaluations_count': runs.filter(evaluator__isnull=False).count(),

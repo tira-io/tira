@@ -20,5 +20,5 @@ PyGithub
 ghapi
 parameterized
 mockito
-approvaltests
+approvaltests==7.3.0
 django-extensions
