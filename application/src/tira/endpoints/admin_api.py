@@ -402,7 +402,7 @@ def admin_add_organizer(request, organizer_id):
 
         if add_default_git_integrations:
             git_integrations = [model.model.get_git_integration(settings.DEFAULT_GIT_INTEGRATION_URL, '<OMMITTED>')]
-            model.edit_organizer(organizer_id, data["name"], data["years"], data["web"], data['gitUrlToNamespace'],
+            model.model.edit_organizer(organizer_id, data["name"], data["years"], data["web"], data['gitUrlToNamespace'],
                                  data['gitPrivateToken'], git_integrations=git_integrations)
 
 
