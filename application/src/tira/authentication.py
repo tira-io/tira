@@ -482,7 +482,8 @@ Best regards'''
                or (organizer_id_from_params and organizer_id_from_params in organizer_ids and path in set(f'/tira-admin/edit-organizer/{i}' for i in organizer_ids)) \
                or (organizer_id_from_run_id and organizer_id_from_run_id in organizer_ids and path.startswith(f'/task/{organizer_id_from_run_id}/vm/')) \
                or (organizer_id_from_run_id and organizer_id_from_run_id in organizer_ids and organizer_id_from_dataset_id and path == f'/api/review/{dataset_id_from_params}/{vm_id_from_params}/{run_id_from_params}') \
-               or (organizer_id_from_run_id and organizer_id_from_run_id in organizer_ids and organizer_id_from_dataset_id and path == f'/tira-admin/edit-review/{dataset_id_from_params}/{vm_id_from_params}/{run_id_from_params}')
+               or (organizer_id_from_run_id and organizer_id_from_run_id in organizer_ids and organizer_id_from_dataset_id and path == f'/tira-admin/edit-review/{dataset_id_from_params}/{vm_id_from_params}/{run_id_from_params}') \
+               or (organizer_id_from_dataset_id and organizer_id_from_dataset_id in organizer_ids and path == f'/tira-admin/edit-dataset/{dataset_id_from_params}')
 
 
 auth = Authentication(authentication_source=settings.DEPLOYMENT)

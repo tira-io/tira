@@ -208,11 +208,11 @@ const app = createApp({
                 let newest: unknown = Object.values(this.datasets).reduce(function(prev, curr) {
                         return newer((prev as object), (curr as object))
                     }
-                )
-                
+                , '')
+
                 if (window.location.toString().includes('#')) {
                     this.selected = window.location.toString().split('#')[1]
-                } else {
+                } else if (newest !== '') {
                     this.selected = (newest as object)['dataset_id']
                 }
             }

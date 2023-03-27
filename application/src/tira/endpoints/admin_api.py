@@ -288,6 +288,9 @@ def admin_edit_dataset(request, dataset_id):
                                 measures, upload_name, is_confidential, is_git_runner, git_runner_image,
                                 git_runner_command, git_repository_id)
 
+        from django.core.cache import cache
+        model.git_pipeline_is_enabled_for_task(task_id, cache, force_cache_refresh=True)
+
         return JsonResponse(
             {'status': 0, 'context': ds, 'message': f"Updated Dataset {ds['dataset_id']}."})
 
