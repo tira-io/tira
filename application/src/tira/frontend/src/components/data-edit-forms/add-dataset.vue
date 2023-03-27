@@ -97,7 +97,7 @@ export default {
           if (this.addDatasetError !== '') {
               return
           }
-          this.submitPost('/tira-admin/add-dataset', {
+          this.submitPost('/tira-admin/add-dataset/' + this.selectedTask.task_id, {
               'dataset_id': this.datasetId,
               'name': this.datasetNameInput,
               'task': this.selectedTask.task_id,

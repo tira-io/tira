@@ -178,7 +178,7 @@ def admin_delete_task(request, task_id):
 
 
 @check_permissions
-def admin_add_dataset(request):
+def admin_add_dataset(request, task_id):
     """ Create an entry in the model for the task. Use data supplied by a model.
      Return a json status message. """
     if request.method == "POST":
@@ -189,7 +189,11 @@ def admin_add_dataset(request):
 
         dataset_id_prefix = data["dataset_id"]
         dataset_name = data["name"]
-        task_id = data["task"]
+        task_id_from_data = data["task"]
+
+        if task_id_from_data != task_id:
+            from django.http import HttpResponseNotAllowed
+            return HttpResponseNotAllowed(f"Access forbidden.")
 
         upload_name = data.get("upload_name", "predictions.jsonl")
         command = data.get("evaluator_command", "")
