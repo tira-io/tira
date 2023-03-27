@@ -1,5 +1,5 @@
 <template>
-  <div v-if="edit">
+  <div v-if="'' + edit === 'true'">
   <div class="uk-grid-small uk-margin-small" uk-grid>
       <div class="uk-margin-right">
           <h2>Edit Organization <span class="uk-text-lead uk-text-muted">ID: {{ this.selectedOrganizer.organizer_id }}</span></h2>
@@ -45,7 +45,7 @@
       </div>
   </div>
   </div>
-  <div v-if="add">
+  <div v-if="'' + add === 'true'">
   <div class="uk-margin-small">
       <div class="uk-margin-right">
           <h2>Add Organization <span class="uk-text-lead uk-text-muted">ID: {{ this.newOrgId }}</span></h2>

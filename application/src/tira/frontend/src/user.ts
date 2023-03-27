@@ -309,7 +309,7 @@ const app = createApp({
             this.role = message.role
             let pageUrlSplits = window.location.pathname.split("/")
 
-            if(message.organizer_teams.contains(pageUrlSplits.at(-3))) {
+            if(message.organizer_teams.includes(pageUrlSplits.at(-3))) {
                 this.role = 'admin'
             }
 
