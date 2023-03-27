@@ -142,7 +142,7 @@ def admin_edit_task(request, task_id):
         data = json.loads(request.body)
         organizer = data["organizer"]
         featured = data["featured"]
-        master_vm_id = data["master_vm_id"]
+        master_vm_id = data.get("master_vm_id", 'princess-knight') # default dummy vm
         require_registration = data['require_registration']
         require_groups = data['require_groups']
         restrict_groups = data['restrict_groups']
