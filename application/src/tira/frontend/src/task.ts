@@ -32,6 +32,7 @@ const app = createApp({
             userVmsForTask: [],
             taskName: "",
             organizerName: "",
+            organizerId: "",
             website: "",
             taskDescription: "",
             datasets: {},
@@ -40,6 +41,7 @@ const app = createApp({
             role: '',
             evaluations: {},
             vms: {},
+            organizationTeams: [],
             notifications: [],
             remainingTeamNames: [],
             loading: false,
@@ -169,11 +171,15 @@ const app = createApp({
             this.userVmsForTask = message.context.user_vms_for_task
             this.taskName = message.context.task.task_name
             this.organizerName = message.context.task.organizer
+            this.organizerId = message.context.task.organizer_id
             this.website = message.context.task.web
             this.taskDescription = message.context.task.task_description
             this.requireRegistration = message.context.task.require_registration
             this.userIsRegistered = message.context.user_is_registered
             this.remainingTeamNames = message.context.remaining_team_names
+            if(this.organizationTeams.includes(this.organizerId)) {
+                this.role = 'admin'
+            }
             console.log('user ', this.userId, ' is registered ( ', this.userIsRegistered, ' ). The task requires registration ( ', this.requireRegistration, ' ) and has vms: ', this.userVmsForTask)
         }).catch(error => {
             this.addNotification('error', error)
@@ -217,8 +223,9 @@ const app = createApp({
         
         this.get('/api/role').then(message => {
             this.role = message.role
+            this.organizationTeams = message.organizer_teams
             
-            if(message.organizer_teams.includes(this.organizerName)) {
+            if(this.organizationTeams.includes(this.organizerId)) {
                 this.role = 'admin'
             }
         }).catch(error => {
