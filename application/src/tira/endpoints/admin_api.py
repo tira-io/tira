@@ -110,6 +110,7 @@ def admin_create_task(request, organizer_id):
         task_id = data["task_id"]
         featured = data["featured"]
         master_vm_id = data.get("master_vm_id", 'princess-knight') # dummy default VM
+        master_vm_id = master_vm_id if master_vm_id else 'princess-knight' # default dummy vm
         require_registration = data['require_registration']
         require_groups = data['require_groups']
         restrict_groups = data['restrict_groups']
@@ -143,6 +144,7 @@ def admin_edit_task(request, task_id):
         organizer = data["organizer"]
         featured = data["featured"]
         master_vm_id = data.get("master_vm_id", 'princess-knight') # default dummy vm
+        master_vm_id = master_vm_id if master_vm_id else 'princess-knight' # default dummy vm
         require_registration = data['require_registration']
         require_groups = data['require_groups']
         restrict_groups = data['restrict_groups']
