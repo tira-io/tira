@@ -195,25 +195,10 @@ const app = createApp({
                     this.getSubmissions(this.selected)
                 }
             } else {
-                function newer(a: object, b: object): object {
-                    const aSplits = a['created'].split("-")
-                    const bSplits = b['created'].split("-")
-                    if (parseInt(aSplits[0]) > parseInt(bSplits[0]) ||
-                        (parseInt(aSplits[0]) === parseInt(bSplits[0]) && parseInt(aSplits[1]) > parseInt(bSplits[1])) ||
-                        (parseInt(aSplits[0]) === parseInt(bSplits[0]) && parseInt(aSplits[1]) === parseInt(bSplits[1]) && parseInt(aSplits[2]) > parseInt(bSplits[2]))) {
-                        return a
-                    }
-                    return b
-                }
-                let newest: unknown = Object.values(this.datasets).reduce(function(prev, curr) {
-                        return newer((prev as object), (curr as object))
-                    }
-                , '')
-
                 if (window.location.toString().includes('#')) {
                     this.selected = window.location.toString().split('#')[1]
-                } else if (newest !== '') {
-                    this.selected = (newest as object)['dataset_id']
+                } else if (Object.values(this.datasets).length > 0) {
+                    this.selected = (Object.values(this.datasets)[0] as object)['dataset_id']
                 }
             }
         }).catch(error => {
