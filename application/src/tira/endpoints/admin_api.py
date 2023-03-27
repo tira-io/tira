@@ -387,14 +387,17 @@ def admin_delete_dataset(request, dataset_id):
 def admin_add_organizer(request, organizer_id):
     if request.method == "POST":
         data = json.loads(request.body)
+        git_integrations = []
 
         if data['gitUrlToNamespace']:
             git_integration_is_valid, error_message = check_that_git_integration_is_valid(data['gitUrlToNamespace'], data['gitPrivateToken'])
             
             if not git_integration_is_valid:
                 return JsonResponse({'status': 1, 'message': error_message})
-
-        model.edit_organizer(organizer_id, data["name"], data["years"], data["web"], data['gitUrlToNamespace'], data['gitPrivateToken'])
+        else:
+            git_integrations = [model.get_git_integration(settings.DEFAULT_GIT_INTEGRATION_URL)]
+        model.edit_organizer(organizer_id, data["name"], data["years"], data["web"], data['gitUrlToNamespace'],
+                             data['gitPrivateToken'], git_integrations=git_integrations)
         auth.create_organizer_group(organizer_id, auth.get_user_id(request))
         return JsonResponse({'status': 0, 'message': f"Added Organizer {organizer_id}"})
 

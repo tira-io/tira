@@ -248,6 +248,8 @@ GIT_CI_AVAILABLE_RESOURCES = {
     'irds-data-mounted': {'cores': 1, 'ram': 10, 'gpu': '0', 'data': 'irds', 'description': 'Small (1 CPU Cores, 10GB of RAM, IRDS)', 'key': 'irds-data-mounted'},
 }
 
+DEFAULT_GIT_INTEGRATION_URL = 'https://git.webis.de/code-research/tira'
+
 IR_MEASURES_IMAGE = custom_settings.get('IR_MEASURES_IMAGE', 'webis/tira-ir-measures-evaluator:0.0.1')
 IR_MEASURES_COMMAND = custom_settings.get('IR_MEASURES_COMMAND', 'echo "hello world"')
 
