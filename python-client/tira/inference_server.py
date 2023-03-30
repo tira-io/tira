@@ -119,13 +119,13 @@ class InferenceServer(BaseHTTPRequestHandler):
 ####################################
 
 
-def run_inference_server(base_module: str, internal_port: int = 8001, loglevel: str = 'INFO'):
+def run_inference_server(base_module: str, absolute_path: str = None, internal_port: int = 8001, loglevel: str = 'INFO'):
     # logging
     log_filename = 'inference_server_' + datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.log'
     _setup_logging(log_filename=log_filename, loglevel=loglevel)
 
     # load module and import predict function
-    predict = _load_predict_from_imported_module(module_name=base_module)
+    predict = _load_predict_from_imported_module(module_name=base_module, absolute_path=absolute_path)
     if predict is None:
         sys.exit(f'unable to import predict predict function. See log file for details.')
     _set_predict_function(predict=predict)
@@ -170,10 +170,7 @@ def _setup_logging(log_filename: str, loglevel: str = 'INFO'):
     )
 
 
-def _load_predict_from_imported_module(module_name: str) -> Union[Callable, None]:
-    file_name = module_name + '.py'
-    absolute_path = os.path.abspath(file_name)
-
+def _load_predict_from_imported_module(module_name: str, absolute_path: str = None) -> Union[Callable, None]:
     if module_name in sys.modules:
         logging.warning(f"{module_name!r} already in sys.modules")
         module = importlib.import_module(module_name)
@@ -182,15 +179,20 @@ def _load_predict_from_imported_module(module_name: str) -> Union[Callable, None
         except AttributeError:
             logging.error(f"No function 'predict' found in {module_name!r}")
             return None
-    elif (spec := importlib.util.spec_from_file_location(module_name, absolute_path)) is not None:
-        module = importlib.util.module_from_spec(spec)
-        sys.modules[module_name] = module
-        spec.loader.exec_module(module)
-        logging.info(f"{module_name!r} has been imported")
-        try:
-            predict = getattr(module, 'predict')
-        except AttributeError:
-            logging.error(f"No function 'predict' found in {module_name!r}")
+    elif absolute_path is not None:
+        spec = importlib.util.spec_from_file_location(module_name, absolute_path)
+        if spec is not None:
+            module = importlib.util.module_from_spec(spec)
+            sys.modules[module_name] = module
+            spec.loader.exec_module(module)
+            logging.info(f"{module_name!r} has been imported")
+            try:
+                predict = getattr(module, 'predict')
+            except AttributeError:
+                logging.error(f"No function 'predict' found in {module_name!r}")
+                return None
+        else:
+            logging.error(f"can't find the {module_name!r} module")
             return None
     else:
         logging.error(f"can't find the {module_name!r} module")

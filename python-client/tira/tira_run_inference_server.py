@@ -39,9 +39,10 @@ def main():
     else:
         module_name = args.script
 
+    absolute_path = os.path.splitext(os.path.abspath(module_name))[0] + '.py'
     module_name = os.path.splitext(module_name)[0].replace('/', '.')
 
     # flag execution for running as inference server (see third_party_integrations.is_running_as_inference_server)
     os.environ['TIRA_INFERENCE_SERVER'] = 'True'
 
-    run_inference_server(base_module=module_name, internal_port=args.port, loglevel=args.log)
+    run_inference_server(base_module=module_name, absolute_path=absolute_path, internal_port=args.port, loglevel=args.log)
