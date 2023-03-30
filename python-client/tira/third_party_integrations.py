@@ -52,6 +52,10 @@ def get_input_directory_and_output_directory(default_input):
     return (input_directory, output_directory)
 
 
+def is_running_as_inference_server():
+    return os.environ.get('TIRA_INFERENCE_SERVER', None) is not None
+
+
 def all_lines_to_pandas(input_file, load_default_text):
     import pandas as pd
     ret = []
