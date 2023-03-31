@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 from datetime import datetime
 import importlib.util
 import json
@@ -119,13 +120,14 @@ class InferenceServer(BaseHTTPRequestHandler):
 ####################################
 
 
-def run_inference_server(base_module: str, absolute_path: str = None, internal_port: int = 8001, loglevel: str = 'INFO'):
+def run_inference_server(base_module: str, absolute_path: str, internal_port: int = 8001, loglevel: str = 'INFO'):
     # logging
     log_filename = 'inference_server_' + datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.log'
     _setup_logging(log_filename=log_filename, loglevel=loglevel)
 
     # load module and import predict function
-    predict = _load_predict_from_imported_module(module_name=base_module, absolute_path=absolute_path)
+    with add_to_path(os.path.dirname(absolute_path)):
+        predict = _load_predict_from_imported_module(module_name=base_module, absolute_path=absolute_path)
     if predict is None:
         sys.exit(f'unable to import predict predict function. See log file for details.')
     _set_predict_function(predict=predict)
@@ -199,3 +201,15 @@ def _load_predict_from_imported_module(module_name: str, absolute_path: str = No
         return None
 
     return predict
+
+
+@contextmanager
+def add_to_path(p):
+    import sys
+    old_path = sys.path
+    sys.path = sys.path[:]
+    sys.path.insert(0, p)
+    try:
+        yield
+    finally:
+        sys.path = old_path
