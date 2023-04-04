@@ -12,7 +12,9 @@ RUN pip3 install -e /tira-python-client
 # Install custom requirements HERE
 
 COPY template-notebook.ipynb /workspace/
+COPY template-notebook-no-tira.ipynb /workspace/
 
 ENV PYTHONPATH=/workspace
 
-RUN jupyter trust /workspace/template-notebook.ipynb
+RUN jupyter trust /workspace/template-notebook.ipynb \
+  jupyter trust /workspace/template-notebook-no-tira.ipynb

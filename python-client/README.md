@@ -4,20 +4,20 @@
 
 
 ```bash
-docker build -t webis/tira-test-image:1.0.0 -f Dockerfile .
+docker build -t tira/submission-base-image:1.0.0 -f Dockerfile .
 ```
 Testing the model locally can be done using the following command:
 ```bash
 tira-run \
   --input-directory ${PWD}/input \
   --output-directory ${PWD}/output \
-  --image webis/tira-test-image:1.0.0 \
+  --image tira/submission-base-image:1.0.0 \
   --command 'tira-run-notebook --input $inputDataset --output $outputDir /workspace/template-notebook.ipynb'
 ```
 ---
 Afterwards you can push the image to TIRA
 ```bash
-docker push webis/tira-test-image:1.0.0
+docker push tira/submission-base-image:1.0.0
 ```
 and set the command:
 ```bash
@@ -38,7 +38,7 @@ PORT=8001
 docker run --rm -it --init \
   -v "$PWD/logs:/workspace/logs" \
   -p $PORT:$PORT \
-  webis/tira-test-image:1.0.0 \
+  tira/submission-base-image:1.0.0 \
   tira-run-inference-server --notebook /workspace/template-notebook.ipynb --port $PORT
 ```
 
