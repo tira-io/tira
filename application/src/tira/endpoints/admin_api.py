@@ -14,6 +14,9 @@ from datetime import datetime as dt
 from tira.git_runner import check_that_git_integration_is_valid
 
 import tira.tira_model as model
+import os
+import tempfile
+import zipfile
 
 logger = logging.getLogger("tira")
 logger.info("ajax_routes: Logger active")
@@ -463,3 +466,52 @@ def admin_edit_review(request, dataset_id, vm_id, run_id):
         return JsonResponse({'status': 0, 'message': f"Updated review for run {run_id}"})
 
     return JsonResponse({'status': 1, 'message': f"GET is not implemented for edit organizer"})
+
+
+@check_permissions
+def admin_upload_dataset(request, task_id, dataset_id, dataset_type):
+    if request.method != 'POST':
+        return JsonResponse({"status": 1, "message": "GET is not allowed here."})
+
+    if not dataset_id or dataset_id is None or dataset_id == 'None':
+        return JsonResponse({"status": 1, "message": "Please specify the associated dataset."})
+
+    if not dataset_type in ['participant-input', 'ground-truth']:
+        return JsonResponse({"status": 1, "message": f"Invalid dataset_type. Expected 'participant-input' or 'ground-truth', but got: '{dataset_type}'"})
+
+    dataset_suffix = '' if dataset_type == 'participant-input' else '-truth'
+
+    uploaded_file = request.FILES['file']
+
+    if not uploaded_file.name.endswith(".zip"):
+        return JsonResponse({"status": 1, "message": f"Invalid Upload. I expect a zip file, but got '{uploaded_file.name}'."})
+
+    dataset = model.get_dataset(dataset_id)
+
+    if not 'dataset_id' in dataset or dataset_id != dataset['dataset_id']:
+        return JsonResponse({"status": 1, "message": f"Unknown dataset_id."})
+
+    if dataset_id.endswith('-test'):
+        dataset_prefix = 'test-'
+    elif dataset_id.endswith('-training'):
+        dataset_prefix = 'training-'
+    else:
+        return JsonResponse({"status": 1, "message": f"Unknown dataset_id."})
+
+    target_directory = model.data_path / (dataset_prefix + 'datasets' + dataset_suffix) / task_id / dataset_id
+
+    if not os.path.exists(target_directory):
+        return JsonResponse({"status": 1, "message": f"Dataset directory 'target_directory' does not exist."})
+
+    if len(os.listdir(target_directory)) > 0:
+        return JsonResponse({"status": 1, "message": f"There is already some dataset uploaded. We prevent to overwrite data. Please create a new dataset (i.e., a new version) if you want to update the dataset. Please reach out to us if creating a new dataset would not solve your problem."})
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        with open(tmp_dir + '/tmp.zip', 'wb+') as fp_destination:
+            for chunk in uploaded_file.chunks():
+                fp_destination.write(chunk)
+
+        with zipfile.ZipFile(tmp_dir + '/tmp.zip', 'r') as zip_ref:
+            zip_ref.extractall(target_directory)
+
+        return JsonResponse({"status": 0, "message": "Uploaded files '{os.listdir(target_directory)}' to '{target_directory}'."})
