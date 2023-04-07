@@ -184,7 +184,7 @@ export default {
     },
     components: { DeleteConfirm },
     emits: ['addnotification', 'closemodal', 'deletedataset', 'editdataset'],
-    props: ['csrf', 'dataset_id'],
+    props: ['csrf', 'dataset_id', 'task_id'],
     methods: {
         async get(url) {
             const response = await fetch(url)
@@ -299,6 +299,19 @@ export default {
         },
         async fileUpload(fp) {  // async
             console.log(this.uploading, this.fileHandle[fp])
+            
+            if(this.fileHandle[fp] === null) {
+                this.uploadFormError[fp] = 'Please select a zip file.'
+                this.uploading = false
+                return
+            }
+            
+            if(!this.fileHandle[fp].endsWith('.zip')) {
+                this.uploadFormError[fp] = 'Please select a zip file.'
+                this.uploading = false
+                return
+            }
+            
             this.uploading = true
             
             let formData = new FormData();
@@ -314,7 +327,7 @@ export default {
             if (!response.ok) {
                 this.$emit('addNotification', 'error', `Uploading failed with status ${response.status}: ${await response.text()}`)
             } else if (r.status === 1){
-                this.uploadFormError = 'Error: ' + r.message
+                this.uploadFormError[fp] = 'Error: ' + r.message
             } else {
                 this.uploadFormError[fp] = ''
                 this.fileHandle[fp] = null
