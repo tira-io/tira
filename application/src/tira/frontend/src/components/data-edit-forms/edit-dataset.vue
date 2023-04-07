@@ -96,6 +96,68 @@
         </div>
     </div>
 </div>
+
+<div class="uk-card uk-card-body uk-card-default uk-card-small">
+<form class="upload_form">
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf }}">
+    <div class="uk-grid-medium" uk-grid>
+        <div class="uk-width-1-2">
+            <label class="uk-form-label" for="uploadinputform">Upload Input for Systems (.zip file)</label>
+            <div class="uk-form-controls uk-width-expand" uk-form-custom="target: true">
+                <input type="file" @change="saveFileRef('input')" ref="inputfile">
+                <input class="uk-input" id="uploadinputform" type="text" placeholder="Click to select zip file" disabled>
+            </div>
+        </div>
+        <div class="upload-form-buttons uk-width-expand">
+            <label class="uk-form-label" for="upload-button">&nbsp;</label>
+            <div>
+                <a id="upload-button" class="uk-button uk-width-expand"
+                   :class="{ 'uk-button-default': (uploading || fileHandle['input'] === null),
+                   'uk-button-primary': !(uploading || fileHandle['input'] === null}"
+                   :disabled="uploading || fileHandle['input'] === null"
+                   @click="fileUpload('input')">
+                  upload
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="uk-grid-collapse uk-margin-remove" uk-grid>
+        <div class="uk-text-danger uk-width-expand">{{ uploadFormError['input'] }}</div>
+    </div>
+</form>
+</div>
+
+<div class="uk-card uk-card-body uk-card-default uk-card-small">
+<form class="upload_form">
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf }}">
+    <div class="uk-grid-medium" uk-grid>
+        <div class="uk-width-1-2">
+            <label class="uk-form-label" for="uploadtruthform">Upload Ground Truth for Evaluations (.zip file)</label>
+            <div class="uk-form-controls uk-width-expand" uk-form-custom="target: true">
+                <input type="file" @change="saveFileRef('truth')" ref="truthfile">
+                <input class="uk-input" id="uploadtruthform" type="text" placeholder="Click to select zip file" disabled>
+            </div>
+        </div>
+        <div class="upload-form-buttons uk-width-expand">
+            <label class="uk-form-label" for="upload-button">&nbsp;</label>
+            <div>
+                <a id="upload-button" class="uk-button uk-width-expand"
+                   :class="{ 'uk-button-default': (uploading || fileHandle['truth'] === null),
+                   'uk-button-primary': !(uploading || fileHandle['truth'] === null}"
+                   :disabled="uploading || fileHandle['truth'] === null"
+                   @click="fileUpload('truth')">
+                  upload
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="uk-grid-collapse uk-margin-remove" uk-grid>
+        <div class="uk-text-danger uk-width-expand">{{ uploadFormError['truth'] }}</div>
+    </div>
+</form>
+</div>
+</div>
+
 </template>
 <script charset="utf-8">
 import DeleteConfirm from "../elements/delete-confirm";
@@ -116,6 +178,8 @@ export default {
             gitRepositoryId: '',
             useExistingRepo: false,
             taskList: [],
+            uploadFormError: {'truth': '', 'input': ''},
+            fileHandle: {'truth': null, 'input': null},
         }
     },
     components: { DeleteConfirm },
@@ -232,7 +296,14 @@ export default {
             }).catch(error => {
                 this.$emit('addnotification', 'error', `Error loading task list: ${error}`)
             })
+        },
+        async fileUpload(fp) {  // async
+            console.log(this.uploading, this.fileHandle[fp])
+            this.uploading = true
         }
+        saveFileRef(fp) {
+            this.fileHandle[fp] = this.$refs[fp].files[0];
+        },
     },
     watch: {
         evaluatorWorkingDirectory(newName, oldName) {
