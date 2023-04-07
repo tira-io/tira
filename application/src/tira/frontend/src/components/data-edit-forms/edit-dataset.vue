@@ -113,7 +113,7 @@
             <div>
                 <a id="upload-button" class="uk-button uk-width-expand"
                    :class="{ 'uk-button-default': (uploading || fileHandle['input'] === null),
-                   'uk-button-primary': !(uploading || fileHandle['input'] === null}"
+                   'uk-button-primary': !(uploading || fileHandle['input'] === null)}"
                    :disabled="uploading || fileHandle['input'] === null"
                    @click="fileUpload('input')">
                   upload
@@ -143,7 +143,7 @@
             <div>
                 <a id="upload-button" class="uk-button uk-width-expand"
                    :class="{ 'uk-button-default': (uploading || fileHandle['truth'] === null),
-                   'uk-button-primary': !(uploading || fileHandle['truth'] === null}"
+                   'uk-button-primary': !(uploading || fileHandle['truth'] === null)}"
                    :disabled="uploading || fileHandle['truth'] === null"
                    @click="fileUpload('truth')">
                   upload
@@ -155,7 +155,6 @@
         <div class="uk-text-danger uk-width-expand">{{ uploadFormError['truth'] }}</div>
     </div>
 </form>
-</div>
 </div>
 
 </template>
@@ -180,6 +179,7 @@ export default {
             taskList: [],
             uploadFormError: {'truth': '', 'input': ''},
             fileHandle: {'truth': null, 'input': null},
+            uploading: false,
         }
     },
     components: { DeleteConfirm },
@@ -300,7 +300,7 @@ export default {
         async fileUpload(fp) {  // async
             console.log(this.uploading, this.fileHandle[fp])
             this.uploading = true
-        }
+        },
         saveFileRef(fp) {
             this.fileHandle[fp] = this.$refs[fp].files[0];
         },
