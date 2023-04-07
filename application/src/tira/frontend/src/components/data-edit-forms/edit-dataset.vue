@@ -331,6 +331,7 @@ export default {
             } else {
                 this.uploadFormError[fp] = ''
                 this.fileHandle[fp] = null
+                this.$emit('addNotification', 'success', r.message)
             }
             
             this.$refs[fp].value = null 

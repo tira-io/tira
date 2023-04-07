@@ -514,4 +514,4 @@ def admin_upload_dataset(request, task_id, dataset_id, dataset_type):
         with zipfile.ZipFile(tmp_dir + '/tmp.zip', 'r') as zip_ref:
             zip_ref.extractall(target_directory)
 
-        return JsonResponse({"status": 0, "message": "Uploaded files '{os.listdir(target_directory)}' to '{target_directory}'."})
+        return JsonResponse({"status": 0, "message": f"Uploaded files '{os.listdir(target_directory)}' to '{target_directory}'."})
