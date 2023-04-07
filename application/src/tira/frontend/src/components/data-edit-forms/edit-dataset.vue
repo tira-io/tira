@@ -325,13 +325,13 @@ export default {
 
             let r = await response.json()
             if (!response.ok) {
-                this.$emit('addNotification', 'error', `Uploading failed with status ${response.status}: ${await response.text()}`)
+                this.$emit('addnotification', 'error', `Uploading failed with status ${response.status}: ${await response.text()}`)
             } else if (r.status === 1){
                 this.uploadFormError[fp] = 'Error: ' + r.message
             } else {
                 this.uploadFormError[fp] = ''
                 this.fileHandle[fp] = null
-                this.$emit('addNotification', 'success', r.message)
+                this.$emit('addnotification', 'success', r.message)
             }
             
             this.$refs[fp].value = null 
