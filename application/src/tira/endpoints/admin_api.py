@@ -498,7 +498,7 @@ def admin_upload_dataset(request, task_id, dataset_id, dataset_type):
     else:
         return JsonResponse({"status": 1, "message": f"Unknown dataset_id."})
 
-    target_directory = model.data_path / (dataset_prefix + 'datasets' + dataset_suffix) / task_id / dataset_id
+    target_directory = model.model.data_path / (dataset_prefix + 'datasets' + dataset_suffix) / task_id / dataset_id
 
     if not os.path.exists(target_directory):
         return JsonResponse({"status": 1, "message": f"Dataset directory 'target_directory' does not exist."})
