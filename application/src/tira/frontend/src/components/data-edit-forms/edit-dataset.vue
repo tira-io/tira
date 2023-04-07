@@ -96,6 +96,67 @@
         </div>
     </div>
 </div>
+
+<div class="uk-card uk-card-body uk-card-default uk-card-small">
+<form class="upload_form">
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf }}">
+    <div class="uk-grid-medium" uk-grid>
+        <div class="uk-width-1-2">
+            <label class="uk-form-label" for="uploadinputform">Upload Input for Systems (.zip file)</label>
+            <div class="uk-form-controls uk-width-expand" uk-form-custom="target: true">
+                <input type="file" @change="saveFileRef('input')" ref="input">
+                <input class="uk-input" id="uploadinputform" type="text" placeholder="Click to select zip file" disabled>
+            </div>
+        </div>
+        <div class="upload-form-buttons uk-width-expand">
+            <label class="uk-form-label" for="upload-button">&nbsp;</label>
+            <div>
+                <a id="upload-button" class="uk-button uk-width-expand"
+                   :class="{ 'uk-button-default': (uploading || fileHandle['input'] === null),
+                   'uk-button-primary': !(uploading || fileHandle['input'] === null)}"
+                   :disabled="uploading || fileHandle['input'] === null"
+                   @click="fileUpload('input')">
+                  upload
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="uk-grid-collapse uk-margin-remove" uk-grid>
+        <div class="uk-text-danger uk-width-expand">{{ uploadFormError['input'] }}</div>
+    </div>
+</form>
+</div>
+
+<div class="uk-card uk-card-body uk-card-default uk-card-small">
+<form class="upload_form">
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf }}">
+    <div class="uk-grid-medium" uk-grid>
+        <div class="uk-width-1-2">
+            <label class="uk-form-label" for="uploadtruthform">Upload Ground Truth for Evaluations (.zip file)</label>
+            <div class="uk-form-controls uk-width-expand" uk-form-custom="target: true">
+                <input type="file" @change="saveFileRef('truth')" ref="truth">
+                <input class="uk-input" id="uploadtruthform" type="text" placeholder="Click to select zip file" disabled>
+            </div>
+        </div>
+        <div class="upload-form-buttons uk-width-expand">
+            <label class="uk-form-label" for="upload-button">&nbsp;</label>
+            <div>
+                <a id="upload-button" class="uk-button uk-width-expand"
+                   :class="{ 'uk-button-default': (uploading || fileHandle['truth'] === null),
+                   'uk-button-primary': !(uploading || fileHandle['truth'] === null)}"
+                   :disabled="uploading || fileHandle['truth'] === null"
+                   @click="fileUpload('truth')">
+                  upload
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="uk-grid-collapse uk-margin-remove" uk-grid>
+        <div class="uk-text-danger uk-width-expand">{{ uploadFormError['truth'] }}</div>
+    </div>
+</form>
+</div>
+
 </template>
 <script charset="utf-8">
 import DeleteConfirm from "../elements/delete-confirm";
@@ -116,11 +177,14 @@ export default {
             gitRepositoryId: '',
             useExistingRepo: false,
             taskList: [],
+            uploadFormError: {'truth': '', 'input': ''},
+            fileHandle: {'truth': null, 'input': null},
+            uploading: false,
         }
     },
     components: { DeleteConfirm },
     emits: ['addnotification', 'closemodal', 'deletedataset', 'editdataset'],
-    props: ['csrf', 'dataset_id'],
+    props: ['csrf', 'dataset_id', 'task_id'],
     methods: {
         async get(url) {
             const response = await fetch(url)
@@ -232,7 +296,51 @@ export default {
             }).catch(error => {
                 this.$emit('addnotification', 'error', `Error loading task list: ${error}`)
             })
-        }
+        },
+        async fileUpload(fp) {  // async
+            console.log(this.uploading, this.fileHandle[fp])
+            
+            if(this.fileHandle[fp] === null) {
+                this.uploadFormError[fp] = 'Please select a zip file.'
+                this.uploading = false
+                return
+            }
+            
+            if(!this.fileHandle[fp].name.endsWith('.zip')) {
+                this.uploadFormError[fp] = 'Please select a zip file.'
+                this.uploading = false
+                return
+            }
+            
+            this.uploading = true
+            
+            let formData = new FormData();
+            const headers = new Headers({'X-CSRFToken': this.csrf})
+            formData.append("file", this.fileHandle[fp]);
+            const response = await fetch(`/tira-admin/upload-dataset/${this.task_id}/${this.dataset_id}/${fp}`, {
+              method: "POST",
+              headers,
+              body: formData
+            });
+
+            let r = await response.json()
+            if (!response.ok) {
+                this.$emit('addnotification', 'error', `Uploading failed with status ${response.status}: ${await response.text()}`)
+            } else if (r.status === 1){
+                this.uploadFormError[fp] = 'Error: ' + r.message
+            } else {
+                this.uploadFormError[fp] = ''
+                this.fileHandle[fp] = null
+                this.$emit('addnotification', 'success', r.message)
+            }
+            
+            this.$refs[fp].value = null 
+            this.uploading = false
+        },
+        saveFileRef(fp) {
+            this.fileHandle[fp] = this.$refs[fp].files[0];
+            this.uploadFormError[fp] = '';
+        },
     },
     watch: {
         evaluatorWorkingDirectory(newName, oldName) {

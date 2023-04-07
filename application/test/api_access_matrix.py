@@ -861,13 +861,35 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
-        url_pattern='tira-admin/add-dataset',
-        params={},
+        url_pattern='tira-admin/add-dataset/<str:task_id>',
+        params={'task_id': 'task-does-not-exist'},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 405,
             PARTICIPANT: 405,
             ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
+        },
+    ),
+    route_to_test(
+        url_pattern='tira-admin/add-dataset/<str:task_id>',
+        params={'task_id': 'shared-task-1'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
+        },
+    ),
+    route_to_test(
+        url_pattern='tira-admin/add-dataset/<str:task_id>',
+        params={'task_id': 'task-of-organizer-1'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER: 200,
             ORGANIZER_WRONG_TASK: 405,
         },
     ),
@@ -883,8 +905,52 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
+        url_pattern='tira-admin/upload-dataset/<str:task_id>/<str:dataset_id>/<str:dataset_type>',
+        params={'task_id': 'task-does-not-exist', 'dataset_id': 'does-not-exist', 'dataset_type': 'participant-input'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
+        },
+    ),
+    route_to_test(
+        url_pattern='tira-admin/upload-dataset/<str:task_id>/<str:dataset_id>/<str:dataset_type>',
+        params={'task_id': 'task-of-organizer-1', 'dataset_id': 'does-not-exist', 'dataset_type': 'participant-input'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 405,
+        },
+    ),
+    route_to_test(
         url_pattern='tira-admin/edit-dataset/<str:dataset_id>',
         params={'dataset_id': 'does-not-exist'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
+        },
+    ),
+    route_to_test(
+        url_pattern='tira-admin/edit-dataset/<str:dataset_id>',
+        params={'dataset_id': f'dataset-of-organizer-{now}-training'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 405,
+        },
+    ),
+    route_to_test(
+        url_pattern='tira-admin/edit-dataset/<str:dataset_id>',
+        params={'dataset_id': f'dataset-1-{now}-training'},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 405,
@@ -909,8 +975,8 @@ API_ACCESS_MATRIX = [
         params={'organizer_id': 'organizer-2'},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 405,
-            PARTICIPANT: 405,
+            GUEST: 405, # We expect 405 for existing organizer 'organizer-2'
+            PARTICIPANT: 405, # We expect 405 for existing organizer 'organizer-2'
             ORGANIZER: 405, # We expect 405 for existing organizer 'organizer-2'
             ORGANIZER_WRONG_TASK: 405, # We expect 405 for existing 'organizer-2'
         },
@@ -920,9 +986,10 @@ API_ACCESS_MATRIX = [
         params={'organizer_id': 'organizer-id-does-not-exist'},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 405,
-            PARTICIPANT: 405,
+            GUEST: 200,
+            PARTICIPANT: 200, # We expect 200 for non-existing organizer.
             ORGANIZER: 200, # We expect 200 for non-existing organizer.
+            ORGANIZER_WRONG_TASK: 200, # We expect 200 for non-existing organizer.
         },
     ),
     route_to_test(
@@ -1110,8 +1177,8 @@ API_ACCESS_MATRIX = [
         params={},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 405,
-            PARTICIPANT: 405,
+            GUEST: 200,
+            PARTICIPANT: 200,
             ORGANIZER: 200,
             ORGANIZER_WRONG_TASK: 200,
         },
