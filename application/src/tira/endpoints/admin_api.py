@@ -476,10 +476,10 @@ def admin_upload_dataset(request, task_id, dataset_id, dataset_type):
     if not dataset_id or dataset_id is None or dataset_id == 'None':
         return JsonResponse({"status": 1, "message": "Please specify the associated dataset."})
 
-    if not dataset_type in ['participant-input', 'ground-truth']:
-        return JsonResponse({"status": 1, "message": f"Invalid dataset_type. Expected 'participant-input' or 'ground-truth', but got: '{dataset_type}'"})
+    if not dataset_type in ['input', 'truth']:
+        return JsonResponse({"status": 1, "message": f"Invalid dataset_type. Expected 'input' or 'truth', but got: '{dataset_type}'"})
 
-    dataset_suffix = '' if dataset_type == 'participant-input' else '-truth'
+    dataset_suffix = '' if dataset_type == 'input' else '-truth'
 
     uploaded_file = request.FILES['file']
 

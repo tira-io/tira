@@ -116,6 +116,7 @@
         <div class="uk-container uk-margin-medium" v-if="role == 'admin' && editDatasetToggle">
         <edit-dataset :csrf="csrf"
                       :dataset_id="selected"
+                      :task_id="task_id"
                       @addNotification="(type, message) => addNotification(type, message)"
                       @deleteDataset="(dsId) => deleteDataset(dsId)"
                       @editDataset="(dataset) => addDataset(dataset)"

@@ -104,7 +104,7 @@
         <div class="uk-width-1-2">
             <label class="uk-form-label" for="uploadinputform">Upload Input for Systems (.zip file)</label>
             <div class="uk-form-controls uk-width-expand" uk-form-custom="target: true">
-                <input type="file" @change="saveFileRef('input')" ref="inputfile">
+                <input type="file" @change="saveFileRef('input')" ref="input">
                 <input class="uk-input" id="uploadinputform" type="text" placeholder="Click to select zip file" disabled>
             </div>
         </div>
@@ -134,7 +134,7 @@
         <div class="uk-width-1-2">
             <label class="uk-form-label" for="uploadtruthform">Upload Ground Truth for Evaluations (.zip file)</label>
             <div class="uk-form-controls uk-width-expand" uk-form-custom="target: true">
-                <input type="file" @change="saveFileRef('truth')" ref="truthfile">
+                <input type="file" @change="saveFileRef('truth')" ref="truth">
                 <input class="uk-input" id="uploadtruthform" type="text" placeholder="Click to select zip file" disabled>
             </div>
         </div>
@@ -300,6 +300,28 @@ export default {
         async fileUpload(fp) {  // async
             console.log(this.uploading, this.fileHandle[fp])
             this.uploading = true
+            
+            let formData = new FormData();
+            const headers = new Headers({'X-CSRFToken': this.csrf})
+            formData.append("file", this.fileHandle[fp]);
+            const response = await fetch(`/tira-admin/upload-dataset/${this.task_id}/vm/${this.dataset_id}/upload/${fp}`, {
+              method: "POST",
+              headers,
+              body: formData
+            });
+
+            let r = await response.json()
+            if (!response.ok) {
+                this.$emit('addNotification', 'error', `Uploading failed with status ${response.status}: ${await response.text()}`)
+            } else if (r.status === 1){
+                this.uploadFormError = 'Error: ' + r.message
+            } else {
+                this.uploadFormError[fp] = ''
+                this.fileHandle[fp] = null
+            }
+            
+            this.$refs[fp].value = null 
+            this.uploading = false
         },
         saveFileRef(fp) {
             this.fileHandle[fp] = this.$refs[fp].files[0];
