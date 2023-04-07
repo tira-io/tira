@@ -306,7 +306,7 @@ export default {
                 return
             }
             
-            if(!this.fileHandle[fp].endsWith('.zip')) {
+            if(!('' + this.fileHandle[fp]).endsWith('.zip')) {
                 this.uploadFormError[fp] = 'Please select a zip file.'
                 this.uploading = false
                 return
@@ -338,6 +338,7 @@ export default {
         },
         saveFileRef(fp) {
             this.fileHandle[fp] = this.$refs[fp].files[0];
+            this.uploadFormError[fp] = '';
         },
     },
     watch: {
