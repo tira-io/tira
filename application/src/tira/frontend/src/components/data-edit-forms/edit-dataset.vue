@@ -306,7 +306,7 @@ export default {
                 return
             }
             
-            if(!('' + this.fileHandle[fp]).endsWith('.zip')) {
+            if(!this.fileHandle[fp].name.endsWith('.zip')) {
                 this.uploadFormError[fp] = 'Please select a zip file.'
                 this.uploading = false
                 return
@@ -317,7 +317,7 @@ export default {
             let formData = new FormData();
             const headers = new Headers({'X-CSRFToken': this.csrf})
             formData.append("file", this.fileHandle[fp]);
-            const response = await fetch(`/tira-admin/upload-dataset/${this.task_id}/vm/${this.dataset_id}/upload/${fp}`, {
+            const response = await fetch(`/tira-admin/upload-dataset/${this.task_id}/${this.dataset_id}/${fp}`, {
               method: "POST",
               headers,
               body: formData
