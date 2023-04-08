@@ -8,16 +8,23 @@
         <span class="uk-text-muted">ID: {{ this.datasetId }}</span>
         <div class="uk-width-expand"></div>
         <div>
-          <div class="uk-button uk-button-primary uk-button-small" @click="addDataset">import dataset <font-awesome-icon icon="fas fa-play" /></div>
+          <div class="uk-button uk-button-primary uk-button-small" @click="addDataset">import IRDS dataset <font-awesome-icon icon="fas fa-play" /></div>
         </div>
       </div>
     </h3>
-    <div class="uk-width-2-5">
-          <label>Dataset Name*
-          <input class="uk-input" type="text" placeholder="Name of the Dataset"
+    <div class="uk-width-1-5">
+          <label>Dataset Name (IRDS-ID)*
+          <input class="uk-input" type="text" placeholder="Name of the Dataset (must be the irds-id)"
                  :class="{'uk-form-danger': (this.importDatasetError !== '' && this.datasetNameInput === '')}"
                  v-model="datasetNameInput"></label>
-      </div>
+    </div>
+      
+    <div class="uk-width-1-5">
+        <label>Docker Image*
+            <input class="uk-input" type="text" placeholder="Docker Image" :class="{'uk-form-danger': (this.importDatasetError !== '' && this.dockerImage === '')}" v-model="dockerImage">
+        </label>
+    </div>
+      
       <div class="uk-width-1-5">
           <label>Task*
           <select class="uk-select" v-model="this.selectedTask"
@@ -47,6 +54,7 @@ export default {
       return {
             importDatasetError: '',
             datasetNameInput: '',
+            dockerImage: '',
             datasetId: '',
             selectedTask: '',
             type: 'training',

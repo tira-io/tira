@@ -45,6 +45,7 @@ class HybridDatabase(object):
     softwares_dir_path = tira_root / Path("model/softwares")
     data_path = tira_root / Path("data/datasets")
     runs_dir_path = tira_root / Path("data/runs")
+    custom_irds_datasets_path =  tira_root / "state" / "custom-ir-datasets"
 
     def __init__(self):
         pass
@@ -301,7 +302,10 @@ class HybridDatabase(object):
                                                                       ).filter(published=True).count(),
             "default_upload_name": dataset.default_upload_name,
             "created": dataset.created,
-            "last_modified": dataset.last_modified
+            "last_modified": dataset.last_modified,
+            "irds_docker_image": dataset.irds_docker_image,
+            "irds_import_command": dataset.irds_import_command,
+            "irds_import_truth_command": dataset.irds_import_truth_command,
         }
 
     def get_dataset(self, dataset_id: str) -> dict:
@@ -927,7 +931,7 @@ class HybridDatabase(object):
         (self.datasets_dir_path / task_id).mkdir(exist_ok=True, parents=True)
         open(new_dataset_file_path, 'w').write(str(ds))
 
-    def add_dataset(self, task_id, dataset_id, dataset_type, dataset_name, upload_name):
+    def add_dataset(self, task_id, dataset_id, dataset_type, dataset_name, upload_name, irds_docker_image=None, irds_import_command=None, irds_import_truth_command=None):
         """ Add a new dataset to a task
          CAUTION: This function does not do any sanity (existence) checks and will OVERWRITE existing datasets """
         dataset_id = f"{dataset_id}-{get_today_timestamp()}-{dataset_type}"
@@ -942,7 +946,10 @@ class HybridDatabase(object):
             'display_name': dataset_name,
             'is_confidential': True if dataset_type == 'test' else False,
             'released': str(dt.now()),
-            'default_upload_name': upload_name
+            'default_upload_name': upload_name,
+            'irds_docker_image': irds_docker_image,
+            'irds_import_command': irds_import_command,
+            'irds_import_truth_command': irds_import_truth_command,
         })
 
         thds = modeldb.TaskHasDataset.objects.select_related('dataset').filter(task__task_id=task_id)

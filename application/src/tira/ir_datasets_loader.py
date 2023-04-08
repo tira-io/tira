@@ -11,6 +11,17 @@ import gzip
 from base64 import b64encode
 
 
+def run_irds_command(task_id, dataset_id, image, command, output_dir):
+    from tira_model import model
+    from subprocess import check_output
+    irds_root = model.custom_irds_datasets_path / task_id / dataset_id
+    command = command.replace('$outputDir', '/output-tira-tmp/')
+
+    return check_output(['podman', '--storage-opt', 'mount_program=/usr/bin/fuse-overlayfs', 'run',
+                 '-v', f'{irds_root}:/root/.ir_datasets', '-v', f'{output_dir}:/output-tira-tmp/',
+                  '--entrypoint', 'sh', image, '-c', command])
+
+
 class IrDatasetsLoader(object):
     """ Base class for loading datasets in a standardized format"""
 
