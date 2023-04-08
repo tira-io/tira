@@ -353,8 +353,8 @@ def admin_import_ir_dataset(request):
         git_runner_image = data.get("git_runner_image", data.get('image'))
         git_runner_command = data.get("git_runner_command", settings.IR_MEASURES_COMMAND)
         git_repository_id = model.get_git_integration(task_id=task_id).create_task_repository(task_id)
-        irds_import_command = f'/irds_cli.sh --skip_qrels --ir_datasets_id {data["dataset_id"]} --output_dataset_path $outputDir'
-        irds_import_truth_command = f'/irds_cli.sh --skip_documents --ir_datasets_id {data["dataset_id"]} --output_dataset_truth_path $outputDir'
+        irds_import_command = f'/irds_cli.sh --skip_qrels true --ir_datasets_id {data["dataset_id"]} --output_dataset_path $outputDir'
+        irds_import_truth_command = f'/irds_cli.sh --skip_documents true --ir_datasets_id {data["dataset_id"]} --output_dataset_truth_path $outputDir'
 
         master_vm_id = None
 

@@ -16,6 +16,8 @@ def run_irds_command(task_id, dataset_id, image, command, output_dir):
     from subprocess import check_output
     irds_root = model.custom_irds_datasets_path / task_id / dataset_id
     command = command.replace('$outputDir', '/output-tira-tmp/')
+    Path(output_dir).mkdir(parents=True, exist_ok=True)
+    Path(irds_root).mkdir(parents=True, exist_ok=True)
 
     return check_output(['podman', '--storage-opt', 'mount_program=/usr/bin/fuse-overlayfs', 'run',
                  '-v', f'{irds_root}:/root/.ir_datasets', '-v', f'{output_dir}:/output-tira-tmp/',
@@ -77,11 +79,14 @@ class IrDatasetsLoader(object):
             qrels_mapped = [self.map_qrel(qrel) for qrel in dataset.qrels_iter()]
             self.write_lines_to_file(qrels_mapped, output_dataset_truth_path/"qrels.txt")
 
-        self.write_lines_to_file(queries_mapped_jsonl, output_dataset_path/"queries.jsonl")
-        self.write_lines_to_file([json.dumps({"ir_datasets_id": ir_datasets_id})], output_dataset_path/"metadata.json")
-        self.write_lines_to_xml_file(ir_datasets_id, queries_mapped_xml, output_dataset_path/"queries.xml")
-        self.write_lines_to_file(queries_mapped_jsonl, output_dataset_truth_path/"queries.jsonl")
-        self.write_lines_to_xml_file(ir_datasets_id, queries_mapped_xml, output_dataset_truth_path/"queries.xml")
+        if output_dataset_path:
+            self.write_lines_to_file(queries_mapped_jsonl, output_dataset_path/"queries.jsonl")
+            self.write_lines_to_file([json.dumps({"ir_datasets_id": ir_datasets_id})], output_dataset_path/"metadata.json")
+            self.write_lines_to_xml_file(ir_datasets_id, queries_mapped_xml, output_dataset_path/"queries.xml")
+
+        if output_dataset_truth_path:
+            self.write_lines_to_file(queries_mapped_jsonl, output_dataset_truth_path/"queries.jsonl")
+            self.write_lines_to_xml_file(ir_datasets_id, queries_mapped_xml, output_dataset_truth_path/"queries.xml")
 
 
     def load_dataset_for_rerank(self, ir_datasets_id: str, output_dataset_path: Path, output_dataset_truth_path: Path, include_original: bool, run_file: Path) -> None:
