@@ -13,15 +13,22 @@ from base64 import b64encode
 
 def run_irds_command(task_id, dataset_id, image, command, output_dir):
     from tira.tira_model import model
-    from subprocess import check_output
+    from subprocess import run
     irds_root = model.custom_irds_datasets_path / task_id / dataset_id
     command = command.replace('$outputDir', '/output-tira-tmp/')
     Path(output_dir).mkdir(parents=True, exist_ok=True)
     Path(irds_root).mkdir(parents=True, exist_ok=True)
 
-    return check_output(['sudo', 'podman', '--storage-opt', 'mount_program=/usr/bin/fuse-overlayfs', 'run',
+    ret = run(['sudo', 'podman', '--storage-opt', 'mount_program=/usr/bin/fuse-overlayfs', 'run',
                  '-v', f'{irds_root}:/root/.ir_datasets', '-v', f'{output_dir}:/output-tira-tmp/',
-                  '--entrypoint', 'sh', image, '-c', command]).decode('utf-8')
+                  '--entrypoint', 'sh', image, '-c', command])
+
+    ret_str = json.dumps({'args': ret.args, 'returncode': ret.returncode, 'stdout': ret.stdout, 'stderr': ret.stderr})
+
+    if ret.returncode != 0:
+        raise ValueError(f'Process failed: {ret_str}')
+
+    return ret_str
 
 
 class IrDatasetsLoader(object):
