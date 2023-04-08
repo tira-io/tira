@@ -73,12 +73,16 @@ export default {
           if (this.datasetNameInput === '') {
               this.importDatasetError += 'Please provide a name for the new Dataset;\n'
           }
+          if (this.dockerImage === '') {
+              this.importDatasetError += 'Please provide a docker image for the import;\n'
+          }
           if (this.importDatasetError !== '') {
               return
           }
           submitPost('/tira-admin/import-irds-dataset', this.csrf, {
               'dataset_id': this.datasetId,
               'name': this.datasetNameInput,
+              'image': this.dockerImage,
               'task': this.selectedTask.task_id,
               'type': this.type,
           }).then(message => {
