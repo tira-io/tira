@@ -12,7 +12,7 @@ from base64 import b64encode
 
 
 def run_irds_command(task_id, dataset_id, image, command, output_dir):
-    from tira_model import model
+    from tira.tira_model import model
     from subprocess import check_output
     irds_root = model.custom_irds_datasets_path / task_id / dataset_id
     command = command.replace('$outputDir', '/output-tira-tmp/')

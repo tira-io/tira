@@ -373,10 +373,10 @@ def admin_import_ir_dataset(request):
                             is_git_runner, git_runner_image, git_runner_command, git_repository_id)
 
         ret = f'Output ({ds["irds_import_command"]}): \n'
-        ret += run_irds_command(ds['task'], task_id, ds['dataset_id'], ds['irds_docker_image'], ds['irds_import_command'], dataset_path)
+        ret += run_irds_command(ds['task'], ds['dataset_id'], ds['irds_docker_image'], ds['irds_import_command'], dataset_path)
 
         ret += f'\n\n\nOutput ({ds["irds_import_truth_command"]}): \n'
-        ret += run_irds_command(ds['task'], task_id, ds['dataset_id'], ds['irds_docker_image'], ds['irds_import_truth_command'], dataset_truth_path)
+        ret += run_irds_command(ds['task'], ds['dataset_id'], ds['irds_docker_image'], ds['irds_import_truth_command'], dataset_truth_path)
 
         return JsonResponse({'status': 0, 'context': {}, 'message': 'Imported dataset successfull. Outputs of imports:\n\n' + ret})
 
