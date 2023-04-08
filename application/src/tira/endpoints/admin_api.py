@@ -372,13 +372,16 @@ def admin_import_ir_dataset(request):
         model.add_evaluator(master_vm_id, task_id, ds['dataset_id'], evaluator_command, working_directory, not measures,
                             is_git_runner, git_runner_image, git_runner_command, git_repository_id)
 
-        ret = f'Output ({ds["irds_import_command"]}): \n'
-        ret += run_irds_command(ds['task'], ds['dataset_id'], ds['irds_docker_image'], ds['irds_import_command'], dataset_path)
+        try:
+            ret = f'Output ({ds["irds_import_command"]}): \n'
+            ret += run_irds_command(ds['task'], ds['dataset_id'], ds['irds_docker_image'], ds['irds_import_command'], dataset_path)
 
-        ret += f'\n\n\nOutput ({ds["irds_import_truth_command"]}): \n'
-        ret += run_irds_command(ds['task'], ds['dataset_id'], ds['irds_docker_image'], ds['irds_import_truth_command'], dataset_truth_path)
+            ret += f'\n\n\nOutput ({ds["irds_import_truth_command"]}): \n'
+            ret += run_irds_command(ds['task'], ds['dataset_id'], ds['irds_docker_image'], ds['irds_import_truth_command'], dataset_truth_path)
+        except Exception as e:
+            return JsonResponse({'status': 1, 'context': {}, 'message': f'Import of dataset failed with: {e}.'})
 
-        return JsonResponse({'status': 0, 'context': {}, 'message': 'Imported dataset successfull. Outputs of imports:\n\n' + ret})
+        return JsonResponse({'status': 0, 'context': {}, 'message': 'Imported dataset successfull.'})
 
     return JsonResponse({'status': 1, 'message': f"GET is not implemented for add dataset"})
 
