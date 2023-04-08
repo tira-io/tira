@@ -69,7 +69,7 @@ class IrDatasetsLoader(object):
         """
         dataset = self.load_irds(ir_datasets_id)
 
-        if not skip_documents:
+        if not skip_documents and output_dataset_path:
             self.write_lines_to_file(self.yield_docs(dataset, include_original, skip_duplicate_ids, allowlist_path_ids), output_dataset_path/"documents.jsonl")
         
         queries_mapped_jsonl = [self.map_query_as_jsonl(query, include_original) for query in dataset.queries_iter()]
