@@ -8,7 +8,9 @@
         <span class="uk-text-muted">ID: {{ this.datasetId }}</span>
         <div class="uk-width-expand"></div>
         <div>
-          <div class="uk-button uk-button-primary uk-button-small" @click="addDataset">import IRDS dataset <font-awesome-icon icon="fas fa-play" /></div>
+          <div class="uk-button uk-button-small"
+              :class="{ 'uk-button-default': importInProgress, 'uk-button-primary': !importInProgress}"
+              @click="addDataset">import IRDS dataset <font-awesome-icon icon="fas fa-play" /></div>
         </div>
       </div>
     </h3>
@@ -58,6 +60,7 @@ export default {
             datasetId: '',
             selectedTask: '',
             type: 'training',
+            importInProgress: false,
             taskList: [],
       }
   },
@@ -79,6 +82,12 @@ export default {
           if (this.importDatasetError !== '') {
               return
           }
+          
+          if(this.importInProgress) {
+              return
+          }
+          
+          this.importInProgress = true
           submitPost('/tira-admin/import-irds-dataset', this.csrf, {
               'dataset_id': this.datasetId,
               'name': this.datasetNameInput,
@@ -88,10 +97,12 @@ export default {
           }).then(message => {
               this.$emit('addnotification', 'success', message.message)
               this.$emit('adddataset', message.context)
+              this.importInProgress = false
           }).catch(error => {
               console.log(error)
               this.importDatasetError = error
               this.$emit('addnotification', 'error', error.message)
+              this.importInProgress = false
           })
       },
       getTaskById(task_id){

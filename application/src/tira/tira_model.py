@@ -393,10 +393,10 @@ def create_task(task_id: str, task_name: str, task_description: str, featured: b
                              require_registration, require_groups, restrict_groups, help_command, help_text, allowed_task_teams)
 
 
-def add_dataset(task_id: str, dataset_id: str, dataset_type: str, dataset_name: str, upload_name: str) -> list:
+def add_dataset(task_id: str, dataset_id: str, dataset_type: str, dataset_name: str, upload_name: str, irds_docker_image: str=None, irds_import_command: str=None, irds_import_truth_command: str=None) -> list:
     """ returns a list of paths of newly created datasets as string.
     """
-    return model.add_dataset(task_id, dataset_id, dataset_type, dataset_name, upload_name)
+    return model.add_dataset(task_id, dataset_id, dataset_type, dataset_name, upload_name, irds_docker_image= irds_docker_image, irds_import_command=irds_import_command, irds_import_truth_command=irds_import_truth_command)
 
 
 def add_software(task_id: str, vm_id: str):

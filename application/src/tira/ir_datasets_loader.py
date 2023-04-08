@@ -19,7 +19,7 @@ def run_irds_command(task_id, dataset_id, image, command, output_dir):
     Path(output_dir).mkdir(parents=True, exist_ok=True)
     Path(irds_root).mkdir(parents=True, exist_ok=True)
 
-    return check_output(['podman', '--storage-opt', 'mount_program=/usr/bin/fuse-overlayfs', 'run',
+    return check_output(['sudo', 'podman', '--storage-opt', 'mount_program=/usr/bin/fuse-overlayfs', 'run',
                  '-v', f'{irds_root}:/root/.ir_datasets', '-v', f'{output_dir}:/output-tira-tmp/',
                   '--entrypoint', 'sh', image, '-c', command])
 
