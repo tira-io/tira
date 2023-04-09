@@ -8,16 +8,25 @@
         <span class="uk-text-muted">ID: {{ this.datasetId }}</span>
         <div class="uk-width-expand"></div>
         <div>
-          <div class="uk-button uk-button-primary uk-button-small" @click="addDataset">import dataset <font-awesome-icon icon="fas fa-play" /></div>
+          <div class="uk-button uk-button-small"
+              :class="{ 'uk-button-default': importInProgress, 'uk-button-primary': !importInProgress}"
+              @click="addDataset">import IRDS dataset <font-awesome-icon icon="fas fa-play" /></div>
         </div>
       </div>
     </h3>
-    <div class="uk-width-2-5">
-          <label>Dataset Name*
-          <input class="uk-input" type="text" placeholder="Name of the Dataset"
+    <div class="uk-width-1-5">
+          <label>Dataset Name (IRDS-ID)*
+          <input class="uk-input" type="text" placeholder="Name of the Dataset (must be the irds-id)"
                  :class="{'uk-form-danger': (this.importDatasetError !== '' && this.datasetNameInput === '')}"
                  v-model="datasetNameInput"></label>
-      </div>
+    </div>
+      
+    <div class="uk-width-1-5">
+        <label>Docker Image*
+            <input class="uk-input" type="text" placeholder="Docker Image" :class="{'uk-form-danger': (this.importDatasetError !== '' && this.dockerImage === '')}" v-model="dockerImage">
+        </label>
+    </div>
+      
       <div class="uk-width-1-5">
           <label>Task*
           <select class="uk-select" v-model="this.selectedTask"
@@ -47,9 +56,11 @@ export default {
       return {
             importDatasetError: '',
             datasetNameInput: '',
+            dockerImage: '',
             datasetId: '',
             selectedTask: '',
             type: 'training',
+            importInProgress: false,
             taskList: [],
       }
   },
@@ -65,21 +76,33 @@ export default {
           if (this.datasetNameInput === '') {
               this.importDatasetError += 'Please provide a name for the new Dataset;\n'
           }
+          if (this.dockerImage === '') {
+              this.importDatasetError += 'Please provide a docker image for the import;\n'
+          }
           if (this.importDatasetError !== '') {
               return
           }
+          
+          if(this.importInProgress) {
+              return
+          }
+          
+          this.importInProgress = true
           submitPost('/tira-admin/import-irds-dataset', this.csrf, {
               'dataset_id': this.datasetId,
               'name': this.datasetNameInput,
+              'image': this.dockerImage,
               'task': this.selectedTask.task_id,
               'type': this.type,
           }).then(message => {
               this.$emit('addnotification', 'success', message.message)
               this.$emit('adddataset', message.context)
+              this.importInProgress = false
           }).catch(error => {
               console.log(error)
               this.importDatasetError = error
               this.$emit('addnotification', 'error', error.message)
+              this.importInProgress = false
           })
       },
       getTaskById(task_id){

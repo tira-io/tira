@@ -53,4 +53,7 @@ RUN cd /tira-dependencies && \
 	cd /tira-dependencies && \
 	rm -Rf src/ package-lock.json package.json requirements.txt tsconfig.json webpack-stats.json webpack.config.js
 
+RUN echo -e "http://dl-cdn.alpinelinux.org/alpine/v3.14/community" >> /etc/apk/repositories && \
+	apk update && \
+	apk add podman fuse-overlayfs
 

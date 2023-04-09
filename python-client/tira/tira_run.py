@@ -13,6 +13,7 @@ def parse_args():
     parser.add_argument('--command', required=False)
     parser.add_argument('--verbose', required=False, default=False, type=bool)
     parser.add_argument('--dry-run', required=False, default=False, type=bool)
+    parser.add_argument('--allow-network', required=False, default=False, type=bool, help='Is the network available during the execution? (Default = False to improve reproducibility, containers that import ir-datasets can have access to the network, they can be tested with setting allow-network to true.)')
     parser.add_argument('--output-directory', required=False, default=str(os.path.abspath("tira-output")))
 
     args = parser.parse_args()
@@ -26,5 +27,5 @@ def parse_args():
 def main():
     args = parse_args()
     client = Client()
-    client.local_execution.run(identifier=args.approach, image=args.image, command=args.command, input_dir=args.input_directory, output_dir=args.output_directory, verbose=args.verbose, dry_run=args.dry_run)
+    client.local_execution.run(identifier=args.approach, image=args.image, command=args.command, input_dir=args.input_directory, output_dir=args.output_directory, verbose=args.verbose, dry_run=args.dry_run, allow_network=args.allow_network)
 

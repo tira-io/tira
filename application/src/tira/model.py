@@ -152,6 +152,9 @@ class Dataset(models.Model):
     default_upload_name = models.CharField(max_length=50, default="predictions.ndjson")
     created = models.DateField(auto_now_add=True)
     last_modified = models.DateField(auto_now=True)
+    irds_docker_image = models.CharField(max_length=150, null=True, default=None)
+    irds_import_command = models.CharField(max_length=150, null=True, default=None)
+    irds_import_truth_command = models.CharField(max_length=150, null=True, default=None)
 
 
 class TaskHasDataset(models.Model):

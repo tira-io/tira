@@ -28,7 +28,7 @@ def copy_from_to(source_directory, target_directory, file_skip_list=()):
     if exists(source_directory) and not exists(target_directory):
         print(f'Copy input data from {source_directory} to {target_directory}', file=sys.stderr)
         ignore = shutil.ignore_patterns(*file_skip_list) if file_skip_list else None
-        shutil.copytree(source_directory, os.path.abspath(Path(target_directory)), ignore=ignore)
+        shutil.copytree(source_directory, os.path.abspath(Path(target_directory)), ignore=ignore, symlinks=True)
     else:
         print(f'Absolute input dataset {source_directory} exists: {exists(source_directory)}', file=sys.stderr)
         print(f'Relative input dataset {target_directory} exists: {exists(target_directory)}', file=sys.stderr)

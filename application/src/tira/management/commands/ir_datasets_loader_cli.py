@@ -22,8 +22,8 @@ class Command(BaseCommand):
        in preparation to full-rank or re-rank operations with PyTerrier
 
        @param --ir_dataset_id: required, string: the dataset ID as used by ir_datasets 
-       @param --output_dataset_path: required, string: the path to the directory where the output will be stored
-       @param --output_dataset_truth_path: required, string: the path to the directory where the output will be stored
+       @param --output_dataset_path: optional, string: the path to the directory where the output will be stored
+       @param --output_dataset_truth_path: optional, string: the path to the directory where the output will be stored
        @param --include_original {True}: optional, boolean: flag to signal, if the original data should be included
        @param --rerank: optional, string: if used, mapping will be in preparation for re-ranking operations and a path to file 
                         with TREC-run formatted data is required
@@ -47,8 +47,7 @@ class Command(BaseCommand):
             options['ir_datasets_id'] = metadata['ir_datasets_id']
             options['include_original'] = metadata.get('include_original', 'true')
     
-        return 'ir_datasets_id' in options and options['ir_datasets_id'] \
-            and 'output_dataset_path' in options and options['output_dataset_path']
+        return 'ir_datasets_id' in options and options['ir_datasets_id']
 
     def handle(self, *args, **options):            
         if not self.contains_all_required_args(options):
@@ -56,13 +55,14 @@ class Command(BaseCommand):
             return
         
         truth_path = Path(options['output_dataset_truth_path']) if 'output_dataset_truth_path' in options and options['output_dataset_truth_path'] else None
+        output_path = Path(options['output_dataset_path']) if 'output_dataset_path' in options and options['output_dataset_path'] else None
 
         skip_qrels = options['skip_qrels'] or str(options['output_dataset_truth_path']).strip() == '/tmp'
 
         if options['rerank']:
             self.import_dataset_for_rerank(
                 options['ir_datasets_id'],
-                Path(options['output_dataset_path']),
+                output_path,
                 truth_path,
                 options['include_original'].lower() == 'true',
                 options['rerank'],
@@ -71,7 +71,7 @@ class Command(BaseCommand):
         else:
             self.import_dataset_for_fullrank(
                 options['ir_datasets_id'],
-                Path(options['output_dataset_path']),
+                output_path,
                 truth_path,
                 options['include_original'].lower() == 'true',
                 skip_documents = options['skip_documents'],
