@@ -14,3 +14,6 @@ RUN python3 -m pip uninstall -y numpy \
 	&& mkdir /usr/lib/python3.8/site-packages/ir_datasets/datasets_in_progress \
 	&& echo -e 'from os.path import dirname, basename, isfile, join\nimport glob\nmodules = glob.glob(join(dirname(__file__), "*.py"))\n__all__ = [ basename(f)[:-3] for f in modules if isfile(f) and not f.endswith("__init__.py")]\nfrom . import *\n'  > /usr/lib/python3.8/site-packages/ir_datasets/datasets_in_progress/__init__.py
 
+RUN wget 'https://raw.githubusercontent.com/tira-io/ir-experiment-platform/main/ir-measures/ir_measures_evaluator.py' -O /ir_measures_evaluator.py \
+	&& chmod +x /ir_measures_evaluator.py
+
