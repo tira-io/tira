@@ -380,7 +380,7 @@ def admin_import_ir_dataset(request, task_id):
         except Exception as e:
             return JsonResponse({'status': 1, 'context': {}, 'message': f'Import of dataset failed with: {e}.'})
 
-        return JsonResponse({'status': 0, 'context': {}, 'message': 'Imported dataset successfull.'})
+        return JsonResponse({'status': 0, 'context': ds, 'message': 'Imported dataset successfull.'})
 
     return JsonResponse({'status': 1, 'message': f"GET is not implemented for add dataset"})
 
@@ -389,8 +389,13 @@ def admin_import_ir_dataset(request, task_id):
 @check_permissions
 @check_resources_exist('json')
 def admin_delete_dataset(request, dataset_id):
-    model.delete_dataset(dataset_id)
-    return JsonResponse({'status': 0, 'message': f"Deleted dataset {dataset_id}"})
+    try:
+        model.delete_dataset(dataset_id)
+        return JsonResponse({'status': 0, 'message': f"Deleted dataset {dataset_id}"})
+    except Exception as e:
+        return JsonResponse({'status': 1, 'message': f"Could not delete dataset {dataset_id}: {e}"})
+
+
 
 
 @check_permissions

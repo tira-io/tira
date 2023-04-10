@@ -1490,6 +1490,16 @@ API_ACCESS_MATRIX = [
             ORGANIZER_WRONG_TASK: 405,
         },
     ),
+    route_to_test(
+        url_pattern='tira-admin/delete-dataset/<str:dataset_id>',
+        params={'dataset_id': f'dataset-of-organizer-{now}-training'},
+        group_to_expected_status_code={
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER_WRONG_TASK: 405,
+            ORGANIZER: 200,
+        },
+    ),
 ]
 
 
