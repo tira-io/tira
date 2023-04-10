@@ -331,7 +331,7 @@ def call_django_command_failsave(cmd, args):
 
 
 @check_permissions
-def admin_import_ir_dataset(request):
+def admin_import_ir_dataset(request, task_id):
     """ Create multiple datasets for the pased ir-dataset.
      Return a json status message. """
     if request.method == "POST":
@@ -342,7 +342,6 @@ def admin_import_ir_dataset(request):
 
         dataset_id_prefix = data["dataset_id"]
         dataset_name = data["name"]
-        task_id = data["task"]
 
         upload_name = data.get("upload_name", "run.txt")
         evaluator_command = data.get("evaluator_command", "")
