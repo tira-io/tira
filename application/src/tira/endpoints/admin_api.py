@@ -337,8 +337,8 @@ def admin_import_ir_dataset(request, task_id):
     if request.method == "POST":
         data = json.loads(request.body)
 
-        if not all(k in data.keys() for k in ['dataset_id', 'name', 'task', 'image']):
-            return JsonResponse({'status': 1, 'message': f"Error: dataset_id, name, task, and image must be set."})
+        if not all(k in data.keys() for k in ['dataset_id', 'name', 'image']):
+            return JsonResponse({'status': 1, 'message': f"Error: dataset_id, name, and image must be set."})
 
         dataset_id_prefix = data["dataset_id"]
         dataset_name = data["name"]
