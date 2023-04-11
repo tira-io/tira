@@ -59,13 +59,13 @@ def identify_environment_variables(job_file):
     ret = [
         'TIRA_INPUT_RUN=' + absolute_input_dataset,
         'TIRA_DATASET_ID=' + tira_dataset_id,
-        'TIRA_INPUT_DATASET=' + str(Path(input_dataset).absolute()),
-        'inputDataset=' + str(Path(input_dataset).absolute()),
-        'outputDir=' + str(Path(job_dir + '/output')).absolute()),
+        'TIRA_INPUT_DATASET=' + input_dataset,
+        'inputDataset=' + input_dataset,
+        'outputDir=' + job_dir + '/output',
         'TIRA_EVALUATION_GROUND_TRUTH=' + input_dataset_truth,
         'TIRA_VM_ID=' + tira_vm_id,
         'TIRA_RUN_ID=' + tira_run_id,
-        'TIRA_OUTPUT_DIR=' + str(Path(job_dir + '/output')).absolute()),
+        'TIRA_OUTPUT_DIR=' + job_dir + '/output',
         'TIRA_JOB_FILE=' + job_file,
     ]
     
@@ -85,7 +85,10 @@ def identify_environment_variables(job_file):
     with open(job_file, 'r') as f:
         for l in f:
             if '=' in l:
-                ret += [l.strip()]
+                if 'TIRA_COMMAND_TO_EXECUTE' in l:
+                    ret += [l.strip().replace("$", "$$")]
+                else:
+                    ret += [l.strip()]
     
     for i in ['TIRA_TASK_ID', 'TIRA_IMAGE_TO_EXECUTE', 'TIRA_COMMAND_TO_EXECUTE']:
         if len([j for j in ret if i in j]) != 1:
