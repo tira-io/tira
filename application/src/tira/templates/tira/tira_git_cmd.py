@@ -189,7 +189,7 @@ def run(identifier=None, image=None, command=None, data=None, evaluate=False, ve
         image, command = __extract_image_and_command(identifier)
     try:
         environ = os.environ.copy()
-        if sys.platform == "linux" and os.path.expanduser("~/.docker/desktop/docker.sock"):
+        if sys.platform == "linux" and os.path.exists(os.path.expanduser("~/.docker/desktop/docker.sock")):
             environ["DOCKER_HOST"] = "unix:///" + os.path.expanduser("~/.docker/desktop/docker.sock")
         client = docker.from_env(environment=environ)
         
