@@ -1,4 +1,5 @@
 import os
+import sys
 import docker
 from copy import deepcopy
 import tempfile
@@ -64,7 +65,10 @@ class LocalExecutionIntegration():
             image, command, s_id, previous_stages = ds['tira_image_name'], ds['command'], ds['id'], ds['ids_of_previous_stages']
         if not dry_run:
             try:
-                client = docker.from_env()
+                environ = os.environ.copy()
+                if sys.platform == "linux" and os.path.exists(os.path.expanduser("~/.docker/desktop/docker.sock")):
+                    environ["DOCKER_HOST"] = "unix:///" + os.path.expanduser("~/.docker/desktop/docker.sock")
+                client = docker.from_env(environment=environ)
         
                 assert len(client.images.list()) >= 0
                 assert len(client.containers.list()) >= 0
