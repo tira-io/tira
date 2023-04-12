@@ -585,7 +585,7 @@ def create_re_rank_output_on_dataset(task_id: str, vm_id: str, software_id: str,
     irds_re_ranking_resource = task.get("irds_re_ranking_resource", "")
 
     if not is_ir_task or not irds_re_ranking_image or not irds_re_ranking_command or not irds_re_ranking_resource:
-        raise ValueError('This is not a irds-re-ranking task:' + str(task))
+        return None
     docker_irds_software_id = str(int(model.get_irds_docker_software_id(task_id, vm_id, software_id, docker_software_id).docker_software_id))
 
     reranked_job = latest_output_of_software_on_dataset(task_id, vm_id, None, docker_irds_software_id, dataset_id)
