@@ -17,3 +17,7 @@ RUN python3 -m pip uninstall -y numpy \
 RUN wget 'https://raw.githubusercontent.com/tira-io/ir-experiment-platform/main/ir-measures/ir_measures_evaluator.py' -O /ir_measures_evaluator.py \
 	&& chmod +x /ir_measures_evaluator.py
 
+RUN apk add lz4-dev \
+	&& pip3 uninstall -y ir_datasets \
+	&& pip3 install git+https://github.com/heinrichreimer/ir_datasets@touche2023
+

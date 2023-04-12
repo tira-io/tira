@@ -78,17 +78,9 @@ run-docker:
 		webis/tira-application-grpc:${VERSION_GRPC}
 
 build-docker:
-	docker build --tag webis/tira-application:${VERSION_APPLICATION} -f Dockerfile.application ..
-	docker build --tag webis/tira-application:${VERSION_APPLICATION}-diffir -f Dockerfile.application-diffir ..
-	docker build --tag webis/tira-application-grpc:${VERSION_GRPC} -f Dockerfile.application-grpc ..
-
-docker-publish:
-	docker push webis/tira-application:basis-${VERSION_APPLICATION}
-	docker push webis/tira-application:${VERSION_APPLICATION}
-	docker push webis/tira-application:${VERSION_APPLICATION}-diffir
-	docker tag webis/tira-application:${VERSION_APPLICATION}-diffir webis/tira-ir-datasets-starter:${VERSION_APPLICATION}
-	docker push webis/tira-ir-datasets-starter:${VERSION_APPLICATION}
-	docker push webis/tira-application-grpc:${VERSION_GRPC}
+	docker build --tag webis/tira-application:${VERSION_APPLICATION} -f Dockerfile.application-diffir ..
+	docker tag webis/tira-application:${VERSION_APPLICATION} webis/tira-ir-datasets-starter:${VERSION_APPLICATION}-clueweb22-touche23
+	docker push webis/tira-ir-datasets-starter:${VERSION_APPLICATION}-clueweb22-touche23
 
 build-docker-basis:
 	docker build --tag webis/tira-application:basis-${VERSION_APPLICATION} -f Dockerfile.basis ..
