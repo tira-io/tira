@@ -191,7 +191,7 @@ export default {
     submissionLink() {
       const base = window.location.origin
     
-      var team = this.userId
+      var team = this.userId + '-default'
       if (this.userVmsForTask && this.userVmsForTask.length > 0) {
         team = this.userVmsForTask[0]
       }
