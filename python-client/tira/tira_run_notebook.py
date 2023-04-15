@@ -21,4 +21,8 @@ def main():
     os.environ['TIRA_OUTPUT_DIRECTORY'] = args.output
 
     command = f'runnb --allow-not-trusted {args.notebook}'
-    subprocess.check_call(command, shell=True, stdout=sys.stdout, stderr=subprocess.STDOUT)
+    try:
+        return_code = subprocess.check_call(command, shell=True, stdout=sys.stdout, stderr=subprocess.STDOUT)
+    except subprocess.CalledProcessError:
+        return_code = 2
+    sys.exit(return_code)

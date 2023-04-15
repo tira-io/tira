@@ -31,7 +31,10 @@ def main():
         notebook_name = args.notebook
         # convert notebook to python script
         command_convert = f"jupyter nbconvert --to script {notebook_name}"
-        return_code = subprocess.check_call(command_convert, shell=True, stdout=sys.stdout, stderr=subprocess.STDOUT)
+        try:
+            return_code = subprocess.check_call(command_convert, shell=True, stdout=sys.stdout, stderr=subprocess.STDOUT)
+        except subprocess.CalledProcessError:
+            return_code = 2
         if return_code != 0:
             print(f"Exception while converting notebook '{notebook_name}'. Stopping server.")
             sys.exit(return_code)
