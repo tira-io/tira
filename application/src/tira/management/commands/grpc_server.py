@@ -30,8 +30,6 @@ class Command(BaseCommand):
     help = 'api server'
 
     def handle(self, *args, **options):
-        call_command('makemigrations')
-        call_command('migrate')
         with serve_forever():
             logger.info(f"Starting tira-application server on {listen_addr}")
             self.stdout.write(self.style.SUCCESS(f"Starting tira-application server on {listen_addr}"))
