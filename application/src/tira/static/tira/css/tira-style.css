@@ -135,3 +135,9 @@ a.uk-button-primary {
 .disraptor-content .webis-data-table .sortable {
     cursor: revert;
 }
+
+.submit-button {
+    width: 100%;
+    border-radius: 5px;
+    margin-top: 5px;
+}
