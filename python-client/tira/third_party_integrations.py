@@ -37,7 +37,7 @@ def get_preconfigured_chatnoir_client(config_directory, features=['TARGET_URI'],
     return chatnoir
 
 
-def get_input_directory_and_output_directory(default_input):
+def get_input_directory_and_output_directory(default_input, default_output: str = '/tmp/'):
     input_directory = os.environ.get('TIRA_INPUT_DIRECTORY', None)
 
     if input_directory:
@@ -46,10 +46,14 @@ def get_input_directory_and_output_directory(default_input):
         input_directory = default_input
         print(f'I will use a small hardcoded example located in {input_directory}.')
 
-    output_directory = os.environ.get('TIRA_OUTPUT_DIRECTORY', '/tmp/')
+    output_directory = os.environ.get('TIRA_OUTPUT_DIRECTORY', default_output)
     print(f'The output directory is {output_directory}')
     
     return (input_directory, output_directory)
+
+
+def is_running_as_inference_server():
+    return os.environ.get('TIRA_INFERENCE_SERVER', None) is not None
 
 
 def all_lines_to_pandas(input_file, load_default_text):

@@ -8,6 +8,7 @@ ADMIN = 'tira_reviewer'
 GUEST = ''
 PARTICIPANT = 'tira_vm_PARTICIPANT-FOR-TEST-1'
 ORGANIZER = 'tira_org_EXAMPLE-ORGANIZER'
+ORGANIZER_WRONG_TASK = 'tira_org_ORGANIZER-FOR-OTHER-TASK'
 
 
 API_ACCESS_MATRIX = [
@@ -19,6 +20,7 @@ API_ACCESS_MATRIX = [
             GUEST: 200,
             PARTICIPANT: 200,
             ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 200,
         },
     ),
     route_to_test(
@@ -29,6 +31,7 @@ API_ACCESS_MATRIX = [
             GUEST: 200,
             PARTICIPANT: 200,
             ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 200,
         },
     ),
     route_to_test(
@@ -39,6 +42,7 @@ API_ACCESS_MATRIX = [
             GUEST: 200,
             PARTICIPANT: 200,
             ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 200,
         },
     ),
     route_to_test(
@@ -49,6 +53,7 @@ API_ACCESS_MATRIX = [
             GUEST: 404,
             PARTICIPANT: 404,
             ORGANIZER: 404,
+            ORGANIZER_WRONG_TASK: 404,
         },
     ),
     route_to_test(
@@ -59,6 +64,7 @@ API_ACCESS_MATRIX = [
             GUEST: 200,
             PARTICIPANT: 200,
             ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 200,
         },
     ),
     route_to_test(
@@ -69,6 +75,7 @@ API_ACCESS_MATRIX = [
             GUEST: 404,
             PARTICIPANT: 404,
             ORGANIZER: 404,
+            ORGANIZER_WRONG_TASK: 404,
         },
     ),
     route_to_test(
@@ -79,6 +86,7 @@ API_ACCESS_MATRIX = [
             GUEST: 200,
             PARTICIPANT: 200,
             ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 200,
         },
     ),
     route_to_test(
@@ -89,6 +97,7 @@ API_ACCESS_MATRIX = [
             GUEST: 200,
             PARTICIPANT: 200,
             ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 200,
         },
     ),
     route_to_test(
@@ -99,6 +108,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302, # TODO: Look at this again. Should be 405?
             PARTICIPANT: 302, # TODO: Look at this again. Should be 405?
             ORGANIZER: 302, # TODO: Look at this again. Should be 405?
+            ORGANIZER_WRONG_TASK: 302, # TODO: Look at this again. Should be 405?
         },
     ),
     route_to_test(
@@ -109,6 +119,7 @@ API_ACCESS_MATRIX = [
             GUEST: 405,
             PARTICIPANT: 405,
             ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
         },
     ),
     route_to_test(
@@ -119,6 +130,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302, # TODO: Look at this again. Should be 405?
             PARTICIPANT: 200,
             ORGANIZER: 302, # TODO: Look at this again. Should be 405?
+            ORGANIZER_WRONG_TASK: 302, # TODO: Look at this again. Should be 405?
         },
     ),
     route_to_test(
@@ -129,6 +141,7 @@ API_ACCESS_MATRIX = [
             GUEST: 405,
             PARTICIPANT: 405,
             ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
         },
     ),
     route_to_test(
@@ -139,6 +152,7 @@ API_ACCESS_MATRIX = [
             GUEST: 405,
             PARTICIPANT: 405,
             ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
         },
     ),
     route_to_test(
@@ -149,6 +163,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,  # TODO: Look at this again. Should be 405?
             PARTICIPANT: 200,
             ORGANIZER: 302,  # TODO: Look at this again. Should be 405?
+            ORGANIZER_WRONG_TASK: 302, # TODO: Look at this again. Should be 405?
         },
     ),
     route_to_test(
@@ -159,6 +174,7 @@ API_ACCESS_MATRIX = [
             GUEST: 405,
             PARTICIPANT: 405,
             ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
         },
     ),
     route_to_test(
@@ -170,6 +186,7 @@ API_ACCESS_MATRIX = [
             GUEST: 405,
             PARTICIPANT: 405,
             ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
         },
     ),
     route_to_test(
@@ -180,6 +197,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 302,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     route_to_test(
@@ -190,6 +208,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 302,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     route_to_test(
@@ -200,6 +219,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 302,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     route_to_test(
@@ -210,6 +230,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 200,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     route_to_test(
@@ -220,6 +241,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 302,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     route_to_test(
@@ -230,6 +252,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 302,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     route_to_test(
@@ -240,6 +263,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 200,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     route_to_test(
@@ -250,6 +274,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 200, # TODO: This should definitively be 302? As it is a test dataset that was not unblinded?
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     route_to_test(
@@ -260,6 +285,7 @@ API_ACCESS_MATRIX = [
             GUEST: 200,
             PARTICIPANT: 200,
             ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 200,
         },
     ),
     route_to_test(
@@ -270,6 +296,7 @@ API_ACCESS_MATRIX = [
             GUEST: 200,
             PARTICIPANT: 200,
             ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 200,
         },
     ),
     route_to_test(
@@ -280,6 +307,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 302,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
        },
     ),
     route_to_test(
@@ -290,6 +318,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 302,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     route_to_test(
@@ -300,6 +329,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 200,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     route_to_test(
@@ -310,6 +340,18 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 302,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
+        },
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>/vm/<str:vm_id>/add_software/docker',
+        params={'task_id': 'task-of-organizer-1', 'vm_id': 'example_participant'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 302,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     route_to_test(
@@ -320,6 +362,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 200,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     route_to_test(
@@ -330,6 +373,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 302,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     route_to_test(
@@ -340,6 +384,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 200,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     route_to_test(
@@ -350,6 +395,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 302,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     route_to_test(
@@ -360,6 +406,18 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 200,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
+        },
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>/vm/<str:vm_id>/save_software/vm/<str:software_id>',
+        params={'task_id': 'task-of-organizer-1', 'vm_id': 'example_participant', 'software_id': 0},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 302,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     route_to_test(
@@ -370,6 +428,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 302,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     route_to_test(
@@ -380,6 +439,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 200,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     route_to_test(
@@ -390,6 +450,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 302,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     route_to_test(
@@ -400,6 +461,18 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 200,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
+        },
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>/vm/<str:vm_id>/delete_software/docker/<str:docker_software_id>',
+        params={'task_id': 'task-of-organizer-1', 'vm_id': 'example_participant', 'software_id': 0},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 302,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     route_to_test(
@@ -410,6 +483,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 302,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     route_to_test(
@@ -420,6 +494,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 200,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     route_to_test(
@@ -430,6 +505,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 302,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     # Skip for the moment, takes too long. Maybe mock later?
@@ -451,6 +527,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 302,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     route_to_test(
@@ -461,6 +538,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 200,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     route_to_test(
@@ -471,6 +549,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 302,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     # Skip for the moment, takes too long. Maybe mock later?
@@ -492,6 +571,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 302,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     # Skip for the moment, takes too long. Maybe mock later?
@@ -513,6 +593,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 302,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     # Skip for the moment, takes too long. Maybe mock later?
@@ -534,6 +615,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 302,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     # Skip for the moment, takes too long. Maybe mock later?
@@ -555,6 +637,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 302,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     # Skip for the moment, takes too long. Maybe mock later?
@@ -576,6 +659,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 302,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     route_to_test(
@@ -586,6 +670,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 200,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     route_to_test(
@@ -596,6 +681,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 302,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     # TODO Add later
@@ -617,6 +703,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 302,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     route_to_test(
@@ -627,6 +714,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 200,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     route_to_test(
@@ -637,6 +725,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 302,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     # TODO Add later
@@ -658,6 +747,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302, # Was error
             PARTICIPANT: 302,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     route_to_test(
@@ -668,6 +758,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 200,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     route_to_test(
@@ -678,6 +769,7 @@ API_ACCESS_MATRIX = [
             GUEST: 405,
             PARTICIPANT: 405,
             ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
         },
     ),
     route_to_test(
@@ -688,6 +780,7 @@ API_ACCESS_MATRIX = [
             GUEST: 405,
             PARTICIPANT: 405,
             ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
         },
     ),
     route_to_test(
@@ -698,6 +791,7 @@ API_ACCESS_MATRIX = [
             GUEST: 405,
             PARTICIPANT: 405,
             ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
         },
     ),
     route_to_test(
@@ -708,6 +802,7 @@ API_ACCESS_MATRIX = [
             GUEST: 405,
             PARTICIPANT: 405,
             ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
         },
     ),
     route_to_test(
@@ -718,6 +813,7 @@ API_ACCESS_MATRIX = [
             GUEST: 405,
             PARTICIPANT: 405,
             ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
         },
     ),
     route_to_test(
@@ -728,6 +824,7 @@ API_ACCESS_MATRIX = [
             GUEST: 405,
             PARTICIPANT: 405,
             ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
         },
     ),
     route_to_test(
@@ -738,6 +835,7 @@ API_ACCESS_MATRIX = [
             GUEST: 405,
             PARTICIPANT: 405,
             ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
         },
     ),
     route_to_test(
@@ -748,6 +846,7 @@ API_ACCESS_MATRIX = [
             GUEST: 405,
             PARTICIPANT: 405,
             ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 405,
         },
     ),
     route_to_test(
@@ -758,26 +857,84 @@ API_ACCESS_MATRIX = [
             GUEST: 405,
             PARTICIPANT: 405,
             ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
         },
     ),
     route_to_test(
-        url_pattern='tira-admin/add-dataset',
-        params={},
+        url_pattern='tira-admin/add-dataset/<str:task_id>',
+        params={'task_id': 'task-does-not-exist'},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 405,
             PARTICIPANT: 405,
             ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
         },
     ),
     route_to_test(
-        url_pattern='tira-admin/import-irds-dataset',
-        params={},
+        url_pattern='tira-admin/add-dataset/<str:task_id>',
+        params={'task_id': 'shared-task-1'},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 405,
             PARTICIPANT: 405,
             ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
+        },
+    ),
+    route_to_test(
+        url_pattern='tira-admin/add-dataset/<str:task_id>',
+        params={'task_id': 'task-of-organizer-1'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 405,
+        },
+    ),
+    route_to_test(
+        url_pattern='tira-admin/import-irds-dataset/<str:task_id>',
+        params={'task_id': 'task-does-not-exist'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
+        },
+    ),
+    route_to_test(
+        url_pattern='tira-admin/import-irds-dataset/<str:task_id>',
+        params={'task_id': 'task-of-organizer-1'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 405,
+        },
+    ),
+    route_to_test(
+        url_pattern='tira-admin/upload-dataset/<str:task_id>/<str:dataset_id>/<str:dataset_type>',
+        params={'task_id': 'task-does-not-exist', 'dataset_id': 'does-not-exist', 'dataset_type': 'participant-input'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
+        },
+    ),
+    route_to_test(
+        url_pattern='tira-admin/upload-dataset/<str:task_id>/<str:dataset_id>/<str:dataset_type>',
+        params={'task_id': 'task-of-organizer-1', 'dataset_id': 'does-not-exist', 'dataset_type': 'participant-input'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 405,
         },
     ),
     route_to_test(
@@ -788,6 +945,29 @@ API_ACCESS_MATRIX = [
             GUEST: 405,
             PARTICIPANT: 405,
             ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
+        },
+    ),
+    route_to_test(
+        url_pattern='tira-admin/edit-dataset/<str:dataset_id>',
+        params={'dataset_id': f'dataset-of-organizer-{now}-training'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 405,
+        },
+    ),
+    route_to_test(
+        url_pattern='tira-admin/edit-dataset/<str:dataset_id>',
+        params={'dataset_id': f'dataset-1-{now}-training'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
         },
     ),
     route_to_test(
@@ -798,6 +978,7 @@ API_ACCESS_MATRIX = [
             GUEST: 405,
             PARTICIPANT: 405,
             ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
         },
     ),
     route_to_test(
@@ -805,9 +986,10 @@ API_ACCESS_MATRIX = [
         params={'organizer_id': 'organizer-2'},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 405,
-            PARTICIPANT: 405,
+            GUEST: 405, # We expect 405 for existing organizer 'organizer-2'
+            PARTICIPANT: 405, # We expect 405 for existing organizer 'organizer-2'
             ORGANIZER: 405, # We expect 405 for existing organizer 'organizer-2'
+            ORGANIZER_WRONG_TASK: 405, # We expect 405 for existing 'organizer-2'
         },
     ),
     route_to_test(
@@ -815,9 +997,10 @@ API_ACCESS_MATRIX = [
         params={'organizer_id': 'organizer-id-does-not-exist'},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 405,
-            PARTICIPANT: 405,
+            GUEST: 200,
+            PARTICIPANT: 200, # We expect 200 for non-existing organizer.
             ORGANIZER: 200, # We expect 200 for non-existing organizer.
+            ORGANIZER_WRONG_TASK: 200, # We expect 200 for non-existing organizer.
         },
     ),
     route_to_test(
@@ -828,6 +1011,8 @@ API_ACCESS_MATRIX = [
             GUEST: 405,
             PARTICIPANT: 405,
             ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
+            ORGANIZER_WRONG_TASK: 405,
         },
     ),
     route_to_test(
@@ -838,6 +1023,7 @@ API_ACCESS_MATRIX = [
             GUEST: 405,
             PARTICIPANT: 405,
             ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
         },
     ),
     route_to_test(
@@ -848,6 +1034,7 @@ API_ACCESS_MATRIX = [
             GUEST: 405,
             PARTICIPANT: 405,
             ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 405,
         },
     ),
     route_to_test(
@@ -858,6 +1045,43 @@ API_ACCESS_MATRIX = [
             GUEST: 405,
             PARTICIPANT: 405,
             ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
+        },
+    ),
+    route_to_test(
+        url_pattern='tira-admin/edit-review/<str:dataset_id>/<str:vm_id>/<str:run_id>',
+        params={'dataset_id': f'dataset-of-organizer-{now}-training', 'vm_id': 'vm-id-does-not-exist',
+                'run_id': 'run-of-organizer'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 405,
+        },
+    ),
+    route_to_test(
+        url_pattern='tira-admin/edit-review/<str:dataset_id>/<str:vm_id>/<str:run_id>',
+        params={'dataset_id': f'dataset-of-organizer-{now}-training', 'vm_id': 'vm-id-does-not-exist',
+                'run_id': 'run-1'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
+        },
+    ),
+    route_to_test(
+        url_pattern='tira-admin/edit-review/<str:dataset_id>/<str:vm_id>/<str:run_id>',
+        params={'dataset_id': f'dataset-1-{now}-training', 'vm_id': 'vm-id-does-not-exist',
+                'run_id': 'run-of-organizer'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
         },
     ),
     route_to_test(
@@ -868,6 +1092,7 @@ API_ACCESS_MATRIX = [
             GUEST: 405,
             PARTICIPANT: 405,
             ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
         },
     ),
     route_to_test(
@@ -878,6 +1103,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302, # TODO: Make consistent.
             PARTICIPANT: 302, # TODO: Make consistent.
             ORGANIZER: 302, # TODO: Make consistent.
+            ORGANIZER_WRONG_TASK: 302, # TODO: Make consistent.
         },
     ),
     route_to_test(
@@ -888,6 +1114,7 @@ API_ACCESS_MATRIX = [
             GUEST: 405,
             PARTICIPANT: 405,
             ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
         },
     ),
     route_to_test(
@@ -898,6 +1125,7 @@ API_ACCESS_MATRIX = [
             GUEST: 200, # TODO Make consistent with "api/evaluation/<str:vm_id>/<str:run_id>"
             PARTICIPANT: 200,
             ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 200, # TODO Make consistent with "api/evaluation/<str:vm_id>/<str:run_id>"
         },
     ),
     route_to_test(
@@ -908,6 +1136,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,  # TODO Make consistent with "api/evaluations/<str:task_id>/<str:dataset_id>"
             PARTICIPANT: 302,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,  # TODO Make consistent with "api/evaluations/<str:task_id>/<str:dataset_id>"
         },
     ),
     route_to_test(
@@ -918,6 +1147,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,  # TODO Make consistent with "api/evaluations/<str:task_id>/<str:dataset_id>"
             PARTICIPANT: 200,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302, # TODO Make consistent with "api/evaluations/<str:task_id>/<str:dataset_id>"
         },
     ),
     route_to_test(
@@ -928,6 +1158,7 @@ API_ACCESS_MATRIX = [
             GUEST: 200,
             PARTICIPANT: 200,
             ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 200,
         },
     ),
     route_to_test(
@@ -938,6 +1169,7 @@ API_ACCESS_MATRIX = [
             GUEST: 405,
             PARTICIPANT: 405,
             ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
         },
     ),
     route_to_test(
@@ -948,6 +1180,7 @@ API_ACCESS_MATRIX = [
             GUEST: 405,
             PARTICIPANT: 405,
             ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
         },
     ),
     route_to_test(
@@ -955,9 +1188,10 @@ API_ACCESS_MATRIX = [
         params={},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 405,
-            PARTICIPANT: 405,
+            GUEST: 200,
+            PARTICIPANT: 200,
             ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 200,
         },
     ),
     route_to_test(
@@ -968,6 +1202,7 @@ API_ACCESS_MATRIX = [
             GUEST: 200,
             PARTICIPANT: 200,
             ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 200,
         },
     ),
     route_to_test(
@@ -978,6 +1213,7 @@ API_ACCESS_MATRIX = [
             GUEST: 200,
             PARTICIPANT: 200,
             ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 200,
         },
     ),
     route_to_test(
@@ -988,6 +1224,7 @@ API_ACCESS_MATRIX = [
             GUEST: 200,
             PARTICIPANT: 200,
             ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 200,
         },
     ),
     route_to_test(
@@ -998,6 +1235,7 @@ API_ACCESS_MATRIX = [
             GUEST: 200,
             PARTICIPANT: 200,
             ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 200,
         },
     ),
     route_to_test(
@@ -1008,6 +1246,7 @@ API_ACCESS_MATRIX = [
             GUEST: 200,
             PARTICIPANT: 200,
             ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 200,
         },
     ),
     route_to_test(
@@ -1018,6 +1257,7 @@ API_ACCESS_MATRIX = [
             GUEST: 200,
             PARTICIPANT: 200,
             ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 200,
         },
     ),
     route_to_test(
@@ -1028,6 +1268,7 @@ API_ACCESS_MATRIX = [
             GUEST: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
             PARTICIPANT: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
             ORGANIZER: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
+            ORGANIZER_WRONG_TASK: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
         },
     ),
     route_to_test(
@@ -1038,6 +1279,7 @@ API_ACCESS_MATRIX = [
             GUEST: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
             PARTICIPANT: 200,
             ORGANIZER: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
+            ORGANIZER_WRONG_TASK: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
         },
     ),
     route_to_test(
@@ -1048,6 +1290,7 @@ API_ACCESS_MATRIX = [
             GUEST: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
             PARTICIPANT: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
             ORGANIZER: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
+            ORGANIZER_WRONG_TASK: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
         },
     ),
     route_to_test(
@@ -1058,6 +1301,7 @@ API_ACCESS_MATRIX = [
             GUEST: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
             PARTICIPANT: 200,
             ORGANIZER: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
+            ORGANIZER_WRONG_TASK: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
         },
     ),
     route_to_test(
@@ -1068,6 +1312,7 @@ API_ACCESS_MATRIX = [
             GUEST: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
             PARTICIPANT: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
             ORGANIZER: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
+            ORGANIZER_WRONG_TASK: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
         },
     ),
     route_to_test(
@@ -1078,6 +1323,7 @@ API_ACCESS_MATRIX = [
             GUEST: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
             PARTICIPANT: 200,
             ORGANIZER: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
+            ORGANIZER_WRONG_TASK: 200, # TODO: This seems to be wrong, but I am not sure, I would expect a 405 here.
         },
     ),
     route_to_test(
@@ -1088,6 +1334,7 @@ API_ACCESS_MATRIX = [
             GUEST: 405,
             PARTICIPANT: 405,
             ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
         },
     ),
     route_to_test(
@@ -1098,6 +1345,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302, # TODO: Is this inconsistent with api/review/<str:dataset_id>/<str:vm_id>/<str:run_id> above?
             PARTICIPANT: 302, # TODO: Is this inconsistent with api/review/<str:dataset_id>/<str:vm_id>/<str:run_id> above?
             ORGANIZER: 302, # TODO: Is this inconsistent with api/review/<str:dataset_id>/<str:vm_id>/<str:run_id> above?
+            ORGANIZER_WRONG_TASK: 302, # TODO: Is this inconsistent with api/review/<str:dataset_id>/<str:vm_id>/<str:run_id> above?
         },
     ),
     route_to_test(
@@ -1108,9 +1356,35 @@ API_ACCESS_MATRIX = [
             GUEST: 302, # TODO: Is this inconsistent with api/review/<str:dataset_id>/<str:vm_id>/<str:run_id> above?
             PARTICIPANT: 200,
             ORGANIZER: 302, # TODO: Is this inconsistent with api/review/<str:dataset_id>/<str:vm_id>/<str:run_id> above?
+            ORGANIZER_WRONG_TASK: 302, # TODO: Is this inconsistent with api/review/<str:dataset_id>/<str:vm_id>/<str:run_id> above?
         },
     ),
-    
+    route_to_test(
+        url_pattern='api/review/<str:dataset_id>/<str:vm_id>/<str:run_id>',
+        params={'dataset_id': f'dataset-of-organizer-{now}-training', 'vm_id': 'does-not-exist', 'run_id': 'run-of-organizer'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,  # TODO: Is this inconsistent with api/review/<str:dataset_id>/<str:vm_id>/<str:run_id> above?
+            PARTICIPANT: 302, # TODO: Is this inconsistent with api/review/<str:dataset_id>/<str:vm_id>/<str:run_id> above?
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 302, # TODO: Is this inconsistent with api/review/<str:dataset_id>/<str:vm_id>/<str:run_id> above?
+        },
+    ),
+    route_to_test(
+        url_pattern='api/review/<str:dataset_id>/<str:vm_id>/<str:run_id>',
+        params={'dataset_id': f'dataset-of-organizer-{now}-training', 'vm_id': 'does-not-exist',
+                'run_id': 'run-1'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,  # TODO: Is this inconsistent with api/review/<str:dataset_id>/<str:vm_id>/<str:run_id> above?
+            PARTICIPANT: 302,
+            # TODO: Is this inconsistent with api/review/<str:dataset_id>/<str:vm_id>/<str:run_id> above?
+            ORGANIZER: 302, # TODO: Is this inconsistent with api/review/<str:dataset_id>/<str:vm_id>/<str:run_id> above?
+            ORGANIZER_WRONG_TASK: 302,
+            # TODO: Is this inconsistent with api/review/<str:dataset_id>/<str:vm_id>/<str:run_id> above?
+        },
+    ),
+
     # TODO: The following methods return 50X at the moment, we should improve the setup so that it returns 200. But for the moment 50X is enough to separate authenticated from unauthenticated.
     route_to_test(
         url_pattern='tira-admin/reload-data',
@@ -1120,6 +1394,7 @@ API_ACCESS_MATRIX = [
             GUEST: 405,
             PARTICIPANT: 405,
             ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
         },
         hide_stdout=True
     ),
@@ -1131,6 +1406,7 @@ API_ACCESS_MATRIX = [
             GUEST: 405,
             PARTICIPANT: 405,
             ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
         },
         hide_stdout=True
     ),
@@ -1142,6 +1418,7 @@ API_ACCESS_MATRIX = [
             GUEST: 405,
             PARTICIPANT: 405,
             ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
         },
     ),
     route_to_test(
@@ -1152,6 +1429,7 @@ API_ACCESS_MATRIX = [
             GUEST: 405,
             PARTICIPANT: 405,
             ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
         },
     ),
     route_to_test(
@@ -1162,6 +1440,7 @@ API_ACCESS_MATRIX = [
             GUEST: 405,
             PARTICIPANT: 405,
             ORGANIZER: 501,
+            ORGANIZER_WRONG_TASK: 405,
         },
     ),
     route_to_test(
@@ -1172,6 +1451,7 @@ API_ACCESS_MATRIX = [
             GUEST: 500, # TODO: Would we expect an 404 here?
             PARTICIPANT: 500, # TODO: Would we expect an 404 here?
             ORGANIZER: 500, # TODO: Would we expect an 404 here?
+            ORGANIZER_WRONG_TASK: 500, # TODO: Would we expect an 404 here?
         },
         body='{"group": "X"}',
     ),
@@ -1185,6 +1465,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 302,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         }
     ),
     route_to_test(
@@ -1195,6 +1476,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 202,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         }
     ),
     route_to_test(
@@ -1204,6 +1486,17 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
             GUEST: 405,
             PARTICIPANT: 405,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 405,
+        },
+    ),
+    route_to_test(
+        url_pattern='tira-admin/delete-dataset/<str:dataset_id>',
+        params={'dataset_id': f'dataset-of-organizer-{now}-training'},
+        group_to_expected_status_code={
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER_WRONG_TASK: 405,
             ORGANIZER: 200,
         },
     ),

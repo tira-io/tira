@@ -50,7 +50,31 @@
             <div id="edit-organization-modal" uk-modal>
                 <div class="uk-modal-dialog uk-modal-body uk-width-4-5">
                     <button class="uk-modal-close-default" type="button" uk-close></button>
-                    <edit-organization :csrf="csrf"
+                    <edit-organization :csrf="csrf" edit="true" add="true"
+                               @addNotification="(type, message) => addNotification(type, message)"
+                               @closeModal="closeModal()" />
+                </div>
+            </div>
+            {% elif role == 'guest' %}
+            <div>
+                <a href="/login" class="uk-button uk-button-large uk-button-default uk-text-large">
+                      <span class="uk-padding-small">Organize Task</span><i class="fas fa-edit"></i></a>
+            </div>
+            {% else %}
+            <div>
+                <a uk-toggle="target: #add-organization-modal" class="uk-button uk-button-large uk-button-default uk-text-large">
+                      <span class="uk-padding-small">Organize Task</span><i class="fas fa-edit"></i></a>
+            </div>
+            <div id="add-organization-modal" uk-modal>
+                <div class="uk-modal-dialog uk-modal-body uk-width-4-5">
+                    <button class="uk-modal-close-default" type="button" uk-close></button>
+                    <h1>Organize Your Task</h1>
+                    
+                    <p>
+                    To organize a task, please add your organization first. If your organization already exists (please see <a href="https://www.tira.io/g?filter=tira_org">https://www.tira.io/g?filter=tira_org</a>), please ask a member of this organization to invite you.
+                    </p>
+                    
+                    <edit-organization :csrf="csrf" edit="false" add="true"
                                @addNotification="(type, message) => addNotification(type, message)"
                                @closeModal="closeModal()" />
                 </div>

@@ -1,5 +1,5 @@
 # Only change in case of new / updated dependencies
-FROM webis/tira-application:basis-0.0.39
+FROM webis/tira-application:basis-0.0.47
 
 # This Dockerfile ensures that all dependencies do rarely change by starting from a basis image
 # that contains already all dependencies (so that the minor versions do rarely change, but we
@@ -18,7 +18,9 @@ RUN cd /tira/application/src/tira/frontend/ && \
 	python3 manage.py collectstatic && \
 	chmod +x /tira/application/src/tira/endpoints/aha && \
 	cp /tira/application/src/tira/management/commands/irds_cli.sh /irds_cli.sh && \
-	rm -f ./config/settings.yml ./config/config.yml ./config/tira-application-config.dev.yml
+	rm -f ./config/settings.yml ./config/config.yml ./config/tira-application-config.dev.yml && \
+	apk add sudo && \
+	echo '%podman ALL=(ALL) ALL' > /etc/sudoers.d/podman
 
 RUN cd /tira/application/ && \
         ./test/run_all_tests.sh

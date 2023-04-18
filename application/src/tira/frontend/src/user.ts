@@ -326,6 +326,10 @@ const app = createApp({
                 this.pollRunningEvaluations()
                 this.pollRunningSoftware()
                 this.loading = false
+                
+                if(message.organizer_teams.includes(this.task.organizer_id)) {
+                    this.role = 'admin'
+                }
             })
         }).catch(error => {
             this.addNotification('error', error)

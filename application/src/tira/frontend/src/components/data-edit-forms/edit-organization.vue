@@ -1,4 +1,5 @@
 <template>
+  <div v-if="'' + edit === 'true'">
   <div class="uk-grid-small uk-margin-small" uk-grid>
       <div class="uk-margin-right">
           <h2>Edit Organization <span class="uk-text-lead uk-text-muted">ID: {{ this.selectedOrganizer.organizer_id }}</span></h2>
@@ -43,6 +44,8 @@
           <span class="uk-text-danger uk-margin-small-left">{{ this.editOrganizerError }}</span>
       </div>
   </div>
+  </div>
+  <div v-if="'' + add === 'true'">
   <div class="uk-margin-small">
       <div class="uk-margin-right">
           <h2>Add Organization <span class="uk-text-lead uk-text-muted">ID: {{ this.newOrgId }}</span></h2>
@@ -78,6 +81,7 @@
           <span class="uk-text-danger uk-margin-small-left">{{ this.addOrganizerError }}</span>
       </div>
   </div>
+  </div>
 </template>
 <script>
   
@@ -102,7 +106,7 @@ export default {
         }
     },
     emits: ['addnotification', 'closemodal'],
-    props: ['csrf'],
+    props: ['csrf', 'edit', 'add'],
     methods: {
         async get(url) {
             const response = await fetch(url)
@@ -193,6 +197,7 @@ export default {
             }).then(message => {
                 this.$emit('addnotification', 'success', message.message)
                 this.$emit('closemodal')
+                location.reload()
             }).catch(error => {
                 this.addOrganizerError = error
             })

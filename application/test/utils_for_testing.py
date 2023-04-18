@@ -28,6 +28,7 @@ def set_up_tira_environment():
     Path('tira-root/model/tasks/').mkdir(parents=True, exist_ok=True)
     Path('tira-root/model/users/').mkdir(parents=True, exist_ok=True)
     Path('tira-root/data/runs/dataset-1/example_participant/run-1').mkdir(parents=True, exist_ok=True)
+    Path('tira-root/data/runs/dataset-of-organizer/example_participant/run-of-organizer').mkdir(parents=True, exist_ok=True)
     open('tira-root/model/virtual-machines/virtual-machines.txt', 'w').write('')
     open('tira-root/model/virtual-machine-hosts/virtual-machine-hosts.txt', 'w').write('')
     open('tira-root/model/users/users.prototext', 'w').write('')
@@ -49,12 +50,17 @@ def set_up_tira_environment():
 
     tira_model.add_dataset('shared-task-1', 'dataset-1', 'training', 'dataset-1', 'upload-name')
     tira_model.add_dataset('shared-task-1', 'dataset-2', 'test', 'dataset-2', 'upload-name')
+    tira_model.add_dataset('task-of-organizer-1', 'dataset-of-organizer', 'training', 'dataset-of-organizer', 'upload-name')
     tira_model.add_software(task_id='shared-task-1', vm_id='PARTICIPANT-FOR-TEST-1')
         
     with open('tira-root/data/runs/dataset-1/example_participant/run-1/run.prototext', 'w') as f:
         f.write(f'\nsoftwareId: "upload"\nrunId: "run-1"\ninputDataset: "dataset-1-{now}-training"\ndownloadable: true\ndeleted: false\n')
-        
+
+    with open('tira-root/data/runs/dataset-of-organizer/example_participant/run-of-organizer/run.prototext', 'w') as f:
+        f.write(f'\nsoftwareId: "upload"\nrunId: "run-of-organizer"\ninputDataset: "dataset-of-organizer-{now}-training"\ndownloadable: true\ndeleted: false\n')
+
     tira_model.add_run(dataset_id='dataset-1', vm_id='example_participant', run_id='run-1')
+    tira_model.add_run(dataset_id='dataset-of-organizer', vm_id='example_participant', run_id='run-of-organizer')
 
 def mock_request(groups, url_pattern, method='GET', body=None, params=None):
     if 'DISRAPTOR_APP_SECRET_KEY' not in os.environ:
@@ -69,6 +75,15 @@ def mock_request(groups, url_pattern, method='GET', body=None, params=None):
     
     if params and 'organizer_id' in params and '<str:organizer_id>' in ret.path_info:
         ret.path_info = ret.path_info.replace('<str:organizer_id>', params['organizer_id'])
+
+    if params and 'dataset_id' in params and '<str:dataset_id>' in ret.path_info:
+        ret.path_info = ret.path_info.replace('<str:dataset_id>', str(params['dataset_id']))
+
+    if params and 'vm_id' in params and '<str:vm_id>' in ret.path_info:
+        ret.path_info = ret.path_info.replace('<str:vm_id>', params['vm_id'])
+
+    if params and 'run_id' in params and '<str:run_id>' in ret.path_info:
+        ret.path_info = ret.path_info.replace('<str:run_id>', params['run_id'])
     
     ret.META = {
         'CSRF_COOKIE': 'aasa',

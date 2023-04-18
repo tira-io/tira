@@ -1,6 +1,6 @@
 <template>
 <div>
-    <a  v-if="(!requireRegistration || userIsRegistered) && userVmsForTask.length <= 1" class="uk-button uk-button-primary uk-text-large submit-button"
+    <a  v-if="(!requireRegistration || userIsRegistered) && userVmsForTask && userVmsForTask.length <= 1" class="uk-button uk-button-primary uk-text-large submit-button"
          uk-tooltip="title: Go to the submission page for this task;" :href="submissionLink" :disabled="!loaded">
         <font-awesome-icon icon="fas fa-terminal" class="uk-margin-right" />Submit
     </a>
@@ -11,9 +11,9 @@
         <font-awesome-icon icon="fas fa-user-edit" :class="{'uk-margin-right': !userIsRegistered}" />
         <span v-if="!userIsRegistered">Register new Team</span>
     </a>
-    <span v-else-if="requireRegistration && !userId">Please <a href='/login'>Login to TIRA</a> to register your Team and Submit</span>
+    <span v-else-if="!userId">Please <a href='/login'>Login to TIRA</a> to register your Team and Submit</span>
 
-    <span v-if="(!requireRegistration || userIsRegistered)  && userVmsForTask.length > 1">
+    <span v-if="(!requireRegistration || userIsRegistered) && userVmsForTask && userVmsForTask.length > 1">
         <select-team-button :user-vms-for-task="userVmsForTask" :task-id="this.taskId" rendering="long" />
     </span>
 
@@ -191,7 +191,7 @@ export default {
     submissionLink() {
       const base = window.location.origin
     
-      var team = this.userId
+      var team = this.userId + '-default'
       if (this.userVmsForTask && this.userVmsForTask.length > 0) {
         team = this.userVmsForTask[0]
       }

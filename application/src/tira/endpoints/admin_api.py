@@ -12,8 +12,12 @@ from http import HTTPStatus
 import json
 from datetime import datetime as dt
 from tira.git_runner import check_that_git_integration_is_valid
+from tira.ir_datasets_loader import run_irds_command
 
 import tira.tira_model as model
+import os
+import tempfile
+import zipfile
 
 logger = logging.getLogger("tira")
 logger.info("ajax_routes: Logger active")
@@ -109,7 +113,8 @@ def admin_create_task(request, organizer_id):
 
         task_id = data["task_id"]
         featured = data["featured"]
-        master_vm_id = data["master_vm_id"]
+        master_vm_id = data.get("master_vm_id", 'princess-knight') # dummy default VM
+        master_vm_id = master_vm_id if master_vm_id else 'princess-knight' # default dummy vm
         require_registration = data['require_registration']
         require_groups = data['require_groups']
         restrict_groups = data['restrict_groups']
@@ -142,7 +147,8 @@ def admin_edit_task(request, task_id):
         data = json.loads(request.body)
         organizer = data["organizer"]
         featured = data["featured"]
-        master_vm_id = data["master_vm_id"]
+        master_vm_id = data.get("master_vm_id", 'princess-knight') # default dummy vm
+        master_vm_id = master_vm_id if master_vm_id else 'princess-knight' # default dummy vm
         require_registration = data['require_registration']
         require_groups = data['require_groups']
         restrict_groups = data['restrict_groups']
@@ -176,7 +182,7 @@ def admin_delete_task(request, task_id):
 
 
 @check_permissions
-def admin_add_dataset(request):
+def admin_add_dataset(request, task_id):
     """ Create an entry in the model for the task. Use data supplied by a model.
      Return a json status message. """
     if request.method == "POST":
@@ -187,7 +193,11 @@ def admin_add_dataset(request):
 
         dataset_id_prefix = data["dataset_id"]
         dataset_name = data["name"]
-        task_id = data["task"]
+        task_id_from_data = data["task"]
+
+        if task_id_from_data != task_id:
+            from django.http import HttpResponseNotAllowed
+            return HttpResponseNotAllowed(f"Access forbidden.")
 
         upload_name = data.get("upload_name", "predictions.jsonl")
         command = data.get("evaluator_command", "")
@@ -282,6 +292,9 @@ def admin_edit_dataset(request, dataset_id):
                                 measures, upload_name, is_confidential, is_git_runner, git_runner_image,
                                 git_runner_command, git_repository_id)
 
+        from django.core.cache import cache
+        model.git_pipeline_is_enabled_for_task(task_id, cache, force_cache_refresh=True)
+
         return JsonResponse(
             {'status': 0, 'context': ds, 'message': f"Updated Dataset {ds['dataset_id']}."})
 
@@ -318,50 +331,56 @@ def call_django_command_failsave(cmd, args):
 
 
 @check_permissions
-def admin_import_ir_dataset(request):
+def admin_import_ir_dataset(request, task_id):
     """ Create multiple datasets for the pased ir-dataset.
      Return a json status message. """
     if request.method == "POST":
         data = json.loads(request.body)
 
-        if not all(k in data.keys() for k in ['dataset_id', 'name', 'task']):
-            return JsonResponse({'status': 1, 'message': f"Error: Task, dataset name, and dataset ID must be set."})
+        if not all(k in data.keys() for k in ['dataset_id', 'name', 'image']):
+            return JsonResponse({'status': 1, 'message': f"Error: dataset_id, name, and image must be set."})
 
-        #for dataset_type in ['full-rank', 're-rank', 'full-rank-unstructured', 're-rank-unstructured']:
-        for dataset_type in ['full-rank']:
-            dataset_id_prefix = data["dataset_id"] + '-' + dataset_type
-            dataset_name = data["name"] + '-' + dataset_type
-            task_id = data["task"]
+        dataset_id_prefix = data["dataset_id"]
+        dataset_name = data["name"]
 
-            upload_name = data.get("upload_name", "run.txt")
-            command = data.get("evaluator_command", "")
-            working_directory = data.get("evaluator_working_directory", "")
-            measures = data.get("evaluation_measures", "")
+        upload_name = data.get("upload_name", "run.txt")
+        evaluator_command = data.get("evaluator_command", "")
+        working_directory = data.get("evaluator_working_directory", "")
+        measures = data.get("evaluation_measures", "")
 
-            is_git_runner = data.get("is_git_runner", True)
-            git_runner_image = data.get("git_runner_image", settings.IR_MEASURES_IMAGE)
-            git_runner_command = data.get("git_runner_command", settings.IR_MEASURES_COMMAND)
-            git_repository_id = model.get_git_integration(task_id=task_id).create_task_repository(task_id)
-            master_vm_id = None
+        is_git_runner = data.get("is_git_runner", True)
+        git_runner_image = data.get("git_runner_image", data.get('image'))
+        git_runner_command = data.get("git_runner_command", settings.IR_MEASURES_COMMAND)
+        git_repository_id = model.get_git_integration(task_id=task_id).create_task_repository(task_id)
+        irds_import_command = f'/irds_cli.sh --skip_qrels true --ir_datasets_id {data["dataset_id"]} --output_dataset_path $outputDir'
+        irds_import_truth_command = f'/irds_cli.sh --skip_documents true --ir_datasets_id {data["dataset_id"]} --output_dataset_truth_path $outputDir'
 
-            try:
-                if data['type'] == 'training':
-                    ds, (dataset_path, dataset_truth_path) = model.add_dataset(task_id, dataset_id_prefix, "training", dataset_name, upload_name)
-                elif data['type'] == 'test':
-                    ds, (dataset_path, dataset_truth_path) = model.add_dataset(task_id, dataset_id_prefix, "test", dataset_name, upload_name)
+        master_vm_id = None
 
-            except FileExistsError as e:
-                logger.exception(e)
-                return JsonResponse({'status': 1, 'message': f"A Dataset with this id already exists."})
-            
-            model.add_evaluator(master_vm_id, task_id, ds['dataset_id'], command, working_directory, not measures,
-                                is_git_runner, git_runner_image, git_runner_command, git_repository_id)
+        try:
+            if data['type'] == 'training':
+                ds, (dataset_path, dataset_truth_path) = model.add_dataset(task_id, dataset_id_prefix, "training", dataset_name, upload_name, irds_docker_image=git_runner_image, irds_import_command=irds_import_command, irds_import_truth_command=irds_import_truth_command)
+            elif data['type'] == 'test':
+                ds, (dataset_path, dataset_truth_path) = model.add_dataset(task_id, dataset_id_prefix, "test", dataset_name, upload_name, irds_docker_image=git_runner_image, irds_import_command=irds_import_command, irds_import_truth_command=irds_import_truth_command)
+            else:
+                return JsonResponse({'status': 1, 'message': f"Invalid data type. Expected training or test, got : "  + data['type']})
+        except FileExistsError as e:
+            logger.exception(e)
+            return JsonResponse({'status': 1, 'message': f"A Dataset with this id already exists. Error: "  + str(e)})
 
-            command_out = call_django_command_failsave('ir_datasets_loader_cli', {'ir_datasets_id': data["dataset_id"], 'output_dataset_path': dataset_path, 'output_dataset_truth_path': dataset_truth_path})
+        model.add_evaluator(master_vm_id, task_id, ds['dataset_id'], evaluator_command, working_directory, not measures,
+                            is_git_runner, git_runner_image, git_runner_command, git_repository_id)
 
-            return JsonResponse(
-                {'status': 1 if command_out['error'] else 0, 'context': {}, 'message': f"Created new dataset with id .... "
-                                                        f"..." + str(command_out)})
+        try:
+            ret = f'Output ({ds["irds_import_command"]}): \n'
+            ret += run_irds_command(ds['task'], ds['dataset_id'], ds['irds_docker_image'], ds['irds_import_command'], dataset_path)
+
+            ret += f'\n\n\nOutput ({ds["irds_import_truth_command"]}): \n'
+            ret += run_irds_command(ds['task'], ds['dataset_id'], ds['irds_docker_image'], ds['irds_import_truth_command'], dataset_truth_path)
+        except Exception as e:
+            return JsonResponse({'status': 1, 'context': {}, 'message': f'Import of dataset failed with: {e}.'})
+
+        return JsonResponse({'status': 0, 'context': ds, 'message': 'Imported dataset successfull.'})
 
     return JsonResponse({'status': 1, 'message': f"GET is not implemented for add dataset"})
 
@@ -370,22 +389,36 @@ def admin_import_ir_dataset(request):
 @check_permissions
 @check_resources_exist('json')
 def admin_delete_dataset(request, dataset_id):
-    model.delete_dataset(dataset_id)
-    return JsonResponse({'status': 0, 'message': f"Deleted dataset {dataset_id}"})
+    try:
+        model.delete_dataset(dataset_id)
+        return JsonResponse({'status': 0, 'message': f"Deleted dataset {dataset_id}"})
+    except Exception as e:
+        return JsonResponse({'status': 1, 'message': f"Could not delete dataset {dataset_id}: {e}"})
+
+
 
 
 @check_permissions
 def admin_add_organizer(request, organizer_id):
     if request.method == "POST":
         data = json.loads(request.body)
+        add_default_git_integrations = False
 
         if data['gitUrlToNamespace']:
             git_integration_is_valid, error_message = check_that_git_integration_is_valid(data['gitUrlToNamespace'], data['gitPrivateToken'])
             
             if not git_integration_is_valid:
                 return JsonResponse({'status': 1, 'message': error_message})
+        else:
+            add_default_git_integrations = True
 
-        model.edit_organizer(organizer_id, data["name"], data["years"], data["web"], data['gitUrlToNamespace'], data['gitPrivateToken'])
+        model.edit_organizer(organizer_id, data["name"], data["years"], data["web"], data['gitUrlToNamespace'],
+                             data['gitPrivateToken'])
+
+        if add_default_git_integrations:
+            git_integrations = [model.model.get_git_integration(settings.DEFAULT_GIT_INTEGRATION_URL, '<OMMITTED>')]
+            model.model.edit_organizer(organizer_id, data["name"], data["years"], data["web"], git_integrations=git_integrations)
+
         auth.create_organizer_group(organizer_id, auth.get_user_id(request))
         return JsonResponse({'status': 0, 'message': f"Added Organizer {organizer_id}"})
 
@@ -445,3 +478,52 @@ def admin_edit_review(request, dataset_id, vm_id, run_id):
         return JsonResponse({'status': 0, 'message': f"Updated review for run {run_id}"})
 
     return JsonResponse({'status': 1, 'message': f"GET is not implemented for edit organizer"})
+
+
+@check_permissions
+def admin_upload_dataset(request, task_id, dataset_id, dataset_type):
+    if request.method != 'POST':
+        return JsonResponse({"status": 1, "message": "GET is not allowed here."})
+
+    if not dataset_id or dataset_id is None or dataset_id == 'None':
+        return JsonResponse({"status": 1, "message": "Please specify the associated dataset."})
+
+    if not dataset_type in ['input', 'truth']:
+        return JsonResponse({"status": 1, "message": f"Invalid dataset_type. Expected 'input' or 'truth', but got: '{dataset_type}'"})
+
+    dataset_suffix = '' if dataset_type == 'input' else '-truth'
+
+    uploaded_file = request.FILES['file']
+
+    if not uploaded_file.name.endswith(".zip"):
+        return JsonResponse({"status": 1, "message": f"Invalid Upload. I expect a zip file, but got '{uploaded_file.name}'."})
+
+    dataset = model.get_dataset(dataset_id)
+
+    if not 'dataset_id' in dataset or dataset_id != dataset['dataset_id']:
+        return JsonResponse({"status": 1, "message": f"Unknown dataset_id."})
+
+    if dataset_id.endswith('-test'):
+        dataset_prefix = 'test-'
+    elif dataset_id.endswith('-training'):
+        dataset_prefix = 'training-'
+    else:
+        return JsonResponse({"status": 1, "message": f"Unknown dataset_id."})
+
+    target_directory = model.model.data_path / (dataset_prefix + 'datasets' + dataset_suffix) / task_id / dataset_id
+
+    if not os.path.exists(target_directory):
+        return JsonResponse({"status": 1, "message": f"Dataset directory 'target_directory' does not exist."})
+
+    if len(os.listdir(target_directory)) > 0:
+        return JsonResponse({"status": 1, "message": f"There is already some dataset uploaded. We prevent to overwrite data. Please create a new dataset (i.e., a new version) if you want to update the dataset. Please reach out to us if creating a new dataset would not solve your problem."})
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        with open(tmp_dir + '/tmp.zip', 'wb+') as fp_destination:
+            for chunk in uploaded_file.chunks():
+                fp_destination.write(chunk)
+
+        with zipfile.ZipFile(tmp_dir + '/tmp.zip', 'r') as zip_ref:
+            zip_ref.extractall(target_directory)
+
+        return JsonResponse({"status": 0, "message": f"Uploaded files '{os.listdir(target_directory)}' to '{target_directory}'."})

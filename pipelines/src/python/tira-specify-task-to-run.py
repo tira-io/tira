@@ -28,7 +28,7 @@ def copy_from_to(source_directory, target_directory, file_skip_list=()):
     if exists(source_directory) and not exists(target_directory):
         print(f'Copy input data from {source_directory} to {target_directory}', file=sys.stderr)
         ignore = shutil.ignore_patterns(*file_skip_list) if file_skip_list else None
-        shutil.copytree(source_directory, os.path.abspath(Path(target_directory)), ignore=ignore)
+        shutil.copytree(source_directory, os.path.abspath(Path(target_directory)), ignore=ignore, symlinks=True)
     else:
         print(f'Absolute input dataset {source_directory} exists: {exists(source_directory)}', file=sys.stderr)
         print(f'Relative input dataset {target_directory} exists: {exists(target_directory)}', file=sys.stderr)
@@ -85,7 +85,10 @@ def identify_environment_variables(job_file):
     with open(job_file, 'r') as f:
         for l in f:
             if '=' in l:
-                ret += [l.strip()]
+                if 'TIRA_COMMAND_TO_EXECUTE' in l:
+                    ret += [l.strip().replace("$", "$$")]
+                else:
+                    ret += [l.strip()]
     
     for i in ['TIRA_TASK_ID', 'TIRA_IMAGE_TO_EXECUTE', 'TIRA_COMMAND_TO_EXECUTE']:
         if len([j for j in ret if i in j]) != 1:

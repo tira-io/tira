@@ -1,5 +1,6 @@
 import tempfile
 import os
+import sys
 import json
 from pathlib import Path
 from glob import glob
@@ -187,7 +188,10 @@ def run(identifier=None, image=None, command=None, data=None, evaluate=False, ve
     if image is None or command is None:
         image, command = __extract_image_and_command(identifier)
     try:
-        client = docker.from_env()
+        environ = os.environ.copy()
+        if sys.platform == "linux" and os.path.exists(os.path.expanduser("~/.docker/desktop/docker.sock")):
+            environ["DOCKER_HOST"] = "unix:///" + os.path.expanduser("~/.docker/desktop/docker.sock")
+        client = docker.from_env(environment=environ)
         
         assert len(client.images.list()) >= 0
         assert len(client.containers.list()) >= 0

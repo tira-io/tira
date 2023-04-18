@@ -42,7 +42,9 @@ def check_permissions(func):
         if 'run_id_1' in kwargs or 'run_id_2' in kwargs:
             return HttpResponseNotAllowed(f"Access forbidden.")
 
-        if auth.user_is_organizer_for_endpoint(request=request, path=request.path_info, task_id=task_id, organizer_id_from_params=organizer_id):
+        if auth.user_is_organizer_for_endpoint(request=request, path=request.path_info, task_id=task_id,
+                                               organizer_id_from_params=organizer_id, dataset_id_from_params=dataset_id,
+                                               run_id_from_params=run_id, vm_id_from_params=vm_id, role=role):
             return func(request, *args, **kwargs)
 
         if vm_id:
@@ -106,6 +108,11 @@ def check_conditional_permissions(restricted=False, public_data_ok=False, privat
 
             role = auth.get_role(request, user_id=auth.get_user_id(request))
             if role == auth.ROLE_ADMIN or role == auth.ROLE_TIRA:
+                return func(request, *args, **kwargs)
+            elif auth.user_is_organizer_for_endpoint(request=request, path=request.path_info, task_id=task_id,
+                                                   organizer_id_from_params=None,
+                                                   dataset_id_from_params=dataset_id,
+                                                   run_id_from_params=run_id, vm_id_from_params=vm_id, role=role):
                 return func(request, *args, **kwargs)
             elif restricted:
                 return HttpResponseNotAllowed(f"Access restricted.")

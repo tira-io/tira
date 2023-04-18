@@ -11,6 +11,26 @@ import gzip
 from base64 import b64encode
 
 
+def run_irds_command(task_id, dataset_id, image, command, output_dir):
+    from tira.tira_model import model
+    from subprocess import run
+    irds_root = model.custom_irds_datasets_path / task_id / dataset_id
+    command = command.replace('$outputDir', '/output-tira-tmp/')
+    Path(output_dir).mkdir(parents=True, exist_ok=True)
+    Path(irds_root).mkdir(parents=True, exist_ok=True)
+
+    ret = run(['sudo', 'podman', '--storage-opt', 'mount_program=/usr/bin/fuse-overlayfs', 'run',
+                 '-v', f'{irds_root}:/root/.ir_datasets', '-v', f'{output_dir}:/output-tira-tmp/',
+                  '--entrypoint', 'sh', image, '-c', command], capture_output=True, text=True)
+
+    ret_str = json.dumps({'args': ret.args, 'returncode': ret.returncode, 'stdout': ret.stdout, 'stderr': ret.stderr})
+
+    if ret.returncode != 0:
+        raise ValueError(f'Process failed: {ret_str}')
+
+    return ret_str
+
+
 class IrDatasetsLoader(object):
     """ Base class for loading datasets in a standardized format"""
 
@@ -56,7 +76,7 @@ class IrDatasetsLoader(object):
         """
         dataset = self.load_irds(ir_datasets_id)
 
-        if not skip_documents:
+        if not skip_documents and output_dataset_path:
             self.write_lines_to_file(self.yield_docs(dataset, include_original, skip_duplicate_ids, allowlist_path_ids), output_dataset_path/"documents.jsonl")
         
         queries_mapped_jsonl = [self.map_query_as_jsonl(query, include_original) for query in dataset.queries_iter()]
@@ -66,11 +86,14 @@ class IrDatasetsLoader(object):
             qrels_mapped = [self.map_qrel(qrel) for qrel in dataset.qrels_iter()]
             self.write_lines_to_file(qrels_mapped, output_dataset_truth_path/"qrels.txt")
 
-        self.write_lines_to_file(queries_mapped_jsonl, output_dataset_path/"queries.jsonl")
-        self.write_lines_to_file([json.dumps({"ir_datasets_id": ir_datasets_id})], output_dataset_path/"metadata.json")
-        self.write_lines_to_xml_file(ir_datasets_id, queries_mapped_xml, output_dataset_path/"queries.xml")
-        self.write_lines_to_file(queries_mapped_jsonl, output_dataset_truth_path/"queries.jsonl")
-        self.write_lines_to_xml_file(ir_datasets_id, queries_mapped_xml, output_dataset_truth_path/"queries.xml")
+        if output_dataset_path:
+            self.write_lines_to_file(queries_mapped_jsonl, output_dataset_path/"queries.jsonl")
+            self.write_lines_to_file([json.dumps({"ir_datasets_id": ir_datasets_id})], output_dataset_path/"metadata.json")
+            self.write_lines_to_xml_file(ir_datasets_id, queries_mapped_xml, output_dataset_path/"queries.xml")
+
+        if output_dataset_truth_path:
+            self.write_lines_to_file(queries_mapped_jsonl, output_dataset_truth_path/"queries.jsonl")
+            self.write_lines_to_xml_file(ir_datasets_id, queries_mapped_xml, output_dataset_truth_path/"queries.xml")
 
 
     def load_dataset_for_rerank(self, ir_datasets_id: str, output_dataset_path: Path, output_dataset_truth_path: Path, include_original: bool, run_file: Path) -> None:
