@@ -270,5 +270,7 @@ def add_registration(request, context, task_id, vm_id):
 
         return JsonResponse({'status': 0, "context": context})
     except Exception as e:
+        logger.warning(e)
+        logger.exception(e)
         return JsonResponse({'status': 0, "message": f"Encountered an exception: {e}"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
