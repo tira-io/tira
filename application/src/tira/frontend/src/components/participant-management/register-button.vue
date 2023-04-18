@@ -1,6 +1,6 @@
 <template>
 <div>
-    <a  v-if="(!requireRegistration || userIsRegistered) && userVmsForTask.length <= 1" class="uk-button uk-button-primary uk-text-large"
+    <a  v-if="(!requireRegistration || userIsRegistered) && userVmsForTask.length <= 1" class="uk-button uk-button-primary uk-text-large submit-button"
          uk-tooltip="title: Go to the submission page for this task;" :href="submissionLink" :disabled="!loaded">
         <font-awesome-icon icon="fas fa-terminal" class="uk-margin-right" />Submit
     </a>
