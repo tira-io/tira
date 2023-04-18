@@ -85,7 +85,10 @@ def identify_environment_variables(job_file):
     with open(job_file, 'r') as f:
         for l in f:
             if '=' in l:
-                ret += [l.strip()]
+                if 'TIRA_COMMAND_TO_EXECUTE' in l:
+                    ret += [l.strip().replace("$", "$$")]
+                else:
+                    ret += [l.strip()]
     
     for i in ['TIRA_TASK_ID', 'TIRA_IMAGE_TO_EXECUTE', 'TIRA_COMMAND_TO_EXECUTE']:
         if len([j for j in ret if i in j]) != 1:

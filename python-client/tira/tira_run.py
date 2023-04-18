@@ -7,6 +7,7 @@ import os
 def parse_args():
     parser = argparse.ArgumentParser(prog='tira-run')
     parser.add_argument('--input-directory', required=False, default=str(os.path.abspath(".")))
+    parser.add_argument('--input-run', required=False, default=None)
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument('--image')
     group.add_argument('--approach')
@@ -27,5 +28,5 @@ def parse_args():
 def main():
     args = parse_args()
     client = Client()
-    client.local_execution.run(identifier=args.approach, image=args.image, command=args.command, input_dir=args.input_directory, output_dir=args.output_directory, verbose=args.verbose, dry_run=args.dry_run, allow_network=args.allow_network)
+    client.local_execution.run(identifier=args.approach, image=args.image, command=args.command, input_dir=args.input_directory, output_dir=args.output_directory, verbose=args.verbose, dry_run=args.dry_run, allow_network=args.allow_network, input_run=args.input_run)
 

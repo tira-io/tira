@@ -352,8 +352,7 @@ class DisraptorAuthentication(Authentication):
 
     def _add_user_as_owner_to_group(self, group_id, user_name):
         """ Create the invite link to get permission to a discourse group """
-        
-        ret = requests.put(f"https://www.tira.io/admin/groups/{group_id}/owners.json",
+        ret = requests.put(f"https://www.tira.io/groups/{group_id}/owners.json",
                             headers={"Api-Key": self._discourse_api_key(), "Accept": "application/json",
                                      "Content-Type": "multipart/form-data"
                                      },
@@ -361,8 +360,8 @@ class DisraptorAuthentication(Authentication):
                             )
         
         ret = json.loads(ret.text)
-        
-        if 'success' not in ret or ret['success'] != 'OK' or 'usernames' not in ret['usernames'] != [user_name]:
+
+        if 'success' not in ret or ret['success'] != 'OK':
             raise ValueError(f'Could not make the user "{user_name}" an owner of the group with id "{group_id}". Response: ' + str(ret))
 
         return ret
@@ -483,7 +482,8 @@ Best regards'''
                or (organizer_id_from_run_id and organizer_id_from_run_id in organizer_ids and path.startswith(f'/task/{organizer_id_from_run_id}/vm/')) \
                or (organizer_id_from_run_id and organizer_id_from_run_id in organizer_ids and organizer_id_from_dataset_id and path == f'/api/review/{dataset_id_from_params}/{vm_id_from_params}/{run_id_from_params}') \
                or (organizer_id_from_run_id and organizer_id_from_run_id in organizer_ids and organizer_id_from_dataset_id and path == f'/tira-admin/edit-review/{dataset_id_from_params}/{vm_id_from_params}/{run_id_from_params}') \
-               or (organizer_id_from_dataset_id and organizer_id_from_dataset_id in organizer_ids and path == f'/tira-admin/edit-dataset/{dataset_id_from_params}')
+               or (organizer_id_from_dataset_id and organizer_id_from_dataset_id in organizer_ids and path == f'/tira-admin/edit-dataset/{dataset_id_from_params}') \
+               or (organizer_id_from_dataset_id and organizer_id_from_dataset_id in organizer_ids and path == f'/tira-admin/delete-dataset/{dataset_id_from_params}')
 
 
 auth = Authentication(authentication_source=settings.DEPLOYMENT)

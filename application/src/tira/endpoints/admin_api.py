@@ -331,18 +331,17 @@ def call_django_command_failsave(cmd, args):
 
 
 @check_permissions
-def admin_import_ir_dataset(request):
+def admin_import_ir_dataset(request, task_id):
     """ Create multiple datasets for the pased ir-dataset.
      Return a json status message. """
     if request.method == "POST":
         data = json.loads(request.body)
 
-        if not all(k in data.keys() for k in ['dataset_id', 'name', 'task', 'image']):
-            return JsonResponse({'status': 1, 'message': f"Error: dataset_id, name, task, and image must be set."})
+        if not all(k in data.keys() for k in ['dataset_id', 'name', 'image']):
+            return JsonResponse({'status': 1, 'message': f"Error: dataset_id, name, and image must be set."})
 
         dataset_id_prefix = data["dataset_id"]
         dataset_name = data["name"]
-        task_id = data["task"]
 
         upload_name = data.get("upload_name", "run.txt")
         evaluator_command = data.get("evaluator_command", "")
@@ -381,7 +380,7 @@ def admin_import_ir_dataset(request):
         except Exception as e:
             return JsonResponse({'status': 1, 'context': {}, 'message': f'Import of dataset failed with: {e}.'})
 
-        return JsonResponse({'status': 0, 'context': {}, 'message': 'Imported dataset successfull.'})
+        return JsonResponse({'status': 0, 'context': ds, 'message': 'Imported dataset successfull.'})
 
     return JsonResponse({'status': 1, 'message': f"GET is not implemented for add dataset"})
 
@@ -390,8 +389,13 @@ def admin_import_ir_dataset(request):
 @check_permissions
 @check_resources_exist('json')
 def admin_delete_dataset(request, dataset_id):
-    model.delete_dataset(dataset_id)
-    return JsonResponse({'status': 0, 'message': f"Deleted dataset {dataset_id}"})
+    try:
+        model.delete_dataset(dataset_id)
+        return JsonResponse({'status': 0, 'message': f"Deleted dataset {dataset_id}"})
+    except Exception as e:
+        return JsonResponse({'status': 1, 'message': f"Could not delete dataset {dataset_id}: {e}"})
+
+
 
 
 @check_permissions

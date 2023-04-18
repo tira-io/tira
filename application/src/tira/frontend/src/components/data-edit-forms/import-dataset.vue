@@ -88,11 +88,10 @@ export default {
           }
           
           this.importInProgress = true
-          submitPost('/tira-admin/import-irds-dataset', this.csrf, {
+          submitPost('/tira-admin/import-irds-dataset/' + this.selectedTask.task_id, this.csrf, {
               'dataset_id': this.datasetId,
               'name': this.datasetNameInput,
               'image': this.dockerImage,
-              'task': this.selectedTask.task_id,
               'type': this.type,
           }).then(message => {
               this.$emit('addnotification', 'success', message.message)

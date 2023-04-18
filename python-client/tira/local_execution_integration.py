@@ -1,4 +1,5 @@
 import os
+import sys
 import docker
 from copy import deepcopy
 import tempfile
@@ -55,7 +56,7 @@ class LocalExecutionIntegration():
             'docker': f'docker run --rm -ti -v {input_dir}:/tira-data/input:ro -v {output_dir}:/tira-data/output:rw --entrypoint sh {image} -c \'{command}\''
         }
 
-    def run(self, identifier=None, image=None, command=None, input_dir=None, output_dir=None, evaluate=False, verbose=False, dry_run=False, docker_software_id_to_output=None, software_id=None, allow_network=False):
+    def run(self, identifier=None, image=None, command=None, input_dir=None, output_dir=None, evaluate=False, verbose=False, dry_run=False, docker_software_id_to_output=None, software_id=None, allow_network=False, input_run=None):
         previous_stages = []
         original_args = {'identifier': identifier, 'image': image, 'command': command, 'input_dir': input_dir, 'output_dir': output_dir, 'evaluate': evaluate, 'verbose': verbose, 'dry_run': dry_run, 'docker_software_id_to_output': docker_software_id_to_output, 'software_id': software_id}
         s_id = 'unknown-software-id'
@@ -64,7 +65,10 @@ class LocalExecutionIntegration():
             image, command, s_id, previous_stages = ds['tira_image_name'], ds['command'], ds['id'], ds['ids_of_previous_stages']
         if not dry_run:
             try:
-                client = docker.from_env()
+                environ = os.environ.copy()
+                if sys.platform == "linux" and os.path.exists(os.path.expanduser("~/.docker/desktop/docker.sock")):
+                    environ["DOCKER_HOST"] = "unix:///" + os.path.expanduser("~/.docker/desktop/docker.sock")
+                client = docker.from_env(environment=environ)
         
                 assert len(client.images.list()) >= 0
                 assert len(client.containers.list()) >= 0
@@ -104,6 +108,9 @@ class LocalExecutionIntegration():
             str(input_dir): {'bind': '/tira-data/input', 'mode': 'ro'},
             str(output_dir): {'bind': '/tira-data/output', 'mode': 'rw'},
         }
+        
+        if input_run:
+            volumes[str(input_run)] = {'bind': '/tira-data/input-run', 'mode': 'ro'}
         
         for k, v in docker_software_id_to_output.items():
             volumes[str(os.path.abspath(v))] = {'bind': '/tira-data/input-run', 'mode': 'ro'}
