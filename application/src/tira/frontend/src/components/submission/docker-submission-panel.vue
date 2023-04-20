@@ -23,6 +23,7 @@
                 <select id="docker-software-input-job" :disabled="!docker.docker_softwares" class="uk-select upload-select" v-model="addContainerInputJob" >
                     <option v-if="docker.docker_softwares" value="None">No Input Job (For Single-Stage Jobs)</option>
                     <option v-else value="None" disabled>No job exists</option>
+                    <option v-for="upload in uploads" :value="'upload-' + upload.id">Upload: {{ upload.display_name }}</option>
                     <option v-for="software in docker.docker_softwares" :value="software.docker_software_id">{{ software.display_name }}</option>
                 </select>
                 </label>
@@ -241,7 +242,7 @@ export default {
     components: {
         ReviewList, DeleteConfirm
     },
-    props: ['csrf', 'datasets', 'reranking_datasets', 'docker', 'user_id', 'running_evaluations', 'task', 'role'],
+    props: ['csrf', 'datasets', 'reranking_datasets', 'docker', 'user_id', 'running_evaluations', 'task', 'role', 'uploads'],
     emits: ['addNotification', 'pollEvaluations', 'removeRun', 'addContainer', 'deleteContainer', 'pollRunningContainer', 'refreshDockerImages'],
     data() {
         return {
@@ -311,6 +312,8 @@ export default {
             } else {
                 this.dockerFormError = ''
                 this.$emit('addContainer', r)
+                this.selectedContainer = r['context']
+                this.selectedContainerId = this.selectedContainer['docker_software_id']
             }
         },
         async editSoftware() {
@@ -428,6 +431,10 @@ export default {
             })
         },
         softwareCanBeDeleted(){
+            if(!this.selectedContainer.runs) {
+                return true
+            }
+        
             for (const run of this.selectedContainer.runs) {
                 if (run.review.published ) {
                     return false

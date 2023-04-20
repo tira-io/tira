@@ -201,6 +201,7 @@ class DockerSoftware(models.Model):
     vm = models.ForeignKey(VirtualMachine, on_delete=models.CASCADE)
     task = models.ForeignKey(Task, on_delete=models.SET_NULL, null=True)
     input_docker_software = models.ForeignKey("self", on_delete=models.RESTRICT, null=True, default=None)
+    input_upload = models.ForeignKey(Upload, on_delete=models.RESTRICT, null=True)
     command = models.TextField(default="")
     display_name = models.TextField(default="")
     user_image_name = models.TextField(default="")
