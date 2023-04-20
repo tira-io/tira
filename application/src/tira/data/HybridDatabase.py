@@ -505,12 +505,19 @@ class HybridDatabase(object):
         return ret
 
     def _docker_software_to_dict(self, ds):
+        input_docker_software = None
+        if ds.input_docker_software:
+            input_docker_software = ds.input_docker_software.display_name
+        if ds.input_upload:
+            input_docker_software = 'Upload ' + ds.input_upload.display_name
+
         return {'docker_software_id': ds.docker_software_id, 'display_name': ds.display_name,
                 'user_image_name': ds.user_image_name, 'command': ds.command,
                 'tira_image_name': ds.tira_image_name, 'task_id': ds.task.task_id,
                 'vm_id': ds.vm.vm_id, 'description': ds.description, 'paper_link': ds.paper_link,
-                'input_docker_software': ds.input_docker_software.display_name if ds.input_docker_software else None,
+                'input_docker_software': input_docker_software,
                 'input_docker_software_id': ds.input_docker_software.docker_software_id if ds.input_docker_software else None,
+                'input_upload_id': ds.input_upload.id if ds.input_upload else None,
                 "ir_re_ranker": True if ds.ir_re_ranker else False,
                 "ir_re_ranking_input": True if ds.ir_re_ranking_input else False
                 }
@@ -1284,10 +1291,12 @@ class HybridDatabase(object):
             paper_link=paper_link,
         )
 
-    def add_docker_software(self, task_id, vm_id, user_image_name, command, tira_image_name, input_job=None):
-        input_docker_software = None
-        if input_job:
-            input_docker_software = modeldb.DockerSoftware.objects.get(docker_software_id=input_job)
+    def add_docker_software(self, task_id, vm_id, user_image_name, command, tira_image_name, input_docker_job=None, input_upload=None):
+        input_docker_software, inputUpload = None, None
+        if input_docker_job:
+            input_docker_software = modeldb.DockerSoftware.objects.get(docker_software_id=input_docker_job)
+        if input_upload is not None:
+            inputUpload = modeldb.Upload.objects.get(id=int(input_upload))
 
         docker_software = modeldb.DockerSoftware.objects.create(
                 vm=modeldb.VirtualMachine.objects.get(vm_id=vm_id),
@@ -1297,6 +1306,7 @@ class HybridDatabase(object):
                 user_image_name=user_image_name,
                 display_name=randomname.get_name(),
                 input_docker_software=input_docker_software,
+                input_upload=inputUpload,
             )
         return self._docker_software_to_dict(docker_software)
 
@@ -1623,7 +1633,7 @@ class HybridDatabase(object):
         return modeldb.Software.objects.filter(software_id=software_id, vm__vm_id=vm_id).exists()
 
     @staticmethod
-    def all_matching_run_ids(vm_id: str, input_dataset_id: str, task_id: str, software_id: str, docker_software_id: int):
+    def all_matching_run_ids(vm_id: str, input_dataset_id: str, task_id: str, software_id: str, docker_software_id: int, upload_id: int):
         ret = []
 
         if software_id:
@@ -1640,6 +1650,12 @@ class HybridDatabase(object):
         if vm_id:
             ret += [i.run_id for i in modeldb.Run.objects.filter(
                 upload__vm__vm_id=vm_id, task__task_id=task_id, input_dataset__dataset_id=input_dataset_id
+            )]
+
+        if upload_id:
+            ret += [i.run_id for i in modeldb.Run.objects.filter(
+                upload__id=upload_id, task__task_id=task_id,
+                input_dataset__dataset_id=input_dataset_id
             )]
 
         return [i for i in ret if i]

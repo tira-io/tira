@@ -2,8 +2,8 @@
 
 VENV_NAME?=venv
 PYTHON=${VENV_NAME}/bin/python3
-VERSION_APPLICATION=0.0.51
-VERSION_GRPC=0.0.51
+VERSION_APPLICATION=0.0.52
+VERSION_GRPC=0.0.52
 
 
 .DEFAULT: help
@@ -81,6 +81,7 @@ build-docker:
 	docker build --tag webis/tira-application:${VERSION_APPLICATION} -f Dockerfile.application ..
 	docker build --tag webis/tira-application:${VERSION_APPLICATION}-diffir -f Dockerfile.application-diffir ..
 	docker build --tag webis/tira-application-grpc:${VERSION_GRPC} -f Dockerfile.application-grpc ..
+
 
 docker-publish:
 	docker push webis/tira-application:basis-${VERSION_APPLICATION}

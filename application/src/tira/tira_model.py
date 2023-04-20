@@ -349,7 +349,7 @@ def add_uploaded_run(task_id, vm_id, dataset_id, upload_id, uploaded_file):
 def update_docker_software_metadata(docker_software_id, display_name, description, paper_link, ir_re_ranker, ir_re_ranking_input):
     return model.update_docker_software_metadata(docker_software_id, display_name, description, paper_link, ir_re_ranker, ir_re_ranking_input)
 
-def add_docker_software(task_id, vm_id, image, command, input_job=None):
+def add_docker_software(task_id, vm_id, image, command, input=None):
     """ Add the docker software to the user of the vm and return it """
     
     image, old_tag = image.split(':')
@@ -357,8 +357,11 @@ def add_docker_software(task_id, vm_id, image, command, input_job=None):
     
     tira_image_name = get_git_integration(task_id=task_id).add_new_tag_to_docker_image_repository(image, old_tag, new_tag)
 
+    input_docker_job, input_upload = input, None
+    if 'upload' in input:
+        input_docker_job, input_upload = None, input.split('-')[-1]
 
-    return model.add_docker_software(task_id, vm_id, image + ':' + old_tag, command, tira_image_name, input_job)
+    return model.add_docker_software(task_id, vm_id, image + ':' + old_tag, command, tira_image_name, input_docker_job, input_upload)
 
 
 def add_registration(data):
@@ -574,8 +577,8 @@ def run_exists(vm_id: str, dataset_id: str, run_id: str) -> bool:
 def software_exists(task_id: str, vm_id: str, software_id: str) -> bool:
     return model.software_exists(task_id, vm_id, software_id)
 
-def latest_output_of_software_on_dataset(task_id: str, vm_id: str, software_id: str, docker_software_id: int, dataset_id: str):
-    run_ids = model.all_matching_run_ids(vm_id, dataset_id, task_id, software_id, docker_software_id)
+def latest_output_of_software_on_dataset(task_id: str, vm_id: str, software_id: str, docker_software_id: int, dataset_id: str, upload_id: int):
+    run_ids = model.all_matching_run_ids(vm_id, dataset_id, task_id, software_id, docker_software_id, upload_id)
 
     if run_ids and len(run_ids) > 0:
         return {
@@ -601,7 +604,7 @@ def create_re_rank_output_on_dataset(task_id: str, vm_id: str, software_id: str,
         return None
     docker_irds_software_id = str(int(model.get_irds_docker_software_id(task_id, vm_id, software_id, docker_software_id).docker_software_id))
 
-    reranked_job = latest_output_of_software_on_dataset(task_id, vm_id, None, docker_irds_software_id, dataset_id)
+    reranked_job = latest_output_of_software_on_dataset(task_id, vm_id, None, docker_irds_software_id, dataset_id, None)
     if reranked_job:
         return reranked_job
 
@@ -616,7 +619,7 @@ def create_re_rank_output_on_dataset(task_id: str, vm_id: str, software_id: str,
         'git_runner_command'] or 'git_repository_id' not in evaluator or not evaluator['git_repository_id']:
         return ValueError("The dataset is misconfigured. Docker-execute only available for git-evaluators")
 
-    input_run = latest_output_of_software_on_dataset(task_id, vm_id, software_id, docker_software_id, dataset_id)
+    input_run = latest_output_of_software_on_dataset(task_id, vm_id, software_id, docker_software_id, dataset_id, None)
     input_run['vm_id'] = vm_id
     git_runner = get_git_integration(task_id=task_id)
 
@@ -639,7 +642,8 @@ def add_input_run_id_to_all_rerank_runs():
                 reranking_software['vm_id'],
                 None,
                 reranking_software['docker_software_id'],
-                dataset['dataset_id']
+                dataset['dataset_id'],
+                None
             )
             
             if ls:
