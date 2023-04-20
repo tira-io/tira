@@ -183,18 +183,17 @@ class Software(models.Model):
 
 
 class Upload(models.Model):
-    """ Because I've fallen over this several times:
-    - there is exactly one 'Upload' per vm. It's the equivalent to "software',
-    the uploaded instance is a 'run' ...
+    """
     - The dataset is only associated for compatibility with Software. It's probably always none.
     """
     vm = models.ForeignKey(VirtualMachine, on_delete=models.CASCADE)
     task = models.ForeignKey(Task, on_delete=models.SET_NULL, null=True)
     dataset = models.ForeignKey(Dataset, on_delete=models.SET_NULL, null=True)
     last_edit_date = models.CharField(max_length=150)
-
-    class Meta:
-        unique_together = (("vm", 'task'),)
+    display_name = models.TextField(default="default upload")
+    description = models.TextField(default="description missing")
+    paper_link = models.TextField(default="")
+    deleted = models.BooleanField(default=False)
 
 
 class DockerSoftware(models.Model):
@@ -225,16 +224,6 @@ class Run(models.Model):
     downloadable = models.BooleanField(default=False)
     deleted = models.BooleanField(default=False)
     access_token = models.CharField(max_length=150, default="")
-#    group = models.ForeignKey(Group, on_delete=models.SET_NULL, null=True, default=None)
-
-
-# class Group(models.Model):  TODO
-#     group_name = models.CharField(max_length=150)
-#     task = models.ForeignKey(Task, on_delete=models.CASCADE)
-#     owner = models.ForeignKey(VirtualMachine, on_delete=models.SET_NULL, null=True, default=None)
-#     member = models.ManyToManyField(VirtualMachine)  # object.member.add() or .create()
-    # class Meta:
-    #     unique_together = (("group_name", 'task'),)
 
 
 class Registration(models.Model):

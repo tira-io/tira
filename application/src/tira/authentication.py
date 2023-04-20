@@ -356,7 +356,7 @@ class DisraptorAuthentication(Authentication):
                             headers={"Api-Key": self._discourse_api_key(), "Accept": "application/json",
                                      "Content-Type": "multipart/form-data"
                                      },
-                            data={"group[usernames]": user_name, "group[notify_users]": "true"}
+                            data={"usernames": user_name, "notify_users": "true"}
                             )
         
         ret = json.loads(ret.text)

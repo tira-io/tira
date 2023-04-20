@@ -15,6 +15,9 @@ logger = logging.getLogger("tira")
 @add_context
 @check_permissions
 def serp(request, context, vm_id, dataset_id, task_id, run_id):
+
+    #podman --storage-opt mount_program=/usr/bin/fuse-overlayfs run -v /mnt/ceph:/mnt/ceph:ro -ti webis/tira-application:0.0.45-diffir diffir --dataset cranfield  /mnt/ceph/tira/data/runs/cranfield-20230107-training/tira-ir-starter/2023-02-13-12-40-07/output/run.txt
+
     if request.method == 'GET':
         try:
             from diffir.run import diff
