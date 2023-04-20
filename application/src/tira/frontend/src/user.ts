@@ -68,6 +68,7 @@ const app = createApp({
                 6: "unsandboxing", 7: "executing", 8: "archived", 9: "unarchiving", 10: "unavailable",
             },
             software: '',
+            uploadgroup: [],
             datasets: '',
             reranking_datasets: '',
             upload: '',
@@ -141,6 +142,11 @@ const app = createApp({
                 })
             }
 
+        },
+        addUploadgroup(newUploadgroup) {
+            console.log("Adding uploadgroup")
+            console.log(newUploadgroup)
+            this.uploadgroup.push(newUploadgroup)
         },
         addSoftware(newSoftware) {
             this.software.push(newSoftware)

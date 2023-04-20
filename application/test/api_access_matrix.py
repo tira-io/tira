@@ -366,6 +366,66 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
+        url_pattern='task/<str:task_id>/vm/<str:vm_id>/add_software/upload',
+        params={'task_id': 'shared-task-1', 'vm_id': 'example_participant'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 302,
+            ORGANIZER: 302,
+        },
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>/vm/<str:vm_id>/add_software/upload',
+        params={'task_id': 'shared-task-1', 'vm_id': PARTICIPANT.split('_')[-1]},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 200,
+            ORGANIZER: 302,
+        },
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>/vm/<str:vm_id>/upload/delete/<str:upload_id>',
+        params={'task_id': 'shared-task-1', 'vm_id': 'does-not-exist', 'upload_id': -1},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 302,
+            ORGANIZER: 302,
+        },
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>/vm/<str:vm_id>/upload/delete/<str:upload_id>',
+        params={'task_id': 'shared-task-1', 'vm_id': PARTICIPANT.split('_')[-1], 'upload_id': -1},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 200,
+            ORGANIZER: 302,
+        },
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>/vm/<str:vm_id>/save_software/upload/<str:upload_id>',
+        params={'task_id': 'shared-task-1', 'vm_id': 'does-not-exist', 'upload_id': -1},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 302,
+            ORGANIZER: 302,
+        },
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>/vm/<str:vm_id>/save_software/upload/<str:upload_id>',
+        params={'task_id': 'shared-task-1', 'vm_id': PARTICIPANT.split('_')[-1], 'upload_id': -1},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 200,
+            ORGANIZER: 302,
+        },
+    ),
+    route_to_test(
         url_pattern='task/<str:task_id>/vm/<str:vm_id>/save_software/docker/<str:docker_software_id>',
         params={'task_id': 'shared-task-1', 'vm_id': 'example_participant', 'docker_software_id': 0},
         group_to_expected_status_code={
@@ -476,8 +536,8 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
-        url_pattern='task/<str:task_id>/vm/<str:vm_id>/upload/<str:dataset_id>',
-        params={'task_id': 'shared-task-1', 'vm_id': 'example_participant', 'dataset_id': 0},
+        url_pattern='task/<str:task_id>/vm/<str:vm_id>/upload/<str:dataset_id>/<str:upload_id>',
+        params={'task_id': 'shared-task-1', 'vm_id': 'example_participant', 'dataset_id': 0, 'upload_id': -1},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 302,
@@ -487,8 +547,8 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
-        url_pattern='task/<str:task_id>/vm/<str:vm_id>/upload/<str:dataset_id>',
-        params={'task_id': 'shared-task-1', 'vm_id': PARTICIPANT.split('_')[-1], 'dataset_id': 0},
+        url_pattern='task/<str:task_id>/vm/<str:vm_id>/upload/<str:dataset_id>/<str:upload_id>',
+        params={'task_id': 'shared-task-1', 'vm_id': PARTICIPANT.split('_')[-1], 'dataset_id': 0, 'upload_id': -1},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 302,

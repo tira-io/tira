@@ -329,6 +329,23 @@ def get_users_vms():
     return model.get_users_vms()
 
 
+def add_upload(task_id, vm_id):
+    """" Add empty new upload"""
+    return model.add_upload(task_id, vm_id)
+
+
+def delete_upload(task_id, vm_id, upload_id):
+    return model.delete_upload(task_id, vm_id, upload_id)
+
+def update_upload_metadata(task_id, vm_id, upload_id, display_name, description, paper_link):
+    return model.update_upload_metadata(task_id, vm_id, upload_id, display_name, description, paper_link)
+
+
+def add_uploaded_run(task_id, vm_id, dataset_id, upload_id, uploaded_file):
+    """ Add the uploaded file as a new result and return it """
+    return model.add_uploaded_run(task_id, vm_id, dataset_id, upload_id, uploaded_file)
+
+
 def add_uploaded_run(task_id, vm_id, dataset_id, uploaded_file):
     """ Add the uploaded file as a new result and return it """
     return model.add_uploaded_run(task_id, vm_id, dataset_id, uploaded_file)
