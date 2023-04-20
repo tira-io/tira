@@ -1654,7 +1654,7 @@ class HybridDatabase(object):
 
         if upload_id:
             ret += [i.run_id for i in modeldb.Run.objects.filter(
-                run__upload__id=upload_id, task__task_id=task_id,
+                upload__id=upload_id, task__task_id=task_id,
                 input_dataset__dataset_id=input_dataset_id
             )]
 
