@@ -22,7 +22,7 @@
     </button>
 </form>
 
-<form v-if="showUploadForm" class="upload_form">
+<form v-if="showUploadForm && uploadgroup" class="upload_form">
     <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf }}">
     <div class="uk-width-1-1 uk-margin-remove" data-uk-grid>
         <div class="uk-width-expand"></div>
@@ -105,7 +105,7 @@
         <div class="uk-text-danger uk-width-expand">{{ uploadFormError}}</div>
         <div>
             <span class="uk-text-small uk-text-lead" id="upload-last-edit">
-                  <span v-show="uploading" uk-spinner="ratio: 0.3"></span> last edit: {{ upload.last_edit }}
+                  <span v-show="uploading" uk-spinner="ratio: 0.3"></span> last edit: {{ uploadgroup.last_edit }}
         </span>
     </div>
     </div>
@@ -163,12 +163,14 @@ export default {
             return results
         },
         deleteUpload() {
-            this.get(`/task/${this.taskid}/vm/${this.userid}/upload/delete/${this.uploadgroup.id}`)
+            this.get(`/task/${this.taskid}/vm/${this.userid}/upload-delete/${this.uploadgroup.id}`)
                 .then(message => {
                     this.all_uploadgroups = this.all_uploadgroups.filter(i => i.id != this.uploadgroup.id)
                     this.uploadgroup = null
+                    this.showUploadForm = false
                 })
                 .catch(error => {
+                    console.log(error)
                     this.$emit('addNotification', 'error', error.message)
                 })
         },
@@ -212,7 +214,6 @@ export default {
         },
         async fileUpload() {  // async
             console.log(this.uploading, this.uploadDataset, this.fileHandle)
-            // TODO: when successful, add new entry to uploads.runs
             this.uploading = true
             let formData = new FormData();
             const headers = new Headers({'X-CSRFToken': this.csrf})
@@ -226,11 +227,14 @@ export default {
             let r = await response.json()
             if (!response.ok) {
                 this.$emit('addNotification', 'error', `Uploading failed with status ${response.status}: ${await response.text()}`)
-            } else if (r.status === 1){
+            } else if (r.status !== 0){
                 this.uploadFormError = 'Error: ' + r.message
             } else {
                 this.uploadFormError = ''
                 console.log(r.new_run)
+                
+                //TODO: this is a fast hack as there are currently side effects with the run-list (duplicated runs that appear too late)
+                window.location.reload()
                 
                 let new_run = r.new_run.run
                 new_run.review.published = false

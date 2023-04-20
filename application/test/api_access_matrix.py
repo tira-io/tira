@@ -388,7 +388,7 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
-        url_pattern='task/<str:task_id>/vm/<str:vm_id>/upload/delete/<str:upload_id>',
+        url_pattern='task/<str:task_id>/vm/<str:vm_id>/upload-delete/<str:upload_id>',
         params={'task_id': 'shared-task-1', 'vm_id': 'does-not-exist', 'upload_id': -1},
         group_to_expected_status_code={
             ADMIN: 200,
@@ -399,7 +399,7 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
-        url_pattern='task/<str:task_id>/vm/<str:vm_id>/upload/delete/<str:upload_id>',
+        url_pattern='task/<str:task_id>/vm/<str:vm_id>/upload-delete/<str:upload_id>',
         params={'task_id': 'shared-task-1', 'vm_id': PARTICIPANT.split('_')[-1], 'upload_id': -1},
         group_to_expected_status_code={
             ADMIN: 200,

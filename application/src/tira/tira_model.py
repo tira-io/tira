@@ -346,10 +346,6 @@ def add_uploaded_run(task_id, vm_id, dataset_id, upload_id, uploaded_file):
     return model.add_uploaded_run(task_id, vm_id, dataset_id, upload_id, uploaded_file)
 
 
-def add_uploaded_run(task_id, vm_id, dataset_id, uploaded_file):
-    """ Add the uploaded file as a new result and return it """
-    return model.add_uploaded_run(task_id, vm_id, dataset_id, uploaded_file)
-
 def update_docker_software_metadata(docker_software_id, display_name, description, paper_link, ir_re_ranker, ir_re_ranking_input):
     return model.update_docker_software_metadata(docker_software_id, display_name, description, paper_link, ir_re_ranker, ir_re_ranking_input)
 

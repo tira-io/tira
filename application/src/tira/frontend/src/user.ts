@@ -333,7 +333,7 @@ const app = createApp({
                 this.pollRunningSoftware()
                 this.loading = false
                 
-                if(message.organizer_teams.includes(this.task.organizer_id)) {
+                if(message.organizer_teams && message.organizer_teams.includes(this.task.organizer_id)) {
                     this.role = 'admin'
                 }
             })
