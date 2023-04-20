@@ -27,7 +27,7 @@
                 </select>
                 </label>
             </div>
-            <div class="uk-grid-margin">
+            <div v-if="docker.task_is_an_information_retrieval_task" class="uk-grid-margin">
                 <label class="uk-form-label" for="add-software-component-button">&nbsp;</label>
                 <div><a class="uk-button" id="add-software-component-button"
                     @click="addSoftwareComponent()"
