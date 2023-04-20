@@ -1633,7 +1633,7 @@ class HybridDatabase(object):
         return modeldb.Software.objects.filter(software_id=software_id, vm__vm_id=vm_id).exists()
 
     @staticmethod
-    def all_matching_run_ids(vm_id: str, input_dataset_id: str, task_id: str, software_id: str, docker_software_id: int):
+    def all_matching_run_ids(vm_id: str, input_dataset_id: str, task_id: str, software_id: str, docker_software_id: int, upload_id: int):
         ret = []
 
         if software_id:
@@ -1650,6 +1650,12 @@ class HybridDatabase(object):
         if vm_id:
             ret += [i.run_id for i in modeldb.Run.objects.filter(
                 upload__vm__vm_id=vm_id, task__task_id=task_id, input_dataset__dataset_id=input_dataset_id
+            )]
+
+        if upload_id:
+            ret += [i.run_id for i in modeldb.Run.objects.filter(
+                run__upload__id=upload_id, task__task_id=task_id,
+                input_dataset__dataset_id=input_dataset_id
             )]
 
         return [i for i in ret if i]
