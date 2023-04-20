@@ -67,6 +67,7 @@
                 @add-notification="(type, message) => addNotification(type, message)"
                 @remove-run="(runId, type) => removeRun(runId, type)"
                 @poll-evaluations="pollRunningEvaluations()"
+                @add-uploadgroup="(newUploadgroup) => addUploadgroup(newUploadgroup)"
         />
     </div>
     <div v-else-if="loaded('docker')" class="uk-container uk-margin-small">

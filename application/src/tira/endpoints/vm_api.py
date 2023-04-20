@@ -384,13 +384,13 @@ def run_abort(request, vm_id):
 
 @check_permissions
 @check_resources_exist("json")
-def upload(request, task_id, vm_id, dataset_id):
+def upload(request, task_id, vm_id, dataset_id, upload_id):
     if request.method == 'POST':
         if not dataset_id or dataset_id is None or dataset_id == 'None':
             return JsonResponse({"status": 1, "message": "Please specify the associated dataset."})
 
         uploaded_file = request.FILES['file']
-        new_run = model.add_uploaded_run(task_id, vm_id, dataset_id, uploaded_file)
+        new_run = model.add_uploaded_run(task_id, vm_id, dataset_id, upload_id, uploaded_file)
         if model.git_pipeline_is_enabled_for_task(task_id, cache):
             run_eval(request=request, vm_id=vm_id, dataset_id=dataset_id, run_id=new_run["run"]["run_id"])
 
@@ -398,6 +398,40 @@ def upload(request, task_id, vm_id, dataset_id):
         return JsonResponse({"status": 0, "message": "ok", "new_run": new_run, "started_evaluation": False})
     else:
         return JsonResponse({"status": 1, "message": "GET is not allowed here."})
+
+
+@check_permissions
+@check_resources_exist("json")
+def delete_upload(request, task_id, vm_id, upload_id):
+    try:
+        model.delete_upload(task_id, vm_id, upload_id)
+        return JsonResponse({"status": 0, "message": "ok"})
+    except Exception as e:
+        logger.warning('Failed to delete upload: ' + str(e))
+        logger.exception(e)
+        return JsonResponse({"status": 0, "message": "Failed" + str(e)})
+
+
+@check_permissions
+@check_resources_exist("json")
+def add_upload(request, task_id, vm_id):
+    if request.method == "GET":
+        if not task_id or task_id is None or task_id == 'None':
+            return JsonResponse({"status": 1, "message": "Please specify the associated task_id."})
+        
+        upload = model.add_upload(task_id, vm_id)
+        if not upload:
+            return JsonResponse({'status': 1, 'message': 'Failed to create a new Upload.'},
+                                status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+        context = {
+            "task": task_id,
+            "vm_id": vm_id,
+            "upload": upload
+        }
+        return JsonResponse({"status": 0, "message": "ok", "context": context})
+    else:
+        return JsonResponse({"status": 1, "message": "POST is not allowed here."})
 
 
 @check_permissions
@@ -437,6 +471,24 @@ def docker_software_save(request, task_id, vm_id, docker_software_id):
         except Exception as e:
             return JsonResponse({'status': 1, 'message': f"Error while editing software: " + str(e)})
     return JsonResponse({'status': 1, 'message': f"GET is not implemented for edit software"})
+
+
+@check_permissions
+@check_resources_exist('json')
+def upload_save(request, task_id, vm_id, upload_id):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            model.update_upload_metadata(task_id, vm_id, upload_id,
+                                         data.get("display_name"),
+                                         data.get("description"),
+                                         data.get("paper_link"))
+            return JsonResponse({'status': 0, "message": "Software edited successfully"})
+        except Exception as e:
+            logger.exception(e)
+            logger.warning('Error while editing upload: ' + str(e))
+            return JsonResponse({'status': 1, 'message': f"Error while editing upload: " + str(e)})
+    return JsonResponse({'status': 1, 'message': f"GET is not implemented for edit upload"})
 
 
 @check_permissions

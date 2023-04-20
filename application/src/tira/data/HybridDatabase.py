@@ -483,23 +483,26 @@ class HybridDatabase(object):
             for review2 in r2:
                 yield _run_dict(review2)
 
-    def get_upload_with_runs(self, task_id, vm_id):
+    def upload_to_dict(self, upload, vm_id):
         def _runs_by_upload(up):
             reviews = modeldb.Review.objects.select_related("run", "run__upload", "run__evaluator", "run__input_run",
                                                             "run__input_dataset").filter(run__upload=up).all()
 
             return list(self._get_ordered_runs_from_reviews(reviews, vm_id, preloaded=False, is_upload=True))
 
-        try:
-            upload = modeldb.Upload.objects.get(vm__vm_id=vm_id, task__task_id=task_id)
-        except modeldb.Upload.DoesNotExist:
-            upload = modeldb.Upload(vm=modeldb.VirtualMachine.objects.get(vm_id=vm_id),
-                                    task=modeldb.Task.objects.get(task_id=task_id),
-                                    last_edit_date=now())
-            upload.save()
-        return {"task_id": upload.task.task_id, "vm_id": upload.vm.vm_id,
+        return {"id": upload.id, "task_id": upload.task.task_id, "vm_id": upload.vm.vm_id,
                 "dataset": None if not upload.dataset else upload.dataset.dataset_id,
-                "last_edit": upload.last_edit_date, "runs": _runs_by_upload(upload)}
+                "last_edit": upload.last_edit_date, "runs": _runs_by_upload(upload),
+                "display_name": upload.display_name, "description": upload.description,
+                "paper_link": upload.paper_link
+                }
+
+    def get_upload_with_runs(self, task_id, vm_id):
+        ret = []
+        for upload in modeldb.Upload.objects.filter(vm__vm_id=vm_id, task__task_id=task_id, deleted=False):
+            ret += [self.upload_to_dict(upload, vm_id)]
+
+        return ret
 
     def _docker_software_to_dict(self, ds):
         return {'docker_software_id': ds.docker_software_id, 'display_name': ds.display_name,
@@ -1186,7 +1189,20 @@ class HybridDatabase(object):
         open(run_dir / 'size.txt', 'w').write(f"0\n{size}\n{lines}\n{files}\n{dirs}")
         open(run_dir / 'file-list.txt', 'w').write(self._list_files(str(output_dir)))
 
-    def add_uploaded_run(self, task_id, vm_id, dataset_id, uploaded_file):
+    def add_upload(self, task_id: str, vm_id: str):
+        upload = modeldb.Upload.objects.create(
+            vm=modeldb.VirtualMachine.objects.get(vm_id=vm_id),
+            task=modeldb.Task.objects.get(task_id=task_id),
+            display_name=randomname.get_name(),
+            description='Please add a description that describes uploads of this type.'
+        )
+
+        return self.upload_to_dict(upload, vm_id)
+
+    def delete_upload(self, task_id, vm_id, upload_id):
+        modeldb.Upload.objects.filter(id= upload_id, vm__vm_id = vm_id, task__task_id = task_id, ).update(deleted=True)
+
+    def add_uploaded_run(self, task_id, vm_id, dataset_id, upload_id, uploaded_file):
         # First add to data
         new_id = get_tira_id()
         run_dir = self.runs_dir_path / dataset_id / vm_id / new_id
@@ -1201,7 +1217,7 @@ class HybridDatabase(object):
         run.downloadable = True
         run.taskId = task_id
         # Third add to database
-        upload = modeldb.Upload.objects.get(vm__vm_id=vm_id, task__task_id=task_id)
+        upload = modeldb.Upload.objects.get(vm__vm_id=vm_id, task__task_id=task_id, id=upload_id)
         upload.last_edit_date = now()
         upload.save()
 
@@ -1260,6 +1276,13 @@ class HybridDatabase(object):
 
         return {"run": returned_run,
                 "last_edit_date": upload.last_edit_date}
+
+    def update_upload_metadata(self, task_id, vm_id, upload_id, display_name, description, paper_link):
+        modeldb.Upload.objects.filter(vm__vm_id=vm_id, task__task_id=task_id, id=upload_id).update(
+            display_name=display_name,
+            description=description,
+            paper_link=paper_link,
+        )
 
     def add_docker_software(self, task_id, vm_id, user_image_name, command, tira_image_name, input_job=None):
         input_docker_software = None
