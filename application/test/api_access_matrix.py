@@ -373,6 +373,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 302,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     route_to_test(
@@ -383,6 +384,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 200,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     route_to_test(
@@ -393,6 +395,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 302,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     route_to_test(
@@ -403,6 +406,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 200,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     route_to_test(
@@ -413,6 +417,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 302,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     route_to_test(
@@ -423,6 +428,7 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 200,
             ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
         },
     ),
     route_to_test(
