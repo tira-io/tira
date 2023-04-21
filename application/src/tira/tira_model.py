@@ -358,7 +358,7 @@ def add_docker_software(task_id, vm_id, image, command, input=None):
     tira_image_name = get_git_integration(task_id=task_id).add_new_tag_to_docker_image_repository(image, old_tag, new_tag)
 
     input_docker_job, input_upload = input, None
-    if 'upload' in input:
+    if input and 'upload' in input:
         input_docker_job, input_upload = None, input.split('-')[-1]
 
     return model.add_docker_software(task_id, vm_id, image + ':' + old_tag, command, tira_image_name, input_docker_job, input_upload)
