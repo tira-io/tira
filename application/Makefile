@@ -82,7 +82,6 @@ build-docker:
 	docker build --tag webis/tira-application:${VERSION_APPLICATION}-diffir -f Dockerfile.application-diffir ..
 	docker build --tag webis/tira-application-grpc:${VERSION_GRPC} -f Dockerfile.application-grpc ..
 
-
 docker-publish:
 	docker push webis/tira-application:basis-${VERSION_APPLICATION}
 	docker push webis/tira-application:${VERSION_APPLICATION}
@@ -97,5 +96,3 @@ build-docker-basis:
 clean:
 	rm -r $(VENV_NAME)
 
-forward-mysql:
-	kubectl -n services-tira port-forward $$(kubectl -n services-tira get pods| grep tira-mariadb-[0-9] | awk '{print $$1 }') 3306
