@@ -23,7 +23,7 @@ make setup
 If you want to work on production data, please ensure that you can login to ssh.webis.de, and then do the following:
 
 ```
-scp scp <YOUR-USER-NAME>@ssh.webis.de:/mnt/ceph/storage/data-in-production/tira/development-database-dumps/django-db-dump.zip .data-dumps/django-db-dump.zip
+scp <YOUR-USER-NAME>@ssh.webis.de:/mnt/ceph/storage/data-in-production/tira/development-database-dumps/django-db-dump.zip .data-dumps/django-db-dump.zip
 
 # The zip is password protected, the process asks for the passord.
 # A member of the TIRA team can provide you with the password (located in the password database `webis.uni-weimar.de:code-admin/passwords` -> Generic -> tira-development-database-dump).

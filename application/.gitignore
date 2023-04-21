@@ -12,3 +12,5 @@ package-lock.json
 src/tira/frontend/webpack-stats.json
 test/tira-root/
 **/*.received.txt
+
+.data-dumps/
