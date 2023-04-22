@@ -175,12 +175,26 @@ class Client():
         self.download_and_extract_zip(f'https://www.tira.io/task/{task}/user/{team}/dataset/{dataset}/download/{run_id}.zip', target_dir)
 
         return target_dir + f'/{run_id}/output'
-    
-    def add_run_to_leaderboard(self, team, dataset, evaluation_run_id):
-        ret = self.json_response(f'/publish/{team}/{dataset}/{evaluation_run_id}/true')
+
+    def add_run_to_leaderboard(self, task, team, dataset, evaluation_run_id=None, run_id=None):
+        """
+        Publish the specified run to the leaderboard.
+        """
+        if run_id and evaluation_run_id:
+            raise ValueError(f'Please pass either a evaluation_run_id or a run_id, but both were passed: evaluation_run_id={evaluation_run_id}, run_id={run_id}')
+        if run_id and not evaluation_run_id:
+            submissions = self.submissions(task, dataset)
+            submissions = submissions[(submissions['input_run_id'] == run_id) & (submissions['is_evaluation'])]
         
-        if ('status' not in ret) or ('0' != ret['status']) or ('published' not in ret) or (not ret['published']):
-            raise ValueError(f'Adding the run to the leaderboard failed. Got {ret}')
+            for evaluation_run_id in submissions['run_id'].unique():
+                self.add_run_to_leaderboard(task, team, dataset, evaluation_run_id=evaluation_run_id)
+    
+        if evaluation_run_id:
+            print(f'Publish run: {evaluation_run_id}.')
+            ret = self.json_response(f'/publish/{team}/{dataset}/{evaluation_run_id}/true')
+
+            if ('status' not in ret) or ('0' != ret['status']) or ('published' not in ret) or (not ret['published']):
+                raise ValueError(f'Adding the run to the leaderboard failed. Got {ret}')
 
     def evaluate_run(self, team, dataset, run_id):
         """ Evaluate the run of the specified team and identified by the run_id (the run must be submitted on the specified dataset).
