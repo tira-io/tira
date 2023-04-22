@@ -69,6 +69,26 @@ class Client():
 
         return pd.DataFrame(ret)
 
+    def submissions_with_evaluation_or_none(self, task, dataset, team, software):
+        submissions = self.submissions(task, dataset)
+        evaluations = self.evaluations(task, dataset, join_submissions=False)
+        run_to_evaluation = {}
+        for _, i in evaluations.iterrows():
+            i = i.to_dict()
+            run_id = i["run_id"]
+            del i['task']
+            del i['dataset']
+            del i['team']
+            del i['run_id']
+            run_to_evaluation[run_id] = i
+
+        submissions = submissions[(submissions['task'] == task) & (submissions['dataset'] == dataset) & (submissions['team'] == team) & (submissions['software'] == software)]
+        ret = []
+        for run_id in submissions.run_id.unique():
+            ret += [{"run_id": run_id, "task": task, "dataset": dataset, "team": team, "software": software, "evaluation_run_id": run_to_evaluation.get(run_id, None)}]
+
+        return ret
+
     def evaluations(self, task, dataset, join_submissions=True):
         response = self.json_response(f'/api/evaluations/{task}/{dataset}')['context']
         ret = []
