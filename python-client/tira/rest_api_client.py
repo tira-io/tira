@@ -179,6 +179,16 @@ class Client():
     def add_run_to_leaderboard(self, task, team, dataset, evaluation_run_id=None, run_id=None):
         """
         Publish the specified run to the leaderboard.
+        
+        This is especially suitable to batch add all submissions of submissions, e.g., by code like:
+
+            ```
+            for approach in ['approach-1', ..., 'approach-n]:
+                runs_for_approach = tira.submissions_with_evaluation_or_none(task, dataset, team, approach)
+                for i in runs_for_approach:
+                    if i['evaluation']:
+                        tira.add_run_to_leaderboard(TASK, team, dataset, run_id=i['run_id'])
+        
         """
         if run_id and evaluation_run_id:
             raise ValueError(f'Please pass either a evaluation_run_id or a run_id, but both were passed: evaluation_run_id={evaluation_run_id}, run_id={run_id}')
