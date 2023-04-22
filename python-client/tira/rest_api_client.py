@@ -70,6 +70,18 @@ class Client():
         return pd.DataFrame(ret)
 
     def submissions_with_evaluation_or_none(self, task, dataset, team, software):
+        """ This method returns all runs of the specified software in the task on the dataset by the team.
+            This is especially suitable to batch evaluate all submissions of the software because the evaluation is none if no successfull evaluation was conducted (or there is a new evaluator).
+            E.g., by code like:
+
+            ```
+            for approach in ['approach-1', ..., 'approach-n]:
+                runs_for_approach = tira.submissions_with_evaluation_or_none(task, dataset, team, approach)
+                for i in runs_for_approach:
+                    if not i['evaluation']:
+                        tira.evaluate_run(team, dataset, i['run_id'])
+            ```
+        """
         submissions = self.submissions(task, dataset)
         evaluations = self.evaluations(task, dataset, join_submissions=False)
         run_to_evaluation = {}
@@ -171,6 +183,8 @@ class Client():
             raise ValueError(f'Adding the run to the leaderboard failed. Got {ret}')
 
     def evaluate_run(self, team, dataset, run_id):
+        """ This method runs the evaluation for the run identified by run_id.
+        """
         ret = self.json_response(f'/grpc/{team}/run_eval/{dataset}/{run_id}')
 
         if status not in ret or '0' != str(ret['status']):
