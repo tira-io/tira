@@ -85,7 +85,7 @@ class Client():
         submissions = submissions[(submissions['task'] == task) & (submissions['dataset'] == dataset) & (submissions['team'] == team) & (submissions['software'] == software)]
         ret = []
         for run_id in submissions.run_id.unique():
-            ret += [{"run_id": run_id, "task": task, "dataset": dataset, "team": team, "software": software, "evaluation_run_id": run_to_evaluation.get(run_id, None)}]
+            ret += [{"run_id": run_id, "task": task, "dataset": dataset, "team": team, "software": software, "evaluation": run_to_evaluation.get(run_id, None)}]
 
         return ret
 
