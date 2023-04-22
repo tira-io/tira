@@ -183,11 +183,11 @@ class Client():
             raise ValueError(f'Adding the run to the leaderboard failed. Got {ret}')
 
     def evaluate_run(self, team, dataset, run_id):
-        """ This method runs the evaluation for the run identified by run_id.
+        """ Evaluate the run of the specified team and identified by the run_id (the run must be submitted on the specified dataset).
         """
         ret = self.json_response(f'/grpc/{team}/run_eval/{dataset}/{run_id}')
 
-        if status not in ret or '0' != str(ret['status']):
+        if 'status' not in ret or '0' != str(ret['status']):
             raise ValueError(f'Failed to evaluate the run. Got {ret}')
 
         return ret
