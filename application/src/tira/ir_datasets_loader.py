@@ -16,7 +16,7 @@ def run_irds_command(task_id, dataset_id, image, command, output_dir, truth_comm
     from tira.util import run_cmd_as_documented_background_process
     irds_root = model.custom_irds_datasets_path / task_id / dataset_id
     command = command.replace('$outputDir', '/output-tira-tmp/')
-    truth_output_dir = truth_output_dir.replace('$outputDir', '/output-tira-tmp/')
+    truth_command = truth_command.replace('$outputDir', '/output-tira-tmp/')
     Path(output_dir).mkdir(parents=True, exist_ok=True)
     Path(truth_output_dir).mkdir(parents=True, exist_ok=True)
     Path(irds_root).mkdir(parents=True, exist_ok=True)
