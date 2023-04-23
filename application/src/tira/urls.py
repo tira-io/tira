@@ -9,6 +9,8 @@ urlpatterns = [
     path('', views.index, name='index'),
     path('task', views.index, name='index'),
     path('tasks', views.index, name='index'),
+    path('background_jobs/<str:task_id>/<str:job_id>', views.background_jobs, name='background_jobs'),
+
     path('task/<str:task_id>', views.task, name='task'),
     path('task/<str:task_id>/dataset/<str:dataset_id>', views.dataset, name='dataset'),
     path('task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/download/<str:run_id>.zip', views.download_rundir, name='download_rundir'),

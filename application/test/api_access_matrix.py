@@ -234,6 +234,28 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
+        url_pattern='background_jobs/<str:task_id>/<str:job_id>',
+        params={'task_id': 'does-not-exist', 'job_id': -1},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
+        },
+    ),
+    route_to_test(
+        url_pattern='background_jobs/<str:task_id>/<str:job_id>',
+        params={'task_id': 'task-of-organizer-1', 'job_id': -1},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 405,
+        },
+    ),
+    route_to_test(
         url_pattern='task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/run/<str:run_id>',
         params={'task_id': 'shared-task-1', 'vm_id': 'example_participant', 'dataset_id': f'dataset-1-{now}-training', 'run_id': 'run-1'},
         group_to_expected_status_code={

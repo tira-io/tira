@@ -97,6 +97,7 @@ export default {
               this.$emit('addnotification', 'success', message.message)
               this.$emit('adddataset', message.context)
               this.importInProgress = false
+              window.location.href = message.href
           }).catch(error => {
               console.log(error)
               this.importDatasetError = error

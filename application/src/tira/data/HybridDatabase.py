@@ -1049,6 +1049,16 @@ class HybridDatabase(object):
 
         modeldb.Dataset.objects.filter(dataset_id=dataset_id).update(evaluator=ev)
 
+    def get_job_details(self, task_id, vm_id, job_id):
+        ret = modeldb.BackendProcess.objects.filter(id=job_id, vm__vm_id=vm_id, task__task_id=task_id)
+
+        if ret is None or len(ret) == 0:
+            return None
+        else:
+            ret = ret[0]
+            return {'title': ret.title, 'last_contact': ret.last_contact, 'job_id': job_id, 'exit_code': ret.exit_code, 'stdout': ret.stdout}
+
+
     def add_software(self, task_id: str, vm_id: str):
         software = modelpb.Softwares.Software()
         s = self._load_softwares(task_id, vm_id)

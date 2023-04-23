@@ -262,6 +262,10 @@ def get_evaluations_with_keys_by_dataset(dataset_id, include_unpublished=False):
     return model.get_evaluations_with_keys_by_dataset(dataset_id, include_unpublished)
 
 
+def get_job_details(task_id, vm_id, job_id):
+    return model.get_job_details(task_id, vm_id, job_id)
+
+
 def get_evaluation(run_id: str):
     """ Get the evaluation of this run
 
