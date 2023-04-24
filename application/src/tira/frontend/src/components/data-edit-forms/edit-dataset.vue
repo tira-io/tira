@@ -128,6 +128,16 @@
 </div>
 
 <div class="uk-card uk-card-body uk-card-default uk-card-small">
+    <div class="uk-grid-medium" uk-grid>
+        Export Dataset (For Organizers/Admins)
+        <ul>
+            <li><a href="/data-download/{{ dataset_id.endsWith('-training') ? 'training' : 'test' }}/input-/{{dataset_id}}.zip">Download Input for Systems</a> (a .zip file with the content available to participant submissions)</li>
+            <li><a href="/data-download/{{ dataset_id.endsWith('-training') ? 'training' : 'test' }}/input-truth/{{dataset_id}}.zip">Download Input for Evaluators</a> (a .zip file with the truth available to the evaluator)</li>
+        </ul>
+    </div>
+</div>
+
+<div class="uk-card uk-card-body uk-card-default uk-card-small">
 <form class="upload_form">
     <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf }}">
     <div class="uk-grid-medium" uk-grid>
