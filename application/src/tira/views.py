@@ -280,6 +280,27 @@ def download_rundir(request, task_id, dataset_id, vm_id, run_id):
         return JsonResponse({'status': 1, 'reason': f'File does not exist: {zipped}'},
                             status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
+@check_permissions
+def download_datadir(request, dataset_type, input_type, dataset_id):
+    input_type = input_type.lower().replace('input-', '')
+    task_id = model.get_dataset(dataset_id)['task']
+
+    path = model.model.data_path / f'{dataset_type}-datasets' / task_id / dataset_id
+
+    if not path.exists():
+        return JsonResponse({'status': 1, 'reason': f'File does not exist: {path}'},
+                            status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+    zipped = Path(f"{path.stem}.zip")
+    with zipfile.ZipFile(zipped, "w") as zipf:
+        for f in path.rglob('*'):
+            zipf.write(f, arcname=f.relative_to(path.parent))
+
+    if zipped.exists():
+        response = FileResponse(open(zipped, "rb"), as_attachment=True, filename=f"{dataset_id}-{dataset_type}-{input_type}.zip")
+        os.remove(zipped)
+        return response
+
 @add_context
 def request_vm(request, context):
     return render(request, 'tira/request_vm.html', context)

@@ -112,6 +112,28 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
+        url_pattern='data-download/<str:dataset_type>/<str:input_type>/<str:dataset_id>.zip',
+        params={'dataset_type': 'training', 'dataset_id': f'dataset-1-{now}-training', 'input_type': 'input-'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
+        },
+    ),
+    route_to_test(
+        url_pattern='data-download/<str:dataset_type>/<str:input_type>/<str:dataset_id>.zip',
+        params={'dataset_type': 'training', 'dataset_id': f'dataset-of-organizer-{now}-training', 'input_type': 'input-'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 405,
+        },
+    ),
+    route_to_test(
         url_pattern='diffir/<str:task_id>/<str:run_id_1>/<str:run_id_2>',
         params={'task_id': 'shared-task-1', 'run_id_1': '1', 'run_id_2': '2'},
         group_to_expected_status_code={
