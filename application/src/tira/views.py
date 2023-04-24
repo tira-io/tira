@@ -285,7 +285,7 @@ def download_datadir(request, dataset_type, input_type, dataset_id):
     input_type = input_type.lower().replace('input-', '')
     task_id = model.get_dataset(dataset_id)['task']
 
-    path = model.model.data_path / f'{dataset_type}-datasets' / task_id / dataset_id
+    path = model.model.data_path / f'{dataset_type}-datasets{input_type}' / task_id / dataset_id
 
     if not path.exists():
         return JsonResponse({'status': 1, 'reason': f'File does not exist: {path}'},
@@ -297,7 +297,8 @@ def download_datadir(request, dataset_type, input_type, dataset_id):
             zipf.write(f, arcname=f.relative_to(path.parent))
 
     if zipped.exists():
-        response = FileResponse(open(zipped, "rb"), as_attachment=True, filename=f"{dataset_id}-{dataset_type}-{input_type}.zip")
+        input_type = '' if not input_type else '-' + input_type
+        response = FileResponse(open(zipped, "rb"), as_attachment=True, filename=f"{dataset_id}-{dataset_type}{input_type}.zip")
         os.remove(zipped)
         return response
 

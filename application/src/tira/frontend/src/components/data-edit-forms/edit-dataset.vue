@@ -103,8 +103,8 @@
     <div class="uk-grid-medium" uk-grid>
         <h2>Export Dataset (For Organizers/Admins)</h2>
         <ul>
-            <li><a :href="'/data-download/' + (dataset_id.endsWith('-training') ? 'training' : 'test') + '/input-/' + dataset_id + '.zip'">Download Input for Systems</a> (a .zip file with the content available to participant submissions)</li>
-            <li><a :href="'/data-download/' + (dataset_id.endsWith('-training') ? 'training' : 'test') + '/input-truth/' + dataset_id + '.zip'">Download Input for Evaluators</a> (a .zip file with the truth available to the evaluator)</li>
+            <li><a :href="'/data-download/' + (dataset_id.endsWith('-training') ? 'training' : 'test') + '/input-/' + dataset_id + '.zip'" target="_blank">Download Input for Systems</a> (a .zip file with the content available to participant submissions)</li>
+            <li><a :href="'/data-download/' + (dataset_id.endsWith('-training') ? 'training' : 'test') + '/input-truth/' + dataset_id + '.zip'" target="_blank">Download Input for Evaluators</a> (a .zip file with the truth available to the evaluator)</li>
         </ul>
     </div>
 </form>
