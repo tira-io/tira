@@ -941,10 +941,25 @@ class HybridDatabase(object):
         (self.datasets_dir_path / task_id).mkdir(exist_ok=True, parents=True)
         open(new_dataset_file_path, 'w').write(str(ds))
 
+    def get_new_dataset_id(self, dataset_id, task_id, dataset_type):
+        candidates = [''] + [f'_{i}' for i in range(100)]
+        for cand in candidates:
+            dataset_id_candidate = f"{dataset_id}-{get_today_timestamp()}{cand}-{dataset_type}"
+            if self.dataset_exists(dataset_id_candidate) or \
+               (self.data_path / f'{dataset_type}-datasets' / task_id / dataset_id_candidate).exists() or \
+               (self.data_path / f'{dataset_type}-datasets-truth' / task_id / dataset_id_candidate).exists():
+                continue
+
+            return dataset_id_candidate
+
+        raise ValueError('I could not find a dataset id.')
+
+
+
     def add_dataset(self, task_id, dataset_id, dataset_type, dataset_name, upload_name, irds_docker_image=None, irds_import_command=None, irds_import_truth_command=None):
         """ Add a new dataset to a task
          CAUTION: This function does not do any sanity (existence) checks and will OVERWRITE existing datasets """
-        dataset_id = f"{dataset_id}-{get_today_timestamp()}-{dataset_type}"
+        dataset_id = self.get_new_dataset_id(dataset_id, task_id, dataset_type)
 
         if self.dataset_exists(dataset_id):
             raise FileExistsError(f"Dataset with id {dataset_id} already exists")
