@@ -282,7 +282,8 @@ def download_rundir(request, task_id, dataset_id, vm_id, run_id):
 
 @check_permissions
 def download_datadir(request, dataset_type, input_type, dataset_id):
-    input_type = input_type.lower().replace('input-', '')
+    input_type = input_type.lower().replace('input', '')
+    input_type = '' if len(input_type) < 2 else input_type
     task_id = model.get_dataset(dataset_id)['task']
 
     path = model.model.data_path / f'{dataset_type}-datasets{input_type}' / task_id / dataset_id
@@ -297,7 +298,6 @@ def download_datadir(request, dataset_type, input_type, dataset_id):
             zipf.write(f, arcname=f.relative_to(path.parent))
 
     if zipped.exists():
-        input_type = '' if not input_type else '-' + input_type
         response = FileResponse(open(zipped, "rb"), as_attachment=True, filename=f"{dataset_id}-{dataset_type}{input_type}.zip")
         os.remove(zipped)
         return response
