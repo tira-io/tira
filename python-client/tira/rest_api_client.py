@@ -136,7 +136,7 @@ class Client():
         Downloads the run (or uses the cached version) of the specified approach on the specified dataset.
         Returns the directory containing the outputs of the run.
         """
-        run_execution = get_run_execution_or_none(approach, dataset)
+        run_execution = self.get_run_execution_or_none(approach, dataset)
         if run_execution is None:
             raise ValueError(f'Could not get run for approach "{approach}" on dataset "{dataset}".')
 
