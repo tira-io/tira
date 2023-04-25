@@ -142,7 +142,7 @@ class Client():
         if run_execution is None or len(run_execution) < 1:
             raise ValueError(f'Could not get run for approach "{approach}" on dataset "{dataset}".')
 
-        return self.download_zip_to_cache_directory(self, run_execution[0]['task'], run_execution[0]['dataset'], run_execution[0]['team'], run_execution[0]['run_id'])
+        return self.download_zip_to_cache_directory(run_execution[0]['task'], run_execution[0]['dataset'], run_execution[0]['team'], run_execution[0]['run_id'])
 
     def get_run_execution_or_none(self, approach, dataset, previous_stage_run_id=None):
         task, team, software = approach.split('/')
