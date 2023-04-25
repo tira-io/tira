@@ -130,6 +130,18 @@ class Client():
     def run_was_already_executed_on_dataset(self, approach, dataset):
         return self.get_run_execution_or_none(approach, dataset) is not None
 
+
+    def get_run_output(self, approach, dataset):
+        """
+        Downloads the run (or uses the cached version) of the specified approach on the specified dataset.
+        Returns the directory containing the outputs of the run.
+        """
+        run_execution = get_run_execution_or_none(approach, dataset)
+        if run_execution is None:
+            raise ValueError(f'Could not get run for approach "{approach}" on dataset "{dataset}".')
+
+        return download_zip_to_cache_directory(self, run_execution['task'], run_execution['dataset'], run_execution['team'], run_execution['run_id'])
+
     def get_run_execution_or_none(self, approach, dataset, previous_stage_run_id=None):
         task, team, software = approach.split('/')
         
