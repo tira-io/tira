@@ -136,11 +136,13 @@ class Client():
         Downloads the run (or uses the cached version) of the specified approach on the specified dataset.
         Returns the directory containing the outputs of the run.
         """
-        run_execution = self.get_run_execution_or_none(approach, dataset)
-        if run_execution is None:
+        task, team, software = approach.split('/')
+        run_execution = submissions_with_evaluation_or_none(task, dataset, team, software)
+
+        if run_execution is None or len(run_execution) < 1:
             raise ValueError(f'Could not get run for approach "{approach}" on dataset "{dataset}".')
 
-        return download_zip_to_cache_directory(self, run_execution['task'], run_execution['dataset'], run_execution['team'], run_execution['run_id'])
+        return download_zip_to_cache_directory(self, run_execution[0]['task'], run_execution[0]['dataset'], run_execution[0]['team'], run_execution[0]['run_id'])
 
     def get_run_execution_or_none(self, approach, dataset, previous_stage_run_id=None):
         task, team, software = approach.split('/')
