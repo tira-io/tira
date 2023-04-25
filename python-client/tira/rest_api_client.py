@@ -130,7 +130,6 @@ class Client():
     def run_was_already_executed_on_dataset(self, approach, dataset):
         return self.get_run_execution_or_none(approach, dataset) is not None
 
-
     def get_run_output(self, approach, dataset):
         """
         Downloads the run (or uses the cached version) of the specified approach on the specified dataset.
@@ -179,6 +178,17 @@ class Client():
             return ret, run_id
         else:
             return ret
+
+    def download_dataset(self, task, dataset, truth_dataset=False):
+        """
+        Download the dataset. Set truth_dataset to true to load the truth used for evaluations.
+        """
+        target_dir = f'{self.tira_cache_dir}/extracted_datasets/{task}/{dataset}/'
+        if os.path.isdir(target_dir):
+            return target_dir
+
+        self.download_and_extract_zip(f'https://www.tira.io/data-download/training/input-{("" if not truth_dataset else "truth")}/{dataset}.zip', target_dir)
+        return target_dir
 
     def download_zip_to_cache_directory(self, task, dataset, team, run_id):
         target_dir = f'{self.tira_cache_dir}/extracted_runs/{task}/{dataset}/{team}'
