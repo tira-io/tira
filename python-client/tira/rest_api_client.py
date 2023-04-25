@@ -184,11 +184,15 @@ class Client():
         Download the dataset. Set truth_dataset to true to load the truth used for evaluations.
         """
         target_dir = f'{self.tira_cache_dir}/extracted_datasets/{task}/{dataset}/'
-        if os.path.isdir(target_dir):
-            return target_dir
+        suffix = ("input-data" if not truth_dataset else "truth-data")
+        if os.path.isdir(target_dir + suffix):
+            return target_dir + suffix
 
         self.download_and_extract_zip(f'https://www.tira.io/data-download/training/input-{("" if not truth_dataset else "truth")}/{dataset}.zip', target_dir)
-        return target_dir
+
+        os.rename(target_dir + f'/{dataset}', target_dir + suffix)
+
+        return target_dir + suffix
 
     def download_zip_to_cache_directory(self, task, dataset, team, run_id):
         target_dir = f'{self.tira_cache_dir}/extracted_runs/{task}/{dataset}/{team}'
