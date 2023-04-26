@@ -179,6 +179,20 @@ class Client():
         else:
             return ret
 
+    def download_evaluation(self, task, dataset, software, team):
+        ret = self.submissions_with_evaluation_or_none(task, dataset, team, software)
+        if not ret or len(ret) < 1:
+            raise ValueError(f'I could not find a run for the filter criteria task="{task}", dataset="{dataset}", software="{software}", team={team}.')
+        run_id = ret[0]['run_id']
+
+        submissions = self.submissions(task, dataset)
+        submissions = submissions[(submissions['input_run_id'] == run_id) & (submissions['is_evaluation'])]
+
+        if submissions is None or len(submissions) < 1:
+            raise ValueError(f'I could not find a evaluation for the filter criteria task="{task}", dataset="{dataset}", software="{software}", team={team}, run_id={run_id}.')
+
+        return self.download_zip_to_cache_directory(task, dataset, team, submissions.iloc[0].to_dict()['run_id'])
+
     def download_dataset(self, task, dataset, truth_dataset=False):
         """
         Download the dataset. Set truth_dataset to true to load the truth used for evaluations.
