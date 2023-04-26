@@ -432,7 +432,8 @@ class HybridDatabase(object):
                 else run.input_run.run_id,
                 "is_evaluation": is_evaluation,
                 "dataset": "" if not run.input_dataset else run.input_dataset.dataset_id,
-                "downloadable": run.downloadable}
+                "downloadable": run.downloadable
+                }
 
     def get_run(self, dataset_id: str, vm_id: str, run_id: str, return_deleted: bool = False) -> dict:
         run = modeldb.Run.objects.select_related('software', 'input_dataset').get(run_id=run_id)
@@ -753,7 +754,12 @@ class HybridDatabase(object):
                        "input_software_name": software_name,
                        'published': rev.published,
                        'blinded': rev.blinded,
-                       "measures": list(if_exists(evaluations))}
+                       "measures": list(if_exists(evaluations)),
+                       "previous_stage": "The previous stage looked like this: ---",
+                       "cli_command": "cli_test_command",
+                       "python_command": "py_test_command",
+                       "docker_command": "docker_test_command",
+                       }
 
         run_id_to_software_name = {}
 

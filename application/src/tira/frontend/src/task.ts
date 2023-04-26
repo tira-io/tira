@@ -13,13 +13,42 @@ import UIkit from 'uikit'
 // Fontawesome Icons
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faCheck, faTimes, faUserSlash, faUsers, faUsersSlash, faLevelUpAlt, faUser, faSearch, faDownload, faSave,
-    faTrashAlt, faCog, faPlus, faSort, faSortUp, faSortDown, faSortAmountUp, faSortAlphaUp,
-    faSortNumericUp, faSortAmountDown, faSortAlphaDown, faSortNumericDown, faEye, faEyeSlash, faSignInAlt, faFileImport } from '@fortawesome/free-solid-svg-icons'
+import {
+    faCheck,
+    faTimes,
+    faUserSlash,
+    faUsers,
+    faUsersSlash,
+    faLevelUpAlt,
+    faUser,
+    faSearch,
+    faDownload,
+    faSave,
+    faTrashAlt,
+    faCog,
+    faPlus,
+    faSort,
+    faSortUp,
+    faSortDown,
+    faSortAmountUp,
+    faSortAlphaUp,
+    faSortNumericUp,
+    faSortAmountDown,
+    faSortAlphaDown,
+    faSortNumericDown,
+    faEye,
+    faEyeSlash,
+    faSignInAlt,
+    faFileImport,
+    faRankingStar,
+    faSquarePollHorizontal,
+    faChevronDown,
+    faChevronUp,
+} from '@fortawesome/free-solid-svg-icons'
 
 library.add(faCheck, faTimes, faUserSlash, faUsers, faUsersSlash, faLevelUpAlt, faUser, faSearch, faDownload, faSave,
     faTrashAlt, faCog, faPlus, faSort, faSortUp, faSortDown, faSortAmountUp, faSortAlphaUp,
-    faSortNumericUp, faSortAmountDown, faSortAlphaDown, faSortNumericDown, faEye, faEyeSlash, faSignInAlt, faFileImport)
+    faSortNumericUp, faSortAmountDown, faSortAlphaDown, faSortNumericDown, faEye, faEyeSlash, faSignInAlt, faFileImport, faRankingStar, faSquarePollHorizontal, faChevronDown, faChevronUp)
 
 // CSS
 require('../../static/tira/css/tira-style.css');
@@ -32,7 +61,6 @@ const app = createApp({
             userVmsForTask: [],
             taskName: "",
             organizerName: "",
-            organizerId: "",
             website: "",
             taskDescription: "",
             datasets: {},
@@ -41,7 +69,6 @@ const app = createApp({
             role: '',
             evaluations: {},
             vms: {},
-            organizationTeams: [],
             notifications: [],
             remainingTeamNames: [],
             loading: false,
@@ -54,13 +81,15 @@ const app = createApp({
             importDatasetToggle: false,
             userIsRegistered: false,
             requireRegistration: false,
-            csrf: (<HTMLInputElement>document.querySelector('[name=csrfmiddlewaretoken]')).value
+            csrf: (<HTMLInputElement>document.querySelector('[name=csrfmiddlewaretoken]')).value,
+
         }
     },
     components: {
         Leaderboard, ReviewAccordion, NotificationBar, EditTask, EditDataset, AddDataset, ImportDataset, RegisterButton
     },
     methods: {
+
         async get(url) {
             const response = await fetch(url)
             if (!response.ok) {
@@ -164,22 +193,18 @@ const app = createApp({
     },
     beforeMount() {
         const url_split = (window.location.toString() + '#').split('#')[0].split('/')
-        
         this.task_id = url_split[url_split.length - 1]
         this.get(`/api/task/${this.task_id}`).then(message => {
             this.userId = message.context.user_id
             this.userVmsForTask = message.context.user_vms_for_task
             this.taskName = message.context.task.task_name
             this.organizerName = message.context.task.organizer
-            this.organizerId = message.context.task.organizer_id
             this.website = message.context.task.web
             this.taskDescription = message.context.task.task_description
             this.requireRegistration = message.context.task.require_registration
             this.userIsRegistered = message.context.user_is_registered
             this.remainingTeamNames = message.context.remaining_team_names
-            if(this.organizationTeams.includes(this.organizerId)) {
-                this.role = 'admin'
-            }
+
             console.log('user ', this.userId, ' is registered ( ', this.userIsRegistered, ' ). The task requires registration ( ', this.requireRegistration, ' ) and has vms: ', this.userVmsForTask)
         }).catch(error => {
             this.addNotification('error', error)
@@ -195,24 +220,34 @@ const app = createApp({
                     this.getSubmissions(this.selected)
                 }
             } else {
+                function newer(a: object, b: object): object {
+                    const aSplits = a['created'].split("-")
+                    const bSplits = b['created'].split("-")
+                    if (parseInt(aSplits[0]) > parseInt(bSplits[0]) ||
+                        (parseInt(aSplits[0]) === parseInt(bSplits[0]) && parseInt(aSplits[1]) > parseInt(bSplits[1])) ||
+                        (parseInt(aSplits[0]) === parseInt(bSplits[0]) && parseInt(aSplits[1]) === parseInt(bSplits[1]) && parseInt(aSplits[2]) > parseInt(bSplits[2]))) {
+                        return a
+                    }
+                    return b
+                }
+                let newest: unknown = Object.values(this.datasets).reduce(function(prev, curr) {
+                        return newer((prev as object), (curr as object))
+                    }
+                )
+
                 if (window.location.toString().includes('#')) {
                     this.selected = window.location.toString().split('#')[1]
-                } else if (Object.values(this.datasets).length > 0) {
-                    this.selected = (Object.values(this.datasets)[0] as object)['dataset_id']
+                } else {
+                    this.selected = (newest as object)['dataset_id']
                 }
             }
         }).catch(error => {
             this.addNotification('error', error)
         })
-        
-        
+
+
         this.get('/api/role').then(message => {
             this.role = message.role
-            this.organizationTeams = message.organizer_teams
-            
-            if(this.organizationTeams.includes(this.organizerId)) {
-                this.role = 'admin'
-            }
         }).catch(error => {
             this.addNotification('error', error)
         })
