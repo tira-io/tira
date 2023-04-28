@@ -414,16 +414,21 @@ class HybridDatabase(object):
         is_evaluation = False if not run.input_run or run.input_run.run_id == 'none' or run.input_run.run_id == 'None' else True
         software = None
         vm = None
+        software_id, evaluator_id, docker_software_id, upload_id = None, None, None, None
         if run.software:
             software = run.software.software_id
+            software_id = run.software.software_id
         elif run.evaluator:
             software = run.evaluator.evaluator_id
+            evaluator_id = software
         elif run.docker_software:
             software = run.docker_software.display_name
             vm = run.docker_software.vm.vm_id
             is_evaluation = False
+            docker_software_id = run.docker_software.docker_software_id
         elif run.upload:
             software = 'upload'
+            upload_id = run.upload.id
 
         return {"software": software,
                 "vm": vm,
@@ -432,7 +437,12 @@ class HybridDatabase(object):
                 else run.input_run.run_id,
                 "is_evaluation": is_evaluation,
                 "dataset": "" if not run.input_dataset else run.input_dataset.dataset_id,
-                "downloadable": run.downloadable}
+                "downloadable": run.downloadable,
+                "software_id": software_id,
+                "evaluator_id": evaluator_id,
+                "docker_software_id": docker_software_id,
+                "upload_id": upload_id,
+                }
 
     def get_run(self, dataset_id: str, vm_id: str, run_id: str, return_deleted: bool = False) -> dict:
         run = modeldb.Run.objects.select_related('software', 'input_dataset').get(run_id=run_id)

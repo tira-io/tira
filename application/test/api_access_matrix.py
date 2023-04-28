@@ -552,6 +552,8 @@ API_ACCESS_MATRIX = [
             ORGANIZER_WRONG_TASK: 302,
         },
     ),
+
+
     route_to_test(
         url_pattern='task/<str:task_id>/vm/<str:vm_id>/delete_software/docker/<str:docker_software_id>',
         params={'task_id': 'shared-task-1', 'vm_id': 'example_participant', 'software_id': 0},
@@ -582,6 +584,17 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 302,
             ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 302,
+        },
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>/vm/<str:vm_id>/run_details/<str:run_id>',
+        params={'task_id': 'shared-task-1', 'vm_id': 'example_participant', 'run_id': 'run-1'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 302,
+            ORGANIZER: 302,
             ORGANIZER_WRONG_TASK: 302,
         },
     ),
