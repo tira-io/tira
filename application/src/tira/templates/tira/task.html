@@ -109,6 +109,7 @@
         <div class="uk-container uk-margin-medium" v-if="role == 'admin' && importDatasetToggle">
             <import-dataset :csrf="csrf"
                          :task_id="task_id"
+                         :docker="docker"
                          @addNotification="(type, message) => addNotification(type, message)"
                          @addDataset="(dataset) => addDataset(dataset)"/>
         </div>

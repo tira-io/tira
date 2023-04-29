@@ -52,6 +52,7 @@ const app = createApp({
             editDatasetToggle: false,
             addDatasetToggle: false,
             importDatasetToggle: false,
+            docker: "",
             userIsRegistered: false,
             requireRegistration: false,
             csrf: (<HTMLInputElement>document.querySelector('[name=csrfmiddlewaretoken]')).value
@@ -177,6 +178,7 @@ const app = createApp({
             this.requireRegistration = message.context.task.require_registration
             this.userIsRegistered = message.context.user_is_registered
             this.remainingTeamNames = message.context.remaining_team_names
+            this.docker = message.context.docker
             if(this.organizationTeams.includes(this.organizerId)) {
                 this.role = 'admin'
             }
