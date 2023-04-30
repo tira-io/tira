@@ -95,8 +95,14 @@ class IrDatasetsLoader(object):
         queries_mapped_xml = [self.map_query_as_xml(query, include_original) for query in dataset.queries_iter()]
         
         if not skip_qrels:
-            qrels_mapped = [self.map_qrel(qrel) for qrel in dataset.qrels_iter()]
-            self.write_lines_to_file(qrels_mapped, output_dataset_truth_path/"qrels.txt")
+            try:
+                qrels_mapped = [self.map_qrel(qrel) for qrel in dataset.qrels_iter()]
+            except:
+                print('WARNING: I could not load qrels and will skip writing the file "qrels.txt". This is expected if your dataset has no qrels yet. If you have qrels, please debug this problem locally on your machine.')
+                qrels_mapped = []
+
+            if len(qrels_mapped) > 0:
+                self.write_lines_to_file(qrels_mapped, output_dataset_truth_path/"qrels.txt")
 
         if output_dataset_path:
             self.write_lines_to_file(queries_mapped_jsonl, output_dataset_path/"queries.jsonl")

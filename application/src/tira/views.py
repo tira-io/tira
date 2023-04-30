@@ -145,7 +145,7 @@ def _add_user_vms_to_context(request, context, task_id):
             docker = [i.replace('/my-software:0.0.1', '/<YOUR-IMAGE-NAME>').replace('<code>', '').replace('</code>', '').replace('<p>', '').replace('</p>', '') for i in docker]
             docker = [i if 'docker build -t' not in i else 'docker tag <YOUR-IMAGE-NAME> ' + i.split('docker build -t')[-1].split(' -f ')[0].strip() for i in docker]
 
-        context['docker'] = docker
+        context['docker_documentation'] = docker
 
 
 @check_resources_exist('http')
