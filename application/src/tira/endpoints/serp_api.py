@@ -27,7 +27,9 @@ def serp(request, context, vm_id, dataset_id, task_id, run_id):
             run_file = Path(settings.TIRA_ROOT) / "data" / "runs" / dataset_id / \
                        vm_id / run_id / 'output' / 'run.txt'
             serp_file = Path(settings.TIRA_ROOT) / "state" / "serp" / "version-0.0.1" / "runs" / dataset_id / vm_id / run_id / "serp.html"
-
+            serp_dir = (serp_file / "..").resolve()
+            Path.mkdir(serp_dir, parents=True, exist_ok=True)
+            
             if not run_file.is_file():
                 raise ValueError(f'Error: The expected file {run_file} does not exist.')
 
@@ -38,7 +40,7 @@ def serp(request, context, vm_id, dataset_id, task_id, run_id):
             image = model.get_dataset(run['dataset'])['irds_docker_image']
             command = [
                 ['sudo', 'podman', '--storage-opt', 'mount_program=/usr/bin/fuse-overlayfs', 'run',
-                 '-v', f'{(serp_file / "..").resolve()}:/output-tira-tmp/',
+                 '-v', f'{serp_dir}:/output-tira-tmp/',
                  '--entrypoint', 'sh', image, '-c', f'diffir --dataset {irds_id} --web $outputDir/run.txt > /tmp/run.html && mv /tmp/run.html /output-tira-tmp/serp.html']
             ]
 
