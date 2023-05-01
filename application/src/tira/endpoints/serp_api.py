@@ -41,7 +41,7 @@ def serp(request, context, vm_id, dataset_id, task_id, run_id):
             image = model.get_dataset(run['dataset'])['irds_docker_image']
             command = [
                 ['sudo', 'podman', '--storage-opt', 'mount_program=/usr/bin/fuse-overlayfs', 'run',
-                 '-v', f':{run_dir}/run_dir:ro',
+                 '-v', f'{run_dir}:/run_dir:ro',
                  '-v', f'{serp_dir}:/output-tira-tmp/',
                  '--entrypoint', 'sh', image, '-c', f'diffir --dataset {irds_id} --web /run_dir/run.txt > /tmp/run.html && mv /tmp/run.html /output-tira-tmp/serp.html']
             ]
