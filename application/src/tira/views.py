@@ -140,10 +140,14 @@ def _add_user_vms_to_context(request, context, task_id):
 
         if len(vm_ids) > 0:
             docker = model.load_docker_data(task_id, vm_ids[0], cache, force_cache_refresh=False)
-            docker = docker['docker_software_help'].split('\n')
-            docker = [i for i in docker if 'docker login' in i or 'docker push' in i or 'docker build -t' in i]
-            docker = [i.replace('/my-software:0.0.1', '/<YOUR-IMAGE-NAME>').replace('<code>', '').replace('</code>', '').replace('<p>', '').replace('</p>', '') for i in docker]
-            docker = [i if 'docker build -t' not in i else 'docker tag <YOUR-IMAGE-NAME> ' + i.split('docker build -t')[-1].split(' -f ')[0].strip() for i in docker]
+
+            if not docker:
+                docker = ['Docker is not enabled for this task.']
+            else:
+                docker = docker['docker_software_help'].split('\n')
+                docker = [i for i in docker if 'docker login' in i or 'docker push' in i or 'docker build -t' in i]
+                docker = [i.replace('/my-software:0.0.1', '/<YOUR-IMAGE-NAME>').replace('<code>', '').replace('</code>', '').replace('<p>', '').replace('</p>', '') for i in docker]
+                docker = [i if 'docker build -t' not in i else 'docker tag <YOUR-IMAGE-NAME> ' + i.split('docker build -t')[-1].split(' -f ')[0].strip() for i in docker]
 
         context['docker_documentation'] = docker
 
