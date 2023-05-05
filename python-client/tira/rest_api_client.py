@@ -151,6 +151,9 @@ class Client():
         
         df_eval = self.evaluations(task=task, dataset=dataset)
 
+        if len(df_eval) <= 0:
+            return None
+
         ret = df_eval[(df_eval['dataset'] == dataset) & (df_eval['software'] == software)]
         if len(ret) <= 0:
             return None
