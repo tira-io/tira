@@ -94,6 +94,9 @@ class Client():
             del i['run_id']
             run_to_evaluation[run_id] = i
 
+        if len(submissions) < 1:
+            return []
+
         submissions = submissions[(submissions['task'] == task) & (submissions['dataset'] == dataset) & (submissions['team'] == team) & (submissions['software'] == software)]
         ret = []
         for run_id in submissions.run_id.unique():
