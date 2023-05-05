@@ -113,7 +113,7 @@ class Client():
                 runs_to_join[(i['team'], i['run_id'])] = {'software': i['software'], 'input_run_id': i['input_run_id'], 'is_upload': i['is_upload'], 'is_docker': i['is_docker']}
 
         for evaluation in response['evaluations']:
-            run = {'task': response['task_id'], 'dataset': response['dataset_id'], 'team': evaluation['vm_id'], 'run_id': evaluation['input_run_id']}
+            run = {'task': response['task_id'], 'dataset': response['dataset_id'], 'team': evaluation['vm_id'], 'run_id': evaluation['input_run_id'], 'evaluation_run_id': evaluation['run_id'], 'published': evaluation['published'], 'blinded': evaluation['blinded']}
 
             if join_submissions and (run['team'], run['run_id']) in runs_to_join:
                 software = runs_to_join[(run['team'], run['run_id'])]
