@@ -283,3 +283,9 @@ conf/disraptor.properties
 *.swp
 /info/
 tira-web/tira-web/lib/
+
+# Mac
+.DS_Store
+
+# TextMate
+application/src/tira/frontend-vuetify/.editorconfig
