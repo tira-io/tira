@@ -9,27 +9,9 @@
       <h2 class="text-h2 font-weight-bold">TIRA</h2>
       <div class="py-1" />
       <h5 class="text-h5">Reproducible experiments<br/>for computer science</h5>
-      <div class="py-14" />
+      <div class="py-5" />
 
       <v-row class="d-flex align-center justify-center">
-        <v-col cols="auto">
-          <v-btn
-            href="https://vuetifyjs.com/components/all/"
-            min-width="164"
-            rel="noopener noreferrer"
-            target="_blank"
-            variant="text"
-          >
-            <v-icon
-              icon="mdi-view-dashboard"
-              size="large"
-              start
-            />
-
-            My tasks
-          </v-btn>
-        </v-col>
-
         <v-col cols="auto">
           <v-btn
             color="primary"
@@ -49,10 +31,32 @@
             Get Started
           </v-btn>
         </v-col>
+      </v-row>
 
+      <div class="py-5" />
+
+      <v-row class="d-flex align-center justify-center">
         <v-col cols="auto">
           <v-btn
-            href="https://community.vuetifyjs.com/"
+            href="https://vuetifyjs.com/components/all/"
+            min-width="164"
+            rel="noopener noreferrer"
+            target="_blank"
+            variant="text"
+          >
+            <v-icon
+              icon="mdi-view-dashboard"
+              size="large"
+              start
+            />
+
+            My tasks
+          </v-btn>
+        </v-col>
+        
+        <v-col cols="auto">
+          <v-btn
+            href="https://www.tira.io/categories"
             min-width="164"
             rel="noopener noreferrer"
             target="_blank"
@@ -64,7 +68,7 @@
               start
             />
 
-            Community
+            Help
           </v-btn>
         </v-col>
       </v-row>
