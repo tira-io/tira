@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, re_path
 
 from django.views.generic import TemplateView
 
@@ -18,7 +18,7 @@ urlpatterns = [
     path('task/<str:task_id>/user/<str:vm_id>', views.software_detail, name='software-detail'),
     path('task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/run/<str:run_id>', views.review, name='review'),
 
-    path('frontend-vuetify', views.veutify_page, name='veutify_page'),
+    re_path(r'^frontend-vuetify/.*', views.veutify_page, name='veutify_page'),
 
     path('request_vm', views.request_vm, name='request_vm'),
     path('login', views.login, name='login'),

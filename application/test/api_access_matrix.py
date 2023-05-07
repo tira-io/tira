@@ -35,7 +35,7 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
-        url_pattern='frontend-vuetify',
+        url_pattern=r'^frontend-vuetify/.*',
         params=None,
         group_to_expected_status_code={
             ADMIN: 200,
