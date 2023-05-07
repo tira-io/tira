@@ -63,8 +63,8 @@ def background_jobs(request, context, task_id, job_id):
 
 
 @add_context
-def landing_page(request, context):
-    return render(request, 'tira/landing_page.html', context)
+def veutify_page(request, context):
+    return render(request, 'tira/veutify_page.html', context)
 
 
 @check_permissions
