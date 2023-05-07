@@ -2,8 +2,8 @@
 
 VENV_NAME?=venv
 PYTHON=${VENV_NAME}/bin/python3
-VERSION_APPLICATION=0.0.54
-VERSION_GRPC=0.0.54
+VERSION_APPLICATION=0.0.60
+VERSION_GRPC=0.0.60
 
 
 .DEFAULT: help
@@ -28,10 +28,6 @@ setup:
 	sh -c ". $(VENV_NAME)/bin/activate && \
 	python3 src/manage.py index_model && \
 	python3 src/manage.py createcachetable"
-
-#setup-webpack:
-#    npm add vue@next webpack-bundle-tracker@0.4.3 uikit; \
-#    npm add --dev vue-loader@v16.8.2 webpack-cli webpack webpack-dev-server typescript ts-loader @vue/compiler-sfc style-loader css-loader
 
 webpack:
 	cd ./src/tira/frontend/; \
@@ -64,6 +60,11 @@ run-develop: venv
 	$(VENV_NAME)/bin/python3 src/manage.py makemigrations \
 	&& $(VENV_NAME)/bin/python3 src/manage.py migrate --fake \
 	&& $(VENV_NAME)/bin/python3 src/manage.py run_develop
+
+vite:
+	cd src/tira/frontend-vuetify \
+	&& yarn install \
+	&& yarn build
 
 run-docker:
 	docker run -td --rm \

@@ -9,30 +9,34 @@ import { fileURLToPath, URL } from 'node:url'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
-    vue({ 
-      template: { transformAssetUrls }
-    }),
+    vue({template: { transformAssetUrls }}),
     // https://github.com/vuetifyjs/vuetify-loader/tree/next/packages/vite-plugin
-    vuetify({
-      autoImport: true,
-    }),
+    vuetify({autoImport: true}),
   ],
   define: { 'process.env': {} },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
-    extensions: [
-      '.js',
-      '.json',
-      '.jsx',
-      '.mjs',
-      '.ts',
-      '.tsx',
-      '.vue',
-    ],
+    extensions: ['.js', '.json', '.jsx', '.mjs', '.ts', '.tsx', '.vue'],
   },
   server: {
     port: 3000,
   },
+  build: {
+    rollupOptions: {
+      output: {
+        assetFileNames: 'assets/[name].[ext]',
+        chunkFileNames: 'chunks/[name].js',
+        entryFileNames: 'entries/[name].js',
+      },
+    },
+    outDir: '../static/tira/frontend-vuetify',
+  },
+  experimental: {
+    renderBuiltUrl(filename: string, { hostType }: { hostType: 'js' | 'css' | 'html' }) {
+      // TIRA expects resourecs/assets at this location
+      return '/public/tira/frontend-vuetify/' + filename
+    }
+  }
 })

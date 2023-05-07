@@ -18,6 +18,8 @@ urlpatterns = [
     path('task/<str:task_id>/user/<str:vm_id>', views.software_detail, name='software-detail'),
     path('task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/run/<str:run_id>', views.review, name='review'),
 
+    path('t-v2/lp', views.landing_page, name='landing_page'),
+
     path('request_vm', views.request_vm, name='request_vm'),
     path('login', views.login, name='login'),
     path('logout', views.logout, name='logout'),
