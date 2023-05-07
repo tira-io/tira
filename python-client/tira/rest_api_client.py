@@ -69,6 +69,41 @@ class Client():
 
         return pd.DataFrame(ret)
 
+    def submissions_with_evaluation_or_none(self, task, dataset, team, software):
+        """ This method returns all runs of the specified software in the task on the dataset by the team.
+            This is especially suitable to batch evaluate all submissions of the software because the evaluation is none if no successfull evaluation was conducted (or there is a new evaluator).
+            E.g., by code like:
+
+            ```
+            for approach in ['approach-1', ..., 'approach-n]:
+                runs_for_approach = tira.submissions_with_evaluation_or_none(task, dataset, team, approach)
+                for i in runs_for_approach:
+                    if not i['evaluation']:
+                        tira.evaluate_run(team, dataset, i['run_id'])
+            ```
+        """
+        submissions = self.submissions(task, dataset)
+        evaluations = self.evaluations(task, dataset, join_submissions=False)
+        run_to_evaluation = {}
+        for _, i in evaluations.iterrows():
+            i = i.to_dict()
+            run_id = i["run_id"]
+            del i['task']
+            del i['dataset']
+            del i['team']
+            del i['run_id']
+            run_to_evaluation[run_id] = i
+
+        if len(submissions) < 1:
+            return []
+
+        submissions = submissions[(submissions['task'] == task) & (submissions['dataset'] == dataset) & (submissions['team'] == team) & (submissions['software'] == software)]
+        ret = []
+        for run_id in submissions.run_id.unique():
+            ret += [{"run_id": run_id, "task": task, "dataset": dataset, "team": team, "software": software, "evaluation": run_to_evaluation.get(run_id, None)}]
+
+        return ret
+
     def evaluations(self, task, dataset, join_submissions=True):
         response = self.json_response(f'/api/evaluations/{task}/{dataset}')['context']
         ret = []
@@ -81,7 +116,7 @@ class Client():
                 runs_to_join[(i['team'], i['run_id'])] = {'software': i['software'], 'input_run_id': i['input_run_id'], 'is_upload': i['is_upload'], 'is_docker': i['is_docker']}
 
         for evaluation in response['evaluations']:
-            run = {'task': response['task_id'], 'dataset': response['dataset_id'], 'team': evaluation['vm_id'], 'run_id': evaluation['input_run_id']}
+            run = {'task': response['task_id'], 'dataset': response['dataset_id'], 'team': evaluation['vm_id'], 'run_id': evaluation['input_run_id'], 'evaluation_run_id': evaluation['run_id'], 'published': evaluation['published'], 'blinded': evaluation['blinded']}
 
             if join_submissions and (run['team'], run['run_id']) in runs_to_join:
                 software = runs_to_join[(run['team'], run['run_id'])]
@@ -98,10 +133,26 @@ class Client():
     def run_was_already_executed_on_dataset(self, approach, dataset):
         return self.get_run_execution_or_none(approach, dataset) is not None
 
+    def get_run_output(self, approach, dataset):
+        """
+        Downloads the run (or uses the cached version) of the specified approach on the specified dataset.
+        Returns the directory containing the outputs of the run.
+        """
+        task, team, software = approach.split('/')
+        run_execution = self.submissions_with_evaluation_or_none(task, dataset, team, software)
+
+        if run_execution is None or len(run_execution) < 1:
+            raise ValueError(f'Could not get run for approach "{approach}" on dataset "{dataset}".')
+
+        return self.download_zip_to_cache_directory(run_execution[0]['task'], run_execution[0]['dataset'], run_execution[0]['team'], run_execution[0]['run_id'])
+
     def get_run_execution_or_none(self, approach, dataset, previous_stage_run_id=None):
         task, team, software = approach.split('/')
         
         df_eval = self.evaluations(task=task, dataset=dataset)
+
+        if len(df_eval) <= 0:
+            return None
 
         ret = df_eval[(df_eval['dataset'] == dataset) & (df_eval['software'] == software)]
         if len(ret) <= 0:
@@ -134,6 +185,35 @@ class Client():
         else:
             return ret
 
+    def download_evaluation(self, task, dataset, software, team):
+        ret = self.submissions_with_evaluation_or_none(task, dataset, team, software)
+        if not ret or len(ret) < 1:
+            raise ValueError(f'I could not find a run for the filter criteria task="{task}", dataset="{dataset}", software="{software}", team={team}.')
+        run_id = ret[0]['run_id']
+
+        submissions = self.submissions(task, dataset)
+        submissions = submissions[(submissions['input_run_id'] == run_id) & (submissions['is_evaluation'])]
+
+        if submissions is None or len(submissions) < 1:
+            raise ValueError(f'I could not find a evaluation for the filter criteria task="{task}", dataset="{dataset}", software="{software}", team={team}, run_id={run_id}.')
+
+        return self.download_zip_to_cache_directory(task, dataset, team, submissions.iloc[0].to_dict()['run_id'])
+
+    def download_dataset(self, task, dataset, truth_dataset=False):
+        """
+        Download the dataset. Set truth_dataset to true to load the truth used for evaluations.
+        """
+        target_dir = f'{self.tira_cache_dir}/extracted_datasets/{task}/{dataset}/'
+        suffix = ("input-data" if not truth_dataset else "truth-data")
+        if os.path.isdir(target_dir + suffix):
+            return target_dir + suffix
+
+        self.download_and_extract_zip(f'https://www.tira.io/data-download/training/input-{("" if not truth_dataset else "truth")}/{dataset}.zip', target_dir)
+
+        os.rename(target_dir + f'/{dataset}', target_dir + suffix)
+
+        return target_dir + suffix
+
     def download_zip_to_cache_directory(self, task, dataset, team, run_id):
         target_dir = f'{self.tira_cache_dir}/extracted_runs/{task}/{dataset}/{team}'
 
@@ -143,17 +223,43 @@ class Client():
         self.download_and_extract_zip(f'https://www.tira.io/task/{task}/user/{team}/dataset/{dataset}/download/{run_id}.zip', target_dir)
 
         return target_dir + f'/{run_id}/output'
-    
-    def add_run_to_leaderboard(self, team, dataset, evaluation_run_id):
-        ret = self.json_response(f'/publish/{team}/{dataset}/{evaluation_run_id}/true')
+
+    def add_run_to_leaderboard(self, task, team, dataset, evaluation_run_id=None, run_id=None):
+        """
+        Publish the specified run to the leaderboard.
         
-        if ('status' not in ret) or ('0' != ret['status']) or ('published' not in ret) or (not ret['published']):
-            raise ValueError(f'Adding the run to the leaderboard failed. Got {ret}')
+        This is especially suitable to batch add all submissions of submissions, e.g., by code like:
+
+            ```
+            for approach in ['approach-1', ..., 'approach-n]:
+                runs_for_approach = tira.submissions_with_evaluation_or_none(task, dataset, team, approach)
+                for i in runs_for_approach:
+                    if i['evaluation']:
+                        tira.add_run_to_leaderboard(TASK, team, dataset, run_id=i['run_id'])
+        
+        """
+        if run_id and evaluation_run_id:
+            raise ValueError(f'Please pass either a evaluation_run_id or a run_id, but both were passed: evaluation_run_id={evaluation_run_id}, run_id={run_id}')
+        if run_id and not evaluation_run_id:
+            submissions = self.submissions(task, dataset)
+            submissions = submissions[(submissions['input_run_id'] == run_id) & (submissions['is_evaluation'])]
+        
+            for evaluation_run_id in submissions['run_id'].unique():
+                self.add_run_to_leaderboard(task, team, dataset, evaluation_run_id=evaluation_run_id)
+    
+        if evaluation_run_id:
+            print(f'Publish run: {evaluation_run_id}.')
+            ret = self.json_response(f'/publish/{team}/{dataset}/{evaluation_run_id}/true')
+
+            if ('status' not in ret) or ('0' != ret['status']) or ('published' not in ret) or (not ret['published']):
+                raise ValueError(f'Adding the run to the leaderboard failed. Got {ret}')
 
     def evaluate_run(self, team, dataset, run_id):
+        """ Evaluate the run of the specified team and identified by the run_id (the run must be submitted on the specified dataset).
+        """
         ret = self.json_response(f'/grpc/{team}/run_eval/{dataset}/{run_id}')
 
-        if status not in ret or '0' != str(ret['status']):
+        if 'status' not in ret or '0' != str(ret['status']):
             raise ValueError(f'Failed to evaluate the run. Got {ret}')
 
         return ret

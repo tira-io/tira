@@ -130,7 +130,7 @@ class Evaluator(models.Model):
     measures = models.CharField(max_length=150, default="")
     is_deprecated = models.BooleanField(default=False)
     is_git_runner = models.BooleanField(default=False)
-    git_runner_image = models.CharField(max_length=100, null=True, default=None)
+    git_runner_image = models.CharField(max_length=250, null=True, default=None)
     git_runner_command = models.CharField(max_length=280, null=True, default=None)
     git_repository_id = models.CharField(max_length=100, null=True, default=None)
 
@@ -274,3 +274,12 @@ class Review(models.Model):
     published = models.BooleanField(default=False)
     blinded = models.BooleanField(default=True)
 
+class BackendProcess(models.Model):
+    id = models.AutoField(primary_key=True)
+    title = models.TextField(default="")
+    cmd = models.TextField(default="")
+    last_contact = models.TextField(default="")
+    exit_code = models.IntegerField(default=None, null=True)
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, null=True, default=None)
+    vm = models.ForeignKey(VirtualMachine, on_delete=models.CASCADE, null=True, default=None)
+    stdout = models.TextField(default="")

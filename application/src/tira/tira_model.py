@@ -262,6 +262,10 @@ def get_evaluations_with_keys_by_dataset(dataset_id, include_unpublished=False):
     return model.get_evaluations_with_keys_by_dataset(dataset_id, include_unpublished)
 
 
+def get_job_details(task_id, vm_id, job_id):
+    return model.get_job_details(task_id, vm_id, job_id)
+
+
 def get_evaluation(run_id: str):
     """ Get the evaluation of this run
 
@@ -358,7 +362,7 @@ def add_docker_software(task_id, vm_id, image, command, input=None):
     tira_image_name = get_git_integration(task_id=task_id).add_new_tag_to_docker_image_repository(image, old_tag, new_tag)
 
     input_docker_job, input_upload = input, None
-    if 'upload' in input:
+    if input and 'upload' in input:
         input_docker_job, input_upload = None, input.split('-')[-1]
 
     return model.add_docker_software(task_id, vm_id, image + ':' + old_tag, command, tira_image_name, input_docker_job, input_upload)

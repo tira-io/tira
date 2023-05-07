@@ -97,7 +97,27 @@
     </div>
 </div>
 
+
 <div class="uk-card uk-card-body uk-card-default uk-card-small">
+<form class="upload_form">
+    <div class="uk-grid-medium" uk-grid>
+        <h2>Export Dataset (For Organizers/Admins)</h2>
+        <ul>
+            <li><a :href="'/data-download/' + (dataset_id.endsWith('-training') ? 'training' : 'test') + '/input-/' + dataset_id + '.zip'" target="_blank">Download Input for Systems</a> (a .zip file with the content available to participant submissions)</li>
+            <li><a :href="'/data-download/' + (dataset_id.endsWith('-training') ? 'training' : 'test') + '/input-truth/' + dataset_id + '.zip'" target="_blank">Download Input for Evaluators</a> (a .zip file with the truth available to the evaluator)</li>
+        </ul>
+    </div>
+</form>
+</div>
+
+<div class="uk-card uk-card-body uk-card-default uk-card-small">
+<h2>Upload Data</h2>
+
+Each dataset comes in two parts: the data that is made available to the software of participants as input to their systems, and the truth data that is made availalble to the evaluator to evaluate runs. You can upload the truth data later.
+
+<br>
+<br>
+
 <form class="upload_form">
     <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf }}">
     <div class="uk-grid-medium" uk-grid>

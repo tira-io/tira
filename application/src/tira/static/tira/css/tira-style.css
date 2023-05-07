@@ -141,3 +141,7 @@ a.uk-button-primary {
     border-radius: 5px;
     margin-top: 5px;
 }
+
+.hide-element {
+    display: none;
+}

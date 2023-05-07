@@ -112,6 +112,28 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
+        url_pattern='data-download/<str:dataset_type>/<str:input_type>/<str:dataset_id>.zip',
+        params={'dataset_type': 'training', 'dataset_id': f'dataset-1-{now}-training', 'input_type': 'input-'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
+        },
+    ),
+    route_to_test(
+        url_pattern='data-download/<str:dataset_type>/<str:input_type>/<str:dataset_id>.zip',
+        params={'dataset_type': 'training', 'dataset_id': f'dataset-of-organizer-{now}-training', 'input_type': 'input-'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 405,
+        },
+    ),
+    route_to_test(
         url_pattern='diffir/<str:task_id>/<str:run_id_1>/<str:run_id_2>',
         params={'task_id': 'shared-task-1', 'run_id_1': '1', 'run_id_2': '2'},
         group_to_expected_status_code={
@@ -231,6 +253,28 @@ API_ACCESS_MATRIX = [
             PARTICIPANT: 200,
             ORGANIZER: 302,
             ORGANIZER_WRONG_TASK: 302,
+        },
+    ),
+    route_to_test(
+        url_pattern='background_jobs/<str:task_id>/<str:job_id>',
+        params={'task_id': 'does-not-exist', 'job_id': -1},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
+        },
+    ),
+    route_to_test(
+        url_pattern='background_jobs/<str:task_id>/<str:job_id>',
+        params={'task_id': 'task-of-organizer-1', 'job_id': -1},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 405,
         },
     ),
     route_to_test(
@@ -508,6 +552,8 @@ API_ACCESS_MATRIX = [
             ORGANIZER_WRONG_TASK: 302,
         },
     ),
+
+
     route_to_test(
         url_pattern='task/<str:task_id>/vm/<str:vm_id>/delete_software/docker/<str:docker_software_id>',
         params={'task_id': 'shared-task-1', 'vm_id': 'example_participant', 'software_id': 0},
@@ -538,6 +584,17 @@ API_ACCESS_MATRIX = [
             GUEST: 302,
             PARTICIPANT: 302,
             ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 302,
+        },
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>/vm/<str:vm_id>/run_details/<str:run_id>',
+        params={'task_id': 'shared-task-1', 'vm_id': 'example_participant', 'run_id': 'run-1'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 302,
+            ORGANIZER: 302,
             ORGANIZER_WRONG_TASK: 302,
         },
     ),

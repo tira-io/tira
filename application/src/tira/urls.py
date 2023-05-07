@@ -9,9 +9,12 @@ urlpatterns = [
     path('', views.index, name='index'),
     path('task', views.index, name='index'),
     path('tasks', views.index, name='index'),
+    path('background_jobs/<str:task_id>/<str:job_id>', views.background_jobs, name='background_jobs'),
+
     path('task/<str:task_id>', views.task, name='task'),
     path('task/<str:task_id>/dataset/<str:dataset_id>', views.dataset, name='dataset'),
     path('task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/download/<str:run_id>.zip', views.download_rundir, name='download_rundir'),
+    path('data-download/<str:dataset_type>/<str:input_type>/<str:dataset_id>.zip', views.download_datadir, name='download_datadir'),
     path('task/<str:task_id>/user/<str:vm_id>', views.software_detail, name='software-detail'),
     path('task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/run/<str:run_id>', views.review, name='review'),
 
@@ -28,6 +31,8 @@ urlpatterns = [
     path('task/<str:task_id>/vm/<str:vm_id>/save_software/vm/<str:software_id>', vm_api.software_save, name='software_save'),
     path('task/<str:task_id>/vm/<str:vm_id>/delete_software/vm/<str:software_id>', vm_api.software_delete, name='software_delete'),
     path('task/<str:task_id>/vm/<str:vm_id>/delete_software/docker/<str:docker_software_id>', vm_api.docker_software_delete, name='docker_delete'),
+    path('task/<str:task_id>/vm/<str:vm_id>/run_details/<str:run_id>', vm_api.run_details, name='run_details'),
+
     path('task/<str:task_id>/vm/<str:vm_id>/upload/<str:dataset_id>/<str:upload_id>', vm_api.upload, name='upload'),
     path('task/<str:task_id>/vm/<str:vm_id>/upload-delete/<str:upload_id>', vm_api.delete_upload, name='deleteupload'),
 
