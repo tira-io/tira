@@ -13,7 +13,10 @@
 
   const routes: { [id: string] : any; } =  {
     '/': Home,
-    '/tasks': Tasks
+    '/tasks': Tasks,
+    // TODO: Temporary additional routes for transition form previous TIRA UI version.
+    '/frontend-vuetify/': Home,
+    '/frontend-vuetify/tasks': Tasks
   }
 
   const currentPath = ref(window.location.hash)
