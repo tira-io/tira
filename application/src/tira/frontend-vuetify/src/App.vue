@@ -8,7 +8,7 @@
 
 <script setup lang="ts">
   import { ref, computed, onMounted } from 'vue'
-  import Home from '@/components/Home.vue'
+  import Home from './Home.vue'
   import Tasks from './Tasks.vue'
 
   const routes: { [id: string] : any; } =  {
@@ -30,5 +30,4 @@
       currentPath.value = window.location.hash
     })
   })
-
 </script>
