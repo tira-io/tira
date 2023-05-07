@@ -1,19 +1,21 @@
 # Only change in case of new / updated dependencies
-FROM webis/tira-application:0.0.47
+FROM webis/tira-application:0.0.54-diffir-base
 
-RUN apk add gcc gfortran python python-dev py-pip build-base wget freetype-dev libpng-dev openblas-dev py3-scipy=1.3.3-r1 \
-	&& pip3 install nltk>=3.5 ir_measures>=0.1.4 mako~=1.1 pytrec_eval>=0.5 intervaltree>=3.1.0 rich>=9.13.0 pyahocorasick>=1.4.1 \
-	&& pip3 install --no-dependencies git+http://github.com/mam10eks/diffir
+RUN rm -Rf /tira/application && cd / && pip3 uninstall -y diffir && pip3 install --no-dependencies git+http://github.com/mam10eks/diffir
 
-RUN python3 -m pip uninstall -y numpy \
-	&& python3 -m pip uninstall -y numpy \
-	&& python3 -m pip install numpy==1.21 \
-	&& python3 -c 'import nltk; nltk.download("punkt");' \
-	&& python3 -c 'import nltk; nltk.download("stopwords");' \
-        && echo "from ir_datasets import datasets_in_progress" >> /usr/lib/python3.8/site-packages/ir_datasets/__init__.py \
-	&& mkdir /usr/lib/python3.8/site-packages/ir_datasets/datasets_in_progress \
-	&& echo -e 'from os.path import dirname, basename, isfile, join\nimport glob\nmodules = glob.glob(join(dirname(__file__), "*.py"))\n__all__ = [ basename(f)[:-3] for f in modules if isfile(f) and not f.endswith("__init__.py")]\nfrom . import *\n'  > /usr/lib/python3.8/site-packages/ir_datasets/datasets_in_progress/__init__.py
+COPY application /tira/application
 
-RUN wget 'https://raw.githubusercontent.com/tira-io/ir-experiment-platform/main/ir-measures/ir_measures_evaluator.py' -O /ir_measures_evaluator.py \
-	&& chmod +x /ir_measures_evaluator.py
+WORKDIR /tira/application/src
+
+RUN mkdir -p /tira/model/src && \
+	cd /tira/application/src && \
+	chown tira:tira -R /tira/application && \
+	chmod +x /tira/application/src/tira/endpoints/aha && \
+	cp /tira/application/src/tira/management/commands/irds_cli.sh /irds_cli.sh && \
+	rm -f ./config/settings.yml ./config/config.yml ./config/tira-application-config.dev.yml && \
+	apk add sudo && \
+	echo '%podman ALL=(ALL) ALL' > /etc/sudoers.d/podman
+
+RUN cd /tira/application/ && \
+        ./test/run_all_tests.sh
 

@@ -13,13 +13,42 @@ import UIkit from 'uikit'
 // Fontawesome Icons
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faCheck, faTimes, faUserSlash, faUsers, faUsersSlash, faLevelUpAlt, faUser, faSearch, faDownload, faSave,
-    faTrashAlt, faCog, faPlus, faSort, faSortUp, faSortDown, faSortAmountUp, faSortAlphaUp,
-    faSortNumericUp, faSortAmountDown, faSortAlphaDown, faSortNumericDown, faEye, faEyeSlash, faSignInAlt, faFileImport } from '@fortawesome/free-solid-svg-icons'
+import {
+    faCheck,
+    faTimes,
+    faUserSlash,
+    faUsers,
+    faUsersSlash,
+    faLevelUpAlt,
+    faUser,
+    faSearch,
+    faDownload,
+    faSave,
+    faTrashAlt,
+    faCog,
+    faPlus,
+    faSort,
+    faSortUp,
+    faSortDown,
+    faSortAmountUp,
+    faSortAlphaUp,
+    faSortNumericUp,
+    faSortAmountDown,
+    faSortAlphaDown,
+    faSortNumericDown,
+    faEye,
+    faEyeSlash,
+    faSignInAlt,
+    faFileImport,
+    faRankingStar,
+    faSquarePollHorizontal,
+    faChevronDown,
+    faChevronUp,
+} from '@fortawesome/free-solid-svg-icons'
 
 library.add(faCheck, faTimes, faUserSlash, faUsers, faUsersSlash, faLevelUpAlt, faUser, faSearch, faDownload, faSave,
     faTrashAlt, faCog, faPlus, faSort, faSortUp, faSortDown, faSortAmountUp, faSortAlphaUp,
-    faSortNumericUp, faSortAmountDown, faSortAlphaDown, faSortNumericDown, faEye, faEyeSlash, faSignInAlt, faFileImport)
+    faSortNumericUp, faSortAmountDown, faSortAlphaDown, faSortNumericDown, faEye, faEyeSlash, faSignInAlt, faFileImport, faRankingStar, faSquarePollHorizontal, faChevronDown, faChevronUp)
 
 // CSS
 require('../../static/tira/css/tira-style.css');
@@ -52,6 +81,7 @@ const app = createApp({
             editDatasetToggle: false,
             addDatasetToggle: false,
             importDatasetToggle: false,
+            docker: "",
             userIsRegistered: false,
             requireRegistration: false,
             csrf: (<HTMLInputElement>document.querySelector('[name=csrfmiddlewaretoken]')).value
@@ -177,6 +207,7 @@ const app = createApp({
             this.requireRegistration = message.context.task.require_registration
             this.userIsRegistered = message.context.user_is_registered
             this.remainingTeamNames = message.context.remaining_team_names
+            this.docker = message.context.docker_documentation
             if(this.organizationTeams.includes(this.organizerId)) {
                 this.role = 'admin'
             }

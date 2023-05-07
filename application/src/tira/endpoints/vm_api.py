@@ -7,7 +7,7 @@ from grpc import RpcError, StatusCode
 from tira.authentication import auth
 from tira.checks import check_permissions, check_resources_exist, check_conditional_permissions
 from tira.forms import *
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseNotAllowed
 from django.conf import settings
 from http import HTTPStatus
 
@@ -502,6 +502,40 @@ def docker_software_delete(request, task_id, vm_id, docker_software_id):
         return JsonResponse({'status': 1, 'message': 'Cannot delete docker software, because it has a valid '
                                                      'evaluation assigned (or it does not exist.)'},
                             status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+
+@check_permissions
+@check_resources_exist('json')
+def run_details(request, task_id, vm_id, run_id):
+    run = model.get_run(dataset_id=None, vm_id=vm_id, run_id=run_id)
+    software, docker_software, run_upload = None, None, None
+    vm_id_from_run = None
+
+    if 'software_id' in run and run['software_id']:
+        software = model.get_software(software)
+        vm_id_from_run = software['vm']
+    elif 'docker_software_id' in run and run['docker_software_id']:
+        docker_software = model.get_docker_software(software)
+        vm_id_from_run = docker_software['vm']
+    elif 'upload_id' in run and run['upload_id']:
+        import tira.model as modeldb
+        run_upload = modeldb.Upload.objects.filter(vm__vm_id=vm_id, id=run['upload_id']).get()
+        vm_id_from_run = run_upload.vm.vm_id
+
+    if not vm_id_from_run or vm_id != vm_id_from_run:
+        return HttpResponseNotAllowed(f"Access forbidden.")
+
+    ret = {'description': 'No description is available.', 'previous_stage': 'No previous stage',
+           'cli_command': 'TBD cli.', 'docker_command': 'TBD docker.', 'python_command': 'TBD python.'
+           }
+    
+    return JsonResponse({'status': 0, 'context': ret})
+
+    #if
+    #if get_docker_software(self, docker_software_id: str) -> dict:
+    #    def get_upload_with_runs(self, task_id, vm_id):
+    #        def get_software(self, task_id, vm_id, software_id):
+
 
 @check_permissions
 @check_resources_exist('json')

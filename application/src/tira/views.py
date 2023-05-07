@@ -53,6 +53,14 @@ def index(request, context):
 
     return render(request, 'tira/index.html', context)
 
+@check_permissions
+@add_context
+def background_jobs(request, context, task_id, job_id):
+    context['task'] = task_id
+    context['job'] = model.get_job_details(task_id, None, job_id)
+
+    return render(request, 'tira/background_jobs.html', context)
+
 
 @check_permissions
 @add_context
@@ -127,6 +135,21 @@ def _add_user_vms_to_context(request, context, task_id):
             vm_ids = [i for i in auth.get_vm_ids(request, context["user_id"]) if allowed_vms_for_task is None or i in allowed_vms_for_task]
         
         context['user_vms_for_task'] = vm_ids
+
+        docker = ['Your account has no docker registry. Please contact an organizer.']
+
+        if len(vm_ids) > 0:
+            docker = model.load_docker_data(task_id, vm_ids[0], cache, force_cache_refresh=False)
+
+            if not docker:
+                docker = ['Docker is not enabled for this task.']
+            else:
+                docker = docker['docker_software_help'].split('\n')
+                docker = [i for i in docker if 'docker login' in i or 'docker push' in i or 'docker build -t' in i]
+                docker = [i.replace('/my-software:0.0.1', '/<YOUR-IMAGE-NAME>').replace('<code>', '').replace('</code>', '').replace('<p>', '').replace('</p>', '') for i in docker]
+                docker = [i if 'docker build -t' not in i else 'docker tag <YOUR-IMAGE-NAME> ' + i.split('docker build -t')[-1].split(' -f ')[0].strip() for i in docker]
+
+        context['docker_documentation'] = docker
 
 
 @check_resources_exist('http')
@@ -271,6 +294,28 @@ def download_rundir(request, task_id, dataset_id, vm_id, run_id):
     else:
         return JsonResponse({'status': 1, 'reason': f'File does not exist: {zipped}'},
                             status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+@check_permissions
+def download_datadir(request, dataset_type, input_type, dataset_id):
+    input_type = input_type.lower().replace('input', '')
+    input_type = '' if len(input_type) < 2 else input_type
+    task_id = model.get_dataset(dataset_id)['task']
+
+    path = model.model.data_path / f'{dataset_type}-datasets{input_type}' / task_id / dataset_id
+
+    if not path.exists():
+        return JsonResponse({'status': 1, 'reason': f'File does not exist: {path}'},
+                            status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+    zipped = Path(f"{path.stem}.zip")
+    with zipfile.ZipFile(zipped, "w") as zipf:
+        for f in path.rglob('*'):
+            zipf.write(f, arcname=f.relative_to(path.parent))
+
+    if zipped.exists():
+        response = FileResponse(open(zipped, "rb"), as_attachment=True, filename=f"{dataset_id}-{dataset_type}{input_type}.zip")
+        os.remove(zipped)
+        return response
 
 @add_context
 def request_vm(request, context):

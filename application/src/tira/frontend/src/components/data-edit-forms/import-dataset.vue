@@ -14,6 +14,22 @@
         </div>
       </div>
     </h3>
+    
+    <div class="uk-width-5-5">
+        <h3>Import ir_datasets Docker image</h3>
+        <p>Please specify the docker image that contains the ir_datasets installation and the id of the to-be-imported dataset.</p>
+        
+        <p>
+        If you do not have uploaded your image to dockerhub, you can upload it to your dedicated registry in TIRA following this instructions (replace <code>&lt;YOUR-IMAGE-NAME&gt;</code> with a reasonable name):<br><br>
+        
+        <div v-for="d in this.docker">
+            <code>{{d}}</code><br>
+        </div>
+        <br>
+        <br>
+        </p>
+    </div>
+    
     <div class="uk-width-1-5">
           <label>Dataset Name (IRDS-ID)*
           <input class="uk-input" type="text" placeholder="Name of the Dataset (must be the irds-id)"
@@ -65,7 +81,7 @@ export default {
       }
   },
   emits: ['addnotification', 'adddataset'],
-  props: ['csrf', 'task_id'],
+  props: ['csrf', 'task_id', 'docker'],
   methods: {
       addDataset() {
           console.log('add dataset')
@@ -97,6 +113,7 @@ export default {
               this.$emit('addnotification', 'success', message.message)
               this.$emit('adddataset', message.context)
               this.importInProgress = false
+              window.location.href = message.href
           }).catch(error => {
               console.log(error)
               this.importDatasetError = error

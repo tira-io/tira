@@ -20,6 +20,16 @@ Install your virtual environment via:
 make setup
 ```
 
+If you want to work on production data, please ensure that you can login to ssh.webis.de, and then do the following:
+
+```
+scp <YOUR-USER-NAME>@ssh.webis.de:/mnt/ceph/storage/data-in-production/tira/development-database-dumps/django-db-dump.zip .data-dumps/django-db-dump.zip
+
+# The zip is password protected, the process asks for the passord.
+# A member of the TIRA team can provide you with the password (located in the password database `webis.uni-weimar.de:code-admin/passwords` -> Generic -> tira-development-database-dump).
+make import-data-from-dump
+```
+
 Then, to start TIRA locally, please start:
 
 ```
@@ -39,6 +49,16 @@ Then, you can point your browser to the specified URL.
 * [User Docs](https://www.tira.io/t/getting-started/1364): Getting started with TIRA as a user
 * [Papers](https://webis.de/publications.html?q=tira): List of publications
 * [Contribution Guide](CONTRIBUTING.md): How to contribute to the TIRA project
+
+## Create New Zip of the Database Dump
+
+Go the the password database `webis.uni-weimar.de:code-admin/passwords` -> Generic -> tira-development-database-dump
+
+```
+cd /mnt/ceph/storage/data-in-production/tira/development-database-dumps/
+zip --encrypt django-db-dump-<DATE>.zip /mnt/ceph/tira/state/db-backup/django-db-dump-<DATE>.json
+ln -s django-db-dump-<DATE>.zip django-db-dump.zip
+```
 
 ## Paper
 

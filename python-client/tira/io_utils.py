@@ -20,6 +20,21 @@ def run_cmd(cmd, ignore_failure=False):
         raise ValueError(f'Command {cmd} did exit with return code {exit_code}.')
 
 
+def parse_prototext_key_values(file_name):
+    for i in [i for i in open(file_name, 'r').read().split('measure {')]:
+        ret = {}
+        for l in i.split('\n'):
+            if len(l.split(':')) < 2:
+                continue
+            elif len(l.split(':')) > 2:
+                raise ValueError(f'Could not parse "{l}".')
+            key = l.split(':')[0]
+            value = l.split(':')[1].split('"')[1]
+            ret[key.strip()] = __num(value.strip())
+        if len(ret) > 0:
+            yield ret
+
+
 def load_output_of_directory(directory, evaluation=False, verbose=False):
     files = glob(str(directory) + '/*' )
 

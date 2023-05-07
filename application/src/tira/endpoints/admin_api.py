@@ -372,15 +372,11 @@ def admin_import_ir_dataset(request, task_id):
                             is_git_runner, git_runner_image, git_runner_command, git_repository_id)
 
         try:
-            ret = f'Output ({ds["irds_import_command"]}): \n'
-            ret += run_irds_command(ds['task'], ds['dataset_id'], ds['irds_docker_image'], ds['irds_import_command'], dataset_path)
-
-            ret += f'\n\n\nOutput ({ds["irds_import_truth_command"]}): \n'
-            ret += run_irds_command(ds['task'], ds['dataset_id'], ds['irds_docker_image'], ds['irds_import_truth_command'], dataset_truth_path)
+            process_id = run_irds_command(ds['task'], ds['dataset_id'], ds['irds_docker_image'], ds['irds_import_command'], dataset_path, ds['irds_import_truth_command'], dataset_truth_path)
+            return JsonResponse({'status': 0, 'context': ds, 'message': 'Imported dataset successfull.',
+                                 'href': f'/background_jobs/{task_id}/{process_id}'})
         except Exception as e:
             return JsonResponse({'status': 1, 'context': {}, 'message': f'Import of dataset failed with: {e}.'})
-
-        return JsonResponse({'status': 0, 'context': ds, 'message': 'Imported dataset successfull.'})
 
     return JsonResponse({'status': 1, 'message': f"GET is not implemented for add dataset"})
 

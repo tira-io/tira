@@ -3,7 +3,7 @@ import json
 import gzip
 
 
-def ensure_pyterrier_is_loaded():
+def ensure_pyterrier_is_loaded(boot_packages=("com.github.terrierteam:terrier-prf:-SNAPSHOT"), packages=()):
     import pyterrier as pt
     
     if 'PYTERRIER_VERSION' not in os.environ or 'PYTERRIER_HELPER_VERSION' not in os.environ:
@@ -14,7 +14,7 @@ def ensure_pyterrier_is_loaded():
     
     if not pt.started():
         print(f'Start PyTerrier with version={pt_version}, helper_version={pt_helper_version}, no_download=True')
-        pt.init(version=pt_version, helper_version=pt_helper_version, no_download=True, boot_packages=["com.github.terrierteam:terrier-prf:-SNAPSHOT"])
+        pt.init(version=pt_version, helper_version=pt_helper_version, no_download=True, boot_packages=list(boot_packages), packages=list(packages))
 
 
 def get_preconfigured_chatnoir_client(config_directory, features=['TARGET_URI'], verbose=True, num_results=10, retries=25, page_size=10):
