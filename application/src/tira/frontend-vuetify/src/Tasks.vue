@@ -83,10 +83,10 @@
         expanded: [],
         headers_md: [
           { title: 'Task', key: 'task_name', align: 'start' },
-          { title: 'Submissions', key: 'software_count', align: 'end' },
-          { title: 'Datasets', key: 'dataset_count', align: 'end' },
+          { title: 'Subs', key: 'software_count', align: 'end' },
+          { title: 'Data', key: 'dataset_count', align: 'end' },
           { title: 'Host', key: 'organizer' },
-          { title: 'Activity', key: 'dataset_last_modified' },
+          { title: 'Latest Activity', key: 'dataset_last_modified', minWidth: '300' },
           { text: 'Description', value: 'data-table-expand' },
         ],
         // TODO: Vuetify will likely introduce a prop to hide columns based on size. Reduce redundancy when that happens.
