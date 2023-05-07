@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <h3 class="text-h3 py-5">Tasks</h3>
+    <h3 class="text-h3 py-5">Choose a Task</h3>
     <div class="py-5" />
     <div class="d-flex">
       <v-responsive min-width="220px">
@@ -26,48 +26,77 @@
       </div>
     </div>
     <div class="py-2" />
-    <v-data-table-virtual 
-      :headers="headers"
+    <v-data-table 
+      :headers="headers_md"
       :items="tasks"
-      :itemsPerPage="-1"
+      :itemsPerPage="25"
       :search="task_filter"
+      density="compact"
+      expand-on-click
+      hover
       show-expand
+      no-data-text="No tasks have been added, yet."
+      class="d-none d-md-block"
     >
       <template v-slot:expanded-row="{ columns, item }">
         <tr>
-          <td :colspan="columns.length">
-            More info about
+          <td :colspan="columns.length" class="py-3">
+            {{ item.raw.task_description }}
           </td>
         </tr>
       </template>
-    </v-data-table-virtual>
+    </v-data-table>
+    <!-- TODO: Vuetify will likely introduce a prop to hide columns based on size. Reduce redundancy when that happens. -->
+    <v-data-table 
+      :headers="headers_xs"
+      :items="tasks"
+      :itemsPerPage="10"
+      :search="task_filter"
+      density="compact"
+      expand-on-click
+      fixed-footer
+      hover
+      show-expand
+      no-data-text="No tasks have been added, yet."
+      class="d-md-none"
+    >
+      <template v-slot:expanded-row="{ columns, item }">
+        <tr>
+          <td :colspan="columns.length" class="py-3">
+            {{ item.raw.task_description }}
+          </td>
+        </tr>
+      </template>
+    </v-data-table>
   </v-container>
 </template>
 
 <script lang="ts">
-export default {
-  name: "hello-world",
-  data() {
-    return {
-      role: 'guest', // user, participant, admin
-      task_filter: null,
-      expanded: [],
-      headers: [
-        { title: 'Task', align: 'start', key: 'task_name' },
-        { title: 'Featured', key: 'featured' },
-        { title: 'Latest Datasets', key: 'dataset_last_created' },
-        { title: 'Created', key: 'dataset_first_created' },
-        { title: 'Organization', key: 'organizer' },
-        { text: '', value: 'data-table-expand' },
-      ],
-      tasks: [
-        { 'task_name': 'task-1', 'featured': true, 'dataset_last_created': 'now', 'organizer': 'Organizer 1' },
-        { 'task_name': 'task-2', 'featured': true, 'dataset_last_created': 'now', 'organizer': 'Organizer 2' },
-        { 'task_name': 'task-3', 'featured': true, 'dataset_last_created': 'now', 'organizer': 'Organizer 3' },
-        { 'task_name': 'task-4', 'featured': true, 'dataset_last_created': 'now', 'organizer': 'Organizer 4' },
-        { 'task_name': 'task-5', 'featured': true, 'dataset_last_created': 'now', 'organizer': 'Organizer 5' },
-      ],
+  import { getTasksData } from "./tmp_tasksdata.js";
+
+  export default {
+    name: "tasks",
+    data() {
+      return {
+        role: 'guest', // Values: user, participant, admin
+        task_filter: null,
+        expanded: [],
+        headers_md: [
+          { title: 'Task', key: 'task_name', align: 'start' },
+          { title: 'Submissions', key: 'software_count', align: 'end' },
+          { title: 'Datasets', key: 'dataset_count', align: 'end' },
+          { title: 'Host', key: 'organizer' },
+          { title: 'Activity', key: 'dataset_last_modified' },
+          { text: 'Description', value: 'data-table-expand' },
+        ],
+        // TODO: Vuetify will likely introduce a prop to hide columns based on size. Reduce redundancy when that happens.
+        headers_xs: [
+          { title: 'Task', key: 'task_name', align: 'start' },
+          { title: 'Subs', key: 'software_count', align: 'end' },
+          { text: 'Description', value: 'data-table-expand' },
+        ],
+        tasks: getTasksData(),
+      }
     }
   }
-}
 </script>
