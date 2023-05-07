@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, re_path
 
 from django.views.generic import TemplateView
 
@@ -18,7 +18,7 @@ urlpatterns = [
     path('task/<str:task_id>/user/<str:vm_id>', views.software_detail, name='software-detail'),
     path('task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/run/<str:run_id>', views.review, name='review'),
 
-    path('t-v2/lp', views.landing_page, name='landing_page'),
+    re_path(r'^frontend-vuetify/.*', views.veutify_page, name='veutify_page'),
 
     path('request_vm', views.request_vm, name='request_vm'),
     path('login', views.login, name='login'),
@@ -101,7 +101,6 @@ urlpatterns = [
 
     path('diffir/<str:task_id>/<str:run_id_1>/<str:run_id_2>', diffir_api.diffir, name='diffir'),
     path('serp/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/<str:run_id>', serp_api.serp, name='serp'),
-
 ]
 
 app_name = 'tira'
