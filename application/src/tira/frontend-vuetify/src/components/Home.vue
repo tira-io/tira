@@ -15,7 +15,7 @@
         <v-col cols="auto">
           <v-btn
             color="primary"
-            href=""
+            href="#/tasks"
             min-width="228"
             rel="noopener noreferrer"
             size="x-large"
