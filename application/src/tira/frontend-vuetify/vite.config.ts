@@ -26,7 +26,8 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        assetFileNames: 'assets/[name].[ext]',
+        // TODO: We would usually like to use assets/ here, but we first have to fix this disraptor problem: https://github.com/disraptor/disraptor/issues/33
+        assetFileNames: 'assets-public/[name].[ext]',
         chunkFileNames: 'chunks/[name].js',
         entryFileNames: 'entries/[name].js',
       },
