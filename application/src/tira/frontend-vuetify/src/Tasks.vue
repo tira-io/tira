@@ -35,6 +35,7 @@
       expand-on-click
       hover
       show-expand
+      show-select
       no-data-text="No tasks have been added, yet."
       class="d-none d-md-block"
     >
@@ -57,6 +58,7 @@
       fixed-footer
       hover
       show-expand
+      show-select
       no-data-text="No tasks have been added, yet."
       class="d-md-none"
     >
