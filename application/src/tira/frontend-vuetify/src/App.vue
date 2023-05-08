@@ -6,6 +6,12 @@
   </v-app>
 </template>
 
+<style>
+  #app input {
+    border: none !important;
+  }
+</style>
+
 <script setup lang="ts">
   import { ref, computed, onMounted } from 'vue'
   import Home from './Home.vue'
