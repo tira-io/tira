@@ -8,9 +8,9 @@
           class="px-4"
           clearable
           label="Type here to filter &hellip;"
-          prepend-inner-icon="mdi-magnify" 
-          v-model="task_filter" 
+          prepend-inner-icon="mdi-magnify"
           variant="underlined"
+          v-model="task_filter"
         />
       </v-responsive>
       <div class="pe-2">
@@ -35,7 +35,6 @@
       expand-on-click
       hover
       show-expand
-      show-select
       no-data-text="No tasks have been added, yet."
       class="d-none d-md-block"
     >
@@ -58,7 +57,6 @@
       fixed-footer
       hover
       show-expand
-      show-select
       no-data-text="No tasks have been added, yet."
       class="d-md-none"
     >

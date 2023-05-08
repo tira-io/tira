@@ -10,6 +10,11 @@
   #app input {
     border: none !important;
     outline: none !important;
+    margin: 0px !important;
+    padding: 22px 6px 6px 6px !important;
+  }
+  #app h3 {
+    margin: 0px !important;
   }
 </style>
 
