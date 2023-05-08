@@ -638,11 +638,6 @@ vite@^4.2.0:
   optionalDependencies:
     fsevents "~2.3.2"
 
-vue-shadow-dom@^4.2.0:
-  version "4.2.0"
-  resolved "https://registry.yarnpkg.com/vue-shadow-dom/-/vue-shadow-dom-4.2.0.tgz#10acd5bf1a8feb39f75a0608fa29d70743b713e3"
-  integrity sha512-lguI064rT2HT/dxqSmXtz860KOvCq+W3nU1jMqroTmX3K1H46q22BMR4emh/Ld3ozy35XJKOaNGcr6mkJ/t/yg==
-
 vue-template-compiler@^2.7.14:
   version "2.7.14"
   resolved "https://registry.yarnpkg.com/vue-template-compiler/-/vue-template-compiler-2.7.14.tgz#4545b7dfb88090744c1577ae5ac3f964e61634b1"

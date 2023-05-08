@@ -1,12 +1,9 @@
 <template>
-  <shadow-root>
-  <link rel="stylesheet" href="/public/tira/frontend-vuetify/assets-public/index.css">
   <v-app>
     <v-main>
       <component :is="currentView" />
     </v-main>
   </v-app>
-  </shadow-root>
 </template>
 
 <script setup lang="ts">

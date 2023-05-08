@@ -1,16 +1,14 @@
 # TIRA Vuetify Frontend
 
+Start with `yarn dev`.
+
+Go to [http://127.0.0.1:3000/#/tasks](http://127.0.0.1:3000/#/tasks) for plain and to [http://127.0.0.1:3000/index-discourse.html#/tasks](http://127.0.0.1:3000/index-discourse.html#/tasks) for discourse adjusted development.
+
 ## Project setup
 
 ```
 # yarn
 yarn
-
-# npm
-npm install
-
-# pnpm
-pnpm install
 ```
 
 ### Compiles and hot-reloads for development
@@ -18,12 +16,6 @@ pnpm install
 ```
 # yarn
 yarn dev
-
-# npm
-npm run dev
-
-# pnpm
-pnpm dev
 ```
 
 ### Compiles and minifies for production
@@ -31,12 +23,6 @@ pnpm dev
 ```
 # yarn
 yarn build
-
-# npm
-npm run build
-
-# pnpm
-pnpm build
 ```
 
 ### Customize configuration
