@@ -9,6 +9,7 @@
 <style>
   #app input {
     border: none !important;
+    outline: none !important;
   }
 </style>
 
