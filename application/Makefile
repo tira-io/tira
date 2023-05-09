@@ -66,6 +66,11 @@ vite:
 	&& yarn install \
 	&& yarn build
 
+vite-dev:
+	cd src/tira/frontend-vuetify \
+	&& yarn install \
+	&& yarn dev
+
 run-docker:
 	docker run -td --rm \
         --name=tira-application \
