@@ -22,13 +22,17 @@
   import { ref, computed, onMounted } from 'vue'
   import Home from './Home.vue'
   import Tasks from './Tasks.vue'
+  import TaskOverview from './TaskOverview.vue'
 
   const routes: { [id: string] : any; } =  {
     '/': Home,
     '/tasks': Tasks,
+    '/task-overview': TaskOverview,
     // TODO: Temporary additional routes for transition form previous TIRA UI version.
     '/frontend-vuetify/': Home,
-    '/frontend-vuetify/tasks': Tasks
+    '/frontend-vuetify/tasks': Tasks,
+    '/frontend-vuetify/task-overview': TaskOverview
+
   }
 
   const currentPath = ref(window.location.hash)
