@@ -14,6 +14,7 @@
     "lib": ["ESNext", "DOM"],
     "skipLibCheck": true,
     "noEmit": true,
+    "types": ["@types/jest"],
     "paths": {
       "@/*": [
        "src/*"
@@ -22,5 +23,5 @@
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue", "src/tmp_tasksdata.jsa.js"],
   "references": [{ "path": "./tsconfig.node.json" }],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "**/__tests__/*.test.ts"]
 }

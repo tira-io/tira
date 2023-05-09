@@ -4,6 +4,7 @@ FROM webis/tira-application:build-vuetify-0.0.60
 COPY application/src/tira/frontend-vuetify /src/tira/frontend-vuetify
 
 RUN mv /vuetify-dependencies-node-modules node_modules \
+	&& yarn test \
 	&& yarn build
 
 

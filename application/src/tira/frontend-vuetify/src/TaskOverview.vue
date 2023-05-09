@@ -75,6 +75,7 @@ import { NONAME } from 'dns';
     name: "task-overview",
     data() {
       return {
+        task_id = ref(window.location.hash).split('')
         headers: [
           {
             title: 'Dessert (100g serving)',

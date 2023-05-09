@@ -64,11 +64,13 @@ run-develop: venv
 vite:
 	cd src/tira/frontend-vuetify \
 	&& yarn install \
+	&& yarn test \
 	&& yarn build
 
 vite-dev:
 	cd src/tira/frontend-vuetify \
 	&& yarn install \
+	&& yarn test \
 	&& yarn dev
 
 run-docker:
