@@ -1,5 +1,5 @@
 <template>
-  <v-card flat class="my-5">
+  <v-card v-if="!loading" flat class="my-5">
     <v-card-item><b>Description: </b> {{details.description}}</v-card-item>
     <v-card-item><b>Previous stage: </b>{{details.previous_stage}}</v-card-item>
     <v-tabs v-model="tab">
@@ -24,25 +24,36 @@
       </v-window>
     </v-card-text>
   </v-card>
+
+  <loading :loading="loading"/>
 </template>
 
 <script lang="ts">
+import Loading from './Loading.vue'
 
 export default {
   name: "software-details",
   props: ['software_id'],
+  components: {Loading},
   data() {
     return {
-      details: {
-        description: 'Description of the run',
-        previous_stage: 'Previous stages of the run',
-        cli_command: '--cli command',
-        python_command: 'python3 run tira',
-        docker_command: 'docker exec -it container bash',
-      },
+      loading: true,
+      details: {'description': '', 'previous_stage': '', 'cli_command': '', 'python_command': '', 'docker_command': ''},
       role: 'guest', // Values: user, participant, admin,
       tab: null,
     }
+  },
+  beforeMount() {
+    setTimeout(()  => {
+      this.details = {
+        'description': 'Description of the run',
+        'previous_stage': 'Previous stages of the run',
+        'cli_command': '--cli command',
+        'python_command': 'python3 run tira',
+        'docker_command': 'docker exec -it container bash',
+      }
+      this.loading = false
+    }, 1000)
   }
 }
 </script>
