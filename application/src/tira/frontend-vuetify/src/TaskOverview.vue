@@ -80,62 +80,16 @@
       hover>
       <template v-slot:top>
       <v-toolbar flat>
-        <v-toolbar-title>Leaderboard</v-toolbar-title>
+        <v-toolbar-title>Submissions</v-toolbar-title>
       </v-toolbar>
     </template>
       <template v-slot:item.actions="{item}">
-          <v-btn href="#" target="_blank" class="mr-2">
-              <v-icon>mdi-search-web</v-icon>
-              <v-tooltip
-                activator="parent"
-                location="top"
-              >Show SERP in new tab</v-tooltip>
-          </v-btn>
-        <v-btn href="#" target="_blank" class="mx-2">
-              <v-icon>mdi-file-download-outline</v-icon>
-              <v-tooltip
-                activator="parent"
-                location="top"
-              >Download results</v-tooltip>
-          </v-btn>
-        <v-btn href="#" target="_blank" class="mx-2">
-              <v-icon>mdi-file-chart-check-outline</v-icon>
-              <v-tooltip
-                activator="parent"
-                location="top"
-              >Download run</v-tooltip>
-          </v-btn>
+        <run-actions :run_id="item.calories" />
       </template>
       <template v-slot:expanded-row="{ columns, item }">
       <tr>
         <td :colspan="columns.length">
-              <v-card flat class="my-5">
-                  <v-card-item><b>Description: </b> {{this.details[0].description}}</v-card-item>
-                <v-card-item><b>Previous stage: </b>{{this.details[0].previous_stage}}</v-card-item>
-                  <v-tabs
-                  v-model="tab"
-                >
-                  <v-tab value="one">CLI command</v-tab>
-                  <v-tab value="two">Python command</v-tab>
-                  <v-tab value="three">Docker command</v-tab>
-                </v-tabs>
-
-                <v-card-text>
-                  <v-window v-model="tab">
-                    <v-window-item value="one">
-                      <v-code>{{ this.details[0].cli_command }}</v-code>
-                    </v-window-item>
-
-                    <v-window-item value="two">
-                      <v-code>{{ this.details[0].python_command }}</v-code>
-                    </v-window-item>
-
-                    <v-window-item value="three">
-                      <v-code>{{ this.details[0].docker_command }}</v-code>
-                    </v-window-item>
-                  </v-window>
-                </v-card-text>
-              </v-card>
+          <software-details :software_id="item.calories"/>
         </td>
       </tr>
     </template>
@@ -149,9 +103,12 @@
 </template>
 
 <script lang="ts">
+  import RunActions from './components/RunActions.vue'
+  import SoftwareDetails from './components/SoftwareDetails.vue'
 
   export default {
     name: "task-overview",
+    components: {RunActions, SoftwareDetails},
     data() {
       return {
         sortBy: [{ key: 'calories', order: 'asc' }],
