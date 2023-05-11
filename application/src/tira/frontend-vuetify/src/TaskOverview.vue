@@ -16,18 +16,34 @@
     <div class="d-flex py-3">
       <v-list-item density="compact" prepend-icon="mdi-calendar-blank-outline">
         <v-list-item-subtitle>{{task.year}}</v-list-item-subtitle>
+        <v-tooltip
+                activator="parent"
+                location="bottom"
+              >Task year</v-tooltip>
       </v-list-item>
 
       <v-list-item density="compact" prepend-icon="mdi-account-group">
         <v-list-item-subtitle>{{task.teams}}</v-list-item-subtitle>
+        <v-tooltip
+                activator="parent"
+                location="bottom"
+              >Team</v-tooltip>
       </v-list-item>
 
       <v-list-item density="compact" prepend-icon="mdi-database-outline">
         <v-list-item-subtitle>{{task.dataset_count}}</v-list-item-subtitle>
+        <v-tooltip
+                activator="parent"
+                location="bottom"
+              >Dataset count</v-tooltip>
       </v-list-item>
       
       <v-list-item density="compact" prepend-icon="mdi-briefcase-outline">
         <v-list-item-subtitle>{{task.software_count}}</v-list-item-subtitle>
+        <v-tooltip
+                activator="parent"
+                location="bottom"
+              >Software count</v-tooltip>
       </v-list-item>
     </div>
 
@@ -54,11 +70,76 @@
                     clearable/>
 
     <v-data-table v-if="selectedDataset"
+       v-model:expanded="expanded"
+       show-expand
       :headers="headers"
       :items="desserts"
       item-value="name"
       show-select
-      class="elevation-1"/>
+      class="elevation-1"
+      hover>
+      <template v-slot:top>
+      <v-toolbar flat>
+        <v-toolbar-title>Leaderboard</v-toolbar-title>
+      </v-toolbar>
+    </template>
+      <template v-slot:item.actions="{item}">
+          <v-btn href="#" target="_blank" class="mr-2">
+              <v-icon>mdi-search-web</v-icon>
+              <v-tooltip
+                activator="parent"
+                location="top"
+              >Show SERP in new tab</v-tooltip>
+          </v-btn>
+        <v-btn href="#" target="_blank" class="mx-2">
+              <v-icon>mdi-file-download-outline</v-icon>
+              <v-tooltip
+                activator="parent"
+                location="top"
+              >Download results</v-tooltip>
+          </v-btn>
+        <v-btn href="#" target="_blank" class="mx-2">
+              <v-icon>mdi-file-chart-check-outline</v-icon>
+              <v-tooltip
+                activator="parent"
+                location="top"
+              >Download run</v-tooltip>
+          </v-btn>
+      </template>
+      <template v-slot:expanded-row="{ columns, item }">
+      <tr>
+        <td :colspan="columns.length">
+              <v-card flat class="my-5">
+                  <v-card-item><b>Description: </b> {{this.details[0].description}}</v-card-item>
+                <v-card-item><b>Previous stage: </b>{{this.details[0].previous_stage}}</v-card-item>
+                  <v-tabs
+                  v-model="tab"
+                >
+                  <v-tab value="one">CLI command</v-tab>
+                  <v-tab value="two">Python command</v-tab>
+                  <v-tab value="three">Docker command</v-tab>
+                </v-tabs>
+
+                <v-card-text>
+                  <v-window v-model="tab">
+                    <v-window-item value="one">
+                      <v-code>{{ this.details[0].cli_command }}</v-code>
+                    </v-window-item>
+
+                    <v-window-item value="two">
+                      <v-code>{{ this.details[0].python_command }}</v-code>
+                    </v-window-item>
+
+                    <v-window-item value="three">
+                      <v-code>{{ this.details[0].docker_command }}</v-code>
+                    </v-window-item>
+                  </v-window>
+                </v-card-text>
+              </v-card>
+        </td>
+      </tr>
+    </template>
+    </v-data-table>
 
       <v-row v-if="selectedDataset" class="pt-2">
         <v-col cols="6"><v-btn variant="outlined" block>Download Selected</v-btn></v-col>
@@ -68,14 +149,22 @@
 </template>
 
 <script lang="ts">
-import { NONAME } from 'dns';
-
 
   export default {
     name: "task-overview",
     data() {
       return {
-        task_id = ref(window.location.hash).split('')
+        sortBy: [{ key: 'calories', order: 'asc' }],
+        tab: null,
+        expanded: [],
+        singleExpand: false,
+        details: [{
+          description: 'Description of the run',
+          previous_stage: 'Previous stages of the run',
+          cli_command: '--cli command',
+          python_command: 'python3 run tira',
+          docker_command: 'docker exec -it container bash',
+        }],
         headers: [
           {
             title: 'Dessert (100g serving)',
@@ -88,6 +177,7 @@ import { NONAME } from 'dns';
           { title: 'Carbs (g)', align: 'end', key: 'carbs' },
           { title: 'Protein (g)', align: 'end', key: 'protein' },
           { title: 'Iron (%)', align: 'end', key: 'iron' },
+          { title: 'Actions',value: 'actions', key: 'actions', align: 'start', sortable: false },
         ],
         desserts: [
           {
