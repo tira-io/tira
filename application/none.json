@@ -1,0 +1,21 @@
+},
+{
+  "model": "tira.dataset",
+  "pk": "none",
+  "fields": {
+    "default_task": null,
+    "display_name": "",
+    "evaluator": null,
+    "is_confidential": true,
+    "is_deprecated": false,
+    "data_server": null,
+    "released": "",
+    "default_upload_name": "predictions",
+    "created": "2022-08-11",
+    "last_modified": "2022-08-11",
+    "irds_docker_image": null,
+    "irds_import_command": null,
+    "irds_import_truth_command": null
+  }
+}
+]
