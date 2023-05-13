@@ -3,11 +3,10 @@
     <v-progress-linear color="primary" indeterminate :height="9"></v-progress-linear>
   </v-card>
 </template>
-<script lang="ts">
 
+<script lang="ts">
 export default {
-    name: "loading",
-    props: ['loading'],
-  }
-  </script>
-  
+  name: "loading",
+  props: ['loading'],
+}
+</script>

@@ -1,17 +1,20 @@
 <template>
-  <v-container class="fill-height">
-    <v-responsive class="d-flex align-center text-center fill-height">
-      
-      <v-img height="300" src="@/assets/logo.svg" />
-      <div class="py-5" />
-      <div class="text-body-2 font-weight-light mb-n1">Welcome to</div>
-      <div class="py-2" />
-      <h2 class="text-h2 font-weight-bold">TIRA</h2>
-      <div class="py-1" />
-      <h5 class="text-h5">Reproducible experiments<br/>for computer science</h5>
-      <div class="py-5" />
-
-      <v-row class="d-flex align-center justify-center">
+  <v-container class="text-center">
+    <v-img
+      class="mx-auto"
+      height="300px"
+      max-width="100%"
+      width="300px"
+      src="@/assets/logo.svg"
+    />
+    <section>
+      <h1 class="text-h3 text-sm-h3 py-4 mt-10">
+        TIRA Integrated Research Architecture
+      </h1>
+      <p class="mx-auto py-4 tira-explanation">
+        TIRA is a platform for experiments in artificial intelligence that ensures blinded experiments and reproducibility.
+      </p>
+      <v-row class="d-flex justify-center py-4">
         <v-col cols="auto">
           <v-btn
             color="primary"
@@ -30,13 +33,47 @@
             Get Started
           </v-btn>
         </v-col>
+        <v-col cols="auto text-primary">
+          <v-btn
+            href="#/tasks"
+            min-width="228"
+            rel="noopener noreferrer"
+            size="x-large"
+            variant="outlined"
+          >
+            <v-icon
+              size="large"
+              start
+            >
+              <v-img src="@/assets/logo.svg" />
+            </v-icon>
+
+            Why TIRA?
+          </v-btn>
+        </v-col>
+        <v-col cols="auto">
+          <v-btn
+            href="https://github.com/tira-io"
+            min-width="228"
+            rel="noopener noreferrer"
+            size="x-large"
+            theme="dark"
+            variant="flat"
+          >
+            <v-icon
+              icon="mdi-github"
+              size="large"
+              start
+            />
+
+            GitHub
+          </v-btn>
+        </v-col>
       </v-row>
-
-      <div class="py-5" />
-
       <v-row class="d-flex align-center justify-center">
         <v-col cols="auto">
           <v-btn
+            disabled
             href=""
             min-width="164"
             rel="noopener noreferrer"
@@ -51,7 +88,6 @@
             My tasks
           </v-btn>
         </v-col>
-        
         <v-col cols="auto">
           <v-btn
             href="/categories"
@@ -69,10 +105,14 @@
           </v-btn>
         </v-col>
       </v-row>
-    </v-responsive>
+    </section>
   </v-container>
 </template>
 
-<script setup lang="ts">
-  //
-</script>
+<style scoped>
+  .tira-explanation {
+    font-size: 1.25rem;
+    font-weight: 300;
+    max-width: 525px;
+  }
+</style>
