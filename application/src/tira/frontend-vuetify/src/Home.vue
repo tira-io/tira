@@ -35,7 +35,7 @@
         </v-col>
         <v-col cols="auto text-primary">
           <v-btn
-            href="#/tasks"
+            href="https://webis.de/downloads/publications/papers/potthast_2019p.pdf"
             min-width="228"
             rel="noopener noreferrer"
             size="x-large"
