@@ -19,4 +19,18 @@ export default createVuetify({
     ...components,
     ...labsComponents,
   },
+  theme: {
+    themes: {
+      light: {
+        colors: {
+          primary: '#4F81E4'
+        },
+      },
+      dark: {
+        colors: {
+          primary: '#4F81E4'
+        },
+      },
+    },
+  },
 })
