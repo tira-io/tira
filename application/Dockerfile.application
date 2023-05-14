@@ -29,7 +29,7 @@ RUN cd /tira/application/src/tira/frontend/ && \
 	chmod +x /tira/application/src/tira/endpoints/aha && \
 	cp /tira/application/src/tira/management/commands/irds_cli.sh /irds_cli.sh && \
 	rm -f ./config/settings.yml ./config/config.yml ./config/tira-application-config.dev.yml && \
-	rm -R tira/static/tira/frontend-vuetify/ && \
+	rm -Rf tira/static/tira/frontend-vuetify/ && rm -Rf /tira/application/src/tira/static/tira/frontend-vuetify/ && \
 	apk add sudo && \
 	echo '%podman ALL=(ALL) ALL' > /etc/sudoers.d/podman
 
