@@ -10,6 +10,14 @@ export function extractTaskFromCurrentUrl() {
     return null;
 }
 
+export function extractRole() {
+    return 'guest'
+}
+
+export function reportError(error: any) {
+    console.log(error)
+}
+
 async function submitPost(url: string, params: [string: any]) {
     const csrf = ''
     const headers = new Headers({
@@ -33,7 +41,8 @@ async function submitPost(url: string, params: [string: any]) {
     return results
 }
 
-async function get(url: string) {
+export async function get(url: string) {
+    url = 'http://127.0.0.1:8080' + url
     const response = await fetch(url)
     if (!response.ok) {
       throw new Error(`Error fetching endpoint: ${url} with ${response.status}`);

@@ -89,13 +89,13 @@ def get_datasets() -> dict:
     return model.get_datasets()
 
 
-def get_datasets_by_task(task_id: str, include_deprecated=False) -> list:
+def get_datasets_by_task(task_id: str, include_deprecated=False, return_only_names=False) -> list:
     """ return the list of datasets associated with this task_id
     @param task_id: id string of the task the dataset belongs to
     @param include_deprecated: Default False. If True, also returns datasets marked as deprecated.
     @return: a list of json-formatted datasets, as returned by get_dataset
     """
-    return model.get_datasets_by_task(task_id, include_deprecated)
+    return model.get_datasets_by_task(task_id, include_deprecated, return_only_names)
 
 
 def load_refresh_timestamp_for_cache_key(cache, key):
@@ -117,7 +117,9 @@ def load_refresh_timestamp_for_cache_key(cache, key):
             if len(ret) > 0:
                 return ret[0][0] - datetime.timedelta(seconds=settings.CACHES['default']['TIMEOUT'])
     except:
-        return datetime.datetime.now()
+        pass
+
+    return datetime.datetime.now()
 
 
 def load_docker_data(task_id, vm_id, cache, force_cache_refresh):

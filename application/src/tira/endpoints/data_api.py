@@ -142,6 +142,8 @@ def get_task(request, context, task_id):
     context["task"] = model.get_task(task_id)
     context["user_is_registered"] = model.user_is_registered(task_id, request)
     context["remaining_team_names"] = model.remaining_team_names(task_id)
+    context["datasets"] = model.get_datasets_by_task(task_id, return_only_names=True)
+
     _add_user_vms_to_context(request, context, task_id)
     return JsonResponse({'status': 0, "context": context})
 

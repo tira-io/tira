@@ -37,11 +37,14 @@
   const currentPath = ref(window.location.hash)
 
   const currentView = computed(() => {
-    if (currentPath.value.startsWith('/task-overview') || currentPath.value.startsWith('/frontend-vuetify/task-overview')) {
+    let p = currentPath.value.slice(1) 
+    console.log(p)
+
+    if (p.startsWith('/task-overview') || p.startsWith('/frontend-vuetify/task-overview')) {
       return TaskOverview
     }
 
-    return routes[currentPath.value.slice(1) || '/'] || Home
+    return routes[p || '/'] || Home
   })
 
   onMounted(() => {

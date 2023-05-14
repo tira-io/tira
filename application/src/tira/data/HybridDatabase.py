@@ -320,15 +320,18 @@ class HybridDatabase(object):
         return {dataset.dataset_id: self._dataset_to_dict(dataset)
                 for dataset in modeldb.Dataset.objects.select_related('default_task', 'evaluator').all()}
 
-    def get_datasets_by_task(self, task_id: str, include_deprecated=False) -> list:
+    def get_datasets_by_task(self, task_id: str, include_deprecated=False, return_only_names=False) -> list:
         """ return the list of datasets associated with this task_id
         @param task_id: id string of the task the dataset belongs to
         @param include_deprecated: Default False. If True, also returns datasets marked as deprecated.
         @return: a list of json-formatted datasets, as returned by get_dataset
         """
-        return [self._dataset_to_dict(d.dataset)
-                for d in modeldb.TaskHasDataset.objects.filter(task=task_id)
-                if not (d.dataset.is_deprecated and not include_deprecated)]
+        ret = [d for d in modeldb.TaskHasDataset.objects.filter(task=task_id) if not (d.dataset.is_deprecated and not include_deprecated)]
+
+        if return_only_names:
+            return [{'dataset_id': d.dataset.dataset_id, 'get_datasets_by_tas': d.dataset.display_name} for d in ret]
+        else:
+            return [self._dataset_to_dict(d.dataset) for d in ret]
 
     def get_docker_software(self, docker_software_id: str) -> dict:
         try:
