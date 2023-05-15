@@ -272,7 +272,7 @@ class Client():
                 z.extractall(target_dir)
                 
                 return
-            except Exception e:
+            except Exception as e:
                 sleep_time = 1+int(random()*self.failsave_max_delay)
                 print(e)
                 print(f'Error occured while fetching {url}. I will sleep {sleep_time} seconds and continue.')
