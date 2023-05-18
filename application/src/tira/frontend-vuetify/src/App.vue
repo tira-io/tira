@@ -23,15 +23,18 @@
   import Home from './Home.vue'
   import Tasks from './Tasks.vue'
   import TaskOverview from './TaskOverview.vue'
+  import RunUpload from './RunUpload.vue'
 
   const routes: { [id: string] : any; } =  {
     '/': Home,
     '/tasks': Tasks,
     '/task-overview': TaskOverview,
+    '/run-upload': RunUpload,
     // TODO: Temporary additional routes for transition form previous TIRA UI version.
     '/frontend-vuetify/': Home,
     '/frontend-vuetify/tasks': Tasks,
-    '/frontend-vuetify/task-overview': TaskOverview
+    '/frontend-vuetify/task-overview': TaskOverview,
+    '/frontend-vuetify/run-upload': RunUpload
   }
 
   const currentPath = ref(window.location.hash)
