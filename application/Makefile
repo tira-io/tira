@@ -4,7 +4,7 @@ VENV_NAME?=venv
 PYTHON=${VENV_NAME}/bin/python3
 VERSION_APPLICATION=0.0.60
 VERSION_GRPC=0.0.60
-
+DUMPPATH=mnt/ceph/tira/state/db-backup/django-db-dump-21-04-2023.json
 
 .DEFAULT: help
 help:
@@ -28,6 +28,23 @@ setup:
 	sh -c ". $(VENV_NAME)/bin/activate && \
 	python3 src/manage.py index_model && \
 	python3 src/manage.py createcachetable"
+
+
+import-data-from-dump:
+	unzip .data-dumps/django-db-dump.zip # enter passwort
+
+	head -n $$(( $$(wc -l < $(DUMPPATH)) - 2)) $(DUMPPATH) >> tmp_dump.json
+	cat none.json >> tmp_dump.json
+	mv tmp_dump.json $(DUMPPATH)
+	$(VENV_NAME)/bin/python3 src/manage.py loaddata $(DUMPPATH)
+
+	#$(VENV_NAME)/bin/python3 modify_json.py
+	#$(VENV_NAME)/bin/python3 src/manage.py loaddata $(DUMPPATH)
+
+	#cat $(DUMPPATH) | grep -v '"input_dataset": "none",' > mnt/ceph/tira/state/db-backup/dump.json
+	#rm .data-dumps/django-db-dump.zip
+	#$(VENV_NAME)/bin/python3 src/manage.py loaddata $(DUMPPATH)
+	#rm mnt/ceph/tira/state/db-backup/django-db-dump-21-04-2023.json
 
 webpack:
 	cd ./src/tira/frontend/; \
