@@ -1,4 +1,5 @@
 from copy import deepcopy
+from typing import NamedTuple
 
 def register_dataset_from_re_rank_file(ir_dataset_id, df_re_rank, original_ir_datasets_id=None):
     """
@@ -17,7 +18,7 @@ def register_dataset_from_re_rank_file(ir_dataset_id, df_re_rank, original_ir_da
 
     dataset = Dataset(docs, queries, qrels, scoreddocs)
     ir_datasets.registry.register(ir_dataset_id, dataset)
-
+    
     __check_registration_was_successful(ir_dataset_id)
 
 
@@ -45,36 +46,61 @@ def __docs(df, original_dataset):
 
 
 def __queries(df, original_dataset):
-    qids = set()
+    from ir_datasets.formats import BaseQueries, GenericQuery
 
-    for _, query_doc_pair in df.iterrows():
-        pass
+    class DynamicQueries(BaseQueries):
+        def __init__(self, queries):
+            self.docs = deepcopy(queries)
 
-    return None
+        def queries_iter(self):
+            return deepcopy(queries).values().__iter__()
+
+    queries = {}
+    for _, i in df.iterrows():
+        queries[i['qid']] = GenericQuery(query_id=i['qid'], text= i['query'])
+
+    return DynamicQueries(queries)
+
 
 
 def __qrels(path_to_re_rank_file, original_dataset):
-    return original_dataset.get_qrels() if original_dataset else None
+    from ir_datasets.formats import BaseQrels
+
+    if not original_dataset:
+        return None
+
+    class DynamicQrels(BaseQrels):
+        def __init__(self, qrels):
+            self.qrels = list(original_dataset.qrels.qrels_iter())
+        
+        def qrels_iter(self):
+            return self.qrels.__iter__()
+
+    return DynamicQrels
 
 
-def __scored_docs(path_to_re_rank_file, original_dataset):
-    return None
+def __scored_docs(df, original_dataset):
+    from ir_datasets.formats import BaseScoredDocs
+    
+    class GenericScoredDocWithRank(NamedTuple):
+        query_id: str
+        doc_id: str
+        score: float
+        rank: int
 
+    class DynamicScoredDocs(BaseScoredDocs):
+        def __init__(self, docs):
+            self.docs = docs
 
-def __document_class(fields):
-    """
-    Given the passed fields, this method creates a ir-datasets class for a document that has this fields.
-    I.e., if the fields are [x, y, z], the method should return a class with fields x, y, and z.
-    """
-    pass
+        def scoreddocs_iter(self):
+            return deepcopy(self.docs).__iter__()
 
+    docs = []
 
-def __create_query_class(fields):
-    """
-    Given the passed fields, this method creates a ir-datasets class for a query that has this fields.
-    I.e., if the fields are [x, y, z], the method should return a class with fields x, y, and z.
-    """
-    pass
+    for _, i in df.iterrows():
+        docs += [GenericScoredDocWithRank(i['qid'], i['docno'], i['score'], i['rank'])]
+    
+    return DynamicScoredDocs(docs)
 
 
 def __check_registration_was_successful(ir_dataset_id):
@@ -84,5 +110,5 @@ def __check_registration_was_successful(ir_dataset_id):
     assert dataset.has_docs(), "dataset has no documents"
     assert dataset.has_queries(), "dataset has no queries"
     assert dataset.has_qrels(), "dataset has no qrels"
-    assert dataset.has_scored_docs(), "dataset has no scored_docs"
+    assert dataset.has_scoreddocs(), "dataset has no scored_docs"
 
