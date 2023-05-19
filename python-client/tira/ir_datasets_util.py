@@ -6,20 +6,21 @@ def register_dataset_from_re_rank_file(ir_dataset_id, df_re_rank, original_ir_da
     """
     import ir_datasets
     from ir_datasets.datasets.base import Dataset
-    original_dataset = ir_datasets.load(original_dataset) if original_dataset else None
+    original_dataset = ir_datasets.load(original_ir_datasets_id) if original_ir_datasets_id else None
 
-    docs = __docs(path_to_re_rank_file, original_dataset)
-    queries = __queries(path_to_re_rank_file, original_dataset)
-    qrels = __qrels(path_to_re_rank_file, original_dataset)
-    scored_docs = __scored_docs(path_to_re_rank_file, original_dataset)
+    docs = __docs(df_re_rank, original_dataset)
+    queries = __queries(df_re_rank, original_dataset)
+    qrels = __qrels(df_re_rank, original_dataset)
+    scoreddocs = __scored_docs(df_re_rank, original_dataset)
 
-    dataset = Dataset(docs, queries, qrels, scored_docs)
-    ir_datasets.registry.register(ir_dataset_id, dataset, qrels)
+    dataset = Dataset(docs, queries, qrels, scoreddocs)
+    ir_datasets.registry.register(ir_dataset_id, dataset)
 
     __check_registration_was_successful(ir_dataset_id)
 
 
 def __docs(df, original_dataset):
+    print(df.iloc[0].keys())
     fields = df.iloc[0]['original_document'].keys()
 
     for _, query_doc_pair in df.iterrows():
@@ -38,8 +39,7 @@ def __queries(df, original_dataset):
 
 
 def __qrels(path_to_re_rank_file, original_dataset):
-    import ir_datasets
-    return ir_datasets.load(original_dataset).get_qrels()
+    return original_dataset.get_qrels() if original_dataset else None
 
 
 def __scored_docs(path_to_re_rank_file, original_dataset):

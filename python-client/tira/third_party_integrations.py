@@ -91,7 +91,7 @@ def load_rerank_data(default_input, load_default_text=True):
             return all_lines_to_pandas(input_file, load_default_text)
 
 
-def register_rerank_data_to_ir_datasets(path_to_rerank_file, ir_dataset_id, original_ir_datasets_id=None,  load_default_text=True):
+def register_rerank_data_to_ir_datasets(path_to_rerank_file, ir_dataset_id, original_ir_datasets_id=None):
     """
     Load a dynamic ir_datasets integration from a given re_rank_file.
     The dataset will be registered for the id ir_dataset_id.
@@ -108,10 +108,10 @@ def register_rerank_data_to_ir_datasets(path_to_rerank_file, ir_dataset_id, orig
 
     if default_input.endswith('.gz'):
         with gzip.open(default_input, 'rt', encoding='utf-8') as input_file:
-            df_re_rank = all_lines_to_pandas(input_file, load_default_text)
+            df_re_rank = all_lines_to_pandas(input_file, False)
     else:
         with open(default_input, 'r') as input_file:
-            df_re_rank = all_lines_to_pandas(input_file, load_default_text)
+            df_re_rank = all_lines_to_pandas(input_file, False)
 
     register_dataset_from_re_rank_file(ir_dataset_id, df_re_rank, original_ir_datasets_id)
 
