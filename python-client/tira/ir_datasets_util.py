@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 def register_dataset_from_re_rank_file(ir_dataset_id, df_re_rank, original_ir_datasets_id=None):
     """
     Load a dynamic ir_datasets integration from a given re_rank_file.
@@ -20,13 +22,26 @@ def register_dataset_from_re_rank_file(ir_dataset_id, df_re_rank, original_ir_da
 
 
 def __docs(df, original_dataset):
-    print(df.iloc[0].keys())
-    fields = df.iloc[0]['original_document'].keys()
+    from ir_datasets.formats import BaseDocs, GenericDoc
 
-    for _, query_doc_pair in df.iterrows():
-        pass
+    class DynamicDocs(BaseDocs):
+        def __init__(self, docs):
+            self.docs = deepcopy(docs)
 
-    return None
+        def docs_iter(self):
+            return deepcopy(docs).values().__iter__()
+
+        def docs_count(self):
+           return len(self.docs)
+
+        def docs_store(self):
+            return deepcopy(docs)
+
+    docs = {}
+    for _, i in df.iterrows():
+        docs[i['docno']] = GenericDoc(doc_id=i['docno'], text= i['text'])
+
+    return DynamicDocs(docs)
 
 
 def __queries(df, original_dataset):
