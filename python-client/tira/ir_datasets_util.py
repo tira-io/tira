@@ -1,5 +1,8 @@
-def register_dataset_from_re_rank_file(ir_dataset_id, path_to_re_rank_file, original_ir_datasets_id=None):
+def register_dataset_from_re_rank_file(ir_dataset_id, df_re_rank, original_ir_datasets_id=None):
     """
+    Load a dynamic ir_datasets integration from a given re_rank_file.
+    The dataset will be registered for the id ir_dataset_id.
+    The original_ir_datasets_id is used to infer the class of documents, qrels, and queries.
     """
     import ir_datasets
     from ir_datasets.datasets.base import Dataset
@@ -10,29 +13,40 @@ def register_dataset_from_re_rank_file(ir_dataset_id, path_to_re_rank_file, orig
     qrels = __qrels(path_to_re_rank_file, original_dataset)
     scored_docs = __scored_docs(path_to_re_rank_file, original_dataset)
 
-    dataset = Dataset(docs, queries, qrels, )
+    dataset = Dataset(docs, queries, qrels, scored_docs)
     ir_datasets.registry.register(ir_dataset_id, dataset, qrels)
 
     __check_registration_was_successful(ir_dataset_id)
 
 
-def __docs(path_to_re_rank_file, original_dataset):
+def __docs(df, original_dataset):
+    fields = df.iloc[0]['original_document'].keys()
+
+    for _, query_doc_pair in df.iterrows():
+        pass
+
     return None
 
 
-def __queries(path_to_re_rank_file, original_dataset):
+def __queries(df, original_dataset):
+    qids = set()
+
+    for _, query_doc_pair in df.iterrows():
+        pass
+
     return None
 
 
 def __qrels(path_to_re_rank_file, original_dataset):
-    return None
+    import ir_datasets
+    return ir_datasets.load(original_dataset).get_qrels()
 
 
 def __scored_docs(path_to_re_rank_file, original_dataset):
     return None
 
 
-def __create_document_class(fields):
+def __document_class(fields):
     """
     Given the passed fields, this method creates a ir-datasets class for a document that has this fields.
     I.e., if the fields are [x, y, z], the method should return a class with fields x, y, and z.
