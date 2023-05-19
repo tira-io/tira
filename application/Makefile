@@ -1,10 +1,9 @@
 .PHONY: help setup setup-webpack webpack run-develop build-docker clean
 
 VENV_NAME?=venv
-PYTHON=${VENV_NAME}/bin/python3
+PYTHON=${PWD}/${VENV_NAME}/bin/python3
 VERSION_APPLICATION=0.0.60
 VERSION_GRPC=0.0.60
-DUMPPATH=mnt/ceph/tira/state/db-backup/django-db-dump-21-04-2023.json
 
 .DEFAULT: help
 help:
@@ -26,25 +25,35 @@ setup:
 	make venv
 	make webpack
 	sh -c ". $(VENV_NAME)/bin/activate && \
-	python3 src/manage.py index_model && \
-	python3 src/manage.py createcachetable"
+	${PYTHON} src/manage.py index_model && \
+	${PYTHON} src/manage.py createcachetable"
 
 
-import-data-from-dump:
-	unzip .data-dumps/django-db-dump.zip # enter passwort
+.data-dumps/django-db-dump.zip:
+	@mkdir -p .data-dumps && \
+	echo "Please run scp <YOUR-USR-NAME>@ssh.webis.de:/mnt/ceph/storage/data-in-production/tira/development-database-dumps/django-db-dump.zip .data-dumps/" && \
+	exit 1
 
-	head -n $$(( $$(wc -l < $(DUMPPATH)) - 2)) $(DUMPPATH) >> tmp_dump.json
-	cat none.json >> tmp_dump.json
-	mv tmp_dump.json $(DUMPPATH)
-	$(VENV_NAME)/bin/python3 src/manage.py loaddata $(DUMPPATH)
+import-data-from-dump: .data-dumps/django-db-dump.zip
+	@cd .data-dumps/ && \
+	rm -f *.json && \
+	echo "Please use the generic > tira-db-dump password from git@webis.uni-weimar.de:code-admin/passwords.git" && \
+	unzip -j django-db-dump.zip && \
+	mv *.json django-db-dump-tmp.json && \
+	head -n -1 django-db-dump-tmp.json > django-db-dump.json && \
+	echo ', {"model": "tira.dataset", "pk": "none", "fields": {"default_task": null, "display_name": "", "evaluator": null, "is_confidential": true, "is_deprecated": false, "data_server": null, "released": "", "default_upload_name": "predictions", "created": "2022-08-11", "last_modified": "2022-08-11", "irds_docker_image": null, "irds_import_command": null, "irds_import_truth_command": null}}]' >> django-db-dump.json && \
+	rm django-db-dump-tmp.json && \
+	cd .. && \
+	${PYTHON} src/manage.py index_model && \
+	${PYTHON} src/manage.py migrate && \
+	${PYTHON} src/manage.py createcachetable && \
+	${PYTHON} src/manage.py reset_db --no-input && \
+	${PYTHON} src/manage.py makemigrations tira && \
+	${PYTHON} src/manage.py migrate tira && \
+	${PYTHON} src/manage.py makemigrations django && \
+	${PYTHON} src/manage.py migrate django && \
+	${PYTHON} src/manage.py loaddata .data-dumps/django-db-dump.json
 
-	#$(VENV_NAME)/bin/python3 modify_json.py
-	#$(VENV_NAME)/bin/python3 src/manage.py loaddata $(DUMPPATH)
-
-	#cat $(DUMPPATH) | grep -v '"input_dataset": "none",' > mnt/ceph/tira/state/db-backup/dump.json
-	#rm .data-dumps/django-db-dump.zip
-	#$(VENV_NAME)/bin/python3 src/manage.py loaddata $(DUMPPATH)
-	#rm mnt/ceph/tira/state/db-backup/django-db-dump-21-04-2023.json
 
 webpack:
 	cd ./src/tira/frontend/; \
