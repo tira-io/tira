@@ -12,12 +12,17 @@ The following steps will setup a self-contained, local tira application and a mo
    ~$ make setup  # This creates the virtual environment and prepares Django's database
    ```
 
-3. Setup the local environment
+3. Initialize your development database from a database dump
+   ```bash
+   ~$ make import-data-from-dump
+   ```
+
+4. Setup the local environment
    ```bash
    ~$ make run-develop  # This updates the config and runs the server within the venv.
    ```
 
-4. Run all unit tests
+5. Run all unit tests
    ```bash
    ~$ make tests
    ```
