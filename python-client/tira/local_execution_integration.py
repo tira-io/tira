@@ -115,6 +115,14 @@ class LocalExecutionIntegration():
         for k, v in docker_software_id_to_output.items():
             volumes[str(os.path.abspath(v))] = {'bind': '/tira-data/input-run', 'mode': 'ro'}
 
+        print('# Pull Image\n\n')
+        image_pull_code = subprocess.call(['docker', 'pull', image])
+
+        if image_pull_code != 0:
+            raise ValueError(f'Image could not be successfully pulled. Got return code {image_pull_code}. (expected 0.)')
+
+        print('\n\n Image pulled successfully.\n\nI will now run the software.\n\n')
+
         container = client.containers.run(image, entrypoint='sh', command=f'-c "{command}"', volumes=volumes, detach=True, remove=True, network_disabled = not allow_network)
 
         for line in container.attach(stdout=True, stream=True, logs=True):
