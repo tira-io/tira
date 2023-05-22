@@ -57,6 +57,23 @@ class LocalExecutionIntegration():
             'docker': f'docker run --rm -ti -v {input_dir}:/tira-data/input:ro -v {output_dir}:/tira-data/output:rw --entrypoint sh {image} -c \'{command}\''
         }
 
+    def ensure_image_available_locally(self, image):
+        try:
+            output = subprocess.check_output(['docker', 'images', '-q', image])
+            if len(output) > 0:
+                return
+        except:
+            pass
+
+        print('# Pull Image\n\n')
+        image_pull_code = subprocess.call(['docker', 'pull', image])
+
+        if image_pull_code != 0:
+            raise ValueError(f'Image could not be successfully pulled. Got return code {image_pull_code}. (expected 0.)')
+
+        print('\n\n Image pulled successfully.\n\nI will now run the software.\n\n')
+
+
     def run(self, identifier=None, image=None, command=None, input_dir=None, output_dir=None, evaluate=False, verbose=False, dry_run=False, docker_software_id_to_output=None, software_id=None, allow_network=False, input_run=None, additional_volumes=None):
         previous_stages = []
         original_args = {'identifier': identifier, 'image': image, 'command': command, 'input_dir': input_dir, 'output_dir': output_dir, 'evaluate': evaluate, 'verbose': verbose, 'dry_run': dry_run, 'docker_software_id_to_output': docker_software_id_to_output, 'software_id': software_id}
@@ -124,13 +141,7 @@ class LocalExecutionIntegration():
                     raise ValueError(f'Volume to mount is multiple times defined: {volume_dir}')
                 volumes[volume_dir] = {'bind': volume_bind, 'mode': volume_mode}
 
-        print('# Pull Image\n\n')
-        image_pull_code = subprocess.call(['docker', 'pull', image])
-
-        if image_pull_code != 0:
-            raise ValueError(f'Image could not be successfully pulled. Got return code {image_pull_code}. (expected 0.)')
-
-        print('\n\n Image pulled successfully.\n\nI will now run the software.\n\n')
+        self.ensure_image_available_locally(image)
 
         container = client.containers.run(image, entrypoint='sh', command=f'-c "{command}"', volumes=volumes, detach=True, remove=True, network_disabled = not allow_network)
 
