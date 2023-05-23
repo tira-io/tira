@@ -17,6 +17,8 @@ help:
 	@echo "       remove setup files"
 
 setup:
+	rm -f ../model/src/state/tira.sqlite3
+	rm -f ../model/src/model/virtual-machines/admin.prototext
 	chmod +x setup.sh
 	bash setup.sh
 	chmod o+x src
@@ -35,7 +37,9 @@ setup:
 	exit 1
 
 import-data-from-dump: .data-dumps/django-db-dump.zip
-	@cd .data-dumps/ && \
+	@rm -f ../model/src/state/tira.sqlite3 && \
+	rm -f ../model/src/model/virtual-machines/admin.prototext && \
+	cd .data-dumps/ && \
 	rm -f *.json && \
 	echo "Please use the generic > tira-db-dump password from git@webis.uni-weimar.de:code-admin/passwords.git" && \
 	unzip -j django-db-dump.zip && \
