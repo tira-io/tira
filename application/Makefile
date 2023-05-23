@@ -48,14 +48,10 @@ import-data-from-dump: .data-dumps/django-db-dump.zip
 	echo ', {"model": "tira.dataset", "pk": "none", "fields": {"default_task": null, "display_name": "", "evaluator": null, "is_confidential": true, "is_deprecated": false, "data_server": null, "released": "", "default_upload_name": "predictions", "created": "2022-08-11", "last_modified": "2022-08-11", "irds_docker_image": null, "irds_import_command": null, "irds_import_truth_command": null}}]' >> django-db-dump.json && \
 	rm django-db-dump-tmp.json && \
 	cd .. && \
-	${PYTHON} src/manage.py index_model && \
 	${PYTHON} src/manage.py migrate && \
 	${PYTHON} src/manage.py createcachetable && \
-	${PYTHON} src/manage.py reset_db --no-input && \
 	${PYTHON} src/manage.py makemigrations tira && \
 	${PYTHON} src/manage.py migrate tira && \
-	${PYTHON} src/manage.py makemigrations django && \
-	${PYTHON} src/manage.py migrate django && \
 	${PYTHON} src/manage.py loaddata .data-dumps/django-db-dump.json
 
 
