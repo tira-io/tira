@@ -7,12 +7,14 @@ from tira.tira_data import get_run_runtime, get_run_file_list, get_stderr, get_s
 from tira.views import add_context, _add_user_vms_to_context
 from tira.authentication import auth
 
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.conf import settings
 from django.core.cache import cache
 from django.core.serializers.json import DjangoJSONEncoder
 from http import HTTPStatus
 import datetime
+import csv
+from io import StringIO
 
 include_navigation = True if settings.DEPLOYMENT == "legacy" else False
 
@@ -276,3 +278,21 @@ def add_registration(request, context, task_id, vm_id):
         logger.exception(e)
         return JsonResponse({'status': 0, "message": f"Encountered an exception: {e}"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
+@check_permissions
+@check_resources_exist("json")
+@add_context
+def export_registrations(request, context, task_id):
+    ret = StringIO()
+
+    fieldnames = ['team_name', 'initial_owner', 'team_members', 'registered_on_task', 'name', 'email', 'affiliation',
+                  'country', 'employment', 'participates_for', 'instructor_name', 'instructor_email', 'questions',
+                  'created', 'last_modified'
+                  ]
+
+    writer = csv.DictWriter(ret, fieldnames=fieldnames)
+
+    writer.writeheader()
+    for i in model.all_registrations(task_id):
+        writer.writerow(i)
+
+    return HttpResponse(ret.getvalue())

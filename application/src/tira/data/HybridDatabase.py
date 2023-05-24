@@ -1631,18 +1631,23 @@ class HybridDatabase(object):
         
         return ret
 
+
     def _registration_to_dict(self, registration):
         return {
-            "user_id": registration.registered_vm.vm_id,
-            "task_id": registration.registered_on_task.task_id,
+            "team_name": registration.team_name,
+            "initial_owner": registration.initial_owner,
             "name": registration.name,
             "email": registration.email,
             "affiliation": registration.affiliation,
             "country": registration.country,
             "employment": registration.employment,
-            "participates_for": registration.participates_for,
+            "registered_on_task": registration.registered_on_task.task_id,
             "instructor_name": registration.instructor_name,
-            "instructor_email": registration.instructor_email}
+            "instructor_email": registration.instructor_email,
+            "questions": registration.questions,
+            "created": registration.created,
+            "last_modified": registration.last_modified,
+        }
 
 
     # methods to check for existence
@@ -1697,6 +1702,15 @@ class HybridDatabase(object):
             )]
 
         return [i for i in ret if i]
+    def all_registrations(self, task_id):
+        task = modeldb.Task.objects.get(task_id=task_id)
+        ret = []
+
+        for i in modeldb.Registration.objects.filter(registered_on_task=task):
+            ret += [self._registration_to_dict(i)]
+
+        return ret
+
 
 # modeldb.EvaluationLog.objects.filter(vm_id='nlptasks-master').delete()
 # print(modeldb.Run.objects.all().exclude(upload=None).values())
