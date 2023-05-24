@@ -114,6 +114,7 @@ build-docker:
 	docker build --tag webis/tira-application:${VERSION_APPLICATION}-diffir-base -f Dockerfile.application-diffir-base ..
 	docker build --tag webis/tira-application:${VERSION_APPLICATION}-diffir -f Dockerfile.application-diffir ..
 	docker build --tag webis/tira-application-grpc:${VERSION_GRPC} -f Dockerfile.application-grpc ..
+	docker build --tag webis/tira-ir-datasets-starter:${VERSION_APPLICATION}-jupyter -f Dockerfile.application_ir_datasets_jupyter ..
 
 docker-publish:
 	docker push webis/tira-application:basis-${VERSION_APPLICATION}
