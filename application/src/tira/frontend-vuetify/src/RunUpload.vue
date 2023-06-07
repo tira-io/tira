@@ -1,8 +1,12 @@
 <template>
+  <div class="px2 my-10 ">
+  <!--
   <div class="w-75 mx-auto my-5">
   <div class="my-5">
     <h2><b>{{task.userVmsForTask}}</b> on Task: {{task.task_id}}</h2>
   </div>
+  -->
+
   <v-tabs
     v-model="tab"
     fixed-tabs
@@ -31,6 +35,9 @@
         <VirtualMachineSubmission/>
       </v-window-item>
     </v-window>
+    <div class="my-5">
+      <ExplainationToggle />
+    </div>
     </div>
 </template>
 
@@ -40,9 +47,10 @@
 import DockerSubmission from "@/submission-components/DockerSubmission.vue";
 import VirtualMachineSubmission from "@/submission-components/VirtualMachineSubmission.vue";
 import UploadSubmission from "@/submission-components/UploadSubmission";
+import ExplainationToggle from "@/submission-components/ExplainationToggle";
 export default {
   name: "run-upload",
-  components: {UploadSubmission, VirtualMachineSubmission, DockerSubmission},
+  components: {UploadSubmission, VirtualMachineSubmission, DockerSubmission, ExplainationToggle},
   data() {
     return {
       tab: null,

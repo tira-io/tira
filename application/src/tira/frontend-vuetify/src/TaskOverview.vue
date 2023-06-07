@@ -66,7 +66,7 @@
     data() {
       return {
         task_id: extractTaskFromCurrentUrl(),
-        loading: true,
+        loading: false,
         role: extractRole(), // Values: guest, user, participant, admin
         selectedDataset: '',
         task: { "task_id": "", "task_name": "", "task_description": "",
