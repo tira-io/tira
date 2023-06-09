@@ -329,7 +329,7 @@ class HybridDatabase(object):
         ret = [d for d in modeldb.TaskHasDataset.objects.filter(task=task_id) if not (d.dataset.is_deprecated and not include_deprecated)]
 
         if return_only_names:
-            return [{'dataset_id': d.dataset.dataset_id, 'get_datasets_by_tas': d.dataset.display_name} for d in ret]
+            return [{'dataset_id': d.dataset.dataset_id, 'display_name': d.dataset.display_name} for d in ret]
         else:
             return [self._dataset_to_dict(d.dataset) for d in ret]
 
