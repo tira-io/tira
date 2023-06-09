@@ -4,7 +4,7 @@
   <v-container v-if="!loading">
   <v-card class="px2" max-width="2560">
     <v-card-item :title="task.task_name">
-      <template v-slot:subtitle>by {{ task.organizer }}</template>
+      <template v-slot:subtitle>by <a :href="'https://www.tira.io/g/tira_org_' + task.organizer_id">{{ task.organizer }}</a></template>
     </v-card-item>
 
     <v-card-text class="py-0">
