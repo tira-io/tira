@@ -48,8 +48,8 @@
 
   <v-container v-if="!loading">
     <h2>Submissions</h2>
-    <!--<v-autocomplete label="Dataset" :items="datasets" item-title="display_name" item-value="dataset_id"
-                    v-model="selectedDataset" variant="underlined" clearable/>-->
+    <v-autocomplete label="Dataset" :items="datasets" item-title="display_name" item-value="dataset_id"
+                    v-model="selectedDataset" variant="underlined" clearable/>
 
     <run-list v-if="selectedDataset" :task_id="task_id" :dataset_id="selectedDataset"/>
   </v-container>
@@ -58,11 +58,12 @@
 <script lang="ts">
   import RunList from './components/RunList.vue'
   import Loading from "./components/Loading.vue"
+  import { VAutocomplete } from 'vuetify/components'
   import { extractTaskFromCurrentUrl, get, reportError, extractRole } from './utils'
 
   export default {
     name: "task-list",
-    components: {RunList, Loading},
+    components: {RunList, Loading, VAutocomplete},
     data() {
       return {
         task_id: extractTaskFromCurrentUrl(),
