@@ -51,8 +51,12 @@
 </template>
 
 <script>
+
+import { VAutocomplete } from 'vuetify/components'
+
 export default {
   name: "UploadSubmission",
+  components: {VAutocomplete},
   data () {
       return {
         tab: null,

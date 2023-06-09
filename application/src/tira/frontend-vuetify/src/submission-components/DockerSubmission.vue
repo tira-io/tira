@@ -95,8 +95,12 @@
 </template>
 
 <script>
+
+import { VAutocomplete } from 'vuetify/components'
+
 export default {
   name: "DockerSubmission",
+  components: {VAutocomplete},
   data() {
     return {
       selectedDockerSoftware: '',
