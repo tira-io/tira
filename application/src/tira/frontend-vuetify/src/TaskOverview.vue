@@ -39,8 +39,8 @@
 
     <v-card-actions>
       <v-row>
-        <v-col cols="6"><v-btn variant="outlined" block>Submit</v-btn></v-col>
-        <v-col cols="6"><v-btn variant="outlined" block>Task Website</v-btn></v-col>
+        <v-col cols="6"><submit-button :task="task" :vm="vm" :user_id="user_id" :user_vms_for_task="user_vms_for_task"/></v-col>
+        <v-col cols="6"><v-btn variant="outlined" :href="task.web" block>Task Website</v-btn></v-col>
       </v-row>
     </v-card-actions>
   </v-card>
@@ -58,12 +58,13 @@
 <script lang="ts">
   import RunList from './components/RunList.vue'
   import Loading from "./components/Loading.vue"
+  import SubmitButton from './components/SubmitButton.vue'
   import { VAutocomplete } from 'vuetify/components'
   import { extractTaskFromCurrentUrl, extractDatasetFromCurrentUrl, chanceCurrentUrlToDataset, get, inject_response, reportError, extractRole } from './utils'
 
   export default {
     name: "task-list",
-    components: {RunList, Loading, VAutocomplete},
+    components: {RunList, Loading, VAutocomplete, SubmitButton},
     data() {
       return {
         task_id: extractTaskFromCurrentUrl(),
@@ -74,6 +75,9 @@
                 "organizer": "", "organizer_id": "", "web": "", "year": "",
                 "dataset_count": 0, "software_count": 0, "teams": 0
         },
+        vm: '',
+        user_id: '',
+        user_vms_for_task: [],
         datasets: [{'dataset_id': 'loading...', 'display_name': 'loading...'}],
     }
   },
@@ -88,7 +92,7 @@
   },
   beforeMount() {
     get('/api/task/' + this.task_id)
-      .then(inject_response(this, {'loading': false}))
+      .then(inject_response(this, {'loading': false}, true))
       .then(this.updateDataset)
       .catch(reportError)
   },

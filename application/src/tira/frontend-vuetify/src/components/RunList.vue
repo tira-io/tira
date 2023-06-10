@@ -1,11 +1,14 @@
 <template>
   <loading :loading="loading"/>
   <v-container v-if="!loading">
-    <v-data-table v-if="dataset_id" v-model:expanded="expanded" show-expand :headers="headers"
+    <v-data-table v-if="dataset_id" v-model:expanded="expanded" show-expand :headers="table_headers"
                   :items="runs" item-value="Run" v-model:sort-by="table_sort_by" density="compact"
                   show-select class="elevation-1 d-none d-md-block" hover>
       <template v-slot:item.actions="{item}">
         <run-actions :run_id="item.Run" />
+      </template>
+      <template #item.vm_id="{ item }">
+        <a target="_blank" :href="item.value.link_to_team">{{ item.value.vm_id }}</a>
       </template>
       <template v-slot:expanded-row="{ columns, item }">
         <tr>
@@ -16,9 +19,12 @@
       </template>
     </v-data-table>
 
-    <v-data-table v-if="dataset_id" v-model:expanded="expanded" show-expand :headers="headers_small_layout"
+    <v-data-table v-if="dataset_id" v-model:expanded="expanded" show-expand :headers="table_headers_small_layout"
                   :items="runs" item-value="Run" v-model:sort-by="table_sort_by" density="compact"
                   show-select class="elevation-1 d-md-none" hover>
+      <template #item.vm_id="{ item }">
+        <a target="_blank" :href="item.value.link_to_team">{{ item.value.vm_id }}</a>
+      </template>
       <template v-slot:expanded-row="{ columns, item }">
         <tr>
           <td :colspan="columns.length">
@@ -49,8 +55,8 @@ export default {
       expanded: [],
       loading: true,
       runs: [],
-      headers: [],
-      headers_small_layout: [],
+      table_headers: [],
+      table_headers_small_layout: [],
       table_sort_by: [],
     }
   },

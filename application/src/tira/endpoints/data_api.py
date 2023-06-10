@@ -70,15 +70,15 @@ def get_evaluations_by_dataset(request, context, task_id, dataset_id):
                {'title': 'Run', 'key': 'run_id'}]
     evaluation_headers = [{'title': k, 'key': k} for k in ev_keys]
 
-    context["headers"] = headers + evaluation_headers + [{'title': '', 'key': 'actions', 'sortable': False}]
-    context["headers_small_layout"] = [headers[1]] + [evaluation_headers[0]]
+    context["table_headers"] = headers + evaluation_headers + [{'title': '', 'key': 'actions', 'sortable': False}]
+    context["table_headers_small_layout"] = [headers[1]] + evaluation_headers[:1]
 
-    context["table_sort_by"] = [{'key': ev_keys[0], 'order': 'desc'}]
+    context["table_sort_by"] = [{'key': ev_keys[0], 'order': 'desc'}] if ev_keys else []
 
     runs = []
     for i in evaluations:
         i = deepcopy(i)
-
+        i['link_to_team'] = 'https://www.tira.io/g/tira_vm_' + i['vm_id'] if not i['vm_id'].endswith('-default') else 'https://www.tira.io/u/' + i['vm_id'].split('-default')[0]
         for k, v in [('input_run_id', 'run_id')]:
             i[v] = i[k]
             del i[k]
