@@ -24,6 +24,9 @@
           <td :colspan="columns.length" class="py-3">{{ item.raw.task_description }}</td>
         </tr>
       </template>
+      <template #item.task_name="{ item }">
+        <a :href="'/task-overview/' + item.value.task_id" style="text-decoration: none !important;">{{ item.value.task_name }}</a>
+      </template>
     </v-data-table>
 
     <!-- TODO: Vuetify will likely introduce a prop to hide columns based on size. Reduce redundancy when that happens. -->
@@ -33,6 +36,9 @@
         <tr>
           <td :colspan="columns.length" class="py-3">{{ item.raw.task_description }}</td>
         </tr>
+      </template>
+      <template #item.task_name="{ item }">
+        <a :href="'/task-overview/' + item.value.task_id" style="text-decoration: none !important;">{{ item.value.task_name }}</a>
       </template>
     </v-data-table>
   </v-container>
