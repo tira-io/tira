@@ -18,7 +18,7 @@
     </div>
     <div class="py-2" />
     <v-data-table :headers="headers_md" :items="task_list" :itemsPerPage="25" :search="task_filter" density="compact"
-                  expand-on-click hover show-expand no-data-text="No tasks have been added, yet." class="d-none d-md-block">
+                  hover show-expand no-data-text="No tasks have been added, yet." class="d-none d-md-block">
       <template v-slot:expanded-row="{ columns, item }">
         <tr>
           <td :colspan="columns.length" class="py-3">{{ item.raw.task_description }}</td>
@@ -31,7 +31,7 @@
 
     <!-- TODO: Vuetify will likely introduce a prop to hide columns based on size. Reduce redundancy when that happens. -->
     <v-data-table :headers="headers_xs" :items="task_list" :itemsPerPage="10" :search="task_filter" density="compact"
-                  expand-on-click fixed-footer hover show-expand no-data-text="No tasks have been added, yet." class="d-md-none">
+                  fixed-footer hover show-expand no-data-text="No tasks have been added, yet." class="d-md-none">
       <template v-slot:expanded-row="{ columns, item }">
         <tr>
           <td :colspan="columns.length" class="py-3">{{ item.raw.task_description }}</td>
