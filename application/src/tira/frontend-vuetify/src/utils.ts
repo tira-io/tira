@@ -47,7 +47,7 @@ export function chanceCurrentUrlToDataset(dataset: string) {
 
     if (loc.includes('task-overview/')) {
         loc = loc.split('task-overview/')[0] + 'task-overview/' + loc.split('task-overview/')[1].split('/')[0] + '/' + dataset
-        history.pushState({'url': loc}, '', loc)
+        history.replaceState({'url': loc}, 'TIRA', loc)
     }
 }
 

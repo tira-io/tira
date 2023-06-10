@@ -5,7 +5,7 @@
     <h3 class="text-h3 py-5">Choose a Task</h3>
     <div class="py-5" />
     <div class="d-flex">
-      <v-responsive min-width="220px">
+      <v-responsive min-width="220px" id="task-search">
         <v-text-field class="px-4" clearable label="Type here to filter &hellip;" prepend-inner-icon="mdi-magnify"
                       variant="underlined" v-model="task_filter"/>
       </v-responsive>

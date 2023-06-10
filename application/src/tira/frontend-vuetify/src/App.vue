@@ -7,11 +7,17 @@
 </template>
 
 <style>
-  #app #px-4 input {
+  #app #task-search input {
     border: none !important;
     outline: none !important;
     margin: 0px !important;
     padding: 22px 6px 6px 6px !important;
+  }
+  #app #dataset-select input {
+    border: none !important;
+    outline: none !important;
+    margin: 0px !important;
+    padding: 0px 6px 6px 6px !important;
   }
   #app h3 {
     margin: 0px !important;
@@ -38,9 +44,11 @@
   }
 
   const currentPath = ref(window.location.hash)
+  const currentLocation = ref(window.location.pathname)
 
   const currentView = computed(() => {
-    if (ref(window.location.pathname).value.startsWith('/task-overview')) {
+    console.log('Path changed: ' + currentLocation.value + ' or hash changed: ' + currentPath)
+    if (currentLocation.value.startsWith('/task-overview')) {
       return TaskOverview
     }
 
@@ -56,6 +64,11 @@
   onMounted(() => {
     window.addEventListener('hashchange', () => {
       currentPath.value = window.location.hash
-    })
+      currentLocation.value = window.location.pathname
+    });
+    window.addEventListener('popstate', () => {
+      currentPath.value = window.location.hash
+      currentLocation.value = window.location.pathname
+    });
   })
 </script>

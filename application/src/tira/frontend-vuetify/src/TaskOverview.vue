@@ -44,7 +44,7 @@
   </v-card>
   </v-container>
 
-  <v-container v-if="!loading">
+  <v-container v-if="!loading" id="dataset-select">
     <h2>Submissions</h2>
     <v-autocomplete label="Dataset" :items="datasets" item-title="display_name" item-value="dataset_id"
                     v-model="selectedDataset" variant="underlined" clearable/>
