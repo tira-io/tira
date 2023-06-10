@@ -7,7 +7,7 @@
 </template>
 
 <style>
-  #app input {
+  #app #px-4 input {
     border: none !important;
     outline: none !important;
     margin: 0px !important;
