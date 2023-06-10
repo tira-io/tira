@@ -104,7 +104,6 @@ async function submitPost(url: string, params: [string: any]) {
 }
 
 export async function get(url: string) {
-    url = 'http://127.0.0.1:8080' + url
     const response = await fetch(url)
     if (!response.ok) {
       throw new Error(`Error fetching endpoint: ${url} with ${response.status}`);
