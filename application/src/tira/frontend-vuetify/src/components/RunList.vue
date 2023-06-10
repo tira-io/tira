@@ -22,7 +22,7 @@
     <v-data-table v-if="dataset_id" v-model:expanded="expanded" show-expand :headers="table_headers_small_layout"
                   :items="runs" item-value="Run" v-model:sort-by="table_sort_by" density="compact"
                   show-select class="elevation-1 d-md-none" hover>
-      <template #item.vm_id="{ item }">
+                  <template #item.vm_id="{ item }">
         <a target="_blank" :href="item.value.link_to_team">{{ item.value.vm_id }}</a>
       </template>
       <template v-slot:expanded-row="{ columns, item }">

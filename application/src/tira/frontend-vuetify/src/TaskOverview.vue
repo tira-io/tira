@@ -8,9 +8,7 @@
     </v-card-item>
 
     <v-card-text class="py-0">
-      <v-row no-gutters>
-        <v-col cols="10">{{task.task_description}}</v-col>
-      </v-row>
+      <v-row no-gutters><v-col cols="10">{{task.task_description}}</v-col></v-row>
     </v-card-text>
 
     <div class="d-flex py-3">
@@ -56,9 +54,7 @@
 </template>
 
 <script lang="ts">
-  import RunList from './components/RunList.vue'
-  import Loading from "./components/Loading.vue"
-  import SubmitButton from './components/SubmitButton.vue'
+  import { RunList, Loading, SubmitButton } from './components'
   import { VAutocomplete } from 'vuetify/components'
   import { extractTaskFromCurrentUrl, extractDatasetFromCurrentUrl, chanceCurrentUrlToDataset, get, inject_response, reportError, extractRole } from './utils'
 

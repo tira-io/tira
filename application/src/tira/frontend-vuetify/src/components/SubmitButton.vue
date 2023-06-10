@@ -24,7 +24,7 @@ export default {
       if (!this.vm_ids && this.vm) {
         return this.vm
       } else if (!this.vm_ids && this.user_id && this.task.require_groups && this.task.require_groups) {
-        return this.user_id
+        return this.user_id + '-default'
       }
 
       return null;
