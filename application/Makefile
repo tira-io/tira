@@ -1,10 +1,9 @@
 .PHONY: help setup setup-webpack webpack run-develop build-docker clean
 
 VENV_NAME?=venv
-PYTHON=${VENV_NAME}/bin/python3
-VERSION_APPLICATION=0.0.54
-VERSION_GRPC=0.0.54
-
+PYTHON=${PWD}/${VENV_NAME}/bin/python3
+VERSION_APPLICATION=0.0.61
+VERSION_GRPC=0.0.61
 
 .DEFAULT: help
 help:
@@ -18,6 +17,8 @@ help:
 	@echo "       remove setup files"
 
 setup:
+	rm -f ../model/src/state/tira.sqlite3
+	rm -f ../model/src/model/virtual-machines/admin.prototext
 	chmod +x setup.sh
 	bash setup.sh
 	chmod o+x src
@@ -26,12 +27,33 @@ setup:
 	make venv
 	make webpack
 	sh -c ". $(VENV_NAME)/bin/activate && \
-	python3 src/manage.py index_model && \
-	python3 src/manage.py createcachetable"
+	${PYTHON} src/manage.py index_model && \
+	${PYTHON} src/manage.py createcachetable"
 
-#setup-webpack:
-#    npm add vue@next webpack-bundle-tracker@0.4.3 uikit; \
-#    npm add --dev vue-loader@v16.8.2 webpack-cli webpack webpack-dev-server typescript ts-loader @vue/compiler-sfc style-loader css-loader
+
+.data-dumps/django-db-dump.zip:
+	@mkdir -p .data-dumps && \
+	echo "Please run scp <YOUR-USR-NAME>@ssh.webis.de:/mnt/ceph/storage/data-in-production/tira/development-database-dumps/django-db-dump.zip .data-dumps/" && \
+	exit 1
+
+import-data-from-dump: .data-dumps/django-db-dump.zip
+	@rm -f ../model/src/state/tira.sqlite3 && \
+	rm -f ../model/src/model/virtual-machines/admin.prototext && \
+	cd .data-dumps/ && \
+	rm -f *.json && \
+	echo "Please use the generic > tira-db-dump password from git@webis.uni-weimar.de:code-admin/passwords.git" && \
+	unzip -j django-db-dump.zip && \
+	mv *.json django-db-dump-tmp.json && \
+	head -n -1 django-db-dump-tmp.json > django-db-dump.json && \
+	echo ', {"model": "tira.dataset", "pk": "none", "fields": {"default_task": null, "display_name": "", "evaluator": null, "is_confidential": true, "is_deprecated": false, "data_server": null, "released": "", "default_upload_name": "predictions", "created": "2022-08-11", "last_modified": "2022-08-11", "irds_docker_image": null, "irds_import_command": null, "irds_import_truth_command": null}}]' >> django-db-dump.json && \
+	rm django-db-dump-tmp.json && \
+	cd .. && \
+	${PYTHON} src/manage.py migrate && \
+	${PYTHON} src/manage.py createcachetable && \
+	${PYTHON} src/manage.py makemigrations tira && \
+	${PYTHON} src/manage.py migrate tira && \
+	${PYTHON} src/manage.py loaddata .data-dumps/django-db-dump.json
+
 
 webpack:
 	cd ./src/tira/frontend/; \
@@ -61,9 +83,19 @@ venv:
 		python3 -m pip install -r requirements.txt"
 
 run-develop: venv
-	$(VENV_NAME)/bin/python3 src/manage.py makemigrations \
-	&& $(VENV_NAME)/bin/python3 src/manage.py migrate --fake \
-	&& $(VENV_NAME)/bin/python3 src/manage.py run_develop
+	$(VENV_NAME)/bin/python src/manage.py makemigrations \
+	&& $(VENV_NAME)/bin/python src/manage.py migrate --fake \
+	&& $(VENV_NAME)/bin/python src/manage.py run_develop
+
+vite:
+	cd src/tira/frontend-vuetify \
+	&& yarn build
+
+vite-dev:
+	cd src/tira/frontend-vuetify \
+	&& yarn install \
+	&& yarn test \
+	&& yarn dev
 
 run-docker:
 	docker run -td --rm \
@@ -82,6 +114,7 @@ build-docker:
 	docker build --tag webis/tira-application:${VERSION_APPLICATION}-diffir-base -f Dockerfile.application-diffir-base ..
 	docker build --tag webis/tira-application:${VERSION_APPLICATION}-diffir -f Dockerfile.application-diffir ..
 	docker build --tag webis/tira-application-grpc:${VERSION_GRPC} -f Dockerfile.application-grpc ..
+	docker build --tag webis/tira-ir-datasets-starter:${VERSION_APPLICATION}-jupyter -f Dockerfile.application_ir_datasets_jupyter ..
 
 docker-publish:
 	docker push webis/tira-application:basis-${VERSION_APPLICATION}
@@ -93,6 +126,7 @@ docker-publish:
 	docker push webis/tira-application-grpc:${VERSION_GRPC}
 
 build-docker-basis:
+        docker build --tag webis/tira-application:build-vuetify-${VERSION_APPLICATION} -f Dockerfile.vuetify .
 	docker build --tag webis/tira-application:basis-${VERSION_APPLICATION} -f Dockerfile.basis ..
 
 clean:

@@ -74,7 +74,7 @@ def all_lines_to_pandas(input_file, load_default_text):
                 
 def load_rerank_data(default_input, load_default_text=True):
     default_input = get_input_directory_and_output_directory(default_input)[0]
-    
+
     if not default_input.endswith('rerank.jsonl') and not default_input.endswith('rerank.jsonl.gz'):
         if os.path.isfile(default_input + '/rerank.jsonl.gz'):
             default_input = default_input + '/rerank.jsonl.gz'
@@ -89,6 +89,31 @@ def load_rerank_data(default_input, load_default_text=True):
     else:
         with open(default_input, 'r') as input_file:
             return all_lines_to_pandas(input_file, load_default_text)
+
+
+def register_rerank_data_to_ir_datasets(path_to_rerank_file, ir_dataset_id, original_ir_datasets_id=None):
+    """
+    Load a dynamic ir_datasets integration from a given re_rank_file.
+    The dataset will be registered for the id ir_dataset_id.
+    The original_ir_datasets_id is used to infer the class of documents, qrels, and queries.
+    """
+    from tira.ir_datasets_util import register_dataset_from_re_rank_file
+    default_input = get_input_directory_and_output_directory(path_to_rerank_file)[0]
+
+    if not default_input.endswith('rerank.jsonl') and not default_input.endswith('rerank.jsonl.gz'):
+        if os.path.isfile(default_input + '/rerank.jsonl.gz'):
+            default_input = default_input + '/rerank.jsonl.gz'
+        elif os.path.isfile(default_input + '/rerank.jsonl'):
+            default_input = default_input + '/rerank.jsonl'
+
+    if default_input.endswith('.gz'):
+        with gzip.open(default_input, 'rt', encoding='utf-8') as input_file:
+            df_re_rank = all_lines_to_pandas(input_file, False)
+    else:
+        with open(default_input, 'r') as input_file:
+            df_re_rank = all_lines_to_pandas(input_file, False)
+
+    register_dataset_from_re_rank_file(ir_dataset_id, df_re_rank, original_ir_datasets_id)
 
 
 def persist_and_normalize_run(run, system_name, output_file, depth=1000):

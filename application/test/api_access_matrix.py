@@ -35,6 +35,28 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
+        url_pattern=r'^frontend-vuetify/.*',
+        params=None,
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 200,
+            PARTICIPANT: 200,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 200,
+        },
+    ),
+    route_to_test(
+        url_pattern=r'^task-overview/.*',
+        params=None,
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 200,
+            PARTICIPANT: 200,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 200,
+        },
+    ),
+    route_to_test(
         url_pattern='tasks',
         params=None,
         group_to_expected_status_code={
@@ -130,6 +152,28 @@ API_ACCESS_MATRIX = [
             GUEST: 405,
             PARTICIPANT: 405,
             ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 405,
+        },
+    ),
+    route_to_test(
+        url_pattern='tira-admin/export-participants/<str:task_id>.csv',
+        params={'task_id': 'task-of-organizer-1'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 405,
+        },
+    ),
+    route_to_test(
+        url_pattern='tira-admin/export-participants/<str:task_id>.csv',
+        params={'task_id': 'shared-task-1'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER: 405,
             ORGANIZER_WRONG_TASK: 405,
         },
     ),

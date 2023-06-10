@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, re_path
 
 from django.views.generic import TemplateView
 
@@ -18,6 +18,8 @@ urlpatterns = [
     path('task/<str:task_id>/user/<str:vm_id>', views.software_detail, name='software-detail'),
     path('task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/run/<str:run_id>', views.review, name='review'),
 
+    re_path(r'^frontend-vuetify/.*', views.veutify_page, name='veutify_page'),
+    re_path(r'^task-overview/.*', views.veutify_page, name='veutify_page'),
     path('request_vm', views.request_vm, name='request_vm'),
     path('login', views.login, name='login'),
     path('logout', views.logout, name='logout'),
@@ -63,6 +65,7 @@ urlpatterns = [
     path('tira-admin/create-vm', admin_api.admin_create_vm, name='tira-admin-create-vm'),
     path('tira-admin/archive-vm', admin_api.admin_archive_vm, name='tira-admin-archive-vm'),
     path('tira-admin/modify-vm', admin_api.admin_modify_vm, name='tira-admin-modify-vm'),
+    path('tira-admin/export-participants/<str:task_id>.csv', data_api.export_registrations, name='export_registrations'),
     path('tira-admin/<str:organizer_id>/create-task', admin_api.admin_create_task, name='tira-admin-create-task'),
     path('tira-admin/edit-task/<str:task_id>', admin_api.admin_edit_task, name='tira-admin-edit-task'),
     path('tira-admin/delete-task/<str:task_id>', admin_api.admin_delete_task, name='tira-admin-delete-task'),
@@ -99,7 +102,6 @@ urlpatterns = [
 
     path('diffir/<str:task_id>/<str:run_id_1>/<str:run_id_2>', diffir_api.diffir, name='diffir'),
     path('serp/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/<str:run_id>', serp_api.serp, name='serp'),
-
 ]
 
 app_name = 'tira'

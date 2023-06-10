@@ -320,15 +320,18 @@ class HybridDatabase(object):
         return {dataset.dataset_id: self._dataset_to_dict(dataset)
                 for dataset in modeldb.Dataset.objects.select_related('default_task', 'evaluator').all()}
 
-    def get_datasets_by_task(self, task_id: str, include_deprecated=False) -> list:
+    def get_datasets_by_task(self, task_id: str, include_deprecated=False, return_only_names=False) -> list:
         """ return the list of datasets associated with this task_id
         @param task_id: id string of the task the dataset belongs to
         @param include_deprecated: Default False. If True, also returns datasets marked as deprecated.
         @return: a list of json-formatted datasets, as returned by get_dataset
         """
-        return [self._dataset_to_dict(d.dataset)
-                for d in modeldb.TaskHasDataset.objects.filter(task=task_id)
-                if not (d.dataset.is_deprecated and not include_deprecated)]
+        ret = [d for d in modeldb.TaskHasDataset.objects.filter(task=task_id) if not (d.dataset.is_deprecated and not include_deprecated)]
+
+        if return_only_names:
+            return [{'dataset_id': d.dataset.dataset_id, 'display_name': d.dataset.display_name} for d in ret]
+        else:
+            return [self._dataset_to_dict(d.dataset) for d in ret]
 
     def get_docker_software(self, docker_software_id: str) -> dict:
         try:
@@ -1628,18 +1631,23 @@ class HybridDatabase(object):
         
         return ret
 
+
     def _registration_to_dict(self, registration):
         return {
-            "user_id": registration.registered_vm.vm_id,
-            "task_id": registration.registered_on_task.task_id,
+            "team_name": registration.team_name,
+            "initial_owner": registration.initial_owner,
             "name": registration.name,
             "email": registration.email,
             "affiliation": registration.affiliation,
             "country": registration.country,
             "employment": registration.employment,
-            "participates_for": registration.participates_for,
+            "registered_on_task": registration.registered_on_task.task_id,
             "instructor_name": registration.instructor_name,
-            "instructor_email": registration.instructor_email}
+            "instructor_email": registration.instructor_email,
+            "questions": registration.questions,
+            "created": registration.created,
+            "last_modified": registration.last_modified,
+        }
 
 
     # methods to check for existence
@@ -1694,6 +1702,15 @@ class HybridDatabase(object):
             )]
 
         return [i for i in ret if i]
+    def all_registrations(self, task_id):
+        task = modeldb.Task.objects.get(task_id=task_id)
+        ret = []
+
+        for i in modeldb.Registration.objects.filter(registered_on_task=task):
+            ret += [self._registration_to_dict(i)]
+
+        return ret
+
 
 # modeldb.EvaluationLog.objects.filter(vm_id='nlptasks-master').delete()
 # print(modeldb.Run.objects.all().exclude(upload=None).values())

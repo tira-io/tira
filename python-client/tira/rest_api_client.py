@@ -266,14 +266,18 @@ class Client():
 
     def download_and_extract_zip(self, url, target_dir):
         for i in range(self.failsave_retries):
+            status_code = None
             try:
                 r = requests.get(url, headers={"Api-Key": self.api_key})
+                status_code = r.status_code
                 z = zipfile.ZipFile(io.BytesIO(r.content))
                 z.extractall(target_dir)
                 
                 return
-            except:
+            except Exception as e:
                 sleep_time = 1+int(random()*self.failsave_max_delay)
+                print(e)
+                print(f'Code: {status_code}')
                 print(f'Error occured while fetching {url}. I will sleep {sleep_time} seconds and continue.')
                 time.sleep(sleep_time)
 

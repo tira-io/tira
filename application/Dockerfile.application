@@ -1,3 +1,13 @@
+#Build Vuitify in first stage: Only change in case of new / updated dependencies
+FROM webis/tira-application:build-vuetify-0.0.60
+
+COPY application/src/tira/frontend-vuetify /src/tira/frontend-vuetify
+
+RUN mv /vuetify-dependencies-node-modules node_modules \
+	&& yarn test \
+	&& yarn build
+
+
 # Only change in case of new / updated dependencies
 FROM webis/tira-application:basis-0.0.47
 
@@ -19,8 +29,11 @@ RUN cd /tira/application/src/tira/frontend/ && \
 	chmod +x /tira/application/src/tira/endpoints/aha && \
 	cp /tira/application/src/tira/management/commands/irds_cli.sh /irds_cli.sh && \
 	rm -f ./config/settings.yml ./config/config.yml ./config/tira-application-config.dev.yml && \
+	rm -Rf tira/static/tira/frontend-vuetify/ && rm -Rf /tira/application/src/tira/static/tira/frontend-vuetify/ && \
 	apk add sudo && \
 	echo '%podman ALL=(ALL) ALL' > /etc/sudoers.d/podman
+
+COPY --from=0 /src/tira/static/tira/frontend-vuetify/ /tira/application/src/tira/static/tira/frontend-vuetify/
 
 RUN cd /tira/application/ && \
         ./test/run_all_tests.sh

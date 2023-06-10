@@ -2,9 +2,9 @@
 
 The following steps will setup a self-contained, local tira application and a mockup tira host. See [Development](#development) for more detailed options. 
 
-1. Install Python3, pip, virtualenv, and the mysql tools. For Ubuntu:
+1. Install Python3, pip, virtualenv, yarn and the mysql tools. For Ubuntu:
    ```bash
-   ~$ sudo apt-get update && sudo apt-get install python3 python3-pip python3-venv libmysqlclient-dev
+   ~$ sudo apt-get update && sudo apt-get install python3 python3-pip python3-venv libmysqlclient-dev yarn
    ```
 
 2. Setup the local environment
@@ -12,12 +12,17 @@ The following steps will setup a self-contained, local tira application and a mo
    ~$ make setup  # This creates the virtual environment and prepares Django's database
    ```
 
-3. Setup the local environment
+3. Initialize your development database from a database dump
+   ```bash
+   ~$ make import-data-from-dump
+   ```
+
+4. Setup the local environment
    ```bash
    ~$ make run-develop  # This updates the config and runs the server within the venv.
    ```
 
-4. Run all unit tests
+5. Run all unit tests
    ```bash
    ~$ make tests
    ```
@@ -77,6 +82,10 @@ Frequently used development commands are:
    application/src~$ python3 manage.py run_develop  # Start the application and  the application's grpc server. This is used in make run-develop and the container
    application/src~$ python3 manage.py run_mockup  # Start the application, the application's grpc server, and a mock host grpc server that will reply to the application with fake commands. This is the simplest way to develop the application.
    ```  
+
+### Frontend Development
+
+Start your dev environment via: `make vite-dev`
 
 ## Troubleshooting
 

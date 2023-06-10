@@ -7,12 +7,15 @@ from tira.tira_data import get_run_runtime, get_run_file_list, get_stderr, get_s
 from tira.views import add_context, _add_user_vms_to_context
 from tira.authentication import auth
 
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.conf import settings
 from django.core.cache import cache
 from django.core.serializers.json import DjangoJSONEncoder
 from http import HTTPStatus
 import datetime
+import csv
+from io import StringIO
+from copy import deepcopy
 
 include_navigation = True if settings.DEPLOYMENT == "legacy" else False
 
@@ -63,8 +66,33 @@ def get_evaluations_by_dataset(request, context, task_id, dataset_id):
     context["dataset_id"] = dataset_id
     context["ev_keys"] = ev_keys
     context["evaluations"] = evaluations
+    headers = [{'title': 'Team', 'key': 'vm_id'}, {'title': 'Approach', 'key': 'input_software_name'},
+               {'title': 'Run', 'key': 'run_id'}]
+    evaluation_headers = [{'title': k, 'key': k} for k in ev_keys]
 
-    return JsonResponse({'status': 1, "context": context})
+    context["table_headers"] = headers + evaluation_headers + [{'title': '', 'key': 'actions', 'sortable': False}]
+    context["table_headers_small_layout"] = [headers[1]] + evaluation_headers[:1]
+
+    context["table_sort_by"] = [{'key': ev_keys[0], 'order': 'desc'}] if ev_keys else []
+
+    runs = []
+    for i in evaluations:
+        i = deepcopy(i)
+        i['link_to_team'] = 'https://www.tira.io/g/tira_vm_' + i['vm_id'] if not i['vm_id'].endswith('-default') else 'https://www.tira.io/u/' + i['vm_id'].split('-default')[0]
+        for k, v in [('input_run_id', 'run_id')]:
+            i[v] = i[k]
+            del i[k]
+
+        for j in range(len(ev_keys)):
+            i[ev_keys[j]] = i['measures'][j]
+
+        for j in ['measures']:
+            del i[j]
+        runs += [i]
+
+    context["runs"] = runs
+
+    return JsonResponse({'status': 0, "context": context})
 
 
 @check_permissions
@@ -78,7 +106,7 @@ def get_evaluation(request, context, run_id, vm_id):
         return JsonResponse({'status': 1, "message": f"Run {run_id} is not an evaluation run."})
 
     dataset = model.get_dataset(run['dataset'])
-    
+
     if context['role'] != 'admin' and review["blinded"] and dataset['is_confidential']:
         return JsonResponse({'status': 1, "message": f"Run {run_id} is not unblinded."})
 
@@ -142,6 +170,9 @@ def get_task(request, context, task_id):
     context["task"] = model.get_task(task_id)
     context["user_is_registered"] = model.user_is_registered(task_id, request)
     context["remaining_team_names"] = model.remaining_team_names(task_id)
+    context["datasets"] = model.get_datasets_by_task(task_id, return_only_names=True)
+    context["datasets"] = sorted(context["datasets"], key=lambda i: i['display_name'])
+
     _add_user_vms_to_context(request, context, task_id)
     return JsonResponse({'status': 0, "context": context})
 
@@ -274,3 +305,21 @@ def add_registration(request, context, task_id, vm_id):
         logger.exception(e)
         return JsonResponse({'status': 0, "message": f"Encountered an exception: {e}"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
+@check_permissions
+@check_resources_exist("json")
+@add_context
+def export_registrations(request, context, task_id):
+    ret = StringIO()
+
+    fieldnames = ['team_name', 'initial_owner', 'team_members', 'registered_on_task', 'name', 'email', 'affiliation',
+                  'country', 'employment', 'participates_for', 'instructor_name', 'instructor_email', 'questions',
+                  'created', 'last_modified'
+                  ]
+
+    writer = csv.DictWriter(ret, fieldnames=fieldnames)
+
+    writer.writeheader()
+    for i in model.all_registrations(task_id):
+        writer.writerow(i)
+
+    return HttpResponse(ret.getvalue())

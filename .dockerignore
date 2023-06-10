@@ -4,3 +4,5 @@ venv
 application/src/tira/frontend/node_modules
 src/tira/frontend/node_modules
 .git
+**/venv/
+**/node_modules/

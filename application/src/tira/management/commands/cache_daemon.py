@@ -32,7 +32,7 @@ class Command(BaseCommand):
                             print(task['task_id'] + '--->' + str(git_repository_id))
                             git_integration = get_git_integration(task_id=task['task_id'])
                             running_pipelines = git_integration.all_running_pipelines_for_repository(git_repository_id, cache, force_cache_refresh=True)
-                            print('Refreshed Cache: ' + task['task_id'] + ' on repo ' + str(git_repository_id) + ' has ' + str(len(running_pipelines)) + ' jobs.')
+                            print('Refreshed Cache (' + str(datetime.datetime.now()) + '): ' + task['task_id'] + ' on repo ' + str(git_repository_id) + ' has ' + str(len(running_pipelines)) + ' jobs.')
                         except Exception as e:
                             print(f'Exception during refreshing the repository {git_repository_id}: e')
                             logger.warn(f'Exception during refreshing the repository {git_repository_id}', e)
@@ -47,7 +47,7 @@ class Command(BaseCommand):
             print(user)
             try:
                 images = git_runner.docker_images_in_user_repository(user, cache, force_cache_refresh=True)
-                print('Refreshed Cache: ' + user + ' has ' + str(len(images)) + ' images.')
+                print('Refreshed Cache (' + str(datetime.datetime.now()) + '): ' + user + ' has ' + str(len(images)) + ' images.')
             except Exception as e:
                 print('Exception during refreshing image repository {user}: {e}')
                 continue
@@ -56,7 +56,7 @@ class Command(BaseCommand):
     def keep_user_images_fresh(self, sleep_time):
         while True:
             time.sleep(int(sleep_time))
-            print(str(datetime.datetime.now()) + ': Start loop over all git runners to keeo user images fresh (sleeped ' + str(int(sleep_time)) + ' seconds) ...')
+            print(str(datetime.datetime.now()) + ': Start loop over all git runners to keep user images fresh (sleeped ' + str(int(sleep_time)) + ' seconds) ...')
             for git_runner in all_git_runners():
                 try:
                     self.refresh_user_images_in_repo(git_runner, sleep_time)
