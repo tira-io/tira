@@ -4,7 +4,7 @@
   <v-container v-if="!loading">
   <v-card class="px2" max-width="2560">
     <v-card-item :title="task.task_name">
-      <template v-slot:subtitle>by <a :href="'https://www.tira.io/g/tira_org_' + task.organizer_id">{{ task.organizer }}</a></template>
+      <template v-slot:subtitle>by <a :href="'https://www.tira.io/g/tira_org_' + task.organizer_id">{{ task.organizer }}</a> (<a :href="'https://www.tira.io/new-message?username=tira_org_' + task.organizer_id + '&title=Request%20&body=message%20body'">contact</a>)</template>
     </v-card-item>
 
     <v-card-text class="py-0">
@@ -59,7 +59,7 @@
   import RunList from './components/RunList.vue'
   import Loading from "./components/Loading.vue"
   import { VAutocomplete } from 'vuetify/components'
-  import { extractTaskFromCurrentUrl, get, reportError, extractRole } from './utils'
+  import { extractTaskFromCurrentUrl, extractDatasetFromCurrentUrl, chanceCurrentUrlToDataset, get, inject_response, reportError, extractRole } from './utils'
 
   export default {
     name: "task-list",
@@ -74,17 +74,26 @@
                 "organizer": "", "organizer_id": "", "web": "", "year": "",
                 "dataset_count": 0, "software_count": 0, "teams": 0
         },
-        datasets: [{'dataset_id': '', 'display_name': ''}],
+        datasets: [{'dataset_id': 'loading...', 'display_name': 'loading...'}],
+    }
+  },
+  methods: {
+    updateDataset() {
+      this.selectedDataset = extractDatasetFromCurrentUrl(this.datasets, this.selectedDataset)
+      this.newDatasetSelected();
+    },
+    newDatasetSelected() {
+      chanceCurrentUrlToDataset(this.selectedDataset)
     }
   },
   beforeMount() {
-    get('/api/task/' + this.task_id).then(message => {
-      this.datasets = message['context']['datasets']
-      this.task = message['context']['task']
-      this.loading = false
-    }).catch(error => {
-      reportError(error)
-    })
-  }
+    get('/api/task/' + this.task_id)
+      .then(inject_response(this, {'loading': false}))
+      .then(this.updateDataset)
+      .catch(reportError)
+  },
+  watch: {
+    selectedDataset(old_value, new_value) { this.newDatasetSelected() },
+  },
 }
 </script>

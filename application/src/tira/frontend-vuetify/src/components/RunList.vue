@@ -2,19 +2,27 @@
   <loading :loading="loading"/>
   <v-container v-if="!loading">
     <v-data-table v-if="dataset_id" v-model:expanded="expanded" show-expand :headers="headers"
-                  :items="runs" item-value="name" show-select class="elevation-1" hover>
-      <template v-slot:top>
-        <v-toolbar flat>
-          <v-toolbar-title>Submissions</v-toolbar-title>
-        </v-toolbar>
-      </template>
+                  :items="runs" item-value="Run" v-model:sort-by="table_sort_by" density="compact"
+                  show-select class="elevation-1 d-none d-md-block" hover>
       <template v-slot:item.actions="{item}">
-        <run-actions :run_id="item.calories" />
+        <run-actions :run_id="item.Run" />
       </template>
       <template v-slot:expanded-row="{ columns, item }">
         <tr>
           <td :colspan="columns.length">
-            <software-details :software_id="item.calories"/>
+            <software-details :software_id="item.Run"/>
+          </td>
+        </tr>
+      </template>
+    </v-data-table>
+
+    <v-data-table v-if="dataset_id" v-model:expanded="expanded" show-expand :headers="headers_small_layout"
+                  :items="runs" item-value="Run" v-model:sort-by="table_sort_by" density="compact"
+                  show-select class="elevation-1 d-md-none" hover>
+      <template v-slot:expanded-row="{ columns, item }">
+        <tr>
+          <td :colspan="columns.length">
+            <software-details :software_id="item.Run"/>
           </td>
         </tr>
       </template>
@@ -31,6 +39,7 @@
 import RunActions from './RunActions.vue'
 import SoftwareDetails from './SoftwareDetails.vue'
 import Loading from "./Loading.vue"
+import { get, reportError, inject_response } from '../utils'
 
 export default {
   name: "run-list",
@@ -39,21 +48,24 @@ export default {
   data() { return {
       expanded: [],
       loading: true,
-      tableLoading: false,
       runs: [],
       headers: [],
-      headers_small_layout: []
+      headers_small_layout: [],
+      table_sort_by: [],
     }
   },
   methods: {
-    /*loadItems ({ page, itemsPerPage, sortBy }) {
-      this.tableLoading = true
-      get('').then((message) => {
-
-      }).catch((error) => {
-
-      })
-    }*/
+    fetchData() {
+      this.loading = true
+      get('/api/evaluations/' + this.task_id + '/' + this.dataset_id)
+        .then(inject_response(this, {'loading': false}))
+        .catch(reportError)
+      }
+  },
+  beforeMount() {this.fetchData()},
+  watch: {
+    dataset_id(old_id, new_id) {this.fetchData()},
+    task_id(old_id, new_id) {this.fetchData()},
   }
 }
 </script>

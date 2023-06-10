@@ -19,7 +19,7 @@ urlpatterns = [
     path('task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/run/<str:run_id>', views.review, name='review'),
 
     re_path(r'^frontend-vuetify/.*', views.veutify_page, name='veutify_page'),
-
+    re_path(r'^task-overview/.*', views.veutify_page, name='veutify_page'),
     path('request_vm', views.request_vm, name='request_vm'),
     path('login', views.login, name='login'),
     path('logout', views.logout, name='logout'),

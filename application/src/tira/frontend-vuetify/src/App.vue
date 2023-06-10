@@ -40,8 +40,11 @@
   const currentPath = ref(window.location.hash)
 
   const currentView = computed(() => {
+    if (ref(window.location.pathname).value.startsWith('/task-overview')) {
+      return TaskOverview
+    }
+
     let p = currentPath.value.slice(1) 
-    console.log(p)
 
     if (p.startsWith('/task-overview') || p.startsWith('/frontend-vuetify/task-overview')) {
       return TaskOverview

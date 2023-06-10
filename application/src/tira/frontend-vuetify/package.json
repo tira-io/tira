@@ -4,7 +4,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc --noEmit && vite --emptyOutDir build",
+    "build": "jest && vue-tsc --noEmit && vite --emptyOutDir build",
     "preview": "vite preview",
     "test": "jest"
   },
