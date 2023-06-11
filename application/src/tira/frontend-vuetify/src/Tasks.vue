@@ -1,4 +1,5 @@
 <template>
+  <tira-breadcrumb/>
   <loading :loading="task_list.length === 0"/>
 
   <v-container v-if="task_list.length > 0">
@@ -46,9 +47,11 @@
 
 <script lang="ts">
   import { get, reportError, inject_response, extractRole } from './utils';
+  import { Loading, TiraBreadcrumb } from './components'
 
   export default {
     name: "tasks",
+    components: {Loading, TiraBreadcrumb},
     data() {
       return {
         role: extractRole(), // Values: user, participant, admin

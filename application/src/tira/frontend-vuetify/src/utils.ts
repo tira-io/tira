@@ -10,6 +10,14 @@ export function extractTaskFromCurrentUrl() {
     return null;
 }
 
+export function get_link_to_organizer(organizer_id: string) {
+    return 'https://www.tira.io/g/tira_org_' + organizer_id;
+}
+
+export function get_contact_link_to_organizer(organizer_id: string) {
+    return 'https://www.tira.io/new-message?username=tira_org_' + organizer_id + '&title=Request%20&body=message%20body'
+}
+
 export function extractDatasetFromCurrentUrl(options: Array<any> = [], default_choice: string='') {
     var loc = ref(window.location).value.href
     var dataset_from_url = ''
