@@ -12,7 +12,7 @@ export default {
   name: "tira-breadcrumb",
   computed: {
     items() {
-      var ret = [{title: 'TIRA', disabled: false, href: '/frontend-vuetify/'}, {title: 'Tasks', disabled: false, href: '/frontend-vuetify/#/tasks'}]
+      var ret = [{title: 'TIRA', disabled: false, href: '/frontend-vuetify/x'}, {title: 'Tasks', disabled: false, href: '/frontend-vuetify/x#/tasks'}]
       
       let task = extractTaskFromCurrentUrl()
 
