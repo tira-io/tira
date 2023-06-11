@@ -1,7 +1,7 @@
 <template>
   <v-app>
     <v-main>
-      <component :is="currentView" />
+      <router-view></router-view>
     </v-main>
   </v-app>
 </template>
@@ -24,51 +24,8 @@
   }
 </style>
 
-<script setup lang="ts">
-  import { ref, computed, onMounted } from 'vue'
-  import Home from './Home.vue'
-  import Tasks from './Tasks.vue'
-  import TaskOverview from './TaskOverview.vue'
-  import RunUpload from './RunUpload.vue'
-
-  const routes: { [id: string] : any; } =  {
-    '/': Home,
-    '/tasks': Tasks,
-    '/task-overview': TaskOverview,
-    '/run-upload': RunUpload,
-    // TODO: Temporary additional routes for transition form previous TIRA UI version.
-    '/frontend-vuetify/': Home,
-    '/frontend-vuetify/tasks': Tasks,
-    '/frontend-vuetify/task-overview': TaskOverview,
-    '/frontend-vuetify/run-upload': RunUpload
-  }
-
-  const currentPath = ref(window.location.hash)
-  const currentLocation = ref(window.location.pathname)
-
-  const currentView = computed(() => {
-    console.log('Path changed: ' + currentLocation.value + ' or hash changed: ' + currentPath)
-    if (currentLocation.value.startsWith('/task-overview')) {
-      return TaskOverview
-    }
-
-    let p = currentPath.value.slice(1) 
-
-    if (p.startsWith('/task-overview') || p.startsWith('/frontend-vuetify/task-overview')) {
-      return TaskOverview
-    }
-
-    return routes[p || '/'] || Home
-  })
-
-  onMounted(() => {
-    window.addEventListener('hashchange', () => {
-      currentPath.value = window.location.hash
-      currentLocation.value = window.location.pathname
-    });
-    window.addEventListener('popstate', () => {
-      currentPath.value = window.location.hash
-      currentLocation.value = window.location.pathname
-    });
-  })
+<script lang="ts">
+export default {
+  name: "app",
+}
 </script>

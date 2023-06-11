@@ -10,7 +10,7 @@
       </p>
       <v-row class="d-flex justify-center py-4">
         <v-col cols="auto">
-          <v-btn color="primary" href="#/tasks" min-width="228" rel="noopener noreferrer" size="x-large" variant="flat">
+          <v-btn color="primary" href="/frontend-vuetify/tasks" min-width="228" rel="noopener noreferrer" size="x-large" variant="flat">
             <v-icon icon="mdi-speedometer" size="large" start/>
             Get Started
           </v-btn>
