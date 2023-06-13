@@ -9,7 +9,7 @@ export default {
   computed: {
     type() {return "error"},
     text() {return (this.current_element || {text: ''} ).text || ''},
-    title() {return (this.current_element || {title: ''} ).title || ''},
+    title() {return ((this.current_element || {title: ''} ).title || '') + (this.messages.length <= 1 ? '' : ' (+ ' + (this.messages.length -1) + ' more messages)')},
     current_element() {
         return this.messages.length > 0 ? this.messages[0]: null;
     }
