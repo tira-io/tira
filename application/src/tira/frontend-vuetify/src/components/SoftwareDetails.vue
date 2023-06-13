@@ -5,11 +5,11 @@
     <div v-for="(value, key) in run">
       <v-card-item v-if="!fields_to_skip.includes(key + '')"><b>{{  key }} </b>: {{ value }}</v-card-item>
     </div>
-    <v-card-item><b>Description: </b> {{details.description}}</v-card-item>
-    <v-card-item v-if="details.previous_stage"><b>Previous stage: </b>{{details.previous_stage}}</v-card-item>
+    <v-card-item><b>Description: </b> {{description}}</v-card-item>
+    <v-card-item v-if="previous_stage"><b>Previous stage: </b>{{previous_stage}}</v-card-item>
   </v-card>
 
-  <v-card v-if="!loading && !details_not_visible" flat class="my-5">
+  <v-card v-if="!loading && cli_command && python_command && docker_command" flat class="my-5">
     <h3>Reproduction</h3>
     <v-tabs v-model="tab">
       <v-tab value="one">CLI command</v-tab>
@@ -20,21 +20,21 @@
     <v-card-text>
       <v-window v-model="tab">
         <v-window-item value="one">
-          <v-code>{{ details.cli_command }}</v-code>
+          <v-code tag="pre" > {{ cli_command }}</v-code>
         </v-window-item>
       
         <v-window-item value="two">
-          <v-code>{{ details.python_command }}</v-code>
+          <v-code tag="pre" > {{ python_command }}</v-code>
         </v-window-item>
   
         <v-window-item value="three">
-          <v-code>{{ details.docker_command }}</v-code>
+          <v-code tag="pre" > {{ docker_command }}</v-code>
         </v-window-item>
       </v-window>
     </v-card-text>
   </v-card>
 
-  <v-card v-if="details_not_visible" flat class="my-5">
+  <v-card v-if="!cli_command || !python_command || !docker_command" flat class="my-5">
     <h3>Reproduction</h3>
     <v-card-item>TIRA allows to reproduce/replicate submitted software approaches via a single command using Docker. This software is not yet made publicly available.</v-card-item>
     <v-card-item>Please <a :href="contact_organizer">contact</a> the organizer <a :href="link_organizer"> {{ organizer }}</a> or the team <a :href="run.link_to_team">{{ run.vm_id }}</a> if you want to have access to this software or its results, as they can decide (in consultation with each other) to make the software and/or its results publicly available via TIRA.</v-card-item>
@@ -55,7 +55,12 @@ export default {
     return {
       loading: true,
       task_id: extractTaskFromCurrentUrl(),
-      details: {'description': 'No description available.', 'previous_stage': null, 'cli_command': '', 'python_command': '', 'docker_command': ''},
+      description: 'No description available.',
+      previous_stage: null,
+      cli_command: '',
+      python_command: '',
+      docker_command: '',
+      tira_run_export: '',
       details_not_visible: false,
       role: extractRole(), // Values: user, participant, admin,
       tab: null,

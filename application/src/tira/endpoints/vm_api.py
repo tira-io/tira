@@ -504,6 +504,33 @@ def docker_software_delete(request, task_id, vm_id, docker_software_id):
                             status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
+def __normalize_command(cmd, evaluator):
+    to_normalize = {'inputRun': '/tira-data/input-run',
+                    'outputDir': '/tira-data/output',
+                    'inputDataset': '/tira-data/input'
+                    }
+
+    if 'inputRun' in cmd and evaluator:
+        to_normalize['outputDir'] = '/tira-data/eval_output'
+        to_normalize['inputDataset'] = '/tira-data/input_truth'
+
+    for k, v in to_normalize.items():
+        cmd = cmd.replace('$' + k, v).replace('${' + k + '}', v)
+
+    return cmd
+
+
+def construct_verbosity_output(image, command, approach):
+    command = __normalize_command(command, '')
+    return {
+        'tira_run_export': 'tira-run --export-dataset --output-directory tira-dataset',
+        'cli_command': 'tira-run \\\n  --input-directory tira-dataset \\\n  --output-directory tira-output \\\n  --approach '
+                       + approach,
+        'python_command': f'tira.run("{approach}", "tira-dataset")',
+        'docker_command': 'docker run --rm -ti \\\n  -v ${PWD}/tira-dataset:/tira-data/input:ro \\\n  -v '
+                          '${PWD}/tira-output:/tira-data/output:rw -\\\n  -entrypoint sh ' + f'\\\n  t{image} \\\n  -c \'{command}\''
+    }
+
 @check_permissions
 @check_resources_exist('json')
 def run_details(request, task_id, vm_id, run_id):
@@ -511,12 +538,20 @@ def run_details(request, task_id, vm_id, run_id):
     software, docker_software, run_upload = None, None, None
     vm_id_from_run = None
 
+    repro_details = {'tira-run-export': None, 'tira-run-cli': None, 'tira-run-python': None, 'docker': None}
+
     if 'software_id' in run and run['software_id']:
         software = model.get_software(software)
         vm_id_from_run = software['vm']
     elif 'docker_software_id' in run and run['docker_software_id']:
-        docker_software = model.get_docker_software(software)
-        vm_id_from_run = docker_software['vm']
+        docker_software = model.get_docker_software(run['docker_software_id'])
+        print(docker_software)
+        vm_id_from_run = docker_software['vm_id']
+
+        if docker_software['public_image_name']:
+            repro_details = construct_verbosity_output(docker_software['public_image_name'], docker_software['command'],
+                                                       task_id + '/' + vm_id + '/' + docker_software['display_name'])
+
     elif 'upload_id' in run and run['upload_id']:
         import tira.model as modeldb
         run_upload = modeldb.Upload.objects.filter(vm__vm_id=vm_id, id=run['upload_id']).get()
@@ -525,16 +560,14 @@ def run_details(request, task_id, vm_id, run_id):
     if not vm_id_from_run or vm_id != vm_id_from_run:
         return HttpResponseNotAllowed(f"Access forbidden.")
 
-    ret = {'description': 'No description is available.', 'previous_stage': 'No previous stage',
+    ret = {'description': 'No description is available.', 'previous_stage': None,
            'cli_command': 'TBD cli.', 'docker_command': 'TBD docker.', 'python_command': 'TBD python.'
            }
-    
-    return JsonResponse({'status': 0, 'context': ret})
 
-    #if
-    #if get_docker_software(self, docker_software_id: str) -> dict:
-    #    def get_upload_with_runs(self, task_id, vm_id):
-    #        def get_software(self, task_id, vm_id, software_id):
+    for k, v in repro_details.items():
+        ret[k] = v
+
+    return JsonResponse({'status': 0, 'context': ret})
 
 
 @check_permissions

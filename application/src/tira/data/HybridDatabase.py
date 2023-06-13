@@ -532,6 +532,7 @@ class HybridDatabase(object):
                 'input_docker_software_id': ds.input_docker_software.docker_software_id if ds.input_docker_software else None,
                 'input_upload_id': ds.input_upload.id if ds.input_upload else None,
                 "ir_re_ranker": True if ds.ir_re_ranker else False,
+                'public_image_name': ds.public_image_name,
                 "ir_re_ranking_input": True if ds.ir_re_ranking_input else False
                 }
 
