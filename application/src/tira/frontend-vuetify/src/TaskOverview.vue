@@ -95,7 +95,7 @@
     get('/api/task/' + this.task_id)
       .then(inject_response(this, {'loading': false}, true))
       .then(this.updateDataset)
-      .catch(reportError)
+      .catch(reportError("Problem While Loading the Details of the Task " + this.task_id, "This might be a short-term hiccup, please try again. We got the following error: "))
   },
   watch: {
     selectedDataset(old_value, new_value) { this.newDatasetSelected() },

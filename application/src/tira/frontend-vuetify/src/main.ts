@@ -54,9 +54,7 @@ export default function register_app() {
   app.mount(app_selector)
 }
 
-declare global { interface Window { register_app: any; }}
+declare global { interface Window { register_app: any; push_message: any}}
 window.register_app = register_app;
 
 register_app()
-
-

@@ -63,8 +63,14 @@ export function extractRole() {
     return 'guest'
 }
 
-export function reportError(error: any) {
-    console.log(error)
+export function reportError(title: string="", text: string="") {
+    return function (error: any) {
+        console.log(error)
+        if (title === '') {
+            title = 'Error.'
+        }
+        window.push_message(title, text + ' ' + error, "error")
+    }
 }
 
 export function inject_response(obj: any, default_values: any={}, debug=false) {
@@ -117,7 +123,7 @@ export async function get(url: string) {
       throw new Error(`Error fetching endpoint: ${url} with ${response.status}`);
     }
     let results = await response.json()
-    if (results.status === 1) {
+    if (results.status !== 0) {
       throw new Error(`${results.message}`);
     }
     return results

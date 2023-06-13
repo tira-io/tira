@@ -77,7 +77,7 @@
     beforeMount() {
       get('/api/task-list')
         .then(inject_response(this))
-        .catch(reportError)
+        .catch(reportError("Problem While Loading the Overview of the Tasks.", "This might be a short-term hiccup, please try again. We got the following error: "))
     }
   }
   

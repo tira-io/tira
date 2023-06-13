@@ -1,6 +1,7 @@
 <template>
   <v-app>
     <v-main>
+      <tira-alert/>
       <router-view></router-view>
     </v-main>
   </v-app>
@@ -25,7 +26,9 @@
 </style>
 
 <script lang="ts">
+import TiraAlert from './components/TiraAlert.vue'
 export default {
   name: "app",
+  components: {TiraAlert},
 }
 </script>

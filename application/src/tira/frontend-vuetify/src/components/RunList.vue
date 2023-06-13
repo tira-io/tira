@@ -67,7 +67,7 @@ export default {
       this.loading = true
       get('/api/evaluations/' + this.task_id + '/' + this.dataset_id)
         .then(inject_response(this, {'loading': false}))
-        .catch(reportError)
+        .catch(reportError("Problem While Loading the List of Runs", "This might be a short-term hiccup, please try again. We got the following error: "))
       }
   },
   beforeMount() {this.fetchData()},
