@@ -212,7 +212,7 @@ class DockerSoftware(models.Model):
     ir_re_ranker = models.BooleanField(default=False)
     ir_re_ranking_input = models.BooleanField(default=False)
     public_image_name = models.TextField(default=None, null=True)
-    public_image_size = models.IntegerField(default=None, null=True)
+    public_image_size = models.BigIntegerField(default=None, null=True)
 
 
 class Run(models.Model):
