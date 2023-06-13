@@ -12,5 +12,13 @@
 
 <body>
     <div id="app"></div>
+    <script>
+        setTimeout(function() {
+            try {
+                //this is intended to enable browser back/forth buttons
+                register_app()
+            } catch (Error) {}
+        }, 50);
+    </script>
 </body>
 </html>
