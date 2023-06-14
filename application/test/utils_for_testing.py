@@ -55,13 +55,18 @@ def set_up_tira_environment():
     tira_model.add_dataset('task-of-organizer-1', 'dataset-without-a-name', 'training', '', 'upload-name')
     tira_model.add_software(task_id='shared-task-1', vm_id='PARTICIPANT-FOR-TEST-1')
         
-    with open('tira-root/data/runs/dataset-1/example_participant/run-1/run.prototext', 'w') as f:
-        f.write(f'\nsoftwareId: "upload"\nrunId: "run-1"\ninputDataset: "dataset-1-{now}-training"\ndownloadable: true\ndeleted: false\n')
+    for i in range(30):
+        Path(f'tira-root/data/runs/dataset-1/example_participant/run-{i}/').mkdir(parents=True, exist_ok=True)
+        with open(f'tira-root/data/runs/dataset-1/example_participant/run-{i}/run.prototext', 'w') as f:
+            f.write(f'\nsoftwareId: "upload"\nrunId: "run-{i}"\ninputDataset: "dataset-1-{now}-training"\ndownloadable: true\ndeleted: false\n')
+
+        tira_model.add_run(dataset_id='dataset-1', vm_id='example_participant', run_id=f'run-{i}')
+
 
     with open('tira-root/data/runs/dataset-of-organizer/example_participant/run-of-organizer/run.prototext', 'w') as f:
         f.write(f'\nsoftwareId: "upload"\nrunId: "run-of-organizer"\ninputDataset: "dataset-of-organizer-{now}-training"\ndownloadable: true\ndeleted: false\n')
 
-    tira_model.add_run(dataset_id='dataset-1', vm_id='example_participant', run_id='run-1')
+
     tira_model.add_run(dataset_id='dataset-of-organizer', vm_id='example_participant', run_id='run-of-organizer')
 
 def mock_request(groups, url_pattern, method='GET', body=None, params=None):
