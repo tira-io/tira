@@ -172,6 +172,9 @@ def get_task(request, context, task_id):
     context["remaining_team_names"] = model.remaining_team_names(task_id)
     context["datasets"] = model.get_datasets_by_task(task_id, return_only_names=True)
     context["datasets"] = sorted(context["datasets"], key=lambda i: i['display_name'])
+    for d in context["datasets"]:
+        if not d['display_name']:
+            d['display_name'] = d['dataset_id']
 
     _add_user_vms_to_context(request, context, task_id)
     return JsonResponse({'status': 0, "context": context})
