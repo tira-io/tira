@@ -520,10 +520,10 @@ def __normalize_command(cmd, evaluator):
     return cmd
 
 
-def construct_verbosity_output(image, command, approach):
+def construct_verbosity_output(image, command, approach, task, dataset):
     command = __normalize_command(command, '')
     return {
-        'tira_run_export': 'tira-run --export-dataset --output-directory tira-dataset',
+        'tira_run_export': f'tira-run --export-dataset {task}/{dataset} --output-directory tira-dataset',
         'cli_command': 'tira-run \\\n  --input-directory tira-dataset \\\n  --output-directory tira-output \\\n  --approach '
                        + approach,
         'python_command': f'tira.run("{approach}", "tira-dataset")',
@@ -550,7 +550,8 @@ def run_details(request, task_id, vm_id, run_id):
 
         if docker_software['public_image_name']:
             repro_details = construct_verbosity_output(docker_software['public_image_name'], docker_software['command'],
-                                                       task_id + '/' + vm_id + '/' + docker_software['display_name'])
+                                                       task_id + '/' + vm_id + '/' + docker_software['display_name'],
+                                                       task_id, run['dataset'])
 
     elif 'upload_id' in run and run['upload_id']:
         import tira.model as modeldb

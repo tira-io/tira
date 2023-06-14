@@ -20,14 +20,17 @@
     <v-card-text>
       <v-window v-model="tab">
         <v-window-item value="one">
+          <tira-data-export :run_export="tira_run_export" />
           <v-code tag="pre" > {{ cli_command }}</v-code>
         </v-window-item>
       
         <v-window-item value="two">
+          <tira-data-export :run_export="tira_run_export" />
           <v-code tag="pre" > {{ python_command }}</v-code>
         </v-window-item>
   
         <v-window-item value="three">
+          <tira-data-export :run_export="tira_run_export" />
           <v-code tag="pre" > {{ docker_command }}</v-code>
         </v-window-item>
       </v-window>
@@ -45,12 +48,13 @@
 
 <script lang="ts">
 import Loading from './Loading.vue'
+import TiraDataExport from './TiraDataExport.vue'
 import { get, inject_response, extractRole, extractTaskFromCurrentUrl, get_link_to_organizer, get_contact_link_to_organizer } from '../utils';
 
 export default {
   name: "software-details",
   props: ['run', 'organizer', 'organizer_id', 'columns_to_skip'],
-  components: {Loading},
+  components: {Loading, TiraDataExport},
   data() {
     return {
       loading: true,
@@ -82,7 +86,6 @@ export default {
   methods: {
     fetchData() {
       this.loading = true
-      console.log(this.run)
       get('/task/' + this.task_id + '/vm/' + this.run.vm_id + '/run_details/' + this.run.run_id)
         .then(inject_response(this, {'loading': false}))
         .catch(() => {this.details_not_visible = true; this.loading = false})
