@@ -207,8 +207,8 @@ class Client():
         suffix = ("input-data" if not truth_dataset else "truth-data")
         if os.path.isdir(target_dir + suffix):
             return target_dir + suffix
-
-        self.download_and_extract_zip(f'https://www.tira.io/data-download/training/input-{("" if not truth_dataset else "truth")}/{dataset}.zip', target_dir)
+        data_type = 'training' if dataset.endswith('-training') else 'test'
+        self.download_and_extract_zip(f'https://www.tira.io/data-download/{data_type}/input-{("" if not truth_dataset else "truth")}/{dataset}.zip', target_dir)
 
         os.rename(target_dir + f'/{dataset}', target_dir + suffix)
 
