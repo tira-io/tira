@@ -10,7 +10,22 @@ from tira.rest_client_api import Client
 tira = Client()
 output = tira.get_run_output('<task>/<team>/<approach>', '<dataset>')
 ```
+## Export datasets
 
+You can export datasets if you are the owner or if the dataset is public.
+Export a dataset via the cli:
+
+```
+tira-run --export-dataset '<task>/<tira-dataset>' --output-directory tira-dataset
+```
+
+Export a dataset via the python API:
+```
+from tira.rest_api_client import Client
+
+tira = Client()
+tira.download_dataset('<task>', '<tira-dataset>')
+```
 
 ## Running Jupyter Notebooks with TIRA
 
