@@ -573,6 +573,30 @@ def run_details(request, task_id, vm_id, run_id):
 
 @check_permissions
 @check_resources_exist('json')
+def software_details(request, task_id, vm_id, software_name):
+    docker_software = model.get_docker_software_by_name(software_name, task_id, vm_id)
+
+    if not docker_software:
+        return JsonResponse({'status': 0, 'message': f'Could not find a software with name "{software_name}"'})
+
+    repro_details = {'tira-run-export': None, 'tira-run-cli': None, 'tira-run-python': None, 'docker': None}
+    if docker_software['public_image_name']:
+        repro_details = construct_verbosity_output(docker_software['public_image_name'], docker_software['command'],
+                                                       task_id + '/' + vm_id + '/' + docker_software['display_name'],
+                                                       task_id, '<dataset>')
+
+    ret = {'description': 'No description is available.', 'previous_stage': None,
+           'cli_command': 'TBD cli.', 'docker_command': 'TBD docker.', 'python_command': 'TBD python.'
+           }
+
+    for k, v in repro_details.items():
+        ret[k] = v
+
+    return JsonResponse({'status': 0, 'context': ret})
+
+
+@check_permissions
+@check_resources_exist('json')
 def run_execute_docker_software(request, task_id, vm_id, dataset_id, docker_software_id, docker_resources, rerank_dataset=None):
     if not task_id or task_id is None or task_id == 'None':
         return JsonResponse({"status": 1, "message": "Please specify the associated task_id."})
