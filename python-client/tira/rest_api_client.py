@@ -51,6 +51,12 @@ class Client():
             if i['display_name'] == software:
                 return i
 
+    def docker_software_details(self, approach):
+        task, team, software = approach.split('/')
+        ret = self.json_response(f'/task/{task}/vm/{team}/software_details/{software}')
+
+        return ret
+
     def metadata_for_task(self, task_name, team_name):
         return self.json_response(f'/api/task/{task_name}/user/{team_name}')
 

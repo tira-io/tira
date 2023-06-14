@@ -564,7 +564,7 @@ def run_details(request, task_id, vm_id, run_id):
         return HttpResponseNotAllowed(f"Access forbidden.")
 
     ret = {'description': 'No description is available.', 'previous_stage': None,
-           'cli_command': 'TBD cli.', 'docker_command': 'TBD docker.', 'python_command': 'TBD python.'
+           'cli_command': None, 'docker_command': None, 'python_command': None
            }
 
     for k, v in repro_details.items():

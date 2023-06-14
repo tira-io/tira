@@ -49,6 +49,6 @@ def main():
         shutil.copytree(data_dir, args.output_directory)
         
         return
-    
+
     client.local_execution.run(identifier=args.approach, image=args.image, command=args.command, input_dir=args.input_directory, output_dir=args.output_directory, verbose=args.verbose, dry_run=args.dry_run, allow_network=args.allow_network, input_run=args.input_run, additional_volumes=args.v)
 
