@@ -393,10 +393,9 @@ def user_is_registered(task_id, request):
 
 
 def remaining_team_names(task_id):
-    #already_used_teams = model.all_registered_teams()
-    #allowed_task_teams = sorted(list(all_allowed_task_teams(task_id)))
-    #return [i for i in allowed_task_teams if i not in already_used_teams]
-    return []
+    already_used_teams = model.all_registered_teams()
+    allowed_task_teams = sorted(list(all_allowed_task_teams(task_id)))
+    return [i for i in allowed_task_teams if i not in already_used_teams]
 
 
 # ------------------------------------------------------------

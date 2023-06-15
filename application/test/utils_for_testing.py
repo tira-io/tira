@@ -13,6 +13,8 @@ from tira.tira_model import model as tira_model
 #Used for some tests
 now = datetime.now().strftime("%Y%m%d")
 dataset_1 = f'dataset-1-{now}-training'
+dataset_2 = f'dataset-2-{now}-test'
+
 from pathlib import Path
 import shutil
 from django.core.management import call_command
@@ -76,6 +78,26 @@ def set_up_tira_environment():
 
             eval_run = modeldb.Run.objects.create(run_id=f'run-{i}-{participant}-eval', input_run=run, input_dataset=d)
             modeldb.Review.objects.create(run=eval_run, published=participant in {'example_participant', 'participant-1'})
+            modeldb.Evaluation.objects.create(measure_key='k-1', measure_value=k_1, run=eval_run)
+            modeldb.Evaluation.objects.create(measure_key='k-2', measure_value=k_2, run=eval_run)
+
+            k_1 -= 0.1
+            k_2 += 0.1
+
+    d = modeldb.Dataset.objects.get(dataset_id=dataset_2)
+    for i in range(2):
+        for participant in ['participant-1', 'participant-2']:
+            run_id = f'run-ds2-{i}-{participant}'
+            Path(f'tira-root/data/runs/dataset-2/{participant}/{run_id}/').mkdir(parents=True, exist_ok=True)
+            with open(f'tira-root/data/runs/dataset-2/{participant}/{run_id}/run.prototext', 'w') as f:
+                f.write(
+                    f'\nsoftwareId: "upload"\nrunId: "{run_id}"\ninputDataset: "dataset-2-{now}-test"\ndownloadable: true\ndeleted: false\n')
+
+            tira_model.add_run(dataset_id='dataset-2', vm_id=participant, run_id=run_id)
+            run = modeldb.Run.objects.get(run_id=run_id)
+
+            eval_run = modeldb.Run.objects.create(run_id=f'run-ds2-{i}-{participant}-eval', input_run=run, input_dataset=d)
+            modeldb.Review.objects.create(run=eval_run, published=participant == 'participant-1')
             modeldb.Evaluation.objects.create(measure_key='k-1', measure_value=k_1, run=eval_run)
             modeldb.Evaluation.objects.create(measure_key='k-2', measure_value=k_2, run=eval_run)
 

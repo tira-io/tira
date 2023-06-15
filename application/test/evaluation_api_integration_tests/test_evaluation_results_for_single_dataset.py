@@ -1,6 +1,6 @@
 from django.test import TestCase
 from api_access_matrix import GUEST, ADMIN
-from utils_for_testing import dataset_1, method_for_url_pattern, mock_request, set_up_tira_environment
+from utils_for_testing import dataset_1, dataset_2, method_for_url_pattern, mock_request, set_up_tira_environment
 
 url = 'api/evaluations/<str:task_id>/<str:dataset_id>'
 evaluations_function = method_for_url_pattern(url)
@@ -40,6 +40,27 @@ class TestEvaluationResults(TestCase):
 
         # Assert
         self.verify_as_json(actual, 'test_for_existing_task_and_dataset_with_few_evaluations_including_blinded.json')
+
+    def test_for_existing_task_and_dataset_with_little_evaluations(self):
+        # Arrange
+        request = mock_request(GUEST, url)
+
+        # Act
+        actual = evaluations_function(request, task_id='shared-task-1', dataset_id=dataset_2)
+
+        # Assert
+        self.verify_as_json(actual, 'existing_task_and_dataset_with_little_evaluations.json')
+
+    def test_for_existing_task_and_dataset_with_little_evaluations_including_blinded(self):
+        # Arrange
+        request = mock_request(ADMIN, url)
+
+        # Act
+        actual = evaluations_function(request, task_id='shared-task-1', dataset_id=dataset_2)
+
+        # Assert
+        self.verify_as_json(actual, 'test_for_existing_task_and_dataset_with_little_evaluations_including_blinded.json')
+
 
     def verify_as_json(self, actual, test_name):
         from approvaltests import verify_as_json

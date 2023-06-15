@@ -92,6 +92,7 @@ urlpatterns = [
     path('api/organizer-list', data_api.get_organizer_list, name='get_organizer_list'),
     path('api/task-list', data_api.get_task_list, name='get_task_list'),
     path('api/task/<str:task_id>', data_api.get_task, name='get_task'),
+    path('api/registration_formular/<str:task_id>', data_api.get_registration_formular, name='get_registration_formular'),
     path('api/dataset/<str:dataset_id>', data_api.get_dataset, name='get_dataset'),
     path('api/datasets_by_task/<str:task_id>', data_api.get_dataset_for_task, name='get_dataset_for_task'),
     path('api/organizer/<str:organizer_id>', data_api.get_organizer, name='get_organizer'),
