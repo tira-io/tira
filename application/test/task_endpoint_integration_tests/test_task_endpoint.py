@@ -37,7 +37,14 @@ class TestTaskEndpoint(TestCase):
         import json
 
         self.assertEquals(200, actual.status_code)
-        verify_as_json(json.loads(actual.content), options=Options().with_namer(CliNamer(test_name)))
+        content = json.loads(actual.content)
+
+        if 'context' in content:
+            for d in content['context']['datasets']:
+                d['dataset_id'] = d['dataset_id'].split('-20')[0]
+                d['display_name'] = d['display_name'].split('-20')[0]
+
+        verify_as_json(content, options=Options().with_namer(CliNamer(test_name)))
 
 
     @classmethod

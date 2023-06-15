@@ -2,11 +2,11 @@
     "context": {
         "datasets": [
             {
-                "dataset_id": "dataset-without-a-name-20230614-training",
-                "display_name": "dataset-without-a-name-20230614-training"
+                "dataset_id": "dataset-without-a-name",
+                "display_name": "dataset-without-a-name"
             },
             {
-                "dataset_id": "dataset-of-organizer-20230614-training",
+                "dataset_id": "dataset-of-organizer",
                 "display_name": "dataset-of-organizer"
             }
         ],

@@ -748,9 +748,6 @@ class HybridDatabase(object):
                     continue
                 try:
                     input_run = run.input_run
-                    # print(input_run.software)
-                    # print(input_run.docker_software)
-                    # print(input_run.upload)
                     software_name = ''
                     if input_run.software:
                         vm_id = run.input_run.software.vm.vm_id
