@@ -1,5 +1,7 @@
 import { ref } from 'vue'
 
+let allowed_roles = new Set(['guest', 'user', 'participant', 'admin'])
+
 export function extractTaskFromCurrentUrl() {
     let loc = ref(window.location).value.href
     
@@ -59,7 +61,17 @@ export function chanceCurrentUrlToDataset(dataset: string) {
     }
 }
 
-export function extractRole() {
+export function extractRole(doc: Document=document) : string {
+    try {
+        var ret = doc.querySelector('#user_metadata')
+        if (ret) {
+            ret = JSON.parse(ret.innerHTML)['role']
+            if (allowed_roles.has("" + ret)) {
+                return "" + ret
+            }
+        }
+    } catch { }
+    
     return 'guest'
 }
 

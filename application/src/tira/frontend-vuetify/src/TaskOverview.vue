@@ -45,6 +45,8 @@
   </v-card>
   </v-container>
 
+  <tira-task-admin/>
+
   <v-container v-if="!loading" id="dataset-select">
     <h2>Submissions</h2>
     <v-autocomplete label="Dataset" :items="datasets" item-title="display_name" item-value="dataset_id"
@@ -55,13 +57,13 @@
 </template>
 
 <script lang="ts">
-  import { TiraBreadcrumb, RunList, Loading, SubmitButton } from './components'
+  import { TiraBreadcrumb, TiraTaskAdmin, RunList, Loading, SubmitButton } from './components'
   import { VAutocomplete } from 'vuetify/components'
-  import { extractTaskFromCurrentUrl, get_link_to_organizer, get_contact_link_to_organizer, extractDatasetFromCurrentUrl, chanceCurrentUrlToDataset, get, inject_response, reportError, extractRole } from './utils'
+  import { extractTaskFromCurrentUrl, get_link_to_organizer, get_contact_link_to_organizer, extractDatasetFromCurrentUrl, chanceCurrentUrlToDataset, get, inject_response, reportError, extractRole} from './utils'
 
   export default {
     name: "task-list",
-    components: {TiraBreadcrumb, RunList, Loading, VAutocomplete, SubmitButton},
+    components: {TiraBreadcrumb, RunList, Loading, VAutocomplete, SubmitButton, TiraTaskAdmin},
     data() {
       return {
         task_id: extractTaskFromCurrentUrl(),
