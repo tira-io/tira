@@ -39,16 +39,17 @@ def check_permissions(func):
         if role == auth.ROLE_ADMIN or role == auth.ROLE_TIRA:
             return func(request, *args, **kwargs)
 
+        # SERP endpoint is allowed for runs that are published and unblinded
+        if (request.path_info.startswith('serp/') or request.path_info.startswith('/serp/')) and run_id \
+                and run_id in request.path_info and model.run_is_public_and_unblinded(run_id):
+            return func(request, *args, **kwargs)
+
         if 'run_id_1' in kwargs or 'run_id_2' in kwargs:
             return HttpResponseNotAllowed(f"Access forbidden.")
 
         if auth.user_is_organizer_for_endpoint(request=request, path=request.path_info, task_id=task_id,
                                                organizer_id_from_params=organizer_id, dataset_id_from_params=dataset_id,
                                                run_id_from_params=run_id, vm_id_from_params=vm_id, role=role):
-            return func(request, *args, **kwargs)
-
-        # SERP endpoint is allowed for runs that are published and unblinded
-        if request.path_info.startswith('/serp/') and run_id and run_id in request.path_info and model.run_is_public_and_unblinded(run_id):
             return func(request, *args, **kwargs)
 
         if vm_id:
