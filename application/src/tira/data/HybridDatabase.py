@@ -755,7 +755,8 @@ class HybridDatabase(object):
         with connection.cursor() as cursor:
             keys = dict()
             input_run_to_evaluation = {}
-            rows = cursor.execute(prepared_statement, params=[dataset_id]).fetchall()
+            cursor.execute(prepared_statement, params=[dataset_id])
+            rows = cursor.fetchall()
             for run_id, input_run_id, upload_display_name, upload_vm_id, software_vm_id, docker_display_name, \
                     docker_vm_id, published, blinded, measure_key, measure_value in rows:
 
