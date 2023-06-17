@@ -349,6 +349,10 @@ class HybridDatabase(object):
         except modeldb.Dataset.DoesNotExist:
             return {}
 
+    def run_is_public_and_unblinded(self, run_id):
+        review = modeldb.Review.objects.get(run_id=run_id)
+        return review.published and not review.blinded
+
     def get_reranking_docker_softwares(self):
         return [self._docker_software_to_dict(i) for i in modeldb.DockerSoftware.objects.filter(ir_re_ranking_input=True)]
 

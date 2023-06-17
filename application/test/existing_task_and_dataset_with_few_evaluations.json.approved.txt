@@ -22,7 +22,7 @@
                 "vm_id": "example_participant"
             },
             {
-                "blinded": true,
+                "blinded": false,
                 "input_run_id": "run-0-participant-1",
                 "input_software_name": "default upload",
                 "measures": [
@@ -46,7 +46,7 @@
                 "vm_id": "example_participant"
             },
             {
-                "blinded": true,
+                "blinded": false,
                 "input_run_id": "run-1-participant-1",
                 "input_software_name": "default upload",
                 "measures": [
@@ -70,7 +70,7 @@
                 "vm_id": "example_participant"
             },
             {
-                "blinded": true,
+                "blinded": false,
                 "input_run_id": "run-2-participant-1",
                 "input_software_name": "default upload",
                 "measures": [
@@ -94,7 +94,7 @@
                 "vm_id": "example_participant"
             },
             {
-                "blinded": true,
+                "blinded": false,
                 "input_run_id": "run-3-participant-1",
                 "input_software_name": "default upload",
                 "measures": [
@@ -118,7 +118,7 @@
                 "vm_id": "example_participant"
             },
             {
-                "blinded": true,
+                "blinded": false,
                 "input_run_id": "run-4-participant-1",
                 "input_software_name": "default upload",
                 "measures": [
@@ -142,7 +142,7 @@
                 "vm_id": "example_participant"
             },
             {
-                "blinded": true,
+                "blinded": false,
                 "input_run_id": "run-5-participant-1",
                 "input_software_name": "default upload",
                 "measures": [
@@ -166,7 +166,7 @@
                 "vm_id": "example_participant"
             },
             {
-                "blinded": true,
+                "blinded": false,
                 "input_run_id": "run-6-participant-1",
                 "input_software_name": "default upload",
                 "measures": [
@@ -190,7 +190,7 @@
                 "vm_id": "example_participant"
             },
             {
-                "blinded": true,
+                "blinded": false,
                 "input_run_id": "run-7-participant-1",
                 "input_software_name": "default upload",
                 "measures": [
@@ -214,7 +214,7 @@
                 "vm_id": "example_participant"
             },
             {
-                "blinded": true,
+                "blinded": false,
                 "input_run_id": "run-8-participant-1",
                 "input_software_name": "default upload",
                 "measures": [
@@ -238,7 +238,7 @@
                 "vm_id": "example_participant"
             },
             {
-                "blinded": true,
+                "blinded": false,
                 "input_run_id": "run-9-participant-1",
                 "input_software_name": "default upload",
                 "measures": [
@@ -264,10 +264,12 @@
                 "vm_id": "example_participant"
             },
             {
-                "blinded": true,
+                "blinded": false,
                 "input_software_name": "default upload",
                 "k-1": 1.9,
                 "k-2": 1.1,
+                "link_results_download": "/task/shared-task-1/user/participant-1/dataset/dataset-1-20230617-training/download/run-0-participant-1-eval.zip",
+                "link_run_download": "/task/shared-task-1/user/participant-1/dataset/dataset-1-20230617-training/download/run-0-participant-1.zip",
                 "link_to_team": "https://www.tira.io/g/tira_vm_participant-1",
                 "published": true,
                 "run_id": "run-0-participant-1",
@@ -284,10 +286,12 @@
                 "vm_id": "example_participant"
             },
             {
-                "blinded": true,
+                "blinded": false,
                 "input_software_name": "default upload",
                 "k-1": 1.6,
                 "k-2": 1.4,
+                "link_results_download": "/task/shared-task-1/user/participant-1/dataset/dataset-1-20230617-training/download/run-1-participant-1-eval.zip",
+                "link_run_download": "/task/shared-task-1/user/participant-1/dataset/dataset-1-20230617-training/download/run-1-participant-1.zip",
                 "link_to_team": "https://www.tira.io/g/tira_vm_participant-1",
                 "published": true,
                 "run_id": "run-1-participant-1",
@@ -304,10 +308,12 @@
                 "vm_id": "example_participant"
             },
             {
-                "blinded": true,
+                "blinded": false,
                 "input_software_name": "default upload",
                 "k-1": 1.3,
                 "k-2": 1.7,
+                "link_results_download": "/task/shared-task-1/user/participant-1/dataset/dataset-1-20230617-training/download/run-2-participant-1-eval.zip",
+                "link_run_download": "/task/shared-task-1/user/participant-1/dataset/dataset-1-20230617-training/download/run-2-participant-1.zip",
                 "link_to_team": "https://www.tira.io/g/tira_vm_participant-1",
                 "published": true,
                 "run_id": "run-2-participant-1",
@@ -324,10 +330,12 @@
                 "vm_id": "example_participant"
             },
             {
-                "blinded": true,
+                "blinded": false,
                 "input_software_name": "default upload",
                 "k-1": 1.0,
                 "k-2": 2.0,
+                "link_results_download": "/task/shared-task-1/user/participant-1/dataset/dataset-1-20230617-training/download/run-3-participant-1-eval.zip",
+                "link_run_download": "/task/shared-task-1/user/participant-1/dataset/dataset-1-20230617-training/download/run-3-participant-1.zip",
                 "link_to_team": "https://www.tira.io/g/tira_vm_participant-1",
                 "published": true,
                 "run_id": "run-3-participant-1",
@@ -344,10 +352,12 @@
                 "vm_id": "example_participant"
             },
             {
-                "blinded": true,
+                "blinded": false,
                 "input_software_name": "default upload",
                 "k-1": 0.7,
                 "k-2": 2.3,
+                "link_results_download": "/task/shared-task-1/user/participant-1/dataset/dataset-1-20230617-training/download/run-4-participant-1-eval.zip",
+                "link_run_download": "/task/shared-task-1/user/participant-1/dataset/dataset-1-20230617-training/download/run-4-participant-1.zip",
                 "link_to_team": "https://www.tira.io/g/tira_vm_participant-1",
                 "published": true,
                 "run_id": "run-4-participant-1",
@@ -364,10 +374,12 @@
                 "vm_id": "example_participant"
             },
             {
-                "blinded": true,
+                "blinded": false,
                 "input_software_name": "default upload",
                 "k-1": 0.4,
                 "k-2": 2.6,
+                "link_results_download": "/task/shared-task-1/user/participant-1/dataset/dataset-1-20230617-training/download/run-5-participant-1-eval.zip",
+                "link_run_download": "/task/shared-task-1/user/participant-1/dataset/dataset-1-20230617-training/download/run-5-participant-1.zip",
                 "link_to_team": "https://www.tira.io/g/tira_vm_participant-1",
                 "published": true,
                 "run_id": "run-5-participant-1",
@@ -384,10 +396,12 @@
                 "vm_id": "example_participant"
             },
             {
-                "blinded": true,
+                "blinded": false,
                 "input_software_name": "default upload",
                 "k-1": 0.1,
                 "k-2": 2.9,
+                "link_results_download": "/task/shared-task-1/user/participant-1/dataset/dataset-1-20230617-training/download/run-6-participant-1-eval.zip",
+                "link_run_download": "/task/shared-task-1/user/participant-1/dataset/dataset-1-20230617-training/download/run-6-participant-1.zip",
                 "link_to_team": "https://www.tira.io/g/tira_vm_participant-1",
                 "published": true,
                 "run_id": "run-6-participant-1",
@@ -404,10 +418,12 @@
                 "vm_id": "example_participant"
             },
             {
-                "blinded": true,
+                "blinded": false,
                 "input_software_name": "default upload",
                 "k-1": -0.2,
                 "k-2": 3.2,
+                "link_results_download": "/task/shared-task-1/user/participant-1/dataset/dataset-1-20230617-training/download/run-7-participant-1-eval.zip",
+                "link_run_download": "/task/shared-task-1/user/participant-1/dataset/dataset-1-20230617-training/download/run-7-participant-1.zip",
                 "link_to_team": "https://www.tira.io/g/tira_vm_participant-1",
                 "published": true,
                 "run_id": "run-7-participant-1",
@@ -424,10 +440,12 @@
                 "vm_id": "example_participant"
             },
             {
-                "blinded": true,
+                "blinded": false,
                 "input_software_name": "default upload",
                 "k-1": -0.5,
                 "k-2": 3.5,
+                "link_results_download": "/task/shared-task-1/user/participant-1/dataset/dataset-1-20230617-training/download/run-8-participant-1-eval.zip",
+                "link_run_download": "/task/shared-task-1/user/participant-1/dataset/dataset-1-20230617-training/download/run-8-participant-1.zip",
                 "link_to_team": "https://www.tira.io/g/tira_vm_participant-1",
                 "published": true,
                 "run_id": "run-8-participant-1",
@@ -444,10 +462,12 @@
                 "vm_id": "example_participant"
             },
             {
-                "blinded": true,
+                "blinded": false,
                 "input_software_name": "default upload",
                 "k-1": -0.8,
                 "k-2": 3.8,
+                "link_results_download": "/task/shared-task-1/user/participant-1/dataset/dataset-1-20230617-training/download/run-9-participant-1-eval.zip",
+                "link_run_download": "/task/shared-task-1/user/participant-1/dataset/dataset-1-20230617-training/download/run-9-participant-1.zip",
                 "link_to_team": "https://www.tira.io/g/tira_vm_participant-1",
                 "published": true,
                 "run_id": "run-9-participant-1",

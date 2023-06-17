@@ -178,6 +178,17 @@ def get_evaluators_for_task(task_id, cache, force_cache_refresh=False):
     return ret           
 
 
+def run_is_public_and_unblinded(run_id: str) -> bool:
+    """
+    Returns true if the run is published, false otherwise.
+    """
+    try:
+        return model.run_is_public_and_unblinded(run_id)
+    except:
+        pass
+
+    #return False
+
 def get_docker_software(docker_software_id: int) -> dict:
     """
     Return the docker software as dict with keys:

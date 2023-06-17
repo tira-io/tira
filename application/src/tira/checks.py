@@ -47,6 +47,10 @@ def check_permissions(func):
                                                run_id_from_params=run_id, vm_id_from_params=vm_id, role=role):
             return func(request, *args, **kwargs)
 
+        # SERP endpoint is allowed for runs that are published and unblinded
+        if request.path_info.startswith('/serp/') and run_id and run_id in request.path_info and model.run_is_public_and_unblinded(run_id):
+            return func(request, *args, **kwargs)
+
         if vm_id:
             if not model.vm_exists(vm_id):  # If the resource does not exist
                 return redirect('tira:request_vm')
