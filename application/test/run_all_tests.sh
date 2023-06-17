@@ -16,4 +16,5 @@ python3 ../src/manage.py migrate tira
 ../venv/bin/coverage report --data-file=test-coverage/.coverage > test-coverage/coverage-report
 cd test-coverage
 
+rm -Rf coverage.svg
 ../../venv/bin/coverage-badge -o coverage.svg
