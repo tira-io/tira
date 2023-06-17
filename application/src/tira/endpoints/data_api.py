@@ -185,7 +185,7 @@ def get_task(request, context, task_id):
         if not d['display_name']:
             d['display_name'] = d['dataset_id']
 
-    _add_user_vms_to_context(request, context, task_id)
+    _add_user_vms_to_context(request, context, task_id, include_docker_details=False)
     return JsonResponse({'status': 0, "context": context})
 
 
