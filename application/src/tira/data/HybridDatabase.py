@@ -350,6 +350,7 @@ class HybridDatabase(object):
             return {}
 
     def run_is_public_and_unblinded(self, run_id):
+        run_id = modeldb.Run.objects.get(input_run__run_id=run_id).run_id
         review = modeldb.Review.objects.get(run_id=run_id)
         return review.published and not review.blinded
 
@@ -735,7 +736,8 @@ class HybridDatabase(object):
         prepared_statement = '''
         SELECT
             evaluation_run.run_id, input_run.run_id, tira_upload.display_name, tira_upload.vm_id, tira_software.vm_id,
-            tira_dockersoftware.display_name, tira_dockersoftware.vm_id, tira_review.published, tira_review.blinded,
+            tira_dockersoftware.display_name, tira_dockersoftware.vm_id, tira_evaluation_review.published,
+            tira_evaluation_review.blinded, tira_run_review.published, tira_run_review.blinded,
             tira_evaluation.measure_key, tira_evaluation.measure_value
         FROM
             tira_run as evaluation_run
@@ -748,7 +750,9 @@ class HybridDatabase(object):
         LEFT JOIN
             tira_dockersoftware ON input_run.docker_software_id = tira_dockersoftware.docker_software_id
         LEFT JOIN
-            tira_review ON evaluation_run.run_id = tira_review.run_id
+            tira_review as tira_evaluation_review ON evaluation_run.run_id = tira_evaluation_review.run_id
+        LEFT JOIN
+            tira_review as tira_run_review ON input_run.run_id = tira_run_review.run_id
         LEFT JOIN
             tira_evaluation ON tira_evaluation.run_id = evaluation_run.run_id
         WHERE
@@ -762,9 +766,9 @@ class HybridDatabase(object):
             cursor.execute(prepared_statement, params=[dataset_id])
             rows = cursor.fetchall()
             for run_id, input_run_id, upload_display_name, upload_vm_id, software_vm_id, docker_display_name, \
-                    docker_vm_id, published, blinded, measure_key, measure_value in rows:
+                    docker_vm_id, eval_published, eval_blinded, run_published, run_blinded, measure_key, measure_value in rows:
 
-                if not measure_key or (not include_unpublished and not published):
+                if not measure_key or (not include_unpublished and not eval_published):
                     continue
 
                 if run_id not in input_run_to_evaluation:
@@ -786,8 +790,8 @@ class HybridDatabase(object):
                 input_run_to_evaluation[run_id]['input_software_name'] = software_name
                 input_run_to_evaluation[run_id]['run_id'] = pretty_run_id
                 input_run_to_evaluation[run_id]['input_run_id'] = input_run_id
-                input_run_to_evaluation[run_id]['published'] = published
-                input_run_to_evaluation[run_id]['blinded'] = blinded
+                input_run_to_evaluation[run_id]['published'] = eval_published and run_published
+                input_run_to_evaluation[run_id]['blinded'] = eval_blinded
                 input_run_to_evaluation[run_id]['measures'][measure_key] = measure_value
                 keys[measure_key] = ''
 

@@ -235,7 +235,7 @@ API_ACCESS_MATRIX = [
     route_to_test(
         url_pattern='serp/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/<str:run_id>',
         params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-1-{now}-training',
-                'vm_id': 'participant-1', 'run_id': 'run-1-participant-1-eval'},
+                'vm_id': 'participant-1', 'run_id': 'run-1-participant-1'},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 200,

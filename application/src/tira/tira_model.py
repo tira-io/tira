@@ -187,7 +187,7 @@ def run_is_public_and_unblinded(run_id: str) -> bool:
     except:
         pass
 
-    #return False
+    return False
 
 def get_docker_software(docker_software_id: int) -> dict:
     """
