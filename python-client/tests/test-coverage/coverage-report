@@ -1,0 +1,9 @@
+Name                               Stmts   Miss  Cover
+------------------------------------------------------
+tests/__init__.py                      0      0   100%
+tests/ir_datasets_test.py             21      0   100%
+tira/__init__.py                       1      0   100%
+tira/ir_datasets_util.py              72      5    93%
+tira/third_party_integrations.py      93     56    40%
+------------------------------------------------------
+TOTAL                                187     61    67%

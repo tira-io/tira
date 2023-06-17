@@ -22,7 +22,7 @@ class TestOrganizerList(TestCase):
             'task_id': 'shared-task-1',
             'vm_id': 'example_participant',
             'dataset_id': f'dataset-1-{now}-training',
-            'run_id': 'run-1'
+            'run_id': 'run-0-example_participant'
         }
         actual = latest_output_of_software_on_dataset('shared-task-1', 'example_participant', 'does-not-exist', -1, f'dataset-1-{now}-training', None)
 

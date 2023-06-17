@@ -10,6 +10,14 @@ export function extractTaskFromCurrentUrl() {
     return null;
 }
 
+export function get_link_to_organizer(organizer_id: string) {
+    return 'https://www.tira.io/g/tira_org_' + organizer_id;
+}
+
+export function get_contact_link_to_organizer(organizer_id: string) {
+    return 'https://www.tira.io/new-message?username=tira_org_' + organizer_id + '&title=Request%20&body=message%20body'
+}
+
 export function extractDatasetFromCurrentUrl(options: Array<any> = [], default_choice: string='') {
     var loc = ref(window.location).value.href
     var dataset_from_url = ''
@@ -47,7 +55,7 @@ export function chanceCurrentUrlToDataset(dataset: string) {
 
     if (loc.includes('task-overview/')) {
         loc = loc.split('task-overview/')[0] + 'task-overview/' + loc.split('task-overview/')[1].split('/')[0] + '/' + dataset
-        history.pushState({'url': loc}, '', loc)
+        history.replaceState({'url': loc}, 'TIRA', loc)
     }
 }
 
@@ -55,8 +63,14 @@ export function extractRole() {
     return 'guest'
 }
 
-export function reportError(error: any) {
-    console.log(error)
+export function reportError(title: string="", text: string="") {
+    return function (error: any) {
+        console.log(error)
+        if (title === '') {
+            title = 'Error.'
+        }
+        window.push_message(title, text + ' ' + error, "error")
+    }
 }
 
 export function inject_response(obj: any, default_values: any={}, debug=false) {
@@ -109,7 +123,7 @@ export async function get(url: string) {
       throw new Error(`Error fetching endpoint: ${url} with ${response.status}`);
     }
     let results = await response.json()
-    if (results.status === 1) {
+    if (results.status !== 0) {
       throw new Error(`${results.message}`);
     }
     return results

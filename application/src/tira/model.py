@@ -155,6 +155,7 @@ class Dataset(models.Model):
     irds_docker_image = models.CharField(max_length=150, null=True, default=None)
     irds_import_command = models.CharField(max_length=150, null=True, default=None)
     irds_import_truth_command = models.CharField(max_length=150, null=True, default=None)
+    #meta_dataset_of = models.ManyToManyField("self", default=None)
 
 
 class TaskHasDataset(models.Model):
@@ -211,6 +212,8 @@ class DockerSoftware(models.Model):
     paper_link = models.TextField(default="")
     ir_re_ranker = models.BooleanField(default=False)
     ir_re_ranking_input = models.BooleanField(default=False)
+    public_image_name = models.TextField(default=None, null=True)
+    public_image_size = models.BigIntegerField(default=None, null=True)
 
 
 class Run(models.Model):

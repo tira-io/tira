@@ -22,3 +22,5 @@ parameterized
 mockito
 approvaltests==7.3.0
 django-extensions
+coverage
+coverage-badge

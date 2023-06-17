@@ -1,7 +1,14 @@
-<h1 align="center"><p><img src="http://assets.tira.io/tira-icons/tira-logo-32px-white.png" style="vertical-align:bottom"> TIRA Integrated Research Architecture </p></h1>
-
+<h1 align="center"><p><img src="http://assets.tira.io/tira-icons/tira-logo-32px-white.png" style="vertical-align:bottom"> TIRA Integrated Research Architecture </p>
+</h1>
 
 This repository contains the source code for all components of the [TIRA](https://www.tira.io) shared task platform.
+
+Components:
+
+- [Backend](application) (test coverage: ![test coverage backend](application/test/test-coverage/coverage.svg))
+- [Frontend](application/src/tira/frontend-vuetify) (test coverage: ![Coverage of the frontend](application/src/tira/frontend-vuetify/coverage/badge-lines.svg))
+- [Python Client](python-client) (test coverage: ![Coverage of the python client](python-client/tests/test-coverage/coverage.svg))
+
 
 ## Setup Your Local Development Environment
 

@@ -14,10 +14,11 @@ from tira.local_execution_integration import LocalExecutionIntegration
 
 
 class Client():
-    def __init__(self, directory='.'):
+    def __init__(self, directory='.', rest_client=None):
         self.pt = PyTerrierIntegration(self)
         self.directory = directory + '/'
         self.tira_cache_dir = os.environ.get('TIRA_CACHE_DIR', os.path.expanduser('~') + '/.tira')
+        self.rest_client = rest_client
         self.local_execution = LocalExecutionIntegration(self)
 
     def all_datasets(self):
@@ -189,6 +190,11 @@ and the
 
     def docker_software(self, approach, software_id=None):
         ret = []
+
+        if not os.path.exists(self.directory + '.tira/submitted-software.jsonl'):
+            from tira.rest_api_client import Client as RestClient
+            ret = RestClient().docker_software_details(approach)['context']
+            return {'tira_image_name': ret['image'], 'command': ret['command'], 'id': None, 'ids_of_previous_stages': []}
 
         for _, i in self.all_softwares().iterrows():
             if (approach and i['approach'] == approach) or (software_id is not None and str(int(software_id)) == i['id']):

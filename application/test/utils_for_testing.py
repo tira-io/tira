@@ -12,9 +12,13 @@ from tira.tira_model import model as tira_model
 
 #Used for some tests
 now = datetime.now().strftime("%Y%m%d")
+dataset_1 = f'dataset-1-{now}-training'
+dataset_2 = f'dataset-2-{now}-test'
+
 from pathlib import Path
 import shutil
 from django.core.management import call_command
+import tira.model as modeldb
 
 
 def set_up_tira_environment():
@@ -40,6 +44,8 @@ def set_up_tira_environment():
     
     tira_model.add_vm('master-vm-for-task-1', 'user_name', 'initial_user_password', 'ip', 'host', '123', '123')
     tira_model.add_vm('example_participant', 'user_name', 'initial_user_password', 'ip', 'host', '123', '123')
+    tira_model.add_vm('participant-1', 'user_name', 'initial_user_password', 'ip', 'host', '123', '123')
+    tira_model.add_vm('participant-2', 'user_name', 'initial_user_password', 'ip', 'host', '123', '123')
     tira_model.add_vm('PARTICIPANT-FOR-TEST-1', 'user_name', 'initial_user_password', 'ip', 'host', '123', '123')
     
     tira_model.create_task('task-of-organizer-1', 'task_name', 'task_description', False, 'master-vm-for-task-1', 'EXAMPLE-ORGANIZER',
@@ -51,15 +57,56 @@ def set_up_tira_environment():
     tira_model.add_dataset('shared-task-1', 'dataset-1', 'training', 'dataset-1', 'upload-name')
     tira_model.add_dataset('shared-task-1', 'dataset-2', 'test', 'dataset-2', 'upload-name')
     tira_model.add_dataset('task-of-organizer-1', 'dataset-of-organizer', 'training', 'dataset-of-organizer', 'upload-name')
+
+    tira_model.add_dataset('task-of-organizer-1', 'dataset-without-a-name', 'training', '', 'upload-name')
     tira_model.add_software(task_id='shared-task-1', vm_id='PARTICIPANT-FOR-TEST-1')
-        
-    with open('tira-root/data/runs/dataset-1/example_participant/run-1/run.prototext', 'w') as f:
-        f.write(f'\nsoftwareId: "upload"\nrunId: "run-1"\ninputDataset: "dataset-1-{now}-training"\ndownloadable: true\ndeleted: false\n')
+
+    k_1 = 2.0
+    k_2 = 1.0
+
+    d = modeldb.Dataset.objects.get(dataset_id=dataset_1)
+    for i in range(10):
+
+        for participant in ['example_participant', 'participant-1', 'participant-2']:
+            run_id = f'run-{i}-{participant}'
+            Path(f'tira-root/data/runs/dataset-1/{participant}/{run_id}/').mkdir(parents=True, exist_ok=True)
+            with open(f'tira-root/data/runs/dataset-1/{participant}/{run_id}/run.prototext', 'w') as f:
+                f.write(f'\nsoftwareId: "upload"\nrunId: "{run_id}"\ninputDataset: "dataset-1-{now}-training"\ndownloadable: true\ndeleted: false\n')
+
+            tira_model.add_run(dataset_id='dataset-1', vm_id=participant, run_id=run_id)
+            run = modeldb.Run.objects.get(run_id=run_id)
+
+            eval_run = modeldb.Run.objects.create(run_id=f'run-{i}-{participant}-eval', input_run=run, input_dataset=d)
+            modeldb.Review.objects.create(run=eval_run, published=participant in {'example_participant', 'participant-1'})
+            modeldb.Evaluation.objects.create(measure_key='k-1', measure_value=k_1, run=eval_run)
+            modeldb.Evaluation.objects.create(measure_key='k-2', measure_value=k_2, run=eval_run)
+
+            k_1 -= 0.1
+            k_2 += 0.1
+
+    d = modeldb.Dataset.objects.get(dataset_id=dataset_2)
+    for i in range(2):
+        for participant in ['participant-1', 'participant-2']:
+            run_id = f'run-ds2-{i}-{participant}'
+            Path(f'tira-root/data/runs/dataset-2/{participant}/{run_id}/').mkdir(parents=True, exist_ok=True)
+            with open(f'tira-root/data/runs/dataset-2/{participant}/{run_id}/run.prototext', 'w') as f:
+                f.write(
+                    f'\nsoftwareId: "upload"\nrunId: "{run_id}"\ninputDataset: "dataset-2-{now}-test"\ndownloadable: true\ndeleted: false\n')
+
+            tira_model.add_run(dataset_id='dataset-2', vm_id=participant, run_id=run_id)
+            run = modeldb.Run.objects.get(run_id=run_id)
+
+            eval_run = modeldb.Run.objects.create(run_id=f'run-ds2-{i}-{participant}-eval', input_run=run, input_dataset=d)
+            modeldb.Review.objects.create(run=eval_run, published=participant == 'participant-1')
+            modeldb.Evaluation.objects.create(measure_key='k-1', measure_value=k_1, run=eval_run)
+            modeldb.Evaluation.objects.create(measure_key='k-2', measure_value=k_2, run=eval_run)
+
+            k_1 -= 0.1
+            k_2 += 0.1
 
     with open('tira-root/data/runs/dataset-of-organizer/example_participant/run-of-organizer/run.prototext', 'w') as f:
         f.write(f'\nsoftwareId: "upload"\nrunId: "run-of-organizer"\ninputDataset: "dataset-of-organizer-{now}-training"\ndownloadable: true\ndeleted: false\n')
 
-    tira_model.add_run(dataset_id='dataset-1', vm_id='example_participant', run_id='run-1')
     tira_model.add_run(dataset_id='dataset-of-organizer', vm_id='example_participant', run_id='run-of-organizer')
 
 def mock_request(groups, url_pattern, method='GET', body=None, params=None):

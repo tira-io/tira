@@ -1,10 +1,11 @@
 <template>
+  <tira-breadcrumb/>
   <loading :loading="loading"/>
 
   <v-container v-if="!loading">
   <v-card class="px2" max-width="2560">
     <v-card-item :title="task.task_name">
-      <template v-slot:subtitle>by <a :href="'https://www.tira.io/g/tira_org_' + task.organizer_id">{{ task.organizer }}</a> (<a :href="'https://www.tira.io/new-message?username=tira_org_' + task.organizer_id + '&title=Request%20&body=message%20body'">contact</a>)</template>
+      <template v-slot:subtitle>by <a :href="link_organizer">{{ task.organizer }}</a> (<a :href="contact_organizer">contact</a>)</template>
     </v-card-item>
 
     <v-card-text class="py-0">
@@ -44,23 +45,23 @@
   </v-card>
   </v-container>
 
-  <v-container v-if="!loading">
+  <v-container v-if="!loading" id="dataset-select">
     <h2>Submissions</h2>
     <v-autocomplete label="Dataset" :items="datasets" item-title="display_name" item-value="dataset_id"
                     v-model="selectedDataset" variant="underlined" clearable/>
 
-    <run-list v-if="selectedDataset" :task_id="task_id" :dataset_id="selectedDataset"/>
+    <run-list v-if="selectedDataset" :task_id="task_id" :organizer="task.organizer" :organizer_id="task.organizer_id" :dataset_id="selectedDataset"/>
   </v-container>
 </template>
 
 <script lang="ts">
-  import { RunList, Loading, SubmitButton } from './components'
+  import { TiraBreadcrumb, RunList, Loading, SubmitButton } from './components'
   import { VAutocomplete } from 'vuetify/components'
-  import { extractTaskFromCurrentUrl, extractDatasetFromCurrentUrl, chanceCurrentUrlToDataset, get, inject_response, reportError, extractRole } from './utils'
+  import { extractTaskFromCurrentUrl, get_link_to_organizer, get_contact_link_to_organizer, extractDatasetFromCurrentUrl, chanceCurrentUrlToDataset, get, inject_response, reportError, extractRole } from './utils'
 
   export default {
     name: "task-list",
-    components: {RunList, Loading, VAutocomplete, SubmitButton},
+    components: {TiraBreadcrumb, RunList, Loading, VAutocomplete, SubmitButton},
     data() {
       return {
         task_id: extractTaskFromCurrentUrl(),
@@ -77,6 +78,10 @@
         datasets: [{'dataset_id': 'loading...', 'display_name': 'loading...'}],
     }
   },
+  computed: {
+    link_organizer() {return get_link_to_organizer(this.task.organizer_id);},
+    contact_organizer() {return get_contact_link_to_organizer(this.task.organizer_id);}
+  },
   methods: {
     updateDataset() {
       this.selectedDataset = extractDatasetFromCurrentUrl(this.datasets, this.selectedDataset)
@@ -90,7 +95,7 @@
     get('/api/task/' + this.task_id)
       .then(inject_response(this, {'loading': false}, true))
       .then(this.updateDataset)
-      .catch(reportError)
+      .catch(reportError("Problem While Loading the Details of the Task " + this.task_id, "This might be a short-term hiccup, please try again. We got the following error: "))
   },
   watch: {
     selectedDataset(old_value, new_value) { this.newDatasetSelected() },

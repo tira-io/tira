@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 import argparse
 from tira.local_client import Client
+from tira.rest_api_client import Client as RestClient
 from tira.local_execution_integration import LocalExecutionIntegration
 import os
+import shutil
 
 def parse_args():
     parser = argparse.ArgumentParser(prog='tira-run')
@@ -11,6 +13,7 @@ def parse_args():
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument('--image')
     group.add_argument('--approach')
+    group.add_argument('--export-dataset', required=False, default=None, type=str)
     parser.add_argument('--command', required=False)
     parser.add_argument('--verbose', required=False, default=False, type=bool)
     parser.add_argument('--dry-run', required=False, default=False, type=bool)
@@ -19,7 +22,7 @@ def parse_args():
     parser.add_argument('--output-directory', required=False, default=str(os.path.abspath("tira-output")))
 
     args = parser.parse_args()
-    if (args.image is None) == (args.approach is None):
+    if (args.image is None) == (args.approach is None) == (args.export_dataset):
         parser.error('You have to exclusively use either --approach or --image.')
     if (args.image is None) != (args.command is None):
         parser.error('The options --image and --command have to be used together.')
@@ -29,5 +32,23 @@ def parse_args():
 def main():
     args = parse_args()
     client = Client()
+    
+    if args.export_dataset:
+        if len(args.export_dataset.split('/')) != 2:
+            print(f'Please pass pass arguments as: --export-dataset <task>/<tira-dataset>. Got {args.export_dataset}')
+            return
+        
+        task, dataset = args.export_dataset.split('/')
+        print(f'Export dataset "{dataset}" for task "{task}" to directory "{args.output_directory}".')
+
+        tira = RestClient()
+        data_dir = tira.download_dataset(task, dataset)
+        
+        if os.path.exists(args.output_directory):
+            print(f'The directory {args.output_directory} specified by --output-directory already exists. I do not overwrite the directory, please remove it manually if you want to export the dataset.')
+        shutil.copytree(data_dir, args.output_directory)
+        
+        return
+
     client.local_execution.run(identifier=args.approach, image=args.image, command=args.command, input_dir=args.input_directory, output_dir=args.output_directory, verbose=args.verbose, dry_run=args.dry_run, allow_network=args.allow_network, input_run=args.input_run, additional_volumes=args.v)
 

@@ -1,11 +1,12 @@
 <template>
+  <tira-breadcrumb/>
   <loading :loading="task_list.length === 0"/>
 
   <v-container v-if="task_list.length > 0">
     <h3 class="text-h3 py-5">Choose a Task</h3>
     <div class="py-5" />
     <div class="d-flex">
-      <v-responsive min-width="220px">
+      <v-responsive min-width="220px" id="task-search">
         <v-text-field class="px-4" clearable label="Type here to filter &hellip;" prepend-inner-icon="mdi-magnify"
                       variant="underlined" v-model="task_filter"/>
       </v-responsive>
@@ -18,21 +19,27 @@
     </div>
     <div class="py-2" />
     <v-data-table :headers="headers_md" :items="task_list" :itemsPerPage="25" :search="task_filter" density="compact"
-                  expand-on-click hover show-expand no-data-text="No tasks have been added, yet." class="d-none d-md-block">
+                  hover show-expand no-data-text="No tasks have been added, yet." class="d-none d-md-block">
       <template v-slot:expanded-row="{ columns, item }">
         <tr>
           <td :colspan="columns.length" class="py-3">{{ item.raw.task_description }}</td>
         </tr>
       </template>
+      <template #item.task_name="{ item }">
+        <a :href="'/task-overview/' + item.value.task_id" style="text-decoration: none !important;">{{ item.value.task_name }}</a>
+      </template>
     </v-data-table>
 
     <!-- TODO: Vuetify will likely introduce a prop to hide columns based on size. Reduce redundancy when that happens. -->
     <v-data-table :headers="headers_xs" :items="task_list" :itemsPerPage="10" :search="task_filter" density="compact"
-                  expand-on-click fixed-footer hover show-expand no-data-text="No tasks have been added, yet." class="d-md-none">
+                  fixed-footer hover show-expand no-data-text="No tasks have been added, yet." class="d-md-none">
       <template v-slot:expanded-row="{ columns, item }">
         <tr>
           <td :colspan="columns.length" class="py-3">{{ item.raw.task_description }}</td>
         </tr>
+      </template>
+      <template #item.task_name="{ item }">
+        <a :href="'/task-overview/' + item.value.task_id" style="text-decoration: none !important;">{{ item.value.task_name }}</a>
       </template>
     </v-data-table>
   </v-container>
@@ -40,9 +47,11 @@
 
 <script lang="ts">
   import { get, reportError, inject_response, extractRole } from './utils';
+  import { Loading, TiraBreadcrumb } from './components'
 
   export default {
     name: "tasks",
+    components: {Loading, TiraBreadcrumb},
     data() {
       return {
         role: extractRole(), // Values: user, participant, admin
@@ -68,7 +77,7 @@
     beforeMount() {
       get('/api/task-list')
         .then(inject_response(this))
-        .catch(reportError)
+        .catch(reportError("Problem While Loading the Overview of the Tasks.", "This might be a short-term hiccup, please try again. We got the following error: "))
     }
   }
   

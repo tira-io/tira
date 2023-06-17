@@ -8,6 +8,8 @@ from contextlib import contextmanager
 from django.core.management.base import BaseCommand, CommandError
 from django.core.management import call_command
 from django.core.cache import cache
+from tqdm import tqdm
+import json
 
 from tira.git_runner import get_git_runner
 from tira.tira_model import load_refresh_timestamp_for_cache_key, get_git_integration, create_re_rank_output_on_dataset, get_all_reranking_datasets, add_input_run_id_to_all_rerank_runs
@@ -51,6 +53,27 @@ class Command(BaseCommand):
 
         git_runner.stop_job_and_clean_up(options['stop_job_and_clean_up'], options['user_id'], options['run_id'])
 
+    def archive_repository_add_images_from_git_repo(self, options):
+        import tira.model as modeldb
+        with open(options['archive_repository_add_images_from_git_repo'], 'r') as f:
+            for l in tqdm(f):
+                l = json.loads(l)
+                if 'docker-software-' not in l['TIRA_SOFTWARE_ID']:
+                    print('Skip')
+                    continue
+
+                docker_software_id = int(l['TIRA_SOFTWARE_ID'].split('docker-software-')[1])
+                software = modeldb.DockerSoftware.objects.get(docker_software_id=docker_software_id)
+                if l['TIRA_COMMAND_TO_EXECUTE'] != software.command or not l['TIRA_IMAGE_TO_EXECUTE'].startswith(software.user_image_name) or l['TIRA_IMAGE_TO_EXECUTE'] != software.tira_image_name:
+                    print('Skip')
+                    continue
+
+                software.public_image_name = l['TIRA_IMAGE_TO_EXECUTE_IN_DOCKERHUB']
+                software.public_image_size = max(l['image_details']['size'], l['image_details']['virtual_size'])
+                software.save()
+
+                
+
     def handle(self, *args, **options):
         if 'organization' not in options or not options['organization']:
             raise ValueError('Please pass --organization')
@@ -80,6 +103,9 @@ class Command(BaseCommand):
 
         if 'stop_job_and_clean_up' in options and options['stop_job_and_clean_up']:
             self.run_command_stop_job_and_clean_up(options, git_runner)
+            
+        if 'archive_repository_add_images_from_git_repo' in options and options['archive_repository_add_images_from_git_repo']:
+            self.archive_repository_add_images_from_git_repo(options)
 
         if 'run_image' in options and options['run_image']:
             git_runner.start_git_workflow(task_id='clickbait-spoiling',
@@ -158,6 +184,7 @@ class Command(BaseCommand):
         parser.add_argument('--archive_repository_download_images', default='false', type=str)
         parser.add_argument('--archive_repository_persist_images', default='false', type=str)
         parser.add_argument('--archive_repository_upload_images', default='false', type=str)
+        parser.add_argument('--archive_repository_add_images_from_git_repo', default=None, type=str)
         parser.add_argument('--archive_repository_persist_datasets', default='false', type=str)
         parser.add_argument('--archive_repository_copy_runs', default='false', type=str)
         parser.add_argument('--running_jobs', default=None, type=str)

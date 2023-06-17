@@ -34,6 +34,8 @@ urlpatterns = [
     path('task/<str:task_id>/vm/<str:vm_id>/delete_software/vm/<str:software_id>', vm_api.software_delete, name='software_delete'),
     path('task/<str:task_id>/vm/<str:vm_id>/delete_software/docker/<str:docker_software_id>', vm_api.docker_software_delete, name='docker_delete'),
     path('task/<str:task_id>/vm/<str:vm_id>/run_details/<str:run_id>', vm_api.run_details, name='run_details'),
+    path('task/<str:task_id>/vm/<str:vm_id>/software_details/<str:software_name>', vm_api.software_details, name='software_details'),
+
 
     path('task/<str:task_id>/vm/<str:vm_id>/upload/<str:dataset_id>/<str:upload_id>', vm_api.upload, name='upload'),
     path('task/<str:task_id>/vm/<str:vm_id>/upload-delete/<str:upload_id>', vm_api.delete_upload, name='deleteupload'),
@@ -90,6 +92,7 @@ urlpatterns = [
     path('api/organizer-list', data_api.get_organizer_list, name='get_organizer_list'),
     path('api/task-list', data_api.get_task_list, name='get_task_list'),
     path('api/task/<str:task_id>', data_api.get_task, name='get_task'),
+    path('api/registration_formular/<str:task_id>', data_api.get_registration_formular, name='get_registration_formular'),
     path('api/dataset/<str:dataset_id>', data_api.get_dataset, name='get_dataset'),
     path('api/datasets_by_task/<str:task_id>', data_api.get_dataset_for_task, name='get_dataset_for_task'),
     path('api/organizer/<str:organizer_id>', data_api.get_organizer, name='get_organizer'),

@@ -339,6 +339,16 @@ class HybridDatabase(object):
         except modeldb.Dataset.DoesNotExist:
             return {}
 
+    def get_docker_software_by_name(self, name, vm_id, task_id) -> dict:
+        try:
+            ret = modeldb.DockerSoftware.objects.filter(vm__vm_id=vm_id, task__task_id=task_id, display_name=name, deleted=False)
+            if len(ret) == 0:
+                return {}
+
+            return self._docker_software_to_dict(ret[0])
+        except modeldb.Dataset.DoesNotExist:
+            return {}
+
     def get_reranking_docker_softwares(self):
         return [self._docker_software_to_dict(i) for i in modeldb.DockerSoftware.objects.filter(ir_re_ranking_input=True)]
 
@@ -532,6 +542,7 @@ class HybridDatabase(object):
                 'input_docker_software_id': ds.input_docker_software.docker_software_id if ds.input_docker_software else None,
                 'input_upload_id': ds.input_upload.id if ds.input_upload else None,
                 "ir_re_ranker": True if ds.ir_re_ranker else False,
+                'public_image_name': ds.public_image_name,
                 "ir_re_ranking_input": True if ds.ir_re_ranking_input else False
                 }
 
@@ -737,9 +748,6 @@ class HybridDatabase(object):
                     continue
                 try:
                     input_run = run.input_run
-                    # print(input_run.software)
-                    # print(input_run.docker_software)
-                    # print(input_run.upload)
                     software_name = ''
                     if input_run.software:
                         vm_id = run.input_run.software.vm.vm_id

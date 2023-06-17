@@ -126,10 +126,9 @@ def _add_task_to_context(context, task_id, dataset_id):
     context["web"] = json.dumps(task['web'], cls=DjangoJSONEncoder)
 
 
-def _add_user_vms_to_context(request, context, task_id):
-    allowed_vms_for_task = model.all_allowed_task_teams(task_id)
-
+def _add_user_vms_to_context(request, context, task_id, include_docker_details=True):
     if context["role"] != auth.ROLE_GUEST:
+        allowed_vms_for_task = model.all_allowed_task_teams(task_id)
         vm_id = auth.get_vm_id(request, context["user_id"])
         vm_ids = []
     
@@ -143,7 +142,7 @@ def _add_user_vms_to_context(request, context, task_id):
 
         docker = ['Your account has no docker registry. Please contact an organizer.']
 
-        if len(vm_ids) > 0:
+        if include_docker_details and len(vm_ids) > 0:
             docker = model.load_docker_data(task_id, vm_ids[0], cache, force_cache_refresh=False)
 
             if not docker:

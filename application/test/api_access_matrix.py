@@ -124,7 +124,7 @@ API_ACCESS_MATRIX = [
     ),
     route_to_test(
         url_pattern='task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/download/<str:run_id>.zip',
-        params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-1-{now}-training', 'vm_id': 'example_participant', 'run_id': 'run-1'},
+        params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-1-{now}-training', 'vm_id': 'example_participant', 'run_id': 'run-1-example_participant'},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 302, # TODO: Look at this again. Should be 405?
@@ -190,7 +190,7 @@ API_ACCESS_MATRIX = [
     ),
     route_to_test(
         url_pattern='task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/download/<str:run_id>.zip',
-        params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-1-{now}-training', 'vm_id': PARTICIPANT.split('_')[-1], 'run_id': 'run-1'},
+        params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-1-{now}-training', 'vm_id': PARTICIPANT.split('_')[-1], 'run_id': 'run-1-example_participant'},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 302, # TODO: Look at this again. Should be 405?
@@ -201,7 +201,7 @@ API_ACCESS_MATRIX = [
     ),
     route_to_test(
         url_pattern='task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/download/<str:run_id>.zip',
-        params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-2-{now}-test', 'vm_id': 'example_participant', 'run_id': 'run-1'},
+        params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-2-{now}-test', 'vm_id': 'example_participant', 'run_id': 'run-1-example_participant'},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 405,
@@ -212,7 +212,7 @@ API_ACCESS_MATRIX = [
     ),
     route_to_test(
         url_pattern='task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/download/<str:run_id>.zip',
-        params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-2-{now}-test', 'vm_id': PARTICIPANT.split('_')[-1], 'run_id': 'run-1'},
+        params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-2-{now}-test', 'vm_id': PARTICIPANT.split('_')[-1], 'run_id': 'run-1-example_participant'},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 405,
@@ -223,7 +223,7 @@ API_ACCESS_MATRIX = [
     ),
     route_to_test(
         url_pattern='serp/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/<str:run_id>',
-        params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-1-{now}-training', 'vm_id': PARTICIPANT.split('_')[-1], 'run_id': 'run-1'},
+        params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-1-{now}-training', 'vm_id': PARTICIPANT.split('_')[-1], 'run_id': 'run-1-example_participant'},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 302,  # TODO: Look at this again. Should be 405?
@@ -234,7 +234,7 @@ API_ACCESS_MATRIX = [
     ),
     route_to_test(
         url_pattern='serp/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/<str:run_id>',
-        params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-2-{now}-test', 'vm_id': 'example_participant', 'run_id': 'run-1'},
+        params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-2-{now}-test', 'vm_id': 'example_participant', 'run_id': 'run-1-example_participant'},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 405,
@@ -246,7 +246,7 @@ API_ACCESS_MATRIX = [
     route_to_test(
         url_pattern='serp/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/<str:run_id>',
         params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-2-{now}-test', 'vm_id': PARTICIPANT.split('_')[-1],
-                'run_id': 'run-1'},
+                'run_id': 'run-1-example_participant'},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 405,
@@ -323,7 +323,7 @@ API_ACCESS_MATRIX = [
     ),
     route_to_test(
         url_pattern='task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/run/<str:run_id>',
-        params={'task_id': 'shared-task-1', 'vm_id': 'example_participant', 'dataset_id': f'dataset-1-{now}-training', 'run_id': 'run-1'},
+        params={'task_id': 'shared-task-1', 'vm_id': 'example_participant', 'dataset_id': f'dataset-1-{now}-training', 'run_id': 'run-1-example_participant'},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 302,
@@ -334,7 +334,7 @@ API_ACCESS_MATRIX = [
     ),
     route_to_test(
         url_pattern='task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/run/<str:run_id>',
-        params={'task_id': 'shared-task-1', 'vm_id': 'example_participant', 'dataset_id': f'dataset-2-{now}-test', 'run_id': 'run-1'},
+        params={'task_id': 'shared-task-1', 'vm_id': 'example_participant', 'dataset_id': f'dataset-2-{now}-test', 'run_id': 'run-ds2-1-participant-1'},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 302,
@@ -345,7 +345,7 @@ API_ACCESS_MATRIX = [
     ),
     route_to_test(
         url_pattern='task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/run/<str:run_id>',
-        params={'task_id': 'shared-task-1', 'vm_id': PARTICIPANT.split('_')[-1], 'dataset_id': f'dataset-1-{now}-training', 'run_id': 'run-1'},
+        params={'task_id': 'shared-task-1', 'vm_id': PARTICIPANT.split('_')[-1], 'dataset_id': f'dataset-1-{now}-training', 'run_id': 'run-1-example_participant'},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 302,
@@ -356,7 +356,7 @@ API_ACCESS_MATRIX = [
     ),
     route_to_test(
         url_pattern='task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/run/<str:run_id>',
-        params={'task_id': 'shared-task-1', 'vm_id': PARTICIPANT.split('_')[-1], 'dataset_id': f'dataset-2-{now}-test', 'run_id': 'run-1'},
+        params={'task_id': 'shared-task-1', 'vm_id': PARTICIPANT.split('_')[-1], 'dataset_id': f'dataset-2-{now}-test', 'run_id': 'run-ds2-1-participant-1'},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 302,
@@ -633,7 +633,18 @@ API_ACCESS_MATRIX = [
     ),
     route_to_test(
         url_pattern='task/<str:task_id>/vm/<str:vm_id>/run_details/<str:run_id>',
-        params={'task_id': 'shared-task-1', 'vm_id': 'example_participant', 'run_id': 'run-1'},
+        params={'task_id': 'shared-task-1', 'vm_id': 'example_participant', 'run_id': 'run-1-example_participant'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 302,
+            ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
+        },
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>/vm/<str:vm_id>/software_details/<str:software_name>',
+        params={'task_id': 'shared-task-1', 'vm_id': 'example_participant', 'software_name': 'does-not-exist'},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 302,
@@ -886,7 +897,7 @@ API_ACCESS_MATRIX = [
     ),
     route_to_test(
         url_pattern='grpc/<str:vm_id>/run_eval/<str:dataset_id>/<str:run_id>',
-        params={'vm_id': 'does-not-exist', 'dataset_id': f'dataset-1-{now}-training', 'run_id': 'run-1'},
+        params={'vm_id': 'does-not-exist', 'dataset_id': f'dataset-1-{now}-training', 'run_id': 'run-1-example_participant'},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 302,
@@ -898,7 +909,7 @@ API_ACCESS_MATRIX = [
     # TODO Add later
     #route_to_test(
     #    url_pattern='grpc/<str:vm_id>/run_eval/<str:dataset_id>/<str:run_id>',
-    #    params={'vm_id': PARTICIPANT.split('_')[-1], 'dataset_id': f'dataset-1-{now}-training', 'run_id': 'run-1'},
+    #    params={'vm_id': PARTICIPANT.split('_')[-1], 'dataset_id': f'dataset-1-{now}-training', 'run_id': 'run-1-example_participant'},
     #    group_to_expected_status_code={
     #        ADMIN: 200,
     #        GUEST: 302,
@@ -908,7 +919,7 @@ API_ACCESS_MATRIX = [
     #),
     route_to_test(
         url_pattern='grpc/<str:task_id>/<str:user_id>/stop_docker_software/<str:run_id>',
-        params={'user_id': 'example_participant', 'task_id': f'shared-task-1', 'run_id': 'run-1'},
+        params={'user_id': 'example_participant', 'task_id': f'shared-task-1', 'run_id': 'run-1-example_participant'},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 302, # Was error
@@ -919,7 +930,7 @@ API_ACCESS_MATRIX = [
     ),
     route_to_test(
         url_pattern='grpc/<str:task_id>/<str:user_id>/stop_docker_software/<str:run_id>',
-        params={'user_id': PARTICIPANT.split('_')[-1], 'task_id': f'shared-task-1', 'run_id': 'run-1'},
+        params={'user_id': PARTICIPANT.split('_')[-1], 'task_id': f'shared-task-1', 'run_id': 'run-1-example_participant'},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 302,
@@ -1230,7 +1241,7 @@ API_ACCESS_MATRIX = [
     route_to_test(
         url_pattern='tira-admin/edit-review/<str:dataset_id>/<str:vm_id>/<str:run_id>',
         params={'dataset_id': f'dataset-of-organizer-{now}-training', 'vm_id': 'vm-id-does-not-exist',
-                'run_id': 'run-1'},
+                'run_id': 'run-1-example_participant'},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 405,
@@ -1297,7 +1308,7 @@ API_ACCESS_MATRIX = [
     ),
     route_to_test(
         url_pattern='api/evaluation/<str:vm_id>/<str:run_id>',
-        params={'vm_id': 'example-participant', 'run_id': 'run-1'},
+        params={'vm_id': 'example-participant', 'run_id': 'run-1-example_participant'},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 302,  # TODO Make consistent with "api/evaluations/<str:task_id>/<str:dataset_id>"
@@ -1308,7 +1319,7 @@ API_ACCESS_MATRIX = [
     ),
     route_to_test(
         url_pattern='api/evaluation/<str:vm_id>/<str:run_id>',
-        params={'vm_id': PARTICIPANT.split('_')[-1], 'run_id': 'run-1'},
+        params={'vm_id': PARTICIPANT.split('_')[-1], 'run_id': 'run-1-example_participant'},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 302,  # TODO Make consistent with "api/evaluations/<str:task_id>/<str:dataset_id>"
@@ -1374,6 +1385,17 @@ API_ACCESS_MATRIX = [
     ),
     route_to_test(
         url_pattern='api/task/<str:task_id>',
+        params={'task_id': 'task-id-does-not-exist'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 200,
+            PARTICIPANT: 200,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 200,
+        },
+    ),
+    route_to_test(
+        url_pattern='api/registration_formular/<str:task_id>',
         params={'task_id': 'task-id-does-not-exist'},
         group_to_expected_status_code={
             ADMIN: 200,
@@ -1495,7 +1517,7 @@ API_ACCESS_MATRIX = [
     ),
     route_to_test(
         url_pattern='api/review/<str:dataset_id>/<str:vm_id>/<str:run_id>',
-        params={'dataset_id': 'dataset-id-does-not-exist', 'vm_id': 'example_participant', 'run_id': 'run-1'},
+        params={'dataset_id': 'dataset-id-does-not-exist', 'vm_id': 'example_participant', 'run_id': 'run-1-example_participant'},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 405,
@@ -1506,7 +1528,7 @@ API_ACCESS_MATRIX = [
     ),
     route_to_test(
         url_pattern='api/review/<str:dataset_id>/<str:vm_id>/<str:run_id>',
-        params={'dataset_id': f'dataset-1-{now}-training', 'vm_id': 'example_participant', 'run_id': 'run-1'},
+        params={'dataset_id': f'dataset-1-{now}-training', 'vm_id': 'example_participant', 'run_id': 'run-1-example_participant'},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 302, # TODO: Is this inconsistent with api/review/<str:dataset_id>/<str:vm_id>/<str:run_id> above?
@@ -1517,7 +1539,7 @@ API_ACCESS_MATRIX = [
     ),
     route_to_test(
         url_pattern='api/review/<str:dataset_id>/<str:vm_id>/<str:run_id>',
-        params={'dataset_id': f'dataset-1-{now}-training', 'vm_id': PARTICIPANT.split('_')[-1], 'run_id': 'run-1'},
+        params={'dataset_id': f'dataset-1-{now}-training', 'vm_id': PARTICIPANT.split('_')[-1], 'run_id': 'run-1-example_participant'},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 302, # TODO: Is this inconsistent with api/review/<str:dataset_id>/<str:vm_id>/<str:run_id> above?
@@ -1540,7 +1562,7 @@ API_ACCESS_MATRIX = [
     route_to_test(
         url_pattern='api/review/<str:dataset_id>/<str:vm_id>/<str:run_id>',
         params={'dataset_id': f'dataset-of-organizer-{now}-training', 'vm_id': 'does-not-exist',
-                'run_id': 'run-1'},
+                'run_id': 'run-1-example_participant'},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 302,  # TODO: Is this inconsistent with api/review/<str:dataset_id>/<str:vm_id>/<str:run_id> above?
@@ -1626,7 +1648,7 @@ API_ACCESS_MATRIX = [
     # Some commands that delete stuff must be executed as last
     route_to_test(
         url_pattern='grpc/<str:vm_id>/run_delete/<str:dataset_id>/<str:run_id>',
-        params={'vm_id': 'does-not-exist', 'dataset_id': f'dataset-1-{now}-training', 'run_id': 'run-1'},
+        params={'vm_id': 'does-not-exist', 'dataset_id': f'dataset-1-{now}-training', 'run_id': 'run-1-example_participant'},
         group_to_expected_status_code={
             ADMIN: 202,
             GUEST: 302,
@@ -1637,7 +1659,7 @@ API_ACCESS_MATRIX = [
     ),
     route_to_test(
         url_pattern='grpc/<str:vm_id>/run_delete/<str:dataset_id>/<str:run_id>',
-        params={'vm_id': PARTICIPANT.split('_')[-1], 'dataset_id': f'dataset-1-{now}-training', 'run_id': 'run-1'},
+        params={'vm_id': PARTICIPANT.split('_')[-1], 'dataset_id': f'dataset-1-{now}-training', 'run_id': 'run-1-example_participant'},
         group_to_expected_status_code={
             ADMIN: 202,
             GUEST: 302,

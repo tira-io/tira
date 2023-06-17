@@ -1,0 +1,149 @@
+{
+    "context": {
+        "dataset_id": "dataset-2",
+        "ev_keys": [
+            "k-1",
+            "k-2"
+        ],
+        "evaluations": [
+            {
+                "blinded": true,
+                "input_run_id": "run-ds2-0-participant-1",
+                "input_software_name": "Run Upload",
+                "measures": [
+                    -1.0,
+                    4.0
+                ],
+                "published": true,
+                "run_id": "run-ds2-0-participant-1-eval",
+                "vm_id": "participant-1"
+            },
+            {
+                "blinded": true,
+                "input_run_id": "run-ds2-0-participant-2",
+                "input_software_name": "Run Upload",
+                "measures": [
+                    -1.1,
+                    4.1
+                ],
+                "published": false,
+                "run_id": "run-ds2-0-participant-2-eval",
+                "vm_id": "participant-2"
+            },
+            {
+                "blinded": true,
+                "input_run_id": "run-ds2-1-participant-1",
+                "input_software_name": "Run Upload",
+                "measures": [
+                    -1.2,
+                    4.2
+                ],
+                "published": true,
+                "run_id": "run-ds2-1-participant-1-eval",
+                "vm_id": "participant-1"
+            },
+            {
+                "blinded": true,
+                "input_run_id": "run-ds2-1-participant-2",
+                "input_software_name": "Run Upload",
+                "measures": [
+                    -1.3,
+                    4.3
+                ],
+                "published": false,
+                "run_id": "run-ds2-1-participant-2-eval",
+                "vm_id": "participant-2"
+            }
+        ],
+        "include_navigation": false,
+        "role": "admin",
+        "runs": [
+            {
+                "blinded": true,
+                "input_software_name": "Run Upload",
+                "k-1": -1.0,
+                "k-2": 4.0,
+                "link_to_team": "https://www.tira.io/g/tira_vm_participant-1",
+                "published": true,
+                "run_id": "run-ds2-0-participant-1",
+                "vm_id": "participant-1"
+            },
+            {
+                "blinded": true,
+                "input_software_name": "Run Upload",
+                "k-1": -1.1,
+                "k-2": 4.1,
+                "link_to_team": "https://www.tira.io/g/tira_vm_participant-2",
+                "published": false,
+                "run_id": "run-ds2-0-participant-2",
+                "vm_id": "participant-2"
+            },
+            {
+                "blinded": true,
+                "input_software_name": "Run Upload",
+                "k-1": -1.2,
+                "k-2": 4.2,
+                "link_to_team": "https://www.tira.io/g/tira_vm_participant-1",
+                "published": true,
+                "run_id": "run-ds2-1-participant-1",
+                "vm_id": "participant-1"
+            },
+            {
+                "blinded": true,
+                "input_software_name": "Run Upload",
+                "k-1": -1.3,
+                "k-2": 4.3,
+                "link_to_team": "https://www.tira.io/g/tira_vm_participant-2",
+                "published": false,
+                "run_id": "run-ds2-1-participant-2",
+                "vm_id": "participant-2"
+            }
+        ],
+        "table_headers": [
+            {
+                "key": "vm_id",
+                "title": "Team"
+            },
+            {
+                "key": "input_software_name",
+                "title": "Approach"
+            },
+            {
+                "key": "run_id",
+                "title": "Run"
+            },
+            {
+                "key": "k-1",
+                "title": "k-1"
+            },
+            {
+                "key": "k-2",
+                "title": "k-2"
+            },
+            {
+                "key": "actions",
+                "sortable": false,
+                "title": ""
+            }
+        ],
+        "table_headers_small_layout": [
+            {
+                "key": "input_software_name",
+                "title": "Approach"
+            },
+            {
+                "key": "k-1",
+                "title": "k-1"
+            }
+        ],
+        "table_sort_by": [
+            {
+                "key": "k-1",
+                "order": "desc"
+            }
+        ],
+        "task_id": "shared-task-1",
+        "user_id": "ignored-user."
+    },
+    "status": 0
+}

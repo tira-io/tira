@@ -177,6 +177,7 @@ def get_evaluators_for_task(task_id, cache, force_cache_refresh=False):
     
     return ret           
 
+
 def get_docker_software(docker_software_id: int) -> dict:
     """
     Return the docker software as dict with keys:
@@ -184,6 +185,10 @@ def get_docker_software(docker_software_id: int) -> dict:
     {'docker_software_id', 'display_name', 'user_image_name', 'command', 'tira_image_name', 'task_id', vm_id'}
     """ 
     return model.get_docker_software(docker_software_id)
+
+
+def get_docker_software_by_name(name, vm_id, task_id) -> dict:
+    return model.get_docker_software_by_name(name, vm_id, task_id)
 
 
 def get_organizer(organizer_id: str):

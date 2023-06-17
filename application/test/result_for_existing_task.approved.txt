@@ -1,0 +1,54 @@
+{
+    "context": {
+        "datasets": [
+            {
+                "dataset_id": "dataset-without-a-name",
+                "display_name": "dataset-without-a-name"
+            },
+            {
+                "dataset_id": "dataset-of-organizer",
+                "display_name": "dataset-of-organizer"
+            }
+        ],
+        "docker_documentation": [
+            "Your account has no docker registry. Please contact an organizer."
+        ],
+        "include_navigation": false,
+        "remaining_team_names": [],
+        "role": "user",
+        "task": {
+            "allowed_task_teams": "",
+            "command_description": "Available variables: <code>$inputDataset</code>, <code>$inputRun</code>, <code>$outputDir</code>, <code>$dataServer</code>, and <code>$token</code>.",
+            "command_placeholder": "help_command",
+            "dataset_count": 2,
+            "dataset_label": "Input dataset",
+            "featured": false,
+            "irds_re_ranking_command": "",
+            "irds_re_ranking_image": "",
+            "irds_re_ranking_resource": "",
+            "is_ir_task": false,
+            "master_vm_id": "master-vm-for-task-1",
+            "max_file_list_chars_on_test_data": 0,
+            "max_file_list_chars_on_test_data_eval": 0,
+            "max_std_err_chars_on_test_data": 0,
+            "max_std_err_chars_on_test_data_eval": 0,
+            "max_std_out_chars_on_test_data": 0,
+            "max_std_out_chars_on_test_data_eval": 0,
+            "organizer": "EXAMPLE_ORGANIZER",
+            "organizer_id": "EXAMPLE-ORGANIZER",
+            "require_groups": false,
+            "require_registration": false,
+            "restrict_groups": false,
+            "software_count": 0,
+            "task_description": "task_description",
+            "task_id": "task-of-organizer-1",
+            "task_name": "task_name",
+            "web": "website",
+            "year": "years"
+        },
+        "user_id": "ignored-user.",
+        "user_is_registered": true,
+        "user_vms_for_task": []
+    },
+    "status": 0
+}
