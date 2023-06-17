@@ -60,7 +60,15 @@ def get_evaluations_by_dataset(request, context, task_id, dataset_id):
     """
     role = context["role"]
 
-    ev_keys, evaluations = model.get_evaluations_with_keys_by_dataset(dataset_id, True if role == "admin" else None)
+    user_vms_for_task = []
+    _add_user_vms_to_context(request, context, task_id, include_docker_details=False)
+
+    if 'user_vms_for_task' in user_vms_for_task:
+        user_vms_for_task = context['user_vms_for_task']
+    task = model.get_task(task_id, False)
+    is_ir_task = 'is_ir_task' in task and task['is_ir_task']
+    is_admin = role == "admin"
+    ev_keys, evaluations = model.get_evaluations_with_keys_by_dataset(dataset_id, is_admin)
 
     context["task_id"] = task_id
     context["dataset_id"] = dataset_id
@@ -79,6 +87,7 @@ def get_evaluations_by_dataset(request, context, task_id, dataset_id):
     for i in evaluations:
         i = deepcopy(i)
         i['link_to_team'] = 'https://www.tira.io/g/tira_vm_' + i['vm_id'] if not i['vm_id'].endswith('-default') else 'https://www.tira.io/u/' + i['vm_id'].split('-default')[0]
+        eval_run_id = i["run_id"]
         for k, v in [('input_run_id', 'run_id')]:
             i[v] = i[k]
             del i[k]
@@ -89,6 +98,12 @@ def get_evaluations_by_dataset(request, context, task_id, dataset_id):
         for j in ['measures']:
             del i[j]
         runs += [i]
+
+        if not i['blinded'] and (is_admin or i['vm_id'] in user_vms_for_task or i['published']):
+            i['link_results_download'] = f'/task/{task_id}/user/{i["vm_id"]}/dataset/{dataset_id}/download/{eval_run_id}.zip'
+            i['link_run_download'] = f'/task/{task_id}/user/{i["vm_id"]}/dataset/{dataset_id}/download/{i["run_id"]}.zip'
+            if is_ir_task:
+                i['link_serp'] = f'/serp/{task_id}/user/{i["vm_id"]}/dataset/{dataset_id}/{i["run_id"]}'
 
     context["runs"] = runs
 

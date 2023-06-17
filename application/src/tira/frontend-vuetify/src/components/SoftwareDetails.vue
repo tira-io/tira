@@ -43,18 +43,24 @@
     <v-card-item>Please <a :href="contact_organizer">contact</a> the organizer <a :href="link_organizer"> {{ organizer }}</a> or the team <a :href="run.link_to_team">{{ run.vm_id }}</a> if you want to have access to this software or its results, as they can decide (in consultation with each other) to make the software and/or its results publicly available via TIRA.</v-card-item>
   </v-card>
 
+  <v-card flat class="d-md-none my-5">
+    <h3>Actions</h3>
+    <run-actions :run="run"/>
+  </v-card>
+
   <loading :loading="loading"/>
 </template>
 
 <script lang="ts">
 import Loading from './Loading.vue'
 import TiraDataExport from './TiraDataExport.vue'
+import RunActions from './RunActions.vue';
 import { get, inject_response, extractRole, extractTaskFromCurrentUrl, get_link_to_organizer, get_contact_link_to_organizer } from '../utils';
 
 export default {
   name: "software-details",
   props: ['run', 'organizer', 'organizer_id', 'columns_to_skip'],
-  components: {Loading, TiraDataExport},
+  components: {Loading, TiraDataExport, RunActions},
   data() {
     return {
       loading: true,
@@ -74,7 +80,7 @@ export default {
     link_organizer() {return get_link_to_organizer(this.organizer_id);},
     contact_organizer() {return get_contact_link_to_organizer(this.organizer_id);},
     fields_to_skip() {
-      let ret = ['vm_id', 'input_software_name', 'published', 'blinded', 'link_to_team']
+      let ret = ['vm_id', 'input_software_name', 'published', 'blinded', 'link_to_team', 'link_results_download', 'link_run_download', 'link_serp']
 
       for (var i of this.columns_to_skip) {
         ret.push(i.key)

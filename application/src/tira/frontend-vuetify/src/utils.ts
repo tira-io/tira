@@ -65,7 +65,7 @@ export function extractRole(doc: Document=document) : string {
     try {
         var ret = doc.querySelector('#user_metadata')
         if (ret) {
-            ret = JSON.parse(ret.innerHTML)['role']
+            ret = JSON.parse(ret.innerHTML.split('user_metadata = ')[1])['role']
             if (allowed_roles.has("" + ret)) {
                 return "" + ret
             }

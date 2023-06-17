@@ -24,13 +24,13 @@ test('Guest is the default role if a valid json is in a different tag.', () => {
 });
 
 test('Extract admin if admin is specified.', () => {
-    let d = doc('<script id="user_metadata">{"role": "admin"}</script>')
+    let d = doc('<script id="user_metadata">user_metadata = {"role": "admin"}</script>')
     
     expect(extractRole(d)).toBe('admin')
 });
 
 test('Extract participant if participant is specified.', () => {
-    let d = doc('<script id="user_metadata">{"role": "participant"}</script>')
+    let d = doc('<script id="user_metadata">user_metadata = {"role": "participant"}</script>')
     
     expect(extractRole(d)).toBe('participant')
 });

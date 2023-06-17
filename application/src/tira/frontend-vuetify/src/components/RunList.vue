@@ -5,7 +5,7 @@
                   :items="runs" item-value="Run" v-model:sort-by="table_sort_by" density="compact"
                   show-select class="elevation-1 d-none d-md-block" hover>
       <template v-slot:item.actions="{item}">
-        <run-actions :run_id="item.Run" />
+        <run-actions :run="item.value" />
       </template>
       <template #item.vm_id="{ item }">
         <a target="_blank" :href="item.value.link_to_team">{{ item.value.vm_id }}</a>
