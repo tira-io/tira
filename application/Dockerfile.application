@@ -1,5 +1,5 @@
 #Build Vuitify in first stage: Only change in case of new / updated dependencies
-FROM webis/tira-application:build-vuetify-0.0.62
+FROM webis/tira-application:build-vuetify-0.0.63
 
 COPY application/src/tira/frontend-vuetify /src/tira/frontend-vuetify
 
@@ -36,6 +36,7 @@ RUN cd /tira/application/src/tira/frontend/ && \
 COPY --from=0 /src/tira/static/tira/frontend-vuetify/ /tira/application/src/tira/static/tira/frontend-vuetify/
 
 RUN cd /tira/application/ && \
+	pip3 install coverage coverage-badge && \
         ./test/run_all_tests.sh
 
 CMD sh -c "nginx && uwsgi --uid 1010 --gid 1010 --ini /tira/application/src/uwsgi.ini"
