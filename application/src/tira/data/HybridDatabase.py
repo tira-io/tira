@@ -790,8 +790,8 @@ class HybridDatabase(object):
                 input_run_to_evaluation[run_id]['input_software_name'] = software_name
                 input_run_to_evaluation[run_id]['run_id'] = pretty_run_id
                 input_run_to_evaluation[run_id]['input_run_id'] = input_run_id
-                input_run_to_evaluation[run_id]['published'] = eval_published and run_published
-                input_run_to_evaluation[run_id]['blinded'] = eval_blinded
+                input_run_to_evaluation[run_id]['published'] = eval_published
+                input_run_to_evaluation[run_id]['blinded'] = eval_blinded or run_blinded
                 input_run_to_evaluation[run_id]['measures'][measure_key] = measure_value
                 keys[measure_key] = ''
 
