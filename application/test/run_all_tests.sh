@@ -12,5 +12,8 @@ python3 ../src/manage.py makemigrations tira
 
 python3 ../src/manage.py migrate tira
 
-python3 ../src/manage.py test --settings=settings_test --failfast
+../venv/bin/coverage run --data-file=test-coverage/.coverage ../src/manage.py test --settings=settings_test --failfast
+../venv/bin/coverage report --data-file=test-coverage/.coverage > test-coverage/coverage-report
+cd test-coverage
 
+../../venv/bin/coverage-badge -o coverage.svg

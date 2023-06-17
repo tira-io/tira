@@ -61,15 +61,18 @@ class TestEvaluationResults(TestCase):
         # Assert
         self.verify_as_json(actual, 'test_for_existing_task_and_dataset_with_little_evaluations_including_blinded.json')
 
-
     def verify_as_json(self, actual, test_name):
         from approvaltests import verify_as_json
         from approvaltests.core.options import Options
         from approvaltests.namer.cli_namer import CliNamer
         import json
+        content = json.loads(actual.content)
+
+        if 'context' in content and 'dataset_id' in content['context']:
+            content['context']['dataset_id'] = content['context']['dataset_id'].split('-20')[0]
 
         self.assertEquals(200, actual.status_code)
-        verify_as_json(json.loads(actual.content), options=Options().with_namer(CliNamer(test_name)))
+        verify_as_json(content, options=Options().with_namer(CliNamer(test_name)))
 
     @classmethod
     def tearDownClass(cls):
