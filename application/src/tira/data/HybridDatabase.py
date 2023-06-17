@@ -726,78 +726,75 @@ class HybridDatabase(object):
             except ValueError:
                 return fl
 
-        def format_evaluation(r, ks, run_id_to_software_name):
-            """
-            @param r: a queryset of modeldb.Run
-            @param ks: a list of keys of evaluation parameters
-            """
-            def if_exists(evals):
-                for k in ks:
-                    ev = evals.filter(run__run_id=run.run_id, measure_key=k).all()
-                    if ev.exists():
-                        yield round_if_float(ev[0].measure_value)
-                    else:
-                        yield "-"
+        from django.db import connection
 
-            # print(r.all().values())
-            for run in r:
-                if run.run_id in exclude:
+        prepared_statement = '''
+        SELECT
+            evaluation_run.run_id, input_run.run_id, tira_upload.display_name, tira_upload.vm_id, tira_software.vm_id,
+            tira_dockersoftware.display_name, tira_dockersoftware.vm_id, tira_review.published, tira_review.blinded,
+            tira_evaluation.measure_key, tira_evaluation.measure_value
+        FROM
+            tira_run as evaluation_run
+        INNER JOIN 
+            tira_run as input_run ON evaluation_run.input_run_id = input_run.run_id
+        LEFT JOIN
+            tira_upload ON input_run.upload_id = tira_upload.id
+        LEFT JOIN
+            tira_software ON input_run.software_id = tira_software.id
+        LEFT JOIN
+            tira_dockersoftware ON input_run.docker_software_id = tira_dockersoftware.docker_software_id
+        LEFT JOIN
+            tira_review ON evaluation_run.run_id = tira_review.run_id
+        LEFT JOIN
+            tira_evaluation ON tira_evaluation.run_id = evaluation_run.run_id
+        WHERE
+            evaluation_run.input_run_id is not null AND evaluation_run.input_dataset_id = %s
+        ORDER BY
+            tira_evaluation.id ASC;
+        '''
+        with connection.cursor() as cursor:
+            keys = dict()
+            input_run_to_evaluation = {}
+            rows = cursor.execute(prepared_statement, params=[dataset_id]).fetchall()
+            for run_id, input_run_id, upload_display_name, upload_vm_id, software_vm_id, docker_display_name, \
+                    docker_vm_id, published, blinded, measure_key, measure_value in rows:
+
+                if not measure_key or (not include_unpublished and not published):
                     continue
-                values = evaluations.filter(run__run_id=run.run_id).all()
-                if not values.exists():
-                    continue
-                try:
-                    input_run = run.input_run
-                    software_name = ''
-                    if input_run.software:
-                        vm_id = run.input_run.software.vm.vm_id
-                    elif input_run.docker_software:
-                        vm_id = run.input_run.docker_software.vm.vm_id
-                        software_name = run.input_run.docker_software.display_name
-                    elif input_run.upload:
-                        vm_id = run.input_run.upload.vm.vm_id
-                        software_name = 'Run Upload'
-                    else:
-                        logger.error(
-                            f"The input run {run.run_id} has no vm assigned. Assigning None instead")
-                        vm_id = "None"
 
-                except AttributeError as e:
-                    logger.error(f"The vm or software of run {run.run_id} does not exist. Maybe either was deleted?", e)
-                    vm_id = "None"
+                if run_id not in input_run_to_evaluation:
+                    input_run_to_evaluation[run_id] = {'measures': {}}
 
-                rev = modeldb.Review.objects.get(run__run_id=run.run_id)
+                vm_id = 'None'
+                software_name = ''
+                pretty_run_id = run_id if '-evaluated-run-' not in run_id else run_id.split('-evaluated-run-')[1]
+                if upload_display_name and upload_vm_id:
+                    vm_id = upload_vm_id
+                    software_name = upload_display_name
+                elif docker_display_name and docker_vm_id:
+                    vm_id = docker_vm_id
+                    software_name = docker_display_name
+                elif software_vm_id:
+                    vm_id = software_vm_id
 
-                yield {"vm_id": vm_id,
-                       "run_id": run.run_id if '-evaluated-run-' not in run.run_id else run.run_id.split('-evaluated-run-')[1],
-                       'input_run_id': run.input_run.run_id,
-                       "input_software_name": software_name,
-                       'published': rev.published,
-                       'blinded': rev.blinded,
-                       "measures": list(if_exists(evaluations))}
+                input_run_to_evaluation[run_id]['vm_id'] = vm_id
+                input_run_to_evaluation[run_id]['input_software_name'] = software_name
+                input_run_to_evaluation[run_id]['run_id'] = pretty_run_id
+                input_run_to_evaluation[run_id]['input_run_id'] = input_run_id
+                input_run_to_evaluation[run_id]['published'] = published
+                input_run_to_evaluation[run_id]['blinded'] = blinded
+                input_run_to_evaluation[run_id]['measures'][measure_key] = measure_value
+                keys[measure_key] = ''
 
-        run_id_to_software_name = {}
+        keys = list(keys.keys())
+        ret = []
 
-        for run in modeldb.Run.objects.filter(input_dataset=dataset_id).exclude(input_run__isnull=False).all():
-            docker_software = run.docker_software
-            if not docker_software:
-                continue
+        for i in input_run_to_evaluation.values():
+            i['measures'] = [round_if_float(i['measures'].get(k, '-')) for k in keys]
+            ret += [i]
 
-            docker_software_name = docker_software.display_name
-            if not docker_software_name:
-                continue
+        return keys, ret
 
-            run_id_to_software_name[run.run_id] = docker_software_name
-
-        runs = modeldb.Run.objects.filter(input_dataset=dataset_id).exclude(input_run__isnull=True).all()
-        evaluations = modeldb.Evaluation.objects.select_related('run', 'run__software__vm').filter(
-            run__input_dataset__dataset_id=dataset_id).all()
-        keys = [k['measure_key'] for k in evaluations.values('measure_key').distinct()]
-
-        exclude = {review.run.run_id for review in modeldb.Review.objects.select_related('run').filter(
-            run__input_dataset__dataset_id=dataset_id, published=False, run__software=None).all()
-                   if not include_unpublished}
-        return keys, list(format_evaluation(runs, keys, run_id_to_software_name))
 
     def get_evaluation(self, run_id):
         try:

@@ -65,7 +65,7 @@ def get_evaluations_by_dataset(request, context, task_id, dataset_id):
     context["task_id"] = task_id
     context["dataset_id"] = dataset_id
     context["ev_keys"] = ev_keys
-    context["evaluations"] = evaluations
+    context["evaluations"] = sorted(evaluations, key=lambda r: r['run_id'])
     headers = [{'title': 'Team', 'key': 'vm_id'}, {'title': 'Approach', 'key': 'input_software_name'},
                {'title': 'Run', 'key': 'run_id'}]
     evaluation_headers = [{'title': k, 'key': k} for k in ev_keys]
