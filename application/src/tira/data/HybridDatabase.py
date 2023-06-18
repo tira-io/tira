@@ -735,7 +735,7 @@ class HybridDatabase(object):
 
         prepared_statement = '''
         SELECT
-            evaluation_run.run_id, input_run.run_id, tira_upload.display_name, tira_upload.vm_id, tira_software.vm_id,
+            evaluation_run.input_dataset_id, evaluation_run.run_id, input_run.run_id, tira_upload.display_name, tira_upload.vm_id, tira_software.vm_id,
             tira_dockersoftware.display_name, tira_dockersoftware.vm_id, tira_evaluation_review.published,
             tira_evaluation_review.blinded, tira_run_review.published, tira_run_review.blinded,
             tira_evaluation.measure_key, tira_evaluation.measure_value
@@ -756,16 +756,30 @@ class HybridDatabase(object):
         LEFT JOIN
             tira_evaluation ON tira_evaluation.run_id = evaluation_run.run_id
         WHERE
-            evaluation_run.input_run_id is not null AND evaluation_run.input_dataset_id = %s
+            evaluation_run.input_run_id is not null AND evaluation_run.deleted = FALSE AND input_run.deleted = False 
+            AND <DATASET_ID_STATEMENT>
         ORDER BY
             tira_evaluation.id ASC;
         '''
+
+        dataset_id_statement = []
+        dataset_ids = [dataset_id]
+        additional_datasets = modeldb.Dataset.objects.get(dataset_id=dataset_id).meta_dataset_of
+
+        if additional_datasets:
+            dataset_ids += [j.strip() for j in additional_datasets.split(',') if j.strip()]
+
+        for _ in dataset_ids:
+            dataset_id_statement += ['evaluation_run.input_dataset_id = %s']
+        dataset_id_statement = ' OR '.join(dataset_id_statement)
+        prepared_statement = prepared_statement.replace('<DATASET_ID_STATEMENT>', f'({dataset_id_statement})')
+
         with connection.cursor() as cursor:
             keys = dict()
             input_run_to_evaluation = {}
-            cursor.execute(prepared_statement, params=[dataset_id])
+            cursor.execute(prepared_statement, params=dataset_ids)
             rows = cursor.fetchall()
-            for run_id, input_run_id, upload_display_name, upload_vm_id, software_vm_id, docker_display_name, \
+            for dataset_id, run_id, input_run_id, upload_display_name, upload_vm_id, software_vm_id, docker_display_name, \
                     docker_vm_id, eval_published, eval_blinded, run_published, run_blinded, measure_key, measure_value in rows:
 
                 if not measure_key or (not include_unpublished and not eval_published):
@@ -786,11 +800,13 @@ class HybridDatabase(object):
                 elif software_vm_id:
                     vm_id = software_vm_id
 
+                input_run_to_evaluation[run_id]['dataset_id'] = dataset_id
                 input_run_to_evaluation[run_id]['vm_id'] = vm_id
                 input_run_to_evaluation[run_id]['input_software_name'] = software_name
                 input_run_to_evaluation[run_id]['run_id'] = pretty_run_id
                 input_run_to_evaluation[run_id]['input_run_id'] = input_run_id
                 input_run_to_evaluation[run_id]['published'] = eval_published
+                input_run_to_evaluation[run_id]['blinded'] = eval_blinded or run_blinded
                 input_run_to_evaluation[run_id]['blinded'] = eval_blinded or run_blinded
                 input_run_to_evaluation[run_id]['measures'][measure_key] = measure_value
                 keys[measure_key] = ''

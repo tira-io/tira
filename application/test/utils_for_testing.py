@@ -14,6 +14,7 @@ from tira.tira_model import model as tira_model
 now = datetime.now().strftime("%Y%m%d")
 dataset_1 = f'dataset-1-{now}-training'
 dataset_2 = f'dataset-2-{now}-test'
+dataset_meta = f'meta-dataset-{now}-test'
 
 from pathlib import Path
 import shutil
@@ -56,10 +57,16 @@ def set_up_tira_environment():
 
     tira_model.add_dataset('shared-task-1', 'dataset-1', 'training', 'dataset-1', 'upload-name')
     tira_model.add_dataset('shared-task-1', 'dataset-2', 'test', 'dataset-2', 'upload-name')
+
+    tira_model.add_dataset('shared-task-1', 'meta-dataset', 'test', 'meta-dataset', 'upload-name')
     tira_model.add_dataset('task-of-organizer-1', 'dataset-of-organizer', 'training', 'dataset-of-organizer', 'upload-name')
 
     tira_model.add_dataset('task-of-organizer-1', 'dataset-without-a-name', 'training', '', 'upload-name')
     tira_model.add_software(task_id='shared-task-1', vm_id='PARTICIPANT-FOR-TEST-1')
+
+    d = modeldb.Dataset.objects.get(dataset_id=dataset_meta)
+    d.meta_dataset_of = dataset_1 + ',' + dataset_2
+    d.save()
 
     k_1 = 2.0
     k_2 = 1.0
