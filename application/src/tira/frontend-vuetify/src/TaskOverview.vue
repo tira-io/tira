@@ -45,7 +45,7 @@
   </v-card>
   </v-container>
 
-  <tira-task-admin/>
+  <tira-task-admin v-if="!loading"/>
 
   <v-container v-if="!loading" id="dataset-select">
     <h2>Submissions</h2>

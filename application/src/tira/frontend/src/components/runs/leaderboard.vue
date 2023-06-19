@@ -99,7 +99,7 @@ export default {
   },
   computed: {
     filteredEvaluations: function () {
-      let result = this.hide_private ? this.evaluation.filter(i => i.published === true) : this.evaluation
+      let result = this.hide_private ? this.evaluation.filter(i => i.published === true || i.published === 1) : this.evaluation
       result.map(i => {
         i.vm_id = i.vm_id.replace(/-default/, '')
       })
