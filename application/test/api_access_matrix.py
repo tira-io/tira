@@ -268,6 +268,17 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
+        url_pattern='api/count-of-missing-reviews/<str:task_id>',
+        params={'task_id': 'shared-task-1'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER: 405,
+            ORGANIZER_WRONG_TASK: 405,
+        },
+    ),
+    route_to_test(
         url_pattern='task/<str:task_id>/user/<str:vm_id>',
         params={'task_id': 'shared-task-1', 'vm_id': 'participant-does-not-exist'},
         group_to_expected_status_code={

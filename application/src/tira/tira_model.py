@@ -293,6 +293,10 @@ def get_evaluation(run_id: str):
     return model.get_evaluation(run_id)
 
 
+def get_count_of_missing_reviews(task_id):
+    return model.get_count_of_missing_reviews(task_id)
+
+
 def get_software_with_runs(task_id, vm_id):
     """
     Construct a dictionary that has the software as a key and as value a list of runs with that software

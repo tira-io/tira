@@ -551,6 +551,34 @@ class HybridDatabase(object):
                 "ir_re_ranking_input": True if ds.ir_re_ranking_input else False
                 }
 
+    def get_count_of_missing_reviews(self, task_id):
+        prepared_statement = """
+        SELECT
+            tira_run.input_dataset_id,
+            SUM(CASE WHEN tira_review.has_errors = False AND tira_review.has_no_errors = FALSE AND tira_review.has_warnings = FALSE THEN 1 ELSE 0 END) as ToReview,
+            COUNT(*) as submissions
+        FROM
+            tira_run
+        INNER JOIN
+            tira_taskhasdataset ON tira_run.input_dataset_id = tira_taskhasdataset.dataset_id
+        LEFT JOIN
+            tira_review ON tira_run.run_id = tira_review.run_id
+        WHERE
+            tira_taskhasdataset.task_id = %s
+        GROUP BY
+            tira_run.input_dataset_id;
+        """
+        from django.db import connection
+        with connection.cursor() as cursor:
+            ret = []
+            cursor.execute(prepared_statement, params=[task_id])
+            rows = cursor.fetchall()
+            for dataset_id, to_review, submissions in rows:
+                ret += [{'dataset_id': dataset_id, 'to_review': to_review, 'submissions': submissions}]
+
+            return ret
+
+
     def get_docker_softwares_with_runs(self, task_id, vm_id):
         def _runs_by_docker_software(ds):
             reviews = modeldb.Review.objects.select_related("run", "run__upload", "run__evaluator", "run__input_run",
