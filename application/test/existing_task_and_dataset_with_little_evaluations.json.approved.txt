@@ -11,7 +11,7 @@
         "evaluations": [
             {
                 "blinded": true,
-                "dataset_id": "dataset-2-20230618-test",
+                "dataset_id": "dataset-2",
                 "input_run_id": "run-ds2-0-participant-1",
                 "input_software_name": "default upload",
                 "measures": [
@@ -24,7 +24,7 @@
             },
             {
                 "blinded": true,
-                "dataset_id": "dataset-2-20230618-test",
+                "dataset_id": "dataset-2",
                 "input_run_id": "run-ds2-1-participant-1",
                 "input_software_name": "default upload",
                 "measures": [
@@ -41,7 +41,7 @@
         "runs": [
             {
                 "blinded": true,
-                "dataset_id": "dataset-2-20230618-test",
+                "dataset_id": "dataset-2",
                 "input_software_name": "default upload",
                 "k-1": -1.0,
                 "k-2": 4.0,
@@ -52,7 +52,7 @@
             },
             {
                 "blinded": true,
-                "dataset_id": "dataset-2-20230618-test",
+                "dataset_id": "dataset-2",
                 "input_software_name": "default upload",
                 "k-1": -1.2,
                 "k-2": 4.2,

@@ -81,6 +81,17 @@ class TestEvaluationResults(TestCase):
         if 'context' in content and 'dataset_id' in content['context']:
             content['context']['dataset_id'] = content['context']['dataset_id'].split('-20')[0]
 
+        if 'context' in content and 'evaluations' in content['context']:
+            for i in content['context']['evaluations']:
+                if 'dataset_id' in i:
+                    i['dataset_id'] = i['dataset_id'].split('-20')[0]
+
+        if 'context' in content and 'runs' in content['context']:
+            for i in content['context']['runs']:
+                if 'dataset_id' in i:
+                    i['dataset_id'] = i['dataset_id'].split('-20')[0]
+
+
         self.assertEquals(200, actual.status_code)
         verify_as_json(content, options=Options().with_namer(CliNamer(test_name)))
 

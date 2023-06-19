@@ -6,9 +6,9 @@ from . import views
 from .endpoints import organizer_api, admin_api, vm_api, data_api, diffir_api, serp_api
 
 urlpatterns = [
-    path('', views.index, name='index'),
-    path('task', views.index, name='index'),
-    path('tasks', views.index, name='index'),
+    path('', views.veutify_page, name='index'),
+    path('task',views.veutify_page, name='index'),
+    path('tasks', views.veutify_page, name='index'),
     path('background_jobs/<str:task_id>/<str:job_id>', views.background_jobs, name='background_jobs'),
 
     path('task/<str:task_id>', views.task, name='task'),
