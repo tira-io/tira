@@ -3,7 +3,7 @@ import { ref } from 'vue'
 let allowed_roles = new Set(['guest', 'user', 'participant', 'admin'])
 
 export function extractTaskFromCurrentUrl() {
-    let loc = ref(window.location).value.href
+    let loc = ref(window.location).value.href.split('#')[0].split('?')[0]
     
     if (loc.includes('task-overview/')) {
         return loc.split('task-overview/')[1].split('/')[0]
@@ -21,7 +21,7 @@ export function get_contact_link_to_organizer(organizer_id: string) {
 }
 
 export function extractDatasetFromCurrentUrl(options: Array<any> = [], default_choice: string='') {
-    var loc = ref(window.location).value.href
+    var loc = ref(window.location).value.href.split('#')[0].split('?')[0]
     var dataset_from_url = ''
     let to_split = 'task-overview/' + extractTaskFromCurrentUrl() + '/'
     

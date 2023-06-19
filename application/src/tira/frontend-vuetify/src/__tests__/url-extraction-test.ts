@@ -17,6 +17,16 @@ test('Task from Url without Subpath Should be correct.', () => {
     expect(extractTaskFromCurrentUrl()).toStrictEqual('abc');
 });
 
+test('Task from Url without Subpath Should be correct with question mark.', () => {
+  (window as Window).location.href = 'task-overview/abc?sada'
+  expect(extractTaskFromCurrentUrl()).toStrictEqual('abc');
+});
+
+test('Task from Url without Subpath Should be correct with # symbol.', () => {
+  (window as Window).location.href = 'task-overview/abc#sa'
+  expect(extractTaskFromCurrentUrl()).toStrictEqual('abc');
+});
+
 test('Task from Url with Subpath Should be correct.', () => {
     (window as Window).location.href = 'task-overview/1234/'
     expect(extractTaskFromCurrentUrl()).toStrictEqual('1234');
@@ -39,6 +49,16 @@ test('Dataset from Url without dataset should be the empty string even when not 
 
 test('Dataset from Url without Subpath Should be correct.', () => {
   (window as Window).location.href = 'task-overview/abc/ds'
+  expect(extractDatasetFromCurrentUrl()).toStrictEqual('ds');
+});
+
+test('Dataset from Url without Subpath Should be correct with question mark.', () => {
+  (window as Window).location.href = 'task-overview/abc/ds?xy=1'
+  expect(extractDatasetFromCurrentUrl()).toStrictEqual('ds');
+});
+
+test('Dataset from Url without Subpath Should be correct with # symbol.', () => {
+  (window as Window).location.href = 'task-overview/abc/ds#asdad'
   expect(extractDatasetFromCurrentUrl()).toStrictEqual('ds');
 });
 
