@@ -819,14 +819,18 @@ class HybridDatabase(object):
                 vm_id = 'None'
                 software_name = ''
                 pretty_run_id = run_id if '-evaluated-run-' not in run_id else run_id.split('-evaluated-run-')[1]
+                is_upload, is_software = False, False
                 if upload_display_name and upload_vm_id:
                     vm_id = upload_vm_id
+                    is_upload = True
                     software_name = upload_display_name
                 elif docker_display_name and docker_vm_id:
                     vm_id = docker_vm_id
+                    is_software = True
                     software_name = docker_display_name
                 elif software_vm_id:
                     vm_id = software_vm_id
+                    is_software = True
 
                 input_run_to_evaluation[run_id]['dataset_id'] = dataset_id
                 input_run_to_evaluation[run_id]['vm_id'] = vm_id
@@ -835,7 +839,8 @@ class HybridDatabase(object):
                 input_run_to_evaluation[run_id]['input_run_id'] = input_run_id
                 input_run_to_evaluation[run_id]['published'] = eval_published
                 input_run_to_evaluation[run_id]['blinded'] = eval_blinded or run_blinded
-                input_run_to_evaluation[run_id]['blinded'] = eval_blinded or run_blinded
+                input_run_to_evaluation[run_id]['is_upload'] = is_upload
+                input_run_to_evaluation[run_id]['is_software'] = is_software
                 input_run_to_evaluation[run_id]['measures'][measure_key] = measure_value
                 keys[measure_key] = ''
 

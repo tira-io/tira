@@ -4,7 +4,8 @@ import logging
 
 from .proto import TiraClientWebMessages_pb2 as modelpb
 from django.conf import settings
-
+from pathlib import Path
+from tira import tira_model
 
 logger = logging.getLogger("tira")
 
@@ -94,6 +95,7 @@ def auto_reviewer(review_path, run_id):
 
     return review
 
+
 def run_cmd(cmd, ignore_failure=False):
     import subprocess
     exit_code = subprocess.call(cmd)
@@ -101,7 +103,18 @@ def run_cmd(cmd, ignore_failure=False):
     if not ignore_failure and exit_code != 0:
         raise ValueError(f'Command {cmd} did exit with return code {exit_code}.')
 
-def __run_cmd_as_documented_background_process(cmds, process_id, descriptions):
+
+def register_run(dataset_id, vm_id, run_id, software_id):
+    path_for_run = Path(settings.TIRA_ROOT) / "data" / "runs" / dataset_id / vm_id / run_id
+
+    with open(path_for_run / 'run.prototext', 'w') as f:
+        f.write(
+            f'\nsoftwareId: "{software_id}"\nrunId: "{run_id}"\ninputDataset: "{dataset_id}"\ndownloadable: true\ndeleted: false\n')
+
+    tira_model.add_run(dataset_id=dataset_id, vm_id=vm_id, run_id=run_id)
+
+
+def __run_cmd_as_documented_background_process(cmds, process_id, descriptions, callback):
     import datetime
     from subprocess import Popen, STDOUT
     import tempfile
@@ -117,28 +130,31 @@ def __run_cmd_as_documented_background_process(cmds, process_id, descriptions):
                 last_contact = datetime.datetime.now()
                 modeldb.BackendProcess.objects.filter(id=process_id).update(stdout=stdout, last_contact=last_contact)
 
-
             exit_code = process.poll()
             stdout = open(file.name, 'rt').read()
             last_contact = datetime.datetime.now()
             modeldb.BackendProcess.objects.filter(id=process_id).update(stdout=stdout, exit_code=exit_code,
-                                                                                 last_contact=last_contact)
+                                                                        last_contact=last_contact)
 
             if exit_code != 0:
                 return
 
+        if callback:
+            callback()
 
 
-# run_cmd_forwarding(['sh', '-c', 'echo "1"; sleep 2s; echo "2"; sleep 2s; echo "3"; sleep 2s; echo "4"'])
-def run_cmd_as_documented_background_process(cmd, vm_id, task_id, title, descriptions):
+def run_cmd_as_documented_background_process(cmd, vm_id, task_id, title, descriptions, callback=None):
+    """
+    Usage: # run_cmd_forwarding(['sh', '-c', 'echo "1"; sleep 2s; echo "2"; sleep 2s; echo "3"; sleep 2s; echo "4"'])
+    """
     import json
     import threading
     import tira.model as modeldb
 
-    process_id = modeldb.BackendProcess.objects.create(vm_id = vm_id, task_id = task_id,
-        cmd = json.dumps(cmd), title = title).id
+    process_id = modeldb.BackendProcess.objects.create(vm_id=vm_id, task_id=task_id,
+                                                       cmd=json.dumps(cmd), title=title).id
 
-    thread = threading.Thread(target=__run_cmd_as_documented_background_process, name=f'Process-{process_id}', args=(cmd, process_id, descriptions))
+    thread = threading.Thread(target=__run_cmd_as_documented_background_process, name=f'Process-{process_id}', args=(cmd, process_id, descriptions, callback))
     thread.start()
 
     return process_id

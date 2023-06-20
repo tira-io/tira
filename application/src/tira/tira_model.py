@@ -11,7 +11,9 @@ from django.conf import settings
 from django.db import connections, router
 import datetime
 from tira.authentication import auth
-from tira.util import get_tira_id
+from tira.util import get_tira_id, run_cmd_as_documented_background_process, register_run
+import tempfile
+from distutils.dir_util import copy_tree
 
 logger = logging.getLogger("tira")
 
@@ -646,17 +648,31 @@ def create_re_rank_output_on_dataset(task_id: str, vm_id: str, software_id: str,
         return ValueError("The dataset is misconfigured. Docker-execute only available for git-evaluators")
 
     input_run = latest_output_of_software_on_dataset(task_id, vm_id, software_id, docker_software_id, dataset_id, None)
+    input_run = input_run['run_id']
+    path_to_run = Path(settings.TIRA_ROOT) / "data" / "runs" / dataset_id / vm_id / input_run / "output"
+    rerank_run_id = input_run + '-rerank-' + get_tira_id()
+    rerank_dir = Path(settings.TIRA_ROOT) / "data" / "runs" / dataset_id / vm_id / rerank_run_id
+
     input_run['vm_id'] = vm_id
-    git_runner = get_git_integration(task_id=task_id)
+    output_directory = tempfile.TemporaryDirectory()
+    raw_command = evaluator['git_runner_command']
+    raw_command = raw_command.replace('$outputDir', '/tira-output/current-output')
+    raw_command = raw_command.replace('$inputDataset', '/tira-input/current-input')
 
+    command = [
+        ['sudo', 'podman', '--storage-opt', 'mount_program=/usr/bin/fuse-overlayfs', 'run',
+         '-v', f'{output_directory}:/tira-output/current-output', '-v', f'{path_to_run}:/tira-input/current-input:ro',
+         '--entrypoint', 'sh', evaluator['git_runner_image'], '-c', raw_command]
+    ]
 
-    git_runner.run_docker_software_with_git_workflow(
-        task_id, dataset_id, vm_id, get_tira_id(), evaluator['git_runner_image'],
-        evaluator['git_runner_command'], evaluator['git_repository_id'], evaluator['evaluator_id'],
-        irds_re_ranking_image, irds_re_ranking_command,
-        'docker-software-' + docker_irds_software_id, irds_re_ranking_resource,
-        input_run
-    )
+    def register_reranking():
+        rerank_dir.mkdir(parents=True, exist_ok=True)
+        copy_tree(output_directory.name, rerank_dir / "output")
+        register_run(dataset_id, vm_id, rerank_run_id, evaluator['evaluator_id'])
+
+    return run_cmd_as_documented_background_process(command, vm_id, task_id, 'Create Re-ranking file.',
+                                                    ['Create rerankings.'], register_reranking)
+
 
 def add_input_run_id_to_all_rerank_runs():
     from tqdm import tqdm

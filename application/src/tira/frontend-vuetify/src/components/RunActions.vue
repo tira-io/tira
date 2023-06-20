@@ -1,38 +1,35 @@
 <template>
-  <v-btn v-if="link_results != null && link_run == null" :href="link_results" target="_blank" class="mx-2">
-    <v-icon>mdi-file-download-outline</v-icon>
-    <v-tooltip activator="parent" location="top">Download results</v-tooltip>
-  </v-btn>
-  <v-btn v-if="link_run != null && link_results == null" :href="link_run" target="_blank" class="mx-2">
-    <v-icon>mdi-file-chart-check-outline</v-icon>
-    <v-tooltip activator="parent" location="top">Download run</v-tooltip>
-  </v-btn>
+  <span>
+   <v-btn v-if="link_results != null && link_run == null" :href="link_results" target="_blank" class="pa0 ma0" icon="mdi-file-download-outline" rounded density="compact" />
+   <v-tooltip activator="parent" location="top">Download run</v-tooltip>
+  </span>
+  
 
   <v-menu v-if="link_run != null && link_results != null" transition="slide-y-transition">
     <template v-slot:activator="{ props }">
-      <v-btn v-bind="props" class="mx-2">
-        <v-icon>mdi-file-download-outline</v-icon>
+      <span>
+        <v-btn v-bind="props" class="pa0 ma0" icon="mdi-file-download-outline" rounded density="compact"/>
         <v-tooltip activator="parent" location="top">Download run</v-tooltip>
-      </v-btn>
+      </span>
     </template>
     <v-list>
       <v-list-item>
         <v-btn :href="link_run" target="_blank" class="mx-2">
           <v-icon>mdi-file-chart-check-outline</v-icon>
-          <v-tooltip activator="parent" location="top">Download run</v-tooltip>
+          Download run
         </v-btn>
         <v-btn :href="link_results" target="_blank" class="mx-2">
           <v-icon>mdi-file-download-outline</v-icon>
-          <v-tooltip activator="parent" location="top">Download results</v-tooltip>
+          Download results
         </v-btn>
       </v-list-item>
     </v-list>
   </v-menu>
 
-  <v-btn v-if="link_serp != null" :href="link_serp" target="_blank" class="mr-2">
-    <v-icon>mdi-search-web</v-icon>
+  <span>
+    <v-btn v-if="link_serp != null" icon="mdi-search-web" :href="link_serp" target="_blank" class="pa0 ma0" rounded density="compact"/>
     <v-tooltip activator="parent" location="top">Show SERP in new tab</v-tooltip>
-  </v-btn>
+  </span>
 </template>
 <script lang="ts">
 import { tSExpressionWithTypeArguments } from '@babel/types';

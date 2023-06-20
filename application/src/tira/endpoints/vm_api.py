@@ -619,10 +619,25 @@ def run_execute_docker_software(request, task_id, vm_id, dataset_id, docker_soft
         reranking_datasets = model.get_all_reranking_datasets()
 
         if rerank_dataset not in reranking_datasets:
+            background_process = None
+            try:
+                background_process = model.create_re_rank_output_on_dataset(task_id, vm_id, software_id=None,
+                                                                            docker_software_id=docker_software_id,
+                                                                            dataset_id=dataset_id)
+            except Exception as e:
+                logger.warning(e)
+
+            visit_job_message = 'Failed to start job.'
+
+            if background_process:
+                visit_job_message = f'Please visit https://tira.io/background_jobs/{task_id}/{background_process} ' + \
+                                     ' to view the progress of the job that creates the rerank output.'
+
             return JsonResponse({"status": 1, "message":
                 f"The execution of your software depends on the reranking dataset {rerank_dataset}"
                 f", but {rerank_dataset} was never executed on the dataset {dataset_id}. "
-                f"Please execute first the software on the specified dataset so that you can re-rank it."})
+                f"Please execute first the software on the specified dataset so that you can re-rank it. "
+                f"{visit_job_message}"})
 
         input_run = reranking_datasets[rerank_dataset]
         input_run['replace_original_dataset'] = True
