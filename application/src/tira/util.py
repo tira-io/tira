@@ -104,6 +104,13 @@ def run_cmd(cmd, ignore_failure=False):
         raise ValueError(f'Command {cmd} did exit with return code {exit_code}.')
 
 
+def link_to_discourse_team(vm_id):
+    if not vm_id.endswith('-default'):
+        return 'https://www.tira.io/g/tira_vm_' + vm_id
+    else:
+        return 'https://www.tira.io/u/' + vm_id.split('-default')[0]
+
+
 def register_run(dataset_id, vm_id, run_id, software_id):
     path_for_run = Path(settings.TIRA_ROOT) / "data" / "runs" / dataset_id / vm_id / run_id
 

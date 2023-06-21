@@ -1,51 +1,79 @@
 <template>
-  <v-card v-if="!loading" flat class="my-5">
-    <h3>Details</h3>
-    <v-card-item class="d-md-none" v-if="run && run.link_to_team"><b>Team: </b> <a :href="run.link_to_team"> {{ run.vm_id }}</a></v-card-item>
-    <div v-for="(value, key) in run">
-      <v-card-item v-if="!fields_to_skip.includes(key + '')"><b>{{  key }} </b>: {{ value }}</v-card-item>
+  <v-card v-if="!loading" flat class="my-2">
+    <div class="ma-2">
+      <h3>Details</h3>
+      <v-card-item class="d-md-none" v-if="run && run.link_to_team"><b>Team: </b> <a :href="run.link_to_team"> {{ run.vm_id }}</a></v-card-item>
+      <div v-for="(value, key) in run">
+        <v-card-item v-if="!fields_to_skip.includes(key + '')"><b>{{  key }} </b>: {{ value }}</v-card-item>
+      </div>
+      <v-card-item><b>Description: </b> {{description}}</v-card-item>
+      <v-card-item v-if="previous_stage"><b>Previous stage: </b>{{previous_stage}}</v-card-item>
     </div>
-    <v-card-item><b>Description: </b> {{description}}</v-card-item>
-    <v-card-item v-if="previous_stage"><b>Previous stage: </b>{{previous_stage}}</v-card-item>
   </v-card>
 
-  <v-card v-if="!loading && cli_command && python_command && docker_command" flat class="my-5">
-    <h3>Reproduction</h3>
-    <v-tabs v-model="tab">
-      <v-tab value="one">CLI command</v-tab>
-      <v-tab value="two">Python command</v-tab>
-      <v-tab value="three">Docker command</v-tab>
-    </v-tabs>
-  
-    <v-card-text>
-      <v-window v-model="tab">
-        <v-window-item value="one">
-          <tira-data-export :run_export="tira_run_export" />
-          <v-code tag="pre" > {{ cli_command }}</v-code>
-        </v-window-item>
-      
-        <v-window-item value="two">
-          <tira-data-export :run_export="tira_run_export" />
-          <v-code tag="pre" > {{ python_command }}</v-code>
-        </v-window-item>
-  
-        <v-window-item value="three">
-          <tira-data-export :run_export="tira_run_export" />
-          <v-code tag="pre" > {{ docker_command }}</v-code>
-        </v-window-item>
-      </v-window>
-    </v-card-text>
+  <v-card v-if="!loading" flat class="my-2">
+    <div class="ma-2">
+      <h3 class="pb-2">
+        References
+        <v-dialog transition="dialog-bottom-transition" width="auto">
+          <template v-slot:activator="{ props }">
+            <v-btn class="pa0 ma0" v-bind="props">Show Bibtex</v-btn>
+          </template>
+          <template v-slot:default="{ isActive }">
+            <v-card>
+              <v-toolbar color="primary" :title="'Relevant Bibtex-Entries for run ' + run.run_id"/>
+              <v-code tag="pre">{{ references_bibtex }}</v-code>
+            </v-card>
+          </template>
+        </v-dialog>
+      </h3>
+      <div v-html="references_markdown"></div>
+    </div>
   </v-card>
 
-  <v-card v-if="!cli_command || !python_command || !docker_command" flat class="my-5">
-    <h3>Reproduction</h3>
-    <v-card-item>TIRA allows to reproduce/replicate submitted software approaches via a single command using Docker. This software is not yet made publicly available.</v-card-item>
-    <v-card-item>Please <a :href="contact_organizer">contact</a> the organizer <a :href="link_organizer"> {{ organizer }}</a> or the team <a :href="run.link_to_team">{{ run.vm_id }}</a> if you want to have access to this software or its results, as they can decide (in consultation with each other) to make the software and/or its results publicly available via TIRA.</v-card-item>
+  <v-card v-if="!loading && cli_command && python_command && docker_command" flat class="my-2">
+    <div class="ma-2">
+      <h3>Reproduction</h3>
+      <v-tabs v-model="tab">
+        <v-tab value="one">CLI command</v-tab>
+        <v-tab value="two">Python command</v-tab>
+        <v-tab value="three">Docker command</v-tab>
+      </v-tabs>
+
+      <v-card-text>
+        <v-window v-model="tab">
+          <v-window-item value="one">
+            <tira-data-export :run_export="tira_run_export" />
+            <v-code tag="pre" > {{ cli_command }}</v-code>
+          </v-window-item>
+
+          <v-window-item value="two">
+            <tira-data-export :run_export="tira_run_export" />
+            <v-code tag="pre" > {{ python_command }}</v-code>
+          </v-window-item>
+
+          <v-window-item value="three">
+            <tira-data-export :run_export="tira_run_export" />
+            <v-code tag="pre" > {{ docker_command }}</v-code>
+          </v-window-item>
+        </v-window>
+      </v-card-text>
+    </div>
   </v-card>
 
-  <v-card flat class="d-md-none my-5">
-    <h3>Actions</h3>
-    <run-actions :run="run"/>
+  <v-card v-if="!cli_command || !python_command || !docker_command" flat class="my-2">
+    <div class="ma-2">
+      <h3>Reproduction</h3>
+      <v-card-item>TIRA allows to reproduce/replicate submitted software approaches via a single command using Docker. This software is not yet made publicly available.</v-card-item>
+      <v-card-item>Please <a :href="contact_organizer">contact</a> the organizer <a :href="link_organizer"> {{ organizer }}</a> or the team <a :href="run.link_to_team">{{ run.vm_id }}</a> if you want to have access to this software or its results, as they can decide (in consultation with each other) to make the software and/or its results publicly available via TIRA.</v-card-item>
+    </div>
+  </v-card>
+    
+  <v-card flat class="d-md-none my-2">
+    <div class="ma-2">
+      <h3>Actions</h3>
+      <run-actions :run="run"/>
+    </div>
   </v-card>
 
   <loading :loading="loading"/>
@@ -54,7 +82,7 @@
 <script lang="ts">
 import Loading from './Loading.vue'
 import TiraDataExport from './TiraDataExport.vue'
-import RunActions from './RunActions.vue';
+import RunActions from './RunActions.vue'
 import { get, inject_response, extractRole, extractTaskFromCurrentUrl, get_link_to_organizer, get_contact_link_to_organizer } from '../utils';
 
 export default {
@@ -71,6 +99,8 @@ export default {
       python_command: '',
       docker_command: '',
       tira_run_export: '',
+      references_markdown: 'Loading...',
+      references_bibtex: 'Loading...',
       details_not_visible: false,
       role: extractRole(), // Values: user, participant, admin,
       tab: null,

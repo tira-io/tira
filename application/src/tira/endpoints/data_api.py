@@ -16,6 +16,7 @@ import datetime
 import csv
 from io import StringIO
 from copy import deepcopy
+from tira.util import link_to_discourse_team
 
 include_navigation = True if settings.DEPLOYMENT == "legacy" else False
 
@@ -86,7 +87,7 @@ def get_evaluations_by_dataset(request, context, task_id, dataset_id):
     runs = []
     for i in evaluations:
         i = deepcopy(i)
-        i['link_to_team'] = 'https://www.tira.io/g/tira_vm_' + i['vm_id'] if not i['vm_id'].endswith('-default') else 'https://www.tira.io/u/' + i['vm_id'].split('-default')[0]
+        i['link_to_team'] = link_to_discourse_team(i['vm_id'])
         eval_run_id = i["run_id"]
         for k, v in [('input_run_id', 'run_id')]:
             i[v] = i[k]

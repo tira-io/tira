@@ -30,14 +30,23 @@
     <v-btn v-if="link_serp != null" icon="mdi-search-web" :href="link_serp" target="_blank" class="pa0 ma0" rounded density="compact"/>
     <v-tooltip activator="parent" location="top">Show SERP in new tab</v-tooltip>
   </span>
+
+  <span v-if="role == 'admin'">
+    <run-review-window :run_id="run.run_id" />
+    <v-tooltip activator="parent" location="top">Review</v-tooltip>
+  </span>
 </template>
 <script lang="ts">
-import { tSExpressionWithTypeArguments } from '@babel/types';
+import { extractRole } from '../utils'
+import RunReviewWindow from './RunReviewWindow.vue'
 
-  
 export default {
   name: "run-actions",
   props: ['run'],
+  components: { RunReviewWindow },
+  data() { return {
+    role: extractRole()
+  }},
   computed: {
     link_serp() {
       return this.run && 'link_serp' in this.run ? this.run['link_serp'] : null;
@@ -47,7 +56,7 @@ export default {
     },
     link_run() {
       return this.run && 'link_run_download' in this.run ? this.run['link_run_download'] : null;
-    },
+    }
   },
 }
 </script>

@@ -9,19 +9,19 @@
       </template>
       <template #item.vm_id="{ item }">
         <span v-if="item.value.is_software">
-          <v-icon>mdi-monitor</v-icon>
+          <v-icon>mdi-docker</v-icon>
           <v-tooltip activator="parent" location="top">Software Submission</v-tooltip>
         </span>
         <span v-if="item.value.is_upload">
           <v-icon>mdi-file-document</v-icon>
           <v-tooltip activator="parent" location="top">Run Submission</v-tooltip>
         </span>
-        <span v-if="!item.value.published">
-          <v-icon>mdi-lock-outline</v-icon>
+        <span v-if="!item.value.published" class="mr1">
+          <v-icon>mdi-eye-off-outline</v-icon>
           <v-tooltip activator="parent" location="top">Not Published on Leaderboard</v-tooltip>
         </span>
-        <span v-if="item.value.published">
-          <v-icon>mdi-publish</v-icon>
+        <span v-if="item.value.published" class="mr1">
+          <v-icon>mdi-eye-outline</v-icon>
           <v-tooltip activator="parent" location="top">Published on Leaderboard</v-tooltip>
         </span>
         <a target="_blank" :href="item.value.link_to_team">{{ item.value.vm_id }}</a>
