@@ -59,7 +59,7 @@
 <script lang="ts">
   import { TiraBreadcrumb, TiraTaskAdmin, RunList, Loading, SubmitButton } from './components'
   import { VAutocomplete } from 'vuetify/components'
-  import { extractTaskFromCurrentUrl, get_link_to_organizer, get_contact_link_to_organizer, extractDatasetFromCurrentUrl, chanceCurrentUrlToDataset, get, inject_response, reportError, extractRole} from './utils'
+  import { extractTaskFromCurrentUrl, get_link_to_organizer, get_contact_link_to_organizer, extractDatasetFromCurrentUrl, changeCurrentUrlToDataset, get, inject_response, reportError, extractRole} from './utils'
 
   export default {
     name: "task-list",
@@ -90,7 +90,7 @@
       this.newDatasetSelected();
     },
     newDatasetSelected() {
-      chanceCurrentUrlToDataset(this.selectedDataset)
+      changeCurrentUrlToDataset(this.selectedDataset)
     }
   },
   beforeMount() {
