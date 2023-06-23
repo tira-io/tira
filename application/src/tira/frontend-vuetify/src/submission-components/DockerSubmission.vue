@@ -40,15 +40,14 @@
         @click="() => step = 'step-6'"
       ></v-avatar>
       </div>
-
     </v-card-title>
 
     <v-window v-model="step">
       <v-window-item :value="'step-1'">
         <v-card-text>
-          <h3>How to submit your docker image</h3>
-          <p>This is general information on how to submit your run ...</p>
-          <p>Please click on "Next" below to start your submission upload.</p>
+          <h3>General information regarding submissions</h3>
+          <p>This is general information about submitting to the TIRA platform ...</p>
+          <p>Please click on "Next" below to start your submission process.</p>
         </v-card-text>
       </v-window-item>
 
@@ -106,7 +105,7 @@
               clearable
               multiple
               chips/>
-          <v-text-field model="command" clearable label="Command" hint="Available variables: $inputDataset, $inputRun, $outputDir, $dataServer, and $token."/>
+          <v-text-field clearable label="Command: mySoftware -c $inputDataset -r $inputRun -o $outputDir" hint="Available variables: $inputDataset, $inputRun, $outputDir, $dataServer, and $token."/>
         </div>
       </v-window-item>
       <v-window-item :value="'step-5'">
@@ -185,7 +184,6 @@ export default {
       selectedDockerSoftware: '',
       selectedContainer: null,
       selectedDockerImage: '',
-      command: 'mySoftware -c $inputDataset -r $inputRun -o $outputDir',
       step: this.step_prop,
       docker: {
         "images": ["image1", "image2"],
