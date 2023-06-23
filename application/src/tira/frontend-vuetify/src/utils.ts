@@ -72,7 +72,6 @@ export function extractSubmissionTypeFromCurrentUrl() {
     if(url.includes(to_split)) {
         submission_type = url.split(to_split)[1].split('/')[0]
     }
-    console.log(submission_type)
     return submission_type === '' ? null : submission_type
 }
 export function extractCurrentStepFromCurrentUrl() {
@@ -139,7 +138,7 @@ export function inject_response(obj: any, default_values: any={}, debug=false) {
     }
 }
 
-async function submitPost(url: string, params: [string: any]) {
+export async function submitPost(url: string, params: [string: any]) {
     const csrf = ''
     const headers = new Headers({
         'Accept': 'application/json',

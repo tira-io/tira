@@ -1,97 +1,170 @@
 <template>
-<v-card tonal class="my-10">
-          <v-card-item>
-            <v-btn variant="outlined"
-                @click="showAddContainerCard = true; showUploadInformation=false">
-                Add Container
-            </v-btn>
-            <v-btn variant="outlined"
-                   @click="showUploadInformation = true; showAddContainerCard=false">
-                   <v-icon>mdi-information-outline</v-icon>Instructions
-            </v-btn>
-            <v-btn variant="outlined"
-                v-for="docker_software in docker.docker_softwares"
-                @click="showNewImageForm=false; showUploadInformation=false; showAddContainerCard=false;">
-                {{docker_software }}
-            </v-btn>
-          </v-card-item>
-          <v-card-item v-if="showAddContainerCard">
-            <v-form>
+  <v-card class="mx-auto mt-12"  >
+    <v-card-title class="text-h6 font-weight-regular d-flex justify-space-between">
+      <span class="mr-3">{{ currentTitle }}</span>
+      <div>
+        <v-avatar class="mx-1"
+        :color="step === 'step-1' ? 'primary' : 'grey'"
+        size="24"
+        v-text="1"
+        @click="() => step = 'step-1'"
+      ></v-avatar>
+      <v-avatar class="mx-1"
+        :color="step === 'step-2' ? 'primary' : 'grey'"
+        size="24"
+        v-text="2"
+        @click="() => step = 'step-2'"
+      ></v-avatar>
+      <v-avatar class="mx-1"
+        :color="step === 'step-3' ? 'primary' : 'grey'"
+        size="24"
+        v-text="3"
+        @click="() => step = 'step-3'"
+      ></v-avatar>
+      <v-avatar class="mx-1"
+        :color="step === 'step-4' ? 'primary' : 'grey'"
+        size="24"
+        v-text="4"
+        @click="() => step = 'step-4'"
+      ></v-avatar>
+      <v-avatar class="mx-1"
+        :color="step === 'step-5' ? 'primary' : 'grey'"
+        size="24"
+        v-text="5"
+        @click="() => step = 'step-5'"
+      ></v-avatar>
+        <v-avatar class="mx-1"
+        :color="step === 'step-6' ? 'primary' : 'grey'"
+        size="24"
+        v-text="6"
+        @click="() => step = 'step-6'"
+      ></v-avatar>
+      </div>
 
-            <v-autocomplete
-              label="Previous stage(s)"
-              :items=docker.docker_softwares
+    </v-card-title>
+
+    <v-window v-model="step">
+      <v-window-item :value="'step-1'">
+        <v-card-text>
+          <h3>How to submit your docker image</h3>
+          <p>This is general information on how to submit your run ...</p>
+          <p>Please click on "Next" below to start your submission upload.</p>
+        </v-card-text>
+      </v-window-item>
+
+      <v-window-item :value="'step-2'">
+        <v-card-text>
+        <h3>Test baseline locally</h3>
+        <p>Before you submit your run, you need to test your baseline locally.</p>
+        <p>You can do this in three steps:</p>
+          <h4 class="my-5">(1) Data import</h4>
+          <code class="bg-grey-lighten-1">tira-run \
+            --output-directory ${PWD}/output-directory \
+            --image $your-image-name \
+            --allow-network true \
+            --command '/irds_cli.sh --ir_datasets_id your-ir-dataset-name --output_dataset_path $outputDir'
+          </code>
+          <h4 class="my-5">(2) Retrieval</h4>
+          <code class="bg-grey-lighten-1">
+            tira-run \
+            --input-directory ${PWD}/output-directory \
+            --image webis/tira-ir-starter-pyterrier:0.0.2-base \
+            --command '/workspace/run-pyterrier-notebook.py --input $inputDataset --output $outputDir --notebook /workspace/full-rank-pipeline.ipynb'
+          </code>
+          <h4 class="my-5">(3) Retrieval Results</h4>
+          <code class="bg-grey-lighten-1">
+            tira-run \
+            --input-directory ${PWD}/tira-output \
+            --image your-image-name \
+            --allow-network true \
+            --command 'diffir --dataset your-ir-dataset-name --web $outputDir/run.txt > $outputDir/run.html'
+          </code>
+        </v-card-text>
+      </v-window-item>
+
+      <v-window-item :value="'step-3'">
+        <div class="pa-4 text-center">
+          <h3 class="text-h6 font-weight-light mb-2">
+            Please select your docker image
+          </h3>
+          <v-autocomplete
+              label="Docker Image"
+              :items="docker.images"
+              v-model="selectedDockerImage"
+                  clearable/>
+        </div>
+      </v-window-item>
+      <v-window-item :value="'step-4'">
+        <div class="pa-4 text-center">
+
+          <h3 class="text-h6 font-weight-light mb-2">
+            Please select previous stages and run command
+          </h3>
+          <v-autocomplete label="Previous Stages"
+              :items="docker.docker_softwares"
               v-model="selectedDockerSoftware"
-              multiple
               clearable
-              chips
-            />
-            <v-text-field clearable label="Command" :model-value="addContainerCommand" hint="Available variables: $inputDataset, $inputRun, $outputDir, $dataServer, and $token."/>
-            <v-autocomplete label="Docker Image"
-                      :items="docker.images"
-                      v-model="selectedDockerImage"
-                      clearable/>
-            <v-btn variant="outlined" @click="showAddContainerCard = true; selectedContainerId = null; showUploadInformation = false;">
-              Add Container
-            </v-btn>
-            </v-form>
-          </v-card-item>
-          <v-card-item v-if="showUploadInformation">
-            <v-card-text><p>Please upload your docker images according to your personalized documentation below. All uploaded docker images can be selected from the dropdown when adding containers</p></v-card-text>
-            <v-card-text>
-              <span v-html="docker.docker_software_help"></span>
-            </v-card-text>
+              multiple
+              chips/>
+          <v-text-field model="command" clearable label="Command" hint="Available variables: $inputDataset, $inputRun, $outputDir, $dataServer, and $token."/>
+        </div>
+      </v-window-item>
+      <v-window-item :value="'step-5'">
+        <div class="pa-4 text-center">
+          <h3 class="text-h6 font-weight-light mb-2">
+            Choose ressources and select a dataset
+          </h3>
+          <v-autocomplete
+              label="Ressources"
+              :items="ressources"
+              v-model="selectedRessources"
+                  clearable/>
+          <v-autocomplete
+              label="Dataset"
+              :items="datasets.display_name"
+              v-model="selectedDataset"
+                  clearable/>
+        </div>
+      </v-window-item>
+      <v-window-item :value="'step-6'">
+        <div class="pa-4 text-center">
+          <h3 class="text-h6 font-weight-light mb-2">
+            Double check your local run and submit
+          </h3>
+        </div>
+      </v-window-item>
+    </v-window>
 
+    <v-divider></v-divider>
 
+    <v-card-actions>
+      <v-btn
+        v-if="step !== 'step-1'"
+        variant="text"
+        @click="nextStep()"
+      >
+        Back
+      </v-btn>
+      <v-spacer></v-spacer>
+      <v-btn
+        v-if="step !== 'step-6'"
+        color="primary"
+        variant="flat"
+        @click="previousStep()"
+      >
+        Next
+      </v-btn>
+      <v-btn
+        v-if="step === 'step-6'"
+        color="primary"
+        variant="flat"
+        @click="submitRun()"
+      >
+        Submit
+      </v-btn>
+    </v-card-actions>
+  </v-card>
 
-          </v-card-item>
-          <v-card-item v-if="!showUploadInformation && !showAddContainerCard">
-            <v-card-actions class="d-flex justify-lg-end">
-              <div>
-              <v-btn variant="outlined" color="#303f9f"><v-icon>mdi-file-edit-outline</v-icon>Edit</v-btn>
-              <v-btn @click="snackbar = true" variant="outlined" color="red"><v-tooltip
-                activator="parent"
-                location="bottom"
-              >Attention! This deletes the container and ALL runs associated with it</v-tooltip><v-icon>mdi-delete-alert-outline</v-icon>Delete</v-btn>
-              <v-snackbar
-                  v-model="snackbar"
-                  :timeout="timeout"
-                  color="green"
-                  rounded="pill"
-                >
-                  {{ snackbarText }}
-
-                  <template v-slot:actions>
-                    <v-btn
-                      color="blue"
-                      variant="text"
-                      @click="snackbar = false"
-                    >
-                      Close
-                    </v-btn>
-                     </template>
-              </v-snackbar>
-              </div>
-
-            </v-card-actions>
-            <v-text-field disabled label="Command (immutable for reproducibility)" :model-value="addContainerCommand" hint="Available variables: $inputDataset, $inputRun, $outputDir, $dataServer, and $token."/>
-            <div class="d-flex">
-              <v-text-field disabled label="Used image (immutable for reproducibility)" :model-value="addContainerCommand" hint="Available variables: $inputDataset, $inputRun, $outputDir, $dataServer, and $token."/>
-              <v-autocomplete class="mx-2"
-                  v-model="selectedRessources"
-                  :items="ressources"
-                  label="Ressources for execution"
-                />
-              <v-autocomplete label="Input Dataset"
-                      :items="datasets"
-                      item-title="display_name"
-                      item-value="dataset_id"
-                      v-model="selectedDataset"
-                      clearable/>
-            </div>
-            <v-btn variant="outlined">Run Container</v-btn>
-          </v-card-item>
-        </v-card>
 </template>
 
 <script>
@@ -101,33 +174,23 @@ import { VAutocomplete } from 'vuetify/components'
 export default {
   name: "DockerSubmission",
   components: {VAutocomplete},
+    props: {
+    step_prop: {
+      type: String,
+      default: 'step-1'
+    }
+  },
   data() {
     return {
       selectedDockerSoftware: '',
-      showAddContainerCard: true,
-      showUploadInformation: false,
       selectedContainer: null,
       selectedDockerImage: '',
-      snackbar: false,
-      snackbarText: 'Successfully deleted container',
-      timeout: 2000,
-      addContainerCommand: 'mySoftware -c $inputDataset -r $inputRun -o $outputDir',
+      command: 'mySoftware -c $inputDataset -r $inputRun -o $outputDir',
+      step: this.step_prop,
       docker: {
-        "docker_softwares": [
-            'test1',
-            'test2',
-            'test3',
-            'test4',
-            'test5',
-        ],
-        "images": [
-            'image-test1',
-            'image-test2',
-            'image-test3',
-            'image-test4',
-            'image-test5',
-        ],
-        "docker_software_help": "<h3>Test</h3><p>Test</p>",
+        "images": ["image1", "image2"],
+        "docker_softwares": ["software1", "software2"],
+        "docker_software_help": "This is the help text for the docker software",
       },
       selectedRessources: '',
       ressources: [
@@ -163,6 +226,43 @@ export default {
                 "last_modified": "2022-11-15"
             }
         ],
+    }
+  },
+  computed: {
+    currentTitle() {
+      switch (this.step) {
+        case 'step-1':
+          return 'General Information'
+        case 'step-2':
+          return 'Local testing'
+        case 'step-3':
+          return 'Choose Docker image'
+        case 'step-4':
+          return 'Run Configuration'
+        case 'step-5':
+          return 'Ressources and Dataset'
+        case 'step-6':
+          return 'Double Check and Submit'
+      }
+    },
+  },
+  methods: {
+    nextStep() {
+      this.step = `step-${parseInt(this.step.split('-')[1]) - 1}`
+    },
+    previousStep() {
+      this.step = `step-${parseInt(this.step.split('-')[1]) + 1}`
+    },
+    submitRun() {
+      console.log('submit run')
+    },
+    updateUrlToCurrentStep() {
+      this.$router.replace({name: 'submission', params: {submission_type: this.$route.params.submission_type, selected_step: this.step}})
+    }
+  },
+    watch: {
+    step(old_value, new_value) {
+      this.updateUrlToCurrentStep()
     }
   }
 }

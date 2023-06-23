@@ -24,7 +24,7 @@
           </v-btn>
         </v-col>
         <v-col cols="auto">
-          <v-btn href="https://github.com/tira-io" min-width="228" rel="noopener noreferrer" size="x-large" theme="dark" variant="flat">
+          <v-btn color="primary" href="https://github.com/tira-io" min-width="228" rel="noopener noreferrer" size="x-large" theme="dark" variant="flat">
             <v-icon icon="mdi-github" size="large" start/>
             GitHub
           </v-btn>

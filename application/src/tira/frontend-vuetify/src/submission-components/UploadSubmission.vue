@@ -7,7 +7,7 @@
   </v-tabs>
   <v-window v-model="tab">
           <v-window-item value="newUploadGroup">
-            <h2>Create Run Upload Group</h2>
+              <h2>Create Run Upload Group</h2>
               <p>Please click on "Add Upload Group" below to create a new run upload group.</p>
               <p>Please use one upload group (you can edit the metadata of an upload group later) per appraoch. I.e., in TIRA, you can usually run software submissions on different datasets. For manually uploaded runs, we employ the same methodology: Please create one run upload group per approach, so that you can upload "executions" of the same approach on different datasets while maintaining the documentation.</p>
 
@@ -31,7 +31,7 @@
             </div>
             <v-form>
               <v-file-input
-                accept=""
+                accept=".txt"
                 label="Click to add run file"
               ></v-file-input>
               <v-autocomplete label="Input Dataset"
@@ -44,7 +44,7 @@
                       clearable/>
             </v-form>
 
-            <v-btn :disabled="uploading || fileHandle === null || uploadDataset === 'None'"
+            <v-btn :disabled="uploading || fileHandle === null || selectedDataset === 'None'"
                    @click="fileUpload()">Upload Run</v-btn>
           </v-window-item>
     </v-window>
@@ -53,57 +53,75 @@
 <script>
 
 import { VAutocomplete } from 'vuetify/components'
+import {submitPost} from "@/utils";
 
 export default {
   name: "UploadSubmission",
   components: {VAutocomplete},
+
   data () {
-      return {
-        tab: null,
-        showUploadForm: false,
-        uploadDataset: '',
-        uploadFormError: '',
-        fileHandle: null,
-        uploading: false,
-        uploadgroupselected: null,
-        editUploadMetadataToggle: false,
-        all_uploadgroups: [
-                    {"display_name": 'spiky-dandelion'},
-                    {"display_name": 'snobby-pup'},
-                    {"display_name": 'dry-heaven'}],
-        selectedDataset: '',
-        datasets: [{
-                "dataset_id": "1",
-                "display_name": "task-1-type-classification",
-                "is_confidential": true,
-                "is_deprecated": false,
-                "year": "2022-11-15 06:51:49.117415",
-                "task": "clickbait-spoiling",
-                "software_count": 10,
-                "runs_count": 220,
-                "created": "2022-11-15",
-                "last_modified": "2022-11-15"
-            }, {
-                "dataset_id": "2",
-                "display_name": "task-1-type-classification-validation",
-                "is_confidential": false,
-                "is_deprecated": false,
-                "year": "2022-11-15 06:51:49.117415",
-                "task": "clickbait-spoiling",
-                "software_count": 20,
-                "runs_count": 100,
-                "created": "2022-11-15",
-                "last_modified": "2022-11-15"
-            }
-        ],
+    return {
+      tab: null,
+      showUploadForm: false,
+      uploadDataset: '',
+      uploadFormError: '',
+      fileHandle: null,
+      uploading: false,
+      uploadgroupselected: null,
+      editUploadMetadataToggle: false,
+      all_uploadgroups: [
+        {"display_name": 'spiky-dandelion'},
+        {"display_name": 'snobby-pup'},
+        {"display_name": 'dry-heaven'}],
+      selectedDataset: '',
+      datasets: [{
+        "dataset_id": "1",
+        "display_name": "task-1-type-classification",
+        "is_confidential": true,
+        "is_deprecated": false,
+        "year": "2022-11-15 06:51:49.117415",
+        "task": "clickbait-spoiling",
+        "software_count": 10,
+        "runs_count": 220,
+        "created": "2022-11-15",
+        "last_modified": "2022-11-15"
+      }, {
+        "dataset_id": "2",
+        "display_name": "task-1-type-classification-validation",
+        "is_confidential": false,
+        "is_deprecated": false,
+        "year": "2022-11-15 06:51:49.117415",
+        "task": "clickbait-spoiling",
+        "software_count": 20,
+        "runs_count": 100,
+        "created": "2022-11-15",
+        "last_modified": "2022-11-15"
       }
+      ]
+    }
+  },
+  computed: {
+    currentTitle() {
+      switch (this.step) {
+        case 'step-1':
+          return 'General Information'
+        case 'step-2':
+          return 'Local testing'
+        case 'step-3':
+          return 'Choose Docker image'
+        case 'step-4':
+          return 'Run Configuration'
+        case 'step-5':
+          return 'Double Check and Submit'
+      }
+    }
   },
   methods: {
     addUpload() {
       const new_uploadgroup = {"display_name": 'new-upload-group_' + Math.floor(Math.random() * 1000)};
       this.all_uploadgroups.push(new_uploadgroup);
       this.tab = new_uploadgroup.display_name;
-    },
-  }
+    }
+  },
 }
 </script>

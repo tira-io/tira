@@ -1,7 +1,7 @@
 <template>
   <div class="w-75 mx-auto my-5">
   <div class="my-5">
-    <h2><b>{{task.userVmsForTask}}</b> on Task: {{task.task_id}}</h2>
+    <h2><b>{{this.user_id}}</b> on Task: {{this.task_id}}</h2>
   </div>
   <v-tabs
     v-model="tab"
@@ -19,10 +19,6 @@
       <v-icon class="mr-4">mdi-code-json</v-icon>
       Virtual Machine Submission
     </v-tab>
-    <v-tab value="stepper-submission">
-      <v-icon class="mr-4">mdi-code-json</v-icon>
-      Submission Stepper
-    </v-tab>
   </v-tabs>
   <v-window v-model="tab">
       <v-window-item value="upload-submission">
@@ -34,9 +30,6 @@
     <v-window-item value="vm-submission">
         <VirtualMachineSubmission/>
       </v-window-item>
-    <v-window-item value="stepper-submission">
-        <SubmissionStepper :step_prop="this.step"/>
-      </v-window-item>
     </v-window>
     </div>
 </template>
@@ -45,7 +38,6 @@
 import DockerSubmission from "@/submission-components/DockerSubmission.vue";
 import VirtualMachineSubmission from "@/submission-components/VirtualMachineSubmission.vue";
 import UploadSubmission from "@/submission-components/UploadSubmission";
-import SubmissionStepper from "@/submission-components/SubmissionStepper";
 
 import {
   extractSubmissionTypeFromCurrentUrl,
@@ -56,7 +48,7 @@ import {
 } from "@/utils";
 export default {
   name: "run-upload",
-  components: {UploadSubmission, VirtualMachineSubmission, DockerSubmission, SubmissionStepper},
+  components: {UploadSubmission, VirtualMachineSubmission, DockerSubmission},
   data() {
     return {
         tab: extractSubmissionTypeFromCurrentUrl(),
