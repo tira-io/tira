@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto my-5">
+  <div class="mx-auto my-5 px-10">
   <div class="my-5">
     <h2><b>{{this.user_id}}</b> on Task: {{this.task_id}}</h2>
   </div>

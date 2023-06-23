@@ -57,25 +57,25 @@
         <p>Before you submit your run, you need to test your baseline locally.</p>
         <p>You can do this in three steps:</p>
           <h4 class="my-5">(1) Data import</h4>
-          <code class="bg-grey-lighten-1">tira-run \
-            --output-directory ${PWD}/output-directory \
-            --image $your-image-name \
-            --allow-network true \
+          <code class="bg-grey-lighten-1">tira-run \ <br>
+            --output-directory ${PWD}/output-directory \ <br>
+            --image $your-image-name \ <br>
+            --allow-network true \ <br>
             --command '/irds_cli.sh --ir_datasets_id your-ir-dataset-name --output_dataset_path $outputDir'
           </code>
           <h4 class="my-5">(2) Retrieval</h4>
           <code class="bg-grey-lighten-1">
-            tira-run \
-            --input-directory ${PWD}/output-directory \
-            --image webis/tira-ir-starter-pyterrier:0.0.2-base \
+            tira-run \ <br>
+            --input-directory ${PWD}/output-directory \ <br>
+            --image webis/tira-ir-starter-pyterrier:0.0.2-base \ <br>
             --command '/workspace/run-pyterrier-notebook.py --input $inputDataset --output $outputDir --notebook /workspace/full-rank-pipeline.ipynb'
           </code>
           <h4 class="my-5">(3) Retrieval Results</h4>
           <code class="bg-grey-lighten-1">
-            tira-run \
-            --input-directory ${PWD}/tira-output \
-            --image your-image-name \
-            --allow-network true \
+            tira-run \ <br>
+            --input-directory ${PWD}/tira-output \ <br>
+            --image your-image-name \ <br>
+            --allow-network true \ <br>
             --command 'diffir --dataset your-ir-dataset-name --web $outputDir/run.txt > $outputDir/run.html'
           </code>
         </v-card-text>
@@ -181,9 +181,9 @@ export default {
   },
   data() {
     return {
-      selectedDockerSoftware: '',
+      selectedDockerSoftware: null,
       selectedContainer: null,
-      selectedDockerImage: '',
+      selectedDockerImage: null,
       step: this.step_prop,
       docker: {
         "images": ["image1", "image2"],
