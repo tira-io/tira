@@ -1,5 +1,5 @@
 <template>
-  <v-card class="mx-auto mt-12"  >
+  <v-card class="mx-auto mt-12" style="height: 100%;" >
     <v-card-title class="text-h6 font-weight-regular d-flex justify-space-between">
       <span class="mr-3">{{ currentTitle }}</span>
       <div>
@@ -45,7 +45,7 @@
     <v-window v-model="step">
       <v-window-item :value="'step-1'">
         <v-card-text>
-          <h3>General information regarding submissions</h3>
+          <h3 class="text-h6 font-weight-light mb-6">General information regarding submissions</h3>
           <p>This is general information about submitting to the TIRA platform ...</p>
           <p>Please click on "Next" below to start your submission process.</p>
         </v-card-text>
@@ -53,7 +53,7 @@
 
       <v-window-item :value="'step-2'">
         <v-card-text>
-        <h3>Test baseline locally</h3>
+        <h3 class="text-h6 font-weight-light mb-6">Test baseline locally</h3>
         <p>Before you submit your run, you need to test your baseline locally.</p>
         <p>You can do this in three steps:</p>
           <h4 class="my-5">(1) Data import</h4>
@@ -83,7 +83,7 @@
 
       <v-window-item :value="'step-3'">
         <div class="pa-4 text-center">
-          <h3 class="text-h6 font-weight-light mb-2">
+          <h3 class="text-h6 font-weight-light mb-6">
             Please select your docker image
           </h3>
           <v-autocomplete
@@ -96,7 +96,7 @@
       <v-window-item :value="'step-4'">
         <div class="pa-4 text-center">
 
-          <h3 class="text-h6 font-weight-light mb-2">
+          <h3 class="text-h6 font-weight-light mb-6">
             Please select previous stages and run command
           </h3>
           <v-autocomplete label="Previous Stages"
@@ -105,12 +105,12 @@
               clearable
               multiple
               chips/>
-          <v-text-field clearable label="Command: mySoftware -c $inputDataset -r $inputRun -o $outputDir" hint="Available variables: $inputDataset, $inputRun, $outputDir, $dataServer, and $token."/>
+          <v-text-field v-model="runCommand" clearable label="Command: mySoftware -c $inputDataset -r $inputRun -o $outputDir" hint="Available variables: $inputDataset, $inputRun, $outputDir, $dataServer, and $token."/>
         </div>
       </v-window-item>
       <v-window-item :value="'step-5'">
         <div class="pa-4 text-center">
-          <h3 class="text-h6 font-weight-light mb-2">
+          <h3 class="text-h6 font-weight-light mb-6">
             Choose ressources and select a dataset
           </h3>
           <v-autocomplete
@@ -120,16 +120,24 @@
                   clearable/>
           <v-autocomplete
               label="Dataset"
-              :items="datasets.display_name"
+              :items="datasets['display_name']"
               v-model="selectedDataset"
                   clearable/>
         </div>
       </v-window-item>
       <v-window-item :value="'step-6'">
         <div class="pa-4 text-center">
-          <h3 class="text-h6 font-weight-light mb-2">
+          <h3 class="text-h6 font-weight-light mb-6">
             Double check your local run and submit
           </h3>
+          <v-list lines="one" class="text-left mx-auto w-50">
+            <v-list-item class="my-4" title="Image:" :subtitle="selectedDockerImage" key="Image:"></v-list-item>
+            <v-list-item class="my-4" title="Previous stages:" :subtitle="selectedDockerSoftware" key="Previous stages:"></v-list-item>
+            <v-list-item class="my-4" title="Run command:" :subtitle="runCommand" key="Run command:"></v-list-item>
+            <v-list-item class="my-4" title="Ressources:" :subtitle="selectedRessources" key="Ressources: "></v-list-item>
+            <v-list-item class="my-4" title="Dataset:" :subtitle="selectedDataset" key="Dataset: "></v-list-item>
+          </v-list>
+
         </div>
       </v-window-item>
     </v-window>
@@ -169,6 +177,7 @@
 <script>
 
 import { VAutocomplete } from 'vuetify/components'
+import {get, inject_response, reportError} from "@/utils";
 
 export default {
   name: "DockerSubmission",
@@ -184,6 +193,7 @@ export default {
       selectedDockerSoftware: null,
       selectedContainer: null,
       selectedDockerImage: null,
+      runCommand: null,
       step: this.step_prop,
       docker: {
         "images": ["image1", "image2"],
@@ -257,6 +267,12 @@ export default {
     updateUrlToCurrentStep() {
       this.$router.replace({name: 'submission', params: {submission_type: this.$route.params.submission_type, selected_step: this.step}})
     }
+  },
+  beforeMount() {
+    get('/api/datasets_by_task/' + this.task_id)
+      .then(inject_response(this, {'loading': false}, true))
+      .catch(reportError("Problem While Loading the Details of the Task " + this.task_id, "This might be a short-term hiccup, please try again. We got the following error: "))
+      console.log(this)
   },
     watch: {
     step(old_value, new_value) {

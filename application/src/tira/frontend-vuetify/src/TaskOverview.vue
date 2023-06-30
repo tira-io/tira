@@ -18,7 +18,7 @@
               Leaderboard
             </v-btn>
 
-            <v-btn value="Submission">
+            <v-btn @click="changeCurrentRouteToSubmission()">
               <v-icon>mdi-new-box</v-icon>
               New Submission
             </v-btn>
@@ -89,11 +89,6 @@
           </v-container>
 
       </v-window-item>
-
-      <v-window-item value="Submission">
-        <RunUpload/>
-      </v-window-item>
-
     </v-window>
   </v-container>
   </v-container>
@@ -135,6 +130,9 @@
     },
     newDatasetSelected() {
       changeCurrentUrlToDataset(this.selectedDataset)
+    },
+    changeCurrentRouteToSubmission() {
+      this.$router.push('/submit/' + this.task_id + '/user/' + this.user_id)
     }
   },
   beforeMount() {
@@ -142,6 +140,7 @@
       .then(inject_response(this, {'loading': false}, true))
       .then(this.updateDataset)
       .catch(reportError("Problem While Loading the Details of the Task " + this.task_id, "This might be a short-term hiccup, please try again. We got the following error: "))
+    console.log(this.user_id)
   },
   watch: {
     selectedDataset(old_value, new_value) { this.newDatasetSelected() },
