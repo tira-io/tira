@@ -355,7 +355,7 @@ class Client():
                 sleep_time = 1+int(random()*self.failsave_max_delay)
                 print(e)
                 print(f'Code: {resp.status_code}')
-                print(f'Error occured while fetching {url}. I will sleep {sleep_time} seconds and continue.')
+                print(f'Error occured while fetching {endpoint}. I will sleep {sleep_time} seconds and continue.')
                 time.sleep(sleep_time)
 
         self.json_cache[cache_key] = resp.json()
