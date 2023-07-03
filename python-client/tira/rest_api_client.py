@@ -20,7 +20,8 @@ class Client():
             self.api_key = self.load_settings()['api_key']
         else:
             self.api_key = api_key
-        
+
+        self.failsave_retries = 1
         self.fail_if_api_key_is_invalid()
         self.pt = PyTerrierIntegration(self)
         self.local_execution = LocalExecutionIntegration(self)
@@ -341,11 +342,22 @@ class Client():
             return self.json_cache[cache_key]
         
         headers = {"Api-Key": self.api_key, "Accept": "application/json"}
-        resp = requests.get(url='https://www.tira.io' + endpoint, headers=headers, params=params)
+
+        for i in range(self.failsave_retries):
+            try:
+                resp = requests.get(url='https://www.tira.io' + endpoint, headers=headers, params=params)
         
-        if resp.status_code not in {200, 202}:
-            raise ValueError('Got statuscode ', resp.status_code, 'for ', endpoint, '. Got', resp)
-        
+                if resp.status_code not in {200, 202}:
+                    raise ValueError('Got statuscode ', resp.status_code, 'for ', endpoint, '. Got', resp)
+                else:
+                    break
+            except Exception as e:
+                sleep_time = 1+int(random()*self.failsave_max_delay)
+                print(e)
+                print(f'Code: {status_code}')
+                print(f'Error occured while fetching {url}. I will sleep {sleep_time} seconds and continue.')
+                time.sleep(sleep_time)
+
         self.json_cache[cache_key] = resp.json()
 
         return self.json_cache[cache_key]
