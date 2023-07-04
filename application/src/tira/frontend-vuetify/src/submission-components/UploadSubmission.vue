@@ -1,11 +1,13 @@
 <template>
-<v-tabs v-model="tab"
+  <loading :loading="loading"/>
+  <login-to-submit v-if="!loading && role === 'guest'"/>
+<v-tabs v-model="tab" v-if="!loading && role !== 'guest'"
     fixed-tabs class="my-10">
-            <v-tab value="newUploadGroup" variant="outlined" @click="uploadgroupselected='';">Add new upload group</v-tab>
+            <v-tab value="newUploadGroup" variant="outlined">Add new upload group</v-tab>
             <v-tab variant="outlined" v-for="uploadGroup in this.all_uploadgroups" :value="uploadGroup.display_name">
          {{ uploadGroup.display_name }} </v-tab>
   </v-tabs>
-  <v-window v-model="tab">
+  <v-window v-model="tab" v-if="!loading && role !== 'guest'">
           <v-window-item value="newUploadGroup">
               <h2>Create Run Upload Group</h2>
               <p>Please click on "Add Upload Group" below to create a new run upload group.</p>
@@ -31,7 +33,6 @@
             </div>
             <v-form>
               <v-file-input
-                accept=".txt"
                 label="Click to add run file"
               ></v-file-input>
               <v-autocomplete label="Input Dataset"
@@ -53,75 +54,44 @@
 <script>
 
 import { VAutocomplete } from 'vuetify/components'
-import {submitPost} from "@/utils";
+import {extractTaskFromCurrentUrl, extractUserFromCurrentUrl, get, inject_response, reportError, extractRole} from "@/utils";
+import {Loading, LoginToSubmit} from "@/components";
 
 export default {
   name: "UploadSubmission",
-  components: {VAutocomplete},
+  components: {Loading, VAutocomplete, LoginToSubmit},
 
   data () {
     return {
+      loading: true,
+      task_id: extractTaskFromCurrentUrl(),
+      user_id: extractUserFromCurrentUrl(),
+      role: extractRole(), // Values: guest, user, participant, admin
       tab: null,
       showUploadForm: false,
       uploadDataset: '',
       uploadFormError: '',
       fileHandle: null,
       uploading: false,
-      uploadgroupselected: null,
       editUploadMetadataToggle: false,
-      all_uploadgroups: [
-        {"display_name": 'spiky-dandelion'},
-        {"display_name": 'snobby-pup'},
-        {"display_name": 'dry-heaven'}],
+      all_uploadgroups: [{"display_name": 'loading...'}],
       selectedDataset: '',
-      datasets: [{
-        "dataset_id": "1",
-        "display_name": "task-1-type-classification",
-        "is_confidential": true,
-        "is_deprecated": false,
-        "year": "2022-11-15 06:51:49.117415",
-        "task": "clickbait-spoiling",
-        "software_count": 10,
-        "runs_count": 220,
-        "created": "2022-11-15",
-        "last_modified": "2022-11-15"
-      }, {
-        "dataset_id": "2",
-        "display_name": "task-1-type-classification-validation",
-        "is_confidential": false,
-        "is_deprecated": false,
-        "year": "2022-11-15 06:51:49.117415",
-        "task": "clickbait-spoiling",
-        "software_count": 20,
-        "runs_count": 100,
-        "created": "2022-11-15",
-        "last_modified": "2022-11-15"
-      }
-      ]
-    }
-  },
-  computed: {
-    currentTitle() {
-      switch (this.step) {
-        case 'step-1':
-          return 'General Information'
-        case 'step-2':
-          return 'Local testing'
-        case 'step-3':
-          return 'Choose Docker image'
-        case 'step-4':
-          return 'Run Configuration'
-        case 'step-5':
-          return 'Double Check and Submit'
-      }
+      datasets: [{"dataset_id": "loading...", "display_name": "loading...",}]
     }
   },
   methods: {
     addUpload() {
-      const new_uploadgroup = {"display_name": 'new-upload-group_' + Math.floor(Math.random() * 1000)};
-      this.all_uploadgroups.push(new_uploadgroup);
-      this.tab = new_uploadgroup.display_name;
+       get(`/task/${this.task_id}/vm/${this.user_id}/add_software/upload`).then(message => {
+                this.all_uploadgroups.push({"display_name": message.context.upload.display_name})
+                this.tab = message.context.upload.display_name
+            })
+            .catch(reportError("Problem While Adding New Upload Group.", "This might be a short-term hiccup, please try again. We got the following error: "))
     }
+  },
+  beforeMount() {
+    get('/api/submissions-for-task/' + this.task_id + '/' + this.user_id + '/upload')
+      .then(inject_response(this, {'loading': false}, true))
+      .catch(reportError("Problem While Loading The Submissions of the Task " + this.task_id, "This might be a short-term hiccup, please try again. We got the following error: "))
   },
 }
 </script>
