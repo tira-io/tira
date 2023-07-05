@@ -42,7 +42,7 @@
       </div>
     </v-card-title>
 
-    <v-window v-model="step">
+    <v-window v-model="step" style="height: 560px;">
       <v-window-item :value="'step-1'">
         <v-card-text>
           <h3 class="text-h6 font-weight-light mb-6">General information regarding submissions</h3>
@@ -83,7 +83,7 @@
 
       <v-window-item :value="'step-3'">
         <div class="pa-4 text-center">
-          <h3 class="text-h6 font-weight-light mb-6">
+          <h3 class="text-h6 font-weight-light my-6">
             Please select your docker image
           </h3>
           <v-autocomplete
@@ -96,7 +96,7 @@
       <v-window-item :value="'step-4'">
         <div class="pa-4 text-center">
 
-          <h3 class="text-h6 font-weight-light mb-6">
+          <h3 class="text-h6 font-weight-light my-6">
             Please select previous stages and run command
           </h3>
           <v-autocomplete label="Previous Stages"
@@ -110,7 +110,7 @@
       </v-window-item>
       <v-window-item :value="'step-5'">
         <div class="pa-4 text-center">
-          <h3 class="text-h6 font-weight-light mb-6">
+          <h3 class="text-h6 font-weight-light my-6">
             Choose ressources and select a dataset
           </h3>
           <v-autocomplete
@@ -127,7 +127,7 @@
       </v-window-item>
       <v-window-item :value="'step-6'">
         <div class="pa-4 text-center">
-          <h3 class="text-h6 font-weight-light mb-6">
+          <h3 class="text-h6 font-weight-light my-6">
             Double check your local run and submit
           </h3>
           <v-list lines="one" class="text-left mx-auto w-50">

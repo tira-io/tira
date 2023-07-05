@@ -333,6 +333,11 @@ def add_registration(request, context, task_id, vm_id):
         logger.exception(e)
         return JsonResponse({'status': 0, "message": f"Encountered an exception: {e}"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
+@add_context
+def submissions_for_task (request, context, task_id, user_id, submission_type):
+    context[ "all_uploadgroups"] = [{"display_name": 'success'}, {"display_name": 'success_2'}]
+    context["datasets"] = [{"dataset_id": '1', "display_name": "sucess"}, {"dataset_id": '2', "display_name": "sucess_2",}]
+    return JsonResponse({'status': 0, "context": context})
 @check_permissions
 @check_resources_exist("json")
 @add_context

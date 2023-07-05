@@ -104,7 +104,7 @@ urlpatterns = [
     path('api/task/<str:task_id>/user/<str:user_id>/software/running/<str:force_cache_refresh>', data_api.get_running_software, name='get_running_software'),
     path('api/review/<str:dataset_id>/<str:vm_id>/<str:run_id>', data_api.get_review, name='get_review'),
     path('api/registration/add_registration/<str:vm_id>/<str:task_id>', data_api.add_registration, name='add_registration'),
-
+    path('api/submissions-for-task/<str:task_id>/<str:user_id>/<str:submission_type>', data_api.submissions_for_task, name="submissions_for_task"),
     path('diffir/<str:task_id>/<str:run_id_1>/<str:run_id_2>', diffir_api.diffir, name='diffir'),
     path('serp/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/<str:run_id>', serp_api.serp, name='serp'),
 ]
