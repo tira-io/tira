@@ -75,6 +75,17 @@ export function extractRole(doc: Document=document) : string {
     return 'guest'
 }
 
+export function extractCsrf(doc: Document=document) : string {
+    try  {
+        var ret = doc.querySelector('input[type="hidden"][name="csrfmiddlewaretoken"][value]')
+        if (ret && 'value' in ret) {
+            return "" + ret['value']
+        }
+    } catch { }
+
+    return ''
+}
+
 export function reportError(title: string="", text: string="") {
     return function (error: any) {
         console.log(error)
@@ -106,37 +117,42 @@ export function inject_response(obj: any, default_values: any={}, debug=false) {
     }
 }
 
-async function submitPost(url: string, params: [string: any]) {
-    const csrf = ''
-    const headers = new Headers({
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'X-CSRFToken': csrf
-    })
-    console.log(JSON.stringify(params))
-    const response = await fetch(url, {
-        method: "POST",
-        headers,
-        body: JSON.stringify(params)
-    })
-    if (!response.ok) {
-        throw new Error(`Error fetching endpoint: ${url} with ${response.status}`);
-    }
-    let results = await response.json()
-    if (results.status === 1) {
-        throw new Error(`${results.message}`);
-    }
-    return results
-}
-
 export async function get(url: string) {
     const response = await fetch(url)
     if (!response.ok) {
       throw new Error(`Error fetching endpoint: ${url} with ${response.status}`);
     }
     let results = await response.json()
-    if (results.status !== 0) {
+    if (results.status !== 0 && results.status !== '0') {
       throw new Error(`${results.message}`);
+    }
+    return results
+}
+
+export async function post(url: string, params: any, debug=false) {
+    const headers = new Headers({
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRFToken': extractCsrf(),
+    })
+    params = JSON.stringify(params)
+    if (debug) {
+        console.log("Post " + params)
+    }
+    const response = await fetch(url, {
+        method: "POST",
+        headers,
+        body: params
+    })
+    if (debug) {
+        console.log("Received " + response)
+    }
+    if (!response.ok) {
+        throw new Error(`Error fetching endpoint: ${url} with ${response.status}`);
+    }
+    let results = await response.json()
+    if (results.status !== 0 && results.status !== '0') {
+        throw new Error(`${results.message}`);
     }
     return results
 }

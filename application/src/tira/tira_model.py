@@ -252,6 +252,10 @@ def get_vms_with_reviews(dataset_id: str) -> list:
     return model.get_vms_with_reviews(dataset_id)
 
 
+def get_evaluations_of_run(vm_id, run_id):
+    return model.get_evaluations_of_run(vm_id, run_id)
+
+
 def get_evaluator(dataset_id, task_id=None):
     """ returns a dict containing the evaluator parameters:
 

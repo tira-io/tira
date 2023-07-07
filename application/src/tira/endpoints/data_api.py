@@ -146,6 +146,14 @@ def get_submissions_by_dataset(request, context, task_id, dataset_id):
 @check_permissions
 @check_resources_exist("json")
 @add_context
+def get_evaluations_of_run(request, context, vm_id, run_id):
+    context['evaluations'] = model.get_evaluations_of_run(vm_id, run_id)
+    return JsonResponse({'status': 0, "context": context})
+
+
+@check_permissions
+@check_resources_exist("json")
+@add_context
 def get_ova_list(request, context):
     context["ova_list"] = model.get_ova_list()
     return JsonResponse({'status': 0, "context": context})

@@ -831,6 +831,28 @@ API_ACCESS_MATRIX = [
     #    },
     #),
     route_to_test(
+        url_pattern='api/evaluations_of_run/<str:vm_id>/<str:run_id>',
+        params={'vm_id': PARTICIPANT.split('_')[-1], 'run_id': 'run-1-example_participant'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,  # TODO Make consistent with "api/evaluations/<str:task_id>/<str:dataset_id>"
+            PARTICIPANT: 200,
+            ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,  # TODO Make consistent with "api/evaluations/<str:task_id>/<str:dataset_id>"
+        },
+    ),
+    route_to_test(
+        url_pattern='api/evaluations_of_run/<str:vm_id>/<str:run_id>',
+        params={'vm_id': 'does-not-exist', 'run_id': 'does-not-exist'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,  # TODO Make consistent with "api/evaluations/<str:task_id>/<str:dataset_id>"
+            PARTICIPANT: 302,
+            ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,  # TODO Make consistent with "api/evaluations/<str:task_id>/<str:dataset_id>"
+        },
+    ),
+    route_to_test(
         url_pattern='grpc/<str:vm_id>/vm_running_evaluations',
         params={'vm_id': 'does-not-exist'},
         group_to_expected_status_code={

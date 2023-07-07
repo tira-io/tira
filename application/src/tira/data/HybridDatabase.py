@@ -568,15 +568,13 @@ class HybridDatabase(object):
         GROUP BY
             tira_run.input_dataset_id;
         """
-        from django.db import connection
-        with connection.cursor() as cursor:
-            ret = []
-            cursor.execute(prepared_statement, params=[task_id])
-            rows = cursor.fetchall()
-            for dataset_id, to_review, submissions in rows:
-                ret += [{'dataset_id': dataset_id, 'to_review': to_review, 'submissions': submissions}]
 
-            return ret
+        ret = []
+        rows = self.execute_raw_sql_statement(prepared_statement, params=[task_id])
+        for dataset_id, to_review, submissions in rows:
+            ret += [{'dataset_id': dataset_id, 'to_review': to_review, 'submissions': submissions}]
+
+        return ret
 
 
     def get_docker_softwares_with_runs(self, task_id, vm_id):
@@ -645,6 +643,26 @@ class HybridDatabase(object):
                                                     display_name=irds_display_name)
 
         return ret[0] if len(ret) > 0 else None
+
+    def get_evaluations_of_run(self, vm_id, run_id):
+        prepared_statement = '''
+            SELECT
+                evaluation_run.run_id
+            FROM
+                tira_run as evaluation_run
+            INNER JOIN 
+                tira_run as input_run ON evaluation_run.input_run_id = input_run.run_id
+            LEFT JOIN
+                tira_upload ON input_run.upload_id = tira_upload.id
+            LEFT JOIN
+                tira_software ON input_run.software_id = tira_software.id
+            LEFT JOIN
+                tira_dockersoftware ON input_run.docker_software_id = tira_dockersoftware.docker_software_id
+            WHERE
+                evaluation_run.input_run_id = %s and evaluation_run.evaluator_id IS NOT NULL
+                AND (tira_upload.vm_id = %s OR tira_software.vm_id = %s OR tira_dockersoftware.vm_id = %s)
+            '''
+        return [i[0] for i in self.execute_raw_sql_statement(prepared_statement, [run_id, vm_id, vm_id, vm_id])]
 
     def get_vms_with_reviews(self, dataset_id: str):
         """ returns a list of dicts with:
@@ -759,7 +777,7 @@ class HybridDatabase(object):
             except ValueError:
                 return fl
 
-        from django.db import connection
+
 
         prepared_statement = '''
         SELECT
@@ -802,47 +820,46 @@ class HybridDatabase(object):
         dataset_id_statement = ' OR '.join(dataset_id_statement)
         prepared_statement = prepared_statement.replace('<DATASET_ID_STATEMENT>', f'({dataset_id_statement})')
 
-        with connection.cursor() as cursor:
-            keys = dict()
-            input_run_to_evaluation = {}
-            cursor.execute(prepared_statement, params=dataset_ids)
-            rows = cursor.fetchall()
-            for dataset_id, run_id, input_run_id, upload_display_name, upload_vm_id, software_vm_id, docker_display_name, \
-                    docker_vm_id, eval_published, eval_blinded, run_published, run_blinded, measure_key, measure_value in rows:
+        keys = dict()
+        input_run_to_evaluation = {}
+        rows = self.execute_raw_sql_statement(prepared_statement, params=dataset_ids)
 
-                if not measure_key or (not include_unpublished and not eval_published):
-                    continue
+        for dataset_id, run_id, input_run_id, upload_display_name, upload_vm_id, software_vm_id, docker_display_name, \
+                docker_vm_id, eval_published, eval_blinded, run_published, run_blinded, measure_key, measure_value in rows:
 
-                if run_id not in input_run_to_evaluation:
-                    input_run_to_evaluation[run_id] = {'measures': {}}
+            if not measure_key or (not include_unpublished and not eval_published):
+                continue
 
-                vm_id = 'None'
-                software_name = ''
-                pretty_run_id = run_id if '-evaluated-run-' not in run_id else run_id.split('-evaluated-run-')[1]
-                is_upload, is_software = False, False
-                if upload_display_name and upload_vm_id:
-                    vm_id = upload_vm_id
-                    is_upload = True
-                    software_name = upload_display_name
-                elif docker_display_name and docker_vm_id:
-                    vm_id = docker_vm_id
-                    is_software = True
-                    software_name = docker_display_name
-                elif software_vm_id:
-                    vm_id = software_vm_id
-                    is_software = True
+            if run_id not in input_run_to_evaluation:
+                input_run_to_evaluation[run_id] = {'measures': {}}
 
-                input_run_to_evaluation[run_id]['dataset_id'] = dataset_id
-                input_run_to_evaluation[run_id]['vm_id'] = vm_id
-                input_run_to_evaluation[run_id]['input_software_name'] = software_name
-                input_run_to_evaluation[run_id]['run_id'] = pretty_run_id
-                input_run_to_evaluation[run_id]['input_run_id'] = input_run_id
-                input_run_to_evaluation[run_id]['published'] = eval_published
-                input_run_to_evaluation[run_id]['blinded'] = eval_blinded or run_blinded
-                input_run_to_evaluation[run_id]['is_upload'] = is_upload
-                input_run_to_evaluation[run_id]['is_software'] = is_software
-                input_run_to_evaluation[run_id]['measures'][measure_key] = measure_value
-                keys[measure_key] = ''
+            vm_id = 'None'
+            software_name = ''
+            pretty_run_id = run_id if '-evaluated-run-' not in run_id else run_id.split('-evaluated-run-')[1]
+            is_upload, is_software = False, False
+            if upload_display_name and upload_vm_id:
+                vm_id = upload_vm_id
+                is_upload = True
+                software_name = upload_display_name
+            elif docker_display_name and docker_vm_id:
+                vm_id = docker_vm_id
+                is_software = True
+                software_name = docker_display_name
+            elif software_vm_id:
+                vm_id = software_vm_id
+                is_software = True
+
+            input_run_to_evaluation[run_id]['dataset_id'] = dataset_id
+            input_run_to_evaluation[run_id]['vm_id'] = vm_id
+            input_run_to_evaluation[run_id]['input_software_name'] = software_name
+            input_run_to_evaluation[run_id]['run_id'] = pretty_run_id
+            input_run_to_evaluation[run_id]['input_run_id'] = input_run_id
+            input_run_to_evaluation[run_id]['published'] = eval_published
+            input_run_to_evaluation[run_id]['blinded'] = eval_blinded or run_blinded
+            input_run_to_evaluation[run_id]['is_upload'] = is_upload
+            input_run_to_evaluation[run_id]['is_software'] = is_software
+            input_run_to_evaluation[run_id]['measures'][measure_key] = measure_value
+            keys[measure_key] = ''
 
         keys = list(keys.keys())
         ret = []
@@ -853,6 +870,15 @@ class HybridDatabase(object):
 
         return keys, ret
 
+    def execute_raw_sql_statement(self, prepared_statement, params):
+        from django.db import connection
+        ret = []
+        with connection.cursor() as cursor:
+            cursor.execute(prepared_statement, params=params)
+            for i in cursor.fetchall():
+                ret += [i]
+
+        return ret
 
     def get_evaluation(self, run_id):
         try:

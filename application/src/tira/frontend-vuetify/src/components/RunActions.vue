@@ -32,7 +32,7 @@
   </span>
 
   <span v-if="role == 'admin'">
-    <run-review-window :run_id="run.run_id" />
+    <run-review-window :run_id="run.run_id" :vm_id="run.vm_id"/>
     <v-tooltip activator="parent" location="top">Review</v-tooltip>
   </span>
 </template>
