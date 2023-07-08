@@ -39,6 +39,11 @@ def check_permissions(func):
         if role == auth.ROLE_ADMIN or role == auth.ROLE_TIRA:
             return func(request, *args, **kwargs)
 
+        # SERP endpoint is allowed for runs that are published and unblinded
+        if (request.path_info.startswith('serp/') or request.path_info.startswith('/serp/')) and run_id \
+                and run_id in request.path_info and model.run_is_public_and_unblinded(run_id):
+            return func(request, *args, **kwargs)
+
         if 'run_id_1' in kwargs or 'run_id_2' in kwargs:
             return HttpResponseNotAllowed(f"Access forbidden.")
 

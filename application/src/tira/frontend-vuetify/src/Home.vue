@@ -10,7 +10,7 @@
       </p>
       <v-row class="d-flex justify-center py-4">
         <v-col cols="auto">
-          <v-btn color="primary" href="/frontend-vuetify/tasks" min-width="228" rel="noopener noreferrer" size="x-large" variant="flat">
+          <v-btn color="primary" href="/tasks" min-width="228" rel="noopener noreferrer" size="x-large" variant="flat">
             <v-icon icon="mdi-speedometer" size="large" start/>
             Get Started
           </v-btn>
@@ -24,7 +24,7 @@
           </v-btn>
         </v-col>
         <v-col cols="auto">
-          <v-btn href="https://github.com/tira-io" min-width="228" rel="noopener noreferrer" size="x-large" theme="dark" variant="flat">
+          <v-btn class="home-button" href="https://github.com/tira-io" min-width="228" rel="noopener noreferrer" size="x-large" variant="flat">
             <v-icon icon="mdi-github" size="large" start/>
             GitHub
           </v-btn>
@@ -53,5 +53,17 @@
     font-size: 1.25rem;
     font-weight: 300;
     max-width: 525px;
+  }
+  .home-button {
+    color: #fff;
+    background: #000;
+  }
+  .home-button:hover {
+    color: #fff;
+    background: #000;
+  }
+  .home-button:visited {
+    color: #fff;
+    background: #000;
   }
 </style>

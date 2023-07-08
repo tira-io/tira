@@ -17,7 +17,7 @@
 <nav class="uk-container">
     <ul class="uk-breadcrumb">
         <li><a href="{% url 'tira:index' %}">Tira.io</a></li>
-        <li><a href="{% url 'tira:task' task_id=task.task_id %}">[[ task.task_name ]]</a></li>
+        <li><a href="/task-overview/{{ task.task_id }}">[[ task.task_name ]]</a></li>
     </ul>
 </nav>
 

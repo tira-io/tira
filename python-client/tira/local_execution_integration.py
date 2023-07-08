@@ -4,6 +4,7 @@ import docker
 from copy import deepcopy
 import tempfile
 import subprocess
+import tarfile
 
 
 class LocalExecutionIntegration():
@@ -73,6 +74,18 @@ class LocalExecutionIntegration():
 
         print('\n\n Image pulled successfully.\n\nI will now run the software.\n\n')
 
+    def __docker_client(self):
+        try:
+            environ = os.environ.copy()
+            if sys.platform == "linux" and os.path.exists(os.path.expanduser("~/.docker/desktop/docker.sock")):
+                environ["DOCKER_HOST"] = "unix:///" + os.path.expanduser("~/.docker/desktop/docker.sock")
+            client = docker.from_env(environment=environ)
+
+            assert len(client.images.list()) >= 0
+            assert len(client.containers.list()) >= 0
+            return client
+        except Exception as e:
+            raise ValueError('It seems like docker is not installed?', e)
 
     def run(self, identifier=None, image=None, command=None, input_dir=None, output_dir=None, evaluate=False, verbose=False, dry_run=False, docker_software_id_to_output=None, software_id=None, allow_network=False, input_run=None, additional_volumes=None):
         previous_stages = []
@@ -82,16 +95,7 @@ class LocalExecutionIntegration():
             ds = self.tira_client.docker_software(approach=identifier, software_id=software_id)
             image, command, s_id, previous_stages = ds['tira_image_name'], ds['command'], ds['id'], ds['ids_of_previous_stages']
         if not dry_run:
-            try:
-                environ = os.environ.copy()
-                if sys.platform == "linux" and os.path.exists(os.path.expanduser("~/.docker/desktop/docker.sock")):
-                    environ["DOCKER_HOST"] = "unix:///" + os.path.expanduser("~/.docker/desktop/docker.sock")
-                client = docker.from_env(environment=environ)
-        
-                assert len(client.images.list()) >= 0
-                assert len(client.containers.list()) >= 0
-            except Exception as e:
-                raise ValueError('It seems like docker is not installed?', e)
+            client = self.__docker_client()
 
         command = self.__normalize_command(command, False)
     
@@ -166,4 +170,30 @@ class LocalExecutionIntegration():
         else:
             docker_software_id_to_output[s_id] = output_dir
             return docker_software_id_to_output
+
+
+    def export_file_from_software(self, container_path, host_path, identifier=None, image=None, software_id=None):
+        """
+        Export a file specified by container_path' from a software to the host_path at the host.
+        """
+        if image is None:
+            ds = self.tira_client.docker_software(approach=identifier, software_id=software_id)
+            image = ds['tira_image_name']
+
+        self.ensure_image_available_locally(image)
+        client = self.__docker_client()
+        docker_container = client.containers.create(image)
+        strm, stat = docker_container.get_archive(container_path, None)
+
+        with open(host_path, 'wb') as f:
+            for i in strm:
+                f.write(i)
+
+        tf = tarfile.open(host_path, mode='r')
+        tf = tf.extractfile(stat[u'name']).read()
+
+        with open(host_path, 'wb') as f:
+            f.write(tf)
+
+        docker_container.remove()
 

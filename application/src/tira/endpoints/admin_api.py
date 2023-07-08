@@ -453,9 +453,9 @@ def admin_create_group(request, vm_id):
 def admin_edit_review(request, dataset_id, vm_id, run_id):
     if request.method == "POST":
         data = json.loads(request.body)
-        no_errors = data["no_errors"]
-        output_error = data["output_error"]
-        software_error = data.get("software_error", False) # Sometimes the frontend does not send the software error field
+        no_errors = data.get("no_errors", True)
+        output_error = data.get("output_error", False)
+        software_error = data.get("software_error", False)
         comment = data["comment"]
 
         # sanity checks

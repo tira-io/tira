@@ -1,7 +1,9 @@
 import { ref } from 'vue'
 
+let allowed_roles = new Set(['guest', 'user', 'participant', 'admin'])
+
 export function extractTaskFromCurrentUrl() {
-    let loc = ref(window.location).value.href
+    let loc = ref(window.location).value.href.split('#')[0].split('?')[0]
     
     if (loc.includes('task-overview/')) {
         return loc.split('task-overview/')[1].split('/')[0]
@@ -19,7 +21,7 @@ export function get_contact_link_to_organizer(organizer_id: string) {
 }
 
 export function extractDatasetFromCurrentUrl(options: Array<any> = [], default_choice: string='') {
-    var loc = ref(window.location).value.href
+    var loc = ref(window.location).value.href.split('#')[0].split('?')[0]
     var dataset_from_url = ''
     let to_split = 'task-overview/' + extractTaskFromCurrentUrl() + '/'
     
@@ -59,8 +61,29 @@ export function chanceCurrentUrlToDataset(dataset: string) {
     }
 }
 
-export function extractRole() {
+export function extractRole(doc: Document=document) : string {
+    try {
+        var ret = doc.querySelector('#user_metadata')
+        if (ret) {
+            ret = JSON.parse(ret.innerHTML.split('user_metadata = ')[1])['role']
+            if (allowed_roles.has("" + ret)) {
+                return "" + ret
+            }
+        }
+    } catch { }
+    
     return 'guest'
+}
+
+export function extractCsrf(doc: Document=document) : string {
+    try  {
+        var ret = doc.querySelector('input[type="hidden"][name="csrfmiddlewaretoken"][value]')
+        if (ret && 'value' in ret) {
+            return "" + ret['value']
+        }
+    } catch { }
+
+    return ''
 }
 
 export function reportError(title: string="", text: string="") {
@@ -94,37 +117,42 @@ export function inject_response(obj: any, default_values: any={}, debug=false) {
     }
 }
 
-async function submitPost(url: string, params: [string: any]) {
-    const csrf = ''
-    const headers = new Headers({
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'X-CSRFToken': csrf
-    })
-    console.log(JSON.stringify(params))
-    const response = await fetch(url, {
-        method: "POST",
-        headers,
-        body: JSON.stringify(params)
-    })
-    if (!response.ok) {
-        throw new Error(`Error fetching endpoint: ${url} with ${response.status}`);
-    }
-    let results = await response.json()
-    if (results.status === 1) {
-        throw new Error(`${results.message}`);
-    }
-    return results
-}
-
 export async function get(url: string) {
     const response = await fetch(url)
     if (!response.ok) {
       throw new Error(`Error fetching endpoint: ${url} with ${response.status}`);
     }
     let results = await response.json()
-    if (results.status !== 0) {
+    if (results.status !== 0 && results.status !== '0') {
       throw new Error(`${results.message}`);
+    }
+    return results
+}
+
+export async function post(url: string, params: any, debug=false) {
+    const headers = new Headers({
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRFToken': extractCsrf(),
+    })
+    params = JSON.stringify(params)
+    if (debug) {
+        console.log("Post " + params)
+    }
+    const response = await fetch(url, {
+        method: "POST",
+        headers,
+        body: params
+    })
+    if (debug) {
+        console.log("Received " + response)
+    }
+    if (!response.ok) {
+        throw new Error(`Error fetching endpoint: ${url} with ${response.status}`);
+    }
+    let results = await response.json()
+    if (results.status !== 0 && results.status !== '0') {
+        throw new Error(`${results.message}`);
     }
     return results
 }

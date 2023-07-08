@@ -43,3 +43,9 @@ def blind(request, vm_id, dataset_id, run_id, value):
             context = {"status": "1", "blinded": (not value),  "message": f"Blinded is now: {value}"}
         return JsonResponse(context)
 
+
+@check_permissions
+@check_resources_exist('json')
+def get_count_of_missing_reviews(request, task_id):
+    context = {"count_of_missing_reviews": model.get_count_of_missing_reviews(task_id)}
+    return JsonResponse({"status": 0, "context": context})

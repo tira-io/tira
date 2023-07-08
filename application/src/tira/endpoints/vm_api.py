@@ -14,10 +14,11 @@ from http import HTTPStatus
 from tira.model import TransitionLog, EvaluationLog, TransactionLog
 from tira.grpc_client import GrpcClient
 import tira.tira_model as model
-from tira.util import get_tira_id, reroute_host
+from tira.util import get_tira_id, reroute_host, link_to_discourse_team
 from tira.views import add_context
 from functools import wraps
 import json
+from markdown import markdown
 
 include_navigation = True if settings.DEPLOYMENT == "legacy" else False
 
@@ -533,6 +534,146 @@ def construct_verbosity_output(image, command, approach, task, dataset):
         'image': image, 'command': command
     }
 
+
+def __rendered_references(task_id, vm_id, run):
+    task = model.get_task(task_id)
+    bib_references = {
+        'run': '@Comment {No bib entry specified for the run, please contact the team/organizers for clarification.}',
+        'task': '@Comment {No bib entry specified for the task, please contact the organizers for clarification.}',
+        'dataset': '@Comment {No bib entry specified for the dataset, please contact the organizers for clarification.}',
+    }
+    markdown_references = {'run': None, 'task': None, 'dataset': None}
+
+    if run['dataset'] == 'antique-test-20230107-training':
+        markdown_references['dataset'] = '[ANTIQUE](https://ir.webis.de/anthology/2020.ecir_conference-20202.21/) ' + \
+                                         'is a  non-factoid quesiton answering dataset based on the questions and ' + \
+                                         'answers of Yahoo! Webscope L6.'
+        bib_references['dataset'] = '''@inproceedings{Hashemi2020Antique,
+  title        = {ANTIQUE: A Non-Factoid Question Answering Benchmark},
+  author       = {Helia Hashemi and Mohammad Aliannejadi and Hamed Zamani and Bruce Croft},
+  booktitle    = {ECIR},
+  year         = {2020}
+}'''
+
+    if task_id == 'ir-benchmarks':
+        markdown_references['task'] = '[TIRA](https://webis.de/publications?q=TIRA#froebe_2023b) ' + \
+                                      'respectively [TIREx](https://webis.de/publications#froebe_2023e) ' + \
+                                      'is used to enable reprodicible and blinded experiments.'
+        bib_references['task'] = '''@InProceedings{froebe:2023b,
+  address =                  {Berlin Heidelberg New York},
+  author =                   {Maik Fr{\"o}be and Matti Wiegmann and Nikolay Kolyada and Bastian Grahm and Theresa Elstner and Frank Loebe and Matthias Hagen and Benno Stein and Martin Potthast},
+  booktitle =                {Advances in Information Retrieval. 45th European Conference on {IR} Research ({ECIR} 2023)},
+  doi =                      {10.1007/978-3-031-28241-6_20},
+  editor =                   {Jaap Kamps and Lorraine Goeuriot and Fabio Crestani and Maria Maistro and Hideo Joho and Brian Davis and Cathal Gurrin and Udo Kruschwitz and Annalina Caputo},
+  month =                    apr,
+  pages =                    {236--241},
+  publisher =                {Springer},
+  series =                   {Lecture Notes in Computer Science},
+  site =                     {Dublin, Irland},
+  title =                    {{Continuous Integration for Reproducible Shared Tasks with TIRA.io}},
+  todo =                     {pages, code},
+  url =                      {https://doi.org/10.1007/978-3-031-28241-6_20},
+  year =                     2023
+}
+
+@InProceedings{froebe:2023e,
+  author =                   {Maik Fr{\"o}be and {Jan Heinrich} Reimer and Sean MacAvaney and Niklas Deckers and Simon Reich and Janek Bevendorff and Benno Stein and Matthias Hagen and Martin Potthast},
+  booktitle =                {46th International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR 2023)},
+  month =                    jul,
+  publisher =                {ACM},
+  site =                     {Taipei, Taiwan},
+  title =                    {{The Information Retrieval Experiment Platform}},
+  todo =                     {annote, doi, editor, pages, url, videourl},
+  year =                     2023
+}'''
+
+    if run['software'] == 'MonoT5 3b (tira-ir-starter-gygaggle)':
+        markdown_references['run'] = 'The implementation of [MonoT5](https://arxiv.org/abs/2101.05667) in [PyGaggle](https://ir.webis.de/anthology/2021.sigirconf_conference-2021.304/).'
+        bib_references['run'] = '''@article{DBLP:journals/corr/abs-2101-05667,
+  author       = {Ronak Pradeep and Rodrigo Frassetto Nogueira and Jimmy Lin},
+  title        = {The Expando-Mono-Duo Design Pattern for Text Ranking with Pretrained Sequence-to-Sequence Models},
+  journal      = {CoRR},
+  volume       = {abs/2101.05667},
+  year         = {2021},
+  url          = {https://arxiv.org/abs/2101.05667},
+  eprinttype    = {arXiv},
+  eprint       = {2101.05667},
+  timestamp    = {Mon, 20 Mar 2023 15:35:34 +0100},
+  biburl       = {https://dblp.org/rec/journals/corr/abs-2101-05667.bib},
+  bibsource    = {dblp computer science bibliography, https://dblp.org}
+}
+
+@inproceedings{lin-2021-pyserini,
+  author    = {Jimmy Lin and Xueguang Ma and Sheng{-}Chieh Lin and Jheng{-}Hong Yang and Ronak Pradeep and Rodrigo Frassetto Nogueira},
+  editor    = {Fernando Diaz and Chirag Shah and Torsten Suel and Pablo Castells and Rosie Jones and Tetsuya Sakai},
+  title     = {Pyserini: {A} Python Toolkit for Reproducible Information Retrieval Research with Sparse and Dense Representations},
+  booktitle = {{SIGIR} '21: The 44th International {ACM} {SIGIR} Conference on Research and Development in Information Retrieval, Virtual Event, Canada, July 11-15, 2021},
+  pages     = {2356--2362},
+  publisher = {{ACM}},
+  year      = {2021},
+  url       = {https://doi.org/10.1145/3404835.3463238},
+  doi       = {10.1145/3404835.3463238},
+  timestamp = {Mon, 20 Mar 2023 15:35:34 +0100},
+  biburl    = {https://dblp.org/rec/conf/sigir/LinMLYPN21.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}'''
+
+    if run['software'] == 'DLH (tira-ir-starter-pyterrier)':
+        markdown_references['run'] = 'The implementation of [DLH](https://ir.webis.de/anthology/2006.ecir_conference-2006.3/) in [PyTerrier](https://ir.webis.de/anthology/2021.cikm_conference-2021.533/).'
+        bib_references['run'] = '''@inproceedings{amati-2006-frequentist,
+  author    = {Giambattista Amati},
+  editor    = {Mounia Lalmas and Andy MacFarlane and Stefan M. R{\"{u}}ger and Anastasios Tombros and Theodora Tsikrika and Alexei Yavlinsky},
+  title     = {Frequentist and Bayesian Approach to Information Retrieval},
+  booktitle = {Advances in Information Retrieval, 28th European Conference on {IR} Research, {ECIR} 2006, London, UK, April 10-12, 2006, Proceedings},
+  series    = {Lecture Notes in Computer Science},
+  volume    = {3936},
+  pages     = {13--24},
+  publisher = {Springer},
+  year      = {2006},
+  url       = {https://doi.org/10.1007/11735106\_3},
+  doi       = {10.1007/11735106\_3},
+  timestamp = {Tue, 14 May 2019 10:00:37 +0200},
+  biburl    = {https://dblp.org/rec/conf/ecir/Amati06.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}       
+        
+@inproceedings{macdonald-2021-pyterrier,
+  author    = {Craig Macdonald and Nicola Tonellotto and Sean MacAvaney and Iadh Ounis},
+  editor    = {Gianluca Demartini and Guido Zuccon and J. Shane Culpepper and Zi Huang and Hanghang Tong},
+  title     = {PyTerrier: Declarative Experimentation in Python from {BM25} to Dense
+               Retrieval},
+  booktitle = {{CIKM} '21: The 30th {ACM} International Conference on Information and Knowledge Management, Virtual Event, Queensland, Australia, November 1 - 5, 2021},
+  pages     = {4526--4533},
+  publisher = {{ACM}},
+  year      = {2021},
+  url       = {https://doi.org/10.1145/3459637.3482013},
+  doi       = {10.1145/3459637.3482013},
+  timestamp = {Tue, 02 Nov 2021 12:01:17 +0100},
+  biburl    = {https://dblp.org/rec/conf/cikm/MacdonaldTMO21.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}'''
+
+
+    print(run)
+    ret_bib = ''
+    ret_markdown = ['Please cite the approach / resources if you use them. Potential candidates are:']
+    missing_references = []
+    for t in ['run', 'dataset', 'task']:
+        ret_bib += bib_references[t] + '\n\n'
+        if markdown_references[t]:
+            ret_markdown += [markdown_references[t]]
+        else:
+            missing_references += [t]
+
+    if missing_references:
+        ret_markdown += ['There are missing references for ' + (', '.join(missing_references)) + '. ' +
+                         'Please contact the organizers ' +
+                         f'[{task["organizer"]}](https://www.tira.io/g/tira_org_{task["organizer_id"]}) or the team ' +
+                         f'[{vm_id}]({link_to_discourse_team(vm_id)}) for clarification.'
+                         ]
+
+    return ret_bib.strip(), markdown('<br>'.join(ret_markdown).strip())
+
 @check_permissions
 @check_resources_exist('json')
 def run_details(request, task_id, vm_id, run_id):
@@ -541,6 +682,7 @@ def run_details(request, task_id, vm_id, run_id):
     vm_id_from_run = None
 
     repro_details = {'tira-run-export': None, 'tira-run-cli': None, 'tira-run-python': None, 'docker': None}
+
 
     if 'software_id' in run and run['software_id']:
         software = model.get_software(software)
@@ -566,6 +708,8 @@ def run_details(request, task_id, vm_id, run_id):
     ret = {'description': 'No description is available.', 'previous_stage': None,
            'cli_command': None, 'docker_command': None, 'python_command': None
            }
+
+    ret['references_bibtex'], ret['references_markdown'] = __rendered_references(task_id, vm_id, run)
 
     for k, v in repro_details.items():
         ret[k] = v
@@ -619,10 +763,25 @@ def run_execute_docker_software(request, task_id, vm_id, dataset_id, docker_soft
         reranking_datasets = model.get_all_reranking_datasets()
 
         if rerank_dataset not in reranking_datasets:
+            background_process = None
+            try:
+                background_process = model.create_re_rank_output_on_dataset(task_id, vm_id, software_id=None,
+                                                                            docker_software_id=docker_software_id,
+                                                                            dataset_id=dataset_id)
+            except Exception as e:
+                logger.warning(e)
+
+            visit_job_message = 'Failed to start job.'
+
+            if background_process:
+                visit_job_message = f'Please visit https://tira.io/background_jobs/{task_id}/{background_process} ' + \
+                                     ' to view the progress of the job that creates the rerank output.'
+
             return JsonResponse({"status": 1, "message":
                 f"The execution of your software depends on the reranking dataset {rerank_dataset}"
                 f", but {rerank_dataset} was never executed on the dataset {dataset_id}. "
-                f"Please execute first the software on the specified dataset so that you can re-rank it."})
+                f"Please execute first the software on the specified dataset so that you can re-rank it. "
+                f"{visit_job_message}"})
 
         input_run = reranking_datasets[rerank_dataset]
         input_run['replace_original_dataset'] = True

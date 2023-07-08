@@ -5,14 +5,30 @@
                   :items="runs" item-value="Run" v-model:sort-by="table_sort_by" density="compact"
                   show-select class="elevation-1 d-none d-md-block" hover>
       <template v-slot:item.actions="{item}">
-        <run-actions :run_id="item.Run" />
+        <run-actions :run="item.value" />
       </template>
       <template #item.vm_id="{ item }">
+        <span v-if="item.value.is_software">
+          <v-icon>mdi-docker</v-icon>
+          <v-tooltip activator="parent" location="top">Software Submission</v-tooltip>
+        </span>
+        <span v-if="item.value.is_upload">
+          <v-icon>mdi-file-document</v-icon>
+          <v-tooltip activator="parent" location="top">Run Submission</v-tooltip>
+        </span>
+        <span v-if="!item.value.published" class="mr1">
+          <v-icon>mdi-eye-off-outline</v-icon>
+          <v-tooltip activator="parent" location="top">Not Published on Leaderboard</v-tooltip>
+        </span>
+        <span v-if="item.value.published" class="mr1">
+          <v-icon>mdi-eye-outline</v-icon>
+          <v-tooltip activator="parent" location="top">Published on Leaderboard</v-tooltip>
+        </span>
         <a target="_blank" :href="item.value.link_to_team">{{ item.value.vm_id }}</a>
       </template>
       <template v-slot:expanded-row="{ columns, item }">
         <tr>
-          <td :colspan="columns.length">
+          <td :colspan="columns.length" style="background-color: white;" class="px-0 mx-0">
             <software-details :run="item.value" :columns_to_skip="table_headers" :organizer="organizer" :organizer_id="organizer_id"/>
           </td>
         </tr>
@@ -27,7 +43,7 @@
       </template>
       <template v-slot:expanded-row="{ columns, item }">
         <tr>
-          <td :colspan="columns.length">
+          <td :colspan="columns.length" style="background-color: white;"  class="px-0 mx-0">
             <software-details :run="item.value" :columns_to_skip="table_headers_small_layout" :organizer="organizer" :organizer_id="organizer_id"/>
           </td>
         </tr>

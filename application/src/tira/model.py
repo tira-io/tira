@@ -155,7 +155,7 @@ class Dataset(models.Model):
     irds_docker_image = models.CharField(max_length=150, null=True, default=None)
     irds_import_command = models.CharField(max_length=150, null=True, default=None)
     irds_import_truth_command = models.CharField(max_length=150, null=True, default=None)
-    #meta_dataset_of = models.ManyToManyField("self", default=None)
+    meta_dataset_of = models.TextField(default=None, null=True)
 
 
 class TaskHasDataset(models.Model):

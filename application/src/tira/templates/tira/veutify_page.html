@@ -11,6 +11,8 @@
 </head>
 
 <body>
+    {% csrf_token %}
+    <script id="user_metadata">var user_metadata = {"role": "{{role}}"}</script>
     <div id="app"></div>
     <script>
         setTimeout(function() {

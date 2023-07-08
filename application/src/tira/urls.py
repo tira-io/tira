@@ -6,9 +6,9 @@ from . import views
 from .endpoints import organizer_api, admin_api, vm_api, data_api, diffir_api, serp_api
 
 urlpatterns = [
-    path('', views.index, name='index'),
-    path('task', views.index, name='index'),
-    path('tasks', views.index, name='index'),
+    path('', views.veutify_page, name='index'),
+    path('task', views.veutify_page, name='index'),
+    path('tasks', views.veutify_page, name='index'),
     path('background_jobs/<str:task_id>/<str:job_id>', views.background_jobs, name='background_jobs'),
 
     path('task/<str:task_id>', views.task, name='task'),
@@ -87,6 +87,7 @@ urlpatterns = [
     path('api/evaluations/<str:task_id>/<str:dataset_id>', data_api.get_evaluations_by_dataset, name='get_evaluations_by_dataset'),
     path('api/evaluation/<str:vm_id>/<str:run_id>', data_api.get_evaluation, name='get_evaluation'),
     path('api/submissions/<str:task_id>/<str:dataset_id>', data_api.get_submissions_by_dataset, name='get_submissions_by_dataset'),
+    path('api/evaluations_of_run/<str:vm_id>/<str:run_id>', data_api.get_evaluations_of_run, name='evaluations_of_run'),
     path('api/ova-list', data_api.get_ova_list, name='get_ova_list'),
     path('api/host-list', data_api.get_host_list, name='get_host_list'),
     path('api/organizer-list', data_api.get_organizer_list, name='get_organizer_list'),
@@ -99,6 +100,7 @@ urlpatterns = [
     path('api/role', data_api.get_role, name='get_role'),
     path('api/task/<str:task_id>/user/<str:user_id>', data_api.get_user, name='get_user'),
     path('api/task/<str:task_id>/user/<str:user_id>/refresh-docker-images', data_api.update_docker_images, name="get_updated_docker_images"),
+    path('api/count-of-missing-reviews/<str:task_id>', organizer_api.get_count_of_missing_reviews, name='get_count_of_missing_reviews'),
     path('api/task/<str:task_id>/user/<str:user_id>/software/running/<str:force_cache_refresh>', data_api.get_running_software, name='get_running_software'),
     path('api/review/<str:dataset_id>/<str:vm_id>/<str:run_id>', data_api.get_review, name='get_review'),
     path('api/registration/add_registration/<str:vm_id>/<str:task_id>', data_api.add_registration, name='add_registration'),

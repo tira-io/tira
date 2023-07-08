@@ -1,6 +1,9 @@
 {
     "context": {
         "dataset_id": "dataset-2",
+        "docker_documentation": [
+            "Your account has no docker registry. Please contact an organizer."
+        ],
         "ev_keys": [
             "k-1",
             "k-2"
@@ -8,8 +11,11 @@
         "evaluations": [
             {
                 "blinded": true,
+                "dataset_id": "dataset-2",
                 "input_run_id": "run-ds2-0-participant-1",
-                "input_software_name": "Run Upload",
+                "input_software_name": "default upload",
+                "is_software": false,
+                "is_upload": true,
                 "measures": [
                     -1.0,
                     4.0
@@ -20,8 +26,11 @@
             },
             {
                 "blinded": true,
+                "dataset_id": "dataset-2",
                 "input_run_id": "run-ds2-1-participant-1",
-                "input_software_name": "Run Upload",
+                "input_software_name": "default upload",
+                "is_software": false,
+                "is_upload": true,
                 "measures": [
                     -1.2,
                     4.2
@@ -36,7 +45,10 @@
         "runs": [
             {
                 "blinded": true,
-                "input_software_name": "Run Upload",
+                "dataset_id": "dataset-2",
+                "input_software_name": "default upload",
+                "is_software": false,
+                "is_upload": true,
                 "k-1": -1.0,
                 "k-2": 4.0,
                 "link_to_team": "https://www.tira.io/g/tira_vm_participant-1",
@@ -46,7 +58,10 @@
             },
             {
                 "blinded": true,
-                "input_software_name": "Run Upload",
+                "dataset_id": "dataset-2",
+                "input_software_name": "default upload",
+                "is_software": false,
+                "is_upload": true,
                 "k-1": -1.2,
                 "k-2": 4.2,
                 "link_to_team": "https://www.tira.io/g/tira_vm_participant-1",
@@ -99,7 +114,8 @@
             }
         ],
         "task_id": "shared-task-1",
-        "user_id": "ignored-user."
+        "user_id": "ignored-user.",
+        "user_vms_for_task": []
     },
     "status": 0
 }
