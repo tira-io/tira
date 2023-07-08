@@ -1,4 +1,4 @@
-grpcio==1.36.1
+grpcio==1.53.0
 grpcio-tools==1.36.1
 protobuf<4.0dev
 pyuwsgi
