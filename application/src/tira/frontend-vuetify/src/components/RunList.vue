@@ -28,7 +28,7 @@
       </template>
       <template v-slot:expanded-row="{ columns, item }">
         <tr>
-          <td :colspan="columns.length">
+          <td :colspan="columns.length" style="background-color: white;" class="px-0 mx-0">
             <software-details :run="item.value" :columns_to_skip="table_headers" :organizer="organizer" :organizer_id="organizer_id"/>
           </td>
         </tr>
@@ -43,7 +43,7 @@
       </template>
       <template v-slot:expanded-row="{ columns, item }">
         <tr>
-          <td :colspan="columns.length">
+          <td :colspan="columns.length" style="background-color: white;"  class="px-0 mx-0">
             <software-details :run="item.value" :columns_to_skip="table_headers_small_layout" :organizer="organizer" :organizer_id="organizer_id"/>
           </td>
         </tr>
