@@ -1,4 +1,21 @@
 <template>
+  <loading :loading="loading"/>
+  <login-to-submit v-if="!loading && role === 'guest'"/>
+  <v-tabs v-model="tab" v-if="!loading && role !== 'guest'" fixed-tabs class="my-10">
+    <v-tab variant="outlined" v-for="image in this.docker.images" :value="image.display_name">
+         {{ image.display_name }}
+    </v-tab>
+    <v-tab value="newDockerImage" color="primary" style="max-width: 100px;" variant="outlined"><v-icon>mdi-tab-plus</v-icon></v-tab>
+  </v-tabs>
+  <v-window v-model="tab" v-if="!loading && role !== 'guest'">
+          <v-window-item value="newDockerImage">
+              <h2>Create New Docker Image</h2>
+              <v-btn variant="outlined" @click="addImage()">
+                  Add New Image
+              </v-btn>
+          </v-window-item>
+          <v-window-item v-for="image in this.docker.images" :value="image.display_name">
+            <div class="d-flex justify-lg-space-between">
   <v-card class="mx-auto mt-12" style="height: 100%;" >
     <v-card-title class="text-h6 font-weight-regular d-flex justify-space-between">
       <span class="mr-3">{{ currentTitle }}</span>
@@ -42,7 +59,7 @@
       </div>
     </v-card-title>
 
-    <v-window v-model="step" style="height: 560px;">
+    <v-window v-model="step" style="height: 560px; width: 100%;">
       <v-window-item :value="'step-1'">
         <v-card-text>
           <h3 class="text-h6 font-weight-light mb-6">General information regarding submissions</h3>
@@ -172,16 +189,28 @@
     </v-card-actions>
   </v-card>
 
+            </div>
+          </v-window-item>
+    </v-window>
+
 </template>
 
 <script>
 
 import { VAutocomplete } from 'vuetify/components'
-import {get, inject_response, reportError} from "@/utils";
+import {
+  get,
+  reportError,
+  extractRole,
+  extractTaskFromCurrentUrl,
+  extractUserFromCurrentUrl,
+  inject_response
+} from "@/utils";
+import {Loading, LoginToSubmit} from "@/components";
 
 export default {
   name: "DockerSubmission",
-  components: {VAutocomplete},
+  components: {Loading, LoginToSubmit, VAutocomplete},
     props: {
     step_prop: {
       type: String,
@@ -190,48 +219,29 @@ export default {
   },
   data() {
     return {
+      tab: null,
+      role: extractRole(),
+      task_id: extractTaskFromCurrentUrl(),
+      user_id: extractUserFromCurrentUrl(),
       selectedDockerSoftware: null,
       selectedContainer: null,
       selectedDockerImage: null,
       runCommand: null,
       step: this.step_prop,
+      loading: true,
       docker: {
-        "images": ["image1", "image2"],
-        "docker_softwares": ["software1", "software2"],
-        "docker_software_help": "This is the help text for the docker software",
+        "images": [{"id": null, "display_name": 'loading...'}],
+        "docker_softwares": ["loading..."],
+        "docker_software_help": "loading...",
       },
       selectedRessources: '',
       ressources: [
-          "Small (1 CPU Core, 10GB of RAM)",
-          "Small (1 CPU Core, 10GB of RAM, IRDS)",
-          "Small w. GPU (1 CPU Core, 10GB of RAM, 1 NVIDIA GTX 1080 with 8GB)",
-          "Medium (2 CPU Cores, 20GB of RAM)",
-          "Large (4 CPU Cores, 40GB of RAM)",
-
+          "loading..."
       ],
       selectedDataset: '',
       datasets: [{
-                "dataset_id": "1",
-                "display_name": "task-1-type-classification",
-                "is_confidential": true,
-                "is_deprecated": false,
-                "year": "2022-11-15 06:51:49.117415",
-                "task": "clickbait-spoiling",
-                "software_count": 10,
-                "runs_count": 220,
-                "created": "2022-11-15",
-                "last_modified": "2022-11-15"
-            }, {
-                "dataset_id": "2",
-                "display_name": "task-1-type-classification-validation",
-                "is_confidential": false,
-                "is_deprecated": false,
-                "year": "2022-11-15 06:51:49.117415",
-                "task": "clickbait-spoiling",
-                "software_count": 20,
-                "runs_count": 100,
-                "created": "2022-11-15",
-                "last_modified": "2022-11-15"
+                "dataset_id": null,
+                "display_name": "loading...",
             }
         ],
     }
@@ -266,13 +276,29 @@ export default {
     },
     updateUrlToCurrentStep() {
       this.$router.replace({name: 'submission', params: {submission_type: this.$route.params.submission_type, selected_step: this.step}})
-    }
+    },
+    addImage() {
+       get(`/task/${this.task_id}/vm/${this.user_id}/add_software/docker`).then(message => {
+                this.docker.push(message.context.docker)
+                this.tab = message.context.docker.images[0].display_name
+            })
+            .catch(reportError("Problem While Adding New Docker Image.", "This might be a short-term hiccup, please try again. We got the following error: "))
+    },
+    deleteDockerImage() {
+            get(`/task/${this.task_id}/vm/${this.user_id}/delete_software/docker/${this.tab}`)
+                .then(message => {
+                    this.docker.images = this.docker.images.filter(i => i.id != this.docker.images.find(i => i.display_name === this.tab).id)
+                    this.tab = this.docker.images.length > 0 ? this.docker.images[0].display_name : null
+                    this.showUploadForm = false
+                })
+                .catch(reportError("Problem While Deleting Upload Group.", "This might be a short-term hiccup, please try again. We got the following error: "))
+        },
   },
   beforeMount() {
-    get('/api/datasets_by_task/' + this.task_id)
+    get('/api/submissions-for-task/' + this.task_id + '/' + this.user_id + '/docker')
       .then(inject_response(this, {'loading': false}, true))
-      .catch(reportError("Problem While Loading the Details of the Task " + this.task_id, "This might be a short-term hiccup, please try again. We got the following error: "))
-      console.log(this)
+      .catch(reportError("Problem While Loading the Docker Details of the Task " + this.task_id, "This might be a short-term hiccup, please try again. We got the following error: "))
+    this.tab = this.docker.images[0].display_name
   },
     watch: {
     step(old_value, new_value) {
