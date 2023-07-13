@@ -3,9 +3,10 @@
   <login-to-submit v-if="!loading && role === 'guest'"/>
 <v-tabs v-model="tab" v-if="!loading && role !== 'guest'"
     fixed-tabs class="my-10">
-            <v-tab value="newUploadGroup" variant="outlined">Add new upload group</v-tab>
-            <v-tab variant="outlined" v-for="uploadGroup in this.all_uploadgroups" :value="uploadGroup.display_name">
-         {{ uploadGroup.display_name }} </v-tab>
+  <v-tab variant="outlined" v-for="uploadGroup in this.all_uploadgroups" :value="uploadGroup.display_name">
+         {{ uploadGroup.display_name }}
+  </v-tab>
+   <v-tab value="newUploadGroup" color="primary" style="max-width: 100px;" variant="outlined"><v-icon>mdi-tab-plus</v-icon></v-tab>
   </v-tabs>
   <v-window v-model="tab" v-if="!loading && role !== 'guest'">
           <v-window-item value="newUploadGroup">
@@ -25,14 +26,15 @@
               <p>Please add a description that describes uploads of this type.</p>
               <div>
               <v-btn variant="outlined" color="#303f9f"><v-icon>mdi-file-edit-outline</v-icon>Edit</v-btn>
-              <v-btn variant="outlined" color="red"><v-tooltip
+              <v-btn variant="outlined" color="red" @click="deleteUpload()"><v-tooltip
                 activator="parent"
                 location="bottom"
               >Attention! This deletes the container and ALL runs associated with it</v-tooltip><v-icon>mdi-delete-alert-outline</v-icon>Delete</v-btn>
               </div>
             </div>
             <v-form>
-              <v-file-input
+              <v-file-input v-model="fileHandle"
+                            :rules="[v => !!v || 'File is required']"
                 label="Click to add run file"
               ></v-file-input>
               <v-autocomplete label="Input Dataset"
@@ -45,7 +47,7 @@
                       clearable/>
             </v-form>
 
-            <v-btn :disabled="uploading || fileHandle === null || selectedDataset === 'None'"
+            <v-btn color="primary" :disabled="uploading || fileHandle === null || selectedDataset === ''"
                    @click="fileUpload()">Upload Run</v-btn>
           </v-window-item>
     </v-window>
@@ -69,12 +71,12 @@ export default {
       role: extractRole(), // Values: guest, user, participant, admin
       tab: null,
       showUploadForm: false,
+      uploading: false,
       uploadDataset: '',
       uploadFormError: '',
       fileHandle: null,
-      uploading: false,
       editUploadMetadataToggle: false,
-      all_uploadgroups: [{"display_name": 'loading...'}],
+      all_uploadgroups: [{"id": null, "display_name": 'loading...'}],
       selectedDataset: '',
       datasets: [{"dataset_id": "loading...", "display_name": "loading...",}]
     }
@@ -82,16 +84,40 @@ export default {
   methods: {
     addUpload() {
        get(`/task/${this.task_id}/vm/${this.user_id}/add_software/upload`).then(message => {
-                this.all_uploadgroups.push({"display_name": message.context.upload.display_name})
+                this.all_uploadgroups.push({"id": message.context.upload.id, "display_name": message.context.upload.display_name})
                 this.tab = message.context.upload.display_name
             })
             .catch(reportError("Problem While Adding New Upload Group.", "This might be a short-term hiccup, please try again. We got the following error: "))
-    }
+    },
+    deleteUpload() {
+            get(`/task/${this.task_id}/vm/${this.user_id}/upload-delete/${this.tab}`)
+                .then(message => {
+                    this.all_uploadgroups = this.all_uploadgroups.filter(i => i.id != this.all_uploadgroups.find(i => i.display_name === this.tab).id)
+                    this.tab = this.all_uploadgroups.length > 0 ? this.all_uploadgroups[0].display_name : null
+                    this.showUploadForm = false
+                })
+                .catch(reportError("Problem While Deleting Upload Group.", "This might be a short-term hiccup, please try again. We got the following error: "))
+        },
+    //TODO not working yet, forbidden?? maybe needs crfs token?
+    async fileUpload() {  // async
+            console.log(this.uploading, this.selectedDataset, this.fileHandle)
+            this.uploading = true
+            let formData = new FormData();
+            console.log(formData)
+            formData.append("file", this.fileHandle);
+            const response = await fetch(`/task/${this.task_id}/vm/${this.user_id}/upload/${this.selectedDataset}/${this.all_uploadgroups.find(i => i.display_name == this.tab).id}`, {
+              method: "POST",
+              body: formData
+            }).catch(reportError("Problem While Uploading File.", "This might be a short-term hiccup, please try again. We got the following error: "))
+
+            this.uploading = false
+        },
   },
   beforeMount() {
     get('/api/submissions-for-task/' + this.task_id + '/' + this.user_id + '/upload')
       .then(inject_response(this, {'loading': false}, true))
       .catch(reportError("Problem While Loading The Submissions of the Task " + this.task_id, "This might be a short-term hiccup, please try again. We got the following error: "))
+    this.tab = this.all_uploadgroups[0].display_name
   },
 }
 </script>

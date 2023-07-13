@@ -3,7 +3,7 @@
   <div class="my-5">
     <h2><b>{{this.user_id}}</b> on Task: {{this.task_id}}</h2>
   </div>
-    <RunningProcesses/>
+    <RunningProcesses class="mb-12"/>
   <v-tabs
     v-model="tab"
     fixed-tabs
