@@ -1,9 +1,23 @@
 <template class="mx-5">
   <v-card class="mx-auto my-7">
     <v-card-title>
-      <v-icon class="mx-2">mdi-transit-connection</v-icon>
-      Running Processes
+      <v-row>
+        <v-col cols="8">
+          <v-icon class="mx-2">mdi-transit-connection</v-icon>
+          Running Processes
+        </v-col>
+        <v-col cols="4">
+         <v-btn variant="outlined" color="blue" class="w-100">
+           <v-tooltip activator="parent" location="bottom">
+             Check if some new runs have started
+           </v-tooltip>
+           <v-icon class="mr-2">mdi-refresh</v-icon>
+           Refresh
+         </v-btn>
+        </v-col>
+      </v-row>
     </v-card-title>
+
     <v-card-text>
       Inspect your current runs
     </v-card-text>
@@ -52,7 +66,7 @@
                 <v-col cols="8" >
                   <v-row class="mr-2 pa-md-3 overflow-x-auto">
                     <v-text-field
-                        model-value="registry.webis.de/code-research/tira/tira-user-ir-lab-sose-2023-dogument-retriever/milestone-02:0.0.1"
+                        :model-value=docker.image
                         label="Image"
                         variant="outlined"
                         readonly
@@ -60,7 +74,7 @@
                   </v-row>
                   <v-row class="mr-2 pa-md-3 overflow-x-auto">
                     <v-text-field
-                        model-value="/workspace/run-pyterrier-notebook.py --input $inputDataset --output $outputDir --notebook /workspace/üyterrier-bm25.ipynb"
+                        :model-value=docker.command
                         label="Command"
                         variant="outlined"
                         readonly
@@ -118,66 +132,35 @@ import { VAutocomplete } from 'vuetify/components'
 export default {
   name: "RunningProcesses",
   components: {VAutocomplete},
-    props: {
-    step_prop: {
-      type: String,
-    }
-  },
+  props: ["running_evaluations", "running_software", "last_software_refresh", "next_software_refresh"],
+  emits: ['stopRun', 'addNotification', 'pollRunningContainer'],
   data() {
     return {
-      example_output: "INFO 2023-06-29 15:55:21,871 basehttp: \"GET /public/tira/frontend-vuetify/chunks/webfontloader.js HTTP/1.1\" 200 12768\n" +
-          "INFO 2023-06-29 15:55:21,871 basehttp: \"GET /public/tira/frontend-vuetify/chunks/webfontloader.js HTTP/1.1\" 200 12768\n" +
-          "INFO 2023-06-29 15:55:22,172 basehttp: \"GET /api/task/author-profiling HTTP/1.1\" 200 9031\n" +
-          "INFO 2023-06-29 15:55:22,172 basehttp: \"GET /api/task/author-profiling HTTP/1.1\" 200 9031\n",
-      run_items: [
-        {key: "Start", value: "2023-06-29 17:29:50", icon: "mdi-timer-play-outline"},
-        {key: "dataset", value: "task-1-type-classification", icon: "mdi-table"},
-        {key: "dateset type", value: "training", icon: "mdi-alpha-t-box-outline"},
-        {key: "CPU", value: "1 CPU Cores", icon: "mdi-cpu-64-bit"},
-        {key: "Memory", value: "10 GB of RAM", icon: "mdi-memory"},
-        {key: "GPU", value: "0 GPU", icon: "mdi-expansion-card"}
-        ],
-
+      /**
+       * this is just mock_data for visual feedback
+       * mock_data: example_output, values in run_items, docker
+       */
+        example_output: "INFO 2023-06-29 15:55:21,871 basehttp: \"GET /public/tira/frontend-vuetify/chunks/webfontloader.js HTTP/1.1\" 200 12768\n" +
+            "INFO 2023-06-29 15:55:21,871 basehttp: \"GET /public/tira/frontend-vuetify/chunks/webfontloader.js HTTP/1.1\" 200 12768\n" +
+            "INFO 2023-06-29 15:55:22,172 basehttp: \"GET /api/task/author-profiling HTTP/1.1\" 200 9031\n" +
+            "INFO 2023-06-29 15:55:22,172 basehttp: \"GET /api/task/author-profiling HTTP/1.1\" 200 9031\n",
+        run_items: [
+          {key: "Start", icon: "mdi-timer-play-outline", value: "2023-06-29 17:29:50" },
+          {key: "dataset", icon: "mdi-table", value: "task-1-type-classification"},
+          {key: "dateset type", icon: "mdi-alpha-t-box-outline", value: "training"},
+          {key: "CPU", icon: "mdi-cpu-64-bit", value: "1 CPU Cores"},
+          {key: "Memory", icon: "mdi-memory", value: "10 GB of RAM"},
+          {key: "GPU", icon: "mdi-expansion-card", value: "0 GPU"}
+          ],
+         docker: {
+          image: "registry.webis.de/code-research/tira/tira-user-ir-lab-sose-2023-dogument-retriever/milestone-02:0.0.1",
+          command: "/workspace/run-pyterrier-notebook.py --input $inputDataset --output $outputDir --notebook /workspace/üyterrier-bm25.ipynb",
+          software_output: "INFO 2023-06-29 15:55:21,871 basehttp: \"GET /public/tira/frontend-vuetify/chunks/webfontloader.js HTTP/1.1\" 200 12768\n" +
+            "INFO 2023-06-29 15:55:21,871 basehttp: \"GET /public/tira/frontend-vuetify/chunks/webfontloader.js HTTP/1.1\" 200 12768\n" +
+            "INFO 2023-06-29 15:55:22,172 basehttp: \"GET /api/task/author-profiling HTTP/1.1\" 200 9031\n" +
+            "INFO 2023-06-29 15:55:22,172 basehttp: \"GET /api/task/author-profiling HTTP/1.1\" 200 9031\n",
+          },
       selectedRuns: null,
-      docker: {
-        "images": ["image1", "image2"],
-        "docker_softwares": ["software1", "software2"],
-        "docker_software_help": "This is the help text for the docker software",
-      },
-      selectedRessources: '',
-      ressources: [
-          "Small (1 CPU Core, 10GB of RAM)",
-          "Small (1 CPU Core, 10GB of RAM, IRDS)",
-          "Small w. GPU (1 CPU Core, 10GB of RAM, 1 NVIDIA GTX 1080 with 8GB)",
-          "Medium (2 CPU Cores, 20GB of RAM)",
-          "Large (4 CPU Cores, 40GB of RAM)",
-
-      ],
-      selectedDataset: '',
-      datasets: [{
-                "dataset_id": "1",
-                "display_name": "task-1-type-classification",
-                "is_confidential": true,
-                "is_deprecated": false,
-                "year": "2022-11-15 06:51:49.117415",
-                "task": "clickbait-spoiling",
-                "software_count": 10,
-                "runs_count": 220,
-                "created": "2022-11-15",
-                "last_modified": "2022-11-15"
-            }, {
-                "dataset_id": "2",
-                "display_name": "task-1-type-classification-validation",
-                "is_confidential": false,
-                "is_deprecated": false,
-                "year": "2022-11-15 06:51:49.117415",
-                "task": "clickbait-spoiling",
-                "software_count": 20,
-                "runs_count": 100,
-                "created": "2022-11-15",
-                "last_modified": "2022-11-15"
-            }
-        ],
     }
   },
   computed: {
@@ -185,12 +168,34 @@ export default {
   methods: {
     updateUrlToCurrentStep() {
       this.$router.replace({name: 'submission', params: {submission_type: this.$route.params.submission_type, selected_step: this.step}})
-    }
+    },
+    stopRun(run_id) {
+      if(!(this.aborted_processes.includes(run_id))) {
+        this.aborted_processes.push(run_id)
+        this.$emit('stopRun', run_id)
+      }
+    },
+    update_cache() {
+      let force_cache_refresh = "True"
+      this.$emit('pollRunningContainer', force_cache_refresh)
+    },
+    /**
+     * Helper function, because the job config is sometimes not there
+     */
+    get_field(process, field) {
+        if ("job_config" in process) {
+          return process.job_config[field]
+        }
+        return ""
+    },
   },
     watch: {
     step(old_value, new_value) {
       this.updateUrlToCurrentStep()
     }
+  },
+    beforeMount() {
+    console.log(this.running_software)
   }
 }
 </script>
