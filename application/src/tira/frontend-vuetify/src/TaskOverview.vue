@@ -42,6 +42,18 @@
         <v-col cols="6"><v-btn variant="outlined" :href="task.web" block>Task Website</v-btn></v-col>
       </v-row>
     </v-card-actions>
+    <v-card-actions v-if="task_id === 'ir-benchmarks'">
+      <v-row>
+        <v-dialog transition="dialog-bottom-transition" width="auto">
+            <template v-slot:activator="{ props }">
+              <v-col cols="12"><v-btn variant="outlined" v-bind="props" block>Documentation</v-btn></v-col>
+            </template>
+            <template v-slot:default="{ isActive }">
+              <task-documentation :task="task"/>
+            </template>
+          </v-dialog>
+      </v-row>
+    </v-card-actions>
   </v-card>
   </v-container>
 
@@ -57,13 +69,13 @@
 </template>
 
 <script lang="ts">
-  import { TiraBreadcrumb, TiraTaskAdmin, RunList, Loading, SubmitButton } from './components'
+  import { TiraBreadcrumb, TiraTaskAdmin, RunList, Loading, SubmitButton, TaskDocumentation } from './components'
   import { VAutocomplete } from 'vuetify/components'
   import { extractTaskFromCurrentUrl, get_link_to_organizer, get_contact_link_to_organizer, extractDatasetFromCurrentUrl, chanceCurrentUrlToDataset, get, inject_response, reportError, extractRole} from './utils'
 
   export default {
     name: "task-list",
-    components: {TiraBreadcrumb, RunList, Loading, VAutocomplete, SubmitButton, TiraTaskAdmin},
+    components: {TiraBreadcrumb, RunList, Loading, VAutocomplete, SubmitButton, TiraTaskAdmin, TaskDocumentation},
     data() {
       return {
         task_id: extractTaskFromCurrentUrl(),
