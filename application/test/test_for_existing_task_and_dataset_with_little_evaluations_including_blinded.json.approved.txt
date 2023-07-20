@@ -84,6 +84,7 @@
                 "link_to_team": "https://www.tira.io/g/tira_vm_participant-1",
                 "published": true,
                 "run_id": "run-ds2-0-participant-1",
+                "selectable": false,
                 "vm_id": "participant-1"
             },
             {
@@ -97,6 +98,7 @@
                 "link_to_team": "https://www.tira.io/g/tira_vm_participant-2",
                 "published": false,
                 "run_id": "run-ds2-0-participant-2",
+                "selectable": false,
                 "vm_id": "participant-2"
             },
             {
@@ -110,6 +112,7 @@
                 "link_to_team": "https://www.tira.io/g/tira_vm_participant-1",
                 "published": true,
                 "run_id": "run-ds2-1-participant-1",
+                "selectable": false,
                 "vm_id": "participant-1"
             },
             {
@@ -123,6 +126,7 @@
                 "link_to_team": "https://www.tira.io/g/tira_vm_participant-2",
                 "published": false,
                 "run_id": "run-ds2-1-participant-2",
+                "selectable": false,
                 "vm_id": "participant-2"
             }
         ],

@@ -1,7 +1,7 @@
 <template>
   <loading :loading="loading"/>
   <v-container v-if="!loading">
-    <v-data-table v-if="dataset_id" v-model:expanded="expanded" show-expand :headers="table_headers"
+    <v-data-table v-if="dataset_id" v-model="selected_runs" v-model:expanded="expanded" show-expand :headers="table_headers"
                   :items="runs" item-value="Run" v-model:sort-by="table_sort_by" density="compact"
                   show-select class="elevation-1 d-none d-md-block" hover>
       <template v-slot:item.actions="{item}">
@@ -52,8 +52,8 @@
 
     <div v-if="dataset_id" class="d-none d-md-block">
       <v-row class="pt-2">
-        <v-col cols="6"><v-btn variant="outlined" block>Download Selected</v-btn></v-col>
-        <v-col cols="6"><v-btn variant="outlined" block>Compare Selected</v-btn></v-col>
+        <v-col cols="6"><v-btn variant="outlined" block :disabled="downloadLink === ''" :href="downloadLink" target="_blank">Download Selected</v-btn></v-col>
+        <v-col cols="6"><v-btn variant="outlined" block :disabled="compareLink === ''" :href="compareLink" target="_blank">Compare Selected</v-btn></v-col>
       </v-row>
     </div>
   </v-container>
@@ -71,11 +71,30 @@ export default {
   props: ['task_id', 'dataset_id', 'organizer', 'organizer_id'],
   data() { return {
       expanded: [],
+      selected_runs: [],
       loading: true,
       runs: [],
       table_headers: [],
       table_headers_small_layout: [],
       table_sort_by: [],
+    }
+  },
+  computed: {
+    downloadLink() {return '';},
+    compareLink() {
+      let candidates : string[] = []
+
+      for (var s of this.selected_runs) {
+        if('selectable' in s && s['selectable']) {
+          candidates.push(s['run_id'])
+        }
+      }
+
+      if (candidates.length >= 2) {
+        return '/diffir/' + this.task_id + '/10/' + candidates[0] + '/' + candidates[1]
+      } else {
+        return '';
+      }
     }
   },
   methods: {

@@ -8,16 +8,18 @@ from tira.views import add_context
 
 from django.http import JsonResponse, HttpResponse
 from django.conf import settings
-from os.path import abspath
 from pathlib import Path
-from tira.endpoints.diffir_api import load_irds_metadata_of_task
+from tira.endpoints.diffir_api import load_irds_metadata_of_task, doc_file_for_run
 
 logger = logging.getLogger("tira")
 
+
 @add_context
 @check_permissions
-def serp(request, context, vm_id, dataset_id, task_id, run_id):
+def serp(request, context, vm_id, dataset_id, task_id, run_id, topk):
     from tira.util import run_cmd_as_documented_background_process
+
+
     import tira.model as modeldb
     #podman --storage-opt mount_program=/usr/bin/fuse-overlayfs run -v /mnt/ceph:/mnt/ceph:ro -ti webis/tira-application:0.0.45-diffir diffir --dataset cranfield  /mnt/ceph/tira/data/runs/cranfield-20230107-training/tira-ir-starter/2023-02-13-12-40-07/output/run.txt
 
@@ -36,6 +38,17 @@ def serp(request, context, vm_id, dataset_id, task_id, run_id):
 
             if serp_file.is_file():
                 return HttpResponse(open(serp_file).read())
+
+            try:
+                from diffir.run import diff_from_local_data
+            except:
+                raise ValueError('Could not load dependency diffir')
+
+            doc_file = doc_file_for_run(vm_id, dataset_id, task_id, run_id)
+            if doc_file and doc_file.is_file():
+                _, rendered_serp = diff_from_local_data([str(run_file.resolve())], [str(doc_file)], cli=False, web=True,
+                                                        print_html=False, topk=topk)
+                return HttpResponse(rendered_serp)
 
             irds_id = load_irds_metadata_of_task(task_id, run['dataset'])['ir_datasets_id']
             image = model.get_dataset(run['dataset'])['irds_docker_image']

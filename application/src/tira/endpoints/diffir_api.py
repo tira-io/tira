@@ -13,6 +13,18 @@ from pathlib import Path
 logger = logging.getLogger("tira")
 
 
+def doc_file_for_run(vm_id, dataset_id, task_id, run_id):
+    for evaluation in model.get_evaluations_of_run(vm_id, run_id):
+        p = Path(settings.TIRA_ROOT) / "data" / "runs" / dataset_id / vm_id / evaluation / 'output' /\
+                                       ".data-top-10-for-rendering.jsonl"
+        print(p)
+
+        if p.is_file():
+            return p
+
+    raise ValueError('.data-top-10-for-rendering.jsonl')
+
+
 def load_irds_metadata_of_task(task, dataset):
     dataset_type = 'training-datasets' if dataset.endswith('-training') else 'test-datasets'
 
@@ -26,10 +38,9 @@ def load_irds_metadata_of_task(task, dataset):
 
 @add_context
 @check_permissions
-def diffir(request, context, task_id, run_id_1, run_id_2):
+def diffir(request, context, task_id, run_id_1, run_id_2, topk):
     if request.method == 'GET':
         try:
-            from diffir.run import diff
             run_1 = model.get_run(dataset_id=None, vm_id=None, run_id=run_id_1)
             run_2 = model.get_run(dataset_id=None, vm_id=None, run_id=run_id_2)
 
@@ -47,12 +58,16 @@ def diffir(request, context, task_id, run_id_1, run_id_2):
             if not run_2_file.is_file():
                 raise ValueError(f'Error: The expected file {run_2_file} does not exist.')
 
-            irds_id = load_irds_metadata_of_task(task_id, run_1['dataset'])['ir_datasets_id']
-            config = {
-                "dataset": irds_id, "measure": "qrel", "metric": "nDCG@10", "topk": 10,
-                "weight": {"weights_1": None, "weights_2": None}
-            }
-            _, ret = diff([abspath(run_1_file), abspath(run_2_file)], config=config, cli=False, web=True, print_html=False)
+            doc_files = [doc_file_for_run(run_1['vm'], run_1['dataset'], task_id, run_id_1),
+                         doc_file_for_run(run_2['vm'], run_1['dataset'], task_id, run_id_2)]
+
+            for doc_file in doc_files:
+                if not doc_file or not doc_file.is_file():
+                    raise ValueError(f'Error: expected two evaluations, but got only one in {doc_files}')
+
+            from diffir.run import diff_from_local_data
+            _, ret = diff_from_local_data([abspath(run_1_file), abspath(run_2_file)], [str(i) for i in doc_files],
+                                          cli=False, web=True, print_html=False, topk=topk)
 
             return HttpResponse(ret)
         except Exception as e:

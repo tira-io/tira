@@ -105,8 +105,8 @@ urlpatterns = [
     path('api/review/<str:dataset_id>/<str:vm_id>/<str:run_id>', data_api.get_review, name='get_review'),
     path('api/registration/add_registration/<str:vm_id>/<str:task_id>', data_api.add_registration, name='add_registration'),
 
-    path('diffir/<str:task_id>/<str:run_id_1>/<str:run_id_2>', diffir_api.diffir, name='diffir'),
-    path('serp/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/<str:run_id>', serp_api.serp, name='serp'),
+    path('diffir/<str:task_id>/<int:topk>/<str:run_id_1>/<str:run_id_2>', diffir_api.diffir, name='diffir'),
+    path('serp/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/<int:topk>/<str:run_id>', serp_api.serp, name='serp'),
 ]
 
 app_name = 'tira'
