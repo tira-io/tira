@@ -56,6 +56,11 @@
         <v-col cols="6"><v-btn variant="outlined" block :disabled="compareLink === ''" :href="compareLink" target="_blank">Compare Selected</v-btn></v-col>
       </v-row>
     </div>
+    <div v-if="dataset_id" class="d-md-none d-md-block">
+      <v-row class="pt-2">
+        <v-col cols="12"><v-btn variant="outlined" block :disabled="compareExpandedLink === ''" :href="compareExpandedLink" target="_blank">Compare Expanded</v-btn></v-col>
+      </v-row>
+    </div>
   </v-container>
 </template>
 
@@ -81,10 +86,14 @@ export default {
   },
   computed: {
     downloadLink() {return '';},
-    compareLink() {
+    compareLink() {return this.createCompareLink(this.selected_runs);},
+    compareExpandedLink() {return this.createCompareLink(this.expanded);}
+  },
+  methods: {
+    createCompareLink(src: any[]) {
       let candidates : string[] = []
 
-      for (var s of this.selected_runs) {
+      for (var s of src) {
         if('selectable' in s && s['selectable']) {
           candidates.push(s['run_id'])
         }
@@ -95,9 +104,7 @@ export default {
       } else {
         return '';
       }
-    }
-  },
-  methods: {
+    },
     fetchData() {
       this.loading = true
       get('/api/evaluations/' + this.task_id + '/' + this.dataset_id)
