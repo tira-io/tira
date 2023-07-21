@@ -36,6 +36,10 @@ def load_irds_metadata_of_task(task, dataset):
     return json.load(open(metadata_file, 'r'))
 
 
+def __normalize_ids(a, b):
+    return '---'.join(sorted([a,b]))
+
+
 @add_context
 @check_permissions
 def diffir(request, context, task_id, run_id_1, run_id_2, topk):
@@ -47,6 +51,12 @@ def diffir(request, context, task_id, run_id_1, run_id_2, topk):
             if run_1['dataset'] != run_2['dataset']:
                 raise ValueError(f'Run {run_id_1} has dataset {run_1["dataset"]} while run {run_id_2} has dataset ' +
                                  f'{run_2["dataset"]}. Expected both to be identical')
+
+            diffir_file = Path(settings.TIRA_ROOT) / "state" / "serp" / "version-0.0.1" / "runs" / run_1["dataset"] / __normalize_ids(run_1['vm'], run_2['vm']) / __normalize_ids(run_id_1, run_id_2) / "diffir.html"
+            diffir_dir = (diffir_file / "..").resolve()
+
+            if diffir_file.is_file():
+                return HttpResponse(open(diffir_file).read())
 
             run_dir = Path(settings.TIRA_ROOT) / "data" / "runs" / run_1['dataset']
             run_1_file = run_dir / run_1['vm'] / run_id_1 / 'output' / 'run.txt'
@@ -68,6 +78,10 @@ def diffir(request, context, task_id, run_id_1, run_id_2, topk):
             from diffir.run import diff_from_local_data
             _, ret = diff_from_local_data([abspath(run_1_file), abspath(run_2_file)], [str(i) for i in doc_files],
                                           cli=False, web=True, print_html=False, topk=topk)
+
+            diffir_dir.mkdir(parents=True, exist_ok=True)
+            with open(diffir_file, 'w') as f:
+                f.write(ret)
 
             return HttpResponse(ret)
         except Exception as e:

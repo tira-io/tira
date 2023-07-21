@@ -48,6 +48,11 @@ def serp(request, context, vm_id, dataset_id, task_id, run_id, topk):
             if doc_file and doc_file.is_file():
                 _, rendered_serp = diff_from_local_data([str(run_file.resolve())], [str(doc_file)], cli=False, web=True,
                                                         print_html=False, topk=topk)
+
+                serp_dir.mkdir(parents=True, exist_ok=True)
+                with open(serp_file, 'w') as f:
+                    f.write(rendered_serp)
+
                 return HttpResponse(rendered_serp)
 
             irds_id = load_irds_metadata_of_task(task_id, run['dataset'])['ir_datasets_id']
