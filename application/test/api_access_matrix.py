@@ -1,4 +1,4 @@
-from utils_for_testing import route_to_test
+from utils_for_testing import route_to_test, software_public, software_non_public
 from datetime import datetime
 
 #Used for some tests
@@ -468,6 +468,50 @@ API_ACCESS_MATRIX = [
     route_to_test(
         url_pattern='task/<str:task_id>/vm/<str:vm_id>/add_software/docker',
         params={'task_id': 'shared-task-1', 'vm_id': PARTICIPANT.split('_')[-1]},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 200,
+            ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
+        },
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>/vm/<str:vm_id>/software_details/<str:software_name>',
+        params={'task_id': 'shared-task-1', 'vm_id': 'example_participant', 'software_name': 'does-not-exist'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 302,
+            ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
+        },
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>/vm/<str:vm_id>/software_details/<str:software_name>',
+        params={'task_id': 'shared-task-1', 'vm_id': 'example_participant', 'software_name': software_non_public},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 302,
+            ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
+        },
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>/vm/<str:vm_id>/software_details/<str:software_name>',
+        params={'task_id': 'shared-task-1', 'vm_id': 'PARTICIPANT-FOR-TEST-1', 'software_name': software_public},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 200,
+            PARTICIPANT: 200,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 200,
+        },
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>/vm/<str:vm_id>/software_details/<str:software_name>',
+        params={'task_id': 'shared-task-1', 'vm_id': 'PARTICIPANT-FOR-TEST-1', 'software_name': software_non_public},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 302,

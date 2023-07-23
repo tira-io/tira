@@ -15,6 +15,8 @@ now = datetime.now().strftime("%Y%m%d")
 dataset_1 = f'dataset-1-{now}-training'
 dataset_2 = f'dataset-2-{now}-test'
 dataset_meta = f'meta-dataset-{now}-test'
+software_non_public = 'docker-software-1'
+software_public = 'docker-software-2'
 
 from pathlib import Path
 import shutil
@@ -63,6 +65,16 @@ def set_up_tira_environment():
 
     tira_model.add_dataset('task-of-organizer-1', 'dataset-without-a-name', 'training', '', 'upload-name')
     tira_model.add_software(task_id='shared-task-1', vm_id='PARTICIPANT-FOR-TEST-1')
+
+    modeldb.DockerSoftware.objects.create(
+        display_name=software_non_public, vm=modeldb.VirtualMachine.objects.get(vm_id='PARTICIPANT-FOR-TEST-1'),
+        task=modeldb.Task.objects.get(task_id='shared-task-1'), deleted=False)
+
+    modeldb.DockerSoftware.objects.create(
+        display_name=software_public, vm=modeldb.VirtualMachine.objects.get(vm_id='PARTICIPANT-FOR-TEST-1'),
+        task=modeldb.Task.objects.get(task_id='shared-task-1'), public_image_name='some image identifier' , deleted=False)
+
+
 
     d = modeldb.Dataset.objects.get(dataset_id=dataset_meta)
     d.meta_dataset_of = dataset_1 + ',' + dataset_2
@@ -140,7 +152,13 @@ def mock_request(groups, url_pattern, method='GET', body=None, params=None):
 
     if params and 'run_id' in params and '<str:run_id>' in ret.path_info:
         ret.path_info = ret.path_info.replace('<str:run_id>', params['run_id'])
-    
+
+    if params and 'task_id' in params and '<str:task_id>' in ret.path_info:
+        ret.path_info = ret.path_info.replace('<str:task_id>', params['task_id'])
+
+    if params and 'software_name' in params and '<str:software_name>' in ret.path_info:
+        ret.path_info = ret.path_info.replace('<str:software_name>', params['software_name'])
+
     ret.META = {
         'CSRF_COOKIE': 'aasa',
     }

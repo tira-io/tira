@@ -19,7 +19,7 @@ class TestAccessibilityOfEndpointsForOrganizerWrongUser(TestCase):
         )
         
         assert status_code == expected_status_code, \
-            f'Expected response for url_pattern {url_pattern} is {expected_status_code}. But I got {status_code}'
+            f'Expected response for url_pattern {url_pattern} is {expected_status_code}. But I got {status_code}.'
 
         self.tested_urls += [url_pattern]
 

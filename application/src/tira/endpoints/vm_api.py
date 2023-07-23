@@ -526,7 +526,7 @@ def construct_verbosity_output(image, command, approach, task, dataset):
     return {
         'tira_run_export': f'tira-run --export-dataset {task}/{dataset} --output-directory tira-dataset',
         'cli_command': 'tira-run \\\n  --input-directory tira-dataset \\\n  --output-directory tira-output \\\n  ' +
-                       '--approach ' + approach,
+                       '--approach \'' + approach + '\'',
         'python_command': f'tira.run("{approach}", "tira-dataset")',
         'docker_command': 'docker run --rm -ti \\\n  -v ${PWD}/tira-dataset:/tira-data/input:ro \\\n  -v '
                           '${PWD}/tira-output:/tira-data/output:rw -\\\n  -entrypoint sh ' + f'\\\n  '
