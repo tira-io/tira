@@ -430,7 +430,7 @@
                 "vm_id": "example_participant"
             },
             {
-                "blinded": true,
+                "blinded": false,
                 "dataset_id": "dataset-1",
                 "input_run_id": "run-9-participant-1",
                 "input_software_name": "default upload",
@@ -856,13 +856,15 @@
                 "vm_id": "example_participant"
             },
             {
-                "blinded": true,
+                "blinded": false,
                 "dataset_id": "dataset-1",
                 "input_software_name": "default upload",
                 "is_software": false,
                 "is_upload": true,
                 "k-1": -0.8,
                 "k-2": 3.8,
+                "link_results_download": "/task/shared-task-1/user/participant-1/dataset/dataset-1-20230723-training/download/run-9-participant-1-eval.zip",
+                "link_run_download": "/task/shared-task-1/user/participant-1/dataset/dataset-1-20230723-training/download/run-9-participant-1.zip",
                 "link_to_team": "https://www.tira.io/g/tira_vm_participant-1",
                 "published": true,
                 "run_id": "run-9-participant-1",

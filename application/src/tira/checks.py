@@ -53,6 +53,14 @@ def check_permissions(func):
             if software and 'public_image_name' in software and software['public_image_name']:
                 return func(request, *args, **kwargs)
 
+        if request.path_info.startswith(f'/task/{task_id}/vm/{vm_id}/run_details/'):
+
+            review = model.model.get_run_review(run_id=run_id, dataset_id=dataset_id, vm_id=vm_id)
+
+            print('\n---->' + str(review) + '<---\n')
+            if review and 'published' in review and 'blinded' in review and review['published'] and not review['blinded']:
+                return func(request, *args, **kwargs)
+
         if auth.user_is_organizer_for_endpoint(request=request, path=request.path_info, task_id=task_id,
                                                organizer_id_from_params=organizer_id, dataset_id_from_params=dataset_id,
                                                run_id_from_params=run_id, vm_id_from_params=vm_id, role=role):

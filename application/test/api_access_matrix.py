@@ -710,6 +710,17 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
+        url_pattern='task/<str:task_id>/vm/<str:vm_id>/run_details/<str:run_id>',
+        params={'task_id': 'shared-task-1', 'vm_id': 'participant-1', 'run_id': 'run-9-participant-1'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 200,
+            PARTICIPANT: 200,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 200,
+        },
+    ),
+    route_to_test(
         url_pattern='task/<str:task_id>/vm/<str:vm_id>/software_details/<str:software_name>',
         params={'task_id': 'shared-task-1', 'vm_id': 'example_participant', 'software_name': 'does-not-exist'},
         group_to_expected_status_code={
