@@ -54,10 +54,7 @@ def check_permissions(func):
                 return func(request, *args, **kwargs)
 
         if request.path_info.startswith(f'/task/{task_id}/vm/{vm_id}/run_details/'):
-
             review = model.model.get_run_review(run_id=run_id, dataset_id=dataset_id, vm_id=vm_id)
-
-            print('\n---->' + str(review) + '<---\n')
             if review and 'published' in review and 'blinded' in review and review['published'] and not review['blinded']:
                 return func(request, *args, **kwargs)
 
