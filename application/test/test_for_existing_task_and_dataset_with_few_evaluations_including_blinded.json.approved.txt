@@ -430,7 +430,7 @@
                 "vm_id": "example_participant"
             },
             {
-                "blinded": true,
+                "blinded": false,
                 "dataset_id": "dataset-1",
                 "input_run_id": "run-9-participant-1",
                 "input_software_name": "default upload",
@@ -474,6 +474,7 @@
                 "link_to_team": "https://www.tira.io/g/tira_vm_example_participant",
                 "published": true,
                 "run_id": "run-0-example_participant",
+                "selectable": false,
                 "vm_id": "example_participant"
             },
             {
@@ -487,6 +488,7 @@
                 "link_to_team": "https://www.tira.io/g/tira_vm_participant-1",
                 "published": true,
                 "run_id": "run-0-participant-1",
+                "selectable": false,
                 "vm_id": "participant-1"
             },
             {
@@ -500,6 +502,7 @@
                 "link_to_team": "https://www.tira.io/g/tira_vm_participant-2",
                 "published": false,
                 "run_id": "run-0-participant-2",
+                "selectable": false,
                 "vm_id": "participant-2"
             },
             {
@@ -513,6 +516,7 @@
                 "link_to_team": "https://www.tira.io/g/tira_vm_example_participant",
                 "published": true,
                 "run_id": "run-1-example_participant",
+                "selectable": false,
                 "vm_id": "example_participant"
             },
             {
@@ -526,6 +530,7 @@
                 "link_to_team": "https://www.tira.io/g/tira_vm_participant-1",
                 "published": true,
                 "run_id": "run-1-participant-1",
+                "selectable": false,
                 "vm_id": "participant-1"
             },
             {
@@ -539,6 +544,7 @@
                 "link_to_team": "https://www.tira.io/g/tira_vm_participant-2",
                 "published": false,
                 "run_id": "run-1-participant-2",
+                "selectable": false,
                 "vm_id": "participant-2"
             },
             {
@@ -552,6 +558,7 @@
                 "link_to_team": "https://www.tira.io/g/tira_vm_example_participant",
                 "published": true,
                 "run_id": "run-2-example_participant",
+                "selectable": false,
                 "vm_id": "example_participant"
             },
             {
@@ -565,6 +572,7 @@
                 "link_to_team": "https://www.tira.io/g/tira_vm_participant-1",
                 "published": true,
                 "run_id": "run-2-participant-1",
+                "selectable": false,
                 "vm_id": "participant-1"
             },
             {
@@ -578,6 +586,7 @@
                 "link_to_team": "https://www.tira.io/g/tira_vm_participant-2",
                 "published": false,
                 "run_id": "run-2-participant-2",
+                "selectable": false,
                 "vm_id": "participant-2"
             },
             {
@@ -591,6 +600,7 @@
                 "link_to_team": "https://www.tira.io/g/tira_vm_example_participant",
                 "published": true,
                 "run_id": "run-3-example_participant",
+                "selectable": false,
                 "vm_id": "example_participant"
             },
             {
@@ -604,6 +614,7 @@
                 "link_to_team": "https://www.tira.io/g/tira_vm_participant-1",
                 "published": true,
                 "run_id": "run-3-participant-1",
+                "selectable": false,
                 "vm_id": "participant-1"
             },
             {
@@ -617,6 +628,7 @@
                 "link_to_team": "https://www.tira.io/g/tira_vm_participant-2",
                 "published": false,
                 "run_id": "run-3-participant-2",
+                "selectable": false,
                 "vm_id": "participant-2"
             },
             {
@@ -630,6 +642,7 @@
                 "link_to_team": "https://www.tira.io/g/tira_vm_example_participant",
                 "published": true,
                 "run_id": "run-4-example_participant",
+                "selectable": false,
                 "vm_id": "example_participant"
             },
             {
@@ -643,6 +656,7 @@
                 "link_to_team": "https://www.tira.io/g/tira_vm_participant-1",
                 "published": true,
                 "run_id": "run-4-participant-1",
+                "selectable": false,
                 "vm_id": "participant-1"
             },
             {
@@ -656,6 +670,7 @@
                 "link_to_team": "https://www.tira.io/g/tira_vm_participant-2",
                 "published": false,
                 "run_id": "run-4-participant-2",
+                "selectable": false,
                 "vm_id": "participant-2"
             },
             {
@@ -669,6 +684,7 @@
                 "link_to_team": "https://www.tira.io/g/tira_vm_example_participant",
                 "published": true,
                 "run_id": "run-5-example_participant",
+                "selectable": false,
                 "vm_id": "example_participant"
             },
             {
@@ -682,6 +698,7 @@
                 "link_to_team": "https://www.tira.io/g/tira_vm_participant-1",
                 "published": true,
                 "run_id": "run-5-participant-1",
+                "selectable": false,
                 "vm_id": "participant-1"
             },
             {
@@ -695,6 +712,7 @@
                 "link_to_team": "https://www.tira.io/g/tira_vm_participant-2",
                 "published": false,
                 "run_id": "run-5-participant-2",
+                "selectable": false,
                 "vm_id": "participant-2"
             },
             {
@@ -708,6 +726,7 @@
                 "link_to_team": "https://www.tira.io/g/tira_vm_example_participant",
                 "published": true,
                 "run_id": "run-6-example_participant",
+                "selectable": false,
                 "vm_id": "example_participant"
             },
             {
@@ -721,6 +740,7 @@
                 "link_to_team": "https://www.tira.io/g/tira_vm_participant-1",
                 "published": true,
                 "run_id": "run-6-participant-1",
+                "selectable": false,
                 "vm_id": "participant-1"
             },
             {
@@ -734,6 +754,7 @@
                 "link_to_team": "https://www.tira.io/g/tira_vm_participant-2",
                 "published": false,
                 "run_id": "run-6-participant-2",
+                "selectable": false,
                 "vm_id": "participant-2"
             },
             {
@@ -747,6 +768,7 @@
                 "link_to_team": "https://www.tira.io/g/tira_vm_example_participant",
                 "published": true,
                 "run_id": "run-7-example_participant",
+                "selectable": false,
                 "vm_id": "example_participant"
             },
             {
@@ -760,6 +782,7 @@
                 "link_to_team": "https://www.tira.io/g/tira_vm_participant-1",
                 "published": true,
                 "run_id": "run-7-participant-1",
+                "selectable": false,
                 "vm_id": "participant-1"
             },
             {
@@ -773,6 +796,7 @@
                 "link_to_team": "https://www.tira.io/g/tira_vm_participant-2",
                 "published": false,
                 "run_id": "run-7-participant-2",
+                "selectable": false,
                 "vm_id": "participant-2"
             },
             {
@@ -786,6 +810,7 @@
                 "link_to_team": "https://www.tira.io/g/tira_vm_example_participant",
                 "published": true,
                 "run_id": "run-8-example_participant",
+                "selectable": false,
                 "vm_id": "example_participant"
             },
             {
@@ -799,6 +824,7 @@
                 "link_to_team": "https://www.tira.io/g/tira_vm_participant-1",
                 "published": true,
                 "run_id": "run-8-participant-1",
+                "selectable": false,
                 "vm_id": "participant-1"
             },
             {
@@ -812,6 +838,7 @@
                 "link_to_team": "https://www.tira.io/g/tira_vm_participant-2",
                 "published": false,
                 "run_id": "run-8-participant-2",
+                "selectable": false,
                 "vm_id": "participant-2"
             },
             {
@@ -825,19 +852,23 @@
                 "link_to_team": "https://www.tira.io/g/tira_vm_example_participant",
                 "published": true,
                 "run_id": "run-9-example_participant",
+                "selectable": false,
                 "vm_id": "example_participant"
             },
             {
-                "blinded": true,
+                "blinded": false,
                 "dataset_id": "dataset-1",
                 "input_software_name": "default upload",
                 "is_software": false,
                 "is_upload": true,
                 "k-1": -0.8,
                 "k-2": 3.8,
+                "link_results_download": "/task/shared-task-1/user/participant-1/dataset/dataset-1-20230723-training/download/run-9-participant-1-eval.zip",
+                "link_run_download": "/task/shared-task-1/user/participant-1/dataset/dataset-1-20230723-training/download/run-9-participant-1.zip",
                 "link_to_team": "https://www.tira.io/g/tira_vm_participant-1",
                 "published": true,
                 "run_id": "run-9-participant-1",
+                "selectable": false,
                 "vm_id": "participant-1"
             },
             {
@@ -851,6 +882,7 @@
                 "link_to_team": "https://www.tira.io/g/tira_vm_participant-2",
                 "published": false,
                 "run_id": "run-9-participant-2",
+                "selectable": false,
                 "vm_id": "participant-2"
             }
         ],

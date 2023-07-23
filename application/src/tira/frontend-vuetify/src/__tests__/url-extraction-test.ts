@@ -1,4 +1,4 @@
-import { extractTaskFromCurrentUrl, extractDatasetFromCurrentUrl } from '../utils'
+import { extractTaskFromCurrentUrl, extractDatasetFromCurrentUrl, extractSubView, extractSubSubView } from '../utils'
 
 Object.defineProperty((window as Window), 'location', {
     value: {
@@ -121,4 +121,46 @@ test('First dataset is used if dataset from URL does not exist and default_chois
   let selectedDataset = 'does-not-exist'
 
   expect(extractDatasetFromCurrentUrl(options, selectedDataset)).toStrictEqual('ds');
+});
+
+test('No sub-view and sub-sub-view exist 1.', () => {
+  (window as Window).location.href = 'task-overview/1234/'
+  expect(extractSubView()).toBeNull;
+  expect(extractSubSubView()).toBeNull;
+});
+
+test('No sub-view and sub-sub-view exist 2.', () => {
+  (window as Window).location.href = 'task-overview/1234/23'
+  expect(extractSubView()).toBeNull;
+  expect(extractSubSubView()).toBeNull;
+});
+
+test('No sub-view and sub-sub-view exist 2.', () => {
+  (window as Window).location.href = 'dummy/1234/23/hello/world/how'
+  expect(extractSubView()).toBeNull;
+  expect(extractSubSubView()).toBeNull;
+});
+
+test('Sub-view exists but no sub-sub-view 1.', () => {
+  (window as Window).location.href = 'task-overview/1234/23/sub-view-1'
+  expect(extractSubView()).toStrictEqual('sub-view-1');
+  expect(extractSubSubView()).toBeNull;
+});
+
+test('Sub-view exists but no sub-sub-view 2.', () => {
+  (window as Window).location.href = 'task-overview/1234/23/1234'
+  expect(extractSubView()).toStrictEqual('1234');
+  expect(extractSubSubView()).toBeNull;
+});
+
+test('Sub-view exists and sub-sub-view 1.', () => {
+  (window as Window).location.href = 'task-overview/1234/23/1234/sub-sub-view'
+  expect(extractSubView()).toStrictEqual('1234');
+  expect(extractSubSubView()).toStrictEqual('sub-sub-view');
+});
+
+test('Sub-view exists and sub-sub-view 1.', () => {
+  (window as Window).location.href = 'task-overview/1234/23/1234/sub-sub-view'
+  expect(extractSubView()).toStrictEqual('1234');
+  expect(extractSubSubView()).toStrictEqual('sub-sub-view');
 });

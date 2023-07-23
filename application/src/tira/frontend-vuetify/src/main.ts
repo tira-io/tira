@@ -37,6 +37,8 @@ export default function register_app() {
     {path: '/frontend-vuetify/landing', component: Home},
     {path: '/frontend-vuetify/tasks', component: Tasks},
     {path: '/frontend-vuetify/task-overview/:task_id?/:dataset_id?', component: TaskOverview},
+    {path: '/frontend-vuetify/task-overview/:task_id?/:dataset_id?/:sub-view?', component: TaskOverview},
+    {path: '/frontend-vuetify/task-overview/:task_id?/:dataset_id?/:sub-view?/:sub-sub-view?', component: TaskOverview},
     {path: '/frontend-vuetify/run-upload', component: RunUpload},
 
     // Fallback: everything matches to home.

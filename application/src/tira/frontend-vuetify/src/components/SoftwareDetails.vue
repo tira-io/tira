@@ -109,7 +109,7 @@ export default {
     link_organizer() {return get_link_to_organizer(this.organizer_id);},
     contact_organizer() {return get_contact_link_to_organizer(this.organizer_id);},
     fields_to_skip() {
-      let ret = ['vm_id', 'input_software_name', 'published', 'blinded', 'link_to_team', 'link_results_download', 'link_run_download', 'link_serp', 'is_upload', 'is_software', 'dataset_id']
+      let ret = ['vm_id', 'input_software_name', 'published', 'blinded', 'link_to_team', 'link_results_download', 'link_run_download', 'link_serp', 'is_upload', 'is_software', 'dataset_id', 'selectable']
 
       for (var i of this.columns_to_skip) {
         ret.push(i.key)

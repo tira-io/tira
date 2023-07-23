@@ -1,4 +1,4 @@
-from utils_for_testing import route_to_test
+from utils_for_testing import route_to_test, software_public, software_non_public
 from datetime import datetime
 
 #Used for some tests
@@ -178,8 +178,8 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
-        url_pattern='diffir/<str:task_id>/<str:run_id_1>/<str:run_id_2>',
-        params={'task_id': 'shared-task-1', 'run_id_1': '1', 'run_id_2': '2'},
+        url_pattern='diffir/<str:task_id>/<int:topk>/<str:run_id_1>/<str:run_id_2>',
+        params={'task_id': 'shared-task-1', 'topk': 10, 'run_id_1': '1', 'run_id_2': '2'},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 405,
@@ -222,8 +222,8 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
-        url_pattern='serp/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/<str:run_id>',
-        params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-1-{now}-training', 'vm_id': PARTICIPANT.split('_')[-1], 'run_id': 'run-1-example_participant'},
+        url_pattern='serp/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/<int:topk>/<str:run_id>',
+        params={'task_id': 'shared-task-1', 'topk': 10, 'dataset_id': f'dataset-1-{now}-training', 'vm_id': PARTICIPANT.split('_')[-1], 'run_id': 'run-1-example_participant'},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 302,  # TODO: Look at this again. Should be 405?
@@ -233,8 +233,8 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
-        url_pattern='serp/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/<str:run_id>',
-        params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-1-{now}-training',
+        url_pattern='serp/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/<int:topk>/<str:run_id>',
+        params={'task_id': 'shared-task-1', 'topk': 10, 'dataset_id': f'dataset-1-{now}-training',
                 'vm_id': 'participant-1', 'run_id': 'run-1-participant-1'},
         group_to_expected_status_code={
             ADMIN: 200,
@@ -245,8 +245,8 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
-        url_pattern='serp/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/<str:run_id>',
-        params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-2-{now}-test', 'vm_id': 'example_participant', 'run_id': 'run-1-example_participant'},
+        url_pattern='serp/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/<int:topk>/<str:run_id>',
+        params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-2-{now}-test', 'topk': 10, 'vm_id': 'example_participant', 'run_id': 'run-1-example_participant'},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 405,
@@ -256,8 +256,8 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
-        url_pattern='serp/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/<str:run_id>',
-        params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-2-{now}-test', 'vm_id': PARTICIPANT.split('_')[-1],
+        url_pattern='serp/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/<int:topk>/<str:run_id>',
+        params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-2-{now}-test', 'topk': 10, 'vm_id': PARTICIPANT.split('_')[-1],
                 'run_id': 'run-1-example_participant'},
         group_to_expected_status_code={
             ADMIN: 200,
@@ -477,6 +477,50 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
+        url_pattern='task/<str:task_id>/vm/<str:vm_id>/software_details/<str:software_name>',
+        params={'task_id': 'shared-task-1', 'vm_id': 'example_participant', 'software_name': 'does-not-exist'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 302,
+            ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
+        },
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>/vm/<str:vm_id>/software_details/<str:software_name>',
+        params={'task_id': 'shared-task-1', 'vm_id': 'example_participant', 'software_name': software_non_public},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 302,
+            ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
+        },
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>/vm/<str:vm_id>/software_details/<str:software_name>',
+        params={'task_id': 'shared-task-1', 'vm_id': 'PARTICIPANT-FOR-TEST-1', 'software_name': software_public},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 200,
+            PARTICIPANT: 200,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 200,
+        },
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>/vm/<str:vm_id>/software_details/<str:software_name>',
+        params={'task_id': 'shared-task-1', 'vm_id': 'PARTICIPANT-FOR-TEST-1', 'software_name': software_non_public},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 200,
+            ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
+        },
+    ),
+    route_to_test(
         url_pattern='task/<str:task_id>/vm/<str:vm_id>/add_software/upload',
         params={'task_id': 'shared-task-1', 'vm_id': 'example_participant'},
         group_to_expected_status_code={
@@ -663,6 +707,17 @@ API_ACCESS_MATRIX = [
             PARTICIPANT: 302,
             ORGANIZER: 302,
             ORGANIZER_WRONG_TASK: 302,
+        },
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>/vm/<str:vm_id>/run_details/<str:run_id>',
+        params={'task_id': 'shared-task-1', 'vm_id': 'participant-1', 'run_id': 'run-9-participant-1'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 200,
+            PARTICIPANT: 200,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 200,
         },
     ),
     route_to_test(

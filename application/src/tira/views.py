@@ -299,6 +299,11 @@ def download_rundir(request, task_id, dataset_id, vm_id, run_id):
         return JsonResponse({'status': 1, 'reason': f'File does not exist: {zipped}'},
                             status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
+@check_conditional_permissions(public_data_ok=True)
+@check_resources_exist('json')
+def download_input_rundir(request, task_id, dataset_id, vm_id, run_id):
+    return download_rundir(request, task_id, dataset_id, vm_id, input_run_id)
+
 @check_permissions
 def download_datadir(request, dataset_type, input_type, dataset_id):
     input_type = input_type.lower().replace('input', '')

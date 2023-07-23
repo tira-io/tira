@@ -4,6 +4,7 @@ import RunList from "./RunList.vue";
 import SoftwareDetails from "./SoftwareDetails.vue";
 import SubmitButton from "./SubmitButton.vue";
 import TiraBreadcrumb from "./TiraBreadcrumb.vue";
-import TiraTaskAdmin from "./TiraTaskAdmin.vue"
+import TiraTaskAdmin from "./TiraTaskAdmin.vue";
+import TaskDocumentation from "./TaskDocumentation.vue"
 
-export {Loading, RunActions, RunList, SoftwareDetails, SubmitButton, TiraBreadcrumb, TiraTaskAdmin}
+export {Loading, RunActions, RunList, SoftwareDetails, SubmitButton, TiraBreadcrumb, TiraTaskAdmin, TaskDocumentation}

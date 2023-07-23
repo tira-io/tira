@@ -99,12 +99,13 @@ def get_evaluations_by_dataset(request, context, task_id, dataset_id):
         for j in ['measures']:
             del i[j]
         runs += [i]
-
+        i['selectable'] = False
         if not i['blinded'] and (is_admin or i['vm_id'] in user_vms_for_task or i['published']):
             i['link_results_download'] = f'/task/{task_id}/user/{i["vm_id"]}/dataset/{i["dataset_id"]}/download/{eval_run_id}.zip'
             i['link_run_download'] = f'/task/{task_id}/user/{i["vm_id"]}/dataset/{i["dataset_id"]}/download/{i["run_id"]}.zip'
             if is_ir_task:
-                i['link_serp'] = f'/serp/{task_id}/user/{i["vm_id"]}/dataset/{i["dataset_id"]}/{i["run_id"]}'
+                i['link_serp'] = f'/serp/{task_id}/user/{i["vm_id"]}/dataset/{i["dataset_id"]}/10/{i["run_id"]}'
+                i['selectable'] = True
 
     context["runs"] = runs
 
