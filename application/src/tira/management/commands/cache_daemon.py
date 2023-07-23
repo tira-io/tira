@@ -24,6 +24,10 @@ class Command(BaseCommand):
                 if task is None:
                     continue
                 if model.git_pipeline_is_enabled_for_task(task['task_id'], cache):
+                    if 'featured' not in task or not task['featured']:
+                        print(f'Skip inactive task {task["task_id"]}')
+                        continue
+
                     evaluators_for_task = model.get_evaluators_for_task(task['task_id'], cache)
                     repositories = set([i['git_repository_id'] for i in evaluators_for_task if i['is_git_runner'] and i['git_repository_id']])
                 
@@ -41,10 +45,19 @@ class Command(BaseCommand):
                 time.sleep(0.1)
 
     def refresh_user_images_in_repo(self, git_runner, sleep_time):
-        print(str(datetime.datetime.now()) + ': Start loop to keep the user images fresh (sleeped ' + str(int(sleep_time)) + ' seconds) ...')
+        users_of_active_tasks = set()
+        for task in model.get_tasks():
+            if task is None:
+                continue
+            if 'featured' in task and task['featured'] and 'allowed_task_teams' in task and task['allowed_task_teams']:
+                users_of_active_tasks |= set([i.strip() for i in task['allowed_task_teams'].split('\n') if i and i.strip()])
+
+        print(str(datetime.datetime.now()) + ': Start loop to keep the user images fresh (sleeped ' + str(int(sleep_time)) + ' seconds) for {users_of_active_tasks} ...')
+
         for user in git_runner.all_user_repositories():
             user = user.split('tira-user-')[-1]
-            print(user)
+            if user not in users_of_active_tasks:
+                continue
             try:
                 images = git_runner.docker_images_in_user_repository(user, cache, force_cache_refresh=True)
                 print('Refreshed Cache (' + str(datetime.datetime.now()) + '): ' + user + ' has ' + str(len(images)) + ' images.')
