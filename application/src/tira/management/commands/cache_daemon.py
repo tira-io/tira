@@ -52,12 +52,9 @@ class Command(BaseCommand):
             if 'featured' in task and task['featured'] and 'allowed_task_teams' in task and task['allowed_task_teams']:
                 users_of_active_tasks |= set([i.strip() for i in task['allowed_task_teams'].split('\n') if i and i.strip()])
 
-        print(str(datetime.datetime.now()) + ': Start loop to keep the user images fresh (sleeped ' + str(int(sleep_time)) + ' seconds) for {users_of_active_tasks} ...')
+        print(str(datetime.datetime.now()) + ': Start loop to keep the user images fresh (sleeped ' + str(int(sleep_time)) + f' seconds) for {users_of_active_tasks} ...')
 
-        for user in git_runner.all_user_repositories():
-            user = user.split('tira-user-')[-1]
-            if user not in users_of_active_tasks:
-                continue
+        for user in users_of_active_tasks:
             try:
                 images = git_runner.docker_images_in_user_repository(user, cache, force_cache_refresh=True)
                 print('Refreshed Cache (' + str(datetime.datetime.now()) + '): ' + user + ' has ' + str(len(images)) + ' images.')
