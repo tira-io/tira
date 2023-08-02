@@ -178,3 +178,33 @@ export async function post(url: string, params: any, debug=false) {
     }
     return results
 }
+
+export function validateEmail(value: string) {
+    if (!value) {
+        return 'E-mail is required.'
+    } else if (/.+@.+\..+/.test(value)) {
+        return true
+    }
+
+    return 'E-mail must be valid.'
+}
+
+export function validateTeamName(value: string) {
+    if (!value) {
+        return 'Team name is required.'
+    } else if (value?.length < 3) {
+        return 'Team name must have 3 or more characters.'
+    } else if (value?.length > 10) {
+        return 'Team name must be less than 10 characters.'
+    }
+
+    return true
+}
+
+export function validateNotEmpty(value: String) {
+    if (!value) {
+        return 'This field is required.'
+    }
+
+    return true
+}
