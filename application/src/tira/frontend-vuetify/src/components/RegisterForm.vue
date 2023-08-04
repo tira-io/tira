@@ -68,33 +68,21 @@
   </v-dialog>
 </template>
 <script lang="ts">
-import {validateEmail, validateTeamName, validateNotEmpty} from "../utils"
+import {validateEmail, validateTeamName, validateNotEmpty, post, reportError, reportSuccess} from "../utils"
 import Loading from "./Loading.vue"
 
 export default {
   name: "register-form",
   props: ["task", "isActive"],
   components: {Loading},
+  emits: ['updateUserVmsForTask'],
   data: () => ({
-      valid: false,
-      loading: false,
-      username: '',
-      lastname: '',
-      country: '',
-      affiliation: '',
-      selectedEmployment: '',
-      instructorName: '',
-      team: '',
-      questions: '',
+      valid: false, loading: false, username: '', lastname: '', country: '', affiliation: '', instructorEmail: '',
+      selectedEmployment: '', instructorName: '', team: '', questions: '', selectedParticipation: '', email: '',
       employmentOptions: ["", "Undergraduate Student", "PhD Student", "Academic Research", "Industry", "Private"],
-      selectedParticipation: "",
       participationList: ["", "Course", "Thesis", "Academic Research", "Industry Research", "Private Interest"],
       showInstructorClasses: ['Undergraduate Student', 'Course', 'Thesis'],
-      instructorEmail: "",
-      nameRules: [validateTeamName],
-      email: '',
-      notEmptyRules: [validateNotEmpty],
-      emailRules: [validateEmail],
+      nameRules: [validateTeamName], notEmptyRules: [validateNotEmpty], emailRules: [validateEmail],
     }),
   methods: {
     async submitRegistration (isActive: any) {
@@ -102,8 +90,21 @@ export default {
 
       if (valid) {
         this.loading = true
-        isActive.value = false
-        console.log("Submit...")
+        post('/api/registration/add_registration/vm/'+ this.task.task_id, {
+          'username': this.username, 'email': this.email, 'affiliation': this.affiliation, 'country': this.country,
+          'employment': this.selectedEmployment, 'group': this.username, 'participation': this.selectedParticipation,
+          'instructorName': this.instructorName, 'instructorEmail': this.instructorEmail,
+          'questions': this.questions, 'team': this.team
+        }).then(message => {
+          reportSuccess('You are now registered for the team "' + this.username + '" and can submit runs.')
+          this.$emit('updateUserVmsForTask', this.username)
+          isActive.value = false
+          this.loading = false
+        }).catch(error => {
+          reportError("Problem while Saving the Review.", "This might be a short-term hiccup, please try again. We got the following error: " + error);
+          this.loading = false
+          this.valid = error
+        })
       }
     },
   },

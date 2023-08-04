@@ -108,6 +108,16 @@ export function extractCsrf(doc: Document=document) : string {
     return ''
 }
 
+export function reportSuccess(title: string="", text: string="") {
+    return function (error: any) {
+        console.log(error)
+        if (title === '') {
+            title = 'Success.'
+        }
+        window.push_message(title, text + ' ' + error, "Success")
+    }
+}
+
 export function reportError(title: string="", text: string="") {
     return function (error: any) {
         console.log(error)

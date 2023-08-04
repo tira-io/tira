@@ -1,7 +1,7 @@
 <template>
   <v-btn v-if="show_login" href="/login" variant="outlined" block>Submit</v-btn>
 
-  <register-form v-if="show_register" :task="task"/>
+  <register-form v-if="show_register" :task="task"  @update-user-vms-for-task="(newUserVm) => additional_vms = [newUserVm]"/>
 
   <v-btn v-if="!show_register && !show_login && vm_id" :href="'/task/' + task.task_id + '/user/' + vm_id" variant="outlined" block>Submit</v-btn>
 
@@ -23,6 +23,9 @@ import RegisterForm from "./RegisterForm.vue"
 export default {
   name: "submit-button",
   props: ['task', 'vm', 'user_vms_for_task', 'user_id'],
+  data: () => ({
+    additional_vms: [''],
+  }),
   components: {RegisterForm},
   computed: {
     vm_id() {
@@ -32,6 +35,8 @@ export default {
         return this.user_id + '-default'
       } else if (this.user_vms_for_task && this.user_vms_for_task.length == 1) {
         return this.user_vms_for_task[0]
+      } else if(this.additional_vms && this.additional_vms.length > 0 && this.additional_vms[0]) {
+        return this.additional_vms[0]
       }
 
       return null;
