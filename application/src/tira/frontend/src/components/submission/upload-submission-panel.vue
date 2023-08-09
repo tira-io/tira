@@ -13,7 +13,7 @@
 <form v-if="!showUploadForm" class="upload_form">
     <h2>Create Run Upload Group</h2>
     <p>Please click on "Add Upload Group" below to create a new run upload group.</p>
-    <p>Please use one upload group (you can edit the metadata of an upload group later) per appraoch. I.e., in TIRA, you can usually run software submissions on different datasets. For manually uploaded runs, we employ the same methodology: Please create one run upload group per approach, so that you can upload "executions" of the same approach on different datasets while maintaining the documentation.</p>
+    <p>Please use one upload group (you can edit the metadata of an upload group later) per approach. I.e., in TIRA, you can usually run software submissions on different datasets. For manually uploaded runs, we employ the same methodology: Please create one run upload group per approach, so that you can upload "executions" of the same approach on different datasets while maintaining the documentation.</p>
     
     <br>
     
