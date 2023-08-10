@@ -128,6 +128,46 @@ export function reportError(title: string="", text: string="") {
     }
 }
 
+export function extractUserFromCurrentUrl() {
+        let url = ref(window.location).value.href
+        let to_split = 'submit/' + extractTaskFromCurrentUrl() + '/user/'
+        let user = ''
+        if(url.includes(to_split)) {
+            user = url.split(to_split)[1].split('/')[0]
+        }
+        return user
+}
+
+export function extractSubmissionTypeFromCurrentUrl() {
+    let url = ref(window.location).value.href
+    let to_split = 'submit/' + extractTaskFromCurrentUrl() + '/user/' + extractUserFromCurrentUrl() + '/'
+    let submission_type = null
+
+    if(url.includes(to_split)) {
+        submission_type = url.split(to_split)[1].split('/')[0]
+    }
+    return submission_type === '' ? null : submission_type
+}
+
+export function extractCurrentStepFromCurrentUrl() {
+    let url = ref(window.location).value.href
+    let to_split = 'submit/' + extractTaskFromCurrentUrl() + '/user/' + extractUserFromCurrentUrl() + '/' + extractSubmissionTypeFromCurrentUrl()
+    let step = null
+    if(url.includes(to_split)) {
+        step = url.split(to_split)[1].split('/')[1] === undefined ? null : url.split(to_split)[1].split('/')[1]
+    }
+    return step === '' ? null : step
+}
+
+export function changeCurrentUrlToDataset(dataset: string) {
+    var loc = ref(window.location).value.href
+
+    if (loc.includes('task-overview/')) {
+        loc = loc.split('task-overview/')[0] + 'task-overview/' + loc.split('task-overview/')[1].split('/')[0] + '/' + dataset
+        history.replaceState({'url': loc}, 'TIRA', loc)
+    }
+}
+
 export function inject_response(obj: any, default_values: any={}, debug=false) {
     let object_to_inject_data = obj.$data
     return function(message: any) {
