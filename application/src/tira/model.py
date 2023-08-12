@@ -216,6 +216,13 @@ class DockerSoftware(models.Model):
     public_image_size = models.BigIntegerField(default=None, null=True)
 
 
+class DockerSoftwareHasAdditionalInput(models.Model):
+    position = models.AutoField(primary_key=True)
+    docker_software = models.ForeignKey(DockerSoftware, on_delete=models.CASCADE)
+    input_docker_software = models.ForeignKey(DockerSoftware, on_delete=models.CASCADE, default=None, null=True)
+    input_upload = models.ForeignKey(Upload, on_delete=models.RESTRICT, default=None, null=True)
+
+
 class Run(models.Model):
     run_id = models.CharField(max_length=150, primary_key=True)
     software = models.ForeignKey(Software, on_delete=models.CASCADE, null=True)
