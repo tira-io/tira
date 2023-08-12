@@ -24,3 +24,4 @@ approvaltests==7.3.0
 django-extensions
 coverage
 coverage-badge
+discourse-client-in-disraptor==0.0.2

@@ -94,6 +94,7 @@ class Authentication(object):
                                        dataset_id_from_params, run_id_from_params, vm_id_from_params, role):
         return False
 
+
 class LegacyAuthentication(Authentication):
     _AUTH_SOURCE = "legacy"
 
@@ -179,6 +180,7 @@ class LegacyAuthentication(Authentication):
                                        dataset_id_from_params, run_id_from_params, vm_id_from_params, role):
         return False
 
+
 def check_disraptor_token(func):
     @wraps(func)
     def func_wrapper(auth, request, *args, **kwargs):
@@ -194,6 +196,20 @@ def check_disraptor_token(func):
 
 class DisraptorAuthentication(Authentication):
     _AUTH_SOURCE = "disraptor"
+
+    def __init__(self, **kwargs):
+        """ Disraptor authentication that delegates all authentication to discourse/disraptor.
+        @param kwargs:
+            unused, only for consistency to the LegacyAuthentication
+        """
+        super(DisraptorAuthentication, self).__init__(**kwargs)
+        api_key = ''
+        try:
+            api_key = open(settings.DISRAPTOR_SECRET_FILE, "r").read().strip()
+        except:
+            print('Attention: could not load the disraptor secret key, I do not have an API key.')
+        from discourse_client_in_disraptor import DiscourseApiClient
+        self.discourse_client = DiscourseApiClient(url='https://www.tira.io', api_key=api_key)
 
     def _get_user_id(self, request):
         """ Return the content of the X-Disraptor-User header set in the http request """
@@ -300,24 +316,6 @@ class DisraptorAuthentication(Authentication):
         
         return vms if len(vms) >= 1 else [Authentication.get_default_vm_id(user_id)]
 
-    def _discourse_api_key(self):
-        return open(settings.DISRAPTOR_SECRET_FILE, "r").read().strip()
-
-    def _create_discourse_group(self, group_name, group_bio, visibility_level=2, members_visibility_level=2):
-        """ Create a discourse group in the distaptor. 
-        :param vm: a vm dict as returned by tira_model.get_vm
-            {"vm_id", "user_password", "roles", "host", "admin_name", "admin_pw", "ip", "ssh", "rdp", "archived"}
-
-        """
-        ret = requests.post("https://www.tira.io/admin/groups",
-                            headers={"Api-Key": self._discourse_api_key(), "Accept": "application/json",
-                                     "Content-Type": "multipart/form-data"},
-                            data={"group[name]": group_name, "group[visibility_level]": visibility_level,
-                                  "group[members_visibility_level]": members_visibility_level, "group[bio_raw]": group_bio}
-                            )
-        
-        return json.loads(ret.text).get('basic_group', {'id': group_name})["id"]
-        
     def _create_discourse_vm_group(self, vm):
         """ Create the vm group in the distaptor. Members of this group will be owners of the vm and
             have all permissions.
@@ -336,35 +334,7 @@ class DisraptorAuthentication(Authentication):
     </ul><br><br>
     Please contact us when you have questions.
     """
-    
-        return _create_discourse_group(f"tira_vm_{vm['vm_id']}", group_bio, 2)
-
-    def _create_discourse_invite_link(self, group_id):
-        """ Create the invite link to get permission to a discourse group """
-        ret = requests.post("https://www.tira.io/invites",
-                            headers={"Api-Key": self._discourse_api_key(), "Accept": "application/json",
-                                     "Content-Type": "multipart/form-data"},
-                            data={"group_ids[]": group_id, "max_redemptions_allowed": 20,
-                                  "expires_at": str(datetime.now().year + 1) + "-12-31"}
-                            )
-
-        return json.loads(ret.text)['link']
-
-    def _add_user_as_owner_to_group(self, group_id, user_name):
-        """ Create the invite link to get permission to a discourse group """
-        ret = requests.put(f"https://www.tira.io/groups/{group_id}/owners.json",
-                            headers={"Api-Key": self._discourse_api_key(), "Accept": "application/json",
-                                     "Content-Type": "multipart/form-data"
-                                     },
-                            data={"usernames": user_name, "notify_users": "true"}
-                            )
-        
-        ret = json.loads(ret.text)
-
-        if 'success' not in ret or ret['success'] != 'OK':
-            raise ValueError(f'Could not make the user "{user_name}" an owner of the group with id "{group_id}". Response: ' + str(ret))
-
-        return ret
+        return self.discourse_client.create_group(f"tira_vm_{vm['vm_id']}", group_bio, 2)
 
     def notify_organizers_of_new_participants(self, data, task_id):
         task = model.get_task(task_id)
@@ -375,24 +345,9 @@ This message intends to inform you that there is a new registration for your tas
 ''' + json.dumps(data) + '''
 
 Best regards'''
-    
-        ret = requests.post(f"https://www.tira.io/posts",
-                           headers={"Api-Key": self._discourse_api_key(), "Accept": "application/json",
-                                     "Content-Type": "application/x-www-form-urlencoded"
-                                     },
-                            data={
-                                  'raw': message,
-                                  'title': f'New Registration to {task_id} by {data["group"]}',
-                                  'unlist_topic': False, 'is_warning': False, 'archetype': 'private_message',
-                                  'target_recipients': 'tira_org_' + slugify(task['organizer'].lower()),
-                                  'draft_key': 'new_private_message'
-                                  }
-                            )
-        ret = ret.text
-        ret = json.loads(ret)
-        if 'error' in ret or 'id' not in ret:
-            raise ValueError(f'Could not write message to group. Got {ret}')
 
+        self.discourse_client.write_message(f'New Registration to {task_id} by {data["group"]}', message,
+                                             'tira_org_' + slugify(task['organizer'].lower()))
 
     def create_group(self, vm):
         """ Create the vm group in the distaptor. Members of this group will be owners of the vm and
@@ -400,7 +355,7 @@ Best regards'''
         :param vm: a vm dict as returned by tira_model.get_vm
         """
         vm_group = self._create_discourse_vm_group(vm)
-        invite_link = self._create_discourse_invite_link(vm_group)
+        invite_link = self.discourse_client.create_invite_link(vm_group)
         message = f"""Invite Mail: Please use this link to create your login for TIRA: {invite_link}. 
                       After login to TIRA, you can find the credentials and usage examples for your
                       dedicated virtual machine {vm['vm_id']} here: https://www.tira.io/g/tira_vm_{vm['vm_id']}"""
@@ -412,17 +367,17 @@ Best regards'''
         
         Please do not hesitate to design your page accorging to your needs."""
         
-        group_id = self._create_discourse_group(f"tira_org_{organizer_name}", group_bio, 0)
-        self._add_user_as_owner_to_group(group_id, user_name)
+        group_id = self.discourse_client.create_group(f"tira_org_{organizer_name}", group_bio, 0)
+        self.discourse_client.add_user_as_owner_to_group(group_id, user_name)
 
     def create_docker_group(self, team_name, user_name):
         group_bio = f"""Members of this team participate in shared tasks as {team_name}. <br><br>
         
         Please do not hesitate to design your team's page accorging to your needs."""
         
-        group_id = self._create_discourse_group(f"tira_vm_{slugify(team_name)}", group_bio, 0)
+        group_id = self.discourse_client.create_group(f"tira_vm_{slugify(team_name)}", group_bio, 0)
         model.get_vm(team_name, create_if_none=True)
-        self._add_user_as_owner_to_group(group_id, user_name)
+        self.discourse_client.add_user_as_owner_to_group(group_id, user_name)
 
     def user_is_organizer_for_endpoint(self, request, path, task_id, organizer_id_from_params,
                                        dataset_id_from_params, run_id_from_params, vm_id_from_params,

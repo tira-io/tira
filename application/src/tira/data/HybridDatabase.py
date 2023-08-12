@@ -445,7 +445,7 @@ class HybridDatabase(object):
             is_evaluation = False
             docker_software_id = run.docker_software.docker_software_id
         elif run.upload:
-            software = 'upload'
+            software = run.upload.display_name
             upload_id = run.upload.id
 
         return {"software": software,

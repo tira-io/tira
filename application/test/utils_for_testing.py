@@ -98,6 +98,10 @@ def set_up_tira_environment():
             eval_run = modeldb.Run.objects.create(run_id=f'run-{i}-{participant}-eval', input_run=run, input_dataset=d)
             # SERPS of participant-1 are unblinded and published
             modeldb.Review.objects.create(run=eval_run, published=participant in {'example_participant', 'participant-1'}, blinded=participant != 'participant-1')
+
+            if i > 8:
+                modeldb.Review.objects.update_or_create(run_id=run_id, defaults={'published': participant in {'example_participant', 'participant-1'}, 'blinded': participant != 'participant-1'})
+
             modeldb.Evaluation.objects.create(measure_key='k-1', measure_value=k_1, run=eval_run)
             modeldb.Evaluation.objects.create(measure_key='k-2', measure_value=k_2, run=eval_run)
 

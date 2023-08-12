@@ -108,6 +108,16 @@ export function extractCsrf(doc: Document=document) : string {
     return ''
 }
 
+export function reportSuccess(title: string="", text: string="") {
+    return function (error: any) {
+        console.log(error)
+        if (title === '') {
+            title = 'Success.'
+        }
+        window.push_message(title, text + ' ' + error, "Success")
+    }
+}
+
 export function reportError(title: string="", text: string="") {
     return function (error: any) {
         console.log(error)
@@ -177,4 +187,34 @@ export async function post(url: string, params: any, debug=false) {
         throw new Error(`${results.message}`);
     }
     return results
+}
+
+export function validateEmail(value: string) {
+    if (!value) {
+        return 'E-mail is required.'
+    } else if (/.+@.+\..+/.test(value)) {
+        return true
+    }
+
+    return 'E-mail must be valid.'
+}
+
+export function validateTeamName(value: string) {
+    if (!value) {
+        return 'Team name is required.'
+    } else if (value?.length < 3) {
+        return 'Team name must have 3 or more characters.'
+    } else if (value?.length > 10) {
+        return 'Team name must be less than 10 characters.'
+    }
+
+    return true
+}
+
+export function validateNotEmpty(value: String) {
+    if (!value) {
+        return 'This field is required.'
+    }
+
+    return true
 }
