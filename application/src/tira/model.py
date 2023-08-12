@@ -218,8 +218,8 @@ class DockerSoftware(models.Model):
 
 class DockerSoftwareHasAdditionalInput(models.Model):
     position = models.AutoField(primary_key=True)
-    docker_software = models.ForeignKey(DockerSoftware, on_delete=models.CASCADE)
-    input_docker_software = models.ForeignKey(DockerSoftware, on_delete=models.CASCADE, default=None, null=True)
+    docker_software = models.ForeignKey(DockerSoftware, on_delete=models.CASCADE, related_name='+')
+    input_docker_software = models.ForeignKey(DockerSoftware, on_delete=models.CASCADE, default=None, null=True, related_name='+')
     input_upload = models.ForeignKey(Upload, on_delete=models.RESTRICT, default=None, null=True)
 
 
