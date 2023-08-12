@@ -140,7 +140,7 @@ class Client():
     def run_was_already_executed_on_dataset(self, approach, dataset):
         return self.get_run_execution_or_none(approach, dataset) is not None
 
-    def get_run_output(self, approach, dataset):
+    def get_run_output(self, approach, dataset, allow_without_evaluation=False):
         """
         Downloads the run (or uses the cached version) of the specified approach on the specified dataset.
         Returns the directory containing the outputs of the run.
@@ -148,7 +148,7 @@ class Client():
         task, team, software = approach.split('/')
 
         run_execution = self.submissions_with_evaluation_or_none(task, dataset, team, software)
-        run_execution = [i for i in run_execution if 'evaluation' in i and i['evaluation']]
+        run_execution = [i for i in run_execution if ('evaluation' in i and i['evaluation']) or allow_without_evaluation]
 
         if run_execution is None or len(run_execution) < 1:
             raise ValueError(f'Could not get run for approach "{approach}" on dataset "{dataset}".')
