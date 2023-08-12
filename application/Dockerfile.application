@@ -9,7 +9,7 @@ RUN mv /vuetify-dependencies-node-modules node_modules \
 
 
 # Only change in case of new / updated dependencies
-FROM webis/tira-application:basis-0.0.47
+FROM webis/tira-application:basis-0.0.75
 
 # This Dockerfile ensures that all dependencies do rarely change by starting from a basis image
 # that contains already all dependencies (so that the minor versions do rarely change, but we
