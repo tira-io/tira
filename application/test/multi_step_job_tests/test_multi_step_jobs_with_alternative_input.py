@@ -7,7 +7,7 @@ from datetime import datetime
 #Used for some tests
 now = datetime.now().strftime("%Y%m%d")
 
-class TestOrganizerList(TestCase):
+class TestMultiStepJobsWithAlternativeInput(TestCase):
     @classmethod
     def setUpClass(cls):
         set_up_tira_environment()

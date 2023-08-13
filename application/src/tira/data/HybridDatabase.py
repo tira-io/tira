@@ -1791,6 +1791,24 @@ class HybridDatabase(object):
             )]
 
         return [i for i in ret if i]
+
+    def get_ordered_additional_input_runs_of_software(self, docker_software):
+        ret = []
+
+        if not docker_software or 'docker_software_id' not in docker_software:
+            return []
+
+        additional_inputs = modeldb.DockerSoftwareHasAdditionalInput.objects \
+            .filter(docker_software__docker_software_id=docker_software['docker_software_id']) \
+            .order_by('position')
+
+        for i in additional_inputs:
+            ret += [(i.input_docker_software.docker_software_id if i.input_docker_software else None,
+                     i.input_upload.id if i.input_upload else None
+                     )]
+
+        return ret
+
     def all_registrations(self, task_id):
         task = modeldb.Task.objects.get(task_id=task_id)
         ret = []
