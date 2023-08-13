@@ -801,24 +801,10 @@ def run_execute_docker_software(request, task_id, vm_id, dataset_id, docker_soft
     if not evaluator or 'is_git_runner' not in evaluator or not evaluator['is_git_runner'] or 'git_runner_image' not in evaluator or not evaluator['git_runner_image'] or 'git_runner_command' not in evaluator or not evaluator['git_runner_command'] or 'git_repository_id' not in evaluator or not evaluator['git_repository_id']:
         return JsonResponse({"status": 1, "message": "The dataset is misconfigured. Docker-execute only available for git-evaluators"})
 
-    if ('input_docker_software_id' in docker_software and docker_software['input_docker_software_id']) or ('input_upload_id' in docker_software and docker_software['input_upload_id']):
-        dsid = int(docker_software['input_docker_software_id']) if 'input_docker_software_id' in docker_software and docker_software['input_docker_software_id'] else None
-        uid = int(docker_software['input_upload_id']) if 'input_upload_id' in docker_software and docker_software['input_upload_id'] else None
-        input_run = model.latest_output_of_software_on_dataset(task_id, None, None, dsid, dataset_id, uid)
-        if not input_run or not input_run.get('dataset_id', None) or not input_run.get('run_id', None):
-            if 'input_docker_software_id' in docker_software and docker_software['input_docker_software_id']:
-                return JsonResponse({"status": 1, "message":
-                    f"The execution of your software depends on the execution of {docker_software['input_docker_software']}"
-                    f", but {docker_software['input_docker_software']} was never executed on this dataset. "
-                    f"Please execute first {docker_software['input_docker_software']} on your specified dataset. Found the input {input_run}."})
-            else:
-                return JsonResponse({"status": 1, "message":
-                    f"The execution of your software depends on the upload of a manual run for the group of {docker_software['input_docker_software']}"
-                    f", but {docker_software['input_docker_software']} was not uploaded for this dataset. "
-                    f"Please upload first {docker_software['input_docker_software']} on your specified dataset. Found the input {input_run}."})
+    input_runs, missing_input_runs = model.get_ordered_input_runs_of_software(docker_software)
 
-        input_run['vm_id'] = vm_id
-
+    if missing_input_runs:
+        return JsonResponse({"status": 1, "message": missing_input_runs[0]})
 
     git_runner = model.get_git_integration(task_id=task_id)
     git_runner.run_docker_software_with_git_workflow(
@@ -826,7 +812,7 @@ def run_execute_docker_software(request, task_id, vm_id, dataset_id, docker_soft
         evaluator['git_runner_command'], evaluator['git_repository_id'], evaluator['evaluator_id'],
         docker_software['tira_image_name'], docker_software['command'],
         'docker-software-' + docker_software_id, docker_resources,
-        input_run
+        input_run if input_run else input_runs
     )
 
     running_pipelines = git_runner.all_running_pipelines_for_repository(
@@ -838,6 +824,7 @@ def run_execute_docker_software(request, task_id, vm_id, dataset_id, docker_soft
           str(len(running_pipelines)) + ' jobs.')
     
     return JsonResponse({'status': 0}, status=HTTPStatus.ACCEPTED)
+
 
 @check_permissions
 def stop_docker_software(request, task_id, user_id, run_id):
