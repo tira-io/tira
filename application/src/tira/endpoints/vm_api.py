@@ -801,10 +801,10 @@ def run_execute_docker_software(request, task_id, vm_id, dataset_id, docker_soft
     if not evaluator or 'is_git_runner' not in evaluator or not evaluator['is_git_runner'] or 'git_runner_image' not in evaluator or not evaluator['git_runner_image'] or 'git_runner_command' not in evaluator or not evaluator['git_runner_command'] or 'git_repository_id' not in evaluator or not evaluator['git_repository_id']:
         return JsonResponse({"status": 1, "message": "The dataset is misconfigured. Docker-execute only available for git-evaluators"})
 
-    input_runs, missing_input_runs = model.get_ordered_input_runs_of_software(docker_software)
+    input_runs, errors = model.get_ordered_input_runs_of_software(docker_software, task_id, dataset_id, vm_id)
 
-    if missing_input_runs:
-        return JsonResponse({"status": 1, "message": missing_input_runs[0]})
+    if errors:
+        return JsonResponse({"status": 1, "message": errors[0]})
 
     git_runner = model.get_git_integration(task_id=task_id)
     git_runner.run_docker_software_with_git_workflow(
