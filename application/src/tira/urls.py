@@ -37,7 +37,6 @@ urlpatterns = [
     path('task/<str:task_id>/vm/<str:vm_id>/run_details/<str:run_id>', vm_api.run_details, name='run_details'),
     path('task/<str:task_id>/vm/<str:vm_id>/software_details/<str:software_name>', vm_api.software_details, name='software_details'),
 
-
     path('task/<str:task_id>/vm/<str:vm_id>/upload/<str:dataset_id>/<str:upload_id>', vm_api.upload, name='upload'),
     path('task/<str:task_id>/vm/<str:vm_id>/upload-delete/<str:upload_id>', vm_api.delete_upload, name='deleteupload'),
 
@@ -88,6 +87,7 @@ urlpatterns = [
     path('api/evaluations/<str:task_id>/<str:dataset_id>', data_api.get_evaluations_by_dataset, name='get_evaluations_by_dataset'),
     path('api/evaluation/<str:vm_id>/<str:run_id>', data_api.get_evaluation, name='get_evaluation'),
     path('api/submissions/<str:task_id>/<str:dataset_id>', data_api.get_submissions_by_dataset, name='get_submissions_by_dataset'),
+    path('api/docker-softwares-details/<str:vm_id>/<str:docker_software_id>', vm_api.docker_software_details, name='software_details'),
     path('api/evaluations_of_run/<str:vm_id>/<str:run_id>', data_api.get_evaluations_of_run, name='evaluations_of_run'),
     path('api/ova-list', data_api.get_ova_list, name='get_ova_list'),
     path('api/host-list', data_api.get_host_list, name='get_host_list'),

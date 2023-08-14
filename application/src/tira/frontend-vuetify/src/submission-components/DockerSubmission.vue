@@ -2,19 +2,15 @@
   <loading :loading="loading"/>
   <login-to-submit v-if="!loading && role === 'guest'"/>
   <v-tabs v-model="tab" v-if="!loading && role !== 'guest'" fixed-tabs class="my-10">
-    <v-tab variant="outlined" v-for="image in this.docker.images" :value="image.display_name">
-         {{ image.display_name }}
-    </v-tab>
+    <v-tab variant="outlined" v-for="ds in this.docker.docker_softwares" :value="ds.docker_software_id">{{ ds.display_name }}</v-tab>
     <v-tab value="newDockerImage" color="primary" style="max-width: 100px;" variant="outlined"><v-icon>mdi-tab-plus</v-icon></v-tab>
   </v-tabs>
   <v-window v-model="tab" v-if="!loading && role !== 'guest'">
-          <v-window-item value="newDockerImage">
-              <h2>Create New Docker Image</h2>
-              <v-btn variant="outlined" @click="addImage()">
-                  Add New Image
-              </v-btn>
+          <v-window-item v-for="ds in this.docker.docker_softwares" :value="ds.docker_software_id">
+            <existing-docker-submission :user_id="user_id" :datasets="datasets" :resources="resources" :docker_software_id="ds.docker_software_id" />
           </v-window-item>
-          <v-window-item v-for="image in this.docker.images" :value="image.display_name">
+          <v-window-item value="newDockerImage">
+            <h2>Create New Docker Image</h2>
             <div class="d-flex justify-lg-space-between">
   <v-card class="mx-auto mt-12" style="height: 100%;" >
     <v-card-title class="text-h6 font-weight-regular d-flex justify-space-between">
@@ -128,12 +124,12 @@
       <v-window-item :value="'step-5'">
         <div class="pa-4 text-center">
           <h3 class="text-h6 font-weight-light my-6">
-            Choose ressources and select a dataset
+            Choose resources and select a dataset
           </h3>
           <v-autocomplete
-              label="Ressources"
-              :items="ressources"
-              v-model="selectedRessources"
+              label="Resources"
+              :items="resources"
+              v-model="selectedResources"
                   clearable/>
           <v-autocomplete
               label="Dataset"
@@ -151,11 +147,11 @@
             <v-list-item class="my-4" title="Image:" :subtitle="selectedDockerImage" key="Image:"></v-list-item>
             <v-list-item class="my-4" title="Previous stages:" :subtitle="selectedDockerSoftware" key="Previous stages:"></v-list-item>
             <v-list-item class="my-4" title="Run command:" :subtitle="runCommand" key="Run command:"></v-list-item>
-            <v-list-item class="my-4" title="Ressources:" :subtitle="selectedRessources" key="Ressources: "></v-list-item>
+            <v-list-item class="my-4" title="Resources:" :subtitle="selectedResources" key="Resources: "></v-list-item>
             <v-list-item class="my-4" title="Dataset:" :subtitle="selectedDataset" key="Dataset: "></v-list-item>
           </v-list>
 
-        </div>
+        </div><v-btn variant="outlined" @click="addImage()">Add New Image</v-btn>
       </v-window-item>
     </v-window>
 
@@ -198,19 +194,12 @@
 <script>
 
 import { VAutocomplete } from 'vuetify/components'
-import {
-  get,
-  reportError,
-  extractRole,
-  extractTaskFromCurrentUrl,
-  extractUserFromCurrentUrl,
-  inject_response
-} from "@/utils";
-import {Loading, LoginToSubmit} from "@/components";
+import {get, reportError, extractRole, extractTaskFromCurrentUrl, extractUserFromCurrentUrl, inject_response} from "@/utils";
+import {Loading, LoginToSubmit, ExistingDockerSubmission} from "@/components";
 
 export default {
   name: "DockerSubmission",
-  components: {Loading, LoginToSubmit, VAutocomplete},
+  components: {Loading, LoginToSubmit, VAutocomplete, ExistingDockerSubmission},
     props: {
     step_prop: {
       type: String,
@@ -234,8 +223,8 @@ export default {
         "docker_softwares": ["loading..."],
         "docker_software_help": "loading...",
       },
-      selectedRessources: '',
-      ressources: [
+      selectedResources: '',
+      resources: [
           "loading..."
       ],
       selectedDataset: '',

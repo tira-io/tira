@@ -352,7 +352,7 @@ def submissions_for_task(request, context, task_id, user_id, submission_type):
         context["all_uploadgroups"] = model.get_uploads(task_id, user_id)
     elif submission_type == "docker":
         context["docker"] = {"docker_softwares": model.get_docker_softwares(task_id, user_id)}
-        context["ressources"] = settings.GIT_CI_AVAILABLE_RESOURCES
+        context["resources"] = settings.GIT_CI_AVAILABLE_RESOURCES
     elif submission_type == "vm":
         context["message"] = "This option is not active for this shared task. " \
                              "Please contact the organizers to enable submissions via virtual machines."

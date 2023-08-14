@@ -131,6 +131,15 @@ def get_running_evaluations(request, vm_id):
                                                  for r in results]})
 
 
+@add_context
+@check_permissions
+def docker_software_details(request, context, vm_id, docker_software_id):
+    context['docker_software_details'] = model.get_docker_software(int(docker_software_id))
+
+    return JsonResponse({'status': 0, "context": context})
+
+
+
 @check_conditional_permissions(restricted=True)
 @host_call
 def vm_create(request, hostname, vm_id, ova_file):

@@ -18,7 +18,7 @@
             "docker_softwares": []
         },
         "include_navigation": false,
-        "ressources": {
+        "resources": {
             "small-resources": {
                 "cores": 1,
                 "data": "no",
