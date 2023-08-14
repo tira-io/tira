@@ -3,35 +3,6 @@
   <tira-breadcrumb/>
   <loading :loading="loading"/>
   <v-container v-if="!loading">
-    <v-card >
-      <v-card-actions>
-        <v-layout class="overflow-visible " style="height: 56px; ">
-          <v-bottom-navigation v-model="tab" color="primary" :elevation="10" grow>
-
-             <v-btn value="Overview">
-              <v-icon>mdi-home-analytics</v-icon>
-              Overview
-            </v-btn>
-
-            <v-btn value="Leaderboard">
-              <v-icon>mdi-google-analytics</v-icon>
-              Leaderboard
-            </v-btn>
-
-            <v-btn @click="changeCurrentRouteToSubmission()">
-              <v-icon>mdi-new-box</v-icon>
-              New Submission
-            </v-btn>
-
-          </v-bottom-navigation>
-        </v-layout>
-      </v-card-actions>
-    </v-card>
-
-
-    <v-window v-model="tab">
-
-      <v-window-item value="Overview">
         <loading :loading="loading"/>
         <v-container v-if="!loading">
           <v-card class="px2" max-width="2560">
@@ -87,9 +58,6 @@
     </v-card-actions>
         </v-card>
         </v-container>
-      </v-window-item>
-
-      <v-window-item value="Leaderboard">
 
         <tira-task-admin v-if="!loading"/>
           <v-container v-if="!loading" id="dataset-select">
@@ -99,9 +67,6 @@
 
             <run-list v-if="selectedDataset" :task_id="task_id" :organizer="task.organizer" :organizer_id="task.organizer_id" :dataset_id="selectedDataset"/>
           </v-container>
-
-      </v-window-item>
-    </v-window>
   </v-container>
   </v-container>
 </template>
