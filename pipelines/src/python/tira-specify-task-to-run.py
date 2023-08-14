@@ -37,6 +37,28 @@ def copy_from_to(source_directory, target_directory, file_skip_list=()):
         print(f'Make target-directory: "{target_directory}"', file=sys.stderr)
         Path(target_directory).mkdir(parents=True, exist_ok=True)
 
+def copy_multiple_input_runs_to_local_environment(job_configuration, file_skip_list=()):
+    if job_configuration and 'TIRA_INPUT_RUN_DATASET_IDS' in job_configuration and 'TIRA_INPUT_RUN_VM_IDS' in job_configuration and 'TIRA_INPUT_RUN_RUN_IDS' in job_configuration and 'TIRA_INPUT_RUN_REPLACES_ORIGINAL_DATASET' not in job_configuration:
+        input_datasets = json.loads(job_configuration['TIRA_INPUT_RUN_DATASET_IDS'])
+        input_vm_ids = json.loads(job_configuration['TIRA_INPUT_RUN_VM_IDS'])
+        input_run_ids = json.loads(job_configuration['TIRA_INPUT_RUN_RUN_IDS'])
+        
+        local_base_directory = input_datasets[0] + '/merged-input-run/pseudo-run-id/output'
+        
+        for i in range(len(input_datasets)):
+            dataset_id = input_datasets[i]
+            vm_id = input_vm_ids[i]
+            run_id = input_run_ids[i]
+            absolute_input_run_directory = settings.TIRA_ROOT / 'data' / 'runs' / dataset_id / vm_id / run_id / 'output'
+            absolute_input_run_directory = os.path.abspath(absolute_input_run_directory)
+            
+            local_input_run_directory = Path(local_base_directory) / str(i+1)
+            print(f'The software uses an input run. I will copy data from {absolute_input_run_directory} to {local_input_run_directory}', file=sys.stderr)
+            copy_from_to(absolute_input_run_directory, local_input_run_directory, ([] if not file_skip_list else file_skip_list) + ['documents.jsonl'])
+        
+        return {'file_skip_list': ['documents.jsonl'], 'ret': ['inputRun=' + local_base_directory], 'tira_cleanup_command': ';rm -Rf ' + local_base_directory}
+
+    return {}
 
 def identify_environment_variables(job_file):
     if job_file is None or not exists(job_file) or not Path(job_file).is_file():
@@ -79,6 +101,11 @@ def identify_environment_variables(job_file):
         file_skip_list += ['documents.jsonl']
         ret += ['inputRun=' + local_input_run_directory]
         tira_cleanup_command += ';rm -Rf ' + local_input_run_directory
+    if 'TIRA_INPUT_RUN_DATASET_IDS' in job_configuration and 'TIRA_INPUT_RUN_VM_IDS' in job_configuration and 'TIRA_INPUT_RUN_RUN_IDS' in job_configuration and 'TIRA_INPUT_RUN_REPLACES_ORIGINAL_DATASET' not in job_configuration:
+        copy_results = copy_multiple_input_runs_to_local_environment(job_configuration, file_skip_list)
+        ret += copy_results['ret']
+        tira_cleanup_command += copy_results['tira_cleanup_command']
+        file_skip_list += copy_results['file_skip_list']
     
     ret += ['TIRA_CLEAN_UP_COMMAND=' + tira_cleanup_command]
     

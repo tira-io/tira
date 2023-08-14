@@ -7,5 +7,7 @@ import TiraBreadcrumb from "./TiraBreadcrumb.vue";
 import TiraTaskAdmin from "./TiraTaskAdmin.vue";
 import TaskDocumentation from "./TaskDocumentation.vue"
 import RegisterForm from "./RegisterForm.vue"
+import LoginToSubmit from "./LoginToSubmit.vue";
+import ExistingDockerSubmission from "../submission-components/ExistingDockerSubmission.vue";
 
-export {Loading, RunActions, RunList, SoftwareDetails, SubmitButton, TiraBreadcrumb, TiraTaskAdmin, TaskDocumentation, RegisterForm}
+export {Loading, RunActions, RunList, SoftwareDetails, SubmitButton, TiraBreadcrumb, TiraTaskAdmin, TaskDocumentation, RegisterForm, LoginToSubmit, ExistingDockerSubmission}

@@ -46,6 +46,17 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
+        url_pattern=r'^submit/.*',
+        params=None,
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 200,
+            PARTICIPANT: 200,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 200,
+        },
+    ),
+    route_to_test(
         url_pattern=r'^task-overview/.*',
         params=None,
         group_to_expected_status_code={
@@ -1017,6 +1028,52 @@ API_ACCESS_MATRIX = [
     #        ORGANIZER: 302,
     #    },
     #),
+
+    route_to_test(
+        url_pattern='api/submissions-for-task/<str:task_id>/<str:user_id>/<str:submission_type>',
+        params={'user_id': 'does-not-exist', 'task_id': f'does-not-exist', 'submission_type': 'does-not-matter'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 302,
+            ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
+        },
+    ),
+    route_to_test(
+        url_pattern='api/submissions-for-task/<str:task_id>/<str:user_id>/<str:submission_type>',
+        params={'user_id': PARTICIPANT.split('_')[-1], 'task_id': f'shared-task-1',
+                'submission_type': 'does-not-matter'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 200,
+            ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
+        },
+    ),
+    route_to_test(
+        url_pattern='api/docker-softwares-details/<str:vm_id>/<str:docker_software_id>',
+        params={'vm_id': PARTICIPANT.split('_')[-1], 'docker_software_id': f'1'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 200,
+            ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
+        },
+    ),
+    route_to_test(
+        url_pattern='api/docker-softwares-details/<str:vm_id>/<str:docker_software_id>',
+        params={'vm_id': 'does-not-exist', 'docker_software_id': f'1', },
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 302,
+            ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
+        },
+    ),
     route_to_test(
         url_pattern='grpc/<str:task_id>/<str:user_id>/stop_docker_software/<str:run_id>',
         params={'user_id': 'example_participant', 'task_id': f'shared-task-1', 'run_id': 'run-1-example_participant'},

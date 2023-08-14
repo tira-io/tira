@@ -32,14 +32,13 @@ export default function register_app() {
     {path: '/', component: Home},
     {path: '/tasks', component: Tasks},
     {path: '/task-overview/:task_id?/:dataset_id?', component: TaskOverview},
-    {path: '/run-upload', component: RunUpload},
+    {path: '/submit/:task/user/:user/:submission_type?/:selected_step?', name: 'submission', component: RunUpload},
     // TODO: Temporary additional routes for transition form previous TIRA UI version.
     {path: '/frontend-vuetify/landing', component: Home},
     {path: '/frontend-vuetify/tasks', component: Tasks},
     {path: '/frontend-vuetify/task-overview/:task_id?/:dataset_id?', component: TaskOverview},
-    {path: '/frontend-vuetify/task-overview/:task_id?/:dataset_id?/:sub-view?', component: TaskOverview},
+    {path: '/frontend-vuetify/submit/:task/user/:user/:submission_type?/:selected_step?', name: 'frontend-vuetify-submission', component: RunUpload},
     {path: '/frontend-vuetify/task-overview/:task_id?/:dataset_id?/:sub-view?/:sub-sub-view?', component: TaskOverview},
-    {path: '/frontend-vuetify/run-upload', component: RunUpload},
 
     // Fallback: everything matches to home.
     { path: '/:pathMatch(.*)*', component: Home },

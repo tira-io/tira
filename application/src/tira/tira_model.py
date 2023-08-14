@@ -204,6 +204,48 @@ def get_docker_software_by_name(name, vm_id, task_id) -> dict:
     return model.get_docker_software_by_name(name, vm_id, task_id)
 
 
+def __formatted_error_message_for_missing_input_run(docker_software, input_run):
+    if 'input_docker_software_id' in docker_software and docker_software['input_docker_software_id']:
+        return f"The execution of your software depends on the execution of {docker_software['input_docker_software']}" + \
+               f", but {docker_software['input_docker_software']} was never executed on this dataset. " + \
+               f"Please execute first {docker_software['input_docker_software']} on your specified dataset. Found the input {input_run}."
+    else:
+        return f"The execution of your software depends on the upload of a manual run for the group of {docker_software['input_docker_software']}" + \
+               f", but {docker_software['input_docker_software']} was not uploaded for this dataset. " + \
+               f"Please upload first {docker_software['input_docker_software']} on your specified dataset. Found the input {input_run}."
+
+
+def get_ordered_input_runs_of_software(docker_software, task_id, dataset_id, vm_id):
+    input_runs, missing_input_runs = [], []
+
+    if ('input_docker_software_id' in docker_software and docker_software['input_docker_software_id']) or ('input_upload_id' in docker_software and docker_software['input_upload_id']):
+        dsid = int(docker_software['input_docker_software_id']) if 'input_docker_software_id' in docker_software and docker_software['input_docker_software_id'] else None
+        uid = int(docker_software['input_upload_id']) if 'input_upload_id' in docker_software and docker_software['input_upload_id'] else None
+        input_run = latest_output_of_software_on_dataset(task_id, None, None, dsid, dataset_id, uid)
+
+        if not input_run or not input_run.get('dataset_id', None) or not input_run.get('run_id', None):
+            missing_input_runs += [__formatted_error_message_for_missing_input_run(docker_software, input_run)]
+        else:
+            input_run['vm_id'] = vm_id
+            input_runs += [input_run]
+
+    for (dsid, uid) in model.get_ordered_additional_input_runs_of_software(docker_software):
+        input_run = latest_output_of_software_on_dataset(task_id, None, None, dsid, dataset_id, uid)
+
+        if not input_run or not input_run.get('dataset_id', None) or not input_run.get('run_id', None):
+            missing_input_runs += [__formatted_error_message_for_missing_input_run(docker_software, input_run)]
+        else:
+            input_run['vm_id'] = vm_id
+            input_runs += [input_run]
+
+    if not input_runs or len(input_runs) < 1:
+        return None, missing_input_runs
+    if len(input_runs) == 1:
+        return input_runs[0], missing_input_runs
+    else:
+        return input_runs, missing_input_runs
+
+
 def get_organizer(organizer_id: str):
     # TODO should return as dict
     return model.get_organizer(organizer_id)
@@ -325,11 +367,22 @@ def get_upload_with_runs(task_id, vm_id):
     return model.get_upload_with_runs(task_id, vm_id)
 
 
+def get_uploads(task_id, user_id):
+    return model.get_uploads(task_id, user_id, )
+
+
 def get_docker_softwares_with_runs(task_id, vm_id):
     """
-    Returns the docker softwares as dictionaries.
+    Returns all docker software for a task and vm with runs as dictionaries.
     """
     return model.get_docker_softwares_with_runs(task_id, vm_id)
+
+
+def get_docker_softwares(task_id, vm_id):
+    """
+    Returns all docker software for a task and vm with runs as dictionaries.
+    """
+    return model.get_docker_softwares(task_id, vm_id)
 
 
 def get_run_review(dataset_id: str, vm_id: str, run_id: str) -> dict:
@@ -606,8 +659,10 @@ def organizer_exists(organizer_id: str) -> bool:
 def run_exists(vm_id: str, dataset_id: str, run_id: str) -> bool:
     return model.run_exists(vm_id, dataset_id, run_id)
 
+
 def software_exists(task_id: str, vm_id: str, software_id: str) -> bool:
     return model.software_exists(task_id, vm_id, software_id)
+
 
 def latest_output_of_software_on_dataset(task_id: str, vm_id: str, software_id: str, docker_software_id: int, dataset_id: str, upload_id: int):
     run_ids = model.all_matching_run_ids(vm_id, dataset_id, task_id, software_id, docker_software_id, upload_id)

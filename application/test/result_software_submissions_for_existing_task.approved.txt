@@ -1,0 +1,48 @@
+{
+    "context": {
+        "datasets": [
+            {
+                "dataset_id": "dataset-1",
+                "display_name": "dataset-1"
+            },
+            {
+                "dataset_id": "dataset-2",
+                "display_name": "dataset-2"
+            },
+            {
+                "dataset_id": "meta-dataset",
+                "display_name": "meta-dataset"
+            }
+        ],
+        "docker": {
+            "docker_softwares": [
+                {
+                    "display_name": "docker-software-1",
+                    "docker_software_id": 1
+                },
+                {
+                    "display_name": "docker-software-2",
+                    "docker_software_id": 2
+                },
+                {
+                    "display_name": "docker-software-with_inputs",
+                    "docker_software_id": 3
+                }
+            ]
+        },
+        "include_navigation": false,
+        "resources": {
+            "small-resources": {
+                "cores": 1,
+                "data": "no",
+                "description": "Small (1 CPU Cores, 10GB of RAM)",
+                "gpu": 0,
+                "key": "small-resources",
+                "ram": 10
+            }
+        },
+        "role": "admin",
+        "user_id": "ignored-user."
+    },
+    "status": 0
+}

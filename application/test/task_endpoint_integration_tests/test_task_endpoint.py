@@ -1,8 +1,9 @@
 from django.test import TestCase
-from api_access_matrix import GUEST
+from api_access_matrix import GUEST, ADMIN, PARTICIPANT
 from utils_for_testing import method_for_url_pattern, mock_request, set_up_tira_environment
 
 task_function = method_for_url_pattern('api/task/<str:task_id>')
+submission_function = method_for_url_pattern('api/submissions-for-task/<str:task_id>/<str:user_id>/<str:submission_type>')
 
 
 class TestTaskEndpoint(TestCase):
@@ -29,6 +30,50 @@ class TestTaskEndpoint(TestCase):
 
         # Assert
         self.verify_as_json(actual, 'result_for_existing_task')
+
+    def test_upload_submissions_for_non_existing_task(self):
+        # Arrange
+        request = mock_request(ADMIN, 'api/submissions-for-task/<str:task_id>/<str:user_id>/<str:submission_type>')
+
+        # Act
+        actual = submission_function(request, task_id='does-not-exist', user_id='does-not-exist',
+                                     submission_type="upload")
+
+        # Assert
+        self.verify_as_json(actual, 'result_upload_submissions_for_non_existing_task')
+
+    def test_software_submissions_for_existing_task(self):
+        # Arrange
+        request = mock_request(ADMIN, 'api/submissions-for-task/<str:task_id>/<str:user_id>/<str:submission_type>')
+
+        # Act
+        actual = submission_function(request, task_id='shared-task-1', user_id='PARTICIPANT-FOR-TEST-1',
+                                     submission_type="docker")
+
+        # Assert
+        self.verify_as_json(actual, 'result_software_submissions_for_existing_task')
+
+    def test_upload_submissions_for_existing_task(self):
+        # Arrange
+        request = mock_request(ADMIN, 'api/submissions-for-task/<str:task_id>/<str:user_id>/<str:submission_type>')
+
+        # Act
+        actual = submission_function(request, task_id='shared-task-1', user_id='PARTICIPANT-FOR-TEST-1',
+                                     submission_type="upload")
+
+        # Assert
+        self.verify_as_json(actual, 'result_upload_submissions_for_existing_task')
+
+    def test_software_submissions_for_existing_task_and_user_without_software(self):
+        # Arrange
+        request = mock_request(ADMIN, 'api/submissions-for-task/<str:task_id>/<str:user_id>/<str:submission_type>')
+
+        # Act
+        actual = submission_function(request, task_id='shared-task-1', user_id='PARTICIPANT-WITHOUT_SOFTWARE',
+                                     submission_type="docker")
+
+        # Assert
+        self.verify_as_json(actual, 'result_software_submissions_for_existing_task_and_user_without_software')
 
     def verify_as_json(self, actual, test_name):
         from approvaltests import verify_as_json

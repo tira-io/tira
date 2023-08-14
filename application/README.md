@@ -92,3 +92,17 @@ Start your dev environment via: `make vite-dev`
 If there are problems with the precompiled protobuf parser, you can recompile them from the `tira/protocol` repository and copy them to `tira/application/src/tira/proto`. 
 
 If you run into `django.db.utils.OperationalError: (1050, "Table <xy> already exists")`, skip migrations using `./venv/bin/python3 src/manage.py migrate --fake` .
+
+Windows users using WSL: If you run into `setup.sh: line 3: $'\r'`: command not found' when executing make setup:
+   1. run `sudo apt-get install dos2unix`
+   2. run `dos2unix setup.sh`
+   3. run `cd tests && dos2unix setup.sh`
+   4. Now make setup should work
+
+   Error running vite-dev: `00h00m00s 0/0: : ERROR: [Errno 2] No such file or directory: 'install'`:
+    run `apt remove cmdtest
+   sudo apt remove yarn
+   curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+   echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+   sudo apt-get update
+   sudo apt-get install yarn -y`

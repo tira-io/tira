@@ -18,8 +18,9 @@ urlpatterns = [
     path('task/<str:task_id>/user/<str:vm_id>', views.software_detail, name='software-detail'),
     path('task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/run/<str:run_id>', views.review, name='review'),
 
-    re_path(r'^frontend-vuetify/.*', views.veutify_page, name='veutify_page'),
-    re_path(r'^task-overview/.*', views.veutify_page, name='veutify_page'),
+    re_path(r'^frontend-vuetify/.*', views.veutify_page, name='vuetify_page'),
+    re_path(r'^task-overview/.*', views.veutify_page, name='vuetify_page'),
+    re_path(r'^submit/.*', views.veutify_page, name='vuetify_page'),
     path('request_vm', views.request_vm, name='request_vm'),
     path('login', views.login, name='login'),
     path('logout', views.logout, name='logout'),
@@ -35,7 +36,6 @@ urlpatterns = [
     path('task/<str:task_id>/vm/<str:vm_id>/delete_software/docker/<str:docker_software_id>', vm_api.docker_software_delete, name='docker_delete'),
     path('task/<str:task_id>/vm/<str:vm_id>/run_details/<str:run_id>', vm_api.run_details, name='run_details'),
     path('task/<str:task_id>/vm/<str:vm_id>/software_details/<str:software_name>', vm_api.software_details, name='software_details'),
-
 
     path('task/<str:task_id>/vm/<str:vm_id>/upload/<str:dataset_id>/<str:upload_id>', vm_api.upload, name='upload'),
     path('task/<str:task_id>/vm/<str:vm_id>/upload-delete/<str:upload_id>', vm_api.delete_upload, name='deleteupload'),
@@ -87,6 +87,7 @@ urlpatterns = [
     path('api/evaluations/<str:task_id>/<str:dataset_id>', data_api.get_evaluations_by_dataset, name='get_evaluations_by_dataset'),
     path('api/evaluation/<str:vm_id>/<str:run_id>', data_api.get_evaluation, name='get_evaluation'),
     path('api/submissions/<str:task_id>/<str:dataset_id>', data_api.get_submissions_by_dataset, name='get_submissions_by_dataset'),
+    path('api/docker-softwares-details/<str:vm_id>/<str:docker_software_id>', vm_api.docker_software_details, name='software_details'),
     path('api/evaluations_of_run/<str:vm_id>/<str:run_id>', data_api.get_evaluations_of_run, name='evaluations_of_run'),
     path('api/ova-list', data_api.get_ova_list, name='get_ova_list'),
     path('api/host-list', data_api.get_host_list, name='get_host_list'),
@@ -104,7 +105,7 @@ urlpatterns = [
     path('api/task/<str:task_id>/user/<str:user_id>/software/running/<str:force_cache_refresh>', data_api.get_running_software, name='get_running_software'),
     path('api/review/<str:dataset_id>/<str:vm_id>/<str:run_id>', data_api.get_review, name='get_review'),
     path('api/registration/add_registration/<str:vm_id>/<str:task_id>', data_api.add_registration, name='add_registration'),
-
+    path('api/submissions-for-task/<str:task_id>/<str:user_id>/<str:submission_type>', data_api.submissions_for_task, name="submissions_for_task"),
     path('diffir/<str:task_id>/<int:topk>/<str:run_id_1>/<str:run_id_2>', diffir_api.diffir, name='diffir'),
     path('serp/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/<int:topk>/<str:run_id>', serp_api.serp, name='serp'),
 ]

@@ -88,6 +88,11 @@ def check_permissions(func):
         elif role == auth.ROLE_GUEST:  # If guests access a restricted resource, we send them to login
             return redirect('tira:login')
 
+        if 'docker_software_id' in kwargs and vm_id:
+            docker_software = model.get_docker_software(int(kwargs['docker_software_id']))
+            if docker_software and 'vm_id' in docker_software and auth.ROLE_PARTICIPANT == auth.get_role(request, user_id=auth.get_user_id(request), vm_id=docker_software['vm_id']):
+                return func(request, *args, **kwargs)
+
         return HttpResponseNotAllowed(f"Access forbidden.")
 
     return func_wrapper

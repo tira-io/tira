@@ -527,10 +527,19 @@ class HybridDatabase(object):
 
     def get_upload_with_runs(self, task_id, vm_id):
         ret = []
-        for upload in modeldb.Upload.objects.filter(vm__vm_id=vm_id, task__task_id=task_id, deleted=False):
+        for upload in self.get_uploads(task_id, vm_id, return_names_only=False):
             ret += [self.upload_to_dict(upload, vm_id)]
 
         return ret
+
+    @staticmethod
+    def get_uploads(task_id, vm_id, return_names_only=True):
+        ret = modeldb.Upload.objects.filter(vm__vm_id=vm_id, task__task_id=task_id, deleted=False)
+
+        if return_names_only:
+            return [{"id": i.id, "display_name": i.display_name} for i in ret]
+        else:
+            return ret
 
     def _docker_software_to_dict(self, ds):
         input_docker_software = None
@@ -576,7 +585,6 @@ class HybridDatabase(object):
 
         return ret
 
-
     def get_docker_softwares_with_runs(self, task_id, vm_id):
         def _runs_by_docker_software(ds):
             reviews = modeldb.Review.objects.select_related("run", "run__upload", "run__evaluator", "run__input_run",
@@ -584,12 +592,21 @@ class HybridDatabase(object):
 
             return list(self._get_ordered_runs_from_reviews(reviews, vm_id, preloaded=False, is_docker=True))
     
-        docker_softwares = modeldb.DockerSoftware.objects.filter(vm__vm_id=vm_id, task__task_id=task_id, deleted=False)
+        docker_softwares = self.get_docker_softwares(task_id, vm_id, return_only_names=False)
 
         docker_softwares = [{**self._docker_software_to_dict(ds), 'runs': _runs_by_docker_software(ds)}
                             for ds in docker_softwares]
 
         return docker_softwares
+
+    @staticmethod
+    def get_docker_softwares(task_id, vm_id, return_only_names=True):
+        ret = modeldb.DockerSoftware.objects.filter(vm__vm_id=vm_id, task__task_id=task_id, deleted=False)
+
+        if return_only_names:
+            return [{'docker_software_id': i.docker_software_id, 'display_name': i.display_name} for i in ret]
+        else:
+            return ret
 
     def delete_docker_software(self, task_id, vm_id, docker_software_id):
         software_qs = modeldb.DockerSoftware.objects.filter(vm_id=vm_id, task_id=task_id,
@@ -1791,6 +1808,24 @@ class HybridDatabase(object):
             )]
 
         return [i for i in ret if i]
+
+    def get_ordered_additional_input_runs_of_software(self, docker_software):
+        ret = []
+
+        if not docker_software or 'docker_software_id' not in docker_software:
+            return []
+
+        additional_inputs = modeldb.DockerSoftwareHasAdditionalInput.objects \
+            .filter(docker_software__docker_software_id=docker_software['docker_software_id']) \
+            .order_by('position')
+
+        for i in additional_inputs:
+            ret += [(i.input_docker_software.docker_software_id if i.input_docker_software else None,
+                     i.input_upload.id if i.input_upload else None
+                     )]
+
+        return ret
+
     def all_registrations(self, task_id):
         task = modeldb.Task.objects.get(task_id=task_id)
         ret = []

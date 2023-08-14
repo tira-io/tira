@@ -17,6 +17,7 @@ dataset_2 = f'dataset-2-{now}-test'
 dataset_meta = f'meta-dataset-{now}-test'
 software_non_public = 'docker-software-1'
 software_public = 'docker-software-2'
+software_with_inputs = 'docker-software-with_inputs'
 
 from pathlib import Path
 import shutil
@@ -72,9 +73,30 @@ def set_up_tira_environment():
 
     modeldb.DockerSoftware.objects.create(
         display_name=software_public, vm=modeldb.VirtualMachine.objects.get(vm_id='PARTICIPANT-FOR-TEST-1'),
-        task=modeldb.Task.objects.get(task_id='shared-task-1'), public_image_name='some image identifier' , deleted=False)
+        task=modeldb.Task.objects.get(task_id='shared-task-1'), public_image_name='some image identifier', deleted=False)
 
+    modeldb.DockerSoftware.objects.create(
+        display_name=software_with_inputs, vm=modeldb.VirtualMachine.objects.get(vm_id='PARTICIPANT-FOR-TEST-1'),
+        task=modeldb.Task.objects.get(task_id='shared-task-1'), deleted=False)
 
+    s1_tmp = modeldb.DockerSoftware.objects.filter(
+        vm=modeldb.VirtualMachine.objects.get(vm_id='PARTICIPANT-FOR-TEST-1'),
+        task=modeldb.Task.objects.get(task_id='shared-task-1'), display_name=software_with_inputs)[0]
+
+    s2_tmp = modeldb.DockerSoftware.objects.filter(
+        vm=modeldb.VirtualMachine.objects.get(vm_id='PARTICIPANT-FOR-TEST-1'),
+        task=modeldb.Task.objects.get(task_id='shared-task-1'), display_name=software_public)[0]
+
+    s3_tmp = modeldb.DockerSoftware.objects.filter(
+        vm=modeldb.VirtualMachine.objects.get(vm_id='PARTICIPANT-FOR-TEST-1'),
+        task=modeldb.Task.objects.get(task_id='shared-task-1'), display_name=software_non_public)[0]
+
+    modeldb.DockerSoftwareHasAdditionalInput.objects.create(position=1, docker_software=s1_tmp,
+                                                            input_docker_software=s2_tmp)
+    modeldb.DockerSoftwareHasAdditionalInput.objects.create(position=3, docker_software=s1_tmp,
+                                                            input_docker_software=s2_tmp)
+    modeldb.DockerSoftwareHasAdditionalInput.objects.create(position=2, docker_software=s1_tmp,
+                                                            input_docker_software=s3_tmp)
 
     d = modeldb.Dataset.objects.get(dataset_id=dataset_meta)
     d.meta_dataset_of = dataset_1 + ',' + dataset_2

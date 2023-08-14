@@ -136,13 +136,17 @@ class GitRunner:
             'TIRA_EVALUATION_SOFTWARE_ID': evaluator_id,
         }
 
-        if input_run:
+        if input_run and type(input_run) != list:
             metadata['TIRA_INPUT_RUN_DATASET_ID'] = input_run['dataset_id']
             metadata['TIRA_INPUT_RUN_VM_ID'] = input_run['vm_id']
             metadata['TIRA_INPUT_RUN_RUN_ID'] = input_run['run_id']
             if input_run.get('replace_original_dataset', False):
                 metadata['TIRA_INPUT_RUN_REPLACES_ORIGINAL_DATASET'] = 'true'
-    
+        elif input_run and type(input_run) == list and len(input_run) > 0:
+            metadata['TIRA_INPUT_RUN_DATASET_IDS'] = json.dumps([i['dataset_id'] for i in input_run])
+            metadata['TIRA_INPUT_RUN_VM_IDS'] = json.dumps([i['vm_id'] for i in input_run])
+            metadata['TIRA_INPUT_RUN_RUN_IDS'] = json.dumps([i['run_id'] for i in input_run])
+
         open(job_dir / 'job-to-execute.txt', 'w').write(self.dict_to_key_value_file(metadata))
 
     def create_user_repository(self, user_name):

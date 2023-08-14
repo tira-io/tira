@@ -342,6 +342,24 @@ def add_registration(request, context, task_id, vm_id):
         logger.exception(e)
         return JsonResponse({'status': 0, "message": f"Encountered an exception: {e}"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
+
+@add_context
+@check_permissions
+@check_resources_exist('json')
+def submissions_for_task(request, context, task_id, user_id, submission_type):
+    context["datasets"] = model.get_datasets_by_task(task_id, return_only_names=True)
+    if submission_type == "upload":
+        context["all_uploadgroups"] = model.get_uploads(task_id, user_id)
+    elif submission_type == "docker":
+        context["docker"] = {"docker_softwares": model.get_docker_softwares(task_id, user_id)}
+        context["resources"] = settings.GIT_CI_AVAILABLE_RESOURCES
+    elif submission_type == "vm":
+        context["message"] = "This option is not active for this shared task. " \
+                             "Please contact the organizers to enable submissions via virtual machines."
+
+    return JsonResponse({'status': 0, "context": context})
+
+
 @check_permissions
 @check_resources_exist("json")
 @add_context
