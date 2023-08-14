@@ -1,33 +1,34 @@
 <template>
-  <div class="w-75 mx-auto my-5">
+  <div class=" my-5 px-10">
   <div class="my-5">
-    <h2><b>{{task.userVmsForTask}}</b> on Task: {{task.task_id}}</h2>
+    <h2><b>{{this.user_id}}</b> on Task: {{this.task_id}}</h2>
   </div>
+    <RunningProcesses class="mb-12"/>
   <v-tabs
     v-model="tab"
     fixed-tabs
   >
-    <v-tab value="uploadSubmission">
+    <v-tab value="upload-submission">
       <v-icon class="mr-4">mdi-folder-upload-outline</v-icon>
       Upload Submission
     </v-tab>
-    <v-tab value="dockerSubmission">
+    <v-tab value="docker-submission">
       <v-icon class="mr-4">mdi-docker</v-icon>
       Docker Submission
     </v-tab>
-    <v-tab value="virtualMachineSubmission">
+    <v-tab value="vm-submission">
       <v-icon class="mr-4">mdi-code-json</v-icon>
       Virtual Machine Submission
     </v-tab>
   </v-tabs>
   <v-window v-model="tab">
-      <v-window-item value="uploadSubmission">
+      <v-window-item value="upload-submission">
         <UploadSubmission/>
       </v-window-item>
-    <v-window-item value="dockerSubmission">
+    <v-window-item value="docker-submission">
         <DockerSubmission/>
       </v-window-item>
-    <v-window-item value="virtualMachineSubmission">
+    <v-window-item value="vm-submission">
         <VirtualMachineSubmission/>
       </v-window-item>
     </v-window>
@@ -35,31 +36,43 @@
 </template>
 
 <script>
-// import DeleteConfirm from '../elements/delete-confirm'
-// import { get, submitPost } from "../../utils/getpost"
 import DockerSubmission from "@/submission-components/DockerSubmission.vue";
 import VirtualMachineSubmission from "@/submission-components/VirtualMachineSubmission.vue";
 import UploadSubmission from "@/submission-components/UploadSubmission";
+import RunningProcesses from "@/submission-components/RunningProcesses.vue";
+
+import {
+  extractSubmissionTypeFromCurrentUrl,
+  extractCurrentStepFromCurrentUrl,
+  extractTaskFromCurrentUrl,
+  extractUserFromCurrentUrl,
+  extractRole
+} from "@/utils";
 export default {
   name: "run-upload",
-  components: {UploadSubmission, VirtualMachineSubmission, DockerSubmission},
+  components: {UploadSubmission, VirtualMachineSubmission, DockerSubmission, RunningProcesses},
   data() {
     return {
-      tab: null,
-      task: {
-            "task_id": "clickbait-spoiling",
-            "task_name": "Clickbait Challenge at SemEval 2023 - Clickbait Spoiling",
-            "task_description": "Clickbait posts link to web pages and advertise their content by arousing curiosity instead of providing informative summaries. Clickbait spoiling aims at generating short texts that satisfy the curiosity induced by a clickbait post.",
-            "organizer": "PAN",
-            "organizer_id": "pan",
-            "web": "https://pan.webis.de/semeval23/pan23-web/clickbait-challenge.html",
-            "year": "2012-2021",
-            "dataset_count": 4,
-            "software_count": 9,
-            "teams": 12,
-            "userVmsForTask": 'example-vm'
+        tab: extractSubmissionTypeFromCurrentUrl(),
+        step: extractCurrentStepFromCurrentUrl(),
+        task_id: extractTaskFromCurrentUrl(),
+        user_id: extractUserFromCurrentUrl(),
+        role: extractRole(), // Values: guest, user, participant, admin
+        task: { "task_id": "", "task_name": "", "task_description": "",
+                "organizer": "", "organizer_id": "", "web": "", "year": "",
+                "dataset_count": 0, "software_count": 0, "teams": 0
         },
     }
-  }
+  },
+  methods: {
+    updateUrlToSelectedSubmissionType() {
+      this.$router.replace({name: 'submission', params: {submission_type: this.tab}})
+    }
+  },
+  watch: {
+    tab(old_value, new_value) {
+      this.updateUrlToSelectedSubmissionType()
+    }
+  },
 }
 </script>
