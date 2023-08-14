@@ -367,11 +367,22 @@ def get_upload_with_runs(task_id, vm_id):
     return model.get_upload_with_runs(task_id, vm_id)
 
 
+def get_uploads(task_id, user_id):
+    return model.get_uploads(task_id, user_id, )
+
+
 def get_docker_softwares_with_runs(task_id, vm_id):
     """
-    Returns the docker softwares as dictionaries.
+    Returns all docker software for a task and vm with runs as dictionaries.
     """
     return model.get_docker_softwares_with_runs(task_id, vm_id)
+
+
+def get_docker_softwares(task_id, vm_id):
+    """
+    Returns all docker software for a task and vm with runs as dictionaries.
+    """
+    return model.get_docker_softwares(task_id, vm_id)
 
 
 def get_run_review(dataset_id: str, vm_id: str, run_id: str) -> dict:

@@ -346,25 +346,20 @@ def add_registration(request, context, task_id, vm_id):
 @add_context
 @check_permissions
 @check_resources_exist('json')
-def submissions_for_task (request, context, task_id, user_id, submission_type):
+def submissions_for_task(request, context, task_id, user_id, submission_type):
+    context["datasets"] = model.get_datasets_by_task(task_id, return_only_names=True)
     if submission_type == "upload":
-        context["all_uploadgroups"] =[{"id": 1, "display_name": 'success'}, {"id": 2, "display_name": 'success_2'}]
-        context["datasets"] = [{"dataset_id": '1', "display_name": "sucess"}, {"dataset_id": '2', "display_name": "sucess_2", }]
+        context["all_uploadgroups"] = model.get_uploads(task_id, user_id)
     elif submission_type == "docker":
-        context["datasets"] = [{"dataset_id": '1', "display_name": "sucess"}, {"dataset_id": '2', "display_name": "sucess_2", }]
-        context["docker"] = {
-        "images": [{"id": 1, "display_name": 'test1'}, {"id": 2, "display_name": 'test2'}, {"id": 3, "display_name": 'test3'}],
-        "docker_softwares": ["software1", "software2"],
-        "docker_software_help": "This is the help text for the docker software",}
-        context["ressources"] = ["Small (1 CPU Core, 10GB of RAM)",
-          "Small (1 CPU Core, 10GB of RAM, IRDS)",
-          "Small w. GPU (1 CPU Core, 10GB of RAM, 1 NVIDIA GTX 1080 with 8GB)",
-          "Medium (2 CPU Cores, 20GB of RAM)",
-          "Large (4 CPU Cores, 40GB of RAM)",]
+        context["docker"] = {"docker_softwares": model.get_docker_softwares(task_id, user_id)}
+        context["ressources"] = settings.GIT_CI_AVAILABLE_RESOURCES
     elif submission_type == "vm":
-        context["message"] = "This option is currently not available, please contact the organizers if you have any questions."
+        context["message"] = "This option is not active for this shared task. " \
+                             "Please contact the organizers to enable submissions via virtual machines."
 
     return JsonResponse({'status': 0, "context": context})
+
+
 @check_permissions
 @check_resources_exist("json")
 @add_context

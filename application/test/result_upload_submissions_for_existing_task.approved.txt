@@ -1,0 +1,23 @@
+{
+    "context": {
+        "all_uploadgroups": [],
+        "datasets": [
+            {
+                "dataset_id": "dataset-1",
+                "display_name": "dataset-1"
+            },
+            {
+                "dataset_id": "dataset-2",
+                "display_name": "dataset-2"
+            },
+            {
+                "dataset_id": "meta-dataset",
+                "display_name": "meta-dataset"
+            }
+        ],
+        "include_navigation": false,
+        "role": "admin",
+        "user_id": "ignored-user."
+    },
+    "status": 0
+}
