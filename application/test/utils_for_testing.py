@@ -166,6 +166,8 @@ def mock_request(groups, url_pattern, method='GET', body=None, params=None):
         'X-Disraptor-Groups': groups,
     }
     ret.path_info = '/' + url_pattern
+
+    ret.GET = {}
     
     if params and 'organizer_id' in params and '<str:organizer_id>' in ret.path_info:
         ret.path_info = ret.path_info.replace('<str:organizer_id>', params['organizer_id'])
