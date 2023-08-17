@@ -49,6 +49,9 @@
 
             <v-btn color="primary" :disabled="uploading || fileHandle === null || selectedDataset === ''"
                    @click="fileUpload()">Upload Run</v-btn>
+
+
+            <run-list :task_id="task_id" :organizer="organizer" :organizer_id="organizer_id" :vm_id="user_id" :upload_id="uploadGroup.id" />
           </v-window-item>
     </v-window>
 </template>
@@ -57,12 +60,12 @@
 
 import { VAutocomplete } from 'vuetify/components'
 import {extractTaskFromCurrentUrl, extractUserFromCurrentUrl, get, inject_response, reportError, extractRole} from "@/utils";
-import {Loading, LoginToSubmit} from "@/components";
+import {Loading, LoginToSubmit, RunList} from "@/components";
 
 export default {
-  name: "UploadSubmission",
-  components: {Loading, VAutocomplete, LoginToSubmit},
-
+  name: "upload-submission",
+  components: {Loading, VAutocomplete, LoginToSubmit, RunList},
+  props: ['organizer', 'organizer_id'],
   data () {
     return {
       loading: true,

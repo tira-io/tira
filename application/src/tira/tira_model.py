@@ -191,6 +191,7 @@ def run_is_public_and_unblinded(run_id: str) -> bool:
 
     return False
 
+
 def get_docker_software(docker_software_id: int) -> dict:
     """
     Return the docker software as dict with keys:
@@ -198,6 +199,16 @@ def get_docker_software(docker_software_id: int) -> dict:
     {'docker_software_id', 'display_name', 'user_image_name', 'command', 'tira_image_name', 'task_id', vm_id'}
     """ 
     return model.get_docker_software(docker_software_id)
+
+
+def get_runs_for_vm(vm_id, docker_software_id, upload_id):
+    docker_software_id = int(docker_software_id) if docker_software_id else None
+    upload_id = int(upload_id) if upload_id else None
+
+    print('docker_software_id=', docker_software_id)
+    print('upload_id=', upload_id)
+
+    return []
 
 
 def get_docker_software_by_name(name, vm_id, task_id) -> dict:

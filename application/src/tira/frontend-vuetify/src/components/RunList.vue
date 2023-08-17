@@ -1,7 +1,7 @@
 <template>
   <loading :loading="loading"/>
   <v-container v-if="!loading">
-    <v-data-table v-if="dataset_id" v-model="selected_runs" v-model:expanded="expanded" show-expand :headers="table_headers"
+    <v-data-table v-if="showTable" v-model="selected_runs" v-model:expanded="expanded" show-expand :headers="table_headers"
                   :items="runs" item-value="Run" v-model:sort-by="table_sort_by" density="compact"
                   show-select class="elevation-1 d-none d-md-block" hover>
       <template v-slot:item.actions="{item}">
@@ -35,7 +35,7 @@
       </template>
     </v-data-table>
 
-    <v-data-table v-if="dataset_id" v-model:expanded="expanded" show-expand :headers="table_headers_small_layout"
+    <v-data-table v-if="showTable" v-model:expanded="expanded" show-expand :headers="table_headers_small_layout"
                   :items="runs" item-value="Run" v-model:sort-by="table_sort_by" expand-on-click density="compact"
                   class="elevation-1 d-md-none" hover>
                   <template #item.vm_id="{ item }">
@@ -50,13 +50,13 @@
       </template>
     </v-data-table>
 
-    <div v-if="dataset_id" class="d-none d-md-block">
+    <div v-if="showTable" class="d-none d-md-block">
       <v-row class="pt-2">
         <v-col cols="6"><v-btn variant="outlined" block :disabled="downloadLink === ''" :href="downloadLink" target="_blank">Download Selected</v-btn></v-col>
         <v-col cols="6"><v-btn variant="outlined" block :disabled="compareLink === ''" :href="compareLink" target="_blank">Compare Selected</v-btn></v-col>
       </v-row>
     </div>
-    <div v-if="dataset_id" class="d-md-none d-md-block">
+    <div v-if="showTable" class="d-md-none d-md-block">
       <v-row class="pt-2">
         <v-col cols="12"><v-btn variant="outlined" block :disabled="compareExpandedLink === ''" :href="compareExpandedLink" target="_blank">Compare Expanded</v-btn></v-col>
       </v-row>
@@ -73,7 +73,7 @@ import { get, reportError, inject_response } from '../utils'
 export default {
   name: "run-list",
   components: {RunActions, SoftwareDetails, Loading},
-  props: ['task_id', 'dataset_id', 'organizer', 'organizer_id'],
+  props: ['task_id', 'dataset_id', 'organizer', 'organizer_id', 'vm_id', 'docker_software_id', 'upload_id'],
   data() { return {
       expanded: [],
       selected_runs: [],
@@ -87,7 +87,8 @@ export default {
   computed: {
     downloadLink() {return '';},
     compareLink() {return this.createCompareLink(this.selected_runs);},
-    compareExpandedLink() {return this.createCompareLink(this.expanded);}
+    compareExpandedLink() {return this.createCompareLink(this.expanded);},
+    showTable() {return this.dataset_id || this.vm_id}
   },
   methods: {
     createCompareLink(src: any[]) {
@@ -107,7 +108,20 @@ export default {
     },
     fetchData() {
       this.loading = true
-      get('/api/evaluations/' + this.task_id + '/' + this.dataset_id)
+      var rest_endpoint = ''
+      if (this.task_id && this.dataset_id) {
+        rest_endpoint = '/api/evaluations/' + this.task_id + '/' + this.dataset_id
+      } else if (this.task_id && this.vm_id) {
+        rest_endpoint = '/api/evaluations-of-vm/' + this.task_id + '/' + this.vm_id 
+        
+        if (this.docker_software_id) {
+          rest_endpoint += '?docker_software_id=' + this.docker_software_id
+        } else if (this.upload_id) {
+          rest_endpoint += '?upload_id=' + this.upload_id
+        }
+      }
+
+      get(rest_endpoint)
         .then(inject_response(this, {'loading': false}))
         .catch(reportError("Problem While Loading the List of Runs", "This might be a short-term hiccup, please try again. We got the following error: "))
       }

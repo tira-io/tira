@@ -7,7 +7,7 @@
   </v-tabs>
   <v-window v-model="tab" v-if="!loading && role !== 'guest'">
           <v-window-item v-for="ds in this.docker.docker_softwares" :value="ds.docker_software_id">
-            <existing-docker-submission :user_id="user_id" :datasets="datasets" :resources="resources" :docker_software_id="ds.docker_software_id" />
+            <existing-docker-submission :user_id="user_id" :datasets="datasets" :resources="resources" :docker_software_id="ds.docker_software_id" :organizer="organizer" :organizer_id="organizer_id"/>
           </v-window-item>
           <v-window-item value="newDockerImage">
             <h2>Create New Docker Image</h2>
@@ -198,14 +198,9 @@ import {get, reportError, extractRole, extractTaskFromCurrentUrl, extractUserFro
 import {Loading, LoginToSubmit, ExistingDockerSubmission} from "@/components";
 
 export default {
-  name: "DockerSubmission",
+  name: "docker-submission",
   components: {Loading, LoginToSubmit, VAutocomplete, ExistingDockerSubmission},
-    props: {
-    step_prop: {
-      type: String,
-      default: 'step-1'
-    }
-  },
+  props: ['step_prop', 'organizer', 'organizer_id'],
   data() {
     return {
       tab: null,

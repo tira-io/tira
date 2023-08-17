@@ -41,8 +41,39 @@ def get_dataset_for_task(request, context, task_id):
             return JsonResponse({"status": "0", "message": f"Encountered an exception: {e}"})
 
 
-@check_resources_exist('json')
+def __normalize_run(i, ev_keys, is_admin, user_vms_for_task, task_id, is_ir_task):
+    i = deepcopy(i)
+    i['link_to_team'] = link_to_discourse_team(i['vm_id'])
+    eval_run_id = i["run_id"]
+    for k, v in [('input_run_id', 'run_id')]:
+        i[v] = i[k]
+        del i[k]
+
+    for j in range(len(ev_keys)):
+        i[ev_keys[j]] = i['measures'][j]
+
+    for j in ['measures']:
+        del i[j]
+
+    i['selectable'] = False
+    if not i['blinded'] and (is_admin or i['vm_id'] in user_vms_for_task or i['published']):
+        i[
+            'link_results_download'] = f'/task/{task_id}/user/{i["vm_id"]}/dataset/{i["dataset_id"]}/download/{eval_run_id}.zip'
+        i[
+            'link_run_download'] = f'/task/{task_id}/user/{i["vm_id"]}/dataset/{i["dataset_id"]}/download/{i["run_id"]}.zip'
+        if is_ir_task:
+            i['link_serp'] = f'/serp/{task_id}/user/{i["vm_id"]}/dataset/{i["dataset_id"]}/10/{i["run_id"]}'
+            i['selectable'] = True
+    return i
+
+
+def __inject_user_vms_for_task(request, context, task_id):
+    _add_user_vms_to_context(request, context, task_id, include_docker_details=False)
+    return context['user_vms_for_task'] if 'user_vms_for_task' in context else []
+
+
 @add_context
+@check_resources_exist('json')
 def get_evaluations_by_dataset(request, context, task_id, dataset_id):
     """ Return all evaluation results for all submission to a dataset
     The frontend calls this to build the leaderboard
@@ -59,17 +90,11 @@ def get_evaluations_by_dataset(request, context, task_id, dataset_id):
                  measures is a list sorted by the keys in ev_keys
     }
     """
-    role = context["role"]
-
-    user_vms_for_task = []
-    _add_user_vms_to_context(request, context, task_id, include_docker_details=False)
-
-    if 'user_vms_for_task' in user_vms_for_task:
-        user_vms_for_task = context['user_vms_for_task']
     task = model.get_task(task_id, False)
     is_ir_task = 'is_ir_task' in task and task['is_ir_task']
-    is_admin = role == "admin"
+    is_admin = context["role"] == "admin"
     ev_keys, evaluations = model.get_evaluations_with_keys_by_dataset(dataset_id, is_admin)
+    user_vms_for_task = __inject_user_vms_for_task(request, context, task_id)
 
     context["task_id"] = task_id
     context["dataset_id"] = dataset_id
@@ -86,34 +111,42 @@ def get_evaluations_by_dataset(request, context, task_id, dataset_id):
 
     runs = []
     for i in evaluations:
-        i = deepcopy(i)
-        i['link_to_team'] = link_to_discourse_team(i['vm_id'])
-        eval_run_id = i["run_id"]
-        for k, v in [('input_run_id', 'run_id')]:
-            i[v] = i[k]
-            del i[k]
-
-        for j in range(len(ev_keys)):
-            i[ev_keys[j]] = i['measures'][j]
-
-        for j in ['measures']:
-            del i[j]
-        runs += [i]
-        i['selectable'] = False
-        if not i['blinded'] and (is_admin or i['vm_id'] in user_vms_for_task or i['published']):
-            i['link_results_download'] = f'/task/{task_id}/user/{i["vm_id"]}/dataset/{i["dataset_id"]}/download/{eval_run_id}.zip'
-            i['link_run_download'] = f'/task/{task_id}/user/{i["vm_id"]}/dataset/{i["dataset_id"]}/download/{i["run_id"]}.zip'
-            if is_ir_task:
-                i['link_serp'] = f'/serp/{task_id}/user/{i["vm_id"]}/dataset/{i["dataset_id"]}/10/{i["run_id"]}'
-                i['selectable'] = True
+        runs += [__normalize_run(i, ev_keys, is_admin, user_vms_for_task, task_id, is_ir_task)]
 
     context["runs"] = runs
 
     return JsonResponse({'status': 0, "context": context})
 
 
-@check_permissions
 @add_context
+@check_permissions
+def get_evaluations_by_vm(request, context, task_id, vm_id):
+    task = model.get_task(task_id, False)
+    is_ir_task = 'is_ir_task' in task and task['is_ir_task']
+    is_admin = context["role"] == "admin"
+    user_vms_for_task = __inject_user_vms_for_task(request, context, task_id)
+
+    context["task_id"] = task_id
+    context["ev_keys"] = []
+    headers = [{'title': 'Team', 'key': 'vm_id'}, {'title': 'Approach', 'key': 'input_software_name'},
+               {'title': 'Run', 'key': 'run_id'}]
+    evaluation_headers = []
+
+    context["table_headers"] = headers + evaluation_headers + [{'title': '', 'key': 'actions', 'sortable': False}]
+    context["table_headers_small_layout"] = [headers[1]] + evaluation_headers[:1]
+
+    context["table_sort_by"] = [{'key': 'run_id', 'order': 'desc'}]
+
+    runs = []
+    for i in model.get_runs_for_vm(vm_id, request.GET.get('docker_software_id', ''), request.GET.get('upload_id', '')):
+        runs += [__normalize_run(i, [], is_admin, user_vms_for_task, task_id, is_ir_task)]
+    context["runs"] = runs
+
+    return JsonResponse({'status': 0, "context": context})
+
+
+@add_context
+@check_permissions
 def get_evaluation(request, context, run_id, vm_id):
     run = model.get_run(None, None, run_id)
     review = model.get_run_review(None, None, run_id)

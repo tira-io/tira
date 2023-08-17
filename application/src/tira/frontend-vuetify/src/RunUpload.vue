@@ -23,13 +23,13 @@
   </v-tabs>
   <v-window v-model="tab">
       <v-window-item value="upload-submission">
-        <UploadSubmission/>
+        <upload-submission :organizer="organizer" :organizer_id="organizer_id"/>
       </v-window-item>
     <v-window-item value="docker-submission">
-        <DockerSubmission/>
+        <docker-submission :organizer="organizer" :organizer_id="organizer_id" step_prop="step-1"/>
       </v-window-item>
     <v-window-item value="vm-submission">
-        <VirtualMachineSubmission/>
+        <virtual-machine-submission :organizer="organizer" :organizer_id="organizer_id" />
       </v-window-item>
     </v-window>
     </div>

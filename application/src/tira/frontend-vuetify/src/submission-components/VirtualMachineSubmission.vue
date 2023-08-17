@@ -39,7 +39,8 @@ Please contact your task organizer to obtain a TIRA virtual machine.
 import {extractRole} from "@/utils";
 
 export default {
-  name: "VirtualMachineSubmission",
+  name: "virtual-machine-submission",
+  props: ['organizer', 'organizer_id'],
   methods: {
     extractRole,
     userHasVm(role) {

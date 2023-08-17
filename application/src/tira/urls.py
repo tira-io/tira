@@ -85,6 +85,7 @@ urlpatterns = [
     path('blind/<str:vm_id>/<str:dataset_id>/<str:run_id>/<str:value>', organizer_api.blind, name='blind'),
 
     path('api/evaluations/<str:task_id>/<str:dataset_id>', data_api.get_evaluations_by_dataset, name='get_evaluations_by_dataset'),
+    path('api/evaluations-of-vm/<str:task_id>/<str:vm_id>', data_api.get_evaluations_by_vm, name='get_evaluations_by_vm'),
     path('api/evaluation/<str:vm_id>/<str:run_id>', data_api.get_evaluation, name='get_evaluation'),
     path('api/submissions/<str:task_id>/<str:dataset_id>', data_api.get_submissions_by_dataset, name='get_submissions_by_dataset'),
     path('api/docker-softwares-details/<str:vm_id>/<str:docker_software_id>', vm_api.docker_software_details, name='software_details'),

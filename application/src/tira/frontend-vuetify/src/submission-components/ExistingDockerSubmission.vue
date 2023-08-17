@@ -7,20 +7,23 @@
 
     {{ datasets }}
   </v-container>
+
+  <run-list :task_id="task_id" :organizer="organizer" :organizer_id="organizer_id" :vm_id="user_id" :docker_software_id="docker_software_id" />
 </template>
   
 <script lang="ts">
-import Loading from "../components/Loading.vue"
-import { get, reportError, inject_response } from '../utils'
+import {Loading, RunList} from "../components"
+import { get, reportError, inject_response, extractTaskFromCurrentUrl } from '../utils'
 
 export default {
   name: "existing-docker-submission",
-  components: {Loading},
-  props: ['user_id', 'datasets', 'resources', 'docker_software_id'],
+  components: {Loading, RunList},
+  props: ['user_id', 'datasets', 'resources', 'docker_software_id', 'organizer', 'organizer_id'],
   data() { return {
     loading: true,
     docker_software_details: {'display_name': 'loading ...', 'user_image_name': 'loading', 'command': 'loading',
-                              'description': 'loading ...'}
+                              'description': 'loading ...'},
+    task_id: extractTaskFromCurrentUrl()
     }
   },
   beforeMount() {
