@@ -1,29 +1,83 @@
 <template>
   <loading :loading="loading"/>
   <v-container v-if="!loading">
-    {{ docker_software_details }}
+    <v-card class="px-5">
+      <div class="w-100 d-flex justify-space-between">
+        <v-card-title>{{ docker_software_details.display_name }}</v-card-title>
+        <div class="mt-4">
+          <v-btn variant="outlined" color="#303f9f">
+            <v-icon>mdi-file-edit-outline</v-icon>
+            Edit
+          </v-btn>
+          <v-btn class="ml-4" variant="outlined" color="red" @click="deleteDockerImage()">
+            <v-tooltip
+                activator="parent"
+                location="bottom"
+            >Attention! This deletes the container and ALL runs associated with it
+            </v-tooltip>
+            <v-icon>mdi-delete-alert-outline</v-icon>
+            Delete
+          </v-btn>
+        </div>
+      </div>
 
-    {{ resources }}
+      <v-card-subtitle>{{ docker_software_details.description }}</v-card-subtitle>
+      <v-form>
+        <v-text-field label="Previous Stages" v-model="docker_software_details.previous_stages" disabled></v-text-field>
+        <v-text-field label="Docker Image" v-model="docker_software_details.user_image_name" disabled></v-text-field>
+        <v-text-field label="Command" v-model="docker_software_details.command" disabled></v-text-field>
+      </v-form>
 
-    {{ datasets }}
+      <v-divider></v-divider>
+      <v-card-title>Run the Software</v-card-title>
+      <v-form v-model="runSoftwareForm">
+        <v-autocomplete v-model="selectedResource" :items="Object.keys(resources)" label="Resources"
+                        required></v-autocomplete>
+        <v-autocomplete v-model="selectedDataset" :items="datasets" item-title="display_name" label="Dataset"
+                        required></v-autocomplete>
+        <v-btn class="mb-1" block color="primary" variant="outlined" :loading="runSoftwareInProgress"
+               @click="runSoftware()">Run
+        </v-btn>
+      </v-form>
+    </v-card>
+
   </v-container>
 
-  <run-list :task_id="task_id" :organizer="organizer" :organizer_id="organizer_id" :vm_id="user_id" :docker_software_id="docker_software_id" />
+  <run-list :task_id="task_id" :organizer="organizer" :organizer_id="organizer_id" :vm_id="user_id" :docker_software_id="docker_software_id"/>
 </template>
-  
+
 <script lang="ts">
 import {Loading, RunList} from "../components"
 import { get, reportError, inject_response, extractTaskFromCurrentUrl } from '../utils'
 
 export default {
   name: "existing-docker-submission",
-  components: {Loading, RunList},
+  components: {Loading, RunList, VAutocomplete},
   props: ['user_id', 'datasets', 'resources', 'docker_software_id', 'organizer', 'organizer_id'],
-  data() { return {
-    loading: true,
-    docker_software_details: {'display_name': 'loading ...', 'user_image_name': 'loading', 'command': 'loading',
-                              'description': 'loading ...'},
-    task_id: extractTaskFromCurrentUrl()
+  data() {
+    return {
+      loading: true,
+      runSoftwareInProgress: false,
+      runSoftwareForm: false,
+      selectedDataset: '',
+      selectedResource: '',
+      docker_software_details: {
+        'display_name': 'loading ...', 'user_image_name': 'loading', 'command': 'loading',
+        'description': 'loading ...', 'previous_stages': 'loading ...'
+      },
+      task_id: extractTaskFromCurrentUrl()
+    }
+  },
+  methods: {
+    deleteDockerImage() {
+      this.$emit('deleteDockerImage');
+    },
+    runSoftware() {
+      this.runSoftwareInProgress = true;
+      setTimeout(() => {
+        this.runSoftwareInProgress = false;
+        window.alert('running software \n' + this.selectedDataset + ' \n' + this.selectedResource + ' \n' + this.docker_software_id + ' \n' + this.user_id)
+      }, 2000)
     }
   },
   beforeMount() {

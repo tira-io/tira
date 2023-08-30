@@ -108,10 +108,8 @@ export default {
             let formData = new FormData();
             console.log(formData)
             formData.append("file", this.fileHandle);
-            const response = await fetch(`/task/${this.task_id}/vm/${this.user_id}/upload/${this.selectedDataset}/${this.all_uploadgroups.find(i => i.display_name == this.tab).id}`, {
-              method: "POST",
-              body: formData
-            }).catch(reportError("Problem While Uploading File.", "This might be a short-term hiccup, please try again. We got the following error: "))
+            post(`/task/${this.task_id}/vm/${this.user_id}/upload/${this.selectedDataset}/${this.all_uploadgroups.find(i => i.display_name == this.tab).id}`, formData).then(message => {
+            }).catch(reportError("Problem While Uploading File.", "This might be a short-term hiccup, please try again. We got the following error: "));
 
             this.uploading = false
         },
