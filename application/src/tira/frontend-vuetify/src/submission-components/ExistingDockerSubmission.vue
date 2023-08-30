@@ -49,6 +49,7 @@
 <script lang="ts">
 import {Loading, RunList} from "../components"
 import { get, reportError, inject_response, extractTaskFromCurrentUrl } from '../utils'
+import {VAutocomplete} from 'vuetify/components'
 
 export default {
   name: "existing-docker-submission",
