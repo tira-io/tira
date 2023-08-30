@@ -23,21 +23,18 @@
 
       <v-card-subtitle>{{ docker_software_details.description }}</v-card-subtitle>
       <v-form>
-        <v-text-field label="Previous Stages" v-model="docker_software_details.previous_stages" disabled></v-text-field>
-        <v-text-field label="Docker Image" v-model="docker_software_details.user_image_name" disabled></v-text-field>
-        <v-text-field label="Command" v-model="docker_software_details.command" disabled></v-text-field>
+        <v-text-field label="Previous Stages (Disabled for Reproducibility)" v-if="docker_software_details.previous_stages" v-model="docker_software_details.previous_stages" disabled/>
+        <v-text-field label="Docker Image (Disabled for Reproducibility)" v-model="docker_software_details.user_image_name" disabled/>
+        <v-text-field label="Command (Disabled for Reproducibility)" v-model="docker_software_details.command" disabled/>
       </v-form>
 
       <v-divider></v-divider>
+      
       <v-card-title>Run the Software</v-card-title>
-      <v-form v-model="runSoftwareForm">
-        <v-autocomplete v-model="selectedResource" :items="Object.keys(resources)" label="Resources"
-                        required></v-autocomplete>
-        <v-autocomplete v-model="selectedDataset" :items="datasets" item-title="display_name" label="Dataset"
-                        required></v-autocomplete>
-        <v-btn class="mb-1" block color="primary" variant="outlined" :loading="runSoftwareInProgress"
-               @click="runSoftware()">Run
-        </v-btn>
+      <v-form ref="form" v-model="valid">
+        <v-autocomplete v-model="selectedResource" :items="allResources" label="Resources" item-title="display_name" item-value="resource_id" :rules="[v => !!(v && v.length) || 'Please select the resources for the execution.']" />
+        <v-autocomplete v-model="selectedDataset" :items="datasets" item-title="display_name" item-value="dataset_id" label="Dataset" :rules="[v => !!(v && v.length) || 'Please select on which dataset the software should run.']" />
+        <v-btn class="mb-1" block color="primary" variant="outlined" :loading="runSoftwareInProgress" @click="runSoftware()" text="Run"/>
       </v-form>
     </v-card>
 
@@ -56,12 +53,7 @@ export default {
   components: {Loading, RunList, VAutocomplete},
   props: ['user_id', 'datasets', 'resources', 'docker_software_id', 'organizer', 'organizer_id'],
   data() {
-    return {
-      loading: true,
-      runSoftwareInProgress: false,
-      runSoftwareForm: false,
-      selectedDataset: '',
-      selectedResource: '',
+    return {loading: true, runSoftwareInProgress: false, selectedDataset: '', valid: false, selectedResource: '',
       docker_software_details: {
         'display_name': 'loading ...', 'user_image_name': 'loading', 'command': 'loading',
         'description': 'loading ...', 'previous_stages': 'loading ...'
@@ -73,12 +65,27 @@ export default {
     deleteDockerImage() {
       this.$emit('deleteDockerImage');
     },
-    runSoftware() {
-      this.runSoftwareInProgress = true;
-      setTimeout(() => {
-        this.runSoftwareInProgress = false;
-        window.alert('running software \n' + this.selectedDataset + ' \n' + this.selectedResource + ' \n' + this.docker_software_id + ' \n' + this.user_id)
-      }, 2000)
+    async runSoftware() {
+      const { valid } = await (this.$refs.form as any).validate()
+
+      if (valid) {
+        this.runSoftwareInProgress = true
+        setTimeout(() => {
+          this.runSoftwareInProgress = false;
+          window.alert('running software \n' + this.selectedDataset + ' \n' + this.selectedResource + ' \n' + this.docker_software_id + ' \n' + this.user_id)
+        }, 2000)
+      }
+    }
+  },
+  computed: {
+    allResources() {
+      let ret = []
+
+      for (var k of Object.keys(this.resources)) {
+        ret.push({"resource_id": k, "display_name": this.resources[k]['description']})
+      }
+      
+      return ret
     }
   },
   beforeMount() {
