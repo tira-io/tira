@@ -247,8 +247,7 @@ export default {
   },
   computed: {
     filteredSoftwares() {
-      console.log(filterByDisplayName(this.docker.images, this.software_filter))
-      return filterByDisplayName(this.docker.images, this.software_filter)
+      return filterByDisplayName(this.docker.docker_softwares, this.software_filter)
     },
     currentTitle() {
       switch (this.step) {
