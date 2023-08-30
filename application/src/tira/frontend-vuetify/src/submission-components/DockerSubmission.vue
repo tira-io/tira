@@ -87,31 +87,10 @@ export default {
   },
   computed: {
     filteredSoftwares() {
-      console.log(this.docker.docker_softwares)
       return filterByDisplayName(this.docker.docker_softwares, this.software_filter)
-    },
-    currentTitle() {
-      switch (this.step) {
-        case 'step-1':
-          return 'General Information'
-        case 'step-2':
-          return 'Local testing'
-        case 'step-3':
-          return 'Choose Docker image'
-        case 'step-4':
-          return 'Run Configuration'
-        case 'step-5':
-          return 'Double Check and Add Software'
-      }
     },
   },
   methods: {
-    nextStep() {
-      this.step = `step-${parseInt(this.step.split('-')[1]) - 1}`
-    },
-    previousStep() {
-      this.step = `step-${parseInt(this.step.split('-')[1]) + 1}`
-    },
     updateUrlToCurrentStep() {
       this.$router.replace({
         name: 'submission',
