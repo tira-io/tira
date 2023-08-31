@@ -1,4 +1,5 @@
 <template>
+  <tira-breadcrumb/>
   <div class=" my-5 px-10">
   <div class="my-5">
     <h2><b>{{this.user_id}}</b> on Task: {{this.task_id}}</h2>
@@ -40,17 +41,12 @@ import DockerSubmission from "@/submission-components/DockerSubmission.vue";
 import VirtualMachineSubmission from "@/submission-components/VirtualMachineSubmission.vue";
 import UploadSubmission from "@/submission-components/UploadSubmission";
 import RunningProcesses from "@/submission-components/RunningProcesses.vue";
+import { TiraBreadcrumb } from './components'
 
-import {
-  extractSubmissionTypeFromCurrentUrl,
-  extractCurrentStepFromCurrentUrl,
-  extractTaskFromCurrentUrl,
-  extractUserFromCurrentUrl,
-  extractRole
-} from "@/utils";
+import { extractSubmissionTypeFromCurrentUrl, extractCurrentStepFromCurrentUrl, extractTaskFromCurrentUrl, extractUserFromCurrentUrl, extractRole } from "@/utils";
 export default {
   name: "run-upload",
-  components: {UploadSubmission, VirtualMachineSubmission, DockerSubmission, RunningProcesses},
+  components: {UploadSubmission, TiraBreadcrumb, VirtualMachineSubmission, DockerSubmission, RunningProcesses},
   data() {
     return {
         tab: extractSubmissionTypeFromCurrentUrl(),

@@ -24,7 +24,18 @@
           <v-icon>mdi-eye-outline</v-icon>
           <v-tooltip activator="parent" location="top">Published on Leaderboard</v-tooltip>
         </span>
-        <a target="_blank" :href="item.value.link_to_team">{{ item.value.vm_id }}</a>
+        <a v-if="role != 'admin'" target="_blank" :href="item.value.link_to_team">{{ item.value.vm_id }}</a>
+
+        <v-menu v-if="role == 'admin'" transition="slide-y-transition">
+          <template v-slot:activator="{ props }">
+            <a href="javascript:void(0)" v-bind="props">{{ item.value.vm_id }}</a>
+          </template>
+          <v-list>
+            <v-list-item key="team-page"><a target="_blank" :href="item.value.link_to_team">Team Page of {{ item.value.vm_id }}</a></v-list-item>
+            <v-list-item key="submission-page"><a target="_blank" :href="'/submit/' + task_id + '/user/' + item.value.vm_id">Submission Page of {{ item.value.vm_id }}</a></v-list-item>
+          </v-list>
+        </v-menu>
+
       </template>
       <template v-slot:expanded-row="{ columns, item }">
         <tr>
@@ -68,7 +79,7 @@
 import RunActions from './RunActions.vue'
 import SoftwareDetails from './SoftwareDetails.vue'
 import Loading from "./Loading.vue"
-import { get, reportError, inject_response } from '../utils'
+import { get, reportError, inject_response, extractRole } from '../utils'
 
 export default {
   name: "run-list",
@@ -82,6 +93,7 @@ export default {
       table_headers: [],
       table_headers_small_layout: [],
       table_sort_by: [],
+      role: extractRole(), // Values: guest, user, participant, admin
     }
   },
   computed: {
