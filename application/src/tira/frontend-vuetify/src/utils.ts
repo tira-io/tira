@@ -261,3 +261,7 @@ export function validateNotEmpty(value: String) {
 
     return true
 }
+
+export function filterByDisplayName(objects: Array<any>, filter: String) {
+    return objects.filter(i => !filter || (i.hasOwnProperty('display_name') && i.display_name.toLowerCase().includes(filter.toLowerCase())))
+}
