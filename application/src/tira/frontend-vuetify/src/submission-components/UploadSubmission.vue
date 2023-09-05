@@ -1,13 +1,28 @@
 <template>
   <loading :loading="loading"/>
   <login-to-submit v-if="!loading && role === 'guest'"/>
-<v-tabs v-model="tab" v-if="!loading && role !== 'guest'"
-    fixed-tabs class="my-10">
-  <v-tab variant="outlined" v-for="uploadGroup in this.all_uploadgroups" :value="uploadGroup.display_name">
-         {{ uploadGroup.display_name }}
-  </v-tab>
-   <v-tab value="newUploadGroup" color="primary" style="max-width: 100px;" variant="outlined"><v-icon>mdi-tab-plus</v-icon></v-tab>
-  </v-tabs>
+  <v-row v-if="!loading && role !== 'guest'">
+    <v-responsive class="mt-10" min-width="220px" id="task-search">
+      <v-text-field class="px-4" clearable label="Type here to filter &hellip;" prepend-inner-icon="mdi-magnify"
+                    variant="underlined" v-model="software_filter"/>
+    </v-responsive>
+  </v-row>
+  <v-row v-if="!loading && role !== 'guest'">
+    <v-col cols="10">
+      <v-tabs v-model="tab" fixed-tabs class="mb-10">
+        <v-tab variant="outlined" v-for="us in this.filteredSoftwares" :value="us.id">
+          {{ us.display_name }}
+        </v-tab>
+      </v-tabs>
+    </v-col>
+    <v-col cols="2">
+      <v-tabs v-model="tab" fixed-tabs class="mb-10">
+        <v-tab value="newUploadGroup" color="primary" style="max-width: 100px;" variant="outlined">
+          <v-icon>mdi-tab-plus</v-icon>
+        </v-tab>
+      </v-tabs>
+    </v-col>
+  </v-row>
   <v-window v-model="tab" v-if="!loading && role !== 'guest'">
           <v-window-item value="newUploadGroup">
               <h2>Create Run Upload Group</h2>
@@ -20,9 +35,9 @@
                   Add Upload Group
               </v-btn>
           </v-window-item>
-          <v-window-item v-for="uploadGroup in this.all_uploadgroups" :value="uploadGroup.display_name">
+          <v-window-item v-for="us in this.all_uploadgroups" :value="us.id">
             <div class="d-flex justify-lg-space-between">
-              <h2>{{ uploadGroup.display_name }}</h2>
+              <h2>{{ us.display_name }}</h2>
               <p>Please add a description that describes uploads of this type.</p>
               <div>
               <v-btn variant="outlined" color="#303f9f"><v-icon>mdi-file-edit-outline</v-icon>Edit</v-btn>
@@ -51,7 +66,7 @@
                    @click="fileUpload()">Upload Run</v-btn>
 
 
-            <run-list :task_id="task_id" :organizer="organizer" :organizer_id="organizer_id" :vm_id="user_id" :upload_id="uploadGroup.id" />
+            <run-list :task_id="task_id" :organizer="organizer" :organizer_id="organizer_id" :vm_id="user_id" :upload_id="us.id" />
           </v-window-item>
     </v-window>
 </template>
@@ -59,7 +74,15 @@
 <script>
 
 import { VAutocomplete } from 'vuetify/components'
-import {extractTaskFromCurrentUrl, extractUserFromCurrentUrl, get, inject_response, reportError, extractRole} from "@/utils";
+import {
+  extractTaskFromCurrentUrl,
+  extractUserFromCurrentUrl,
+  get,
+  inject_response,
+  reportError,
+  extractRole,
+  filterByDisplayName
+} from "@/utils";
 import {Loading, LoginToSubmit, RunList} from "@/components";
 
 export default {
@@ -73,6 +96,7 @@ export default {
       user_id: extractUserFromCurrentUrl(),
       role: extractRole(), // Values: guest, user, participant, admin
       tab: null,
+      software_filter: null,
       showUploadForm: false,
       uploading: false,
       uploadDataset: '',
@@ -83,6 +107,11 @@ export default {
       selectedDataset: '',
       datasets: [{"dataset_id": "loading...", "display_name": "loading...",}]
     }
+  },
+    computed: {
+    filteredSoftwares() {
+      return filterByDisplayName(this.all_uploadgroups, this.software_filter)
+    },
   },
   methods: {
     addUpload() {
