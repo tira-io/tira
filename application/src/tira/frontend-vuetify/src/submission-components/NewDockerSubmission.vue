@@ -244,11 +244,9 @@ export default {
 
       if (this.step === 'step-2' && valid) {
         this.step = `step-${parseInt(this.step.split('-')[1]) + 1}`
-      }
-        else {
+      } else {
         window.alert('please fill out the form correctly')
       }
-
     },
     nextStep() {
       this.step = `step-${parseInt(this.step.split('-')[1]) + 1}`

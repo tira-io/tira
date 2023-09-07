@@ -100,6 +100,17 @@ export function extractRole(doc: Document=document) : string {
     return 'guest'
 }
 
+export function extractOrganizations(doc: Document=document): Array<string> {
+    try {
+        var ret = doc.querySelector('#user_metadata')
+        if (ret) {
+            return JSON.parse(ret.innerHTML.split('user_metadata = ')[1])['organizer_teams']
+        }
+    } catch { }
+    
+    return []
+}
+
 export function extractCsrf(doc: Document=document) : string {
     try  {
         var ret = doc.querySelector('input[type="hidden"][name="csrfmiddlewaretoken"][value]')

@@ -34,7 +34,8 @@ def add_context(func):
         context = {
             "include_navigation": True if settings.DEPLOYMENT == "legacy" else False,
             "user_id": uid,
-            "role": auth.get_role(request, user_id=uid, vm_id=vm_id)
+            "role": auth.get_role(request, user_id=uid, vm_id=vm_id),
+            "organizer_teams": auth.get_organizer_ids(request)
         }
         return func(request, context, *args, **kwargs, )
 
