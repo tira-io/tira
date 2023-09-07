@@ -102,7 +102,7 @@
 <script lang="ts">
 import { Loading } from '.'
 import {VAutocomplete} from "vuetify/components";
-import { get, reportError, inject_response, extractRole, extractOrganizations } from '../utils'
+import { post, reportError, slugify, extractRole, extractOrganizations } from '../utils'
 
 export default {
   name: "edit-task",
@@ -110,7 +110,7 @@ export default {
   data: () => ({
     loading: true, valid: false, step: 1, submitInProgress: false,
     role: extractRole(), organizer_teams: extractOrganizations(),
-    task_id: '', name: '', featured: false, website: '', description: '', help_text: '', help_command: '',
+    name: '', featured: false, website: '', description: '', help_text: '', help_command: '',
     require_registration: false, require_groups: false, restrict_groups: false, task_teams: '', selected_organizer: '',
     is_information_retrieval_task: false, irds_re_ranking_image: '', irds_re_ranking_command: '', irds_re_ranking_resource: '',
   }),
@@ -163,31 +163,18 @@ export default {
         }
 
         this.submitInProgress = true
-        //Post('tira-admin/' + this.selectedOrganizer.organizer_id + '/create-task'
-        /*
-        'task_id': this.taskId,
-        'name': this.taskNameInput,
-        'featured': this.featured,
-        'master_vm_id': this.masterVmId,
-        'website': this.websiteInput,
-        'description': this.taskDescription,
-        'help_text': this.helpText,
-        'help_command': this.helpCommand,
-        'require_registration': this.requireRegistration,
-        'require_groups': this.requireGroups,
-        'restrict_groups': this.restrictGroups,
-        'task_teams': this.taskTeams,
-        'is_information_retrieval_task': this.isIrTask,
-        'irds_re_ranking_image': this.irdsReRankingImage,
-        'irds_re_ranking_command': this.irdsReRankingCommand,
-        'irds_re_ranking_resource': this.irdsReRankingResources
-        */
-        setTimeout(() => {
+        post('tira-admin/' + this.selected_organizer + '/create-task', {
+          'task_id': slugify(this.name), 'name': this.name, 'featured': this.featured,
+          'website': this.website, 'description': this.description, 'help_text': this.help_text, 'help_command': this.help_command,
+          'require_registration': this.require_registration, 'require_groups': this.require_groups, 'restrict_groups': this.restrict_groups,
+          'task_teams': this.task_teams, 'is_information_retrieval_task': this.is_information_retrieval_task,
+          'irds_re_ranking_image': this.irds_re_ranking_image, 'irds_re_ranking_command': this.irds_re_ranking_command,    'irds_re_ranking_resource': this.irds_re_ranking_resource
+        }).then(() => {
           isActive.value = false
           this.step = 1
           this.submitInProgress = false
           location.reload()
-        }, 2000)
+        }).catch(reportError("Problem While Adding/Editing a Shared Task.", "This might be a short-term hiccup, please try again. We got the following error: "))
       }
     },
 }
