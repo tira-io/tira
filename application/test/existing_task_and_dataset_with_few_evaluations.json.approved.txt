@@ -311,6 +311,7 @@
             }
         ],
         "include_navigation": false,
+        "organizer_teams": "[]",
         "role": "user",
         "runs": [
             {

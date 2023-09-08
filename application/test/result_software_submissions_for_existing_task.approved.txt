@@ -31,6 +31,7 @@
             ]
         },
         "include_navigation": false,
+        "organizer_teams": "[]",
         "resources": {
             "small-resources": {
                 "cores": 1,

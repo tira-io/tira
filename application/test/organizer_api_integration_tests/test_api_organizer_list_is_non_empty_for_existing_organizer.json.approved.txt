@@ -11,6 +11,7 @@
                 "years": "years"
             }
         ],
+        "organizer_teams": "[\"EXAMPLE-ORGANIZER\"]",
         "role": "user",
         "user_id": "ignored-user."
     },
