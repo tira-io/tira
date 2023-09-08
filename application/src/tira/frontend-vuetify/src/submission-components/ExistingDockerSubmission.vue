@@ -3,12 +3,14 @@
   <v-container v-if="!loading">
     <v-card class="px-5">
       <div class="w-100 d-flex justify-space-between">
-        <v-card-title>{{ docker_software_details.display_name }}</v-card-title>
+        <v-card-title></v-card-title>
         <div class="mt-4">
-          <v-btn variant="outlined" color="#303f9f">
-            <v-icon>mdi-file-edit-outline</v-icon>
-            Edit
-          </v-btn>
+          <edit-submission-details
+              type='docker'
+              :id="docker_software_id"
+              :user_id="user_id"
+              @edit="updateDockerSoftwareDetails"
+          />
           <v-btn class="ml-4" variant="outlined" color="red" @click="deleteDockerImage()">
             <v-tooltip
                 activator="parent"
@@ -47,18 +49,19 @@
 import {Loading, RunList} from "../components"
 import { get, reportError, inject_response, extractTaskFromCurrentUrl } from '../utils'
 import {VAutocomplete} from 'vuetify/components'
+import EditSubmissionDetails from "@/submission-components/EditSubmissionDetails.vue";
 
 export default {
   name: "existing-docker-submission",
-  components: {Loading, RunList, VAutocomplete},
+  components: {Loading, RunList, VAutocomplete, EditSubmissionDetails},
   props: ['user_id', 'datasets', 'resources', 'docker_software_id', 'organizer', 'organizer_id'],
   data() {
     return {loading: true, runSoftwareInProgress: false, selectedDataset: '', valid: false, selectedResource: '',
       docker_software_details: {
         'display_name': 'loading ...', 'user_image_name': 'loading', 'command': 'loading',
-        'description': 'loading ...', 'previous_stages': 'loading ...'
+        'description': 'loading ...', 'previous_stages': 'loading ...', 'paper_link': 'loading ...'
       },
-      task_id: extractTaskFromCurrentUrl()
+      task_id: extractTaskFromCurrentUrl(),
     }
   },
   methods: {
@@ -75,7 +78,16 @@ export default {
           window.alert('running software \n' + this.selectedDataset + ' \n' + this.selectedResource + ' \n' + this.docker_software_id + ' \n' + this.user_id)
         }, 2000)
       }
-    }
+    },
+    showEditModal() {
+      (this.$refs.editModal as any).show();
+    },
+    updateDockerSoftwareDetails(editedDetails: any) {
+    this.docker_software_details.display_name = editedDetails.display_name
+    this.docker_software_details.description = editedDetails.description
+    this.docker_software_details.paper_link = editedDetails.paper_link
+    this.$emit('modifiedSubmissionDetails', editedDetails)
+  },
   },
   computed: {
     allResources() {
@@ -94,5 +106,9 @@ export default {
         .then(inject_response(this, {'loading': false}))
         .catch(reportError("Problem While Loading the details of the software", "This might be a short-term hiccup, please try again. We got the following error: "))
   },
+  watch: {
+    details(old_value, new_value) {
+    }
+  }
 }
 </script>

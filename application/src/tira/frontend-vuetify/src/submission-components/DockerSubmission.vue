@@ -18,7 +18,7 @@
     <v-col cols="2">
       <v-tabs v-model="tab" fixed-tabs class="mb-10">
         <v-tab value="newDockerImage" color="primary" style="max-width: 100px;" variant="outlined">
-          <v-icon>mdi-tab-plus</v-icon>
+          <v-icon>mdi-plus</v-icon>
         </v-tab>
       </v-tabs>
     </v-col>
@@ -26,7 +26,8 @@
 
   <v-window v-model="tab" v-if="!loading && role !== 'guest'">
     <v-window-item v-for="ds in this.docker.docker_softwares" :value="ds.docker_software_id">
-      <existing-docker-submission @deleteDockerImage="handleDeleteDockerImage" :user_id="user_id_for_submission"
+      <existing-docker-submission @deleteDockerImage="handleDeleteDockerImage" @modifiedSubmissionDetails="v => handleModifiedSubmission(v, this.docker.docker_softwares)"
+                                  :user_id="user_id_for_submission"
                                   :datasets="datasets"
                                   :resources="resources" :docker_software_id="ds.docker_software_id"
                                   :organizer="organizer" :organizer_id="organizer_id"/>
@@ -50,7 +51,8 @@ import {
   extractTaskFromCurrentUrl,
   extractUserFromCurrentUrl,
   inject_response,
-  filterByDisplayName
+  filterByDisplayName,
+  handleModifiedSubmission
 } from "@/utils";
 import {Loading, LoginToSubmit, ExistingDockerSubmission, NewDockerSubmission} from "@/components";
 
@@ -109,7 +111,8 @@ export default {
     handleAddNewDockerImage(new_software) {
         this.docker.docker_softwares.push(new_software)
         this.tab = new_software.docker_software_id
-    }
+    },
+    handleModifiedSubmission
   },
   beforeMount() {
     get('/api/submissions-for-task/' + this.task_id + '/' + this.user_id_for_submission + '/docker')

@@ -211,9 +211,24 @@ export async function post(url: string, params: any, debug=false) {
         'X-CSRFToken': extractCsrf(),
     })
     params = JSON.stringify(params)
+
+    return post_raw(url, headers, params, debug)
+}
+
+export async function post_file(url: string, params: any, debug=false) {
+    const headers = new Headers({
+        'Accept': 'application/json',
+        'X-CSRFToken': extractCsrf(),
+    })
+
+    return post_raw(url, headers, params, debug)
+}
+
+export async function post_raw(url: string, headers: any, params: any, debug=false) {
     if (debug) {
         console.log("Post " + params)
     }
+
     const response = await fetch(url, {
         method: "POST",
         headers,
@@ -264,4 +279,16 @@ export function validateNotEmpty(value: String) {
 
 export function filterByDisplayName(objects: Array<any>, filter: String) {
     return objects.filter(i => !filter || (i.hasOwnProperty('display_name') && i.display_name.toLowerCase().includes(filter.toLowerCase())))
+}
+
+export function handleModifiedSubmission(modified_data: any, objects: Array<any>){
+    for (let i of objects){
+        if(i.hasOwnProperty('docker_software_id') && i['docker_software_id'] === modified_data['id']){
+            i['display_name'] = modified_data['display_name']
+        }
+         if(!i.hasOwnProperty('docker_software_id') && i['id'] === modified_data['id']){
+            i['display_name'] = modified_data['display_name']
+        }
+    }
+    return objects
 }
