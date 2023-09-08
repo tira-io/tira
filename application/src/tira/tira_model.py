@@ -205,10 +205,7 @@ def get_runs_for_vm(vm_id, docker_software_id, upload_id):
     docker_software_id = int(docker_software_id) if docker_software_id else None
     upload_id = int(upload_id) if upload_id else None
 
-    print('docker_software_id=', docker_software_id)
-    print('upload_id=', upload_id)
-
-    return []
+    return model.get_runs_for_vm(vm_id, docker_software_id, upload_id)
 
 
 def get_docker_software_by_name(name, vm_id, task_id) -> dict:

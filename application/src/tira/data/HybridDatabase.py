@@ -585,6 +585,9 @@ class HybridDatabase(object):
 
         return ret
 
+    def get_runs_for_vm(self, vm_id, docker_software_id, upload_id):
+        return []
+
     def get_docker_softwares_with_runs(self, task_id, vm_id):
         def _runs_by_docker_software(ds):
             reviews = modeldb.Review.objects.select_related("run", "run__upload", "run__evaluator", "run__input_run",
