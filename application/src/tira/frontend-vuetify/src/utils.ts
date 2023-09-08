@@ -15,6 +15,25 @@ export function extractTaskFromCurrentUrl() {
     return null;
 }
 
+export const slugify = (str: string) => {
+    str = str.replace(/^\s+|\s+$/g, ''); // trim
+    str = str.toLowerCase();
+  
+    // remove accents, swap ס for n, etc
+    var from = "אבהגטיכךלםןמעףצפשתüûסח·/_,:;";
+    var to   = "aaaaeeeeiiiioooouuuunc------";
+    for (var i=0, l=from.length ; i<l ; i++) {
+    str = str.replace(new RegExp(from.charAt(i), 'g'), to.charAt(i));
+    }
+  
+    str = str.replace(/\./g, '-')
+    .replace(/[^a-z0-9 -]/g, '') // remove invalid chars
+    .replace(/\s+/g, '-') // collapse whitespace and replace by -
+    .replace(/-+/g, '-'); // collapse dashes
+  
+    return str;
+  }
+
 export function get_link_to_organizer(organizer_id: string) {
     return 'https://www.tira.io/g/tira_org_' + organizer_id;
 }
@@ -100,6 +119,17 @@ export function extractRole(doc: Document=document) : string {
     return 'guest'
 }
 
+export function extractOrganizations(doc: Document=document): Array<string> {
+    try {
+        var ret = doc.querySelector('#user_metadata')
+        if (ret) {
+            return JSON.parse(ret.innerHTML.split('user_metadata = ')[1])['organizer_teams']
+        }
+    } catch { }
+    
+    return []
+}
+
 export function extractCsrf(doc: Document=document) : string {
     try  {
         var ret = doc.querySelector('input[type="hidden"][name="csrfmiddlewaretoken"][value]')
@@ -171,14 +201,18 @@ export function changeCurrentUrlToDataset(dataset: string) {
     }
 }
 
-export function inject_response(obj: any, default_values: any={}, debug=false) {
+export function inject_response(obj: any, default_values: any={}, debug=false, subpath: string='') {
     let object_to_inject_data = obj.$data
     return function(message: any) {
-      let available_keys = new Set<string>(Object.keys(message['context']))
+      let obj = subpath === '' ? message['context'] : message['context'][subpath]
+      let available_keys = new Set<string>(Object.keys(obj))
+      if (debug) {
+        console.log(available_keys)
+      }
 
       for (var key of Object.keys(object_to_inject_data)) {
         if (available_keys.has(key)) {
-          object_to_inject_data[key] = message['context'][key]
+          object_to_inject_data[key] = obj[key]
         }
       }
 
@@ -211,9 +245,24 @@ export async function post(url: string, params: any, debug=false) {
         'X-CSRFToken': extractCsrf(),
     })
     params = JSON.stringify(params)
+
+    return post_raw(url, headers, params, debug)
+}
+
+export async function post_file(url: string, params: any, debug=false) {
+    const headers = new Headers({
+        'Accept': 'application/json',
+        'X-CSRFToken': extractCsrf(),
+    })
+
+    return post_raw(url, headers, params, debug)
+}
+
+export async function post_raw(url: string, headers: any, params: any, debug=false) {
     if (debug) {
         console.log("Post " + params)
     }
+
     const response = await fetch(url, {
         method: "POST",
         headers,
@@ -260,4 +309,20 @@ export function validateNotEmpty(value: String) {
     }
 
     return true
+}
+
+export function filterByDisplayName(objects: Array<any>, filter: String) {
+    return objects.filter(i => !filter || (i.hasOwnProperty('display_name') && i.display_name.toLowerCase().includes(filter.toLowerCase())))
+}
+
+export function handleModifiedSubmission(modified_data: any, objects: Array<any>){
+    for (let i of objects){
+        if(i.hasOwnProperty('docker_software_id') && i['docker_software_id'] === modified_data['id']){
+            i['display_name'] = modified_data['display_name']
+        }
+         if(!i.hasOwnProperty('docker_software_id') && i['id'] === modified_data['id']){
+            i['display_name'] = modified_data['display_name']
+        }
+    }
+    return objects
 }

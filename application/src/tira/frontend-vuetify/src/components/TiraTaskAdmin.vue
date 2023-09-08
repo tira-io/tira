@@ -5,7 +5,21 @@
       <v-expansion-panel>
         <v-expansion-panel-title>Manage Task</v-expansion-panel-title>
         <v-expansion-panel-text>
-          The admin functionality is not yet ported to the new vuetify frontend. Please <a :href="'/task/' + task_id">go to the old task page to do the administration</a>.
+          <h3>Task Configuration</h3>
+          You can edit this task: <edit-task :task_id_for_edit="task_id"/>
+
+          <v-divider class="my-4"/>
+          <h3>Edit existing Dataset</h3>
+          <v-row><v-col cols="6"><v-autocomplete v-model="selectedDataset" :items="datasets" item-title="display_name" item-value="dataset_id" label="Dataset" outlined/></v-col><v-col cols="6"><v-btn :disabled="selectedDataset === ''">Edit Dataset</v-btn></v-col></v-row>
+
+          <v-divider class="my-4"/>
+          <h3>Add new Dataset</h3>
+          You can add new datasets: <v-btn>Add Dataset</v-btn>
+
+          <v-divider class="my-4"/>
+          <h3>Legacy Administration</h3>
+          Not everything of the old admin functionality already ported to the new vuetify frontend.
+          Please <a :href="'/task/' + task_id">go to the old task page if you need some administration functionality not covered above</a>.
         </v-expansion-panel-text>
       </v-expansion-panel>
       <v-expansion-panel>
@@ -20,14 +34,19 @@
 
 <script lang="ts">
 import { extractTaskFromCurrentUrl, extractRole } from '../utils'
+import {VAutocomplete} from "vuetify/components";
 import OverviewMissingReviews from './OverviewMissingReviews.vue';
+import EditTask from './EditTask.vue';
+
 export default {
   name: "tira-task-admin",
-  components: {OverviewMissingReviews},
+  components: {OverviewMissingReviews, EditTask, VAutocomplete},
+  props: ['datasets'],
   data() {
       return {
         task_id: extractTaskFromCurrentUrl(),
         role: extractRole(), // Values: guest, user, participant, admin
+        selectedDataset: '',
       }
     }
 }

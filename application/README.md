@@ -43,7 +43,7 @@ You need to run two docker containers for a tira-application: `registry.webis.de
 		-p 50052:50052 \
 		 -v=/path/to/model:/mnt/ceph/tira \
 		 registry.webis.de/code-lib/public-images/tira-application-grpc:latest
-   ```  
+   ```
 
 ## Build and Deploy
 
@@ -52,7 +52,7 @@ You need to run two docker containers for a tira-application: `registry.webis.de
    ```bash
    application/src~$ python3 manage.py test test tira/tests/  # run all tests in application/src/tira/tests
    application/src~$ python3 manage.py test test tira/tests/tests.py  # run an individual test module
-   ```  
+   ```
 
 ### Deploy on Kubernetes
 
@@ -66,7 +66,7 @@ You need to run two docker containers for a tira-application: `registry.webis.de
    ~$ make docker-build-tira-application  # Build the docker image (deploy mode with nginx)
    ~$ make docker-run-tira-application  # Run the docker container with the make command (deploy mode)
    ~$ make docker-publish-tira-application  # (optional) Publish a new version
-   ```  
+   ```
 
 These make targets from the deployment configuration: `tira/application/config/settings-deploy.yml`
 
@@ -81,7 +81,7 @@ Frequently used development commands are:
    application/src~$ python3 manage.py grpc_server  # Start only the application's grpc server
    application/src~$ python3 manage.py run_develop  # Start the application and  the application's grpc server. This is used in make run-develop and the container
    application/src~$ python3 manage.py run_mockup  # Start the application, the application's grpc server, and a mock host grpc server that will reply to the application with fake commands. This is the simplest way to develop the application.
-   ```  
+   ```
 
 ### Frontend Development
 

@@ -162,10 +162,10 @@ def admin_edit_task(request, task_id):
                                organizer, data["website"], require_registration, require_groups, restrict_groups,
                                help_command=data["help_command"], help_text=data["help_text"],
                                allowed_task_teams=data["task_teams"],
-                               is_ir_task = data.get('is_information_retrieval_task', False),
-                               irds_re_ranking_image = data.get('irds_re_ranking_image', ''),
-                               irds_re_ranking_command = data.get('irds_re_ranking_command', ''),
-                               irds_re_ranking_resource = data.get('irds_re_ranking_resource', '')
+                               is_ir_task=data.get('is_information_retrieval_task', False),
+                               irds_re_ranking_image=data.get('irds_re_ranking_image', ''),
+                               irds_re_ranking_command=data.get('irds_re_ranking_command', ''),
+                               irds_re_ranking_resource=data.get('irds_re_ranking_resource', '')
                                )
 
         return JsonResponse({'status': 0, 'context': json.dumps(task, cls=DjangoJSONEncoder),

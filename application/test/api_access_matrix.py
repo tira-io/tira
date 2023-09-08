@@ -1464,6 +1464,29 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
+        url_pattern='api/evaluations-of-vm/<str:task_id>/<str:vm_id>',
+        params={'task_id': 'task-of-organizer-1', 'vm_id': 'does-not-exist'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 302,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 302,
+        },
+    ),
+    route_to_test(
+        url_pattern='api/evaluations-of-vm/<str:task_id>/<str:vm_id>',
+        params={'task_id': 'task-of-organizer-1', 'vm_id': PARTICIPANT.split('_')[-1]},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 200,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 302,
+        },
+    ),
+
+    route_to_test(
         url_pattern='api/evaluation/<str:vm_id>/<str:run_id>',
         params={'vm_id': 'example-participant', 'run_id': 'run-1-example_participant'},
         group_to_expected_status_code={

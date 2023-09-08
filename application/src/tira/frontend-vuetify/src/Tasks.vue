@@ -10,12 +10,7 @@
         <v-text-field class="px-4" clearable label="Type here to filter &hellip;" prepend-inner-icon="mdi-magnify"
                       variant="underlined" v-model="task_filter"/>
       </v-responsive>
-      <div class="pe-2">
-        <v-btn class="d-sm-none" color="primary" icon="mdi-plus" />
-        <v-btn class="d-none d-sm-flex" color="primary" prepend-icon="mdi-plus" size="large">
-          New Task
-        </v-btn>
-      </div>
+      <div class="pe-2"><edit-task task_id_for_edit=""/></div>
     </div>
     <div class="py-2" />
     <v-data-table :headers="headers_md" :items="task_list" :itemsPerPage="25" :search="task_filter" density="compact"
@@ -47,11 +42,11 @@
 
 <script lang="ts">
   import { get, reportError, inject_response, extractRole } from './utils';
-  import { Loading, TiraBreadcrumb } from './components'
+  import { Loading, TiraBreadcrumb, EditTask } from './components'
 
   export default {
     name: "tasks",
-    components: {Loading, TiraBreadcrumb},
+    components: {Loading, TiraBreadcrumb, EditTask},
     data() {
       return {
         role: extractRole(), // Values: user, participant, admin

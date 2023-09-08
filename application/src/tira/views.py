@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse, FileResponse
 from django.conf import settings
 from django.core.cache import cache
+from django.utils.safestring import mark_safe
 from django.core.serializers.json import DjangoJSONEncoder
 import logging
 
@@ -34,7 +35,8 @@ def add_context(func):
         context = {
             "include_navigation": True if settings.DEPLOYMENT == "legacy" else False,
             "user_id": uid,
-            "role": auth.get_role(request, user_id=uid, vm_id=vm_id)
+            "role": auth.get_role(request, user_id=uid, vm_id=vm_id),
+            "organizer_teams": mark_safe(json.dumps(auth.get_organizer_ids(request)))
         }
         return func(request, context, *args, **kwargs, )
 
@@ -52,6 +54,7 @@ def index(request, context):
         context["vm_id"] = auth.get_vm_id(request, context["user_id"])
 
     return render(request, 'tira/index.html', context)
+
 
 @check_permissions
 @add_context
