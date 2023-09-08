@@ -2,6 +2,7 @@
     "context": {
         "include_navigation": false,
         "organizer_list": [],
+        "organizer_teams": "[\"non-existing-organizer\"]",
         "role": "user",
         "user_id": "ignored-user."
     },

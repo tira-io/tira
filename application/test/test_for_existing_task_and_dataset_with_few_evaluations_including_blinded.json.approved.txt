@@ -461,6 +461,7 @@
             }
         ],
         "include_navigation": false,
+        "organizer_teams": "[]",
         "role": "admin",
         "runs": [
             {

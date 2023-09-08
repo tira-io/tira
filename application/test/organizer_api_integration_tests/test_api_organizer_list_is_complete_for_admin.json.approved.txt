@@ -27,6 +27,7 @@
                 "years": "years"
             }
         ],
+        "organizer_teams": "[]",
         "role": "admin",
         "user_id": "ignored-user."
     },
