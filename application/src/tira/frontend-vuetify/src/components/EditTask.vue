@@ -11,17 +11,17 @@
     <v-card class="pb-1">
       <loading :loading="loading" />
       <card-title>
-        <v-toolbar v-if="!loading" color="primary" :title="title">
+        <v-toolbar color="primary" :title="title">
           <div> 
-            <v-avatar class="mx-1" style="cursor: pointer" :color="step === 1 ? 'secondary' : 'grey'" size="24" v-text="1" @click="() =>go_to_step(1)" />
-            <v-avatar class="mx-1" style="cursor: pointer" :color="step === 2 ? 'secondary' : 'grey'" size="24" v-text="2" @click="() =>go_to_step(2)" />
-            <v-avatar class="mx-1" style="cursor: pointer" :color="step === 3 ? 'secondary' : 'grey'" size="24" v-text="3" @click="() =>go_to_step(3)" />
+            <v-avatar class="mx-1" v-if="!loading" style="cursor: pointer" :color="step === 1 ? 'secondary' : 'grey'" size="24" v-text="1" @click="() =>go_to_step(1)" />
+            <v-avatar class="mx-1" v-if="!loading" style="cursor: pointer" :color="step === 2 ? 'secondary' : 'grey'" size="24" v-text="2" @click="() =>go_to_step(2)" />
+            <v-avatar class="mx-1" v-if="!loading" style="cursor: pointer" :color="step === 3 ? 'secondary' : 'grey'" size="24" v-text="3" @click="() =>go_to_step(3)" />
           </div>
         </v-toolbar>
       </card-title>
     
       <v-card-text>
-        <v-window v-model="step">
+        <v-window v-model="step" v-if="!loading">
           <v-window-item :value="1">
             <v-card-text>
               <h2 class="my-1">Organize your Task</h2>
@@ -46,37 +46,37 @@
           <v-window-item :value="2">
             <v-card-text>
               <v-form ref="form" v-model="valid">
-                <v-text-field v-model="name" label="Task Name" :rules="[v => v.length > 2 || 'Please provide a name.']" required/>
+                <v-text-field v-model="task_name" label="Task Name" :rules="[v => v && v.length > 2 || 'Please provide a name.']" required/>
                 <v-checkbox v-model="featured" label="Featured" />
-                <v-textarea v-model="description" label="Task Description" :rules="[v => v.length > 2 || 'Please provide a task description.']" required/>
+                <v-textarea v-model="task_description" label="Task Description" :rules="[v => v && v.length > 2 || 'Please provide a task description.']" required/>
 
-                <v-divider/>
-                <h2 class="my-1">Details on the Organizer</h2>
+                <v-divider v-if="task_id_for_edit === ''"/>
+                <h2 class="my-1" v-if="task_id_for_edit === ''">Details on the Organizer</h2>
                 
-                <p>If you are not yet part of an organizer group or want to create a new group please <a href="https://www.tira.io/new-message?username=tira_org_webis&title=Request%20&body=message%20body">contact us</a>, we usually respond within one day.</p>
+                <p v-if="task_id_for_edit === ''">If you are not yet part of an organizer group or want to create a new group please <a href="https://www.tira.io/new-message?username=tira_org_webis&title=Request%20&body=message%20body">contact us</a>, we usually respond within one day.</p>
 
-                <v-autocomplete v-model="selected_organizer" :items="organizer_teams" label="Organizer" :rules="[v => !!(v && v.length) || 'Please select the organizer of your task.']" required/>
-                <v-text-field v-model="website" label="Website" :rules="[v => v.length > 2 || 'Please provide a task website.']" required/>
+                <v-autocomplete v-if="task_id_for_edit === ''" v-model="selected_organizer" :items="organizer_teams" label="Organizer" :rules="[v => !!(v && v.length) || 'Please select the organizer of your task.']" required/>
+                <v-text-field v-model="web" label="Website" :rules="[v => v && v.length > 2 || 'Please provide a task website.']" required/>
 
                 <v-divider/>
                 <h2 class="my-1">Registration of Teams</h2>
                 <v-checkbox v-model="require_registration" label="Require Registration (When checked, users must register before submission. They must provide their name, email, and affiliation. You can view the registration data afterwards.)" />
                 <v-checkbox v-model="require_groups" label="Require Teams (When checked, users must register in a team. Their runs will be displayed with the teams's name. Other users can join these teams.)" />
                 <v-checkbox v-model="restrict_groups" label="Restrict Teams (When checked, users can not create and name their own groups. They can only sign up to groups provided by you.)" />
-                <v-textarea v-if="restrict_groups" v-model="task_teams" label="Allowed Teams for Task (leave empty if all teams are allowed)" />
+                <v-textarea v-if="restrict_groups" v-model="allowed_task_teams" label="Allowed Teams for Task (leave empty if all teams are allowed)" />
 
                 <v-divider/>
                 <h2 class="my-1">Help for Participants</h2>
-                <v-text-field v-model="help_command" label="Help Command" />
-                <v-textarea v-model="help_text" label="Help Text" />
+                <v-text-field v-model="command_placeholder" label="Help Command" />
+                <v-textarea v-model="command_description" label="Help Text" />
                 <v-text-field label="Link to Baseline" />
 
                 <v-divider/>
                 <h2 class="my-1">IR-Datasets integration</h2>
-                <v-checkbox v-model="is_information_retrieval_task" label="The task is an information retrieval task with ir_datasets" />
-                <v-text-field v-if="is_information_retrieval_task" v-model="irds_re_ranking_image" label="Docker Image for Re-Ranking with ir_datasets" />
-                <v-text-field v-if="is_information_retrieval_task" v-model="irds_re_ranking_command" label="Command for Re-Ranking with ir_datasets" />
-                <v-text-field v-if="is_information_retrieval_task" v-model="irds_re_ranking_resource" label="Resource for Re-Ranking with ir_datasets" />
+                <v-checkbox v-model="is_ir_task" label="The task is an information retrieval task with ir_datasets" />
+                <v-text-field v-if="is_ir_task" v-model="irds_re_ranking_image" label="Docker Image for Re-Ranking with ir_datasets" />
+                <v-text-field v-if="is_ir_task" v-model="irds_re_ranking_command" label="Command for Re-Ranking with ir_datasets" />
+                <v-text-field v-if="is_ir_task" v-model="irds_re_ranking_resource" label="Resource for Re-Ranking with ir_datasets" />
                 
               </v-form>
             </v-card-text>
@@ -93,8 +93,8 @@
       <v-card-actions class="justify-end">
         <v-row>
         <v-col cols="6"><v-btn variant="outlined" @click="isActive.value = false" block>Close</v-btn></v-col>
-        <v-col cols="6" v-if="step < 3"><v-btn variant="outlined" @click="go_to_step(step + 1)" block>Next Step</v-btn></v-col>
-        <v-col cols="6" v-if="step === 3"><v-btn variant="outlined" @click="submit(isActive)" :loading="submitInProgress" block>Submit</v-btn></v-col>
+        <v-col cols="6" v-if="!loading && step < 3"><v-btn variant="outlined" @click="go_to_step(step + 1)" block>Next Step</v-btn></v-col>
+        <v-col cols="6" v-if="!loading && step === 3"><v-btn variant="outlined" @click="submit(isActive)" :loading="submitInProgress" block>Submit</v-btn></v-col>
       </v-row>
       </v-card-actions>
     </v-card>
@@ -105,7 +105,7 @@
 <script lang="ts">
 import { Loading } from '.'
 import {VAutocomplete} from "vuetify/components";
-import { post, reportError, slugify, extractRole, extractOrganizations } from '../utils'
+import { get, post, reportError, slugify, extractRole, extractOrganizations, inject_response } from '../utils'
 
 export default {
   name: "edit-task",
@@ -113,19 +113,27 @@ export default {
   props: ['task_id_for_edit'],
   data: () => ({
     loading: true, valid: false, step: 1, submitInProgress: false,
-    role: extractRole(), organizer_teams: extractOrganizations(),
-    name: '', featured: false, website: '', description: '', help_text: '', help_command: '',
-    require_registration: false, require_groups: false, restrict_groups: false, task_teams: '', selected_organizer: '',
-    is_information_retrieval_task: false, irds_re_ranking_image: '', irds_re_ranking_command: '', irds_re_ranking_resource: '',
+    role: extractRole(), organizer_teams: extractOrganizations(), selected_organizer: '', organizer_id: '',
+    task_name: '', featured: false, web: '', task_description: '', command_description: '', command_placeholder: '',
+    require_registration: false, require_groups: false, restrict_groups: false, allowed_task_teams: '',
+    is_ir_task: false, irds_re_ranking_image: '', irds_re_ranking_command: '', irds_re_ranking_resource: ''
   }),
   computed: {
     title() {
-      return 'Add New Task';
+      return this.task_id_for_edit === '' ? 'Add New Task' : 'Edit Task ' + this.task_id_for_edit;
     }
   },
   methods: {
       clicked: function() {
-        this.loading = false
+        if (this.task_id_for_edit === '') {
+          this.loading = false
+        } else {
+          get('/api/task/' + this.task_id_for_edit)
+            .then(inject_response(this, {'loading': false}, true, 'task'))
+            .catch(reportError("Problem loading the data of the task.", "This might be a short-term hiccup, please try again. We got the following error: "))
+            .then(() => console.log(this.$data))
+        }
+        
       },
       go_to_step: async function(step: number) {
         if (this.submitInProgress) {
@@ -165,20 +173,28 @@ export default {
           this.step = 2
           return
         }
-
+        
         this.submitInProgress = true
-        post('tira-admin/' + this.selected_organizer + '/create-task', {
-          'task_id': slugify(this.name), 'name': this.name, 'featured': this.featured,
-          'website': this.website, 'description': this.description, 'help_text': this.help_text, 'help_command': this.help_command,
-          'require_registration': this.require_registration, 'require_groups': this.require_groups, 'restrict_groups': this.restrict_groups,
-          'task_teams': this.task_teams, 'is_information_retrieval_task': this.is_information_retrieval_task,
-          'irds_re_ranking_image': this.irds_re_ranking_image, 'irds_re_ranking_command': this.irds_re_ranking_command,    'irds_re_ranking_resource': this.irds_re_ranking_resource
-        }).then(() => {
+        post(this.url(), this.task_representation()).then(() => {
           isActive.value = false
           this.step = 1
           this.submitInProgress = false
           location.reload()
         }).catch(reportError("Problem While Adding/Editing a Shared Task.", "This might be a short-term hiccup, please try again. We got the following error: "))
+      },
+      url: function() {
+        return this.task_id_for_edit === '' ? '/tira-admin/' + this.selected_organizer + '/create-task' : '/tira-admin/edit-task/' + this.task_id_for_edit
+      },
+      task_representation: function() {
+        const task_id = this.task_id_for_edit === '' ? slugify(this.task_name) : this.task_id_for_edit
+        const organizer = this.task_id_for_edit === '' ? this.selected_organizer : this.organizer_id
+
+        return { 'task_id': task_id, 'name': this.task_name, 'featured': this.featured,
+          'website': this.web, 'description': this.task_description, 'help_text': this.command_description, 'help_command': this.command_placeholder,
+          'require_registration': this.require_registration, 'require_groups': this.require_groups, 'restrict_groups': this.restrict_groups,
+          'task_teams': this.allowed_task_teams, 'is_information_retrieval_task': this.is_ir_task,
+          'irds_re_ranking_image': this.irds_re_ranking_image, 'irds_re_ranking_command': this.irds_re_ranking_command,    'irds_re_ranking_resource': this.irds_re_ranking_resource, 'organizer': organizer
+        }
       }
     },
 }

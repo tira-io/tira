@@ -55,6 +55,7 @@ def index(request, context):
 
     return render(request, 'tira/index.html', context)
 
+
 @check_permissions
 @add_context
 def background_jobs(request, context, task_id, job_id):

@@ -201,14 +201,18 @@ export function changeCurrentUrlToDataset(dataset: string) {
     }
 }
 
-export function inject_response(obj: any, default_values: any={}, debug=false) {
+export function inject_response(obj: any, default_values: any={}, debug=false, subpath: string='') {
     let object_to_inject_data = obj.$data
     return function(message: any) {
-      let available_keys = new Set<string>(Object.keys(message['context']))
+      let obj = subpath === '' ? message['context'] : message['context'][subpath]
+      let available_keys = new Set<string>(Object.keys(obj))
+      if (debug) {
+        console.log(available_keys)
+      }
 
       for (var key of Object.keys(object_to_inject_data)) {
         if (available_keys.has(key)) {
-          object_to_inject_data[key] = message['context'][key]
+          object_to_inject_data[key] = obj[key]
         }
       }
 
