@@ -1,8 +1,11 @@
 <template>
 <v-dialog width="85%" height="85%" scrollable>
   <template v-slot:activator="{ props }">
-    <v-btn class="d-sm-none" color="primary" icon="mdi-plus" v-bind="props" @click="clicked()"/>
-    <v-btn class="d-none d-sm-flex" color="primary" prepend-icon="mdi-plus" size="large" v-bind="props" @click="clicked()">New Task</v-btn>
+    <v-btn class="d-sm-none" color="primary" icon="mdi-plus" v-if="task_id_for_edit === ''" v-bind="props" @click="clicked()"/>
+    <v-btn class="d-none d-sm-flex" color="primary" prepend-icon="mdi-plus" v-if="task_id_for_edit === ''" size="large" v-bind="props" @click="clicked()">New Task</v-btn>
+
+    <v-btn class="d-none d-sm-flex" color="primary" v-if="task_id_for_edit !== ''" prepend-icon="mdi-cog" size="large" v-bind="props" @click="clicked()">Edit Task</v-btn>
+    <v-btn class="d-sm-none" color="primary" icon="mdi-cog" v-if="task_id_for_edit !== ''" v-bind="props" @click="clicked()"/>
   </template>
   <template v-slot:default="{ isActive }">
     <v-card class="pb-1">
@@ -107,6 +110,7 @@ import { post, reportError, slugify, extractRole, extractOrganizations } from '.
 export default {
   name: "edit-task",
   components: {Loading, VAutocomplete},
+  props: ['task_id_for_edit'],
   data: () => ({
     loading: true, valid: false, step: 1, submitInProgress: false,
     role: extractRole(), organizer_teams: extractOrganizations(),

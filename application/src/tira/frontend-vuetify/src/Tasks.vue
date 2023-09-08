@@ -10,7 +10,7 @@
         <v-text-field class="px-4" clearable label="Type here to filter &hellip;" prepend-inner-icon="mdi-magnify"
                       variant="underlined" v-model="task_filter"/>
       </v-responsive>
-      <div class="pe-2"><edit-task/></div>
+      <div class="pe-2"><edit-task task_id_for_edit=""/></div>
     </div>
     <div class="py-2" />
     <v-data-table :headers="headers_md" :items="task_list" :itemsPerPage="25" :search="task_filter" density="compact"

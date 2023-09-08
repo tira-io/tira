@@ -6,7 +6,7 @@
         <v-expansion-panel-title>Manage Task</v-expansion-panel-title>
         <v-expansion-panel-text>
           <h3>Task Configuration</h3>
-          You can edit this task: <edit-task />
+          You can edit this task: <edit-task :task_id_for_edit="task_id"/>
 
           <v-divider class="my-4"/>
           <h3>Edit existing Dataset</h3>
