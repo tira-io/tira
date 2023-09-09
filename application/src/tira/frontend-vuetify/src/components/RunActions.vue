@@ -31,12 +31,12 @@
     <v-tooltip activator="parent" location="top">Show SERP in new tab</v-tooltip>
   </span>
 
-  <span v-if="role == 'admin'">
-    <run-review-window :run_id="run.run_id" :vm_id="run.vm_id"/>
+  <span v-if="role === 'admin' || run['owned_by_user']">
+    <run-review-window :run_id="run.run_id" :vm_id="run.vm_id" :dataset_id_from_props="run.dataset_id"/>
     <v-tooltip activator="parent" location="top">Review</v-tooltip>
   </span>
 
-  <span>
+  <span v-if="run['owned_by_user']">
     <v-btn icon="mdi-delete" :disabled="!can_delete" class="pa0 ma0" rounded density="compact"/>
     <v-tooltip activator="parent" location="top" v-if="!can_delete">You can not delete runs that are published and/or valid. Please contact the organizer to delete this run.</v-tooltip>
     <v-tooltip activator="parent" location="top" v-if="can_delete">Attention, this will delete this run.</v-tooltip>
