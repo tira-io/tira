@@ -611,7 +611,8 @@ class HybridDatabase(object):
         LEFT JOIN
             tira_evaluation ON tira_evaluation.run_id = evaluation_run.run_id
         WHERE
-            evaluation_run.input_run_id is not null AND evaluation_run.deleted = FALSE AND input_run.deleted = False 
+            evaluation_run.input_run_id is not null AND evaluation_run.deleted = FALSE 
+            AND evaluation_run.evaluator_id IS NOT NULL AND input_run.deleted = False 
             AND (tira_dockersoftware.vm_id = %s OR tira_upload.vm_id = %s OR tira_software.vm_id = %s ) AND <CLAUSE>
         ORDER BY
             tira_evaluation.id ASC;        
@@ -855,7 +856,7 @@ class HybridDatabase(object):
             tira_evaluation ON tira_evaluation.run_id = evaluation_run.run_id
         WHERE
             evaluation_run.input_run_id is not null AND evaluation_run.deleted = FALSE AND input_run.deleted = False 
-            AND <DATASET_ID_STATEMENT>
+            AND evaluation_run.evaluator_id IS NOT NULL AND <DATASET_ID_STATEMENT>
         ORDER BY
             tira_evaluation.id ASC;
         '''

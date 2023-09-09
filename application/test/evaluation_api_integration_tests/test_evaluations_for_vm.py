@@ -32,6 +32,7 @@ class TestEvaluationsForVm(TestCase):
         tira_model.add_vm('master-vm-for-vm-eval-task', 'user_name', 'initial_user_password', 'ip', 'host', '12', '12')
         tira_model.create_task(TASK, 'task_name', 'task_description', False, 'master-vm-for-vm-eval-task',
                                'vm-eval-organizer', 'website', False, False, False, 'help_command', '', '')
+        evaluator = modeldb.Evaluator.objects.update_or_create(evaluator_id=f'{TASK}-evaluator')[0]
 
         datasets = []
         for d in ['vm-eval-task-1', 'vm-eval-task-2', 'vm-eval-task-3']:
@@ -55,7 +56,8 @@ class TestEvaluationsForVm(TestCase):
                                                  docker_software=SOFTWARES[f's-{participant}'],
                                                  input_dataset=d, task=modeldb.Task.objects.get(task_id=TASK))
 
-                eval_run = modeldb.Run.objects.create(run_id=f'{run_id}-eval', input_run=run, input_dataset=d)
+                eval_run = modeldb.Run.objects.create(run_id=f'{run_id}-eval', input_run=run, input_dataset=d,
+                                                      evaluator=evaluator)
                 # SOFTWARE_PARTICIPANT_1's runs are unblinded and published
                 modeldb.Review.objects.create(run=eval_run,
                                               published=participant == PARTICIPANT_1,
@@ -85,7 +87,8 @@ class TestEvaluationsForVm(TestCase):
                                                  docker_software=SOFTWARES[f's-{participant}'],
                                                  input_dataset=d, task=modeldb.Task.objects.get(task_id=TASK))
 
-                eval_run = modeldb.Run.objects.create(run_id=f'{run_id}-eval', input_run=run, input_dataset=d)
+                eval_run = modeldb.Run.objects.create(run_id=f'{run_id}-eval', input_run=run, input_dataset=d,
+                                                      evaluator=evaluator)
                 # run 3 is published
                 modeldb.Review.objects.create(run=eval_run,
                                               published=i == 2 and PARTICIPANT_3 == participant,
@@ -115,7 +118,8 @@ class TestEvaluationsForVm(TestCase):
                                                  docker_software=SOFTWARES[f's-{participant}'],
                                                  input_dataset=d, task=modeldb.Task.objects.get(task_id=TASK))
 
-                eval_run = modeldb.Run.objects.create(run_id=f'{run_id}-eval', input_run=run, input_dataset=d)
+                eval_run = modeldb.Run.objects.create(run_id=f'{run_id}-eval', input_run=run, input_dataset=d,
+                                                      evaluator=evaluator)
                 modeldb.Review.objects.create(run=eval_run, published=False, blinded=True)
                 modeldb.Review.objects.update_or_create(run_id=run_id, defaults={'published': False, 'blinded': True})
 

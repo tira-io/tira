@@ -47,13 +47,13 @@ def set_up_tira_environment():
     tira_model.edit_organizer('organizer', 'organizer', 'years', 'web', [])
     tira_model.edit_organizer('organizer-2', 'organizer-2', 'years', 'web', [])
     tira_model.edit_organizer('EXAMPLE-ORGANIZER', 'EXAMPLE_ORGANIZER', 'years', 'web', [])
-    
+    evaluator = modeldb.Evaluator.objects.update_or_create(evaluator_id=f'big-evaluator-for-everything')[0]
     tira_model.add_vm('master-vm-for-task-1', 'user_name', 'initial_user_password', 'ip', 'host', '123', '123')
     tira_model.add_vm('example_participant', 'user_name', 'initial_user_password', 'ip', 'host', '123', '123')
     tira_model.add_vm('participant-1', 'user_name', 'initial_user_password', 'ip', 'host', '123', '123')
     tira_model.add_vm('participant-2', 'user_name', 'initial_user_password', 'ip', 'host', '123', '123')
     tira_model.add_vm('PARTICIPANT-FOR-TEST-1', 'user_name', 'initial_user_password', 'ip', 'host', '123', '123')
-    
+
     tira_model.create_task('task-of-organizer-1', 'task_name', 'task_description', False, 'master-vm-for-task-1', 'EXAMPLE-ORGANIZER',
                            'website', False, False, False, 'help_command', '', '')
     
@@ -119,7 +119,8 @@ def set_up_tira_environment():
             tira_model.add_run(dataset_id='dataset-1', vm_id=participant, run_id=run_id)
             run = modeldb.Run.objects.get(run_id=run_id)
 
-            eval_run = modeldb.Run.objects.create(run_id=f'run-{i}-{participant}-eval', input_run=run, input_dataset=d)
+            eval_run = modeldb.Run.objects.create(run_id=f'run-{i}-{participant}-eval', input_run=run, input_dataset=d,
+                                                  evaluator=evaluator)
             # SERPS of participant-1 are unblinded and published
             modeldb.Review.objects.create(run=eval_run, published=participant in {'example_participant', 'participant-1'}, blinded=participant != 'participant-1')
 
@@ -144,7 +145,8 @@ def set_up_tira_environment():
             tira_model.add_run(dataset_id='dataset-2', vm_id=participant, run_id=run_id)
             run = modeldb.Run.objects.get(run_id=run_id)
 
-            eval_run = modeldb.Run.objects.create(run_id=f'run-ds2-{i}-{participant}-eval', input_run=run, input_dataset=d)
+            eval_run = modeldb.Run.objects.create(run_id=f'run-ds2-{i}-{participant}-eval', input_run=run,
+                                                  input_dataset=d, evaluator=evaluator)
 
             modeldb.Review.objects.create(run=eval_run, published=participant == 'participant-1')
             modeldb.Evaluation.objects.create(measure_key='k-1', measure_value=k_1, run=eval_run)
