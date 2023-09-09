@@ -19,6 +19,7 @@
                 "is_upload": false,
                 "link_to_team": "https://www.tira.io/g/tira_vm_vm-eval-p4",
                 "published": false,
+                "review_state": "no-review",
                 "run_id": "vm-eval-p4-vm-eval-task-1-20230909-test-0",
                 "selectable": false,
                 "vm_id": "vm-eval-p4"
@@ -31,6 +32,7 @@
                 "is_upload": false,
                 "link_to_team": "https://www.tira.io/g/tira_vm_vm-eval-p4",
                 "published": false,
+                "review_state": "no-review",
                 "run_id": "vm-eval-p4-vm-eval-task-1-20230909-test-1",
                 "selectable": false,
                 "vm_id": "vm-eval-p4"
@@ -43,6 +45,7 @@
                 "is_upload": false,
                 "link_to_team": "https://www.tira.io/g/tira_vm_vm-eval-p4",
                 "published": false,
+                "review_state": "no-review",
                 "run_id": "vm-eval-p4-vm-eval-task-1-20230909-test-2",
                 "selectable": false,
                 "vm_id": "vm-eval-p4"

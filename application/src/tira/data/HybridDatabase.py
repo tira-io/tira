@@ -591,7 +591,9 @@ class HybridDatabase(object):
             evaluation_run.input_dataset_id, evaluation_run.run_id, input_run.run_id, tira_upload.display_name,
             tira_upload.vm_id, tira_software.vm_id, tira_dockersoftware.display_name, tira_dockersoftware.vm_id,
             tira_evaluation_review.published, tira_evaluation_review.blinded, tira_run_review.published, 
-            tira_run_review.blinded, tira_evaluation.measure_key, tira_evaluation.measure_value
+            tira_run_review.blinded, tira_evaluation.measure_key, tira_evaluation.measure_value,
+            tira_run_review.reviewer_id, tira_run_review.no_errors, tira_run_review.has_errors,
+            tira_run_review.has_no_errors
         FROM
             tira_run as evaluation_run
         INNER JOIN 
@@ -833,7 +835,8 @@ class HybridDatabase(object):
             evaluation_run.input_dataset_id, evaluation_run.run_id, input_run.run_id, tira_upload.display_name, tira_upload.vm_id, tira_software.vm_id,
             tira_dockersoftware.display_name, tira_dockersoftware.vm_id, tira_evaluation_review.published,
             tira_evaluation_review.blinded, tira_run_review.published, tira_run_review.blinded,
-            tira_evaluation.measure_key, tira_evaluation.measure_value
+            tira_evaluation.measure_key, tira_evaluation.measure_value, tira_run_review.reviewer_id, 
+            tira_run_review.no_errors, tira_run_review.has_errors, tira_run_review.has_no_errors
         FROM
             tira_run as evaluation_run
         INNER JOIN 
@@ -886,7 +889,8 @@ class HybridDatabase(object):
                 return fl
 
         for dataset_id, run_id, input_run_id, upload_display_name, upload_vm_id, software_vm_id, docker_display_name, \
-                docker_vm_id, eval_published, eval_blinded, run_published, run_blinded, m_key, m_value in rows:
+                docker_vm_id, eval_published, eval_blinded, run_published, run_blinded, m_key, m_value, \
+                reviewer_id, no_errors, has_errors, has_no_errors in rows:
 
             if not m_key or (not include_unpublished and not eval_published):
                 continue
@@ -910,6 +914,10 @@ class HybridDatabase(object):
                 vm_id = software_vm_id
                 is_software = True
 
+            review_state = 'no-review'
+            if reviewer_id and reviewer_id != 'tira':
+                review_state = 'valid' if no_errors and has_no_errors and not has_errors else 'invalid'
+
             input_run_to_evaluation[run_id]['dataset_id'] = dataset_id
             input_run_to_evaluation[run_id]['vm_id'] = vm_id
             input_run_to_evaluation[run_id]['input_software_name'] = software_name
@@ -920,6 +928,8 @@ class HybridDatabase(object):
             input_run_to_evaluation[run_id]['is_upload'] = is_upload
             input_run_to_evaluation[run_id]['is_software'] = is_software
             input_run_to_evaluation[run_id]['measures'][m_key] = m_value
+            input_run_to_evaluation[run_id]['review_state'] = review_state
+
             keys[m_key] = ''
 
         keys = list(keys.keys())

@@ -35,6 +35,12 @@
     <run-review-window :run_id="run.run_id" :vm_id="run.vm_id"/>
     <v-tooltip activator="parent" location="top">Review</v-tooltip>
   </span>
+
+  <span>
+    <v-btn icon="mdi-delete" :disabled="!can_delete" class="pa0 ma0" rounded density="compact"/>
+    <v-tooltip activator="parent" location="top" v-if="!can_delete">You can not delete runs that are published and/or valid. Please contact the organizer to delete this run.</v-tooltip>
+    <v-tooltip activator="parent" location="top" v-if="can_delete">Attention, this will delete this run.</v-tooltip>
+  </span>
 </template>
 <script lang="ts">
 import { extractRole } from '../utils'
@@ -56,6 +62,9 @@ export default {
     },
     link_run() {
       return this.run && 'link_run_download' in this.run ? this.run['link_run_download'] : null;
+    },
+    can_delete() {
+      return this.run && 'published' in this.run && !this.run['published'] && 'review_state' in this.run && this.run['review_state'] != 'valid'
     }
   },
 }
