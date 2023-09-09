@@ -11,9 +11,13 @@ evaluations_function = method_for_url_pattern(url)
 
 PARTICIPANT_1 = 'vm-eval-p1'
 PARTICIPANT_2 = 'vm-eval-p2'
+PARTICIPANT_3 = 'vm-eval-p3'
+PARTICIPANT_4 = 'vm-eval-p4'
 TASK = 'vm-eval-task'
 SOFTWARE_PARTICIPANT_1 = f's-{PARTICIPANT_1}'
 SOFTWARE_PARTICIPANT_2 = f's-{PARTICIPANT_2}'
+SOFTWARE_PARTICIPANT_3 = f's-{PARTICIPANT_3}'
+SOFTWARE_PARTICIPANT_4 = f's-{PARTICIPANT_4}'
 SOFTWARES = {}
 SOFTWARE_IDS = {}
 
@@ -30,10 +34,8 @@ class TestEvaluationsForVm(TestCase):
         datasets = []
         for d in ['vm-eval-task-1', 'vm-eval-task-2', 'vm-eval-task-3']:
             d_type = 'training' if d.endswith('-2') else 'test'
-            tira_model.add_dataset(TASK, d, d_type , d, 'upload-name')
+            tira_model.add_dataset(TASK, d, d_type, d, 'upload-name')
             datasets += [modeldb.Dataset.objects.get(dataset_id=f'{d}-{now}-{d_type}')]
-
-        print(datasets)
 
         k_1 = 2.0
         k_2 = 1.0
@@ -54,12 +56,42 @@ class TestEvaluationsForVm(TestCase):
                 eval_run = modeldb.Run.objects.create(run_id=f'{run_id}-eval', input_run=run, input_dataset=d)
                 # SOFTWARE_PARTICIPANT_1's runs are unblinded and published
                 modeldb.Review.objects.create(run=eval_run,
-                                              published=participant == SOFTWARE_PARTICIPANT_1,
-                                              blinded=participant != SOFTWARE_PARTICIPANT_1)
+                                              published=participant == PARTICIPANT_1,
+                                              blinded=participant != PARTICIPANT_1)
 
                 modeldb.Review.objects.update_or_create(run_id=run_id, defaults={
-                    'published': participant == SOFTWARE_PARTICIPANT_1,
-                    'blinded': participant != SOFTWARE_PARTICIPANT_1})
+                    'published': participant == PARTICIPANT_1,
+                    'blinded': participant != PARTICIPANT_1})
+
+                modeldb.Evaluation.objects.create(measure_key='k-1', measure_value=k_1, run=eval_run)
+                modeldb.Evaluation.objects.create(measure_key='k-2', measure_value=k_2, run=eval_run)
+                k_1 -= 0.1
+                k_2 += 0.1
+
+        for participant in [PARTICIPANT_3, PARTICIPANT_4]:
+            tira_model.add_vm(participant, 'user_name', 'initial_user_password', 'ip', 'host', '12', '12')
+
+            SOFTWARES[f's-{participant}'] = modeldb.DockerSoftware.objects.create(
+                display_name=f's-{participant}', vm=modeldb.VirtualMachine.objects.get(vm_id=participant),
+                task=modeldb.Task.objects.get(task_id=TASK), deleted=False)
+            SOFTWARE_IDS[f's-{participant}'] = str(int(SOFTWARES[f's-{participant}'].docker_software_id))
+
+            for i in range(3):
+                d = datasets[0]
+                run_id = f'{participant}-{d.dataset_id}-{i}'
+                run = modeldb.Run.objects.create(run_id=run_id, software=None, evaluator=None, upload=None,
+                                                 docker_software=SOFTWARES[f's-{participant}'],
+                                                 input_dataset=d, task=modeldb.Task.objects.get(task_id=TASK))
+
+                eval_run = modeldb.Run.objects.create(run_id=f'{run_id}-eval', input_run=run, input_dataset=d)
+                # run 3 is published
+                modeldb.Review.objects.create(run=eval_run,
+                                              published=i == 2 and PARTICIPANT_3 == participant,
+                                              blinded=True)
+
+                modeldb.Review.objects.update_or_create(run_id=run_id, defaults={
+                   'published': i == 2 and PARTICIPANT_3 == participant,
+                   'blinded': True})
 
                 modeldb.Evaluation.objects.create(measure_key='k-1', measure_value=k_1, run=eval_run)
                 modeldb.Evaluation.objects.create(measure_key='k-2', measure_value=k_2, run=eval_run)
@@ -110,7 +142,7 @@ class TestEvaluationsForVm(TestCase):
         # Assert
         self.verify_as_json(actual, 'vm_eval_for_existing_docker_software_with_all_published.json')
 
-    def test_existing_docker_software_of_for_user_with_one_published(self):
+    def test_existing_docker_software_of_for_user_with_one_published_on_train_data(self):
         # Arrange
         request = mock_request('tira_vm_' + PARTICIPANT_2, url)
         request.GET['docker_software_id'] = SOFTWARE_IDS[SOFTWARE_PARTICIPANT_2]
@@ -120,6 +152,28 @@ class TestEvaluationsForVm(TestCase):
 
         # Assert
         self.verify_as_json(actual, 'vm_eval_for_existing_docker_software_with_one_published.json')
+
+    def test_existing_docker_software_of_for_user_with_one_published_on_test_data(self):
+        # Arrange
+        request = mock_request('tira_vm_' + PARTICIPANT_3, url)
+        request.GET['docker_software_id'] = SOFTWARE_IDS[SOFTWARE_PARTICIPANT_3]
+
+        # Act
+        actual = evaluations_function(request, task_id=TASK, vm_id=PARTICIPANT_3)
+
+        # Assert
+        self.verify_as_json(actual, 'vm_eval_for_existing_docker_software_with_one_published_on_test_data.json')
+
+    def test_existing_docker_software_of_for_user_with_none_published_on_test_data(self):
+        # Arrange
+        request = mock_request('tira_vm_' + PARTICIPANT_4, url)
+        request.GET['docker_software_id'] = SOFTWARE_IDS[SOFTWARE_PARTICIPANT_4]
+
+        # Act
+        actual = evaluations_function(request, task_id=TASK, vm_id=PARTICIPANT_4)
+
+        # Assert
+        self.verify_as_json(actual, 'vm_eval_for_existing_docker_software_with_none_published_on_test_data.json')
 
     def verify_as_json(self, actual, test_name):
         from approvaltests import verify_as_json

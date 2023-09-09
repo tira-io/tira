@@ -10,12 +10,8 @@
         "runs": [],
         "table_headers": [
             {
-                "key": "vm_id",
-                "title": "Team"
-            },
-            {
-                "key": "input_software_name",
-                "title": "Approach"
+                "key": "dataset_id",
+                "title": "Dataset"
             },
             {
                 "key": "run_id",
@@ -29,8 +25,12 @@
         ],
         "table_headers_small_layout": [
             {
-                "key": "input_software_name",
-                "title": "Approach"
+                "key": "dataset_id",
+                "title": "Dataset"
+            },
+            {
+                "key": "run_id",
+                "title": "Run"
             }
         ],
         "table_sort_by": [
