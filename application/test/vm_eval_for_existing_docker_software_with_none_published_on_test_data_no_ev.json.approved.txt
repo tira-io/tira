@@ -3,10 +3,7 @@
         "docker_documentation": [
             "Your account has no docker registry. Please contact an organizer."
         ],
-        "ev_keys": [
-            "k-1",
-            "k-2"
-        ],
+        "ev_keys": [],
         "include_navigation": false,
         "organizer_teams": "[]",
         "role": "participant",
@@ -14,46 +11,44 @@
             {
                 "blinded": true,
                 "dataset_id": "vm-eval-task-1",
-                "input_software_name": "s-vm-eval-p3",
+                "input_software_name": "s-vm-eval-p5",
                 "is_software": true,
                 "is_upload": false,
-                "link_to_team": "https://www.tira.io/g/tira_vm_vm-eval-p3",
+                "link_to_team": "https://www.tira.io/g/tira_vm_vm-eval-p5",
                 "owned_by_user": false,
                 "published": false,
                 "review_state": "no-review",
-                "run_id": "vm-eval-p3-vm-eval-task-1-20230909-test-0",
+                "run_id": "vm-eval-p5-vm-eval-task-1-20230909-test-0",
                 "selectable": false,
-                "vm_id": "vm-eval-p3"
+                "vm_id": "vm-eval-p5"
             },
             {
                 "blinded": true,
                 "dataset_id": "vm-eval-task-1",
-                "input_software_name": "s-vm-eval-p3",
+                "input_software_name": "s-vm-eval-p5",
                 "is_software": true,
                 "is_upload": false,
-                "link_to_team": "https://www.tira.io/g/tira_vm_vm-eval-p3",
+                "link_to_team": "https://www.tira.io/g/tira_vm_vm-eval-p5",
                 "owned_by_user": false,
                 "published": false,
                 "review_state": "no-review",
-                "run_id": "vm-eval-p3-vm-eval-task-1-20230909-test-1",
+                "run_id": "vm-eval-p5-vm-eval-task-1-20230909-test-1",
                 "selectable": false,
-                "vm_id": "vm-eval-p3"
+                "vm_id": "vm-eval-p5"
             },
             {
                 "blinded": true,
                 "dataset_id": "vm-eval-task-1",
-                "input_software_name": "s-vm-eval-p3",
+                "input_software_name": "s-vm-eval-p5",
                 "is_software": true,
                 "is_upload": false,
-                "k-1": 1.2,
-                "k-2": 1.8,
-                "link_to_team": "https://www.tira.io/g/tira_vm_vm-eval-p3",
+                "link_to_team": "https://www.tira.io/g/tira_vm_vm-eval-p5",
                 "owned_by_user": false,
-                "published": true,
+                "published": false,
                 "review_state": "no-review",
-                "run_id": "vm-eval-p3-vm-eval-task-1-20230909-test-2",
+                "run_id": "vm-eval-p5-vm-eval-task-1-20230909-test-2",
                 "selectable": false,
-                "vm_id": "vm-eval-p3"
+                "vm_id": "vm-eval-p5"
             }
         ],
         "table_headers": [
@@ -64,14 +59,6 @@
             {
                 "key": "run_id",
                 "title": "Run"
-            },
-            {
-                "key": "k-1",
-                "title": "k-1"
-            },
-            {
-                "key": "k-2",
-                "title": "k-2"
             },
             {
                 "key": "actions",

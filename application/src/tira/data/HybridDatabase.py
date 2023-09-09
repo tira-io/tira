@@ -627,7 +627,7 @@ class HybridDatabase(object):
             params += [docker_software_id]
 
         rows = self.execute_raw_sql_statement(prepared_statement, params)
-        return self.__parse_submissions(rows, include_unpublished, round_floats)
+        return self.__parse_submissions(rows, include_unpublished, round_floats, True)
 
 
     def get_docker_softwares_with_runs(self, task_id, vm_id):
@@ -876,7 +876,7 @@ class HybridDatabase(object):
         return self.__parse_submissions(rows, include_unpublished, round_floats)
 
     @staticmethod
-    def __parse_submissions(rows, include_unpublished, round_floats):
+    def __parse_submissions(rows, include_unpublished, round_floats, include_without_evaluation=False):
         keys = dict()
         input_run_to_evaluation = {}
 
@@ -892,7 +892,7 @@ class HybridDatabase(object):
                 docker_vm_id, eval_published, eval_blinded, run_published, run_blinded, m_key, m_value, \
                 reviewer_id, no_errors, has_errors, has_no_errors in rows:
 
-            if not m_key or (not include_unpublished and not eval_published):
+            if (not include_without_evaluation and not m_key) or (not include_unpublished and not eval_published):
                 continue
 
             if run_id not in input_run_to_evaluation:
@@ -927,10 +927,11 @@ class HybridDatabase(object):
             input_run_to_evaluation[run_id]['blinded'] = eval_blinded or run_blinded
             input_run_to_evaluation[run_id]['is_upload'] = is_upload
             input_run_to_evaluation[run_id]['is_software'] = is_software
-            input_run_to_evaluation[run_id]['measures'][m_key] = m_value
             input_run_to_evaluation[run_id]['review_state'] = review_state
 
-            keys[m_key] = ''
+            if m_key:
+                input_run_to_evaluation[run_id]['measures'][m_key] = m_value
+                keys[m_key] = ''
 
         keys = list(keys.keys())
         ret = []

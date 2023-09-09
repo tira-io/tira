@@ -13,11 +13,13 @@ PARTICIPANT_1 = 'vm-eval-p1'
 PARTICIPANT_2 = 'vm-eval-p2'
 PARTICIPANT_3 = 'vm-eval-p3'
 PARTICIPANT_4 = 'vm-eval-p4'
+PARTICIPANT_5 = 'vm-eval-p5'
 TASK = 'vm-eval-task'
 SOFTWARE_PARTICIPANT_1 = f's-{PARTICIPANT_1}'
 SOFTWARE_PARTICIPANT_2 = f's-{PARTICIPANT_2}'
 SOFTWARE_PARTICIPANT_3 = f's-{PARTICIPANT_3}'
 SOFTWARE_PARTICIPANT_4 = f's-{PARTICIPANT_4}'
+SOFTWARE_PARTICIPANT_5 = f's-{PARTICIPANT_5}'
 SOFTWARES = {}
 SOFTWARE_IDS = {}
 
@@ -98,6 +100,25 @@ class TestEvaluationsForVm(TestCase):
                 k_1 -= 0.1
                 k_2 += 0.1
 
+        for participant in [PARTICIPANT_5]:
+            tira_model.add_vm(participant, 'user_name', 'initial_user_password', 'ip', 'host', '12', '12')
+
+            SOFTWARES[f's-{participant}'] = modeldb.DockerSoftware.objects.create(
+                display_name=f's-{participant}', vm=modeldb.VirtualMachine.objects.get(vm_id=participant),
+                task=modeldb.Task.objects.get(task_id=TASK), deleted=False)
+            SOFTWARE_IDS[f's-{participant}'] = str(int(SOFTWARES[f's-{participant}'].docker_software_id))
+
+            for i in range(3):
+                d = datasets[0]
+                run_id = f'{participant}-{d.dataset_id}-{i}'
+                run = modeldb.Run.objects.create(run_id=run_id, software=None, evaluator=None, upload=None,
+                                                 docker_software=SOFTWARES[f's-{participant}'],
+                                                 input_dataset=d, task=modeldb.Task.objects.get(task_id=TASK))
+
+                eval_run = modeldb.Run.objects.create(run_id=f'{run_id}-eval', input_run=run, input_dataset=d)
+                modeldb.Review.objects.create(run=eval_run, published=False, blinded=True)
+                modeldb.Review.objects.update_or_create(run_id=run_id, defaults={'published': False, 'blinded': True})
+
     def test_for_non_existing_docker_software(self):
         # Arrange
         request = mock_request(ADMIN, url)
@@ -174,6 +195,17 @@ class TestEvaluationsForVm(TestCase):
 
         # Assert
         self.verify_as_json(actual, 'vm_eval_for_existing_docker_software_with_none_published_on_test_data.json')
+
+    def test_existing_docker_software_of_for_user_with_none_published_on_test_data_and_no_evaluations(self):
+        # Arrange
+        request = mock_request('tira_vm_' + PARTICIPANT_5, url)
+        request.GET['docker_software_id'] = SOFTWARE_IDS[SOFTWARE_PARTICIPANT_5]
+
+        # Act
+        actual = evaluations_function(request, task_id=TASK, vm_id=PARTICIPANT_5)
+
+        # Assert
+        self.verify_as_json(actual, 'vm_eval_for_existing_docker_software_with_none_published_on_test_data_no_ev.json')
 
     def verify_as_json(self, actual, test_name):
         from approvaltests import verify_as_json

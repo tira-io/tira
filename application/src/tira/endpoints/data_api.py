@@ -57,7 +57,9 @@ def __normalize_run(i, ev_keys, is_admin, user_vms_for_task, task_id, is_ir_task
         del i[j]
 
     i['selectable'] = False
-    if not i['blinded'] and (is_admin or i['vm_id'] in user_vms_for_task or i['published'] or is_training_dataset):
+    i['owned_by_user'] = is_admin or i['vm_id'] in user_vms_for_task
+
+    if not i['blinded'] and (i['owned_by_user'] or i['published'] or is_training_dataset):
         i[
             'link_results_download'] = f'/task/{task_id}/user/{i["vm_id"]}/dataset/{i["dataset_id"]}/download/{eval_run_id}.zip'
         i[
