@@ -585,6 +585,49 @@ class HybridDatabase(object):
 
         return ret
 
+    def get_runs_for_vm(self, vm_id, docker_software_id, upload_id, include_unpublished=True, round_floats=True):
+        prepared_statement = """
+        SELECT
+            evaluation_run.input_dataset_id, evaluation_run.run_id, input_run.run_id, tira_upload.display_name,
+            tira_upload.vm_id, tira_software.vm_id, tira_dockersoftware.display_name, tira_dockersoftware.vm_id,
+            tira_evaluation_review.published, tira_evaluation_review.blinded, tira_run_review.published, 
+            tira_run_review.blinded, tira_evaluation.measure_key, tira_evaluation.measure_value
+        FROM
+            tira_run as evaluation_run
+        INNER JOIN 
+            tira_run as input_run ON evaluation_run.input_run_id = input_run.run_id
+        LEFT JOIN
+            tira_upload ON input_run.upload_id = tira_upload.id
+        LEFT JOIN
+            tira_software ON input_run.software_id = tira_software.id
+        LEFT JOIN
+            tira_dockersoftware ON input_run.docker_software_id = tira_dockersoftware.docker_software_id
+        LEFT JOIN
+            tira_review as tira_evaluation_review ON evaluation_run.run_id = tira_evaluation_review.run_id
+        LEFT JOIN
+            tira_review as tira_run_review ON input_run.run_id = tira_run_review.run_id
+        LEFT JOIN
+            tira_evaluation ON tira_evaluation.run_id = evaluation_run.run_id
+        WHERE
+            evaluation_run.input_run_id is not null AND evaluation_run.deleted = FALSE AND input_run.deleted = False 
+            AND (tira_dockersoftware.vm_id = %s OR tira_upload.vm_id = %s OR tira_software.vm_id = %s ) AND <CLAUSE>
+        ORDER BY
+            tira_evaluation.id ASC;        
+        """
+
+        params = [vm_id, vm_id, vm_id]
+
+        if upload_id:
+            prepared_statement = prepared_statement.replace('<CLAUSE>', 'tira_upload.id = %s')
+            params += [upload_id]
+        else:
+            prepared_statement = prepared_statement.replace('<CLAUSE>', 'tira_dockersoftware.docker_software_id = %s')
+            params += [docker_software_id]
+
+        rows = self.execute_raw_sql_statement(prepared_statement, params)
+        return self.__parse_submissions(rows, include_unpublished, round_floats)
+
+
     def get_docker_softwares_with_runs(self, task_id, vm_id):
         def _runs_by_docker_software(ds):
             reviews = modeldb.Review.objects.select_related("run", "run__upload", "run__evaluator", "run__input_run",
@@ -785,17 +828,6 @@ class HybridDatabase(object):
             evaluation is a list of evaluations, each evaluation is a dict with
                 {vm_id: str, run_id: str, measures: list}
         """
-
-        def round_if_float(fl):
-            if not round_floats:
-                return fl
-            try:
-                return round(float(fl), 3)
-            except ValueError:
-                return fl
-
-
-
         prepared_statement = '''
         SELECT
             evaluation_run.input_dataset_id, evaluation_run.run_id, input_run.run_id, tira_upload.display_name, tira_upload.vm_id, tira_software.vm_id,
@@ -837,14 +869,26 @@ class HybridDatabase(object):
         dataset_id_statement = ' OR '.join(dataset_id_statement)
         prepared_statement = prepared_statement.replace('<DATASET_ID_STATEMENT>', f'({dataset_id_statement})')
 
+        rows = self.execute_raw_sql_statement(prepared_statement, params=dataset_ids)
+        return self.__parse_submissions(rows, include_unpublished, round_floats)
+
+    @staticmethod
+    def __parse_submissions(rows, include_unpublished, round_floats):
         keys = dict()
         input_run_to_evaluation = {}
-        rows = self.execute_raw_sql_statement(prepared_statement, params=dataset_ids)
+
+        def round_if_float(fl):
+            if not round_floats:
+                return fl
+            try:
+                return round(float(fl), 3)
+            except ValueError:
+                return fl
 
         for dataset_id, run_id, input_run_id, upload_display_name, upload_vm_id, software_vm_id, docker_display_name, \
-                docker_vm_id, eval_published, eval_blinded, run_published, run_blinded, measure_key, measure_value in rows:
+                docker_vm_id, eval_published, eval_blinded, run_published, run_blinded, m_key, m_value in rows:
 
-            if not measure_key or (not include_unpublished and not eval_published):
+            if not m_key or (not include_unpublished and not eval_published):
                 continue
 
             if run_id not in input_run_to_evaluation:
@@ -875,8 +919,8 @@ class HybridDatabase(object):
             input_run_to_evaluation[run_id]['blinded'] = eval_blinded or run_blinded
             input_run_to_evaluation[run_id]['is_upload'] = is_upload
             input_run_to_evaluation[run_id]['is_software'] = is_software
-            input_run_to_evaluation[run_id]['measures'][measure_key] = measure_value
-            keys[measure_key] = ''
+            input_run_to_evaluation[run_id]['measures'][m_key] = m_value
+            keys[m_key] = ''
 
         keys = list(keys.keys())
         ret = []

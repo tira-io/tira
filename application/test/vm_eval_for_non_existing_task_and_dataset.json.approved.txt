@@ -1,0 +1,47 @@
+{
+    "context": {
+        "docker_documentation": [
+            "Your account has no docker registry. Please contact an organizer."
+        ],
+        "ev_keys": [],
+        "include_navigation": false,
+        "organizer_teams": "[]",
+        "role": "admin",
+        "runs": [],
+        "table_headers": [
+            {
+                "key": "dataset_id",
+                "title": "Dataset"
+            },
+            {
+                "key": "run_id",
+                "title": "Run"
+            },
+            {
+                "key": "actions",
+                "sortable": false,
+                "title": ""
+            }
+        ],
+        "table_headers_small_layout": [
+            {
+                "key": "dataset_id",
+                "title": "Dataset"
+            },
+            {
+                "key": "run_id",
+                "title": "Run"
+            }
+        ],
+        "table_sort_by": [
+            {
+                "key": "run_id",
+                "order": "desc"
+            }
+        ],
+        "task_id": "vm-eval-task",
+        "user_id": "ignored-user.",
+        "user_vms_for_task": []
+    },
+    "status": 0
+}

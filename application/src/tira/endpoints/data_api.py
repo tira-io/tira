@@ -41,7 +41,7 @@ def get_dataset_for_task(request, context, task_id):
             return JsonResponse({"status": "0", "message": f"Encountered an exception: {e}"})
 
 
-def __normalize_run(i, ev_keys, is_admin, user_vms_for_task, task_id, is_ir_task):
+def __normalize_run(i, ev_keys, is_admin, user_vms_for_task, task_id, is_ir_task, is_training_dataset=False):
     i = deepcopy(i)
     i['link_to_team'] = link_to_discourse_team(i['vm_id'])
     eval_run_id = i["run_id"]
@@ -49,14 +49,15 @@ def __normalize_run(i, ev_keys, is_admin, user_vms_for_task, task_id, is_ir_task
         i[v] = i[k]
         del i[k]
 
-    for j in range(len(ev_keys)):
-        i[ev_keys[j]] = i['measures'][j]
+    if is_admin or i['published'] or is_training_dataset:
+        for j in range(len(ev_keys)):
+            i[ev_keys[j]] = i['measures'][j]
 
     for j in ['measures']:
         del i[j]
 
     i['selectable'] = False
-    if not i['blinded'] and (is_admin or i['vm_id'] in user_vms_for_task or i['published']):
+    if not i['blinded'] and (is_admin or i['vm_id'] in user_vms_for_task or i['published'] or is_training_dataset):
         i[
             'link_results_download'] = f'/task/{task_id}/user/{i["vm_id"]}/dataset/{i["dataset_id"]}/download/{eval_run_id}.zip'
         i[
@@ -126,21 +127,35 @@ def get_evaluations_by_vm(request, context, task_id, vm_id):
     is_admin = context["role"] == "admin"
     user_vms_for_task = __inject_user_vms_for_task(request, context, task_id)
 
-    context["task_id"] = task_id
-    context["ev_keys"] = []
-    headers = [{'title': 'Team', 'key': 'vm_id'}, {'title': 'Approach', 'key': 'input_software_name'},
-               {'title': 'Run', 'key': 'run_id'}]
-    evaluation_headers = []
+    docker_software_id = request.GET.get('docker_software_id', '')
+    upload_id = request.GET.get('upload_id', '')
 
-    context["table_headers"] = headers + evaluation_headers + [{'title': '', 'key': 'actions', 'sortable': False}]
-    context["table_headers_small_layout"] = [headers[1]] + evaluation_headers[:1]
+    ev_keys, evaluations = model.get_runs_for_vm(vm_id, docker_software_id, upload_id)
+
+    context["task_id"] = task_id
+    context["ev_keys"] = ev_keys
+    headers = [{'title': 'Dataset', 'key': 'dataset_id'}, {'title': 'Run', 'key': 'run_id'}]
 
     context["table_sort_by"] = [{'key': 'run_id', 'order': 'desc'}]
 
     runs = []
-    for i in model.get_runs_for_vm(vm_id, request.GET.get('docker_software_id', ''), request.GET.get('upload_id', '')):
-        runs += [__normalize_run(i, [], is_admin, user_vms_for_task, task_id, is_ir_task)]
+    covered_evaluation_headers = set()
+
+    for i in evaluations:
+        dataset_id = i['dataset_id']
+        is_training_dataset = dataset_id.endswith('-training')
+        i = __normalize_run(i, ev_keys, is_admin, user_vms_for_task, task_id, is_ir_task, is_training_dataset)
+        i['dataset_id'] = dataset_id
+        for k in ev_keys:
+            if k in i:
+                covered_evaluation_headers.add(k)
+        runs += [i]
     context["runs"] = runs
+
+    evaluation_headers = [{'title': k, 'key': k} for k in ev_keys if k in covered_evaluation_headers]
+
+    context["table_headers"] = headers + evaluation_headers + [{'title': '', 'key': 'actions', 'sortable': False}]
+    context["table_headers_small_layout"] = headers
 
     return JsonResponse({'status': 0, "context": context})
 

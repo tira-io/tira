@@ -68,6 +68,7 @@
                    @click="fileUpload(us.id)">Upload Run</v-btn>
 
 
+            <h2>Submissions</h2>
             <run-list :task_id="task_id" :organizer="organizer" :organizer_id="organizer_id" :vm_id="user_id_for_task" :upload_id="us.id" />
           </v-window-item>
     </v-window>

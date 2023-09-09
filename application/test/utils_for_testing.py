@@ -25,26 +25,28 @@ from django.core.management import call_command
 import tira.model as modeldb
 
 
-def set_up_tira_environment():
-
+def set_up_tira_filesystem():
     shutil.rmtree(Path('tira-root'), ignore_errors=True)
-        
+
     call_command('flush', interactive=False)
-    
+
     Path('tira-root/model/virtual-machines/').mkdir(parents=True, exist_ok=True)
     Path('tira-root/model/virtual-machine-hosts').mkdir(parents=True, exist_ok=True)
     Path('tira-root/model/tasks/').mkdir(parents=True, exist_ok=True)
     Path('tira-root/model/users/').mkdir(parents=True, exist_ok=True)
     Path('tira-root/data/runs/dataset-1/example_participant/run-1').mkdir(parents=True, exist_ok=True)
-    Path('tira-root/data/runs/dataset-of-organizer/example_participant/run-of-organizer').mkdir(parents=True, exist_ok=True)
+    Path('tira-root/data/runs/dataset-of-organizer/example_participant/run-of-organizer').mkdir(parents=True,
+                                                                                                exist_ok=True)
     open('tira-root/model/virtual-machines/virtual-machines.txt', 'w').write('')
     open('tira-root/model/virtual-machine-hosts/virtual-machine-hosts.txt', 'w').write('')
     open('tira-root/model/users/users.prototext', 'w').write('')
 
+def set_up_tira_environment():
+    set_up_tira_filesystem()
+
     tira_model.edit_organizer('organizer', 'organizer', 'years', 'web', [])
     tira_model.edit_organizer('organizer-2', 'organizer-2', 'years', 'web', [])
     tira_model.edit_organizer('EXAMPLE-ORGANIZER', 'EXAMPLE_ORGANIZER', 'years', 'web', [])
-    
     
     tira_model.add_vm('master-vm-for-task-1', 'user_name', 'initial_user_password', 'ip', 'host', '123', '123')
     tira_model.add_vm('example_participant', 'user_name', 'initial_user_password', 'ip', 'host', '123', '123')
