@@ -8,22 +8,7 @@
         <run-actions :run="item.value" />
       </template>
       <template #item.vm_id="{ item }">
-        <span v-if="item.value.is_software">
-          <v-icon>mdi-docker</v-icon>
-          <v-tooltip activator="parent" location="top">Software Submission</v-tooltip>
-        </span>
-        <span v-if="item.value.is_upload">
-          <v-icon>mdi-file-document</v-icon>
-          <v-tooltip activator="parent" location="top">Run Submission</v-tooltip>
-        </span>
-        <span v-if="!item.value.published" class="mr1">
-          <v-icon>mdi-eye-off-outline</v-icon>
-          <v-tooltip activator="parent" location="top">Not Published on Leaderboard</v-tooltip>
-        </span>
-        <span v-if="item.value.published" class="mr1">
-          <v-icon>mdi-eye-outline</v-icon>
-          <v-tooltip activator="parent" location="top">Published on Leaderboard</v-tooltip>
-        </span>
+        <submission-icon :submission="item.value" />
         <a v-if="role != 'admin'" target="_blank" :href="item.value.link_to_team">{{ item.value.vm_id }}</a>
 
         <v-menu v-if="role == 'admin'" transition="slide-y-transition">
@@ -35,8 +20,12 @@
             <v-list-item key="submission-page"><a target="_blank" :href="'/submit/' + task_id + '/user/' + item.value.vm_id">Submission Page of {{ item.value.vm_id }}</a></v-list-item>
           </v-list>
         </v-menu>
-
       </template>
+
+      <template #item.dataset_id="{ item }">
+        <submission-icon :submission="item.value" /> {{ item.value.dataset_id }}
+      </template>
+
       <template v-slot:expanded-row="{ columns, item }">
         <tr>
           <td :colspan="columns.length" style="background-color: white;" class="px-0 mx-0">
@@ -79,11 +68,12 @@
 import RunActions from './RunActions.vue'
 import SoftwareDetails from './SoftwareDetails.vue'
 import Loading from "./Loading.vue"
+import SubmissionIcon from "./SubmissionIcon.vue"
 import { get, reportError, inject_response, extractRole } from '../utils'
 
 export default {
   name: "run-list",
-  components: {RunActions, SoftwareDetails, Loading},
+  components: {RunActions, SoftwareDetails, Loading, SubmissionIcon},
   props: ['task_id', 'dataset_id', 'organizer', 'organizer_id', 'vm_id', 'docker_software_id', 'upload_id'],
   data() { return {
       expanded: [],

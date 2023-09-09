@@ -10,7 +10,19 @@
     <v-card-text>
       <v-window v-model="component_tab">
         <v-window-item value="details">
-          <v-card-item class="d-md-none" v-if="run && run.link_to_team"><b>Team: </b> <a :href="run.link_to_team"> {{ run.vm_id }}</a></v-card-item>
+          <v-card-item class="d-md-none" v-if="run && run.link_to_team"><b>Team: </b>
+            <submission-icon :submission="run" />
+            <a v-if="role != 'admin'" target="_blank" :href="run.link_to_team">{{ run.vm_id }}</a>
+            <v-menu v-if="role == 'admin'" transition="slide-y-transition">
+              <template v-slot:activator="{ props }">
+                <a href="javascript:void(0)" v-bind="props">{{ run.vm_id }}</a>
+              </template>
+              <v-list>
+                <v-list-item key="team-page"><a target="_blank" :href="run.link_to_team">Team Page of {{ run.vm_id }}</a></v-list-item>
+                <v-list-item key="submission-page"><a target="_blank" :href="'/submit/' + task_id + '/user/' + run.vm_id">Submission Page of {{ run.vm_id }}</a></v-list-item>
+              </v-list>
+            </v-menu>  
+          </v-card-item>
           <div v-for="(value, key) in run">
             <v-card-item v-if="!fields_to_skip.includes(key + '')"><b>{{  key }} </b>: {{ value }}</v-card-item>
           </div>
@@ -81,12 +93,13 @@
 import Loading from './Loading.vue'
 import TiraDataExport from './TiraDataExport.vue'
 import RunActions from './RunActions.vue'
+import SubmissionIcon from "./SubmissionIcon.vue"
 import { get, inject_response, extractRole, extractTaskFromCurrentUrl, get_link_to_organizer, get_contact_link_to_organizer } from '../utils';
 
 export default {
   name: "software-details",
   props: ['run', 'organizer', 'organizer_id', 'columns_to_skip'],
-  components: {Loading, TiraDataExport, RunActions},
+  components: {Loading, TiraDataExport, RunActions, SubmissionIcon},
   data() {
     return {
       loading: true,
