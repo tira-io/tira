@@ -131,8 +131,8 @@ def get_evaluations_by_vm(request, context, task_id, vm_id):
     upload_id = request.GET.get('upload_id', '')
 
     if not docker_software_id and not upload_id or (docker_software_id and upload_id):
-        JsonResponse({'status': 1, "message": 'Please pass either a docker_software_id or a upload_id. Got: ' +
-                                              f'upload_id="{upload_id}" docker_software_id="{docker_software_id}".'})
+        return JsonResponse({'status': 1, "message": 'Please pass either a docker_software_id or a upload_id. Got: ' +
+                                          f'upload_id = "{upload_id}" docker_software_id = "{docker_software_id}".'})
 
     ev_keys, evaluations = model.get_runs_for_vm(vm_id, docker_software_id, upload_id)
 
