@@ -1,0 +1,2 @@
+{"TIRA_TASK_ID": "ir-benchmarks", "TIRA_VM_ID": "webis-query-segmentation", "TIRA_SOFTWARE_NAME": "wt-snp-baseline", "dataset": "d1", "output_directory": "query-processing-outputs/query-segmentation"}
+{"TIRA_TASK_ID": "ir-benchmarks", "TIRA_VM_ID": "webis-keyphrase-extraction", "TIRA_SOFTWARE_NAME": "BCExtractorFO", "dataset": "d1", "output_directory": "document-processing-outputs/keyphrase-extraction"}

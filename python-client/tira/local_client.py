@@ -1,4 +1,3 @@
-import requests
 import json
 import pandas as pd
 import os
@@ -205,72 +204,16 @@ and the
 
         raise ValueError(f'Could not find a unique software with approach="{approach}" or software_id="{software_id}". Found {ret}')
 
-    def submissions(self, task, dataset):
-        response = self.json_response(f'/api/submissions/{task}/{dataset}')['context']
-        ret = []
-
-        for vm in response['vms']:
-            for run in vm['runs']:
-                if 'review' in run:
-                    for k,v in run['review'].items():
-                        run['review_' + k] = v
-                    del run['review']
-
-                ret += [{**{'task': response['task_id'], 'dataset': response['dataset_id'], 'team': vm['vm_id']}, **run}]
-
-        return pd.DataFrame(ret)
-
-    def evaluations(self, task, dataset, join_submissions=True):
-        response = self.json_response(f'/api/evaluations/{task}/{dataset}')['context']
-        ret = []
-        evaluation_keys = response['ev_keys']
-
-        if join_submissions:
-            runs_to_join = {}
-            for _, i in self.submissions(task, dataset).iterrows():
-                i = i.to_dict()
-                runs_to_join[(i['team'], i['run_id'])] = {'software': i['software'], 'input_run_id': i['input_run_id'], 'is_upload': i['is_upload'], 'is_docker': i['is_docker']}
-
-        for evaluation in response['evaluations']:
-            run = {'task': response['task_id'], 'dataset': response['dataset_id'], 'team': evaluation['vm_id'], 'run_id': evaluation['input_run_id']}
-
-            if join_submissions and (run['team'], run['run_id']) in runs_to_join:
-                software = runs_to_join[(run['team'], run['run_id'])]
-                for k,v in software.items():
-                    run[k] = v
-
-            for measure_id, measure in zip(range(len(evaluation_keys)), evaluation_keys):
-                run[measure] = evaluation['measures'][measure_id]
-
-            ret += [run]
-
-        return pd.DataFrame(ret)
-
     def run_was_already_executed_on_dataset(self, approach, dataset):
         return self.get_run_execution_or_none(approach, dataset) is not None
 
     def get_run_execution_or_none(self, approach, dataset, previous_stage_run_id=None):
         task, team, software = approach.split('/')
+        executions = [json.loads(i) for i in open(self.directory + '.tira/executions.jsonl')]
 
-        df_eval = self.evaluations(task=task, dataset=dataset)
+        executions = [i for i in executions if i['TIRA_TASK_ID'] == task and i['TIRA_VM_ID'] == team and i['TIRA_SOFTWARE_NAME'] == software and i['dataset'] == dataset]
 
-        ret = df_eval[(df_eval['dataset'] == dataset) & (df_eval['software'] == software)]
-        if len(ret) <= 0:
-            return None
-
-        if team:
-            ret = ret[ret['team'] == team]
-
-        if len(ret) <= 0:
-            return None
-
-        if previous_stage_run_id:
-            ret = ret[ret['input_run_id'] == previous_stage_run_id]
-
-        if len(ret) <= 0:
-            return None
-
-        return ret[['task', 'dataset', 'team', 'run_id']].iloc[0].to_dict()
+        return None if len(executions) < 1 else self.directory + '/' +  executions[0]['output_directory']
 
     def download_run(self, task, dataset, software, team=None, previous_stage=None, return_metadata=False):
         ret = self.get_run_execution_or_none(f'{task}/{team}/{software}', dataset, previous_stage)
@@ -284,27 +227,4 @@ and the
             return ret, run_id
         else:
             return ret
-
-    def download_zip_to_cache_directory(self, task, dataset, team, run_id):
-        target_dir = f'{self.__tira_cache_dir}/extracted_runs/{task}/{dataset}/{team}'
-
-        if os.path.isdir(target_dir + f'/{run_id}'):
-            return target_dir + f'/{run_id}/output'
-
-        self.download_and_extract_zip(f'https://www.tira.io/task/{task}/user/{team}/dataset/{dataset}/download/{run_id}.zip', target_dir)
-
-        return target_dir + f'/{run_id}/output'
-
-    def download_and_extract_zip(self, url, target_dir):
-        for i in range(self.failsave_retries):
-            try:
-                r = requests.get(url, headers={"Api-Key": self.api_key})
-                z = zipfile.ZipFile(io.BytesIO(r.content))
-                z.extractall(target_dir)
-
-                return
-            except:
-                sleep_time = 1+int(random()*self.failsave_max_delay)
-                print(f'Error occured while fetching {url}. I will sleep {sleep_time} seconds and continue.')
-                time.sleep(sleep_time)
 
