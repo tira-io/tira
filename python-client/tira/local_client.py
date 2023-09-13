@@ -220,11 +220,18 @@ and the
         if not ret:
             raise ValueError(f'I could not find a run for the filter criteria task="{task}", dataset="{dataset}", software="{software}", team={team}, previous_stage={previous_stage}')
 
-        ret = pd.read_csv(ret + '/run.txt', sep='\\s+', names=["query", "q0", "docid", "rank", "score", "system"])
-        ret['query'] = ret['query'].astype(str)
-        ret['docid'] = ret['docid'].astype(str)
-        ret['docno'] = ret['docid']
-        ret['qid'] = ret['query']
+        if not os.path.exists(ret + '/run.txt'):
+            ret = pd.read_json(ret + '/rerank.jsonl.gz', lines=True, orient='columns')
+            ret['qid'] = ret['qid'].astype(str)
+            ret['docno'] = ret['docno'].astype(str)
+            ret['docid'] = ret['docno']
+            ret['query'] = ret['qid']
+        else:
+            ret = pd.read_csv(ret + '/run.txt', sep='\\s+', names=["query", "q0", "docid", "rank", "score", "system"])
+            ret['query'] = ret['query'].astype(str)
+            ret['docid'] = ret['docid'].astype(str)
+            ret['docno'] = ret['docid']
+            ret['qid'] = ret['query']
 
         if return_metadata:
             return ret, 'run_id'
