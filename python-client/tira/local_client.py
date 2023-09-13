@@ -219,12 +219,15 @@ and the
         ret = self.get_run_execution_or_none(f'{task}/{team}/{software}', dataset, previous_stage)
         if not ret:
             raise ValueError(f'I could not find a run for the filter criteria task="{task}", dataset="{dataset}", software="{software}", team={team}, previous_stage={previous_stage}')
-        run_id = ret['run_id']
 
-        ret = self.download_zip_to_cache_directory(**ret)
         ret = pd.read_csv(ret + '/run.txt', sep='\\s+', names=["query", "q0", "docid", "rank", "score", "system"])
+        ret['query'] = ret['query'].astype(str)
+        ret['docid'] = ret['docid'].astype(str)
+        ret['docno'] = ret['docid']
+        ret['qid'] = ret['query']
+
         if return_metadata:
-            return ret, run_id
+            return ret, 'run_id'
         else:
             return ret
 
