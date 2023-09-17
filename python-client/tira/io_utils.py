@@ -19,10 +19,14 @@ def all_lines_to_pandas(input_file, load_default_text):
     for l in input_file:
         l = json.loads(l)
         if load_default_text:
-            del l['original_query']
-            del l['original_document']
-        l['qid'] = str(l['qid'])
-        l['docno'] = str(l['docno'])
+            for field_to_del in ['original_query', 'original_document']:
+                if field_to_del in l:
+                    del l[field_to_del]
+
+        for field_to_str in ['qid', 'docno']:
+            if field_to_str in l:
+                l[field_to_str] = str(l[field_to_str])
+
         ret += [l]
     
     return pd.DataFrame(ret)
