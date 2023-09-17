@@ -24,4 +24,4 @@ database:
   password: TODO-ENTER-PASSWORD  # ignored when using sqlite3
   host: tira-mariadb  # ignored when using sqlite3
   port: 3306  # ignored when using sqlite3
-
+github_token: TODO-ENTER-TOKEN
