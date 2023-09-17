@@ -125,3 +125,6 @@ def load_ir_datasets():
         except:
             return None
 
+
+ir_datasets = load_ir_datasets()
+
