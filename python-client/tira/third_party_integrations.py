@@ -94,10 +94,15 @@ def register_rerank_data_to_ir_datasets(path_to_rerank_file, ir_dataset_id, orig
     register_dataset_from_re_rank_file(ir_dataset_id, df_re_rank, original_ir_datasets_id)
 
 
-def persist_and_normalize_run(run, system_name, output_file, depth=1000):
+def persist_and_normalize_run(run, system_name, output_file=None, depth=1000):
+    if output_file is None:
+        print('I use the environment variable "TIRA_OUTPUT_DIRECTORY" to determine where I should store the run file.')
+        output_file = os.environ.get('TIRA_OUTPUT_DIRECTORY', '.')
+
     if not output_file.endswith('run.txt'):
         output_file = output_file + '/run.txt'
     normalize_run(run, system_name, depth).to_csv(output_file, sep=" ", header=False, index=False)
+    print(f'Done. run file is stored under "{output_file}".')
 
 
 def normalize_run(run, system_name, depth=1000):
