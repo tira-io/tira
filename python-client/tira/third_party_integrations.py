@@ -1,6 +1,6 @@
 import os
 import json
-import gzip
+from tira.io_utils import all_lines_to_pandas
 
 
 def ensure_pyterrier_is_loaded(boot_packages=("com.github.terrierteam:terrier-prf:-SNAPSHOT"), packages=()):
@@ -54,22 +54,6 @@ def get_input_directory_and_output_directory(default_input, default_output: str 
 
 def is_running_as_inference_server():
     return os.environ.get('TIRA_INFERENCE_SERVER', None) is not None
-
-
-def all_lines_to_pandas(input_file, load_default_text):
-    import pandas as pd
-    ret = []
-    
-    for l in input_file:
-        l = json.loads(l)
-        if load_default_text:
-            del l['original_query']
-            del l['original_document']
-        l['qid'] = str(l['qid'])
-        l['docno'] = str(l['docno'])
-        ret += [l]
-    
-    return pd.DataFrame(ret)
     
                 
 def load_rerank_data(default_input, load_default_text=True):
@@ -81,14 +65,7 @@ def load_rerank_data(default_input, load_default_text=True):
         elif os.path.isfile(default_input + '/rerank.jsonl'):
             default_input = default_input + '/rerank.jsonl'
     
-    ret = []
-
-    if default_input.endswith('.gz'):
-        with gzip.open(default_input, 'rt', encoding='utf-8') as input_file:
-            return all_lines_to_pandas(input_file, load_default_text)
-    else:
-        with open(default_input, 'r') as input_file:
-            return all_lines_to_pandas(input_file, load_default_text)
+    return all_lines_to_pandas(default_input, load_default_text)
 
 
 def register_rerank_data_to_ir_datasets(path_to_rerank_file, ir_dataset_id, original_ir_datasets_id=None):
@@ -106,12 +83,7 @@ def register_rerank_data_to_ir_datasets(path_to_rerank_file, ir_dataset_id, orig
         elif os.path.isfile(default_input + '/rerank.jsonl'):
             default_input = default_input + '/rerank.jsonl'
 
-    if default_input.endswith('.gz'):
-        with gzip.open(default_input, 'rt', encoding='utf-8') as input_file:
-            df_re_rank = all_lines_to_pandas(input_file, False)
-    else:
-        with open(default_input, 'r') as input_file:
-            df_re_rank = all_lines_to_pandas(input_file, False)
+    df_re_rank = all_lines_to_pandas(default_input, False)
 
     register_dataset_from_re_rank_file(ir_dataset_id, df_re_rank, original_ir_datasets_id)
 
@@ -141,4 +113,18 @@ def normalize_run(run, system_name, depth=1000):
     run["rank"] = run.groupby("qid")["rank"].cumsum()
     
     return run[['qid', 'Q0', 'docno', 'rank', 'score', 'system']]
+
+
+
+def load_ir_datasets():
+    # Detect if we are in the TIRA sandbox
+    if 'TIRA_INPUT_DATASET' in os.environ:
+        from tira.ir_datasets_util import static_ir_datasets_from_directory
+        return static_ir_datasets_from_directory(os.environ['TIRA_INPUT_DATASET'])
+    else:
+        try:
+            import ir_datasets as original_ir_datasets
+            return original_ir_datasets
+        except:
+            return None
 
