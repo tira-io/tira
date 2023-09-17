@@ -22,6 +22,11 @@ def test_for_loading_query_segmentations_for_single_query():
     assert actual['351'] == expected['351']
 
 
+def test_pyterrier_can_be_loaded():
+    from tira.third_party_integrations import ensure_pyterrier_is_loaded
+    ensure_pyterrier_is_loaded()
+
+
 def query_segmentation(queries):
     queries = pd.DataFrame([{'qid': str(i)} for i in queries])
     tira = Client('tests/resources/')

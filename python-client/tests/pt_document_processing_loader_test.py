@@ -24,6 +24,11 @@ def test_for_loading_keyphrase_extraction_for_single_documents():
     assert actual["LA120390-0047"] == expected["LA120390-0047"]
 
 
+def test_pyterrier_can_be_loaded():
+    from tira.third_party_integrations import ensure_pyterrier_is_loaded
+    ensure_pyterrier_is_loaded()
+
+
 def keyphrase_extraction(docs):
     queries = pd.DataFrame([{'docno': str(i)} for i in docs])
     tira = Client('tests/resources/')

@@ -7,7 +7,7 @@ def ensure_pyterrier_is_loaded(boot_packages=("com.github.terrierteam:terrier-pr
     import pyterrier as pt
 
     pt_version = os.environ.get('PYTERRIER_VERSION', '5.7')
-    pt_helper_version = os.get('PYTERRIER_HELPER_VERSION', '0.0.7')
+    pt_helper_version = os.environ.get('PYTERRIER_HELPER_VERSION', '0.0.7')
 
     if not pt.started():
         print(f'Start PyTerrier with version={pt_version}, helper_version={pt_helper_version}, no_download=True')
