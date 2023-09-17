@@ -3,8 +3,17 @@ import json
 from tira.io_utils import all_lines_to_pandas
 
 
-def ensure_pyterrier_is_loaded(boot_packages=("com.github.terrierteam:terrier-prf:-SNAPSHOT", ), packages=()):
+def ensure_pyterrier_is_loaded(boot_packages=("com.github.terrierteam:terrier-prf:-SNAPSHOT", ), packages=(), patch_ir_datasets=True):
     import pyterrier as pt
+
+    # Detect if we are in the TIRA sandbox
+    if patch_ir_datasets and 'TIRA_INPUT_DATASET' in os.environ:
+        try:
+            import ir_datasets as original_ir_datasets
+            original_ir_datasets.load = load_ir_datasets().load
+            print('Due to execution in TIRA, I have patched ir_datasets to always return the single input dataset mounted to the sandbox.')
+        except:
+            print('Could not patch ir_datasets.')
 
     pt_version = os.environ.get('PYTERRIER_VERSION', '5.7')
     pt_helper_version = os.environ.get('PYTERRIER_HELPER_VERSION', '0.0.7')
