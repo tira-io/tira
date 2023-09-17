@@ -96,7 +96,7 @@ def register_rerank_data_to_ir_datasets(path_to_rerank_file, ir_dataset_id, orig
 
 def persist_and_normalize_run(run, system_name, output_file=None, depth=1000):
     if output_file is None:
-        print('I use the environment variable "TIRA_OUTPUT_DIRECTORY" to determine where I should store the run file.')
+        print('I use the environment variable "TIRA_OUTPUT_DIRECTORY" to determine where I should store the run file using "." as default.')
         output_file = os.environ.get('TIRA_OUTPUT_DIRECTORY', '.')
 
     if not output_file.endswith('run.txt'):
