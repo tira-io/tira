@@ -76,6 +76,10 @@ class LocalExecutionIntegration():
         print('# Pull Image\n\n')
         image_pull_code = subprocess.call(['docker', 'pull', image])
 
+        if image_pull_code != 0 and 'GITHUB_ACTION' in os.environ:
+            print("Skip pulling of image because everything is executed within github.")
+            return
+
         if image_pull_code != 0:
             raise ValueError(f'Image could not be successfully pulled. Got return code {image_pull_code}. (expected 0.)')
 
