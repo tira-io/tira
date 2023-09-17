@@ -58,13 +58,20 @@ class LocalExecutionIntegration():
             'docker': f'docker run --rm -ti -v {input_dir}:/tira-data/input:ro -v {output_dir}:/tira-data/output:rw --entrypoint sh {image} -c \'{command}\''
         }
 
-    def ensure_image_available_locally(self, image):
+    def ensure_image_available_locally(self, image, client=None):
         try:
             output = subprocess.check_output(['docker', 'images', '-q', image])
             if len(output) > 0:
                 return
         except:
             pass
+        
+        if client:
+            try:
+                if any(image in str(i) for i in client.images.list()):
+                    return
+            except:
+                pass
 
         print('# Pull Image\n\n')
         image_pull_code = subprocess.call(['docker', 'pull', image])
@@ -145,7 +152,7 @@ class LocalExecutionIntegration():
                     raise ValueError(f'Volume to mount is multiple times defined: {volume_dir}')
                 volumes[volume_dir] = {'bind': volume_bind, 'mode': volume_mode}
 
-        self.ensure_image_available_locally(image)
+        self.ensure_image_available_locally(image, client)
         environment = {'outputDir': '/tira-data/output', 'inputDataset': '/tira-data/input', 'TIRA_DATASET_ID': 'id', 'TIRA_OUTPUT_DIRECTORY': '/tira-data/output', 'TIRA_INPUT_DIRECTORY': '/tira-data/input'}
 
         container = client.containers.run(image, entrypoint='sh', command=f'-c "{command}"', environment=environment, volumes=volumes, detach=True, remove=True, network_disabled = not allow_network)
@@ -181,8 +188,8 @@ class LocalExecutionIntegration():
             ds = self.tira_client.docker_software(approach=identifier, software_id=software_id)
             image = ds['tira_image_name']
 
-        self.ensure_image_available_locally(image)
         client = self.__docker_client()
+        self.ensure_image_available_locally(image, client)        
         docker_container = client.containers.create(image)
         strm, stat = docker_container.get_archive(container_path, None)
 
