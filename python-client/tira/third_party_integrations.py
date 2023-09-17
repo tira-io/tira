@@ -7,7 +7,7 @@ def ensure_pyterrier_is_loaded(boot_packages=("com.github.terrierteam:terrier-pr
     import pyterrier as pt
 
     # Detect if we are in the TIRA sandbox
-    if patch_ir_datasets and 'TIRA_INPUT_DATASET' in os.environ:
+    if patch_ir_datasets and 'TIRA_INPUT_DIRECTORY' in os.environ:
         try:
             import ir_datasets as original_ir_datasets
             original_ir_datasets.load = load_ir_datasets().load
@@ -129,9 +129,9 @@ def normalize_run(run, system_name, depth=1000):
 
 def load_ir_datasets():
     # Detect if we are in the TIRA sandbox
-    if 'TIRA_INPUT_DATASET' in os.environ:
+    if 'TIRA_INPUT_DIRECTORY' in os.environ:
         from tira.ir_datasets_util import static_ir_datasets_from_directory
-        return static_ir_datasets_from_directory(os.environ['TIRA_INPUT_DATASET'])
+        return static_ir_datasets_from_directory(os.environ['TIRA_INPUT_DIRECTORY'])
     else:
         try:
             import ir_datasets as original_ir_datasets

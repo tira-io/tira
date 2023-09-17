@@ -146,8 +146,9 @@ class LocalExecutionIntegration():
                 volumes[volume_dir] = {'bind': volume_bind, 'mode': volume_mode}
 
         self.ensure_image_available_locally(image)
+        environment = {'outputDir': '/tira-data/output', 'inputDataset': '/tira-data/input', 'TIRA_DATASET_ID': 'id', 'TIRA_OUTPUT_DIRECTORY': '/tira-data/output', 'TIRA_INPUT_DIRECTORY': '/tira-data/input'}
 
-        container = client.containers.run(image, entrypoint='sh', command=f'-c "{command}"', volumes=volumes, detach=True, remove=True, network_disabled = not allow_network)
+        container = client.containers.run(image, entrypoint='sh', command=f'-c "{command}"', environment=environment, volumes=volumes, detach=True, remove=True, network_disabled = not allow_network)
 
         for line in container.attach(stdout=True, stream=True, logs=True):
             print(line.decode('utf-8'), flush=True)
