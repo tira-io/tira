@@ -3,15 +3,12 @@ import json
 from tira.io_utils import all_lines_to_pandas
 
 
-def ensure_pyterrier_is_loaded(boot_packages=("com.github.terrierteam:terrier-prf:-SNAPSHOT"), packages=()):
+def ensure_pyterrier_is_loaded(boot_packages=("com.github.terrierteam:terrier-prf:-SNAPSHOT", ), packages=()):
     import pyterrier as pt
-    
-    if 'PYTERRIER_VERSION' not in os.environ or 'PYTERRIER_HELPER_VERSION' not in os.environ:
-        raise ValueError(f'I expect to find the environment variables PYTERRIER_VERSION and PYTERRIER_HELPER_VERSION. Current environment variables: {os.environ}')
-    
-    pt_version = os.environ['PYTERRIER_VERSION']
-    pt_helper_version = os.environ['PYTERRIER_HELPER_VERSION']
-    
+
+    pt_version = os.environ.get('PYTERRIER_VERSION', '5.7')
+    pt_helper_version = os.get('PYTERRIER_HELPER_VERSION', '0.0.7')
+
     if not pt.started():
         print(f'Start PyTerrier with version={pt_version}, helper_version={pt_helper_version}, no_download=True')
         pt.init(version=pt_version, helper_version=pt_helper_version, no_download=True, boot_packages=list(boot_packages), packages=list(packages))
