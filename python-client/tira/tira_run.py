@@ -16,6 +16,7 @@ def parse_args():
     group.add_argument('--approach')
     group.add_argument('--export-dataset', required=False, default=None, type=str)
     group.add_argument('--export-approach-output', nargs='*', required=False, default=None, type=str)
+    group.add_argument('--export-submission-from-jupyter-notebook', required=False, default=None, type=str)
     parser.add_argument('--command', required=False)
     parser.add_argument('--verbose', required=False, default=False, type=bool)
     parser.add_argument('--dry-run', required=False, default=False, type=bool)
@@ -25,6 +26,9 @@ def parse_args():
     parser.add_argument('--output-directory', required=False, default=str(os.path.abspath("tira-output")))
 
     args = parser.parse_args()
+    if args.export_submission_from_jupyter_notebook:
+        return args
+
     if (args.image is None) == (args.approach is None) == (args.export_dataset):
         parser.error('You have to exclusively use either --approach or --image.')
     if (args.image is None) != (args.command is None):
@@ -35,6 +39,14 @@ def parse_args():
 def main():
     args = parse_args()
     client = Client()
+    
+    if args.export_submission_from_jupyter_notebook:
+        ret = LocalExecutionIntegration().export_submission_from_jupyter_notebook(args.export_submission_from_jupyter_notebook)
+        if not ret:
+            exit(1)
+            return
+        print(ret)
+        return
     
     if args.export_dataset:
         if len(args.export_dataset.split('/')) != 2:
