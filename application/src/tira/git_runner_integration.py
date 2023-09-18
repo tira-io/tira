@@ -1169,3 +1169,25 @@ class GithubRunner(GitRunner):
         """
         #https://docs.github.com/en/rest/actions/workflow-jobs?apiVersion=2022-11-28#get-a-job-for-a-workflow-run
         pass
+
+    def create_software_submission_repository_for_user(self, reference_repository_name, user_repository_name, user_repository_namespace, github_user, tira_user_name, dockerhub_token, tira_client_token, repository_search_prefix):
+        reference_repo = g.get_repo(reference_repository_name)
+        user = g.get_user()
+        
+        user.create_repo(user_repository_name, f'The repository of user {tira_user_name} for code submissions in TIRA.', private=True)
+        repo = g.get_repo(f'{user_repository_namespace}/{repo}')
+        repo.add_to_collaborators(github_user, 'admin')
+
+        repo.create_secret('DOCKERHUB_TOKEN', dockerhub_token)
+        repo.create_secret('TIRA_CLIENT_TOKEN', tira_client_token)
+
+        contents = reference_repo.get_contents(repository_search_prefix)
+        while contents:
+            file_content = contents.pop(0)
+            if file_content.type == "dir":
+                contents.extend(reference_repo.get_contents(file_content.path))
+            else:
+                decoded_content = file_content.decoded_content.decode()
+                decoded_content = normalize_file(decoded_content, target_user)
+                repo.create_file(file_content.path, 'Initial Commit.', decoded_content)
+    
