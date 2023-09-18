@@ -129,6 +129,46 @@ class PyTerrierIntegration():
 
         return pt.Transformer.from_df(pd.concat(df_ret))
 
+    def transform_queries(self, approach, dataset, file_selection= '/*.jsonl'):
+        from pyterrier.apply import generic
+        import pandas as pd
+        from glob import glob
+        glob_entry = self.tira_client.get_run_execution_or_none(approach, dataset) + file_selection
+        matching_files = glob(glob_entry)
+        if len(matching_files) == 0:
+            raise ValueError('Could not find a matching query output. Found: ' + matching_files + '. Please specify the file_selection to resolve this.')
+
+        ret = pd.read_json(matching_files[0], lines=True)
+        cols = [i for i in ret.columns if i not in ['qid']]
+        ret = {str(i['qid']): i for _, i in ret.iterrows()}
+
+        def __transform_df(df):
+            for col in cols:
+                df[col] = df['qid'].apply(lambda i: ret[str(i)][col])
+            return df
+
+        return generic(__transform_df)
+
+    def transform_documents(self, approach, dataset, file_selection= '/*.jsonl'):
+        from pyterrier.apply import generic
+        import pandas as pd
+        from glob import glob
+        glob_entry = self.tira_client.get_run_execution_or_none(approach, dataset) + file_selection
+        matching_files = glob(glob_entry)
+        if len(matching_files) == 0:
+            raise ValueError('Could not find a matching document output. Found: ' + matching_files + '. Please specify the file_selection to resolve this.')
+
+        ret = pd.read_json(matching_files[0], lines=True)
+        cols = [i for i in ret.columns if i not in ['docno']]
+        ret = {str(i['docno']): i for _, i in ret.iterrows()}
+
+        def __transform_df(df):
+            for col in cols:
+                df[col] = df['docno'].apply(lambda i: ret[str(i)][col])
+            return df
+
+        return generic(__transform_df)
+
     def reranker(self, approach, irds_id=None):
         from tira.pyterrier_util import TiraLocalExecutionRerankingTransformer
         return TiraLocalExecutionRerankingTransformer(approach, self.tira_client, irds_id=irds_id)

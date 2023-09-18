@@ -1,7 +1,7 @@
 <template>
   <loading :loading="loading"/>
 
-  <v-row>
+  <v-row v-if="!loading">
     <v-col cols="6">
       <h2>Metadata</h2>
       <metadata-items :items="metadata_items"/>
@@ -19,7 +19,7 @@
     </v-col>
   </v-row>
 
-  <v-row class="py-6">
+  <v-row class="py-6" v-if="!loading">
     <v-col cols="6">
       <v-btn v-if="review.published" @click="togglePublish" variant="outlined" block>
         Unpublish Run
@@ -42,10 +42,10 @@
     </v-col>
   </v-row>
 
-  <v-divider class="py-6"/>
+  <v-divider class="py-6" v-if="!loading"/>
 
-  <h2>Output</h2>
-  <v-tabs v-model="tab" align-tabs="title">
+  <h2 v-if="!loading">Output</h2>
+  <v-tabs v-model="tab" align-tabs="title" v-if="!loading">
     <v-tab v-for="item in detailed_tabs" :key="item.key" :value="item.key" >{{ item.key }}</v-tab>
   </v-tabs>
   <v-window v-if="!loading" v-model="tab">
@@ -65,7 +65,7 @@ import { get, post, reportError, inject_response, extractDatasetFromCurrentUrl }
 export default {
   name: "run-review-form",
   components: { Loading, MetadataItems },
-  props: ['run_id', 'vm_id'],
+  props: ['run_id', 'vm_id', 'dataset_id_from_props'],
   data() {
     return {
       loading: true,
@@ -109,7 +109,9 @@ export default {
   },
   beforeMount() {
     this.loading = true
-      get('/api/review/' + this.dataset_id + '/' + this.vm_id + '/' + this.run_id)
+    let ds_id = this.dataset_id ? this.dataset_id : this.dataset_id_from_props
+
+    get('/api/review/' + ds_id + '/' + this.vm_id + '/' + this.run_id)
         .then(inject_response(this, {'loading': false}))
         .catch(reportError("Problem While Loading the Review", "This might be a short-term hiccup, please try again. We got the following error: "))
   }

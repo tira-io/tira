@@ -82,3 +82,7 @@ def get_git_runner(git_integration):
             git_integration['image_registry_prefix'], git_integration['user_repository_branch']
         )
 
+def get_git_runner_for_software_integration():
+    from tira.git_runner_integration import GithubRunner
+    return GithubRunner(settings.GITHUB_TOKEN)
+

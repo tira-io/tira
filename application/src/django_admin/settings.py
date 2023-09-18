@@ -253,6 +253,8 @@ DEFAULT_GIT_INTEGRATION_URL = 'https://git.webis.de/code-research/tira'
 IR_MEASURES_IMAGE = custom_settings.get('IR_MEASURES_IMAGE', 'webis/tira-ir-measures-evaluator:0.0.1')
 IR_MEASURES_COMMAND = custom_settings.get('IR_MEASURES_COMMAND', '/ir_measures_evaluator.py --run ${inputRun}/run.txt --topics ${inputDataset}/queries.jsonl --qrels ${inputDataset}/qrels.txt --output ${outputDir} --measures "P@10" "nDCG@10" "MRR"')
 
+GITHUB_TOKEN = custom_settings.get("github_token", '<TOKEN>')
+
 # Caching
 CACHES = {
     'default': {

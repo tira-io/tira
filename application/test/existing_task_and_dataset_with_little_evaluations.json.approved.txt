@@ -21,6 +21,7 @@
                     4.0
                 ],
                 "published": true,
+                "review_state": "no-review",
                 "run_id": "run-ds2-0-participant-1-eval",
                 "vm_id": "participant-1"
             },
@@ -36,6 +37,7 @@
                     4.2
                 ],
                 "published": true,
+                "review_state": "no-review",
                 "run_id": "run-ds2-1-participant-1-eval",
                 "vm_id": "participant-1"
             }
@@ -53,7 +55,9 @@
                 "k-1": -1.0,
                 "k-2": 4.0,
                 "link_to_team": "https://www.tira.io/g/tira_vm_participant-1",
+                "owned_by_user": false,
                 "published": true,
+                "review_state": "no-review",
                 "run_id": "run-ds2-0-participant-1",
                 "selectable": false,
                 "vm_id": "participant-1"
@@ -67,7 +71,9 @@
                 "k-1": -1.2,
                 "k-2": 4.2,
                 "link_to_team": "https://www.tira.io/g/tira_vm_participant-1",
+                "owned_by_user": false,
                 "published": true,
+                "review_state": "no-review",
                 "run_id": "run-ds2-1-participant-1",
                 "selectable": false,
                 "vm_id": "participant-1"

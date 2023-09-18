@@ -1,5 +1,35 @@
 import pandas as pd
 from glob import glob
+import gzip
+import json
+
+
+def all_lines_to_pandas(input_file, load_default_text):
+    if type(input_file) == str:
+        if input_file.endswith('.gz'):
+            with gzip.open(input_file, 'rt', encoding='utf-8') as f:
+                return all_lines_to_pandas(f, load_default_text)
+        else:
+            with open(input_file, 'r') as f:
+                return all_lines_to_pandas(f, load_default_text)
+
+    import pandas as pd
+    ret = []
+    
+    for l in input_file:
+        l = json.loads(l)
+        if load_default_text:
+            for field_to_del in ['original_query', 'original_document']:
+                if field_to_del in l:
+                    del l[field_to_del]
+
+        for field_to_str in ['qid', 'docno']:
+            if field_to_str in l:
+                l[field_to_str] = str(l[field_to_str])
+
+        ret += [l]
+    
+    return pd.DataFrame(ret)
 
 
 def __num(s):

@@ -1,5 +1,8 @@
 from copy import deepcopy
 from typing import NamedTuple
+from tira.io_utils import all_lines_to_pandas
+import os
+
 
 def register_dataset_from_re_rank_file(ir_dataset_id, df_re_rank, original_ir_datasets_id=None):
     """
@@ -102,6 +105,25 @@ def __scored_docs(df, original_dataset):
     
     return DynamicScoredDocs(docs)
 
+
+def static_ir_datasets_from_directory(directory):
+    from ir_datasets.datasets.base import Dataset
+    queries_file = directory + '/queries.jsonl'
+    docs_file = directory
+    if os.path.isfile(docs_file + '/documents.jsonl.gz'):
+        docs_file = docs_file + '/documents.jsonl.gz'
+    else:
+        docs_file = docs_file + '/documents.jsonl'
+
+    docs = __docs(all_lines_to_pandas(docs_file, False), None)
+    queries = __queries(all_lines_to_pandas(queries_file, False), None)
+
+    class IrDatasetsFromDirectoryOnly():
+        def load(self, dataset_id):
+            print(f'Load ir_dataset from "{directory}" instead of "{dataset_id}" because code is executed in TIRA.')
+            return Dataset(docs, queries)
+    
+    return IrDatasetsFromDirectoryOnly()
 
 def __check_registration_was_successful(ir_dataset_id):
     import ir_datasets
