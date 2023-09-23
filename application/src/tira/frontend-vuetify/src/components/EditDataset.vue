@@ -72,7 +72,7 @@
 
                 <v-divider/>
                 <h2 class="my-1">Evaluation</h2>
-                <p>Please specify how you want to evaluate submissions. An evaluator has a submissions and the ground truth as input to produce an evaluation. We have prepared evaluators covering common evaluation scenarious.
+                <p v-if="newDataset()">Please specify how you want to evaluate submissions. An evaluator has a submissions and the ground truth as input to produce an evaluation. We have prepared evaluators covering common evaluation scenarious.
                 </p>
 
                 <v-radio-group v-if="newDataset()" v-model="evaluation_type">
@@ -93,8 +93,8 @@
                     </template>
                   </v-radio>
                 </v-radio-group>
-                <v-text-field v-model="evaluation_image" v-if="evaluation_type !== 'eval-1'" label="Docker Image of the Evaluator" :rules="[v => v && v.length > 2 || 'Please provide a docker image.']" required/>
-                <v-text-field  v-model="evaluation_command" v-if="evaluation_type !== 'eval-1'" label="Command of the Evaluator" :rules="[v => v && v.length > 2 || 'Please provide a command.']" required/>
+                <v-text-field v-model="git_runner_image" v-if="evaluation_type !== 'eval-1'" label="Docker Image of the Evaluator" :rules="[v => v && v.length > 2 || 'Please provide a docker image.']" required/>
+                <v-text-field  v-model="git_runner_command" v-if="evaluation_type !== 'eval-1'" label="Command of the Evaluator" :rules="[v => v && v.length > 2 || 'Please provide a command.']" required/>
               </v-form>
           </v-card-text>
           <v-card-actions class="justify-end">
@@ -118,19 +118,11 @@
       components: {Loading, VAutocomplete},
       props: {task_id: {}, dataset_id_from_props: {type: String, default: ''}, disabled: {type: Boolean, default: false}},
       data: () => ({
-        loading: true, valid: false, submitInProgress: false,
-        dataset_id: '', display_name: '', is_confidential: 'true', dataset_type: 'test',
-        evaluation_image: '', evaluation_command: '', upload_type: 'upload-1',
-        irds_image: '', irds_command: '',
-        
-        is_deprecated: false,
-        default_upload_name: "predictions.jsonl",
-        irds_docker_image: "",
-        irds_import_command: "",
-        irds_import_truth_command: "",
-        git_runner_image: "ubuntu:18.04",
-        git_runner_command: "echo 'this is no real evaluator'",
-        evaluation_type: "eval-1",
+        loading: true, valid: false, submitInProgress: false, dataset_id: '',
+        display_name: '', is_confidential: 'true', dataset_type: 'test', upload_type: 'upload-1',
+        irds_image: '', irds_command: '',is_deprecated: false, default_upload_name: "predictions.jsonl",
+        irds_docker_image: "", irds_import_command: "", irds_import_truth_command: "",
+        git_runner_image: "ubuntu:18.04", git_runner_command: "echo 'this is no real evaluator'", evaluation_type: "eval-1",
       }),
       computed: {
         title() {
@@ -146,7 +138,7 @@
               .then(inject_response(this, {'loading': false}, true, ['dataset', 'evaluator']))
               .catch(reportError("Problem loading the dataset.", "This might be a short-term hiccup, please try again. We got the following error: "))
               .then(() => console.log(this.$data))
-              .then(() => {this.is_confidential = '' + this.is_confidential})
+              .then(() => {this.is_confidential = '' + this.is_confidential; this.evaluation_type = 'eval-3'})
           }
         },
         newDataset: function() {

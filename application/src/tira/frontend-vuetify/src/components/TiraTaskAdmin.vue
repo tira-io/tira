@@ -23,6 +23,19 @@
           Please <a :href="'/task/' + task_id">go to the old task page if you need some administration functionality not covered above</a>.
         </v-expansion-panel-text>
       </v-expansion-panel>
+
+      <v-expansion-panel>
+        <v-expansion-panel-title>Export Dataset</v-expansion-panel-title>
+        <v-expansion-panel-text>
+          <p>Organizers/Admins can export the dataset. Public datasets can also be exported by users, e.g., after a shared task has ended or for participants to verify their software.
+          </p>
+          <v-autocomplete v-model="selectedDataset" :items="datasets" item-title="display_name" item-value="dataset_id" label="Dataset" outlined/>
+          <ul v-if="selectedDataset !== ''">
+            <li><a :href="'/data-download/' + (selectedDataset.endsWith('-training') ? 'training' : 'test') + '/input-/' + selectedDataset + '.zip'" target="_blank">Download Input for Systems</a> (a .zip file with the content available to participant submissions)</li>
+            <li><a :href="'/data-download/' + (selectedDataset.endsWith('-training') ? 'training' : 'test') + '/input-truth/' + selectedDataset + '.zip'" target="_blank">Download Input for Evaluators</a> (a .zip file with the truth available to the evaluator)</li>
+          </ul>
+        </v-expansion-panel-text>
+      </v-expansion-panel>
       <v-expansion-panel>
         <v-expansion-panel-title>Overview Missing Reviews</v-expansion-panel-title>
         <v-expansion-panel-text>
