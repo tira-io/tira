@@ -11,7 +11,7 @@
           <v-divider class="my-4"/>
           <h3>Edit existing Dataset</h3>
           <v-row><v-col cols="6"><v-autocomplete v-model="selectedDataset" :items="datasets" item-title="display_name" item-value="dataset_id" label="Dataset" outlined/></v-col><v-col cols="6">
-            <edit-dataset :dataset_id="selectedDataset" :disabled="selectedDataset === ''" :task_id="task_id"/></v-col></v-row>
+            <edit-dataset :dataset_id_from_props="selectedDataset" :disabled="selectedDataset === ''" :task_id="task_id"/></v-col></v-row>
 
           <v-divider class="my-4"/>
           <h3>Add new Dataset</h3>

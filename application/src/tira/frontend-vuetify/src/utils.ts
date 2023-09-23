@@ -201,27 +201,36 @@ export function changeCurrentUrlToDataset(dataset: string) {
     }
 }
 
-export function inject_response(obj: any, default_values: any={}, debug=false, subpath: string='') {
+export function inject_response(obj: any, default_values: any={}, debug=false, subpaths: string|Array<string>='') {
     let object_to_inject_data = obj.$data
     return function(message: any) {
-      let obj = subpath === '' ? message['context'] : message['context'][subpath]
-      let available_keys = new Set<string>(Object.keys(obj))
-      if (debug) {
-        console.log(available_keys)
-      }
+      subpaths = Array.isArray(subpaths) ? subpaths : [subpaths]
 
-      for (var key of Object.keys(object_to_inject_data)) {
-        if (available_keys.has(key)) {
-          object_to_inject_data[key] = obj[key]
+      for (var subpath of subpaths) {
+        if (debug) {
+         console.log('Process ' + subpath)
         }
-      }
 
-      for (var key of Object.keys(default_values)) {
-        object_to_inject_data[key] = default_values[key]
-      }
+        let obj = subpath === '' ? message['context'] : message['context'][subpath]
+        let available_keys = new Set<string>(Object.keys(obj))
 
-      if (debug) {
-        console.log(object_to_inject_data)
+        if (debug) {
+          console.log(available_keys)
+        }
+
+        for (var key of Object.keys(object_to_inject_data)) {
+          if (available_keys.has(key)) {
+            object_to_inject_data[key] = obj[key]
+          }
+        }
+
+        for (var key of Object.keys(default_values)) {
+          object_to_inject_data[key] = default_values[key]
+        }
+
+        if (debug) {
+          console.log(object_to_inject_data)
+        }
       }
     }
 }
