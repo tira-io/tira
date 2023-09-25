@@ -31,12 +31,12 @@ export default {
     vm_id() {
       if (!this.vm_ids && this.vm) {
         return this.vm
-      } else if (!this.vm_ids && this.user_id && this.task.require_groups && !this.task.restrict_groups) {
-        return this.user_id + '-default'
       } else if (this.user_vms_for_task && this.user_vms_for_task.length == 1) {
         return this.user_vms_for_task[0]
       } else if(this.additional_vms && this.additional_vms.length > 0 && this.additional_vms[0]) {
         return this.additional_vms[0]
+      } else if (!this.vm_ids && this.user_id && !this.task.require_groups && !this.task.restrict_groups) {
+        return this.user_id + '-default'
       }
 
       return null;
