@@ -1737,18 +1737,19 @@ class HybridDatabase(object):
         open(vm_file_path, 'w').write(str(vm))
 
     def delete_dataset(self, dataset_id):
-        ds = modeldb.Dataset.objects.select_related('default_task', 'evaluator').get(dataset_id=dataset_id)
-        task_id = ds.default_task.task_id
-        vm_id = ds.default_task.vm.vm_id
-        try:
-            evaluator_id = ds.evaluator.evaluator_id
-            self._fdb_delete_evaluator_from_vm(vm_id, evaluator_id)
-        except AttributeError as e:
-            logger.exception(f"Exception deleting evaluator while deleting dataset {dataset_id}. "
-                             f"Maybe It never existed?", e)
-        self._fdb_delete_dataset_from_task(task_id, dataset_id)
-        self._fdb_delete_dataset(task_id, dataset_id)
-        ds.delete()
+        modeldb.Dataset.objects.filter(dataset_id=dataset_id).update(is_deprecated=True)
+        #ds = modeldb.Dataset.objects.select_related('default_task', 'evaluator').get(dataset_id=dataset_id)
+        #task_id = ds.default_task.task_id
+        #vm_id = ds.default_task.vm.vm_id
+        #try:
+        #    evaluator_id = ds.evaluator.evaluator_id
+        #    self._fdb_delete_evaluator_from_vm(vm_id, evaluator_id)
+        #except AttributeError as e:
+        #    logger.exception(f"Exception deleting evaluator while deleting dataset {dataset_id}. "
+        #                     f"Maybe It never existed?", e)
+        #self._fdb_delete_dataset_from_task(task_id, dataset_id)
+        #self._fdb_delete_dataset(task_id, dataset_id)
+        #ds.delete()
 
     def edit_organizer(self, organizer_id, name, years, web, git_integrations=[]):
         org, _ = modeldb.Organizer.objects.update_or_create(organizer_id=organizer_id, defaults={

@@ -133,7 +133,6 @@ export default {
             .catch(reportError("Problem loading the data of the task.", "This might be a short-term hiccup, please try again. We got the following error: "))
             .then(() => console.log(this.$data))
         }
-        
       },
       go_to_step: async function(step: number) {
         if (this.submitInProgress) {
@@ -175,7 +174,8 @@ export default {
         }
         
         this.submitInProgress = true
-        post(this.url(), this.task_representation()).then(() => {
+        post(this.url(), this.task_representation())
+        .then(() => {
           isActive.value = false
           this.step = 1
           this.submitInProgress = false

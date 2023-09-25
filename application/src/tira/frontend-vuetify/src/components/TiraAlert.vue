@@ -7,7 +7,11 @@ export default {
   name: "tira-alert",
   data() { return {messages: [{title: '', text: '', type: ''}], alert: false}},
   computed: {
-    type() {return "error"},
+    type() {
+      if (this.current_element === null) return 'error'
+      if (this.current_element['type'] !== 'error') return 'success'
+      return 'error'
+    },
     text() {return (this.current_element || {text: ''} ).text || ''},
     title() {return ((this.current_element || {title: ''} ).title || '') + (this.messages.length <= 1 ? '' : ' (+ ' + (this.messages.length -1) + ' more messages)')},
     current_element() {

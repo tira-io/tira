@@ -147,7 +147,14 @@ export function reportSuccess(title: string="", text: string="") {
         if (title === '') {
             title = 'Success.'
         }
-        window.push_message(title, text + ' ' + error, "Success")
+
+        if ('' + error !== 'undefined' && '' + error !== 'null' && error['message'] + '' !== 'undefined' && error['message'] + '' !== 'null') {
+            text = text + ' ' + error['message']
+        } else if ('' + error !== 'undefined' && '' + error !== 'null') {
+            text = text + ' ' + error
+        }
+
+        window.push_message(title, text, "success")
     }
 }
 

@@ -12,5 +12,6 @@ import ExistingDockerSubmission from "../submission-components/ExistingDockerSub
 import NewDockerSubmission from "../submission-components/NewDockerSubmission.vue";
 import EditTask from "./EditTask.vue"
 import SubissionIcon from "./SubmissionIcon.vue"
+import ConfirmDelete from "./ConfirmDelete.vue"
 
-export {Loading, RunActions, RunList, SoftwareDetails, SubmitButton, TiraBreadcrumb, TiraTaskAdmin, TaskDocumentation, RegisterForm, LoginToSubmit, ExistingDockerSubmission, NewDockerSubmission, EditTask, SubissionIcon}
+export {Loading, RunActions, RunList, SoftwareDetails, SubmitButton, TiraBreadcrumb, TiraTaskAdmin, TaskDocumentation, RegisterForm, LoginToSubmit, ExistingDockerSubmission, NewDockerSubmission, EditTask, SubissionIcon, ConfirmDelete}

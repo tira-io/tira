@@ -209,6 +209,13 @@ def admin_add_dataset(request, task_id):
         git_runner_command = data.get("git_runner_command", "")
         git_repository_id = data.get("git_repository_id", "")
 
+        irds_docker_image = data.get("irds_docker_image", None)
+        irds_docker_image = None if not irds_docker_image else irds_docker_image
+        irds_import_command = data.get("irds_import_command", None)
+        irds_import_command = None if not irds_import_command else irds_import_command
+        irds_import_truth_command = data.get("irds_import_truth_command", None)
+        irds_import_truth_command = None if not irds_import_truth_command else irds_import_truth_command
+
         if not data.get("use_existing_repository", True):
             git_repository_id = model.get_git_integration(task_id=task_id).create_task_repository(task_id)
 
@@ -221,9 +228,9 @@ def admin_add_dataset(request, task_id):
 
         try:
             if data['type'] == 'training':
-                ds, paths = model.add_dataset(task_id, dataset_id_prefix, "training", dataset_name, upload_name)
+                ds, paths = model.add_dataset(task_id, dataset_id_prefix, "training", dataset_name, upload_name, irds_docker_image, irds_import_command, irds_import_truth_command)
             elif data['type'] == 'test':
-                ds, paths = model.add_dataset(task_id, dataset_id_prefix, "test", dataset_name, upload_name)
+                ds, paths = model.add_dataset(task_id, dataset_id_prefix, "test", dataset_name, upload_name, irds_docker_image, irds_import_command, irds_import_truth_command)
 
             model.add_evaluator(master_vm_id, task_id, ds['dataset_id'], command, working_directory, not measures,
                                 is_git_runner, git_runner_image, git_runner_command, git_repository_id)

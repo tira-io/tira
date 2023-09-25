@@ -7,20 +7,35 @@
         <v-expansion-panel-text>
           <h3>Task Configuration</h3>
           You can edit this task: <edit-task :task_id_for_edit="task_id"/>
-
-          <v-divider class="my-4"/>
-          <h3>Edit existing Dataset</h3>
-          <v-row><v-col cols="6"><v-autocomplete v-model="selectedDataset" :items="datasets" item-title="display_name" item-value="dataset_id" label="Dataset" outlined/></v-col><v-col cols="6">
-            <edit-dataset :dataset_id_from_props="selectedDataset" :disabled="selectedDataset === ''" :task_id="task_id"/></v-col></v-row>
-
-          <v-divider class="my-4"/>
-          <h3>Add new Dataset</h3>
-          You can add new datasets: <edit-dataset :task_id="task_id"/>
-
           <v-divider class="my-4"/>
           <h3>Legacy Administration</h3>
           Not everything of the old admin functionality already ported to the new vuetify frontend.
           Please <a :href="'/task/' + task_id">go to the old task page if you need some administration functionality not covered above</a>.
+        </v-expansion-panel-text>
+      </v-expansion-panel>
+
+      <v-expansion-panel>
+        <v-expansion-panel-title>Manage Datasets</v-expansion-panel-title>
+        <v-expansion-panel-text>
+
+          <h3>Add new Dataset</h3>
+          You can add new datasets: <edit-dataset :task_id="task_id" :is_ir_task="is_ir_task" @addDataset="(x:any) => addDataset(x)"/>
+
+          <v-divider class="my-4"/>
+          <h3>Edit existing Dataset</h3>
+          <v-row><v-col cols="6"><v-autocomplete v-model="selectedDataset" :items="datasets" item-title="display_name" item-value="dataset_id" label="Dataset" outlined/></v-col><v-col cols="6">
+            <edit-dataset :dataset_id_from_props="selectedDataset" :disabled="selectedDataset === ''" :task_id="task_id" :is_ir_task="is_ir_task" @addDataset="(x:any) => addDataset(x)"/></v-col></v-row>
+
+          <v-divider class="my-4"/>
+          <h3>Delete existing Dataset</h3>
+          <v-row><v-col cols="6"><v-autocomplete v-model="selectedDatasetForDelete" :items="datasets" item-title="display_name" item-value="dataset_id" label="Dataset" outlined/></v-col><v-col cols="6">
+            <confirm-delete
+              :disabled="selectedDatasetForDelete === ''"
+              :to_delete="{dataset_id: selectedDatasetForDelete, 'action': 'delete_dataset'}"
+              :label="'Delete dataset ' + selectedDatasetForDelete + '.'" 
+              @deleteConfirmed="(i:any) => deleteDataset(i)"
+            />
+          </v-col></v-row>
         </v-expansion-panel-text>
       </v-expansion-panel>
 
@@ -47,22 +62,42 @@
 </template>
 
 <script lang="ts">
-import { extractTaskFromCurrentUrl, extractRole } from '../utils'
+import { extractTaskFromCurrentUrl, extractRole, get, reportError, reportSuccess } from '../utils'
 import {VAutocomplete} from "vuetify/components";
 import OverviewMissingReviews from './OverviewMissingReviews.vue';
 import EditTask from './EditTask.vue';
 import EditDataset from './EditDataset.vue';
+import ConfirmDelete from './ConfirmDelete.vue';
 
 export default {
   name: "tira-task-admin",
-  components: {OverviewMissingReviews, EditTask, VAutocomplete, EditDataset},
-  props: ['datasets'],
+  components: {OverviewMissingReviews, EditTask, VAutocomplete, EditDataset, ConfirmDelete},
+  props: ['datasets', 'is_ir_task'],
+  emits: ['add-dataset', 'delete-dataset'],
   data() {
-      return {
-        task_id: extractTaskFromCurrentUrl(),
-        role: extractRole(), // Values: guest, user, participant, admin
-        selectedDataset: '',
+    return {
+      task_id: extractTaskFromCurrentUrl(),
+      role: extractRole(), // Values: guest, user, participant, admin
+      selectedDataset: '',
+      selectedDatasetForDelete: '',
+    }
+  },
+  methods: {
+    addDataset(x: any) {
+      this.$emit('add-dataset', x);
+      this.selectedDataset = x['dataset_id']
+    },
+    deleteDataset(x: any) {
+      if (x['action'] == 'delete_dataset') {
+        get('/tira-admin/delete-dataset/' + x['dataset_id'])
+        .then(() => {
+          this.$emit('delete-dataset', x['dataset_id'])
+          this.selectedDatasetForDelete = ''
+        })
+        .then(reportSuccess("Deletion of dataset " + x['dataset_id'] + " was successfull."))
+        .catch(reportError("Deletion of dataset " + x['dataset_id'] + " failed."))        
       }
     }
+  }
 }
 </script>
