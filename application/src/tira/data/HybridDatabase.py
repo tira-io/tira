@@ -1032,7 +1032,7 @@ class HybridDatabase(object):
     def add_registration(self, data):
         task = modeldb.Task.objects.select_related('organizer').get(task_id=data['task_id'])
         
-        if data['group'] not in task.allowed_task_teams:
+        if data['group'] not in task.allowed_task_teams and task.restrict_groups:
             raise ValueError(f'Team name is not allowed "{data["group"]}". Allowed: {task.allowed_task_teams}')
 
         modeldb.Registration.objects.create(initial_owner=data['initial_owner'],
