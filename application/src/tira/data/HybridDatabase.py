@@ -1035,6 +1035,14 @@ class HybridDatabase(object):
         if data['group'] not in task.allowed_task_teams and task.restrict_groups:
             raise ValueError(f'Team name is not allowed "{data["group"]}". Allowed: {task.allowed_task_teams}')
 
+        if data['group'] and data['group'].strip() and data['group'] not in task.allowed_task_teams and not task.restrict_groups:
+            allowed_task_teams = task.allowed_task_teams
+            allowed_task_teams = '' if not allowed_task_teams else allowed_task_teams
+            allowed_task_teams += '\n' + (data['group'].strip())
+            task.allowed_task_teams = allowed_task_teams.strip()
+            task.save()
+
+
         modeldb.Registration.objects.create(initial_owner=data['initial_owner'],
                                             team_name=data['group'],
                                             team_members=data['team'],

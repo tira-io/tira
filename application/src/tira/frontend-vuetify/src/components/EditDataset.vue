@@ -191,7 +191,7 @@
               'type': this.dataset_type,'upload_name': this.default_upload_name, 
               'is_confidential': this.is_confidential !== 'false',
               'irds_docker_image': this.irds_docker_image, 'irds_import_command': this.irds_import_command, 'irds_import_truth_command': this.irds_import_truth_command, 
-              'git_runner_image': this.git_runner_image,'git_runner_command': this.git_runner_command, 'is_git_runner': true, 'use_existing_repository': true,
+              'git_runner_image': this.git_runner_image,'git_runner_command': this.git_runner_command, 'is_git_runner': true, 'use_existing_repository': false,
               'working_directory': 'obsolete', 'command': 'obsolete', 'publish': this.is_confidential === 'false', 'evaluator_command': 'obsolete', 'evaluator_image': 'obsolete', 'evaluator_working_directory': 'obsolete',
           }
 
