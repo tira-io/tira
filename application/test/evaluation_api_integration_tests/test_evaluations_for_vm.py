@@ -4,6 +4,7 @@ from utils_for_testing import dataset_1, dataset_2, dataset_meta, method_for_url
     set_up_tira_filesystem, now
 from tira.tira_model import model as tira_model
 import tira.model as modeldb
+import re
 
 url = 'api/evaluations-of-vm/<str:task_id>/<str:vm_id>'
 evaluations_function = method_for_url_pattern(url)
@@ -231,9 +232,15 @@ class TestEvaluationsForVm(TestCase):
                 if 'dataset_id' in i:
                     i['dataset_id'] = i['dataset_id'].split('-20')[0]
 
+                if 'run_id' in i:
+                     i['run_id'] = re.split(r'\d\d\d\d\d\d\d\d', i['run_id'])
+                     i['run_id'] = i['run_id'][0] + '<TIME>' + i['run_id'][1]
+
                 for t in ['link_results_download', 'link_run_download']:
                     if t in i:
                           i[t] = i[t].split('/dataset/')[0] + '/dataset/<TIME>/download/' + i[t].split('/download/')[1]
+                          l = re.split(r'\d\d\d\d\d\d\d\d', i[t])
+                          i[t] = l[0] + '<TIME>' + l[1]
 
         self.assertEquals(200, actual.status_code)
         verify_as_json(content, options=Options().with_namer(CliNamer(test_name)))

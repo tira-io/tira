@@ -139,6 +139,16 @@ def docker_software_details(request, context, vm_id, docker_software_id):
     return JsonResponse({'status': 0, "context": context})
 
 
+@add_context
+@check_permissions
+def upload_group_details(request, context, task_id, vm_id, upload_id):
+    try:
+        context['upload_group_details'] = model.get_upload(task_id, vm_id, upload_id)
+    except Exception as e:
+        return JsonResponse({'status': "1", 'message': f"An unexpected exception occurred: {e}"})
+
+    return JsonResponse({'status': 0, "context": context})
+
 
 @check_conditional_permissions(restricted=True)
 @host_call
@@ -428,8 +438,10 @@ def add_upload(request, task_id, vm_id):
     if request.method == "GET":
         if not task_id or task_id is None or task_id == 'None':
             return JsonResponse({"status": 1, "message": "Please specify the associated task_id."})
-        
-        upload = model.add_upload(task_id, vm_id)
+        rename_to = request.GET.get('rename_to', None)
+        rename_to = None if not rename_to or not rename_to.strip() else rename_to
+
+        upload = model.add_upload(task_id, vm_id, rename_to)
         if not upload:
             return JsonResponse({'status': 1, 'message': 'Failed to create a new Upload.'},
                                 status=HTTPStatus.INTERNAL_SERVER_ERROR)

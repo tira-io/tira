@@ -44,16 +44,7 @@
 <script>
 
 import {VAutocomplete} from 'vuetify/components'
-import {
-  get,
-  reportError,
-  extractRole,
-  extractTaskFromCurrentUrl,
-  extractUserFromCurrentUrl,
-  inject_response,
-  filterByDisplayName,
-  handleModifiedSubmission
-} from "@/utils";
+import { get, reportError, extractRole, extractTaskFromCurrentUrl, extractUserFromCurrentUrl, inject_response, filterByDisplayName, handleModifiedSubmission } from "@/utils";
 import {Loading, LoginToSubmit, ExistingDockerSubmission, NewDockerSubmission} from "@/components";
 
 export default {

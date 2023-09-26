@@ -89,6 +89,7 @@ urlpatterns = [
     path('api/evaluation/<str:vm_id>/<str:run_id>', data_api.get_evaluation, name='get_evaluation'),
     path('api/submissions/<str:task_id>/<str:dataset_id>', data_api.get_submissions_by_dataset, name='get_submissions_by_dataset'),
     path('api/docker-softwares-details/<str:vm_id>/<str:docker_software_id>', vm_api.docker_software_details, name='software_details'),
+    path('api/upload-group-details/<str:task_id>/<str:vm_id>/<str:upload_id>', vm_api.upload_group_details, name='upload_id'),
     path('api/evaluations_of_run/<str:vm_id>/<str:run_id>', data_api.get_evaluations_of_run, name='evaluations_of_run'),
     path('api/ova-list', data_api.get_ova_list, name='get_ova_list'),
     path('api/host-list', data_api.get_host_list, name='get_host_list'),

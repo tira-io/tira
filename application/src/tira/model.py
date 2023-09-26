@@ -195,6 +195,7 @@ class Upload(models.Model):
     description = models.TextField(default="description missing")
     paper_link = models.TextField(default="")
     deleted = models.BooleanField(default=False)
+    rename_to = models.TextField(default=None, null=True)
 
 
 class DockerSoftware(models.Model):

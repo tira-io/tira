@@ -522,7 +522,8 @@ class HybridDatabase(object):
                 "dataset": None if not upload.dataset else upload.dataset.dataset_id,
                 "last_edit": upload.last_edit_date, "runs": _runs_by_upload(upload),
                 "display_name": upload.display_name, "description": upload.description,
-                "paper_link": upload.paper_link
+                "paper_link": upload.paper_link,
+                "rename_to": upload.rename_to,
                 }
 
     def get_upload_with_runs(self, task_id, vm_id):
@@ -531,6 +532,9 @@ class HybridDatabase(object):
             ret += [self.upload_to_dict(upload, vm_id)]
 
         return ret
+
+    def get_upload(self, task_id, vm_id, upload_id):
+        return self.upload_to_dict(modeldb.Upload.objects.get(vm__vm_id=vm_id, task__task_id=task_id, id=upload_id), vm_id)
 
     @staticmethod
     def get_uploads(task_id, vm_id, return_names_only=True):
@@ -1032,8 +1036,16 @@ class HybridDatabase(object):
     def add_registration(self, data):
         task = modeldb.Task.objects.select_related('organizer').get(task_id=data['task_id'])
         
-        if data['group'] not in task.allowed_task_teams:
+        if data['group'] not in task.allowed_task_teams and task.restrict_groups:
             raise ValueError(f'Team name is not allowed "{data["group"]}". Allowed: {task.allowed_task_teams}')
+
+        if data['group'] and data['group'].strip() and data['group'] not in task.allowed_task_teams and not task.restrict_groups:
+            allowed_task_teams = task.allowed_task_teams
+            allowed_task_teams = '' if not allowed_task_teams else allowed_task_teams
+            allowed_task_teams += '\n' + (data['group'].strip())
+            task.allowed_task_teams = allowed_task_teams.strip()
+            task.save()
+
 
         modeldb.Registration.objects.create(initial_owner=data['initial_owner'],
                                             team_name=data['group'],
@@ -1396,10 +1408,11 @@ class HybridDatabase(object):
         open(run_dir / 'size.txt', 'w').write(f"0\n{size}\n{lines}\n{files}\n{dirs}")
         open(run_dir / 'file-list.txt', 'w').write(self._list_files(str(output_dir)))
 
-    def add_upload(self, task_id: str, vm_id: str):
+    def add_upload(self, task_id: str, vm_id: str, rename_to: str = None):
         upload = modeldb.Upload.objects.create(
             vm=modeldb.VirtualMachine.objects.get(vm_id=vm_id),
             task=modeldb.Task.objects.get(task_id=task_id),
+            rename_to=rename_to,
             display_name=randomname.get_name(),
             description='Please add a description that describes uploads of this type.'
         )
@@ -1446,10 +1459,13 @@ class HybridDatabase(object):
 
         else:
             default_filename = modeldb.Dataset.objects.get(dataset_id=dataset_id).default_upload_name
+            if upload.rename_to and upload.rename_to.replace(' ', '').replace('\\', '').replace('/', '').strip():
+                default_filename = upload.rename_to.replace(' ', '').replace('\\', '').replace('/', '').strip()
 
-            with open(run_dir / 'output' / default_filename, 'wb+') as destination:
-                for chunk in uploaded_file.chunks():
-                    destination.write(chunk)
+            if not (run_dir / 'output' / default_filename).is_file():
+                with open(run_dir / 'output' / default_filename, 'wb+') as destination:
+                    for chunk in uploaded_file.chunks():
+                        destination.write(chunk)
 
         # Add size.txt and stdout and stderr, and file-list.txt
         self._assess_uploaded_files(run_dir, (run_dir / 'output'))
@@ -1737,18 +1753,19 @@ class HybridDatabase(object):
         open(vm_file_path, 'w').write(str(vm))
 
     def delete_dataset(self, dataset_id):
-        ds = modeldb.Dataset.objects.select_related('default_task', 'evaluator').get(dataset_id=dataset_id)
-        task_id = ds.default_task.task_id
-        vm_id = ds.default_task.vm.vm_id
-        try:
-            evaluator_id = ds.evaluator.evaluator_id
-            self._fdb_delete_evaluator_from_vm(vm_id, evaluator_id)
-        except AttributeError as e:
-            logger.exception(f"Exception deleting evaluator while deleting dataset {dataset_id}. "
-                             f"Maybe It never existed?", e)
-        self._fdb_delete_dataset_from_task(task_id, dataset_id)
-        self._fdb_delete_dataset(task_id, dataset_id)
-        ds.delete()
+        modeldb.Dataset.objects.filter(dataset_id=dataset_id).update(is_deprecated=True)
+        #ds = modeldb.Dataset.objects.select_related('default_task', 'evaluator').get(dataset_id=dataset_id)
+        #task_id = ds.default_task.task_id
+        #vm_id = ds.default_task.vm.vm_id
+        #try:
+        #    evaluator_id = ds.evaluator.evaluator_id
+        #    self._fdb_delete_evaluator_from_vm(vm_id, evaluator_id)
+        #except AttributeError as e:
+        #    logger.exception(f"Exception deleting evaluator while deleting dataset {dataset_id}. "
+        #                     f"Maybe It never existed?", e)
+        #self._fdb_delete_dataset_from_task(task_id, dataset_id)
+        #self._fdb_delete_dataset(task_id, dataset_id)
+        #ds.delete()
 
     def edit_organizer(self, organizer_id, name, years, web, git_integrations=[]):
         org, _ = modeldb.Organizer.objects.update_or_create(organizer_id=organizer_id, defaults={

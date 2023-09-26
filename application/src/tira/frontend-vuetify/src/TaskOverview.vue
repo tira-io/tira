@@ -59,7 +59,7 @@
         </v-card>
         </v-container>
 
-        <tira-task-admin v-if="!loading" :datasets="datasets"/>
+        <tira-task-admin v-if="!loading" :datasets="datasets" :is_ir_task="task.is_ir_task" @addDataset="(x:any) => addDataset(x)" @deleteDataset="(dataset_id: string) => deleteDataset(dataset_id)"/>
           <v-container v-if="!loading" id="dataset-select">
             <h2>Submissions</h2>
             <v-autocomplete label="Dataset" :items="datasets" item-title="display_name" item-value="dataset_id"
@@ -87,7 +87,7 @@
         selectedDataset: '',
         task: { "task_id": "", "task_name": "", "task_description": "",
                 "organizer": "", "organizer_id": "", "web": "", "year": "",
-                "dataset_count": 0, "software_count": 0, "teams": 0
+                "dataset_count": 0, "software_count": 0, "teams": 0, "is_ir_task": false
         },
         vm: '',
         user_id: '',
@@ -110,6 +110,29 @@
     },
     changeCurrentRouteToSubmission() {
       this.$router.push('/submit/' + this.task_id + '/user/' + this.user_id)
+    },
+    addDataset(dataset: any) {
+      console.log(dataset)
+      let found = false
+
+      for (let d of this.datasets) {
+        if (d['dataset_id'] === dataset['dataset_id']) {
+          found = true
+          d['display_name'] = dataset['display_name']
+        }
+      }
+
+      if (!found) {
+        this.datasets.push(dataset)
+      }
+
+      this.selectedDataset = dataset['dataset_id']
+      this.newDatasetSelected()
+    },
+    deleteDataset(dataset_id: string) {
+      // filter by dataset on datasets
+      this.datasets = this.datasets.filter(d => d['dataset_id'] !== dataset_id)
+      this.updateDataset()
     }
   },
   beforeMount() {

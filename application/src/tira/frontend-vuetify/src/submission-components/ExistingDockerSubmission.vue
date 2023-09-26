@@ -84,11 +84,11 @@ export default {
       (this.$refs.editModal as any).show();
     },
     updateDockerSoftwareDetails(editedDetails: any) {
-    this.docker_software_details.display_name = editedDetails.display_name
-    this.docker_software_details.description = editedDetails.description
-    this.docker_software_details.paper_link = editedDetails.paper_link
-    this.$emit('modifiedSubmissionDetails', editedDetails)
-  },
+      this.docker_software_details.display_name = editedDetails.display_name
+      this.docker_software_details.description = editedDetails.description
+      this.docker_software_details.paper_link = editedDetails.paper_link
+      this.$emit('modifiedSubmissionDetails', editedDetails)
+    },
   },
   computed: {
     allResources() {

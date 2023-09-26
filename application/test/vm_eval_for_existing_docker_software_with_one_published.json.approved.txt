@@ -21,7 +21,7 @@
                 "owned_by_user": false,
                 "published": false,
                 "review_state": "no-review",
-                "run_id": "vm-eval-p2-vm-eval-task-1-20230909-test",
+                "run_id": "vm-eval-p2-vm-eval-task-1-<TIME>-test",
                 "selectable": false,
                 "vm_id": "vm-eval-p2"
             },
@@ -37,7 +37,7 @@
                 "owned_by_user": false,
                 "published": false,
                 "review_state": "no-review",
-                "run_id": "vm-eval-p2-vm-eval-task-2-20230909-training",
+                "run_id": "vm-eval-p2-vm-eval-task-2-<TIME>-training",
                 "selectable": false,
                 "vm_id": "vm-eval-p2"
             },
@@ -51,7 +51,7 @@
                 "owned_by_user": false,
                 "published": false,
                 "review_state": "no-review",
-                "run_id": "vm-eval-p2-vm-eval-task-3-20230909-test",
+                "run_id": "vm-eval-p2-vm-eval-task-3-<TIME>-test",
                 "selectable": false,
                 "vm_id": "vm-eval-p2"
             }

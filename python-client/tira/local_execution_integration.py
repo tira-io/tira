@@ -1,6 +1,7 @@
 import os
 import sys
 import docker
+import json
 from copy import deepcopy
 import tempfile
 import subprocess
@@ -208,4 +209,24 @@ class LocalExecutionIntegration():
             f.write(tf)
 
         docker_container.remove()
+
+    def export_submission_from_jupyter_notebook(self, notebook):
+        if not os.path.isfile(notebook):
+            print(f'The notebook {notebook} does not exist. I can not continue.', file=sys.stderr)
+
+            if '/' in notebook:
+                try:
+                    notebook = '/'.join(notebook.split('/')[:-1])
+                    print(f'The directory {notebook} contains the files {os.listdir(notebook)}. Maybe you did mean one of those?', file=sys.stderr)
+                except:
+                    pass
+
+            return None
+
+        ret = []
+        
+        ret += ['TIRA_COMMAND=/workspace/run-pyterrier-notebook.py --input ${TIRA_INPUT_DIRECTORY} --output ${TIRA_OUTPUT_DIRECTORY} --notebook /workspace/' + notebook.split("/")[-1]]
+        notebook_content = json.load(open(notebook, 'r'))
+
+        return '\n'.join(ret)
 
