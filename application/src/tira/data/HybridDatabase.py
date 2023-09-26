@@ -522,7 +522,8 @@ class HybridDatabase(object):
                 "dataset": None if not upload.dataset else upload.dataset.dataset_id,
                 "last_edit": upload.last_edit_date, "runs": _runs_by_upload(upload),
                 "display_name": upload.display_name, "description": upload.description,
-                "paper_link": upload.paper_link
+                "paper_link": upload.paper_link,
+                "rename_to": upload.rename_to,
                 }
 
     def get_upload_with_runs(self, task_id, vm_id):
@@ -531,6 +532,9 @@ class HybridDatabase(object):
             ret += [self.upload_to_dict(upload, vm_id)]
 
         return ret
+
+    def get_upload(self, task_id, vm_id, upload_id):
+        return self.upload_to_dict(modeldb.Upload.objects.get(vm__vm_id=vm_id, task__task_id=task_id, id=upload_id), vm_id)
 
     @staticmethod
     def get_uploads(task_id, vm_id, return_names_only=True):
@@ -1404,10 +1408,11 @@ class HybridDatabase(object):
         open(run_dir / 'size.txt', 'w').write(f"0\n{size}\n{lines}\n{files}\n{dirs}")
         open(run_dir / 'file-list.txt', 'w').write(self._list_files(str(output_dir)))
 
-    def add_upload(self, task_id: str, vm_id: str):
+    def add_upload(self, task_id: str, vm_id: str, rename_to: str = None):
         upload = modeldb.Upload.objects.create(
             vm=modeldb.VirtualMachine.objects.get(vm_id=vm_id),
             task=modeldb.Task.objects.get(task_id=task_id),
+            rename_to=rename_to,
             display_name=randomname.get_name(),
             description='Please add a description that describes uploads of this type.'
         )
@@ -1454,10 +1459,13 @@ class HybridDatabase(object):
 
         else:
             default_filename = modeldb.Dataset.objects.get(dataset_id=dataset_id).default_upload_name
+            if upload.rename_to and upload.rename_to.replace(' ', '').replace('\\', '').replace('/', '').strip():
+                default_filename = upload.rename_to.replace(' ', '').replace('\\', '').replace('/', '').strip()
 
-            with open(run_dir / 'output' / default_filename, 'wb+') as destination:
-                for chunk in uploaded_file.chunks():
-                    destination.write(chunk)
+            if not (run_dir / 'output' / default_filename).is_file():
+                with open(run_dir / 'output' / default_filename, 'wb+') as destination:
+                    for chunk in uploaded_file.chunks():
+                        destination.write(chunk)
 
         # Add size.txt and stdout and stderr, and file-list.txt
         self._assess_uploaded_files(run_dir, (run_dir / 'output'))

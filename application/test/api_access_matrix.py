@@ -532,6 +532,17 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
+        url_pattern='api/upload-group-details/<str:task_id>/<str:vm_id>/<str:upload_id>',
+        params={'task_id': 'shared-task-1', 'vm_id': 'example_participant', 'upload_id': '10'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 302,
+            ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
+        },
+    ),
+    route_to_test(
         url_pattern='task/<str:task_id>/vm/<str:vm_id>/add_software/upload',
         params={'task_id': 'shared-task-1', 'vm_id': 'example_participant'},
         group_to_expected_status_code={

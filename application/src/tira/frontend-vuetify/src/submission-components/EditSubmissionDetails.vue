@@ -4,14 +4,14 @@
     <v-card>
       <loading :loading="loading" />
       <v-toolbar color="primary">
-      <v-card-title >Edit Software</v-card-title>
+      <v-card-title > {{ component_name }}</v-card-title>
       </v-toolbar>
 
       <v-card-text v-if="!loading">
         <v-form>
-          <v-text-field v-model="docker_software_details.display_name" label="Name"></v-text-field>
-          <v-textarea v-model="docker_software_details.description" label="Description"></v-textarea>
-          <v-text-field v-model="docker_software_details.paper_link" label="Link your Paper"></v-text-field>
+          <v-text-field v-model="display_name" label="Name"></v-text-field>
+          <v-textarea v-model="description" label="Description"></v-textarea>
+          <v-text-field v-model="paper_link" label="Link your Paper"></v-text-field>
         </v-form>
       </v-card-text>
 
@@ -38,14 +38,13 @@ export default {
   emits: ['edit'],
   data() {
     return {
-      showModal: false,
-      loading: true,
-      submit_in_progress: false,
-      task_id: extractTaskFromCurrentUrl(),
-      docker_software_details: {
-        'display_name': 'loading ...', 'description': 'loading ...', 'paper_link': 'loading...',
-      },
+      showModal: false, loading: true, submit_in_progress: false,
+      task_id: extractTaskFromCurrentUrl(), display_name: 'loading ...',
+      description: 'loading ...', paper_link: 'loading...',
     }
+  },
+  computed: {
+    component_name() {return this.type === 'docker' ? 'Edit Software' : 'Edit Upload Group'},
   },
   methods: {
     showEditModal() {
@@ -55,10 +54,11 @@ export default {
         url = '/api/docker-softwares-details/' + this.user_id + '/' + this.id
       }
       if (this.type === 'upload') {
-        url = `/task/${this.task_id}/vm/${this.user_id}/save_software/upload/${this.id}`
+        url = `/api/upload-group-details/${this.task_id}/${this.user_id}/${this.id}`
       }
+
       get(url)
-          .then(inject_response(this, {'loading': false}))
+          .then(inject_response(this, {'loading': false}, false, ['docker_software_details', 'upload_group_details']))
           .catch(reportError("Problem While Loading the details of the software", "This might be a short-term hiccup, please try again. We got the following error: "))
       this.showModal = true;
     },
@@ -68,22 +68,19 @@ export default {
     },
     submitEdit() {
       this.submit_in_progress = true;
-      post(`/task/${this.task_id}/vm/${this.user_id}/save_software/docker/${this.id}`, {
-            'display_name': this.docker_software_details.display_name,
-            'description': this.docker_software_details.description,
-            'paper_link': this.docker_software_details.paper_link,
-      }, true)
-          .then(() => {
-            let to_emit = {...this.docker_software_details}
-            to_emit['id'] = this.id
-            this.$emit('edit', to_emit)
+      const url = this.type === 'docker' ? `/task/${this.task_id}/vm/${this.user_id}/save_software/docker/${this.id}` : `/task/${this.task_id}/vm/${this.user_id}/save_software/upload/${this.id}`
 
-            this.showModal = false
-            })
-          .catch(reportError("Problem while Saving Submission Details.", "This might be a short-term hiccup, please try again. We got the following error: "))
-          .then(() => {
-            this.submit_in_progress = false
-          })
+      post(url, {
+            'display_name': this.display_name,
+            'description': this.description,
+            'paper_link': this.paper_link,
+      }, true)
+      .then(() => {
+        this.$emit('edit', {'id': this.id, 'display_name': this.display_name, 'description': this.description, 'paper_link': this.paper_link})
+        this.showModal = false
+      })
+      .catch(reportError("Problem while Saving Submission Details.", "This might be a short-term hiccup, please try again. We got the following error: "))
+      .then(() => { this.submit_in_progress = false })
     },
   }
 };

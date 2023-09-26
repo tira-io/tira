@@ -31,25 +31,33 @@
 
               <br>
 
+              <v-form>
+                <v-radio-group v-model="upload_type">
+                  <v-radio label="Rename all uploaded files as configured by the organizers" value="upload-1"/>
+                  <v-radio label="I want to configure the name of my uploaded file manually (Only for expert users, e.g., to normalize all uploaded files of this group.)" value="upload-2"/>
+                </v-radio-group>
+
+                <v-text-field v-if="upload_type === 'upload-2'" v-model="rename_file_to" label="Rename a file after upload to this name " />
+              </v-form>
+
               <v-btn variant="outlined" @click="addUpload()">
                   Add Upload Group
               </v-btn>
           </v-window-item>
           <v-window-item v-for="us in this.all_uploadgroups" :value="us.id">
-
-            <div class="d-flex justify-lg-space-between">
-              <p>Please add a description that describes uploads of this type.</p>
-              <div>
-               <edit-submission-details
-                  type='upload' :id="us.id" :user_id="user_id_for_task"
-              />
+            <loading :loading="description === 'no-description'"/>
+            <div v-if="description !== 'no-description'" class="d-flex justify-lg-space-between">
+              <edit-submission-details type='upload' :id="us.id" :user_id="user_id_for_task" @edit="(i) => updateUploadDetails(i)"/>
               <v-btn variant="outlined" color="red" @click="deleteUpload(us.id)"><v-tooltip
                 activator="parent"
                 location="bottom"
               >Attention! This deletes the container and ALL runs associated with it</v-tooltip><v-icon>mdi-delete-alert-outline</v-icon>Delete</v-btn>
-              </div>
+
+              <br>
+              <p>{{ description }}</p>
+              <br>
             </div>
-            <v-form>
+            <v-form v-if="description !== 'no-description'">
               <v-file-input v-model="fileHandle"
                             :rules="[v => !!v || 'File is required']"
                             label="Click to add run file"
@@ -62,9 +70,10 @@
                       v-model="selectedDataset"
                       variant="underlined"
                       clearable/>
+              <v-text-field v-if="'' + rename_to !== 'null' && '' + rename_to !== '' && '' + rename_to !== 'undefined'" v-model="rename_to" label="Uploaded Files are renamed to (immutable for reproducibility)" disabled="true"/>
             </v-form>
 
-            <v-btn color="primary" :loading="uploading" :disabled="uploading || fileHandle === null || selectedDataset === ''"
+            <v-btn v-if="description !== 'no-description'" color="primary" :loading="uploading" :disabled="uploading || fileHandle === null || selectedDataset === ''"
                    @click="fileUpload(us.id)">Upload Run</v-btn>
 
 
@@ -77,16 +86,7 @@
 <script>
 
 import { VAutocomplete } from 'vuetify/components'
-import {
-  extractTaskFromCurrentUrl,
-  extractUserFromCurrentUrl,
-  get,
-  inject_response,
-  reportError,
-  extractRole,
-  filterByDisplayName,
-  post_file
-} from "@/utils";
+import { extractTaskFromCurrentUrl, extractUserFromCurrentUrl, get, inject_response, reportError, extractRole, filterByDisplayName, post_file, reportSuccess, handleModifiedSubmission } from "@/utils";
 import {Loading, LoginToSubmit, RunList} from "@/components";
 import EditSubmissionDetails from "@/submission-components/EditSubmissionDetails.vue";
 
@@ -106,7 +106,11 @@ export default {
       uploading: false,
       uploadDataset: '',
       uploadFormError: '',
+      upload_type: 'upload-1',
+      rename_file_to: '',
       fileHandle: null,
+      description: 'no-description',
+      rename_to: '',
       editUploadMetadataToggle: false,
       all_uploadgroups: [{"id": null, "display_name": 'loading...'}],
       selectedDataset: '',
@@ -120,31 +124,45 @@ export default {
   },
   methods: {
     addUpload() {
-       get(`/task/${this.task_id}/vm/${this.user_id_for_task}/add_software/upload`).then(message => {
-                this.all_uploadgroups.push({"id": message.context.upload.id, "display_name": message.context.upload.display_name})
-                this.tab = message.context.upload.display_name
-            })
-            .catch(reportError("Problem While Adding New Upload Group.", "This might be a short-term hiccup, please try again. We got the following error: "))
+      let upload_type_var = '?rename_to='
+      if (this.upload_type === 'upload-2') {
+        upload_type_var += this.rename_file_to
+      }
+
+      get(`/task/${this.task_id}/vm/${this.user_id_for_task}/add_software/upload${upload_type_var}`).then(message => {
+              this.all_uploadgroups.push({"id": message.context.upload.id, "display_name": message.context.upload.display_name})
+              this.tab = message.context.upload.id
+              this.upload_type = 'upload-1'
+              this.rename_file_to = ''
+      })
+      .then(reportSuccess("Upload Group Added Successfully."))
+      .catch(reportError("Problem While Adding New Upload Group.", "This might be a short-term hiccup, please try again. We got the following error: "))
+    },
+    updateUploadDetails(editedDetails) {
+      this.description = editedDetails.description
+      handleModifiedSubmission(editedDetails, this.all_uploadgroups)
     },
     deleteUpload(id_to_delete) {
-            get(`/task/${this.task_id}/vm/${this.user_id_for_task}/upload-delete/${this.tab}`)
-                .then(message => {
-                    this.all_uploadgroups = this.all_uploadgroups.filter(i => i.id !== id_to_delete)
-                    this.tab = this.all_uploadgroups.length > 0 ? this.all_uploadgroups[0].display_name : null
-                    this.showUploadForm = false
-                })
-                .catch(reportError("Problem While Deleting Upload Group.", "This might be a short-term hiccup, please try again. We got the following error: "))
+      get(`/task/${this.task_id}/vm/${this.user_id_for_task}/upload-delete/${this.tab}`)
+      .then(message => {
+              this.all_uploadgroups = this.all_uploadgroups.filter(i => i.id !== id_to_delete)
+              this.tab = this.all_uploadgroups.length > 0 ? this.all_uploadgroups[0].display_name : null
+              this.showUploadForm = false
+        })
+        .catch(reportError("Problem While Deleting Upload Group.", "This might be a short-term hiccup, please try again. We got the following error: "))
     },
     async fileUpload(id_to_upload) {  // async
-            console.log(this.uploading, this.selectedDataset, this.fileHandle)
-            this.uploading = true
-            let formData = new FormData();
-            console.log(formData)
-            formData.append("file", this.fileHandle[0]);
-            post_file(`/task/${this.task_id}/vm/${this.user_id_for_task}/upload/${this.selectedDataset}/${id_to_upload}`, formData)
-                .then(message => {})
-                .catch(reportError("Problem While Uploading File.", "This might be a short-term hiccup, please try again. We got the following error: "))
-                .then(() => {this.uploading = false})
+      console.log(this.uploading, this.selectedDataset, this.fileHandle)
+      this.uploading = true
+      let formData = new FormData();
+      formData.append("file", this.fileHandle[0]);
+      post_file(`/task/${this.task_id}/vm/${this.user_id_for_task}/upload/${this.selectedDataset}/${id_to_upload}`, formData)
+      .then(message => {
+        console.log(message)
+      })
+      .then(reportSuccess("File Uploaded Successfully. It might take a few minutes until the evaluation is finished."))
+      .catch(reportError("Problem While Uploading File.", "This might be a short-term hiccup, please try again. We got the following error: "))
+      .then(() => {this.uploading = false; this.fileHandle = null; this.selectedDataset = ''})
     },
   },
   beforeMount() {
@@ -153,5 +171,17 @@ export default {
       .catch(reportError("Problem While Loading The Submissions of the Task " + this.task_id, "This might be a short-term hiccup, please try again. We got the following error: "))
     this.tab = this.all_uploadgroups[0].display_name
   },
+  watch: {
+    tab(new_value, old_value) {
+      this.description = 'no-description'
+      this.rename_to = ''
+      if (new_value !== 'newUploadGroup' && '' + new_value !== 'null' && '' + new_value !== 'undefined' && '' + new_value !== 'loading...') {
+        get(`/api/upload-group-details/${this.task_id}/${this.user_id_for_task}/${new_value}`).then(message => {
+          this.description = message.context.upload_group_details.description
+          this.rename_to = message.context.upload_group_details.rename_to
+        })
+      }
+    }
+  }
 }
 </script>

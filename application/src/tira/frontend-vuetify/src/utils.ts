@@ -218,6 +218,10 @@ export function inject_response(obj: any, default_values: any={}, debug=false, s
          console.log('Process ' + subpath)
         }
 
+        if (subpath !== '' && !message['context'].hasOwnProperty(subpath)) {
+          continue
+        }
+
         let obj = subpath === '' ? message['context'] : message['context'][subpath]
         let available_keys = new Set<string>(Object.keys(obj))
 

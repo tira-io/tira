@@ -379,6 +379,10 @@ def get_uploads(task_id, user_id):
     return model.get_uploads(task_id, user_id, )
 
 
+def get_upload(task_id, vm_id, upload_id):
+    return model.get_upload(task_id, vm_id, upload_id)
+
+
 def get_docker_softwares_with_runs(task_id, vm_id):
     """
     Returns all docker software for a task and vm with runs as dictionaries.
@@ -422,9 +426,9 @@ def get_users_vms():
     return model.get_users_vms()
 
 
-def add_upload(task_id, vm_id):
+def add_upload(task_id, vm_id, rename_to: str = None):
     """" Add empty new upload"""
-    return model.add_upload(task_id, vm_id)
+    return model.add_upload(task_id, vm_id, rename_to)
 
 
 def delete_upload(task_id, vm_id, upload_id):
