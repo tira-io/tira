@@ -48,7 +48,7 @@
 
 <script lang="ts">
 import {Loading, RunList} from "../components"
-import { get, reportError, inject_response, extractTaskFromCurrentUrl } from '../utils'
+import { get, post, reportError, reportSuccess, inject_response, extractTaskFromCurrentUrl } from '../utils'
 import {VAutocomplete} from 'vuetify/components'
 import EditSubmissionDetails from "@/submission-components/EditSubmissionDetails.vue";
 
@@ -61,7 +61,7 @@ export default {
     return {loading: true, runSoftwareInProgress: false, selectedDataset: '', valid: false, selectedResource: '',
       docker_software_details: {
         'display_name': 'loading ...', 'user_image_name': 'loading', 'command': 'loading',
-        'description': 'loading ...', 'previous_stages': 'loading ...', 'paper_link': 'loading ...'
+        'description': 'loading ...', 'previous_stages': 'loading ...', 'paper_link': 'loading ...', 'ir_re_ranker': false
       },
       task_id: extractTaskFromCurrentUrl(),
     }
@@ -75,11 +75,23 @@ export default {
 
       if (valid) {
         this.runSoftwareInProgress = true
-        setTimeout(() => {
-          this.$emit('refresh_running_submissions')
-          this.runSoftwareInProgress = false;
-          window.alert('running software \n' + this.selectedDataset + ' \n' + this.selectedResource + ' \n' + this.docker_software_id + ' \n' + this.user_id)
-        }, 2000)
+        var reranking_dataset = 'none'
+
+        if (this.docker_software_details.ir_re_ranker) {
+          /*reranking_dataset = this.selectedRerankingDataset
+                
+          for (const r of this.reranking_datasets) {
+            if (reranking_dataset == r.dataset_id) {
+              dataset = r.original_dataset_id
+            }
+          }
+          */
+        }
+
+        post(`/grpc/${this.task_id}/${this.user_id}/run_execute/docker/${this.selectedDataset}/${this.docker_software_id}/${this.selectedResource}/${reranking_dataset}`, {})
+        .then(reportSuccess("Software was scheduled in the cluster. It might take a few minutes until the execution starts."))
+        .catch(reportError("Problem starting the software.", "This might be a short-term hiccup, please try again. We got the following error: "))
+        .then(() => {this.$emit('refresh_running_submissions'); this.runSoftwareInProgress = false; })
       }
     },
     showEditModal() {
