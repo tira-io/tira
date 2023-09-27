@@ -60,11 +60,11 @@
             <v-row>
               <v-menu transition="slide-y-transition">
                 <template v-slot:activator="{ props }">
-                  <v-btn v-bind="props" variant="outlined" block>Manage your Teams</v-btn>
+                  <v-col cols="12"><v-btn v-bind="props" variant="outlined" block>Manage your Teams</v-btn></v-col>
                 </template>
                 <v-list>
                   <v-list-item v-for="(item, i) in vm_ids" :key="i">
-                    <v-btn :href="'https://www.tira.io/g/tira_vm_' + item" variant="outlined" block>Manage Team {{ item }}</v-btn>
+                    <v-btn :href="'https://www.tira.io/g/tira_vm_' + item" variant="outlined" target="_blank" block>Manage Team {{ item }}</v-btn>
                   </v-list-item>
                 </v-list>
               </v-menu>
