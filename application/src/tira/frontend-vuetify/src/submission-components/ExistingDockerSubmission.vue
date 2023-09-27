@@ -55,6 +55,7 @@ import EditSubmissionDetails from "@/submission-components/EditSubmissionDetails
 export default {
   name: "existing-docker-submission",
   components: {Loading, RunList, VAutocomplete, EditSubmissionDetails},
+  emits: ['refresh_running_submissions', 'deleteDockerImage', 'modifiedSubmissionDetails'],
   props: ['user_id', 'datasets', 'resources', 'docker_software_id', 'organizer', 'organizer_id'],
   data() {
     return {loading: true, runSoftwareInProgress: false, selectedDataset: '', valid: false, selectedResource: '',
@@ -75,6 +76,7 @@ export default {
       if (valid) {
         this.runSoftwareInProgress = true
         setTimeout(() => {
+          this.$emit('refresh_running_submissions')
           this.runSoftwareInProgress = false;
           window.alert('running software \n' + this.selectedDataset + ' \n' + this.selectedResource + ' \n' + this.docker_software_id + ' \n' + this.user_id)
         }, 2000)

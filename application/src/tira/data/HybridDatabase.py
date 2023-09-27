@@ -632,8 +632,36 @@ class HybridDatabase(object):
             params += [docker_software_id]
 
         rows = self.execute_raw_sql_statement(prepared_statement, params)
-        return self.__parse_submissions(rows, include_unpublished, round_floats, True)
+        ret = self.__parse_submissions(rows, include_unpublished, round_floats, True)
+        from_uploads = []
 
+        if upload_id:
+            prepared_statement = """
+                    SELECT
+                        input_run.input_dataset_id, input_run.run_id, tira_upload.display_name
+                    FROM
+                        tira_run as input_run
+                   INNER JOIN
+                        tira_upload ON input_run.upload_id = tira_upload.id
+                    LEFT JOIN 
+                        tira_run as evaluation_run ON evaluation_run.input_run_id = input_run.run_id
+                    WHERE
+                        evaluation_run.input_run_id is null AND input_run.deleted = False 
+                        AND tira_upload.vm_id = %s AND tira_upload.id = %s
+                    ORDER BY
+                        input_run.run_id ASC;        
+                    """
+
+            rows = self.execute_raw_sql_statement(prepared_statement, [vm_id, upload_id])
+
+            for dataset_id, run_id, display_name in rows:
+                print(run_id)
+                from_uploads += [{'dataset_id': dataset_id, 'vm_id': vm_id, 'input_software_name': display_name,
+                                  'run_id': run_id, 'input_run_id': run_id, 'published': False, 'blinded': True,
+                                  'is_upload': True, 'is_software': False, 'review_state': 'no-review', 'measures': {}
+                                  }]
+
+        return ret[0], (ret[1] + from_uploads)
 
     def get_docker_softwares_with_runs(self, task_id, vm_id):
         def _runs_by_docker_software(ds):

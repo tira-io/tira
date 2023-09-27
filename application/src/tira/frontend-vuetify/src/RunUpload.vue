@@ -4,7 +4,7 @@
   <div class="my-5">
     <h2><b>{{this.user_id}}</b> on Task: {{this.task_id}}</h2>
   </div>
-    <RunningProcesses class="mb-12"/>
+    <running-processes class="mb-12" ref="running-processes"/>
   <v-tabs
     v-model="tab"
     fixed-tabs
@@ -24,10 +24,10 @@
   </v-tabs>
   <v-window v-model="tab">
       <v-window-item value="upload-submission">
-        <upload-submission :organizer="organizer" :organizer_id="organizer_id"/>
+        <upload-submission :organizer="organizer" :organizer_id="organizer_id"  @refresh_running_submissions="refresh_running_submissions()"/>
       </v-window-item>
     <v-window-item value="docker-submission">
-        <docker-submission :organizer="organizer" :organizer_id="organizer_id" step_prop="step-1"/>
+        <docker-submission :organizer="organizer" :organizer_id="organizer_id" step_prop="step-1" @refresh_running_submissions="refresh_running_submissions()"/>
       </v-window-item>
     <v-window-item value="vm-submission">
         <virtual-machine-submission :organizer="organizer" :organizer_id="organizer_id" />
@@ -63,6 +63,9 @@ export default {
   methods: {
     updateUrlToSelectedSubmissionType() {
       this.$router.replace({name: 'submission', params: {submission_type: this.tab}})
+    },
+    refresh_running_submissions() {
+      this.$refs['running-processes'].pollRunningSoftware('True')
     }
   },
   watch: {

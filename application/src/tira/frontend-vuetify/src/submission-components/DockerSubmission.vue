@@ -30,7 +30,8 @@
                                   :user_id="user_id_for_submission"
                                   :datasets="datasets"
                                   :resources="resources" :docker_software_id="ds.docker_software_id"
-                                  :organizer="organizer" :organizer_id="organizer_id"/>
+                                  :organizer="organizer" :organizer_id="organizer_id"
+                                  @refresh_running_submissions="$emit('refresh_running_submissions')"/>
     </v-window-item>
     <v-window-item value="newDockerImage">
       <NewDockerSubmission @add-new-docker-image="handleAddNewDockerImage" :user_id="user_id_for_submission"
@@ -50,6 +51,7 @@ import {Loading, LoginToSubmit, ExistingDockerSubmission, NewDockerSubmission} f
 export default {
   name: "docker-submission",
   components: {Loading, LoginToSubmit, VAutocomplete, ExistingDockerSubmission, NewDockerSubmission},
+  emits: ['refresh_running_submissions'],
   props: ['step_prop', 'organizer', 'organizer_id'],
   data() {
     return {

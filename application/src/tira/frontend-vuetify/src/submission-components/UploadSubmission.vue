@@ -78,7 +78,7 @@
 
 
             <h2>Submissions</h2>
-            <run-list :task_id="task_id" :organizer="organizer" :organizer_id="organizer_id" :vm_id="user_id_for_task" :upload_id="us.id" />
+            <run-list :task_id="task_id" :organizer="organizer" :organizer_id="organizer_id" :vm_id="user_id_for_task" :upload_id="us.id" ref="upload-run-list" />
           </v-window-item>
     </v-window>
 </template>
@@ -94,6 +94,7 @@ export default {
   name: "upload-submission",
   components: {EditSubmissionDetails, Loading, VAutocomplete, LoginToSubmit, RunList},
   props: ['organizer', 'organizer_id'],
+  emits: ['refresh_running_submissions'],
   data () {
     return {
       loading: true,
@@ -162,8 +163,17 @@ export default {
       })
       .then(reportSuccess("File Uploaded Successfully. It might take a few minutes until the evaluation is finished."))
       .catch(reportError("Problem While Uploading File.", "This might be a short-term hiccup, please try again. We got the following error: "))
-      .then(() => {this.uploading = false; this.fileHandle = null; this.selectedDataset = ''})
+      .then(() => {this.clean_formular()})
     },
+    clean_formular() {
+      this.uploading = false
+      this.fileHandle = null
+      this.selectedDataset = ''
+      this.$emit('refresh_running_submissions')
+      for (let i of this.$refs['upload-run-list']) {
+        i.fetchData()
+      }
+    }
   },
   beforeMount() {
     get('/api/submissions-for-task/' + this.task_id + '/' + this.user_id_for_task + '/upload')
