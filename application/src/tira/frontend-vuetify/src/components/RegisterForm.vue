@@ -11,7 +11,7 @@
             <v-container>
               <v-row>
                 <v-col cols="12" md="12">
-                  <v-text-field v-model="username" :rules="nameRules" :counter="10" label="Team Name" required/>
+                  <v-text-field v-model="username" :rules="nameRules" :counter="30" label="Team Name" required/>
                 </v-col>
 
                 <v-col cols="12" md="12">
@@ -19,7 +19,7 @@
                 </v-col>
 
                 <v-col cols="12" md="12">
-                  <v-text-field v-model="affiliation" :rules="notEmptyRules" :counter="60" label="Affiliation" required/>
+                  <v-text-field v-model="affiliation" :rules="notEmptyRules" :counter="90" label="Affiliation" required/>
                 </v-col>
 
                 <v-col cols="12" md="12">
