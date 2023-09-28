@@ -30,37 +30,34 @@
       <v-window v-model="step">
         <v-window-item :value="'step-1'">
           <v-card-text>
-            <h3 class="text-h6 font-weight-light mb-6">General information regarding submissions</h3>
-            <p>This is general information about submitting to the TIRA platform ...</p>
-            <p>Please click on "Next" below to start your submission process.</p>
+            <p>This form will guide you through the process of adding a new Docker submission. Please test that your Docker submission works as expected on your machine with the commands below and click on "Next" as soon as everything looks fine.</p>
+            <p>Please use the <a href="https://www.tira.io/c/support"> Forum</a> or contact the organizers if you face problems.</p>
           </v-card-text>
           <v-card-text>
-            <h3 class="text-h6 font-weight-light mb-6">Test baseline locally</h3>
-            <p>Before you submit your run, you need to test your baseline locally.</p>
-            <p>You can do this in three steps:</p>
-            <h4 class="my-5">(1) Data import</h4>
-            <code class="bg-grey-lighten-1">tira-run \ <br>
-              --output-directory ${PWD}/output-directory \ <br>
-              --image $your-image-name \ <br>
-              --allow-network true \ <br>
-              --command '/irds_cli.sh --ir_datasets_id your-ir-dataset-name --output_dataset_path $outputDir'
-            </code>
-            <h4 class="my-5">(2) Retrieval</h4>
-            <code class="bg-grey-lighten-1">
-              tira-run \ <br>
-              --input-directory ${PWD}/output-directory \ <br>
-              --image webis/tira-ir-starter-pyterrier:0.0.2-base \ <br>
-              --command '/workspace/run-pyterrier-notebook.py --input $inputDataset --output $outputDir --notebook
-              /workspace/full-rank-pipeline.ipynb'
-            </code>
-            <h4 class="my-5">(3) Retrieval Results</h4>
-            <code class="bg-grey-lighten-1">
-              tira-run \ <br>
-              --input-directory ${PWD}/tira-output \ <br>
-              --image your-image-name \ <br>
-              --allow-network true \ <br>
-              --command 'diffir --dataset your-ir-dataset-name --web $outputDir/run.txt > $outputDir/run.html'
-            </code>
+            <h3 class="text-h6 font-weight-light mb-6">Step-by-Step Guide to test your Docker Submission</h3>
+            <p>Before you submit your Docker submission, please test it on your machine using the following three steps:</p>
+            
+            <div class="my-3"/>
+
+            <code-snippet title="Install the TIRA CLI on your machine" code="pip3 install tira" expand_message="(1) Install the TIRA CLI"/>
+
+            <div class="my-3"/>
+
+            <code-snippet title="Execute your Docker Submission on a Small Example Dataset" code="# This example shows how to execute the baseline on a small example dataset.
+# Please adjust the --image and --command parameters accordingly.
+tira-run \
+  --input-directory ${PWD}/output-directory \
+  --image webis/tira-ir-starter-pyterrier:0.0.2-base \
+  --command '/workspace/run-pyterrier-notebook.py --input $inputDataset --output $outputDir --notebook
+              /workspace/full-rank-pipeline.ipynb'" expand_message="(2)  Execute your submission on a small example dataset"/>
+
+              <div class="my-3"/>
+
+            <code-snippet title="Run the Evaluator to ensure your Docker submission produces valid outputs" code="tira-run \
+  --output-directory ${PWD}/output-directory \
+  --image $your-image-name \
+  --allow-network true \
+  --command '/irds_cli.sh --ir_datasets_id your-ir-dataset-name --output_dataset_path $outputDir'" expand_message="(3) Run the evaluator to ensure all outputs are valid"/>
           </v-card-text>
         </v-window-item>
 
@@ -204,10 +201,11 @@
 <script lang="ts">
 import {VAutocomplete} from "vuetify/components";
 import {extractTaskFromCurrentUrl, get, reportError} from "@/utils";
+import CodeSnippet from "../components/CodeSnippet.vue"
 
 export default {
   name: "new-docker-submission",
-  components: {VAutocomplete},
+  components: { CodeSnippet, VAutocomplete },
   props: ['user_id_for_submission', 'step_prop', 'organizer', 'organizer_id', 'docker_softwares'],
   emits: ['addNewDockerImage'],
   data() {
@@ -230,11 +228,11 @@ export default {
     currentTitle() {
       switch (this.step) {
         case 'step-1':
-          return 'General Information'
+          return 'Local Tests of your Docker Submission'
         case 'step-2':
-          return 'Specify Docker Software'
+          return 'Add the Docker Submission'
         case 'step-3':
-          return 'Double Check and Add Software'
+          return 'Final Checks'
       }
     },
   },
