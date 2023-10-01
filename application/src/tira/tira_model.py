@@ -324,7 +324,7 @@ def get_vm_evaluations_by_dataset(dataset_id, vm_id, only_public_results=True):
     return model.get_vm_evaluations_by_dataset(dataset_id, vm_id, only_public_results)
 
 
-def get_evaluations_with_keys_by_dataset(dataset_id, include_unpublished=False):
+def get_evaluations_with_keys_by_dataset(dataset_id, include_unpublished=False, show_only_unreviewed=False):
     """ Get all evaluations and evaluation measures for all vms on the given dataset.
 
     @param dataset_id: the dataset_id as used in tira_model
@@ -333,7 +333,7 @@ def get_evaluations_with_keys_by_dataset(dataset_id, include_unpublished=False):
     :returns: a tuple (ev_keys, evaluation), where ev-keys is a list of keys of the evaluation measure
     and evaluation a list of evaluations and each evaluation is a dict with {vm_id: str, run_id: str, measures: list}
     """
-    return model.get_evaluations_with_keys_by_dataset(dataset_id, include_unpublished)
+    return model.get_evaluations_with_keys_by_dataset(dataset_id, include_unpublished, show_only_unreviewed=show_only_unreviewed)
 
 
 def get_job_details(task_id, vm_id, job_id):

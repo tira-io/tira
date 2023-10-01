@@ -19,12 +19,12 @@
         <v-expansion-panel-text>
 
           <h3>Add new Dataset</h3>
-          You can add new datasets: <edit-dataset :task_id="task_id" :is_ir_task="is_ir_task" @addDataset="(x:any) => addDataset(x)"/>
+          You can add new datasets: <edit-dataset :task_id="task_id" :is_ir_task="task.is_ir_task" @addDataset="(x:any) => addDataset(x)"/>
 
           <v-divider class="my-4"/>
           <h3>Edit existing Dataset</h3>
           <v-row><v-col cols="6"><v-autocomplete v-model="selectedDataset" :items="datasets" item-title="display_name" item-value="dataset_id" label="Dataset" outlined/></v-col><v-col cols="6">
-            <edit-dataset :dataset_id_from_props="selectedDataset" :disabled="selectedDataset === ''" :task_id="task_id" :is_ir_task="is_ir_task" @addDataset="(x:any) => addDataset(x)"/></v-col></v-row>
+            <edit-dataset :dataset_id_from_props="selectedDataset" :disabled="selectedDataset === ''" :task_id="task_id" :is_ir_task="task.is_ir_task" @addDataset="(x:any) => addDataset(x)"/></v-col></v-row>
 
           <v-divider class="my-4"/>
           <h3>Delete existing Dataset</h3>
@@ -54,7 +54,7 @@
       <v-expansion-panel>
         <v-expansion-panel-title>Overview Missing Reviews</v-expansion-panel-title>
         <v-expansion-panel-text>
-          <overview-missing-reviews :task_id="task_id" />
+          <overview-missing-reviews :task="task" />
         </v-expansion-panel-text>
       </v-expansion-panel>
     </v-expansion-panels>
@@ -72,7 +72,7 @@ import ConfirmDelete from './ConfirmDelete.vue';
 export default {
   name: "tira-task-admin",
   components: {OverviewMissingReviews, EditTask, VAutocomplete, EditDataset, ConfirmDelete},
-  props: ['datasets', 'is_ir_task'],
+  props: ['datasets', 'task'],
   emits: ['add-dataset', 'delete-dataset'],
   data() {
     return {

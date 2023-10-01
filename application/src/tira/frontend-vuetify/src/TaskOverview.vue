@@ -73,7 +73,7 @@
         </v-card>
         </v-container>
 
-        <tira-task-admin v-if="!loading" :datasets="datasets" :is_ir_task="task.is_ir_task" @addDataset="(x:any) => addDataset(x)" @deleteDataset="(dataset_id: string) => deleteDataset(dataset_id)"/>
+        <tira-task-admin v-if="!loading" :datasets="datasets" :task="task" @addDataset="(x:any) => addDataset(x)" @deleteDataset="(dataset_id: string) => deleteDataset(dataset_id)"/>
           <v-container v-if="!loading" id="dataset-select">
             <h2>Submissions</h2>
             <v-autocomplete label="Dataset" :items="datasets" item-title="display_name" item-value="dataset_id"

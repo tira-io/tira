@@ -96,7 +96,9 @@ def get_evaluations_by_dataset(request, context, task_id, dataset_id):
     task = model.get_task(task_id, False)
     is_ir_task = 'is_ir_task' in task and task['is_ir_task']
     is_admin = context["role"] == "admin"
-    ev_keys, evaluations = model.get_evaluations_with_keys_by_dataset(dataset_id, is_admin)
+    show_only_unreviewed = request.GET.get('show_only_unreviewed', 'false').lower() == 'true'
+    print(show_only_unreviewed)
+    ev_keys, evaluations = model.get_evaluations_with_keys_by_dataset(dataset_id, is_admin, show_only_unreviewed)
     user_vms_for_task = __inject_user_vms_for_task(request, context, task_id)
 
     context["task_id"] = task_id

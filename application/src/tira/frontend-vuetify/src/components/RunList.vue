@@ -74,7 +74,7 @@ import { get, reportError, inject_response, extractRole } from '../utils'
 export default {
   name: "run-list",
   components: {RunActions, SoftwareDetails, Loading, SubmissionIcon},
-  props: ['task_id', 'dataset_id', 'organizer', 'organizer_id', 'vm_id', 'docker_software_id', 'upload_id'],
+  props: ['task_id', 'dataset_id', 'organizer', 'organizer_id', 'vm_id', 'docker_software_id', 'upload_id', 'show_only_unreviewed'],
   data() { return {
       expanded: [],
       selected_runs: [],
@@ -113,6 +113,10 @@ export default {
       var rest_endpoint = ''
       if (this.task_id && this.dataset_id) {
         rest_endpoint = '/api/evaluations/' + this.task_id + '/' + this.dataset_id
+        
+        if (this.show_only_unreviewed) {
+          rest_endpoint += '?show_only_unreviewed=true'
+        }
       } else if (this.task_id && this.vm_id) {
         rest_endpoint = '/api/evaluations-of-vm/' + this.task_id + '/' + this.vm_id 
         
