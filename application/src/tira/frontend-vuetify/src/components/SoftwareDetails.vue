@@ -80,7 +80,7 @@
         </v-window-item>
 
         <v-window-item class="d-md-none" value="actions">
-          <div class="ma-2"><run-actions :run="run"/></div>
+          <div class="ma-2"><run-actions :run="run" @reviewRun="(i: any) => $emit('review-run', i)"/></div>
         </v-window-item >
       </v-window>
     </v-card-text>
@@ -99,6 +99,7 @@ import { get, inject_response, extractRole, extractTaskFromCurrentUrl, get_link_
 export default {
   name: "software-details",
   props: ['run', 'organizer', 'organizer_id', 'columns_to_skip'],
+  emits: ['review-run'],
   components: {Loading, TiraDataExport, RunActions, SubmissionIcon},
   data() {
     return {

@@ -5,7 +5,7 @@
                   :items="runs" item-value="Run" v-model:sort-by="table_sort_by" density="compact"
                   show-select class="elevation-1 d-none d-md-block" hover>
       <template v-slot:item.actions="{item}">
-        <run-actions :run="item.value" />
+        <run-actions :run="item.value" @reviewRun="(i: any) => reviewChanged(i)"/>
       </template>
       <template #item.vm_id="{ item }">
         <submission-icon :submission="item.value" />
@@ -44,7 +44,7 @@
       <template v-slot:expanded-row="{ columns, item }">
         <tr>
           <td :colspan="columns.length" style="background-color: white;"  class="px-0 mx-0">
-            <software-details :run="item.value" :columns_to_skip="table_headers_small_layout" :organizer="organizer" :organizer_id="organizer_id"/>
+            <software-details :run="item.value" :columns_to_skip="table_headers_small_layout" :organizer="organizer" :organizer_id="organizer_id" @reviewRun="(i: any) => reviewChanged(i)"/>
           </td>
         </tr>
       </template>
@@ -79,7 +79,7 @@ export default {
       expanded: [],
       selected_runs: [],
       loading: true,
-      runs: [],
+      runs: [{'run_id': 'loading...', 'review_state': 'no-review'}],
       table_headers: [],
       table_headers_small_layout: [],
       table_sort_by: [],
@@ -130,7 +130,22 @@ export default {
       get(rest_endpoint)
         .then(inject_response(this, {'loading': false}))
         .catch(reportError("Problem While Loading the List of Runs", "This might be a short-term hiccup, please try again. We got the following error: "))
+    },
+    reviewChanged(review: any) {
+      for (let run of this.runs) {
+        if (run['run_id'] === review['run_id']) {
+          if ('review_state' in review && 'review_state' in run) {
+            run['review_state'] = review['review_state']
+          }
+          if ('published' in review && 'published' in run) {
+            run['published'] = review['published']
+          }
+          if ('blinded' in review && 'blinded' in run) {
+            run['blinded'] = review['blinded']
+          }
+        }
       }
+    }
   },
   beforeMount() {this.fetchData()},
   watch: {

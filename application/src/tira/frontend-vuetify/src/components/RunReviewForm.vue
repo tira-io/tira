@@ -65,7 +65,8 @@ import { get, post, reportError, reportSuccess, inject_response, extractDatasetF
 export default {
   name: "run-review-form",
   components: { Loading, MetadataItems },
-  props: ['run_id', 'vm_id', 'dataset_id_from_props'],
+  emits: ['review-run'],
+  props: ['run_id', 'vm_id', 'dataset_id_from_props', ],
   data() {
     return {
       loading: true,
@@ -97,6 +98,7 @@ export default {
       	.then(message => {this.review.published = message.published})
       	.catch(reportError("Problem While (un)publishing the run.", "This might be a short-term hiccup, please try again. We got the following error: "))
         .then(() => { this.toggle_publish_in_progress = false })
+        .then(() => { this.$emit('review-run', {'run_id': this.run_id, 'published': this.review.published})})
     },
     toggleVisible() {
       this.toggle_visible_in_progress = true
@@ -104,6 +106,7 @@ export default {
         .then(message => {this.review.blinded = message.blinded})
       	.catch(reportError("Problem While (un)blinding the run.", "This might be a short-term hiccup, please try again. We got the following error: "))
         .then(() => { this.toggle_visible_in_progress = false })
+        .then(() => { this.$emit('review-run', {'run_id': this.run_id, 'blinded': this.review.blinded})})
     },
     submitReview() {
       this.edit_review_in_progress = true
@@ -116,6 +119,8 @@ export default {
         .then(reportSuccess('The review was successfully saved.'))
         .catch(reportError("Problem while Saving the Review.", "This might be a short-term hiccup, please try again. We got the following error: "))
         .then(() => { this.edit_review_in_progress = false })
+        .then(() => { this.$emit('review-run', {'run_id': this.run_id, 'review_state': 
+        this.review.noErrors && !this.review.invalidOutput && !this.review.otherErrors ? 'valid' : 'invalid'})})
     },
     ds_id() {return this.dataset_id ? this.dataset_id : this.dataset_id_from_props},
   },

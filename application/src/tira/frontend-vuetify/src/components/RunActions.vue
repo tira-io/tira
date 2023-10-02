@@ -57,7 +57,7 @@
   </span>
 
   <span v-if="role === 'admin' || run['owned_by_user']">
-    <run-review-window :run_id="run.run_id" :vm_id="run.vm_id" :dataset_id_from_props="run.dataset_id"/>
+    <run-review-window :run_id="run.run_id" :vm_id="run.vm_id" :dataset_id_from_props="run.dataset_id" @reviewRun="(i: any) => $emit('review-run', i)"/>
     <v-tooltip activator="parent" location="top">Review</v-tooltip>
   </span>
 
@@ -93,6 +93,7 @@ export default {
   name: "run-actions",
   props: ['run'],
   components: { RunReviewWindow },
+  emits: ['review-run'],
   data() { return {
     role: extractRole(),
     start_evaluation_is_pending: false,

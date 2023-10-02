@@ -20,7 +20,7 @@
       <v-window v-if="!loading" v-model="tab">
         <v-window-item v-for="item in items" :key="item.run_id" :value="item.run_id">
           <v-card flat>
-            <v-card-text><run-review-form :run_id="item.run_id" :vm_id="vm_id" :dataset_id_from_props="dataset_id_from_props"/></v-card-text>
+            <v-card-text><run-review-form :run_id="item.run_id" :vm_id="vm_id" :dataset_id_from_props="dataset_id_from_props"  @review-run="(i: any) => $emit('review-run', i)"/></v-card-text>
           </v-card>
         </v-window-item>
       </v-window>
@@ -43,6 +43,7 @@ export default {
     name: "run-review-window",
     components: { Loading, RunReviewForm },
     props: ['run_id', 'vm_id', 'dataset_id_from_props'],
+    emits: ['review-run'],
     data() {
       return {
         evaluations: [],
