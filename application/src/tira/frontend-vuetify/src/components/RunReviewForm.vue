@@ -93,21 +93,21 @@ export default {
   methods: {
     togglePublish() {
       this.toggle_publish_in_progress = true
-      get('/publish/' + this.vm_id + '/' + this.dataset_id + '/' + this.run_id + '/' + !this.review.published)
+      get('/publish/' + this.vm_id + '/' + this.ds_id() + '/' + this.run_id + '/' + !this.review.published)
       	.then(message => {this.review.published = message.published})
       	.catch(reportError("Problem While (un)publishing the run.", "This might be a short-term hiccup, please try again. We got the following error: "))
         .then(() => { this.toggle_publish_in_progress = false })
     },
     toggleVisible() {
       this.toggle_visible_in_progress = true
-      get(`/blind/${this.vm_id}/${this.dataset_id}/${this.run_id}/${!this.review.blinded}`)
+      get(`/blind/${this.vm_id}/${this.ds_id()}/${this.run_id}/${!this.review.blinded}`)
         .then(message => {this.review.blinded = message.blinded})
       	.catch(reportError("Problem While (un)blinding the run.", "This might be a short-term hiccup, please try again. We got the following error: "))
         .then(() => { this.toggle_visible_in_progress = false })
     },
     submitReview() {
       this.edit_review_in_progress = true
-      post(`/tira-admin/edit-review/${this.dataset_id}/${this.vm_id}/${this.run_id}`, {
+      post(`/tira-admin/edit-review/${this.ds_id()}/${this.vm_id}/${this.run_id}`, {
             'no_errors': this.review.noErrors,
             'output_error': this.review.invalidOutput,
             'software_error': this.review.otherErrors,
@@ -117,12 +117,12 @@ export default {
         .catch(reportError("Problem while Saving the Review.", "This might be a short-term hiccup, please try again. We got the following error: "))
         .then(() => { this.edit_review_in_progress = false })
     },
+    ds_id() {return this.dataset_id ? this.dataset_id : this.dataset_id_from_props},
   },
   beforeMount() {
     this.loading = true
-    let ds_id = this.dataset_id ? this.dataset_id : this.dataset_id_from_props
 
-    get('/api/review/' + ds_id + '/' + this.vm_id + '/' + this.run_id)
+    get('/api/review/' + this.ds_id() + '/' + this.vm_id + '/' + this.run_id)
         .then(inject_response(this, {'loading': false}))
         .catch(reportError("Problem While Loading the Review", "This might be a short-term hiccup, please try again. We got the following error: "))
   }
