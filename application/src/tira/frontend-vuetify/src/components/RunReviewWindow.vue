@@ -58,6 +58,10 @@ export default {
             console.log(JSON.stringify(this.evaluations))
             for (const i in this.evaluations) {
               console.log(JSON.stringify({'display_name': 'Evaluation ' + (parseInt(i) + 1), 'run_id': this.evaluations[i]}))
+              if (this.evaluations[i] + '' === 'null' || this.evaluations[i] + '' === 'undefined') {
+                continue
+              }
+
               ret.push({'display_name': 'Evaluation ' + (parseInt(i) + 1), 'run_id': this.evaluations[i]})
             }
 
