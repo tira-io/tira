@@ -55,9 +55,9 @@ export default {
     computed: {
         items() {
             var ret = [{'display_name': 'Run', 'run_id': this.run_id}] 
-           
+            console.log(JSON.stringify(this.evaluations))
             for (const i in this.evaluations) {
-              console.log(i+1)
+              console.log(JSON.stringify({'display_name': 'Evaluation ' + (parseInt(i) + 1), 'run_id': this.evaluations[i]}))
               ret.push({'display_name': 'Evaluation ' + (parseInt(i) + 1), 'run_id': this.evaluations[i]})
             }
 
