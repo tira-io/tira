@@ -10,6 +10,10 @@
                 "display_name": "dataset-2"
             },
             {
+                "dataset_id": "dataset-published",
+                "display_name": "dataset-published"
+            },
+            {
                 "dataset_id": "meta-dataset",
                 "display_name": "meta-dataset"
             }
