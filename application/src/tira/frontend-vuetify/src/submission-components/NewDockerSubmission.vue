@@ -64,20 +64,19 @@ tira-run \
         <v-window-item :value="'step-2'">
           <div class="pa-4 text-center">
 
-            <h3 class="text-h6 font-weight-light my-6">
+            <h3 class="text-h6 font-weight-light my-6" v-if="is_ir_task">
               Please select previous stages
             </h3>
-            <p class="mb-4">this is dummy text</p>
+            <p v-if="is_ir_task" class="mb-4">You can select multiple previous stages. The outputs of the previous stages are mounted into the container that executes the software.</p>
             <v-form ref="form" v-model="valid">
-            <v-autocomplete label="Previous Stages"
+            <v-autocomplete v-if="is_ir_task" label="Previous Stages"
                             :items="docker_softwares"
                             v-model="selectedDockerSoftware"
                             item-value="docker_software_id"
                             item-title="display_name"
                             clearable
                             multiple
-                            chips
-                            :rules="[v => !!(v && v.length) || 'Please select the previous stages for the execution.']"/>
+                            chips/>
 
             <div class="text-center">
             <h3 class="text-h6 font-weight-light my-6">
@@ -88,6 +87,10 @@ tira-run \
                 label="Docker Image"
                 :items="docker_images"
                 v-model="selectedDockerImage"
+                item-value="image"
+                item-title="title"
+                :loading="loading"
+                :disabled="loading"
                 clearable
                 :rules="[v => !!(v && v.length) || 'Please select the docker image for the execution.']"/>
             </div>
@@ -152,9 +155,12 @@ tira-run \
                <v-text-field v-model="runCommand" disabled
                           label="Command: mySoftware -c $inputDataset -r $inputRun -o $outputDir"
                           hint="Available variables: $inputDataset, $inputRun, $outputDir, $dataServer, and $token."/>
-               <v-autocomplete
+
+              <v-autocomplete
                   label="Docker Image"
                   :items="docker_images"
+                  item-value="image"
+                  item-title="title"
                   v-model="selectedDockerImage"
                   disabled/>
             </v-form>
@@ -200,13 +206,13 @@ tira-run \
 
 <script lang="ts">
 import {VAutocomplete} from "vuetify/components";
-import {extractTaskFromCurrentUrl, get, reportError} from "@/utils";
+import {extractTaskFromCurrentUrl, get, inject_response, reportError, extractUserFromCurrentUrl} from "@/utils";
 import CodeSnippet from "../components/CodeSnippet.vue"
 
 export default {
   name: "new-docker-submission",
   components: { CodeSnippet, VAutocomplete },
-  props: ['user_id_for_submission', 'step_prop', 'organizer', 'organizer_id', 'docker_softwares'],
+  props: ['user_id_for_submission', 'step_prop', 'organizer', 'organizer_id', 'docker_softwares', 'is_ir_task'],
   emits: ['addNewDockerImage'],
   data() {
     return {
@@ -219,8 +225,10 @@ export default {
       valid: false,
       dialog: false,
       addSoftwareInProgress: false,
+      loading: true,
       step: this.step_prop,
-      docker_images: ['image1', 'image2', 'image3'],
+      docker_images: [{ "image": "loading...", "architecture": "loading...", "created": "loading...", "size": "loading...", "digest": "loading...", 'title': 'loading...'}],
+      user_id_for_task: extractUserFromCurrentUrl(),
       docker_software_help: 'test docker software help',
     }
   },
@@ -272,11 +280,22 @@ export default {
     },
     refreshImages() {
       this.refreshingInProgress = true
-      setTimeout(() => {
-          this.lastRefreshed = new Date(Date.now());
-          this.refreshingInProgress = false
-        }, 2000)
+      get(`/api/task/${this.task_id}/user/${this.user_id_for_task}/refresh-docker-images`)
+        .then(inject_response(this, {"refreshingInProgress": false}, false, 'docker'))
+        .then(this.refreshTitles)
+    },
+    refreshTitles() {
+      for (const d of this.docker_images) {
+        d['title'] = d.image + ' (' + d.architecture + ' ' + d.created + ' ' + d.size + ' ' + d.digest +')'
+      }
     }
+  },
+  beforeMount() {
+    this.loading = true
+    get('/api/task/' + this.task_id + '/user/' + this.user_id_for_task)
+      .then(inject_response(this, {'loading': false}, false, 'docker'))
+      .then(this.refreshTitles)
+      .catch(reportError("Problem While Loading the Docker Images.", "This might be a short-term hiccup, please try again. We got the following error: "))
   },
   watch: {
     step(old_value, new_value) {
