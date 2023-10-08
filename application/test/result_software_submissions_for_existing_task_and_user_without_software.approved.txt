@@ -10,7 +10,7 @@
                 "display_name": "dataset-2"
             },
             {
-                "dataset_id": "dataset-published",
+                "dataset_id": "dataset-not-published",
                 "display_name": "dataset-published"
             },
             {

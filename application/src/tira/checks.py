@@ -44,6 +44,9 @@ def check_permissions(func):
                 and run_id in request.path_info and model.run_is_public_and_unblinded(run_id):
             return func(request, *args, **kwargs)
 
+        if (request.path_info.startswith('data-download/') or request.path_info.startswith('/data-download/')) and dataset_is_public(dataset_id):
+            return func(request, *args, **kwargs)
+
         if 'run_id_1' in kwargs or 'run_id_2' in kwargs:
             return HttpResponseNotAllowed(f"Access forbidden.")
 
@@ -190,6 +193,13 @@ def run_is_public(run_id, vm_id, dataset_id):
 
     i = model.get_run_review(dataset_id, vm_id, run_id)
     if not (i and 'blinded' in i and 'published' in i and not i['blinded'] and i['published']):
+        return False
+
+    return dataset_is_public(i)
+
+
+def dataset_is_public(dataset_id):
+    if not dataset_id or not dataset_id.endswith('-training'):
         return False
 
     i = model.get_dataset(dataset_id)
