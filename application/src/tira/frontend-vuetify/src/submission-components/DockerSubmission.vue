@@ -34,7 +34,7 @@
                                   @refresh_running_submissions="$emit('refresh_running_submissions')"/>
     </v-window-item>
     <v-window-item value="newDockerImage">
-      <new-docker-submission @add-new-docker-image="handleAddNewDockerImage" :is_ir_task="is_ir_task" :user_id="user_id_for_submission"
+      <new-docker-submission @add-new-docker-image="handleAddNewDockerImage" :is_ir_task="is_ir_task" :user_id_for_submission="user_id_for_submission"
                                   :step_prop="step" :docker_softwares="this.docker.docker_softwares"
                                   :organizer="organizer" :organizer_id="organizer_id"/>
     </v-window-item>

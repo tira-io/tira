@@ -82,7 +82,8 @@ tira-run \
             <h3 class="text-h6 font-weight-light my-6">
               Please specify your docker software
             </h3>
-              <p class="mb-4">ein bissel bla</p>
+              <p class="mb-4">A software submission consists of a docker image and the command that is executed in the docker image. Please specify both below.</p>
+
             <v-autocomplete
                 label="Docker Image"
                 :items="docker_images"
@@ -116,7 +117,7 @@ tira-run \
                       refresh images
                     </v-btn>
                    </div>
-                    <span>last refreshed: {{lastRefreshed}}</span>
+                    <span>last refreshed: {{docker_images_last_refresh}}</span>
                   </template>
 
                   <v-card>
@@ -206,7 +207,7 @@ tira-run \
 
 <script lang="ts">
 import {VAutocomplete} from "vuetify/components";
-import {extractTaskFromCurrentUrl, get, inject_response, reportError, extractUserFromCurrentUrl} from "@/utils";
+import {extractTaskFromCurrentUrl, get, post, inject_response, reportError, extractUserFromCurrentUrl} from "@/utils";
 import CodeSnippet from "../components/CodeSnippet.vue"
 
 export default {
@@ -221,7 +222,9 @@ export default {
       selectedDockerSoftware: [],
       selectedDockerImage: '',
       runCommand: '',
-      lastRefreshed: new Date(Date.now()),
+      docker_images_last_refresh: 'loading...',
+      docker_images_next_refresh: 'loading...',
+      docker_software_help: 'loading...',
       valid: false,
       dialog: false,
       addSoftwareInProgress: false,
@@ -229,7 +232,6 @@ export default {
       step: this.step_prop,
       docker_images: [{ "image": "loading...", "architecture": "loading...", "created": "loading...", "size": "loading...", "digest": "loading...", 'title': 'loading...'}],
       user_id_for_task: extractUserFromCurrentUrl(),
-      docker_software_help: 'test docker software help',
     }
   },
   computed: {
@@ -268,15 +270,12 @@ export default {
     },
     addImage() {
       this.addSoftwareInProgress = true;
-      /*get(`/task/${this.task_id}/vm/${this.user_id_for_submission}/add_software/docker`).then(message => {
-        this.$emit('addNewDockerImage', message.context.docker);
-      })
-          .catch(reportError("Problem While Adding New Docker Image.", "This might be a short-term hiccup, please try again. We got the following error: "))*/
-    setTimeout(() => {
-          this.addSoftwareInProgress = false;
-          let next_id = (this.docker_softwares.length + 1) + '';
-          this.$emit('addNewDockerImage', {'display_name': 'meine_neue_software_' + next_id, 'docker_software_id': next_id});
-        }, 2000)
+      post(`/task/${this.task_id}/vm/${this.user_id_for_submission}/add_software/docker`, {"command": this.runCommand, "image": this.selectedDockerImage, "inputJob": this.selectedDockerSoftware})
+        .then(message => {
+          this.$emit('addNewDockerImage', {'display_name': message.context.display_name, 'docker_software_id': message.context.docker_software_id});
+        })
+        .catch(reportError("Problem While Adding New Docker Software.", "This might be a short-term hiccup, please try again. We got the following error: "))
+        .then(() => {this.addSoftwareInProgress = false})
     },
     refreshImages() {
       this.refreshingInProgress = true

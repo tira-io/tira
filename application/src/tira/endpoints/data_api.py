@@ -306,7 +306,6 @@ def get_user(request, context, task_id, user_id):
     upload = model.get_upload_with_runs(task_id, user_id)
     docker = model.load_docker_data(task_id, user_id, cache, force_cache_refresh=False)
     vm = model.get_vm(user_id)
-
     context["task"] = model.get_task(task_id)
     context["user_id"] = user_id
     context["vm"] = vm
