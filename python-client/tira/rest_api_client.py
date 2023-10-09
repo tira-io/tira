@@ -263,6 +263,17 @@ class Client():
             if ('status' not in ret) or ('0' != ret['status']) or ('published' not in ret) or (not ret['published']):
                 raise ValueError(f'Adding the run to the leaderboard failed. Got {ret}')
 
+    def get_configuration_of_evaluation(self, task_id, dataset_id):
+        """ Get the configuration of the evaluator for the passed dataset inside the task specified by task_id.
+        """
+        ret = self.json_response(f'/api/configuration-of-evaluation/{task_id}/{dataset_id}')
+
+        if 'status' not in ret or '0' != str(ret['status']):
+            raise ValueError(f'Failed to load configuration of an evaluator. Got {ret}')
+
+        return ret['context']['dataset']
+    
+
     def evaluate_run(self, team, dataset, run_id):
         """ Evaluate the run of the specified team and identified by the run_id (the run must be submitted on the specified dataset).
         """
