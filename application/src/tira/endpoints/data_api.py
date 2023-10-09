@@ -75,6 +75,7 @@ def __inject_user_vms_for_task(request, context, task_id):
     return context['user_vms_for_task'] if 'user_vms_for_task' in context else []
 
 
+@add_context
 def get_configuration_of_evaluation(request, context, task_id, dataset_id):
     dataset = model.get_dataset(dataset_id)
 

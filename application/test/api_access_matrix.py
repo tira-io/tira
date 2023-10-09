@@ -213,7 +213,7 @@ API_ACCESS_MATRIX = [
     ),
     route_to_test(
         url_pattern='api/configuration-of-evaluation/<str:task_id>/<str:dataset_id>',
-        params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-1-{now}-training', 'context': {}},
+        params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-1-{now}-training'},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 200,
