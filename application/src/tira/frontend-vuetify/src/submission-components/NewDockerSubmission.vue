@@ -107,7 +107,7 @@ tira-run \
                       color="primary"
                       v-bind="props"
                     >
-                      more information
+                      Push New Docker Image
                     </v-btn>
                      <v-btn
                       color="primary"
@@ -121,9 +121,8 @@ tira-run \
                   </template>
 
                   <v-card>
-                    <v-card-text>
-                      This is a text explaining how to upload a new docker image to TIRA.
-                    </v-card-text>
+                    <v-card-text v-if="loading"><loading :loading="loading"/></v-card-text>
+                    <v-card-text v-html="docker_software_help" v-if="!loading" />
                     <v-card-actions>
                       <v-btn color="primary" block @click="dialog = false">Close Information</v-btn>
                     </v-card-actions>
@@ -209,10 +208,11 @@ tira-run \
 import {VAutocomplete} from "vuetify/components";
 import {extractTaskFromCurrentUrl, get, post, inject_response, reportError, extractUserFromCurrentUrl} from "@/utils";
 import CodeSnippet from "../components/CodeSnippet.vue"
+import Loading from "../components/Loading.vue"
 
 export default {
   name: "new-docker-submission",
-  components: { CodeSnippet, VAutocomplete },
+  components: { CodeSnippet, VAutocomplete, Loading },
   props: ['user_id_for_submission', 'step_prop', 'organizer', 'organizer_id', 'docker_softwares', 'is_ir_task'],
   emits: ['addNewDockerImage'],
   data() {
