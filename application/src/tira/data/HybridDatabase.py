@@ -285,6 +285,7 @@ class HybridDatabase(object):
 
     def _dataset_to_dict(self, dataset):
         evaluator_id = None if not dataset.evaluator else dataset.evaluator.evaluator_id
+
         runs = modeldb.Run.objects.filter(input_dataset__dataset_id=dataset.dataset_id, deleted=False)
         return {
             "display_name": dataset.display_name,
@@ -306,6 +307,8 @@ class HybridDatabase(object):
             "irds_docker_image": dataset.irds_docker_image,
             "irds_import_command": dataset.irds_import_command,
             "irds_import_truth_command": dataset.irds_import_truth_command,
+            "evaluator_git_runner_image": dataset.evaluator.git_runner_image if evaluator_id else None,
+            "evaluator_git_runner_command":  dataset.evaluator.git_runner_command if evaluator_id else None,
         }
 
     def get_dataset(self, dataset_id: str) -> dict:

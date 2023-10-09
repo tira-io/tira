@@ -75,6 +75,20 @@ def __inject_user_vms_for_task(request, context, task_id):
     return context['user_vms_for_task'] if 'user_vms_for_task' in context else []
 
 
+def get_configuration_of_evaluation(request, context, task_id, dataset_id):
+    dataset = model.get_dataset(dataset_id)
+
+    context['dataset'] = {
+        "display_name": dataset['display_name'],
+        "evaluator_id": dataset['evaluator_id'],
+        "dataset_id": dataset['dataset_id'],
+        "evaluator_git_runner_image": dataset['evaluator_git_runner_image'],
+        "evaluator_git_runner_command": dataset['evaluator_git_runner_command'],
+    }
+
+    return JsonResponse({'status': 0, "context": context})
+
+
 @add_context
 @check_resources_exist('json')
 def get_evaluations_by_dataset(request, context, task_id, dataset_id):
