@@ -1,6 +1,6 @@
 <template>
-  <v-container>
   <tira-breadcrumb/>
+  <v-container>
   <loading :loading="loading"/>
   <v-container v-if="!loading">
         <loading :loading="loading"/>
