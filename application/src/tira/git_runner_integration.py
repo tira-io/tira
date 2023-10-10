@@ -836,7 +836,7 @@ class GitLabRunner(GitRunner):
 
     def _create_access_token_gitHoster(self, project, repo):
         return project.access_tokens.create(
-            {"name": repo, "scopes": ['read_registry', 'write_registry'], "access_level": 30, "expires_at": "2025-01-01"})
+            {"name": repo, "scopes": ['read_registry', 'write_registry'], "access_level": 30, "expires_at": "2024-10-08"})
 
     def stop_job_and_clean_up(self, git_repository_id, user_name, run_id, cache=None):
         """
