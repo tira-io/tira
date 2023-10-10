@@ -43,21 +43,13 @@
 
             <div class="my-3"/>
 
-            <code-snippet title="Execute your Docker Submission on a Small Example Dataset" code="# This example shows how to execute the baseline on a small example dataset.
-# Please adjust the --image and --command parameters accordingly.
-tira-run \
-  --input-directory ${PWD}/output-directory \
-  --image webis/tira-ir-starter-pyterrier:0.0.2-base \
-  --command '/workspace/run-pyterrier-notebook.py --input $inputDataset --output $outputDir --notebook
-              /workspace/full-rank-pipeline.ipynb'" expand_message="(2)  Execute your submission on a small example dataset"/>
+            <code-snippet title="Execute your Docker Submission on a Small Example Dataset" :code="tira_initial_run_example" expand_message="(2)  Execute your submission on a small example dataset"/>
 
               <div class="my-3"/>
 
-            <code-snippet title="Run the Evaluator to ensure your Docker submission produces valid outputs" code="tira-run \
-  --output-directory ${PWD}/output-directory \
-  --image $your-image-name \
-  --allow-network true \
-  --command '/irds_cli.sh --ir_datasets_id your-ir-dataset-name --output_dataset_path $outputDir'" expand_message="(3) Run the evaluator to ensure all outputs are valid"/>
+            <code-snippet title="Verify the Evaluator outputs to to ensure your Docker submission produces valid outputs" code="# The command above evaluated the outputs of your software 
+# Please verify that the evaluation in the directory tira-evaluation indicates that the outputs of your software are valid.
+cat tira-evaluation/evaluation.prototext" expand_message="(3) Verify the evaluator outputs to ensure all outputs are valid"/>
           </v-card-text>
         </v-window-item>
 
@@ -143,29 +135,8 @@ tira-run \
             <h3 class="text-h6 font-weight-light my-6">
               Double check your local run and submit
             </h3>
-            <v-form>
-               <v-autocomplete label="Previous Stages"
-                            :items="docker_softwares"
-                            v-model="selectedDockerSoftware"
-                            item-value="docker_software_id"
-                            item-title="display_name"
-                            multiple
-                            chips
-                            disabled/>
-               <v-text-field v-model="runCommand" disabled
-                          label="Command: mySoftware -c $inputDataset -r $inputRun -o $outputDir"
-                          hint="Available variables: $inputDataset, $inputRun, $outputDir, $dataServer, and $token."/>
-
-              <v-autocomplete
-                  label="Docker Image"
-                  :items="docker_images"
-                  item-value="image"
-                  item-title="title"
-                  v-model="selectedDockerImage"
-                  disabled/>
-            </v-form>
-
           </div>
+          <code-snippet title="Check the Software Submission on a Small Example Dataset" :code="double_check_tira_run_command" expand_message="Please test the configuration of your your submission on a small example dataset"/>
         </v-window-item>
       </v-window>
 
@@ -225,6 +196,8 @@ export default {
       docker_images_last_refresh: 'loading...',
       docker_images_next_refresh: 'loading...',
       docker_software_help: 'loading...',
+      tira_initial_run_example: 'loading...',
+      tira_final_run_example: 'loading...',
       valid: false,
       dialog: false,
       addSoftwareInProgress: false,
@@ -244,6 +217,9 @@ export default {
         case 'step-3':
           return 'Final Checks'
       }
+    },
+    double_check_tira_run_command() {
+      return this.tira_final_run_example.replace('YOUR-IMAGE', this.selectedDockerImage).replace('YOUR-COMMAND', this.runCommand)
     },
   },
   methods: {

@@ -124,6 +124,12 @@ def load_refresh_timestamp_for_cache_key(cache, key):
     return datetime.datetime.now()
 
 
+def tira_run_command(image, command, task_id):
+    input_dataset = 'scai-eval-2024-metric-submission/scai-eval24-2023-09-26-20230926-training'
+
+    return f'tira-run \\\n  --input-dataset {input_dataset} \\\n  --image {image} \\\n  --evaluate true \\\n  --command \'{command}\''
+
+
 def load_docker_data(task_id, vm_id, cache, force_cache_refresh):
     """
     Get the docker data for a particular user (vm_id) from the git registry.
@@ -141,15 +147,24 @@ def load_docker_data(task_id, vm_id, cache, force_cache_refresh):
     git_runner = get_git_integration(task_id=task_id)
     docker_images = [i for i in git_runner.docker_images_in_user_repository(vm_id, cache, force_cache_refresh) if '-tira-docker-software-id-' not in i['image']]
     last_refresh = load_refresh_timestamp_for_cache_key(cache, 'docker-images-in-user-repository-tira-user-' + vm_id)
+    docker_software_help = git_runner.help_on_uploading_docker_image(vm_id, cache, force_cache_refresh)
+
+    docker_login = 'docker login' + docker_software_help.split('<code>docker login')[1].split('</code>')[0]
 
     return {
         "docker_images": docker_images,
         "docker_softwares": model.get_docker_softwares_with_runs(task_id, vm_id),
         "resources": list(settings.GIT_CI_AVAILABLE_RESOURCES.values()),
-        "docker_software_help": git_runner.help_on_uploading_docker_image(vm_id, cache, force_cache_refresh),
+        "docker_software_help": docker_software_help,
         "docker_images_last_refresh": str(last_refresh),
         "task_is_an_information_retrieval_task": True if get_task(task_id, False).get('is_ir_task', False) else False,
         "docker_images_next_refresh": str(None if last_refresh is None else (last_refresh + datetime.timedelta(seconds=60))),
+        "tira_initial_run_example": '# This example shows how to execute the baseline on a small example dataset.\n' +
+                                    '# Please adjust the --image and --command parameters accordingly.\n' +
+                                   tira_run_command('YOUR-IMAGE', 'YOUR-COMMAND', task_id),
+        "tira_final_run_example": '# The configuration of your software is final, please do a final test:\n' +
+                                  docker_login + '\n' +
+                                  tira_run_command('YOUR-IMAGE', 'YOUR-COMMAND', task_id),
     }
 
 
