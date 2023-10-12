@@ -134,8 +134,8 @@ def load_ir_datasets():
         return static_ir_datasets_from_directory(os.environ['TIRA_INPUT_DIRECTORY'])
     else:
         try:
-            import ir_datasets as original_ir_datasets
-            return original_ir_datasets
+            from tira.ir_datasets_util import ir_dataset_from_tira_fallback_to_original_ir_datasets
+            return ir_dataset_from_tira_fallback_to_original_ir_datasets()
         except:
             return None
 

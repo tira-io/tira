@@ -97,3 +97,35 @@ def test_patching_for_pyterrier_datasets():
     assert len(list(dataset.get_topics())) == 2
     assert queries['1'] == 'fox jumps above animal'
 
+def test_loading_ir_dataset_via_rest_api_from_tira():
+    from tira.third_party_integrations import ir_datasets
+    dataset = ir_datasets.load('ir-lab-jena-leipzig-sose-2023/iranthology-20230618-training')
+    
+    assert dataset.has_docs(), "dataset has no documents"
+    assert dataset.has_queries(), "dataset has no queries"
+    assert dataset.has_qrels(), "dataset has no qrels"
+    
+def test_loading_qrels_via_rest_api_from_tira():
+    from tira.third_party_integrations import ir_datasets
+    dataset = ir_datasets.load('ir-lab-jena-leipzig-sose-2023/iranthology-20230618-training')
+    
+    assert len([i for i in dataset.qrels_iter()]) == 2635
+    assert '''TrecQrel(query_id='1', doc_id='2005.ipm_journal-ir0anthology0volumeA41A1.7', relevance=1, iteration='0')''' == str([i for i in dataset.qrels_iter()][0])
+
+def test_loading_docs_via_rest_api_from_tira():
+    from tira.third_party_integrations import ir_datasets
+    dataset = ir_datasets.load('ir-lab-jena-leipzig-sose-2023/iranthology-20230618-training')
+    
+    assert len([i for i in dataset.docs_iter()]) == 53673
+    docsstore = dataset.docs_store()
+
+    assert docsstore.get('2005.ipm_journal-ir0anthology0volumeA41A1.7').text.startswith('A probabilistic model for stemmer generation AbstractIn this paper')
+
+
+def test_loading_queries_via_rest_api_from_tira():
+    from tira.third_party_integrations import ir_datasets
+    dataset = ir_datasets.load('ir-lab-jena-leipzig-sose-2023/iranthology-20230618-training')
+    
+    assert 68 == len(list(dataset.queries_iter()))
+    assert '''GenericQuery(query_id='1', text='retrieval system improving effectiveness')''' == str(list(dataset.queries_iter())[0])
+    
