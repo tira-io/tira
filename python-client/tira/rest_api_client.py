@@ -30,7 +30,11 @@ class Client():
         self.failsave_max_delay = failsave_max_delay
 
     def load_settings(self):
-        return json.load(open(self.tira_cache_dir + '/.tira-settings.json', 'r'))
+        try:
+            return json.load(open(self.tira_cache_dir + '/.tira-settings.json', 'r'))
+        except:
+            print(f'No settings given in {self.tira_cache_dir}/.tira-settings.json. I will use defaults.')
+            return {'api_key': 'no-api-key'}
 
     def fail_if_api_key_is_invalid(self):
         role = self.json_response('/api/role')
