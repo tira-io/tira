@@ -22,7 +22,8 @@ class Client():
             self.api_key = api_key
 
         self.failsave_retries = 1
-        self.fail_if_api_key_is_invalid()
+        if self.api_key != 'no-api-key':
+            self.fail_if_api_key_is_invalid()
         self.pt = PyTerrierIntegration(self)
         self.local_execution = LocalExecutionIntegration(self)
 
@@ -292,7 +293,11 @@ class Client():
         for i in range(self.failsave_retries):
             status_code = None
             try:
-                r = requests.get(url, headers={"Api-Key": self.api_key})
+                headers={"Api-Key": self.api_key}
+                if self.api_key == 'no-api-key':
+                    del headers["Api-Key"]
+            
+                r = requests.get(url, headers=headers)
                 status_code = r.status_code
                 z = zipfile.ZipFile(io.BytesIO(r.content))
                 z.extractall(target_dir)
@@ -359,6 +364,9 @@ class Client():
             return self.json_cache[cache_key]
         
         headers = {"Api-Key": self.api_key, "Accept": "application/json"}
+        
+        if self.api_key == 'no-api-key':
+            del headers["Api-Key"]
 
         for i in range(self.failsave_retries):
             try:

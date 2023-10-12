@@ -127,5 +127,6 @@ def test_loading_queries_via_rest_api_from_tira():
     dataset = ir_datasets.load('ir-lab-jena-leipzig-sose-2023/iranthology-20230618-training')
     
     assert 68 == len(list(dataset.queries_iter()))
-    assert '''GenericQuery(query_id='1', text='retrieval system improving effectiveness')''' == str(list(dataset.queries_iter())[0])
+    print(str(list(dataset.queries_iter())[0]))
+    assert '''TrecQuery(query_id='1', title='retrieval system improving effectiveness', description='What papers focus on improving the effectiveness of a retrieval system?', narrative='Relevant papers include research on what makes a retrieval system effective and what improves the effectiveness of a retrieval system. Papers that focus on improving something else or improving the effectiveness of a system that is not a retrieval system are not relevant.')''' == str(list(dataset.queries_iter())[0])
     

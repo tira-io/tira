@@ -121,7 +121,7 @@ def __lazy_qrels(tira_path):
 
 
 def __lazy_queries(tira_path):
-    from ir_datasets.formats import BaseQueries, GenericQuery
+    from ir_datasets.formats import BaseQueries, TrecQuery
 
     class QueriesFromTira(BaseQueries):
         def __init__(self):
@@ -139,7 +139,11 @@ def __lazy_queries(tira_path):
 
                 self.queries = {}
                 for _, i in all_lines_to_pandas(queries_file, False).iterrows():
-                    self.queries[i['qid']] = GenericQuery(query_id=i['qid'], text= i['query'])
+                    orig_query = None if 'original_query' not in i else i['original_query']
+                    
+                    description = None if (not orig_query and 'description' not in orig_query) else orig_query['description']
+                    narrative = None if (not orig_query and 'narrative' not in orig_query) else orig_query['narrative']
+                    self.queries[i['qid']] = TrecQuery(query_id=i['qid'], title= i['query'], description=description, narrative=narrative)
 
             return deepcopy(self.queries).values().__iter__()
     
