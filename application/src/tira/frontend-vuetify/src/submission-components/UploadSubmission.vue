@@ -46,16 +46,20 @@
           </v-window-item>
           <v-window-item v-for="us in this.all_uploadgroups" :value="us.id">
             <loading :loading="description === 'no-description'"/>
-            <div v-if="description !== 'no-description'" class="d-flex justify-lg-space-between">
-              <edit-submission-details type='upload' :id="us.id" :user_id="user_id_for_task" @edit="(i) => updateUploadDetails(i)"/>
-              <v-btn variant="outlined" color="red" @click="deleteUpload(us.id)"><v-tooltip
-                activator="parent"
-                location="bottom"
-              >Attention! This deletes the container and ALL runs associated with it</v-tooltip><v-icon>mdi-delete-alert-outline</v-icon>Delete</v-btn>
+            <div v-if="description !== 'no-description'" class="d-flex flex-column">
 
-              <br>
-              <p>{{ description }}</p>
-              <br>
+              <div class="d-flex justify-end">
+                <edit-submission-details class="mr-3" type='upload' :id="us.id" :user_id="user_id_for_task" @edit="(i) => updateUploadDetails(i)"/>
+                <v-btn variant="outlined" color="red" @click="deleteUpload(us.id)"><v-tooltip
+                  activator="parent"
+                  location="bottom"
+                >Attention! This deletes the container and ALL runs associated with it</v-tooltip><v-icon>mdi-delete-alert-outline</v-icon>Delete</v-btn>
+
+              </div>
+              <div class="my-5">
+                <p>{{ description }}</p>
+              </div>
+
             </div>
             <v-form v-if="description !== 'no-description'">
               <v-file-input v-model="fileHandle"
