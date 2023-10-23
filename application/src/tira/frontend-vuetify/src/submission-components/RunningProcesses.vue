@@ -113,7 +113,7 @@
                             <v-list-item-title>CPU: {{ software.job_config.gpu }}</v-list-item-title>
                           </v-list-item>
                         </v-list>
-                        <v-btn variant="outlined" color="red" class="w-100">
+                        <v-btn variant="outlined" color="red" class="w-100" @click="stopRun(software.run_id)">
                           <v-tooltip activator="parent" location="bottom">
                             Attention! This cancels the current run
                           </v-tooltip>
@@ -163,7 +163,8 @@ export default {
       loading: true,
       poll_in_progress: false,
       selectedRuns: null,
-      pollSoftwareInterval: null
+      pollSoftwareInterval: null,
+      abortedProcesses: []
     }
   },
   computed: {
@@ -173,9 +174,11 @@ export default {
   },
   methods: {
     stopRun(run_id) {
-      if (!(this.aborted_processes.includes(run_id))) {
-        this.aborted_processes.push(run_id)
-        this.$emit('stopRun', run_id)
+      if (!(this.abortedProcesses.includes(run_id))) {
+        this.abortedProcesses.push(run_id)
+        get(`/api/grpc/${this.task_id}/user/${this.user_id_for_task}/stop_docker_software/${run_id}`)
+        .then(message => {console.log(message)})
+        .catch(reportError("Problem while trying to abort the process with id: " + run_id))
       }
     },
     pollRunningSoftware(force_cache_refresh="False") {
