@@ -99,7 +99,7 @@ class LocalExecutionIntegration():
         except Exception as e:
             raise ValueError('It seems like docker is not installed?', e)
 
-    def run(self, identifier=None, image=None, command=None, input_dir=None, output_dir=None, evaluate=False, verbose=False, dry_run=False, docker_software_id_to_output=None, software_id=None, allow_network=False, input_run=None, additional_volumes=None):
+    def run(self, identifier=None, image=None, command=None, input_dir=None, output_dir=None, evaluate=False, verbose=False, dry_run=False, docker_software_id_to_output=None, software_id=None, allow_network=False, input_run=None, additional_volumes=None, eval_dir='tira-evaluation'):
         previous_stages = []
         original_args = {'identifier': identifier, 'image': image, 'command': command, 'input_dir': input_dir, 'output_dir': output_dir, 'evaluate': evaluate, 'verbose': verbose, 'dry_run': dry_run, 'docker_software_id_to_output': docker_software_id_to_output, 'software_id': software_id}
         s_id = 'unknown-software-id'
@@ -160,26 +160,39 @@ class LocalExecutionIntegration():
         self.ensure_image_available_locally(image, client)
         environment = {'outputDir': '/tira-data/output', 'inputDataset': '/tira-data/input', 'TIRA_DATASET_ID': 'id', 'TIRA_OUTPUT_DIRECTORY': '/tira-data/output', 'TIRA_INPUT_DIRECTORY': '/tira-data/input'}
 
-        container = client.containers.run(image, entrypoint='sh', command=f'-c "{command}"', environment=environment, volumes=volumes, detach=True, remove=True, network_disabled = not allow_network)
+        container = client.containers.run(image, entrypoint='sh', command=f'-c "{command}; sleep .1"', environment=environment, volumes=volumes, detach=True, remove=True, network_disabled = not allow_network)
 
         for line in container.attach(stdout=True, stream=True, logs=True):
             print(line.decode('utf-8'), flush=True)
 
         if evaluate:
-            if type(evaluate) is not str:
+            evaluation_volumes = {str(eval_dir): {'bind': '/tira-data/eval_output', 'mode': 'rw'}}
+
+            if type(evaluate) is dict and evaluate['evaluator_id']:
+                evaluation_volumes[str(evaluate['truth_directory'])] = {'bind': '/tira-data/input_truth', 'mode': 'ro'}
+                evaluation_volumes[str(output_dir)] = {'bind': '/tira-data/input-run', 'mode': 'ro'}
+                
+                evaluate, image, command = None, evaluate['evaluator_git_runner_image'],  evaluate['evaluator_git_runner_command']
+            elif type(evaluate) is not str:
                 evaluate = data
-            evaluate, image, command = __extract_image_and_command(evaluate, evaluator=True)
-            command = __normalize_command(command, True)
+
+            if image == None or command == None:
+                evaluate, image, command = __extract_image_and_command(evaluate, evaluator=True)
+
+            command = self.__normalize_command(command, True)
             if verbose:
                 print(f'Evaluate software with: docker run --rm -ti -v {input_dir}:/tira-data/input -v {output_dir}/:/tira-data/output --entrypoint sh {image} -c \'{command}\'')
         
-            client.containers.run(image, entrypoint='sh', command=f'-c "{command}"', volumes={str(data_dir): {'bind': '/tira-data/', 'mode': 'rw'}})
+            container = client.containers.run(image, entrypoint='sh', command=f'-c "{command}; sleep .1"', volumes=evaluation_volumes, detach=True, remove=True, network_disabled = not allow_network)
+
+            for line in container.attach(stdout=True, stream=True, logs=True):
+                print(line.decode('utf-8'), flush=True)
 
         if evaluate:
             approach_name = identifier if identifier else f'"{command}"@{image}'
             eval_results = {'approach': approach_name, 'evaluate': evaluate}
-            eval_results.update(load_output_of_directory(Path(data_dir) / 'eval_output', evaluation=True, verbose=verbose))
-            return load_output_of_directory(Path(data_dir) / 'output', verbose=verbose), pd.DataFrame([eval_results])
+            eval_results.update(self.load_output_of_directory(Path(eval_dir), evaluation=True, verbose=verbose))
+            return self.load_output_of_directory(Path(eval_dir), verbose=verbose), pd.DataFrame([eval_results])
         else:
             docker_software_id_to_output[s_id] = output_dir
             return docker_software_id_to_output

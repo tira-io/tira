@@ -76,6 +76,21 @@ def __inject_user_vms_for_task(request, context, task_id):
 
 
 @add_context
+def get_configuration_of_evaluation(request, context, task_id, dataset_id):
+    dataset = model.get_dataset(dataset_id)
+
+    context['dataset'] = {
+        "display_name": dataset['display_name'],
+        "evaluator_id": dataset['evaluator_id'],
+        "dataset_id": dataset['dataset_id'],
+        "evaluator_git_runner_image": dataset['evaluator_git_runner_image'],
+        "evaluator_git_runner_command": dataset['evaluator_git_runner_command'],
+    }
+
+    return JsonResponse({'status': 0, "context": context})
+
+
+@add_context
 @check_resources_exist('json')
 def get_evaluations_by_dataset(request, context, task_id, dataset_id):
     """ Return all evaluation results for all submission to a dataset
@@ -96,7 +111,9 @@ def get_evaluations_by_dataset(request, context, task_id, dataset_id):
     task = model.get_task(task_id, False)
     is_ir_task = 'is_ir_task' in task and task['is_ir_task']
     is_admin = context["role"] == "admin"
-    ev_keys, evaluations = model.get_evaluations_with_keys_by_dataset(dataset_id, is_admin)
+    show_only_unreviewed = request.GET.get('show_only_unreviewed', 'false').lower() == 'true'
+    print(show_only_unreviewed)
+    ev_keys, evaluations = model.get_evaluations_with_keys_by_dataset(dataset_id, is_admin, show_only_unreviewed)
     user_vms_for_task = __inject_user_vms_for_task(request, context, task_id)
 
     context["task_id"] = task_id
@@ -304,7 +321,6 @@ def get_user(request, context, task_id, user_id):
     upload = model.get_upload_with_runs(task_id, user_id)
     docker = model.load_docker_data(task_id, user_id, cache, force_cache_refresh=False)
     vm = model.get_vm(user_id)
-
     context["task"] = model.get_task(task_id)
     context["user_id"] = user_id
     context["vm"] = vm

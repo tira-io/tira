@@ -10,6 +10,7 @@ import shutil
 def parse_args():
     parser = argparse.ArgumentParser(prog='tira-run')
     parser.add_argument('--input-directory', required=False, default=str(os.path.abspath(".")))
+    parser.add_argument('--input-dataset', required=False, default=None)
     parser.add_argument('--input-run', required=False, default=None)
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument('--image')
@@ -19,6 +20,8 @@ def parse_args():
     group.add_argument('--export-submission-from-jupyter-notebook', required=False, default=None, type=str)
     parser.add_argument('--command', required=False)
     parser.add_argument('--verbose', required=False, default=False, type=bool)
+    parser.add_argument('--evaluate', required=False, default=False, type=bool)
+    parser.add_argument('--evaluation-directory', required=False, default=str(os.path.abspath("tira-evaluation")))
     parser.add_argument('--dry-run', required=False, default=False, type=bool)
     parser.add_argument('--dataset-for-export-approach-output', required=False, default=False, type=str)
     parser.add_argument('-v', action='append', default=None, help='Additional volume mounts as <host-path>:<container-path>:<read-write-mode>', required=False)
@@ -89,5 +92,24 @@ def main():
 
         return
 
-    client.local_execution.run(identifier=args.approach, image=args.image, command=args.command, input_dir=args.input_directory, output_dir=args.output_directory, verbose=args.verbose, dry_run=args.dry_run, allow_network=args.allow_network, input_run=args.input_run, additional_volumes=args.v)
+    input_dir = args.input_directory
+    evaluate=False
+    if args.input_dataset and 'none' != args.input_dataset.lower():
+        if len(args.input_dataset.split('/')) != 2:
+            print(f'Please pass arguments as: --input-dataset <task>/<tira-dataset>. Got {args.input_dataset}')
+            return
+        
+        task, dataset = args.input_dataset.split('/')
+        tira = RestClient()
+        print(f'Ensure that the input dataset {dataset} is available.')
+        input_dir = tira.download_dataset(task, dataset)
+        print(f'Done: Dataset {dataset} is available locally.')
+
+        if args.evaluate:
+            print(f'Ensure that the evaluation truth for dataset {dataset} is available.')
+            evaluate = tira.get_configuration_of_evaluation(task, dataset)
+            evaluate['truth_directory'] = tira.download_dataset(task, dataset,truth_dataset=True)
+            print(f'Done: Evaluation truth for dataset {dataset} is available.')
+
+    client.local_execution.run(identifier=args.approach, image=args.image, command=args.command, input_dir=input_dir, output_dir=args.output_directory, verbose=args.verbose, dry_run=args.dry_run, allow_network=args.allow_network, input_run=args.input_run, additional_volumes=args.v, evaluate=evaluate, eval_dir=args.evaluation_directory)
 

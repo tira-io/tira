@@ -1,6 +1,7 @@
 <template>
-  <v-card v-if="!loading" flat class="px-0 mx-0" max-width="75vw">
-    <v-tabs v-model="component_tab" show-arrows>
+  <v-card v-if="!loading" flat class="px-0 mx-0">
+    <v-select class="d-md-none" v-model="selectedComponentTab" label="Select item to get more information" :items="tabs"></v-select>
+    <v-tabs v-model="component_tab" show-arrows class="d-sm-none d-sx-none d-md-block">
       <v-tab value="details">Details</v-tab>
       <v-tab value="references">References</v-tab>
       <v-tab value="reproduction">Reproduction</v-tab>
@@ -80,7 +81,7 @@
         </v-window-item>
 
         <v-window-item class="d-md-none" value="actions">
-          <div class="ma-2"><run-actions :run="run"/></div>
+          <div class="ma-2"><run-actions :run="run" @reviewRun="(i: any) => $emit('review-run', i)"/></div>
         </v-window-item >
       </v-window>
     </v-card-text>
@@ -99,6 +100,7 @@ import { get, inject_response, extractRole, extractTaskFromCurrentUrl, get_link_
 export default {
   name: "software-details",
   props: ['run', 'organizer', 'organizer_id', 'columns_to_skip'],
+  emits: ['review-run'],
   components: {Loading, TiraDataExport, RunActions, SubmissionIcon},
   data() {
     return {
@@ -114,8 +116,10 @@ export default {
       references_bibtex: 'Loading...',
       details_not_visible: false,
       role: extractRole(), // Values: user, participant, admin,
-      tab: null,
-      component_tab: null,
+      tabs: ['details', 'references', 'reproduction', 'actions'],
+      selectedComponentTab: 'details',
+      tab: '',
+      component_tab: '',
     }
   },
   computed: {
@@ -137,13 +141,17 @@ export default {
       get('/task/' + this.task_id + '/vm/' + this.run.vm_id + '/run_details/' + this.run.run_id)
         .then(inject_response(this, {'loading': false}))
         .catch(() => {this.details_not_visible = true; this.loading = false})
-      }
+      },
+    updateTab() {
+      this.component_tab = this.selectedComponentTab
+    }
   },
   beforeMount() {this.fetchData()},
   watch: {
     run(o, n) {this.fetchData()},
     task_id(o, n) {this.fetchData()},
     columns_to_skip(o, n) {this.fetchData()},
+    selectedComponentTab(o, n) {this.updateTab()}
   }
 }
 </script>

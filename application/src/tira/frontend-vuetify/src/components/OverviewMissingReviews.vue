@@ -1,7 +1,14 @@
 <template>
     <loading :loading="loading"/>
-    <v-data-table v-if="!loading" :headers="table_headers"
-                    :items="count_of_missing_reviews" density="compact" show-select>
+    <v-data-table v-if="!loading" :headers="table_headers" :items="count_of_missing_reviews" density="compact" v-model:expanded="expanded" show-expand expand-on-click>
+      <template v-slot:expanded-row="{ columns, item }">
+        <tr>
+          <td :colspan="columns.length">
+            More info about {{ item.value.dataset_id }}
+            <run-list :task_id="task.task_id" :organizer="task.organizer" :organizer_id="task.organizer_id" :dataset_id="item.value.dataset_id" show_only_unreviewed="true"/>
+          </td>
+        </tr>
+      </template>
     </v-data-table>
     <v-row class="pt-2">
       <v-col cols="12"><v-btn variant="outlined" block>Review Selected</v-btn></v-col>
@@ -9,15 +16,16 @@
 </template>
   
 <script lang="ts">
-import Loading from "./Loading.vue"
+import { RunList, Loading } from '.'
 import { get, reportError, inject_response } from '../utils'
  
 export default {
   name: "overview-missing-reviews",
-  components: {Loading},
-  props: ['task_id'],
+  components: {Loading, RunList},
+  props: ['task'],
   data() { return {
     loading: true,
+    expanded: null, 
     count_of_missing_reviews: [],
     table_headers: [
       { title: 'Dataset', key: 'dataset_id' },
@@ -27,7 +35,7 @@ export default {
   }},
   beforeMount() {
     this.loading = true
-    get('/api/count-of-missing-reviews/' + this.task_id)
+    get('/api/count-of-missing-reviews/' + this.task.task_id)
       .then(inject_response(this, {'loading': false}))
       .catch(reportError("Problem While Loading the Overview of missing Reviews", "This might be a short-term hiccup, please try again. We got the following error: "))
   },

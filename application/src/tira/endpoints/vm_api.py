@@ -462,16 +462,17 @@ def docker_software_add(request, task_id, vm_id):
     if request.method == 'POST':
         if not task_id or task_id is None or task_id == 'None':
             return JsonResponse({"status": 1, "message": "Please specify the associated task_id."})
-        
-        if not request.POST.get('image'):
+
+        data = json.loads(request.body)
+        if not data.get('image'):
             return JsonResponse({"status": 1, "message": "Please specify the associated docker image."})
 
-        if not request.POST.get('command'):
+        if not data.get('command'):
             return JsonResponse({"status": 1, "message": "Please specify the associated docker command."})
 
         new_docker_software = model.add_docker_software(task_id, vm_id,
-                                                        request.POST.get('image'), request.POST.get('command'),
-                                                        request.POST.get('inputJob', None)
+                                                        data.get('image'), data.get('command'),
+                                                        data.get('inputJob', None)
                                                         )
         return JsonResponse({"status": 0, "message": "ok", "context": new_docker_software})
     else:

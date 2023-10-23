@@ -285,6 +285,7 @@ class HybridDatabase(object):
 
     def _dataset_to_dict(self, dataset):
         evaluator_id = None if not dataset.evaluator else dataset.evaluator.evaluator_id
+
         runs = modeldb.Run.objects.filter(input_dataset__dataset_id=dataset.dataset_id, deleted=False)
         return {
             "display_name": dataset.display_name,
@@ -306,6 +307,8 @@ class HybridDatabase(object):
             "irds_docker_image": dataset.irds_docker_image,
             "irds_import_command": dataset.irds_import_command,
             "irds_import_truth_command": dataset.irds_import_truth_command,
+            "evaluator_git_runner_image": dataset.evaluator.git_runner_image if evaluator_id else None,
+            "evaluator_git_runner_command":  dataset.evaluator.git_runner_command if evaluator_id else None,
         }
 
     def get_dataset(self, dataset_id: str) -> dict:
@@ -589,7 +592,7 @@ class HybridDatabase(object):
 
         return ret
 
-    def get_runs_for_vm(self, vm_id, docker_software_id, upload_id, include_unpublished=True, round_floats=True):
+    def get_runs_for_vm(self, vm_id, docker_software_id, upload_id, include_unpublished=True, round_floats=True, show_only_unreviewed=False):
         prepared_statement = """
         SELECT
             evaluation_run.input_dataset_id, evaluation_run.run_id, input_run.run_id, tira_upload.display_name,
@@ -597,7 +600,7 @@ class HybridDatabase(object):
             tira_evaluation_review.published, tira_evaluation_review.blinded, tira_run_review.published, 
             tira_run_review.blinded, tira_evaluation.measure_key, tira_evaluation.measure_value,
             tira_run_review.reviewer_id, tira_run_review.no_errors, tira_run_review.has_errors,
-            tira_run_review.has_no_errors
+            tira_run_review.has_no_errors, tira_evaluation_review.reviewer_id, tira_run_review.reviewer_id
         FROM
             tira_run as evaluation_run
         INNER JOIN 
@@ -632,8 +635,36 @@ class HybridDatabase(object):
             params += [docker_software_id]
 
         rows = self.execute_raw_sql_statement(prepared_statement, params)
-        return self.__parse_submissions(rows, include_unpublished, round_floats, True)
+        ret = self.__parse_submissions(rows, include_unpublished, round_floats, True, show_only_unreviewed)
+        from_uploads = []
 
+        if upload_id:
+            prepared_statement = """
+                    SELECT
+                        input_run.input_dataset_id, input_run.run_id, tira_upload.display_name
+                    FROM
+                        tira_run as input_run
+                   INNER JOIN
+                        tira_upload ON input_run.upload_id = tira_upload.id
+                    LEFT JOIN 
+                        tira_run as evaluation_run ON evaluation_run.input_run_id = input_run.run_id
+                    WHERE
+                        evaluation_run.input_run_id is null AND input_run.deleted = False 
+                        AND tira_upload.vm_id = %s AND tira_upload.id = %s
+                    ORDER BY
+                        input_run.run_id ASC;        
+                    """
+
+            rows = self.execute_raw_sql_statement(prepared_statement, [vm_id, upload_id])
+
+            for dataset_id, run_id, display_name in rows:
+                print(run_id)
+                from_uploads += [{'dataset_id': dataset_id, 'vm_id': vm_id, 'input_software_name': display_name,
+                                  'run_id': run_id, 'input_run_id': run_id, 'published': False, 'blinded': True,
+                                  'is_upload': True, 'is_software': False, 'review_state': 'no-review', 'measures': {}
+                                  }]
+
+        return ret[0], (ret[1] + from_uploads)
 
     def get_docker_softwares_with_runs(self, task_id, vm_id):
         def _runs_by_docker_software(ds):
@@ -821,7 +852,7 @@ class HybridDatabase(object):
                                   for evaluation in run.evaluation_set.all()}
         return result
 
-    def get_evaluations_with_keys_by_dataset(self, dataset_id, include_unpublished=False, round_floats=True):
+    def get_evaluations_with_keys_by_dataset(self, dataset_id, include_unpublished=False, round_floats=True, show_only_unreviewed=False):
         """
         This function returns the data to render the Leaderboards: A list of keys 'ev-keys' of the evaluation measures
             which will be the column titles, and a list of evaluations. Each evaluations contains the vm and run id
@@ -841,7 +872,8 @@ class HybridDatabase(object):
             tira_dockersoftware.display_name, tira_dockersoftware.vm_id, tira_evaluation_review.published,
             tira_evaluation_review.blinded, tira_run_review.published, tira_run_review.blinded,
             tira_evaluation.measure_key, tira_evaluation.measure_value, tira_run_review.reviewer_id, 
-            tira_run_review.no_errors, tira_run_review.has_errors, tira_run_review.has_no_errors
+            tira_run_review.no_errors, tira_run_review.has_errors, tira_run_review.has_no_errors,
+            tira_evaluation_review.reviewer_id, tira_run_review.reviewer_id
         FROM
             tira_run as evaluation_run
         INNER JOIN 
@@ -878,10 +910,10 @@ class HybridDatabase(object):
         prepared_statement = prepared_statement.replace('<DATASET_ID_STATEMENT>', f'({dataset_id_statement})')
 
         rows = self.execute_raw_sql_statement(prepared_statement, params=dataset_ids)
-        return self.__parse_submissions(rows, include_unpublished, round_floats)
+        return self.__parse_submissions(rows, include_unpublished, round_floats, show_only_unreviewed, show_only_unreviewed)
 
     @staticmethod
-    def __parse_submissions(rows, include_unpublished, round_floats, include_without_evaluation=False):
+    def __parse_submissions(rows, include_unpublished, round_floats, include_without_evaluation=False, show_only_unreviewed=False):
         keys = dict()
         input_run_to_evaluation = {}
 
@@ -895,9 +927,12 @@ class HybridDatabase(object):
 
         for dataset_id, run_id, input_run_id, upload_display_name, upload_vm_id, software_vm_id, docker_display_name, \
                 docker_vm_id, eval_published, eval_blinded, run_published, run_blinded, m_key, m_value, \
-                reviewer_id, no_errors, has_errors, has_no_errors in rows:
+                reviewer_id, no_errors, has_errors, has_no_errors, tira_evaluation_reviewer_id, tira_run_reviewer_id in rows:
 
             if (not include_without_evaluation and not m_key) or (not include_unpublished and not eval_published):
+                continue
+
+            if show_only_unreviewed and tira_evaluation_reviewer_id != 'tira' and tira_run_reviewer_id != 'tira':
                 continue
 
             if run_id not in input_run_to_evaluation:

@@ -316,8 +316,8 @@ export function validateTeamName(value: string) {
         return 'Team name is required.'
     } else if (value?.length < 3) {
         return 'Team name must have 3 or more characters.'
-    } else if (value?.length > 10) {
-        return 'Team name must be less than 10 characters.'
+    } else if (value?.length > 30) {
+        return 'Team name must be less than 30 characters.'
     }
 
     return true

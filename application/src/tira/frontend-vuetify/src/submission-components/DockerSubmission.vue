@@ -2,21 +2,26 @@
   <loading :loading="loading"/>
   <login-to-submit v-if="!loading && role === 'guest'"/>
   <v-row v-if="!loading && role !== 'guest'">
-    <v-responsive class="mt-10" min-width="220px" id="task-search">
-      <v-text-field class="px-4" clearable label="Type here to filter &hellip;" prepend-inner-icon="mdi-magnify"
-                    variant="underlined" v-model="software_filter"/>
+    <v-responsive class="mt-10 mx-5" min-width="220px" id="task-search">
+      <v-autocomplete ref="softwareSearchInput" clearable auto-select-first label="Choose software or type to filter &hellip;" prepend-inner-icon="mdi-magnify" :items="this.filteredSoftwares" item-title="display_name"
+                    variant="underlined" v-model="software_filter" @click="this.$refs.softwareSearchInput.reset()"/>
+      <div class="d-flex justify-end w-100">
+      <v-btn color="primary" @click="this.tab = 'newDockerImage'">
+        Create new software
+      </v-btn>
+      </div>
     </v-responsive>
   </v-row>
   <v-row v-if="!loading && role !== 'guest'">
     <v-col cols="10">
-      <v-tabs v-model="tab" fixed-tabs class="mb-10">
+      <v-tabs v-model="tab" fixed-tabs class="mb-10 d-none">
         <v-tab variant="outlined" v-for="ds in this.filteredSoftwares" :value="ds.docker_software_id">
           {{ ds.display_name }}
         </v-tab>
       </v-tabs>
     </v-col>
     <v-col cols="2">
-      <v-tabs v-model="tab" fixed-tabs class="mb-10">
+      <v-tabs v-model="tab" fixed-tabs class="mb-10 d-none">
         <v-tab value="newDockerImage" color="primary" style="max-width: 100px;" variant="outlined">
           <v-icon>mdi-plus</v-icon>
         </v-tab>
@@ -30,10 +35,11 @@
                                   :user_id="user_id_for_submission"
                                   :datasets="datasets"
                                   :resources="resources" :docker_software_id="ds.docker_software_id"
-                                  :organizer="organizer" :organizer_id="organizer_id"/>
+                                  :organizer="organizer" :organizer_id="organizer_id"
+                                  @refresh_running_submissions="$emit('refresh_running_submissions')"/>
     </v-window-item>
     <v-window-item value="newDockerImage">
-      <NewDockerSubmission @add-new-docker-image="handleAddNewDockerImage" :user_id="user_id_for_submission"
+      <new-docker-submission @add-new-docker-image="handleAddNewDockerImage" :is_ir_task="is_ir_task" :user_id_for_submission="user_id_for_submission"
                                   :step_prop="step" :docker_softwares="this.docker.docker_softwares"
                                   :organizer="organizer" :organizer_id="organizer_id"/>
     </v-window-item>
@@ -50,7 +56,8 @@ import {Loading, LoginToSubmit, ExistingDockerSubmission, NewDockerSubmission} f
 export default {
   name: "docker-submission",
   components: {Loading, LoginToSubmit, VAutocomplete, ExistingDockerSubmission, NewDockerSubmission},
-  props: ['step_prop', 'organizer', 'organizer_id'],
+  emits: ['refresh_running_submissions'],
+  props: ['step_prop', 'organizer', 'organizer_id', 'is_ir_task'],
   data() {
     return {
       tab: null,
@@ -80,7 +87,10 @@ export default {
   },
   computed: {
     filteredSoftwares() {
-      return filterByDisplayName(this.docker.docker_softwares, this.software_filter)
+      if(this.software_filter === null) {
+        this.software_filter = "";
+      }
+      return filterByDisplayName(this.docker.docker_softwares, this.software_filter.toString())
     },
   },
   methods: {

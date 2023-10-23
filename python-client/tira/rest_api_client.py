@@ -22,7 +22,8 @@ class Client():
             self.api_key = api_key
 
         self.failsave_retries = 1
-        self.fail_if_api_key_is_invalid()
+        if self.api_key != 'no-api-key':
+            self.fail_if_api_key_is_invalid()
         self.pt = PyTerrierIntegration(self)
         self.local_execution = LocalExecutionIntegration(self)
 
@@ -30,7 +31,11 @@ class Client():
         self.failsave_max_delay = failsave_max_delay
 
     def load_settings(self):
-        return json.load(open(self.tira_cache_dir + '/.tira-settings.json', 'r'))
+        try:
+            return json.load(open(self.tira_cache_dir + '/.tira-settings.json', 'r'))
+        except:
+            print(f'No settings given in {self.tira_cache_dir}/.tira-settings.json. I will use defaults.')
+            return {'api_key': 'no-api-key'}
 
     def fail_if_api_key_is_invalid(self):
         role = self.json_response('/api/role')
@@ -263,6 +268,17 @@ class Client():
             if ('status' not in ret) or ('0' != ret['status']) or ('published' not in ret) or (not ret['published']):
                 raise ValueError(f'Adding the run to the leaderboard failed. Got {ret}')
 
+    def get_configuration_of_evaluation(self, task_id, dataset_id):
+        """ Get the configuration of the evaluator for the passed dataset inside the task specified by task_id.
+        """
+        ret = self.json_response(f'/api/configuration-of-evaluation/{task_id}/{dataset_id}')
+
+        if 'status' not in ret or '0' != str(ret['status']):
+            raise ValueError(f'Failed to load configuration of an evaluator. Got {ret}')
+
+        return ret['context']['dataset']
+    
+
     def evaluate_run(self, team, dataset, run_id):
         """ Evaluate the run of the specified team and identified by the run_id (the run must be submitted on the specified dataset).
         """
@@ -277,7 +293,11 @@ class Client():
         for i in range(self.failsave_retries):
             status_code = None
             try:
-                r = requests.get(url, headers={"Api-Key": self.api_key})
+                headers={"Api-Key": self.api_key}
+                if self.api_key == 'no-api-key':
+                    del headers["Api-Key"]
+            
+                r = requests.get(url, headers=headers)
                 status_code = r.status_code
                 z = zipfile.ZipFile(io.BytesIO(r.content))
                 z.extractall(target_dir)
@@ -344,6 +364,9 @@ class Client():
             return self.json_cache[cache_key]
         
         headers = {"Api-Key": self.api_key, "Accept": "application/json"}
+        
+        if self.api_key == 'no-api-key':
+            del headers["Api-Key"]
 
         for i in range(self.failsave_retries):
             try:

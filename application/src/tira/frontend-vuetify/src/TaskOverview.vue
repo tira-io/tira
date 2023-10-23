@@ -1,6 +1,6 @@
 <template>
-  <v-container>
   <tira-breadcrumb/>
+  <v-container>
   <loading :loading="loading"/>
   <v-container v-if="!loading">
         <loading :loading="loading"/>
@@ -44,22 +44,36 @@
               <v-col cols="6"><v-btn variant="outlined" :href="task.web" block>Task Website</v-btn></v-col>
             </v-row>
           </v-card-actions>
-    <v-card-actions v-if="task_id === 'ir-benchmarks'">
-      <v-row>
-        <v-dialog transition="dialog-bottom-transition" width="auto">
-            <template v-slot:activator="{ props }">
-              <v-col cols="12"><v-btn variant="outlined" v-bind="props" block>Documentation</v-btn></v-col>
-            </template>
-            <template v-slot:default="{ isActive }">
-              <task-documentation :task="task"/>
-            </template>
-          </v-dialog>
-      </v-row>
-    </v-card-actions>
+          <v-card-actions v-if="task_id === 'ir-benchmarks'">
+            <v-row>
+              <v-dialog transition="dialog-bottom-transition" width="auto">
+                <template v-slot:activator="{ props }">
+                  <v-col cols="12"><v-btn variant="outlined" v-bind="props" block>Documentation</v-btn></v-col>
+                </template>
+                <template v-slot:default="{ isActive }">
+                  <task-documentation :task="task"/>
+                </template>
+              </v-dialog>
+            </v-row>
+          </v-card-actions>
+          <v-card-actions v-if="vm_ids">
+            <v-row>
+              <v-menu transition="slide-y-transition">
+                <template v-slot:activator="{ props }">
+                  <v-col cols="12"><v-btn v-bind="props" variant="outlined" block>Manage your Teams</v-btn></v-col>
+                </template>
+                <v-list>
+                  <v-list-item v-for="(item, i) in vm_ids" :key="i">
+                    <v-btn :href="'https://www.tira.io/g/tira_vm_' + item" variant="outlined" target="_blank" block>Manage Team {{ item }}</v-btn>
+                  </v-list-item>
+                </v-list>
+              </v-menu>
+            </v-row>
+          </v-card-actions>
         </v-card>
         </v-container>
 
-        <tira-task-admin v-if="!loading" :datasets="datasets" :is_ir_task="task.is_ir_task" @addDataset="(x:any) => addDataset(x)" @deleteDataset="(dataset_id: string) => deleteDataset(dataset_id)"/>
+        <tira-task-admin v-if="!loading" :datasets="datasets" :task="task" @addDataset="(x:any) => addDataset(x)" @deleteDataset="(dataset_id: string) => deleteDataset(dataset_id)"/>
           <v-container v-if="!loading" id="dataset-select">
             <h2>Submissions</h2>
             <v-autocomplete label="Dataset" :items="datasets" item-title="display_name" item-value="dataset_id"
@@ -98,7 +112,8 @@
   },
   computed: {
     link_organizer() {return get_link_to_organizer(this.task.organizer_id);},
-    contact_organizer() {return get_contact_link_to_organizer(this.task.organizer_id);}
+    contact_organizer() {return get_contact_link_to_organizer(this.task.organizer_id);},
+    vm_ids() { return this.user_vms_for_task.length > 1 ? this.user_vms_for_task : null;},
   },
   methods: {
     updateDataset() {

@@ -8,6 +8,16 @@
 </template>
 
 <style>
+  #app input {
+    margin: 0px !important;
+    padding: 0px !important;
+    left: auto !important;
+  }
+  .v-overlay-container input {
+    margin: 0px !important;
+    padding: 0px !important;
+    left: auto !important;
+  }
   #app #task-search input {
     border: none !important;
     outline: none !important;

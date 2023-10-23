@@ -44,6 +44,9 @@ def check_permissions(func):
                 and run_id in request.path_info and model.run_is_public_and_unblinded(run_id):
             return func(request, *args, **kwargs)
 
+        if (request.path_info.startswith('data-download/') or request.path_info.startswith('/data-download/')) and dataset_is_public(dataset_id):
+            return func(request, *args, **kwargs)
+
         if 'run_id_1' in kwargs or 'run_id_2' in kwargs:
             return HttpResponseNotAllowed(f"Access forbidden.")
 
@@ -141,8 +144,6 @@ def check_conditional_permissions(restricted=False, public_data_ok=False, privat
             elif restricted:
                 return HttpResponseNotAllowed(f"Access restricted.")
 
-
-
             if vm_id:  # First we determine the role of the user on the resource he requests
                 if not model.vm_exists(vm_id):
                     return redirect('tira:request_vm')
@@ -165,12 +166,17 @@ def check_conditional_permissions(restricted=False, public_data_ok=False, privat
                 else:
                     role = role_on_vm
 
+                if public_data_ok and run_is_public(run_id, vm_id, dataset_id):
+                    return func(request, *args, **kwargs)
+
                 if task_id and not not_registered_ok:  # This checks if the registration requirement is fulfilled.
                     if model.get_task(task_id)["require_registration"]:
                         if not model.user_is_registered(task_id, request):
                             return HttpResponseNotAllowed(f"Access forbidden. You must register first.")
 
             if not restricted and role == auth.ROLE_PARTICIPANT:  # Participants can access when it is their resource, the resource is visible to them, and the call is not restricted
+                return func(request, *args, **kwargs)
+            if public_data_ok and run_is_public(run_id, vm_id, dataset_id):
                 return func(request, *args, **kwargs)
             elif role == auth.ROLE_GUEST:  # If guests access a restricted resource, we send them to login
                 return redirect('tira:login')
@@ -179,6 +185,25 @@ def check_conditional_permissions(restricted=False, public_data_ok=False, privat
 
         return func_wrapper
     return decorator
+
+
+def run_is_public(run_id, vm_id, dataset_id):
+    if not run_id or not vm_id or not dataset_id or not dataset_id.endswith('-training'):
+        return False
+
+    i = model.get_run_review(dataset_id, vm_id, run_id)
+    if not (i and 'blinded' in i and 'published' in i and not i['blinded'] and i['published']):
+        return False
+
+    return dataset_is_public(i)
+
+
+def dataset_is_public(dataset_id):
+    if not dataset_id or not dataset_id.endswith('-training'):
+        return False
+
+    i = model.get_dataset(dataset_id)
+    return i and 'is_confidential' in i and not i['is_confidential'] and 'is_deprecated' in i and not i['is_deprecated']
 
 
 def check_resources_exist(reply_as='json'):

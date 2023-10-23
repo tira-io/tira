@@ -4,7 +4,7 @@
   <div class="my-5">
     <h2><b>{{this.user_id}}</b> on Task: {{this.task_id}}</h2>
   </div>
-    <RunningProcesses class="mb-12"/>
+    <running-processes class="mb-12" ref="running-processes"/>
   <v-tabs
     v-model="tab"
     fixed-tabs
@@ -24,10 +24,10 @@
   </v-tabs>
   <v-window v-model="tab">
       <v-window-item value="upload-submission">
-        <upload-submission :organizer="organizer" :organizer_id="organizer_id"/>
+        <upload-submission :organizer="organizer" :organizer_id="organizer_id"  @refresh_running_submissions="refresh_running_submissions()"/>
       </v-window-item>
     <v-window-item value="docker-submission">
-        <docker-submission :organizer="organizer" :organizer_id="organizer_id" step_prop="step-1"/>
+        <docker-submission :organizer="organizer" :organizer_id="organizer_id" step_prop="step-1" :is_ir_task="is_ir_task" @refresh_running_submissions="refresh_running_submissions()"/>
       </v-window-item>
     <v-window-item value="vm-submission">
         <virtual-machine-submission :organizer="organizer" :organizer_id="organizer_id" />
@@ -43,7 +43,7 @@ import UploadSubmission from "@/submission-components/UploadSubmission";
 import RunningProcesses from "@/submission-components/RunningProcesses.vue";
 import { TiraBreadcrumb } from './components'
 
-import { extractSubmissionTypeFromCurrentUrl, extractCurrentStepFromCurrentUrl, extractTaskFromCurrentUrl, extractUserFromCurrentUrl, extractRole } from "@/utils";
+import { extractSubmissionTypeFromCurrentUrl, extractCurrentStepFromCurrentUrl, extractTaskFromCurrentUrl, extractUserFromCurrentUrl, extractRole, get, inject_response, reportError } from "@/utils";
 export default {
   name: "run-upload",
   components: {UploadSubmission, TiraBreadcrumb, VirtualMachineSubmission, DockerSubmission, RunningProcesses},
@@ -53,16 +53,25 @@ export default {
         step: extractCurrentStepFromCurrentUrl(),
         task_id: extractTaskFromCurrentUrl(),
         user_id: extractUserFromCurrentUrl(),
-        role: extractRole(), // Values: guest, user, participant, admin
-        task: { "task_id": "", "task_name": "", "task_description": "",
-                "organizer": "", "organizer_id": "", "web": "", "year": "",
-                "dataset_count": 0, "software_count": 0, "teams": 0
-        },
+        is_ir_task: false,
+        task_name: "",
+        task_description: "",
+        organizer: "",
+        organizer_id: "",
+        web: "",
     }
+  },
+  beforeMount() {
+    get('/api/task/' + this.task_id)
+            .then(inject_response(this, {}, true, 'task'))
+            .catch(reportError("Problem loading the data of the task.", "This might be a short-term hiccup, please try again. We got the following error: "))
   },
   methods: {
     updateUrlToSelectedSubmissionType() {
       this.$router.replace({name: 'submission', params: {submission_type: this.tab}})
+    },
+    refresh_running_submissions() {
+      this.$refs['running-processes'].pollRunningSoftware('True')
     }
   },
   watch: {

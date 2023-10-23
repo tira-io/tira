@@ -1,0 +1,90 @@
+{
+    "context": {
+        "docker_documentation": [
+            "Your account has no docker registry. Please contact an organizer."
+        ],
+        "ev_keys": [],
+        "include_navigation": false,
+        "organizer_teams": "[]",
+        "role": "participant",
+        "runs": [
+            {
+                "blinded": true,
+                "dataset_id": "vm-eval-task-1",
+                "input_software_name": "default upload",
+                "is_software": false,
+                "is_upload": true,
+                "link_to_team": "https://www.tira.io/g/tira_vm_vm-eval-p1",
+                "owned_by_user": false,
+                "published": false,
+                "review_state": "no-review",
+                "run_id": "vm-eval-p2-vm-eval-task-1-<TIME>-test-upload",
+                "selectable": false,
+                "vm_id": "vm-eval-p1"
+            },
+            {
+                "blinded": true,
+                "dataset_id": "vm-eval-task-2",
+                "input_software_name": "default upload",
+                "is_software": false,
+                "is_upload": true,
+                "link_to_team": "https://www.tira.io/g/tira_vm_vm-eval-p1",
+                "owned_by_user": false,
+                "published": false,
+                "review_state": "no-review",
+                "run_id": "vm-eval-p2-vm-eval-task-2-<TIME>-training-upload",
+                "selectable": false,
+                "vm_id": "vm-eval-p1"
+            },
+            {
+                "blinded": true,
+                "dataset_id": "vm-eval-task-3",
+                "input_software_name": "default upload",
+                "is_software": false,
+                "is_upload": true,
+                "link_to_team": "https://www.tira.io/g/tira_vm_vm-eval-p1",
+                "owned_by_user": false,
+                "published": false,
+                "review_state": "no-review",
+                "run_id": "vm-eval-p2-vm-eval-task-3-<TIME>-test-upload",
+                "selectable": false,
+                "vm_id": "vm-eval-p1"
+            }
+        ],
+        "table_headers": [
+            {
+                "key": "dataset_id",
+                "title": "Dataset"
+            },
+            {
+                "key": "run_id",
+                "title": "Run"
+            },
+            {
+                "key": "actions",
+                "sortable": false,
+                "title": ""
+            }
+        ],
+        "table_headers_small_layout": [
+            {
+                "key": "dataset_id",
+                "title": "Dataset"
+            },
+            {
+                "key": "run_id",
+                "title": "Run"
+            }
+        ],
+        "table_sort_by": [
+            {
+                "key": "run_id",
+                "order": "desc"
+            }
+        ],
+        "task_id": "vm-eval-task",
+        "user_id": "ignored-user.",
+        "user_vms_for_task": []
+    },
+    "status": 0
+}

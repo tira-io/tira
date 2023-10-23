@@ -20,8 +20,8 @@ test('Single character is not a valid team name.', () => {
     expect(validateTeamName('a')).toEqual('Team name must have 3 or more characters.');
 });
 
-test('20 characters are not a valid team name.', () => {
-    expect(validateTeamName('12345678912345678912345')).toEqual('Team name must be less than 10 characters.');
+test('35 characters are not a valid team name.', () => {
+    expect(validateTeamName('123456789123456789123451234567891234567')).toEqual('Team name must be less than 30 characters.');
 });
 
 test('4 characters are a valid team name.', () => {

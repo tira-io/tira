@@ -1,15 +1,15 @@
-<template class="mx-5" v-if="running_processes.length > 0">
+<template class="mx-5">
   <v-expansion-panels>
     <v-expansion-panel>
       <v-expansion-panel-title>
         <template v-slot:default="{ expanded }">
           <div v-if="!expanded">
-            <b>{{ running_processes.length }} running processes</b>
+            <b>{{ title_of_component }}</b>
           </div>
           <div v-if="expanded" class="w-100">
             <v-row class="mt-3">
               <v-icon class="mx-2">mdi-transit-connection</v-icon>
-              <b>Running Processes</b>
+              <b>{{ title_of_component }}</b>
             </v-row>
             <p class="mt-5">
               Inspect your current runs
@@ -18,7 +18,7 @@
         </template>
       </v-expansion-panel-title>
       <v-expansion-panel-text>
-        <v-btn variant="outlined" color="blue" class="my-2">
+        <v-btn variant="outlined" color="blue" class="my-2" :disabled="poll_in_progress" :loading="poll_in_progress" @click="pollRunningSoftware('True')">
           <v-tooltip activator="parent" location="bottom">
             Check if some new runs have started
           </v-tooltip>
@@ -26,43 +26,32 @@
           Refresh
         </v-btn>
         <v-card>
-          <v-card-actions>
+          <loading :loading="loading"/>
+          <v-card-actions v-if="!loading">
             <v-row>
               <v-expansion-panels>
-                <v-expansion-panel
-                    v-for="i in running_processes.length"
-                    :key="i">
+                <v-expansion-panel v-for="software of running_software" :key="run_id">
                   <v-expansion-panel-title>
                     <v-row>
-                      <v-col cols="3" class="d-flex justify-start align-center">
-                        TF_IDF + DPH
-                      </v-col>
-                      <v-col cols="3" class="d-flex justify-start align-center">
-                        07-06-2023
-                      </v-col>
+                      <v-col cols="3" class="d-flex justify-start align-center">{{ software.job_config.software_name }}</v-col>
+                      <v-col cols="3" class="d-flex justify-start align-center">{{ software.run_id }}</v-col>
                       <v-col cols="2" class="d-flex justify-start align-center">
                         <div class="mr-3">scheduling</div>
-                        <v-progress-circular
-                            :size="20"
-                            color="primary"
-                            indeterminate
-                        ></v-progress-circular>
+                        <v-progress-circular v-if="software.execution.scheduling === 'pending'" :size="20" color="primary" indeterminate/>
+                        <v-progress-circular v-if="software.execution.scheduling === 'running'" :size="20" color="primary" indeterminate/>
+                        <v-icon v-if="software.execution.scheduling === 'done'">mdi-checkbox-marked-circle</v-icon>
                       </v-col>
                       <v-col cols="2" class="d-flex justify-start align-center">
                         <div class="mr-3">execution</div>
-                        <v-progress-circular
-                            :size="20"
-                            color="primary"
-                            indeterminate
-                        ></v-progress-circular>
+                        <v-progress-circular v-if="software.execution.execution === 'pending'" :size="20" color="primary" indeterminate/>
+                        <v-progress-circular v-if="software.execution.execution === 'running'" :size="20" color="primary" indeterminate/>
+                        <v-icon v-if="software.execution.execution === 'done'">mdi-checkbox-marked-circle</v-icon>
                       </v-col>
                       <v-col cols="2" class="d-flex justify-start align-center">
                         <div class="mr-3">evaluation</div>
-                        <v-progress-circular
-                            :size="20"
-                            color="primary"
-                            indeterminate
-                        ></v-progress-circular>
+                        <v-progress-circular v-if="software.execution.evaluation === 'pending'" :size="20" color="primary" indeterminate/>
+                        <v-progress-circular v-if="software.execution.evaluation === 'running'" :size="20" color="primary" indeterminate/>
+                        <v-icon v-if="software.execution.evaluation === 'done'">mdi-checkbox-marked-circle</v-icon>
                       </v-col>
                     </v-row>
                   </v-expansion-panel-title>
@@ -71,7 +60,7 @@
                       <v-col cols="8">
                         <v-row class="mr-2 pa-md-3 overflow-x-auto">
                           <v-text-field
-                              :model-value=docker.image
+                              :model-value=software.job_config.image
                               label="Image"
                               variant="outlined"
                               readonly
@@ -79,7 +68,7 @@
                         </v-row>
                         <v-row class="mr-2 pa-md-3 overflow-x-auto">
                           <v-text-field
-                              :model-value=docker.command
+                              :model-value=software.job_config.command
                               label="Command"
                               variant="outlined"
                               readonly
@@ -87,7 +76,7 @@
                         </v-row>
                         <v-row class="mr-2 pa-md-3 overflow-y-auto">
                           <v-textarea
-                              :model-value=example_output
+                              :model-value=software.stdOutput
                               label="Software Output"
                               variant="outlined"
                               rows="4"
@@ -100,23 +89,33 @@
 
                       <v-col cols="4">
                         <v-list>
-                          <v-list-item
-                              v-for="(item, i) in run_items"
-                              :key="i"
-                          >
-                            <template v-slot:prepend>
-                              <v-icon :icon="item.icon"></v-icon>
-                            </template>
+                          <v-list-item prepend-icon="mdi-timer-play-outline">
+                            <v-list-item-title>Start: {{ software.started_at }}</v-list-item-title>
+                          </v-list-item>
 
-                            <v-list-item-title>{{ item.key }}: {{ item.value }}</v-list-item-title>
+                          <v-list-item prepend-icon="mdi-table">
+                            <v-list-item-title>Dataset: {{ software.job_config.dataset }}</v-list-item-title>
+                          </v-list-item>
+
+                          <v-list-item prepend-icon="mdi-alpha-t-box-outline">
+                            <v-list-item-title>Dataset Type: {{ software.job_config.dataset_type }}</v-list-item-title>
+                          </v-list-item>
+
+                          <v-list-item prepend-icon="mdi-cpu-64-bit">
+                            <v-list-item-title>CPU: {{ software.job_config.cores }}</v-list-item-title>
+                          </v-list-item>
+
+                          <v-list-item prepend-icon="mdi-memory">
+                            <v-list-item-title>CPU: {{ software.job_config.ram }}</v-list-item-title>
+                          </v-list-item>
+
+                          <v-list-item prepend-icon="mdi-expansion-card">
+                            <v-list-item-title>CPU: {{ software.job_config.gpu }}</v-list-item-title>
                           </v-list-item>
                         </v-list>
                         <v-btn variant="outlined" color="red" class="w-100">
-                          <v-tooltip
-                              activator="parent"
-                              location="bottom"
-                          >
-                            Attention! This canccels the current run
+                          <v-tooltip activator="parent" location="bottom">
+                            Attention! This cancels the current run
                           </v-tooltip>
                           <v-icon class="mr-2">mdi-cancel</v-icon>
                           Cancel Run
@@ -137,78 +136,74 @@
 </template>
 
 <script>
+import { extractTaskFromCurrentUrl, extractUserFromCurrentUrl, get, inject_response, reportError, extractRole, reportSuccess } from "@/utils";
 import {VAutocomplete} from 'vuetify/components'
+import {Loading} from "@/components";
 
 export default {
-  name: "RunningProcesses",
-  components: {VAutocomplete},
-  props: ["running_evaluations", "running_software", "last_software_refresh", "next_software_refresh"],
-  emits: ['stopRun', 'addNotification', 'pollRunningContainer'],
+  name: "running-processes",
+  components: { VAutocomplete, Loading},
   data() {
     return {
-      running_processes: [1, 2, 3],
-      /**
-       * this is just mock_data for visual feedback
-       * mock_data: example_output, values in run_items, docker
-       */
-      example_output: "INFO 2023-06-29 15:55:21,871 basehttp: \"GET /public/tira/frontend-vuetify/chunks/webfontloader.js HTTP/1.1\" 200 12768\n" +
-          "INFO 2023-06-29 15:55:21,871 basehttp: \"GET /public/tira/frontend-vuetify/chunks/webfontloader.js HTTP/1.1\" 200 12768\n" +
-          "INFO 2023-06-29 15:55:22,172 basehttp: \"GET /api/task/author-profiling HTTP/1.1\" 200 9031\n" +
-          "INFO 2023-06-29 15:55:22,172 basehttp: \"GET /api/task/author-profiling HTTP/1.1\" 200 9031\n",
-      run_items: [
-        {key: "Start", icon: "mdi-timer-play-outline", value: "2023-06-29 17:29:50"},
-        {key: "dataset", icon: "mdi-table", value: "task-1-type-classification"},
-        {key: "dateset type", icon: "mdi-alpha-t-box-outline", value: "training"},
-        {key: "CPU", icon: "mdi-cpu-64-bit", value: "1 CPU Cores"},
-        {key: "Memory", icon: "mdi-memory", value: "10 GB of RAM"},
-        {key: "GPU", icon: "mdi-expansion-card", value: "0 GPU"}
-      ],
-      docker: {
-        image: "registry.webis.de/code-research/tira/tira-user-ir-lab-sose-2023-dogument-retriever/milestone-02:0.0.1",
-        command: "/workspace/run-pyterrier-notebook.py --input $inputDataset --output $outputDir --notebook /workspace/üyterrier-bm25.ipynb",
-        software_output: "INFO 2023-06-29 15:55:21,871 basehttp: \"GET /public/tira/frontend-vuetify/chunks/webfontloader.js HTTP/1.1\" 200 12768\n" +
-            "INFO 2023-06-29 15:55:21,871 basehttp: \"GET /public/tira/frontend-vuetify/chunks/webfontloader.js HTTP/1.1\" 200 12768\n" +
-            "INFO 2023-06-29 15:55:22,172 basehttp: \"GET /api/task/author-profiling HTTP/1.1\" 200 9031\n" +
-            "INFO 2023-06-29 15:55:22,172 basehttp: \"GET /api/task/author-profiling HTTP/1.1\" 200 9031\n",
-      },
+      task_id: extractTaskFromCurrentUrl(),
+      user_id_for_task: extractUserFromCurrentUrl(),
+      role: extractRole(), // Values: guest, user, participant, admin
+      running_software_last_refresh: 'loading...',
+      running_software_next_refresh: 'loading...',
+      running_software: [{'run_id': 'loading...',
+                        'execution': {'scheduling': 'done', 'execution': 'running', 'evaluation': 'pending'},
+                        'stdOutput': 'hello world ....\nhunu',
+                        'started_at': 'started at...',
+                        'job_config': {'software_name': 'software...', 'image': 'image...', 'command': 'command...',
+                                       'cores': '? CPU Cores', 'ram': '? GB of RAM', 'gpu': '0 GPUs',
+                                       'data':  '?', 'dataset_type': '?', 'dataset': 'tbd dataset',
+                                       'software_id': 'loading software id', 'task_id': 'loading task...',
+                                      },
+                        }],
+      loading: true,
+      poll_in_progress: false,
       selectedRuns: null,
+      pollSoftwareInterval: null
     }
   },
-  computed: {},
+  computed: {
+    title_of_component() {
+      return this.loading ? 'Fetch Running Processes from the Backend ...' : this.running_software.length + ' Running Processes. (Last Refresh: ' + this.running_software_last_refresh + '; Next Refresh: ' + this.running_software_next_refresh + ')'
+    }
+  },
   methods: {
-    updateUrlToCurrentStep() {
-      this.$router.replace({
-        name: 'submission',
-        params: {submission_type: this.$route.params.submission_type, selected_step: this.step}
-      })
-    },
     stopRun(run_id) {
       if (!(this.aborted_processes.includes(run_id))) {
         this.aborted_processes.push(run_id)
         this.$emit('stopRun', run_id)
       }
     },
-    update_cache() {
-      let force_cache_refresh = "True"
-      this.$emit('pollRunningContainer', force_cache_refresh)
-    },
-    /**
-     * Helper function, because the job config is sometimes not there
-     */
-    get_field(process, field) {
-      if ("job_config" in process) {
-        return process.job_config[field]
+    pollRunningSoftware(force_cache_refresh="False") {
+      if (this.poll_in_progress) {
+        return
       }
-      return ""
+      if (''+ this.pollSoftwareInterval !== 'null') {
+        clearTimeout(this.pollSoftwareInterval)
+      }
+
+      this.poll_in_progress = true
+      get(`/api/task/${this.task_id}/user/${this.user_id_for_task}/software/running/${force_cache_refresh}`)
+        .then(inject_response(this, {'loading': false}))
+        .catch(reportError("Problem While polling running software."))
+        .then(message => {
+          this.poll_in_progress = false
+
+          if (this.running_software.length > 0) {
+            this.pollSoftwareInterval = setTimeout(this.pollRunningSoftware, 10000)  // Note: https://stackoverflow.com/questions/61683534/continuous-polling-of-backend-in-vue-js
+          } else if (''+ this.pollSoftwareInterval !== 'null') {
+            clearTimeout(this.pollSoftwareInterval)
+          }
+        })
     },
-  },
-  watch: {
-    step(old_value, new_value) {
-      this.updateUrlToCurrentStep()
-    }
   },
   beforeMount() {
-    console.log(this.running_software)
+    this.loading = true
+    this.pollRunningSoftware()
   }
 }
 </script>

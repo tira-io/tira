@@ -15,27 +15,27 @@
           <v-text-field v-model="review.comment" label="Comment"/>
       </v-form>
       <metadata-items :items="[{'key': 'Reviewer', 'value': review.reviewer}]"/>
-      <v-btn @click="submitReview">Update Review</v-btn>
+      <v-btn @click="submitReview" :loading="edit_review_in_progress">Update Review</v-btn>
     </v-col>
   </v-row>
 
   <v-row class="py-6" v-if="!loading">
     <v-col cols="6">
-      <v-btn v-if="review.published" @click="togglePublish" variant="outlined" block>
+      <v-btn v-if="review.published" @click="togglePublish" :loading="toggle_publish_in_progress" variant="outlined" block>
         Unpublish Run
         <v-tooltip>The run is currently published, i.e., visible on the leaderboard. Click to unpublish the run.</v-tooltip>
       </v-btn>
-      <v-btn v-if="!review.published" @click="togglePublish" variant="outlined" block>
+      <v-btn v-if="!review.published" @click="togglePublish" :loading="toggle_publish_in_progress" variant="outlined" block>
         Publish Run
         <v-tooltip>The run is currently not published, i.e., not visible on the leaderboard. Click to publish the run, i.e., adding it to the leaderboard.</v-tooltip>
       </v-btn>
     </v-col>
     <v-col cols="6">
-      <v-btn v-if="review.blinded" @click="toggleVisible" variant="outlined" block>
+      <v-btn v-if="review.blinded" @click="toggleVisible" :loading="toggle_visible_in_progress" variant="outlined" block>
         Unblind Run
         <v-tooltip>The run is currently blinded, i.e., outputs are not visible to the participant. Click to unblind the run, i.e., the participant will see the run outputs.</v-tooltip>
       </v-btn>
-      <v-btn v-if="!review.blinded" @click="toggleVisible" variant="outlined" block>
+      <v-btn v-if="!review.blinded" @click="toggleVisible" :loading="toggle_visible_in_progress" variant="outlined" block>
         Blind Run
         <v-tooltip>The run is currently unblinded, i.e., outputs are visible to the participant. Click to blind the run, i.e., the participant will not see the run outputs.</v-tooltip>
       </v-btn>
@@ -60,12 +60,13 @@
 <script lang="ts">
 import Loading from './Loading.vue'
 import MetadataItems from './MetadataItems.vue'
-import { get, post, reportError, inject_response, extractDatasetFromCurrentUrl } from '../utils'
+import { get, post, reportError, reportSuccess, inject_response, extractDatasetFromCurrentUrl } from '../utils'
     
 export default {
   name: "run-review-form",
   components: { Loading, MetadataItems },
-  props: ['run_id', 'vm_id', 'dataset_id_from_props'],
+  emits: ['review-run'],
+  props: ['run_id', 'vm_id', 'dataset_id_from_props', ],
   data() {
     return {
       loading: true,
@@ -77,6 +78,9 @@ export default {
       stdout: null,
       stderr: null,
       tab: null,
+      edit_review_in_progress: false,
+      toggle_publish_in_progress: false,
+      toggle_visible_in_progress: false,
     }
   },
   computed: {
@@ -89,29 +93,41 @@ export default {
   },
   methods: {
     togglePublish() {
-      get('/publish/' + this.vm_id + '/' + this.dataset_id + '/' + this.run_id + '/' + !this.review.published)
+      this.toggle_publish_in_progress = true
+      get('/publish/' + this.vm_id + '/' + this.ds_id() + '/' + this.run_id + '/' + !this.review.published)
       	.then(message => {this.review.published = message.published})
       	.catch(reportError("Problem While (un)publishing the run.", "This might be a short-term hiccup, please try again. We got the following error: "))
+        .then(() => { this.toggle_publish_in_progress = false })
+        .then(() => { this.$emit('review-run', {'run_id': this.run_id, 'published': this.review.published})})
     },
     toggleVisible() {
-      get(`/blind/${this.vm_id}/${this.dataset_id}/${this.run_id}/${!this.review.blinded}`)
+      this.toggle_visible_in_progress = true
+      get(`/blind/${this.vm_id}/${this.ds_id()}/${this.run_id}/${!this.review.blinded}`)
         .then(message => {this.review.blinded = message.blinded})
       	.catch(reportError("Problem While (un)blinding the run.", "This might be a short-term hiccup, please try again. We got the following error: "))
+        .then(() => { this.toggle_visible_in_progress = false })
+        .then(() => { this.$emit('review-run', {'run_id': this.run_id, 'blinded': this.review.blinded})})
     },
     submitReview() {
-      post(`/tira-admin/edit-review/${this.dataset_id}/${this.vm_id}/${this.run_id}`, {
+      this.edit_review_in_progress = true
+      post(`/tira-admin/edit-review/${this.ds_id()}/${this.vm_id}/${this.run_id}`, {
             'no_errors': this.review.noErrors,
             'output_error': this.review.invalidOutput,
             'software_error': this.review.otherErrors,
             'comment': this.review.comment,
-        }, true).catch(reportError("Problem while Saving the Review.", "This might be a short-term hiccup, please try again. We got the following error: "))
+        }, true)
+        .then(reportSuccess('The review was successfully saved.'))
+        .catch(reportError("Problem while Saving the Review.", "This might be a short-term hiccup, please try again. We got the following error: "))
+        .then(() => { this.edit_review_in_progress = false })
+        .then(() => { this.$emit('review-run', {'run_id': this.run_id, 'review_state': 
+        this.review.noErrors && !this.review.invalidOutput && !this.review.otherErrors ? 'valid' : 'invalid'})})
     },
+    ds_id() {return this.dataset_id ? this.dataset_id : this.dataset_id_from_props},
   },
   beforeMount() {
     this.loading = true
-    let ds_id = this.dataset_id ? this.dataset_id : this.dataset_id_from_props
 
-    get('/api/review/' + ds_id + '/' + this.vm_id + '/' + this.run_id)
+    get('/api/review/' + this.ds_id() + '/' + this.vm_id + '/' + this.run_id)
         .then(inject_response(this, {'loading': false}))
         .catch(reportError("Problem While Loading the Review", "This might be a short-term hiccup, please try again. We got the following error: "))
   }

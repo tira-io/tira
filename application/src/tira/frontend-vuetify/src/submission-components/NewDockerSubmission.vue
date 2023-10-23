@@ -30,67 +30,60 @@
       <v-window v-model="step">
         <v-window-item :value="'step-1'">
           <v-card-text>
-            <h3 class="text-h6 font-weight-light mb-6">General information regarding submissions</h3>
-            <p>This is general information about submitting to the TIRA platform ...</p>
-            <p>Please click on "Next" below to start your submission process.</p>
+            <p>This form will guide you through the process of adding a new Docker submission. Please test that your Docker submission works as expected on your machine with the commands below and click on "Next" as soon as everything looks fine.</p>
+            <p>Please use the <a href="https://www.tira.io/c/support"> Forum</a> or contact the organizers if you face problems.</p>
           </v-card-text>
           <v-card-text>
-            <h3 class="text-h6 font-weight-light mb-6">Test baseline locally</h3>
-            <p>Before you submit your run, you need to test your baseline locally.</p>
-            <p>You can do this in three steps:</p>
-            <h4 class="my-5">(1) Data import</h4>
-            <code class="bg-grey-lighten-1">tira-run \ <br>
-              --output-directory ${PWD}/output-directory \ <br>
-              --image $your-image-name \ <br>
-              --allow-network true \ <br>
-              --command '/irds_cli.sh --ir_datasets_id your-ir-dataset-name --output_dataset_path $outputDir'
-            </code>
-            <h4 class="my-5">(2) Retrieval</h4>
-            <code class="bg-grey-lighten-1">
-              tira-run \ <br>
-              --input-directory ${PWD}/output-directory \ <br>
-              --image webis/tira-ir-starter-pyterrier:0.0.2-base \ <br>
-              --command '/workspace/run-pyterrier-notebook.py --input $inputDataset --output $outputDir --notebook
-              /workspace/full-rank-pipeline.ipynb'
-            </code>
-            <h4 class="my-5">(3) Retrieval Results</h4>
-            <code class="bg-grey-lighten-1">
-              tira-run \ <br>
-              --input-directory ${PWD}/tira-output \ <br>
-              --image your-image-name \ <br>
-              --allow-network true \ <br>
-              --command 'diffir --dataset your-ir-dataset-name --web $outputDir/run.txt > $outputDir/run.html'
-            </code>
+            <h3 class="text-h6 font-weight-light mb-6">Step-by-Step Guide to test your Docker Submission</h3>
+            <p>Before you submit your Docker submission, please test it on your machine using the following three steps:</p>
+            
+            <div class="my-3"/>
+
+            <code-snippet title="Install the TIRA CLI on your machine" code="pip3 install tira" expand_message="(1) Install the TIRA CLI"/>
+
+            <div class="my-3"/>
+
+            <code-snippet title="Execute your Docker Submission on a Small Example Dataset" :code="tira_initial_run_example" expand_message="(2)  Execute your submission on a small example dataset"/>
+
+              <div class="my-3"/>
+
+            <code-snippet title="Verify the Evaluator outputs to to ensure your Docker submission produces valid outputs" code="# The command above evaluated the outputs of your software 
+# Please verify that the evaluation in the directory tira-evaluation indicates that the outputs of your software are valid.
+cat tira-evaluation/evaluation.prototext" expand_message="(3) Verify the evaluator outputs to ensure all outputs are valid"/>
           </v-card-text>
         </v-window-item>
 
         <v-window-item :value="'step-2'">
           <div class="pa-4 text-center">
 
-            <h3 class="text-h6 font-weight-light my-6">
+            <h3 class="text-h6 font-weight-light my-6" v-if="is_ir_task">
               Please select previous stages
             </h3>
-            <p class="mb-4">this is dummy text</p>
+            <p v-if="is_ir_task" class="mb-4">You can select multiple previous stages. The outputs of the previous stages are mounted into the container that executes the software.</p>
             <v-form ref="form" v-model="valid">
-            <v-autocomplete label="Previous Stages"
+            <v-autocomplete v-if="is_ir_task" label="Previous Stages"
                             :items="docker_softwares"
                             v-model="selectedDockerSoftware"
                             item-value="docker_software_id"
                             item-title="display_name"
                             clearable
                             multiple
-                            chips
-                            :rules="[v => !!(v && v.length) || 'Please select the previous stages for the execution.']"/>
+                            chips/>
 
             <div class="text-center">
             <h3 class="text-h6 font-weight-light my-6">
               Please specify your docker software
             </h3>
-              <p class="mb-4">ein bissel bla</p>
+              <p class="mb-4">A software submission consists of a docker image and the command that is executed in the docker image. Please specify both below.</p>
+
             <v-autocomplete
                 label="Docker Image"
                 :items="docker_images"
                 v-model="selectedDockerImage"
+                item-value="image"
+                item-title="title"
+                :loading="loading"
+                :disabled="loading"
                 clearable
                 :rules="[v => !!(v && v.length) || 'Please select the docker image for the execution.']"/>
             </div>
@@ -106,7 +99,7 @@
                       color="primary"
                       v-bind="props"
                     >
-                      more information
+                      Push New Docker Image
                     </v-btn>
                      <v-btn
                       color="primary"
@@ -116,13 +109,12 @@
                       refresh images
                     </v-btn>
                    </div>
-                    <span>last refreshed: {{lastRefreshed}}</span>
+                    <span>last refreshed: {{docker_images_last_refresh}}</span>
                   </template>
 
                   <v-card>
-                    <v-card-text>
-                      This is a text explaining how to upload a new docker image to TIRA.
-                    </v-card-text>
+                    <v-card-text v-if="loading"><loading :loading="loading"/></v-card-text>
+                    <v-card-text v-html="docker_software_help" v-if="!loading" />
                     <v-card-actions>
                       <v-btn color="primary" block @click="dialog = false">Close Information</v-btn>
                     </v-card-actions>
@@ -143,26 +135,8 @@
             <h3 class="text-h6 font-weight-light my-6">
               Double check your local run and submit
             </h3>
-            <v-form>
-               <v-autocomplete label="Previous Stages"
-                            :items="docker_softwares"
-                            v-model="selectedDockerSoftware"
-                            item-value="docker_software_id"
-                            item-title="display_name"
-                            multiple
-                            chips
-                            disabled/>
-               <v-text-field v-model="runCommand" disabled
-                          label="Command: mySoftware -c $inputDataset -r $inputRun -o $outputDir"
-                          hint="Available variables: $inputDataset, $inputRun, $outputDir, $dataServer, and $token."/>
-               <v-autocomplete
-                  label="Docker Image"
-                  :items="docker_images"
-                  v-model="selectedDockerImage"
-                  disabled/>
-            </v-form>
-
           </div>
+          <code-snippet title="Check the Software Submission on a Small Example Dataset" :code="double_check_tira_run_command" expand_message="Please test the configuration of your your submission on a small example dataset"/>
         </v-window-item>
       </v-window>
 
@@ -203,12 +177,14 @@
 
 <script lang="ts">
 import {VAutocomplete} from "vuetify/components";
-import {extractTaskFromCurrentUrl, get, reportError} from "@/utils";
+import {extractTaskFromCurrentUrl, get, post, inject_response, reportError, extractUserFromCurrentUrl} from "@/utils";
+import CodeSnippet from "../components/CodeSnippet.vue"
+import Loading from "../components/Loading.vue"
 
 export default {
   name: "new-docker-submission",
-  components: {VAutocomplete},
-  props: ['user_id_for_submission', 'step_prop', 'organizer', 'organizer_id', 'docker_softwares'],
+  components: { CodeSnippet, VAutocomplete, Loading },
+  props: ['user_id_for_submission', 'step_prop', 'organizer', 'organizer_id', 'docker_softwares', 'is_ir_task'],
   emits: ['addNewDockerImage'],
   data() {
     return {
@@ -217,25 +193,33 @@ export default {
       selectedDockerSoftware: [],
       selectedDockerImage: '',
       runCommand: '',
-      lastRefreshed: new Date(Date.now()),
+      docker_images_last_refresh: 'loading...',
+      docker_images_next_refresh: 'loading...',
+      docker_software_help: 'loading...',
+      tira_initial_run_example: 'loading...',
+      tira_final_run_example: 'loading...',
       valid: false,
       dialog: false,
       addSoftwareInProgress: false,
+      loading: true,
       step: this.step_prop,
-      docker_images: ['image1', 'image2', 'image3'],
-      docker_software_help: 'test docker software help',
+      docker_images: [{ "image": "loading...", "architecture": "loading...", "created": "loading...", "size": "loading...", "digest": "loading...", 'title': 'loading...'}],
+      user_id_for_task: extractUserFromCurrentUrl(),
     }
   },
   computed: {
     currentTitle() {
       switch (this.step) {
         case 'step-1':
-          return 'General Information'
+          return 'Local Tests of your Docker Submission'
         case 'step-2':
-          return 'Specify Docker Software'
+          return 'Add the Docker Submission'
         case 'step-3':
-          return 'Double Check and Add Software'
+          return 'Final Checks'
       }
+    },
+    double_check_tira_run_command() {
+      return this.tira_final_run_example.replace('YOUR-IMAGE', this.selectedDockerImage).replace('YOUR-COMMAND', this.runCommand)
     },
   },
   methods: {
@@ -262,23 +246,31 @@ export default {
     },
     addImage() {
       this.addSoftwareInProgress = true;
-      /*get(`/task/${this.task_id}/vm/${this.user_id_for_submission}/add_software/docker`).then(message => {
-        this.$emit('addNewDockerImage', message.context.docker);
-      })
-          .catch(reportError("Problem While Adding New Docker Image.", "This might be a short-term hiccup, please try again. We got the following error: "))*/
-    setTimeout(() => {
-          this.addSoftwareInProgress = false;
-          let next_id = (this.docker_softwares.length + 1) + '';
-          this.$emit('addNewDockerImage', {'display_name': 'meine_neue_software_' + next_id, 'docker_software_id': next_id});
-        }, 2000)
+      post(`/task/${this.task_id}/vm/${this.user_id_for_submission}/add_software/docker`, {"command": this.runCommand, "image": this.selectedDockerImage, "inputJob": this.selectedDockerSoftware})
+        .then(message => {
+          this.$emit('addNewDockerImage', {'display_name': message.context.display_name, 'docker_software_id': message.context.docker_software_id});
+        })
+        .catch(reportError("Problem While Adding New Docker Software.", "This might be a short-term hiccup, please try again. We got the following error: "))
+        .then(() => {this.addSoftwareInProgress = false})
     },
     refreshImages() {
       this.refreshingInProgress = true
-      setTimeout(() => {
-          this.lastRefreshed = new Date(Date.now());
-          this.refreshingInProgress = false
-        }, 2000)
+      get(`/api/task/${this.task_id}/user/${this.user_id_for_task}/refresh-docker-images`)
+        .then(inject_response(this, {"refreshingInProgress": false}, false, 'docker'))
+        .then(this.refreshTitles)
+    },
+    refreshTitles() {
+      for (const d of this.docker_images) {
+        d['title'] = d.image + ' (' + d.architecture + ' ' + d.created + ' ' + d.size + ' ' + d.digest +')'
+      }
     }
+  },
+  beforeMount() {
+    this.loading = true
+    get('/api/task/' + this.task_id + '/user/' + this.user_id_for_task)
+      .then(inject_response(this, {'loading': false}, false, 'docker'))
+      .then(this.refreshTitles)
+      .catch(reportError("Problem While Loading the Docker Images.", "This might be a short-term hiccup, please try again. We got the following error: "))
   },
   watch: {
     step(old_value, new_value) {

@@ -61,10 +61,23 @@ def set_up_tira_environment():
                            'website', False, False, False, 'help_command', '', '')
 
     tira_model.add_dataset('shared-task-1', 'dataset-1', 'training', 'dataset-1', 'upload-name')
+
     tira_model.add_dataset('shared-task-1', 'dataset-2', 'test', 'dataset-2', 'upload-name')
+    tira_model.add_dataset('shared-task-1', 'dataset-not-published', 'training', 'dataset-published', 'upload-name')
 
     tira_model.add_dataset('shared-task-1', 'meta-dataset', 'test', 'meta-dataset', 'upload-name')
     tira_model.add_dataset('task-of-organizer-1', 'dataset-of-organizer', 'training', 'dataset-of-organizer', 'upload-name')
+
+
+    d = modeldb.Dataset.objects.get(dataset_id=f'dataset-not-published-{now}-training')
+    d.is_confidential = True
+    d.save()
+    del d
+
+    d = modeldb.Dataset.objects.get(dataset_id=f'dataset-of-organizer-{now}-training')
+    d.is_confidential = True
+    d.save()
+    del d
 
     tira_model.add_dataset('task-of-organizer-1', 'dataset-without-a-name', 'training', '', 'upload-name')
     tira_model.add_software(task_id='shared-task-1', vm_id='PARTICIPANT-FOR-TEST-1')

@@ -1,7 +1,7 @@
 build-pypi-package: run-tests
 	python3 -m build --sdist .
 	python3 -m build --wheel .
-	twine upload dist/tira-0.0.59-py3-none-any.whl dist/tira-0.0.59.tar.gz
+	twine upload dist/tira-0.0.61-py3-none-any.whl dist/tira-0.0.61.tar.gz
 
 run-tests:
 	../application/venv/bin/coverage run --data-file=tests/test-coverage/.coverage ../application/venv/bin/pytest \

@@ -2,21 +2,26 @@
   <loading :loading="loading"/>
   <login-to-submit v-if="!loading && role === 'guest'"/>
   <v-row v-if="!loading && role !== 'guest'">
-    <v-responsive class="mt-10" min-width="220px" id="task-search">
-      <v-text-field class="px-4" clearable label="Type here to filter &hellip;" prepend-inner-icon="mdi-magnify"
-                    variant="underlined" v-model="software_filter"/>
+    <v-responsive class="mt-10 mx-5" min-width="220px" id="task-search">
+      <v-autocomplete ref="softwareSearchInput" clearable auto-select-first label="Choose software or type to filter &hellip;" prepend-inner-icon="mdi-magnify" :items="this.filteredSoftwares" item-title="display_name"
+                    variant="underlined" v-model="software_filter" @click="this.$refs.softwareSearchInput.reset()"/>
+      <div class="d-flex justify-end w-100">
+      <v-btn color="primary" @click="this.tab = 'newUploadGroup'">
+        Create new software
+      </v-btn>
+      </div>
     </v-responsive>
   </v-row>
   <v-row v-if="!loading && role !== 'guest'">
     <v-col cols="10">
-      <v-tabs v-model="tab" fixed-tabs class="mb-10">
+      <v-tabs v-model="tab" fixed-tabs class="mb-10 d-none">
         <v-tab variant="outlined" v-for="us in this.filteredSoftwares" :value="us.id">
           {{ us.display_name }}
         </v-tab>
       </v-tabs>
     </v-col>
     <v-col cols="2">
-      <v-tabs v-model="tab" fixed-tabs class="mb-10">
+      <v-tabs v-model="tab" fixed-tabs class="mb-10 d-none">
         <v-tab value="newUploadGroup" color="primary" style="max-width: 100px;" variant="outlined">
           <v-icon>mdi-plus</v-icon>
         </v-tab>
@@ -46,16 +51,20 @@
           </v-window-item>
           <v-window-item v-for="us in this.all_uploadgroups" :value="us.id">
             <loading :loading="description === 'no-description'"/>
-            <div v-if="description !== 'no-description'" class="d-flex justify-lg-space-between">
-              <edit-submission-details type='upload' :id="us.id" :user_id="user_id_for_task" @edit="(i) => updateUploadDetails(i)"/>
-              <v-btn variant="outlined" color="red" @click="deleteUpload(us.id)"><v-tooltip
-                activator="parent"
-                location="bottom"
-              >Attention! This deletes the container and ALL runs associated with it</v-tooltip><v-icon>mdi-delete-alert-outline</v-icon>Delete</v-btn>
+            <div v-if="description !== 'no-description'" class="d-flex flex-column">
 
-              <br>
-              <p>{{ description }}</p>
-              <br>
+              <div class="d-flex justify-end">
+                <edit-submission-details class="mr-3" type='upload' :id="us.id" :user_id="user_id_for_task" @edit="(i) => updateUploadDetails(i)"/>
+                <v-btn variant="outlined" color="red" @click="deleteUpload(us.id)"><v-tooltip
+                  activator="parent"
+                  location="bottom"
+                >Attention! This deletes the container and ALL runs associated with it</v-tooltip><v-icon>mdi-delete-alert-outline</v-icon>Delete</v-btn>
+
+              </div>
+              <div class="my-5">
+                <p>{{ description }}</p>
+              </div>
+
             </div>
             <v-form v-if="description !== 'no-description'">
               <v-file-input v-model="fileHandle"
@@ -78,7 +87,7 @@
 
 
             <h2>Submissions</h2>
-            <run-list :task_id="task_id" :organizer="organizer" :organizer_id="organizer_id" :vm_id="user_id_for_task" :upload_id="us.id" />
+            <run-list :task_id="task_id" :organizer="organizer" :organizer_id="organizer_id" :vm_id="user_id_for_task" :upload_id="us.id" ref="upload-run-list" />
           </v-window-item>
     </v-window>
 </template>
@@ -94,6 +103,7 @@ export default {
   name: "upload-submission",
   components: {EditSubmissionDetails, Loading, VAutocomplete, LoginToSubmit, RunList},
   props: ['organizer', 'organizer_id'],
+  emits: ['refresh_running_submissions'],
   data () {
     return {
       loading: true,
@@ -162,8 +172,17 @@ export default {
       })
       .then(reportSuccess("File Uploaded Successfully. It might take a few minutes until the evaluation is finished."))
       .catch(reportError("Problem While Uploading File.", "This might be a short-term hiccup, please try again. We got the following error: "))
-      .then(() => {this.uploading = false; this.fileHandle = null; this.selectedDataset = ''})
+      .then(() => {this.clean_formular()})
     },
+    clean_formular() {
+      this.uploading = false
+      this.fileHandle = null
+      this.selectedDataset = ''
+      this.$emit('refresh_running_submissions')
+      for (let i of this.$refs['upload-run-list']) {
+        i.fetchData()
+      }
+    }
   },
   beforeMount() {
     get('/api/submissions-for-task/' + this.task_id + '/' + this.user_id_for_task + '/upload')

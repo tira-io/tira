@@ -21,8 +21,10 @@ SOFTWARE_PARTICIPANT_2 = f's-{PARTICIPANT_2}'
 SOFTWARE_PARTICIPANT_3 = f's-{PARTICIPANT_3}'
 SOFTWARE_PARTICIPANT_4 = f's-{PARTICIPANT_4}'
 SOFTWARE_PARTICIPANT_5 = f's-{PARTICIPANT_5}'
+UPLOAD_PARTICIPANT_1 = f'u-{PARTICIPANT_1}'
 SOFTWARES = {}
 SOFTWARE_IDS = {}
+UPLOAD = None
 
 
 class TestEvaluationsForVm(TestCase):
@@ -72,6 +74,17 @@ class TestEvaluationsForVm(TestCase):
                 modeldb.Evaluation.objects.create(measure_key='k-2', measure_value=k_2, run=eval_run)
                 k_1 -= 0.1
                 k_2 += 0.1
+
+        global UPLOAD
+        UPLOAD = modeldb.Upload.objects.create(
+            vm=modeldb.VirtualMachine.objects.get(vm_id=PARTICIPANT_1),
+            task=modeldb.Task.objects.get(task_id=TASK), last_edit_date='1')
+
+        for d in datasets:
+            run_id = f'{participant}-{d.dataset_id}-upload'
+            run = modeldb.Run.objects.create(run_id=run_id, software=None, evaluator=None, upload=UPLOAD,
+                                                 docker_software=None,
+                                                 input_dataset=d, task=modeldb.Task.objects.get(task_id=TASK))
 
         for participant in [PARTICIPANT_3, PARTICIPANT_4]:
             tira_model.add_vm(participant, 'user_name', 'initial_user_password', 'ip', 'host', '12', '12')
@@ -123,6 +136,18 @@ class TestEvaluationsForVm(TestCase):
                                                       evaluator=evaluator)
                 modeldb.Review.objects.create(run=eval_run, published=False, blinded=True)
                 modeldb.Review.objects.update_or_create(run_id=run_id, defaults={'published': False, 'blinded': True})
+
+    def test_existing_upload_of_for_user_with_all_published(self):
+        # Arrange
+        request = mock_request('tira_vm_' + PARTICIPANT_1, url)
+        global UPLOAD
+        request.GET['upload_id'] = str(UPLOAD.id)
+
+        # Act
+        actual = evaluations_function(request, task_id=TASK, vm_id=PARTICIPANT_1)
+
+        # Assert
+        self.verify_as_json(actual, 'vm_eval_for_existing_upload_submission.json')
 
     def test_for_non_existing_docker_software(self):
         # Arrange
