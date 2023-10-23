@@ -177,7 +177,7 @@ export default {
       if (!(this.abortedProcesses.includes(run_id))) {
         this.abortedProcesses.push(run_id)
         get(`/api/grpc/${this.task_id}/user/${this.user_id_for_task}/stop_docker_software/${run_id}`)
-        .then(message => {console.log(message)})
+            .then(reportSuccess('Run with the id ' + run_id + " was successfully aborted!"))
         .catch(reportError("Problem while trying to abort the process with id: " + run_id))
       }
     },
