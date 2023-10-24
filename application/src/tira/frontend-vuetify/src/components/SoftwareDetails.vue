@@ -1,7 +1,7 @@
 <template>
   <v-card v-if="!loading" flat class="px-0 mx-0">
     <v-select class="d-md-none" v-model="selectedComponentTab" label="Select item to get more information" :items="tabs"></v-select>
-    <v-tabs v-model="component_tab" show-arrows class="d-sm-none d-sx-none d-md-block">
+    <v-tabs v-model="component_tab" show-arrows :class="!$vuetify.display.mdAndUp ? 'd-none' : ''">
       <v-tab value="details">Details</v-tab>
       <v-tab value="references">References</v-tab>
       <v-tab value="reproduction">Reproduction</v-tab>

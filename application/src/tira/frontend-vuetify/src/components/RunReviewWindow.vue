@@ -1,7 +1,8 @@
 <template>
 <v-dialog width="auto" scrollable>
   <template v-slot:activator="{ props }">
-    <v-btn icon="mdi-tooltip-edit" class="pa0 ma0" @click="clicked()" rounded v-bind="props" density="compact"/>
+    <v-btn icon="mdi-tooltip-edit" :class="!$vuetify.display.mdAndUp ? 'pa0 ma0 d-none' : 'pa0 ma0'" @click="clicked()" rounded v-bind="props" density="compact"/>
+    <v-btn prepend-icon="mdi-tooltip-edit" min-width="180" class="pa0 ma0 mb-2 d-md-none d-flex justify-space-between" @click="clicked()" rounded v-bind="props" density="compact"><p>Review run</p></v-btn>
   </template>
   <template v-slot:default="{ isActive }">
     <v-card>

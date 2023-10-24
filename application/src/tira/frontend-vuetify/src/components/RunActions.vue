@@ -1,8 +1,10 @@
 <template>
+  <div :class="!$vuetify.display.mdAndUp? ' d-flex flex-column w-100 justify-space-evenly' : 'd-flex'">
   <v-dialog v-if="role === 'admin'">
     <template v-slot:activator="{ props }">
       <span>
-        <v-btn class="pa0 ma0" icon="mdi-gavel" rounded density="compact" v-bind="props" />
+        <v-btn :class="!$vuetify.display.mdAndUp ? 'pa0 ma0 d-none' : 'pa0 ma0'" icon="mdi-gavel" rounded density="compact" v-bind="props"/>
+        <v-btn class="pa0 ma0 mb-2 d-md-none d-flex justify-space-between" prepend-icon="mdi-gavel" rounded density="compact" min-width="180" v-bind="props"><p>Re-evaluate</p></v-btn>
         <v-tooltip activator="parent" location="top">Re-run the evaluation on this run</v-tooltip>
       </span>
     </template>
@@ -25,7 +27,8 @@
   </v-dialog>
 
   <span>
-   <v-btn v-if="link_results != null && link_run == null" :href="link_results" target="_blank" class="pa0 ma0" icon="mdi-file-download-outline" rounded density="compact" />
+    <v-btn v-if="link_results != null && link_run == null" :href="link_results" target="_blank" :class="!$vuetify.display.mdAndUp ? 'pa0 ma0 d-none' : 'pa0 ma0'" icon="mdi-file-download-outline" rounded density="compact"/>
+   <v-btn v-if="link_results != null && link_run == null" :href="link_results" target="_blank" class="pa0 ma0 mb-2 d-md-none d-flex justify-space-between" min-width="180" prepend-icon="mdi-file-download-outline" rounded density="compact"><p>Download run</p></v-btn>
    <v-tooltip activator="parent" location="top">Download run</v-tooltip>
   </span>
   
@@ -33,7 +36,8 @@
   <v-menu v-if="link_run != null && link_results != null" transition="slide-y-transition">
     <template v-slot:activator="{ props }">
       <span>
-        <v-btn v-bind="props" class="pa0 ma0" icon="mdi-file-download-outline" rounded density="compact"/>
+        <v-btn v-bind="props" :class="!$vuetify.display.mdAndUp ? 'pa0 ma0 d-none' : 'pa0 ma0'" icon="mdi-file-download-outline" rounded density="compact"/>
+        <v-btn v-bind="props" class="pa0 ma0 mb-2 d-md-none d-flex justify-space-between" prepend-icon="mdi-file-download-outline" min-width="180" rounded density="compact"><p>Download run</p></v-btn>
         <v-tooltip activator="parent" location="top">Download run</v-tooltip>
       </span>
     </template>
@@ -52,7 +56,8 @@
   </v-menu>
 
   <span>
-    <v-btn v-if="link_serp != null" icon="mdi-search-web" :href="link_serp" target="_blank" class="pa0 ma0" rounded density="compact"/>
+    <v-btn v-if="link_serp != null" icon="mdi-search-web" :href="link_serp" target="_blank" :class="!$vuetify.display.mdAndUp ? 'pa0 ma0 d-none' : 'pa0 ma0'" rounded density="compact"/>
+    <v-btn v-if="link_serp != null" prepend-icon="mdi-search-web" :href="link_serp" target="_blank" class="pa0 ma0 mb-2 d-md-none d-flex justify-space-between" min-width="180" rounded density="compact"><p>Show SERP</p></v-btn>
     <v-tooltip activator="parent" location="top">Show SERP in new tab</v-tooltip>
   </span>
 
@@ -64,7 +69,8 @@
   <v-dialog v-if="run['owned_by_user']">
     <template v-slot:activator="{ props }">
       <span>
-        <v-btn icon="mdi-delete" :disabled="!can_delete" class="pa0 ma0" rounded density="compact" v-bind="props"/>
+        <v-btn icon="mdi-delete" :disabled="!can_delete" :class="!$vuetify.display.mdAndUp ? 'pa0 ma0 d-none' : 'pa0 ma0'" rounded density="compact" v-bind="props"/>
+        <v-btn prepend-icon="mdi-delete" :disabled="!can_delete" class="pa0 ma0 d-md-none d-flex justify-space-between" min-width="180" rounded density="compact" v-bind="props"><p>Delete run</p></v-btn>
         <v-tooltip activator="parent" location="top" v-if="!can_delete">You can not delete runs that are published and/or valid. Please contact the organizer to delete this run.</v-tooltip>
         <v-tooltip activator="parent" location="top" v-if="can_delete">Attention, this will delete this run.</v-tooltip>
       </span>
@@ -83,7 +89,7 @@
       </v-card>
     </template>
   </v-dialog>
-
+</div>
 </template>
 <script lang="ts">
 import { extractRole, get, reportSuccess, reportError } from '../utils'
