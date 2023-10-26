@@ -550,10 +550,23 @@ class HybridDatabase(object):
 
     def _docker_software_to_dict(self, ds):
         input_docker_software = None
+        previous_stages = None
         if ds.input_docker_software:
             input_docker_software = ds.input_docker_software.display_name
         if ds.input_upload:
             input_docker_software = 'Upload ' + ds.input_upload.display_name
+
+        if input_docker_software:
+            previous_stages = [input_docker_software]
+            additional_inputs = modeldb.DockerSoftwareHasAdditionalInput.objects \
+                .select_related('input_docker_software', 'input_upload') \
+                .filter(docker_software__docker_software_id=ds.docker_software_id) \
+                .order_by('position')
+            for i in additional_inputs:
+                if i.input_docker_software:
+                    previous_stages += [i.input_docker_software.display_name]
+                else:
+                    previous_stages += [i.input_upload.display_name]
 
         return {'docker_software_id': ds.docker_software_id, 'display_name': ds.display_name,
                 'user_image_name': ds.user_image_name, 'command': ds.command,
@@ -564,7 +577,8 @@ class HybridDatabase(object):
                 'input_upload_id': ds.input_upload.id if ds.input_upload else None,
                 "ir_re_ranker": True if ds.ir_re_ranker else False,
                 'public_image_name': ds.public_image_name,
-                "ir_re_ranking_input": True if ds.ir_re_ranking_input else False
+                "ir_re_ranking_input": True if ds.ir_re_ranking_input else False,
+                'previous_stages': previous_stages
                 }
 
     def get_count_of_missing_reviews(self, task_id):
@@ -1542,12 +1556,13 @@ class HybridDatabase(object):
             paper_link=paper_link,
         )
 
-    def add_docker_software(self, task_id, vm_id, user_image_name, command, tira_image_name, input_docker_job=None, input_upload=None):
-        input_docker_software, inputUpload = None, None
-        if input_docker_job:
-            input_docker_software = modeldb.DockerSoftware.objects.get(docker_software_id=input_docker_job)
-        if input_upload is not None:
-            inputUpload = modeldb.Upload.objects.get(id=int(input_upload))
+    def add_docker_software(self, task_id, vm_id, user_image_name, command, tira_image_name, input_docker_job=None,
+                            input_upload=None):
+        input_docker_software, input_upload_software = None, None
+        if input_docker_job and 0 in input_docker_job:
+            input_docker_software = modeldb.DockerSoftware.objects.get(docker_software_id=input_docker_job[0])
+        if input_upload is not None and 0 in input_upload:
+            input_upload_software = modeldb.Upload.objects.get(id=int(input_upload[0]))
 
         docker_software = modeldb.DockerSoftware.objects.create(
                 vm=modeldb.VirtualMachine.objects.get(vm_id=vm_id),
@@ -1557,8 +1572,21 @@ class HybridDatabase(object):
                 user_image_name=user_image_name,
                 display_name=randomname.get_name(),
                 input_docker_software=input_docker_software,
-                input_upload=inputUpload,
+                input_upload=input_upload_software,
             )
+
+        additional_inputs = range(1, (0 if not input_upload else len(input_upload)) + (0 if not input_docker_job else len(input_docker_job)))
+        for i in additional_inputs:
+            inp, upl = None, None
+            if i in input_docker_job:
+                inp = modeldb.DockerSoftware.objects.get(docker_software_id=input_docker_job[i])
+            else:
+                upl = modeldb.Upload.objects.get(id=int(input_upload[i]))
+
+            modeldb.DockerSoftwareHasAdditionalInput.objects.create(
+                docker_software=docker_software, input_docker_software=inp, input_upload=upl
+            )
+
         return self._docker_software_to_dict(docker_software)
 
 
