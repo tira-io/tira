@@ -43,7 +43,7 @@
   </v-container>
 
   <h2>Submissions</h2>
-  <run-list :task_id="task_id" :organizer="organizer" :organizer_id="organizer_id" :vm_id="user_id" :docker_software_id="docker_software_id"/>
+    <run-list :task_id="task_id" :organizer="organizer" :organizer_id="organizer_id" :vm_id="user_id" :docker_software_id="docker_software_id" :type="type"/>
 </template>
 
 <script lang="ts">
@@ -64,6 +64,7 @@ export default {
         'description': 'loading ...', 'previous_stages': 'loading ...', 'paper_link': 'loading ...', 'ir_re_ranker': false
       },
       task_id: extractTaskFromCurrentUrl(),
+      type: 'submit',
     }
   },
   methods: {

@@ -1,8 +1,12 @@
 <template>
   <loading :loading="loading"/>
-  <v-container v-if="!loading">
+  <div v-if="!loading">
+    <submission-filter :datasets="datasets" :selected_dataset="dataset_id"
+                            :ev_keys="ev_keys" :runs="runs" :type="type" @pass_dataset="receiveFilteredDataset"
+                            @pass_keys="receiveFilteredKeys" @pass_runs="receiveFilteredRuns"></submission-filter>
     <v-data-table v-if="showTable" v-model="selected_runs" v-model:expanded="expanded" show-expand :headers="table_headers"
-                  :items="runs" item-value="Run" v-model:sort-by="table_sort_by" density="compact"
+                  :items="filtered_runs.length != 0 ? filtered_runs : runs"
+                  item-value="Run" v-model:sort-by="table_sort_by" density="compact"
                   show-select class="elevation-1 d-none d-md-block" hover>
       <template v-slot:item.actions="{item}">
         <run-actions :run="item.value" @reviewRun="(i: any) => reviewChanged(i)"/>
@@ -36,7 +40,8 @@
     </v-data-table>
 
     <v-data-table v-if="showTable" v-model:expanded="expanded" show-expand :headers="table_headers_small_layout"
-                  :items="runs" item-value="Run" v-model:sort-by="table_sort_by" expand-on-click density="compact"
+                  :items="filtered_runs.length != 0 ? filtered_runs : runs"
+                  item-value="Run" v-model:sort-by="table_sort_by" expand-on-click density="compact"
                   class="elevation-1 d-md-none" hover>
                   <template #item.vm_id="{ item }">
         <a target="_blank" :href="item.value.link_to_team">{{ item.value.vm_id }}</a>
@@ -61,7 +66,7 @@
         <v-col cols="12"><v-btn variant="outlined" block :disabled="compareExpandedLink === ''" :href="compareExpandedLink" target="_blank">Compare Expanded</v-btn></v-col>
       </v-row>
     </div>
-  </v-container>
+  </div>
 </template>
 
 <script lang="ts">
@@ -69,20 +74,23 @@ import RunActions from './RunActions.vue'
 import SoftwareDetails from './SoftwareDetails.vue'
 import Loading from "./Loading.vue"
 import SubmissionIcon from "./SubmissionIcon.vue"
+import SubmissionFilter from "./SubmissionFilter.vue"
 import { get, reportError, inject_response, extractRole } from '../utils'
 
 export default {
   name: "run-list",
-  components: {RunActions, SoftwareDetails, Loading, SubmissionIcon},
-  props: ['task_id', 'dataset_id', 'organizer', 'organizer_id', 'vm_id', 'docker_software_id', 'upload_id', 'show_only_unreviewed'],
+  components: {RunActions, SoftwareDetails, Loading, SubmissionIcon, SubmissionFilter},
+  props: ['task_id', 'dataset_id', 'organizer', 'organizer_id', 'vm_id', 'docker_software_id', 'upload_id', 'show_only_unreviewed', 'datasets', 'type'],
   data() { return {
       expanded: [],
       selected_runs: [],
       loading: true,
-      runs: [{'run_id': 'loading...', 'review_state': 'no-review'}],
+      runs: [{'run_id': 'loading...', 'review_state': 'no-review', 'dataset_id': 'loading...',}],
       table_headers: [],
       table_headers_small_layout: [],
       table_sort_by: [],
+      ev_keys: [],
+      filtered_runs: [],
       role: extractRole(), // Values: guest, user, participant, admin
     }
   },
@@ -107,6 +115,32 @@ export default {
       } else {
         return '';
       }
+    },
+    receiveFilteredDataset(filtered_dataset: any){
+      if (this.type == 'task'){
+        let to_emit = filtered_dataset
+        this.$emit('pass', to_emit)
+      }
+
+      if (this.type === 'submit'){
+        this.filtered_runs = this.runs.filter(run => run['dataset_id'] === filtered_dataset) as never
+        }
+      },
+    receiveFilteredKeys(filtered_ev_keys: never[]) {
+      let header_keys = this.table_headers.filter(header => header['title'] === header['key']).map(measurement => measurement['title'])
+
+      if (filtered_ev_keys.length < header_keys.length){
+        let remove_keys = header_keys.filter((x) => !filtered_ev_keys.includes(x))
+        this.table_headers = this.table_headers.filter(header => header['title'] !== remove_keys[0])
+      }
+      else if (filtered_ev_keys.length > header_keys.length){
+        let add_keys = filtered_ev_keys.filter((x) => !header_keys.includes(x))
+        let dict = {'title': add_keys[0], 'key': add_keys[0]}
+        this.table_headers.splice(this.table_headers.length -1, 0, dict as never)
+      }
+    },
+    receiveFilteredRuns(receivedRuns: any){
+      this.filtered_runs  = receivedRuns
     },
     fetchData() {
       this.loading = true

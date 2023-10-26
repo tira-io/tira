@@ -76,10 +76,9 @@
         <tira-task-admin v-if="!loading" :datasets="datasets" :task="task" @addDataset="(x:any) => addDataset(x)" @deleteDataset="(dataset_id: string) => deleteDataset(dataset_id)"/>
           <v-container v-if="!loading" id="dataset-select">
             <h2>Submissions</h2>
-            <v-autocomplete label="Dataset" :items="datasets" item-title="display_name" item-value="dataset_id"
-                            v-model="selectedDataset" variant="underlined" clearable/>
-
-            <run-list v-if="selectedDataset" :task_id="task_id" :organizer="task.organizer" :organizer_id="task.organizer_id" :dataset_id="selectedDataset"/>
+            <run-list v-if="selectedDataset" :task_id="task_id" :organizer="task.organizer"
+                      :organizer_id="task.organizer_id" :dataset_id="selectedDataset"
+                      :datasets="datasets" :type="'task'" @pass="receiveFilteredDataset"/>
           </v-container>
   </v-container>
   </v-container>
@@ -148,7 +147,10 @@
       // filter by dataset on datasets
       this.datasets = this.datasets.filter(d => d['dataset_id'] !== dataset_id)
       this.updateDataset()
-    }
+    },
+    receiveFilteredDataset(receivedDataset: any){
+      this.selectedDataset = receivedDataset
+    },
   },
   beforeMount() {
     get('/api/task/' + this.task_id)

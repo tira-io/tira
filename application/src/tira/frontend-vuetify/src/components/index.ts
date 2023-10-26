@@ -14,5 +14,6 @@ import EditTask from "./EditTask.vue"
 import SubissionIcon from "./SubmissionIcon.vue"
 import ConfirmDelete from "./ConfirmDelete.vue"
 import CodeSnippet from "./CodeSnippet.vue"
+import SubmissionFilter from "@/components/SubmissionFilter.vue";
 
-export {Loading, RunActions, RunList, SoftwareDetails, SubmitButton, TiraBreadcrumb, TiraTaskAdmin, TaskDocumentation, RegisterForm, LoginToSubmit, ExistingDockerSubmission, NewDockerSubmission, EditTask, SubissionIcon, ConfirmDelete, CodeSnippet}
+export {Loading, RunActions, RunList, SoftwareDetails, SubmitButton, TiraBreadcrumb, TiraTaskAdmin, TaskDocumentation, RegisterForm, LoginToSubmit, ExistingDockerSubmission, NewDockerSubmission, EditTask, SubissionIcon, ConfirmDelete, CodeSnippet, SubmissionFilter}
