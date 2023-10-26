@@ -28,6 +28,10 @@ import requests
 logger = logging.getLogger('tira')
 
 
+def normalize_file(file_content, tira_user_name):
+    return file_content
+
+
 def convert_size(size_bytes):
     import math
     if size_bytes == 0:
@@ -1042,6 +1046,7 @@ class GitLabRunner(GitRunner):
 
         return ret
 
+
 class GithubRunner(GitRunner):
 
     def __init__(self, github_token):
@@ -1050,7 +1055,7 @@ class GithubRunner(GitRunner):
 
     def _convert_repository_id_to_repository_name(self, repository_id):
         for repo in self.gitHoster_client.get_user().get_repos():
-            if repo.id == rep_id : 
+            if repo.id == repository_id:
                 return repo.name
 
     def template_ci(self):
@@ -1096,7 +1101,6 @@ class GithubRunner(GitRunner):
             ret.append(repo.name)
 
         return set(ret)
-
 
     def stop_job_and_clean_up(self, git_repository_id, user_name, run_id):
         """
@@ -1167,15 +1171,35 @@ class GithubRunner(GitRunner):
             'job_config',
             'pipeline'
         """
-        #https://docs.github.com/en/rest/actions/workflow-jobs?apiVersion=2022-11-28#get-a-job-for-a-workflow-run
+        # https://docs.github.com/en/rest/actions/workflow-jobs?apiVersion=2022-11-28#get-a-job-for-a-workflow-run
         pass
 
-    def create_software_submission_repository_for_user(self, reference_repository_name, user_repository_name, user_repository_namespace, github_user, tira_user_name, dockerhub_token, tira_client_token, repository_search_prefix):
-        reference_repo = g.get_repo(reference_repository_name)
-        user = g.get_user()
+    def get_git_runner_for_software_integration(self, reference_repository_name, user_repository_name,
+                                                user_repository_namespace, github_user, tira_user_name,
+                                                dockerhub_token, tira_client_token, repository_search_prefix):
+        user = self.gitHoster_client.get_user()
+
+        print(help(self.gitHoster_client.get_user))
+        print(help(user.get_repos))
+        print('asdasdas\n\n\ndasdasasd')
+        user_repo = user.get_repo(f'{user_repository_namespace}/{user_repository_name}')
+        if user_repo:
+            return user_repo
+
+        return self.create_software_submission_repository_for_user(reference_repository_name, user_repository_name,
+                                                                   user_repository_namespace, github_user,
+                                                                   tira_user_name, dockerhub_token, tira_client_token,
+                                                                   repository_search_prefix)
+
+    def create_software_submission_repository_for_user(self, reference_repository_name, user_repository_name,
+                                                       user_repository_namespace, github_user, tira_user_name,
+                                                       dockerhub_token, tira_client_token, repository_search_prefix):
+        reference_repo = self.gitHoster_client.get_repo(reference_repository_name)
+        user = self.gitHoster_client.get_user()
         
-        user.create_repo(user_repository_name, f'The repository of user {tira_user_name} for code submissions in TIRA.', private=True)
-        repo = g.get_repo(f'{user_repository_namespace}/{repo}')
+        user.create_repo(user_repository_name, f'The repository of user {tira_user_name} for code submissions in TIRA.',
+                         private=True)
+        repo = self.gitHoster_client.get_repo(f'{user_repository_namespace}/{user_repository_name}')
         repo.add_to_collaborators(github_user, 'admin')
 
         repo.create_secret('DOCKERHUB_TOKEN', dockerhub_token)
@@ -1188,6 +1212,8 @@ class GithubRunner(GitRunner):
                 contents.extend(reference_repo.get_contents(file_content.path))
             else:
                 decoded_content = file_content.decoded_content.decode()
-                decoded_content = normalize_file(decoded_content, target_user)
+                decoded_content = normalize_file(decoded_content, tira_user_name)
                 repo.create_file(file_content.path, 'Initial Commit.', decoded_content)
+
+        return repo
     
