@@ -5,7 +5,7 @@ This is a python client for [TIRA.io](https://tira.io).
 ## Download The results of some Submission
 
 ```
-from tira.rest_client_api import Client
+from tira.rest_api_client import Client
 
 tira = Client()
 output = tira.get_run_output('<task>/<team>/<approach>', '<dataset>')
