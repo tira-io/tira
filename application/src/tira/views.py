@@ -112,10 +112,6 @@ def logout(request):
     return redirect('tira:index')
 
 
-def tirex(request):
-    return redirect('/task-overview/ir-benchmarks')
-
-
 def _add_task_to_context(context, task_id, dataset_id):
     datasets = model.get_datasets_by_task(task_id)
 
