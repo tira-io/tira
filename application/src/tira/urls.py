@@ -24,6 +24,7 @@ urlpatterns = [
     path('request_vm', views.request_vm, name='request_vm'),
     path('login', views.login, name='login'),
     path('logout', views.logout, name='logout'),
+    re_path(r'^tirex/.*', views.tirex, name='tirex'),
 
     # grpc client endpoints
     path('task/<str:task_id>/vm/<str:vm_id>/add_software/vm', vm_api.software_add, name='software_add'),
