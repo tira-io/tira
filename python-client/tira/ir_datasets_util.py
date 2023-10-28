@@ -141,8 +141,8 @@ def __lazy_queries(tira_path):
                 for _, i in all_lines_to_pandas(queries_file, False).iterrows():
                     orig_query = None if 'original_query' not in i else i['original_query']
                     
-                    description = None if (not orig_query and 'description' not in orig_query) else orig_query['description']
-                    narrative = None if (not orig_query and 'narrative' not in orig_query) else orig_query['narrative']
+                    description = None if (not orig_query or 'description' not in orig_query) else orig_query['description']
+                    narrative = None if (not orig_query or 'narrative' not in orig_query) else orig_query['narrative']
                     self.queries[i['qid']] = TrecQuery(query_id=i['qid'], title= i['query'], description=description, narrative=narrative)
 
             return deepcopy(self.queries).values().__iter__()
