@@ -6,17 +6,17 @@
           TIREx: The Information Retrieval Experiment Platform
         </h1>
         <p class="mx-auto py-4 tira-explanation">
-          TIREx integrates <a href="https://ir-datasets.com/">ir_datasets</a>, <a href="https://ir-measur.es/">ir_measures</a>, and <a href="https://github.com/terrier-org/pyterrier">PyTerrier</a> with <a href="/">TIRA</a> to promote standardized, reproducible, and blinded retrieval experiments.
+          TIREx integrates <a href="https://ir-datasets.com/" target="_blank">ir_datasets</a>, <a href="https://ir-measur.es/" target="_blank">ir_measures</a>, and <a href="https://github.com/terrier-org/pyterrier" target="_blank">PyTerrier</a> with <a href="/">TIRA</a> to promote standardized, reproducible, and blinded retrieval experiments.
         </p>
         <v-row class="d-flex justify-center py-4">
           <v-col cols="auto">
-            <v-btn color="primary" href="https://github.com/tira-io/ir-experiment-platform#submission" min-width="228" rel="noopener noreferrer" size="x-large" variant="flat">
+            <v-btn color="primary" href="https://github.com/tira-io/ir-experiment-platform#submission" target="_blank"  min-width="228" rel="noopener noreferrer" size="x-large" variant="flat">
               <v-icon icon="mdi-speedometer" size="large" start/>
               Get Started
             </v-btn>
           </v-col>
           <v-col cols="auto text-primary">
-            <v-btn href="https://downloads.webis.de/publications/papers/froebe_2023e.pdf" min-width="228" rel="noopener noreferrer" size="x-large" variant="outlined">
+            <v-btn href="https://downloads.webis.de/publications/papers/froebe_2023e.pdf" target="_blank"  min-width="228"  rel="noopener noreferrer" size="x-large" variant="outlined">
               <v-icon size="large" start>
                 <v-img src="@/assets/tirex.png" />
               </v-icon>
@@ -24,7 +24,7 @@
             </v-btn>
           </v-col>
           <v-col cols="auto">
-            <v-btn class="home-button" href="https://github.com/tira-io/ir-experiment-platform" min-width="228" rel="noopener noreferrer" size="x-large" variant="flat">
+            <v-btn class="home-button" href="https://github.com/tira-io/ir-experiment-platform" target="_blank" min-width="228" rel="noopener noreferrer" size="x-large" variant="flat">
               <v-icon icon="mdi-github" size="large" start/>
               GitHub
             </v-btn>
@@ -52,7 +52,7 @@
                 <div>
                   <div class="text-h6 mb-1">Current Shared Tasks</div>
                   <div class="text-caption">
-                    The <a href="/task-overview/ir-benchmarks">TIREx leaderboard</a> is always open for run or software submissions. Three additional shared tasks are open at the moment as part of (1) the <a href="https://opensearchfoundation.org/wows2024">Workshop on Open Web Search</a>, (2) <a href="https://touche.webis.de/clef24/touche24-web/image-retrieval-for-arguments.html">Touch&#233; 2024@CLEF</a>, and (3) the <a href="https://www.tira.io/task-overview/ir-lab-jena-leipzig-wise-2023">IR Lab 2023/2024</a> to foster student submissions to <a href="https://clef-longeval.github.io/">LongEval 2024@CLEF</a>.
+                    The <a href="/task-overview/ir-benchmarks">TIREx leaderboard</a> is always open for run or software submissions. Three additional shared tasks are open at the moment as part of (1) the <a href="https://opensearchfoundation.org/wows2024" target="_blank">Workshop on Open Web Search</a>, (2) <a href="https://touche.webis.de/clef24/touche24-web/image-retrieval-for-arguments.html" target="_blank">Touch&#233; 2024@CLEF</a>, and (3) the <a href="https://www.tira.io/task-overview/ir-lab-jena-leipzig-wise-2023" target="_blank">IR Lab 2023/2024</a> to foster student submissions to <a href="https://clef-longeval.github.io/" target="_blank">LongEval 2024@CLEF</a>.
                     <br>
                     We would be happy to host your <a href="/tasks">shared task</a> on TIREx.
 
@@ -69,7 +69,7 @@
                 <div>
                   <div class="text-h6 mb-1">Past Shared Tasks</div>
                   <div class="text-caption">
-                    <a href="https://touche.webis.de/clef23/touche23-web">Touch&#233; 2023@CLEF</a> and the <a href="https://www.tira.io/task-overview/ir-lab-jena-leipzig-sose-2023">2023 IR Lab Leipzig/Jena</a> did run on TIREx, together with many tasks hosted in <a href="/tasks">TIRA</a>.
+                    <a href="https://touche.webis.de/clef23/touche23-web" target="_blank">Touch&#233; 2023@CLEF</a> and the <a href="/task-overview/ir-lab-jena-leipzig-sose-2023">2023 IR Lab Leipzig/Jena</a> did run on TIREx, together with many tasks hosted in <a href="/tasks">TIRA</a>.
                   </div>
                 </div>
               </v-card-item>
