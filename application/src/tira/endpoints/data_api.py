@@ -416,6 +416,12 @@ def add_registration(request, context, task_id, vm_id):
 
 
 @add_context
+def tirex_components(request, context):
+    context['tirex_components'] = settings.TIREX_COMPONENTS
+    return JsonResponse({'status': 0, 'context': context})
+
+
+@add_context
 @check_permissions
 @check_resources_exist('json')
 def submissions_for_task(request, context, task_id, user_id, submission_type):

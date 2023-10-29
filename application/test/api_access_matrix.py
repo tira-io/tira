@@ -90,6 +90,17 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
+        url_pattern='api/tirex-components',
+        params=None,
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 200,
+            PARTICIPANT: 200,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 200,
+        },
+    ),
+    route_to_test(
         url_pattern='task/<str:task_id>',
         params={'task_id': 'this-task-does-not-exist'},
         group_to_expected_status_code={

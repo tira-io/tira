@@ -1,0 +1,94 @@
+[
+  {"display_name": "Dataset", "components": [
+      {"display_name": "ClueWeb09"},
+      {"display_name": "ClueWeb12"},
+      {"display_name": "ClueWeb22"}
+    ]
+  },
+
+  {"display_name": "Document Processing", "components": [
+      {"display_name": "Keyphrase Extraction", "links": [
+          {"display_name": "Tutorial", "href": "https://github.com/OpenWebSearch/wows-code/blob/main/ecir24/post-hoc-notebooks/keyphrase-extraction.ipynb", "target": "_blank"}
+        ]
+      },
+      {"display_name": "Stopword Removal", "links": [
+        {"display_name": "Tutorial", "href": "https://github.com/webis-de/ir-pad/blob/public/tutorials/tutorial-02-stopword-lists.ipynb", "target": "_blank"}]
+      },
+      {"display_name": "Stemming", "links": [
+          {"display_name": "Tutorial", "href": "https://github.com/webis-de/ir-pad/blob/public/tutorials/tutorial-02-stopword-lists.ipynb", "target": "_blank"}
+        ]
+      }
+    ]
+  },
+
+  {"display_name": "Query Processing", "components": [
+      {"display_name": "Query Segmentation", "links": [
+          {"display_name": "Tutorial", "href": "https://github.com/OpenWebSearch/wows-code/blob/main/ecir24/post-hoc-notebooks/query-segmentation.ipynb", "target": "_blank"}
+        ],
+        "components": [{"display_name": "hyp-a"}, {"display_name": "hyp-b"}, {"display_name": "hyp-c"}]
+      },
+      {"display_name": "QPP", "links": [
+          {"display_name": "qpptk", "href": "https://github.com/Zendelo/QPP-EnhancedEval/tree/main/code/qpptk", "target": "_blank"}
+        ],
+        "components": [{"display_name": "qpp-1"}, {"display_name": "qpp-2"}, {"display_name": "qpp-3"}, {"display_name": "qpp-4"}, {"display_name": "qpp-5"}]
+      }
+    ]
+  },
+
+  {"display_name": "Retrieval", "components": [
+      {"display_name": "BM25", "links": [
+          {"display_name": "Submission in TIREx", "href": "/task-overview/ir-benchmarks/"}
+        ]
+      },
+      {"display_name": "TF-IDF", "links": [
+          {"display_name": "Submission in TIREx", "href": "/task-overview/ir-benchmarks/"}
+        ]
+      },
+      {"display_name": "PL2", "links": [
+          {"display_name": "Submission in TIREx", "href": "/task-overview/ir-benchmarks/"}
+        ]
+      }
+    ]
+  },
+
+  {"display_name": "Re-Ranking", "components": [
+      {"display_name": "monoT5", "links": [
+          {"display_name": "Submission in TIREx", "href": "/task-overview/ir-benchmarks/"}
+        ]
+      }
+    ]
+  },
+
+  {"display_name": "Evaluation", "links": [
+    {"display_name": "IR-Measures Paper", "href": "https://link.springer.com/chapter/10.1007/978-3-030-99739-7_38", "target": "_blank"},
+    {"display_name": "IR-Measures Demo", "href": "https://demo.ir-measur.es/reverse", "target": "_blank"}
+   ],
+   "components": [
+      {"display_name": "nDCG", "links": [
+          {"display_name": "IR-Measures Demo", "href": "https://demo.ir-measur.es/reverse", "target": "_blank"},
+          {"display_name": "Paper", "href": "https://ir.webis.de/anthology/2002.tois_journal-ir0anthology0volumeA20A4.2/", "target": "_blank"}
+        ]
+      },
+      {"display_name": "MAP", "links": [
+          {"display_name": "IR-Measures Demo", "href": "https://demo.ir-measur.es/reverse", "target": "_blank"},
+          {"display_name": "Criticism of MAP", "href": "https://ir.webis.de/anthology/2017.sigirjournals_journal-ir0anthology0volumeA51A3.3/", "target": "_blank"},
+          {"display_name": "Defense of MAP", "href": "https://ir.webis.de/anthology/2020.sigirjournals_journal-ir0anthology0volumeA54A1.11/", "target": "_blank"}
+        ]
+      },
+      {"display_name": "Precision@k", "links": [
+          {"display_name": "IR-Measures Demo", "href": "https://demo.ir-measur.es/reverse", "target": "_blank"}
+        ]
+      },
+      {"display_name": "Recall@k", "links": [
+          {"display_name": "IR-Measures Demo", "href": "https://demo.ir-measur.es/reverse", "target": "_blank"}
+        ]
+      },
+      {"display_name": "C/W/L", "links": [
+          {"display_name": "Paper", "href": "https://ir.webis.de/anthology/2018.sigirconf_conference-2018.63/", "target": "_blank"},
+          {"display_name": "cwl_eval", "href": "https://ir.webis.de/anthology/2019.sigirconf_conference-2019.204/", "target": "_blank"},
+          {"display_name": "C/W/L Implementation", "href": "https://github.com/ireval/cwl", "target": "_blank"}
+        ]
+      }
+    ]
+  }
+]
