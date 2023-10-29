@@ -91,12 +91,12 @@ export default {
         let c = this.components[i]
         ret[0][i] = {'display_name': c.display_name}
 
-        for (let j=0; j< c.components.length; j++) {
+        for (let j=0; j< c['components'].length; j++) {
           if (ret.length <= 1+j) {
             ret.push([{}, {}, {}, {}, {}, {}])
           }
 
-          ret[1+j][i] = {'display_name': c.components[j].display_name, 'color': this.colorOfComponent(c.display_name), 'collapsed': 3}
+          ret[1+j][i] = {'display_name': c['components'][j].display_name, 'color': this.colorOfComponent(c.display_name), 'collapsed': 3}
         }
       }
       
