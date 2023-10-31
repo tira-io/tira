@@ -6,7 +6,7 @@
 
 // Components
 import App from './App.vue'
-import Components from './Components.vue'
+import Components from './LrComponents.vue'
 import Home from './Home.vue'
 import Tasks from './Tasks.vue'
 import Tirex from './Tirex.vue'
