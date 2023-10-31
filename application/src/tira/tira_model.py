@@ -461,19 +461,25 @@ def add_uploaded_run(task_id, vm_id, dataset_id, upload_id, uploaded_file):
 def update_docker_software_metadata(docker_software_id, display_name, description, paper_link, ir_re_ranker, ir_re_ranking_input):
     return model.update_docker_software_metadata(docker_software_id, display_name, description, paper_link, ir_re_ranker, ir_re_ranking_input)
 
-def add_docker_software(task_id, vm_id, image, command, input=None):
+
+def add_docker_software(task_id, vm_id, image, command, software_inputs=None):
     """ Add the docker software to the user of the vm and return it """
-    
+
     image, old_tag = image.split(':')
     new_tag = old_tag + '-tira-docker-software-id-' + randomname.get_name().lower()
     
     tira_image_name = get_git_integration(task_id=task_id).add_new_tag_to_docker_image_repository(image, old_tag, new_tag)
 
-    input_docker_job, input_upload = input, None
-    if input and 'upload' in input:
-        input_docker_job, input_upload = None, input.split('-')[-1]
+    input_docker_job, input_upload = {}, {}
+    if software_inputs:
+        for software_num, software_input in zip(range(len(software_inputs)), software_inputs):
+            if type(software_input) != int and 'upload' in software_input:
+                input_upload[software_num] = software_input.split('-')[-1]
+            else:
+                input_docker_job[software_num] = software_input
 
-    return model.add_docker_software(task_id, vm_id, image + ':' + old_tag, command, tira_image_name, input_docker_job, input_upload)
+    return model.add_docker_software(task_id, vm_id, image + ':' + old_tag, command, tira_image_name, input_docker_job,
+                                     input_upload)
 
 
 def add_registration(data):

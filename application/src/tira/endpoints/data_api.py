@@ -165,6 +165,8 @@ def get_evaluations_by_vm(request, context, task_id, vm_id):
     covered_evaluation_headers = set()
 
     for i in evaluations:
+        if 'dataset_id' not in i or not i['dataset_id']:
+            continue
         dataset_id = i['dataset_id']
         is_training_dataset = dataset_id.endswith('-training')
         i = __normalize_run(i, ev_keys, is_admin, user_vms_for_task, task_id, is_ir_task, is_training_dataset)
@@ -411,6 +413,12 @@ def add_registration(request, context, task_id, vm_id):
         logger.warning(e)
         logger.exception(e)
         return JsonResponse({'status': 0, "message": f"Encountered an exception: {e}"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+
+@add_context
+def tirex_components(request, context):
+    context['tirex_components'] = settings.TIREX_COMPONENTS
+    return JsonResponse({'status': 0, 'context': context})
 
 
 @add_context

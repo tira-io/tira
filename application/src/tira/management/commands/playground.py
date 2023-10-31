@@ -15,7 +15,8 @@ class Command(BaseCommand):
             github_user='heinrichreimer',
             dockerhub_token='xyz',
             tira_client_token='xyz',
-            repository_search_prefix=''
+            repository_search_prefix='',
+            tira_user_name='<TIRA-USER>',
         )
 
         #class tmp():

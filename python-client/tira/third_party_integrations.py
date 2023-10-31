@@ -43,6 +43,13 @@ def get_preconfigured_chatnoir_client(config_directory, features=['TARGET_URI'],
     return chatnoir
 
 
+def get_output_directory(default_output: str = '/tmp/'):
+    output_directory = os.environ.get('TIRA_OUTPUT_DIRECTORY', default_output)
+    print(f'The output directory is {output_directory}')
+    
+    return output_directory
+
+
 def get_input_directory_and_output_directory(default_input, default_output: str = '/tmp/'):
     input_directory = os.environ.get('TIRA_INPUT_DIRECTORY', None)
 
@@ -52,10 +59,7 @@ def get_input_directory_and_output_directory(default_input, default_output: str 
         input_directory = default_input
         print(f'I will use a small hardcoded example located in {input_directory}.')
 
-    output_directory = os.environ.get('TIRA_OUTPUT_DIRECTORY', default_output)
-    print(f'The output directory is {output_directory}')
-    
-    return (input_directory, output_directory)
+    return (input_directory, get_output_directory(default_output))
 
 
 def is_running_as_inference_server():

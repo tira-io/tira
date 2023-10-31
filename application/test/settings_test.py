@@ -318,6 +318,8 @@ WEBPACK_LOADER = {
     }
 }
 
+TIREX_COMPONENTS = {}
+
 GIT_CI_AVAILABLE_RESOURCES = {
     'small-resources': {'cores': 1, 'ram': 10, 'gpu': 0, 'data': 'no', 'description': 'Small (1 CPU Cores, 10GB of RAM)', 'key': 'small-resources'}
 }
