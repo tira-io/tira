@@ -122,7 +122,6 @@ docker-publish:
 	docker push webis/tira-application-grpc:${VERSION_GRPC}
 
 build-docker-basis:
-        docker build --tag webis/tira-application:build-vuetify-${VERSION_APPLICATION} -f Dockerfile.vuetify .
 	docker build --tag webis/tira-application:basis-${VERSION_APPLICATION} -f Dockerfile.basis ..
 
 clean:
