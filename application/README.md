@@ -85,7 +85,7 @@ Frequently used development commands are:
 
 ### Frontend Development
 
-Start your dev environment via: `make vite-dev`
+Build the frontend code via `make vite`
 
 ## Troubleshooting
 

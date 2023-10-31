@@ -1,0 +1,12 @@
+# docker build -t webis/tira:vuetify-dev-0.0.1 -f Dockerfile.dev .
+FROM node
+
+ADD package.json yarn.lock /tmp-del/
+
+RUN cd /tmp-del \
+	&& yarn create vuetify \
+	&& yarn install \
+	&& mv node_modules/* /usr/local/lib/node_modules/ \
+	&& cd / \
+	&& rm -R /tmp-del/
+
