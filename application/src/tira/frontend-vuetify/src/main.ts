@@ -6,7 +6,7 @@
 
 // Components
 import App from './App.vue'
-import Components from './LrComponents.vue'
+import IrComponents from './IrComponents.vue'
 import Home from './Home.vue'
 import Tasks from './Tasks.vue'
 import Tirex from './Tirex.vue'
@@ -41,7 +41,7 @@ export default function register_app() {
     {path: '/frontend-vuetify/task-overview/:task_id?/:dataset_id?', component: TaskOverview},
     {path: '/frontend-vuetify/submit/:task/user/:user/:submission_type?/:selected_step?', name: 'frontend-vuetify-submission', component: RunUpload},
     {path: '/frontend-vuetify/task-overview/:task_id?/:dataset_id?/:sub-view?/:sub-sub-view?', component: TaskOverview},
-    { path: '/tirex/components/:pathMatch(.*)*', component: Components },
+    { path: '/tirex/components/:pathMatch(.*)*', component: IrComponents },
     { path: '/tirex/:pathMatch(.*)*', component: Tirex },
 
     // Fallback: everything matches to home.
