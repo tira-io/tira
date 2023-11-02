@@ -268,7 +268,7 @@ CACHES = {
     }
 }
 
-TIREX_COMPONENTS = json.load(open(BASE_DIR / 'tirex-components.json'))
+TIREX_COMPONENTS = yaml.load(open(BASE_DIR / 'tirex-components.yml').read(), Loader=yaml.FullLoader)
 
 # Logging
 ld = Path(custom_settings.get("logging_dir", TIRA_ROOT / "log" / "tira-application"))

@@ -80,11 +80,11 @@
       links:
         - display_name: Submission in TIREx
           href: /task-overview/ir-benchmarks/
-     - display_name: Rank Fusion
-       links:
-         - display_name: Ranx
-           href: https://github.com/AmenRa/ranx
-           target: _blank
+    - display_name: Rank Fusion
+      links:
+        - display_name: Ranx
+          href: https://github.com/AmenRa/ranx
+          target: _blank
 
 
 - display_name: Evaluation
@@ -124,10 +124,10 @@
               href: https://demo.ir-measur.es/reverse
               target: _blank
         - display_name": "Recall@k"
-          - links:
-              - display_name: IR-Measures Demo
-                href: https://demo.ir-measur.es/reverse
-                target: _blank
+          links:
+            - display_name: IR-Measures Demo
+              href: https://demo.ir-measur.es/reverse
+              target: _blank
         - display_name: C/W/L
           links: 
             - display_name: Paper
