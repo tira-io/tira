@@ -606,6 +606,33 @@ class HybridDatabase(object):
 
         return ret
 
+    def runs(self, task_id, dataset_id, vm_id, software_id):
+        prepared_statement = """
+                SELECT
+                    DISTINCT tira_run.run_id
+                FROM
+                    tira_run
+                LEFT JOIN
+                    tira_upload ON tira_run.upload_id = tira_upload.id
+                LEFT JOIN
+                    tira_software ON tira_run.software_id = tira_software.id
+                LEFT JOIN
+                    tira_dockersoftware ON tira_run.docker_software_id = tira_dockersoftware.docker_software_id
+                LEFT JOIN
+                    tira_review as tira_run_review ON tira_run.run_id = tira_run_review.run_id
+                WHERE
+                    tira_run_review.published = TRUE AND tira_run_review.blinded = FALSE
+                    AND tira_run.input_dataset_id = %s
+                    AND (tira_dockersoftware.task_id = %s OR tira_upload.task_id = %s OR tira_software.task_id = %s)
+                    AND (tira_dockersoftware.vm_id = %s OR tira_upload.vm_id = %s OR tira_software.vm_id = %s)
+                    AND (tira_dockersoftware.display_name = %s OR tira_upload.display_name = %s OR tira_software.id = %s)
+                    
+                ORDER BY
+                    tira_run.run_id ASC;        
+                """
+        params = [dataset_id, task_id, task_id, task_id, vm_id, vm_id, vm_id, software_id, software_id, software_id]
+        return [i[0] for i in self.execute_raw_sql_statement(prepared_statement, params)]
+
     def get_runs_for_vm(self, vm_id, docker_software_id, upload_id, include_unpublished=True, round_floats=True, show_only_unreviewed=False):
         prepared_statement = """
         SELECT

@@ -282,6 +282,10 @@ def get_ova_list() -> list:
     return model.get_ova_list()
 
 
+def runs(task_id, dataset_id, vm_id, software_id):
+    return model.runs(task_id, dataset_id, vm_id, software_id)
+
+
 def get_organizer_list() -> list:
     return model.get_organizer_list()
 

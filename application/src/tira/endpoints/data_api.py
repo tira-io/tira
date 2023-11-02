@@ -233,6 +233,12 @@ def get_ova_list(request, context):
     return JsonResponse({'status': 0, "context": context})
 
 
+@add_context
+def runs(request, context, task_id, dataset_id, vm_id, software_id):
+    context["runs"] = model.runs(task_id, dataset_id, vm_id, software_id)
+    return JsonResponse({'status': 0, "context": context})
+
+
 @check_permissions
 @check_resources_exist("json")
 @add_context
