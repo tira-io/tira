@@ -82,7 +82,7 @@
 import { Loading } from './components'
 import { get, reportError, inject_response } from './utils';
 export default {
-  name: "components",
+  name: "ir-components",
   components: {Loading},
   data() {
     return {
