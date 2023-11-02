@@ -3,7 +3,7 @@
     <section>
       <h1 class="text-h3 text-sm-h3 py-4">Components available in TIREx</h1>
       <p class="mx-auto py-4 tira-explanation">
-        lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation.
+        This is a click dummy/early prototype to search/slice/dice the components/tutorials/resources available in <a href="/tirex">TIREx</a> together with related resources. We currently have <a href="https://opensearchfoundation.org/wows2024/">an open call for components</a> as part of en ECIR workshop and will update the overview below with all submitted components. Please do not hesitate to contribute to this overview by modifying the <a href="https://github.com/tira-io/tira/blob/main/application/src/tirex-components.yml">underlying yml file</a>, we would be happy about all contributions!
       </p>
     </section>
   </v-container>
