@@ -207,18 +207,23 @@ and the
     def run_was_already_executed_on_dataset(self, approach, dataset):
         return self.get_run_execution_or_none(approach, dataset) is not None
 
+    def get_run_output(self, approach, dataset, allow_without_evaluation=False):
+        return self.directory + '/' + self.get_run_execution_or_none(approach, dataset)['run_id']
+
     def get_run_execution_or_none(self, approach, dataset, previous_stage_run_id=None):
         task, team, software = approach.split('/')
         executions = [json.loads(i) for i in open(self.directory + '.tira/executions.jsonl')]
 
         executions = [i for i in executions if i['TIRA_TASK_ID'] == task and i['TIRA_VM_ID'] == team and i['TIRA_SOFTWARE_NAME'] == software and i['dataset'] == dataset]
 
-        return None if len(executions) < 1 else self.directory + '/' +  executions[0]['output_directory']
+        return None if len(executions) < 1 else {'task': task, 'dataset': dataset, 'team': team, 'run_id': executions[0]['output_directory']}
 
     def download_run(self, task, dataset, software, team=None, previous_stage=None, return_metadata=False):
         ret = self.get_run_execution_or_none(f'{task}/{team}/{software}', dataset, previous_stage)
         if not ret:
             raise ValueError(f'I could not find a run for the filter criteria task="{task}", dataset="{dataset}", software="{software}", team={team}, previous_stage={previous_stage}')
+
+        ret = self.directory + '/' + ret['run_id']
 
         if not os.path.exists(ret + '/run.txt'):
             ret = pd.read_json(ret + '/rerank.jsonl.gz', lines=True, orient='columns')

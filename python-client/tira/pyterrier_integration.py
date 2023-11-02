@@ -106,11 +106,10 @@ class PyTerrierIntegration():
         import pyterrier as pt
         import pandas as pd
         task, team, software = approach.split('/')
-        
-        
+
         if dataset and datasets:
             raise ValueError(f'You can not pass both, dataset and datasets. Got dataset = {dataset} and datasets= {datasets}')
-        
+
         if not datasets:
             datasets = [dataset]
 
@@ -133,7 +132,7 @@ class PyTerrierIntegration():
         from pyterrier.apply import generic
         import pandas as pd
         from glob import glob
-        glob_entry = self.tira_client.get_run_execution_or_none(approach, dataset) + file_selection
+        glob_entry = self.tira_client.get_run_output(approach, dataset) + file_selection
         matching_files = glob(glob_entry)
         if len(matching_files) == 0:
             raise ValueError('Could not find a matching query output. Found: ' + matching_files + '. Please specify the file_selection to resolve this.')
@@ -153,7 +152,7 @@ class PyTerrierIntegration():
         from pyterrier.apply import generic
         import pandas as pd
         from glob import glob
-        glob_entry = self.tira_client.get_run_execution_or_none(approach, dataset) + file_selection
+        glob_entry = self.tira_client.get_run_output(approach, dataset) + file_selection
         matching_files = glob(glob_entry)
         if len(matching_files) == 0:
             raise ValueError('Could not find a matching document output. Found: ' + matching_files + '. Please specify the file_selection to resolve this.')

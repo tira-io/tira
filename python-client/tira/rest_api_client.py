@@ -151,6 +151,9 @@ class Client():
         Returns the directory containing the outputs of the run.
         """
         task, team, software = approach.split('/')
+        run_execution = self.get_run_execution_or_none(approach, dataset)
+        if run_execution:
+            return self.download_zip_to_cache_directory(task, dataset, team, run_execution['run_id'])
 
         run_execution = self.submissions_with_evaluation_or_none(task, dataset, team, software)
         run_execution = [i for i in run_execution if ('evaluation' in i and i['evaluation']) or allow_without_evaluation]
@@ -163,7 +166,7 @@ class Client():
     def get_run_execution_or_none(self, approach, dataset, previous_stage_run_id=None):
         task, team, software = approach.split('/')
 
-        public_runs = json_response(f'/api/list-runs/{task}/{dataset}/{team}/' + software.replace(' ', '%20'))
+        public_runs = self.json_response(f'/api/list-runs/{task}/{dataset}/{team}/' + software.replace(' ', '%20'))
         if public_runs and 'context' in public_runs and 'runs' in public_runs['context'] and public_runs['context']['runs']:
             return {'task': task, 'dataset': dataset, 'team': team, 'run_id': public_runs['context']['runs'][0]}
 

@@ -26,6 +26,21 @@ def test_pyterrier_can_be_loaded():
     from tira.third_party_integrations import ensure_pyterrier_is_loaded
     ensure_pyterrier_is_loaded()
 
+def test_rest_query_submission_with_rest_api_01():
+    from tira.rest_api_client import Client
+    tira = Client()
+
+    q = tira.pt.transform_queries('ir-benchmarks/ows/query-segmentation-wt-snp', 'disks45-nocr-trec-robust-2004-20230209-training')
+    assert len(q(pd.DataFrame([{'qid': '303'}]))) == 1
+    assert q(pd.DataFrame([{'qid': '303'}])).iloc[0].to_dict()['segmentation'] == ['hubble telescope achievements']
+
+def test_rest_query_submission_with_rest_api_02():
+    from tira.rest_api_client import Client
+    tira = Client()
+
+    q = tira.pt.transform_queries('ir-benchmarks/ows/query-segmentation-hyb-a', 'disks45-nocr-trec-robust-2004-20230209-training')
+    assert len(q(pd.DataFrame([{'qid': '303'}]))) == 1
+    assert q(pd.DataFrame([{'qid': '303'}])).iloc[0].to_dict()['segmentation'] == ['hubble telescope', 'achievements']
 
 def query_segmentation(queries):
     queries = pd.DataFrame([{'qid': str(i)} for i in queries])
