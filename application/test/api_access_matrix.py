@@ -123,6 +123,17 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
+        url_pattern='api/list-runs/<str:task_id>/<str:dataset_id>/<str:vm_id>/<str:software_id>',
+        params={'task_id': '1', 'dataset_id': 1, 'vm_id': '1', 'software_id': '1'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 200,
+            PARTICIPANT: 200,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 200,
+        },
+    ),
+    route_to_test(
         url_pattern='task/<str:task_id>/dataset/<str:dataset_id>',
         params={'task_id': 'shared-task-1', 'dataset_id': 'this-dataset-does-not-exist'},
         group_to_expected_status_code={
