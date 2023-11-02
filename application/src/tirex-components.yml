@@ -230,13 +230,16 @@
       href: https://github.com/webis-de/ir-pad/blob/public/tutorials/tutorial-01-ir-datasets.ipynb
       target: _blank
   components:
-    - display_name: nDCG
-      links:
-        - display_name: IR-Measures Demo
-          href: https://demo.ir-measur.es/reverse
-          target: _blank
+    - display_name: C/W/L
+      links: 
         - display_name: Paper
-          href: https://ir.webis.de/anthology/2002.tois_journal-ir0anthology0volumeA20A4.2/
+          href: https://ir.webis.de/anthology/2018.sigirconf_conference-2018.63/
+          target: _blank
+        - display_name: cwl_eval
+          href: https://ir.webis.de/anthology/2019.sigirconf_conference-2019.204/
+          target: _blank
+        - display_name: C/W/L Implementation
+          href: https://github.com/ireval/cwl
           target: _blank
     - display_name: MAP
       links:
@@ -249,6 +252,14 @@
         - display_name: Defense of MAP
           href: https://ir.webis.de/anthology/2020.sigirjournals_journal-ir0anthology0volumeA54A1.11/
           target: _blank
+    - display_name: nDCG
+      links:
+        - display_name: IR-Measures Demo
+          href: https://demo.ir-measur.es/reverse
+          target: _blank
+        - display_name: Paper
+          href: https://ir.webis.de/anthology/2002.tois_journal-ir0anthology0volumeA20A4.2/
+          target: _blank
     - display_name: Precision@k
       links:
         - display_name: IR-Measures Demo
@@ -259,15 +270,16 @@
         - display_name: IR-Measures Demo
           href: https://demo.ir-measur.es/reverse
           target: _blank
-    - display_name: C/W/L
-      links: 
-        - display_name: Paper
-          href: https://ir.webis.de/anthology/2018.sigirconf_conference-2018.63/
+    - display_name: "Reproducibility"
+      links:
+        - display_name: repro_eval
+          href: https://github.com/irgroup/repro_eval
           target: _blank
-        - display_name: cwl_eval
-          href: https://ir.webis.de/anthology/2019.sigirconf_conference-2019.204/
+        - display_name: Overview of Reproducibility Measures
+          href: https://ir.webis.de/anthology/2020.sigirconf_conference-2020.43/
           target: _blank
-        - display_name: C/W/L Implementation
-          href: https://github.com/ireval/cwl
+        - display_name: ir_metadata to improve reproducibility
+          href: https://ir.webis.de/anthology/2022.sigirconf_conference-2022.362/
           target: _blank
+
 
