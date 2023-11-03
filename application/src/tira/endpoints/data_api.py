@@ -428,6 +428,12 @@ def tirex_components(request, context):
 
 
 @add_context
+def reranking_datasets(request, context, task_id):
+    context['re_ranking_datasets'] = model.get_all_reranking_datasets_for_task(task_id)
+    return JsonResponse({'status': 0, 'context': context})
+
+
+@add_context
 @check_permissions
 @check_resources_exist('json')
 def submissions_for_task(request, context, task_id, user_id, submission_type):
