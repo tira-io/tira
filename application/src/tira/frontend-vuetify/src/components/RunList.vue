@@ -1,7 +1,7 @@
 <template>
   <loading :loading="loading"/>
-  <v-container v-if="!loading">
-    <v-data-table v-if="showTable" v-model="selected_runs" v-model:expanded="expanded" show-expand :headers="table_headers"
+  <div v-if="!loading">
+    <v-data-table v-if="showTable" v-model="selected_runs" show-expand :headers="table_headers"
                   :items="runs" item-value="Run" v-model:sort-by="table_sort_by" density="compact"
                   show-select class="elevation-1 d-none d-md-block" hover>
       <template v-slot:item.actions="{item}">
@@ -35,7 +35,7 @@
       </template>
     </v-data-table>
 
-    <v-data-table v-if="showTable" v-model:expanded="expanded" show-expand :headers="table_headers_small_layout"
+    <v-data-table v-if="showTable" show-expand :headers="table_headers_small_layout"
                   :items="runs" item-value="Run" v-model:sort-by="table_sort_by" expand-on-click density="compact"
                   class="elevation-1 d-md-none" hover>
                   <template #item.vm_id="{ item }">
@@ -56,12 +56,7 @@
         <v-col cols="6"><v-btn variant="outlined" block :disabled="compareLink === ''" :href="compareLink" target="_blank">Compare Selected</v-btn></v-col>
       </v-row>
     </div>
-    <div v-if="showTable" class="d-md-none d-md-block">
-      <v-row class="pt-2">
-        <v-col cols="12"><v-btn variant="outlined" block :disabled="compareExpandedLink === ''" :href="compareExpandedLink" target="_blank">Compare Expanded</v-btn></v-col>
-      </v-row>
-    </div>
-  </v-container>
+  </div>
 </template>
 
 <script lang="ts">
@@ -76,7 +71,6 @@ export default {
   components: {RunActions, SoftwareDetails, Loading, SubmissionIcon},
   props: ['task_id', 'dataset_id', 'organizer', 'organizer_id', 'vm_id', 'docker_software_id', 'upload_id', 'show_only_unreviewed'],
   data() { return {
-      expanded: [],
       selected_runs: [],
       loading: true,
       runs: [{'run_id': 'loading...', 'review_state': 'no-review'}],
@@ -89,7 +83,6 @@ export default {
   computed: {
     downloadLink() {return '';},
     compareLink() {return this.createCompareLink(this.selected_runs);},
-    compareExpandedLink() {return this.createCompareLink(this.expanded);},
     showTable() {return this.dataset_id || this.vm_id}
   },
   methods: {

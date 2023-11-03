@@ -1,27 +1,19 @@
 <template>
   <tira-breadcrumb/>
-  <div class=" my-5 px-10">
+  <div :class="!$vuetify.display.mdAndUp ? 'my-0 px-0' : 'my-5 px-10'">
   <div class="my-5">
     <h2><b>{{this.user_id}}</b> on Task: {{this.task_id}}</h2>
   </div>
-    <running-processes class="mb-12" ref="running-processes"/>
-  <v-tabs
-    v-model="tab"
-    fixed-tabs
-  >
-    <v-tab value="upload-submission">
-      <v-icon class="mr-4">mdi-folder-upload-outline</v-icon>
-      Upload Submission
-    </v-tab>
-    <v-tab value="docker-submission">
-      <v-icon class="mr-4">mdi-docker</v-icon>
-      Docker Submission
-    </v-tab>
-    <v-tab value="vm-submission">
-      <v-icon class="mr-4">mdi-code-json</v-icon>
-      Virtual Machine Submission
+  <running-processes class="mb-12" ref="running-processes"/>
+  <v-tabs v-model="tab" class="d-none d-md-block" fixed-tabs >
+    <v-tab :value="v.id" v-for="v in all_tabs">
+      <v-icon class="mr-4">{{v.icon}}</v-icon> {{v.title}}
     </v-tab>
   </v-tabs>
+  <v-row class="d-md-none">
+    <v-col cols="12"><v-select v-model="tab" :items="all_tabs" variant="outlined" block item-title="title" item-value="id" label="Submission"/></v-col>
+  </v-row>
+
   <v-window v-model="tab">
       <v-window-item value="upload-submission">
         <upload-submission :organizer="organizer" :organizer_id="organizer_id"  @refresh_running_submissions="refresh_running_submissions()"/>
@@ -43,7 +35,7 @@ import UploadSubmission from "@/submission-components/UploadSubmission";
 import RunningProcesses from "@/submission-components/RunningProcesses.vue";
 import { TiraBreadcrumb } from './components'
 
-import { extractSubmissionTypeFromCurrentUrl, extractCurrentStepFromCurrentUrl, extractTaskFromCurrentUrl, extractUserFromCurrentUrl, extractRole, get, inject_response, reportError } from "@/utils";
+import { extractSubmissionTypeFromCurrentUrl, extractCurrentStepFromCurrentUrl, extractTaskFromCurrentUrl, extractUserFromCurrentUrl, get, inject_response, reportError } from "@/utils";
 export default {
   name: "run-upload",
   components: {UploadSubmission, TiraBreadcrumb, VirtualMachineSubmission, DockerSubmission, RunningProcesses},
@@ -53,12 +45,13 @@ export default {
         step: extractCurrentStepFromCurrentUrl(),
         task_id: extractTaskFromCurrentUrl(),
         user_id: extractUserFromCurrentUrl(),
-        is_ir_task: false,
-        task_name: "",
-        task_description: "",
-        organizer: "",
-        organizer_id: "",
-        web: "",
+        is_ir_task: false, task_name: "", task_description: "",
+        organizer: "", organizer_id: "", web: "",
+        all_tabs: [
+          {'id': 'upload-submission', 'title': 'Uploads', 'icon': 'mdi-folder-upload-outline'},
+          {'id': 'docker-submission', 'title': 'Docker', 'icon': 'mdi-docker'},
+          {'id': 'vm-submission', 'title': 'Virtual Machine', 'icon': 'mdi-code-json'}
+        ]
     }
   },
   beforeMount() {
