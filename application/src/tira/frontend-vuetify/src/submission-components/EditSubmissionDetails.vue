@@ -9,9 +9,11 @@
 
       <v-card-text v-if="!loading">
         <v-form>
-          <v-text-field v-model="display_name" label="Name"></v-text-field>
-          <v-textarea v-model="description" label="Description"></v-textarea>
-          <v-text-field v-model="paper_link" label="Link your Paper"></v-text-field>
+          <v-text-field v-model="display_name" label="Name"/>
+          <v-textarea v-model="description" label="Description"/>
+          <v-text-field v-model="paper_link" label="Link your Paper"/>
+          <v-checkbox v-model="ir_re_ranker" label="Is this software an re-ranker?" v-if="is_ir_task && type == 'docker'"/>
+          <v-checkbox v-model="ir_re_ranking_input" label="Is the output of this component a rin file to be re-ranked by others?" v-if="is_ir_task"/>
         </v-form>
       </v-card-text>
 
@@ -34,13 +36,14 @@ import {Loading} from "@/components";
 export default {
   name: 'edit-submission-details',
   components: {Loading},
-  props: ['type', 'id', 'user_id'],
+  props: ['type', 'id', 'user_id', 'is_ir_task'],
   emits: ['edit'],
   data() {
     return {
       showModal: false, loading: true, submit_in_progress: false,
       task_id: extractTaskFromCurrentUrl(), display_name: 'loading ...',
       description: 'loading ...', paper_link: 'loading...',
+      ir_re_ranker: false, ir_re_ranking_input: false
     }
   },
   computed: {
@@ -70,11 +73,17 @@ export default {
       this.submit_in_progress = true;
       const url = this.type === 'docker' ? `/task/${this.task_id}/vm/${this.user_id}/save_software/docker/${this.id}` : `/task/${this.task_id}/vm/${this.user_id}/save_software/upload/${this.id}`
 
-      post(url, {
-            'display_name': this.display_name,
-            'description': this.description,
-            'paper_link': this.paper_link,
-      }, true)
+      let params = {'display_name': this.display_name, 'description': this.description, 'paper_link': this.paper_link}
+
+      if(this.is_ir_task) {
+        params['ir_re_ranking_input'] = this.ir_re_ranking_input
+
+        if (this.type === 'docker') {
+            params['ir_re_ranker'] = this.ir_re_ranker
+        }
+      }
+
+      post(url, params, true)
       .then(() => {
         this.$emit('edit', {'id': this.id, 'display_name': this.display_name, 'description': this.description, 'paper_link': this.paper_link})
         this.showModal = false

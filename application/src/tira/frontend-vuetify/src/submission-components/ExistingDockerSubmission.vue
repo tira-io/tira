@@ -9,6 +9,7 @@
               type='docker'
               :id="docker_software_id"
               :user_id="user_id"
+              :is_ir_task="is_ir_task"
               @edit="updateDockerSoftwareDetails"
           />
           <v-btn class="ml-4" variant="outlined" color="red" @click="deleteDockerImage()">
@@ -56,7 +57,7 @@ export default {
   name: "existing-docker-submission",
   components: {Loading, RunList, VAutocomplete, EditSubmissionDetails},
   emits: ['refresh_running_submissions', 'deleteDockerImage', 'modifiedSubmissionDetails'],
-  props: ['user_id', 'datasets', 'resources', 'docker_software_id', 'organizer', 'organizer_id'],
+  props: ['user_id', 'datasets', 'resources', 'docker_software_id', 'organizer', 'organizer_id', 'is_ir_task'],
   data() {
     return {loading: true, runSoftwareInProgress: false, selectedDataset: '', valid: false, selectedResource: '',
       docker_software_details: {

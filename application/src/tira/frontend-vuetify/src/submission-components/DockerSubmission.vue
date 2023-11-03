@@ -34,6 +34,7 @@
       <existing-docker-submission @deleteDockerImage="handleDeleteDockerImage" @modifiedSubmissionDetails="v => handleModifiedSubmission(v, this.docker.docker_softwares)"
                                   :user_id="user_id_for_submission"
                                   :datasets="datasets"
+                                  :is_ir_task="is_ir_task"
                                   :resources="resources" :docker_software_id="ds.docker_software_id"
                                   :organizer="organizer" :organizer_id="organizer_id"
                                   @refresh_running_submissions="$emit('refresh_running_submissions')"/>

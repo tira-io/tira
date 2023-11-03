@@ -1,0 +1,7 @@
+#docker build -t webis/tira:python-client-dev-0.0.1 -f Dockerfile.dev .
+FROM ubuntu:latest
+
+RUN apt-get update \
+	&& apt-get install -y python3 build-essential openjdk-11-jdk \
+	&& pip3 install twine coverage-badge python-terrier coverage
+
