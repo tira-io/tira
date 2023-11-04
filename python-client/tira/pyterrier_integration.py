@@ -135,7 +135,7 @@ class PyTerrierIntegration():
         glob_entry = self.tira_client.get_run_output(approach, dataset) + file_selection
         matching_files = glob(glob_entry)
         if len(matching_files) == 0:
-            raise ValueError('Could not find a matching query output. Found: ' + matching_files + '. Please specify the file_selection to resolve this.')
+            raise ValueError(f'Could not find a matching query output. Found: {matching_files}. Please specify the file_selection to resolve this.')
 
         ret = pd.read_json(matching_files[0], lines=True)
         cols = [i for i in ret.columns if i not in ['qid']]

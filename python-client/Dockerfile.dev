@@ -2,6 +2,9 @@
 FROM ubuntu:latest
 
 RUN apt-get update \
-	&& apt-get install -y python3 build-essential openjdk-11-jdk \
-	&& pip3 install twine coverage-badge python-terrier coverage
+	&& apt-get install -y python3 python3-pip build-essential openjdk-11-jdk
+
+RUN pip3 install twine coverage-badge python-terrier coverage
+
+RUN pip3 install pytest docker
 
