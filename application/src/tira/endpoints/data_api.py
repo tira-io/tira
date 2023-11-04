@@ -325,17 +325,11 @@ def update_docker_images(request, context, task_id, user_id):
 @check_resources_exist("json")
 @add_context
 def get_user(request, context, task_id, user_id):
-    software = model.get_software_with_runs(task_id, user_id)
-    upload = model.get_upload_with_runs(task_id, user_id)
     docker = model.load_docker_data(task_id, user_id, cache, force_cache_refresh=False)
     vm = model.get_vm(user_id)
     context["task"] = model.get_task(task_id)
     context["user_id"] = user_id
     context["vm"] = vm
-    context["software"] = software
-    context["datasets"] = model.get_datasets_by_task(task_id)
-    context["reranking_datasets"] = [] if not context["task"]["is_ir_task"] or not context["task"]["irds_re_ranking_command"] else model.get_all_reranking_datasets_for_task(task_id)
-    context["upload"] = upload
     context["docker"] = docker
     
     # is_default indicates whether the user has a docker-only team, i.e., no virtual machine.
