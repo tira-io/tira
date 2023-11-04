@@ -195,7 +195,7 @@ def run_is_public(run_id, vm_id, dataset_id):
     if not (i and 'blinded' in i and 'published' in i and not i['blinded'] and i['published']):
         return False
 
-    return dataset_is_public(i)
+    return dataset_is_public(dataset_id)
 
 
 def dataset_is_public(dataset_id):
