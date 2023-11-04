@@ -52,26 +52,26 @@ class Command(BaseCommand):
             if 'featured' in task and task['featured'] and 'allowed_task_teams' in task and task['allowed_task_teams']:
                 users_of_active_tasks |= set([i.strip() for i in task['allowed_task_teams'].split('\n') if i and i.strip()])
 
-        print(str(datetime.datetime.now()) + ': Start loop to keep the user images fresh (sleeped ' + str(int(sleep_time)) + f' seconds) for {users_of_active_tasks} ...')
+        print(str(datetime.datetime.now()) + ': Start loop to keep the user images fresh (sleeped ' + str(int(sleep_time)) + f' seconds) for {users_of_active_tasks} ...', flush=True)
 
         for user in users_of_active_tasks:
             try:
                 images = git_runner.docker_images_in_user_repository(user, cache, force_cache_refresh=True)
-                print('Refreshed Cache (' + str(datetime.datetime.now()) + '): ' + user + ' has ' + str(len(images)) + ' images.')
+                print('Refreshed Cache (' + str(datetime.datetime.now()) + '): ' + user + ' has ' + str(len(images)) + ' images.', flush=True)
             except Exception as e:
-                print('Exception during refreshing image repository {user}: {e}')
+                print('Exception during refreshing image repository {user}: {e}', flush=True)
                 continue
             time.sleep(0.1)
 
     def keep_user_images_fresh(self, sleep_time):
         while True:
             time.sleep(int(sleep_time))
-            print(str(datetime.datetime.now()) + ': Start loop over all git runners to keep user images fresh (sleeped ' + str(int(sleep_time)) + ' seconds) ...')
+            print(str(datetime.datetime.now()) + ': Start loop over all git runners to keep user images fresh (sleeped ' + str(int(sleep_time)) + ' seconds) ...', flush=True)
             for git_runner in all_git_runners():
                 try:
                     self.refresh_user_images_in_repo(git_runner, sleep_time)
                 except Exception as e:
-                    print(f'Exception in keep_user_images_fresh: {e}')
+                    print(f'Exception in keep_user_images_fresh: {e}', flush=True)
                     continue
 
     def keep_reranking_datasets_fresh(self, sleep_time):
