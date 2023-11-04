@@ -153,7 +153,6 @@ def load_docker_data(task_id, vm_id, cache, force_cache_refresh):
 
     return {
         "docker_images": docker_images,
-        "docker_softwares": model.get_docker_softwares_with_runs(task_id, vm_id),
         "resources": list(settings.GIT_CI_AVAILABLE_RESOURCES.values()),
         "docker_software_help": docker_software_help,
         "docker_images_last_refresh": str(last_refresh),
