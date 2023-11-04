@@ -27,7 +27,7 @@
         </div>
       </v-card-title>
 
-      <v-window v-model="step">
+      <v-window v-model="step" :touch="{left: () => {}, right: () => {}}">
         <v-window-item :value="'step-1'">
           <v-card-text>
             <p>This form will guide you through the process of adding a new Docker submission. Please test that your Docker submission works as expected on your machine with the commands below and click on "Next" as soon as everything looks fine.</p>

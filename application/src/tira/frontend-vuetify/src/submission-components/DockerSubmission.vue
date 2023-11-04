@@ -29,7 +29,7 @@
     </v-col>
   </v-row>
 
-  <v-window v-model="tab" v-if="!loading && role !== 'guest'">
+  <v-window v-model="tab" v-if="!loading && role !== 'guest'" :touch="{left: null, right: null}">
     <v-window-item v-for="ds in this.docker.docker_softwares" :value="ds.docker_software_id">
       <existing-docker-submission @deleteDockerImage="handleDeleteDockerImage" @modifiedSubmissionDetails="v => handleModifiedSubmission(v, this.docker.docker_softwares)"
                                   :user_id="user_id_for_submission"

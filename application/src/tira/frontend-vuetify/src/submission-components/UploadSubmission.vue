@@ -28,7 +28,7 @@
       </v-tabs>
     </v-col>
   </v-row>
-  <v-window v-model="tab" v-if="!loading && role !== 'guest'">
+  <v-window v-model="tab" v-if="!loading && role !== 'guest'" :touch="{left: null, right: null}">
           <v-window-item value="newUploadGroup">
               <h2>Create Run Upload Group</h2>
               <p>Please click on "Add Upload Group" below to create a new run upload group.</p>

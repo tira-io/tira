@@ -1,8 +1,7 @@
 <template>
   <tira-breadcrumb/>
-  <v-container>
   <loading :loading="loading"/>
-  <v-container v-if="!loading">
+  <div v-if="!loading" class="!$vuetify.display.mdAndUp ? 'my-0 px-3' : 'my-5 px-10'">
         <loading :loading="loading"/>
         <v-container v-if="!loading">
           <v-card class="px2" max-width="2560">
@@ -81,8 +80,7 @@
 
             <run-list v-if="selectedDataset" :task_id="task_id" :organizer="task.organizer" :organizer_id="task.organizer_id" :dataset_id="selectedDataset"/>
           </v-container>
-  </v-container>
-  </v-container>
+  </div>
 </template>
 
 <script lang="ts">

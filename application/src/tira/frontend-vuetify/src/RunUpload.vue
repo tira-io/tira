@@ -1,6 +1,6 @@
 <template>
   <tira-breadcrumb/>
-  <div :class="!$vuetify.display.mdAndUp ? 'my-0 px-0' : 'my-5 px-10'">
+  <div :class="!$vuetify.display.mdAndUp ? 'my-0 px-3' : 'my-5 px-10'">
   <div class="my-5">
     <h2><b>{{this.user_id}}</b> on Task: {{this.task_id}}</h2>
   </div>
@@ -14,7 +14,7 @@
     <v-col cols="12"><v-select v-model="tab" :items="all_tabs" variant="outlined" block item-title="title" item-value="id" label="Submission"/></v-col>
   </v-row>
 
-  <v-window v-model="tab">
+  <v-window v-model="tab" :touch="{left: null, right: null}">
       <v-window-item value="upload-submission">
         <upload-submission :organizer="organizer" :organizer_id="organizer_id"  @refresh_running_submissions="refresh_running_submissions()"/>
       </v-window-item>
