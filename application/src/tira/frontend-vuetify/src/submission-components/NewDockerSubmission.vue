@@ -1,5 +1,6 @@
 <template>
   <div style="min-height: 120vh;">
+  <import-submission submission_type="docker"/>
   <h2>Create New Docker Software</h2>
   <div class="d-flex justify-lg-space-between">
     <v-card class="mx-auto mt-12" style="width: 100%;">
@@ -180,10 +181,11 @@ import {VAutocomplete} from "vuetify/components";
 import {extractTaskFromCurrentUrl, get, post, inject_response, reportError, extractUserFromCurrentUrl} from "@/utils";
 import CodeSnippet from "../components/CodeSnippet.vue"
 import Loading from "../components/Loading.vue"
+import ImportSubmission from "./ImportSubmission.vue"
 
 export default {
   name: "new-docker-submission",
-  components: { CodeSnippet, VAutocomplete, Loading },
+  components: { CodeSnippet, VAutocomplete, Loading, ImportSubmission },
   props: ['user_id_for_submission', 'step_prop', 'organizer', 'organizer_id', 'docker_softwares', 'is_ir_task'],
   emits: ['addNewDockerImage'],
   data() {

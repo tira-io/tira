@@ -2,15 +2,14 @@
   <loading :loading="loading"/>
   <login-to-submit v-if="!loading && role === 'guest'"/>
   <v-row v-if="!loading && role !== 'guest'">
-    <v-responsive class="mt-10 mx-5" min-width="220px" id="task-search">
+    <v-col :cols="$vuetify.display.mdAndUp ? '9' : '11'">
       <v-autocomplete ref="softwareSearchInput" clearable auto-select-first label="Choose software or type to filter &hellip;" prepend-inner-icon="mdi-magnify" :items="this.filteredSoftwares" item-title="display_name"
                     variant="underlined" v-model="software_filter" @click="this.$refs.softwareSearchInput.reset()"/>
-      <div class="d-flex justify-end w-100">
-      <v-btn color="primary" @click="this.tab = 'newDockerImage'">
-        Create new software
-      </v-btn>
-      </div>
-    </v-responsive>
+      </v-col>
+      <v-col :cols="$vuetify.display.mdAndUp ? '3' : '1'">
+        <v-btn color="primary" v-if="!$vuetify.display.mdAndUp" icon="mdi-plus" @click="this.tab = 'newDockerImage'"/>
+        <v-btn color="primary" v-if="$vuetify.display.mdAndUp" prepend-icon="mdi-plus" size="large" @click="this.tab = 'newDockerImage'" block>New Submission</v-btn>
+      </v-col>
   </v-row>
   <v-row v-if="!loading && role !== 'guest'">
     <v-col cols="10">

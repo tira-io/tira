@@ -395,7 +395,19 @@ def get_upload_with_runs(task_id, vm_id):
 
 
 def get_uploads(task_id, user_id):
-    return model.get_uploads(task_id, user_id, )
+    return model.get_uploads(task_id, user_id)
+
+
+def submissions_of_user(vm_id):
+    return model.submissions_of_user(vm_id)
+
+
+def cloned_submissions_of_user(vm_id, task_id):
+    return model.cloned_submissions_of_user(vm_id, task_id)
+
+
+def import_submission(task_id, vm_id, submission_type, s_id):
+    return model.import_submission(task_id, vm_id, submission_type, s_id)
 
 
 def get_upload(task_id, vm_id, upload_id):

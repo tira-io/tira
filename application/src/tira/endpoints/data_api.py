@@ -435,13 +435,36 @@ def reranking_datasets(request, context, task_id):
 
 @add_context
 @check_permissions
+def submissions_of_user(request, context, vm_id):
+    try:
+        context['submissions_of_user'] = model.submissions_of_user(vm_id)
+        return JsonResponse({'status': 0, 'context': context})
+    except:
+        return JsonResponse({'status': 1})
+
+
+@add_context
+@check_permissions
+def import_submission(request, context, task_id, vm_id, submission_type, s_id):
+    try:
+        model.import_submission(task_id, vm_id, submission_type, s_id)
+        return JsonResponse({'status': 0, 'context': context})
+    except:
+        return JsonResponse({'status': 1})
+
+
+@add_context
+@check_permissions
 @check_resources_exist('json')
 def submissions_for_task(request, context, task_id, user_id, submission_type):
     context["datasets"] = model.get_datasets_by_task(task_id, return_only_names=True)
+    cloned_submissions = model.cloned_submissions_of_user(user_id, task_id)
     if submission_type == "upload":
         context["all_uploadgroups"] = model.get_uploads(task_id, user_id)
+        context["all_uploadgroups"] += [i for i in cloned_submissions if i['type'] == 'upload']
     elif submission_type == "docker":
         context["docker"] = {"docker_softwares": model.get_docker_softwares(task_id, user_id)}
+        context["docker"]['docker_softwares'] += [i for i in cloned_submissions if i['type'] == 'docker']
         context["resources"] = settings.GIT_CI_AVAILABLE_RESOURCES
     elif submission_type == "vm":
         context["message"] = "This option is not active for this shared task. " \

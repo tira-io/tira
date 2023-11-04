@@ -145,6 +145,28 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
+        url_pattern='api/submissions-of-user/<str:vm_id>',
+        params={'vm_id': 'does-not-exist'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 302,
+            ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
+        },
+    ),
+    route_to_test(
+        url_pattern='api/import-submission/<str:task_id>/<str:vm_id>/<str:submission_type>/<str:s_id>',
+        params={'vm_id': 'does-not-exist', 'task_id': 'does-not-exist', 'submission_type': '1', 's_id': '1'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 302,
+            ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
+        },
+    ),
+    route_to_test(
         url_pattern='task/<str:task_id>/dataset/<str:dataset_id>',
         params={'task_id': 'shared-task-1', 'dataset_id': 'this-dataset-does-not-exist'},
         group_to_expected_status_code={
