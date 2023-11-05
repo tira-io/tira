@@ -171,7 +171,7 @@ class HybridDatabase(object):
         vm.portRdp = ssh if ssh else vm.portRdp
 
         open(new_vm_file_path, 'w').write(str(vm))
-        
+
         return True
 
     def _save_review(self, dataset_id, vm_id, run_id, review):
@@ -365,7 +365,7 @@ class HybridDatabase(object):
 
     def get_runs_for_docker_software(self, docker_software_id):
         docker_software = modeldb.DockerSoftware.objects.get(docker_software_id=docker_software_id)
-        
+
         return [self._run_as_dict(i) for i in modeldb.Run.objects.filter(docker_software = docker_software)]
 
     def update_input_run_id_for_run(self, run_id, input_run_id):
@@ -376,12 +376,12 @@ class HybridDatabase(object):
 
     def _organizer_to_dict(self, organizer):
         git_integrations = []
-        
+
         for git_integration in organizer.git_integrations.all():
             git_integrations += [{'namespace_url': git_integration.namespace_url, 'private_token': '<OMMITTED>'}]
-    
+
         git_integrations += [{'namespace_url': '', 'private_token': ''}]
-        
+
         return {
             "organizer_id": organizer.organizer_id,
             "name": organizer.name,
@@ -537,7 +537,7 @@ class HybridDatabase(object):
         return ret
 
     def get_upload(self, task_id, vm_id, upload_id):
-        return self.upload_to_dict(modeldb.Upload.objects.get(vm__vm_id=vm_id, task__task_id=task_id, id=upload_id), vm_id)
+        return self.upload_to_dict(modeldb.Upload.objects.get(vm__vm_id=vm_id, id=upload_id), vm_id)
 
     @staticmethod
     def get_uploads(task_id, vm_id, return_names_only=True):
@@ -581,6 +581,41 @@ class HybridDatabase(object):
                 'previous_stages': previous_stages
                 }
 
+    @staticmethod
+    def cloned_submissions_of_user(vm_id, task_id):
+        ret = []
+        for i in modeldb.SoftwareClone.objects.filter(vm__vm_id=vm_id, task__task_id=task_id).select_related("docker_software", "upload"):
+            if i.docker_software:
+                ret += [{"docker_software_id": i.docker_software.docker_software_id, "display_name": i.docker_software.display_name, "type": "docker"}]
+            elif i.upload:
+                ret += [{"id": i.upload.id, "display_name": i.upload.display_name, "type": "upload"}]
+
+        return ret
+
+    @staticmethod
+    def submissions_of_user(vm_id):
+        ret = []
+        for i in modeldb.DockerSoftware.objects.filter(vm__vm_id=vm_id, deleted=False):
+            ret += [{'title': i.task_id + '/' + i.display_name, 'task_id': i.task_id, 'type': 'docker', 'id': i.docker_software_id}]
+
+        for i in modeldb.Upload.objects.filter(vm__vm_id=vm_id, deleted=False):
+            ret += [{'title': i.task_id + '/' + i.display_name, 'task_id': i.task_id, 'type': 'upload', 'id': i.id}]
+
+        return ret
+
+    @staticmethod
+    def import_submission(task_id, vm_id, submission_type, s_id):
+        docker_software, upload = None, None
+        if submission_type == 'docker':
+            docker_software = modeldb.DockerSoftware.objects.filter(vm__vm_id=vm_id, docker_software_id=s_id, deleted=False)[0]
+        else:
+            upload = modeldb.Upload.objects.filter(vm__vm_id=vm_id, id=s_id, deleted=False)[0]
+
+        modeldb.SoftwareClone.objects.create(vm=modeldb.VirtualMachine.objects.get(vm_id=vm_id),
+                                             task=modeldb.Task.objects.get(task_id=task_id),
+                                             docker_software=docker_software, upload=upload)
+
+
     def get_count_of_missing_reviews(self, task_id):
         prepared_statement = """
         SELECT
@@ -605,6 +640,33 @@ class HybridDatabase(object):
             ret += [{'dataset_id': dataset_id, 'to_review': to_review, 'submissions': submissions}]
 
         return ret
+
+    def runs(self, task_id, dataset_id, vm_id, software_id):
+        prepared_statement = """
+                SELECT
+                    DISTINCT tira_run.run_id
+                FROM
+                    tira_run
+                LEFT JOIN
+                    tira_upload ON tira_run.upload_id = tira_upload.id
+                LEFT JOIN
+                    tira_software ON tira_run.software_id = tira_software.id
+                LEFT JOIN
+                    tira_dockersoftware ON tira_run.docker_software_id = tira_dockersoftware.docker_software_id
+                LEFT JOIN
+                    tira_review as tira_run_review ON tira_run.run_id = tira_run_review.run_id
+                WHERE
+                    tira_run_review.published = TRUE AND tira_run_review.blinded = FALSE
+                    AND tira_run.input_dataset_id = %s
+                    AND (tira_dockersoftware.task_id = %s OR tira_upload.task_id = %s OR tira_software.task_id = %s)
+                    AND (tira_dockersoftware.vm_id = %s OR tira_upload.vm_id = %s OR tira_software.vm_id = %s)
+                    AND (tira_dockersoftware.display_name = %s OR tira_upload.display_name = %s OR tira_software.id = %s)
+                    
+                ORDER BY
+                    tira_run.run_id ASC;        
+                """
+        params = [dataset_id, task_id, task_id, task_id, vm_id, vm_id, vm_id, software_id, software_id, software_id]
+        return [i[0] for i in self.execute_raw_sql_statement(prepared_statement, params)]
 
     def get_runs_for_vm(self, vm_id, docker_software_id, upload_id, include_unpublished=True, round_floats=True, show_only_unreviewed=False):
         prepared_statement = """
@@ -686,7 +748,7 @@ class HybridDatabase(object):
                                                             "run__input_dataset").filter(run__docker_software=ds).all()
 
             return list(self._get_ordered_runs_from_reviews(reviews, vm_id, preloaded=False, is_docker=True))
-    
+
         docker_softwares = self.get_docker_softwares(task_id, vm_id, return_only_names=False)
 
         docker_softwares = [{**self._docker_software_to_dict(ds), 'runs': _runs_by_docker_software(ds)}
@@ -1084,7 +1146,7 @@ class HybridDatabase(object):
 
     def add_registration(self, data):
         task = modeldb.Task.objects.select_related('organizer').get(task_id=data['task_id'])
-        
+
         if data['group'] not in task.allowed_task_teams and task.restrict_groups:
             raise ValueError(f'Team name is not allowed "{data["group"]}". Allowed: {task.allowed_task_teams}')
 
@@ -1486,7 +1548,11 @@ class HybridDatabase(object):
         run.downloadable = True
         run.taskId = task_id
         # Third add to database
-        upload = modeldb.Upload.objects.get(vm__vm_id=vm_id, task__task_id=task_id, id=upload_id)
+        try:
+            upload = modeldb.Upload.objects.get(vm__vm_id=vm_id, task__task_id=task_id, id=upload_id)
+        except:
+            upload = modeldb.Upload.objects.get(vm__vm_id=vm_id, task__task_id=task_id, id=upload_id)
+
         upload.last_edit_date = now()
         upload.save()
 
@@ -1541,7 +1607,7 @@ class HybridDatabase(object):
             'has_no_errors': review.hasNoErrors,
             'published': review.published,
             'blinded': review.blinded
-        }) 
+        })
 
         returned_run = self._run_as_dict(db_run)
         returned_run['review'] = self.get_run_review(dataset_id, vm_id, run.runId)
@@ -1592,11 +1658,11 @@ class HybridDatabase(object):
 
     def update_docker_software_metadata(self, docker_software_id, display_name, description, paper_link,
                                         ir_re_ranker, ir_re_ranking_input):
-        software = modeldb.DockerSoftware.objects.update_or_create(docker_software_id = docker_software_id, 
+        software = modeldb.DockerSoftware.objects.update_or_create(docker_software_id = docker_software_id,
             defaults={"display_name": display_name, "description": description, "paper_link": paper_link,
                       "ir_re_ranker": ir_re_ranker, "ir_re_ranking_input": ir_re_ranking_input})
 
-    
+
     def update_run(self, dataset_id, vm_id, run_id, deleted: bool = None):
         """ updates the run specified by dataset_id, vm_id, and run_id with the values given in the parameters.
             Required Parameters are also required in the function
@@ -1834,7 +1900,7 @@ class HybridDatabase(object):
         org, _ = modeldb.Organizer.objects.update_or_create(organizer_id=organizer_id, defaults={
             'name': name, 'years': years, 'web': web})
         org.git_integrations.set(git_integrations)
-        
+
         return org
 
     def _git_integration_to_dict(self, git_integration):
@@ -1854,23 +1920,23 @@ class HybridDatabase(object):
             return None
 
         defaults = {'private_token': private_token}
-        
+
         if not private_token or not private_token.strip or '<OMMITTED>'.lower() in private_token.lower():
             defaults = {}
-        
+
         if create_if_not_exists:
-            git_integration, _ = modeldb.GitIntegration.objects.get_or_create(namespace_url=namespace_url, defaults=defaults)            
+            git_integration, _ = modeldb.GitIntegration.objects.get_or_create(namespace_url=namespace_url, defaults=defaults)
         else:
             git_integration = modeldb.GitIntegration.objects.get(namespace_url=namespace_url)
-        
+
         return self._git_integration_to_dict(git_integration) if return_dict else git_integration
 
     def all_git_integrations(self, return_dict=False):
         ret = modeldb.GitIntegration.objects.all()
-        
+
         if return_dict:
             ret = [self._git_integration_to_dict(i) for i in ret]
-        
+
         return ret
 
 

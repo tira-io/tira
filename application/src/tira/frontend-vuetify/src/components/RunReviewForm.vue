@@ -2,11 +2,14 @@
   <loading :loading="loading"/>
 
   <v-row v-if="!loading">
-    <v-col cols="6">
+    <v-col :cols="$vuetify.display.mdAndUp ? '6' : '12'">
       <h2>Metadata</h2>
       <metadata-items :items="metadata_items"/>
     </v-col>
-    <v-col>
+
+    <v-divider class="py-6" v-if="!$vuetify.display.mdAndUp"/>
+
+    <v-col :cols="$vuetify.display.mdAndUp ? '6' : '12'">
       <h2>Review</h2>
       <v-form fast-fail @submit.prevent>
           <v-checkbox v-model="review.noErrors" label="No Errors"/>
@@ -48,7 +51,7 @@
   <v-tabs v-model="tab" align-tabs="title" v-if="!loading">
     <v-tab v-for="item in detailed_tabs" :key="item.key" :value="item.key" >{{ item.key }}</v-tab>
   </v-tabs>
-  <v-window v-if="!loading" v-model="tab">
+  <v-window v-if="!loading" v-model="tab" :touch="{left: () => {}, right: () => {}}">
     <v-window-item v-for="item in detailed_tabs" :key="item.key" :value="item.key">
       <v-card flat>
         <v-code tag="pre">{{item.content }}</v-code>

@@ -261,7 +261,7 @@ CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
         'LOCATION': 'tira_database_cache_table',
-        'TIMEOUT': 900, # 900 seconds (i.e., 15 minutes) as timeout, to use for the cache
+        'TIMEOUT': 43200,  # 43200 seconds (i.e.,12 hours) as timeout, to use for the cache
         'OPTIONS': {
             'MAX_ENTRIES': 100000
         }

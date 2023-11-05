@@ -21,7 +21,7 @@
       </card-title>
     
       <v-card-text>
-        <v-window v-model="step" v-if="!loading">
+        <v-window v-model="step" v-if="!loading" :touch="{left: () => {}, right: () => {}}">
           <v-window-item :value="1">
             <v-card-text>
               <h2 class="my-1">Organize your Task</h2>

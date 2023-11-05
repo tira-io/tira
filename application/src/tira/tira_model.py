@@ -153,7 +153,6 @@ def load_docker_data(task_id, vm_id, cache, force_cache_refresh):
 
     return {
         "docker_images": docker_images,
-        "docker_softwares": model.get_docker_softwares_with_runs(task_id, vm_id),
         "resources": list(settings.GIT_CI_AVAILABLE_RESOURCES.values()),
         "docker_software_help": docker_software_help,
         "docker_images_last_refresh": str(last_refresh),
@@ -282,6 +281,10 @@ def get_ova_list() -> list:
     return model.get_ova_list()
 
 
+def runs(task_id, dataset_id, vm_id, software_id):
+    return model.runs(task_id, dataset_id, vm_id, software_id)
+
+
 def get_organizer_list() -> list:
     return model.get_organizer_list()
 
@@ -391,7 +394,19 @@ def get_upload_with_runs(task_id, vm_id):
 
 
 def get_uploads(task_id, user_id):
-    return model.get_uploads(task_id, user_id, )
+    return model.get_uploads(task_id, user_id)
+
+
+def submissions_of_user(vm_id):
+    return model.submissions_of_user(vm_id)
+
+
+def cloned_submissions_of_user(vm_id, task_id):
+    return model.cloned_submissions_of_user(vm_id, task_id)
+
+
+def import_submission(task_id, vm_id, submission_type, s_id):
+    return model.import_submission(task_id, vm_id, submission_type, s_id)
 
 
 def get_upload(task_id, vm_id, upload_id):

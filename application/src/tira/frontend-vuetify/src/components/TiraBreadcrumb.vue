@@ -1,5 +1,5 @@
 <template>
-  <v-breadcrumbs :items="items">
+  <v-breadcrumbs :items="items" :class="!$vuetify.display.mdAndUp ? 'px-3' : 'px-10'">
     <template v-slot:title="{ item }">
       {{ item.title.toUpperCase() }}
     </template>
@@ -13,7 +13,6 @@ export default {
   computed: {
     items() {
       var ret = [{title: 'TIRA', disabled: false, href: '/'}, {title: 'Tasks', disabled: false, href: '/tasks'}]
-      
       let task = extractTaskFromCurrentUrl()
 
       if (task) {
