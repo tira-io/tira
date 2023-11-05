@@ -121,6 +121,12 @@ def test_loading_docs_via_rest_api_from_tira():
 
     assert docsstore.get('2005.ipm_journal-ir0anthology0volumeA41A1.7').text.startswith('A probabilistic model for stemmer generation AbstractIn this paper')
 
+def test_loading_topics_via_rest_api_from_tira():
+    from tira.third_party_integrations import ir_datasets
+    dataset = ir_datasets.topics_file('ir-lab-jena-leipzig-wise-2023/training-20231104-training')
+    
+    assert dataset.endswith('/training-20231104-training/truth-data/queries.xml')
+    
 
 def test_loading_queries_via_rest_api_from_tira():
     from tira.third_party_integrations import ir_datasets
