@@ -3,8 +3,8 @@
   <login-to-submit v-if="!loading && role === 'guest'"/>
   <v-row v-if="!loading && role !== 'guest'">
     <v-col :cols="$vuetify.display.mdAndUp ? '9' : '11'">
-      <v-autocomplete ref="softwareSearchInput" clearable auto-select-first label="Choose software or type to filter &hellip;" prepend-inner-icon="mdi-magnify" :items="this.filteredSoftwares" item-title="display_name"
-                    variant="underlined" v-model="software_filter" @click="this.$refs.softwareSearchInput.reset()"/>
+      <v-autocomplete clearable auto-select-first label="Choose software &hellip;" prepend-inner-icon="mdi-magnify" :items="allSoftwareSubmissions" item-title="display_name" item-value="docker_software_id"
+                    variant="underlined" v-model="tab"/>
       </v-col>
       <v-col :cols="$vuetify.display.mdAndUp ? '3' : '1'">
         <v-btn color="primary" v-if="!$vuetify.display.mdAndUp" icon="mdi-plus" @click="this.tab = 'newDockerImage'"/>
@@ -14,7 +14,7 @@
   <v-row v-if="!loading && role !== 'guest'">
     <v-col cols="10">
       <v-tabs v-model="tab" fixed-tabs class="mb-10 d-none">
-        <v-tab variant="outlined" v-for="ds in this.filteredSoftwares" :value="ds.docker_software_id">
+        <v-tab variant="outlined" v-for="ds in this.docker.docker_softwares" :value="ds.docker_software_id">
           {{ ds.display_name }}
         </v-tab>
       </v-tabs>
@@ -62,7 +62,6 @@ export default {
   data() {
     return {
       tab: null,
-      software_filter: null,
       role: extractRole(),
       task_id: extractTaskFromCurrentUrl(),
       user_id_for_submission: extractUserFromCurrentUrl(),
@@ -82,12 +81,15 @@ export default {
     }
   },
   computed: {
-    filteredSoftwares() {
-      if(this.software_filter === null) {
-        this.software_filter = "";
+    allSoftwareSubmissions() {
+      let ret = []
+
+      if (this.tab === 'newDockerImage') {
+        ret = ret.concat([{'docker_software_id': 'newDockerImage', 'display_name': ' '}])
       }
-      return filterByDisplayName(this.docker.docker_softwares, this.software_filter.toString())
-    },
+
+      return ret.concat(this.docker.docker_softwares)
+    }
   },
   methods: {
     updateUrlToCurrentStep() {
