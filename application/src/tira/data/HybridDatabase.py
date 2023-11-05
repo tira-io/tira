@@ -1548,7 +1548,11 @@ class HybridDatabase(object):
         run.downloadable = True
         run.taskId = task_id
         # Third add to database
-        upload = modeldb.Upload.objects.get(vm__vm_id=vm_id, task__task_id=task_id, id=upload_id)
+        try:
+            upload = modeldb.Upload.objects.get(vm__vm_id=vm_id, task__task_id=task_id, id=upload_id)
+        except:
+            upload = modeldb.Upload.objects.get(vm__vm_id=vm_id, task__task_id=task_id, id=upload_id)
+
         upload.last_edit_date = now()
         upload.save()
 
