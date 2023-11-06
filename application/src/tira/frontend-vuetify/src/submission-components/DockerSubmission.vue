@@ -2,14 +2,19 @@
   <loading :loading="loading"/>
   <login-to-submit v-if="!loading && role === 'guest'"/>
   <v-row v-if="!loading && role !== 'guest'">
-    <v-col :cols="$vuetify.display.mdAndUp ? '9' : '11'">
+    <v-col :cols="$vuetify.display.mdAndUp ? '9' : '12'">
       <v-autocomplete clearable auto-select-first label="Choose software &hellip;" prepend-inner-icon="mdi-magnify" :items="allSoftwareSubmissions" item-title="display_name" item-value="docker_software_id"
                     variant="underlined" v-model="tab"/>
       </v-col>
-      <v-col :cols="$vuetify.display.mdAndUp ? '3' : '1'">
+      <v-col v-if="!$vuetify.display.smAndDown" :cols="$vuetify.display.mdAndUp ? '3' : '0'">
         <v-btn color="primary" v-if="!$vuetify.display.mdAndUp" icon="mdi-plus" @click="this.tab = 'newDockerImage'"/>
         <v-btn color="primary" v-if="$vuetify.display.mdAndUp" prepend-icon="mdi-plus" size="large" @click="this.tab = 'newDockerImage'" block>New Submission</v-btn>
       </v-col>
+  </v-row>
+  <v-row v-if="$vuetify.display.smAndDown">
+    <v-col :cols="12">
+        <v-btn color="primary" prepend-icon="mdi-plus" size="large" @click="this.tab = 'newDockerImage'" block rounded>New Submission</v-btn>
+    </v-col>
   </v-row>
   <v-row v-if="!loading && role !== 'guest'">
     <v-col cols="10">

@@ -2,9 +2,7 @@
   <loading :loading="loading"/>
   <v-container v-if="!loading">
     <v-card class="px-5">
-      <div class="w-100 d-flex justify-space-between">
-        <v-card-title></v-card-title>
-        <div class="mt-4">
+      <div :class="$vuetify.display.mdAndUp ? 'w-100 d-flex justify-end mt-4' : 'w-100 d-flex justify-space-evenly mt-4'">
           <edit-submission-details
               type='docker'
               :id="docker_software_id"
@@ -21,14 +19,13 @@
             <v-icon>mdi-delete-alert-outline</v-icon>
             Delete
           </v-btn>
-        </div>
       </div>
 
-      <v-card-subtitle>{{ docker_software_details.description }}</v-card-subtitle>
-      <v-form>
-        <v-text-field label="Previous Stages (Disabled for Reproducibility)" v-if="docker_software_details.previous_stages" v-model="docker_software_details.previous_stages" disabled/>
-        <v-text-field label="Docker Image (Disabled for Reproducibility)" v-model="docker_software_details.user_image_name" disabled/>
-        <v-text-field label="Command (Disabled for Reproducibility)" v-model="docker_software_details.command" disabled/>
+      <v-card-subtitle class="my-4">{{ docker_software_details.description }}</v-card-subtitle>
+      <v-form id="docker-submission-readonly-input">
+        <v-text-field label="Previous Stages (Immutable for Reproducibility)" v-if="docker_software_details.previous_stages" v-model="docker_software_details.previous_stages" readonly/>
+        <v-text-field label="Docker Image (Immutable for Reproducibility)" v-model="docker_software_details.user_image_name" readonly/>
+        <v-text-field label="Command (Immutable for Reproducibility)" v-model="docker_software_details.command" readonly/>
       </v-form>
 
       <v-divider></v-divider>
