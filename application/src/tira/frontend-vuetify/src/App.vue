@@ -8,6 +8,9 @@
 </template>
 
 <style>
+  #app main{
+    overflow-y: hidden;
+  }
   #app input {
     margin: 0px !important;
     padding: 0px !important;
