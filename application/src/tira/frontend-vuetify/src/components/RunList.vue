@@ -1,10 +1,13 @@
 <template>
+  <submission-filter :datasets="datasets" :selected_dataset="dataset_id"
+                     :ev_keys="ev_keys" :runs="runs" :type="type" @pass_dataset="receiveFilteredDataset"
+                     @pass_keys="receiveFilteredKeys" @pass_runs="receiveFilteredRuns"></submission-filter>
+
+  <div v-if="dataset_id">
   <loading :loading="loading"/>
   <div v-if="!loading">
-    <submission-filter :datasets="datasets" :selected_dataset="dataset_id"
-                            :ev_keys="ev_keys" :runs="runs" :type="type" @pass_dataset="receiveFilteredDataset"
-                            @pass_keys="receiveFilteredKeys" @pass_runs="receiveFilteredRuns"></submission-filter>
-    <v-data-table v-if="showTable" v-model="selected_runs" v-model:expanded="expanded" show-expand :headers="table_headers"
+
+    <v-data-table  v-if="showTable" v-model="selected_runs" v-model:expanded="expanded" show-expand :headers="table_headers"
                   :items="filtered_runs.length != 0 ? filtered_runs : runs"
                   item-value="Run" v-model:sort-by="table_sort_by" density="compact"
                   show-select class="elevation-1 d-none d-md-block" hover>
@@ -66,6 +69,7 @@
         <v-col cols="12"><v-btn variant="outlined" block :disabled="compareExpandedLink === ''" :href="compareExpandedLink" target="_blank">Compare Expanded</v-btn></v-col>
       </v-row>
     </div>
+    </div>
   </div>
 </template>
 
@@ -91,6 +95,7 @@ export default {
       table_sort_by: [],
       ev_keys: [],
       filtered_runs: [],
+      filtered_datasets: [],
       role: extractRole(), // Values: guest, user, participant, admin
     }
   },
@@ -116,15 +121,10 @@ export default {
         return '';
       }
     },
-    receiveFilteredDataset(filtered_dataset: any){
-      if (this.type == 'task'){
-        let to_emit = filtered_dataset
-        this.$emit('pass', to_emit)
-      }
+    receiveFilteredDataset(filtered_datasets: any){
+      let to_emit = filtered_datasets.join(',')
+      this.$emit('pass', to_emit)
 
-      if (this.type === 'submit'){
-        this.filtered_runs = this.runs.filter(run => run['dataset_id'] === filtered_dataset) as never
-        }
       },
     receiveFilteredKeys(filtered_ev_keys: never[]) {
       let header_keys = this.table_headers.filter(header => header['title'] === header['key']).map(measurement => measurement['title'])
@@ -143,28 +143,30 @@ export default {
       this.filtered_runs  = receivedRuns
     },
     fetchData() {
-      this.loading = true
-      var rest_endpoint = ''
-      if (this.task_id && this.dataset_id) {
-        rest_endpoint = '/api/evaluations/' + this.task_id + '/' + this.dataset_id
-        
-        if (this.show_only_unreviewed) {
-          rest_endpoint += '?show_only_unreviewed=true'
-        }
-      } else if (this.task_id && this.vm_id) {
-        rest_endpoint = '/api/evaluations-of-vm/' + this.task_id + '/' + this.vm_id 
-        
-        if (this.docker_software_id) {
-          rest_endpoint += '?docker_software_id=' + this.docker_software_id
-        } else if (this.upload_id) {
-          rest_endpoint += '?upload_id=' + this.upload_id
-        }
-      }
+      if (this.dataset_id === ''){ /* dont fetch */ }
+      else {
+        this.loading = true
+        var rest_endpoint = ''
+        if (this.task_id && this.dataset_id) {
+          rest_endpoint = '/api/evaluations/' + this.task_id + '/' + this.dataset_id
 
-      get(rest_endpoint)
-        .then(inject_response(this, {'loading': false}))
-        .catch(reportError("Problem While Loading the List of Runs", "This might be a short-term hiccup, please try again. We got the following error: "))
-    },
+          if (this.show_only_unreviewed) {
+            rest_endpoint += '?show_only_unreviewed=true'
+          }
+        } else if (this.task_id && this.vm_id) {
+          rest_endpoint = '/api/evaluations-of-vm/' + this.task_id + '/' + this.vm_id
+
+          if (this.docker_software_id) {
+            rest_endpoint += '?docker_software_id=' + this.docker_software_id
+          } else if (this.upload_id) {
+            rest_endpoint += '?upload_id=' + this.upload_id
+          }
+        }
+        get(rest_endpoint)
+            .then(inject_response(this, {'loading': false}))
+            .catch(reportError("Problem While Loading the List of Runs", "This might be a short-term hiccup, please try again. We got the following error: "))
+      }
+      },
     reviewChanged(review: any) {
       for (let run of this.runs) {
         if (run['run_id'] === review['run_id']) {
@@ -187,4 +189,5 @@ export default {
     task_id(old_id, new_id) {this.fetchData()},
   }
 }
+// filtered_datasets.length != 0 ? filtered_datasets :
 </script>

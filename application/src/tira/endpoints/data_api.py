@@ -89,10 +89,18 @@ def get_configuration_of_evaluation(request, context, task_id, dataset_id):
 
     return JsonResponse({'status': 0, "context": context})
 
-
 @add_context
-@check_resources_exist('json')
 def get_evaluations_by_dataset(request, context, task_id, dataset_id):
+    runs = []
+    for dataset in dataset_id.split(','):
+        get_evaluations_by_dataset_2(request, context, task_id, dataset)
+        runs += context['runs']
+
+    context['runs'] = runs
+
+    return JsonResponse({'status': 0, "context": context})
+
+def get_evaluations_by_dataset_2(request, context, task_id, dataset_id):
     """ Return all evaluation results for all submission to a dataset
     The frontend calls this to build the leaderboard
     in the task page when a task is selected from the dropdown
@@ -135,7 +143,7 @@ def get_evaluations_by_dataset(request, context, task_id, dataset_id):
 
     context["runs"] = runs
 
-    return JsonResponse({'status': 0, "context": context})
+    return context
 
 
 @add_context

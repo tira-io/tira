@@ -72,11 +72,10 @@
           </v-card-actions>
         </v-card>
         </v-container>
-
         <tira-task-admin v-if="!loading" :datasets="datasets" :task="task" @addDataset="(x:any) => addDataset(x)" @deleteDataset="(dataset_id: string) => deleteDataset(dataset_id)"/>
           <v-container v-if="!loading" id="dataset-select">
             <h2>Submissions</h2>
-            <run-list v-if="selectedDataset" :task_id="task_id" :organizer="task.organizer"
+            <run-list :task_id="task_id" :organizer="task.organizer"
                       :organizer_id="task.organizer_id" :dataset_id="selectedDataset"
                       :datasets="datasets" :type="'task'" @pass="receiveFilteredDataset"/>
           </v-container>
@@ -149,7 +148,7 @@
       this.updateDataset()
     },
     receiveFilteredDataset(receivedDataset: any){
-      this.selectedDataset = receivedDataset
+        this.selectedDataset = receivedDataset
     },
   },
   beforeMount() {
