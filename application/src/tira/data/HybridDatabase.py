@@ -655,17 +655,21 @@ class HybridDatabase(object):
                     tira_dockersoftware ON tira_run.docker_software_id = tira_dockersoftware.docker_software_id
                 LEFT JOIN
                     tira_review as tira_run_review ON tira_run.run_id = tira_run_review.run_id
+                LEFT JOIN
+                    tira_softwareclone AS software_clone ON tira_dockersoftware.docker_software_id = software_clone.docker_software_id
+                LEFT JOIN
+                    tira_softwareclone AS upload_clone ON tira_run.upload_id = software_clone.upload_id
                 WHERE
                     tira_run_review.published = TRUE AND tira_run_review.blinded = FALSE
                     AND tira_run.input_dataset_id = %s
-                    AND (tira_dockersoftware.task_id = %s OR tira_upload.task_id = %s OR tira_software.task_id = %s)
+                    AND (tira_dockersoftware.task_id = %s OR tira_upload.task_id = %s OR tira_software.task_id = %s  or software_clone.task_id = %s or upload_clone.task_id = %s)
                     AND (tira_dockersoftware.vm_id = %s OR tira_upload.vm_id = %s OR tira_software.vm_id = %s)
                     AND (tira_dockersoftware.display_name = %s OR tira_upload.display_name = %s OR tira_software.id = %s)
                     
                 ORDER BY
                     tira_run.run_id ASC;        
                 """
-        params = [dataset_id, task_id, task_id, task_id, vm_id, vm_id, vm_id, software_id, software_id, software_id]
+        params = [dataset_id, task_id, task_id, task_id, task_id, task_id, vm_id, vm_id, vm_id, software_id, software_id, software_id]
         return [i[0] for i in self.execute_raw_sql_statement(prepared_statement, params)]
 
     def get_runs_for_vm(self, vm_id, docker_software_id, upload_id, include_unpublished=True, round_floats=True, show_only_unreviewed=False):

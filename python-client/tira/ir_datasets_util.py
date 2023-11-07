@@ -1,6 +1,7 @@
 from copy import deepcopy
 from typing import NamedTuple
 from tira.io_utils import all_lines_to_pandas
+from tira.tirex import IRDS_TO_TIREX_DATASET, TIREX_DATASETS
 import os
 
 
@@ -23,6 +24,16 @@ def register_dataset_from_re_rank_file(ir_dataset_id, df_re_rank, original_ir_da
     ir_datasets.registry.register(ir_dataset_id, dataset)
     
     __check_registration_was_successful(ir_dataset_id, original_ir_datasets_id is None)
+
+
+def translate_irds_id_to_tirex(dataset):
+    if type(dataset) != str:
+        if hasattr(dataset, 'irds_ref'):
+            return translate_irds_id_to_tirex(dataset.irds_ref().dataset_id())
+        else:
+            raise ValueError(f'I can not handle {dataset}.')
+    
+    return IRDS_TO_TIREX_DATASET[dataset] if dataset in IRDS_TO_TIREX_DATASET else dataset
 
 
 def __docs(df, original_dataset):
