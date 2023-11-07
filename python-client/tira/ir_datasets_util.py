@@ -209,6 +209,7 @@ def __scored_docs(df, original_dataset):
 
 def static_ir_dataset(directory, existing_ir_dataset=None):
     from ir_datasets.datasets.base import Dataset
+    import pandas as pd
     if existing_ir_dataset is None:
         queries_file = directory + '/queries.jsonl'
         docs_file = directory
@@ -217,7 +218,7 @@ def static_ir_dataset(directory, existing_ir_dataset=None):
         else:
             docs_file = docs_file + '/documents.jsonl'
 
-        docs = __docs(all_lines_to_pandas(docs_file, False), None)
+        docs = __docs(all_lines_to_pandas(docs_file, False) if os.path.isfile(docs_file) else pd.DataFrame([]), None)
         queries = __queries(all_lines_to_pandas(queries_file, False), None)
         return static_ir_dataset(directory, Dataset(docs, queries))
 

@@ -54,6 +54,16 @@ def test_loading_queries_from_ir_datasets_from_custom_directory():
     assert len(list(dataset.queries_iter())) == 2
     assert queries['1'] == 'fox jumps above animal'
 
+def test_loading_queries_from_ir_datasets_from_custom_directory_2():
+    os.environ['TIRA_INPUT_DATASET'] = 'tests/resources/sample-input-full-rank-without-documents'
+    ir_datasets = load_ir_datasets()
+    del os.environ['TIRA_INPUT_DATASET']
+    dataset = ir_datasets.load('does-not-exist-and-is-not-used')
+    queries = {i.query_id: i.text for i in dataset.queries_iter()}
+
+    assert len(list(dataset.queries_iter())) == 2
+    assert queries['1'] == 'fox jumps above animal'
+
 def test_loading_documents_from_ir_datasets_from_custom_directory():
     os.environ['TIRA_INPUT_DATASET'] = 'tests/resources/sample-input-full-rank'
     ir_datasets = load_ir_datasets()
