@@ -207,6 +207,7 @@ export default {
       step: this.step_prop,
       all_uploadgroups: [{"id": null, "display_name": 'loading...'}],
       docker_images: [{ "image": "loading...", "architecture": "loading...", "created": "loading...", "size": "loading...", "digest": "loading...", 'title': 'loading...'}],
+      public_docker_softwares: [{"docker_software_id": 'loading...', "display_name": 'loading...', 'vm_id': 'loading...'}],
       user_id_for_task: extractUserFromCurrentUrl(),
     }
   },
@@ -222,7 +223,9 @@ export default {
       }
     },
     all_previous_stages() {
-      return this.docker_softwares.concat(this.all_uploadgroups.map((i) => ({"display_name": i.display_name, "docker_software_id": ('upload-' + i.id)})))
+      return this.docker_softwares
+        .concat(this.all_uploadgroups.map((i) => ({"display_name": i.display_name, "docker_software_id": ('upload-' + i.id)})))
+        .concat(this.public_docker_softwares.filter((i) => i.vm_id !== this.user_id_for_task).map((i) => ({"display_name": i.vm_id + '/' + i.display_name, "docker_software_id": i.docker_software_id})))
     },
     double_check_tira_run_command() {
       return this.tira_final_run_example.replace('YOUR-IMAGE', this.selectedDockerImage).replace('YOUR-COMMAND', this.runCommand)
@@ -282,8 +285,6 @@ export default {
           .then(this.refreshTitles)
           .catch(reportError("Problem While Loading the Docker Images.", "This might be a short-term hiccup, please try again. We got the following error: "))
       })
-    
-
   },
   watch: {
     step(old_value, new_value) {

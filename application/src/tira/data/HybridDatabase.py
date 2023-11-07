@@ -765,6 +765,19 @@ class HybridDatabase(object):
         else:
             return ret
 
+    @staticmethod
+    def get_public_docker_softwares(task_id, return_only_names=True):
+        ret = modeldb.DockerSoftware.objects.filter(task__task_id=task_id, deleted=False,
+                                                    public_image_name__isnull=False)
+
+        ret = [i for i in ret if i.public_image_name and i.public_image_size]
+
+        if return_only_names:
+            return [{'docker_software_id': i.docker_software_id, 'display_name': i.display_name, 'vm_id': i.vm_id}
+                    for i in ret]
+        else:
+            return ret
+
     def delete_docker_software(self, task_id, vm_id, docker_software_id):
         software_qs = modeldb.DockerSoftware.objects.filter(vm_id=vm_id, task_id=task_id,
                                                             docker_software_id=docker_software_id)
