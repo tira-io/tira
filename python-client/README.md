@@ -34,6 +34,17 @@ for dataset in TIREX_DATASETS:
     output = tira.get_run_output('ir-benchmarks/tira-ir-starter/BM25 Re-Rank (tira-ir-starter-pyterrier)', dataset)
 ```
 
+## Overview of public submissions
+
+As an example, you can see all public software submissions submitted to [TIREx](https://www.tira.io/tirex) via:
+
+```
+from tira.rest_api_client import Client
+
+tira = Client()
+submissions = tira.all_softwares("ir-benchmarks")
+```
+
 ## Export datasets
 
 You can export datasets if you are the owner or if the dataset is public.
