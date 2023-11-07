@@ -126,7 +126,15 @@ def test_loading_topics_via_rest_api_from_tira():
     dataset = ir_datasets.topics_file('ir-lab-jena-leipzig-wise-2023/training-20231104-training')
     
     assert dataset.endswith('/training-20231104-training/truth-data/queries.xml')
-    
+
+def test_loading_topics_via_rest_api_from_rerank_dataset_from_tira():
+    os.environ['TIRA_INPUT_DATASET'] = 'tests/resources/re-ranking-outputs'
+    ir_datasets = load_ir_datasets()
+    dataset = ir_datasets.load('workshop-on-open-web-search/re-ranking-20231027-training')
+    del os.environ['TIRA_INPUT_DATASET']
+
+    assert len([i for i in dataset.queries_iter()]) == 2
+    assert len([i for i in dataset.docs_iter()]) == 3
 
 def test_loading_queries_via_rest_api_from_tira():
     from tira.third_party_integrations import ir_datasets

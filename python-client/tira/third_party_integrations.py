@@ -134,8 +134,16 @@ def normalize_run(run, system_name, depth=1000):
 def load_ir_datasets():
     # Detect if we are in the TIRA sandbox
     if 'TIRA_INPUT_DATASET' in os.environ:
-        from tira.ir_datasets_util import static_ir_datasets_from_directory
-        return static_ir_datasets_from_directory(os.environ['TIRA_INPUT_DATASET'])
+        
+        from tira.ir_datasets_util import static_ir_dataset
+
+        if os.path.isfile(os.path.join(os.environ['TIRA_INPUT_DATASET'], 'rerank.jsonl.gz')) or os.path.isfile(os.path.join(os.environ['TIRA_INPUT_DATASET'], 'rerank.jsonl')):
+            import ir_datasets as original_ir_datasets
+            register_rerank_data_to_ir_datasets(os.environ['TIRA_INPUT_DATASET'], 'dynamic-ds-in-tira')
+
+            return static_ir_dataset(os.environ['TIRA_INPUT_DATASET'], original_ir_datasets.load('dynamic-ds-in-tira'))
+
+        return static_ir_dataset(os.environ['TIRA_INPUT_DATASET'])
     else:
         try:
             from tira.ir_datasets_util import ir_dataset_from_tira_fallback_to_original_ir_datasets
