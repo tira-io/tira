@@ -250,7 +250,7 @@ def get_ordered_input_runs_of_software(docker_software, task_id, dataset_id, vm_
         if not input_run or not input_run.get('dataset_id', None) or not input_run.get('run_id', None):
             missing_input_runs += [__formatted_error_message_for_missing_input_run(docker_software, input_run)]
         else:
-            input_run['vm_id'] = vm_id
+            input_run['vm_id'] = model.get_run(run_id=input_run['run_id'], vm_id=None, dataset_id=None)['vm']
             input_runs += [input_run]
 
     for (dsid, uid) in model.get_ordered_additional_input_runs_of_software(docker_software):
@@ -259,7 +259,7 @@ def get_ordered_input_runs_of_software(docker_software, task_id, dataset_id, vm_
         if not input_run or not input_run.get('dataset_id', None) or not input_run.get('run_id', None):
             missing_input_runs += [__formatted_error_message_for_missing_input_run(docker_software, input_run)]
         else:
-            input_run['vm_id'] = vm_id
+            input_run['vm_id'] = model.get_run(run_id=input_run['run_id'], vm_id=None, dataset_id=None)['vm']
             input_runs += [input_run]
 
     if not input_runs or len(input_runs) < 1:

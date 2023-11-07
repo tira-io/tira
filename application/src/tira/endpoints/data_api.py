@@ -363,6 +363,12 @@ def get_running_software(request, context, task_id, user_id, force_cache_refresh
     return JsonResponse({'status': 0, "context": context})
 
 
+@add_context
+def public_submissions(request, context, task_id):
+    context['public_submissions'] = model.model.get_public_docker_softwares(task_id)
+
+    return JsonResponse({'status': 0, "context": context})
+
 @check_permissions
 @check_resources_exist("json")
 @add_context
