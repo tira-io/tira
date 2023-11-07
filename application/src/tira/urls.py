@@ -109,6 +109,7 @@ urlpatterns = [
     path('api/count-of-missing-reviews/<str:task_id>', organizer_api.get_count_of_missing_reviews, name='get_count_of_missing_reviews'),
     path('api/task/<str:task_id>/user/<str:user_id>/software/running/<str:force_cache_refresh>', data_api.get_running_software, name='get_running_software'),
     path('api/task/<str:task_id>/public-submissions', data_api.public_submissions, name='public_submissions'),
+    path('api/task/<str:task_id>/submission-details/<str:user_id>/<str:display_name>', data_api.public_submission, name='public_submission'),
     path('api/review/<str:dataset_id>/<str:vm_id>/<str:run_id>', data_api.get_review, name='get_review'),
     path('api/registration/add_registration/<str:vm_id>/<str:task_id>', data_api.add_registration, name='add_registration'),
     path('api/submissions-for-task/<str:task_id>/<str:user_id>/<str:submission_type>', data_api.submissions_for_task, name="submissions_for_task"),
