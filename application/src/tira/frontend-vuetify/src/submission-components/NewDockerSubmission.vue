@@ -75,8 +75,9 @@ cat tira-evaluation/evaluation.prototext" expand_message="(3) Verify the evaluat
             <h3 class="text-h6 font-weight-light my-6">
               Please specify your docker software
             </h3>
-              <p class="mb-4">A software submission consists of a docker image and the command that is executed in the docker image. Please specify both below.</p>
+              <p>A software submission consists of a docker image and the command that is executed in the docker image. Please specify both below.</p>
 
+              <p class="my-4 d-flex align-start"> Choose either an existing docker image... </p>
             <v-autocomplete
                 label="Docker Image"
                 :items="docker_images"
@@ -87,6 +88,15 @@ cat tira-evaluation/evaluation.prototext" expand_message="(3) Verify the evaluat
                 :disabled="loading"
                 clearable
                 :rules="[v => !!(v && v.length) || 'Please select the docker image for the execution.']"/>
+              <v-btn
+                      class="mr-4"
+                      color="primary"
+                      :loading="refreshingInProgress"
+                      @click="refreshImages()"
+                    >
+                      refresh images
+              </v-btn>
+              <span><br v-if="$vuetify.display.mdAndDown">last refreshed: {{docker_images_last_refresh}}</span>
             </div>
                <div class="text-center mb-4">
                 <v-dialog
@@ -96,21 +106,15 @@ cat tira-evaluation/evaluation.prototext" expand_message="(3) Verify the evaluat
                   <template v-slot:activator="{ props }" class="d-flex flex-column align-center" >
                     <div>
                     <v-btn
-                      class="mr-2"
+                      class="d-flex mr-2 mb-4 mt-6 align-start"
                       color="primary"
+                      variant="plain"
                       v-bind="props"
                     >
-                      Push New Docker Image
-                    </v-btn>
-                     <v-btn
-                      color="primary"
-                      :loading="refreshingInProgress"
-                      @click="refreshImages()"
-                    >
-                      refresh images
+                      <span v-if="!$vuetify.display.mdAndDown">...or see instructions on how to add a new docker image to tira</span>
+                      <span v-if="$vuetify.display.mdAndDown">...or add new image</span>
                     </v-btn>
                    </div>
-                    <span>last refreshed: {{docker_images_last_refresh}}</span>
                   </template>
 
                   <v-card>
