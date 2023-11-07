@@ -123,6 +123,14 @@
         - display_name: Tutorial
           href: https://github.com/OpenWebSearch/wows-code/blob/main/ecir24/post-hoc-notebooks/keyphrase-extraction.ipynb
           target: _blank
+    - display_name: Health Classification
+      links:
+        - display_name: Tutorial
+          href: https://github.com/webis-de/ir-pad/tree/public/tutorials#research-tutorial-classification-of-medicalhealth-queries-and-documents
+          target: _blank
+        - display_name: Paper
+          href: https://webis.de/publications.html?q=health#schlatt_2022a
+          target: _blank
 
     - display_name: Stemming
       links:
@@ -173,8 +181,40 @@
           target: _blank
       components:
         - display_name: hyp-a
+          links: 
+            - display_name: Tutorial
+              href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-segmentation-in-progress-by-maik
+              target: _blank
+
         - display_name: hyp-b
-        - display_name: hyp-c
+          links: 
+            - display_name: Tutorial
+              href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-segmentation-in-progress-by-maik
+              target: _blank
+
+        - display_name: hyp-i
+          links: 
+            - display_name: Tutorial
+              href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-segmentation-in-progress-by-maik
+              target: _blank
+
+        - display_name: wt-snp
+          links: 
+            - display_name: Tutorial
+              href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-segmentation-in-progress-by-maik
+              target: _blank
+
+        - display_name: wiki
+          links: 
+            - display_name: Tutorial
+              href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-segmentation-in-progress-by-maik
+              target: _blank
+
+        - display_name: naive
+          links: 
+            - display_name: Tutorial
+              href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-segmentation-in-progress-by-maik
+              target: _blank
 
     - display_name: QPP
       links:
@@ -188,6 +228,14 @@
         - display_name: qpp-4
         - display_name: qpp-5
 
+    - display_name: Health Classification
+      links:
+        - display_name: Tutorial
+          href: https://github.com/webis-de/ir-pad/tree/public/tutorials#research-tutorial-classification-of-medicalhealth-queries-and-documents
+          target: _blank
+        - display_name: Paper
+          href: https://webis.de/publications.html?q=health#schlatt_2022a
+          target: _blank
 
 - display_name: Retrieval
   components:
