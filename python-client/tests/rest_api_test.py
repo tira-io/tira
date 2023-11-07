@@ -14,3 +14,9 @@ def test_details_of_public_software_01():
     assert actual is not None
     assert actual['ir_re_ranker'] == False
 
+def test_output_of_run():
+    actual = tira.get_run_output('ir-benchmarks/tira-ir-starter/BM25 Re-Rank (tira-ir-starter-pyterrier)', 'antique-test-20230107-training')
+    actual = open(actual + '/run.txt', 'r').read()
+    
+    assert actual.startswith('8293 Q0 8293_1 1 33.568841093129976 pyterrier.default_pipelines.wmodel_text_scorer')
+
