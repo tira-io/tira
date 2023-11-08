@@ -40,7 +40,7 @@
     </v-row>
 
 
-    <div class="d-none d-md-block">
+    <div>
       <v-row class="justify-center mx-2" v-for="(row, _) of vectorizedComponents">
         <v-col v-for="(cell, i) in row" cols="cell.cols">
           <v-menu>
@@ -65,21 +65,12 @@
         </v-col>
       </v-row>
     </div>
-    <div class="d-md-none">
-      <v-row class="justify-center mx-2" v-for="display_name in colors">
-        <v-col cols="12">
-          <v-card class="mx-auto" :max-width="max_width" variant="tonal" style="cursor: pointer;">
-            <v-card-item><span class="text-h6 mb-1">{{ display_name }}</span><span style="font-size: .7em;" >TODO...</span></v-card-item>
-          </v-card>
-        </v-col>
-      </v-row>
-    </div>
   </div>
 </template>
 
 
 <script lang="ts">
-import { Loading } from './components'
+import { Loading, is_mobile } from './components'
 import { get, reportError, inject_response } from './utils';
 export default {
   name: "ir-components",
@@ -108,6 +99,7 @@ export default {
     colorOfComponent(c:string) {
       return this.colors[c] ?? "grey"
     },
+    is_mobile() {return is_mobile()},
     collapseItem(c:string) {
       this.expanded_entries = this.expanded_entries.filter(e => e != c)
     },
@@ -168,13 +160,12 @@ export default {
   computed: {
     vectorizedComponents() {
       let ret: [any[]] = [[{}, {}, {}, {}, {}, {}]]
-      let cols = 2;//this.mobileLayout() ? 12 : 2;
+      let cols = is_mobile() ? 12 : 2;
 
       for (let i in this.tirex_components) {
         let c = this.tirex_components[i]
 
-        ret[0][i] = {'display_name': c.display_name, 'cols': cols, 'links': c.links, 'collapsed': this.is_collapsed(c), 
-            'subItems':this.countSubItems(c)}
+        ret[0][i] = {'display_name': c.display_name, 'cols': cols, 'links': c.links, 'collapsed': this.is_collapsed(c), 'subItems':this.countSubItems(c)}
 
         for (let subcomponent of this.filtered_sub_components(c)) {
           if (subcomponent['pos'] >= ret.length) {
@@ -190,7 +181,22 @@ export default {
           }
         }
       }
-      
+
+      if (is_mobile()) {
+        let new_ret = []
+        for(let i=0; i< 100; i++) {
+          for (let j=0; j< ret.length && i < ret[j].length ; j++) {
+            const cell = ret[j][i]
+            if(cell && cell.hasOwnProperty('display_name')) {
+              console.log(cell['display_name'])
+              new_ret.push([cell])
+            }
+          }
+        }
+
+        return new_ret
+      }
+
       return ret
     },
   }

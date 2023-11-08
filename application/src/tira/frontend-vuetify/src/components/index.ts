@@ -15,4 +15,11 @@ import SubissionIcon from "./SubmissionIcon.vue"
 import ConfirmDelete from "./ConfirmDelete.vue"
 import CodeSnippet from "./CodeSnippet.vue"
 
-export {Loading, RunActions, RunList, SoftwareDetails, SubmitButton, TiraBreadcrumb, TiraTaskAdmin, TaskDocumentation, RegisterForm, LoginToSubmit, ExistingDockerSubmission, NewDockerSubmission, EditTask, SubissionIcon, ConfirmDelete, CodeSnippet}
+import { useDisplay } from 'vuetify'
+
+function is_mobile() {   
+    const { mobile } = useDisplay()
+    return mobile.value
+}
+
+export {Loading, RunActions, RunList, SoftwareDetails, SubmitButton, TiraBreadcrumb, TiraTaskAdmin, TaskDocumentation, RegisterForm, LoginToSubmit, ExistingDockerSubmission, NewDockerSubmission, EditTask, SubissionIcon, ConfirmDelete, CodeSnippet, is_mobile}
