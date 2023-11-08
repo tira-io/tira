@@ -87,7 +87,7 @@ export default {
         'Query Processing': 'yellow-darken-4', 'Retrieval': 'cyan-lighten-1',
         'Re-Ranking': 'cyan-darken-3', 'Evaluation': 'blue-grey-lighten-1'
       } as {[key: string]: string},
-      expanded_entries: ['Dataset', 'Document Processing', 'Query Processing', 'Retrieval', 'Re-Ranking', 'Evaluation'],
+      expanded_entries: ['does-not-exist'],
       component_filter: null,
       component_types: ['TIREx Submission', 'Tutorial'],
       available_component_types: ['Code', 'TIREx Submission', 'Tutorial'],
@@ -118,7 +118,7 @@ export default {
       return ret
     },
     is_collapsed(component:any) {
-      return !this.expanded_entries.includes(component.display_name)
+      return !this.computed_expanded_entries.includes(component.display_name)
     },
     filtered_sub_components(component:any) : {display_name: string, subItems: number, pos: number, links: any[]}[] {
       let ret: {display_name: string, subItems: number, pos: number, links: any[]}[] = []
@@ -158,6 +158,15 @@ export default {
       .catch(reportError("Problem While Loading the overview of the components.", "This might be a short-term hiccup, please try again. We got the following error: "))
   },
   computed: {
+    computed_expanded_entries() {
+      let ret = [...this.expanded_entries];
+      if(!is_mobile()) {
+        ret = ret.concat(['Dataset', 'Document Processing', 'Query Processing', 'Retrieval',
+        'Re-Ranking', 'Evaluation'])
+      }
+
+      return ret
+    },
     vectorizedComponents() {
       let ret: [any[]] = [[{}, {}, {}, {}, {}, {}]]
       let cols = is_mobile() ? 12 : 2;
@@ -188,7 +197,6 @@ export default {
           for (let j=0; j< ret.length && i < ret[j].length ; j++) {
             const cell = ret[j][i]
             if(cell && cell.hasOwnProperty('display_name')) {
-              console.log(cell['display_name'])
               new_ret.push([cell])
             }
           }
