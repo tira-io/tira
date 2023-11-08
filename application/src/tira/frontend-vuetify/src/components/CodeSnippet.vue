@@ -27,7 +27,6 @@
       copyToClipboard () {
         //https://stackoverflow.com/questions/58733960/copy-url-to-clipboard-via-button-click-in-a-vuejs-component
         navigator.clipboard.writeText(this.code);
-        console.log(this.code)
       }
     }
   }

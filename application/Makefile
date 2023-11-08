@@ -87,8 +87,12 @@ run-develop: venv
 	&& $(VENV_NAME)/bin/python src/manage.py migrate --fake \
 	&& $(VENV_NAME)/bin/python src/manage.py run_develop
 
-vite:
+vite-build:
 	docker run -v ${PWD}:/app --platform linux/amd64 --rm -ti -w /app/src/tira/frontend-vuetify --entrypoint yarn webis/tira:vuetify-dev-0.0.1 build
+
+vite-build-light:
+	docker run -v ${PWD}:/app --platform linux/amd64 --rm -ti -w /app/src/tira/frontend-vuetify --entrypoint yarn webis/tira:vuetify-dev-0.0.1 build-light
+
 
 run-docker:
 	docker run -td --rm \
