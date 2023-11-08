@@ -19,7 +19,7 @@ export const slugify = (str: string) => {
     str = str.replace(/^\s+|\s+$/g, ''); // trim
     str = str.toLowerCase();
   
-    // remove accents, swap � for n, etc
+    // remove accents, swap ñ for n, etc
     var from = "àáäâèéëêìíïîòóöôùúüûñç·/_,:;";
     var to   = "aaaaeeeeiiiioooouuuunc------";
     for (var i=0, l=from.length ; i<l ; i++) {
