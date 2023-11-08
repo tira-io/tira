@@ -7,7 +7,7 @@ def ensure_pyterrier_is_loaded(boot_packages=("com.github.terrierteam:terrier-pr
     import pyterrier as pt
 
     # Detect if we are in the TIRA sandbox
-    if patch_ir_datasets and 'TIRA_INPUT_DIRECTORY' in os.environ:
+    if patch_ir_datasets and 'TIRA_INPUT_DATASET' in os.environ:
         try:
             import ir_datasets as original_ir_datasets
             original_ir_datasets.load = load_ir_datasets().load
@@ -44,14 +44,14 @@ def get_preconfigured_chatnoir_client(config_directory, features=['TARGET_URI'],
 
 
 def get_output_directory(default_output: str = '/tmp/'):
-    output_directory = os.environ.get('TIRA_OUTPUT_DIRECTORY', default_output)
+    output_directory = os.environ.get('TIRA_OUTPUT_DIR', default_output)
     print(f'The output directory is {output_directory}')
     
     return output_directory
 
 
 def get_input_directory_and_output_directory(default_input, default_output: str = '/tmp/'):
-    input_directory = os.environ.get('TIRA_INPUT_DIRECTORY', None)
+    input_directory = os.environ.get('TIRA_INPUT_DATASET', None)
 
     if input_directory:
         print(f'I will read the input data from {input_directory}.')
@@ -100,8 +100,8 @@ def register_rerank_data_to_ir_datasets(path_to_rerank_file, ir_dataset_id, orig
 
 def persist_and_normalize_run(run, system_name, output_file=None, depth=1000):
     if output_file is None:
-        print('I use the environment variable "TIRA_OUTPUT_DIRECTORY" to determine where I should store the run file using "." as default.')
-        output_file = os.environ.get('TIRA_OUTPUT_DIRECTORY', '.')
+        print('I use the environment variable "TIRA_OUTPUT_DIR" to determine where I should store the run file using "." as default.')
+        output_file = os.environ.get('TIRA_OUTPUT_DIR', '.')
 
     if not output_file.endswith('run.txt'):
         output_file = output_file + '/run.txt'
@@ -133,9 +133,17 @@ def normalize_run(run, system_name, depth=1000):
 
 def load_ir_datasets():
     # Detect if we are in the TIRA sandbox
-    if 'TIRA_INPUT_DIRECTORY' in os.environ:
-        from tira.ir_datasets_util import static_ir_datasets_from_directory
-        return static_ir_datasets_from_directory(os.environ['TIRA_INPUT_DIRECTORY'])
+    if 'TIRA_INPUT_DATASET' in os.environ:
+        
+        from tira.ir_datasets_util import static_ir_dataset
+
+        if os.path.isfile(os.path.join(os.environ['TIRA_INPUT_DATASET'], 'rerank.jsonl.gz')) or os.path.isfile(os.path.join(os.environ['TIRA_INPUT_DATASET'], 'rerank.jsonl')):
+            import ir_datasets as original_ir_datasets
+            register_rerank_data_to_ir_datasets(os.environ['TIRA_INPUT_DATASET'], 'dynamic-ds-in-tira')
+
+            return static_ir_dataset(os.environ['TIRA_INPUT_DATASET'], original_ir_datasets.load('dynamic-ds-in-tira'))
+
+        return static_ir_dataset(os.environ['TIRA_INPUT_DATASET'])
     else:
         try:
             from tira.ir_datasets_util import ir_dataset_from_tira_fallback_to_original_ir_datasets

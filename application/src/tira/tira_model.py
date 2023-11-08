@@ -148,6 +148,7 @@ def load_docker_data(task_id, vm_id, cache, force_cache_refresh):
     docker_images = [i for i in git_runner.docker_images_in_user_repository(vm_id, cache, force_cache_refresh) if '-tira-docker-software-id-' not in i['image']]
     last_refresh = load_refresh_timestamp_for_cache_key(cache, 'docker-images-in-user-repository-tira-user-' + vm_id)
     docker_software_help = git_runner.help_on_uploading_docker_image(vm_id, cache, force_cache_refresh)
+    public_docker_softwares = model.get_public_docker_softwares(task_id)
 
     docker_login = 'docker login' + docker_software_help.split('<code>docker login')[1].split('</code>')[0]
 
@@ -156,6 +157,7 @@ def load_docker_data(task_id, vm_id, cache, force_cache_refresh):
         "resources": list(settings.GIT_CI_AVAILABLE_RESOURCES.values()),
         "docker_software_help": docker_software_help,
         "docker_images_last_refresh": str(last_refresh),
+        "public_docker_softwares": public_docker_softwares,
         "task_is_an_information_retrieval_task": True if get_task(task_id, False).get('is_ir_task', False) else False,
         "docker_images_next_refresh": str(None if last_refresh is None else (last_refresh + datetime.timedelta(seconds=60))),
         "tira_initial_run_example": '# This example shows how to execute the baseline on a small example dataset.\n' +
@@ -248,7 +250,7 @@ def get_ordered_input_runs_of_software(docker_software, task_id, dataset_id, vm_
         if not input_run or not input_run.get('dataset_id', None) or not input_run.get('run_id', None):
             missing_input_runs += [__formatted_error_message_for_missing_input_run(docker_software, input_run)]
         else:
-            input_run['vm_id'] = vm_id
+            input_run['vm_id'] = model.get_run(run_id=input_run['run_id'], vm_id=None, dataset_id=None)['vm']
             input_runs += [input_run]
 
     for (dsid, uid) in model.get_ordered_additional_input_runs_of_software(docker_software):
@@ -257,7 +259,7 @@ def get_ordered_input_runs_of_software(docker_software, task_id, dataset_id, vm_
         if not input_run or not input_run.get('dataset_id', None) or not input_run.get('run_id', None):
             missing_input_runs += [__formatted_error_message_for_missing_input_run(docker_software, input_run)]
         else:
-            input_run['vm_id'] = vm_id
+            input_run['vm_id'] = model.get_run(run_id=input_run['run_id'], vm_id=None, dataset_id=None)['vm']
             input_runs += [input_run]
 
     if not input_runs or len(input_runs) < 1:

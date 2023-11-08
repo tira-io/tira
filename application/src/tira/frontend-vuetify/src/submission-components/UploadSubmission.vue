@@ -2,13 +2,18 @@
   <loading :loading="loading"/>
   <login-to-submit v-if="!loading && role === 'guest'"/>
   <v-row v-if="!loading && role !== 'guest'">
-    <v-col :cols="$vuetify.display.mdAndUp ? '9' : '11'">
+    <v-col :cols="$vuetify.display.mdAndUp ? '9' : '12'">
       <v-autocomplete clearable auto-select-first label="Choose upload &hellip;" prepend-inner-icon="mdi-magnify" :items="this.uploadGroups" item-title="display_name" item-value="id"
                     variant="underlined" v-model="tab"/>
     </v-col>
-    <v-col :cols="$vuetify.display.mdAndUp ? '3' : '1'">
+    <v-col v-if="!$vuetify.display.smAndDown" :cols="$vuetify.display.mdAndUp ? '3' : '0'">
       <v-btn color="primary" v-if="!$vuetify.display.mdAndUp" icon="mdi-plus" @click="this.tab = 'newUploadGroup'"/>
         <v-btn color="primary" v-if="$vuetify.display.mdAndUp" prepend-icon="mdi-plus" size="large" @click="this.tab = 'newUploadGroup'" block>New Uploadgroup</v-btn>
+    </v-col>
+  </v-row>
+  <v-row v-if="$vuetify.display.smAndDown">
+    <v-col :cols="12">
+        <v-btn color="primary" prepend-icon="mdi-plus" size="large" @click="this.tab = 'newUploadGroup'" block rounded>New Uploadgroup</v-btn>
     </v-col>
   </v-row>
   <v-row v-if="!loading && role !== 'guest'">

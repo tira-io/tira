@@ -1,6 +1,7 @@
 from copy import deepcopy
 from typing import NamedTuple
 from tira.io_utils import all_lines_to_pandas
+from tira.tirex import IRDS_TO_TIREX_DATASET, TIREX_DATASETS
 import os
 
 
@@ -22,7 +23,17 @@ def register_dataset_from_re_rank_file(ir_dataset_id, df_re_rank, original_ir_da
     dataset = Dataset(docs, queries, qrels, scoreddocs)
     ir_datasets.registry.register(ir_dataset_id, dataset)
     
-    __check_registration_was_successful(ir_dataset_id)
+    __check_registration_was_successful(ir_dataset_id, original_ir_datasets_id is None)
+
+
+def translate_irds_id_to_tirex(dataset):
+    if type(dataset) != str:
+        if hasattr(dataset, 'irds_ref'):
+            return translate_irds_id_to_tirex(dataset.irds_ref().dataset_id())
+        else:
+            raise ValueError(f'I can not handle {dataset}.')
+    
+    return IRDS_TO_TIREX_DATASET[dataset] if dataset in IRDS_TO_TIREX_DATASET else dataset
 
 
 def __docs(df, original_dataset):
@@ -207,28 +218,29 @@ def __scored_docs(df, original_dataset):
     return DynamicScoredDocs(docs)
 
 
-def static_ir_datasets_from_directory(directory):
+def static_ir_dataset(directory, existing_ir_dataset=None):
     from ir_datasets.datasets.base import Dataset
-    queries_file = directory + '/queries.jsonl'
-    docs_file = directory
-    if os.path.isfile(docs_file + '/documents.jsonl.gz'):
-        docs_file = docs_file + '/documents.jsonl.gz'
-    else:
-        docs_file = docs_file + '/documents.jsonl'
+    import pandas as pd
+    if existing_ir_dataset is None:
+        queries_file = directory + '/queries.jsonl'
+        docs_file = directory
+        if os.path.isfile(docs_file + '/documents.jsonl.gz'):
+            docs_file = docs_file + '/documents.jsonl.gz'
+        else:
+            docs_file = docs_file + '/documents.jsonl'
 
-    docs = __docs(all_lines_to_pandas(docs_file, False), None)
-    queries = __queries(all_lines_to_pandas(queries_file, False), None)
+        docs = __docs(all_lines_to_pandas(docs_file, False) if os.path.isfile(docs_file) else pd.DataFrame([]), None)
+        queries = __queries(all_lines_to_pandas(queries_file, False), None)
+        return static_ir_dataset(directory, Dataset(docs, queries))
 
-    class IrDatasetsFromDirectoryOnly():
+    class StaticIrDatasets():
         def load(self, dataset_id):
             print(f'Load ir_dataset from "{directory}" instead of "{dataset_id}" because code is executed in TIRA.')
-            return Dataset(docs, queries)
+            return existing_ir_dataset
         def topics_file(self, dataset_id):
             return directory + '/queries.xml'
-
-    from ir_datasets.datasets.base import Dataset
     
-    return IrDatasetsFromDirectoryOnly()
+    return StaticIrDatasets()
 
 
 def ir_dataset_from_tira_fallback_to_original_ir_datasets():
@@ -258,12 +270,12 @@ def ir_dataset_from_tira_fallback_to_original_ir_datasets():
 
     return ret
 
-def __check_registration_was_successful(ir_dataset_id):
+def __check_registration_was_successful(ir_dataset_id, ignore_qrels=True):
     import ir_datasets
     dataset = ir_datasets.load(ir_dataset_id)
 
     assert dataset.has_docs(), "dataset has no documents"
     assert dataset.has_queries(), "dataset has no queries"
-    assert dataset.has_qrels(), "dataset has no qrels"
+    assert ignore_qrels or dataset.has_qrels(), "dataset has no qrels"
     assert dataset.has_scoreddocs(), "dataset has no scored_docs"
 

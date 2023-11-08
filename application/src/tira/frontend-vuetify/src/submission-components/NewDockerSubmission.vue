@@ -75,8 +75,9 @@ cat tira-evaluation/evaluation.prototext" expand_message="(3) Verify the evaluat
             <h3 class="text-h6 font-weight-light my-6">
               Please specify your docker software
             </h3>
-              <p class="mb-4">A software submission consists of a docker image and the command that is executed in the docker image. Please specify both below.</p>
+              <p>A software submission consists of a docker image and the command that is executed in the docker image. Please specify both below.</p>
 
+              <p class="my-4 d-flex align-start"> Choose either an existing docker image... </p>
             <v-autocomplete
                 label="Docker Image"
                 :items="docker_images"
@@ -87,6 +88,15 @@ cat tira-evaluation/evaluation.prototext" expand_message="(3) Verify the evaluat
                 :disabled="loading"
                 clearable
                 :rules="[v => !!(v && v.length) || 'Please select the docker image for the execution.']"/>
+              <v-btn
+                      class="mr-4"
+                      color="primary"
+                      :loading="refreshingInProgress"
+                      @click="refreshImages()"
+                    >
+                      refresh images
+              </v-btn>
+              <span><br v-if="$vuetify.display.mdAndDown">last refreshed: {{docker_images_last_refresh}}</span>
             </div>
                <div class="text-center mb-4">
                 <v-dialog
@@ -96,21 +106,15 @@ cat tira-evaluation/evaluation.prototext" expand_message="(3) Verify the evaluat
                   <template v-slot:activator="{ props }" class="d-flex flex-column align-center" >
                     <div>
                     <v-btn
-                      class="mr-2"
+                      class="d-flex mr-2 mb-4 mt-6 align-start"
                       color="primary"
+                      variant="plain"
                       v-bind="props"
                     >
-                      Push New Docker Image
-                    </v-btn>
-                     <v-btn
-                      color="primary"
-                      :loading="refreshingInProgress"
-                      @click="refreshImages()"
-                    >
-                      refresh images
+                      <span v-if="!$vuetify.display.mdAndDown">...or see instructions on how to add a new docker image to tira</span>
+                      <span v-if="$vuetify.display.mdAndDown">...or add new image</span>
                     </v-btn>
                    </div>
-                    <span>last refreshed: {{docker_images_last_refresh}}</span>
                   </template>
 
                   <v-card>
@@ -207,6 +211,7 @@ export default {
       step: this.step_prop,
       all_uploadgroups: [{"id": null, "display_name": 'loading...'}],
       docker_images: [{ "image": "loading...", "architecture": "loading...", "created": "loading...", "size": "loading...", "digest": "loading...", 'title': 'loading...'}],
+      public_docker_softwares: [{"docker_software_id": 'loading...', "display_name": 'loading...', 'vm_id': 'loading...'}],
       user_id_for_task: extractUserFromCurrentUrl(),
     }
   },
@@ -222,7 +227,9 @@ export default {
       }
     },
     all_previous_stages() {
-      return this.docker_softwares.concat(this.all_uploadgroups.map((i) => ({"display_name": i.display_name, "docker_software_id": ('upload-' + i.id)})))
+      return this.docker_softwares
+        .concat(this.all_uploadgroups.map((i) => ({"display_name": i.display_name, "docker_software_id": ('upload-' + i.id)})))
+        .concat(this.public_docker_softwares.filter((i) => i.vm_id !== this.user_id_for_task).map((i) => ({"display_name": i.vm_id + '/' + i.display_name, "docker_software_id": i.docker_software_id})))
     },
     double_check_tira_run_command() {
       return this.tira_final_run_example.replace('YOUR-IMAGE', this.selectedDockerImage).replace('YOUR-COMMAND', this.runCommand)
@@ -282,8 +289,6 @@ export default {
           .then(this.refreshTitles)
           .catch(reportError("Problem While Loading the Docker Images.", "This might be a short-term hiccup, please try again. We got the following error: "))
       })
-    
-
   },
   watch: {
     step(old_value, new_value) {

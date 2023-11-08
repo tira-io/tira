@@ -8,6 +8,9 @@
 </template>
 
 <style>
+  #app main{
+    overflow-y: hidden;
+  }
   #app input {
     margin: 0px !important;
     padding: 0px !important;
@@ -18,6 +21,11 @@
     padding: 0px !important;
     left: auto !important;
   }
+  #app #docker-submission-readonly-input input {
+    padding: 10px 0 0 10px !important;
+    color: #BDBDBD;
+  }
+
   #app #task-search input {
     border: none !important;
     outline: none !important;

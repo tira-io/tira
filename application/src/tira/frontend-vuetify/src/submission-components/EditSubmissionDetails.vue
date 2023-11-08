@@ -13,7 +13,7 @@
           <v-textarea v-model="description" label="Description"/>
           <v-text-field v-model="paper_link" label="Link your Paper"/>
           <v-checkbox v-model="ir_re_ranker" label="Is this software an re-ranker?" v-if="is_ir_task && type == 'docker'"/>
-          <v-checkbox v-model="ir_re_ranking_input" label="Is the output of this component a rin file to be re-ranked by others?" v-if="is_ir_task"/>
+          <v-checkbox v-model="ir_re_ranking_input" label="Is the output of this component a run file to be re-ranked by others?" v-if="is_ir_task"/>
         </v-form>
       </v-card-text>
 

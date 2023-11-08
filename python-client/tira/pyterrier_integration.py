@@ -105,6 +105,7 @@ class PyTerrierIntegration():
     def from_retriever_submission(self, approach, dataset, previous_stage=None, datasets=None):
         import pyterrier as pt
         import pandas as pd
+        from tira.ir_datasets_util import translate_irds_id_to_tirex
         task, team, software = approach.split('/')
 
         if dataset and datasets:
@@ -115,7 +116,7 @@ class PyTerrierIntegration():
 
         df_ret = []
         for dataset in datasets:
-            ret, run_id = self.tira_client.download_run(task, dataset, software, team, previous_stage, return_metadata=True)
+            ret, run_id = self.tira_client.download_run(task, translate_irds_id_to_tirex(dataset), software, team, previous_stage, return_metadata=True)
             ret['qid'] = ret['query'].astype(str)
             ret['docno'] = ret['docid'].astype(str)
             del ret['query']
@@ -132,12 +133,17 @@ class PyTerrierIntegration():
         from pyterrier.apply import generic
         import pandas as pd
         from glob import glob
-        glob_entry = self.tira_client.get_run_output(approach, dataset) + file_selection
+        from tira.ir_datasets_util import translate_irds_id_to_tirex
+        glob_entry = self.tira_client.get_run_output(approach, translate_irds_id_to_tirex(dataset)) + file_selection
         matching_files = glob(glob_entry)
         if len(matching_files) == 0:
             raise ValueError(f'Could not find a matching query output. Found: {matching_files}. Please specify the file_selection to resolve this.')
 
         ret = pd.read_json(matching_files[0], lines=True)
+        if 'qid' not in ret and 'query_id' in ret:
+            ret['qid'] = ret['query_id']
+            del ret['query_id']
+
         cols = [i for i in ret.columns if i not in ['qid']]
         ret = {str(i['qid']): i for _, i in ret.iterrows()}
 
@@ -152,7 +158,8 @@ class PyTerrierIntegration():
         from pyterrier.apply import generic
         import pandas as pd
         from glob import glob
-        glob_entry = self.tira_client.get_run_output(approach, dataset) + file_selection
+        from tira.ir_datasets_util import translate_irds_id_to_tirex
+        glob_entry = self.tira_client.get_run_output(approach, translate_irds_id_to_tirex(dataset)) + file_selection
         matching_files = glob(glob_entry)
         if len(matching_files) == 0:
             raise ValueError('Could not find a matching document output. Found: ' + matching_files + '. Please specify the file_selection to resolve this.')

@@ -49,13 +49,15 @@ class Client():
     def docker_software_id(self, approach):
         return self.docker_software(approach)['docker_software_id']
 
+    def all_softwares(self, task_id):
+        """
+        Return all public submissions.
+        """
+        return [task_id + '/' + i['vm_id'] + '/' + i['display_name'] for i in self.json_response(f'/api/task/{task_id}/public-submissions')['context']['public_submissions']]
+
     def docker_software(self, approach):
         task, team, software = approach.split('/')
-        docker_softwares = self.metadata_for_task(task, team)['context']['docker']['docker_softwares']
-
-        for i in docker_softwares:
-            if i['display_name'] == software:
-                return i
+        return self.json_response(f'/api/task/{task}/submission-details/{team}/{software}')['context']['submission']
 
     def docker_software_details(self, approach):
         task, team, software = approach.split('/')

@@ -45,9 +45,19 @@ def test_loading_raw_ir_datasets():
     
 
 def test_loading_queries_from_ir_datasets_from_custom_directory():
-    os.environ['TIRA_INPUT_DIRECTORY'] = 'tests/resources/sample-input-full-rank'
+    os.environ['TIRA_INPUT_DATASET'] = 'tests/resources/sample-input-full-rank'
     ir_datasets = load_ir_datasets()
-    del os.environ['TIRA_INPUT_DIRECTORY']
+    del os.environ['TIRA_INPUT_DATASET']
+    dataset = ir_datasets.load('does-not-exist-and-is-not-used')
+    queries = {i.query_id: i.text for i in dataset.queries_iter()}
+
+    assert len(list(dataset.queries_iter())) == 2
+    assert queries['1'] == 'fox jumps above animal'
+
+def test_loading_queries_from_ir_datasets_from_custom_directory_2():
+    os.environ['TIRA_INPUT_DATASET'] = 'tests/resources/sample-input-full-rank-without-documents'
+    ir_datasets = load_ir_datasets()
+    del os.environ['TIRA_INPUT_DATASET']
     dataset = ir_datasets.load('does-not-exist-and-is-not-used')
     queries = {i.query_id: i.text for i in dataset.queries_iter()}
 
@@ -55,9 +65,9 @@ def test_loading_queries_from_ir_datasets_from_custom_directory():
     assert queries['1'] == 'fox jumps above animal'
 
 def test_loading_documents_from_ir_datasets_from_custom_directory():
-    os.environ['TIRA_INPUT_DIRECTORY'] = 'tests/resources/sample-input-full-rank'
+    os.environ['TIRA_INPUT_DATASET'] = 'tests/resources/sample-input-full-rank'
     ir_datasets = load_ir_datasets()
-    del os.environ['TIRA_INPUT_DIRECTORY']
+    del os.environ['TIRA_INPUT_DATASET']
     dataset = ir_datasets.load('does-not-exist-and-is-not-used')
     docs = {i.doc_id: i.text for i in dataset.docs_iter()}
 
@@ -66,9 +76,9 @@ def test_loading_documents_from_ir_datasets_from_custom_directory():
 
 
 def test_loading_docs_store_from_ir_datasets_from_custom_directory():
-    os.environ['TIRA_INPUT_DIRECTORY'] = 'tests/resources/sample-input-full-rank'
+    os.environ['TIRA_INPUT_DATASET'] = 'tests/resources/sample-input-full-rank'
     ir_datasets = load_ir_datasets()
-    del os.environ['TIRA_INPUT_DIRECTORY']
+    del os.environ['TIRA_INPUT_DATASET']
     dataset = ir_datasets.load('does-not-exist-and-is-not-used')
 
     assert dataset.docs_store()['pangram-03'].text == 'The jay, pig, fox, zebra and my wolves quack!'
@@ -83,14 +93,14 @@ def test_no_patching_for_pyterrier_datasets():
     assert queries['269'] == 'has a criterion been established for determining the axial compressor choking line'
 
 def test_patching_for_pyterrier_datasets():
-    os.environ['TIRA_INPUT_DIRECTORY'] = 'tests/resources/sample-input-full-rank'
+    os.environ['TIRA_INPUT_DATASET'] = 'tests/resources/sample-input-full-rank'
     import ir_datasets
     l = ir_datasets.load
     ensure_pyterrier_is_loaded()
     import pyterrier as pt
     dataset = pt.get_dataset('irds:does-not-exist-and-is-not-used')
     ir_datasets.load = l
-    del os.environ['TIRA_INPUT_DIRECTORY']
+    del os.environ['TIRA_INPUT_DATASET']
 
     queries = {i['qid']: i['query'] for _, i in dataset.get_topics().iterrows()}
 
@@ -126,7 +136,15 @@ def test_loading_topics_via_rest_api_from_tira():
     dataset = ir_datasets.topics_file('ir-lab-jena-leipzig-wise-2023/training-20231104-training')
     
     assert dataset.endswith('/training-20231104-training/truth-data/queries.xml')
-    
+
+def test_loading_topics_via_rest_api_from_rerank_dataset_from_tira():
+    os.environ['TIRA_INPUT_DATASET'] = 'tests/resources/re-ranking-outputs'
+    ir_datasets = load_ir_datasets()
+    dataset = ir_datasets.load('workshop-on-open-web-search/re-ranking-20231027-training')
+    del os.environ['TIRA_INPUT_DATASET']
+
+    assert len([i for i in dataset.queries_iter()]) == 2
+    assert len([i for i in dataset.docs_iter()]) == 3
 
 def test_loading_queries_via_rest_api_from_tira():
     from tira.third_party_integrations import ir_datasets
