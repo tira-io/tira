@@ -341,5 +341,6 @@ export function handleModifiedSubmission(modified_data: any, objects: Array<any>
             i['display_name'] = modified_data['display_name']
         }
     }
+
     return objects
 }
