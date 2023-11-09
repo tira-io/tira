@@ -45,7 +45,7 @@
         <v-col v-for="(cell, i) in row" cols="cell.cols">
           <v-menu>
             <template v-slot:activator="{ props }">
-              <v-card v-bind="props" v-if="cell && cell?.display_name" class="mx-auto" :max-width="max_width" :color="cell?.color" variant="tonal" style="cursor: pointer;">
+              <v-card v-bind="props" v-if="cell && cell?.display_name && !cell.hide" class="mx-auto" :max-width="max_width" :color="cell?.color" variant="tonal" style="cursor: pointer;">
                 <v-card-item><span class="text-h6 mb-1">{{ cell?.display_name }}</span><span style="font-size: .7em;" v-if="cell.collapsed && cell.subItems > 0">&nbsp;&nbsp;(+&nbsp;{{ cell.subItems }})</span></v-card-item>
               </v-card>
             </template>
@@ -88,9 +88,9 @@ export default {
         'Re-Ranking': 'cyan-darken-3', 'Evaluation': 'blue-grey-lighten-1'
       } as {[key: string]: string},
       expanded_entries: ['does-not-exist'],
-      component_filter: null,
-      component_types: ['TIREx Submission', 'Tutorial'],
-      available_component_types: ['Code', 'TIREx Submission', 'Tutorial'],
+      component_filter: '',
+      component_types: ['Code', 'TIREx', 'Tutorial'],
+      available_component_types: ['Code', 'TIREx', 'Tutorial'],
       focus_types: ['Precision', 'Recall'],
       available_focus_types: ['Precision', 'Recall'],
     }
@@ -120,8 +120,8 @@ export default {
     is_collapsed(component:any) {
       return !this.computed_expanded_entries.includes(component.display_name)
     },
-    filtered_sub_components(component:any) : {display_name: string, subItems: number, pos: number, links: any[]}[] {
-      let ret: {display_name: string, subItems: number, pos: number, links: any[]}[] = []
+    filtered_sub_components(component:any) : {display_name: string, subItems: number, pos: number, links: any[], focus_type: string|undefined|null, component_type: string|undefined|null}[] {
+      let ret: {display_name: string, subItems: number, pos: number, links: any[], focus_type: string|undefined|null, component_type: string|undefined|null}[] = []
 
       if (this.is_collapsed(component)) {
         return ret
@@ -134,6 +134,8 @@ export default {
             'subItems': this.countSubItems(c),
             'pos': ret.length + 1,
             'links': c.hasOwnProperty('links') ? c['links'] : null,
+            'focus_type': c.hasOwnProperty('focus_type') ? c['focus_type'] : null,
+            'component_type': c.hasOwnProperty('component_type') ? c['component_type'] : null,
           })
 
           for (let sub_c of this.filtered_sub_components(c)) {
@@ -142,6 +144,8 @@ export default {
               'subItems': sub_c['subItems'],
               'pos': ret.length + 1,
               'links': sub_c['links'],
+              'focus_type': sub_c.hasOwnProperty('focus_type') ? sub_c['focus_type'] : null,
+              'component_type': sub_c.hasOwnProperty('component_type') ? sub_c['component_type'] : null,
             })
           }
         }
@@ -151,6 +155,36 @@ export default {
     mobileLayout() {
       return window.innerWidth < 1000;
     },
+    matches(c: any, t:string, available:any) {
+      if (!c || c[t] + '' == 'null' ||  c[t] + '' == 'undefined' || typeof c[t][Symbol.iterator] != 'function') {
+        return false
+      }
+
+      for (let i of c[t]) {
+        if (available.includes(i)) {
+          return true
+        }
+      }
+
+      return false
+    },
+    hide_component(c: any) {
+      const component_search_is_active = this.component_types.length != 0 && this.component_types.length != this.available_component_types.length
+      const focus_search_is_active = this.focus_types.length != 0 && this.focus_types.length != this.available_focus_types.length
+      if (!c || (!component_search_is_active && !focus_search_is_active)) {
+        return false
+      }
+
+      let component_match = !component_search_is_active || this.matches(c, 'component_type', this.component_types)
+      let focus_match = !focus_search_is_active || this.matches(c, 'focus_type', this.focus_types)
+      let search_match = this.component_filter + '' == '' || this.component_filter + '' == 'null' || this.component_filter + '' == 'undefined' || c.display_name.toLowerCase().includes(this.component_filter.toLowerCase())
+
+      console.log(c.display_name + ' is component_match: ' + component_match)
+      console.log(c.display_name + ' is focus_match: ' + focus_match)
+      console.log(c.display_name + ' is search match: ' + search_match)
+
+      return !component_match || !focus_match || !search_match
+    }
   },
   beforeMount() {
     get('/api/tirex-components')
@@ -174,7 +208,7 @@ export default {
       for (let i in this.tirex_components) {
         let c = this.tirex_components[i]
 
-        ret[0][i] = {'display_name': c.display_name, 'cols': cols, 'links': c.links, 'collapsed': this.is_collapsed(c), 'subItems':this.countSubItems(c)}
+        ret[0][i] = {'display_name': c.display_name, 'cols': cols, 'links': c.links, 'collapsed': this.is_collapsed(c), 'subItems':this.countSubItems(c), 'hide': false}
 
         for (let subcomponent of this.filtered_sub_components(c)) {
           if (subcomponent['pos'] >= ret.length) {
@@ -187,6 +221,7 @@ export default {
             'links': subcomponent.links,
             'cols': cols,
             'collapsed': this.is_collapsed(subcomponent),
+            'hide': this.hide_component(subcomponent)
           }
         }
       }

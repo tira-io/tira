@@ -5,144 +5,185 @@
       target: _blank
   components:
     - display_name: Args.me
+      component_type: [TIREx]
       links:
         - display_name: Dataset Description
           href: https://webis.de/data/args-me-corpus.html
           target: _blank
       components:
         - display_name: Touché 2020 Task 1
+          component_type: [TIREx]
         - display_name: Touché 2021 Task 1
+          component_type: [TIREx]
 
     - display_name: Antique
+      component_type: [TIREx]
       links:
         - display_name: ir_datastes
           href: https://ir-datasets.com/antique.html
           target: _blank
     
     - display_name: Web Search
+      component_type: [TIREx]
       components:
       - display_name: ClueWeb09
+        component_type: [TIREx]
         links:
           - display_name: Dataset Description
             href: https://lemurproject.org/clueweb09.php/
             target: _blank
         components:
           - display_name: TREC Web Track 2010
+            component_type: [TIREx]
             links:
             - display_name: ir_datastes
               href: https://ir-datasets.com/clueweb09.html#clueweb09/en/trec-web-2009
               target: _blank
           - display_name: TREC Web Track 2010
+            component_type: [TIREx]
             links:
               - display_name: ir_datastes
                 href: https://ir-datasets.com/clueweb09.html#clueweb09/en/trec-web-2010
                 target: _blank
           - display_name: TREC Web Track 2011
+            component_type: [TIREx]
             links:
               - display_name: ir_datastes
                 href: https://ir-datasets.com/clueweb09.html#clueweb09/en/trec-web-2011
                 target: _blank
           - display_name: TREC Web Track 2012
+            component_type: [TIREx]
             links:
               - display_name: ir_datastes
                 href: https://ir-datasets.com/clueweb09.html#clueweb09/en/trec-web-2012
       - display_name: ClueWeb12
+        component_type: [TIREx]
         links:
           - display_name: Dataset Description
             href: https://lemurproject.org/clueweb12.php/
             target: _blank
         components:
           - display_name: TREC Web Track 2013
+            component_type: [TIREx]
             links:
               - display_name: ir_datastes
                 href: https://ir-datasets.com/clueweb12.html#clueweb12/trec-web-2013
                 target: _blank
           - display_name: TREC Web Track 2014
+            component_type: [TIREx]
             links:
               - display_name: ir_datastes
                 href: https://ir-datasets.com/clueweb12.html#clueweb12/trec-web-2014
                 target: _blank
           - display_name: Touché 2020 (Task 2)
+            component_type: [TIREx]
             links:
               - display_name: ir_datastes
                 href: https://ir-datasets.com/clueweb12.html#clueweb12/touche-2020-task-2
                 target: _blank
           - display_name: Touché 2021 (Task 2)
+            component_type: [TIREx]
             links:
             - display_name: ir_datastes
               href: https://ir-datasets.com/clueweb12.html#clueweb12/touche-2021-task-2
               target: _blank
       - display_name: ClueWeb22
+        component_type: [TIREx]
         links:
           - display_name: Dataset Description
             href: https://lemurproject.org/clueweb22.php/
             target: _blank
         components:
           - display_name: Touché 2023 (Task 1)
+            component_type: [TIREx]
             links:
               - display_name: Task Page
                 href: https://touche.webis.de/clef23/touche23-web/argument-retrieval-for-controversial-questions.html
                 target: _blank
           - display_name: Touché 2023 (Task 2)
+            component_type: [TIREx]
             links:
               - display_name: Task Page
                 href: https://touche.webis.de/clef23/touche23-web/evidence-retrieval-for-causal-questions.html
                 target: _blank
 
       - display_name: GOV
+        component_type: [TIREx]
       - display_name: GOV2
+        component_type: [TIREx]
       - display_name: LongEval
+        component_type: [TIREx]
         links:
           - display_name: Dataset Description
             href: https://dl.acm.org/doi/abs/10.1145/3539618.3591921
             target: _blank
         components:
           - display_name: LongEval 2023
+            component_type: [TIREx]
             links:
               - display_name: Task Page
                 href: https://clef-longeval-2023.github.io/
                 target: _blank
           - display_name: LongEval 2024
+            component_type: [TIREx]
             links:
               - display_name: Task Page
                 href: https://clef-longeval.github.io/
                 target: _blank
 
     - display_name: Medical Search
+      component_type: [TIREx]
       components:
       - display_name: CORD-19
+        component_type: [TIREx]
       - display_name: MEDLINE
+        component_type: [TIREx]
       - display_name: NFCorpus
+        component_type: [TIREx]
 
     - display_name: MS MARCO
+      component_type: [TIREx]
       components:
       - display_name: Deep Learning 19
+        component_type: [TIREx]
       - display_name: Deep Learning 20
+        component_type: [TIREx]
 
     - display_name: News Search
+      component_type: [TIREx]
       components:
       - display_name: WaPo
+        component_type: [TIREx]
       - display_name: Disks4+5
+        component_type: [TIREx]
         components:
         - display_name: Robust04
+          component_type: [TIREx]
         - display_name: TREC 7
+          component_type: [TIREx]
         - display_name: TREC 8
+          component_type: [TIREx]
 
     - display_name: Tip-of-the-Tongue
+      component_type: [TIREx]
       links:
         - display_name: Task Overview
           href: https://trec-tot.github.io/
           target: _blank
     - display_name: Vaswani
+      component_type: [TIREx]
 
 - display_name: Document Processing
   components:
     - display_name: Keyphrase Extraction
+      component_type: [TIREx]
+      focus_type: [Precision]
       links:
         - display_name: Tutorial
           href: https://github.com/OpenWebSearch/wows-code/blob/main/ecir24/post-hoc-notebooks/keyphrase-extraction.ipynb
           target: _blank
     - display_name: Health Classification
+      component_type: [TIREx, Tutorial]
       links:
         - display_name: Tutorial
           href: https://github.com/webis-de/ir-pad/tree/public/tutorials#research-tutorial-classification-of-medicalhealth-queries-and-documents
@@ -152,28 +193,38 @@
           target: _blank
 
     - display_name: Stemming
+      focus_type: [Recall]
+      component_type: [Tutorial]
       links:
         - display_name: Tutorial
           href: https://github.com/webis-de/ir-pad/blob/public/tutorials/tutorial-02-stopword-lists.ipynb
           target: _blank
       components:
         - display_name: PorterStemmer
+          focus_type: [Recall]
+          component_type: [Tutorial]
           links:
             - display_name: Tutorial
               href: https://github.com/webis-de/ir-pad/blob/public/tutorials/tutorial-03-stemming.ipynb
               target: _blank
         - display_name: KrovetzStemmer
+          focus_type: [Recall]
+          component_type: [Tutorial]
           links:
             - display_name: Tutorial
               href: https://github.com/webis-de/ir-pad/blob/public/tutorials/tutorial-03-stemming.ipynb
               target: _blank
         - display_name: Lemmatization
+          focus_type: [Recall]
+          component_type: [Tutorial]
           links:
             - display_name: Tutorial
               href: https://github.com/webis-de/ir-pad/blob/public/tutorials/tutorial-04-lemmatization.ipynb
               target: _blank
 
     - display_name: Stopword Removal
+      focus_type: [Precision]
+      component_type: [Tutorial]
       links:
         - display_name: Tutorial
           href: https://github.com/webis-de/ir-pad/blob/public/tutorials/tutorial-02-stopword-lists.ipynb
@@ -182,6 +233,8 @@
 - display_name: Query Processing
   components:
     - display_name: Query Expansion
+      component_type: [Tutorial]
+      focus_type: [Recall]
       links:
       - display_name: Tutorial
         href: https://github.com/webis-de/ir-pad/blob/public/tutorials/tutorial-05-query-expansion.ipynb
@@ -191,6 +244,8 @@
         target: _blank
           
     - display_name: Query Segmentation
+      focus_type: [Precision]
+      component_type: [TIREx, Tutorial]
       links: 
         - display_name: Tutorial
           href: https://github.com/OpenWebSearch/wows-code/blob/main/ecir24/post-hoc-notebooks/query-segmentation.ipynb
@@ -200,54 +255,73 @@
           target: _blank
       components:
         - display_name: hyp-a
+          focus_type: [Precision]
+          component_type: [TIREx, Tutorial]
           links: 
             - display_name: Tutorial
               href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-segmentation-in-progress-by-maik
               target: _blank
 
         - display_name: hyp-b
+          focus_type: [Precision]
+          component_type: [TIREx, Tutorial]
           links: 
             - display_name: Tutorial
               href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-segmentation-in-progress-by-maik
               target: _blank
 
         - display_name: hyp-i
+          focus_type: [Precision]
+          component_type: [TIREx, Tutorial]
           links: 
             - display_name: Tutorial
               href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-segmentation-in-progress-by-maik
               target: _blank
 
         - display_name: wt-snp
+          focus_type: [Precision]
+          component_type: [TIREx, Tutorial]
           links: 
             - display_name: Tutorial
               href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-segmentation-in-progress-by-maik
               target: _blank
 
         - display_name: wiki
+          focus_type: [Precision]
+          component_type: [TIREx, Tutorial]
           links: 
             - display_name: Tutorial
               href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-segmentation-in-progress-by-maik
               target: _blank
 
         - display_name: naive
+          focus_type: [Precision]
+          component_type: [TIREx, Tutorial]
           links: 
             - display_name: Tutorial
               href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-segmentation-in-progress-by-maik
               target: _blank
 
     - display_name: QPP
+      component_type: [TIREx, Tutorial]
       links:
         - display_name: qpptk
           href: https://github.com/Zendelo/QPP-EnhancedEval/tree/main/code/qpptk
           target: _blank
       components:
         - display_name: qpp-1
+          component_type: [TIREx, Tutorial]
         - display_name: qpp-2
+          component_type: [TIREx, Tutorial]
         - display_name: qpp-3
+          component_type: [TIREx, Tutorial]
         - display_name: qpp-4
+          component_type: [TIREx, Tutorial]
         - display_name: qpp-5
+          component_type: [TIREx, Tutorial]
 
     - display_name: Health Classification
+      component_type: [TIREx, Tutorial]
       links:
         - display_name: Tutorial
           href: https://github.com/webis-de/ir-pad/tree/public/tutorials#research-tutorial-classification-of-medicalhealth-queries-and-documents
@@ -259,21 +333,29 @@
 - display_name: Retrieval
   components:
     - display_name: Dense Retrieval
+      component_type: [TIREx]
       components:
         - display_name: TBD 1
+          component_type: [TIREx]
         - display_name: TBD 2
+          component_type: [TIREx]
         - display_name: TBD 3
+          component_type: [TIREx]
     - display_name: Lexical Retrieval
+      component_type: [TIREx]
       components:
       - display_name: BM25
+        component_type: [TIREx]
         links:
           - display_name: Submission in TIREx
             href: /task-overview/ir-benchmarks
       - display_name: TF-IDF
+        component_type: [TIREx]
         links:
           - display_name: Submission in TIREx
             href: /task-overview/ir-benchmarks/
       - display_name: PL2
+        component_type: [TIREx]
         links:
           - display_name: Submission in TIREx
             href: /task-overview/ir-benchmarks/
@@ -282,24 +364,37 @@
 - display_name: Re-Ranking
   components:
     - display_name: Cross Encoder
+      component_type: [TIREx]
       components:
       - display_name: monoT5
+        component_type: [TIREx]
         links:
           - display_name: Submission in TIREx
             href: /task-overview/ir-benchmarks/
       - display_name: TBD 1
+        component_type: [TIREx]
       - display_name: TBD 2
+        component_type: [TIREx]
     - display_name: Dense Retrieval
+      component_type: [TIREx]
       components:
         - display_name: TBD 1
+          component_type: [TIREx]
         - display_name: TBD 2
+          component_type: [TIREx]
         - display_name: TBD 3
+          component_type: [TIREx]
     - display_name: Lexical Retrieval
+      component_type: [TIREx]
       components:
         - display_name: TBD 1
+          component_type: [TIREx]
         - display_name: TBD 2
+          component_type: [TIREx]
         - display_name: TBD 3
+          component_type: [TIREx]
     - display_name: Rank Fusion
+      component_type: [Code]
       links:
         - display_name: Ranx
           href: https://github.com/AmenRa/ranx
@@ -330,6 +425,7 @@
           href: https://github.com/ireval/cwl
           target: _blank
     - display_name: MAP
+      component_type: [TIREx]
       links:
         - display_name: IR-Measures Demo
           href: https://demo.ir-measur.es/reverse
@@ -341,6 +437,7 @@
           href: https://ir.webis.de/anthology/2020.sigirjournals_journal-ir0anthology0volumeA54A1.11/
           target: _blank
     - display_name: nDCG
+      component_type: [TIREx]
       links:
         - display_name: IR-Measures Demo
           href: https://demo.ir-measur.es/reverse
@@ -349,16 +446,19 @@
           href: https://ir.webis.de/anthology/2002.tois_journal-ir0anthology0volumeA20A4.2/
           target: _blank
     - display_name: Precision@k
+      component_type: [TIREx]
       links:
         - display_name: IR-Measures Demo
           href: https://demo.ir-measur.es/reverse
           target: _blank
     - display_name: "Recall@k"
+      component_type: [TIREx]
       links:
         - display_name: IR-Measures Demo
           href: https://demo.ir-measur.es/reverse
           target: _blank
     - display_name: "Reproducibility"
+      component_type: [Code]
       links:
         - display_name: repro_eval
           href: https://github.com/irgroup/repro_eval
