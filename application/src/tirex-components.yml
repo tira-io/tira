@@ -302,7 +302,7 @@
               href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-segmentation-in-progress-by-maik
               target: _blank
 
-    - display_name: QPP
+    - display_name: Query Performance Prediction (QPP)
       component_type: [TIREx, Tutorial]
       links:
         - display_name: qpptk
