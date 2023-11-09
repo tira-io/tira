@@ -1,5 +1,6 @@
 <template>
   <v-container class="text-center">
+    <v-img class="mx-auto" height="300px" max-width="100%" width="300px" src="@/assets/tirex-modules.jpg"/>
     <section>
       <h1 class="text-h3 text-sm-h3 py-4">Components in TIREx</h1>
       <p class="mx-auto py-4 tira-explanation">
@@ -9,36 +10,21 @@
   </v-container>
   <v-container v-if="loading"><loading :loading="loading"/></v-container>
   <div v-if="!loading">
-    <div class="d-none d-md-block">
+    <v-form>
       <v-row class="justify-center mx-2">
-        <v-col cols="4">
+        <v-col :cols="is_mobile() ? '12' : '4'">
           <v-select v-model="component_types" :items="available_component_types" label="Select Types" multiple hint="Which components do you want to see?"/>
         </v-col>
-        <v-col cols="4">
+        <v-col :cols="is_mobile() ? '12' : '4'">
           <v-select v-model="focus_types" :items="available_focus_types" label="Select Your Focus" multiple hint="Which aspect should be fulfilled by a component?"/>
         </v-col>
-        <v-col cols="4">
+        <v-col :cols="is_mobile() ? '12' : '4'">
           <v-responsive min-width="220px" id="task-search">
-             <v-text-field class="px-4" clearable label="Type here to filter &hellip;" prepend-inner-icon="mdi-magnify" variant="underlined" v-model="component_filter"/>
+             <v-text-field class="px-4" clearable label="Type here to filter &hellip;" prepend-inner-icon="mdi-magnify" variant="underlined" v-model="component_filter"  @input="(i:any) => filter_f(i)"/>
           </v-responsive>
         </v-col>
       </v-row>
-    </div>
-
-    <v-row class="justify-center mx-2 d-md-none">
-      <v-col cols="12">
-        <v-select v-model="component_types" :items="available_component_types" label="Select Types" multiple hint="Which components do you want to see?"/>
-      </v-col>
-      <v-col cols="12">
-        <v-select v-model="focus_types" :items="available_focus_types" label="Select Your Focus" multiple hint="Which aspect should be fulfilled by a component?"/>
-      </v-col>
-      <v-col cols="12">
-        <v-responsive min-width="220px" id="task-search">
-           <v-text-field class="px-4" clearable label="Type here to filter &hellip;" prepend-inner-icon="mdi-magnify" variant="underlined" v-model="component_filter"/>
-        </v-responsive>
-      </v-col>
-    </v-row>
-
+    </v-form>
 
     <div>
       <v-row class="justify-center mx-2" v-for="(row, _) of vectorizedComponents">
@@ -93,6 +79,7 @@ export default {
       available_component_types: ['Code', 'TIREx', 'Tutorial'],
       focus_types: ['Precision', 'Recall'],
       available_focus_types: ['Precision', 'Recall'],
+      refresh: 0,
     }
   },
   methods: {
@@ -152,9 +139,6 @@ export default {
 
         return ret
     },
-    mobileLayout() {
-      return window.innerWidth < 1000;
-    },
     matches(c: any, t:string, available:any) {
       if (!c || c[t] + '' == 'null' ||  c[t] + '' == 'undefined' || typeof c[t][Symbol.iterator] != 'function') {
         return false
@@ -168,16 +152,20 @@ export default {
 
       return false
     },
+    filter_f(f: any) {
+      this.refresh++
+    },
     hide_component(c: any) {
       const component_search_is_active = this.component_types.length != 0 && this.component_types.length != this.available_component_types.length
       const focus_search_is_active = this.focus_types.length != 0 && this.focus_types.length != this.available_focus_types.length
-      if (!c || (!component_search_is_active && !focus_search_is_active)) {
+      const text_search_is_active = this.component_filter + '' != '' || this.component_filter + '' != 'null' || this.component_filter + '' != 'undefined'
+      if (!c || (!component_search_is_active && !focus_search_is_active && !text_search_is_active)) {
         return false
       }
 
       let component_match = !component_search_is_active || this.matches(c, 'component_type', this.component_types)
       let focus_match = !focus_search_is_active || this.matches(c, 'focus_type', this.focus_types)
-      let search_match = this.component_filter + '' == '' || this.component_filter + '' == 'null' || this.component_filter + '' == 'undefined' || c.display_name.toLowerCase().includes(this.component_filter.toLowerCase())
+      let search_match = !text_search_is_active || c.display_name.toLowerCase().includes(this.component_filter.toLowerCase())
 
       console.log(c.display_name + ' is component_match: ' + component_match)
       console.log(c.display_name + ' is focus_match: ' + focus_match)
@@ -202,6 +190,7 @@ export default {
       return ret
     },
     vectorizedComponents() {
+      this.refresh
       let ret: [any[]] = [[{}, {}, {}, {}, {}, {}]]
       let cols = is_mobile() ? 12 : 2;
 
