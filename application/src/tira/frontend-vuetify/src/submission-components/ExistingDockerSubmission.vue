@@ -71,6 +71,7 @@ export default {
     },
     async runSoftware() {
       const { valid } = await (this.$refs.form as any).validate()
+      console.log(this.selectedResource)
 
       if (valid) {
         this.runSoftwareInProgress = true
@@ -87,7 +88,7 @@ export default {
         }
 
         post(`/grpc/${this.task_id}/${this.user_id}/run_execute/docker/${this.selectedDataset}/${this.docker_software_id}/${this.selectedResource}/${reranking_dataset}`, {})
-        .then(reportSuccess("Software was scheduled in the cluster. It might take a few minutes until the execution starts."))
+        .then(reportSuccess("Software was scheduled in the cluster. It might take a few minutes until the execution starts.", "Started run on: " + this.selectedDataset + " dataset with " + this.selectedResource))
         .catch(reportError("Problem starting the software.", "This might be a short-term hiccup, please try again. We got the following error: "))
         .then(() => {this.$emit('refresh_running_submissions'); this.runSoftwareInProgress = false; })
       }

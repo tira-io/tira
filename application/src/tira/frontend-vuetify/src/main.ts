@@ -25,11 +25,9 @@ export default function register_app() {
 
   const app_elem = document.querySelector(app_selector)
   if (app_elem && '__vue_app__' in app_elem && app_elem.__vue_app__) {
-    console.log('TIRA app is already mounted.')
     return;
   }
 
-  console.log('Mount TIRA vue app to location: ' + window.location)
   const routes = [
     {path: '/', component: Home},
     {path: '/tasks', component: Tasks},

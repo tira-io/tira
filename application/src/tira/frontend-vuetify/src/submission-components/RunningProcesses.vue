@@ -25,7 +25,7 @@
           <v-icon class="mr-2">mdi-refresh</v-icon>
           Refresh
         </v-btn>
-        <v-card>
+        <v-card v-if="!loading && running_software.length > 0">
           <loading :loading="loading"/>
           <v-card-actions v-if="!loading">
             <v-row>
@@ -176,7 +176,7 @@ export default {
     stopRun(run_id) {
       if (!(this.abortedProcesses.includes(run_id))) {
         this.abortedProcesses.push(run_id)
-        get(`/api/grpc/${this.task_id}/user/${this.user_id_for_task}/stop_docker_software/${run_id}`)
+        get(`/grpc/${this.task_id}/${this.user_id_for_task}/stop_docker_software/${run_id}`)
             .then(reportSuccess('Run with the id ' + run_id + " was successfully aborted!"))
         .catch(reportError("Problem while trying to abort the process with id: " + run_id))
       }
