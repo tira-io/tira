@@ -173,14 +173,10 @@ export default {
         .catch(reportError("Problem While Deleting Upload Group.", "This might be a short-term hiccup, please try again. We got the following error: "))
     },
     async fileUpload(id_to_upload) {  // async
-      console.log(this.uploading, this.selectedDataset, this.fileHandle)
       this.uploading = true
       let formData = new FormData();
       formData.append("file", this.fileHandle[0]);
       post_file(`/task/${this.task_id}/vm/${this.user_id_for_task}/upload/${this.selectedDataset}/${id_to_upload}`, formData)
-      .then(message => {
-        console.log(message)
-      })
       .then(reportSuccess("File Uploaded Successfully. It might take a few minutes until the evaluation is finished."))
       .catch(reportError("Problem While Uploading File.", "This might be a short-term hiccup, please try again. We got the following error: "))
       .then(() => {this.clean_formular()})

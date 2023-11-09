@@ -1,5 +1,6 @@
 <template>
   <v-container class="text-center">
+    <v-img class="mx-auto" height="300px" max-width="100%" width="300px" src="@/assets/tirex-modules.jpg"/>
     <section>
       <h1 class="text-h3 text-sm-h3 py-4">Components in TIREx</h1>
       <p class="mx-auto py-4 tira-explanation">
@@ -9,43 +10,28 @@
   </v-container>
   <v-container v-if="loading"><loading :loading="loading"/></v-container>
   <div v-if="!loading">
-    <div class="d-none d-md-block">
+    <v-form>
       <v-row class="justify-center mx-2">
-        <v-col cols="4">
+        <v-col :cols="is_mobile() ? '12' : '4'">
           <v-select v-model="component_types" :items="available_component_types" label="Select Types" multiple hint="Which components do you want to see?"/>
         </v-col>
-        <v-col cols="4">
+        <v-col :cols="is_mobile() ? '12' : '4'">
           <v-select v-model="focus_types" :items="available_focus_types" label="Select Your Focus" multiple hint="Which aspect should be fulfilled by a component?"/>
         </v-col>
-        <v-col cols="4">
+        <v-col :cols="is_mobile() ? '12' : '4'">
           <v-responsive min-width="220px" id="task-search">
-             <v-text-field class="px-4" clearable label="Type here to filter &hellip;" prepend-inner-icon="mdi-magnify" variant="underlined" v-model="component_filter"/>
+             <v-text-field class="px-4" clearable label="Type here to filter &hellip;" prepend-inner-icon="mdi-magnify" variant="underlined" v-model="component_filter"  @input="(i:any) => filter_f(i)"/>
           </v-responsive>
         </v-col>
       </v-row>
-    </div>
-
-    <v-row class="justify-center mx-2 d-md-none">
-      <v-col cols="12">
-        <v-select v-model="component_types" :items="available_component_types" label="Select Types" multiple hint="Which components do you want to see?"/>
-      </v-col>
-      <v-col cols="12">
-        <v-select v-model="focus_types" :items="available_focus_types" label="Select Your Focus" multiple hint="Which aspect should be fulfilled by a component?"/>
-      </v-col>
-      <v-col cols="12">
-        <v-responsive min-width="220px" id="task-search">
-           <v-text-field class="px-4" clearable label="Type here to filter &hellip;" prepend-inner-icon="mdi-magnify" variant="underlined" v-model="component_filter"/>
-        </v-responsive>
-      </v-col>
-    </v-row>
-
+    </v-form>
 
     <div>
       <v-row class="justify-center mx-2" v-for="(row, _) of vectorizedComponents">
         <v-col v-for="(cell, i) in row" cols="cell.cols">
           <v-menu>
             <template v-slot:activator="{ props }">
-              <v-card v-bind="props" v-if="cell && cell?.display_name" class="mx-auto" :max-width="max_width" :color="cell?.color" variant="tonal" style="cursor: pointer;">
+              <v-card v-bind="props" v-if="cell && cell?.display_name && !cell.hide" class="mx-auto" :max-width="max_width" :color="cell?.color" variant="tonal" style="cursor: pointer;">
                 <v-card-item><span class="text-h6 mb-1">{{ cell?.display_name }}</span><span style="font-size: .7em;" v-if="cell.collapsed && cell.subItems > 0">&nbsp;&nbsp;(+&nbsp;{{ cell.subItems }})</span></v-card-item>
               </v-card>
             </template>
@@ -88,11 +74,12 @@ export default {
         'Re-Ranking': 'cyan-darken-3', 'Evaluation': 'blue-grey-lighten-1'
       } as {[key: string]: string},
       expanded_entries: ['does-not-exist'],
-      component_filter: null,
-      component_types: ['TIREx Submission', 'Tutorial'],
-      available_component_types: ['Code', 'TIREx Submission', 'Tutorial'],
+      component_filter: '',
+      component_types: ['Code', 'TIREx', 'Tutorial'],
+      available_component_types: ['Code', 'TIREx', 'Tutorial'],
       focus_types: ['Precision', 'Recall'],
       available_focus_types: ['Precision', 'Recall'],
+      refresh: 0,
     }
   },
   methods: {
@@ -120,8 +107,8 @@ export default {
     is_collapsed(component:any) {
       return !this.computed_expanded_entries.includes(component.display_name)
     },
-    filtered_sub_components(component:any) : {display_name: string, subItems: number, pos: number, links: any[]}[] {
-      let ret: {display_name: string, subItems: number, pos: number, links: any[]}[] = []
+    filtered_sub_components(component:any) : {display_name: string, subItems: number, pos: number, links: any[], focus_type: string|undefined|null, component_type: string|undefined|null}[] {
+      let ret: {display_name: string, subItems: number, pos: number, links: any[], focus_type: string|undefined|null, component_type: string|undefined|null}[] = []
 
       if (this.is_collapsed(component)) {
         return ret
@@ -134,6 +121,8 @@ export default {
             'subItems': this.countSubItems(c),
             'pos': ret.length + 1,
             'links': c.hasOwnProperty('links') ? c['links'] : null,
+            'focus_type': c.hasOwnProperty('focus_type') ? c['focus_type'] : null,
+            'component_type': c.hasOwnProperty('component_type') ? c['component_type'] : null,
           })
 
           for (let sub_c of this.filtered_sub_components(c)) {
@@ -142,15 +131,48 @@ export default {
               'subItems': sub_c['subItems'],
               'pos': ret.length + 1,
               'links': sub_c['links'],
+              'focus_type': sub_c.hasOwnProperty('focus_type') ? sub_c['focus_type'] : null,
+              'component_type': sub_c.hasOwnProperty('component_type') ? sub_c['component_type'] : null,
             })
           }
         }
 
         return ret
     },
-    mobileLayout() {
-      return window.innerWidth < 1000;
+    matches(c: any, t:string, available:any) {
+      if (!c || c[t] + '' == 'null' ||  c[t] + '' == 'undefined' || typeof c[t][Symbol.iterator] != 'function') {
+        return false
+      }
+
+      for (let i of c[t]) {
+        if (available.includes(i)) {
+          return true
+        }
+      }
+
+      return false
     },
+    filter_f(f: any) {
+      this.refresh++
+    },
+    hide_component(c: any) {
+      const component_search_is_active = this.component_types.length != 0 && this.component_types.length != this.available_component_types.length
+      const focus_search_is_active = this.focus_types.length != 0 && this.focus_types.length != this.available_focus_types.length
+      const text_search_is_active = this.component_filter + '' != '' || this.component_filter + '' != 'null' || this.component_filter + '' != 'undefined'
+      if (!c || (!component_search_is_active && !focus_search_is_active && !text_search_is_active)) {
+        return false
+      }
+
+      let component_match = !component_search_is_active || this.matches(c, 'component_type', this.component_types)
+      let focus_match = !focus_search_is_active || this.matches(c, 'focus_type', this.focus_types)
+      let search_match = !text_search_is_active || c.display_name.toLowerCase().includes(this.component_filter.toLowerCase())
+
+      console.log(c.display_name + ' is component_match: ' + component_match)
+      console.log(c.display_name + ' is focus_match: ' + focus_match)
+      console.log(c.display_name + ' is search match: ' + search_match)
+
+      return !component_match || !focus_match || !search_match
+    }
   },
   beforeMount() {
     get('/api/tirex-components')
@@ -168,13 +190,14 @@ export default {
       return ret
     },
     vectorizedComponents() {
+      this.refresh
       let ret: [any[]] = [[{}, {}, {}, {}, {}, {}]]
       let cols = is_mobile() ? 12 : 2;
 
       for (let i in this.tirex_components) {
         let c = this.tirex_components[i]
 
-        ret[0][i] = {'display_name': c.display_name, 'cols': cols, 'links': c.links, 'collapsed': this.is_collapsed(c), 'subItems':this.countSubItems(c)}
+        ret[0][i] = {'display_name': c.display_name, 'cols': cols, 'links': c.links, 'collapsed': this.is_collapsed(c), 'subItems':this.countSubItems(c), 'hide': false}
 
         for (let subcomponent of this.filtered_sub_components(c)) {
           if (subcomponent['pos'] >= ret.length) {
@@ -187,6 +210,7 @@ export default {
             'links': subcomponent.links,
             'cols': cols,
             'collapsed': this.is_collapsed(subcomponent),
+            'hide': this.hide_component(subcomponent)
           }
         }
       }

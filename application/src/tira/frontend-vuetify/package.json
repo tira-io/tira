@@ -4,6 +4,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "vite",
+    "build-light": "vue-tsc --noEmit && vite --emptyOutDir build",
     "build": "jest --coverage && jest-coverage-badges && vue-tsc --noEmit && vite --emptyOutDir build",
     "preview": "vite preview",
     "test": "jest"

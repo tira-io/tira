@@ -19,8 +19,8 @@ export const slugify = (str: string) => {
     str = str.replace(/^\s+|\s+$/g, ''); // trim
     str = str.toLowerCase();
   
-    // remove accents, swap ñ for n, etc
-    var from = "àáäâèéëêìíïîòóöôùúüûñç·/_,:;";
+    // remove accents, swap Ã± for n, etc
+    var from = "Ã Ã¡Ã¤Ã¢Ã¨Ã©Ã«ÃªÃ¬Ã­Ã¯Ã®Ã²Ã³Ã¶Ã´Ã¹ÃºÃ¼Ã»Ã±Ã§Â·/_,:;";
     var to   = "aaaaeeeeiiiioooouuuunc------";
     for (var i=0, l=from.length ; i<l ; i++) {
     str = str.replace(new RegExp(from.charAt(i), 'g'), to.charAt(i));
@@ -143,14 +143,12 @@ export function extractCsrf(doc: Document=document) : string {
 
 export function reportSuccess(title: string="", text: string="") {
     return function (error: any) {
-        console.log(error)
         if (title === '') {
             title = 'Success.'
         }
-
         if ('' + error !== 'undefined' && '' + error !== 'null' && error['message'] + '' !== 'undefined' && error['message'] + '' !== 'null') {
             text = text + ' ' + error['message']
-        } else if ('' + error !== 'undefined' && '' + error !== 'null') {
+        } else if ('' + error !== 'undefined' && '' + error !== 'null' && JSON.stringify(error) !== '{"status":0}') {
             text = text + ' ' + error
         }
 
@@ -160,7 +158,6 @@ export function reportSuccess(title: string="", text: string="") {
 
 export function reportError(title: string="", text: string="") {
     return function (error: any) {
-        console.log(error)
         if (title === '') {
             title = 'Error.'
         }
@@ -344,5 +341,6 @@ export function handleModifiedSubmission(modified_data: any, objects: Array<any>
             i['display_name'] = modified_data['display_name']
         }
     }
+
     return objects
 }

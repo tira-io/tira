@@ -145,7 +145,6 @@
             get(`/api/dataset/${this.dataset_id_from_props}`)
               .then(inject_response(this, {'loading': false}, true, ['dataset', 'evaluator']))
               .catch(reportError("Problem loading the dataset.", "This might be a short-term hiccup, please try again. We got the following error: "))
-              .then(() => console.log(this.$data))
               .then(() => {this.is_confidential = '' + this.is_confidential; this.evaluation_type = 'eval-3'})
           }
         },
