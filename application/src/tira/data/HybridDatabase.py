@@ -2016,9 +2016,9 @@ class HybridDatabase(object):
                 docker_software__docker_software_id=docker_software_id, input_dataset__dataset_id=input_dataset_id
             )]
 
-        if vm_id:
+        if not software_id and not docker_software_id and vm_id:
             ret += [i.run_id for i in modeldb.Run.objects.filter(
-                upload__vm__vm_id=vm_id, input_dataset__dataset_id=input_dataset_id
+                upload__vm__vm_id=vm_id, input_dataset__dataset_id=input_dataset_id,
             )]
 
         if upload_id:
