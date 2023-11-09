@@ -2013,19 +2013,17 @@ class HybridDatabase(object):
 
         if docker_software_id:
             ret += [i.run_id for i in modeldb.Run.objects.filter(
-                docker_software__docker_software_id=docker_software_id, task__task_id=task_id,
-                input_dataset__dataset_id=input_dataset_id
+                docker_software__docker_software_id=docker_software_id, input_dataset__dataset_id=input_dataset_id
             )]
 
         if vm_id:
             ret += [i.run_id for i in modeldb.Run.objects.filter(
-                upload__vm__vm_id=vm_id, task__task_id=task_id, input_dataset__dataset_id=input_dataset_id
+                upload__vm__vm_id=vm_id, input_dataset__dataset_id=input_dataset_id
             )]
 
         if upload_id:
             ret += [i.run_id for i in modeldb.Run.objects.filter(
-                upload__id=upload_id, task__task_id=task_id,
-                input_dataset__dataset_id=input_dataset_id
+                upload__id=upload_id, input_dataset__dataset_id=input_dataset_id
             )]
 
         return [i for i in ret if i]
