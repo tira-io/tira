@@ -53,17 +53,31 @@ class TiraRerankingTransformer(Transformer):
     A Transformer that loads runs from TIRA that reranked some existing run.
     """
 
-    def __init__(self, approach, tira_client, **kwargs):
+    def __init__(self, approach, tira_client, dataset=None, datasets=None, **kwargs):
         self.task, self.team, self.software = approach.split('/')
         self.tira_client = tira_client
+        from tira.ir_datasets_util import translate_irds_id_to_tirex
+        if dataset and datasets:
+            raise ValueError(f'You can not pass both, dataset and datasets. Got dataset = {dataset} and datasets= {datasets}')
+
+        if not datasets and dataset:
+            datasets = [dataset]
+        self.datasets = datasets
+        
+        if self.datasets:
+            self.datasets = [translate_irds_id_to_tirex(i) for i in self.datasets]
 
     def transform(self, topics):
         import numpy as np
         assert "qid" in topics.columns
         if 'tira_task' not in topics.columns or 'tira_dataset' not in topics.columns or 'tira_first_stage_run_id' not in topics.columns:
-            raise ValueError('This run needs to know the tira metadata: tira_task, tira_dataset, and tira_first_stage_run_id needs to be in the columns of the dataframe')
+            if self.datasets:
+                tira_configurations = [{'tira_task': self.task, 'tira_dataset': i, 'tira_first_stage_run_id': None} for i in self.datasets]
+            else:
+                raise ValueError('This run needs to know the tira metadata: tira_task, tira_dataset, and tira_first_stage_run_id needs to be in the columns of the dataframe')
+        else:
+            tira_configurations = [json.loads(i) for i in topics[['tira_task', 'tira_dataset', 'tira_first_stage_run_id']].apply(lambda i: json.dumps(i.to_dict()), axis=1).unique()]
 
-        tira_configurations = [json.loads(i) for i in topics[['tira_task', 'tira_dataset', 'tira_first_stage_run_id']].apply(lambda i: json.dumps(i.to_dict()), axis=1).unique()]
         df = []
         for tira_configuration in tira_configurations:
             df += [self.tira_client.download_run(tira_configuration['tira_task'], tira_configuration['tira_dataset'], self.software, self.team, tira_configuration['tira_first_stage_run_id'])]
@@ -81,7 +95,8 @@ class TiraRerankingTransformer(Transformer):
         if len(drop_columns) > 0:
             keeping = topics.columns[~ topics.columns.isin(drop_columns)]
 
-        return topics[keeping].merge(df, how='left', left_on=["qid", "docno"], right_on=["qid", "docno"])
+        join_criterium = ['qid'] if 'docno' not in keeping else ['qid', 'docno']
+        return topics[keeping].merge(df, how='left', left_on=join_criterium, right_on=join_criterium)
 
 
 class TiraLocalExecutionRerankingTransformer(Transformer):

@@ -100,7 +100,7 @@ class PyTerrierIntegration():
         else:
             from tira.pyterrier_util import TiraRerankingTransformer
             
-            return TiraRerankingTransformer(approach, self.tira_client)
+            return TiraRerankingTransformer(approach, self.tira_client, dataset, datasets)
 
     def from_retriever_submission(self, approach, dataset, previous_stage=None, datasets=None):
         import pyterrier as pt

@@ -38,6 +38,20 @@ def test_for_single_query_no_3():
     assert len(actual) == 1
     assert actual[0] == expected[0]
 
+def test_retrieval_submission_from_rest_api():
+    from tira.rest_api_client import Client
+    from tira.third_party_integrations import ensure_pyterrier_is_loaded
+    import pyterrier as pt
+    ensure_pyterrier_is_loaded()
+    tira = Client()
+
+    q = tira.pt.from_submission('ir-benchmarks/tira-ir-starter/BM25 Re-Rank (tira-ir-starter-pyterrier)', pt.get_dataset("irds:disks45/nocr/trec-robust-2004"))
+    assert len(q(pd.DataFrame([{'qid': '306'}]))) == 1000
+    assert q(pd.DataFrame([{'qid': '306'}])).iloc[0].to_dict()['docno'] == 'LA021790-0114'
+    assert q(pd.DataFrame([{'qid': '306'}])).iloc[0].to_dict()['qid'] == '306'
+    assert q(pd.DataFrame([{'qid': '306'}])).iloc[999].to_dict()['docno'] == 'FBIS4-47956'
+    assert q(pd.DataFrame([{'qid': '306'}])).iloc[999].to_dict()['qid'] == '306'
+
 def retrieval_submission(queries):
     queries = pd.DataFrame([{'qid': str(i)} for i in queries])
     tira = Client('tests/resources/')
