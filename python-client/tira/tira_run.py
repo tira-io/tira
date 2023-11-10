@@ -105,6 +105,11 @@ def main():
         input_dir = tira.download_dataset(task, dataset)
         print(f'Done: Dataset {dataset} is available locally.')
 
+        if args.input_run and 'none' != args.input_run.lower():
+            print(f'Ensure that the input run {args.input_run} is available.')
+            args.input_run = tira.get_run_output(args.input_run, dataset, True)
+            print(f'Done: input run is available locally.')
+
         if args.evaluate:
             print(f'Ensure that the evaluation truth for dataset {dataset} is available.')
             evaluate = tira.get_configuration_of_evaluation(task, dataset)
