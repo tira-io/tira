@@ -861,6 +861,21 @@
       href: https://github.com/webis-de/ir-pad/blob/public/tutorials/tutorial-01-ir-datasets.ipynb
       target: _blank
   components:
+    - display_name: Bpref
+      component_type: [TIREx]
+      links:
+        - display_name: IR-Measures Explorer
+          href: https://demo.ir-measur.es/explore?measure=Bpref
+          target: _blank
+        - display_name: Reverse IR-Measures Demo
+          href: https://demo.ir-measur.es/reverse
+          target: _blank
+        - display_name: Paper
+          href: https://ir.webis.de/anthology/2004.sigirconf_conference-2004.5/
+          target: _blank
+        - display_name: Criticism of Bpref
+          href: https://ir.webis.de/anthology/2007.sigirconf_conference-2007.12/
+          target: _blank
     - display_name: C/W/L
       links:
         - display_name: Paper
@@ -875,19 +890,37 @@
     - display_name: MAP
       component_type: [TIREx]
       links:
-        - display_name: IR-Measures Demo
+        - display_name: IR-Measures Explorer
+          href: https://demo.ir-measur.es/explore?measure=MAP
+          target: _blank
+        - display_name: Reverse IR-Measures Demo
           href: https://demo.ir-measur.es/reverse
           target: _blank
         - display_name: Criticism of MAP
           href: https://ir.webis.de/anthology/2017.sigirjournals_journal-ir0anthology0volumeA51A3.3/
           target: _blank
-        - display_name: Defense of MAP
+        - display_name: Defense of MRR
           href: https://ir.webis.de/anthology/2020.sigirjournals_journal-ir0anthology0volumeA54A1.11/
+          target: _blank
+    - display_name: MRR
+      component_type: [TIREx]
+      links:
+        - display_name: IR-Measures Explorer
+          href: https://demo.ir-measur.es/explore?measure=RR
+          target: _blank
+        - display_name: Reverse IR-Measures Demo
+          href: https://demo.ir-measur.es/reverse
+          target: _blank
+        - display_name: Criticism of MRR
+          href: https://ir.webis.de/anthology/2017.sigirjournals_journal-ir0anthology0volumeA51A3.3/
           target: _blank
     - display_name: nDCG
       component_type: [TIREx]
       links:
-        - display_name: IR-Measures Demo
+        - display_name: IR-Measures Explorer
+          href: https://demo.ir-measur.es/explore?measure=nDCG@10
+          target: _blank
+        - display_name: Reverse IR-Measures Demo
           href: https://demo.ir-measur.es/reverse
           target: _blank
         - display_name: Paper
@@ -896,13 +929,19 @@
     - display_name: Precision@k
       component_type: [TIREx]
       links:
-        - display_name: IR-Measures Demo
+        - display_name: IR-Measures Explorer
+          href: https://demo.ir-measur.es/explore?measure=P@10
+          target: _blank
+        - display_name: Reverse IR-Measures Demo
           href: https://demo.ir-measur.es/reverse
           target: _blank
     - display_name: Recall@k
       component_type: [TIREx]
       links:
-        - display_name: IR-Measures Demo
+        - display_name: IR-Measures Explorer
+          href: https://demo.ir-measur.es/explore?measure=R@10
+          target: _blank
+        - display_name: Reverse IR-Measures Demo
           href: https://demo.ir-measur.es/reverse
           target: _blank
     - display_name: Reproducibility
