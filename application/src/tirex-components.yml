@@ -176,12 +176,38 @@
 - display_name: Document Processing
   components:
     - display_name: Keyphrase Extraction
-      component_type: [TIREx]
+      component_type: [TIREx, Tutorial]
       focus_type: [Precision]
       links:
         - display_name: Tutorial
           href: https://github.com/OpenWebSearch/wows-code/blob/main/ecir24/post-hoc-notebooks/keyphrase-extraction.ipynb
           target: _blank
+      components:
+        - display_name: RSPE-TF
+          component_type: [TIREx, Tutorial]
+          links:
+          - display_name: Tutorial
+            href: https://github.com/OpenWebSearch/wows-code/blob/main/ecir24/post-hoc-notebooks/keyphrase-extraction.ipynb
+            target: _blank
+        - display_name: RSPE-FO
+          component_type: [TIREx, Tutorial]
+          links:
+          - display_name: Tutorial
+            href: https://github.com/OpenWebSearch/wows-code/blob/main/ecir24/post-hoc-notebooks/keyphrase-extraction.ipynb
+            target: _blank
+        - display_name: BCE-TF
+          component_type: [TIREx, Tutorial]
+          links:
+          - display_name: Tutorial
+            href: https://github.com/OpenWebSearch/wows-code/blob/main/ecir24/post-hoc-notebooks/keyphrase-extraction.ipynb
+            target: _blank
+        - display_name: BCE-FO
+          component_type: [TIREx, Tutorial]
+          links:
+          - display_name: Tutorial
+            href: https://github.com/OpenWebSearch/wows-code/blob/main/ecir24/post-hoc-notebooks/keyphrase-extraction.ipynb
+            target: _blank
+
     - display_name: Health Classification
       component_type: [TIREx, Tutorial]
       links:
@@ -308,17 +334,82 @@
         - display_name: qpptk
           href: https://github.com/Zendelo/QPP-EnhancedEval/tree/main/code/qpptk
           target: _blank
+        - display_name: Tutorial
+          href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-performance-prediction-in-progress-by-maik
+          target: _blank
       components:
-        - display_name: qpp-1
+        - display_name: avg-idf
           component_type: [TIREx, Tutorial]
-        - display_name: qpp-2
+          links:
+          - display_name: Tutorial
+            href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-performance-prediction-in-progress-by-maik
+            target: _blank
+        - display_name: avg-scq
           component_type: [TIREx, Tutorial]
-        - display_name: qpp-3
+          links:
+          - display_name: Tutorial
+            href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-performance-prediction-in-progress-by-maik
+            target: _blank
+        - display_name: avg-var
           component_type: [TIREx, Tutorial]
-        - display_name: qpp-4
+          links:
+          - display_name: Tutorial
+            href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-performance-prediction-in-progress-by-maik
+            target: _blank
+        - display_name: clarity
           component_type: [TIREx, Tutorial]
-        - display_name: qpp-5
+          links:
+          - display_name: Tutorial
+            href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-performance-prediction-in-progress-by-maik
+            target: _blank
+        - display_name: max-idf
           component_type: [TIREx, Tutorial]
+          links:
+          - display_name: Tutorial
+            href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-performance-prediction-in-progress-by-maik
+            target: _blank
+        - display_name: max-scq
+          component_type: [TIREx, Tutorial]
+          links:
+          - display_name: Tutorial
+            href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-performance-prediction-in-progress-by-maik
+            target: _blank
+        - display_name: max-var
+          component_type: [TIREx, Tutorial]
+          links:
+          - display_name: Tutorial
+            href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-performance-prediction-in-progress-by-maik
+            target: _blank
+        - display_name: nqc
+          component_type: [TIREx, Tutorial]
+          links:
+          - display_name: Tutorial
+            href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-performance-prediction-in-progress-by-maik
+            target: _blank
+        - display_name: scq
+          component_type: [TIREx, Tutorial]
+          links:
+          - display_name: Tutorial
+            href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-performance-prediction-in-progress-by-maik
+            target: _blank
+        - display_name: smv
+          component_type: [TIREx, Tutorial]
+          links:
+          - display_name: Tutorial
+            href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-performance-prediction-in-progress-by-maik
+            target: _blank
+        - display_name: var
+          component_type: [TIREx, Tutorial]
+          links:
+          - display_name: Tutorial
+            href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-performance-prediction-in-progress-by-maik
+            target: _blank
+        - display_name: wig
+          component_type: [TIREx, Tutorial]
+          links:
+          - display_name: Tutorial
+            href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-performance-prediction-in-progress-by-maik
+            target: _blank
 
     - display_name: Health Classification
       component_type: [TIREx, Tutorial]
@@ -332,7 +423,7 @@
 
 - display_name: Retrieval
   components:
-    - display_name: Dense Retrieval
+    - display_name: Bi-Encoder
       component_type: [TIREx]
       components:
         - display_name: TBD 1
@@ -341,24 +432,131 @@
           component_type: [TIREx]
         - display_name: TBD 3
           component_type: [TIREx]
+    - display_name: Late Interaction
+      component_type: [TIREx]
+      components:
+        - display_name: ColBERT
+          component_type: [TIREx, Tutorial]
+          links:
+            - display_name: Submission in TIREx
+              href: /submissions/ir-benchmarks/tira-ir-starter/ColBERT Re-Rank (tira-ir-starter-pyterrier)
+            - display_name: Paper
+              href: https://ir.webis.de/anthology/2020.sigirconf_conference-2020.12/
+              target: _blank
+            - display_name: Tutorial
+              href: https://github.com/terrier-org/ecir2021tutorial/blob/main/notebooks/notebook4.3.ipynb
+              target: _blank
     - display_name: Lexical Retrieval
       component_type: [TIREx]
       components:
+        - display_name: ChatNoir
+          component_type: [TIREx]
+          links:
+            - display_name: Submission in TIREx
+              href: /submissions/ir-benchmarks/tira-ir-starter/Chatnoir
+            - display_name: Demo
+              href: https://www.chatnoir.eu/
+              target: _blank
         - display_name: BM25
           component_type: [TIREx]
           links:
             - display_name: Submission in TIREx
-              href: /task-overview/ir-benchmarks
-        - display_name: TF-IDF
+              href: /submissions/ir-benchmarks/tira-ir-starter/BM25(tira-ir-starter-pyterrier)
+        - display_name: DFIC
           component_type: [TIREx]
           links:
             - display_name: Submission in TIREx
-              href: /task-overview/ir-benchmarks/
+              href: /submissions/ir-benchmarks/tira-ir-starter/DFIC(tira-ir-starter-pyterrier)
+        - display_name: DFIZ
+          component_type: [TIREx]
+          links:
+            - display_name: Submission in TIREx
+              href: /submissions/ir-benchmarks/tira-ir-starter/DFIZ(tira-ir-starter-pyterrier)
+        - display_name: DFR BM25
+          component_type: [TIREx]
+          links:
+            - display_name: Submission in TIREx
+              href: /submissions/ir-benchmarks/tira-ir-starter/DFR_BM25(tira-ir-starter-pyterrier)
+        - display_name: DFRee
+          component_type: [TIREx]
+          links:
+            - display_name: Submission in TIREx
+              href: /submissions/ir-benchmarks/tira-ir-starter/DFRee(tira-ir-starter-pyterrier)
+        - display_name: DFReeKLIM
+          component_type: [TIREx]
+          links:
+            - display_name: Submission in TIREx
+              href: /submissions/ir-benchmarks/tira-ir-starter/DFReeKLIM(tira-ir-starter-pyterrier)
+        - display_name: Dirichlet LM
+          component_type: [TIREx]
+          links:
+            - display_name: Submission in TIREx
+              href: /submissions/ir-benchmarks/tira-ir-starter/DirichletLM(tira-ir-starter-pyterrier)
+        - display_name: DLH
+          component_type: [TIREx]
+          links:
+            - display_name: Submission in TIREx
+              href: /submissions/ir-benchmarks/tira-ir-starter/DLH(tira-ir-starter-pyterrier)
+        - display_name: DPH
+          component_type: [TIREx]
+          links:
+            - display_name: Submission in TIREx
+              href: /submissions/ir-benchmarks/tira-ir-starter/DPH(tira-ir-starter-pyterrier)
+        - display_name: Hiemstra LM
+          component_type: [TIREx]
+          links:
+            - display_name: Submission in TIREx
+              href: /submissions/ir-benchmarks/tira-ir-starter/Hiemstra_LM(tira-ir-starter-pyterrier)
+        - display_name: IFB2
+          component_type: [TIREx]
+          links:
+            - display_name: Submission in TIREx
+              href: /submissions/ir-benchmarks/tira-ir-starter/IFB2(tira-ir-starter-pyterrier)
+        - display_name: In-expB2
+          component_type: [TIREx]
+          links:
+            - display_name: Submission in TIREx
+              href: /submissions/ir-benchmarks/tira-ir-starter/In_expB2(tira-ir-starter-pyterrier)
+        - display_name: In-expC2
+          component_type: [TIREx]
+          links:
+            - display_name: Submission in TIREx
+              href: /submissions/ir-benchmarks/tira-ir-starter/In_expC2(tira-ir-starter-pyterrier)
+        - display_name: InB2
+          component_type: [TIREx]
+          links:
+            - display_name: Submission in TIREx
+              href: /submissions/ir-benchmarks/tira-ir-starter/InB2(tira-ir-starter-pyterrier)
+        - display_name: InL2
+          component_type: [TIREx]
+          links:
+            - display_name: Submission in TIREx
+              href: /submissions/ir-benchmarks/tira-ir-starter/InL2(tira-ir-starter-pyterrier)
+        - display_name: Js-KLs
+          component_type: [TIREx]
+          links:
+            - display_name: Submission in TIREx
+              href: /submissions/ir-benchmarks/tira-ir-starter/Js_KLs(tira-ir-starter-pyterrier)
+        - display_name: LGD
+          component_type: [TIREx]
+          links:
+            - display_name: Submission in TIREx
+              href: /submissions/ir-benchmarks/tira-ir-starter/LGD(tira-ir-starter-pyterrier)
         - display_name: PL2
           component_type: [TIREx]
           links:
             - display_name: Submission in TIREx
-              href: /task-overview/ir-benchmarks/
+              href: /submissions/ir-benchmarks/tira-ir-starter/PL2(tira-ir-starter-pyterrier)
+        - display_name: TF-IDF
+          component_type: [TIREx]
+          links:
+            - display_name: Submission in TIREx
+              href: /submissions/ir-benchmarks/tira-ir-starter/TF_IDF(tira-ir-starter-pyterrier)
+        - display_name: XSqrA-M
+          component_type: [TIREx]
+          links:
+            - display_name: Submission in TIREx
+              href: /submissions/ir-benchmarks/tira-ir-starter/XSqrA_M(tira-ir-starter-pyterrier)
 
 - display_name: Re-Ranking
   components:
@@ -530,11 +728,18 @@
       component_type: [TIREx]
       components:
         - display_name: ColBERT
-          component_type: [TIREx]
+          component_type: [TIREx, Tutorial]
           links:
             - display_name: Submission in TIREx
               href: /submissions/ir-benchmarks/tira-ir-starter/ColBERT Re-Rank (tira-ir-starter-pyterrier)
-    - display_name: Lexical Retrieval
+            - display_name: Paper
+              href: https://ir.webis.de/anthology/2020.sigirconf_conference-2020.12/
+              target: _blank
+            - display_name: Tutorial
+              href: https://github.com/terrier-org/ecir2021tutorial/blob/main/notebooks/notebook4.3.ipynb
+              target: _blank
+
+    - display_name: Lexical Re-Ranking
       component_type: [TIREx]
       components:
         - display_name: BM25
