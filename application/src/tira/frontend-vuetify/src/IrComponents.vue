@@ -25,7 +25,7 @@
         </v-col>
       </v-row>
     </v-form>
-
+<!---
     <div>
       <v-row class="justify-center mx-2" v-for="(row, _) of vectorizedComponents">
         <v-col v-for="(cell, i) in row" cols="cell.cols">
@@ -48,6 +48,34 @@
               </v-list-item>
             </v-list>
           </v-menu>      
+        </v-col>
+      </v-row>
+    </div>
+    -->
+    <div>
+      <v-row class="justify-center mx-2">
+        <v-col v-for="i in 6" cols="2">
+          <v-row v-for="(row, index) in vectorizedComponents" class="ma-1">
+            <v-menu>
+            <template v-slot:activator="{ props }">
+              <v-card @click="logger(tirex_components)" v-bind="props" v-if="vectorizedComponents[index][i-1] && vectorizedComponents[index][i-1]?.display_name && !vectorizedComponents[index][i-1].hide" class="mx-auto w-100 text-start" :max-width="max_width" :color="vectorizedComponents[index][i-1]?.color" variant="tonal" style="cursor: pointer;">
+                <v-card-item><span class="text-h6 mb-1">{{ vectorizedComponents[index][i-1]?.display_name }}</span><span style="font-size: .7em;" v-if="vectorizedComponents[index][i-1].collapsed && vectorizedComponents[index][i-1].subItems > 0">&nbsp;&nbsp;(+&nbsp;{{ vectorizedComponents[index][i-1].subItems }})</span></v-card-item>
+              </v-card>
+            </template>
+
+            <v-list>
+              <v-list-item v-for="link in vectorizedComponents[index][i-1].links">
+                <v-list-item-title><a :href="link.href" :target="link.target">{{ link.display_name }}</a></v-list-item-title>
+              </v-list-item>
+              <v-list-item v-if="!vectorizedComponents[index][i-1].collapsed && vectorizedComponents[index][i-1].subItems > 0">
+                <v-list-item-title><a style="cursor: pointer;" @click="collapseItem(vectorizedComponents[index][i-1].display_name)">Collapse sub-items</a></v-list-item-title>
+              </v-list-item>
+              <v-list-item v-if="vectorizedComponents[index][i-1].collapsed && vectorizedComponents[index][i-1].subItems > 0">
+                <v-list-item-title><a style="cursor: pointer;" @click="expandItem(vectorizedComponents[index][i-1].display_name)">Expand {{ vectorizedComponents[index][i-1].subItems }} items</a></v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-menu>
+          </v-row>
         </v-col>
       </v-row>
     </div>
@@ -83,7 +111,11 @@ export default {
     }
   },
   methods: {
-    colorOfComponent(c:string) {
+    logger(row : any) {
+      console.log(this.tirex_components)
+      console.log(this.vectorizedComponents)
+    },
+    colorOfComponent(c:string) : string {
       return this.colors[c] ?? "grey"
     },
     is_mobile() {return is_mobile()},
@@ -155,7 +187,30 @@ export default {
     filter_f(f: any) {
       this.refresh++
     },
-    hide_component(c: any) {
+    parent_contains_match (component: any) : boolean {
+      console.log(component)
+      console.log("testing parent-matching: ")
+      console.log(component.parents)
+      let contains_match = false;
+      for(let i in component.children) {
+        if (component.parents[i].toLowerCase().includes(this.component_filter.toLowerCase())) {
+          contains_match = true;
+        }
+      }
+      return contains_match;
+    },
+    child_contains_match (component: any) : boolean {
+      console.log(component)
+      console.log("testing child-matching: ")
+      console.log(component.children)
+      let contains_match = false;
+      for(let i in component.children) {
+      if(component.children[i].toLowerCase().includes(this.component_filter.toLowerCase())) {
+        contains_match = true;
+      }}
+      return contains_match;
+    },
+    hide_component(c: any) : boolean {
       const component_search_is_active = this.component_types.length != 0 && this.component_types.length != this.available_component_types.length
       const focus_search_is_active = this.focus_types.length != 0 && this.focus_types.length != this.available_focus_types.length
       const text_search_is_active = this.component_filter + '' != '' || this.component_filter + '' != 'null' || this.component_filter + '' != 'undefined'
@@ -165,14 +220,22 @@ export default {
 
       let component_match = !component_search_is_active || this.matches(c, 'component_type', this.component_types)
       let focus_match = !focus_search_is_active || this.matches(c, 'focus_type', this.focus_types)
-      let search_match = !text_search_is_active || c.display_name.toLowerCase().includes(this.component_filter.toLowerCase())
-
-      console.log(c.display_name + ' is component_match: ' + component_match)
-      console.log(c.display_name + ' is focus_match: ' + focus_match)
-      console.log(c.display_name + ' is search match: ' + search_match)
+      let search_match = !text_search_is_active || c.display_name.toLowerCase().includes(this.component_filter.toLowerCase()) || this.parent_contains_match(c) || this.child_contains_match(c)
 
       return !component_match || !focus_match || !search_match
-    }
+    },
+    list_subcomponents(component : any) : string[] {
+      if(component.display_name.toLowerCase().includes("dense retrieval")) {
+          return ["tbd 1", "tbd 2", "tbd 3"]
+      }
+      return ['']
+    },
+    list_parent_components(component : any) : [string] {
+       if(component.display_name.toLowerCase().includes("tbd 1")) {
+          return ["dense retrieval"]
+      }
+      return ['']
+    },
   },
   beforeMount() {
     get('/api/tirex-components')
@@ -190,14 +253,19 @@ export default {
       return ret
     },
     vectorizedComponents() {
-      this.refresh
+      // this.refresh
+
+      //initialize array of rows for each category in ['Dataset', 'Document Processing', 'Query Processing', 'Retrieval', 'Re-Ranking', 'Evaluation']
       let ret: [any[]] = [[{}, {}, {}, {}, {}, {}]]
       let cols = is_mobile() ? 12 : 2;
 
+      // for each category in tirex_components
       for (let i in this.tirex_components) {
+        // c is an array of all components in category i
         let c = this.tirex_components[i]
 
-        ret[0][i] = {'display_name': c.display_name, 'cols': cols, 'links': c.links, 'collapsed': this.is_collapsed(c), 'subItems':this.countSubItems(c), 'hide': false}
+        // we set row 0
+        ret[0][i] = {'display_name': c.display_name, 'cols': cols, 'links': c.links, 'collapsed': this.is_collapsed(c), 'subItems':this.countSubItems(c), 'hide': false, 'children':this.list_subcomponents(c), 'parents': this.list_parent_components(c)}
 
         for (let subcomponent of this.filtered_sub_components(c)) {
           if (subcomponent['pos'] >= ret.length) {
@@ -210,7 +278,9 @@ export default {
             'links': subcomponent.links,
             'cols': cols,
             'collapsed': this.is_collapsed(subcomponent),
-            'hide': this.hide_component(subcomponent)
+            'hide': this.hide_component(subcomponent),
+            'children': this.list_subcomponents(subcomponent),
+            'parents': this.list_parent_components(subcomponent)
           }
         }
       }
