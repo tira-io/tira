@@ -201,7 +201,7 @@ class Client():
         run_id = ret['run_id']
         
         ret = self.download_zip_to_cache_directory(**ret)
-        ret = pd.read_csv(ret + '/run.txt', sep='\\s+', names=["query", "q0", "docid", "rank", "score", "system"])
+        ret = pd.read_csv(ret + '/run.txt', sep='\\s+', names=["query", "q0", "docid", "rank", "score", "system"], dtype={"query": str, "docid": str})
         if return_metadata:
             return ret, run_id
         else:

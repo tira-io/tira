@@ -49,10 +49,22 @@ def test_rest_query_submission_with_rest_api_03():
     ensure_pyterrier_is_loaded()
     tira = Client()
 
-    q = tira.pt.transform_queries('ir-benchmarks/fschlatt/average-string', pt.get_dataset("irds:clueweb09/en/trec-web-2009"))
+    q = tira.pt.transform_queries('ir-benchmarks/fschlatt/bitter-aroma', pt.get_dataset("irds:clueweb09/en/trec-web-2009"))
     assert len(q(pd.DataFrame([{'qid': '26'}]))) == 1
     assert q(pd.DataFrame([{'qid': '26'}])).iloc[0].to_dict()['mean_health_score'] == 168.416
     assert q(pd.DataFrame([{'qid': '26'}])).iloc[0].to_dict()['median_health_score'] == 130.3137
+
+def test_rest_query_submission_with_rest_api_04():
+    from tira.rest_api_client import Client
+    from tira.third_party_integrations import ensure_pyterrier_is_loaded
+    import pyterrier as pt
+    ensure_pyterrier_is_loaded()
+    tira = Client()
+
+    q = tira.pt.transform_queries('ir-benchmarks/qpptk/fixed-sealer', pt.get_dataset("irds:disks45/nocr/trec-robust-2004"))
+    assert len(q(pd.DataFrame([{'qid': '301'}]))) == 1
+    assert q(pd.DataFrame([{'qid': '301'}])).iloc[0].to_dict()['max-idf'] == 3.5629408815
+    assert q(pd.DataFrame([{'qid': '301'}])).iloc[0].to_dict()['avg-idf'] == 2.4740487603
 
 def query_segmentation(queries):
     queries = pd.DataFrame([{'qid': str(i)} for i in queries])

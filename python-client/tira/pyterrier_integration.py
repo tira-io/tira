@@ -100,7 +100,7 @@ class PyTerrierIntegration():
         else:
             from tira.pyterrier_util import TiraRerankingTransformer
             
-            return TiraRerankingTransformer(approach, self.tira_client)
+            return TiraRerankingTransformer(approach, self.tira_client, dataset, datasets)
 
     def from_retriever_submission(self, approach, dataset, previous_stage=None, datasets=None):
         import pyterrier as pt
@@ -139,7 +139,7 @@ class PyTerrierIntegration():
         if len(matching_files) == 0:
             raise ValueError(f'Could not find a matching query output. Found: {matching_files}. Please specify the file_selection to resolve this.')
 
-        ret = pd.read_json(matching_files[0], lines=True)
+        ret = pd.read_json(matching_files[0], lines=True, dtype={'qid': str, 'query': str})
         if 'qid' not in ret and 'query_id' in ret:
             ret['qid'] = ret['query_id']
             del ret['query_id']

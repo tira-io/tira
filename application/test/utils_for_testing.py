@@ -106,6 +106,10 @@ def set_up_tira_environment():
         vm=modeldb.VirtualMachine.objects.get(vm_id='PARTICIPANT-FOR-TEST-1'),
         task=modeldb.Task.objects.get(task_id='shared-task-1'), display_name=software_non_public)[0]
 
+    es1 = modeldb.DockerSoftware.objects.create(
+        display_name='software_e1', vm=modeldb.VirtualMachine.objects.get(vm_id='example_participant'),
+        task=modeldb.Task.objects.get(task_id='shared-task-1'), deleted=False)
+
     modeldb.DockerSoftwareHasAdditionalInput.objects.create(position=1, docker_software=s1_tmp,
                                                             input_docker_software=s2_tmp)
     modeldb.DockerSoftwareHasAdditionalInput.objects.create(position=3, docker_software=s1_tmp,
@@ -131,6 +135,9 @@ def set_up_tira_environment():
 
             tira_model.add_run(dataset_id='dataset-1', vm_id=participant, run_id=run_id)
             run = modeldb.Run.objects.get(run_id=run_id)
+            if participant == 'example_participant':
+                run.docker_software = es1
+                run.save()
 
             eval_run = modeldb.Run.objects.create(run_id=f'run-{i}-{participant}-eval', input_run=run, input_dataset=d,
                                                   evaluator=evaluator)
