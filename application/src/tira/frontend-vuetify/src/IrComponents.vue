@@ -25,33 +25,6 @@
         </v-col>
       </v-row>
     </v-form>
-<!---
-    <div>
-      <v-row class="justify-center mx-2" v-for="(row, _) of vectorizedComponents">
-        <v-col v-for="(cell, i) in row" cols="cell.cols">
-          <v-menu>
-            <template v-slot:activator="{ props }">
-              <v-card v-bind="props" v-if="cell && cell?.display_name && !cell.hide" class="mx-auto" :max-width="max_width" :color="cell?.color" variant="tonal" style="cursor: pointer;">
-                <v-card-item><span class="text-h6 mb-1">{{ cell?.display_name }}</span><span style="font-size: .7em;" v-if="cell.collapsed && cell.subItems > 0">&nbsp;&nbsp;(+&nbsp;{{ cell.subItems }})</span></v-card-item>
-              </v-card>
-            </template>
-
-            <v-list>
-              <v-list-item v-for="link in cell.links">
-                <v-list-item-title><a :href="link.href" :target="link.target">{{ link.display_name }}</a></v-list-item-title>
-              </v-list-item>
-              <v-list-item v-if="!cell.collapsed && cell.subItems > 0">
-                <v-list-item-title><a style="cursor: pointer;" @click="collapseItem(cell.display_name)">Collapse sub-items</a></v-list-item-title>
-              </v-list-item>
-              <v-list-item v-if="cell.collapsed && cell.subItems > 0">
-                <v-list-item-title><a style="cursor: pointer;" @click="expandItem(cell.display_name)">Expand {{ cell.subItems }} items</a></v-list-item-title>
-              </v-list-item>
-            </v-list>
-          </v-menu>      
-        </v-col>
-      </v-row>
-    </div>
-    -->
     <div>
       <v-row class="justify-center mx-2 mb-5">
         <v-col v-for="i in 6" :cols="is_mobile() ? '12' : '2'">
