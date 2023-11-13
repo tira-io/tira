@@ -81,15 +81,7 @@
 
 <script lang="ts">
 import {is_mobile, Loading} from './components'
-import {
-  compareArrays,
-  extractComponentTypesFromCurrentUrl,
-  extractFocusTypesFromCurrentUrl,
-  extractSearchQueryFromCurrentUrl,
-  get,
-  inject_response,
-  reportError
-} from './utils';
+import {compareArrays, extractComponentTypesFromCurrentUrl, extractFocusTypesFromCurrentUrl, extractSearchQueryFromCurrentUrl, get, inject_response, reportError} from './utils';
 import CodeSnippet from "@/components/CodeSnippet.vue";
 
 interface Component {

@@ -228,12 +228,11 @@ export function extractSearchQueryFromCurrentUrl() {
     let url = ref(window.location).value.href
     let to_split = 'components/' + extractComponentTypesFromCurrentUrl().join() + '/' + extractFocusTypesFromCurrentUrl().join() + '/'
     let search_query = ''
-
     if(url.includes(to_split)) {
        search_query = url.split(to_split)[1].split('/')[0]
     }
-    if(search_query != null && search_query.includes('_')) {
-        search_query.replace('_', ' ')
+    if(search_query !== null && search_query.includes("%20")) {
+        search_query = search_query.replaceAll("%20", " ")
     }
     return search_query ? search_query.toLowerCase() : search_query
 }
