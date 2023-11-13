@@ -119,7 +119,10 @@ def __lazy_qrels(tira_path):
                 print(f'Please pass tira_path as <task>/<tira-dataset>. Got {tira_path}')
                 return
 
-            self.task, self.dataset = tira_path.split('/')        
+            self.task, self.dataset = tira_path.split('/')
+
+        def qrels_cls(self):
+            return TrecQrel
         
         def qrels_iter(self):
             if not self.qrels:
@@ -148,7 +151,10 @@ def __lazy_queries(tira_path):
                 print(f'Please pass tira_path as <task>/<tira-dataset>. Got {tira_path}')
                 return
 
-            self.task, self.dataset = tira_path.split('/')       
+            self.task, self.dataset = tira_path.split('/')
+
+        def queries_cls(self):
+            return TrecQuery
         
         def queries_iter(self):
             if not self.queries:
