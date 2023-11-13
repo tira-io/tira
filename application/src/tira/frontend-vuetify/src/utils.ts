@@ -191,16 +191,16 @@ export function extractComponentTypesFromCurrentUrl() {
 
         if(component_types !== null && component_types.includes(',')) {
             component_types_array = component_types.split(',')
-            for(let i = 0; i < component_types_array.length; i++) {
-                component_types_array[i] = component_types_array[i].charAt(0).toUpperCase() + component_types_array[i].slice(1)
-                component_types_array[i] = component_types_array[i].replace( /tirex/i, 'TIREx')
-            }
         }
         else {
            component_types_array = [component_types]
         }
+        for(let i = 0; i < component_types_array.length; i++) {
+                component_types_array[i] = component_types_array[i].charAt(0).toUpperCase() + component_types_array[i].slice(1)
+                component_types_array[i] = component_types_array[i].replace( /tirex/i, 'TIREx')
+            }
     }
-    return compareArrays(component_types_array, []) ? [] : component_types_array
+    return compareArrays(component_types_array, []) || compareArrays(component_types_array, [''])? [] : component_types_array
 }
 
 export function extractFocusTypesFromCurrentUrl() {
@@ -217,8 +217,11 @@ export function extractFocusTypesFromCurrentUrl() {
         else {
            focus_types_array = [focus_type]
         }
+     for(let i = 0; i < focus_types_array.length; i++) {
+                focus_types_array[i] = focus_types_array[i].charAt(0).toUpperCase() + focus_types_array[i].slice(1)
+            }
     }
-    return compareArrays(focus_types_array, []) ? [] : focus_types_array
+    return compareArrays(focus_types_array, []) || compareArrays(focus_types_array, ['']) ? [] : focus_types_array
 }
 
 export function extractSearchQueryFromCurrentUrl() {

@@ -9,7 +9,7 @@ import {
   extractFocusTypesFromCurrentUrl,
   extractSearchQueryFromCurrentUrl,
   extractComponentTypesFromCurrentUrl
-} from '@/utils'
+} from '../utils'
 
 Object.defineProperty((window as Window), 'location', {
     value: {
@@ -309,19 +309,19 @@ test('Component_type and focus and search query exist', () => {
   (window as Window).location.href = 'components/TIREx/Precision/Dense_Retrieval'
   expect(extractComponentTypesFromCurrentUrl()).toStrictEqual(['TIREx']);
   expect(extractFocusTypesFromCurrentUrl()).toStrictEqual(['Precision']);
-  expect(extractSearchQueryFromCurrentUrl()).toStrictEqual('Dense Retrieval');
+  expect(extractSearchQueryFromCurrentUrl()).toStrictEqual('dense retrieval');
 });
 
 test('Component_type and focus and search query exist 2', () => {
   (window as Window).location.href = 'components/TIREx/Precision/Dense_Retrieval/'
   expect(extractComponentTypesFromCurrentUrl()).toStrictEqual(['TIREx']);
   expect(extractFocusTypesFromCurrentUrl()).toStrictEqual(['Precision']);
-  expect(extractSearchQueryFromCurrentUrl()).toStrictEqual('Dense Retrieval');
+  expect(extractSearchQueryFromCurrentUrl()).toStrictEqual('dense retrieval');
 });
 
 test('Multiple component_type and focus and search query exist ', () => {
   (window as Window).location.href = 'components/TIREx,Code,Tutorial/Precision,Recall/Dense_Retrieval/'
   expect(extractComponentTypesFromCurrentUrl()).toStrictEqual(['TIREx','Code','Tutorial']);
   expect(extractFocusTypesFromCurrentUrl()).toStrictEqual(['Precision','Recall']);
-  expect(extractSearchQueryFromCurrentUrl()).toStrictEqual('Dense Retrieval');
+  expect(extractSearchQueryFromCurrentUrl()).toStrictEqual('dense retrieval');
 });
