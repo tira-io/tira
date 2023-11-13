@@ -1,5 +1,5 @@
 <template>
-  <v-alert v-model="alert" v-if="current_element" @click:close="messageClosed" closable :title="title" :text="text" :type="type" variant="tonal"/>
+  <v-alert v-model="alert" @click:close="messageClosed" closable :title="title" :text="text" :type="type" :class="alert && current_element ? 'tira-alert' : 'tira-alert hide-tira-alert'" transition="fade-transition"/>
 </template>
 
 <script lang="ts">
@@ -22,6 +22,7 @@ export default {
     push_message: function (title: string, text: string, type: string) {
       this.messages.push({title: title, text: text, type: type})
       this.alert = true
+      setTimeout(() => {this.messageClosed()}, 5000);
     },
     messageClosed: function () {
         this.messages = this.messages.slice(1)
@@ -34,3 +35,16 @@ export default {
   },
 }
 </script>
+<style>
+.tira-alert {
+  position: fixed;
+  top: 0;
+  z-index: 10;
+  width: 100%;
+  opacity: 0.9;
+}
+.hide-tira-alert {
+  height: 0;
+  visibility: hidden;
+}
+</style>
