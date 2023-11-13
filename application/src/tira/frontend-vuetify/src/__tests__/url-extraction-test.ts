@@ -306,22 +306,22 @@ test('Several component_type and several focus_types but no search query 2', () 
   expect(extractFocusTypesFromCurrentUrl()).toStrictEqual(['Precision', 'Recall']);
 });
 test('Component_type and focus and search query exist', () => {
-  (window as Window).location.href = 'components/TIREx/Precision/Dense_Retrieval'
+  (window as Window).location.href = 'components/TIREx/Precision/Dense%20Retrieval'
   expect(extractComponentTypesFromCurrentUrl()).toStrictEqual(['TIREx']);
   expect(extractFocusTypesFromCurrentUrl()).toStrictEqual(['Precision']);
-  expect(extractSearchQueryFromCurrentUrl()).toStrictEqual('dense_retrieval');
+  expect(extractSearchQueryFromCurrentUrl()).toStrictEqual('dense retrieval');
 });
 
 test('Component_type and focus and search query exist 2', () => {
-  (window as Window).location.href = 'components/TIREx/Precision/Dense_Retrieval/'
+  (window as Window).location.href = 'components/TIREx/Precision/Dense%20Retrieval/'
   expect(extractComponentTypesFromCurrentUrl()).toStrictEqual(['TIREx']);
   expect(extractFocusTypesFromCurrentUrl()).toStrictEqual(['Precision']);
-  expect(extractSearchQueryFromCurrentUrl()).toStrictEqual('dense_retrieval');
+  expect(extractSearchQueryFromCurrentUrl()).toStrictEqual('dense retrieval');
 });
 
 test('Multiple component_type and focus and search query exist ', () => {
-  (window as Window).location.href = 'components/TIREx,Code,Tutorial/Precision,Recall/Dense_Retrieval/'
+  (window as Window).location.href = 'components/TIREx,Code,Tutorial/Precision,Recall/Dense%20Retrieval/'
   expect(extractComponentTypesFromCurrentUrl()).toStrictEqual(['TIREx','Code','Tutorial']);
   expect(extractFocusTypesFromCurrentUrl()).toStrictEqual(['Precision','Recall']);
-  expect(extractSearchQueryFromCurrentUrl()).toStrictEqual('dense_retrieval');
+  expect(extractSearchQueryFromCurrentUrl()).toStrictEqual('dense retrieval');
 });
