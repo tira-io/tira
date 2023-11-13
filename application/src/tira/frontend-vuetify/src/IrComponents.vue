@@ -81,7 +81,15 @@
 
 <script lang="ts">
 import {is_mobile, Loading} from './components'
-import {get, inject_response, reportError, extractFocusTypesFromCurrentUrl, extractSearchQueryFromCurrentUrl, extractComponentTypesFromCurrentUrl, compareArrays} from './utils';
+import {
+  compareArrays,
+  extractComponentTypesFromCurrentUrl,
+  extractFocusTypesFromCurrentUrl,
+  extractSearchQueryFromCurrentUrl,
+  get,
+  inject_response,
+  reportError
+} from './utils';
 import CodeSnippet from "@/components/CodeSnippet.vue";
 
 interface Component {
@@ -127,7 +135,7 @@ export default {
       const componentSet: ComponentSet = new Map();
 
       function traverse(current: Component, ancestors: string[] = []) {
-        const componentKey = current.display_name.toLowerCase();
+        const componentKey = current.display_name;
 
         if (!componentSet.has(componentKey)) {
           componentSet.set(componentKey, { ancestors, children: [] });
@@ -138,7 +146,8 @@ export default {
         if (current.components && current.components.length > 0) {
           for (const child of current.components) {
             traverse(child, [componentKey, ...ancestors]);
-            componentSet.get(componentKey)?.children.push(child.display_name.toLowerCase());
+            const childChildren = componentSet.get(child.display_name)?.children ?? [];
+            componentSet.get(componentKey)?.children.push(child.display_name, ...childChildren);
           }
         }
       }
@@ -174,7 +183,7 @@ export default {
     filtered_sub_components(component:any) : {display_name: string, subItems: number, pos: number, links: any[], focus_type: string|undefined|null, component_type: string|undefined|null}[] {
       let ret: {display_name: string, subItems: number, pos: number, links: any[], focus_type: string|undefined|null, component_type: string|undefined|null}[] = []
 
-      if (this.is_collapsed(component)) {
+      if (this.is_collapsed(component) || !component['components']) {
         return ret
       }
 
@@ -226,10 +235,11 @@ export default {
         const ancestors = this.tirex_component_relationship_set.get(elementKey)?.ancestors || [];
         const children = this.tirex_component_relationship_set.get(elementKey)?.children || [];
         const filter_adjusted_for_being_empty = this.component_filter ? this.component_filter.toLowerCase() : ''
-        const matchesItself = elementKey.toLowerCase().includes(filter_adjusted_for_being_empty )
+        const matchesItself = elementKey.toLowerCase().includes(filter_adjusted_for_being_empty)
 
-        return ancestors.some((ancestor : string) => ancestor.toLowerCase().includes(filter_adjusted_for_being_empty )) || children.some((child : string) => child.toLowerCase().includes(filter_adjusted_for_being_empty )) || matchesItself;
+        return ancestors.some((ancestor : string) => ancestor.toLowerCase().includes(filter_adjusted_for_being_empty)) || children.some((child : string) => child.toLowerCase().includes(filter_adjusted_for_being_empty)) || matchesItself;
       },
+
     // used in VectorizeComponents. Calculates whether a component should be hidden based on search criteria
     hide_component(c: any) : boolean {
       const component_search_is_active = this.component_types.length != 0 && this.component_types.length != this.available_component_types.length
@@ -238,40 +248,57 @@ export default {
       if (!c || (!component_search_is_active && !focus_search_is_active && !text_search_is_active)) {
         return false
       }
-
       let component_match = !component_search_is_active || this.matches(c, 'component_type', this.component_types)
       let focus_match = !focus_search_is_active || this.matches(c, 'focus_type', this.focus_types)
-      let search_match = !text_search_is_active || this.component_matches_search_query(c.display_name.toLowerCase())
+      let search_match = !text_search_is_active || this.component_matches_search_query(c.display_name)
 
       return !component_match || !focus_match || !search_match
     },
-    updateUrlToSelectedComponentTypes() {
+    updateUrlToCurrentSearchCriteria() {
       this.$router.replace({name: 'tirex', params: {component_types: this.component_types.join(), focus_types: this.focus_types.join(), search_query: this.component_filter}})
     },
-    updateUrlToSelectedFocusType() {
-      this.$router.replace({name: 'tirex', params: {component_types: this.component_types.join(), focus_types: this.focus_types.join(), search_query: this.component_filter}})
-    },
-    updateUrlToRequestedSearchQuery() {
-      this.$router.replace({name: 'tirex', params: {component_types: this.component_types.join(), focus_types: this.focus_types.join(), search_query: this.component_filter}})
+    findMatchingParents(componentSet: ComponentSet, targetKey: string): string[] {
+      const lowercaseTargetKey = targetKey.toLowerCase();
+      const matchingParents: string[] = [];
+
+      for (const [key, value] of componentSet) {
+        const lowercaseKey = key.toLowerCase();
+
+        if (lowercaseKey.includes(lowercaseTargetKey) || (value.children && value.children.length > 0 && value.children.map(child => child.toLowerCase()).includes(lowercaseTargetKey))) {
+          matchingParents.push(key, ...value.ancestors);
+        }
+      }
+
+      return matchingParents;
     },
   },
   beforeMount() {
     get('/api/tirex-components')
       .then(inject_response(this, {'loading': false}))
-      .catch(reportError("Problem While Loading the overview of the components.", "This might be a short-term hiccup, please try again. We got the following error: "))
+      .catch(reportError("Problem while loading the overview of the components.", "This might be a short-term hiccup, please try again. We got the following error: "))
   },
   computed: {
-    computed_expanded_entries() {
+    computed_expanded_entries() : string[] {
       let ret = [...this.expanded_entries];
       if(!is_mobile()) {
         ret = ret.concat(['Dataset', 'Document Processing', 'Query Processing', 'Retrieval',
         'Re-Ranking', 'Evaluation'])
       }
+      if(is_mobile()  && this.component_filter !== '') {
+        let terms = this.findMatchingParents(this.tirex_component_relationship_set, this.component_filter)
+        terms = [...new Set(terms)];
+        if(terms && terms.length > 0){
+          for (let i = 0; i < terms.length; i++) {
+            ret = ret.concat(terms[i]);
+          }
+        }
+
+        }
 
       return ret
     },
 
-    // computed variabel to store the map of ancestor and child nodes for all components
+    // computed variable to store the map of ancestor and child nodes for all components
     tirex_component_relationship_set() : ComponentSet {
       return this.constructComponentSet(this.tirex_components)
     },
@@ -305,19 +332,18 @@ export default {
           }
         }
       }
-
       return ret
     },
   },
   watch: {
     component_types(old_value, new_value) {
-      this.updateUrlToSelectedComponentTypes()
+      this.updateUrlToCurrentSearchCriteria()
     },
     focus_types(old_value, new_value) {
-      this.updateUrlToSelectedFocusType()
+      this.updateUrlToCurrentSearchCriteria()
     },
     component_filter(old_value, new_value) {
-      this.updateUrlToRequestedSearchQuery()
+      this.updateUrlToCurrentSearchCriteria()
     }
   }
 }
