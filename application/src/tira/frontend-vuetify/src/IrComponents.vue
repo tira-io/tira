@@ -276,7 +276,7 @@ export default {
         ret = ret.concat(['Dataset', 'Document Processing', 'Query Processing', 'Retrieval',
         'Re-Ranking', 'Evaluation'])
       }
-      if(is_mobile()  && this.component_filter !== '') {
+      if(this.component_filter !== '') {
         let terms = this.findMatchingParents(this.tirex_component_relationship_set, this.component_filter)
         terms = [...new Set(terms)];
         if(terms && terms.length > 0){
