@@ -224,6 +224,22 @@ class DockerSoftwareHasAdditionalInput(models.Model):
     input_upload = models.ForeignKey(Upload, on_delete=models.RESTRICT, default=None, null=True)
 
 
+class SoftwareSubmissionGitRepository(models.Model):
+    repository_url = models.CharField(max_length=500, primary_key=True)
+    vm = models.ForeignKey(VirtualMachine, on_delete=models.CASCADE)
+    reference_repository_url = models.CharField(max_length=500)
+    external_owner = models.CharField(max_length=100)
+    docker_registry_token = models.CharField(max_length=100)
+    tira_client_token = models.CharField(max_length=100)
+
+
+class LinkToSoftwareSubmissionGitRepository(models.Model):
+    docker_software = models.ForeignKey(DockerSoftware, on_delete=models.RESTRICT)
+    software_submission_git_repository = models.ForeignKey(SoftwareSubmissionGitRepository, on_delete=models.RESTRICT)
+    commit_hash = models.CharField(max_length=100)
+    link_to_file = models.CharField(max_length=500)
+
+
 class SoftwareClone(models.Model):
     """
     - This allows to import/export existing software to other tasks.
