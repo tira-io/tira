@@ -130,9 +130,9 @@ class Evaluator(models.Model):
     measures = models.CharField(max_length=150, default="")
     is_deprecated = models.BooleanField(default=False)
     is_git_runner = models.BooleanField(default=False)
-    git_runner_image = models.CharField(max_length=250, null=True, default=None)
-    git_runner_command = models.CharField(max_length=280, null=True, default=None)
-    git_repository_id = models.CharField(max_length=100, null=True, default=None)
+    git_runner_image = models.CharField(max_length=500, null=True, default=None)
+    git_runner_command = models.CharField(max_length=500, null=True, default=None)
+    git_repository_id = models.CharField(max_length=200, null=True, default=None)
 
 
 class VirtualMachineHasEvaluator(models.Model):

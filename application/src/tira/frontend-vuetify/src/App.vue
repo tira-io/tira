@@ -1,7 +1,7 @@
 <template>
   <v-app>
-    <v-main>
-      <tira-alert/>
+    <v-main class="position-relative">
+      <tira-alert class="position-absolute"/>
       <router-view></router-view>
     </v-main>
   </v-app>

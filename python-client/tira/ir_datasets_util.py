@@ -4,6 +4,13 @@ from tira.io_utils import all_lines_to_pandas
 from tira.tirex import IRDS_TO_TIREX_DATASET, TIREX_DATASETS
 import os
 
+original_ir_datasets_load = None
+try:
+    import ir_datasets as original_ir_datasets
+    original_ir_datasets_load = original_ir_datasets.load
+except:
+    pass
+
 
 def register_dataset_from_re_rank_file(ir_dataset_id, df_re_rank, original_ir_datasets_id=None):
     """
@@ -112,7 +119,10 @@ def __lazy_qrels(tira_path):
                 print(f'Please pass tira_path as <task>/<tira-dataset>. Got {tira_path}')
                 return
 
-            self.task, self.dataset = tira_path.split('/')        
+            self.task, self.dataset = tira_path.split('/')
+
+        def qrels_cls(self):
+            return TrecQrel
         
         def qrels_iter(self):
             if not self.qrels:
@@ -141,7 +151,10 @@ def __lazy_queries(tira_path):
                 print(f'Please pass tira_path as <task>/<tira-dataset>. Got {tira_path}')
                 return
 
-            self.task, self.dataset = tira_path.split('/')       
+            self.task, self.dataset = tira_path.split('/')
+
+        def queries_cls(self):
+            return TrecQuery
         
         def queries_iter(self):
             if not self.queries:
@@ -249,8 +262,7 @@ def ir_dataset_from_tira_fallback_to_original_ir_datasets():
     class IrDatasetsFromTira():
         def load(self, dataset_id):
             try:
-                import ir_datasets as original_ir_datasets
-                return original_ir_datasets.load(dataset_id)
+                return original_ir_datasets_load(dataset_id)
             except:
                 print(f'Load ir_dataset "{dataset_id}" from tira.')
                 docs = self.lazy_docs(dataset_id)
