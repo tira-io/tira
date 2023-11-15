@@ -30,7 +30,7 @@
 
 <script>
 import DockerSubmission from "@/submission-components/DockerSubmission.vue";
-import VirtualMachineSubmission from "@/submission-components/CodeSubmission.vue";
+import CodeSubmission from "@/submission-components/CodeSubmission.vue";
 import UploadSubmission from "@/submission-components/UploadSubmission";
 import RunningProcesses from "@/submission-components/RunningProcesses.vue";
 import { TiraBreadcrumb } from './components'

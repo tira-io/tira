@@ -231,6 +231,7 @@ class SoftwareSubmissionGitRepository(models.Model):
     external_owner = models.CharField(max_length=100)
     docker_registry_token = models.CharField(max_length=100)
     tira_client_token = models.CharField(max_length=100)
+    confirmed = models.BooleanField(null=False, default=False)
 
 
 class LinkToSoftwareSubmissionGitRepository(models.Model):

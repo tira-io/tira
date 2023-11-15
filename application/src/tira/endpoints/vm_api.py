@@ -497,6 +497,21 @@ def docker_software_save(request, task_id, vm_id, docker_software_id):
 
 
 @check_permissions
+def add_software_submission_git_repository(request, vm_id):
+    if request.method != "POST":
+        return JsonResponse({'status': 1, 'message': f"GET is not implemented for edit upload"})
+
+    try:
+        data = json.loads(request.body)
+        external_owner = data['external_owner']
+
+        return JsonResponse({'status': 0, "context": {'repo_url': 'https://github.com/' + external_owner, 'owner_url': 'https://github.com/' + external_owner}})
+    except Exception as e:
+        logger.exception(e)
+        logger.warning('Error while editing upload: ' + str(e))
+        return JsonResponse({'status': 1, 'message': f"Error while editing upload: " + str(e)})
+
+@check_permissions
 @check_resources_exist('json')
 def upload_save(request, task_id, vm_id, upload_id):
     if request.method == "POST":
