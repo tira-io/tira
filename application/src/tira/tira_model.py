@@ -627,6 +627,9 @@ def edit_task(task_id: str, task_name: str, task_description: str, featured: boo
               irds_re_ranking_resource: str = ''):
     """ Update the task's data """
 
+    if allowed_task_teams:
+        allowed_task_teams = '\n'.join([slugify(i) for i in allowed_task_teams.split('\n')])
+
     return model.edit_task(task_id, task_name, task_description, featured, master_vm_id, organizer, website,
                            require_registration, require_groups, restrict_groups, help_command, help_text,
                            allowed_task_teams, is_ir_task, irds_re_ranking_image, irds_re_ranking_command,
