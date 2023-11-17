@@ -1,7 +1,12 @@
 <template>
   <v-card class="mt-10">
     <v-card-item v-if="loading"><loading :loading="loading"/></v-card-item>
-    <v-card-item v-if="!loading">
+    <v-card-item v-if="!loading && disabled">
+    <v-card-text>
+      Code submissions are not enabled for this task. Please contact your organizers <a :href="organizer_link">{{organizer}}</a> to enable code submissions.
+    </v-card-text>
+    </v-card-item>
+    <v-card-item v-if="!loading && !disabled">
       <v-card-text v-if="!repo_url">
         <v-form ref="form" v-model="valid">
           <v-row class="d-flex align-center justify-center">
@@ -61,7 +66,8 @@ export default {
         valid: false,
         submit_in_progress: false,
         repo_url: '',
-        owner_url: ''
+        owner_url: '',
+        disabled: false
     }
   },
   methods: {

@@ -406,7 +406,7 @@ class HybridDatabase(object):
 
     def get_submission_git_repo_or_none(self, repository_url, vm_id, return_object=False):
         try:
-            ret = modeldb.SoftwareSubmissionGitRepository.get(repository_url=repository_url, vm__vm_id=vm_id)
+            ret = modeldb.SoftwareSubmissionGitRepository.objects.get(repository_url=repository_url, vm__vm_id=vm_id)
 
             if return_object:
                 return ret

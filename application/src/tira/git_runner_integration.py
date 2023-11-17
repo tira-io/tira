@@ -1176,24 +1176,21 @@ class GithubRunner(GitRunner):
 
     def get_git_runner_for_software_integration(self, reference_repository_name, user_repository_name,
                                                 user_repository_namespace, github_user, tira_user_name,
-                                                dockerhub_token, tira_client_token, repository_search_prefix):
+                                                dockerhub_token, dockerhub_user, tira_client_token, repository_search_prefix):
         user = self.gitHoster_client.get_user()
-
-        print(help(self.gitHoster_client.get_user))
-        print(help(user.get_repos))
-        print('asdasdas\n\n\ndasdasasd')
         user_repo = user.get_repo(f'{user_repository_namespace}/{user_repository_name}')
         if user_repo:
             return user_repo
 
         return self.create_software_submission_repository_for_user(reference_repository_name, user_repository_name,
                                                                    user_repository_namespace, github_user,
-                                                                   tira_user_name, dockerhub_token, tira_client_token,
-                                                                   repository_search_prefix)
+                                                                   tira_user_name, dockerhub_token, dockerhub_user,
+                                                                   tira_client_token, repository_search_prefix)
 
     def create_software_submission_repository_for_user(self, reference_repository_name, user_repository_name,
                                                        user_repository_namespace, github_user, tira_user_name,
-                                                       dockerhub_token, tira_client_token, repository_search_prefix):
+                                                       dockerhub_token, dockerhub_user, tira_client_token,
+                                                       repository_search_prefix):
         reference_repo = self.gitHoster_client.get_repo(reference_repository_name)
         user = self.gitHoster_client.get_user()
         
@@ -1203,6 +1200,7 @@ class GithubRunner(GitRunner):
         repo.add_to_collaborators(github_user, 'admin')
 
         repo.create_secret('DOCKERHUB_TOKEN', dockerhub_token)
+        repo.create_secret('DOCKERHUB_USER', dockerhub_user)
         repo.create_secret('TIRA_CLIENT_TOKEN', tira_client_token)
 
         contents = reference_repo.get_contents(repository_search_prefix)
