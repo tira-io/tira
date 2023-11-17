@@ -14,11 +14,11 @@ from tira.authentication import auth
 from tira.util import get_tira_id, run_cmd_as_documented_background_process, register_run
 import tempfile
 from distutils.dir_util import copy_tree
+from discourse_client_in_disraptor import DiscourseApiClient
 
 logger = logging.getLogger("tira")
 
 model = HybridDatabase()
-
 
 # reloading and reindexing
 def build_model():
@@ -122,6 +122,11 @@ def load_refresh_timestamp_for_cache_key(cache, key):
         pass
 
     return datetime.datetime.now()
+
+
+def discourse_api_client():
+    api_key = open(settings.DISRAPTOR_SECRET_FILE, "r").read().strip()
+    return DiscourseApiClient(url=settings.DISCOURSE_API_URL, api_key=api_key)
 
 
 def tira_run_command(image, command, task_id):

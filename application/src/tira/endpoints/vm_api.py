@@ -497,7 +497,7 @@ def docker_software_save(request, task_id, vm_id, docker_software_id):
 
 
 @check_permissions
-def add_software_submission_git_repository(request, vm_id):
+def add_software_submission_git_repository(request, task_id, vm_id):
     if request.method != "POST":
         return JsonResponse({'status': 1, 'message': f"GET is not implemented for edit upload"})
 
@@ -510,6 +510,12 @@ def add_software_submission_git_repository(request, vm_id):
         logger.exception(e)
         logger.warning('Error while editing upload: ' + str(e))
         return JsonResponse({'status': 1, 'message': f"Error while editing upload: " + str(e)})
+
+
+@check_permissions
+def get_software_submission_git_repository(request, task_id, vm_id):
+    return JsonResponse({'status': 0, "context": {}})
+
 
 @check_permissions
 @check_resources_exist('json')

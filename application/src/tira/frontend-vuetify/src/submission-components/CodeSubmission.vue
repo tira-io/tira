@@ -1,6 +1,7 @@
 <template>
   <v-card class="mt-10">
-    <v-card-item>
+    <v-card-item v-if="loading"><loading :loading="loading"/></v-card-item>
+    <v-card-item v-if="!loading">
       <v-card-text v-if="!repo_url">
         <v-form ref="form" v-model="valid">
           <v-row class="d-flex align-center justify-center">
@@ -42,32 +43,34 @@
   </v-card>
 </template>
 
-<script>
-import {post, reportError, reportSuccess, get_link_to_organizer} from "@/utils";
+<script lang="ts">
+import {get, post, inject_response, reportError, reportSuccess, get_link_to_organizer} from "@/utils";
+import {Loading} from '../components'
 
 export default {
   name: "code-submission",
-  props: ['organizer', 'organizer_id', 'user_id'],
+  components: {Loading},
+  props: ['organizer', 'organizer_id', 'user_id', 'task_id'],
   data() {
     return {
         loading: true,
-        new_git_account: null,
+        new_git_account: '',
         valid: false,
         submit_in_progress: false,
-        repo_url: null,
-        owner_url: null
+        repo_url: '',
+        owner_url: ''
     }
   },
   methods: {
     async connectToCodeRepo() {
-      const { valid } = await this.$refs.form.validate()
+      const { valid } = await (this.$refs.form as any).validate()
 
       if (!valid) {
         return
       }
 
       this.submit_in_progress = true
-      post(`/api/add_software_submission_git_repository/${this.user_id}`, {"external_owner": this.new_git_account})
+      post(`/api/add_software_submission_git_repository/${this.task_id}/${this.user_id}`, {"external_owner": this.new_git_account})
         .then(reportSuccess('Your git repository was created.'))
         .then(message => {
           this.repo_url = message.context.repo_url
@@ -76,6 +79,11 @@ export default {
         .catch(reportError("Problem while adding your git repository.", "This might be a short-term hiccup, please try again. We got the following error: "))
         .then(() => {this.submit_in_progress = false})
     },
+  },
+  beforeMount() {
+    get(`/api/get_software_submission_git_repository/${this.task_id}/${this.user_id}`)
+      .then(inject_response(this, {'loading': false}))
+      .catch(reportError("Problem loading the data of the task.", "This might be a short-term hiccup, please try again. We got the following error: "))
   },
   computed: {
     organizer_link() {return get_link_to_organizer(this.organizer_id)}

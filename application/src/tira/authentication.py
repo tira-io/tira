@@ -203,13 +203,7 @@ class DisraptorAuthentication(Authentication):
             unused, only for consistency to the LegacyAuthentication
         """
         super(DisraptorAuthentication, self).__init__(**kwargs)
-        api_key = ''
-        try:
-            api_key = open(settings.DISRAPTOR_SECRET_FILE, "r").read().strip()
-        except:
-            print('Attention: could not load the disraptor secret key, I do not have an API key.')
-        from discourse_client_in_disraptor import DiscourseApiClient
-        self.discourse_client = DiscourseApiClient(url='https://www.tira.io', api_key=api_key)
+        self.discourse_client = model.discourse_api_client()
 
     def _get_user_id(self, request):
         """ Return the content of the X-Disraptor-User header set in the http request """

@@ -22,7 +22,7 @@
         <docker-submission :organizer="organizer" :organizer_id="organizer_id" step_prop="step-1" :is_ir_task="is_ir_task" @refresh_running_submissions="refresh_running_submissions()"/>
       </v-window-item>
     <v-window-item value="code-submission">
-        <code-submission :organizer="organizer" :organizer_id="organizer_id" :user_id="user_id"/>
+        <code-submission :organizer="organizer" :organizer_id="organizer_id" :user_id="user_id" :task_id="task_id"/>
       </v-window-item>
     </v-window>
     </div>

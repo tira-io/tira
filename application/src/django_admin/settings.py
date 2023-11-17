@@ -337,3 +337,5 @@ WEBPACK_LOADER = {
         'STATS_FILE': BASE_DIR / 'tira' / 'frontend' / 'webpack-stats.json'
     }
 }
+
+DISCOURSE_API_URL = 'https://www.tira.io'
