@@ -1178,9 +1178,13 @@ class GithubRunner(GitRunner):
                                                 user_repository_namespace, github_user, tira_user_name,
                                                 dockerhub_token, dockerhub_user, tira_client_token, repository_search_prefix):
         user = self.gitHoster_client.get_user()
-        user_repo = user.get_repo(f'{user_repository_namespace}/{user_repository_name}')
-        if user_repo:
-            return user_repo
+        try:
+            user_repo = user.get_repo(f'{user_repository_namespace}/{user_repository_name}')
+            if user_repo:
+                return user_repo
+        except:
+            # repository does not exist.
+            pass
 
         return self.create_software_submission_repository_for_user(reference_repository_name, user_repository_name,
                                                                    user_repository_namespace, github_user,
@@ -1196,12 +1200,14 @@ class GithubRunner(GitRunner):
         
         user.create_repo(user_repository_name, f'The repository of user {tira_user_name} for code submissions in TIRA.',
                          private=True)
-        repo = self.gitHoster_client.get_repo(f'{user_repository_namespace}/{user_repository_name}')
+        org = self.gitHoster_client.get_organization(user_repository_namespace)
+        repo = org.create_repo(user_repository_name, 'Repository for TIRA code submissions, please add description.')
         repo.add_to_collaborators(github_user, 'admin')
 
         repo.create_secret('DOCKERHUB_TOKEN', dockerhub_token)
         repo.create_secret('DOCKERHUB_USER', dockerhub_user)
         repo.create_secret('TIRA_CLIENT_TOKEN', tira_client_token)
+        repo.create_secret('TIRA_VM_ID', tira_user_name)
 
         contents = reference_repo.get_contents(repository_search_prefix)
         while contents:
