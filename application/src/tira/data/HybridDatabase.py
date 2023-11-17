@@ -394,6 +394,27 @@ class HybridDatabase(object):
     def get_organizer(self, organizer_id: str):
         return self._organizer_to_dict(modeldb.Organizer.objects.get(organizer_id=organizer_id))
 
+    @staticmethod
+    def create_submission_git_repo(repo_url, vm_id, docker_registry_user, docker_registry_token, discourse_api_key,
+                                   reference_repository_url, external_owner):
+        return modeldb.SoftwareSubmissionGitRepository.objects.create(
+            repository_url=repo_url, vm=modeldb.VirtualMachine.objects.get(vm_id=vm_id),
+            reference_repository_url=reference_repository_url, external_owner=external_owner,
+            docker_registry_token=docker_registry_token, docker_registry_user=docker_registry_user,
+            tira_client_token=discourse_api_key
+        )
+
+    def get_submission_git_repo_or_none(self, repository_url, vm_id, return_object=False):
+        try:
+            ret = modeldb.SoftwareSubmissionGitRepository.get(repository_url=repository_url, vm__vm_id=vm_id)
+
+            if return_object:
+                return ret
+
+            return {'repo_url': ret.repository_url, 'owner_url': 'https://github.com/' + ret.external_owner}
+        except:
+            return {}
+
     def get_host_list(self) -> list:
         return [line.strip() for line in open(self.host_list_file, "r").readlines()]
 

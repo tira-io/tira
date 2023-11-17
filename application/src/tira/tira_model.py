@@ -5,7 +5,7 @@ from pathlib import Path
 import logging
 from tira.data.HybridDatabase import HybridDatabase
 from django.core.cache import cache
-from tira.git_runner import get_git_runner
+from tira.git_runner import get_git_runner, get_git_runner_for_software_integration
 import randomname
 from django.conf import settings
 from django.db import connections, router
@@ -14,8 +14,8 @@ from tira.authentication import auth
 from tira.util import get_tira_id, run_cmd_as_documented_background_process, register_run
 import tempfile
 from distutils.dir_util import copy_tree
-from discourse_client_in_disraptor import DiscourseApiClient
 from slugify import slugify
+from discourse_client_in_disraptor import DiscourseApiClient
 
 logger = logging.getLogger("tira")
 
@@ -182,14 +182,43 @@ def load_docker_data(task_id, vm_id, cache, force_cache_refresh):
     }
 
 
-def get_submission_git_repo(vm_id, task_id, disraptor_user, external_owner):
-    repository_url = task_id + '-' + vm_id
+def get_submission_git_repo(vm_id, task_id, disraptor_user=None, external_owner=None):
+    user_repository_name = slugify(task_id) + '-' + slugify(vm_id)
+    repository_url = settings.CODE_SUBMISSION_REPOSITORY_NAMESPACE + '/' + user_repository_name
+    ret = model.get_submission_git_repo_or_none(repository_url, vm_id)
+
+    if ret and 'repo_url' in ret or (not disraptor_user and not external_owner):
+        return ret
 
     docker_data = load_docker_data(task_id, vm_id, cache, force_cache_refresh=False)
     docker_registry_user = docker_data['docker_registry_user']
     docker_registry_token = docker_data['docker_registry_token']
+    reference_repository = settings.CODE_SUBMISSION_REFERENCE_REPOSITORY
     discourse_api_key = discourse_api_client().generate_api_key(disraptor_user,
                                                                 disraptor_user + '-repo-' + task_id + '-' + vm_id)
+
+    model.create_submission_git_repo(repository_url, vm_id, docker_registry_user, docker_registry_token,
+                                     discourse_api_key, reference_repository, external_owner)
+    ret = model.get_submission_git_repo_or_none(repository_url, vm_id, return_object=True)
+
+    g = get_git_runner_for_software_integration()
+    g.get_git_runner_for_software_integration(
+        reference_repository_name=reference_repository,
+        user_repository_name=user_repository_name,
+        user_repository_namespace=settings.CODE_SUBMISSION_REPOSITORY_NAMESPACE,
+        github_user=external_owner,
+        dockerhub_token=docker_registry_token,
+        dockerhub_user=docker_registry_user,
+        tira_client_token=discourse_api_key,
+        repository_search_prefix='',
+        tira_user_name=vm_id,
+    )
+
+    ret.confirmed = True
+    ret.save()
+
+    return model.get_submission_git_repo_or_none(repository_url, vm_id)
+
 
 
 

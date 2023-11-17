@@ -339,3 +339,6 @@ WEBPACK_LOADER = {
 }
 
 DISCOURSE_API_URL = 'https://www.tira.io'
+
+CODE_SUBMISSION_REFERENCE_REPOSITORY = 'mam10eks/tira-software-submission-template'
+CODE_SUBMISSION_REPOSITORY_NAMESPACE = 'tira-io'

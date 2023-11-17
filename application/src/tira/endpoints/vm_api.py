@@ -21,6 +21,7 @@ import json
 from markdown import markdown
 
 include_navigation = True if settings.DEPLOYMENT == "legacy" else False
+from discourse_client_in_disraptor.discourse_api_client import get_disraptor_user
 
 logger = logging.getLogger("tira")
 logger.info("ajax_routes: Logger active")
@@ -504,17 +505,28 @@ def add_software_submission_git_repository(request, task_id, vm_id):
     try:
         data = json.loads(request.body)
         external_owner = data['external_owner']
+        disraptor_user = get_disraptor_user(request, allow_unauthenticated_user=False)
 
-        return JsonResponse({'status': 0, "context": {'repo_url': 'https://github.com/' + external_owner, 'owner_url': 'https://github.com/' + external_owner}})
+        if not disraptor_user or not type(disraptor_user) == str:
+            return JsonResponse({'status': 1, 'message': f"Please authenticate."})
+
+        software_submission_git_repo = model.get_submission_git_repo(vm_id, task_id, disraptor_user, external_owner)
+
+        return JsonResponse({'status': 0, "context": software_submission_git_repo})
     except Exception as e:
         logger.exception(e)
-        logger.warning('Error while editing upload: ' + str(e))
-        return JsonResponse({'status': 1, 'message': f"Error while editing upload: " + str(e)})
+        logger.warning('Error while adding your git repository: ' + str(e))
+        return JsonResponse({'status': 1, 'message': f"Error while adding your git repository: " + str(e)})
 
 
 @check_permissions
 def get_software_submission_git_repository(request, task_id, vm_id):
-    return JsonResponse({'status': 0, "context": {}})
+    try:
+        return JsonResponse({'status': 0, "context": model.get_submission_git_repo(vm_id, task_id)})
+    except Exception as e:
+        logger.exception(e)
+        logger.warning('Error while getting your git repository: ' + str(e))
+        return JsonResponse({'status': 1, 'message': f"Error while getting your git repository: " + str(e)})
 
 
 @check_permissions

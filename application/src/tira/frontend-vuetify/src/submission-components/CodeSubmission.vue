@@ -20,7 +20,10 @@
           <v-expansion-panel>
             <v-expansion-panel-title>Step 1: Upload your Code to your repository</v-expansion-panel-title>
             <v-expansion-panel-text>
-              <p>Merge existing repo</p>
+              <p>Short conceptual description: deployment + key for git repo, deployment + key of tira key</p>
+              <p>If you start from scratch, you can just <a :href="repo_url">clone your repository</a>.</p>
+              
+              <code-snippet title="Merge your existing repository" :code="code_for_merging" expand_message="If you already have a git repository, please merge it with the tira repository."/>
             </v-expansion-panel-text>
           </v-expansion-panel>
 
@@ -45,11 +48,11 @@
 
 <script lang="ts">
 import {get, post, inject_response, reportError, reportSuccess, get_link_to_organizer} from "@/utils";
-import {Loading} from '../components'
+import {Loading, CodeSnippet} from '../components'
 
 export default {
   name: "code-submission",
-  components: {Loading},
+  components: {Loading, CodeSnippet},
   props: ['organizer', 'organizer_id', 'user_id', 'task_id'],
   data() {
     return {
@@ -86,7 +89,10 @@ export default {
       .catch(reportError("Problem loading the data of the task.", "This might be a short-term hiccup, please try again. We got the following error: "))
   },
   computed: {
-    organizer_link() {return get_link_to_organizer(this.organizer_id)}
+    organizer_link() {return get_link_to_organizer(this.organizer_id)},
+    code_for_merging() {
+      return '#Please make first sure that all changes in your repository are committed to your remote.\ngit remote add tira ' + this.repo_url + '\ngit merge tira main'
+    }
   }
 }
 </script>
