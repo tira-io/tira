@@ -15,6 +15,7 @@ from tira.util import get_tira_id, run_cmd_as_documented_background_process, reg
 import tempfile
 from distutils.dir_util import copy_tree
 from discourse_client_in_disraptor import DiscourseApiClient
+from slugify import slugify
 
 logger = logging.getLogger("tira")
 
@@ -135,6 +136,11 @@ def tira_run_command(image, command, task_id):
     return f'tira-run \\\n  --input-dataset {input_dataset} \\\n  --image {image} \\\n  --evaluate true \\\n  --command \'{command}\''
 
 
+def tira_docker_registry_token(docker_software_help):
+    ret = docker_software_help.split('docker login -u ')[1].split(' -p')
+    return ret[0].strip(), ret[1].split(' ')[0].strip()
+
+
 def load_docker_data(task_id, vm_id, cache, force_cache_refresh):
     """
     Get the docker data for a particular user (vm_id) from the git registry.
@@ -162,6 +168,8 @@ def load_docker_data(task_id, vm_id, cache, force_cache_refresh):
         "resources": list(settings.GIT_CI_AVAILABLE_RESOURCES.values()),
         "docker_software_help": docker_software_help,
         "docker_images_last_refresh": str(last_refresh),
+        "docker_registry_user": tira_docker_registry_token(docker_software_help)[0],
+        "docker_registry_token": tira_docker_registry_token(docker_software_help)[1],
         "public_docker_softwares": public_docker_softwares,
         "task_is_an_information_retrieval_task": True if get_task(task_id, False).get('is_ir_task', False) else False,
         "docker_images_next_refresh": str(None if last_refresh is None else (last_refresh + datetime.timedelta(seconds=60))),
@@ -172,6 +180,17 @@ def load_docker_data(task_id, vm_id, cache, force_cache_refresh):
                                   docker_login + '\n' +
                                   tira_run_command('YOUR-IMAGE', 'YOUR-COMMAND', task_id),
     }
+
+
+def get_submission_git_repo(vm_id, task_id, disraptor_user, external_owner):
+    repository_url = task_id + '-' + vm_id
+
+    docker_data = load_docker_data(task_id, vm_id, cache, force_cache_refresh=False)
+    docker_registry_user = docker_data['docker_registry_user']
+    docker_registry_token = docker_data['docker_registry_token']
+    discourse_api_key = discourse_api_client().generate_api_key(disraptor_user,
+                                                                disraptor_user + '-repo-' + task_id + '-' + vm_id)
+
 
 
 def git_pipeline_is_enabled_for_task(task_id, cache, force_cache_refresh=False):
@@ -607,6 +626,7 @@ def edit_task(task_id: str, task_name: str, task_description: str, featured: boo
               irds_re_ranking_image: str = '', irds_re_ranking_command: str = '',
               irds_re_ranking_resource: str = ''):
     """ Update the task's data """
+
     return model.edit_task(task_id, task_name, task_description, featured, master_vm_id, organizer, website,
                            require_registration, require_groups, restrict_groups, help_command, help_text,
                            allowed_task_teams, is_ir_task, irds_re_ranking_image, irds_re_ranking_command,
