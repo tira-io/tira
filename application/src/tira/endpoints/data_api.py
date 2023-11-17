@@ -17,6 +17,7 @@ import csv
 from io import StringIO
 from copy import deepcopy
 from tira.util import link_to_discourse_team
+from slugify import slugify
 
 include_navigation = True if settings.DEPLOYMENT == "legacy" else False
 
@@ -414,6 +415,7 @@ def add_registration(request, context, task_id, vm_id):
     """ get the registration of a user on a task. If there is none """
     try:
         data = json.loads(request.body)
+        data['group'] = slugify(data['group'])
         data['initial_owner'] = context['user_id']
         data['task_id'] = task_id
         model.add_registration(data)
