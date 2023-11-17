@@ -10,9 +10,8 @@ from functools import wraps
 import requests
 from django.conf import settings
 from django.http import JsonResponse, Http404, HttpResponseNotAllowed
-import tira.tira_model as model
 from slugify import slugify
-
+import tira.tira_model as model
 from google.protobuf.text_format import Parse
 
 from .proto import TiraClientWebMessages_pb2 as modelpb

@@ -10,7 +10,6 @@ import randomname
 from django.conf import settings
 from django.db import connections, router
 import datetime
-from tira.authentication import auth
 from tira.util import get_tira_id, run_cmd_as_documented_background_process, register_run
 import tempfile
 from distutils.dir_util import copy_tree
@@ -126,8 +125,7 @@ def load_refresh_timestamp_for_cache_key(cache, key):
 
 
 def discourse_api_client():
-    api_key = open(settings.DISRAPTOR_SECRET_FILE, "r").read().strip()
-    return DiscourseApiClient(url=settings.DISCOURSE_API_URL, api_key=api_key)
+    return DiscourseApiClient(url=settings.DISCOURSE_API_URL, api_key=settings.DISRAPTOR_API_KEY)
 
 
 def tira_run_command(image, command, task_id):
@@ -562,6 +560,7 @@ def all_allowed_task_teams(task_id):
 
 
 def user_is_registered(task_id, request):
+    from tira.authentication import auth
     task = get_task(task_id)
     allowed_task_teams = all_allowed_task_teams(task_id)
     user_vm_ids = [i.strip() for i in auth.get_vm_ids(request) if i.strip()]
