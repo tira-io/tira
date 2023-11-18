@@ -411,7 +411,10 @@ class HybridDatabase(object):
             if return_object:
                 return ret
 
-            return {'repo_url': ret.repository_url, 'owner_url': 'https://github.com/' + ret.external_owner}
+            return {'repo_url': ret.repository_url, 'http_repo_url': 'https://github.com/' + ret.repository_url,
+                    'ssh_repo_url': f'git@github.com:{ret.repository_url}.git',
+                    'owner_url': ret.external_owner, 'http_owner_url': 'https://github.com/' + ret.external_owner
+                    }
         except:
             return {}
 

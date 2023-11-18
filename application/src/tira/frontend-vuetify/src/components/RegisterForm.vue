@@ -105,8 +105,8 @@ export default {
           'instructorName': this.instructorName, 'instructorEmail': this.instructorEmail,
           'questions': this.questions, 'team': this.team
         }).then(message => {
-          reportSuccess('You are now registered for the team "' + this.username + '" and can submit runs.')
-          this.$emit('updateUserVmsForTask', this.username)
+          reportSuccess('You are now registered for the team "' + message.context.group + '" and can submit runs.')
+          this.$emit('updateUserVmsForTask', message.context.group)
           isActive.value = false
           this.loading = false
         }).catch(error => {
