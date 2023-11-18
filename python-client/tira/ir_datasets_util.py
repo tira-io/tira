@@ -179,8 +179,8 @@ def __lazy_queries(tira_path):
                 for _, i in all_lines_to_pandas(queries_file, False).iterrows():
                     orig_query = None if 'original_query' not in i else i['original_query']
                     
-                    description = None if (not orig_query or 'description' not in orig_query) else orig_query['description']
-                    narrative = None if (not orig_query or 'narrative' not in orig_query) else orig_query['narrative']
+                    description = None if (not orig_query or type(orig_query) != dict or 'description' not in orig_query) else orig_query['description']
+                    narrative = None if (not orig_query or type(orig_query) != dict or 'narrative' not in orig_query) else orig_query['narrative']
                     self.queries[i['qid']] = TirexQuery(query_id=i['qid'], text=i['query'], query=i['query'], title=i['query'], description=description, narrative=narrative)
 
             return deepcopy(self.queries).values().__iter__()
@@ -204,8 +204,8 @@ def __queries(df, original_dataset):
     for _, i in df.iterrows():
         i = i.to_dict()
         orig_query = None if 'original_query' not in i else i['original_query']
-        description = None if (not orig_query or 'description' not in orig_query) else orig_query['description']
-        narrative = None if (not orig_query or 'narrative' not in orig_query) else orig_query['narrative']
+        description = None if (not orig_query or type(orig_query) != dict or 'description' not in orig_query) else orig_query['description']
+        narrative = None if (not orig_query or type(orig_query) != dict or 'narrative' not in orig_query) else orig_query['narrative']
         queries[i['qid']] = TirexQuery(query_id=i['qid'],  text=i['query'], query=i['query'], title=i['query'], description=description, narrative=narrative)
 
     return DynamicQueries(queries)

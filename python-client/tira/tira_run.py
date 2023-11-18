@@ -35,7 +35,12 @@ def parse_args():
     if (args.image is None) == (args.approach is None) == (args.export_dataset):
         parser.error('You have to exclusively use either --approach or --image.')
     if (args.image is None) != (args.command is None):
-        parser.error('The options --image and --command have to be used together.')
+        args.command = LocalExecutionIntegration().extract_entrypoint(args.image)
+        
+        if args.command != None:
+            print(f'Use command from Docker image "{args.command}".')
+        else:    
+            parser.error('The options --image and --command have to be used together.')
 
     return args
 
