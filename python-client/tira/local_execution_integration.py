@@ -254,3 +254,16 @@ class LocalExecutionIntegration():
 
         return '\n'.join(ret)
 
+    def push_image(self, image, username, password):
+        client = self.__docker_client()
+        login_response = client.login(username=username, password=password, registry='registry.webis.de')
+        
+        if 'Status' not in login_response or 'Login Succeeded' != login_response['Status']:
+            raise ValueError(f'Login was not successfull, got: {login_response}')
+
+        push_response = client.images.push(image)
+        print(push_response)
+
+        if 'error' in push_response:
+            raise ValueError('Could not push image')
+

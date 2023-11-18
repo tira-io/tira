@@ -28,6 +28,12 @@ def parse_args():
     parser.add_argument('--allow-network', required=False, default=False, type=bool, help='Is the network available during the execution? (Default = False to improve reproducibility, containers that import ir-datasets can have access to the network, they can be tested with setting allow-network to true.)')
     parser.add_argument('--output-directory', required=False, default=str(os.path.abspath("tira-output")))
 
+    parser.add_argument('--push', required=False, default='false') 
+    parser.add_argument('--tira-docker-registry-token', required=False, default=os.environ.get('TIRA_DOCKER_REGISTRY_TOKEN'))
+    parser.add_argument('--tira-docker-registry-user', required=False, default=os.environ.get('TIRA_DOCKER_REGISTRY_USER'))
+    parser.add_argument('--tira-client-token', required=False, default=os.environ.get('TIRA_CLIENT_TOKEN'))
+    parser.add_argument('--tira-vm-id', required=False, default=os.environ.get('TIRA_VM_ID'))
+
     args = parser.parse_args()
     if args.export_submission_from_jupyter_notebook:
         return args
@@ -41,6 +47,10 @@ def parse_args():
             print(f'Use command from Docker image "{args.command}".')
         else:    
             parser.error('The options --image and --command have to be used together.')
+
+    if args.push.lower() == 'true':
+        if not args.tira_docker_registry_token or not args.tira_docker_registry_user or not args.tira_client_token or not args.tira_vm_id:
+            parser.error('The options --tira-docker-registry-token (or environment variable TIRA_DOCKER_REGISTRY_TOKEN), --tira-docker-registry-user (or environment variable TIRA_DOCKER_REGISTRY_USER), --tira-client-token (or environment variable TIRA_CLIENT_TOKEN) or --tira-vm-id (or environment variable TIRA_VM_ID) are required when --push is active.')
 
     return args
 
@@ -123,3 +133,7 @@ def main():
 
     client.local_execution.run(identifier=args.approach, image=args.image, command=args.command, input_dir=input_dir, output_dir=args.output_directory, verbose=args.verbose, dry_run=args.dry_run, allow_network=args.allow_network, input_run=args.input_run, additional_volumes=args.v, evaluate=evaluate, eval_dir=args.evaluation_directory)
 
+    if args.push.lower() == 'true':
+        print('Push Docker image')
+        client.local_execution.push_image(args.image, args.tira_docker_registry_user, args.tira_docker_registry_token)
+        print('Upload TIRA_SOFTWARE')
