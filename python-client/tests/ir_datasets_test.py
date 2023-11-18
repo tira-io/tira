@@ -211,7 +211,7 @@ def test_patching_for_pyterrier_datasets_01():
 
     queries = {i['qid']: i['query'] for _, i in dataset.get_topics().iterrows()}
 
-    assert len(list(dataset.get_topics())) == 2
+    assert len(list(dataset.get_topics('title'))) == 2
     assert queries['1'] == 'fox jumps above animal'
 
 def test_patching_for_pyterrier_datasets_02():
@@ -227,7 +227,71 @@ def test_patching_for_pyterrier_datasets_02():
 
     queries = {i['qid']: i['query'] for _, i in dataset.get_topics().iterrows()}
 
-    assert len(list(dataset.get_topics())) == 2
+    assert len(list(dataset.get_topics('title'))) == 2
+    assert queries['1'] == 'fox jumps above animal'
+
+def test_patching_for_pyterrier_datasets_for_text_queries_01():
+    ensure_pyterrier_is_loaded(patch_ir_datasets=False)
+    os.environ['TIRA_INPUT_DATASET'] = 'tests/resources/sample-input-full-rank'
+    import ir_datasets
+    l = ir_datasets.load
+    ensure_pyterrier_is_loaded()
+    import pyterrier as pt
+    dataset = pt.get_dataset('irds:does-not-exist-and-is-not-used')
+    ir_datasets.load = l
+    del os.environ['TIRA_INPUT_DATASET']
+
+    queries = {i['qid']: i['query'] for _, i in dataset.get_topics('text').iterrows()}
+
+    assert len(list(dataset.get_topics('text'))) == 2
+    assert queries['1'] == 'fox jumps above animal'
+
+def test_patching_for_pyterrier_datasets_for_text_queries_02():
+    ensure_pyterrier_is_loaded(patch_ir_datasets=True)
+    os.environ['TIRA_INPUT_DATASET'] = 'tests/resources/sample-input-full-rank'
+    import ir_datasets
+    l = ir_datasets.load
+    ensure_pyterrier_is_loaded()
+    import pyterrier as pt
+    dataset = pt.get_dataset('irds:does-not-exist-and-is-not-used')
+    ir_datasets.load = l
+    del os.environ['TIRA_INPUT_DATASET']
+
+    queries = {i['qid']: i['query'] for _, i in dataset.get_topics('text').iterrows()}
+
+    assert len(list(dataset.get_topics('text'))) == 2
+    assert queries['1'] == 'fox jumps above animal'
+
+def test_patching_for_pyterrier_datasets_for_title_queries_01():
+    ensure_pyterrier_is_loaded(patch_ir_datasets=False)
+    os.environ['TIRA_INPUT_DATASET'] = 'tests/resources/sample-input-full-rank'
+    import ir_datasets
+    l = ir_datasets.load
+    ensure_pyterrier_is_loaded()
+    import pyterrier as pt
+    dataset = pt.get_dataset('irds:does-not-exist-and-is-not-used')
+    ir_datasets.load = l
+    del os.environ['TIRA_INPUT_DATASET']
+
+    queries = {i['qid']: i['query'] for _, i in dataset.get_topics('title').iterrows()}
+
+    assert len(list(dataset.get_topics('title'))) == 2
+    assert queries['1'] == 'fox jumps above animal'
+
+def test_patching_for_pyterrier_datasets_for_title_queries_02():
+    ensure_pyterrier_is_loaded(patch_ir_datasets=True)
+    os.environ['TIRA_INPUT_DATASET'] = 'tests/resources/sample-input-full-rank'
+    import ir_datasets
+    l = ir_datasets.load
+    ensure_pyterrier_is_loaded()
+    import pyterrier as pt
+    dataset = pt.get_dataset('irds:does-not-exist-and-is-not-used')
+    ir_datasets.load = l
+    del os.environ['TIRA_INPUT_DATASET']
+
+    queries = {i['qid']: i['query'] for _, i in dataset.get_topics('title').iterrows()}
+
+    assert len(list(dataset.get_topics('title'))) == 2
     assert queries['1'] == 'fox jumps above animal'
 
 def test_loading_ir_dataset_via_rest_api_from_tira_01():
@@ -315,7 +379,7 @@ def test_loading_queries_via_rest_api_from_tira_01():
     
     assert 68 == len(list(dataset.queries_iter()))
     print(str(list(dataset.queries_iter())[0]))
-    assert '''TrecQuery(query_id='1', title='retrieval system improving effectiveness', description='What papers focus on improving the effectiveness of a retrieval system?', narrative='Relevant papers include research on what makes a retrieval system effective and what improves the effectiveness of a retrieval system. Papers that focus on improving something else or improving the effectiveness of a system that is not a retrieval system are not relevant.')''' == str(list(dataset.queries_iter())[0])
+    assert '''TirexQuery(query_id='1', text='retrieval system improving effectiveness', title='retrieval system improving effectiveness', query='retrieval system improving effectiveness', description='What papers focus on improving the effectiveness of a retrieval system?', narrative='Relevant papers include research on what makes a retrieval system effective and what improves the effectiveness of a retrieval system. Papers that focus on improving something else or improving the effectiveness of a system that is not a retrieval system are not relevant.')''' == str(list(dataset.queries_iter())[0])
 
 def test_loading_queries_via_rest_api_from_tira_02():
     ensure_pyterrier_is_loaded(patch_ir_datasets=True)
@@ -324,7 +388,7 @@ def test_loading_queries_via_rest_api_from_tira_02():
     
     assert 68 == len(list(dataset.queries_iter()))
     print(str(list(dataset.queries_iter())[0]))
-    assert '''TrecQuery(query_id='1', title='retrieval system improving effectiveness', description='What papers focus on improving the effectiveness of a retrieval system?', narrative='Relevant papers include research on what makes a retrieval system effective and what improves the effectiveness of a retrieval system. Papers that focus on improving something else or improving the effectiveness of a system that is not a retrieval system are not relevant.')''' == str(list(dataset.queries_iter())[0])
+    assert '''TirexQuery(query_id='1', text='retrieval system improving effectiveness', title='retrieval system improving effectiveness', query='retrieval system improving effectiveness', description='What papers focus on improving the effectiveness of a retrieval system?', narrative='Relevant papers include research on what makes a retrieval system effective and what improves the effectiveness of a retrieval system. Papers that focus on improving something else or improving the effectiveness of a system that is not a retrieval system are not relevant.')''' == str(list(dataset.queries_iter())[0])
 
 
 def test_patching_for_pyterrier_datasets_to_tira():

@@ -12,6 +12,20 @@ except:
     pass
 
 
+class TirexQuery(NamedTuple):
+    query_id: str
+    text: str
+    title: str
+    query: str
+    description: str
+    narrative: str
+
+    def default_text(self):
+        """
+        title
+        """
+        return self.title
+
 def register_dataset_from_re_rank_file(ir_dataset_id, df_re_rank, original_ir_datasets_id=None):
     """
     Load a dynamic ir_datasets integration from a given re_rank_file.
@@ -142,7 +156,7 @@ def __lazy_qrels(tira_path):
 
 
 def __lazy_queries(tira_path):
-    from ir_datasets.formats import BaseQueries, TrecQuery
+    from ir_datasets.formats import BaseQueries
 
     class QueriesFromTira(BaseQueries):
         def __init__(self):
@@ -154,7 +168,7 @@ def __lazy_queries(tira_path):
             self.task, self.dataset = tira_path.split('/')
 
         def queries_cls(self):
-            return TrecQuery
+            return TirexQuery
         
         def queries_iter(self):
             if not self.queries:
@@ -167,25 +181,32 @@ def __lazy_queries(tira_path):
                     
                     description = None if (not orig_query or 'description' not in orig_query) else orig_query['description']
                     narrative = None if (not orig_query or 'narrative' not in orig_query) else orig_query['narrative']
-                    self.queries[i['qid']] = TrecQuery(query_id=i['qid'], title= i['query'], description=description, narrative=narrative)
+                    self.queries[i['qid']] = TirexQuery(query_id=i['qid'], text=i['query'], query=i['query'], title=i['query'], description=description, narrative=narrative)
 
             return deepcopy(self.queries).values().__iter__()
     
     return QueriesFromTira()
 
 def __queries(df, original_dataset):
-    from ir_datasets.formats import BaseQueries, GenericQuery
+    from ir_datasets.formats import BaseQueries
 
     class DynamicQueries(BaseQueries):
         def __init__(self, queries):
-            self.docs = deepcopy(queries)
+            self.queries = deepcopy(queries)
 
         def queries_iter(self):
-            return deepcopy(queries).values().__iter__()
+            return deepcopy(self.queries).values().__iter__()
+
+        def queries_cls(self):
+            return TirexQuery
 
     queries = {}
     for _, i in df.iterrows():
-        queries[i['qid']] = GenericQuery(query_id=i['qid'], text= i['query'])
+        i = i.to_dict()
+        orig_query = None if 'original_query' not in i else i['original_query']
+        description = None if (not orig_query or 'description' not in orig_query) else orig_query['description']
+        narrative = None if (not orig_query or 'narrative' not in orig_query) else orig_query['narrative']
+        queries[i['qid']] = TirexQuery(query_id=i['qid'],  text=i['query'], query=i['query'], title=i['query'], description=description, narrative=narrative)
 
     return DynamicQueries(queries)
 
