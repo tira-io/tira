@@ -19,14 +19,14 @@
       </v-card-text>
 
       <v-card-text v-if="repo_url">
-        <p class="mb-5">Code submissions allow you to automatically create Docker submissions from your GitHub repository via prepared GitHub actions that build, test, and upload your code as Docker image to TIRA. Your github repository is <a :href="http_repo_url">{{repo_url}}</a> owned by <a :href="http_owner_url">{{owner_url}}</a> (please contact this owner if additional accounts need access to this repository). If you have some problems, please do not hesitate to contact your organizers <a :href="organizer_link">{{organizer}}</a>.</p>
+        <p class="mb-5">Code submissions allow you to automatically create Docker submissions from your GitHub repository via prepared GitHub actions that build, test, and upload your code as Docker image to TIRA. Your github repository is <a :href="http_repo_url" target="_blank">{{repo_url}}</a> owned by <a :href="http_owner_url" target="_blank">{{owner_url}}</a> (please contact this owner if additional accounts need access to this repository). If you have some problems, please do not hesitate to contact your organizers <a :href="organizer_link">{{organizer}}</a>.</p>
 
         <v-expansion-panels>
           <v-expansion-panel>
             <v-expansion-panel-title>Step 1: Upload your Code to your repository</v-expansion-panel-title>
             <v-expansion-panel-text>
               <p>Short conceptual description: deployment + key for git repo, deployment + key of tira key</p>
-              <p>If you start from scratch, you can just <a :href="http_repo_url">clone your repository</a>.</p>
+              <p>If you start from scratch, you can just <a :href="http_repo_url" target="_blank">clone your repository</a>.</p>
               
               <code-snippet title="Merge your existing repository" :code="code_for_merging" expand_message="If you already have a git repository, please merge it with the tira repository."/>
             </v-expansion-panel-text>
@@ -100,7 +100,7 @@ export default {
   computed: {
     organizer_link() {return get_link_to_organizer(this.organizer_id)},
     code_for_merging() {
-      return '#Please make first sure that all changes in your repository are committed to your remote.\ngit remote add tira ' + this.ssh_repo_url + '\ngit merge tira main'
+      return '#Please make first sure that all changes in your repository are committed to your remote.\ngit remote add tira ' + this.ssh_repo_url + '\ngit pull tira main\ngit push tira main'
     }
   }
 }
