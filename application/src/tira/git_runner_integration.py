@@ -1204,8 +1204,7 @@ class GithubRunner(GitRunner):
 
         org = self.gitHoster_client.get_organization(user_repository_namespace)
         repo = org.create_repo(user_repository_name,
-                               f'The repository of user {tira_user_name} for code submissions in TIRA.',
-                               private=True)
+                               f'The repository of user {tira_user_name} for code submissions in TIRA.', private=True)
         repo.add_to_collaborators(github_user, 'admin')
 
         repo.create_secret('DOCKERHUB_TOKEN', dockerhub_token)

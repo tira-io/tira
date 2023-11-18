@@ -9,7 +9,7 @@ RUN cd /src/tira/frontend-vuetify \
 
 
 # Only change in case of new / updated dependencies
-FROM webis/tira-application:basis-0.0.75
+FROM webis/tira-application:basis-0.0.76
 
 # This Dockerfile ensures that all dependencies do rarely change by starting from a basis image
 # that contains already all dependencies (so that the minor versions do rarely change, but we
@@ -36,10 +36,6 @@ RUN cd /tira/application/src/tira/frontend/ && \
 COPY --from=0 /src/tira/static/tira/frontend-vuetify/ /tira/application/src/tira/static/tira/frontend-vuetify/
 
 RUN cd /tira/application/ && \
-	pip3 install coverage coverage-badge && \
-	pip3 uninstall -y discourse-client-in-disraptor && \
-	pip3 uninstall -y PyGithub && \
-	pip3 install discourse-client-in-disraptor PyGithub && \
 	./test/run_all_tests.sh
 
 CMD sh -c "nginx && uwsgi --uid 1010 --gid 1010 --ini /tira/application/src/uwsgi.ini"
