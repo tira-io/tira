@@ -5,7 +5,6 @@ import tempfile
 import logging
 import gitlab
 from github import Github
-import ghapi
 from pathlib import Path
 import shutil
 from datetime import datetime as dt
@@ -1202,12 +1201,11 @@ class GithubRunner(GitRunner):
                                                        dockerhub_token, dockerhub_user, tira_client_token,
                                                        repository_search_prefix):
         reference_repo = self.gitHoster_client.get_repo(reference_repository_name)
-        user = self.gitHoster_client.get_user()
-        
-        user.create_repo(user_repository_name, f'The repository of user {tira_user_name} for code submissions in TIRA.',
-                         private=True)
+
         org = self.gitHoster_client.get_organization(user_repository_namespace)
-        repo = org.create_repo(user_repository_name, 'Repository for TIRA code submissions, please add description.')
+        repo = org.create_repo(user_repository_name,
+                               f'The repository of user {tira_user_name} for code submissions in TIRA.',
+                               private=True)
         repo.add_to_collaborators(github_user, 'admin')
 
         repo.create_secret('DOCKERHUB_TOKEN', dockerhub_token)
