@@ -180,6 +180,11 @@ def load_docker_data(task_id, vm_id, cache, force_cache_refresh):
     }
 
 
+def github_user_exists(user_name):
+    g = get_git_runner_for_software_integration()
+    return g.git_user_exists(user_name)
+
+
 def get_submission_git_repo(vm_id, task_id, disraptor_user=None, external_owner=None):
     user_repository_name = slugify(task_id) + '-' + slugify(vm_id)
     repository_url = settings.CODE_SUBMISSION_REPOSITORY_NAMESPACE + '/' + user_repository_name

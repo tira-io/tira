@@ -1174,6 +1174,12 @@ class GithubRunner(GitRunner):
         # https://docs.github.com/en/rest/actions/workflow-jobs?apiVersion=2022-11-28#get-a-job-for-a-workflow-run
         pass
 
+    def git_user_exists(self, user_name):
+        try:
+            return self.gitHoster_client.get_user(user_name) is not None
+        except:
+            return False
+
     def get_git_runner_for_software_integration(self, reference_repository_name, user_repository_name,
                                                 user_repository_namespace, github_user, tira_user_name,
                                                 dockerhub_token, dockerhub_user, tira_client_token, repository_search_prefix):
@@ -1203,12 +1209,11 @@ class GithubRunner(GitRunner):
         org = self.gitHoster_client.get_organization(user_repository_namespace)
         repo = org.create_repo(user_repository_name, 'Repository for TIRA code submissions, please add description.')
         repo.add_to_collaborators(github_user, 'admin')
-        actions = repo.get_actions()
 
-        actions.create_secret('DOCKERHUB_TOKEN', dockerhub_token)
-        actions.create_secret('DOCKERHUB_USER', dockerhub_user)
-        actions.create_secret('TIRA_CLIENT_TOKEN', tira_client_token)
-        actions.create_secret('TIRA_VM_ID', tira_user_name)
+        repo.create_secret('DOCKERHUB_TOKEN', dockerhub_token)
+        repo.create_secret('DOCKERHUB_USER', dockerhub_user)
+        repo.create_secret('TIRA_CLIENT_TOKEN', tira_client_token)
+        repo.create_secret('TIRA_VM_ID', tira_user_name)
 
         contents = reference_repo.get_contents(repository_search_prefix)
         while contents:

@@ -510,6 +510,9 @@ def add_software_submission_git_repository(request, task_id, vm_id):
         if not disraptor_user or not type(disraptor_user) == str:
             return JsonResponse({'status': 1, 'message': f"Please authenticate."})
 
+        if not model.github_user_exists(external_owner):
+            return JsonResponse({'status': 1, 'message': f"The user '{external_owner}' does not exist on Github, maybe a typo?"})
+
         software_submission_git_repo = model.get_submission_git_repo(vm_id, task_id, disraptor_user, external_owner)
 
         return JsonResponse({'status': 0, "context": software_submission_git_repo})
