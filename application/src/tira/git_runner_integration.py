@@ -1182,7 +1182,8 @@ class GithubRunner(GitRunner):
     def get_git_runner_for_software_integration(self, reference_repository_name, user_repository_name,
                                                 user_repository_namespace, github_user, tira_user_name,
                                                 dockerhub_token, dockerhub_user, tira_client_token,
-                                                repository_search_prefix, tira_task_id, tira_code_repository_id):
+                                                repository_search_prefix, tira_task_id, tira_code_repository_id,
+                                                tira_client_user):
         user = self.gitHoster_client.get_user()
         try:
             user_repo = user.get_repo(f'{user_repository_namespace}/{user_repository_name}')
@@ -1196,12 +1197,14 @@ class GithubRunner(GitRunner):
                                                                    user_repository_namespace, github_user,
                                                                    tira_user_name, dockerhub_token, dockerhub_user,
                                                                    tira_client_token, repository_search_prefix,
-                                                                   tira_task_id, tira_code_repository_id)
+                                                                   tira_task_id, tira_code_repository_id,
+                                                                   tira_client_user)
 
     def create_software_submission_repository_for_user(self, reference_repository_name, user_repository_name,
                                                        user_repository_namespace, github_user, tira_user_name,
                                                        dockerhub_token, dockerhub_user, tira_client_token,
-                                                       repository_search_prefix, tira_task_id, tira_code_repository_id):
+                                                       repository_search_prefix, tira_task_id, tira_code_repository_id,
+                                                       tira_client_user):
         reference_repo = self.gitHoster_client.get_repo(reference_repository_name)
 
         org = self.gitHoster_client.get_organization(user_repository_namespace)
@@ -1212,6 +1215,7 @@ class GithubRunner(GitRunner):
         repo.create_secret('TIRA_DOCKER_REGISTRY_TOKEN', dockerhub_token)
         repo.create_secret('TIRA_DOCKER_REGISTRY_USER', dockerhub_user)
         repo.create_secret('TIRA_CLIENT_TOKEN', tira_client_token)
+        repo.create_secret('TIRA_CLIENT_USER', tira_client_user)
         repo.create_secret('TIRA_TASK_ID', tira_task_id)
         repo.create_secret('TIRA_CODE_REPOSITORY_ID', tira_code_repository_id)
         repo.create_secret('TIRA_VM_ID', tira_user_name)

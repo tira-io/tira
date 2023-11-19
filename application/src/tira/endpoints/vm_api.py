@@ -476,7 +476,7 @@ def docker_software_add(request, task_id, vm_id):
         submission_git_repo = None
         build_environment = None
         if data.get('code_repository_id'):
-            submission_git_repo = model.get_submission_git_repo_or_none(data.get('code_repository_id'), vm_id, True)
+            submission_git_repo = model.model.get_submission_git_repo_or_none(data.get('code_repository_id'), vm_id, True)
 
             if not submission_git_repo:
                 return JsonResponse({"status": 1, "message": f"The code repository '{data.get('code_repository_id'):}' does not exist."})

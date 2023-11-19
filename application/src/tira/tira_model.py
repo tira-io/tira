@@ -217,7 +217,8 @@ def get_submission_git_repo(vm_id, task_id, disraptor_user=None, external_owner=
         repository_search_prefix='',
         tira_user_name=vm_id,
         tira_task_id=task_id,
-        tira_code_repository_id=repository_url
+        tira_code_repository_id=repository_url,
+        tira_client_user=disraptor_user,
     )
 
     ret.confirmed = True
