@@ -1,6 +1,7 @@
 from django.template.loader import render_to_string
 from django.db.utils import IntegrityError
 from django.core.cache import cache
+from django.views.decorators.csrf import csrf_exempt
 import logging
 
 from grpc import RpcError, StatusCode
@@ -457,6 +458,7 @@ def add_upload(request, task_id, vm_id):
         return JsonResponse({"status": 1, "message": "POST is not allowed here."})
 
 
+@csrf_exempt
 @check_permissions
 @check_resources_exist("json")
 def docker_software_add(request, task_id, vm_id):
