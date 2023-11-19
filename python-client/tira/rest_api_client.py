@@ -18,7 +18,7 @@ class Client():
 
         if api_key is None:
             self.api_key = self.load_settings()['api_key']
-            self.api_key = self.load_settings()['api_user_name']
+            self.api_user_name = self.load_settings()['api_user_name']
         else:
             self.api_key = api_key
             self.api_user_name = api_user_name
@@ -37,7 +37,7 @@ class Client():
             return json.load(open(self.tira_cache_dir + '/.tira-settings.json', 'r'))
         except:
             print(f'No settings given in {self.tira_cache_dir}/.tira-settings.json. I will use defaults.')
-            return {'api_key': 'no-api-key'}
+            return {'api_key': 'no-api-key', 'api_user_name': 'no-api-key-user'}
 
     def fail_if_api_key_is_invalid(self):
         role = self.json_response('/api/role')
@@ -80,10 +80,12 @@ class Client():
         self.fail_if_api_key_is_invalid()
         url = f'https://www.tira.io/task/{tira_task_id}/vm/{tira_vm_id}/add_software/docker'
         ret = requests.post(url, headers=headers, json={"action": "post", "image": image, "command": command, "code_repository_id": code_repository_id,"build_environment": json.dumps(build_environment)})
-
         ret = ret.content.decode('utf8')
         ret = json.loads(ret)
+
         assert ret['status'] == 0
+        print(f'Software with name {ret["context"]["display_name"]} was created.')
+        print(f'Please visit https://www.tira.io/submit/{tira_task_id}/user/{tira_vm_id}/docker-submission to run your software.')
 
     def submissions(self, task, dataset):
         response = self.json_response(f'/api/submissions/{task}/{dataset}')['context']
@@ -318,9 +320,11 @@ class Client():
         for i in range(self.failsave_retries):
             status_code = None
             try:
-                headers={"Api-Key": self.api_key}
+                headers={"Api-Key": self.api_key, "Api-Username": self.api_user_name}
                 if self.api_key == 'no-api-key':
                     del headers["Api-Key"]
+                if self.api_user_name == 'no-api-key-user':
+                    del headers["Api-Username"]
             
                 r = requests.get(url, headers=headers)
                 status_code = r.status_code
@@ -392,6 +396,9 @@ class Client():
         
         if self.api_key == 'no-api-key':
             del headers["Api-Key"]
+
+        if self.api_user_name == 'no-api-key-user':
+            del headers["Api-Username"]
 
         for i in range(self.failsave_retries):
             try:

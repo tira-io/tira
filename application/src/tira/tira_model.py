@@ -537,7 +537,7 @@ def update_docker_software_metadata(docker_software_id, display_name, descriptio
     return model.update_docker_software_metadata(docker_software_id, display_name, description, paper_link, ir_re_ranker, ir_re_ranking_input)
 
 
-def add_docker_software(task_id, vm_id, image, command, software_inputs=None):
+def add_docker_software(task_id, vm_id, image, command, software_inputs=None, submission_git_repo=None, build_environment=None):
     """ Add the docker software to the user of the vm and return it """
 
     image, old_tag = image.split(':')
@@ -554,7 +554,7 @@ def add_docker_software(task_id, vm_id, image, command, software_inputs=None):
                 input_docker_job[software_num] = software_input
 
     return model.add_docker_software(task_id, vm_id, image + ':' + old_tag, command, tira_image_name, input_docker_job,
-                                     input_upload)
+                                     input_upload, submission_git_repo, build_environment)
 
 
 def add_registration(data):
