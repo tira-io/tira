@@ -197,11 +197,12 @@ def get_submission_git_repo(vm_id, task_id, disraptor_user=None, external_owner=
     docker_registry_user = docker_data['docker_registry_user']
     docker_registry_token = docker_data['docker_registry_token']
     reference_repository = settings.CODE_SUBMISSION_REFERENCE_REPOSITORY
-    discourse_api_key = discourse_api_client().generate_api_key(disraptor_user,
-                                                                disraptor_user + '-repo-' + task_id + '-' + vm_id)
+    disraptor_description = disraptor_user + '-repo-' + task_id + '-' + vm_id
+    discourse_api_key = discourse_api_client().generate_api_key(disraptor_user, disraptor_description)
 
     model.create_submission_git_repo(repository_url, vm_id, docker_registry_user, docker_registry_token,
-                                     discourse_api_key, reference_repository, external_owner)
+                                     discourse_api_key, reference_repository, external_owner,
+                                     disraptor_user, disraptor_description)
     ret = model.get_submission_git_repo_or_none(repository_url, vm_id, return_object=True)
 
     g = get_git_runner_for_software_integration()

@@ -396,12 +396,13 @@ class HybridDatabase(object):
 
     @staticmethod
     def create_submission_git_repo(repo_url, vm_id, docker_registry_user, docker_registry_token, discourse_api_key,
-                                   reference_repository_url, external_owner):
+                                   reference_repository_url, external_owner, discourse_api_user, discourse_api_descr):
         return modeldb.SoftwareSubmissionGitRepository.objects.create(
             repository_url=repo_url, vm=modeldb.VirtualMachine.objects.get(vm_id=vm_id),
             reference_repository_url=reference_repository_url, external_owner=external_owner,
             docker_registry_token=docker_registry_token, docker_registry_user=docker_registry_user,
-            tira_client_token=discourse_api_key
+            tira_client_token=discourse_api_key, tira_client_user=discourse_api_user,
+            tira_client_description=discourse_api_descr
         )
 
     def get_submission_git_repo_or_none(self, repository_url, vm_id, return_object=False):

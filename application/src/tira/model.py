@@ -232,6 +232,8 @@ class SoftwareSubmissionGitRepository(models.Model):
     docker_registry_token = models.CharField(max_length=100)
     docker_registry_user = models.CharField(max_length=100, default=None)
     tira_client_token = models.CharField(max_length=100)
+    tira_client_user = models.CharField(max_length=100, null=True, default=None)
+    tira_client_description = models.CharField(max_length=100, null=True, default=None)
     confirmed = models.BooleanField(null=False, default=False)
 
 
@@ -313,6 +315,7 @@ class Review(models.Model):
     has_no_errors = models.BooleanField(default=False)
     published = models.BooleanField(default=False)
     blinded = models.BooleanField(default=True)
+
 
 class BackendProcess(models.Model):
     id = models.AutoField(primary_key=True)
