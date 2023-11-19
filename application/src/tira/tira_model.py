@@ -215,14 +215,14 @@ def get_submission_git_repo(vm_id, task_id, disraptor_user=None, external_owner=
         tira_client_token=discourse_api_key,
         repository_search_prefix='',
         tira_user_name=vm_id,
+        tira_task_id=task_id,
+        tira_code_repository_id=repository_url
     )
 
     ret.confirmed = True
     ret.save()
 
     return model.get_submission_git_repo_or_none(repository_url, vm_id)
-
-
 
 
 def git_pipeline_is_enabled_for_task(task_id, cache, force_cache_refresh=False):

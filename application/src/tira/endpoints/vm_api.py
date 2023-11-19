@@ -471,9 +471,23 @@ def docker_software_add(request, task_id, vm_id):
         if not data.get('command'):
             return JsonResponse({"status": 1, "message": "Please specify the associated docker command."})
 
+        submission_git_repo = None
+        build_environment = None
+        if data.get('code_repository_id'):
+            submission_git_repo = model.get_submission_git_repo_or_none(data.get('code_repository_id'), vm_id, True)
+
+            if not submission_git_repo:
+                return JsonResponse({"status": 1, "message": f"The code repository '{data.get('code_repository_id'):}' does not exist."})
+
+            if not data.get('build_environment'):
+                return JsonResponse({"status": 1, "message": f"Please specify the build_environment for linking the code."})
+
+            build_environment = json.dumps(data.get('build_environment'))
+
         new_docker_software = model.add_docker_software(task_id, vm_id,
                                                         data.get('image'), data.get('command'),
-                                                        data.get('inputJob', None)
+                                                        data.get('inputJob', None),
+                                                        submission_git_repo, build_environment
                                                         )
         return JsonResponse({"status": 0, "message": "ok", "context": new_docker_software})
     else:

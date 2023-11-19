@@ -416,7 +416,7 @@ class HybridDatabase(object):
                     'owner_url': ret.external_owner, 'http_owner_url': 'https://github.com/' + ret.external_owner
                     }
         except:
-            return {}
+            return {} if not return_object else None
 
     def get_host_list(self) -> list:
         return [line.strip() for line in open(self.host_list_file, "r").readlines()]
@@ -1666,7 +1666,7 @@ class HybridDatabase(object):
         )
 
     def add_docker_software(self, task_id, vm_id, user_image_name, command, tira_image_name, input_docker_job=None,
-                            input_upload=None):
+                            input_upload=None, submission_git_repo=None, build_environment=None):
         input_docker_software, input_upload_software = None, None
         if input_docker_job and 0 in input_docker_job:
             input_docker_software = modeldb.DockerSoftware.objects.get(docker_software_id=input_docker_job[0])
@@ -1674,15 +1674,15 @@ class HybridDatabase(object):
             input_upload_software = modeldb.Upload.objects.get(id=int(input_upload[0]))
 
         docker_software = modeldb.DockerSoftware.objects.create(
-                vm=modeldb.VirtualMachine.objects.get(vm_id=vm_id),
-                task=modeldb.Task.objects.get(task_id=task_id),
-                command=command,
-                tira_image_name=tira_image_name,
-                user_image_name=user_image_name,
-                display_name=randomname.get_name(),
-                input_docker_software=input_docker_software,
-                input_upload=input_upload_software,
-            )
+            vm=modeldb.VirtualMachine.objects.get(vm_id=vm_id),
+            task=modeldb.Task.objects.get(task_id=task_id),
+            command=command,
+            tira_image_name=tira_image_name,
+            user_image_name=user_image_name,
+            display_name=randomname.get_name(),
+            input_docker_software=input_docker_software,
+            input_upload=input_upload_software,
+        )
 
         additional_inputs = range(1, (0 if not input_upload else len(input_upload)) + (0 if not input_docker_job else len(input_docker_job)))
         for i in additional_inputs:
@@ -1694,6 +1694,12 @@ class HybridDatabase(object):
 
             modeldb.DockerSoftwareHasAdditionalInput.objects.create(
                 docker_software=docker_software, input_docker_software=inp, input_upload=upl
+            )
+
+        if submission_git_repo:
+            modeldb.LinkToSoftwareSubmissionGitRepository.objects.create(
+                docker_software=docker_software, software_submission_git_repository=submission_git_repo,
+                commit_hash='', link_to_file='', build_environment=build_environment
             )
 
         return self._docker_software_to_dict(docker_software)
