@@ -32,7 +32,10 @@ def parse_args():
     parser.add_argument('--tira-docker-registry-token', required=False, default=os.environ.get('TIRA_DOCKER_REGISTRY_TOKEN'))
     parser.add_argument('--tira-docker-registry-user', required=False, default=os.environ.get('TIRA_DOCKER_REGISTRY_USER'))
     parser.add_argument('--tira-client-token', required=False, default=os.environ.get('TIRA_CLIENT_TOKEN'))
+    parser.add_argument('--tira-client-user', required=False, default=os.environ.get('TIRA_CLIENT_USER'))
     parser.add_argument('--tira-vm-id', required=False, default=os.environ.get('TIRA_VM_ID'))
+    parser.add_argument('--tira-task-id', required=False, default=os.environ.get('TIRA_TASK_ID'))
+    parser.add_argument('--tira-code-repository-id', required=False, default=os.environ.get('TIRA_CODE_REPOSITORY_ID'))
 
     args = parser.parse_args()
     if args.export_submission_from_jupyter_notebook:
@@ -49,8 +52,22 @@ def parse_args():
             parser.error('The options --image and --command have to be used together.')
 
     if args.push.lower() == 'true':
-        if not args.tira_docker_registry_token or not args.tira_docker_registry_user or not args.tira_client_token or not args.tira_vm_id:
-            parser.error('The options --tira-docker-registry-token (or environment variable TIRA_DOCKER_REGISTRY_TOKEN), --tira-docker-registry-user (or environment variable TIRA_DOCKER_REGISTRY_USER), --tira-client-token (or environment variable TIRA_CLIENT_TOKEN) or --tira-vm-id (or environment variable TIRA_VM_ID) are required when --push is active.')
+        if not args.tira_docker_registry_token:
+             parser.error('The option --tira-docker-registry-token (or environment variable TIRA_DOCKER_REGISTRY_TOKEN) is required when --push is active.')
+
+        if not args.tira_docker_registry_user:
+            parser.error('The option --tira-docker-registry-user (or environment variable TIRA_DOCKER_REGISTRY_USER) is required when --push is active.')
+
+        if not args.tira_client_token:
+            parser.error('The option --tira-client-token (or environment variable TIRA_CLIENT_TOKEN) is required when --push is active.')
+
+        if not args.tira_vm_id:
+            parser.error('The option --tira-vm-id (or environment variable TIRA_VM_ID) is required when --push is active.')
+  
+        if not args.tira_task_id:
+            parser.error('The option --tira-task-id (or environment variable TIRA_TASK_ID) is required when --push is active.')
+        if not args.tira_client_user:
+            parser.error('The option --tira-client-user (or environment variable TIRA_CLIENT_USER) is required when --push is active.')
 
     return args
 
@@ -137,3 +154,6 @@ def main():
         print('Push Docker image')
         client.local_execution.push_image(args.image, args.tira_docker_registry_user, args.tira_docker_registry_token)
         print('Upload TIRA_SOFTWARE')
+        tira = RestClient(api_key=args.tira_client_token, api_user_name=args.tira_client_user)
+        tira.add_docker_software(args.image, args.command, args.tira_vm_id, args.tira_task_id, args.tira_code_repository_id, dict(os.environ))
+

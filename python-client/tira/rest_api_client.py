@@ -12,14 +12,16 @@ from tira.local_execution_integration import LocalExecutionIntegration
 
 
 class Client():
-    def __init__(self, api_key=None, failsave_retries=5, failsave_max_delay=15):
+    def __init__(self, api_key=None, failsave_retries=5, failsave_max_delay=15, api_user_name=None):
         self.tira_cache_dir = os.environ.get('TIRA_CACHE_DIR', os.path.expanduser('~') + '/.tira')
         self.json_cache = {}
 
         if api_key is None:
             self.api_key = self.load_settings()['api_key']
+            self.api_key = self.load_settings()['api_user_name']
         else:
             self.api_key = api_key
+            self.api_user_name = api_user_name
 
         self.failsave_retries = 1
         if self.api_key != 'no-api-key':
@@ -67,6 +69,21 @@ class Client():
 
     def metadata_for_task(self, task_name, team_name):
         return self.json_response(f'/api/task/{task_name}/user/{team_name}')
+
+    def add_docker_software(self, image, command, tira_vm_id, tira_task_id, code_repository_id, build_environment):
+        headers = {   
+            'Api-Key': self.api_key,
+            'Api-Username': self.api_user_name,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        }
+        self.fail_if_api_key_is_invalid()
+        url = f'https://www.tira.io/task/{tira_task_id}/vm/{tira_vm_id}/add_software/docker'
+        ret = requests.post(url, headers=headers, json={"action": "post", "image": image, "command": command, "code_repository_id": code_repository_id,"build_environment": json.dumps(build_environment)})
+
+        ret = ret.content.decode('utf8')
+        ret = json.loads(ret)
+        assert ret['status'] == 0
 
     def submissions(self, task, dataset):
         response = self.json_response(f'/api/submissions/{task}/{dataset}')['context']
@@ -371,7 +388,7 @@ class Client():
         if cache_key in self.json_cache:
             return self.json_cache[cache_key]
         
-        headers = {"Api-Key": self.api_key, "Accept": "application/json"}
+        headers = {"Api-Key": self.api_key, "Accept": "application/json", "Api-Username": self.api_user_name}
         
         if self.api_key == 'no-api-key':
             del headers["Api-Key"]
