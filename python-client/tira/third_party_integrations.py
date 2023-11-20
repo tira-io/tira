@@ -70,8 +70,12 @@ def is_running_as_inference_server():
     return os.environ.get('TIRA_INFERENCE_SERVER', None) is not None
     
                 
-def load_rerank_data(default_input, load_default_text=True):
-    default_input = get_input_directory_and_output_directory(default_input)[0]
+def load_rerank_data(default, load_default_text=True):
+    default_input = get_input_directory_and_output_directory(default)[0]
+
+    if not os.path.isdir(default_input) and len(default.split('/')) == 2:
+        from tira.rest_api_client import Client as RestClient
+        default_input = RestClient().download_dataset(default.split('/')[0], default.split('/')[1])
 
     if not default_input.endswith('rerank.jsonl') and not default_input.endswith('rerank.jsonl.gz'):
         if os.path.isfile(default_input + '/rerank.jsonl.gz'):
