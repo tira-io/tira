@@ -100,7 +100,7 @@ export default {
   computed: {
     organizer_link() {return get_link_to_organizer(this.organizer_id)},
     code_for_merging() {
-      return '#Please make first sure that all changes in your repository are committed to your remote.\ngit remote add tira ' + this.ssh_repo_url + '\ngit pull tira main\ngit push tira main'
+      return '#Please make first sure that all changes in your repository are committed to your remote.\ngit remote add tira ' + this.ssh_repo_url + '\ngit config pull.rebase true\ngit pull tira main\ngit push tira main'
     }
   }
 }
