@@ -1,8 +1,7 @@
 <template>
   <tira-breadcrumb/>
-  <v-container>
   <loading :loading="loading"/>
-  <v-container v-if="!loading">
+  <div v-if="!loading" class="!$vuetify.display.mdAndUp ? 'my-0 px-3' : 'my-5 px-10'">
         <loading :loading="loading"/>
         <v-container v-if="!loading">
           <v-card class="px2" max-width="2560">
@@ -76,16 +75,15 @@
           <v-container v-if="!loading" id="dataset-select">
             <h2>Submissions</h2>
             <run-list :task_id="task_id" :organizer="task.organizer"
-                      :organizer_id="task.organizer_id" :dataset_id="selectedDataset"
-                      :datasets="datasets" :type="'task'" @pass="receiveFilteredDataset"/>
+                      :organizer_id="task.organizer_id"
+                      :datasets="datasets" :component_type="component_type"/>
           </v-container>
-  </v-container>
-  </v-container>
+  </div>
 </template>
 
 <script lang="ts">
   import { TiraBreadcrumb, TiraTaskAdmin, RunList, Loading, SubmitButton, TaskDocumentation } from './components'
-  import RunUpload from "@/RunUpload.vue";
+  import RunUpload from "@/RunUpload.vue"
   import { VAutocomplete } from 'vuetify/components'
   import { extractTaskFromCurrentUrl, get_link_to_organizer, get_contact_link_to_organizer, extractDatasetFromCurrentUrl, changeCurrentUrlToDataset, get, inject_response, reportError, extractRole} from './utils'
   export default {
@@ -106,6 +104,7 @@
         user_vms_for_task: [],
         datasets: [{'dataset_id': 'loading...', 'display_name': 'loading...'}],
         tab: "test",
+        component_type: 'Overview',
     }
   },
   computed: {
@@ -146,9 +145,6 @@
       // filter by dataset on datasets
       this.datasets = this.datasets.filter(d => d['dataset_id'] !== dataset_id)
       this.updateDataset()
-    },
-    receiveFilteredDataset(receivedDataset: any){
-        this.selectedDataset = receivedDataset
     },
   },
   beforeMount() {

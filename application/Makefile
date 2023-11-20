@@ -2,8 +2,8 @@
 
 VENV_NAME?=venv
 PYTHON=${PWD}/${VENV_NAME}/bin/python3
-VERSION_APPLICATION=0.0.87
-VERSION_GRPC=0.0.87
+VERSION_APPLICATION=0.0.89
+VERSION_GRPC=0.0.89
 
 .DEFAULT: help
 help:
@@ -88,14 +88,7 @@ run-develop: venv
 	&& $(VENV_NAME)/bin/python src/manage.py run_develop
 
 vite:
-	cd src/tira/frontend-vuetify \
-	&& yarn build
-
-vite-dev:
-	cd src/tira/frontend-vuetify \
-	&& yarn install \
-	&& yarn test \
-	&& yarn dev
+	docker run -v ${PWD}:/app --platform linux/amd64 --rm -ti -w /app/src/tira/frontend-vuetify --entrypoint yarn webis/tira:vuetify-dev-0.0.1 build
 
 run-docker:
 	docker run -td --rm \
@@ -109,8 +102,11 @@ run-docker:
 		-v=/mnt/ceph/tira:/mnt/ceph/tira \
 		webis/tira-application-grpc:${VERSION_GRPC}
 
+
 build-docker:
 	docker build --tag webis/tira-application:${VERSION_APPLICATION} -f Dockerfile.application ..
+
+build-docker-all: build-docker
 	docker build --tag webis/tira-application:${VERSION_APPLICATION}-diffir-base -f Dockerfile.application-diffir-base ..
 	docker build --tag webis/tira-application:${VERSION_APPLICATION}-diffir -f Dockerfile.application-diffir ..
 	docker build --tag webis/tira-application-grpc:${VERSION_GRPC} -f Dockerfile.application-grpc ..
@@ -126,7 +122,6 @@ docker-publish:
 	docker push webis/tira-application-grpc:${VERSION_GRPC}
 
 build-docker-basis:
-        docker build --tag webis/tira-application:build-vuetify-${VERSION_APPLICATION} -f Dockerfile.vuetify .
 	docker build --tag webis/tira-application:basis-${VERSION_APPLICATION} -f Dockerfile.basis ..
 
 clean:

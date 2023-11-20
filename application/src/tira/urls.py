@@ -21,6 +21,7 @@ urlpatterns = [
     re_path(r'^frontend-vuetify/.*', views.veutify_page, name='vuetify_page'),
     re_path(r'^task-overview/.*', views.veutify_page, name='vuetify_page'),
     re_path(r'^submit/.*', views.veutify_page, name='vuetify_page'),
+    re_path(r'^tirex/.*', views.veutify_page, name='tirex'),
     path('request_vm', views.request_vm, name='request_vm'),
     path('login', views.login, name='login'),
     path('logout', views.logout, name='logout'),
@@ -92,6 +93,7 @@ urlpatterns = [
     path('api/upload-group-details/<str:task_id>/<str:vm_id>/<str:upload_id>', vm_api.upload_group_details, name='upload_id'),
     path('api/evaluations_of_run/<str:vm_id>/<str:run_id>', data_api.get_evaluations_of_run, name='evaluations_of_run'),
     path('api/configuration-of-evaluation/<str:task_id>/<str:dataset_id>', data_api.get_configuration_of_evaluation, name='get_configuration_of_evaluation'),
+    path('api/list-runs/<str:task_id>/<str:dataset_id>/<str:vm_id>/<str:software_id>', data_api.runs, name='runs'),
     path('api/ova-list', data_api.get_ova_list, name='get_ova_list'),
     path('api/host-list', data_api.get_host_list, name='get_host_list'),
     path('api/organizer-list', data_api.get_organizer_list, name='get_organizer_list'),
@@ -109,8 +111,13 @@ urlpatterns = [
     path('api/review/<str:dataset_id>/<str:vm_id>/<str:run_id>', data_api.get_review, name='get_review'),
     path('api/registration/add_registration/<str:vm_id>/<str:task_id>', data_api.add_registration, name='add_registration'),
     path('api/submissions-for-task/<str:task_id>/<str:user_id>/<str:submission_type>', data_api.submissions_for_task, name="submissions_for_task"),
+    path('api/tirex-components', data_api.tirex_components, name='tirex_components'),
+    path('api/re-ranking-datasets/<str:task_id>', data_api.reranking_datasets, name='reranking_datasets'),
+    path('api/submissions-of-user/<str:vm_id>', data_api.submissions_of_user, name='submissions_of_user'),
+    path('api/import-submission/<str:task_id>/<str:vm_id>/<str:submission_type>/<str:s_id>', data_api.import_submission, name='import_submission'),
     path('diffir/<str:task_id>/<int:topk>/<str:run_id_1>/<str:run_id_2>', diffir_api.diffir, name='diffir'),
     path('serp/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/<int:topk>/<str:run_id>', serp_api.serp, name='serp'),
+
 ]
 
 app_name = 'tira'

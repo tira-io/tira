@@ -15,7 +15,7 @@
     </v-tabs>
 
     <v-card-text>
-      <v-window v-model="tab">
+      <v-window v-model="tab" :touch="{left: () => {}, right: () => {}}">
         <v-window-item value="1">
           <p>The following code assumes you have installed the `tira` utility (<v-code tag="span">pip3 install tira</v-code>) in your Docker image. TIRA executes software in a sandbox. This ir_datasets integration loads the data provided by TIRA if executed in the sandbox, otherwise the specified data.</p>
           <v-code tag="pre">

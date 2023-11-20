@@ -9,7 +9,7 @@
     </v-tabs>
 
     <v-card-text>
-      <v-window v-model="component_tab">
+      <v-window v-model="component_tab" :touch="{left: () => {}, right: () => {}}">
         <v-window-item value="details">
           <v-card-item class="d-md-none" v-if="run && run.link_to_team"><b>Team: </b>
             <submission-icon :submission="run" />
@@ -54,7 +54,7 @@
           </v-tabs>
 
           <v-card-text>
-            <v-window v-model="tab">
+            <v-window v-model="tab" :touch="{left: () => {}, right: () => {}}">
               <v-window-item value="one">
                 <tira-data-export :run_export="tira_run_export" />
                 <v-code tag="pre" > {{ cli_command }}</v-code>

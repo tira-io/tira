@@ -2,14 +2,38 @@
 
 This is a python client for [TIRA.io](https://tira.io).
 
-## Download The results of some Submission
+## Setup REST Client to Access Non-Public Endpoints
+
+To access non-public endpoints, you will need an authentication via an API key to ensure that you have the correct access credentials.
+Please generate your API key online at [tira.io/admin/api/keys](https://www.tira.io/admin/api/keys) and create a credentials file at `~/.tira/.tira-settings.json` with the following content:
 
 ```
-from tira.rest_client_api import Client
+{"api_key": "<YOUR-API-KEY>"}
+```
+
+## Download The results of some Submission
+
+You can download runs of published and unblinded submissions via:
+
+```
+from tira.rest_api_client import Client
 
 tira = Client()
 output = tira.get_run_output('<task>/<team>/<approach>', '<dataset>')
 ```
+
+As an example, you can download all baseline BM25 runs submitted to [TIREx](https://www.tira.io/tirex) via:
+
+```
+from tira.rest_api_client import Client
+from tira.tirex import TIREX_DATASETS
+
+tira = Client()
+
+for dataset in TIREX_DATASETS:
+    output = tira.get_run_output('ir-benchmarks/tira-ir-starter/BM25 Re-Rank (tira-ir-starter-pyterrier)', dataset)
+```
+
 ## Export datasets
 
 You can export datasets if you are the owner or if the dataset is public.

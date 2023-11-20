@@ -9,6 +9,7 @@
               type='docker'
               :id="docker_software_id"
               :user_id="user_id"
+              :is_ir_task="is_ir_task"
               @edit="updateDockerSoftwareDetails"
           />
           <v-btn class="ml-4" variant="outlined" color="red" @click="deleteDockerImage()">
@@ -35,7 +36,8 @@
       <v-card-title>Run the Software</v-card-title>
       <v-form ref="form" v-model="valid">
         <v-autocomplete v-model="selectedResource" :items="allResources" label="Resources" item-title="display_name" item-value="resource_id" :rules="[v => !!(v && v.length) || 'Please select the resources for the execution.']" />
-        <v-autocomplete v-model="selectedDataset" :items="datasets" item-title="display_name" item-value="dataset_id" label="Dataset" :rules="[v => !!(v && v.length) || 'Please select on which dataset the software should run.']" />
+        <v-autocomplete v-model="selectedDataset" v-if="!docker_software_details.ir_re_ranker" :items="datasets" item-title="display_name" item-value="dataset_id" label="Dataset" :rules="[v => !!(v && v.length) || 'Please select on which dataset the software should run.']" />
+        <v-autocomplete v-model="selectedRerankingDataset" v-if="docker_software_details.ir_re_ranker" :items="re_ranking_datasets" item-title="display_name" item-value="dataset_id" label="Re-ranking Dataset" :rules="[v => !!(v && v.length) || 'Please select which system your software should re-rank.']" />
         <v-btn class="mb-1" block color="primary" variant="outlined" :loading="runSoftwareInProgress" @click="runSoftware()" text="Run"/>
       </v-form>
     </v-card>
@@ -43,7 +45,7 @@
   </v-container>
 
   <h2>Submissions</h2>
-    <run-list :task_id="task_id" :organizer="organizer" :organizer_id="organizer_id" :vm_id="user_id" :docker_software_id="docker_software_id" :type="type"/>
+    <run-list :task_id="task_id" :organizer="organizer" :organizer_id="organizer_id" :vm_id="user_id" :docker_software_id="docker_software_id" :component_type="component_type" :datasets="datasets" :dataset_id="''"/>
 </template>
 
 <script lang="ts">
@@ -56,15 +58,14 @@ export default {
   name: "existing-docker-submission",
   components: {Loading, RunList, VAutocomplete, EditSubmissionDetails},
   emits: ['refresh_running_submissions', 'deleteDockerImage', 'modifiedSubmissionDetails'],
-  props: ['user_id', 'datasets', 'resources', 'docker_software_id', 'organizer', 'organizer_id'],
+  props: ['user_id', 'datasets', 're_ranking_datasets', 'resources', 'docker_software_id', 'organizer', 'organizer_id', 'is_ir_task'],
   data() {
     return {loading: true, runSoftwareInProgress: false, selectedDataset: '', valid: false, selectedResource: '',
       docker_software_details: {
         'display_name': 'loading ...', 'user_image_name': 'loading', 'command': 'loading',
         'description': 'loading ...', 'previous_stages': 'loading ...', 'paper_link': 'loading ...', 'ir_re_ranker': false
       },
-      task_id: extractTaskFromCurrentUrl(),
-      type: 'submit',
+      task_id: extractTaskFromCurrentUrl(), selectedRerankingDataset: '', component_type: 'Submission',
     }
   },
   methods: {
@@ -79,14 +80,13 @@ export default {
         var reranking_dataset = 'none'
 
         if (this.docker_software_details.ir_re_ranker) {
-          /*reranking_dataset = this.selectedRerankingDataset
+          reranking_dataset = this.selectedRerankingDataset
                 
-          for (const r of this.reranking_datasets) {
+          for (const r of this.re_ranking_datasets) {
             if (reranking_dataset == r.dataset_id) {
-              dataset = r.original_dataset_id
+              this.selectedDataset = r.original_dataset_id
             }
           }
-          */
         }
 
         post(`/grpc/${this.task_id}/${this.user_id}/run_execute/docker/${this.selectedDataset}/${this.docker_software_id}/${this.selectedResource}/${reranking_dataset}`, {})

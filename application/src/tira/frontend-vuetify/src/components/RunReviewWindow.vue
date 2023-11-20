@@ -18,7 +18,7 @@
       </card-title>
     
       <v-card-text>
-      <v-window v-if="!loading" v-model="tab">
+      <v-window v-if="!loading" v-model="tab" :touch="{left: () => {}, right: () => {}}">
         <v-window-item v-for="item in items" :key="item.run_id" :value="item.run_id">
           <v-card flat>
             <v-card-text><run-review-form :run_id="item.run_id" :vm_id="vm_id" :dataset_id_from_props="dataset_id_from_props"  @review-run="(i: any) => $emit('review-run', i)"/></v-card-text>

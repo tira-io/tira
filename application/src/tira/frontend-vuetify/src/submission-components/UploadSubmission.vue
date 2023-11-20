@@ -2,15 +2,14 @@
   <loading :loading="loading"/>
   <login-to-submit v-if="!loading && role === 'guest'"/>
   <v-row v-if="!loading && role !== 'guest'">
-    <v-responsive class="mt-10 mx-5" min-width="220px" id="task-search">
-      <v-autocomplete ref="softwareSearchInput" clearable auto-select-first label="Choose software or type to filter &hellip;" prepend-inner-icon="mdi-magnify" :items="this.filteredSoftwares" item-title="display_name"
-                    variant="underlined" v-model="software_filter" @click="this.$refs.softwareSearchInput.reset()"/>
-      <div class="d-flex justify-end w-100">
-      <v-btn color="primary" @click="this.tab = 'newUploadGroup'">
-        Create new software
-      </v-btn>
-      </div>
-    </v-responsive>
+    <v-col :cols="$vuetify.display.mdAndUp ? '9' : '11'">
+      <v-autocomplete clearable auto-select-first label="Choose upload &hellip;" prepend-inner-icon="mdi-magnify" :items="this.uploadGroups" item-title="display_name" item-value="id"
+                    variant="underlined" v-model="tab"/>
+    </v-col>
+    <v-col :cols="$vuetify.display.mdAndUp ? '3' : '1'">
+      <v-btn color="primary" v-if="!$vuetify.display.mdAndUp" icon="mdi-plus" @click="this.tab = 'newUploadGroup'"/>
+        <v-btn color="primary" v-if="$vuetify.display.mdAndUp" prepend-icon="mdi-plus" size="large" @click="this.tab = 'newUploadGroup'" block>New Uploadgroup</v-btn>
+    </v-col>
   </v-row>
   <v-row v-if="!loading && role !== 'guest'">
     <v-col cols="10">
@@ -28,8 +27,9 @@
       </v-tabs>
     </v-col>
   </v-row>
-  <v-window v-model="tab" v-if="!loading && role !== 'guest'">
+  <v-window v-model="tab" v-if="!loading && role !== 'guest'" :touch="{left: null, right: null}">
           <v-window-item value="newUploadGroup">
+              <import-submission submission_type="upload"/>
               <h2>Create Run Upload Group</h2>
               <p>Please click on "Add Upload Group" below to create a new run upload group.</p>
               <p>Please use one upload group (you can edit the metadata of an upload group later) per approach. I.e., in TIRA, you can usually run software submissions on different datasets. For manually uploaded runs, we employ the same methodology: Please create one run upload group per approach, so that you can upload "executions" of the same approach on different datasets while maintaining the documentation.</p>
@@ -87,7 +87,7 @@
 
 
             <h2>Submissions</h2>
-            <run-list :task_id="task_id" :organizer="organizer" :organizer_id="organizer_id" :vm_id="user_id_for_task" :upload_id="us.id" ref="upload-run-list" />
+            <run-list :task_id="task_id" :organizer="organizer" :organizer_id="organizer_id" :vm_id="user_id_for_task" :upload_id="us.id" ref="upload-run-list" :datasets="datasets" />
           </v-window-item>
     </v-window>
 </template>
@@ -95,13 +95,14 @@
 <script>
 
 import { VAutocomplete } from 'vuetify/components'
-import { extractTaskFromCurrentUrl, extractUserFromCurrentUrl, get, inject_response, reportError, extractRole, filterByDisplayName, post_file, reportSuccess, handleModifiedSubmission } from "@/utils";
-import {Loading, LoginToSubmit, RunList} from "@/components";
+import { extractTaskFromCurrentUrl, extractUserFromCurrentUrl, get, inject_response, reportError, extractRole, post_file, reportSuccess, handleModifiedSubmission } from "@/utils";
+import { Loading, LoginToSubmit, RunList } from "@/components";
 import EditSubmissionDetails from "@/submission-components/EditSubmissionDetails.vue";
+import ImportSubmission from "./ImportSubmission.vue";
 
 export default {
   name: "upload-submission",
-  components: {EditSubmissionDetails, Loading, VAutocomplete, LoginToSubmit, RunList},
+  components: {EditSubmissionDetails, Loading, VAutocomplete, LoginToSubmit, RunList, ImportSubmission},
   props: ['organizer', 'organizer_id'],
   emits: ['refresh_running_submissions'],
   data () {
@@ -111,7 +112,6 @@ export default {
       user_id_for_task: extractUserFromCurrentUrl(),
       role: extractRole(), // Values: guest, user, participant, admin
       tab: null,
-      software_filter: null,
       showUploadForm: false,
       uploading: false,
       uploadDataset: '',
@@ -127,10 +127,16 @@ export default {
       datasets: [{"dataset_id": "loading...", "display_name": "loading...",}]
     }
   },
-    computed: {
-    filteredSoftwares() {
-      return filterByDisplayName(this.all_uploadgroups, this.software_filter)
-    },
+  computed: {
+    uploadGroups() {
+      let ret = []
+
+      if (this.tab === 'newUploadGroup') {
+        ret = ret.concat([{'id': 'newUploadGroup', 'display_name': ' '}])
+      }
+
+      return ret.concat(this.all_uploadgroups)
+    }
   },
   methods: {
     addUpload() {

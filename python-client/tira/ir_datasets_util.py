@@ -141,8 +141,8 @@ def __lazy_queries(tira_path):
                 for _, i in all_lines_to_pandas(queries_file, False).iterrows():
                     orig_query = None if 'original_query' not in i else i['original_query']
                     
-                    description = None if (not orig_query and 'description' not in orig_query) else orig_query['description']
-                    narrative = None if (not orig_query and 'narrative' not in orig_query) else orig_query['narrative']
+                    description = None if (not orig_query or 'description' not in orig_query) else orig_query['description']
+                    narrative = None if (not orig_query or 'narrative' not in orig_query) else orig_query['narrative']
                     self.queries[i['qid']] = TrecQuery(query_id=i['qid'], title= i['query'], description=description, narrative=narrative)
 
             return deepcopy(self.queries).values().__iter__()
@@ -223,6 +223,9 @@ def static_ir_datasets_from_directory(directory):
         def load(self, dataset_id):
             print(f'Load ir_dataset from "{directory}" instead of "{dataset_id}" because code is executed in TIRA.')
             return Dataset(docs, queries)
+        def topics_file(self, dataset_id):
+            return directory + '/queries.xml'
+
     from ir_datasets.datasets.base import Dataset
     
     return IrDatasetsFromDirectoryOnly()
@@ -242,6 +245,11 @@ def ir_dataset_from_tira_fallback_to_original_ir_datasets():
                 queries = self.lazy_queries(dataset_id)
                 qrels = self.lazy_qrels(dataset_id)
                 return Dataset(docs, queries, qrels)
+
+        def topics_file(self, tira_path):
+            from tira.rest_api_client import Client as RestClient
+            task, dataset = tira_path.split('/')
+            return RestClient().download_dataset(task, dataset, truth_dataset=True) + '/queries.xml'
 
     ret = IrDatasetsFromTira()
     ret.lazy_docs = __lazy_docs

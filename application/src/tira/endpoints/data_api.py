@@ -129,7 +129,7 @@ def get_evaluations_by_dataset_2(request, context, task_id, dataset_id):
     context["ev_keys"] = ev_keys
     context["evaluations"] = sorted(evaluations, key=lambda r: r['run_id'])
     headers = [{'title': 'Team', 'key': 'vm_id'}, {'title': 'Approach', 'key': 'input_software_name'},
-               {'title': 'Run', 'key': 'run_id'}]
+               {'title': 'Run', 'key': 'run_id'}, {'title': 'Dataset', 'key': 'dataset_id'}]
     evaluation_headers = [{'title': k, 'key': k} for k in ev_keys]
 
     context["table_headers"] = headers + evaluation_headers + [{'title': '', 'key': 'actions', 'sortable': False}]
@@ -144,6 +144,7 @@ def get_evaluations_by_dataset_2(request, context, task_id, dataset_id):
     context["runs"] = runs
 
     return context
+    #return JsonResponse({'status': 0, "context": context})
 
 
 @add_context
@@ -241,6 +242,12 @@ def get_ova_list(request, context):
     return JsonResponse({'status': 0, "context": context})
 
 
+@add_context
+def runs(request, context, task_id, dataset_id, vm_id, software_id):
+    context["runs"] = model.runs(task_id, dataset_id, vm_id, software_id)
+    return JsonResponse({'status': 0, "context": context})
+
+
 @check_permissions
 @check_resources_exist("json")
 @add_context
@@ -327,17 +334,11 @@ def update_docker_images(request, context, task_id, user_id):
 @check_resources_exist("json")
 @add_context
 def get_user(request, context, task_id, user_id):
-    software = model.get_software_with_runs(task_id, user_id)
-    upload = model.get_upload_with_runs(task_id, user_id)
     docker = model.load_docker_data(task_id, user_id, cache, force_cache_refresh=False)
     vm = model.get_vm(user_id)
     context["task"] = model.get_task(task_id)
     context["user_id"] = user_id
     context["vm"] = vm
-    context["software"] = software
-    context["datasets"] = model.get_datasets_by_task(task_id)
-    context["reranking_datasets"] = [] if not context["task"]["is_ir_task"] or not context["task"]["irds_re_ranking_command"] else model.get_all_reranking_datasets_for_task(task_id)
-    context["upload"] = upload
     context["docker"] = docker
     
     # is_default indicates whether the user has a docker-only team, i.e., no virtual machine.
@@ -424,14 +425,49 @@ def add_registration(request, context, task_id, vm_id):
 
 
 @add_context
+def tirex_components(request, context):
+    context['tirex_components'] = settings.TIREX_COMPONENTS
+    return JsonResponse({'status': 0, 'context': context})
+
+
+@add_context
+def reranking_datasets(request, context, task_id):
+    context['re_ranking_datasets'] = model.get_all_reranking_datasets_for_task(task_id)
+    return JsonResponse({'status': 0, 'context': context})
+
+
+@add_context
+@check_permissions
+def submissions_of_user(request, context, vm_id):
+    try:
+        context['submissions_of_user'] = model.submissions_of_user(vm_id)
+        return JsonResponse({'status': 0, 'context': context})
+    except:
+        return JsonResponse({'status': 1})
+
+
+@add_context
+@check_permissions
+def import_submission(request, context, task_id, vm_id, submission_type, s_id):
+    try:
+        model.import_submission(task_id, vm_id, submission_type, s_id)
+        return JsonResponse({'status': 0, 'context': context})
+    except:
+        return JsonResponse({'status': 1})
+
+
+@add_context
 @check_permissions
 @check_resources_exist('json')
 def submissions_for_task(request, context, task_id, user_id, submission_type):
     context["datasets"] = model.get_datasets_by_task(task_id, return_only_names=True)
+    cloned_submissions = model.cloned_submissions_of_user(user_id, task_id)
     if submission_type == "upload":
         context["all_uploadgroups"] = model.get_uploads(task_id, user_id)
+        context["all_uploadgroups"] += [i for i in cloned_submissions if i['type'] == 'upload']
     elif submission_type == "docker":
         context["docker"] = {"docker_softwares": model.get_docker_softwares(task_id, user_id)}
+        context["docker"]['docker_softwares'] += [i for i in cloned_submissions if i['type'] == 'docker']
         context["resources"] = settings.GIT_CI_AVAILABLE_RESOURCES
     elif submission_type == "vm":
         context["message"] = "This option is not active for this shared task. " \

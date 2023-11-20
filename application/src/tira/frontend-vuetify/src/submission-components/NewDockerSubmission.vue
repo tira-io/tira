@@ -1,5 +1,6 @@
 <template>
   <div style="min-height: 120vh;">
+  <import-submission submission_type="docker"/>
   <h2>Create New Docker Software</h2>
   <div class="d-flex justify-lg-space-between">
     <v-card class="mx-auto mt-12" style="width: 100%;">
@@ -27,7 +28,7 @@
         </div>
       </v-card-title>
 
-      <v-window v-model="step">
+      <v-window v-model="step" :touch="{left: () => {}, right: () => {}}">
         <v-window-item :value="'step-1'">
           <v-card-text>
             <p>This form will guide you through the process of adding a new Docker submission. Please test that your Docker submission works as expected on your machine with the commands below and click on "Next" as soon as everything looks fine.</p>
@@ -62,7 +63,7 @@ cat tira-evaluation/evaluation.prototext" expand_message="(3) Verify the evaluat
             <p v-if="is_ir_task" class="mb-4">You can select multiple previous stages. The outputs of the previous stages are mounted into the container that executes the software.</p>
             <v-form ref="form" v-model="valid">
             <v-autocomplete v-if="is_ir_task" label="Previous Stages"
-                            :items="docker_softwares"
+                            :items="all_previous_stages"
                             v-model="selectedDockerSoftware"
                             item-value="docker_software_id"
                             item-title="display_name"
@@ -180,10 +181,11 @@ import {VAutocomplete} from "vuetify/components";
 import {extractTaskFromCurrentUrl, get, post, inject_response, reportError, extractUserFromCurrentUrl} from "@/utils";
 import CodeSnippet from "../components/CodeSnippet.vue"
 import Loading from "../components/Loading.vue"
+import ImportSubmission from "./ImportSubmission.vue"
 
 export default {
   name: "new-docker-submission",
-  components: { CodeSnippet, VAutocomplete, Loading },
+  components: { CodeSnippet, VAutocomplete, Loading, ImportSubmission },
   props: ['user_id_for_submission', 'step_prop', 'organizer', 'organizer_id', 'docker_softwares', 'is_ir_task'],
   emits: ['addNewDockerImage'],
   data() {
@@ -203,6 +205,7 @@ export default {
       addSoftwareInProgress: false,
       loading: true,
       step: this.step_prop,
+      all_uploadgroups: [{"id": null, "display_name": 'loading...'}],
       docker_images: [{ "image": "loading...", "architecture": "loading...", "created": "loading...", "size": "loading...", "digest": "loading...", 'title': 'loading...'}],
       user_id_for_task: extractUserFromCurrentUrl(),
     }
@@ -217,6 +220,9 @@ export default {
         case 'step-3':
           return 'Final Checks'
       }
+    },
+    all_previous_stages() {
+      return this.docker_softwares.concat(this.all_uploadgroups.map((i) => ({"display_name": i.display_name, "docker_software_id": ('upload-' + i.id)})))
     },
     double_check_tira_run_command() {
       return this.tira_final_run_example.replace('YOUR-IMAGE', this.selectedDockerImage).replace('YOUR-COMMAND', this.runCommand)
@@ -267,10 +273,17 @@ export default {
   },
   beforeMount() {
     this.loading = true
-    get('/api/task/' + this.task_id + '/user/' + this.user_id_for_task)
-      .then(inject_response(this, {'loading': false}, false, 'docker'))
-      .then(this.refreshTitles)
-      .catch(reportError("Problem While Loading the Docker Images.", "This might be a short-term hiccup, please try again. We got the following error: "))
+    get('/api/submissions-for-task/' + this.task_id + '/' + this.user_id_for_task + '/upload')
+      .then(inject_response(this))
+      .catch(reportError("Problem While Loading The Submissions of the Task " + this.task_id, "This might be a short-term hiccup, please try again. We got the following error: "))
+      .then(() => {
+        get('/api/task/' + this.task_id + '/user/' + this.user_id_for_task)
+          .then(inject_response(this, {'loading': false}, false, 'docker'))
+          .then(this.refreshTitles)
+          .catch(reportError("Problem While Loading the Docker Images.", "This might be a short-term hiccup, please try again. We got the following error: "))
+      })
+    
+
   },
   watch: {
     step(old_value, new_value) {

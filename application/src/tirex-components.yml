@@ -1,0 +1,285 @@
+- display_name: "Dataset"
+  links:
+    - display_name: Tutorial Post-hoc Analysis of Test Collections with ir_datasets
+      href: https://github.com/webis-de/ir-pad/blob/public/tutorials/tutorial-01-ir-datasets.ipynb
+      target: _blank
+  components:
+    - display_name: Args.me
+      links:
+        - display_name: Dataset Description
+          href: https://webis.de/data/args-me-corpus.html
+          target: _blank
+      components:
+        - display_name: Touché 2020 Task 1
+        - display_name: Touché 2021 Task 1
+
+    - display_name: Antique
+      links:
+        - display_name: ir_datastes
+          href: https://ir-datasets.com/antique.html
+          target: _blank
+    
+    - display_name: ClueWeb09
+      links:
+        - display_name: Dataset Description
+          href: https://lemurproject.org/clueweb09.php/
+          target: _blank
+      components:
+        - display_name: TREC Web Track 2010
+          links:
+          - display_name: ir_datastes
+            href: https://ir-datasets.com/clueweb09.html#clueweb09/en/trec-web-2009
+            target: _blank
+        - display_name: TREC Web Track 2010
+          links:
+            - display_name: ir_datastes
+              href: https://ir-datasets.com/clueweb09.html#clueweb09/en/trec-web-2010
+              target: _blank
+        - display_name: TREC Web Track 2011
+          links:
+            - display_name: ir_datastes
+              href: https://ir-datasets.com/clueweb09.html#clueweb09/en/trec-web-2011
+              target: _blank
+        - display_name: TREC Web Track 2012
+          links:
+            - display_name: ir_datastes
+              href: https://ir-datasets.com/clueweb09.html#clueweb09/en/trec-web-2012
+    - display_name: ClueWeb12
+      links:
+        - display_name: Dataset Description
+          href: https://lemurproject.org/clueweb12.php/
+          target: _blank
+      components:
+        - display_name: TREC Web Track 2013
+          links:
+            - display_name: ir_datastes
+              href: https://ir-datasets.com/clueweb12.html#clueweb12/trec-web-2013
+              target: _blank
+        - display_name: TREC Web Track 2014
+          links:
+            - display_name: ir_datastes
+              href: https://ir-datasets.com/clueweb12.html#clueweb12/trec-web-2014
+              target: _blank
+        - display_name: Touché 2020 (Task 2)
+          links:
+            - display_name: ir_datastes
+              href: https://ir-datasets.com/clueweb12.html#clueweb12/touche-2020-task-2
+              target: _blank
+        - display_name: Touché 2021 (Task 2)
+          links:
+            - display_name: ir_datastes
+              href: https://ir-datasets.com/clueweb12.html#clueweb12/touche-2021-task-2
+              target: _blank
+    - display_name: ClueWeb22
+      links:
+        - display_name: Dataset Description
+          href: https://lemurproject.org/clueweb22.php/
+          target: _blank
+      components:
+        - display_name: Touché 2023 (Task 1)
+          links:
+            - display_name: Task Page
+              href: https://touche.webis.de/clef23/touche23-web/argument-retrieval-for-controversial-questions.html
+              target: _blank
+        - display_name: Touché 2023 (Task 2)
+          links:
+            - display_name: Task Page
+              href: https://touche.webis.de/clef23/touche23-web/evidence-retrieval-for-causal-questions.html
+              target: _blank
+    - display_name: CORD-19
+    - display_name: Disks4+5
+    - display_name: GOV
+    - display_name: GOV2
+    - display_name: LongEval
+      links:
+        - display_name: Dataset Description
+          href: https://dl.acm.org/doi/abs/10.1145/3539618.3591921
+          target: _blank
+      components:
+        - display_name: LongEval 2023
+          links:
+            - display_name: Task Page
+              href: https://clef-longeval-2023.github.io/
+              target: _blank
+        - display_name: LongEval 2024
+          links:
+            - display_name: Task Page
+              href: https://clef-longeval.github.io/
+              target: _blank
+    - display_name: MEDLINE
+    - display_name: MS MARCO
+    - display_name: NFCorpus
+    - display_name: Tip-of-the-Tongue
+      links:
+        - display_name: Task Overview
+          href: https://trec-tot.github.io/
+          target: _blank
+    - display_name: Vaswani
+    - display_name: WaPo
+- display_name: Document Processing
+  components:
+    - display_name: Keyphrase Extraction
+      links:
+        - display_name: Tutorial
+          href: https://github.com/OpenWebSearch/wows-code/blob/main/ecir24/post-hoc-notebooks/keyphrase-extraction.ipynb
+          target: _blank
+
+    - display_name: Stemming
+      links:
+        - display_name: Tutorial
+          href: https://github.com/webis-de/ir-pad/blob/public/tutorials/tutorial-02-stopword-lists.ipynb
+          target: _blank
+      components:
+        - display_name: PorterStemmer
+          links:
+            - display_name: Tutorial
+              href: https://github.com/webis-de/ir-pad/blob/public/tutorials/tutorial-03-stemming.ipynb
+              target: _blank
+        - display_name: KrovetzStemmer
+          links:
+            - display_name: Tutorial
+              href: https://github.com/webis-de/ir-pad/blob/public/tutorials/tutorial-03-stemming.ipynb
+              target: _blank
+        - display_name: Lemmatization
+          links:
+            - display_name: Tutorial
+              href: https://github.com/webis-de/ir-pad/blob/public/tutorials/tutorial-04-lemmatization.ipynb
+              target: _blank
+
+    - display_name: Stopword Removal
+      links:
+        - display_name: Tutorial
+          href: https://github.com/webis-de/ir-pad/blob/public/tutorials/tutorial-02-stopword-lists.ipynb
+          target: _blank
+
+- display_name: Query Processing
+  components:
+    - display_name: Query Expansion
+      links:
+      - display_name: Tutorial
+        href: https://github.com/webis-de/ir-pad/blob/public/tutorials/tutorial-05-query-expansion.ipynb
+        target: _blank
+      - display_name: PyTerrier Documentation
+        href: https://pyterrier.readthedocs.io/en/latest/rewrite.html
+        target: _blank
+          
+    - display_name: Query Segmentation
+      links: 
+        - display_name: Tutorial
+          href: https://github.com/OpenWebSearch/wows-code/blob/main/ecir24/post-hoc-notebooks/query-segmentation.ipynb
+          target: _blank
+        - display_name: Code
+          href: https://github.com/webis-de/query-segmentation
+          target: _blank
+      components:
+        - display_name: hyp-a
+        - display_name: hyp-b
+        - display_name: hyp-c
+
+    - display_name: QPP
+      links:
+        - display_name: qpptk
+          href: https://github.com/Zendelo/QPP-EnhancedEval/tree/main/code/qpptk
+          target: _blank
+      components:
+        - display_name: qpp-1
+        - display_name: qpp-2
+        - display_name: qpp-3
+        - display_name: qpp-4
+        - display_name: qpp-5
+
+
+- display_name: Retrieval
+  components:
+    - display_name: BM25
+      links:
+        - display_name: Submission in TIREx
+          href: /task-overview/ir-benchmarks
+    - display_name: TF-IDF
+      links:
+        - display_name: Submission in TIREx
+          href: /task-overview/ir-benchmarks/
+    - display_name: PL2
+      links:
+        - display_name: Submission in TIREx
+          href: /task-overview/ir-benchmarks/
+
+
+- display_name: Re-Ranking
+  components:
+    - display_name: monoT5
+      links:
+        - display_name: Submission in TIREx
+          href: /task-overview/ir-benchmarks/
+    - display_name: Rank Fusion
+      links:
+        - display_name: Ranx
+          href: https://github.com/AmenRa/ranx
+          target: _blank
+
+
+- display_name: Evaluation
+  links:
+    - display_name: IR-Measures Paper
+      href: https://link.springer.com/chapter/10.1007/978-3-030-99739-7_38
+      target: _blank
+    - display_name: IR-Measures Demo
+      href: https://demo.ir-measur.es/reverse
+      target: _blank
+    - display_name: Tutorial Post-hoc Analysis of Test Collections with ir_datasets
+      href: https://github.com/webis-de/ir-pad/blob/public/tutorials/tutorial-01-ir-datasets.ipynb
+      target: _blank
+  components:
+    - display_name: C/W/L
+      links: 
+        - display_name: Paper
+          href: https://ir.webis.de/anthology/2018.sigirconf_conference-2018.63/
+          target: _blank
+        - display_name: cwl_eval
+          href: https://ir.webis.de/anthology/2019.sigirconf_conference-2019.204/
+          target: _blank
+        - display_name: C/W/L Implementation
+          href: https://github.com/ireval/cwl
+          target: _blank
+    - display_name: MAP
+      links:
+        - display_name: IR-Measures Demo
+          href: https://demo.ir-measur.es/reverse
+          target: _blank
+        - display_name: Criticism of MAP
+          href: https://ir.webis.de/anthology/2017.sigirjournals_journal-ir0anthology0volumeA51A3.3/
+          target: _blank
+        - display_name: Defense of MAP
+          href: https://ir.webis.de/anthology/2020.sigirjournals_journal-ir0anthology0volumeA54A1.11/
+          target: _blank
+    - display_name: nDCG
+      links:
+        - display_name: IR-Measures Demo
+          href: https://demo.ir-measur.es/reverse
+          target: _blank
+        - display_name: Paper
+          href: https://ir.webis.de/anthology/2002.tois_journal-ir0anthology0volumeA20A4.2/
+          target: _blank
+    - display_name: Precision@k
+      links:
+        - display_name: IR-Measures Demo
+          href: https://demo.ir-measur.es/reverse
+          target: _blank
+    - display_name: "Recall@k"
+      links:
+        - display_name: IR-Measures Demo
+          href: https://demo.ir-measur.es/reverse
+          target: _blank
+    - display_name: "Reproducibility"
+      links:
+        - display_name: repro_eval
+          href: https://github.com/irgroup/repro_eval
+          target: _blank
+        - display_name: Overview of Reproducibility Measures
+          href: https://ir.webis.de/anthology/2020.sigirconf_conference-2020.43/
+          target: _blank
+        - display_name: ir_metadata to improve reproducibility
+          href: https://ir.webis.de/anthology/2022.sigirconf_conference-2022.362/
+          target: _blank
+
+

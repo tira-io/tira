@@ -2,20 +2,19 @@
   <loading :loading="loading"/>
   <login-to-submit v-if="!loading && role === 'guest'"/>
   <v-row v-if="!loading && role !== 'guest'">
-    <v-responsive class="mt-10 mx-5" min-width="220px" id="task-search">
-      <v-autocomplete ref="softwareSearchInput" clearable auto-select-first label="Choose software or type to filter &hellip;" prepend-inner-icon="mdi-magnify" :items="this.filteredSoftwares" item-title="display_name"
-                    variant="underlined" v-model="software_filter" @click="this.$refs.softwareSearchInput.reset()"/>
-      <div class="d-flex justify-end w-100">
-      <v-btn color="primary" @click="this.tab = 'newDockerImage'">
-        Create new software
-      </v-btn>
-      </div>
-    </v-responsive>
+    <v-col :cols="$vuetify.display.mdAndUp ? '9' : '11'">
+      <v-autocomplete clearable auto-select-first label="Choose software &hellip;" prepend-inner-icon="mdi-magnify" :items="allSoftwareSubmissions" item-title="display_name" item-value="docker_software_id"
+                    variant="underlined" v-model="tab"/>
+      </v-col>
+      <v-col :cols="$vuetify.display.mdAndUp ? '3' : '1'">
+        <v-btn color="primary" v-if="!$vuetify.display.mdAndUp" icon="mdi-plus" @click="this.tab = 'newDockerImage'"/>
+        <v-btn color="primary" v-if="$vuetify.display.mdAndUp" prepend-icon="mdi-plus" size="large" @click="this.tab = 'newDockerImage'" block>New Submission</v-btn>
+      </v-col>
   </v-row>
   <v-row v-if="!loading && role !== 'guest'">
     <v-col cols="10">
       <v-tabs v-model="tab" fixed-tabs class="mb-10 d-none">
-        <v-tab variant="outlined" v-for="ds in this.filteredSoftwares" :value="ds.docker_software_id">
+        <v-tab variant="outlined" v-for="ds in this.docker.docker_softwares" :value="ds.docker_software_id">
           {{ ds.display_name }}
         </v-tab>
       </v-tabs>
@@ -29,11 +28,13 @@
     </v-col>
   </v-row>
 
-  <v-window v-model="tab" v-if="!loading && role !== 'guest'">
+  <v-window v-model="tab" v-if="!loading && role !== 'guest'" :touch="{left: null, right: null}">
     <v-window-item v-for="ds in this.docker.docker_softwares" :value="ds.docker_software_id">
       <existing-docker-submission @deleteDockerImage="handleDeleteDockerImage" @modifiedSubmissionDetails="v => handleModifiedSubmission(v, this.docker.docker_softwares)"
                                   :user_id="user_id_for_submission"
                                   :datasets="datasets"
+                                  :re_ranking_datasets="re_ranking_datasets"
+                                  :is_ir_task="is_ir_task"
                                   :resources="resources" :docker_software_id="ds.docker_software_id"
                                   :organizer="organizer" :organizer_id="organizer_id"
                                   @refresh_running_submissions="$emit('refresh_running_submissions')"/>
@@ -61,7 +62,6 @@ export default {
   data() {
     return {
       tab: null,
-      software_filter: null,
       role: extractRole(),
       task_id: extractTaskFromCurrentUrl(),
       user_id_for_submission: extractUserFromCurrentUrl(),
@@ -74,24 +74,22 @@ export default {
         "docker_software_help": "loading...",
       },
       selectedResources: '',
-      resources: [
-        "loading..."
-      ],
+      resources: ["loading..."],
       selectedDataset: '',
-      datasets: [{
-        "dataset_id": null,
-        "display_name": "loading...",
-      }
-      ],
+      datasets: [{"dataset_id": null,"display_name": "loading..."}],
+      re_ranking_datasets: [{"dataset_id": null,"display_name": "loading..."}],
     }
   },
   computed: {
-    filteredSoftwares() {
-      if(this.software_filter === null) {
-        this.software_filter = "";
+    allSoftwareSubmissions() {
+      let ret = []
+
+      if (this.tab === 'newDockerImage') {
+        ret = ret.concat([{'docker_software_id': 'newDockerImage', 'display_name': ' '}])
       }
-      return filterByDisplayName(this.docker.docker_softwares, this.software_filter.toString())
-    },
+
+      return ret.concat(this.docker.docker_softwares)
+    }
   },
   methods: {
     updateUrlToCurrentStep() {
@@ -99,6 +97,13 @@ export default {
         name: 'submission',
         params: {submission_type: this.$route.params.submission_type, selected_step: this.step}
       })
+    },
+    load_re_ranking_datasets() {
+      if (this.is_ir_task) {
+        get('/api/re-ranking-datasets/' + this.task_id)
+          .then(inject_response(this))
+          .catch(reportError("Problem While Loading the re-rankign datasets for " + this.task_id, "This might be a short-term hiccup, please try again. We got the following error: "))
+      }
     },
     handleDeleteDockerImage() {
       get(`/task/${this.task_id}/vm/${this.user_id_for_submission}/delete_software/docker/${this.tab}`)
@@ -117,13 +122,17 @@ export default {
   },
   beforeMount() {
     get('/api/submissions-for-task/' + this.task_id + '/' + this.user_id_for_submission + '/docker')
-        .then(inject_response(this, {'loading': false}, true))
-        .catch(reportError("Problem While Loading the Docker Details of the Task " + this.task_id, "This might be a short-term hiccup, please try again. We got the following error: "))
+      .then(inject_response(this, {'loading': false}, true))
+      .catch(reportError("Problem While Loading the Docker Details of the Task " + this.task_id, "This might be a short-term hiccup, please try again. We got the following error: "))
+    this.load_re_ranking_datasets()
     this.tab = this.docker.images[0].display_name
   },
   watch: {
     step(old_value, new_value) {
       this.updateUrlToCurrentStep()
+    },
+    is_ir_task(old_value, new_value) {
+      this.load_re_ranking_datasets()
     }
   }
 }

@@ -224,6 +224,16 @@ class DockerSoftwareHasAdditionalInput(models.Model):
     input_upload = models.ForeignKey(Upload, on_delete=models.RESTRICT, default=None, null=True)
 
 
+class SoftwareClone(models.Model):
+    """
+    - This allows to import/export existing software to other tasks.
+    """
+    vm = models.ForeignKey(VirtualMachine, on_delete=models.CASCADE)
+    task = models.ForeignKey(Task, on_delete=models.SET_NULL, null=True)
+    docker_software = models.ForeignKey(DockerSoftware, on_delete=models.CASCADE, default=None, null=True)
+    upload = models.ForeignKey(Upload, on_delete=models.CASCADE, default=None, null=True)
+
+
 class Run(models.Model):
     run_id = models.CharField(max_length=150, primary_key=True)
     software = models.ForeignKey(Software, on_delete=models.CASCADE, null=True)

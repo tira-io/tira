@@ -7,10 +7,17 @@
       <v-card class="pa-3">
         <card-title><v-toolbar color="primary" :title="'Register to ' + task.task_id"></v-toolbar></card-title>
         <v-card-text>
-          <v-form v-if="!loading" v-model="valid" ref="form">
+
+          <v-form v-if="!loading && !canRegister" v-model="valid" ref="form">
+            A registration is currently not possible. Maybe the registration is not yet open or already closed? This task is organized by <a :href="link_organizer">{{ task.organizer }}</a>, please do not hesitate to <a :href="contact_organizer">contact</a> the organizers to open the registration.
+          </v-form>
+          <v-form v-if="!loading && canRegister" v-model="valid" ref="form">
             <v-container>
               <v-row>
-                <v-col cols="12" md="12">
+                <v-col v-if="task.restrict_groups" cols="12" md="12">
+                  <v-select v-model="username" :rules="nameRules" label="Team Name" :items="availableTeamNames" required/>
+                </v-col>
+                <v-col v-if="!task.restrict_groups" cols="12" md="12">
                   <v-text-field v-model="username" :rules="nameRules" :counter="30" label="Team Name" required/>
                 </v-col>
 
@@ -68,8 +75,9 @@
   </v-dialog>
 </template>
 <script lang="ts">
-import {validateEmail, validateTeamName, validateNotEmpty, post, reportError, reportSuccess} from "../utils"
+import {validateEmail, validateTeamName, validateNotEmpty, post, reportError, reportSuccess, inject_response, get, get_link_to_organizer, get_contact_link_to_organizer} from "../utils"
 import Loading from "./Loading.vue"
+
 
 export default {
   name: "register-form",
@@ -77,12 +85,13 @@ export default {
   components: {Loading},
   emits: ['updateUserVmsForTask'],
   data: () => ({
-      valid: false, loading: false, username: '', lastname: '', country: '', affiliation: '', instructorEmail: '',
+      valid: false, loading: true, username: '', lastname: '', country: '', affiliation: '', instructorEmail: '',
       selectedEmployment: '', instructorName: '', team: '', questions: '', selectedParticipation: '', email: '',
       employmentOptions: ["", "Undergraduate Student", "PhD Student", "Academic Research", "Industry", "Private"],
       participationList: ["", "Course", "Thesis", "Academic Research", "Industry Research", "Private Interest"],
       showInstructorClasses: ['Undergraduate Student', 'Course', 'Thesis'],
       nameRules: [validateTeamName], notEmptyRules: [validateNotEmpty], emailRules: [validateEmail],
+      remaining_team_names: ['']
     }),
   methods: {
     async submitRegistration (isActive: any) {
@@ -112,7 +121,24 @@ export default {
     showInstructor(){
       return this.showInstructorClasses.includes(this.selectedParticipation) || this.showInstructorClasses.includes(this.selectedEmployment)
     },
-  }
+    availableTeamNames() {
+      return this.task.allowed_task_teams.split('\n').filter((x: string) => x.length > 0 && this.remaining_team_names.includes(x))
+    },
+    canRegister() {
+      if (!this.task.restrict_groups) {
+        return true;
+      }
+
+      return this.availableTeamNames && this.availableTeamNames + '' !== 'undefined' && this.availableTeamNames + '' !== 'null' && this.availableTeamNames.length > 0
+    },
+    link_organizer() {return get_link_to_organizer(this.task.organizer_id);},
+    contact_organizer() {return get_contact_link_to_organizer(this.task.organizer_id);},
+  },
+  beforeMount() {
+    get('/api/registration_formular/' + this.task.task_id)
+      .then(inject_response(this, {'loading': false}))
+      .catch(reportError("Problem While Loading the registration formular.", "This might be a short-term hiccup, please try again. We got the following error: "))
+  },
 }
 </script>
   
