@@ -5,7 +5,6 @@ import tempfile
 import logging
 import gitlab
 from github import Github
-import ghapi
 from pathlib import Path
 import shutil
 from datetime import datetime as dt
@@ -29,7 +28,7 @@ logger = logging.getLogger('tira')
 
 
 def normalize_file(file_content, tira_user_name):
-    return file_content
+    return file_content.replace('TIRA_USER_FOR_AUTOMATIC_REPLACEMENT', tira_user_name)
 
 
 def convert_size(size_bytes):
@@ -1174,36 +1173,52 @@ class GithubRunner(GitRunner):
         # https://docs.github.com/en/rest/actions/workflow-jobs?apiVersion=2022-11-28#get-a-job-for-a-workflow-run
         pass
 
+    def git_user_exists(self, user_name):
+        try:
+            return self.gitHoster_client.get_user(user_name) is not None
+        except:
+            return False
+
     def get_git_runner_for_software_integration(self, reference_repository_name, user_repository_name,
                                                 user_repository_namespace, github_user, tira_user_name,
-                                                dockerhub_token, tira_client_token, repository_search_prefix):
+                                                dockerhub_token, dockerhub_user, tira_client_token,
+                                                repository_search_prefix, tira_task_id, tira_code_repository_id,
+                                                tira_client_user):
         user = self.gitHoster_client.get_user()
-
-        print(help(self.gitHoster_client.get_user))
-        print(help(user.get_repos))
-        print('asdasdas\n\n\ndasdasasd')
-        user_repo = user.get_repo(f'{user_repository_namespace}/{user_repository_name}')
-        if user_repo:
-            return user_repo
+        try:
+            user_repo = user.get_repo(f'{user_repository_namespace}/{user_repository_name}')
+            if user_repo:
+                return user_repo
+        except:
+            # repository does not exist.
+            pass
 
         return self.create_software_submission_repository_for_user(reference_repository_name, user_repository_name,
                                                                    user_repository_namespace, github_user,
-                                                                   tira_user_name, dockerhub_token, tira_client_token,
-                                                                   repository_search_prefix)
+                                                                   tira_user_name, dockerhub_token, dockerhub_user,
+                                                                   tira_client_token, repository_search_prefix,
+                                                                   tira_task_id, tira_code_repository_id,
+                                                                   tira_client_user)
 
     def create_software_submission_repository_for_user(self, reference_repository_name, user_repository_name,
                                                        user_repository_namespace, github_user, tira_user_name,
-                                                       dockerhub_token, tira_client_token, repository_search_prefix):
+                                                       dockerhub_token, dockerhub_user, tira_client_token,
+                                                       repository_search_prefix, tira_task_id, tira_code_repository_id,
+                                                       tira_client_user):
         reference_repo = self.gitHoster_client.get_repo(reference_repository_name)
-        user = self.gitHoster_client.get_user()
-        
-        user.create_repo(user_repository_name, f'The repository of user {tira_user_name} for code submissions in TIRA.',
-                         private=True)
-        repo = self.gitHoster_client.get_repo(f'{user_repository_namespace}/{user_repository_name}')
+
+        org = self.gitHoster_client.get_organization(user_repository_namespace)
+        repo = org.create_repo(user_repository_name,
+                               f'The repository of user {tira_user_name} for code submissions in TIRA.', private=True)
         repo.add_to_collaborators(github_user, 'admin')
 
-        repo.create_secret('DOCKERHUB_TOKEN', dockerhub_token)
+        repo.create_secret('TIRA_DOCKER_REGISTRY_TOKEN', dockerhub_token)
+        repo.create_secret('TIRA_DOCKER_REGISTRY_USER', dockerhub_user)
         repo.create_secret('TIRA_CLIENT_TOKEN', tira_client_token)
+        repo.create_secret('TIRA_CLIENT_USER', tira_client_user)
+        repo.create_secret('TIRA_TASK_ID', tira_task_id)
+        repo.create_secret('TIRA_CODE_REPOSITORY_ID', tira_code_repository_id)
+        repo.create_secret('TIRA_VM_ID', tira_user_name)
 
         contents = reference_repo.get_contents(repository_search_prefix)
         while contents:

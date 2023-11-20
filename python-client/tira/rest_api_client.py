@@ -12,14 +12,16 @@ from tira.local_execution_integration import LocalExecutionIntegration
 
 
 class Client():
-    def __init__(self, api_key=None, failsave_retries=5, failsave_max_delay=15):
+    def __init__(self, api_key=None, failsave_retries=5, failsave_max_delay=15, api_user_name=None):
         self.tira_cache_dir = os.environ.get('TIRA_CACHE_DIR', os.path.expanduser('~') + '/.tira')
         self.json_cache = {}
 
         if api_key is None:
             self.api_key = self.load_settings()['api_key']
+            self.api_user_name = self.load_settings()['api_user_name']
         else:
             self.api_key = api_key
+            self.api_user_name = api_user_name
 
         self.failsave_retries = 1
         if self.api_key != 'no-api-key':
@@ -35,7 +37,7 @@ class Client():
             return json.load(open(self.tira_cache_dir + '/.tira-settings.json', 'r'))
         except:
             print(f'No settings given in {self.tira_cache_dir}/.tira-settings.json. I will use defaults.')
-            return {'api_key': 'no-api-key'}
+            return {'api_key': 'no-api-key', 'api_user_name': 'no-api-key-user'}
 
     def fail_if_api_key_is_invalid(self):
         role = self.json_response('/api/role')
@@ -49,13 +51,15 @@ class Client():
     def docker_software_id(self, approach):
         return self.docker_software(approach)['docker_software_id']
 
+    def all_softwares(self, task_id):
+        """
+        Return all public submissions.
+        """
+        return [task_id + '/' + i['vm_id'] + '/' + i['display_name'] for i in self.json_response(f'/api/task/{task_id}/public-submissions')['context']['public_submissions']]
+
     def docker_software(self, approach):
         task, team, software = approach.split('/')
-        docker_softwares = self.metadata_for_task(task, team)['context']['docker']['docker_softwares']
-
-        for i in docker_softwares:
-            if i['display_name'] == software:
-                return i
+        return self.json_response(f'/api/task/{task}/submission-details/{team}/{software}')['context']['submission']
 
     def docker_software_details(self, approach):
         task, team, software = approach.split('/')
@@ -65,6 +69,23 @@ class Client():
 
     def metadata_for_task(self, task_name, team_name):
         return self.json_response(f'/api/task/{task_name}/user/{team_name}')
+
+    def add_docker_software(self, image, command, tira_vm_id, tira_task_id, code_repository_id, build_environment):
+        headers = {   
+            'Api-Key': self.api_key,
+            'Api-Username': self.api_user_name,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        }
+        self.fail_if_api_key_is_invalid()
+        url = f'https://www.tira.io/task/{tira_task_id}/vm/{tira_vm_id}/add_software/docker'
+        ret = requests.post(url, headers=headers, json={"action": "post", "image": image, "command": command, "code_repository_id": code_repository_id,"build_environment": json.dumps(build_environment)})
+        ret = ret.content.decode('utf8')
+        ret = json.loads(ret)
+
+        assert ret['status'] == 0
+        print(f'Software with name {ret["context"]["display_name"]} was created.')
+        print(f'Please visit https://www.tira.io/submit/{tira_task_id}/user/{tira_vm_id}/docker-submission to run your software.')
 
     def submissions(self, task, dataset):
         response = self.json_response(f'/api/submissions/{task}/{dataset}')['context']
@@ -199,7 +220,7 @@ class Client():
         run_id = ret['run_id']
         
         ret = self.download_zip_to_cache_directory(**ret)
-        ret = pd.read_csv(ret + '/run.txt', sep='\\s+', names=["query", "q0", "docid", "rank", "score", "system"])
+        ret = pd.read_csv(ret + '/run.txt', sep='\\s+', names=["query", "q0", "docid", "rank", "score", "system"], dtype={"query": str, "docid": str})
         if return_metadata:
             return ret, run_id
         else:
@@ -299,9 +320,11 @@ class Client():
         for i in range(self.failsave_retries):
             status_code = None
             try:
-                headers={"Api-Key": self.api_key}
+                headers={"Api-Key": self.api_key, "Api-Username": self.api_user_name}
                 if self.api_key == 'no-api-key':
                     del headers["Api-Key"]
+                if self.api_user_name == 'no-api-key-user':
+                    del headers["Api-Username"]
             
                 r = requests.get(url, headers=headers)
                 status_code = r.status_code
@@ -369,10 +392,13 @@ class Client():
         if cache_key in self.json_cache:
             return self.json_cache[cache_key]
         
-        headers = {"Api-Key": self.api_key, "Accept": "application/json"}
+        headers = {"Api-Key": self.api_key, "Accept": "application/json", "Api-Username": self.api_user_name}
         
         if self.api_key == 'no-api-key':
             del headers["Api-Key"]
+
+        if self.api_user_name == 'no-api-key-user':
+            del headers["Api-Username"]
 
         for i in range(self.failsave_retries):
             try:

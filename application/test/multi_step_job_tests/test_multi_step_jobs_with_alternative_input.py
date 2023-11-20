@@ -1,6 +1,7 @@
 from django.test import TestCase
 from utils_for_testing import method_for_url_pattern, mock_request, set_up_tira_environment
 from tira.tira_model import latest_output_of_software_on_dataset
+import tira.model as modeldb
 
 from datetime import datetime
 
@@ -24,17 +25,21 @@ class TestMultiStepJobsWithAlternativeInput(TestCase):
             'dataset_id': f'dataset-1-{now}-training',
             'run_id': 'run-0-example_participant'
         }
-        actual = latest_output_of_software_on_dataset('shared-task-1', 'example_participant', 'does-not-exist', -1, f'dataset-1-{now}-training', None)
+        es1 = modeldb.DockerSoftware.objects.filter(
+            vm=modeldb.VirtualMachine.objects.get(vm_id='example_participant'),
+            task=modeldb.Task.objects.get(task_id='shared-task-1'), display_name='software_e1')[0]
+
+        actual = latest_output_of_software_on_dataset('shared-task-1', 'example_participant', 'does-not-exist', es1.docker_software_id, f'dataset-1-{now}-training', None)
 
         self.assertEquals(expected, actual)
 
     def test_suitable_input_does_not_exist_1(self):
-        actual = latest_output_of_software_on_dataset('shared-task-1', 'participant-does-not-exist', 'does-not-exist', -1, f'dataset-1-{now}-training', None)
+        actual = latest_output_of_software_on_dataset('shared-task-1', 'participant-does-not-exist', 'does-not-exist----1', -1, f'dataset-1-{now}-training', None)
 
         self.assertIsNone(actual)
 
     def test_suitable_input_does_not_exist_2(self):
-        actual = latest_output_of_software_on_dataset('shared-task-does-not-exist', 'example_participant', 'does-not-exist', -1, f'dataset-1-{now}-training', None)
+        actual = latest_output_of_software_on_dataset('shared-task-does-not-exist', 'example_participant', 'does-not-exist----1', -1, f'dataset-1-{now}-training', None)
 
         self.assertIsNone(actual)
 

@@ -130,9 +130,9 @@ class Evaluator(models.Model):
     measures = models.CharField(max_length=150, default="")
     is_deprecated = models.BooleanField(default=False)
     is_git_runner = models.BooleanField(default=False)
-    git_runner_image = models.CharField(max_length=250, null=True, default=None)
-    git_runner_command = models.CharField(max_length=280, null=True, default=None)
-    git_repository_id = models.CharField(max_length=100, null=True, default=None)
+    git_runner_image = models.CharField(max_length=500, null=True, default=None)
+    git_runner_command = models.CharField(max_length=500, null=True, default=None)
+    git_repository_id = models.CharField(max_length=200, null=True, default=None)
 
 
 class VirtualMachineHasEvaluator(models.Model):
@@ -224,6 +224,27 @@ class DockerSoftwareHasAdditionalInput(models.Model):
     input_upload = models.ForeignKey(Upload, on_delete=models.RESTRICT, default=None, null=True)
 
 
+class SoftwareSubmissionGitRepository(models.Model):
+    repository_url = models.CharField(max_length=500, primary_key=True)
+    vm = models.ForeignKey(VirtualMachine, on_delete=models.CASCADE)
+    reference_repository_url = models.CharField(max_length=500)
+    external_owner = models.CharField(max_length=100)
+    docker_registry_token = models.CharField(max_length=100)
+    docker_registry_user = models.CharField(max_length=100, default=None)
+    tira_client_token = models.CharField(max_length=100)
+    tira_client_user = models.CharField(max_length=100, null=True, default=None)
+    tira_client_description = models.CharField(max_length=100, null=True, default=None)
+    confirmed = models.BooleanField(null=False, default=False)
+
+
+class LinkToSoftwareSubmissionGitRepository(models.Model):
+    docker_software = models.ForeignKey(DockerSoftware, on_delete=models.RESTRICT)
+    software_submission_git_repository = models.ForeignKey(SoftwareSubmissionGitRepository, on_delete=models.RESTRICT)
+    commit_hash = models.CharField(max_length=100)
+    link_to_file = models.CharField(max_length=500)
+    build_environment = models.TextField(default=None, null=True)
+
+
 class SoftwareClone(models.Model):
     """
     - This allows to import/export existing software to other tasks.
@@ -294,6 +315,7 @@ class Review(models.Model):
     has_no_errors = models.BooleanField(default=False)
     published = models.BooleanField(default=False)
     blinded = models.BooleanField(default=True)
+
 
 class BackendProcess(models.Model):
     id = models.AutoField(primary_key=True)

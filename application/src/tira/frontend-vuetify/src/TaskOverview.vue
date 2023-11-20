@@ -124,7 +124,6 @@
       this.$router.push('/submit/' + this.task_id + '/user/' + this.user_id)
     },
     addDataset(dataset: any) {
-      console.log(dataset)
       let found = false
 
       for (let d of this.datasets) {
@@ -152,7 +151,6 @@
       .then(inject_response(this, {'loading': false}, true))
       .then(this.updateDataset)
       .catch(reportError("Problem While Loading the Details of the Task " + this.task_id, "This might be a short-term hiccup, please try again. We got the following error: "))
-    console.log(this.user_id)
   },
   watch: {
     selectedDataset(old_value, new_value) { this.newDatasetSelected() },

@@ -25,11 +25,9 @@ export default function register_app() {
 
   const app_elem = document.querySelector(app_selector)
   if (app_elem && '__vue_app__' in app_elem && app_elem.__vue_app__) {
-    console.log('TIRA app is already mounted.')
     return;
   }
 
-  console.log('Mount TIRA vue app to location: ' + window.location)
   const routes = [
     {path: '/', component: Home},
     {path: '/tasks', component: Tasks},
@@ -41,7 +39,7 @@ export default function register_app() {
     {path: '/frontend-vuetify/task-overview/:task_id?/:dataset_id?', component: TaskOverview},
     {path: '/frontend-vuetify/submit/:task/user/:user/:submission_type?/:selected_step?', name: 'frontend-vuetify-submission', component: RunUpload},
     {path: '/frontend-vuetify/task-overview/:task_id?/:dataset_id?/:sub-view?/:sub-sub-view?', component: TaskOverview},
-    { path: '/tirex/components/:pathMatch(.*)*', component: IrComponents },
+    { path: '/tirex/components/:component_types?/:focus_types?/:search_query?',name:'tirex', component: IrComponents },
     { path: '/tirex/:pathMatch(.*)*', component: Tirex },
 
     // Fallback: everything matches to home.

@@ -17,6 +17,7 @@ import csv
 from io import StringIO
 from copy import deepcopy
 from tira.util import link_to_discourse_team
+from slugify import slugify
 
 include_navigation = True if settings.DEPLOYMENT == "legacy" else False
 
@@ -372,6 +373,23 @@ def get_running_software(request, context, task_id, user_id, force_cache_refresh
     return JsonResponse({'status': 0, "context": context})
 
 
+@add_context
+def public_submissions(request, context, task_id):
+    context['public_submissions'] = model.model.get_public_docker_softwares(task_id)
+
+    return JsonResponse({'status': 0, "context": context})
+
+
+@add_context
+def public_submission(request, context, task_id, user_id, display_name):
+    for i in model.model.get_public_docker_softwares(task_id, return_only_names=False, return_details=True):
+        if i['display_name'] == display_name and i['vm_id'] == user_id:
+            context['submission'] = i
+            return JsonResponse({'status': 0, "context": context})
+
+    return JsonResponse({'status': 1, "messge": "Software '{task_id}/{user_id}/{display_name}' does not exist."})
+
+
 @check_permissions
 @check_resources_exist("json")
 @add_context
@@ -406,6 +424,7 @@ def add_registration(request, context, task_id, vm_id):
     """ get the registration of a user on a task. If there is none """
     try:
         data = json.loads(request.body)
+        data['group'] = slugify(data['group'])
         data['initial_owner'] = context['user_id']
         data['task_id'] = task_id
         model.add_registration(data)

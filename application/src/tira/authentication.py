@@ -10,9 +10,8 @@ from functools import wraps
 import requests
 from django.conf import settings
 from django.http import JsonResponse, Http404, HttpResponseNotAllowed
-import tira.tira_model as model
 from slugify import slugify
-
+import tira.tira_model as model
 from google.protobuf.text_format import Parse
 
 from .proto import TiraClientWebMessages_pb2 as modelpb
@@ -203,13 +202,7 @@ class DisraptorAuthentication(Authentication):
             unused, only for consistency to the LegacyAuthentication
         """
         super(DisraptorAuthentication, self).__init__(**kwargs)
-        api_key = ''
-        try:
-            api_key = open(settings.DISRAPTOR_SECRET_FILE, "r").read().strip()
-        except:
-            print('Attention: could not load the disraptor secret key, I do not have an API key.')
-        from discourse_client_in_disraptor import DiscourseApiClient
-        self.discourse_client = DiscourseApiClient(url='https://www.tira.io', api_key=api_key)
+        self.discourse_client = model.discourse_api_client()
 
     def _get_user_id(self, request):
         """ Return the content of the X-Disraptor-User header set in the http request """

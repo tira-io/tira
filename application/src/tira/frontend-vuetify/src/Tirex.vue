@@ -44,6 +44,15 @@
             </v-btn>
           </v-col>
         </v-row>
+
+        <v-row class="d-flex align-center justify-center">
+          <v-col cols="auto">
+            <v-btn href="/tirex/components" min-width="164" rel="noopener noreferrer" variant="text">
+              <v-icon icon="mdi-view-dashboard" size="large" start/>
+              Components
+            </v-btn>
+          </v-col>
+        </v-row>
       </section>
       <section class="mt-10">
         <v-row class="justify-center py-4">

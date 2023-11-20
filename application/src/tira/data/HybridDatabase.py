@@ -394,6 +394,31 @@ class HybridDatabase(object):
     def get_organizer(self, organizer_id: str):
         return self._organizer_to_dict(modeldb.Organizer.objects.get(organizer_id=organizer_id))
 
+    @staticmethod
+    def create_submission_git_repo(repo_url, vm_id, docker_registry_user, docker_registry_token, discourse_api_key,
+                                   reference_repository_url, external_owner, discourse_api_user, discourse_api_descr):
+        return modeldb.SoftwareSubmissionGitRepository.objects.create(
+            repository_url=repo_url, vm=modeldb.VirtualMachine.objects.get(vm_id=vm_id),
+            reference_repository_url=reference_repository_url, external_owner=external_owner,
+            docker_registry_token=docker_registry_token, docker_registry_user=docker_registry_user,
+            tira_client_token=discourse_api_key, tira_client_user=discourse_api_user,
+            tira_client_description=discourse_api_descr
+        )
+
+    def get_submission_git_repo_or_none(self, repository_url, vm_id, return_object=False):
+        try:
+            ret = modeldb.SoftwareSubmissionGitRepository.objects.get(repository_url=repository_url, vm__vm_id=vm_id)
+
+            if return_object:
+                return ret
+
+            return {'repo_url': ret.repository_url, 'http_repo_url': 'https://github.com/' + ret.repository_url,
+                    'ssh_repo_url': f'git@github.com:{ret.repository_url}.git',
+                    'owner_url': ret.external_owner, 'http_owner_url': 'https://github.com/' + ret.external_owner
+                    }
+        except:
+            return {} if not return_object else None
+
     def get_host_list(self) -> list:
         return [line.strip() for line in open(self.host_list_file, "r").readlines()]
 
@@ -655,17 +680,21 @@ class HybridDatabase(object):
                     tira_dockersoftware ON tira_run.docker_software_id = tira_dockersoftware.docker_software_id
                 LEFT JOIN
                     tira_review as tira_run_review ON tira_run.run_id = tira_run_review.run_id
+                LEFT JOIN
+                    tira_softwareclone AS software_clone ON tira_dockersoftware.docker_software_id = software_clone.docker_software_id
+                LEFT JOIN
+                    tira_softwareclone AS upload_clone ON tira_run.upload_id = software_clone.upload_id
                 WHERE
                     tira_run_review.published = TRUE AND tira_run_review.blinded = FALSE
                     AND tira_run.input_dataset_id = %s
-                    AND (tira_dockersoftware.task_id = %s OR tira_upload.task_id = %s OR tira_software.task_id = %s)
+                    AND (tira_dockersoftware.task_id = %s OR tira_upload.task_id = %s OR tira_software.task_id = %s  or software_clone.task_id = %s or upload_clone.task_id = %s)
                     AND (tira_dockersoftware.vm_id = %s OR tira_upload.vm_id = %s OR tira_software.vm_id = %s)
                     AND (tira_dockersoftware.display_name = %s OR tira_upload.display_name = %s OR tira_software.id = %s)
                     
                 ORDER BY
                     tira_run.run_id ASC;        
                 """
-        params = [dataset_id, task_id, task_id, task_id, vm_id, vm_id, vm_id, software_id, software_id, software_id]
+        params = [dataset_id, task_id, task_id, task_id, task_id, task_id, vm_id, vm_id, vm_id, software_id, software_id, software_id]
         return [i[0] for i in self.execute_raw_sql_statement(prepared_statement, params)]
 
     def get_runs_for_vm(self, vm_id, docker_software_id, upload_id, include_unpublished=True, round_floats=True, show_only_unreviewed=False):
@@ -762,6 +791,21 @@ class HybridDatabase(object):
 
         if return_only_names:
             return [{'docker_software_id': i.docker_software_id, 'display_name': i.display_name} for i in ret]
+        else:
+            return ret
+
+    def get_public_docker_softwares(self, task_id, return_only_names=True, return_details=True):
+        ret = modeldb.DockerSoftware.objects.filter(task__task_id=task_id, deleted=False,
+                                                    public_image_name__isnull=False)
+
+        ret = [i for i in ret if i.public_image_name and i.public_image_size]
+
+        if return_only_names:
+            return [{'docker_software_id': i.docker_software_id, 'display_name': i.display_name, 'vm_id': i.vm_id
+                     }
+                    for i in ret]
+        elif return_details:
+            return [self._docker_software_to_dict(i) for i in ret]
         else:
             return ret
 
@@ -1623,7 +1667,7 @@ class HybridDatabase(object):
         )
 
     def add_docker_software(self, task_id, vm_id, user_image_name, command, tira_image_name, input_docker_job=None,
-                            input_upload=None):
+                            input_upload=None, submission_git_repo=None, build_environment=None):
         input_docker_software, input_upload_software = None, None
         if input_docker_job and 0 in input_docker_job:
             input_docker_software = modeldb.DockerSoftware.objects.get(docker_software_id=input_docker_job[0])
@@ -1631,15 +1675,15 @@ class HybridDatabase(object):
             input_upload_software = modeldb.Upload.objects.get(id=int(input_upload[0]))
 
         docker_software = modeldb.DockerSoftware.objects.create(
-                vm=modeldb.VirtualMachine.objects.get(vm_id=vm_id),
-                task=modeldb.Task.objects.get(task_id=task_id),
-                command=command,
-                tira_image_name=tira_image_name,
-                user_image_name=user_image_name,
-                display_name=randomname.get_name(),
-                input_docker_software=input_docker_software,
-                input_upload=input_upload_software,
-            )
+            vm=modeldb.VirtualMachine.objects.get(vm_id=vm_id),
+            task=modeldb.Task.objects.get(task_id=task_id),
+            command=command,
+            tira_image_name=tira_image_name,
+            user_image_name=user_image_name,
+            display_name=randomname.get_name(),
+            input_docker_software=input_docker_software,
+            input_upload=input_upload_software,
+        )
 
         additional_inputs = range(1, (0 if not input_upload else len(input_upload)) + (0 if not input_docker_job else len(input_docker_job)))
         for i in additional_inputs:
@@ -1651,6 +1695,12 @@ class HybridDatabase(object):
 
             modeldb.DockerSoftwareHasAdditionalInput.objects.create(
                 docker_software=docker_software, input_docker_software=inp, input_upload=upl
+            )
+
+        if submission_git_repo:
+            modeldb.LinkToSoftwareSubmissionGitRepository.objects.create(
+                docker_software=docker_software, software_submission_git_repository=submission_git_repo,
+                commit_hash='', link_to_file='', build_environment=build_environment
             )
 
         return self._docker_software_to_dict(docker_software)
@@ -1994,19 +2044,17 @@ class HybridDatabase(object):
 
         if docker_software_id:
             ret += [i.run_id for i in modeldb.Run.objects.filter(
-                docker_software__docker_software_id=docker_software_id, task__task_id=task_id,
-                input_dataset__dataset_id=input_dataset_id
+                docker_software__docker_software_id=docker_software_id, input_dataset__dataset_id=input_dataset_id
             )]
 
-        if vm_id:
+        if not software_id and not docker_software_id and vm_id:
             ret += [i.run_id for i in modeldb.Run.objects.filter(
-                upload__vm__vm_id=vm_id, task__task_id=task_id, input_dataset__dataset_id=input_dataset_id
+                upload__vm__vm_id=vm_id, input_dataset__dataset_id=input_dataset_id,
             )]
 
         if upload_id:
             ret += [i.run_id for i in modeldb.Run.objects.filter(
-                upload__id=upload_id, task__task_id=task_id,
-                input_dataset__dataset_id=input_dataset_id
+                upload__id=upload_id, input_dataset__dataset_id=input_dataset_id
             )]
 
         return [i for i in ret if i]

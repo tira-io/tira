@@ -21,8 +21,8 @@
     <v-window-item value="docker-submission">
         <docker-submission :organizer="organizer" :organizer_id="organizer_id" step_prop="step-1" :is_ir_task="is_ir_task" @refresh_running_submissions="refresh_running_submissions()"/>
       </v-window-item>
-    <v-window-item value="vm-submission">
-        <virtual-machine-submission :organizer="organizer" :organizer_id="organizer_id" />
+    <v-window-item value="code-submission">
+        <code-submission :organizer="organizer" :organizer_id="organizer_id" :user_id="user_id" :task_id="task_id"/>
       </v-window-item>
     </v-window>
     </div>
@@ -30,7 +30,7 @@
 
 <script>
 import DockerSubmission from "@/submission-components/DockerSubmission.vue";
-import VirtualMachineSubmission from "@/submission-components/VirtualMachineSubmission.vue";
+import CodeSubmission from "@/submission-components/CodeSubmission.vue";
 import UploadSubmission from "@/submission-components/UploadSubmission";
 import RunningProcesses from "@/submission-components/RunningProcesses.vue";
 import { TiraBreadcrumb } from './components'
@@ -38,7 +38,7 @@ import { TiraBreadcrumb } from './components'
 import { extractSubmissionTypeFromCurrentUrl, extractCurrentStepFromCurrentUrl, extractTaskFromCurrentUrl, extractUserFromCurrentUrl, get, inject_response, reportError } from "@/utils";
 export default {
   name: "run-upload",
-  components: {UploadSubmission, TiraBreadcrumb, VirtualMachineSubmission, DockerSubmission, RunningProcesses},
+  components: {UploadSubmission, TiraBreadcrumb, CodeSubmission, DockerSubmission, RunningProcesses},
   data() {
     return {
         tab: extractSubmissionTypeFromCurrentUrl(),
@@ -50,7 +50,7 @@ export default {
         all_tabs: [
           {'id': 'upload-submission', 'title': 'Uploads', 'icon': 'mdi-folder-upload-outline'},
           {'id': 'docker-submission', 'title': 'Docker', 'icon': 'mdi-docker'},
-          {'id': 'vm-submission', 'title': 'Virtual Machine', 'icon': 'mdi-code-json'}
+          {'id': 'code-submission', 'title': 'Code Submission', 'icon': 'mdi-code-json'}
         ]
     }
   },

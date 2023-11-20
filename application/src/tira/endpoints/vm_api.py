@@ -1,6 +1,7 @@
 from django.template.loader import render_to_string
 from django.db.utils import IntegrityError
 from django.core.cache import cache
+from django.views.decorators.csrf import csrf_exempt
 import logging
 
 from grpc import RpcError, StatusCode
@@ -21,6 +22,7 @@ import json
 from markdown import markdown
 
 include_navigation = True if settings.DEPLOYMENT == "legacy" else False
+from discourse_client_in_disraptor.discourse_api_client import get_disraptor_user
 
 logger = logging.getLogger("tira")
 logger.info("ajax_routes: Logger active")
@@ -456,6 +458,7 @@ def add_upload(request, task_id, vm_id):
         return JsonResponse({"status": 1, "message": "POST is not allowed here."})
 
 
+@csrf_exempt
 @check_permissions
 @check_resources_exist("json")
 def docker_software_add(request, task_id, vm_id):
@@ -470,9 +473,23 @@ def docker_software_add(request, task_id, vm_id):
         if not data.get('command'):
             return JsonResponse({"status": 1, "message": "Please specify the associated docker command."})
 
+        submission_git_repo = None
+        build_environment = None
+        if data.get('code_repository_id'):
+            submission_git_repo = model.model.get_submission_git_repo_or_none(data.get('code_repository_id'), vm_id, True)
+
+            if not submission_git_repo:
+                return JsonResponse({"status": 1, "message": f"The code repository '{data.get('code_repository_id'):}' does not exist."})
+
+            if not data.get('build_environment'):
+                return JsonResponse({"status": 1, "message": f"Please specify the build_environment for linking the code."})
+
+            build_environment = json.dumps(data.get('build_environment'))
+
         new_docker_software = model.add_docker_software(task_id, vm_id,
                                                         data.get('image'), data.get('command'),
-                                                        data.get('inputJob', None)
+                                                        data.get('inputJob', None),
+                                                        submission_git_repo, build_environment
                                                         )
         return JsonResponse({"status": 0, "message": "ok", "context": new_docker_software})
     else:
@@ -494,6 +511,44 @@ def docker_software_save(request, task_id, vm_id, docker_software_id):
         except Exception as e:
             return JsonResponse({'status': 1, 'message': f"Error while editing software: " + str(e)})
     return JsonResponse({'status': 1, 'message': f"GET is not implemented for edit software"})
+
+
+@check_permissions
+def add_software_submission_git_repository(request, task_id, vm_id):
+    if request.method != "POST":
+        return JsonResponse({'status': 1, 'message': f"GET is not implemented for edit upload"})
+
+    try:
+        data = json.loads(request.body)
+        external_owner = data['external_owner']
+        disraptor_user = get_disraptor_user(request, allow_unauthenticated_user=False)
+
+        if not disraptor_user or not type(disraptor_user) == str:
+            return JsonResponse({'status': 1, 'message': f"Please authenticate."})
+
+        if not model.github_user_exists(external_owner):
+            return JsonResponse({'status': 1, 'message': f"The user '{external_owner}' does not exist on Github, maybe a typo?"})
+
+        software_submission_git_repo = model.get_submission_git_repo(vm_id, task_id, disraptor_user, external_owner)
+
+        return JsonResponse({'status': 0, "context": software_submission_git_repo})
+    except Exception as e:
+        logger.exception(e)
+        logger.warning('Error while adding your git repository: ' + str(e))
+        return JsonResponse({'status': 1, 'message': f"Error while adding your git repository: " + str(e)})
+
+
+@check_permissions
+def get_software_submission_git_repository(request, task_id, vm_id):
+    try:
+        if not model.load_docker_data(task_id, vm_id, cache, force_cache_refresh=False):
+            return JsonResponse({'status': 0, "context": {'disabled': True}})
+
+        return JsonResponse({'status': 0, "context": model.get_submission_git_repo(vm_id, task_id)})
+    except Exception as e:
+        logger.exception(e)
+        logger.warning('Error while getting your git repository: ' + str(e))
+        return JsonResponse({'status': 1, 'message': f"Error while getting your git repository: " + str(e)})
 
 
 @check_permissions

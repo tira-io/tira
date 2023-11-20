@@ -44,6 +44,15 @@
           </v-btn>
         </v-col>
       </v-row>
+
+      <v-row class="d-flex align-center justify-center">
+        <v-col cols="auto text-primary">
+          <v-btn href="/tirex" min-width="228"  rel="noopener noreferrer" size="x-large" variant="text">
+            <v-icon size="large" start><v-img src="@/assets/tirex.png"/></v-icon>
+            TIREx
+          </v-btn>
+        </v-col>
+      </v-row>
     </section>
   </v-container>
 </template>

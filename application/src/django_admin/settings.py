@@ -337,3 +337,12 @@ WEBPACK_LOADER = {
         'STATS_FILE': BASE_DIR / 'tira' / 'frontend' / 'webpack-stats.json'
     }
 }
+
+DISCOURSE_API_URL = 'https://www.tira.io'
+
+CODE_SUBMISSION_REFERENCE_REPOSITORY = 'mam10eks/tira-software-submission-template'
+CODE_SUBMISSION_REPOSITORY_NAMESPACE = 'tira-io'
+try:
+    DISRAPTOR_API_KEY = open(DISRAPTOR_SECRET_FILE, "r").read().strip()
+except:
+    pass

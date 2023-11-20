@@ -145,6 +145,28 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
+        url_pattern='api/task/<str:task_id>/public-submissions',
+        params={'task_id': '1'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 200,
+            PARTICIPANT: 200,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 200,
+        },
+    ),
+    route_to_test(
+        url_pattern='api/task/<str:task_id>/submission-details/<str:user_id>/<str:display_name>',
+        params={'task_id': '1', 'user_id': '2', 'display_name': '3'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 200,
+            PARTICIPANT: 200,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 200,
+        },
+    ),
+    route_to_test(
         url_pattern='api/submissions-of-user/<str:vm_id>',
         params={'vm_id': 'does-not-exist'},
         group_to_expected_status_code={
@@ -266,6 +288,75 @@ API_ACCESS_MATRIX = [
             ORGANIZER_WRONG_TASK: 405,
         },
     ),
+
+    route_to_test(
+        url_pattern='api/add_software_submission_git_repository/<str:task_id>/<str:vm_id>',
+        params={'task_id': 'task-of-organizer-1', 'vm_id': PARTICIPANT.split('_')[-1]},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 200,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 302,
+        },
+    ),
+    route_to_test(
+        url_pattern='api/add_software_submission_git_repository/<str:task_id>/<str:vm_id>',
+        params={'task_id': 'task-of-organizer-1', 'vm_id': 'does-not-exist'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 302,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 302,
+        },
+    ),
+    route_to_test(
+        url_pattern='api/add_software_submission_git_repository/<str:task_id>/<str:vm_id>',
+        params={'task_id': 'does-not-exist', 'vm_id': 'does-not-exist'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 302,
+            ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
+        },
+    ),
+    route_to_test(
+        url_pattern='api/get_software_submission_git_repository/<str:task_id>/<str:vm_id>',
+        params={'task_id': 'task-of-organizer-1', 'vm_id': PARTICIPANT.split('_')[-1]},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 200,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 302,
+        },
+    ),
+    route_to_test(
+        url_pattern='api/get_software_submission_git_repository/<str:task_id>/<str:vm_id>',
+        params={'task_id': 'task-of-organizer-1', 'vm_id': 'does-not-exist'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 302,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 302,
+        },
+    ),
+    route_to_test(
+        url_pattern='api/get_software_submission_git_repository/<str:task_id>/<str:vm_id>',
+        params={'task_id': 'does-not-exist', 'vm_id': 'does-not-exist'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 302,
+            ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
+        },
+    ),
+
+
     route_to_test(
         url_pattern='tira-admin/export-participants/<str:task_id>.csv',
         params={'task_id': 'shared-task-1'},
