@@ -390,7 +390,6 @@ def test_loading_queries_via_rest_api_from_tira_02():
     print(str(list(dataset.queries_iter())[0]))
     assert '''TirexQuery(query_id='1', text='retrieval system improving effectiveness', title='retrieval system improving effectiveness', query='retrieval system improving effectiveness', description='What papers focus on improving the effectiveness of a retrieval system?', narrative='Relevant papers include research on what makes a retrieval system effective and what improves the effectiveness of a retrieval system. Papers that focus on improving something else or improving the effectiveness of a system that is not a retrieval system are not relevant.')''' == str(list(dataset.queries_iter())[0])
 
-
 def test_patching_for_pyterrier_datasets_to_tira():
     ensure_pyterrier_is_loaded(patch_ir_datasets=True)
     import pyterrier as pt
@@ -399,4 +398,13 @@ def test_patching_for_pyterrier_datasets_to_tira():
 
     assert len(dataset.get_topics()) == 3
     assert queries['1'] == 'hubble telescope achievements'
+
+def test_patching_for_pyterrier_datasets_with_qrels_to_tira():
+    ensure_pyterrier_is_loaded(patch_ir_datasets=True)
+    import pyterrier as pt
+    dataset = pt.get_dataset('irds:workshop-on-open-web-search/retrieval-20231027-training')
+    qrels =[i.to_dict() for _, i in dataset.get_qrels().iterrows()]
+
+    assert len(dataset.get_qrels()) == 3
+    assert qrels[0] == {'docno': 'doc-1', 'iteration': '0', 'label': 1, 'qid': '1'}
 

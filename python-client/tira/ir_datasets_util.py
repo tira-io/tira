@@ -123,7 +123,7 @@ def __lazy_docs(tira_path):
 
 
 def __lazy_qrels(tira_path):
-    from ir_datasets.formats import BaseQrels
+    from ir_datasets.formats import BaseQrels, TrecQrel, TrecQrels
     from ir_datasets.util.download import LocalDownload
 
     class QrelsFromTira(BaseQrels):
@@ -141,7 +141,6 @@ def __lazy_qrels(tira_path):
         def qrels_iter(self):
             if not self.qrels:
                 from tira.rest_api_client import Client as RestClient
-                from ir_datasets.formats import TrecQrels
                 qrels_file = RestClient().download_dataset(self.task, self.dataset, truth_dataset=True) + '/qrels.txt'
 
                 self.qrels = TrecQrels(LocalDownload(qrels_file), {})
