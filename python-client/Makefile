@@ -6,7 +6,7 @@ build-pypi-package: run-tests
 	twine upload dist/tira-0.0.88-py3-none-any.whl dist/tira-0.0.88.tar.gz
 
 run-tests:
-	docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${PWD}:/app -w /app --entrypoint pytest webis/tira:python-client-dev-0.0.2
+	docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${PWD}:/app -w /app --entrypoint pytest webis/tira:python-client-dev-0.0.3
 
 run-tests-legacy:
 	../application/venv/bin/coverage run --data-file=tests/test-coverage/.coverage ../application/venv/bin/pytest \
