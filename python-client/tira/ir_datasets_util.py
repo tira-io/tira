@@ -70,7 +70,7 @@ def __docs(input_file, original_dataset, load_default_text):
             return self.stream_docs()
 
         def docs_count(self):
-           return len(self.__parsed_docs())
+           return sum(1 for _ in self.stream_docs())
 
         def docs_store(self):
             return self.__parsed_docs()
