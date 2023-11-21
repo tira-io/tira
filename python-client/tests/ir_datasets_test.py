@@ -81,6 +81,18 @@ class TestIRDatasets(unittest.TestCase):
         assert '1' == list(dataset.scoreddocs)[0].query_id
 
 
+    def test_for_scoreddocs_count_01(self):
+        ensure_pyterrier_is_loaded(patch_ir_datasets=False)
+        dataset = ir_datasets.load('tirex-sample-dataset')
+        self.assertEqual(dataset.scoreddocs_count(), 10)
+
+
+    def test_for_scoreddocs_count_02(self):
+        ensure_pyterrier_is_loaded(patch_ir_datasets=True)
+        dataset = ir_datasets.load('tirex-sample-dataset')
+        self.assertEqual(dataset.scoreddocs_count(), 10)
+
+
     def test_loading_raw_ir_datasets_01(self):
         ensure_pyterrier_is_loaded(patch_ir_datasets=False)
         ir_datasets = load_ir_datasets()
