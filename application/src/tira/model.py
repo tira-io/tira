@@ -238,7 +238,7 @@ class SoftwareSubmissionGitRepository(models.Model):
 
 
 class LinkToSoftwareSubmissionGitRepository(models.Model):
-    docker_software = models.ForeignKey(DockerSoftware, on_delete=models.RESTRICT)
+    docker_software = models.ForeignKey(DockerSoftware, on_delete=models.CASCADE)
     software_submission_git_repository = models.ForeignKey(SoftwareSubmissionGitRepository, on_delete=models.RESTRICT)
     commit_hash = models.CharField(max_length=100)
     link_to_file = models.CharField(max_length=500)

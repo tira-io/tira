@@ -1,12 +1,9 @@
-#docker build -t webis/tira:python-client-dev-0.0.2 -f Dockerfile.dev .
+#docker build -t webis/tira:python-client-dev-0.0.3 -f Dockerfile.dev .
 FROM ubuntu:latest
 
 RUN apt-get update \
-	&& apt-get install -y python3 python3-pip build-essential openjdk-11-jdk
-
-RUN pip3 install twine coverage-badge python-terrier coverage
-
-RUN pip3 install pytest docker
+	&& apt-get install -y python3 python3-pip build-essential openjdk-11-jdk \
+	&& apt-get install -y sudo git
 
 RUN apt-get install -y curl \
 	&& curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg \
@@ -17,5 +14,17 @@ RUN apt-get install -y curl \
 		tee /etc/apt/sources.list.d/docker.list > /dev/null \
 	&& apt-get update -y \
 	&& apt-get install -y docker-ce-cli
-	
 
+# Change root Password to 1234
+RUN echo 'root:1234' | chpasswd
+
+# Create new user: "dev" with password "1234" and change to that user
+RUN useradd -ms /bin/bash dev \
+ 	&& echo 'dev:1234' | chpasswd \
+	&& usermod -aG sudo dev \
+	&& groupadd -g 973 docker \
+	&& usermod -aG docker dev
+USER dev
+
+RUN pip3 install twine coverage-badge python-terrier coverage
+RUN pip3 install pytest docker
