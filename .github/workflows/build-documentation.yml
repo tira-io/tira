@@ -12,7 +12,7 @@ jobs:
         uses: actions/checkout@v3
       - name: Install Dependencies
         run: |
-          sudo apt-get install -y python-sphinx furo
+          sudo apt-get install -y python3-sphinx furo
           cd python-client/sphinx
           sphinx-apidoc -o . ../tira
           make html
