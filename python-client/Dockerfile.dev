@@ -1,4 +1,4 @@
-#docker build -t webis/tira:python-client-dev-0.0.2 -f Dockerfile.dev .
+#docker build -t webis/tira:python-client-dev-0.0.3 -f Dockerfile.dev .
 FROM ubuntu:latest
 
 RUN apt-get update \
@@ -25,5 +25,7 @@ RUN echo 'root:1234' | chpasswd
 # Create new user: "dev" with password "1234" and change to that user
 RUN useradd -ms /bin/bash dev \
  	&& echo 'dev:1234' | chpasswd \
-	&& usermod -aG sudo dev
+	&& usermod -aG sudo dev \
+	&& groupadd -g 973 docker \
+	&& usermod -aG docker dev
 USER dev
