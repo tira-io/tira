@@ -1,6 +1,6 @@
 from copy import deepcopy
 from typing import NamedTuple
-from tira.io_utils import all_lines_to_pandas
+from tira.io_utils import all_lines_to_pandas, stream_all_lines
 from tira.tirex import IRDS_TO_TIREX_DATASET, TIREX_DATASETS
 import os
 
@@ -12,6 +12,20 @@ except:
     pass
 
 
+class TirexQuery(NamedTuple):
+    query_id: str
+    text: str
+    title: str
+    query: str
+    description: str
+    narrative: str
+
+    def default_text(self):
+        """
+        title
+        """
+        return self.title
+
 def register_dataset_from_re_rank_file(ir_dataset_id, df_re_rank, original_ir_datasets_id=None):
     """
     Load a dynamic ir_datasets integration from a given re_rank_file.
@@ -22,14 +36,14 @@ def register_dataset_from_re_rank_file(ir_dataset_id, df_re_rank, original_ir_da
     from ir_datasets.datasets.base import Dataset
     original_dataset = ir_datasets.load(original_ir_datasets_id) if original_ir_datasets_id else None
 
-    docs = __docs(df_re_rank, original_dataset)
+    docs = __docs(df_re_rank, original_dataset, True)
     queries = __queries(df_re_rank, original_dataset)
-    qrels = __qrels(df_re_rank, original_dataset)
+    qrels = __lazy_qrels(None, original_dataset)
     scoreddocs = __scored_docs(df_re_rank, original_dataset)
 
     dataset = Dataset(docs, queries, qrels, scoreddocs)
     ir_datasets.registry.register(ir_dataset_id, dataset)
-    
+
     __check_registration_was_successful(ir_dataset_id, original_ir_datasets_id is None)
 
 
@@ -43,92 +57,73 @@ def translate_irds_id_to_tirex(dataset):
     return IRDS_TO_TIREX_DATASET[dataset] if dataset in IRDS_TO_TIREX_DATASET else dataset
 
 
-def __docs(df, original_dataset):
+def __docs(input_file, original_dataset, load_default_text):
     from ir_datasets.formats import BaseDocs, GenericDoc
 
     class DynamicDocs(BaseDocs):
-        def __init__(self, docs):
-            self.docs = deepcopy(docs)
-
-        def docs_iter(self):
-            return deepcopy(docs).values().__iter__()
-
-        def docs_count(self):
-           return len(self.docs)
-
-        def docs_store(self):
-            return deepcopy(docs)
-
-    docs = {}
-    for _, i in df.iterrows():
-        docs[i['docno']] = GenericDoc(doc_id=i['docno'], text= i['text'])
-
-    return DynamicDocs(docs)
-
-
-def __lazy_docs(tira_path):
-    from ir_datasets.formats import BaseDocs, GenericDoc
-
-    class DocumentsFromTira(BaseDocs):
-        def __init__(self):
+        def __init__(self, input_file, load_default_text):
             self.docs = None
-            if len(tira_path.split('/')) != 2:
-                print(f'Please pass tira_path as <task>/<tira-dataset>. Got {tira_path}')
-                return
-
-            self.task, self.dataset = tira_path.split('/')
+            self.input_file = input_file
+            self.load_default_text = load_default_text
 
         def docs_iter(self):
-            return self.get_docs().values().__iter__()
+            return self.stream_docs()
 
         def docs_count(self):
-           return len(self.get_docs())
+           return sum(1 for _ in self.stream_docs())
 
         def docs_store(self):
-            return self.get_docs()
+            return self.__parsed_docs()
 
-        def get_docs(self):
-            if not self.docs:
-                from tira.rest_api_client import Client as RestClient
-                docs_file = RestClient().download_dataset(self.task, self.dataset)
-                if os.path.isfile(docs_file + '/documents.jsonl.gz'):
-                    docs_file = docs_file + '/documents.jsonl.gz'
-                else:
-                    docs_file = docs_file + '/documents.jsonl'
-            
-                self.docs = {}
+        def __parsed_docs(self):
+            if self.docs is None:
+                d = {}
+                for i in self.stream_docs():
+                    d[i.doc_id] = i
 
-                for _, i in all_lines_to_pandas(docs_file, False).iterrows():
-                    self.docs[i['docno']] = GenericDoc(doc_id=i['docno'], text= i['text'])
-                
+                self.docs = d
+
             return self.docs
 
-    ret = DocumentsFromTira()
-    
-    return ret
+        def stream_docs(self):
+            already_covered = set()
+            for i in stream_all_lines(self.get_input_file(), self.load_default_text):
+                if i['docno'] not in already_covered:
+                    already_covered.add(i['docno'])
+                    yield GenericDoc(doc_id=i['docno'], text= i['text'])
+
+        def get_input_file(self):
+            if type(self.input_file) == str:
+                return self.input_file
+
+            ret = self.input_file()
+            if os.path.isfile(ret + '/documents.jsonl.gz'):
+                return ret + '/documents.jsonl.gz'
+            else:
+                return ret + '/documents.jsonl'
+
+    return DynamicDocs(input_file, load_default_text)
 
 
-def __lazy_qrels(tira_path):
-    from ir_datasets.formats import BaseQrels
+def __lazy_qrels(input_file, original_qrels):
+    from ir_datasets.formats import BaseQrels, TrecQrel, TrecQrels
     from ir_datasets.util.download import LocalDownload
 
-    class QrelsFromTira(BaseQrels):
-        def __init__(self):
-            self.qrels = None
-            if len(tira_path.split('/')) != 2:
-                print(f'Please pass tira_path as <task>/<tira-dataset>. Got {tira_path}')
-                return
+    if input_file is None and original_qrels is None:
+        return
 
-            self.task, self.dataset = tira_path.split('/')
+    class QrelsFromTira(BaseQrels):
+        def __init__(self, input_file, original_qrels):
+            self.qrels = None if not original_qrels else original_qrels
+            self.input_file = input_file
+            self.original_qrels = original_qrels
 
         def qrels_cls(self):
-            return TrecQrel
+            return TrecQrel if not self.original_qrels else self.original_qrels.qrels_cls()
         
         def qrels_iter(self):
             if not self.qrels:
-                from tira.rest_api_client import Client as RestClient
-                from ir_datasets.formats import TrecQrels
-                qrels_file = RestClient().download_dataset(self.task, self.dataset, truth_dataset=True) + '/qrels.txt'
+                qrels_file = self.input_file() + '/qrels.txt'
 
                 self.qrels = TrecQrels(LocalDownload(qrels_file), {})
 
@@ -138,76 +133,47 @@ def __lazy_qrels(tira_path):
             self.qrels_iter()
             return self.qrels.qrels_defs()
 
-    return QrelsFromTira()
+    return QrelsFromTira(input_file, original_qrels)
 
 
-def __lazy_queries(tira_path):
-    from ir_datasets.formats import BaseQueries, TrecQuery
-
-    class QueriesFromTira(BaseQueries):
-        def __init__(self):
-            self.queries = None
-            if len(tira_path.split('/')) != 2:
-                print(f'Please pass tira_path as <task>/<tira-dataset>. Got {tira_path}')
-                return
-
-            self.task, self.dataset = tira_path.split('/')
-
-        def queries_cls(self):
-            return TrecQuery
-        
-        def queries_iter(self):
-            if not self.queries:
-                from tira.rest_api_client import Client as RestClient
-                queries_file = RestClient().download_dataset(self.task, self.dataset, truth_dataset=True) + '/queries.jsonl'
-
-                self.queries = {}
-                for _, i in all_lines_to_pandas(queries_file, False).iterrows():
-                    orig_query = None if 'original_query' not in i else i['original_query']
-                    
-                    description = None if (not orig_query or 'description' not in orig_query) else orig_query['description']
-                    narrative = None if (not orig_query or 'narrative' not in orig_query) else orig_query['narrative']
-                    self.queries[i['qid']] = TrecQuery(query_id=i['qid'], title= i['query'], description=description, narrative=narrative)
-
-            return deepcopy(self.queries).values().__iter__()
-    
-    return QueriesFromTira()
-
-def __queries(df, original_dataset):
-    from ir_datasets.formats import BaseQueries, GenericQuery
+def __queries(input_file, original_dataset):
+    from ir_datasets.formats import BaseQueries
 
     class DynamicQueries(BaseQueries):
-        def __init__(self, queries):
-            self.docs = deepcopy(queries)
+        def __init__(self, input_file):
+            self.queries = None
+            self.input_file = input_file
 
         def queries_iter(self):
-            return deepcopy(queries).values().__iter__()
+            return deepcopy(self.__get_queries()).values().__iter__()
 
-    queries = {}
-    for _, i in df.iterrows():
-        queries[i['qid']] = GenericQuery(query_id=i['qid'], text= i['query'])
+        def queries_cls(self):
+            return TirexQuery
 
-    return DynamicQueries(queries)
+        def get_input_file(self):
+            if type(self.input_file) == str:
+                return self.input_file
+
+            return self.input_file() + '/queries.jsonl'
+
+        def __get_queries(self):
+            if self.queries is None:
+                ret = {}
+                for i in  stream_all_lines(self.get_input_file(), False):
+                    orig_query = None if 'original_query' not in i else i['original_query']
+                    description = None if (not orig_query or type(orig_query) != dict or 'description' not in orig_query) else orig_query['description']
+                    narrative = None if (not orig_query or type(orig_query) != dict or 'narrative' not in orig_query) else orig_query['narrative']
+                    if i['qid'] not in ret:
+                        ret[i['qid']] = TirexQuery(query_id=i['qid'],  text=i['query'], query=i['query'], title=i['query'], description=description, narrative=narrative)
+                    
+                self.queries = ret
+
+            return self.queries
+
+    return DynamicQueries(input_file)
 
 
-
-def __qrels(path_to_re_rank_file, original_dataset):
-    from ir_datasets.formats import BaseQrels
-
-    if not original_dataset:
-        return None
-
-    class DynamicQrels(BaseQrels):
-        def __init__(self, qrels):
-            self.qrels = list(original_dataset.qrels.qrels_iter())
-        
-        def qrels_iter(self):
-            return self.qrels.__iter__()
-
-    return DynamicQrels
-
-
-def __scored_docs(df, original_dataset):
+def __scored_docs(input_file, original_dataset):
     from ir_datasets.formats import BaseScoredDocs
     
     class GenericScoredDocWithRank(NamedTuple):
@@ -225,9 +191,9 @@ def __scored_docs(df, original_dataset):
 
     docs = []
 
-    for _, i in df.iterrows():
+    for i in stream_all_lines(input_file, True):
         docs += [GenericScoredDocWithRank(i['qid'], i['docno'], i['score'], i['rank'])]
-    
+
     return DynamicScoredDocs(docs)
 
 
@@ -242,8 +208,8 @@ def static_ir_dataset(directory, existing_ir_dataset=None):
         else:
             docs_file = docs_file + '/documents.jsonl'
 
-        docs = __docs(all_lines_to_pandas(docs_file, False) if os.path.isfile(docs_file) else pd.DataFrame([]), None)
-        queries = __queries(all_lines_to_pandas(queries_file, False), None)
+        docs = __docs(docs_file, None, True)
+        queries = __queries(queries_file, None)
         return static_ir_dataset(directory, Dataset(docs, queries))
 
     class StaticIrDatasets():
@@ -259,25 +225,32 @@ def static_ir_dataset(directory, existing_ir_dataset=None):
 def ir_dataset_from_tira_fallback_to_original_ir_datasets():
     from ir_datasets.datasets.base import Dataset
 
+    def get_download_dir_from_tira(tira_path, truth_dataset):
+        if len(tira_path.split('/')) != 2:
+            print(f'Please pass tira_path as <task>/<tira-dataset>. Got {tira_path}')
+            raise ValueError(f'Please pass tira_path as <task>/<tira-dataset>. Got {tira_path}')
+
+        from tira.rest_api_client import Client as RestClient
+        task, dataset = tira_path.split('/')
+        return RestClient().download_dataset(task, dataset, truth_dataset=truth_dataset)
+
     class IrDatasetsFromTira():
         def load(self, dataset_id):
             try:
                 return original_ir_datasets_load(dataset_id)
             except:
                 print(f'Load ir_dataset "{dataset_id}" from tira.')
-                docs = self.lazy_docs(dataset_id)
-                queries = self.lazy_queries(dataset_id)
-                qrels = self.lazy_qrels(dataset_id)
+                docs = self.lazy_docs(lambda: get_download_dir_from_tira(dataset_id, False), None, True)
+                queries = self.lazy_queries(lambda: get_download_dir_from_tira(dataset_id, True), None)
+                qrels = self.lazy_qrels(lambda: get_download_dir_from_tira(dataset_id, True), None)
                 return Dataset(docs, queries, qrels)
 
         def topics_file(self, tira_path):
-            from tira.rest_api_client import Client as RestClient
-            task, dataset = tira_path.split('/')
-            return RestClient().download_dataset(task, dataset, truth_dataset=True) + '/queries.xml'
+            return get_download_dir_from_tira(tira_path, True) + '/queries.xml'
 
     ret = IrDatasetsFromTira()
-    ret.lazy_docs = __lazy_docs
-    ret.lazy_queries = __lazy_queries
+    ret.lazy_docs = __docs
+    ret.lazy_queries = __queries
     ret.lazy_qrels = __lazy_qrels
 
     return ret

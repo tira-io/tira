@@ -5,20 +5,20 @@ from pathlib import Path
 import logging
 from tira.data.HybridDatabase import HybridDatabase
 from django.core.cache import cache
-from tira.git_runner import get_git_runner
+from tira.git_runner import get_git_runner, get_git_runner_for_software_integration
 import randomname
 from django.conf import settings
 from django.db import connections, router
 import datetime
-from tira.authentication import auth
 from tira.util import get_tira_id, run_cmd_as_documented_background_process, register_run
 import tempfile
 from distutils.dir_util import copy_tree
+from slugify import slugify
+from discourse_client_in_disraptor import DiscourseApiClient
 
 logger = logging.getLogger("tira")
 
 model = HybridDatabase()
-
 
 # reloading and reindexing
 def build_model():
@@ -124,10 +124,19 @@ def load_refresh_timestamp_for_cache_key(cache, key):
     return datetime.datetime.now()
 
 
+def discourse_api_client():
+    return DiscourseApiClient(url=settings.DISCOURSE_API_URL, api_key=settings.DISRAPTOR_API_KEY)
+
+
 def tira_run_command(image, command, task_id):
     input_dataset = 'scai-eval-2024-metric-submission/scai-eval24-2023-09-26-20230926-training'
 
     return f'tira-run \\\n  --input-dataset {input_dataset} \\\n  --image {image} \\\n  --evaluate true \\\n  --command \'{command}\''
+
+
+def tira_docker_registry_token(docker_software_help):
+    ret = docker_software_help.split('docker login -u ')[1].split(' -p')
+    return ret[0].strip(), ret[1].split(' ')[0].strip()
 
 
 def load_docker_data(task_id, vm_id, cache, force_cache_refresh):
@@ -157,6 +166,8 @@ def load_docker_data(task_id, vm_id, cache, force_cache_refresh):
         "resources": list(settings.GIT_CI_AVAILABLE_RESOURCES.values()),
         "docker_software_help": docker_software_help,
         "docker_images_last_refresh": str(last_refresh),
+        "docker_registry_user": tira_docker_registry_token(docker_software_help)[0],
+        "docker_registry_token": tira_docker_registry_token(docker_software_help)[1],
         "public_docker_softwares": public_docker_softwares,
         "task_is_an_information_retrieval_task": True if get_task(task_id, False).get('is_ir_task', False) else False,
         "docker_images_next_refresh": str(None if last_refresh is None else (last_refresh + datetime.timedelta(seconds=60))),
@@ -167,6 +178,53 @@ def load_docker_data(task_id, vm_id, cache, force_cache_refresh):
                                   docker_login + '\n' +
                                   tira_run_command('YOUR-IMAGE', 'YOUR-COMMAND', task_id),
     }
+
+
+def github_user_exists(user_name):
+    g = get_git_runner_for_software_integration()
+    return g.git_user_exists(user_name)
+
+
+def get_submission_git_repo(vm_id, task_id, disraptor_user=None, external_owner=None):
+    user_repository_name = slugify(task_id) + '-' + slugify(vm_id)
+    repository_url = settings.CODE_SUBMISSION_REPOSITORY_NAMESPACE + '/' + user_repository_name
+    ret = model.get_submission_git_repo_or_none(repository_url, vm_id)
+
+    if ret and 'repo_url' in ret or (not disraptor_user and not external_owner):
+        return ret
+
+    docker_data = load_docker_data(task_id, vm_id, cache, force_cache_refresh=False)
+    docker_registry_user = docker_data['docker_registry_user']
+    docker_registry_token = docker_data['docker_registry_token']
+    reference_repository = settings.CODE_SUBMISSION_REFERENCE_REPOSITORY
+    disraptor_description = disraptor_user + '-repo-' + task_id + '-' + vm_id
+    discourse_api_key = discourse_api_client().generate_api_key(disraptor_user, disraptor_description)
+
+    model.create_submission_git_repo(repository_url, vm_id, docker_registry_user, docker_registry_token,
+                                     discourse_api_key, reference_repository, external_owner,
+                                     disraptor_user, disraptor_description)
+    ret = model.get_submission_git_repo_or_none(repository_url, vm_id, return_object=True)
+
+    g = get_git_runner_for_software_integration()
+    g.get_git_runner_for_software_integration(
+        reference_repository_name=reference_repository,
+        user_repository_name=user_repository_name,
+        user_repository_namespace=settings.CODE_SUBMISSION_REPOSITORY_NAMESPACE,
+        github_user=external_owner,
+        dockerhub_token=docker_registry_token,
+        dockerhub_user=docker_registry_user,
+        tira_client_token=discourse_api_key,
+        repository_search_prefix='',
+        tira_user_name=vm_id,
+        tira_task_id=task_id,
+        tira_code_repository_id=repository_url,
+        tira_client_user=disraptor_user,
+    )
+
+    ret.confirmed = True
+    ret.save()
+
+    return model.get_submission_git_repo_or_none(repository_url, vm_id)
 
 
 def git_pipeline_is_enabled_for_task(task_id, cache, force_cache_refresh=False):
@@ -479,7 +537,7 @@ def update_docker_software_metadata(docker_software_id, display_name, descriptio
     return model.update_docker_software_metadata(docker_software_id, display_name, description, paper_link, ir_re_ranker, ir_re_ranking_input)
 
 
-def add_docker_software(task_id, vm_id, image, command, software_inputs=None):
+def add_docker_software(task_id, vm_id, image, command, software_inputs=None, submission_git_repo=None, build_environment=None):
     """ Add the docker software to the user of the vm and return it """
 
     image, old_tag = image.split(':')
@@ -496,7 +554,7 @@ def add_docker_software(task_id, vm_id, image, command, software_inputs=None):
                 input_docker_job[software_num] = software_input
 
     return model.add_docker_software(task_id, vm_id, image + ':' + old_tag, command, tira_image_name, input_docker_job,
-                                     input_upload)
+                                     input_upload, submission_git_repo, build_environment)
 
 
 def add_registration(data):
@@ -509,6 +567,7 @@ def all_allowed_task_teams(task_id):
 
 
 def user_is_registered(task_id, request):
+    from tira.authentication import auth
     task = get_task(task_id)
     allowed_task_teams = all_allowed_task_teams(task_id)
     user_vm_ids = [i.strip() for i in auth.get_vm_ids(request) if i.strip()]
@@ -602,6 +661,10 @@ def edit_task(task_id: str, task_name: str, task_description: str, featured: boo
               irds_re_ranking_image: str = '', irds_re_ranking_command: str = '',
               irds_re_ranking_resource: str = ''):
     """ Update the task's data """
+
+    if allowed_task_teams:
+        allowed_task_teams = '\n'.join([slugify(i) for i in allowed_task_teams.split('\n')])
+
     return model.edit_task(task_id, task_name, task_description, featured, master_vm_id, organizer, website,
                            require_registration, require_groups, restrict_groups, help_command, help_text,
                            allowed_task_teams, is_ir_task, irds_re_ranking_image, irds_re_ranking_command,

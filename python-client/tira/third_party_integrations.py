@@ -70,8 +70,12 @@ def is_running_as_inference_server():
     return os.environ.get('TIRA_INFERENCE_SERVER', None) is not None
     
                 
-def load_rerank_data(default_input, load_default_text=True):
-    default_input = get_input_directory_and_output_directory(default_input)[0]
+def load_rerank_data(default, load_default_text=True):
+    default_input = get_input_directory_and_output_directory(default)[0]
+
+    if not os.path.isdir(default_input) and len(default.split('/')) == 2:
+        from tira.rest_api_client import Client as RestClient
+        default_input = RestClient().download_dataset(default.split('/')[0], default.split('/')[1])
 
     if not default_input.endswith('rerank.jsonl') and not default_input.endswith('rerank.jsonl.gz'):
         if os.path.isfile(default_input + '/rerank.jsonl.gz'):
@@ -97,15 +101,21 @@ def register_rerank_data_to_ir_datasets(path_to_rerank_file, ir_dataset_id, orig
         elif os.path.isfile(default_input + '/rerank.jsonl'):
             default_input = default_input + '/rerank.jsonl'
 
-    df_re_rank = all_lines_to_pandas(default_input, False)
-
-    register_dataset_from_re_rank_file(ir_dataset_id, df_re_rank, original_ir_datasets_id)
+    register_dataset_from_re_rank_file(ir_dataset_id, default_input, original_ir_datasets_id)
 
 
-def persist_and_normalize_run(run, system_name, output_file=None, depth=1000):
-    if output_file is None:
+def persist_and_normalize_run(run, system_name, default_output=None, output_file=None, depth=1000):
+    if output_file is None and default_output is None:
         print('I use the environment variable "TIRA_OUTPUT_DIR" to determine where I should store the run file using "." as default.')
         output_file = os.environ.get('TIRA_OUTPUT_DIR', '.')
+
+    if default_output is not None:
+        if os.environ.get('TIRA_OUTPUT_DIR') is None:
+            print(f'The run file is normalized outside the TIRA sandbox, I will store it at "{default_output}".')
+            output_file = default_output
+        else:
+            output_file = os.environ.get('TIRA_OUTPUT_DIR')
+            print(f'The run file is normalized inside the TIRA sandbox, I will store it at "{output_file}".')   
 
     if not output_file.endswith('run.txt'):
         output_file = output_file + '/run.txt'

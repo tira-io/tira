@@ -21,3 +21,12 @@ def test_export_of_file():
     actual = open(local_file).read()
     expected = '''3.16.5\n'''
     assert actual == expected
+
+def test_extraction_of_entrypoint():
+    expected = 'docker-entrypoint.sh'
+
+    tira = Client()
+    actual = tira.extract_entrypoint(image='bash:alpine3.16')
+
+    assert actual == expected
+

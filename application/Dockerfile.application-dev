@@ -1,0 +1,14 @@
+# docker build -t webis/tira-application:basis-0.0.76 -f f.Dockerfile .
+FROM webis/tira-application:basis-0.0.75
+
+ENV PATH="${PATH}:/root/.cargo/bin"
+
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > foo.sh && \
+	sh ./foo.sh -y && \
+	rm foo.sh && \
+	pip3 install coverage coverage-badge && \
+	apk add libffi-dev && \
+	pip3 uninstall -y discourse-client-in-disraptor && \
+	pip3 uninstall -y PyGithub && \
+	pip3 install discourse-client-in-disraptor PyGithub==1.59.1
+

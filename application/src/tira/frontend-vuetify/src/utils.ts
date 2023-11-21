@@ -153,6 +153,8 @@ export function reportSuccess(title: string="", text: string="") {
         }
 
         window.push_message(title, text, "success")
+
+        return error
     }
 }
 
@@ -162,6 +164,8 @@ export function reportError(title: string="", text: string="") {
             title = 'Error.'
         }
         window.push_message(title, text + ' ' + error, "error")
+
+        return error
     }
 }
 
