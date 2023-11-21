@@ -6,19 +6,13 @@ class Command(BaseCommand):
     """
 
     def handle(self, *args, **options):
-        from tira.git_runner import get_git_runner_for_software_integration
-        g = get_git_runner_for_software_integration()
-        g.get_git_runner_for_software_integration(
-            reference_repository_name='mam10eks/tira-software-submission-template',
-            user_repository_name='pan23-user-xy-test3',
-            user_repository_namespace='mam10eks',
-            github_user='heinrichreimer',
-            dockerhub_token='xyz',
-            tira_client_token='xyz',
-            repository_search_prefix='',
-            tira_user_name='<TIRA-USER>',
-        )
-
+        from tira.git_runner import all_git_runners
+        
+        g = all_git_runners()
+        assert len(g) == 1
+        for i in []: #['ul-nostalgic-turing', 'ul-trusting-neumann', 'ul-dreamy-zuse', 'ul-lucid-lovelace', 'ul-dazzling-euclid', 'ul-kangaroo-query-crew', 'ul-graceful-galileo', 'ul-suspicious-shannon', 'ul-the-golden-retrievers', 'ul-confident-torvalds']:
+            g[0].create_user_repository(i)
+        
         #class tmp():
         #    body= '{"group": "ir-lab-sose-2023-armafira", "team": "a", "username": "mf2", "email": "del-me", "affiliation": "mf2", "country": "c", "employment": "e", "participation": "p", "instructorName": "i", "instructorEmail": "i", "questions": ""}'
         #    session = {}
