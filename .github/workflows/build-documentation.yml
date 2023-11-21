@@ -17,6 +17,7 @@ jobs:
           cd python-client/sphinx
           sphinx-apidoc -o . ../tira
           make html
+          touch python-client/sphinx/_build/html/.nojekyll
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4
         with:
