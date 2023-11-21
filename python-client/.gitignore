@@ -1,1 +1,7 @@
 build/
+
+.devcontainer/
+
+sphinx/_build
+sphinx/**.rst
+!sphinx/index.rst
