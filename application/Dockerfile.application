@@ -32,7 +32,5 @@ COPY --from=0 /src/tira/static/tira/frontend-vuetify/ /tira/application/src/tira
 RUN cd /tira/application/ && \
 	./test/run_all_tests.sh
 
-USER tira
-
 CMD sh -c "nginx && uwsgi --uid 1010 --gid 1010 --ini /tira/application/src/uwsgi.ini"
 

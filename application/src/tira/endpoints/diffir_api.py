@@ -16,7 +16,7 @@ logger = logging.getLogger("tira")
 def doc_file_for_run(vm_id, dataset_id, task_id, run_id):
     checked_paths = []
     for evaluation in model.get_evaluations_of_run(vm_id, run_id):
-        for f in [".data-top-10-for-rendering.jsonl.gz", ".data-top-10-for-rendering.jsonl"]:
+        for f in [".data-top-10-for-rendering.jsonl.gz", ".data-top-10-for-rendering.jsonl", ".data-top-10-for-rendering.json.gz", ".data-top-10-for-rendering.json"]:
             p = Path(settings.TIRA_ROOT) / "data" / "runs" / dataset_id / vm_id / evaluation / 'output' / f
             checked_paths += [str(p)]
             if p.is_file():
