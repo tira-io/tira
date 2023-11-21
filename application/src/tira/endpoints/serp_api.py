@@ -29,7 +29,8 @@ def serp(request, context, vm_id, dataset_id, task_id, run_id, topk):
 
             try:
                 from diffir.run import diff_from_local_data
-            except:
+            except Exception as e:
+                logger.exception(e)
                 raise ValueError('Could not load dependency diffir')
 
             doc_file = doc_file_for_run(vm_id, dataset_id, task_id, run_id)

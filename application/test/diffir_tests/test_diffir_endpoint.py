@@ -19,7 +19,7 @@ class TestDiffirEndpoint(TestCase):
         actual = diffir(request, vm_id='example_participant', dataset_id='dataset-1', task_id='t1', run_id='run-3-example_participant', topk=10)
 
         # Assert
-        self.assertTrue('dsa', actual.content.decode('utf-8').startswith('<!doctype html>'))
+        self.assertTrue(actual.content.decode('utf-8').startswith('<!doctype html>'))
 
     def test_diffir_with_json_gz(self):
         # Arrange
@@ -29,7 +29,7 @@ class TestDiffirEndpoint(TestCase):
         actual = diffir(request, vm_id='example_participant', dataset_id='dataset-1', task_id='t1', run_id='run-5-example_participant', topk=10)
 
         # Assert
-        self.assertTrue('dsa', actual.content.decode('utf-8').startswith('<!doctype html>'))
+        self.assertTrue(actual.content.decode('utf-8').startswith('<!doctype html>'))
 
     @classmethod
     def tearDownClass(cls):

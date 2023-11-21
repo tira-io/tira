@@ -14,12 +14,14 @@ logger = logging.getLogger("tira")
 
 
 def doc_file_for_run(vm_id, dataset_id, task_id, run_id):
+    checked_paths = []
     for evaluation in model.get_evaluations_of_run(vm_id, run_id):
         for f in [".data-top-10-for-rendering.jsonl.gz", ".data-top-10-for-rendering.jsonl"]:
             p = Path(settings.TIRA_ROOT) / "data" / "runs" / dataset_id / vm_id / evaluation / 'output' / f
+            checked_paths += [str(p)]
             if p.is_file():
                 return p
-    raise ValueError('.data-top-10-for-rendering.jsonl')
+    raise ValueError(f'Could not find .data-top-10-for-rendering.jsonl. Searched in {checked_paths}.')
 
 
 def load_irds_metadata_of_task(task, dataset):
