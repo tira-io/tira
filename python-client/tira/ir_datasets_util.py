@@ -55,8 +55,7 @@ def translate_irds_id_to_tirex(dataset):
             return translate_irds_id_to_tirex(dataset.irds_ref().dataset_id())
         else:
             raise ValueError(f'I can not handle {dataset}.')
-    
-    return IRDS_TO_TIREX_DATASET[dataset] if dataset in IRDS_TO_TIREX_DATASET else dataset
+    return IRDS_TO_TIREX_DATASET.get(dataset, dataset)
 
 
 def __docs(input_file, original_dataset, load_default_text):
