@@ -6,6 +6,7 @@ from copy import deepcopy
 import tempfile
 import subprocess
 import tarfile
+import logging
 
 
 class LocalExecutionIntegration():
@@ -110,9 +111,9 @@ class LocalExecutionIntegration():
         except Exception as e:
             raise ValueError('It seems like docker is not installed?', e)
 
-    def run(self, identifier=None, image=None, command=None, input_dir=None, output_dir=None, evaluate=False, verbose=False, dry_run=False, docker_software_id_to_output=None, software_id=None, allow_network=False, input_run=None, additional_volumes=None, eval_dir='tira-evaluation'):
+    def run(self, identifier=None, image=None, command=None, input_dir=None, output_dir=None, evaluate=False, dry_run=False, docker_software_id_to_output=None, software_id=None, allow_network=False, input_run=None, additional_volumes=None, eval_dir='tira-evaluation'):
         previous_stages = []
-        original_args = {'identifier': identifier, 'image': image, 'command': command, 'input_dir': input_dir, 'output_dir': output_dir, 'evaluate': evaluate, 'verbose': verbose, 'dry_run': dry_run, 'docker_software_id_to_output': docker_software_id_to_output, 'software_id': software_id}
+        original_args = {'identifier': identifier, 'image': image, 'command': command, 'input_dir': input_dir, 'output_dir': output_dir, 'evaluate': evaluate, 'dry_run': dry_run, 'docker_software_id_to_output': docker_software_id_to_output, 'software_id': software_id}
         s_id = 'unknown-software-id'
         if image is None or command is None:
             ds = self.tira_client.docker_software(approach=identifier, software_id=software_id)
@@ -135,7 +136,7 @@ class LocalExecutionIntegration():
                 continue
 
             tmp_prev_stages = self.run(software_id=previous_stage, identifier=None, image=None, command=None,
-                                  input_dir=input_dir, evaluate=False, verbose=verbose, dry_run=dry_run,
+                                  input_dir=input_dir, evaluate=False, dry_run=dry_run,
                                   output_dir=tempfile.TemporaryDirectory('-staged-execution-' + previous_stage).name + '/output', 
                                   docker_software_id_to_output=docker_software_id_to_output
                                  )
@@ -143,8 +144,7 @@ class LocalExecutionIntegration():
                 docker_software_id_to_output[k] = v
     
         verbose_data = self.construct_verbosity_output(input_dir, output_dir, image, command, original_args)
-        if verbose:
-            print(f'Docker:\n\t{verbose_data["docker"]}\n\ntira-run (python):\n\t{verbose_data["tira-run-python"]}\n\ntira-run (CLI):\n\t{verbose_data["tira-run-cli"]}\n\n')
+        logging.debug(f'Docker:\n\t{verbose_data["docker"]}\n\ntira-run (python):\n\t{verbose_data["tira-run-python"]}\n\ntira-run (CLI):\n\t{verbose_data["tira-run-cli"]}\n\n')
     
         if dry_run:
             return verbose_data
@@ -174,7 +174,7 @@ class LocalExecutionIntegration():
         container = client.containers.run(image, entrypoint='sh', command=f'-c "{command}; sleep .1"', environment=environment, volumes=volumes, detach=True, remove=True, network_disabled = not allow_network)
 
         for line in container.attach(stdout=True, stream=True, logs=True):
-            print(line.decode('utf-8'), flush=True)
+            logging.info(line.decode('utf-8'), flush=True)
 
         if evaluate:
             evaluation_volumes = {str(eval_dir): {'bind': '/tira-data/eval_output', 'mode': 'rw'}}
@@ -191,19 +191,18 @@ class LocalExecutionIntegration():
                 evaluate, image, command = __extract_image_and_command(evaluate, evaluator=True)
 
             command = self.__normalize_command(command, True)
-            if verbose:
-                print(f'Evaluate software with: docker run --rm -ti -v {input_dir}:/tira-data/input -v {output_dir}/:/tira-data/output --entrypoint sh {image} -c \'{command}\'')
+            logging.debug(f'Evaluate software with: docker run --rm -ti -v {input_dir}:/tira-data/input -v {output_dir}/:/tira-data/output --entrypoint sh {image} -c \'{command}\'')
         
             container = client.containers.run(image, entrypoint='sh', command=f'-c "{command}; sleep .1"', volumes=evaluation_volumes, detach=True, remove=True, network_disabled = not allow_network)
 
             for line in container.attach(stdout=True, stream=True, logs=True):
-                print(line.decode('utf-8'), flush=True)
+                logging.info(line.decode('utf-8'), flush=True)
 
         if evaluate:
             approach_name = identifier if identifier else f'"{command}"@{image}'
             eval_results = {'approach': approach_name, 'evaluate': evaluate}
-            eval_results.update(self.load_output_of_directory(Path(eval_dir), evaluation=True, verbose=verbose))
-            return self.load_output_of_directory(Path(eval_dir), verbose=verbose), pd.DataFrame([eval_results])
+            eval_results.update(self.load_output_of_directory(Path(eval_dir), evaluation=True))
+            return self.load_output_of_directory(Path(eval_dir)), pd.DataFrame([eval_results])
         else:
             docker_software_id_to_output[s_id] = output_dir
             return docker_software_id_to_output

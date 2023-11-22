@@ -6,6 +6,7 @@ from tira.local_execution_integration import LocalExecutionIntegration
 from pathlib import Path
 import os
 import shutil
+import logging
 
 def parse_args():
     parser = argparse.ArgumentParser(prog='tira-run')
@@ -148,7 +149,8 @@ def main():
             evaluate['truth_directory'] = tira.download_dataset(task, dataset,truth_dataset=True)
             print(f'Done: Evaluation truth for dataset {dataset} is available.')
 
-    client.local_execution.run(identifier=args.approach, image=args.image, command=args.command, input_dir=input_dir, output_dir=args.output_directory, verbose=args.verbose, dry_run=args.dry_run, allow_network=args.allow_network, input_run=args.input_run, additional_volumes=args.v, evaluate=evaluate, eval_dir=args.evaluation_directory)
+    logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
+    client.local_execution.run(identifier=args.approach, image=args.image, command=args.command, input_dir=input_dir, output_dir=args.output_directory, dry_run=args.dry_run, allow_network=args.allow_network, input_run=args.input_run, additional_volumes=args.v, evaluate=evaluate, eval_dir=args.evaluation_directory)
 
     if args.push.lower() == 'true':
         print('Push Docker image')

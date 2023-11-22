@@ -30,11 +30,10 @@ class TiraFullRankTransformer(Transformer):
     A Transformer that re-executes some full-rank approach submitted to a shared task in TIRA.
     """
 
-    def __init__(self, approach, tira_client, input_dir, verbose=False, **kwargs):
+    def __init__(self, approach, tira_client, input_dir, **kwargs):
         self.approach = approach
         self.tira_client = tira_client
         self.input_dir = input_dir
-        self.verbose = verbose
 
     def transform(self, topics):
         output_dir = tempfile.TemporaryDirectory('-pt-tira-local-execution-full-rank-transformer').name + '/output'
@@ -42,7 +41,7 @@ class TiraFullRankTransformer(Transformer):
 
         self.tira_client.local_execution.run(identifier=self.approach,
             input_dir=self.input_dir, output_dir=output_dir,
-            evaluate=False, verbose=self.verbose, dry_run=False
+            evaluate=False, dry_run=False
         )
 
         return merge_runs(topics, output_dir + '/run.txt')
@@ -104,11 +103,10 @@ class TiraLocalExecutionRerankingTransformer(Transformer):
     A Transformer that re-execues software submitted in TIRA.
     """
 
-    def __init__(self, approach, tira_client, verbose=False, irds_id=None, **kwargs):
+    def __init__(self, approach, tira_client, irds_id=None, **kwargs):
         self.task, self.team, self.software = approach.split('/')
         self.approach = approach
         self.tira_client = tira_client
-        self.verbose = verbose
         self.irds_id = irds_id
 
     def transform(self, topics):
@@ -121,7 +119,7 @@ class TiraLocalExecutionRerankingTransformer(Transformer):
 
         self.tira_client.local_execution.run(identifier=self.approach,
             input_dir=input_dir, output_dir=output_dir,
-            evaluate=False, verbose=self.verbose, dry_run=False
+            evaluate=False, dry_run=False
         )
 
         return merge_runs(topics, tmp_directory + '/output/run.txt')

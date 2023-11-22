@@ -97,7 +97,7 @@ and the
         for _, i in softwares.iterrows():
             execution_info = self.local_execution.run(
                 identifier=i['approach'], input_dir='$PWD/input',
-                output_dir='$PWD/output', verbose=False, dry_run=True
+                output_dir='$PWD/output', dry_run=True
             )
 
             software_name = i["approach"].split("/")[-1]

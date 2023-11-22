@@ -27,7 +27,7 @@ def ensure_pyterrier_is_loaded(boot_packages=("com.github.terrierteam:terrier-pr
         pt.init(version=pt_version, helper_version=pt_helper_version, no_download=True, boot_packages=list(boot_packages), packages=list(packages))
 
 
-def get_preconfigured_chatnoir_client(config_directory, features=['TARGET_URI'], verbose=True, num_results=10, retries=25, page_size=10):
+def get_preconfigured_chatnoir_client(config_directory, features=['TARGET_URI'], num_results=10, retries=25, page_size=10):
     from chatnoir_pyterrier import ChatNoirRetrieve
     from chatnoir_api import Index as ChatNoirIndex
     from chatnoir_pyterrier.feature import Feature
@@ -36,7 +36,6 @@ def get_preconfigured_chatnoir_client(config_directory, features=['TARGET_URI'],
 
     chatnoir = ChatNoirRetrieve(api_key=chatnoir_config['apikey'], staging=chatnoir_config.get('staging', False))
     chatnoir.features = [getattr(Feature, i) for i in features]
-    chatnoir.verbose = verbose
     chatnoir.num_results = num_results
     chatnoir.retries = retries
     chatnoir.page_size = page_size
