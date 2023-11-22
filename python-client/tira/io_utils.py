@@ -21,7 +21,7 @@ def parse_jsonl_line(line: str | bytearray | bytes, load_default_text: bool) -> 
 
 
 def stream_all_lines(input_file, load_default_text):
-    if input_file is str:
+    if type(input_file) is str:
         if not os.path.isfile(input_file):
             return
 
@@ -39,7 +39,7 @@ def stream_all_lines(input_file, load_default_text):
 
 
 def all_lines_to_pandas(input_file: str | Iterable[str], load_default_text):
-    if input_file is str:
+    if type(input_file) is str:
         if input_file.endswith('.gz'):
             with gzip.open(input_file, 'rt', encoding='utf-8') as f:
                 return all_lines_to_pandas(f, load_default_text)

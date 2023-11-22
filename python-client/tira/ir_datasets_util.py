@@ -52,7 +52,7 @@ def register_dataset_from_re_rank_file(ir_dataset_id, df_re_rank, original_ir_da
 
 
 def translate_irds_id_to_tirex(dataset):
-    if dataset is not str:
+    if type(dataset) is not str:
         if hasattr(dataset, 'irds_ref'):
             return translate_irds_id_to_tirex(dataset.irds_ref().dataset_id())
         else:
@@ -96,7 +96,7 @@ def __docs(input_file, original_dataset, load_default_text):
                     yield GenericDoc(doc_id=i['docno'], text=i['text'])
 
         def get_input_file(self):
-            if self.input_file is str:
+            if type(self.input_file) is str:
                 return self.input_file
 
             ret = self.input_file()
@@ -154,7 +154,7 @@ def __queries(input_file, original_dataset):
             return TirexQuery
 
         def get_input_file(self):
-            if self.input_file is str:
+            if type(self.input_file) is str:
                 return self.input_file
 
             return self.input_file() + '/queries.jsonl'
@@ -164,8 +164,8 @@ def __queries(input_file, original_dataset):
                 ret = {}
                 for i in stream_all_lines(self.get_input_file(), False):
                     orig_query = None if 'original_query' not in i else i['original_query']
-                    description = None if (not orig_query or orig_query is not dict or 'description' not in orig_query) else orig_query['description']
-                    narrative = None if (not orig_query or orig_query is not dict or 'narrative' not in orig_query) else orig_query['narrative']
+                    description = None if (not orig_query or type(orig_query) is not dict or 'description' not in orig_query) else orig_query['description']
+                    narrative = None if (not orig_query or type(orig_query) is not dict or 'narrative' not in orig_query) else orig_query['narrative']
                     if i['qid'] not in ret:
                         ret[i['qid']] = TirexQuery(query_id=i['qid'],  text=i['query'], query=i['query'], title=i['query'], description=description, narrative=narrative)
 
