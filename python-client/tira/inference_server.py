@@ -120,7 +120,7 @@ class InferenceServer(BaseHTTPRequestHandler):
 ####################################
 
 
-def run_inference_server(base_module: str, absolute_path: str, internal_port: int = 8001, loglevel: str = 'INFO'):
+def run_inference_server(base_module: str, absolute_path: str, internal_port: int = 8001, loglevel: int = logging.INFO):
     # logging
     log_filename = 'inference_server_' + datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.log'
     _setup_logging(log_filename=log_filename, loglevel=loglevel)
@@ -151,7 +151,7 @@ def run_inference_server(base_module: str, absolute_path: str, internal_port: in
         pass
 
 
-def _setup_logging(log_filename: str, loglevel: str = 'INFO'):
+def _setup_logging(log_filename: str, loglevel: int = logging.INFO):
     log_folder = 'logs'
 
     if not os.path.isdir(log_folder):
@@ -159,15 +159,10 @@ def _setup_logging(log_filename: str, loglevel: str = 'INFO'):
 
     log_file = os.path.join(log_folder, log_filename)
 
-    default_log_level = 'INFO'
-    numeric_level = getattr(logging, loglevel.upper(), None)
-    if not isinstance(numeric_level, int):
-        print(f'Unknown log level "{loglevel}". Using default level "{default_log_level}".')
-        loglevel = default_log_level
     logging.basicConfig(
         format='[%(asctime)s] %(levelname)s %(message)s',
         filename=log_file,
-        level=getattr(logging, loglevel.upper()),
+        level=loglevel,
         datefmt='%Y-%m-%d %H:%M:%S'
     )
 

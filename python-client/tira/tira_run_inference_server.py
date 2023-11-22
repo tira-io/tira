@@ -3,6 +3,7 @@ from argparse import ArgumentParser, ArgumentTypeError
 import os
 import sys
 import subprocess
+import logging
 
 from tira.inference_server import run_inference_server
 
@@ -52,4 +53,6 @@ def main():
     # flag execution for running as inference server (see third_party_integrations.is_running_as_inference_server)
     os.environ['TIRA_INFERENCE_SERVER'] = 'True'
 
-    run_inference_server(base_module=module_name, absolute_path=absolute_path, internal_port=args.port, loglevel=args.log)
+    loglevels = [logging.INFO, logging.DEBUG]
+    loglevel = loglevels[min(args.verbose, len(loglevels)-1)]
+    run_inference_server(base_module=module_name, absolute_path=absolute_path, internal_port=args.port, loglevel=loglevel)
