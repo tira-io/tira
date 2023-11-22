@@ -3,7 +3,7 @@ IRDS_TO_TIREX_DATASET = {
     'clueweb09/en/trec-web-2010': 'clueweb09-en-trec-web-2010-20230107-training',
     'clueweb09/en/trec-web-2011': 'clueweb09-en-trec-web-2011-20230107-training',
     'clueweb09/en/trec-web-2012': 'clueweb09-en-trec-web-2012-20230107-training',
-    'clueweb12/trec-web-2013':'clueweb12-trec-web-2013-20230107-training',
+    'clueweb12/trec-web-2013': 'clueweb12-trec-web-2013-20230107-training',
     'clueweb12/trec-web-2014': 'clueweb12-trec-web-2014-20230107-training',
     'disks45/nocr/trec-robust-2004': 'disks45-nocr-trec-robust-2004-20230209-training',
     'antique/test': 'antique-test-20230107-training',
@@ -33,4 +33,3 @@ IRDS_TO_TIREX_DATASET = {
 }
 
 TIREX_DATASETS = IRDS_TO_TIREX_DATASET.values()
-

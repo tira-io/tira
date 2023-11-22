@@ -12,8 +12,7 @@ class PyTerrierIntegration():
         import os
         from pathlib import Path
         from tira.io_utils import run_cmd
-        import json
-
+        
         cache_dir = self.tira_client.tira_cache_dir + '/pyterrier/' + irds_dataset_id
         full_rank_data = cache_dir + '/full-rank/'
         truth_data = cache_dir + '/truth-data/'

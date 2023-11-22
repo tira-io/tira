@@ -36,7 +36,7 @@ class Client():
     def load_settings(self):
         try:
             return json.load(open(self.tira_cache_dir + '/.tira-settings.json', 'r'))
-        except:
+        except Exception:
             logging.info(f'No settings given in {self.tira_cache_dir}/.tira-settings.json. I will use defaults.')
             return {'api_key': 'no-api-key', 'api_user_name': 'no-api-key-user'}
 
@@ -154,7 +154,7 @@ class Client():
 
             if join_submissions and (run['team'], run['run_id']) in runs_to_join:
                 software = runs_to_join[(run['team'], run['run_id'])]
-                for k,v in software.items():
+                for k, v in software.items():
                     run[k] = v
 
             for measure_id, measure in zip(range(len(evaluation_keys)), evaluation_keys):
@@ -286,10 +286,10 @@ class Client():
         if run_id and not evaluation_run_id:
             submissions = self.submissions(task, dataset)
             submissions = submissions[(submissions['input_run_id'] == run_id) & (submissions['is_evaluation'])]
-        
+
             for evaluation_run_id in submissions['run_id'].unique():
                 self.add_run_to_leaderboard(task, team, dataset, evaluation_run_id=evaluation_run_id)
-    
+
         if evaluation_run_id:
             logging.info(f'Publish run: {evaluation_run_id}.')
             ret = self.json_response(f'/publish/{team}/{dataset}/{evaluation_run_id}/true')
@@ -306,7 +306,6 @@ class Client():
             raise ValueError(f'Failed to load configuration of an evaluator. Got {ret}')
 
         return ret['context']['dataset']
-    
 
     def evaluate_run(self, team, dataset, run_id):
         """ Evaluate the run of the specified team and identified by the run_id (the run must be submitted on the specified dataset).
@@ -327,12 +326,12 @@ class Client():
                     del headers["Api-Key"]
                 if self.api_user_name == 'no-api-key-user':
                     del headers["Api-Username"]
-            
+
                 r = requests.get(url, headers=headers)
                 status_code = r.status_code
                 z = zipfile.ZipFile(io.BytesIO(r.content))
                 z.extractall(target_dir)
-                
+
                 return
             except Exception as e:
                 sleep_time = randint(1, self.failsave_max_delay)
@@ -359,17 +358,17 @@ class Client():
     def run_software(self, approach, dataset, resources, rerank_dataset='none'):
         task, team, software = approach.split('/')
         authentication_cookie = self.get_authentication_cookie(self.load_settings()['user'], self.load_settings()['password'])
-        
+
         software_id = self.docker_software_id(approach)
         if not software_id:
             raise ValueError(f'Could not find software id for "{approach}". Got: "{software_id}".')
-        
+
         url = f'https://www.tira.io/grpc/{task}/{team}/run_execute/docker/{dataset}/{software_id}/{resources}/{rerank_dataset}'
         logging.info(f'Start software...\n\t{url}\n')
 
         csrf_token = self.get_csrf_token()
-        headers = {   
-            #'Api-Key': self.api_key,
+        headers = {
+            # 'Api-Key': self.api_key,
             'Accept': 'application/json',
             'Content-Type': 'application/json',
             'Cookie': authentication_cookie,
@@ -389,12 +388,12 @@ class Client():
 
     def json_response(self, endpoint, params=None):
         cache_key = endpoint + '----' + ('' if not params else json.dumps(params))
-        
+
         if cache_key in self.json_cache:
             return self.json_cache[cache_key]
-        
+
         headers = {"Api-Key": self.api_key, "Accept": "application/json", "Api-Username": self.api_user_name}
-        
+
         if self.api_key == 'no-api-key':
             del headers["Api-Key"]
 
@@ -404,7 +403,7 @@ class Client():
         for i in range(self.failsave_retries):
             try:
                 resp = requests.get(url='https://www.tira.io' + endpoint, headers=headers, params=params)
-        
+
                 if resp.status_code not in {200, 202}:
                     raise ValueError('Got statuscode ', resp.status_code, 'for ', endpoint, '. Got', resp)
                 else:
@@ -418,4 +417,3 @@ class Client():
         self.json_cache[cache_key] = resp.json()
 
         return self.json_cache[cache_key]
-

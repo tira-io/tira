@@ -7,6 +7,7 @@ import logging
 
 from tira.inference_server import run_inference_server
 
+
 def limited_int_arg(lower_bound: int, upper_bound: int):
     def ret(arg: str) -> int:
         i = int(arg)

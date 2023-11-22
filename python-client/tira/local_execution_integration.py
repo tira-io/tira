@@ -22,10 +22,10 @@ class LocalExecutionIntegration():
         if 'inputRun' in cmd and evaluator:
             to_normalize['outputDir'] = '/tira-data/eval_output'
             to_normalize['inputDataset'] = '/tira-data/input_truth'
-    
-        for k,v in to_normalize.items():
+
+        for k, v in to_normalize.items():
             cmd = cmd.replace('$' + k, v).replace('${' + k + '}', v)
-    
+
         return cmd
 
     def __normalize_path(self, path):
@@ -46,14 +46,14 @@ class LocalExecutionIntegration():
             tira_run_python_args['output_dir'] = self.__normalize_path(tira_run_python_args['output_dir'])
         tira_run_args = [(k, v if type(v) is not str else f'"{v}"') for k, v in tira_run_python_args.items()]
         tira_run_args = [i.strip() for i in ['' if not tira_run_python_args[k] else f'{k}={v}' for k, v in tira_run_args] if i]
-    
+
         return {
-            'tira-run-cli': f'tira-run ' + 
+            'tira-run-cli': 'tira-run ' +
                 ('' if not tira_run_input_dir else f'--input-directory {tira_run_input_dir} ') +
-                ('' if not tira_run_output_dir else f'--output-directory {tira_run_output_dir} ') + 
+                ('' if not tira_run_output_dir else f'--output-directory {tira_run_output_dir} ') +
                 (f'--approach {original_args["identifier"]} ' if 'identifier' in original_args and original_args['identifier'] is not None else f'--image {image} --command \'{original_args["command"]}\''),
 
-            'tira-run-python': 'tira.run(' + 
+            'tira-run-python': 'tira.run(' +
                 (', '.join(tira_run_args))
             + ')',
 
@@ -65,14 +65,14 @@ class LocalExecutionIntegration():
             output = subprocess.check_output(['docker', 'images', '-q', image])
             if len(output) > 0:
                 return
-        except:
+        except Exception:
             pass
-        
+
         if client:
             try:
                 if any(image in str(i) for i in client.images.list()):
                     return
-            except:
+            except Exception:
                 pass
 
         print('# Pull Image\n\n')
@@ -122,13 +122,13 @@ class LocalExecutionIntegration():
             client = self.__docker_client()
 
         command = self.__normalize_command(command, False)
-    
+
         if not input_dir or not output_dir:
             raise ValueError('please pass input_dir and output_dir')
-    
+
         input_dir = os.path.abspath(input_dir) if not str(input_dir).startswith('$PWD') else input_dir
         output_dir = os.path.abspath(output_dir) if not str(output_dir).startswith('$PWD') else output_dir
-    
+
         docker_software_id_to_output = {} if not docker_software_id_to_output else deepcopy(docker_software_id_to_output)
 
         for previous_stage in previous_stages:
@@ -136,10 +136,10 @@ class LocalExecutionIntegration():
                 continue
 
             tmp_prev_stages = self.run(software_id=previous_stage, identifier=None, image=None, command=None,
-                                  input_dir=input_dir, evaluate=False, dry_run=dry_run,
-                                  output_dir=tempfile.TemporaryDirectory('-staged-execution-' + previous_stage).name + '/output', 
-                                  docker_software_id_to_output=docker_software_id_to_output
-                                 )
+                                       input_dir=input_dir, evaluate=False, dry_run=dry_run,
+                                       output_dir=tempfile.TemporaryDirectory('-staged-execution-' + previous_stage).name + '/output', 
+                                       docker_software_id_to_output=docker_software_id_to_output
+                                )
             for k, v in tmp_prev_stages.items():
                 docker_software_id_to_output[k] = v
     

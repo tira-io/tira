@@ -129,7 +129,7 @@ def run_inference_server(base_module: str, absolute_path: str, internal_port: in
     with _add_to_path(os.path.dirname(absolute_path)):
         predict = _load_predict_from_imported_module(module_name=base_module, absolute_path=absolute_path)
     if predict is None:
-        sys.exit(f'unable to import predict predict function. See log file for details.')
+        sys.exit('unable to import predict predict function. See log file for details.')
     _set_predict_function(predict=predict)
 
     # start HTTP server

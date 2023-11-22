@@ -111,7 +111,7 @@ class TiraLocalExecutionRerankingTransformer(Transformer):
 
     def transform(self, topics):
         assert "qid" in topics.columns
-        
+
         tmp_directory = tempfile.TemporaryDirectory('-pt-tira-local-execution-reranking-transformer').name
         input_dir = self.tira_client.pt.create_rerank_file(run_df=topics, irds_dataset_id=self.irds_id)
         output_dir = tmp_directory + '/output'
