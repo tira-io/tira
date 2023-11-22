@@ -43,6 +43,7 @@ def register_dataset_from_re_rank_file(ir_dataset_id, df_re_rank, original_ir_da
 
     dataset = Dataset(docs, queries, qrels, scoreddocs)
     dataset.metadata = None
+    ir_datasets.registry._allow_overwrite = True
     ir_datasets.registry.register(ir_dataset_id, dataset)
 
     __check_registration_was_successful(ir_dataset_id, original_ir_datasets_id is None)
