@@ -1106,7 +1106,7 @@ class HybridDatabase(object):
             input_run_to_evaluation[run_id]['is_upload'] = is_upload
             input_run_to_evaluation[run_id]['is_software'] = is_software
             input_run_to_evaluation[run_id]['review_state'] = review_state
-            input_run_to_evaluation[run_id]['link_to_code'] = self.__link_to_code(build_environment)
+            input_run_to_evaluation[run_id]['link_code'] = self.__link_to_code(build_environment)
 
             if m_key:
                 input_run_to_evaluation[run_id]['measures'][m_key] = m_value
