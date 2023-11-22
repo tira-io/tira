@@ -706,7 +706,7 @@ class HybridDatabase(object):
             tira_evaluation_review.published, tira_evaluation_review.blinded, tira_run_review.published, 
             tira_run_review.blinded, tira_evaluation.measure_key, tira_evaluation.measure_value,
             tira_run_review.reviewer_id, tira_run_review.no_errors, tira_run_review.has_errors,
-            tira_run_review.has_no_errors, tira_evaluation_review.reviewer_id, tira_run_review.reviewer_id
+            tira_run_review.has_no_errors, tira_evaluation_review.reviewer_id, tira_run_review.reviewer_id, tira_linktosoftwaresubmissiongitrepository.build_environment
         FROM
             tira_run as evaluation_run
         INNER JOIN 
@@ -717,6 +717,8 @@ class HybridDatabase(object):
             tira_software ON input_run.software_id = tira_software.id
         LEFT JOIN
             tira_dockersoftware ON input_run.docker_software_id = tira_dockersoftware.docker_software_id
+        LEFT JOIN
+            tira_linktosoftwaresubmissiongitrepository ON tira_dockersoftware.docker_software_id = tira_linktosoftwaresubmissiongitrepository.docker_software_id
         LEFT JOIN
             tira_review as tira_evaluation_review ON evaluation_run.run_id = tira_evaluation_review.run_id
         LEFT JOIN
