@@ -44,6 +44,14 @@ tira.local\_execution\_integration module
    :undoc-members:
    :show-inheritance:
 
+tira.pandas\_integration module
+-------------------------------
+
+.. automodule:: tira.pandas_integration
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 tira.pyterrier\_integration module
 ----------------------------------
 
