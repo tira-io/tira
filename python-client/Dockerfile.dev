@@ -33,4 +33,4 @@ USER dev
 
 RUN pip3 install twine coverage-badge python-terrier coverage
 RUN pip3 install pytest docker
-RUN pip3 install sphinx furo
+RUN pip3 install sphinx furo myst-parser
