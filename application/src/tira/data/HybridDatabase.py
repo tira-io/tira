@@ -8,6 +8,7 @@ from datetime import datetime as dt
 import randomname
 import os
 import zipfile
+import json
 
 from tira.util import TiraModelWriteError, TiraModelIntegrityError
 from tira.proto import TiraClientWebMessages_pb2 as modelpb
@@ -993,7 +994,8 @@ class HybridDatabase(object):
             tira_evaluation_review.blinded, tira_run_review.published, tira_run_review.blinded,
             tira_evaluation.measure_key, tira_evaluation.measure_value, tira_run_review.reviewer_id, 
             tira_run_review.no_errors, tira_run_review.has_errors, tira_run_review.has_no_errors,
-            tira_evaluation_review.reviewer_id, tira_run_review.reviewer_id
+            tira_evaluation_review.reviewer_id, tira_run_review.reviewer_id, 
+            tira_linktosoftwaresubmissiongitrepository.build_environment
         FROM
             tira_run as evaluation_run
         INNER JOIN 
@@ -1004,6 +1006,8 @@ class HybridDatabase(object):
             tira_software ON input_run.software_id = tira_software.id
         LEFT JOIN
             tira_dockersoftware ON input_run.docker_software_id = tira_dockersoftware.docker_software_id
+        LEFT JOIN
+            tira_linktosoftwaresubmissiongitrepository ON tira_dockersoftware.docker_software_id = tira_linktosoftwaresubmissiongitrepository.docker_software_id
         LEFT JOIN
             tira_review as tira_evaluation_review ON evaluation_run.run_id = tira_evaluation_review.run_id
         LEFT JOIN
@@ -1033,7 +1037,21 @@ class HybridDatabase(object):
         return self.__parse_submissions(rows, include_unpublished, round_floats, show_only_unreviewed, show_only_unreviewed)
 
     @staticmethod
-    def __parse_submissions(rows, include_unpublished, round_floats, include_without_evaluation=False, show_only_unreviewed=False):
+    def __link_to_code(build_environment):
+        if not build_environment:
+            return None
+
+        build_environment = json.loads(build_environment)
+
+        if 'TIRA_JUPYTER_NOTEBOOK' not in build_environment or 'GITHUB_REPOSITORY' not in build_environment or 'GITHUB_WORKFLOW' not in build_environment or 'GITHUB_SHA' not in build_environment:
+            return None
+
+        if build_environment['GITHUB_WORKFLOW'] == ".github/workflows/upload-notebook-submission.yml":
+            return f'https://github.com/{build_environment["GITHUB_REPOSITORY"]}/tree/{build_environment["GITHUB_SHA"]}/jupyter-notebook-submissions/{build_environment["TIRA_JUPYTER_NOTEBOOK"]}'
+
+        return None
+
+    def __parse_submissions(self, rows, include_unpublished, round_floats, include_without_evaluation=False, show_only_unreviewed=False):
         keys = dict()
         input_run_to_evaluation = {}
 
@@ -1047,7 +1065,7 @@ class HybridDatabase(object):
 
         for dataset_id, run_id, input_run_id, upload_display_name, upload_vm_id, software_vm_id, docker_display_name, \
                 docker_vm_id, eval_published, eval_blinded, run_published, run_blinded, m_key, m_value, \
-                reviewer_id, no_errors, has_errors, has_no_errors, tira_evaluation_reviewer_id, tira_run_reviewer_id in rows:
+                reviewer_id, no_errors, has_errors, has_no_errors, tira_evaluation_reviewer_id, tira_run_reviewer_id, build_environment in rows:
 
             if (not include_without_evaluation and not m_key) or (not include_unpublished and not eval_published):
                 continue
@@ -1088,6 +1106,7 @@ class HybridDatabase(object):
             input_run_to_evaluation[run_id]['is_upload'] = is_upload
             input_run_to_evaluation[run_id]['is_software'] = is_software
             input_run_to_evaluation[run_id]['review_state'] = review_state
+            input_run_to_evaluation[run_id]['link_to_code'] = self.__link_to_code(build_environment)
 
             if m_key:
                 input_run_to_evaluation[run_id]['measures'][m_key] = m_value

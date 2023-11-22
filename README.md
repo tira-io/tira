@@ -12,20 +12,14 @@ Components:
 
 ## Setup Your Local Development Environment
 
+We use [dev containers](https://code.visualstudio.com/docs/devcontainers/containers) to simplify development. Please install Docker and an IDE with support for dev containers on your machine (we usually use VS Code).
+
 First, please clone the repository:
 ```
 git clone git@github.com:tira-io/tira.git
 ```
 
-Please change your directory to `application`:
-```
-cd application
-```
-
-Install your virtual environment via:
-```
-make setup
-```
+Please open the directory `application` in VS Code, and confirm to use the provided dev container.
 
 If you want to work on production data, please ensure that you can login to ssh.webis.de, and then do the following:
 
@@ -33,13 +27,7 @@ If you want to work on production data, please ensure that you can login to ssh.
 make import-data-from-dump
 ```
 
-Then, to start TIRA locally, please start:
-
-```
-make webpack-watch
-```
-
-and 
+To start TIRA locally, please run:
 
 ```
 make run-develop
