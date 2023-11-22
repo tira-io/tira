@@ -1043,7 +1043,10 @@ class HybridDatabase(object):
         if not build_environment:
             return None
 
-        build_environment = json.loads(build_environment)
+        try:
+            build_environment = json.loads(json.loads(build_environment))
+        except:
+            return None
 
         if 'TIRA_JUPYTER_NOTEBOOK' not in build_environment or 'GITHUB_REPOSITORY' not in build_environment or 'GITHUB_WORKFLOW' not in build_environment or 'GITHUB_SHA' not in build_environment:
             return None
