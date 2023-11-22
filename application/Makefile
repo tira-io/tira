@@ -2,8 +2,8 @@
 
 VENV_NAME?=venv
 PYTHON=${PWD}/${VENV_NAME}/bin/python3
-VERSION_APPLICATION=0.0.92
-VERSION_GRPC=0.0.92
+VERSION_APPLICATION=0.0.93
+VERSION_GRPC=0.0.93
 
 .DEFAULT: help
 help:
@@ -70,9 +70,8 @@ src/tira/frontend/webpack-stats.json:
 	npm install; \
 	npm run build
 
-tests: venv src/tira/frontend/webpack-stats.json
-	@. ./venv/bin/activate \
-	&& ./test/run_all_tests.sh
+tests:
+	./test/run_all_tests.sh
 
 
 # Requirements are in setup.py, so whenever setup.py is changed, re-run installation of dependencies.
@@ -82,10 +81,10 @@ venv:
 		python3 -m pip install wheel && \
 		python3 -m pip install -r requirements.txt"
 
-run-develop: venv
-	$(VENV_NAME)/bin/python src/manage.py makemigrations \
-	&& $(VENV_NAME)/bin/python src/manage.py migrate --fake \
-	&& $(VENV_NAME)/bin/python src/manage.py run_develop
+run-develop:
+	python src/manage.py makemigrations \
+	&& python src/manage.py migrate --fake \
+	&& python src/manage.py run_develop
 
 vite-build:
 	docker run -v ${PWD}:/app --platform linux/amd64 --rm -ti -w /app/src/tira/frontend-vuetify --entrypoint yarn webis/tira:vuetify-dev-0.0.1 build

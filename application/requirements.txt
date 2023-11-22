@@ -14,9 +14,10 @@ python-gitlab
 GitPython
 python-slugify
 git+https://github.com/allenai/ir_datasets
+git+https://github.com/mam10eks/diffir
 pandas
 markdown
-PyGithub
+PyGithub==1.59.1
 ghapi
 parameterized
 mockito

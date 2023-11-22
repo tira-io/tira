@@ -42,6 +42,7 @@ def register_dataset_from_re_rank_file(ir_dataset_id, df_re_rank, original_ir_da
     scoreddocs = __scored_docs(df_re_rank, original_dataset)
 
     dataset = Dataset(docs, queries, qrels, scoreddocs)
+    dataset.metadata = None
     ir_datasets.registry.register(ir_dataset_id, dataset)
 
     __check_registration_was_successful(ir_dataset_id, original_ir_datasets_id is None)
@@ -188,6 +189,9 @@ def __scored_docs(input_file, original_dataset):
 
         def scoreddocs_iter(self):
             return deepcopy(self.docs).__iter__()
+
+        def scoreddocs_count(self) -> int:
+            return len(docs)
 
     docs = []
 

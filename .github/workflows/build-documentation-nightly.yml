@@ -1,0 +1,25 @@
+name: Documentation
+on:
+  push:
+    branches:
+      - development
+
+jobs:
+  build-doc:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install Dependencies
+        run: |
+          sudo apt-get install -y python3-pip
+          pip install sphinx furo
+          cd python-client/sphinx
+          sphinx-apidoc -o . ../tira
+          make html
+          touch _build/html/.nojekyll
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: python-client/sphinx/_build/html
+          target-folder: nightly
