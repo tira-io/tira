@@ -126,7 +126,7 @@ def run_inference_server(base_module: str, absolute_path: str, internal_port: in
     _setup_logging(log_filename=log_filename, loglevel=loglevel)
 
     # load module and import predict function
-    with add_to_path(os.path.dirname(absolute_path)):
+    with _add_to_path(os.path.dirname(absolute_path)):
         predict = _load_predict_from_imported_module(module_name=base_module, absolute_path=absolute_path)
     if predict is None:
         sys.exit(f'unable to import predict predict function. See log file for details.')
@@ -204,12 +204,10 @@ def _load_predict_from_imported_module(module_name: str, absolute_path: str = No
 
 
 @contextmanager
-def add_to_path(p):
-    import sys
-    old_path = sys.path
-    sys.path = sys.path[:]
-    sys.path.insert(0, p)
+def _add_to_path(p):
+    old_path = sys.path.clone()
     try:
+        sys.path.insert(0, p)
         yield
     finally:
         sys.path = old_path
