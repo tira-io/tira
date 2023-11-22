@@ -1,14 +1,14 @@
-.. TIRA documentation master file, created by
-   sphinx-quickstart on Tue Nov 21 14:15:16 2023.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-Welcome to TIRA's documentation!
+TIRA
 ================================
+TIRA is a platform for experiments in artificial intelligence that ensures blinded experiments and reproducibility.
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Contents
+
+   intro
+   api
+   faq
 
 Indices and tables
 ==================
@@ -16,3 +16,11 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+.. toctree::
+   :caption: Development
+   :hidden:
+
+   contributing/index
+   changelog
+   license
