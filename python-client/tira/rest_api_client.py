@@ -8,6 +8,7 @@ import docker
 import time
 from random import randint
 from tira.pyterrier_integration import PyTerrierIntegration
+from tira.pandas_integration import PandasIntegration
 from tira.local_execution_integration import LocalExecutionIntegration
 import logging
 
@@ -27,6 +28,7 @@ class Client():
         self.failsave_retries = 1
         if self.api_key != 'no-api-key':
             self.fail_if_api_key_is_invalid()
+        self.pd = PandasIntegration(self)
         self.pt = PyTerrierIntegration(self)
         self.local_execution = LocalExecutionIntegration(self)
 
