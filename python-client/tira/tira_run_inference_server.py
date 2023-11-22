@@ -53,5 +53,3 @@ def main():
     os.environ['TIRA_INFERENCE_SERVER'] = 'True'
 
     run_inference_server(base_module=module_name, absolute_path=absolute_path, internal_port=args.port, loglevel=args.log)
-
-main()
