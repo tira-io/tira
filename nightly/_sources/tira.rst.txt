@@ -84,6 +84,14 @@ tira.third\_party\_integrations module
    :undoc-members:
    :show-inheritance:
 
+tira.tira\_client module
+------------------------
+
+.. automodule:: tira.tira_client
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 tira.tira\_run module
 ---------------------
 
