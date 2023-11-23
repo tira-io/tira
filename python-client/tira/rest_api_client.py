@@ -327,7 +327,7 @@ class Client(TiraClient):
         return ret
 
     def download_and_extract_zip(self, url, target_dir):
-        for i in range(self.failsave_retries):
+        for _ in range(self.failsave_retries):
             status_code = None
             try:
                 headers={"Api-Key": self.api_key, "Api-Username": self.api_user_name}
@@ -349,9 +349,7 @@ class Client(TiraClient):
                 time.sleep(sleep_time)
 
     def get_authentication_cookie(self, user, password):
-        import requests
-
-        resp = requests.get('{self.base_url}/session/csrf', headers={'x-requested-with': 'XMLHttpRequest'})
+        resp = requests.get(f'{self.base_url}/session/csrf', headers={'x-requested-with': 'XMLHttpRequest'})
 
         header = {
             'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
@@ -360,7 +358,7 @@ class Client(TiraClient):
             'x-requested-with': 'XMLHttpRequest'
         }
 
-        resp = requests.post('{self.base_url}/session', data=f'login={user}&password={password}', headers=header)
+        resp = requests.post(f'{self.base_url}/session', data=f'login={user}&password={password}', headers=header)
 
         return f'_t={resp.cookies["_t"]}; _forum_session={resp.cookies["_forum_session"]}'
 
@@ -391,27 +389,24 @@ class Client(TiraClient):
         assert ret['status'] == 0
 
     def get_csrf_token(self):
-        ret = requests.get('{self.base_url}/', headers={"Api-Key": self.api_key})
-
+        ret = requests.get(f'{self.base_url}/', headers={"Api-Key": self.api_key})
         return ret.content.decode('utf-8').split('name="csrfmiddlewaretoken" value="')[1].split('"')[0]
 
     @lru_cache(maxsize=None)
     def json_response(self, endpoint: str, params: Optional[dict | list[tuple] | bytes] = None):
         assert endpoint.startswith('/')
-        headers = {"Api-Key": self.api_key, "Accept": "application/json", "Api-Username": self.api_user_name}
+        headers = {"Accept": "application/json"}
 
-        if self.api_key == 'no-api-key':
-            del headers["Api-Key"]
-
-        if self.api_user_name == 'no-api-key-user':
-            del headers["Api-Username"]
+        if self.api_key != 'no-api-key':
+            headers["Api-Key"] = self.api_key
+        if self.api_user_name != 'no-api-key-user':
+            headers["Api-Username"] = self.api_user_name
 
         for _ in range(self.failsave_retries):
             try:
                 resp = requests.get(url=f'{self.base_url}{endpoint}', headers=headers, params=params)
-
                 if resp.status_code not in {200, 202}:
-                    raise ValueError('Got statuscode ', resp.status_code, 'for ', endpoint, '. Got', resp)
+                    raise ValueError(f'Got statuscode {resp.status_code} for {endpoint}. Got {resp}')
                 else:
                     break
             except Exception as e:
