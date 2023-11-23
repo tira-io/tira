@@ -22,5 +22,6 @@ jobs:
           cd application
           make setup
           make setup
+          . ./venv/bin/activate
           make tests
 
