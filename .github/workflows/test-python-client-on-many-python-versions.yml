@@ -18,7 +18,7 @@ jobs:
       - name: Build Image
         run: |
           cd python-client
-          pip3 install twine coverage-badge python-terrier coverage ir_datasets
+          pip3 install twine coverage-badge python-terrier coverage ir_datasets pytest
           echo running on branch ${GITHUB_REF##*/}
-          make run-tests
+          pytest
 
