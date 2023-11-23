@@ -37,7 +37,7 @@ class TiraClient(ABC):
         # TODO: typehint
         pass
 
-    def get_run_execution_or_none(self, approach, dataset, previous_stage_run_id=None) -> "Optional[dict[str, str]]":
+    def get_run_execution_or_none(self, approach, dataset, previous_stage_run_id=None) -> "Optional[Dict[str, str]]":
         # TODO: typehint
         pass
 

@@ -12,9 +12,8 @@ from tira.pandas_integration import PandasIntegration
 from tira.local_execution_integration import LocalExecutionIntegration
 import logging
 from .tira_client import TiraClient
-from typing import Optional
+from typing import Optional, List, Dict, Union
 from functools import lru_cache
-
 
 
 class Client(TiraClient):
@@ -393,7 +392,7 @@ class Client(TiraClient):
         return ret.content.decode('utf-8').split('name="csrfmiddlewaretoken" value="')[1].split('"')[0]
 
     @lru_cache(maxsize=None)
-    def json_response(self, endpoint: str, params: Optional[dict | list[tuple] | bytes] = None):
+    def json_response(self, endpoint: str, params: Optional[Union[Dict, List[tuple], bytes]] = None):
         assert endpoint.startswith('/')
         headers = {"Accept": "application/json"}
 
