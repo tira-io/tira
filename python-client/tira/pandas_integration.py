@@ -28,7 +28,7 @@ class PandasIntegration():
 
         return pd.concat(df_ret)
 
-    def transform_queries(self, approach, dataset, file_selection= '/*.jsonl'):
+    def transform_queries(self, approach, dataset, file_selection=('/q*.jsonl', '/q*.jsonl.gz')):
         import pandas as pd
         from glob import glob
         from tira.ir_datasets_util import translate_irds_id_to_tirex
@@ -44,7 +44,7 @@ class PandasIntegration():
 
         return ret
 
-    def transform_documents(self, approach, dataset, file_selection= '/*.jsonl'):
+    def transform_documents(self, approach, dataset, file_selection=('/d*.jsonl', '/d*.jsonl.gz')):
         import pandas as pd
         from glob import glob
         from tira.ir_datasets_util import translate_irds_id_to_tirex
