@@ -40,6 +40,8 @@
               <a :href="http_repo_url + '/blob/main/jupyter-notebook-submissions/pyterrier-notebook.ipynb'" target="_blank">Jupyter notebook</a> together with <a :href="http_repo_url +'/tree/main/jupyter-notebook-submissions'" target="_blank">a detailed README on how to submit together with background information</a>.</p>
               
               <p>In short, navigate to "Actions" -> "upload-notebook-submission" in <a :href="http_repo_url" target="_blank">your Github repository</a> and click on "Run workflow" to start the Github action that builds, tests, and uploads your submission.</p>
+
+              <p>You can also watch the <a href="https://conf.fmi.uni-leipzig.de/playback/presentation/2.3/9d654239893aee5d164d92e3b2263ab510249eea-1700482128152" target="_blank">recording of the tutorial</a> from the IR lab in Leipzig from teh 20.11.2023.</p>
             </v-expansion-panel-text>
           </v-expansion-panel>
 
@@ -47,6 +49,8 @@
             <v-expansion-panel-title>Step 3:Execute your Docker image in TIRA</v-expansion-panel-title>
             <v-expansion-panel-text>
               <p>After your Github action was successfull, it prints out the name under which your software was added to TIRA as Docker submission (at the very bottom of the step "Build, test, and upload image" of your Github action). Click on the Docker tab and select your newly added software (maybe reload the page). Select the dataset on which you want to execute your software together with the execution instance (e.g., 1CPU + 10GB of RAM) and click on RUN to start your submission. Admins will review your submission (might take up to one day) and reach out to you in case there are problems with the execution.</p>
+
+              <p>You can also watch the <a href="https://conf.fmi.uni-leipzig.de/playback/presentation/2.3/9d654239893aee5d164d92e3b2263ab510249eea-1700482128152" target="_blank">recording of the tutorial</a> from the IR lab in Leipzig from teh 20.11.2023.</p>
             </v-expansion-panel-text>
           </v-expansion-panel>
         </v-expansion-panels>
