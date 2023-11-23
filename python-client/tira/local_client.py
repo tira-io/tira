@@ -4,12 +4,14 @@ import os
 from glob import glob
 from packaging import version
 from tira.pyterrier_integration import PyTerrierIntegration
+from tira.pandas_integration import PandasIntegration
 from tira.local_execution_integration import LocalExecutionIntegration
 from .tira_client import TiraClient
 
 
 class Client(TiraClient):
     def __init__(self, directory='.', rest_client=None):
+        self.pd = PandasIntegration(self)
         self.pt = PyTerrierIntegration(self)
         self.directory = directory + '/'
         self.tira_cache_dir = os.environ.get('TIRA_CACHE_DIR', os.path.expanduser('~') + '/.tira')
