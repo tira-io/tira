@@ -50,6 +50,7 @@ html_theme = 'furo'
 html_title = 'TIRA'
 language = 'en'
 
+html_logo = "https://github.com/tira-io/tira-branding/raw/master/tira-icons/logo-tira-120x120-transparent.png"
 html_theme_options: Dict[str, Any] = {
     "footer_icons": [
         {
@@ -66,6 +67,8 @@ html_theme_options: Dict[str, Any] = {
     "source_repository": "https://github.com/tira-io/tira",
     "source_branch": "development",
     "source_directory": "python-client/sphinx",
+    "sidebar_hide_name": True,
+    "navigation_with_keys": True,
 }
 
 
