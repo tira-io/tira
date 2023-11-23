@@ -8,6 +8,10 @@ import os
 import shutil
 import logging
 
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .tira_client import TiraClient
+
 
 def parse_args():
     parser = argparse.ArgumentParser(prog='tira-run')
@@ -76,7 +80,7 @@ def parse_args():
 
 def main():
     args = parse_args()
-    client = Client()
+    client: "TiraClient" = Client()
 
     if args.export_submission_from_jupyter_notebook:
         ret = LocalExecutionIntegration().export_submission_from_jupyter_notebook(args.export_submission_from_jupyter_notebook)
@@ -152,7 +156,7 @@ def main():
 
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
     client.local_execution.run(identifier=args.approach, image=args.image, command=args.command, input_dir=input_dir, output_dir=args.output_directory, dry_run=args.dry_run, allow_network=args.allow_network, input_run=args.input_run, additional_volumes=args.v, evaluate=evaluate, eval_dir=args.evaluation_directory)
-
+    
     if args.push.lower() == 'true':
         print('Push Docker image')
         client.local_execution.push_image(args.image, args.tira_docker_registry_user, args.tira_docker_registry_token)

@@ -10,9 +10,10 @@ from random import randint
 from tira.pyterrier_integration import PyTerrierIntegration
 from tira.local_execution_integration import LocalExecutionIntegration
 import logging
+from .tira_client import TiraClient
 
 
-class Client():
+class Client(TiraClient):
     def __init__(self, api_key=None, failsave_retries=5, failsave_max_delay=15, api_user_name=None):
         self.tira_cache_dir = os.environ.get('TIRA_CACHE_DIR', os.path.expanduser('~') + '/.tira')
         self.json_cache = {}
