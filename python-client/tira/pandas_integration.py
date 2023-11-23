@@ -28,12 +28,24 @@ class PandasIntegration():
 
         return pd.concat(df_ret)
 
-    def transform_queries(self, approach, dataset, file_selection=('/q*.jsonl', '/q*.jsonl.gz')):
-        import pandas as pd
+    def __matching_files(self, approach, dataset, file_selection):
         from glob import glob
         from tira.ir_datasets_util import translate_irds_id_to_tirex
-        glob_entry = self.tira_client.get_run_output(approach, translate_irds_id_to_tirex(dataset)) + file_selection
-        matching_files = glob(glob_entry)
+        ret = set()
+        
+        if type(file_selection) is str:
+            file_selection = [file_selection]
+        
+        for glob_entry in file_selection:
+            glob_entry = self.tira_client.get_run_output(approach, (translate_irds_id_to_tirex(dataset))) + glob_entry
+            for i in glob(glob_entry): ret.add(i)
+        
+        return sorted(list(ret))
+
+    def transform_queries(self, approach, dataset, file_selection=('/*.jsonl', '/*.jsonl.gz')):
+        import pandas as pd
+        matching_files = self.__matching_files(approach, dataset, file_selection)
+        
         if len(matching_files) == 0:
             raise ValueError(f'Could not find a matching query output. Found: {matching_files}. Please specify the file_selection to resolve this.')
 
@@ -44,13 +56,10 @@ class PandasIntegration():
 
         return ret
 
-    def transform_documents(self, approach, dataset, file_selection=('/d*.jsonl', '/d*.jsonl.gz')):
+    def transform_documents(self, approach, dataset, file_selection=('/*.jsonl', '/*.jsonl.gz')):
         import pandas as pd
-        from glob import glob
-        from tira.ir_datasets_util import translate_irds_id_to_tirex
-        glob_entry = self.tira_client.get_run_output(approach, translate_irds_id_to_tirex(dataset)) + file_selection
-        matching_files = glob(glob_entry)
+        matching_files = self.__matching_files(approach, dataset, file_selection)
         if len(matching_files) == 0:
-            raise ValueError('Could not find a matching document output. Found: ' + matching_files + '. Please specify the file_selection to resolve this.')
+            raise ValueError('Could not find a matching document output. Used file_selection: ' + str(file_selection) + '. Please specify the file_selection to resolve this.')
 
         return pd.read_json(matching_files[0], lines=True)
