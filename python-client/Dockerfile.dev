@@ -33,4 +33,9 @@ USER dev
 
 RUN pip3 install twine coverage-badge python-terrier coverage
 RUN pip3 install pytest docker
-RUN pip3 install sphinx furo
+RUN pip3 install sphinx furo myst-parser
+RUN pip3 install tira \
+	&& cd /tmp \
+	&& python3 -c 'from tira.third_party_integrations import ensure_pyterrier_is_loaded; ensure_pyterrier_is_loaded();' \
+	&& pip3 uninstall -y tira
+

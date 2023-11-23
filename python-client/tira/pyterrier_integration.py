@@ -1,19 +1,19 @@
 class PyTerrierIntegration():
     def __init__(self, tira_client):
         self.tira_client = tira_client
+        self.pd = tira_client.pd
         self.irds_docker_image = 'webis/tira-application:0.0.36'
 
-    def retriever(self, approach, dataset=None, verbose=False):
+    def retriever(self, approach, dataset=None):
         from tira.pyterrier_util import TiraFullRankTransformer
         input_dir = self.ensure_dataset_is_cached(dataset, dataset)
-        return TiraFullRankTransformer(approach, self.tira_client, input_dir, verbose)
+        return TiraFullRankTransformer(approach, self.tira_client, input_dir)
 
     def ensure_dataset_is_cached(self, irds_dataset_id, dataset):
         import os
         from pathlib import Path
         from tira.io_utils import run_cmd
-        import json
-
+        
         cache_dir = self.tira_client.tira_cache_dir + '/pyterrier/' + irds_dataset_id
         full_rank_data = cache_dir + '/full-rank/'
         truth_data = cache_dir + '/truth-data/'
@@ -94,56 +94,21 @@ class PyTerrierIntegration():
 
     def from_submission(self, approach, dataset=None, datasets=None):
         software = self.tira_client.docker_software(approach)
-        
-        if not 'ir_re_ranker' in software or not software['ir_re_ranker']:
+        if software.get('ir_re_ranker', False):
             return self.from_retriever_submission(approach, dataset, datasets=datasets)
         else:
             from tira.pyterrier_util import TiraRerankingTransformer
-            
             return TiraRerankingTransformer(approach, self.tira_client, dataset, datasets)
 
     def from_retriever_submission(self, approach, dataset, previous_stage=None, datasets=None):
         import pyterrier as pt
-        import pandas as pd
-        from tira.ir_datasets_util import translate_irds_id_to_tirex
-        task, team, software = approach.split('/')
+        ret = self.pd.from_retriever_submission(approach, dataset, previous_stage, datasets)
 
-        if dataset and datasets:
-            raise ValueError(f'You can not pass both, dataset and datasets. Got dataset = {dataset} and datasets= {datasets}')
+        return pt.Transformer.from_df(ret)
 
-        if not datasets:
-            datasets = [dataset]
-
-        df_ret = []
-        for dataset in datasets:
-            ret, run_id = self.tira_client.download_run(task, translate_irds_id_to_tirex(dataset), software, team, previous_stage, return_metadata=True)
-            ret['qid'] = ret['query'].astype(str)
-            ret['docno'] = ret['docid'].astype(str)
-            del ret['query']
-            del ret['docid']
-
-            ret['tira_task'] = task
-            ret['tira_dataset'] = dataset
-            ret['tira_first_stage_run_id'] = run_id
-            df_ret += [ret]
-
-        return pt.Transformer.from_df(pd.concat(df_ret))
-
-    def transform_queries(self, approach, dataset, file_selection= '/*.jsonl'):
+    def transform_queries(self, approach, dataset, file_selection=('/*.jsonl', '/*.jsonl.gz')):
         from pyterrier.apply import generic
-        import pandas as pd
-        from glob import glob
-        from tira.ir_datasets_util import translate_irds_id_to_tirex
-        glob_entry = self.tira_client.get_run_output(approach, translate_irds_id_to_tirex(dataset)) + file_selection
-        matching_files = glob(glob_entry)
-        if len(matching_files) == 0:
-            raise ValueError(f'Could not find a matching query output. Found: {matching_files}. Please specify the file_selection to resolve this.')
-
-        ret = pd.read_json(matching_files[0], lines=True, dtype={'qid': str, 'query': str, 'query_id': str})
-        if 'qid' not in ret and 'query_id' in ret:
-            ret['qid'] = ret['query_id']
-            del ret['query_id']
-
+        ret = self.pd.transform_queries(approach, dataset, file_selection)
         cols = [i for i in ret.columns if i not in ['qid']]
         ret = {str(i['qid']): i for _, i in ret.iterrows()}
 
@@ -154,17 +119,9 @@ class PyTerrierIntegration():
 
         return generic(__transform_df)
 
-    def transform_documents(self, approach, dataset, file_selection= '/*.jsonl'):
+    def transform_documents(self, approach, dataset, file_selection=('/*.jsonl', '/*.jsonl.gz')):
         from pyterrier.apply import generic
-        import pandas as pd
-        from glob import glob
-        from tira.ir_datasets_util import translate_irds_id_to_tirex
-        glob_entry = self.tira_client.get_run_output(approach, translate_irds_id_to_tirex(dataset)) + file_selection
-        matching_files = glob(glob_entry)
-        if len(matching_files) == 0:
-            raise ValueError('Could not find a matching document output. Found: ' + matching_files + '. Please specify the file_selection to resolve this.')
-
-        ret = pd.read_json(matching_files[0], lines=True)
+        ret = self.pd.transform_documents(approach, dataset, file_selection)
         cols = [i for i in ret.columns if i not in ['docno']]
         ret = {str(i['docno']): i for _, i in ret.iterrows()}
 

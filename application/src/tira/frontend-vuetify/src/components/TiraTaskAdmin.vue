@@ -7,10 +7,6 @@
         <v-expansion-panel-text>
           <h3>Task Configuration</h3>
           You can edit this task: <edit-task :task_id_for_edit="task_id"/>
-          <v-divider class="my-4"/>
-          <h3>Legacy Administration</h3>
-          Not everything of the old admin functionality already ported to the new vuetify frontend.
-          Please <a :href="'/task/' + task_id">go to the old task page if you need some administration functionality not covered above</a>.
         </v-expansion-panel-text>
       </v-expansion-panel>
 

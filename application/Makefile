@@ -25,7 +25,6 @@ setup:
 	test -d $(VENV_NAME) || mkdir -p src/config/
 	cp config/tira-application-config.dev.yml src/config/settings.yml
 	make venv
-	make webpack
 	sh -c ". $(VENV_NAME)/bin/activate && \
 	${PYTHON} src/manage.py index_model && \
 	${PYTHON} src/manage.py createcachetable"
@@ -54,21 +53,6 @@ import-data-from-dump: .data-dumps/django-db-dump.zip
 	${PYTHON} src/manage.py migrate tira && \
 	${PYTHON} src/manage.py loaddata .data-dumps/django-db-dump.json
 
-
-webpack:
-	cd ./src/tira/frontend/; \
-	npm install; \
-	npm run build
-
-webpack-watch:
-	cd ./src/tira/frontend/;\
-	npm install; \
-	npm run plain
-
-src/tira/frontend/webpack-stats.json:
-	@cd ./src/tira/frontend/; \
-	npm install; \
-	npm run build
 
 tests:
 	./test/run_all_tests.sh

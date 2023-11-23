@@ -3,27 +3,28 @@ from glob import glob
 import gzip
 import json
 import os
+from typing import Any, Iterable
 
 
-def parse_jsonl_line(l, load_default_text):
-    l = json.loads(l)
+def parse_jsonl_line(line: str | bytearray | bytes, load_default_text: bool) -> Any:
+    jsonline = json.loads(line)
     if load_default_text:
         for field_to_del in ['original_query', 'original_document']:
-            if field_to_del in l:
-                del l[field_to_del]
+            if field_to_del in jsonline:
+                del jsonline[field_to_del]
 
         for field_to_str in ['qid', 'docno']:
-            if field_to_str in l:
-                l[field_to_str] = str(l[field_to_str])
+            if field_to_str in jsonline:
+                jsonline[field_to_str] = str(jsonline[field_to_str])
 
-    return l
+    return jsonline
 
 
 def stream_all_lines(input_file, load_default_text):
-    if type(input_file) == str:
+    if type(input_file) is str:
         if not os.path.isfile(input_file):
             return
-    
+
         if input_file.endswith('.gz'):
             with gzip.open(input_file, 'rt', encoding='utf-8') as f:
                 yield from stream_all_lines(f, load_default_text)
@@ -33,12 +34,12 @@ def stream_all_lines(input_file, load_default_text):
 
         return
 
-    for l in input_file:
-        yield parse_jsonl_line(l, load_default_text)
+    for line in input_file:
+        yield parse_jsonl_line(line, load_default_text)
 
 
-def all_lines_to_pandas(input_file, load_default_text):
-    if type(input_file) == str:
+def all_lines_to_pandas(input_file: str | Iterable[str], load_default_text):
+    if type(input_file) is str:
         if input_file.endswith('.gz'):
             with gzip.open(input_file, 'rt', encoding='utf-8') as f:
                 return all_lines_to_pandas(f, load_default_text)
@@ -49,8 +50,8 @@ def all_lines_to_pandas(input_file, load_default_text):
     import pandas as pd
     ret = []
 
-    for l in input_file:
-        ret += [parse_jsonl_line(l, load_default_text)]
+    for line in input_file:
+        ret += [parse_jsonl_line(line, load_default_text)]
 
     return pd.DataFrame(ret)
 
@@ -89,7 +90,7 @@ def parse_prototext_key_values(file_name):
 
 
 def load_output_of_directory(directory, evaluation=False, verbose=False):
-    files = glob(str(directory) + '/*' )
+    files = glob(str(directory) + '/*')
 
     if evaluation:
         files = [i for i in files if i.endswith('.prototext')]
@@ -113,4 +114,3 @@ def load_output_of_directory(directory, evaluation=False, verbose=False):
         return ret
     else:
         return pd.read_json(files, lines=True, orient='records')
-

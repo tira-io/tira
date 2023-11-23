@@ -81,16 +81,17 @@ class TestIRDatasets(unittest.TestCase):
         assert '1' == list(dataset.scoreddocs)[0].query_id
 
 
-    def test_for_scoreddocs_count_01(self):
-        ensure_pyterrier_is_loaded(patch_ir_datasets=False)
-        dataset = ir_datasets.load('tirex-sample-dataset')
-        self.assertEqual(dataset.scoreddocs_count(), 10)
-
-
-    def test_for_scoreddocs_count_02(self):
+    def test_for_scoreddocs_within_tira(self):
+        os.environ['TIRA_INPUT_DATASET'] = 'tests/resources/re-ranking-outputs'
         ensure_pyterrier_is_loaded(patch_ir_datasets=True)
-        dataset = ir_datasets.load('tirex-sample-dataset')
-        self.assertEqual(dataset.scoreddocs_count(), 10)
+        dataset = ir_datasets.load('msmarco-passage/eval/small')
+        print(list(dataset.scoreddocs))
+        del os.environ['TIRA_INPUT_DATASET']
+        assert len(list(dataset.scoreddocs)) == 3
+        assert 'doc-1' == list(dataset.scoreddocs)[0].doc_id
+        assert '1' == list(dataset.scoreddocs)[0].query_id
+        assert 10 == list(dataset.scoreddocs)[0].score
+        register_rerank_data_to_ir_datasets('tests/sample-tirex-rerank-data', 'tirex-sample-dataset', None)
 
 
     def test_loading_raw_ir_datasets_01(self):

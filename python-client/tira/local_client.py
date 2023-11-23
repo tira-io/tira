@@ -1,19 +1,16 @@
 import json
 import pandas as pd
 import os
-import zipfile
-import io
-import docker
-import time
 from glob import glob
-from random import random
 from packaging import version
 from tira.pyterrier_integration import PyTerrierIntegration
+from tira.pandas_integration import PandasIntegration
 from tira.local_execution_integration import LocalExecutionIntegration
 
 
 class Client():
     def __init__(self, directory='.', rest_client=None):
+        self.pd = PandasIntegration(self)
         self.pt = PyTerrierIntegration(self)
         self.directory = directory + '/'
         self.tira_cache_dir = os.environ.get('TIRA_CACHE_DIR', os.path.expanduser('~') + '/.tira')
@@ -97,7 +94,7 @@ and the
         for _, i in softwares.iterrows():
             execution_info = self.local_execution.run(
                 identifier=i['approach'], input_dir='$PWD/input',
-                output_dir='$PWD/output', verbose=False, dry_run=True
+                output_dir='$PWD/output', dry_run=True
             )
 
             software_name = i["approach"].split("/")[-1]
@@ -145,7 +142,7 @@ and the
 
     def __load_job_data(self, job_file):
         job = [i.split('=', 1) for i in open(job_file, 'r')]
-        return {k.strip():v.strip() for k,v in job}
+        return {k.strip(): v.strip() for k, v in job}
 
     def all_evaluators(self):
         ret = []
@@ -167,7 +164,7 @@ and the
         raise ValueError(f'There is no {("evaluator" if evaluator else "software")} identified by "{identifier}". Choices are: {sorted(list(softwares))}')
 
     def all_evaluated_appraoches(self):
-        id_to_software_name = {int(i['TIRA_SOFTWARE_ID'].split('docker-software-')[1]):i['TIRA_SOFTWARE_NAME'] for i in self.___load_softwares().values()}
+        id_to_software_name = {int(i['TIRA_SOFTWARE_ID'].split('docker-software-')[1]): i['TIRA_SOFTWARE_NAME'] for i in self.___load_softwares().values()}
         ret = []
         for evaluation in glob('*/*/*/evaluation'):
             job_dir = glob(evaluation + '/../job-executed-on*.txt')
@@ -182,7 +179,7 @@ and the
                     i = {'approach': job_identifier, 'dataset': job_definition['TIRA_DATASET_ID']}
                     i.update(self.__load_output(eval_run, evaluation=True))
                     ret += [i]
-                except:
+                except Exception:
                     pass
 
         return pd.DataFrame(ret)
@@ -242,4 +239,3 @@ and the
             return ret, 'run_id'
         else:
             return ret
-

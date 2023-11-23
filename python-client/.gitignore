@@ -1,7 +1,8 @@
 build/
 
+.vscode/
 .devcontainer/
 
 sphinx/_build
-sphinx/**.rst
-!sphinx/index.rst
+sphinx/modules.rst
+sphinx/tira.rst

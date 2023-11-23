@@ -13,7 +13,7 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt-get install -y python3-pip
-          pip install sphinx furo
+          pip install sphinx furo myst-parser
           cd python-client/sphinx
           sphinx-apidoc -o . ../tira
           make html
@@ -23,5 +23,4 @@ jobs:
         with:
           folder: python-client/sphinx/_build/html
           target-folder: ./
-          clean-exclude:
-            - nightly
+          clean-exclude: nightly

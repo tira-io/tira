@@ -6,9 +6,11 @@ import zipfile
 import io
 import docker
 import time
-from random import random
+from random import randint
 from tira.pyterrier_integration import PyTerrierIntegration
+from tira.pandas_integration import PandasIntegration
 from tira.local_execution_integration import LocalExecutionIntegration
+import logging
 
 
 class Client():
@@ -26,6 +28,7 @@ class Client():
         self.failsave_retries = 1
         if self.api_key != 'no-api-key':
             self.fail_if_api_key_is_invalid()
+        self.pd = PandasIntegration(self)
         self.pt = PyTerrierIntegration(self)
         self.local_execution = LocalExecutionIntegration(self)
 
@@ -35,8 +38,8 @@ class Client():
     def load_settings(self):
         try:
             return json.load(open(self.tira_cache_dir + '/.tira-settings.json', 'r'))
-        except:
-            print(f'No settings given in {self.tira_cache_dir}/.tira-settings.json. I will use defaults.')
+        except Exception:
+            logging.info(f'No settings given in {self.tira_cache_dir}/.tira-settings.json. I will use defaults.')
             return {'api_key': 'no-api-key', 'api_user_name': 'no-api-key-user'}
 
     def fail_if_api_key_is_invalid(self):
@@ -84,8 +87,8 @@ class Client():
         ret = json.loads(ret)
 
         assert ret['status'] == 0
-        print(f'Software with name {ret["context"]["display_name"]} was created.')
-        print(f'Please visit https://www.tira.io/submit/{tira_task_id}/user/{tira_vm_id}/docker-submission to run your software.')
+        logging.info(f'Software with name {ret["context"]["display_name"]} was created.')
+        logging.info(f'Please visit https://www.tira.io/submit/{tira_task_id}/user/{tira_vm_id}/docker-submission to run your software.')
 
     def submissions(self, task, dataset):
         response = self.json_response(f'/api/submissions/{task}/{dataset}')['context']
@@ -153,7 +156,7 @@ class Client():
 
             if join_submissions and (run['team'], run['run_id']) in runs_to_join:
                 software = runs_to_join[(run['team'], run['run_id'])]
-                for k,v in software.items():
+                for k, v in software.items():
                     run[k] = v
 
             for measure_id, measure in zip(range(len(evaluation_keys)), evaluation_keys):
@@ -202,6 +205,7 @@ class Client():
         if team:
             ret = ret[ret['team'] == team]
 
+        # FIXME: Is this really necessary or is it checked with the if len(ret) <= 0 later on?
         if len(ret) <= 0:
             return None
 
@@ -284,12 +288,12 @@ class Client():
         if run_id and not evaluation_run_id:
             submissions = self.submissions(task, dataset)
             submissions = submissions[(submissions['input_run_id'] == run_id) & (submissions['is_evaluation'])]
-        
+
             for evaluation_run_id in submissions['run_id'].unique():
                 self.add_run_to_leaderboard(task, team, dataset, evaluation_run_id=evaluation_run_id)
-    
+
         if evaluation_run_id:
-            print(f'Publish run: {evaluation_run_id}.')
+            logging.info(f'Publish run: {evaluation_run_id}.')
             ret = self.json_response(f'/publish/{team}/{dataset}/{evaluation_run_id}/true')
 
             if ('status' not in ret) or ('0' != ret['status']) or ('published' not in ret) or (not ret['published']):
@@ -304,7 +308,6 @@ class Client():
             raise ValueError(f'Failed to load configuration of an evaluator. Got {ret}')
 
         return ret['context']['dataset']
-    
 
     def evaluate_run(self, team, dataset, run_id):
         """ Evaluate the run of the specified team and identified by the run_id (the run must be submitted on the specified dataset).
@@ -325,18 +328,17 @@ class Client():
                     del headers["Api-Key"]
                 if self.api_user_name == 'no-api-key-user':
                     del headers["Api-Username"]
-            
+
                 r = requests.get(url, headers=headers)
                 status_code = r.status_code
                 z = zipfile.ZipFile(io.BytesIO(r.content))
                 z.extractall(target_dir)
-                
+
                 return
             except Exception as e:
-                sleep_time = 1+int(random()*self.failsave_max_delay)
-                print(e)
-                print(f'Code: {status_code}')
-                print(f'Error occured while fetching {url}. I will sleep {sleep_time} seconds and continue.')
+                sleep_time = randint(1, self.failsave_max_delay)
+                logging.info(f'Code: {status_code}')
+                logging.info(f'Error occured while fetching {url}. I will sleep {sleep_time} seconds and continue.', exc_info=e)
                 time.sleep(sleep_time)
 
     def get_authentication_cookie(self, user, password):
@@ -358,17 +360,17 @@ class Client():
     def run_software(self, approach, dataset, resources, rerank_dataset='none'):
         task, team, software = approach.split('/')
         authentication_cookie = self.get_authentication_cookie(self.load_settings()['user'], self.load_settings()['password'])
-        
+
         software_id = self.docker_software_id(approach)
         if not software_id:
             raise ValueError(f'Could not find software id for "{approach}". Got: "{software_id}".')
-        
+
         url = f'https://www.tira.io/grpc/{task}/{team}/run_execute/docker/{dataset}/{software_id}/{resources}/{rerank_dataset}'
-        print(f'Start software...\n\t{url}\n')
+        logging.info(f'Start software...\n\t{url}\n')
 
         csrf_token = self.get_csrf_token()
-        headers = {   
-            #'Api-Key': self.api_key,
+        headers = {
+            # 'Api-Key': self.api_key,
             'Accept': 'application/json',
             'Content-Type': 'application/json',
             'Cookie': authentication_cookie,
@@ -377,7 +379,7 @@ class Client():
 
         ret = requests.post(url, headers=headers, json={"csrfmiddlewaretoken": csrf_token, "action": "post"})
         ret = ret.content.decode('utf8')
-        print(ret)
+        logging.info(ret)
         ret = json.loads(ret)
         assert ret['status'] == 0
 
@@ -388,12 +390,12 @@ class Client():
 
     def json_response(self, endpoint, params=None):
         cache_key = endpoint + '----' + ('' if not params else json.dumps(params))
-        
+
         if cache_key in self.json_cache:
             return self.json_cache[cache_key]
-        
+
         headers = {"Api-Key": self.api_key, "Accept": "application/json", "Api-Username": self.api_user_name}
-        
+
         if self.api_key == 'no-api-key':
             del headers["Api-Key"]
 
@@ -403,19 +405,17 @@ class Client():
         for i in range(self.failsave_retries):
             try:
                 resp = requests.get(url='https://www.tira.io' + endpoint, headers=headers, params=params)
-        
+
                 if resp.status_code not in {200, 202}:
                     raise ValueError('Got statuscode ', resp.status_code, 'for ', endpoint, '. Got', resp)
                 else:
                     break
             except Exception as e:
-                sleep_time = 1+int(random()*self.failsave_max_delay)
-                print(e)
-                print(f'Code: {resp.status_code}')
-                print(f'Error occured while fetching {endpoint}. I will sleep {sleep_time} seconds and continue.')
+                sleep_time = randint(1, self.failsave_max_delay)
+                logging.info(f'Code: {resp.status_code}')
+                logging.info(f'Error occured while fetching {endpoint}. I will sleep {sleep_time} seconds and continue.', exc_info=e)
                 time.sleep(sleep_time)
 
         self.json_cache[cache_key] = resp.json()
 
         return self.json_cache[cache_key]
-

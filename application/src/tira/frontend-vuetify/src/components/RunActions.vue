@@ -61,6 +61,12 @@
     <v-tooltip activator="parent" location="top">Show SERP in new tab</v-tooltip>
   </span>
 
+  <span>
+    <v-btn v-if="link_code != null" icon="mdi-code-json" :href="link_code" target="_blank" :class="!$vuetify.display.mdAndUp ? 'pa0 ma0 d-none' : 'pa0 ma0'" rounded density="compact"/>
+    <v-btn v-if="link_code != null" prepend-icon="mdi-code-json" :href="link_code" target="_blank" class="pa0 ma0 mb-2 d-md-none d-flex justify-space-between" min-width="180" rounded density="compact"><p>Show Code</p></v-btn>
+    <v-tooltip activator="parent" location="top">Show Code in new tab</v-tooltip>
+  </span>
+
   <span v-if="role === 'admin' || run['owned_by_user']">
     <run-review-window :run_id="run.run_id" :vm_id="run.vm_id" :dataset_id_from_props="run.dataset_id" @reviewRun="(i: any) => $emit('review-run', i)"/>
     <v-tooltip activator="parent" location="top">Review</v-tooltip>
@@ -106,6 +112,9 @@ export default {
     delete_is_pending: false,
   }},
   computed: {
+    link_code() {
+      return this.run && 'link_code' in this.run ? this.run['link_code'] : null;
+    },
     link_serp() {
       return this.run && 'link_serp' in this.run ? this.run['link_serp'] : null;
     },
