@@ -12,10 +12,16 @@ from tira.pandas_integration import PandasIntegration
 from tira.local_execution_integration import LocalExecutionIntegration
 import logging
 from .tira_client import TiraClient
+from typing import Optional
+from functools import lru_cache
+
 
 
 class Client(TiraClient):
-    def __init__(self, api_key=None, failsave_retries=5, failsave_max_delay=15, api_user_name=None):
+    base_url: str
+
+    def __init__(self, base_url: Optional[str]=None, api_key: str=None, failsave_retries: int=5, failsave_max_delay: int=15, api_user_name: Optional[str]=None):
+        self.base_url = base_url or 'https://www.tira.io'
         self.tira_cache_dir = os.environ.get('TIRA_CACHE_DIR', os.path.expanduser('~') + '/.tira')
         self.json_cache = {}
 
@@ -82,14 +88,14 @@ class Client(TiraClient):
             'Content-Type': 'application/json',
         }
         self.fail_if_api_key_is_invalid()
-        url = f'https://www.tira.io/task/{tira_task_id}/vm/{tira_vm_id}/add_software/docker'
+        url = f'{self.base_url}/task/{tira_task_id}/vm/{tira_vm_id}/add_software/docker'
         ret = requests.post(url, headers=headers, json={"action": "post", "image": image, "command": command, "code_repository_id": code_repository_id,"build_environment": json.dumps(build_environment)})
         ret = ret.content.decode('utf8')
         ret = json.loads(ret)
 
         assert ret['status'] == 0
         logging.info(f'Software with name {ret["context"]["display_name"]} was created.')
-        logging.info(f'Please visit https://www.tira.io/submit/{tira_task_id}/user/{tira_vm_id}/docker-submission to run your software.')
+        logging.info(f'Please visit {self.base_url}/submit/{tira_task_id}/user/{tira_vm_id}/docker-submission to run your software.')
 
     def submissions(self, task, dataset):
         response = self.json_response(f'/api/submissions/{task}/{dataset}')['context']
@@ -254,7 +260,7 @@ class Client(TiraClient):
         if os.path.isdir(target_dir + suffix):
             return target_dir + suffix
         data_type = 'training' if dataset.endswith('-training') else 'test'
-        self.download_and_extract_zip(f'https://www.tira.io/data-download/{data_type}/input-{("" if not truth_dataset else "truth")}/{dataset}.zip', target_dir)
+        self.download_and_extract_zip(f'{self.base_url}/data-download/{data_type}/input-{("" if not truth_dataset else "truth")}/{dataset}.zip', target_dir)
 
         os.rename(target_dir + f'/{dataset}', target_dir + suffix)
 
@@ -266,7 +272,7 @@ class Client(TiraClient):
         if os.path.isdir(target_dir + f'/{run_id}'):
             return target_dir + f'/{run_id}/output'
 
-        self.download_and_extract_zip(f'https://www.tira.io/task/{task}/user/{team}/dataset/{dataset}/download/{run_id}.zip', target_dir)
+        self.download_and_extract_zip(f'{self.base_url}/task/{task}/user/{team}/dataset/{dataset}/download/{run_id}.zip', target_dir)
 
         return target_dir + f'/{run_id}/output'
 
@@ -345,7 +351,7 @@ class Client(TiraClient):
     def get_authentication_cookie(self, user, password):
         import requests
 
-        resp = requests.get('https://www.tira.io/session/csrf', headers={'x-requested-with': 'XMLHttpRequest'})
+        resp = requests.get('{self.base_url}/session/csrf', headers={'x-requested-with': 'XMLHttpRequest'})
 
         header = {
             'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
@@ -354,7 +360,7 @@ class Client(TiraClient):
             'x-requested-with': 'XMLHttpRequest'
         }
 
-        resp = requests.post('https://www.tira.io/session', data=f'login={user}&password={password}', headers=header)
+        resp = requests.post('{self.base_url}/session', data=f'login={user}&password={password}', headers=header)
 
         return f'_t={resp.cookies["_t"]}; _forum_session={resp.cookies["_forum_session"]}'
 
@@ -366,7 +372,7 @@ class Client(TiraClient):
         if not software_id:
             raise ValueError(f'Could not find software id for "{approach}". Got: "{software_id}".')
 
-        url = f'https://www.tira.io/grpc/{task}/{team}/run_execute/docker/{dataset}/{software_id}/{resources}/{rerank_dataset}'
+        url = f'{self.base_url}/grpc/{task}/{team}/run_execute/docker/{dataset}/{software_id}/{resources}/{rerank_dataset}'
         logging.info(f'Start software...\n\t{url}\n')
 
         csrf_token = self.get_csrf_token()
@@ -385,16 +391,13 @@ class Client(TiraClient):
         assert ret['status'] == 0
 
     def get_csrf_token(self):
-        ret = requests.get('https://www.tira.io/', headers={"Api-Key": self.api_key})
+        ret = requests.get('{self.base_url}/', headers={"Api-Key": self.api_key})
 
         return ret.content.decode('utf-8').split('name="csrfmiddlewaretoken" value="')[1].split('"')[0]
 
-    def json_response(self, endpoint, params=None):
-        cache_key = endpoint + '----' + ('' if not params else json.dumps(params))
-
-        if cache_key in self.json_cache:
-            return self.json_cache[cache_key]
-
+    @lru_cache(maxsize=None)
+    def json_response(self, endpoint: str, params: Optional[dict | list[tuple] | bytes] = None):
+        assert endpoint.startswith('/')
         headers = {"Api-Key": self.api_key, "Accept": "application/json", "Api-Username": self.api_user_name}
 
         if self.api_key == 'no-api-key':
@@ -403,9 +406,9 @@ class Client(TiraClient):
         if self.api_user_name == 'no-api-key-user':
             del headers["Api-Username"]
 
-        for i in range(self.failsave_retries):
+        for _ in range(self.failsave_retries):
             try:
-                resp = requests.get(url='https://www.tira.io' + endpoint, headers=headers, params=params)
+                resp = requests.get(url=f'{self.base_url}{endpoint}', headers=headers, params=params)
 
                 if resp.status_code not in {200, 202}:
                     raise ValueError('Got statuscode ', resp.status_code, 'for ', endpoint, '. Got', resp)
@@ -417,6 +420,4 @@ class Client(TiraClient):
                 logging.info(f'Error occured while fetching {endpoint}. I will sleep {sleep_time} seconds and continue.', exc_info=e)
                 time.sleep(sleep_time)
 
-        self.json_cache[cache_key] = resp.json()
-
-        return self.json_cache[cache_key]
+        return resp.json()
