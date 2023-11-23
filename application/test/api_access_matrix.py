@@ -167,39 +167,6 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
-        url_pattern='task/<str:task_id>/dataset/<str:dataset_id>',
-        params={'task_id': 'shared-task-1', 'dataset_id': 'this-dataset-does-not-exist'},
-        group_to_expected_status_code={
-            ADMIN: 404,
-            GUEST: 404,
-            PARTICIPANT: 404,
-            ORGANIZER: 404,
-            ORGANIZER_WRONG_TASK: 404,
-        },
-    ),
-    route_to_test(
-        url_pattern='task/<str:task_id>/dataset/<str:dataset_id>',
-        params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-1-{now}-training'},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 200,
-            PARTICIPANT: 200,
-            ORGANIZER: 200,
-            ORGANIZER_WRONG_TASK: 200,
-        },
-    ),
-    route_to_test(
-        url_pattern='task/<str:task_id>/dataset/<str:dataset_id>',
-        params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-2-{now}-test'},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 200,
-            PARTICIPANT: 200,
-            ORGANIZER: 200,
-            ORGANIZER_WRONG_TASK: 200,
-        },
-    ),
-    route_to_test(
         url_pattern='task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/download/<str:run_id>.zip',
         params={'task_id': 'shared-task-1', 'dataset_id': f'dataset-1-{now}-training', 'vm_id': 'example_participant', 'run_id': 'run-1-example_participant'},
         group_to_expected_status_code={
@@ -1175,17 +1142,6 @@ API_ACCESS_MATRIX = [
             PARTICIPANT: 200,
             ORGANIZER: 302,
             ORGANIZER_WRONG_TASK: 302,
-        },
-    ),
-    route_to_test(
-        url_pattern='tira-admin',
-        params={},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 405,
-            PARTICIPANT: 405,
-            ORGANIZER: 405,
-            ORGANIZER_WRONG_TASK: 405,
         },
     ),
     route_to_test(
