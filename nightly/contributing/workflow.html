@@ -230,15 +230,28 @@
 <h2>Commands<a class="headerlink" href="#commands" title="Link to this heading">#</a></h2>
 <section id="linting">
 <h3>Linting<a class="headerlink" href="#linting" title="Link to this heading">#</a></h3>
-<p>TODO</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>black<span class="w"> </span>--check<span class="w"> </span>tira/<span class="w"> </span>tests/
+flake8<span class="w"> </span>tira/<span class="w"> </span>tests/
+mypy<span class="w"> </span>tira/<span class="w"> </span>tests/
+</pre></div>
+</div>
+<p>To let black reformat a file, run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>black<span class="w"> </span>tira<span class="w"> </span>tests
+</pre></div>
+</div>
 </section>
 <section id="unit-tests">
 <h3>Unit Tests<a class="headerlink" href="#unit-tests" title="Link to this heading">#</a></h3>
-<p>TODO</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pytest
+</pre></div>
+</div>
 </section>
 <section id="generating-documentation">
 <h3>Generating documentation<a class="headerlink" href="#generating-documentation" title="Link to this heading">#</a></h3>
-<p>TODO</p>
+<p>From within the <cite>python-client/sphynx</cite> directory run</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sphinx-apidoc<span class="w"> </span>-o<span class="w"> </span>.<span class="w"> </span>../tira<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>make<span class="w"> </span>html
+</pre></div>
+</div>
 </section>
 <section id="releasing-a-new-version">
 <h3>Releasing a new version<a class="headerlink" href="#releasing-a-new-version" title="Link to this heading">#</a></h3>
