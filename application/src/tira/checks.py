@@ -71,7 +71,7 @@ def check_permissions(func):
 
         if vm_id:
             if not model.vm_exists(vm_id):  # If the resource does not exist
-                return redirect('tira:request_vm')
+                return redirect('tira:login')
             role = auth.get_role(request, user_id=auth.get_user_id(request), vm_id=vm_id)
             if run_id and dataset_id:  # this prevents participants from viewing hidden runs
                 if not model.run_exists(vm_id, dataset_id, run_id):
@@ -146,7 +146,7 @@ def check_conditional_permissions(restricted=False, public_data_ok=False, privat
 
             if vm_id:  # First we determine the role of the user on the resource he requests
                 if not model.vm_exists(vm_id):
-                    return redirect('tira:request_vm')
+                    return redirect('tira:login')
                 role_on_vm = auth.get_role(request, user_id=auth.get_user_id(request), vm_id=vm_id)
                 if run_id and dataset_id:
                     role = auth.ROLE_USER
@@ -217,7 +217,7 @@ def check_resources_exist(reply_as='json'):
                     response = JsonResponse({'status': 1, 'message': message})
                     return response
                 if request_vm_instead:
-                    return redirect('tira:request_vm')
+                    return redirect('tira:login')
                 return Http404(message)
 
             if "vm_id" in kwargs:

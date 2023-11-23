@@ -11,18 +11,13 @@ urlpatterns = [
     path('tasks', views.veutify_page, name='index'),
     path('background_jobs/<str:task_id>/<str:job_id>', views.background_jobs, name='background_jobs'),
 
-    path('task/<str:task_id>', views.task, name='task'),
-    path('task/<str:task_id>/dataset/<str:dataset_id>', views.dataset, name='dataset'),
     path('task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/download/<str:run_id>.zip', views.download_rundir, name='download_rundir'),
     path('data-download/<str:dataset_type>/<str:input_type>/<str:dataset_id>.zip', views.download_datadir, name='download_datadir'),
-    path('task/<str:task_id>/user/<str:vm_id>', views.software_detail, name='software-detail'),
-    path('task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/run/<str:run_id>', views.review, name='review'),
 
     re_path(r'^frontend-vuetify/.*', views.veutify_page, name='vuetify_page'),
     re_path(r'^task-overview/.*', views.veutify_page, name='vuetify_page'),
     re_path(r'^submit/.*', views.veutify_page, name='vuetify_page'),
     re_path(r'^tirex/.*', views.veutify_page, name='tirex'),
-    path('request_vm', views.request_vm, name='request_vm'),
     path('login', views.login, name='login'),
     path('logout', views.logout, name='logout'),
 
@@ -56,8 +51,6 @@ urlpatterns = [
     path('grpc/<str:vm_id>/run_eval/<str:dataset_id>/<str:run_id>', vm_api.run_eval, name="run_eval"),
     path('grpc/<str:vm_id>/run_delete/<str:dataset_id>/<str:run_id>', vm_api.run_delete, name="run_delete"),
     path('grpc/<str:task_id>/<str:user_id>/stop_docker_software/<str:run_id>', vm_api.stop_docker_software, name="stop_docker_software"),
-
-    path('tira-admin', views.admin, name='tira-admin'),
 
     path('tira-admin/reload/vms', admin_api.admin_reload_vms, name='tira-admin-reload-vms'),
     path('tira-admin/reload/datasets', admin_api.admin_reload_datasets, name='tira-admin-reload-datasets'),

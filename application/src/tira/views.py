@@ -70,21 +70,6 @@ def veutify_page(request, context):
     return render(request, 'tira/veutify_page.html', context)
 
 
-@check_permissions
-@add_context
-def admin(request, context):
-    context["vm_list"] = model.get_vm_list()
-    context["host_list"] = model.get_host_list()
-    context["ova_list"] = model.get_ova_list()
-    context["create_vm_form"] = CreateVmForm()
-    context["archive_vm_form"] = ArchiveVmForm()
-    context["create_task_form"] = CreateTaskForm()
-    context["add_dataset_form"] = AddDatasetForm()
-    context["create_group_form"] = AdminCreateGroupForm()
-    context["modify_vm_form"] = ModifyVmForm()
-    return render(request, 'tira/tira_admin.html', context)
-
-
 @add_context
 def login(request, context):
     """ Hand out the login form 
@@ -159,131 +144,6 @@ def _add_user_vms_to_context(request, context, task_id, include_docker_details=T
         context['docker_documentation'] = docker
 
 
-@check_resources_exist('http')
-@add_context
-def task(request, context, task_id):
-    """ The tasks view. It shows the task information and all associated datasets.
-    If a dataset is selected, the leaderboard is shown.
-
-    To admins, it shows, in addition, a review overview page.
-    """
-    _add_user_vms_to_context(request, context, task_id)
-    _add_task_to_context(context, task_id, "")
-    return render(request, 'tira/task.html', context)
-
-
-@check_resources_exist('http')
-@add_context
-def dataset(request, context, task_id, dataset_id):
-    """ The tasks view. It shows the task information and all associated datasets.
-    If a dataset is selected, the leaderboard is shown.
-
-    To admins, it shows, in addition, a review overview page.
-    """
-    _add_user_vms_to_context(request, context, task_id)
-    _add_task_to_context(context, task_id, dataset_id)
-    return render(request, 'tira/task.html', context)
-
-
-@check_permissions
-@check_resources_exist('http')
-@add_context
-def software_detail(request, context, task_id, vm_id):
-    """ render the detail of the user page: vm-stats, softwares, and runs
-        This is called if a user goes to his 'submission' page.
-    """
-    software = model.get_software_with_runs(task_id, vm_id)
-    upload = model.get_upload_with_runs(task_id, vm_id)
-    docker = model.load_docker_data(task_id, vm_id, cache, force_cache_refresh=False)
-    vm = model.get_vm(vm_id)
-
-    context["task"] = model.get_task(task_id)
-    context["vm_id"] = vm_id
-    context["vm"] = vm
-    context["software"] = software
-    context["datasets"] = model.get_datasets_by_task(task_id)
-    context["upload"] = upload
-    context["docker"] = docker
-    # is_default indicates whether the user has a docker-only team, i.e., no virtual machine.
-    # This is the case if the user-vm ends with default or if no host or admin name is configured.
-    context["is_default"] = vm_id.endswith("default") or not vm['host'] or not vm['admin_name']
-
-    return render(request, 'tira/software.html', context) 
-
-
-@check_conditional_permissions(private_run_ok=True)
-@check_resources_exist('http')
-@add_context
-def review(request, context, task_id, vm_id, dataset_id, run_id):
-    """ @deprecated use the REST enpoints instead (data/get_review and admin/edit_review)
-     - no_errors = hasNoErrors
-     - output_error -> invalid_output and has_error_output
-     - software_error <-> other_error
-    """
-    role = context["role"]
-
-    review_form_error = None
-
-    if request.method == "POST":
-        form = ReviewForm(request.POST)
-        if form.is_valid():
-            no_errors = form.cleaned_data["no_errors"]
-            output_error = form.cleaned_data["output_error"]
-            software_error = form.cleaned_data["software_error"]
-            comment = form.cleaned_data["comment"]
-
-            try:
-                if no_errors and (output_error or software_error):
-                    review_form_error = "Either there is an error or there is not."
-
-                username = auth.get_user_id(request)
-                has_errors = output_error or software_error
-                has_no_errors = (not has_errors)
-
-                s = model.update_review(dataset_id, vm_id, run_id, username, str(dt.utcnow()),
-                                        has_errors, has_no_errors, no_errors=no_errors,
-                                        invalid_output=output_error,
-                                        has_error_output=output_error, other_errors=software_error, comment=comment
-                                        )
-                if not s:
-                    review_form_error = "Failed saving review. Contact Admin."
-            except KeyError as e:
-                logger.error(f"Failed updating review {task_id}, {vm_id}, {dataset_id}, {run_id} with {e}")
-                review_form_error = "Failed updating review. Contact Admin."
-        else:
-            review_form_error = "Form Invalid (check formatting)"
-
-    run = model.get_run(dataset_id, vm_id, run_id)
-    run_review = model.get_run_review(dataset_id, vm_id, run_id)
-    runtime = get_run_runtime(dataset_id, vm_id, run_id)
-    files = get_run_file_list(dataset_id, vm_id, run_id)
-    files["file_list"][0] = "output/"
-    stdout = get_stdout(dataset_id, vm_id, run_id)
-    stderr = get_stderr(dataset_id, vm_id, run_id)
-    tira_log = get_tira_log(dataset_id, vm_id, run_id)
-
-    context["review_form"] = ReviewForm(
-        initial={"no_errors": run_review.get("hasNoErrors") or run_review.get("noErrors"),
-                 "output_error": run_review.get("hasErrorOutput", False) or run_review.get("invalidOutput", False),
-                 "software_error": run_review.get("otherErrors", False),
-                 "comment": run_review.get("comment", "")})
-    context["review_form_error"] = review_form_error
-    context["task_id"] = task_id
-    context["dataset_id"] = dataset_id
-    context["is_confidential"] = model.get_dataset(dataset_id).get('is_confidential', True)
-    context["vm_id"] = vm_id
-    context["run_id"] = run_id
-    context["run"] = run
-    context["review"] = run_review
-    context["runtime"] = runtime
-    context["files"] = files
-    context["stdout"] = stdout
-    context["stderr"] = stderr
-    context["tira_log"] = tira_log
-
-    return render(request, 'tira/review.html', context)
-
-
 @check_conditional_permissions(public_data_ok=True)
 @check_resources_exist('json')
 def download_rundir(request, task_id, dataset_id, vm_id, run_id):
@@ -330,6 +190,3 @@ def download_datadir(request, dataset_type, input_type, dataset_id):
         os.remove(zipped)
         return response
 
-@add_context
-def request_vm(request, context):
-    return render(request, 'tira/request_vm.html', context)
