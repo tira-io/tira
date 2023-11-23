@@ -25,24 +25,28 @@
           <v-expansion-panel>
             <v-expansion-panel-title>Step 1: Upload your Code to your repository</v-expansion-panel-title>
             <v-expansion-panel-text>
-              <p>Short conceptual description: deployment + key for git repo, deployment + key of tira key</p>
+              <p>Your  <a :href="http_repo_url" target="_blank">prepared Github repository</a> already contains all secrets to build and upload your code as Docker image to TIRA and makes it easier for us to help you in case of problems because we can access the code.</p>
+              
               <p>If you start from scratch, you can just <a :href="http_repo_url" target="_blank">clone your repository</a>.</p>
               
-              <code-snippet title="Merge your existing repository" :code="code_for_merging" expand_message="If you already have a git repository, please merge it with the tira repository."/>
+              <code-snippet title="Merge your existing repository (intended as second upstream)" :code="code_for_merging" expand_message="If you already have a git repository, please merge it with the tira repository that is intended as second remote/upstream."/>
             </v-expansion-panel-text>
           </v-expansion-panel>
 
           <v-expansion-panel>
             <v-expansion-panel-title>Step 2: Build your Docker image via GitHub Actions</v-expansion-panel-title>
             <v-expansion-panel-text>
-              <p>step by step description</p>
+              <p>Please go to your <a :href="http_repo_url" target="_blank">prepared Github repository</a> and upload your code to the repository. Upon initialization, your repository contains a jupyter notebook
+              <a :href="http_repo_url + '/blob/main/jupyter-notebook-submissions/pyterrier-notebook.ipynb'" target="_blank">Jupyter notebook</a> together with <a :href="http_repo_url +'/tree/main/jupyter-notebook-submissions'">a detailed README on how to submit together with background information</a>.</p>
+              
+              <p>In short, navigate to "Actions" -> "upload-notebook-submission" in <a :href="http_repo_url" target="_blank">your Github repository</a> and click on "Run workflow" to start the Github action that builds, tests, and uploads your submission.</p>
             </v-expansion-panel-text>
           </v-expansion-panel>
 
           <v-expansion-panel>
             <v-expansion-panel-title>Step 3:Execute your Docker image in TIRA</v-expansion-panel-title>
             <v-expansion-panel-text>
-              <p>step by step description</p>
+              <p>After your Github action was successfull, it prints out the name under which your software was added to TIRA as Docker submission (at the very bottom of the step "Build, test, and upload image" of your Github action). Click on the <a href="../docker-submission">Docker</a> tab and select your newly added software (maybe reload the page). Select the dataset on which you want to execute your software together with the execution instance (e.g., 1CPU + 10GB of RAM) and click on RUN to start your submission. Admins will review your submission (might take up to one day) and reach out to you in case there are problems with the execution.</p>
             </v-expansion-panel-text>
           </v-expansion-panel>
         </v-expansion-panels>
