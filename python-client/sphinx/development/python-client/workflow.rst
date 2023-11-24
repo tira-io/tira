@@ -1,16 +1,16 @@
 Workflow
 ========
-TODO: add nice introductory text
+.. todo:: add nice introductory text
 
 Getting Started
 -------------
 Initial Setup
 ~~~~~~~~~~~~~
-TODO: how do I start working on TIRA?
+.. todo:: how do I start working on TIRA?
 
 Running TIRA locally
 ~~~~~~~~~~~~~~~~~~~~
-TOOD
+.. todo::
 
 
 Commands
@@ -45,4 +45,4 @@ From within the `python-client/sphynx` directory run
 
 Releasing a new version
 ~~~~~~~~~~~~~~~~~~~~~~~
-TODO
+.. todo::

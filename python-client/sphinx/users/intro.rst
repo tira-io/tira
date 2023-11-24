@@ -1,11 +1,11 @@
 Introduction
 ============
-TODO: what is TIRA?
+.. todo:: what is TIRA?
 
 Installation
 ------------
-TODO: How to install TIRA
+.. todo:: How to install TIRA
 
 Basic Usage
 -----------
-TODO: How to use TIRA
+.. todo:: How to use TIRA

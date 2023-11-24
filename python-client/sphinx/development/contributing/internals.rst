@@ -1,12 +1,12 @@
 Internals
 =========
 
-TODO: add nice introductory text
+.. todo:: add nice introductory text
 
 Repository Layout
 -----------------
-TODO
+.. todo::
 
 Architecture
 ------------
-TODO: document what components make up TIRA, what purpose they serve and how they work with each other
+.. todo:: document what components make up TIRA, what purpose they serve and how they work with each other
