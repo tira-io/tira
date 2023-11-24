@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
-<link rel="index" title="Index" href="../../genindex.html" /><link rel="search" title="Search" href="../../search.html" /><link rel="next" title="Maintenance" href="../maintenance.html" /><link rel="prev" title="Deploying the host module" href="host.html" />
+<link rel="index" title="Index" href="../../genindex.html" /><link rel="search" title="Search" href="../../search.html" /><link rel="next" title="Maintenance" href="../maintenance.html" /><link rel="prev" title="Deploying the Host Module" href="host.html" />
 
     <!-- Generated with Sphinx 7.2.6 and Furo 2023.09.10 -->
-        <title>Deploying the frontend - TIRA</title>
+        <title>Deploying the Frontend - TIRA</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=135e06be" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?v=36a5483c" />
@@ -167,9 +167,9 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../organizing-tasks.html">Organizing Tasks</a></li>
 <li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">Deployment</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Deployment</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="application.html">Deploying the application module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="host.html">Deploying the host module</a></li>
-<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Deploying the frontend</a></li>
+<li class="toctree-l2"><a class="reference internal" href="application.html">Deploying the Application Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="host.html">Deploying the Host Module</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Deploying the Frontend</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../maintenance.html">Maintenance</a></li>
@@ -192,6 +192,10 @@
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../development/python-client/index.html">Developing the Python Client</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of Developing the Python Client</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../development/python-client/workflow.html">Workflow</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../development/specification/index.html">Specification</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of Specification</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../development/specification/userstories.html">User Stories</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../development/changelog.html">Changelog</a></li>
@@ -239,7 +243,7 @@
         </div>
         <article role="main">
           <section id="deploying-the-frontend">
-<h1>Deploying the frontend<a class="headerlink" href="#deploying-the-frontend" title="Link to this heading">#</a></h1>
+<h1>Deploying the Frontend<a class="headerlink" href="#deploying-the-frontend" title="Link to this heading">#</a></h1>
 <div class="admonition-todo admonition" id="id1">
 <p class="admonition-title">Todo</p>
 <p>This page is partially deprecated (e.g., broken links) and should be improved.</p>
@@ -464,6 +468,11 @@ exists for the image so you don’t override images.</p>
 </section>
 <section id="development-environment">
 <h3>Development environment<a class="headerlink" href="#development-environment" title="Link to this heading">#</a></h3>
+<div class="admonition-todo admonition" id="id4">
+<p class="admonition-title">Todo</p>
+<p>This section should be moved to an appropriate location in the developer-documentation instead of the
+organizer-documentation</p>
+</div>
 <p>The discourse development environent contains:</p>
 <ul class="simple">
 <li><p>1 Service                 (<a class="reference external" href="https://git.webis.de/code-generic/code-admin-knowledge-base/-/tree/master/services/tira/tira-discourse/dev/discourse-dev.yml">dev/discourse-dev.yml</a>)</p></li>
@@ -498,8 +507,8 @@ via</p>
 <p>Now the instance is visitable on any betaweb machine at port <code class="code docutils literal notranslate"><span class="pre">30804</span></code>. Be aware that
 <code class="code docutils literal notranslate"><span class="pre">betawebXXX.medien.uni-weimar.de:30804</span></code> does not work, but only <code class="code docutils literal notranslate"><span class="pre">betawebXXX:30804</span></code> does.</p>
 </section>
-<section id="id5">
-<h4>Undeploying<a class="headerlink" href="#id5" title="Link to this heading">#</a></h4>
+<section id="id6">
+<h4>Undeploying<a class="headerlink" href="#id6" title="Link to this heading">#</a></h4>
 <p>This works the same way, as for the production instance basically.
 Remove the deployment by:</p>
 <p>Your volumes will not be removed by this. Only <code class="code docutils literal notranslate"><span class="pre">Service</span></code> and <code class="code docutils literal notranslate"><span class="pre">Deployment</span></code> are defined in
@@ -531,7 +540,7 @@ persistent across deploys.</p>
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Deploying the host module</div>
+                <div class="title">Deploying the Host Module</div>
                 
               </div>
             </a>
@@ -572,7 +581,7 @@ persistent across deploys.</p>
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#">Deploying the frontend</a><ul>
+<li><a class="reference internal" href="#">Deploying the Frontend</a><ul>
 <li><a class="reference internal" href="#deploy-discourse-on-kubernetes">Deploy Discourse on Kubernetes</a><ul>
 <li><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
 <li><a class="reference internal" href="#production-environment">Production environment</a></li>
@@ -593,7 +602,7 @@ persistent across deploys.</p>
 </li>
 <li><a class="reference internal" href="#development-environment">Development environment</a><ul>
 <li><a class="reference internal" href="#deploying">Deploying</a></li>
-<li><a class="reference internal" href="#id5">Undeploying</a></li>
+<li><a class="reference internal" href="#id6">Undeploying</a></li>
 </ul>
 </li>
 </ul>

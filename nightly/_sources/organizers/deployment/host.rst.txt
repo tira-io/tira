@@ -1,2 +1,2 @@
-Deploying the host module
+Deploying the Host Module
 =========================
