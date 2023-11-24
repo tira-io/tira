@@ -406,30 +406,30 @@ make<span class="w"> </span>docker-publish-tira-application
 <section id="development">
 <h3>Development<a class="headerlink" href="#development" title="Link to this heading">#</a></h3>
 <p>The settings used for the development setup are: <code class="code docutils literal notranslate"><span class="pre">tira/application/config/settings-dev.yml</span></code>.</p>
-<p>Frequently used development commands are:
-- Start the application without any grpc server</p>
+<p>Frequently used development commands are:</p>
+<ul>
+<li><p>Start the application without any grpc server</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>application/src~$<span class="w"> </span>python3<span class="w"> </span>manage.py<span class="w"> </span>runserver<span class="w"> </span><span class="m">8080</span>
 </pre></div>
 </div>
-<ul class="simple">
-<li><p>Start only the application’s grpc server</p></li>
-</ul>
+</li>
+<li><p>Start only the application’s grpc server</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>application/src~$<span class="w"> </span>python3<span class="w"> </span>manage.py<span class="w"> </span>grpc_server
 </pre></div>
 </div>
-<ul class="simple">
-<li><p>Start the application and  the application’s grpc server. This is used in make run-develop and the container</p></li>
-</ul>
+</li>
+<li><p>Start the application and  the application’s grpc server. This is used in make run-develop and the container</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>application/src~$<span class="w"> </span>python3<span class="w"> </span>manage.py<span class="w"> </span>run_develop
 </pre></div>
 </div>
-<ul class="simple">
-<li><p>Start the application, the application’s grpc server, and a mock host grpc server that will reply to the application</p></li>
-</ul>
-<p>with fake commands. This is the simplest way to develop the application.</p>
+</li>
+<li><p>Start the application, the application’s grpc server, and a mock host grpc server that will reply to the application
+with fake commands. This is the simplest way to develop the application.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>application/src~$<span class="w"> </span>python3<span class="w"> </span>manage.py<span class="w"> </span>run_mockup
 </pre></div>
 </div>
+</li>
+</ul>
 </section>
 </section>
 <section id="troubleshooting">

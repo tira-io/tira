@@ -3,7 +3,7 @@ Workflow
 TODO: add nice introductory text
 
 Getting Started
--------------
+---------------
 Initial Setup
 ~~~~~~~~~~~~~
 TODO: how do I start working on TIRA?

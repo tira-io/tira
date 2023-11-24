@@ -330,6 +330,19 @@ this example if their software submission fails in TIRA. For this, you need:</p>
 and that the baseline is executed via the command <code class="code docutils literal notranslate"><span class="pre">&lt;BASELINE_SOFTWARE_COMMAND&gt;</span></code> inside the container and that you
 have a directory <code class="code docutils literal notranslate"><span class="pre">tira-sample-input</span></code> with the sample data in the git repository of your baseline, you can add the
 following documentation (replace the placeholders with the correct values) to your README:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>You can test docker images that you would submit to TIRA locally via `tira-run`.
+The `tira-run` commands executes a software as it would be executed in TIRA (i.e., with sandboxing using the same command pattern).
+
+We recommend that you test your software locally on the sample dataset `tira-sample-input` before uploading it to TIRA to ensure that your software works correctly (this also simplifies debugging as everything is under your control and runs on your machine).
+
+Please install `tira-run` via `pip3 install tira`.
+
+After `tira-run` is installed, you can execute the baseline on the sample dataset `tira-sample-input` via this command:
+`tira-run --input-directory ${PWD}/tira-sample-input --image &lt;DOCKER_IMAGE_BASELINE&gt; --command &lt;BASELINE_SOFTWARE_COMMAND&gt;`
+
+This command should create the following output in `tira-output`: &lt;TODO_ADD_EXAMPLE_OUTPUT&gt;
+</pre></div>
+</div>
 <section id="modifying-virtual-machines">
 <h3>Modifying virtual machines<a class="headerlink" href="#modifying-virtual-machines" title="Link to this heading">#</a></h3>
 <ul>

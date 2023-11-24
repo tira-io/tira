@@ -135,7 +135,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -236,7 +236,7 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <div class="visually-hidden">Toggle table of contents sidebar</div>
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
@@ -244,6 +244,70 @@
         <article role="main">
           <section id="api">
 <h1>API<a class="headerlink" href="#api" title="Link to this heading">#</a></h1>
+<section id="tira-io-utils-module">
+<h2>tira.io_utils module<a class="headerlink" href="#tira-io-utils-module" title="Link to this heading">#</a></h2>
+</section>
+<section id="tira-ir-datasets-util-module">
+<h2>tira.ir_datasets_util module<a class="headerlink" href="#tira-ir-datasets-util-module" title="Link to this heading">#</a></h2>
+</section>
+<section id="module-tira.pyterrier_integration">
+<span id="tira-pyterrier-integration-module"></span><h2>tira.pyterrier_integration module<a class="headerlink" href="#module-tira.pyterrier_integration" title="Link to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="tira.pyterrier_integration.PyTerrierIntegration">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tira.pyterrier_integration.</span></span><span class="sig-name descname"><span class="pre">PyTerrierIntegration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tira_client</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tira.pyterrier_integration.PyTerrierIntegration" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tira.pyterrier_integration.PyTerrierIntegration.create_rerank_file">
+<span class="sig-name descname"><span class="pre">create_rerank_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run_df</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">irds_dataset_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tira.pyterrier_integration.PyTerrierIntegration.create_rerank_file" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tira.pyterrier_integration.PyTerrierIntegration.ensure_dataset_is_cached">
+<span class="sig-name descname"><span class="pre">ensure_dataset_is_cached</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">irds_dataset_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tira.pyterrier_integration.PyTerrierIntegration.ensure_dataset_is_cached" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tira.pyterrier_integration.PyTerrierIntegration.from_retriever_submission">
+<span class="sig-name descname"><span class="pre">from_retriever_submission</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">approach</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">previous_stage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datasets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tira.pyterrier_integration.PyTerrierIntegration.from_retriever_submission" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tira.pyterrier_integration.PyTerrierIntegration.from_submission">
+<span class="sig-name descname"><span class="pre">from_submission</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">approach</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datasets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tira.pyterrier_integration.PyTerrierIntegration.from_submission" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tira.pyterrier_integration.PyTerrierIntegration.reranker">
+<span class="sig-name descname"><span class="pre">reranker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">approach</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">irds_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tira.pyterrier_integration.PyTerrierIntegration.reranker" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tira.pyterrier_integration.PyTerrierIntegration.retriever">
+<span class="sig-name descname"><span class="pre">retriever</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">approach</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tira.pyterrier_integration.PyTerrierIntegration.retriever" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tira.pyterrier_integration.PyTerrierIntegration.transform_documents">
+<span class="sig-name descname"><span class="pre">transform_documents</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">approach</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_selection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('/*.jsonl',</span> <span class="pre">'/*.jsonl.gz')</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tira.pyterrier_integration.PyTerrierIntegration.transform_documents" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tira.pyterrier_integration.PyTerrierIntegration.transform_queries">
+<span class="sig-name descname"><span class="pre">transform_queries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">approach</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_selection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('/*.jsonl',</span> <span class="pre">'/*.jsonl.gz')</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tira.pyterrier_integration.PyTerrierIntegration.transform_queries" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="tira-pyterrier-util-module">
+<h2>tira.pyterrier_util module<a class="headerlink" href="#tira-pyterrier-util-module" title="Link to this heading">#</a></h2>
+</section>
+<section id="tira-third-party-integrations-module">
+<h2>tira.third_party_integrations module<a class="headerlink" href="#tira-third-party-integrations-module" title="Link to this heading">#</a></h2>
+</section>
+<section id="module-tira">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-tira" title="Link to this heading">#</a></h2>
+</section>
 </section>
 
         </article>
@@ -296,8 +360,45 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">API</a><ul>
+<li><a class="reference internal" href="#tira-io-utils-module">tira.io_utils module</a></li>
+<li><a class="reference internal" href="#tira-ir-datasets-util-module">tira.ir_datasets_util module</a></li>
+<li><a class="reference internal" href="#module-tira.pyterrier_integration">tira.pyterrier_integration module</a><ul>
+<li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierIntegration"><code class="docutils literal notranslate"><span class="pre">PyTerrierIntegration</span></code></a><ul>
+<li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierIntegration.create_rerank_file"><code class="docutils literal notranslate"><span class="pre">PyTerrierIntegration.create_rerank_file()</span></code></a></li>
+<li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierIntegration.ensure_dataset_is_cached"><code class="docutils literal notranslate"><span class="pre">PyTerrierIntegration.ensure_dataset_is_cached()</span></code></a></li>
+<li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierIntegration.from_retriever_submission"><code class="docutils literal notranslate"><span class="pre">PyTerrierIntegration.from_retriever_submission()</span></code></a></li>
+<li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierIntegration.from_submission"><code class="docutils literal notranslate"><span class="pre">PyTerrierIntegration.from_submission()</span></code></a></li>
+<li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierIntegration.reranker"><code class="docutils literal notranslate"><span class="pre">PyTerrierIntegration.reranker()</span></code></a></li>
+<li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierIntegration.retriever"><code class="docutils literal notranslate"><span class="pre">PyTerrierIntegration.retriever()</span></code></a></li>
+<li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierIntegration.transform_documents"><code class="docutils literal notranslate"><span class="pre">PyTerrierIntegration.transform_documents()</span></code></a></li>
+<li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierIntegration.transform_queries"><code class="docutils literal notranslate"><span class="pre">PyTerrierIntegration.transform_queries()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#tira-pyterrier-util-module">tira.pyterrier_util module</a></li>
+<li><a class="reference internal" href="#tira-third-party-integrations-module">tira.third_party_integrations module</a></li>
+<li><a class="reference internal" href="#module-tira">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

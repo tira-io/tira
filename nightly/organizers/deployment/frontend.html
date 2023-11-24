@@ -373,6 +373,15 @@ repeat the steps here since there will be some differences.</p>
 </div>
 <p>You will be asked for the following information. You do not actually have to give the information here, since Discourse
 will pull the information from the <a class="reference external" href="#secret">earlier created secret</a>. You may just supply dummy information.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Hostname for your Discourse? [discourse.example.com]:
+Email address for admin account(s)? [me@example.com,you@example.com]:
+SMTP server address? [smtp.example.com]:
+SMTP port? [587]:
+SMTP user name? [user@example.com]:
+SMTP password? [pa$$word]:
+Let&#39;s Encrypt account email? (ENTER to skip) [me@example.com]:
+</pre></div>
+</div>
 <p>When filling these be sure to also overwrite the <code class="code docutils literal notranslate"><span class="pre">SMTP</span> <span class="pre">port</span></code> with <code class="code docutils literal notranslate"><span class="pre">587</span></code> (if your SMTP server listens to
 that), even when it seems to default to <code class="code docutils literal notranslate"><span class="pre">587</span></code>. If you don’t there might be problems with sending mail, because
 Discourse (sometimes) uses <code class="code docutils literal notranslate"><span class="pre">25</span></code> else. Requests on port <code class="code docutils literal notranslate"><span class="pre">25</span></code> cannot reach AWS SES servers from the Webis
@@ -511,6 +520,9 @@ via</p>
 <h4>Undeploying<a class="headerlink" href="#id6" title="Link to this heading">#</a></h4>
 <p>This works the same way, as for the production instance basically.
 Remove the deployment by:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>prod/k8s-undeploy-discourse-dev.sh
+</pre></div>
+</div>
 <p>Your volumes will not be removed by this. Only <code class="code docutils literal notranslate"><span class="pre">Service</span></code> and <code class="code docutils literal notranslate"><span class="pre">Deployment</span></code> are defined in
 <code class="code docutils literal notranslate"><span class="pre">prod/discourse-prod.yml</span></code> and therefore only these will be deleted here. This secures persistent data to be
 persistent across deploys.</p>

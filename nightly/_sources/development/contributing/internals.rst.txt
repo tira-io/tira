@@ -5,7 +5,7 @@ Internals
 
 Repository Layout
 -----------------
-.. todo::
+.. todo:: What does the Repository structure look like
 
 Architecture
 ------------

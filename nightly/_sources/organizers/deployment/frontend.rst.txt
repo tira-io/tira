@@ -146,6 +146,7 @@ You will be asked for the following information. You do not actually have to giv
 will pull the information from the `earlier created secret <#secret>`_. You may just supply dummy information.
 
 .. code::
+
     Hostname for your Discourse? [discourse.example.com]: 
     Email address for admin account(s)? [me@example.com,you@example.com]: 
     SMTP server address? [smtp.example.com]: 
@@ -312,6 +313,7 @@ This works the same way, as for the production instance basically.
 Remove the deployment by:
 
 .. code:: bash
+
     prod/k8s-undeploy-discourse-dev.sh
 
 Your volumes will not be removed by this. Only :code:`Service` and :code:`Deployment` are defined in
