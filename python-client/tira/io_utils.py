@@ -26,9 +26,9 @@ def parse_jsonl_line(input: Union[str, bytearray, bytes], load_default_text: boo
         >>> parse_jsonl_line('{"original_query": "xxxx"}', True)
         {}
         >>> parse_jsonl_line('{"original_query": "xxxx", "qid": 42, "pi": 3.14}', False)
-        {'original_query': 'xxxx', 'qid': 42, 'pi', 3.14}
+        {'original_query': 'xxxx', 'qid': 42, 'pi': 3.14}
         >>> parse_jsonl_line('{"original_query": "xxxx", "qid": 42, "pi": 3.14}', True)
-        {'qid': '42', 'pi', 3.14}
+        {'qid': '42', 'pi': 3.14}
     """
     obj = json.loads(input)
     assert isinstance(obj, dict)

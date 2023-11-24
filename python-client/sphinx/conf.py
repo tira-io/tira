@@ -14,9 +14,6 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('../'))
 
-# For doctest
-from tira.io_utils import *
-
 
 # -- Project information -----------------------------------------------------
 
@@ -34,6 +31,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.todo',
     'sphinx.ext.doctest',
+    'sphinx.ext.viewcode',
     'sphinx_toolbox.collapse',
     'myst_parser',
 ]
@@ -41,6 +39,11 @@ extensions = [
 todo_include_todos=True
 python_display_short_literal_types=True
 python_use_unqualified_type_names=True
+viewcode_line_numbers=True
+
+doctest_global_setup = '''
+from tira.io_utils import *
+'''
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

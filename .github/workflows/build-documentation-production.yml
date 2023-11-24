@@ -17,6 +17,7 @@ jobs:
           pip install pandas pyterrier ir_datasets
           cd python-client/sphinx
           # sphinx-apidoc -o . ../tira
+          make doctest
           make html
           touch _build/html/.nojekyll
       - name: Deploy
