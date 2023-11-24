@@ -6,21 +6,19 @@ import os
 from typing import Any, Iterable, Dict, Union
 
 
-def parse_jsonl_line(json: Union[str, bytearray, bytes], load_default_text: bool) -> Dict:
+def parse_jsonl_line(input: Union[str, bytearray, bytes], load_default_text: bool) -> Dict:
 
     """
     Deseralizes the line using JSON deserialization. Optionally strips the 'original_query' and 'original_document'
     fields from the resulting object and converts the qid and docno fields to strings.
 
-    :param str | bytearray | bytes line: A json-serialized string.
+    :param str | bytearray | bytes input: A json-serialized string.
     :param bool load_default_text: If true, the origianl_query and original_document fields are removed and the qid and docno
         values are converted to strings.
     :return: The deserialized and (optionally) processed object.
     :rtype: dict
 
-    .. doctest::
-        :pyversion: > 3.10
-
+    :Example:
         >>> parse_jsonl_line('{}', False)
         {}
         >>> parse_jsonl_line('{"original_query": "xxxx"}', False)
@@ -30,9 +28,9 @@ def parse_jsonl_line(json: Union[str, bytearray, bytes], load_default_text: bool
         >>> parse_jsonl_line('{"original_query": "xxxx", "qid": 42, "pi": 3.14}', False)
         {'original_query': 'xxxx', 'qid': 42, 'pi', 3.14}
         >>> parse_jsonl_line('{"original_query": "xxxx", "qid": 42, "pi": 3.14}', True)
-        {'qid': '42', 'pi', 3.18}
+        {'qid': '42', 'pi', 3.14}
     """
-    obj = json.loads(json)
+    obj = json.loads(input)
     assert isinstance(obj, dict)
     if load_default_text:
         for field_to_del in ['original_query', 'original_document']:

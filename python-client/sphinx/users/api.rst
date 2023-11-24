@@ -1,7 +1,6 @@
 API
 ===
-
-.. todo::
+.. todo:: Add a nice introductory text
 
 tira.io\_utils module
 ---------------------
