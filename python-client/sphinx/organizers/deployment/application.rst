@@ -1,4 +1,4 @@
-Deploying the application module
+Deploying the Application Module
 ================================
 
 Development Setup

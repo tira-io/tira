@@ -1,4 +1,4 @@
-Deploying the frontend
+Deploying the Frontend
 ======================
 
 .. todo::
@@ -258,6 +258,10 @@ exists for the image so you don't override images.
 
 Development environment
 ~~~~~~~~~~~~~~~~~~~~~~~
+.. todo::
+    This section should be moved to an appropriate location in the developer-documentation instead of the
+    organizer-documentation
+
 The discourse development environent contains:
 
 - 1 Service                 (`dev/discourse-dev.yml <https://git.webis.de/code-generic/code-admin-knowledge-base/-/tree/master/services/tira/tira-discourse/dev/discourse-dev.yml>`_)
