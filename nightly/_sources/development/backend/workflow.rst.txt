@@ -1,32 +1,32 @@
 Workflow
 ========
-TODO: add nice introductory text
+.. todo:: add nice introductory text
 
 Getting Started
 -------------
 Initial Setup
 ~~~~~~~~~~~~~
-TODO: how do I start working on TIRA?
+.. todo:: how do I start working on TIRA?
 
 Running TIRA locally
 ~~~~~~~~~~~~~~~~~~~~
-TOOD
+.. todo::
 
 
 Commands
 --------
 Linting
 ~~~~~~~
-TODO
+.. todo::
 
 Unit Tests
 ~~~~~~~~~~
-TODO
+.. todo::
 
 Generating documentation
 ~~~~~~~~~~~~~~~~~~~~~~~~
-TODO
+.. todo::
 
 Releasing a new version
 ~~~~~~~~~~~~~~~~~~~~~~~
-TODO
+.. todo::
