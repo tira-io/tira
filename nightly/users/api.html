@@ -244,6 +244,10 @@
         <article role="main">
           <section id="api">
 <h1>API<a class="headerlink" href="#api" title="Link to this heading">#</a></h1>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>Add a nice introductory text</p>
+</div>
 <section id="module-tira.io_utils">
 <span id="tira-io-utils-module"></span><h2>tira.io_utils module<a class="headerlink" href="#module-tira.io_utils" title="Link to this heading">#</a></h2>
 <dl class="py function">
@@ -258,13 +262,13 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="tira.io_utils.parse_jsonl_line">
-<span class="sig-prename descclassname"><span class="pre">tira.io_utils.</span></span><span class="sig-name descname"><span class="pre">parse_jsonl_line</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">json</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bytearray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bytes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_default_text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span></span></span><a class="headerlink" href="#tira.io_utils.parse_jsonl_line" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">tira.io_utils.</span></span><span class="sig-name descname"><span class="pre">parse_jsonl_line</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bytearray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bytes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_default_text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span></span></span><a class="headerlink" href="#tira.io_utils.parse_jsonl_line" title="Link to this definition">#</a></dt>
 <dd><p>Deseralizes the line using JSON deserialization. Optionally strips the ‘original_query’ and ‘original_document’
 fields from the resulting object and converts the qid and docno fields to strings.</p>
-<dl class="field-list simple">
+<dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>line</strong> (<em>str</em><em> | </em><em>bytearray</em><em> | </em><em>bytes</em>) – A json-serialized string.</p></li>
+<li><p><strong>input</strong> (<em>str</em><em> | </em><em>bytearray</em><em> | </em><em>bytes</em>) – A json-serialized string.</p></li>
 <li><p><strong>load_default_text</strong> (<em>bool</em>) – If true, the origianl_query and original_document fields are removed and the qid and docno
 values are converted to strings.</p></li>
 </ul>
@@ -275,8 +279,8 @@ values are converted to strings.</p></li>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><em>dict</em></p>
 </dd>
-</dl>
-<div class="highlight-pycon notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">parse_jsonl_line</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+<dt class="field-even">Example<span class="colon">:</span></dt>
+<dd class="field-even"><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">parse_jsonl_line</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
 <span class="go">{}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">parse_jsonl_line</span><span class="p">(</span><span class="s1">&#39;{&quot;original_query&quot;: &quot;xxxx&quot;}&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
 <span class="go">{&#39;original_query&#39;: &#39;xxxx&#39;}</span>
@@ -285,9 +289,11 @@ values are converted to strings.</p></li>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">parse_jsonl_line</span><span class="p">(</span><span class="s1">&#39;{&quot;original_query&quot;: &quot;xxxx&quot;, &quot;qid&quot;: 42, &quot;pi&quot;: 3.14}&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
 <span class="go">{&#39;original_query&#39;: &#39;xxxx&#39;, &#39;qid&#39;: 42, &#39;pi&#39;, 3.14}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">parse_jsonl_line</span><span class="p">(</span><span class="s1">&#39;{&quot;original_query&quot;: &quot;xxxx&quot;, &quot;qid&quot;: 42, &quot;pi&quot;: 3.14}&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-<span class="go">{&#39;qid&#39;: &#39;42&#39;, &#39;pi&#39;, 3.18}</span>
+<span class="go">{&#39;qid&#39;: &#39;42&#39;, &#39;pi&#39;, 3.14}</span>
 </pre></div>
 </div>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
