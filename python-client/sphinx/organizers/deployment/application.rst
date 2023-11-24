@@ -3,8 +3,8 @@ Deploying the application module
 
 Development Setup
 -----------------
-The following steps will setup a self-contained, local tira application and a mockup tira host. See
-[Development](#development) for more detailed options. 
+The following steps will setup a self-contained, local tira application and a mockup tira host. See `Development`_ for
+more detailed options. 
 
 .. code:: bash
 
@@ -123,6 +123,7 @@ The settings used for the development setup are: :code:`tira/application/config/
 
 Frequently used development commands are:
 - Start the application without any grpc server
+
 .. code:: bash
     
     application/src~$ python3 manage.py runserver 8080
@@ -139,6 +140,7 @@ Frequently used development commands are:
 
 - Start the application, the application's grpc server, and a mock host grpc server that will reply to the application
 with fake commands. This is the simplest way to develop the application.
+
 .. code:: bash
 
     application/src~$ python3 manage.py run_mockup
