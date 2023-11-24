@@ -12,7 +12,7 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../tira/'))
+sys.path.insert(0, os.path.abspath('../'))
 
 
 # -- Project information -----------------------------------------------------
@@ -30,11 +30,14 @@ author = 'Webis'
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.todo',
+    'sphinx.ext.doctest',
     'sphinx_toolbox.collapse',
     'myst_parser',
 ]
 
 todo_include_todos=True
+python_display_short_literal_types=True
+python_use_unqualified_type_names=True
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

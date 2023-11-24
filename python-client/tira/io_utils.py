@@ -3,21 +3,46 @@ from glob import glob
 import gzip
 import json
 import os
-from typing import Any, Iterable
+from typing import Any, Iterable, Dict, Union
 
 
-def parse_jsonl_line(line: str | bytearray | bytes, load_default_text: bool) -> Any:
-    jsonline = json.loads(line)
+def parse_jsonl_line(json: Union[str, bytearray, bytes], load_default_text: bool) -> Dict:
+
+    """
+    Deseralizes the line using JSON deserialization. Optionally strips the 'original_query' and 'original_document'
+    fields from the resulting object and converts the qid and docno fields to strings.
+
+    :param str | bytearray | bytes line: A json-serialized string.
+    :param bool load_default_text: If true, the origianl_query and original_document fields are removed and the qid and docno
+        values are converted to strings.
+    :return: The deserialized and (optionally) processed object.
+    :rtype: dict
+
+    .. doctest::
+        :pyversion: > 3.10
+
+        >>> parse_jsonl_line('{}', False)
+        {}
+        >>> parse_jsonl_line('{"original_query": "xxxx"}', False)
+        {'original_query': 'xxxx'}
+        >>> parse_jsonl_line('{"original_query": "xxxx"}', True)
+        {}
+        >>> parse_jsonl_line('{"original_query": "xxxx", "qid": 42, "pi": 3.14}', False)
+        {'original_query': 'xxxx', 'qid': 42, 'pi', 3.14}
+        >>> parse_jsonl_line('{"original_query": "xxxx", "qid": 42, "pi": 3.14}', True)
+        {'qid': '42', 'pi', 3.18}
+    """
+    obj = json.loads(json)
+    assert isinstance(obj, dict)
     if load_default_text:
         for field_to_del in ['original_query', 'original_document']:
-            if field_to_del in jsonline:
-                del jsonline[field_to_del]
+            obj.pop(field_to_del, None)
 
         for field_to_str in ['qid', 'docno']:
-            if field_to_str in jsonline:
-                jsonline[field_to_str] = str(jsonline[field_to_str])
+            if field_to_str in obj:
+                obj[field_to_str] = str(obj[field_to_str])
 
-    return jsonline
+    return obj
 
 
 def stream_all_lines(input_file, load_default_text):

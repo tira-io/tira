@@ -3,14 +3,14 @@ Workflow
 .. todo:: add nice introductory text
 
 Getting Started
--------------
+---------------
 Initial Setup
 ~~~~~~~~~~~~~
 .. todo:: how do I start working on TIRA?
 
 Running TIRA locally
 ~~~~~~~~~~~~~~~~~~~~
-.. todo::
+.. todo:: How to run TIRA locally
 
 
 Commands
@@ -45,4 +45,4 @@ From within the `python-client/sphynx` directory run
 
 Releasing a new version
 ~~~~~~~~~~~~~~~~~~~~~~~
-.. todo::
+.. todo:: How to release a new version

@@ -113,16 +113,16 @@ class Client(TiraClient):
 
     def submissions_with_evaluation_or_none(self, task, dataset, team, software):
         """ This method returns all runs of the specified software in the task on the dataset by the team.
-            This is especially suitable to batch evaluate all submissions of the software because the evaluation is none if no successfull evaluation was conducted (or there is a new evaluator).
-            E.g., by code like:
+        This is especially suitable to batch evaluate all submissions of the software because the evaluation is none if no successfull evaluation was conducted (or there is a new evaluator).
+        E.g., by code like:
 
-            ```
+        .. code:: py
+
             for approach in ['approach-1', ..., 'approach-n]:
                 runs_for_approach = tira.submissions_with_evaluation_or_none(task, dataset, team, approach)
                 for i in runs_for_approach:
                     if not i['evaluation']:
                         tira.evaluate_run(team, dataset, i['run_id'])
-            ```
         """
         submissions = self.submissions(task, dataset)
         evaluations = self.evaluations(task, dataset, join_submissions=False)
@@ -281,7 +281,8 @@ class Client(TiraClient):
         
         This is especially suitable to batch add all submissions of submissions, e.g., by code like:
 
-            ```
+        .. code:: py
+
             for approach in ['approach-1', ..., 'approach-n]:
                 runs_for_approach = tira.submissions_with_evaluation_or_none(task, dataset, team, approach)
                 for i in runs_for_approach:

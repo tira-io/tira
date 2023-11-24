@@ -89,6 +89,7 @@ have a directory :code:`tira-sample-input` with the sample data in the git repos
 following documentation (replace the placeholders with the correct values) to your README:
 
 .. code::
+
     You can test docker images that you would submit to TIRA locally via `tira-run`. 
     The `tira-run` commands executes a software as it would be executed in TIRA (i.e., with sandboxing using the same command pattern).
 
