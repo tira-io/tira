@@ -241,8 +241,8 @@
 <h1>Deploying the application module<a class="headerlink" href="#deploying-the-application-module" title="Link to this heading">#</a></h1>
 <section id="development-setup">
 <h2>Development Setup<a class="headerlink" href="#development-setup" title="Link to this heading">#</a></h2>
-<p>The following steps will setup a self-contained, local tira application and a mockup tira host. See
-[Development](#development) for more detailed options.</p>
+<p>The following steps will setup a self-contained, local tira application and a mockup tira host. See <a class="reference internal" href="#development">Development</a> for
+more detailed options.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install Python3, pip and virtualenv</span>
 sudo<span class="w"> </span>apt-get<span class="w"> </span>update<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>python3<span class="w"> </span>python3-pip<span class="w"> </span>python3-venv<span class="w"> </span>libmysqlclient-dev
@@ -402,11 +402,10 @@ make<span class="w"> </span>docker-publish-tira-application
 <h3>Development<a class="headerlink" href="#development" title="Link to this heading">#</a></h3>
 <p>The settings used for the development setup are: <code class="code docutils literal notranslate"><span class="pre">tira/application/config/settings-dev.yml</span></code>.</p>
 <p>Frequently used development commands are:
-- Start the application without any grpc server
-.. code:: bash</p>
-<blockquote>
-<div><p>application/src~$ python3 manage.py runserver 8080</p>
-</div></blockquote>
+- Start the application without any grpc server</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>application/src~$<span class="w"> </span>python3<span class="w"> </span>manage.py<span class="w"> </span>runserver<span class="w"> </span><span class="m">8080</span>
+</pre></div>
+</div>
 <ul class="simple">
 <li><p>Start only the application’s grpc server</p></li>
 </ul>
@@ -422,11 +421,10 @@ make<span class="w"> </span>docker-publish-tira-application
 <ul class="simple">
 <li><p>Start the application, the application’s grpc server, and a mock host grpc server that will reply to the application</p></li>
 </ul>
-<p>with fake commands. This is the simplest way to develop the application.
-.. code:: bash</p>
-<blockquote>
-<div><p>application/src~$ python3 manage.py run_mockup</p>
-</div></blockquote>
+<p>with fake commands. This is the simplest way to develop the application.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>application/src~$<span class="w"> </span>python3<span class="w"> </span>manage.py<span class="w"> </span>run_mockup
+</pre></div>
+</div>
 </section>
 </section>
 <section id="troubleshooting">
