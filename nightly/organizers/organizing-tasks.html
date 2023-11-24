@@ -2,7 +2,7 @@
 <html class="no-js" lang="en" data-content_root="../">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Deployment" href="deployment/index.html" /><link rel="prev" title="Frequently Asked Questions" href="../users/faq.html" />
 
     <!-- Generated with Sphinx 7.2.6 and Furo 2023.09.10 -->
@@ -10,6 +10,7 @@
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=36a5483c" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=f683db87" />
     
     
 
@@ -134,7 +135,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -231,7 +232,7 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <div class="visually-hidden">Toggle table of contents sidebar</div>
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
@@ -239,6 +240,242 @@
         <article role="main">
           <section id="organizing-tasks">
 <h1>Organizing Tasks<a class="headerlink" href="#organizing-tasks" title="Link to this heading">#</a></h1>
+<section id="get-a-reviewer-account">
+<h2>Get a reviewer account<a class="headerlink" href="#get-a-reviewer-account" title="Link to this heading">#</a></h2>
+<p>Create an account at <a class="reference external" href="https://www.tira.io/">tira.io</a> and ask an admin to add you to the
+<a class="reference external" href="https://www.tira.io/g/tira_reviewer">tira_reviewer</a> group.</p>
+</section>
+<section id="create-edit-your-organization">
+<h2>Create/Edit your Organization<a class="headerlink" href="#create-edit-your-organization" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Click on “Edit Organization” to add / edit your organization.</p></li>
+<li><p>In the “Edit Organization” modal, you can specify the credentials for your git integration that is used as backend in
+your tasks</p></li>
+</ul>
+</section>
+<section id="create-a-docker-image-for-your-evaluator">
+<h2>Create a Docker Image for your Evaluator<a class="headerlink" href="#create-a-docker-image-for-your-evaluator" title="Link to this heading">#</a></h2>
+<p>An evaluator is a software that gets a system’s run and the truth data as input to create the run’s evaluation.</p>
+<p>Evaluators get three variables as input in TIRA:</p>
+<ol class="arabic simple">
+<li><p>the <code class="code docutils literal notranslate"><span class="pre">$inputDataset</span></code> variable contains the ground-truth data,</p></li>
+<li><p>the <code class="code docutils literal notranslate"><span class="pre">$inputRun</span></code> variable contains the to-be-evaluated run, and</p></li>
+<li><p>the <code class="code docutils literal notranslate"><span class="pre">$outputDir</span></code> variable points to the directory at which the evaluator should create the
+<code class="code docutils literal notranslate"><span class="pre">evaluation.prototext</span></code> file containing the evaluation results.</p></li>
+</ol>
+<p>Evaluators should produce helpful guidance for runs that are not valid (e.g., clarify the inconsistency with a message
+printed to stdout instead of failing with an exception). Users can see the output (stdout and stderr) and the evaluation
+results of unblinded evaluations (in case it is a test dataset an admin manually unblinds the evaluation after ensuring
+it does not leak confidential data) or all training/validation evaluations (i.e., evaluations that use a training or
+validation dataset as input).</p>
+<p>Your evaluator must be compiled as a docker image and uploaded to Docker Hub so that TIRA can load your image. Here are
+some recent evaluators that you can use as blueprint for your own evaluator:</p>
+<ul class="simple">
+<li><p>The <a class="reference external" href="https://github.com/tira-io/hf-evaluator">huggingface evaluator</a> is an evaluator that supports all evaluations
+in huggingface evaluate. This should be the default evaluator in most cases.</p></li>
+<li><p>The <a class="reference external" href="https://github.com/touche-webis-de/touche-code/blob/main/clef23/multilingual-stance-classification/evaluation/evaluation.py">evaluator for multilingual stance detection of Touché23</a>
+together with <a class="reference external" href="https://github.com/touche-webis-de/touche-code/tree/main/clef23/multilingual-stance-classification#build-the-evaluator">instructions on how to build the docker image</a></p></li>
+<li><p>The <a class="reference external" href="https://github.com/pan-webis-de/pan-code/blob/master/semeval23/clickbait-spoiling-eval.py">clickbait-spoiling-eval.py</a>
+script used in the Clickbait Spoiling task at SemEval 23 together with <a class="reference external" href="https://github.com/pan-webis-de/pan-code/tree/master/semeval23#development">instructions on how to build the docker image</a>
+and the <a class="reference external" href="https://github.com/pan-webis-de/pan-code/tree/master/semeval23#integration-in-tira">command to add in TIRA</a>.</p></li>
+<li><p>The <a class="reference external" href="https://github.com/touche-webis-de/touche-code/tree/main/semeval23/human-value-detection/evaluator">ValueEval 2023 evaluator</a>
+used in SemEval-2023.</p></li>
+<li><p><a class="reference external" href="https://github.com/tira-io/ir-experiment-platform/tree/main/ir-measures">ir_measures</a> for the evaluation of IR
+experiments.</p></li>
+</ul>
+</section>
+<section id="add-a-new-task-and-new-datasets-to-tira">
+<h2>Add a new Task and new Datasets to TIRA<a class="headerlink" href="#add-a-new-task-and-new-datasets-to-tira" title="Link to this heading">#</a></h2>
+<p>We assume that you have <a class="reference external" href="#get-a-reviewer-account">a reviewer login to tira</a>, the dataset, and the
+<a class="reference external" href="#create-a-docker-image-for-your-evaluator">evaluator</a> for your task ready.</p>
+<ul class="simple">
+<li><p>Visit the overview of all tasks at <a class="reference external" href="https://www.tira.io/">tira.io</a></p></li>
+<li><p>Click on “Add Task” and fill out the corresponding form (use the Master VM Id that you received during registration,
+e.g., <code class="code docutils literal notranslate"><span class="pre">princess-knight</span></code> was a baseline in Touché)</p></li>
+<li><p>Click on your newly created task</p></li>
+<li><p>Click on “Add a new Dataset” and fill out the corresponding form</p></li>
+<li><p>Navigate to the Evaluator section of your new dataset. Click on “Git CI” to use the CI backend and specify the Docker
+image of the evaluator and the <a class="reference external" href="#create-a-docker-image-for-your-evaluator">evaluation command</a>.</p></li>
+</ul>
+</section>
+<section id="provide-public-baselines-to-simplify-participation">
+<h2>Provide Public Baselines to Simplify Participation<a class="headerlink" href="#provide-public-baselines-to-simplify-participation" title="Link to this heading">#</a></h2>
+<p>In the best case, you provide the code, a published docker image, and instructions on how to compile the code into a docker image to simplify participation in your shared tasks.</p>
+<p>We have some examples on baselines that you can adopt for your shared task, e.g.:</p>
+<ul class="simple">
+<li><p>The <a class="reference external" href="https://github.com/pan-webis-de/pan-code/tree/master/semeval23/baselines">clickbait spoiling baselines from SemEval-2023</a></p></li>
+<li><p>The <a class="reference external" href="https://github.com/touche-webis-de/touche-code/tree/main/semeval23/human-value-detection/1-baseline">ValueEval baseline from SemEval-2023</a></p></li>
+<li><p>The baselines for <a class="reference external" href="https://github.com/touche-webis-de/touche-code/tree/main/clef23/evidence-retrieval-for-causal-questions/baseline-pyterrier">Touché-2023 at CLEF</a></p></li>
+<li><p>The baseline for <a class="reference external" href="https://github.com/pan-webis-de/pan-code/tree/master/clef23/trigger-detection/baselines">PAN-2023 at CLEF</a></p></li>
+</ul>
+<p>To simplify testing software submissions locally before they are uploaded to TIRA, we provide a <code class="code docutils literal notranslate"><span class="pre">tira-run</span></code> command
+that participants can use to test their image locally. The <code class="code docutils literal notranslate"><span class="pre">tira-run</span></code> commands executes a software as it would be
+executed in TIRA.</p>
+<p>You can find some examples of shared tasks that use <code class="code docutils literal notranslate"><span class="pre">tira-run</span></code> in their baselines to simplify participation here:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/touche-webis-de/touche-code/tree/main/clef23/evidence-retrieval-for-causal-questions/baseline-pyterrier">https://github.com/touche-webis-de/touche-code/tree/main/clef23/evidence-retrieval-for-causal-questions/baseline-pyterrier</a></p></li>
+<li><p><a class="reference external" href="https://github.com/touche-webis-de/touche-code/tree/main/clef23/multilingual-stance-classification">https://github.com/touche-webis-de/touche-code/tree/main/clef23/multilingual-stance-classification</a></p></li>
+</ul>
+<p>We recommend that you have for all of your baselines an <code class="code docutils literal notranslate"><span class="pre">tira-run</span></code> example so that you can point participants to
+this example if their software submission fails in TIRA. For this, you need:</p>
+<ul class="simple">
+<li><p>The baseline should be publicly available, e.g., at Dockerhub</p></li>
+<li><p>You need a small sample of the data (can be artificial, but must have the same structure/format as the test data)</p></li>
+</ul>
+<p>Assuming that you have published the baseline for your task at dockerhub under the name <code class="code docutils literal notranslate"><span class="pre">&lt;DOCKER_IMAGE_BASELINE&gt;</span></code>
+and that the baseline is executed via the command <code class="code docutils literal notranslate"><span class="pre">&lt;BASELINE_SOFTWARE_COMMAND&gt;</span></code> inside the container and that you
+have a directory <code class="code docutils literal notranslate"><span class="pre">tira-sample-input</span></code> with the sample data in the git repository of your baseline, you can add the
+following documentation (replace the placeholders with the correct values) to your README:</p>
+<section id="modifying-virtual-machines">
+<h3>Modifying virtual machines<a class="headerlink" href="#modifying-virtual-machines" title="Link to this heading">#</a></h3>
+<ul>
+<li><p>Login to the machine where the VM exists (<code class="code docutils literal notranslate"><span class="pre">ssh</span> <span class="pre">tira&#64;betawebXYZ`</span></code>)</p></li>
+<li><p>Locate the complete <code class="code docutils literal notranslate"><span class="pre">[vmName]</span></code> from <code class="code docutils literal notranslate"><span class="pre">tira/model/users/[users].prototext</span></code>.</p></li>
+<li><dl>
+<dt>RAM</dt><dd><p>On dockerized tira hosts: enter the docker container. You can do this using:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-ti<span class="w"> </span><span class="k">$(</span>docker<span class="w"> </span>ps<span class="p">|</span>grep<span class="w"> </span><span class="s1">&#39;tira-io/tira-host&#39;</span><span class="p">|</span>awk<span class="w"> </span><span class="s1">&#39;{print $1}&#39;</span><span class="k">)</span><span class="w"> </span>bash
+</pre></div>
+</div>
+<p>Then run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tira<span class="w"> </span>vm-shutdown<span class="w"> </span><span class="o">[</span>userId<span class="o">]</span>
+VBoxManage<span class="w"> </span>modifyvm<span class="w"> </span><span class="o">[</span>vmName<span class="o">]</span><span class="w"> </span>--memory<span class="w"> </span><span class="o">[</span>MBs<span class="o">]</span>
+tira<span class="w"> </span>vm-start<span class="w"> </span><span class="o">[</span>userId<span class="o">]</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>CPUs</dt><dd><p>On dockerized tira hosts: enter the docker container. You can do this using:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-ti<span class="w"> </span><span class="k">$(</span>docker<span class="w"> </span>ps<span class="p">|</span>grep<span class="w"> </span><span class="s1">&#39;tira-io/tira-host&#39;</span><span class="p">|</span>awk<span class="w"> </span><span class="s1">&#39;{print $1}&#39;</span><span class="k">)</span><span class="w"> </span>bash
+</pre></div>
+</div>
+<p>Then run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tira<span class="w"> </span>vm-shutdown<span class="w"> </span><span class="o">[</span>userId<span class="o">]</span>
+VBoxManage<span class="w"> </span>modifyvm<span class="w"> </span><span class="o">[</span>vmName<span class="o">]</span><span class="w"> </span>--cpus<span class="w"> </span><span class="o">[</span>number<span class="o">]</span>
+tira<span class="w"> </span>vm-start<span class="w"> </span><span class="o">[</span>userId<span class="o">]</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>HDD space (read/write from VM, is sandboxed along with VM)</dt><dd><p>On dockerized tira hosts: enter the docker container. You can do this using:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-ti<span class="w"> </span><span class="k">$(</span>docker<span class="w"> </span>ps<span class="p">|</span>grep<span class="w"> </span><span class="s1">&#39;tira-io/tira-host&#39;</span><span class="p">|</span>awk<span class="w"> </span><span class="s1">&#39;{print $1}&#39;</span><span class="k">)</span><span class="w"> </span>bash
+</pre></div>
+</div>
+<p>Then run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>/home/tira/VirtualBox<span class="se">\ </span>VMs/<span class="o">[</span>virtualMachineId<span class="o">]</span>
+tira<span class="w"> </span>vm-stop<span class="w"> </span><span class="k">$(</span>basename<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$PWD</span><span class="s2">&quot;</span><span class="k">)</span>
+VBoxManage<span class="w"> </span>createhd<span class="w"> </span>--filename<span class="w"> </span>data.vmdk<span class="w"> </span>--format<span class="w"> </span>VMDK<span class="w"> </span>--size<span class="w"> </span><span class="o">[</span>MBs<span class="o">]</span>
+<span class="c1"># In the following: if &quot;SATA&quot; does not work, try &quot;SATA Controller&quot; or &quot;SATAController&quot;</span>
+VBoxManage<span class="w"> </span>storageattach<span class="w"> </span><span class="k">$(</span>basename<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$PWD</span><span class="s2">&quot;</span><span class="k">)</span><span class="w"> </span>--storagectl<span class="w"> </span><span class="s2">&quot;SATA&quot;</span><span class="w"> </span>--port<span class="w"> </span><span class="m">1</span><span class="w"> </span>--type<span class="w"> </span>hdd<span class="w"> </span>--medium<span class="w"> </span>data.vmdk
+tira<span class="w"> </span>vm-start<span class="w"> </span><span class="k">$(</span>basename<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$PWD</span><span class="s2">&quot;</span><span class="k">)</span>
+tira<span class="w"> </span>vm-ssh<span class="w"> </span><span class="k">$(</span>basename<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$PWD</span><span class="s2">&quot;</span><span class="k">)</span>
+</pre></div>
+</div>
+<p>Use <code class="code docutils literal notranslate"><span class="pre">fdisk</span> <span class="pre">-l</span></code> to check that the new partition is indeed “/dev/sdb”. Adjust below instructions otherwise.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>parted<span class="w"> </span>-s<span class="w"> </span>-a<span class="w"> </span>optimal<span class="w"> </span>/dev/sdb<span class="w"> </span>mklabel<span class="w"> </span>gpt<span class="w"> </span>--<span class="w"> </span>mkpart<span class="w"> </span>primary<span class="w"> </span>ext4<span class="w"> </span><span class="m">1</span><span class="w"> </span>-1
+sudo<span class="w"> </span>mkfs<span class="w"> </span>-t<span class="w"> </span>ext4<span class="w"> </span>/dev/sdb1
+sudo<span class="w"> </span>mkdir<span class="w"> </span>/mnt/data
+sudo<span class="w"> </span>nano<span class="w"> </span>/etc/fstab&lt;/code&gt;<span class="w"> </span>and<span class="w"> </span>add<span class="w"> </span>&lt;code&gt;/dev/sdb1<span class="w"> </span>/mnt/data<span class="w"> </span>ext4<span class="w"> </span>defaults<span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">2</span>
+sudo<span class="w"> </span>mount<span class="w"> </span>/dev/sdb1
+</pre></div>
+</div>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>HDD space (read-only from VM, is not sandboxed)</dt><dd><p>Follow <a class="reference external" href="https://git.webis.de/code-generic/code-saltstack/blob/master/src/srv/salt/pillars/tira-sftp-users.sls">these instructions</a>.
+Then run</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tira<span class="w"> </span>vm-shutdown<span class="w"> </span><span class="o">[</span>userId<span class="o">]</span>
+VBoxManage<span class="w"> </span>sharedfolder<span class="w"> </span>add<span class="w"> </span><span class="o">[</span>virtualMachineId<span class="o">]</span><span class="w"> </span>--name<span class="w"> </span>data<span class="w"> </span>--hostpath<span class="w"> </span>/home/<span class="o">[</span>userId<span class="o">]</span>/data<span class="w"> </span>--readonly<span class="w"> </span>--automount
+tira<span class="w"> </span>vm-start<span class="w"> </span><span class="o">[</span>userId<span class="o">]</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This allows connections by SFTP, but not by SSH (as the home directory is not writable)</p>
+</div>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+</section>
+<section id="moderate-a-task">
+<h2>Moderate a Task:<a class="headerlink" href="#moderate-a-task" title="Link to this heading">#</a></h2>
+<ol class="arabic simple">
+<li><p>Log in to tira.io with a reviewer account.</p></li>
+<li><p>(optional) Add a new organizer using <code class="code docutils literal notranslate"><span class="pre">Add</span> <span class="pre">organizer</span></code> on the website.</p></li>
+<li><p>Create a master-vm (see <a class="reference internal" href="#set-up-the-master-vm">Set up the master VM</a>)</p></li>
+<li><p>Reload the VMs on the Admin Panel on the website.</p></li>
+<li><p>Add a new task using <code class="code docutils literal notranslate"><span class="pre">Add</span> <span class="pre">Task</span></code> on the website. Requires a master-vm</p></li>
+<li><p>Add a new dataset using <code class="code docutils literal notranslate"><span class="pre">Add</span> <span class="pre">Dataset</span></code> on the page of the respective task. You can also add the evaluator data
+during this step.</p></li>
+<li><p>Install the evaluator on the master-vm in accordance to the data entered during step. 6</p></li>
+</ol>
+<section id="set-up-the-master-vm">
+<h3>Set up the master VM<a class="headerlink" href="#set-up-the-master-vm" title="Link to this heading">#</a></h3>
+<ol class="arabic">
+<li><p>Create the virtual machine using <code class="code docutils literal notranslate"><span class="pre">tira</span> <span class="pre">vm-create</span></code>. The name should end with <em>-master</em>.</p></li>
+<li><p>Connect to the TIRA host container:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-ti<span class="w"> </span><span class="k">$(</span>docker<span class="w"> </span>ps<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s1">&#39;tira-io/tira-host&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">&#39;{print $1}&#39;</span><span class="k">)</span><span class="w"> </span>bash
+</pre></div>
+</div>
+</li>
+<li><p>Give yourself permission to the VM’s group on tira.io (if you followed [the instructions](#get-a-reviewer-account))</p></li>
+<li><p>Give the master VM access to the test and truth directories.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>vboxmanage<span class="w"> </span>sharedfolder<span class="w"> </span>add<span class="w"> </span><span class="o">[</span>virtualMachineId<span class="o">]</span><span class="w"> </span>--name<span class="w"> </span><span class="o">[</span>typeDirectory<span class="o">]</span><span class="w"> </span>--hostpath<span class="w"> </span><span class="o">[</span>typeDirectoryPath<span class="o">]</span><span class="w"> </span>--readonly<span class="w"> </span>--automount
+</pre></div>
+</div>
+<p>This should be done for <strong>training-datasets-truth, test-datasets, and test-datasets-truth</strong></p>
+</li>
+</ol>
+</section>
+<section id="local-installation-of-the-tira-command-on-your-machine">
+<h3>Local installation of the tira command on your machine<a class="headerlink" href="#local-installation-of-the-tira-command-on-your-machine" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Navigate to <code class="code docutils literal notranslate"><span class="pre">/usr/local/share/</span></code></p></li>
+<li><p>Clone the tira repository: <code class="code docutils literal notranslate"><span class="pre">git</span> <span class="pre">clone</span> <span class="pre">git&#64;github.com:tira-io/tira.git</span></code></p></li>
+<li><p>Add the tira cmd to your PATH: <code class="code docutils literal notranslate"><span class="pre">ln</span> <span class="pre">-s</span> <span class="pre">/usr/local/share/tira/tira-host/src/tira_scripts/tira.sh</span> <span class="pre">/usr/local/bin/tira</span></code></p></li>
+<li><p>Test your local installation: The execution of <code class="code docutils literal notranslate"><span class="pre">tira</span> <span class="pre">k8s</span> <span class="pre">hostname</span> <span class="pre">-s</span></code> should print the name of the pod to the
+console (something like <code class="code docutils literal notranslate"><span class="pre">tira-bg-web-client-7c76f8bb8f-dmfwv</span></code>).</p></li>
+</ul>
+</section>
+<section id="troubleshooting">
+<h3>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading">#</a></h3>
+<details class="summary-changes-do-not-show-up-on-the-website">
+<summary>Changes do not show up on the website</summary><p>Go to <a class="reference external" href="https://tira.io/tira-admin">tira-admin</a> and then to <code class="code docutils literal notranslate"><span class="pre">System</span> <span class="pre">Actions</span> <span class="pre">&gt;</span> <span class="pre">Reload</span> <span class="pre">Data</span></code>.</p>
+</details><details class="summary-error-on-creating-a-virtual-machine-code-vboxnetadpctl-error-while-adding-new-interface-failed-to-open-dev-vboxnetctl-no-such-file-or-directory-usually-comes-with-an-error-on-vm-start-code-nonexistent-host-networking-interface-name-vboxnetxx">
+<summary>Error on creating a virtual machine: :code:`VBoxNetAdpCtl: Error while adding new interface: failed to open /dev/vboxnetctl: No such file or directory`,
+usually comes with an error on vm start: :code:`Nonexistent host networking interface, name 'vboxnetXX'`.</summary><ul class="simple">
+<li><p>Log in as webis</p></li>
+<li><p>Check if /dev/vboxnetctl exists &lt;code&gt;ls /dev/vboxnetctl&lt;/code&gt;. If not, proceed. If yes, there is a different
+error.</p></li>
+<li><p>Run &lt;code&gt;sudo modprobe vboxnetadp&lt;/code&gt;</p></li>
+<li><p>Run &lt;code&gt;sudo modprobe vboxpci&lt;/code&gt; (needs to be a separate call like here!)</p></li>
+<li><p>To check if VMs are running run &lt;code&gt;sudo -H -u tira VBoxManage list runningvms&lt;/code&gt;</p></li>
+<li><p>If so, run &lt;code&gt;tira stop&lt;/code&gt;</p></li>
+<li><p>Wait a few seconds</p></li>
+<li><p>Run &lt;code&gt;sudo service vboxdrv restart&lt;/code&gt;</p></li>
+<li><p>Run &lt;code&gt;tira start&lt;/code&gt;</p></li>
+</ul>
+</details><details class="summary-a-virtual-machine-does-not-code-tira-vm-start-with-error-code-is-not-a-valid-username-vmname">
+<summary>A virtual machine does not :code:`tira vm-start` with error :code:`is not a valid username/vmname`.</summary><p>The <code class="code docutils literal notranslate"><span class="pre">vbox</span></code> file might be lost. Go to <code class="code docutils literal notranslate"><span class="pre">/home/tira/VirtualBox</span> <span class="pre">VMs/**vm-name**</span></code>. If there is a
+<code class="code docutils literal notranslate"><span class="pre">.vbox-prev</span></code> but no <code class="code docutils literal notranslate"><span class="pre">.vbox</span></code> file, copy the former to create the latter (effectivley restoring it).</p>
+</details><details class="summary-read-only-file-system-in-a-virtual-machine">
+<summary>Read-only file system in a virtual machine.</summary><p>Restart the virtual machine</p>
+</details><details class="summary-a-virtual-machine-has-code-media-training-datasets-not-mounted">
+<summary>A virtual machine has :code:`/media/training-datasets/` not mounted.</summary><p>On betaweb020:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>salt<span class="w"> </span><span class="s1">&#39;**server**&#39;</span><span class="w"> </span>state.apply<span class="w"> </span>tira
+</pre></div>
+</div>
+<p>Then maybe it is needed to restart the VM</p>
+</details><details class="summary-prometheus-says-there-are-errors-in-code-vboxmanage-list-vms-long">
+<summary>Prometheus says there are errors in :code:`vboxmanage list vms --long`</summary><p>Perform maintenance: “Removal of inaccessible VMs”</p>
+</details></section>
+</section>
 </section>
 
         </article>
@@ -291,8 +528,40 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Organizing Tasks</a><ul>
+<li><a class="reference internal" href="#get-a-reviewer-account">Get a reviewer account</a></li>
+<li><a class="reference internal" href="#create-edit-your-organization">Create/Edit your Organization</a></li>
+<li><a class="reference internal" href="#create-a-docker-image-for-your-evaluator">Create a Docker Image for your Evaluator</a></li>
+<li><a class="reference internal" href="#add-a-new-task-and-new-datasets-to-tira">Add a new Task and new Datasets to TIRA</a></li>
+<li><a class="reference internal" href="#provide-public-baselines-to-simplify-participation">Provide Public Baselines to Simplify Participation</a><ul>
+<li><a class="reference internal" href="#modifying-virtual-machines">Modifying virtual machines</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#moderate-a-task">Moderate a Task:</a><ul>
+<li><a class="reference internal" href="#set-up-the-master-vm">Set up the master VM</a></li>
+<li><a class="reference internal" href="#local-installation-of-the-tira-command-on-your-machine">Local installation of the tira command on your machine</a></li>
+<li><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>
