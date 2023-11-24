@@ -6,8 +6,8 @@ Virtual Machine Backup
 There are two steps to backing up a virtual machine: Backing up the appliance, and backing up all user metadata
 associated with that machine on TIRA.
 
-Backing up the appliance:
-~~~~~~~~~~~~~~~~~~~~~~~~~
+Backing up the appliance
+~~~~~~~~~~~~~~~~~~~~~~~~
 Run the following command on the host where the machine is hosted
 
 .. code:: bash
@@ -22,8 +22,8 @@ Now delete the machine from the host by running:
 
     tira vm-delete vmname
 
-Backing up the appliance:
-~~~~~~~~~~~~~~~~~~~~~~~~~
+Backing up the appliance
+~~~~~~~~~~~~~~~~~~~~~~~~
 Backup all user metadata by running:
 
 .. code:: bash
@@ -104,8 +104,8 @@ follow these steps:
 
 Helpful commands
 ----------------
-Recreate size files:
-~~~~~~~~~~~~~~~~~~~~
+Recreate size files
+~~~~~~~~~~~~~~~~~~~
 
 .. code:: bash
 
@@ -117,8 +117,8 @@ Recreate size files:
     fi
     done
 
-Recreate file-list files:
-~~~~~~~~~~~~~~~~~~~~~~~~~
+Recreate file-list files
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: bash
 
@@ -128,8 +128,8 @@ Recreate file-list files:
     fi
     done
 
-Exchange strings:
-~~~~~~~~~~~~~~~~~
+Exchange strings
+~~~~~~~~~~~~~~~~
 
 .. code:: bash
 
