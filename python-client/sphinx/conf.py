@@ -30,6 +30,7 @@ author = 'Webis'
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.todo',
+    'sphinx_toolbox.collapse',
     'myst_parser',
 ]
 
@@ -79,3 +80,7 @@ html_theme_options: Dict[str, Any] = {
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+html_css_files = [
+    'css/custom.css',
+]
