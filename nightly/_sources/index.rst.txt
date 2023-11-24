@@ -17,6 +17,7 @@ TIRA is a platform for experiments in artificial intelligence that ensures blind
    :hidden:
 
    organizers/organizing-tasks
+   organizers/maintenance
    organizers/faq
 
 .. toctree::
