@@ -543,7 +543,7 @@ def add_software_submission_git_repository(request, task_id, vm_id):
 @check_permissions
 def get_software_submission_git_repository(request, task_id, vm_id):
     try:
-        if not model.load_docker_data(task_id, vm_id, cache, force_cache_refresh=False):
+        if task_id not in settings.CODE_SUBMISSION_REFERENCE_REPOSITORIES or not model.load_docker_data(task_id, vm_id, cache, force_cache_refresh=False):
             return JsonResponse({'status': 0, "context": {'disabled': True}})
 
         return JsonResponse({'status': 0, "context": model.get_submission_git_repo(vm_id, task_id)})

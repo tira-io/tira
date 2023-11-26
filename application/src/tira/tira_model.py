@@ -196,7 +196,7 @@ def get_submission_git_repo(vm_id, task_id, disraptor_user=None, external_owner=
     docker_data = load_docker_data(task_id, vm_id, cache, force_cache_refresh=False)
     docker_registry_user = docker_data['docker_registry_user']
     docker_registry_token = docker_data['docker_registry_token']
-    reference_repository = settings.CODE_SUBMISSION_REFERENCE_REPOSITORY
+    reference_repository = settings.CODE_SUBMISSION_REFERENCE_REPOSITORIES[task_id]
     disraptor_description = disraptor_user + '-repo-' + task_id + '-' + vm_id
     discourse_api_key = discourse_api_client().generate_api_key(disraptor_user, disraptor_description)
 
@@ -231,7 +231,7 @@ def get_submission_git_repo(vm_id, task_id, disraptor_user=None, external_owner=
 def git_pipeline_is_enabled_for_task(task_id, cache, force_cache_refresh=False):
     evaluators_for_task = get_evaluators_for_task(task_id, cache, force_cache_refresh)
     git_runners_for_task = [i['is_git_runner'] for i in evaluators_for_task]
-        
+
     # We enable the docker part only if all evaluators use the docker variant.
     return len(git_runners_for_task) > 0 and all(i for i in git_runners_for_task)
 
