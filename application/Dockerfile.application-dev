@@ -1,4 +1,4 @@
-# docker build -t webis/tira-application:basis-0.0.93 -f Dockerfile.application-dev .
+# docker build -t webis/tira-application:basis-0.0.94 -f Dockerfile.application-dev .
 FROM ubuntu:22.04
 
 RUN apt-get update \
@@ -50,4 +50,6 @@ RUN chown -R tira:tira /usr/local && \
 	touch /mnt/ceph/tira/state/tira_vm_states.sqlite3 &&\
 	chown tira:tira -R /home/tira &&\
 	chown tira:tira -R /tira
+
+RUN pip3 install tira==0.0.97 ir-measures==0.3.1
 

@@ -30,3 +30,7 @@ def test_extraction_of_entrypoint():
 
     assert actual == expected
 
+#def test_execution_of_software():
+#    tira = Client()
+#    tira.run(image='bash:alpine3.16', command='sleep 2s;', input_dir="/tmp/input", output_dir="/tmp/output")
+

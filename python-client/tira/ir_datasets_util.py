@@ -12,6 +12,10 @@ try:
 except ImportError:
     pass
 
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .tira_client import TiraClient
+
 
 class TirexQuery(NamedTuple):
     query_id: str
@@ -231,7 +235,7 @@ def static_ir_dataset(directory, existing_ir_dataset=None):
 def ir_dataset_from_tira_fallback_to_original_ir_datasets():
     from ir_datasets.datasets.base import Dataset
 
-    def get_download_dir_from_tira(tira_path, truth_dataset):
+    def get_download_dir_from_tira(tira_path, truth_dataset) -> "TiraClient":
         if len(tira_path.split('/')) != 2:
             logging.info(f'Please pass tira_path as <task>/<tira-dataset>. Got {tira_path}')
             raise ValueError(f'Please pass tira_path as <task>/<tira-dataset>. Got {tira_path}')

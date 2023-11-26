@@ -4,7 +4,7 @@ import os
 import unittest
 
 
-# TODO: this file still uses "unclean" assertions and should be converted to use unittest assertions
+# .. todo:: this file still uses "unclean" assertions and should be converted to use unittest assertions
 
 class TestIRDatasets(unittest.TestCase):
 

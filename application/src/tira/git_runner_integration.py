@@ -27,8 +27,9 @@ import requests
 logger = logging.getLogger('tira')
 
 
-def normalize_file(file_content, tira_user_name):
-    return file_content.replace('TIRA_USER_FOR_AUTOMATIC_REPLACEMENT', tira_user_name)
+def normalize_file(file_content, tira_user_name, task_id):
+    return file_content.replace('TIRA_USER_FOR_AUTOMATIC_REPLACEMENT', tira_user_name)\
+        .replace('TIRA_TASK_ID_FOR_AUTOMATIC_REPLACEMENT', task_id)
 
 
 def convert_size(size_bytes):
@@ -1216,9 +1217,7 @@ class GithubRunner(GitRunner):
         repo.create_secret('TIRA_DOCKER_REGISTRY_USER', dockerhub_user)
         repo.create_secret('TIRA_CLIENT_TOKEN', tira_client_token)
         repo.create_secret('TIRA_CLIENT_USER', tira_client_user)
-        repo.create_secret('TIRA_TASK_ID', tira_task_id)
         repo.create_secret('TIRA_CODE_REPOSITORY_ID', tira_code_repository_id)
-        repo.create_secret('TIRA_VM_ID', tira_user_name)
 
         contents = reference_repo.get_contents(repository_search_prefix)
         while contents:
@@ -1227,7 +1226,7 @@ class GithubRunner(GitRunner):
                 contents.extend(reference_repo.get_contents(file_content.path))
             else:
                 decoded_content = file_content.decoded_content.decode()
-                decoded_content = normalize_file(decoded_content, tira_user_name)
+                decoded_content = normalize_file(decoded_content, tira_user_name, tira_task_id)
                 repo.create_file(file_content.path, 'Initial Commit.', decoded_content)
 
         return repo

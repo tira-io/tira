@@ -12,7 +12,7 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../tira/'))
+sys.path.insert(0, os.path.abspath('../'))
 
 
 # -- Project information -----------------------------------------------------
@@ -29,8 +29,21 @@ author = 'Webis'
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.todo',
+    'sphinx.ext.doctest',
+    'sphinx.ext.viewcode',
+    'sphinx_toolbox.collapse',
     'myst_parser',
 ]
+
+todo_include_todos=True
+python_display_short_literal_types=True
+python_use_unqualified_type_names=True
+viewcode_line_numbers=True
+
+doctest_global_setup = '''
+from tira.io_utils import *
+'''
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -50,6 +63,7 @@ html_theme = 'furo'
 html_title = 'TIRA'
 language = 'en'
 
+html_logo = "https://github.com/tira-io/tira-branding/raw/master/tira-icons/logo-tira-120x120-transparent.png"
 html_theme_options: Dict[str, Any] = {
     "footer_icons": [
         {
@@ -66,6 +80,8 @@ html_theme_options: Dict[str, Any] = {
     "source_repository": "https://github.com/tira-io/tira",
     "source_branch": "development",
     "source_directory": "python-client/sphinx",
+    "sidebar_hide_name": True,
+    "navigation_with_keys": True,
 }
 
 
@@ -73,3 +89,7 @@ html_theme_options: Dict[str, Any] = {
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+html_css_files = [
+    'css/custom.css',
+]
