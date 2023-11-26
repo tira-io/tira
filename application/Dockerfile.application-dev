@@ -51,5 +51,5 @@ RUN chown -R tira:tira /usr/local && \
 	chown tira:tira -R /home/tira &&\
 	chown tira:tira -R /tira
 
-RUN pip3 install tira==0.0.93 ir-measures
+RUN pip3 install tira==0.0.97 ir-measures==0.3.1
 
