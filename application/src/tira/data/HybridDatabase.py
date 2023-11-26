@@ -1048,10 +1048,19 @@ class HybridDatabase(object):
         except:
             return None
 
-        if 'TIRA_JUPYTER_NOTEBOOK' not in build_environment or 'GITHUB_REPOSITORY' not in build_environment or 'GITHUB_WORKFLOW' not in build_environment or 'GITHUB_SHA' not in build_environment:
+        if 'GITHUB_REPOSITORY' not in build_environment or 'GITHUB_WORKFLOW' not in build_environment or 'GITHUB_SHA' not in build_environment:
             return None
 
-        if build_environment['GITHUB_WORKFLOW'] == ".github/workflows/upload-notebook-submission.yml":
+        if build_environment['GITHUB_WORKFLOW'] == "Upload Docker Software to TIRA":
+            if 'TIRA_DOCKER_PATH' not in build_environment:
+                return None
+
+            return f'https://github.com/{build_environment["GITHUB_REPOSITORY"]}/tree/{build_environment["GITHUB_SHA"]}/{build_environment["TIRA_DOCKER_PATH"]}'
+
+        if build_environment['GITHUB_WORKFLOW'] == ".github/workflows/upload-notebook-submission.yml" or build_environment['GITHUB_WORKFLOW'] == 'Upload Notebook to TIRA':
+            if 'TIRA_JUPYTER_NOTEBOOK' not in build_environment:
+                return None
+
             return f'https://github.com/{build_environment["GITHUB_REPOSITORY"]}/tree/{build_environment["GITHUB_SHA"]}/jupyter-notebook-submissions/{build_environment["TIRA_JUPYTER_NOTEBOOK"]}'
 
         return None
