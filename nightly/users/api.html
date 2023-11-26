@@ -257,12 +257,20 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="tira.io_utils.all_lines_to_pandas">
-<span class="sig-prename descclassname"><span class="pre">tira.io_utils.</span></span><span class="sig-name descname"><span class="pre">all_lines_to_pandas</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_default_text</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/io_utils.html#all_lines_to_pandas"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.io_utils.all_lines_to_pandas" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
+<span class="sig-prename descclassname"><span class="pre">tira.io_utils.</span></span><span class="sig-name descname"><span class="pre">all_lines_to_pandas</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_default_text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="../_modules/tira/io_utils.html#all_lines_to_pandas"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.io_utils.all_lines_to_pandas" title="Link to this definition">#</a></dt>
+<dd><div class="admonition-todo admonition" id="id2">
+<p class="admonition-title">Todo</p>
+<p>add documentation</p>
+</div>
+<div class="admonition-todo admonition" id="id3">
+<p class="admonition-title">Todo</p>
+<p>this function has two semantics: handling a file and handling file-contents</p>
+</div>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="tira.io_utils.load_output_of_directory">
-<span class="sig-prename descclassname"><span class="pre">tira.io_utils.</span></span><span class="sig-name descname"><span class="pre">load_output_of_directory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">directory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evaluation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/io_utils.html#load_output_of_directory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.io_utils.load_output_of_directory" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">tira.io_utils.</span></span><span class="sig-name descname"><span class="pre">load_output_of_directory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">directory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evaluation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">DataFrame</span></span></span><a class="reference internal" href="../_modules/tira/io_utils.html#load_output_of_directory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.io_utils.load_output_of_directory" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
@@ -274,8 +282,8 @@ fields from the resulting object and converts the qid and docno fields to string
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>input</strong> (<em>str</em><em> | </em><em>bytearray</em><em> | </em><em>bytes</em>) – A json-serialized string.</p></li>
-<li><p><strong>load_default_text</strong> (<em>bool</em>) – If true, the origianl_query and original_document fields are removed and the qid and docno
-values are converted to strings.</p></li>
+<li><p><strong>load_default_text</strong> (<em>bool</em>) – If true, the original_query and original_document fields are removed and the qid and
+docno values are converted to strings.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -308,13 +316,21 @@ values are converted to strings.</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="tira.io_utils.run_cmd">
-<span class="sig-prename descclassname"><span class="pre">tira.io_utils.</span></span><span class="sig-name descname"><span class="pre">run_cmd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_failure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/io_utils.html#run_cmd"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.io_utils.run_cmd" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">tira.io_utils.</span></span><span class="sig-name descname"><span class="pre">run_cmd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_failure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/io_utils.html#run_cmd"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.io_utils.run_cmd" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="tira.io_utils.stream_all_lines">
-<span class="sig-prename descclassname"><span class="pre">tira.io_utils.</span></span><span class="sig-name descname"><span class="pre">stream_all_lines</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_default_text</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/io_utils.html#stream_all_lines"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.io_utils.stream_all_lines" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
+<span class="sig-prename descclassname"><span class="pre">tira.io_utils.</span></span><span class="sig-name descname"><span class="pre">stream_all_lines</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_default_text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Generator</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/tira/io_utils.html#stream_all_lines"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.io_utils.stream_all_lines" title="Link to this definition">#</a></dt>
+<dd><div class="admonition-todo admonition" id="id4">
+<p class="admonition-title">Todo</p>
+<p>add documentation</p>
+</div>
+<div class="admonition-todo admonition" id="id5">
+<p class="admonition-title">Todo</p>
+<p>this function has two semantics: handling a file and handling file-contents</p>
+</div>
+</dd></dl>
 
 </section>
 <section id="module-tira.ir_datasets_util">
