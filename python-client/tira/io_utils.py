@@ -45,6 +45,10 @@ def parse_jsonl_line(input: Union[str, bytearray, bytes], load_default_text: boo
 
 
 def stream_all_lines(input_file: Union[str, Iterable[bytes]], load_default_text: bool) -> Generator[Dict, Any, Any]:
+    """
+    .. todo:: add documentation
+    .. todo:: this function has two semantics: handling a file and handling file-contents
+    """
     if type(input_file) is str:
         if not os.path.isfile(input_file):
             return
@@ -62,7 +66,11 @@ def stream_all_lines(input_file: Union[str, Iterable[bytes]], load_default_text:
         yield parse_jsonl_line(line, load_default_text)
 
 
-def all_lines_to_pandas(input_file: str | Iterable[str], load_default_text):
+def all_lines_to_pandas(input_file: Union[str, Iterable[str]], load_default_text: bool) -> pd.DataFrame:
+    """
+    .. todo:: add documentation
+    .. todo:: this function has two semantics: handling a file and handling file-contents
+    """
     if type(input_file) is str:
         if input_file.endswith('.gz'):
             with gzip.open(input_file, 'rt', encoding='utf-8') as f:
@@ -109,7 +117,7 @@ def __num(input: str) -> Union[str, int, float]:
             return input
 
 
-def run_cmd(cmd, ignore_failure=False):
+def run_cmd(cmd: list[str], ignore_failure=False):
     import subprocess
     exit_code = subprocess.call(cmd)
 
