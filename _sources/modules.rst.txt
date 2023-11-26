@@ -1,7 +1,0 @@
-tira
-====
-
-.. toctree::
-   :maxdepth: 4
-
-   tira
