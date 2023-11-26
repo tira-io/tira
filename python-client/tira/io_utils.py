@@ -176,7 +176,7 @@ def all_environment_variables_for_github_action_or_fail(params):
     return [k + '=' + v for k, v in ret.items()]
 
 
-def load_output_of_directory(directory: Path, evaluation: bool=False) -> Union[dict, pd.DataFrame]:
+def load_output_of_directory(directory: Path, evaluation: bool=False) -> Union[Dict, pd.DataFrame]:
     files = glob(str(directory) + '/*')
 
     if evaluation:
