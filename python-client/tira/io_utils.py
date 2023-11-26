@@ -112,6 +112,42 @@ def parse_prototext_key_values(file_name):
             yield ret
 
 
+def all_environment_variables_for_github_action_or_fail(params):
+    ret = {}
+
+    for i in params:
+        if len(i.split('=')) != 2:
+            raise ValueError(f"Expect that exactly one '=' occurs in each passed parameter, got: '{i}'")
+
+        key, value = i.split('=')
+
+        if key in ret:
+            raise ValueError(f"Got duplicated key: '{key}'")
+        
+        ret[key] = value
+
+    expected_keys = ['GITHUB_SHA', 'TIRA_VM_ID', 'TIRA_TASK_ID', 'TIRA_DOCKER_REGISTRY_TOKEN', 'TIRA_DOCKER_REGISTRY_USER',
+                     'TIRA_CLIENT_TOKEN', 'TIRA_CLIENT_USER', 'TIRA_CODE_REPOSITORY_ID']
+
+    for k in expected_keys:
+        if k not in ret or not ret[k]:
+            raise ValueError(f'I need the parameter {k} to continue, but could not find one or it is empty. This likely is a configuration error, e.g., due to missing secrets.')
+
+    if 'TIRA_JUPYTER_NOTEBOOK' in ret:
+        for to_del in ['TIRA_DOCKER_FILE', 'TIRA_DOCKER_PATH', 'TIRA_COMMAND']:
+            if to_del in ret:
+                del ret[to_del]
+        ret['IMAGE_TAG'] = f'registry.webis.de/code-research/tira/tira-user-{ret["TIRA_VM_ID"]}/submission:{ret["GITHUB_SHA"]}'
+    else:
+        for expected_key in ['TIRA_DOCKER_FILE', 'TIRA_DOCKER_PATH', 'TIRA_COMMAND']:
+            if k not in ret or not ret[k]:
+                raise ValueError(f'I need the parameter {k} to continue, but could not find one or it is empty. This likely is a configuration error, e.g., due to missing secrets.')
+            
+            ret['IMAGE_TAG'] = f'registry.webis.de/code-research/tira/tira-user-{ret["TIRA_VM_ID"]}/submission-{ret["TIRA_DOCKER_PATH"].replace("/", "-").replace(" ", "-")}:{ret["GITHUB_SHA"]}'
+
+    return [k + '=' + v for k, v in ret.items()]
+
+
 def load_output_of_directory(directory, evaluation=False, verbose=False):
     files = glob(str(directory) + '/*')
 
