@@ -43,6 +43,7 @@ def parse_args():
     parser.add_argument('--tira-vm-id', required=False, default=os.environ.get('TIRA_VM_ID'))
     parser.add_argument('--tira-task-id', required=False, default=os.environ.get('TIRA_TASK_ID'))
     parser.add_argument('--tira-code-repository-id', required=False, default=os.environ.get('TIRA_CODE_REPOSITORY_ID'))
+    parser.add_argument('--fail-if-output-is-empty', required=False, default=False, action='store_true', help='After the execution of the software, fail if the output directory is empty.')
 
     args = parser.parse_args()
     if args.export_submission_from_jupyter_notebook:
@@ -166,7 +167,10 @@ def main():
 
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
     client.local_execution.run(identifier=args.approach, image=args.image, command=args.command, input_dir=input_dir, output_dir=args.output_directory, dry_run=args.dry_run, allow_network=args.allow_network, input_run=args.input_run, additional_volumes=args.v, evaluate=evaluate, eval_dir=args.evaluation_directory)
-    
+
+    if args.fail_if_output_is_empty and (not os.path.exists(args.output_directory) or not os.listdir(args.output_directory)):
+        raise ValueError('The software produced an empty output directory, it likely failed?')
+
     if args.push.lower() == 'true':
         print('Push Docker image')
         client.local_execution.push_image(args.image, args.tira_docker_registry_user, args.tira_docker_registry_token)
