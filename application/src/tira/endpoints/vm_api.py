@@ -521,6 +521,7 @@ def add_software_submission_git_repository(request, task_id, vm_id):
     try:
         data = json.loads(request.body)
         external_owner = data['external_owner']
+        private = not data.get('allow_public_repo', False)
         disraptor_user = get_disraptor_user(request, allow_unauthenticated_user=False)
 
         if not disraptor_user or not type(disraptor_user) == str:
@@ -529,7 +530,8 @@ def add_software_submission_git_repository(request, task_id, vm_id):
         if not model.github_user_exists(external_owner):
             return JsonResponse({'status': 1, 'message': f"The user '{external_owner}' does not exist on Github, maybe a typo?"})
 
-        software_submission_git_repo = model.get_submission_git_repo(vm_id, task_id, disraptor_user, external_owner)
+        software_submission_git_repo = model.get_submission_git_repo(vm_id, task_id, disraptor_user, external_owner,
+                                                                     private)
 
         return JsonResponse({'status': 0, "context": software_submission_git_repo})
     except Exception as e:

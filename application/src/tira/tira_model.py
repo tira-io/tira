@@ -185,7 +185,7 @@ def github_user_exists(user_name):
     return g.git_user_exists(user_name)
 
 
-def get_submission_git_repo(vm_id, task_id, disraptor_user=None, external_owner=None):
+def get_submission_git_repo(vm_id, task_id, disraptor_user=None, external_owner=None, private=True):
     user_repository_name = slugify(task_id) + '-' + slugify(vm_id)
     repository_url = settings.CODE_SUBMISSION_REPOSITORY_NAMESPACE + '/' + user_repository_name
     ret = model.get_submission_git_repo_or_none(repository_url, vm_id)
@@ -219,6 +219,7 @@ def get_submission_git_repo(vm_id, task_id, disraptor_user=None, external_owner=
         tira_task_id=task_id,
         tira_code_repository_id=repository_url,
         tira_client_user=disraptor_user,
+        private=private
     )
 
     ret.confirmed = True
