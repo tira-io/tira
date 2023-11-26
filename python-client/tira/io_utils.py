@@ -3,7 +3,7 @@ from glob import glob
 import gzip
 import json
 import os
-from typing import Any, Iterable, Dict, Union, Generator
+from typing import Any, List, Iterable, Dict, Union, Generator
 from pathlib import Path
 import logging
 
@@ -117,7 +117,7 @@ def __num(input: str) -> Union[str, int, float]:
             return input
 
 
-def run_cmd(cmd: list[str], ignore_failure=False):
+def run_cmd(cmd: List[str], ignore_failure=False):
     import subprocess
     exit_code = subprocess.call(cmd)
 
