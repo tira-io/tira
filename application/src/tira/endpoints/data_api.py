@@ -439,6 +439,34 @@ def tirex_components(request, context):
     context['tirex_components'] = settings.TIREX_COMPONENTS
     return JsonResponse({'status': 0, 'context': context})
 
+def get_snippet_to_run_components(request):
+    all_components = settings.TIREX_COMPONENTS
+    component_ids = request.GET.get('components', 'false')
+
+    # All links with display_name == "Submission in TIREx" have the ID of the component in their link, its a bit ugly, but at the moment we need to extract the ID from there.
+    # E.g., the ID from the URL "/submissions/ir-benchmarks/ows/query-segmentation-hyp-a" would be ir-benchmarks/ows/query-segmentation-hyp-a
+
+    # Also Ugly: we need to determine which type of processor (query processor, document processor, etc) something is by using its top-level category, e.g., "Query Processing".
+
+    # I think it makes sense to build a small method that uses the settings.TIREX_COMPONENTS as input and produces a mapping form component ID (the thing below "Submission in TIREx") to the properties, e.g., query processor true or false, etc.
+
+    # I think we can hard code everything against ROBUST04, we can switch this later.
+    dataset_initialization = 'dataset = pt.get_dataset("irds:disks45/nocr/trec-robust-2004")\n'
+
+    additional_variables = ''
+
+    # If we have a query processor, we need to add an additional variable "topics"
+    # just for this hard coded example:
+    current_component_is_query_processor = True
+    if current_component_is_query_processor:
+        additional_variables += "topics = dataset.get_topics(variant='title')\n"
+
+    component_definitions = "tira.pt.transform_queries('ir-benchmarks/ows/query-segmentation-hyb-i', dataset)\n"
+
+    snippet = (dataset_initialization + additional_variables + component_definitions).strip()
+
+    return JsonResponse({'status': 0, 'context': {'snippet': snippet}})
+
 
 @add_context
 def reranking_datasets(request, context, task_id):

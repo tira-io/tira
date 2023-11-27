@@ -207,6 +207,8 @@
           - display_name: Tutorial
             href: https://github.com/OpenWebSearch/wows-code/blob/main/ecir24/post-hoc-notebooks/keyphrase-extraction.ipynb
             target: _blank
+          - display_name: Submission in TIREx
+            href: /submissions/ir-benchmarks/ows/bce-fo
 
     - display_name: Health Classification
       component_type: [TIREx, Tutorial]
@@ -287,7 +289,9 @@
             - display_name: Tutorial
               href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-segmentation-in-progress-by-maik
               target: _blank
-
+            - display_name: Submission in TIREx
+              href: /submissions/ir-benchmarks/ows/query-segmentation-hyp-a
+              
         - display_name: hyp-b
           focus_type: [Precision]
           component_type: [TIREx, Tutorial]
@@ -295,6 +299,8 @@
             - display_name: Tutorial
               href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-segmentation-in-progress-by-maik
               target: _blank
+            - display_name: Submission in TIREx
+              href: /submissions/ir-benchmarks/ows/query-segmentation-hyp-b
 
         - display_name: hyp-i
           focus_type: [Precision]
