@@ -9,6 +9,7 @@ import tarfile
 import logging
 from pathlib import Path
 import pandas as pd
+import logging
 
 
 class LocalExecutionIntegration():
@@ -77,17 +78,17 @@ class LocalExecutionIntegration():
             except Exception:
                 pass
 
-        print('# Pull Image\n\n')
+        logging.info('# Pull Image\n\n')
         image_pull_code = subprocess.call(['docker', 'pull', image])
 
         if image_pull_code != 0 and 'GITHUB_ACTION' in os.environ:
-            print("Skip pulling of image because everything is executed within github.")
+            logging.info("Skip pulling of image because everything is executed within github.")
             return
 
         if image_pull_code != 0:
             raise ValueError(f'Image could not be successfully pulled. Got return code {image_pull_code}. (expected 0.)')
 
-        print('\n\n Image pulled successfully.\n\nI will now run the software.\n\n')
+        logging.info('\n\n Image pulled successfully.\n\nI will now run the software.\n\n')
 
     def extract_entrypoint(self, image):
         self.ensure_image_available_locally(image)
@@ -95,7 +96,7 @@ class LocalExecutionIntegration():
         ret = image.attrs['Config']['Entrypoint']
         for i in deepcopy(ret):
             if i.startswith('[') and i.endswith(']'):
-                print(i)
+                logging.info(i)
                 ret = json.loads(i)
                 break
         return ' '.join(ret)
@@ -176,7 +177,7 @@ class LocalExecutionIntegration():
         container = client.containers.run(image, entrypoint='sh', command=f'-c "{command}; sleep .1"', environment=environment, volumes=volumes, detach=True, remove=True, network_disabled = not allow_network)
 
         for line in container.attach(stdout=True, stream=True, logs=True):
-            print(line.decode('utf-8'))
+            logging.info(line.decode('utf-8'))
 
         if evaluate:
             evaluation_volumes = {str(eval_dir): {'bind': '/tira-data/eval_output', 'mode': 'rw'}}
@@ -198,7 +199,7 @@ class LocalExecutionIntegration():
             container = client.containers.run(image, entrypoint='sh', command=f'-c "{command}; sleep .1"', volumes=evaluation_volumes, detach=True, remove=True, network_disabled = not allow_network)
 
             for line in container.attach(stdout=True, stream=True, logs=True):
-                print(line.decode('utf-8'), flush=True)
+                logging.info(line.decode('utf-8'), flush=True)
 
         if evaluate:
             approach_name = identifier if identifier else f'"{command}"@{image}'
@@ -237,12 +238,12 @@ class LocalExecutionIntegration():
 
     def export_submission_from_jupyter_notebook(self, notebook):
         if not os.path.isfile(notebook):
-            print(f'The notebook {notebook} does not exist. I can not continue.', file=sys.stderr)
+            logging.error(f'The notebook {notebook} does not exist. I can not continue.')
 
             if '/' in notebook:
                 try:
                     notebook = '/'.join(notebook.split('/')[:-1])
-                    print(f'The directory {notebook} contains the files {os.listdir(notebook)}. Maybe you did mean one of those?', file=sys.stderr)
+                    logging.error(f'The directory {notebook} contains the files {os.listdir(notebook)}. Maybe you did mean one of those?')
                 except:
                     pass
 
@@ -265,7 +266,7 @@ class LocalExecutionIntegration():
                 raise ValueError(f'Login was not successfull, got: {login_response}')
 
         push_response = client.images.push(image)
-        print(push_response)
+        logging.info(push_response)
 
         if 'error' in push_response:
             raise ValueError('Could not push image')

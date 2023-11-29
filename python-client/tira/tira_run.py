@@ -85,6 +85,8 @@ def parse_args():
 
 def main():
     args = parse_args()
+    logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
+    
     client: "TiraClient" = Client()
 
     if args.export_submission_from_jupyter_notebook:
@@ -165,7 +167,6 @@ def main():
             evaluate['truth_directory'] = tira.download_dataset(task, dataset, truth_dataset=True)
             print(f'Done: Evaluation truth for dataset {dataset} is available.')
 
-    logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
     print(f'''
 ########################################### TIRA RUN CONFIGURATION ###########################################
 # image=${args.image}
