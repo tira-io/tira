@@ -176,7 +176,7 @@ class LocalExecutionIntegration():
         container = client.containers.run(image, entrypoint='sh', command=f'-c "{command}; sleep .1"', environment=environment, volumes=volumes, detach=True, remove=True, network_disabled = not allow_network)
 
         for line in container.attach(stdout=True, stream=True, logs=True):
-            logging.info(line.decode('utf-8'))
+            print(line.decode('utf-8'))
 
         if evaluate:
             evaluation_volumes = {str(eval_dir): {'bind': '/tira-data/eval_output', 'mode': 'rw'}}
@@ -198,7 +198,7 @@ class LocalExecutionIntegration():
             container = client.containers.run(image, entrypoint='sh', command=f'-c "{command}; sleep .1"', volumes=evaluation_volumes, detach=True, remove=True, network_disabled = not allow_network)
 
             for line in container.attach(stdout=True, stream=True, logs=True):
-                logging.info(line.decode('utf-8'), flush=True)
+                print(line.decode('utf-8'), flush=True)
 
         if evaluate:
             approach_name = identifier if identifier else f'"{command}"@{image}'
