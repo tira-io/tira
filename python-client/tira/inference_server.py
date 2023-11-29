@@ -200,7 +200,7 @@ def _load_predict_from_imported_module(module_name: str, absolute_path: str = No
 
 @contextmanager
 def _add_to_path(p):
-    old_path = sys.path.clone()
+    old_path = sys.path.copy()
     try:
         sys.path.insert(0, p)
         yield
