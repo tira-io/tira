@@ -48,13 +48,13 @@
   <v-divider class="py-6" v-if="!loading"/>
 
   <h2 v-if="!loading">Output</h2>
-  <v-tabs v-model="tab" align-tabs="title" v-if="!loading">
+  <v-tabs v-model="tab" v-if="!loading" class="my-2">
     <v-tab v-for="item in detailed_tabs" :key="item.key" :value="item.key" >{{ item.key }}</v-tab>
   </v-tabs>
   <v-window v-if="!loading" v-model="tab" :touch="{left: () => {}, right: () => {}}">
     <v-window-item v-for="item in detailed_tabs" :key="item.key" :value="item.key">
       <v-card flat>
-        <v-code tag="pre">{{item.content }}</v-code>
+        <code-snippet title="Click the icon to copy code" :code="item.content" expand_message=""/>
       </v-card>
     </v-window-item>
   </v-window>
@@ -62,12 +62,13 @@
       
 <script lang="ts">
 import Loading from './Loading.vue'
+import CodeSnippet from "@/components/CodeSnippet.vue";
 import MetadataItems from './MetadataItems.vue'
 import { get, post, reportError, reportSuccess, inject_response, extractDatasetFromCurrentUrl } from '../utils'
     
 export default {
   name: "run-review-form",
-  components: { Loading, MetadataItems },
+  components: { Loading, CodeSnippet, MetadataItems },
   emits: ['review-run'],
   props: ['run_id', 'vm_id', 'dataset_id_from_props', ],
   data() {

@@ -3,7 +3,7 @@ from glob import glob
 import gzip
 import json
 import os
-from typing import Any, Iterable, Dict, Union, Generator, List
+from typing import Any, List, Iterable, Dict, Union, Generator
 from pathlib import Path
 import logging
 

@@ -339,7 +339,10 @@ WEBPACK_LOADER = {
 
 DISCOURSE_API_URL = 'https://www.tira.io'
 
-CODE_SUBMISSION_REFERENCE_REPOSITORY = 'mam10eks/tira-software-submission-template'
+CODE_SUBMISSION_REFERENCE_REPOSITORIES = {
+    'ir-lab-jena-leipzig-wise-2023': 'mam10eks/tira-software-submission-template',
+    'webpage-classification': 'OpenWebSearch/irixys23-tira-submission-template',
+}
 CODE_SUBMISSION_REPOSITORY_NAMESPACE = 'tira-io'
 try:
     DISRAPTOR_API_KEY = open(DISRAPTOR_SECRET_FILE, "r").read().strip()

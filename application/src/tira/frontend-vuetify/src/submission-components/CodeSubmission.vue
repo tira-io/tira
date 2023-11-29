@@ -9,8 +9,12 @@
     <v-card-item v-if="!loading && !disabled">
       <v-card-text v-if="!repo_url">
         <v-form ref="form" v-model="valid">
+
           <v-row class="d-flex align-center justify-center">
-            <v-col cols="6"><v-text-field v-model="new_git_account" label="Your GitHub Account" :rules="[v => !!(v && v.length) || 'Please select your GitHub account.']"/></v-col>
+            <v-col cols="6"><v-checkbox v-model="allow_public_repo" label="Allow Public Github Repository (You can change this later. Using a public Github repository has the advantage that Github Actions are free, otherwise, they count towards the bill of organizers.)" /></v-col>
+          </v-row>
+          <v-row class="d-flex align-center justify-center">
+            <v-col cols="6"><v-text-field @keydown.enter.prevent="connectToCodeRepo()" v-model="new_git_account" label="Your GitHub Account" :rules="[v => !!(v && v.length) || 'Please select your GitHub account.']"/></v-col>
           </v-row>
           <v-row class="d-flex align-center justify-center">
             <v-col cols="6"><v-btn block color="primary" :loading="submit_in_progress" @click="connectToCodeRepo()" text="Add Code Repository"/></v-col>
@@ -71,6 +75,7 @@ export default {
     return {
         loading: true,
         new_git_account: '',
+        allow_public_repo: true,
         valid: false,
         submit_in_progress: false,
         repo_url: '',
@@ -90,12 +95,9 @@ export default {
       }
 
       this.submit_in_progress = true
-      post(`/api/add_software_submission_git_repository/${this.task_id}/${this.user_id}`, {"external_owner": this.new_git_account})
+      post(`/api/add_software_submission_git_repository/${this.task_id}/${this.user_id}`, {"external_owner": this.new_git_account, "allow_public_repo": this.allow_public_repo})
         .then(reportSuccess('Your git repository was created.'))
-        .then(message => {
-          this.repo_url = message.context.repo_url
-          this.owner_url = message.context.owner_url
-        })
+        .then(inject_response(this))
         .catch(reportError("Problem while adding your git repository.", "This might be a short-term hiccup, please try again. We got the following error: "))
         .then(() => {this.submit_in_progress = false})
     },
