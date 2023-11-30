@@ -36,7 +36,7 @@ make run-develop
 Then, you can point your browser to the specified URL.
 
 ## Resources
-* [Wiki](../../wiki): Getting started with TIRA as a developer/administrator
+* [Wiki](https://tira-io.github.io/tira/): Getting started with TIRA as a developer/administrator
 * [User Docs](https://www.tira.io/t/getting-started/1364): Getting started with TIRA as a user
 * [Papers](https://webis.de/publications.html?q=tira): List of publications
 * [Contribution Guide](CONTRIBUTING.md): How to contribute to the TIRA project
