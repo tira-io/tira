@@ -2,8 +2,8 @@
 
 VENV_NAME?=venv
 PYTHON=${PWD}/${VENV_NAME}/bin/python3
-VERSION_APPLICATION=0.0.95
-VERSION_GRPC=0.0.95
+VERSION_APPLICATION=0.0.96
+VERSION_GRPC=0.0.96
 
 .DEFAULT: help
 help:
@@ -71,10 +71,18 @@ run-develop:
 	&& python src/manage.py run_develop
 
 vite-build:
-	docker run -v ${PWD}:/app --platform linux/amd64 --rm -ti -w /app/src/tira/frontend-vuetify --entrypoint yarn webis/tira:vuetify-dev-0.0.1 build
+	@cd src/tira/frontend-vuetify \
+	&& yarn build
 
 vite-build-light:
-	docker run -v ${PWD}:/app --platform linux/amd64 --rm -ti -w /app/src/tira/frontend-vuetify --entrypoint yarn webis/tira:vuetify-dev-0.0.1 build-light
+	@cd src/tira/frontend-vuetify \
+	&& yarn build-light
+
+vite-build-docker:
+	docker run -v ${PWD}:/app --platform linux/amd64 --rm -ti -w /app/src/tira/frontend-vuetify --entrypoint yarn webis/tira-application:basis-0.0.95 build
+
+vite-build-light-docker:
+	docker run -v ${PWD}:/app --platform linux/amd64 --rm -ti -w /app/src/tira/frontend-vuetify --entrypoint yarn webis/tira-application:basis-0.0.95 build-light
 
 
 run-docker:
