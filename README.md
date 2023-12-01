@@ -12,7 +12,7 @@ Components:
 
 ## Setup Your Local Development Environment
 
-We use [dev containers](https://code.visualstudio.com/docs/devcontainers/containers) to simplify development. Please install Docker and an IDE with support for dev containers on your machine (we usually use VS Code).
+We use [dev containers](https://code.visualstudio.com/docs/devcontainers/containers) to simplify development. You can [open this repository directly in codespaces](https://github.com/codespaces/new/webis-de/tira-io/tree/tira). If you want to develop locally, please install Docker and an IDE with support for dev containers on your machine (we usually use VS Code).
 
 First, please clone the repository:
 ```
@@ -21,7 +21,7 @@ git clone git@github.com:tira-io/tira.git
 
 Please open the directory `application` in VS Code, and confirm to use the provided dev container.
 
-If you want to work on production data, please ensure that you can login to ssh.webis.de, and then do the following:
+If you want to work on production data (not necessary in most cases, you usually can skip this step), please ensure that you can login to ssh.webis.de, and then do the following:
 
 ```
 make import-data-from-dump

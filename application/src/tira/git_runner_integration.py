@@ -28,8 +28,16 @@ logger = logging.getLogger('tira')
 
 
 def normalize_file(file_content, tira_user_name, task_id):
-    return file_content.replace('TIRA_USER_FOR_AUTOMATIC_REPLACEMENT', tira_user_name)\
-        .replace('TIRA_TASK_ID_FOR_AUTOMATIC_REPLACEMENT', task_id)
+    default_datasets = {'webpage-classification': 'webpage-classification/tiny-sample-20231023-training',
+                        'ir-lab-jena-leipzig-wise-2023': 'workshop-on-open-web-search/retrieval-20231027-training',
+                        'ir-lab-jena-leipzig-sose-2023': 'workshop-on-open-web-search/retrieval-20231027-training',
+                        'workshop-on-open-web-search': 'workshop-on-open-web-search/retrieval-20231027-training',
+                        'ir-benchmarks': 'workshop-on-open-web-search/retrieval-20231027-training',
+                        }
+
+    return file_content.replace('TIRA_USER_FOR_AUTOMATIC_REPLACEMENT', tira_user_name) \
+        .replace('TIRA_TASK_ID_FOR_AUTOMATIC_REPLACEMENT', task_id) \
+        .replace('TIRA_DATASET_FOR_AUTOMATIC_REPLACEMENT', default_datasets.get(task_id, '<TODO-ADD-DATASET>'))
 
 
 def convert_size(size_bytes):
@@ -185,7 +193,7 @@ class GitRunner:
             'user_name': repo_name.replace('tira-user-', ''),
             'repo_name': repo_name,
             'token': token,
-            'image_prefix': self.image_registry_prefix +'/' + repo_name +'/'
+            'image_prefix': self.image_registry_prefix + '/' + repo_name + '/'
         })
 
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -1184,7 +1192,7 @@ class GithubRunner(GitRunner):
                                                 user_repository_namespace, github_user, tira_user_name,
                                                 dockerhub_token, dockerhub_user, tira_client_token,
                                                 repository_search_prefix, tira_task_id, tira_code_repository_id,
-                                                tira_client_user):
+                                                tira_client_user, private):
         user = self.gitHoster_client.get_user()
         try:
             user_repo = user.get_repo(f'{user_repository_namespace}/{user_repository_name}')
@@ -1199,18 +1207,18 @@ class GithubRunner(GitRunner):
                                                                    tira_user_name, dockerhub_token, dockerhub_user,
                                                                    tira_client_token, repository_search_prefix,
                                                                    tira_task_id, tira_code_repository_id,
-                                                                   tira_client_user)
+                                                                   tira_client_user, private)
 
     def create_software_submission_repository_for_user(self, reference_repository_name, user_repository_name,
                                                        user_repository_namespace, github_user, tira_user_name,
                                                        dockerhub_token, dockerhub_user, tira_client_token,
                                                        repository_search_prefix, tira_task_id, tira_code_repository_id,
-                                                       tira_client_user):
+                                                       tira_client_user, private):
         reference_repo = self.gitHoster_client.get_repo(reference_repository_name)
 
         org = self.gitHoster_client.get_organization(user_repository_namespace)
         repo = org.create_repo(user_repository_name,
-                               f'The repository of user {tira_user_name} for code submissions in TIRA.', private=True)
+                               f'The repository of user {tira_user_name} for code submissions in TIRA.', private=private)
         repo.add_to_collaborators(github_user, 'admin')
 
         repo.create_secret('TIRA_DOCKER_REGISTRY_TOKEN', dockerhub_token)

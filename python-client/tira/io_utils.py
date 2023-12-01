@@ -3,18 +3,19 @@ from glob import glob
 import gzip
 import json
 import os
-from typing import Any, Iterable, Dict, Union
+from typing import Any, List, Iterable, Dict, Union, Generator
+from pathlib import Path
+import logging
 
 
 def parse_jsonl_line(input: Union[str, bytearray, bytes], load_default_text: bool) -> Dict:
-
     """
     Deseralizes the line using JSON deserialization. Optionally strips the 'original_query' and 'original_document'
     fields from the resulting object and converts the qid and docno fields to strings.
 
     :param str | bytearray | bytes input: A json-serialized string.
-    :param bool load_default_text: If true, the origianl_query and original_document fields are removed and the qid and docno
-        values are converted to strings.
+    :param bool load_default_text: If true, the original_query and original_document fields are removed and the qid and
+        docno values are converted to strings.
     :return: The deserialized and (optionally) processed object.
     :rtype: dict
 
@@ -43,7 +44,11 @@ def parse_jsonl_line(input: Union[str, bytearray, bytes], load_default_text: boo
     return obj
 
 
-def stream_all_lines(input_file, load_default_text):
+def stream_all_lines(input_file: Union[str, Iterable[bytes]], load_default_text: bool) -> Generator[Dict, Any, Any]:
+    """
+    .. todo:: add documentation
+    .. todo:: this function has two semantics: handling a file and handling file-contents
+    """
     if type(input_file) is str:
         if not os.path.isfile(input_file):
             return
@@ -61,7 +66,11 @@ def stream_all_lines(input_file, load_default_text):
         yield parse_jsonl_line(line, load_default_text)
 
 
-def all_lines_to_pandas(input_file: str | Iterable[str], load_default_text):
+def all_lines_to_pandas(input_file: Union[str, Iterable[str]], load_default_text: bool) -> pd.DataFrame:
+    """
+    .. todo:: add documentation
+    .. todo:: this function has two semantics: handling a file and handling file-contents
+    """
     if type(input_file) is str:
         if input_file.endswith('.gz'):
             with gzip.open(input_file, 'rt', encoding='utf-8') as f:
@@ -79,17 +88,36 @@ def all_lines_to_pandas(input_file: str | Iterable[str], load_default_text):
     return pd.DataFrame(ret)
 
 
-def __num(s):
+def __num(input: str) -> Union[str, int, float]:
+    """
+    Converts the input to an int or float if possible. Returns the inputted string otherwise.
+
+    :param str input: The string that should be converted to a float or int if possible.
+    :return: The intrepteted input.
+    :rtype: str | int | float
+
+    :Example:
+        >>> __num("hello world")
+        "hello world"
+        >>> __num("-42")
+        -42
+        >>> __num("3.5")
+        3.5
+        >>> __num("2e-6")
+        2e-6
+        >>> __num(" -42")
+        " -42"
+    """
     try:
-        return int(s)
+        return int(input)
     except ValueError:
         try:
-            return float(s)
+            return float(input)
         except ValueError:
-            return s
+            return input
 
 
-def run_cmd(cmd, ignore_failure=False):
+def run_cmd(cmd: List[str], ignore_failure=False):
     import subprocess
     exit_code = subprocess.call(cmd)
 
@@ -148,7 +176,7 @@ def all_environment_variables_for_github_action_or_fail(params):
     return [k + '=' + v for k, v in ret.items()]
 
 
-def load_output_of_directory(directory, evaluation=False, verbose=False):
+def load_output_of_directory(directory: Path, evaluation: bool=False) -> Union[Dict, pd.DataFrame]:
     files = glob(str(directory) + '/*')
 
     if evaluation:
@@ -159,8 +187,7 @@ def load_output_of_directory(directory, evaluation=False, verbose=False):
 
     files = files[0]
 
-    if verbose:
-        print(f'Read file from {files}')
+    logging.debug(f'Read file from {files}')
 
     if evaluation:
         ret = {}

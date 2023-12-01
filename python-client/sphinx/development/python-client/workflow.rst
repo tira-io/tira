@@ -35,6 +35,13 @@ Unit Tests
 
     pytest
 
+Code Coverage
+~~~~~~~~~~~~~
+.. code-block:: bash
+
+    coverage run -m pytest tests
+    coverage xml --omit=tests/**
+
 Generating documentation
 ~~~~~~~~~~~~~~~~~~~~~~~~
 From within the `python-client/sphynx` directory run

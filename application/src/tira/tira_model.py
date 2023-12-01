@@ -185,7 +185,7 @@ def github_user_exists(user_name):
     return g.git_user_exists(user_name)
 
 
-def get_submission_git_repo(vm_id, task_id, disraptor_user=None, external_owner=None):
+def get_submission_git_repo(vm_id, task_id, disraptor_user=None, external_owner=None, private=True):
     user_repository_name = slugify(task_id) + '-' + slugify(vm_id)
     repository_url = settings.CODE_SUBMISSION_REPOSITORY_NAMESPACE + '/' + user_repository_name
     ret = model.get_submission_git_repo_or_none(repository_url, vm_id)
@@ -196,7 +196,7 @@ def get_submission_git_repo(vm_id, task_id, disraptor_user=None, external_owner=
     docker_data = load_docker_data(task_id, vm_id, cache, force_cache_refresh=False)
     docker_registry_user = docker_data['docker_registry_user']
     docker_registry_token = docker_data['docker_registry_token']
-    reference_repository = settings.CODE_SUBMISSION_REFERENCE_REPOSITORY
+    reference_repository = settings.CODE_SUBMISSION_REFERENCE_REPOSITORIES[task_id]
     disraptor_description = disraptor_user + '-repo-' + task_id + '-' + vm_id
     discourse_api_key = discourse_api_client().generate_api_key(disraptor_user, disraptor_description)
 
@@ -219,6 +219,7 @@ def get_submission_git_repo(vm_id, task_id, disraptor_user=None, external_owner=
         tira_task_id=task_id,
         tira_code_repository_id=repository_url,
         tira_client_user=disraptor_user,
+        private=private
     )
 
     ret.confirmed = True
@@ -230,7 +231,7 @@ def get_submission_git_repo(vm_id, task_id, disraptor_user=None, external_owner=
 def git_pipeline_is_enabled_for_task(task_id, cache, force_cache_refresh=False):
     evaluators_for_task = get_evaluators_for_task(task_id, cache, force_cache_refresh)
     git_runners_for_task = [i['is_git_runner'] for i in evaluators_for_task]
-        
+
     # We enable the docker part only if all evaluators use the docker variant.
     return len(git_runners_for_task) > 0 and all(i for i in git_runners_for_task)
 

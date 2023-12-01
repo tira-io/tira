@@ -19,6 +19,7 @@ import tira.data.data as dbops
 
 logger = logging.getLogger("tira_db")
 
+#SELECT tira_dockersoftware.vm_id, COUNT(DISTINCT(tira_dockersoftware.docker_software_id)) AS 'Software Count', SUM(tira_run.run_id IS NOT NULL) AS 'Executed Runs' FROM tira_dockersoftware LEFT JOIN tira_run ON tira_dockersoftware.docker_software_id = tira_run.docker_software_id where tira_dockersoftware.task_id = 'webpage-classification' GROUP BY tira_dockersoftware.vm_id;
 
 class HybridDatabase(object):
     """
@@ -1048,10 +1049,19 @@ class HybridDatabase(object):
         except:
             return None
 
-        if 'TIRA_JUPYTER_NOTEBOOK' not in build_environment or 'GITHUB_REPOSITORY' not in build_environment or 'GITHUB_WORKFLOW' not in build_environment or 'GITHUB_SHA' not in build_environment:
+        if 'GITHUB_REPOSITORY' not in build_environment or 'GITHUB_WORKFLOW' not in build_environment or 'GITHUB_SHA' not in build_environment:
             return None
 
-        if build_environment['GITHUB_WORKFLOW'] == ".github/workflows/upload-notebook-submission.yml":
+        if build_environment['GITHUB_WORKFLOW'] == "Upload Docker Software to TIRA":
+            if 'TIRA_DOCKER_PATH' not in build_environment:
+                return None
+
+            return f'https://github.com/{build_environment["GITHUB_REPOSITORY"]}/tree/{build_environment["GITHUB_SHA"]}/{build_environment["TIRA_DOCKER_PATH"]}'
+
+        if build_environment['GITHUB_WORKFLOW'] == ".github/workflows/upload-notebook-submission.yml" or build_environment['GITHUB_WORKFLOW'] == 'Upload Notebook to TIRA':
+            if 'TIRA_JUPYTER_NOTEBOOK' not in build_environment:
+                return None
+
             return f'https://github.com/{build_environment["GITHUB_REPOSITORY"]}/tree/{build_environment["GITHUB_SHA"]}/jupyter-notebook-submissions/{build_environment["TIRA_JUPYTER_NOTEBOOK"]}'
 
         return None
