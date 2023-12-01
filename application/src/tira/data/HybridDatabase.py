@@ -19,6 +19,7 @@ import tira.data.data as dbops
 
 logger = logging.getLogger("tira_db")
 
+#SELECT tira_dockersoftware.vm_id, COUNT(DISTINCT(tira_dockersoftware.docker_software_id)) AS 'Software Count', SUM(tira_run.run_id IS NOT NULL) AS 'Executed Runs' FROM tira_dockersoftware LEFT JOIN tira_run ON tira_dockersoftware.docker_software_id = tira_run.docker_software_id where tira_dockersoftware.task_id = 'webpage-classification' GROUP BY tira_dockersoftware.vm_id;
 
 class HybridDatabase(object):
     """

@@ -340,8 +340,9 @@ WEBPACK_LOADER = {
 DISCOURSE_API_URL = 'https://www.tira.io'
 
 CODE_SUBMISSION_REFERENCE_REPOSITORIES = {
-    'ir-lab-jena-leipzig-wise-2023': 'mam10eks/tira-software-submission-template',
+    'ir-lab-jena-leipzig-wise-2023': 'tira-io/tira-ir-lab-wise-submission-template',
     'webpage-classification': 'OpenWebSearch/irixys23-tira-submission-template',
+    'valueeval-2024-human-value-detection': 'touche-webis-de/valueeval24-tira-software-submission-template',
 }
 CODE_SUBMISSION_REPOSITORY_NAMESPACE = 'tira-io'
 try:
