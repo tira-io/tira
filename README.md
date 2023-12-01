@@ -12,7 +12,7 @@ Components:
 
 ## Setup Your Local Development Environment
 
-We use [dev containers](https://code.visualstudio.com/docs/devcontainers/containers) to simplify development. You can [open this repository directly in codespaces](https://codespaces.new/tira-io/tree/tira). If you want to develop locally, please install Docker and an IDE with support for dev containers on your machine (we usually use VS Code).
+We use [dev containers](https://code.visualstudio.com/docs/devcontainers/containers) to simplify development. You can [open this repository directly in codespaces](https://codespaces.new/tira-io/tira/tree/main). If you want to develop locally, please install Docker and an IDE with support for dev containers on your machine (we usually use VS Code).
 
 First, please clone the repository:
 ```
