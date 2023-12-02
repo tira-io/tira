@@ -1,4 +1,4 @@
-.PHONY: help setup setup-webpack webpack run-develop build-docker clean
+.PHONY: help setup run-develop build-docker clean
 
 VERSION_APPLICATION=0.0.96
 VERSION_GRPC=0.0.96
@@ -17,11 +17,13 @@ help:
 	@echo "       build the docker containers for deployment"
 	@echo "make clean"
 	@echo "       clean the environment"
+
 clean: 
 	rm -f ../model/src/state/tira.sqlite3
 	rm -f ../model/src/model/virtual-machines/admin.prototext
 
 setup:
+	pip3 install -r requirements.txt
 	python3 src/manage.py migrate
 	python3 src/manage.py createcachetable
 	python3 src/manage.py makemigrations tira
@@ -68,13 +70,11 @@ import-data-from-dump: .data-dumps/django-db-dump.zip
 	${PYTHON} src/manage.py migrate tira && \
 	${PYTHON} src/manage.py loaddata .data-dumps/django-db-dump.json
 
-
 vite-build-docker:
 	docker run -v ${PWD}:/app --platform linux/amd64 --rm -ti -w /app/src/tira/frontend-vuetify --entrypoint yarn webis/tira-application:basis-0.0.95 build
 
 vite-build-light-docker:
 	docker run -v ${PWD}:/app --platform linux/amd64 --rm -ti -w /app/src/tira/frontend-vuetify --entrypoint yarn webis/tira-application:basis-0.0.95 build-light
-
 
 run-docker:
 	docker run -td --rm \
@@ -87,7 +87,6 @@ run-docker:
 		-p 50052:50052 \
 		-v=/mnt/ceph/tira:/mnt/ceph/tira \
 		webis/tira-application-grpc:${VERSION_GRPC}
-
 
 build-docker:
 	docker build --tag webis/tira-application:${VERSION_APPLICATION} -f Dockerfile.application ..
