@@ -29,7 +29,7 @@ setup:
 	python3 src/manage.py makemigrations tira
 	python3 src/manage.py migrate tira 
 	python3 src/manage.py index_model
-	make vite-build
+	make src/tira/static/tira/frontend-vuetify/
 
 tests:
 	./test/run_all_tests.sh
@@ -38,6 +38,9 @@ run-develop:
 	python src/manage.py makemigrations \
 	&& python src/manage.py migrate --fake \
 	&& python src/manage.py run_develop
+
+src/tira/static/tira/frontend-vuetify/:
+	@make vite-vuild
 
 vite-build:
 	@cd src/tira/frontend-vuetify \
