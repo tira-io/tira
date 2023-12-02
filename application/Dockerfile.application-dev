@@ -72,5 +72,7 @@ RUN cd /tmp-del \
     && mv node_modules/.bin /usr/local/lib/node_modules/.bin \
     && mv node_modules/.yarn-integrity /usr/local/lib/node_modules/.yarn-integrity \
     && cd / \
-    && rm -R /tmp-del/
+    && rm -R /tmp-del/ \
+    && apt-get install -y vim htop bash-completion \
+    && echo "\n. /usr/share/bash-completion/bash_completion" >> ~/.bashrc
 
