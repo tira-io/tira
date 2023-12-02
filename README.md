@@ -10,50 +10,38 @@ Components:
 - [Python Client](python-client) (test coverage: ![Coverage of the python client](python-client/tests/test-coverage/coverage.svg))
 
 
-## Setup Your Local Development Environment
-
-We use [dev containers](https://code.visualstudio.com/docs/devcontainers/containers) to simplify development. You can [open this repository directly in codespaces](https://github.com/codespaces/new/webis-de/tira-io/tree/tira). If you want to develop locally, please install Docker and an IDE with support for dev containers on your machine (we usually use VS Code).
-
-First, please clone the repository:
-```
-git clone git@github.com:tira-io/tira.git
-```
-
-Please open the directory `application` in VS Code, and confirm to use the provided dev container.
-
-If you want to work on production data (not necessary in most cases, you usually can skip this step), please ensure that you can login to ssh.webis.de, and then do the following:
-
-```
-make import-data-from-dump
-```
-
-To start TIRA locally, please run:
-
-```
-make run-develop
-```
-
-Then, you can point your browser to the specified URL.
-
 ## Resources
 * [Wiki](https://tira-io.github.io/tira/): Getting started with TIRA as a developer/administrator
 * [User Docs](https://www.tira.io/t/getting-started/1364): Getting started with TIRA as a user
 * [Papers](https://webis.de/publications.html?q=tira): List of publications
 * [Contribution Guide](CONTRIBUTING.md): How to contribute to the TIRA project
 
-## Create New Zip of the Database Dump
 
-Go the the password database `webis.uni-weimar.de:code-admin/passwords` -> Generic -> tira-development-database-dump
+## Setup Your Development Environment
 
-```
-cd /mnt/ceph/storage/data-in-production/tira/development-database-dumps/
-zip --encrypt django-db-dump-<DATE>.zip /mnt/ceph/tira/state/db-backup/django-db-dump-<DATE>.json
-ln -s django-db-dump-<DATE>.zip django-db-dump.zip
-```
+We use [devcontainers](https://code.visualstudio.com/docs/devcontainers/containers) for development. To start your environment, either use Github Codespaces (click on "Code" -> "Codespaces" in Github to open one) as easiest way to get started, or [devpod](https://github.com/loft-sh/devpod) as open source alternative (directly pointing to our Kubernetes or your local docker installation).
+
+Run `make` to get an overview of all commands that will setup a self-contained tira application in your dev environment.
+
+1. Setup the database and compile the vuetify frontend
+   ```bash
+   ~$ make setup
+   ```
+
+2. Start the local environment, point your browser to the specified URL
+   ```bash
+   ~$ make run-develop
+   ```
+
+3. Optionally: To work on real data, initialize your development database from a database dump
+   ```bash
+   ~$ make import-data-from-dump
+   ```
+
 
 ## Paper
 
-If you use TIRA in your own research, please be sure to cite our paper
+If you use TIRA in your own research, please cite our paper
 
 ```
 @InProceedings{froebe:2023b,
