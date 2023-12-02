@@ -69,6 +69,17 @@ These make targets from the deployment configuration: `tira/application/config/s
 - `code-admin-knowledge-base/services/tira/` contains all the deployment yamls.
 - Add the discourse secret in the namespace via: `tira-host/src/tira_scripts/k8s-deploy-discourse-api-key.sh`
 
+
+## Create New Zip of the Database Dump
+
+Go the the password database `webis.uni-weimar.de:code-admin/passwords` -> Generic -> tira-development-database-dump
+
+```
+cd /mnt/ceph/storage/data-in-production/tira/development-database-dumps/
+zip --encrypt django-db-dump-<DATE>.zip /mnt/ceph/tira/state/db-backup/django-db-dump-<DATE>.json
+ln -s django-db-dump-<DATE>.zip django-db-dump.zip
+```
+
 ## Troubleshooting
 
 If there are problems with the precompiled protobuf parser, you can recompile them from the `tira/protocol` repository and copy them to `tira/application/src/tira/proto`. 
