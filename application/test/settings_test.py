@@ -318,7 +318,7 @@ WEBPACK_LOADER = {
     }
 }
 
-TIREX_COMPONENTS = {}
+TIREX_COMPONENTS = yaml.load(open(BASE_DIR / 'src' / 'tirex-components.yml').read(), Loader=yaml.FullLoader)
 
 GIT_CI_AVAILABLE_RESOURCES = {
     'small-resources': {'cores': 1, 'ram': 10, 'gpu': 0, 'data': 'no', 'description': 'Small (1 CPU Cores, 10GB of RAM)', 'key': 'small-resources'}

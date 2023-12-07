@@ -309,30 +309,31 @@ query_processing:
           href: https://github.com/webis-de/query-segmentation
           target: _blank
       components:
-        hyp_a:
-          display_name: hyp-a
+        hyb_a:
+          display_name: hyb-a
           focus_type: [Precision]
           component_type: [TIREx, Tutorial]
-          tirex_submission_id: ir-benchmarks/ows/query-segmentation-hyp-a
+          tirex_submission_id: ir-benchmarks/ows/query-segmentation-hyb-a
           links:
             - display_name: Tutorial
               href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-segmentation-in-progress-by-maik
               target: _blank
 
-        hyp_b:
-          display_name: hyp-b
+        hyb_b:
+          display_name: hyb-b
           focus_type: [Precision]
           component_type: [TIREx, Tutorial]
-          tirex_submission_id: ir-benchmarks/ows/query-segmentation-hyp-b
+          tirex_submission_id: ir-benchmarks/ows/query-segmentation-hyb-b
           links:
             - display_name: Tutorial
               href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-segmentation-in-progress-by-maik
               target: _blank
 
-        hyp_i:
+        hyb_i:
           display_name: hyp-i
           focus_type: [Precision]
           component_type: [TIREx, Tutorial]
+          tirex_submission_id: ir-benchmarks/ows/query-segmentation-hyb-i
           links:
             - display_name: Tutorial
               href: https://github.com/webis-de/ir-pad/tree/public/tutorials#tutorial-8-query-segmentation-in-progress-by-maik
@@ -546,7 +547,7 @@ retrieval:
         dlh:
           display_name: DLH
           component_type: [TIREx]
-          tirex_submission_id: ir-benchmarks/tira-ir-starter/DirichletLM(tira-ir-starter-pyterrier)
+          tirex_submission_id: ir-benchmarks/tira-ir-starter/DLH(tira-ir-starter-pyterrier)
         dph:
           display_name: DPH
           component_type: [TIREx]

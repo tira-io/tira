@@ -484,31 +484,38 @@ def tirex_components(request, context):
     context['tirex_components'] = flatten_components(settings.TIREX_COMPONENTS)
     return JsonResponse({'status': 0, 'context': context})
 
+def flatten_tirex_components_to_id(obj, t=None):
+    ret = {}
+
+    if type(obj) != dict:
+        return ret
+
+    if 'tirex_submission_id' in obj:
+        assert obj['tirex_submission_id'] not in ret
+        obj['type'] = t
+        ret[obj['tirex_submission_id']] = obj
+
+    for k, v in obj.items():
+        for i, j in flatten_tirex_components_to_id(v, t if t else k).items():
+            ret[i] = j  
+
+    return ret
+
+
+TIREX_ID_TO_COMPONENT = flatten_tirex_components_to_id(settings.TIREX_COMPONENTS)
+
 
 def get_snippet_to_run_components(request):
-    all_components = settings.TIREX_COMPONENTS
+    component_key = request.GET.get('component')
 
-    component_type = request.GET.get('type')
-    component_key = request.GET.get('key')
+    if component_key not in TIREX_ID_TO_COMPONENT:
+        return JsonResponse({'status': 1, 'message': f'Component "{component_key}" not found.'})
 
-    if not component_type or not component_key:
-        return JsonResponse({'status': 1, 'message': '"type" and "key" are required parameters'})
-
-    if component_type not in all_components:
-        return JsonResponse({'status': 1, 'message': f'Component type "{component_type}" not supported'})
-
-    component = all_components[component_type]
-
-    for identifier in component_key.split('/'):
-        try:
-            component = component['components'][identifier]
-        except KeyError:
-            return JsonResponse({'status': 1, 'message': f'Component "{component_type}/{component_key}" not found'})
-
+    component = TIREX_ID_TO_COMPONENT[component_key]
+    component_type = component['type']
     dataset_initialization = textwrap.dedent('''
-    # TODO: replace Robust04 with any dataset of your choosing
-    dataset_id = disks45/nocr/trec-robust-2004
-    pt.get_dataset(f"irds:{dataset_id}")
+    # You can replace Robust04 with other datasets
+    dataset = pt.get_dataset("irds:disks45/nocr/trec-robust-2004")
     ''').strip()
     snippet = ''
 
