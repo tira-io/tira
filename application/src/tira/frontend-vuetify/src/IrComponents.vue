@@ -40,15 +40,16 @@
               <v-list-item v-for="link in vectorizedComponents[index][i-1].links">
                 <v-list-item-title><a :href="link.href" :target="link.target">{{ link.display_name }}</a></v-list-item-title>
               </v-list-item>
-              <v-list-item v-if="vectorizedComponents[index][i-1].code">
+              <v-list-item v-if="vectorizedComponents[index][i-1].tirex_submission_id">
                 <v-dialog>
                     <template v-slot:activator="{ props }">
-                      <v-list-item-title v-bind="props" class="show-code-button">Show code</v-list-item-title>
+                      <v-list-item-title v-bind="props" class="show-code-button" @click="fetch_code(index, i-1)">Show code</v-list-item-title>
                     </template>
                   <template v-slot:default="{ isActive }">
                     <v-card class="bg-grey-darken-3">
                       <v-card-text content="code">
-                        <code-snippet :title="'Example code snippet for ' + vectorizedComponents[index][i-1]?.display_name" :code="vectorizedComponents[index][i-1].code" expand_message=""/>
+                        <loading v-if="!code" loading="true"/>
+                        <code-snippet v-if="code" :title="'Example code snippet for ' + vectorizedComponents[index][i-1]?.display_name" :code="code" expand_message=""/>
                       </v-card-text>
 
                       <v-card-actions>
@@ -85,6 +86,7 @@ import {compareArrays, extractComponentTypesFromCurrentUrl, extractFocusTypesFro
 import CodeSnippet from "@/components/CodeSnippet.vue";
 
 interface Component {
+  identifier: string;
   display_name: string;
   components?: Component[];
   links?: { display_name: string; href: string; target: string }[];
@@ -103,8 +105,9 @@ export default {
       max_width: 1500,
       loading: true,
       tirex_components: [
-        {'display_name': 'loading', 'components': [{'display_name': 'loading'}], 'links': [{'display_name': '.', 'href': '.', 'target': '.'}]},
+        {'identifier': 'loading', 'display_name': 'loading', 'components': [{'identifier': 'loading', 'display_name': 'loading'}], 'links': [{'display_name': '.', 'href': '.', 'target': '.'}], 'tirex_submission_id': null},
       ],
+      code: '',
       colors: {
         'Dataset': 'green', 'Document Processing': 'yellow-lighten-1',
         'Query Processing': 'yellow-darken-4', 'Retrieval': 'cyan-lighten-1',
@@ -148,6 +151,11 @@ export default {
 
       return componentSet;
     },
+    fetch_code(index: number, i: number) {
+      this.code = ''
+      get('/api/tirex-snippet?component='+ this.vectorizedComponents[index][i].tirex_submission_id)
+        .then((message) => {this.code = message['context']['snippet']})
+    },
     colorOfComponent(c:string) : string {
       return this.colors[c] ?? "grey"
     },
@@ -172,8 +180,8 @@ export default {
     is_collapsed(component:any) {
       return !this.computed_expanded_entries.includes(component.display_name)
     },
-    filtered_sub_components(component:any) : {display_name: string, subItems: number, pos: number, links: any[], focus_type: string|undefined|null, component_type: string|undefined|null}[] {
-      let ret: {display_name: string, subItems: number, pos: number, links: any[], focus_type: string|undefined|null, component_type: string|undefined|null}[] = []
+    filtered_sub_components(component:any) : {display_name: string, subItems: number, pos: number, links: any[], focus_type: string|undefined|null, component_type: string|undefined|null, tirex_submission_id: string|undefined|null}[] {
+      let ret: {display_name: string, subItems: number, pos: number, links: any[], focus_type: string|undefined|null, component_type: string|undefined|null, tirex_submission_id: string|undefined|null}[] = []
 
       if (this.is_collapsed(component) || !component['components']) {
         return ret
@@ -188,6 +196,7 @@ export default {
             'links': c.hasOwnProperty('links') ? c['links'] : null,
             'focus_type': c.hasOwnProperty('focus_type') ? c['focus_type'] : null,
             'component_type': c.hasOwnProperty('component_type') ? c['component_type'] : null,
+            'tirex_submission_id': c['tirex_submission_id']
           })
 
           for (let sub_c of this.filtered_sub_components(c)) {
@@ -198,6 +207,7 @@ export default {
               'links': sub_c['links'],
               'focus_type': sub_c.hasOwnProperty('focus_type') ? sub_c['focus_type'] : null,
               'component_type': sub_c.hasOwnProperty('component_type') ? sub_c['component_type'] : null,
+              'tirex_submission_id': sub_c['tirex_submission_id']
             })
           }
         }
@@ -284,8 +294,7 @@ export default {
             ret = ret.concat(terms[i]);
           }
         }
-
-        }
+      }
 
       return ret
     },
@@ -306,7 +315,7 @@ export default {
         let c = this.tirex_components[i]
 
         // we set row 0, aka the headers
-        ret[0][i] = {'display_name': c.display_name, 'links': c.links, 'collapsed': this.is_collapsed(c), 'subItems':this.countSubItems(c), 'hide': false}
+        ret[0][i] = {'display_name': c.display_name, 'links': c.links, 'collapsed': this.is_collapsed(c), 'subItems':this.countSubItems(c), 'hide': false, 'tirex_submission_id': ''}
 
         // we loop through each categories subcomponents and enrich them with information needed for the grid display
         for (let subcomponent of this.filtered_sub_components(c)) {
@@ -320,7 +329,7 @@ export default {
             'links': subcomponent.links,
             'collapsed': this.is_collapsed(subcomponent),
             'hide': this.hide_component(subcomponent),
-            'code': "this will show example code for executing this components method"
+            'tirex_submission_id': subcomponent['tirex_submission_id'] || null
           }
         }
       }
