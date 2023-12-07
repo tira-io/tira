@@ -85,6 +85,7 @@ import {compareArrays, extractComponentTypesFromCurrentUrl, extractFocusTypesFro
 import CodeSnippet from "@/components/CodeSnippet.vue";
 
 interface Component {
+  identifier: string;
   display_name: string;
   components?: Component[];
   links?: { display_name: string; href: string; target: string }[];
@@ -103,7 +104,7 @@ export default {
       max_width: 1500,
       loading: true,
       tirex_components: [
-        {'display_name': 'loading', 'components': [{'display_name': 'loading'}], 'links': [{'display_name': '.', 'href': '.', 'target': '.'}]},
+        {'identifier': 'loading', 'display_name': 'loading', 'components': [{'identifier': 'loading', 'display_name': 'loading'}], 'links': [{'display_name': '.', 'href': '.', 'target': '.'}]},
       ],
       colors: {
         'Dataset': 'green', 'Document Processing': 'yellow-lighten-1',

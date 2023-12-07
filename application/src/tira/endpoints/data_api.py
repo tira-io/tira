@@ -1,5 +1,9 @@
 import logging
 import json
+import textwrap
+
+from django.core.exceptions import BadRequest
+
 from tira.forms import *
 import tira.tira_model as model
 from tira.checks import check_permissions, check_resources_exist, check_conditional_permissions
@@ -434,36 +438,126 @@ def add_registration(request, context, task_id, vm_id):
         return JsonResponse({'status': 0, "message": f"Encountered an exception: {e}"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
+def expand_links(component):
+    links = [*component.get('links', [])]
+    if ir_datasets_id := component.pop('ir_datasets_id', None):
+        if '/' in ir_datasets_id:
+            base = ir_datasets_id.split('/')[0]
+            fragment = f'#{ir_datasets_id}'
+        else:
+            base = ir_datasets_id
+            fragment = ''
+
+        links.append({
+            'display_name': 'ir_datasets',
+            'href': f'https://ir-datasets.com/{base}.html{fragment}',
+            'target': '_blank',
+        })
+
+    if tirex_submission_id := component.pop('tirex_submission_id', None):
+        links.append({
+            'display_name': 'Submission in TIREx',
+            'href': f'/submissions/{tirex_submission_id}',
+        })
+
+    if links:
+        component['links'] = links
+
+    return component
+
+
+def flatten_components(components):
+    flattened_components = []
+    for identifier, data in components.items():
+        component = {'identifier': identifier, **data}
+
+        if 'components' in component:
+            component['components'] = flatten_components(data['components'])
+
+        flattened_components.append(expand_links(component))
+
+    return flattened_components
+
+
 @add_context
 def tirex_components(request, context):
-    context['tirex_components'] = settings.TIREX_COMPONENTS
+    context['tirex_components'] = flatten_components(settings.TIREX_COMPONENTS)
     return JsonResponse({'status': 0, 'context': context})
+
 
 def get_snippet_to_run_components(request):
     all_components = settings.TIREX_COMPONENTS
-    component_ids = request.GET.get('components', 'false')
 
-    # All links with display_name == "Submission in TIREx" have the ID of the component in their link, its a bit ugly, but at the moment we need to extract the ID from there.
-    # E.g., the ID from the URL "/submissions/ir-benchmarks/ows/query-segmentation-hyp-a" would be ir-benchmarks/ows/query-segmentation-hyp-a
+    component_type = request.GET.get('type')
+    component_key = request.GET.get('key')
 
-    # Also Ugly: we need to determine which type of processor (query processor, document processor, etc) something is by using its top-level category, e.g., "Query Processing".
+    if not component_type or not component_key:
+        return JsonResponse({'status': 1, 'message': '"type" and "key" are required parameters'})
 
-    # I think it makes sense to build a small method that uses the settings.TIREX_COMPONENTS as input and produces a mapping form component ID (the thing below "Submission in TIREx") to the properties, e.g., query processor true or false, etc.
+    if component_type not in all_components:
+        return JsonResponse({'status': 1, 'message': f'Component type "{component_type}" not supported'})
 
-    # I think we can hard code everything against ROBUST04, we can switch this later.
-    dataset_initialization = 'dataset = pt.get_dataset("irds:disks45/nocr/trec-robust-2004")\n'
+    component = all_components[component_type]
 
-    additional_variables = ''
+    for identifier in component_key.split('/'):
+        try:
+            component = component['components'][identifier]
+        except KeyError:
+            return JsonResponse({'status': 1, 'message': f'Component "{component_type}/{component_key}" not found'})
 
-    # If we have a query processor, we need to add an additional variable "topics"
-    # just for this hard coded example:
-    current_component_is_query_processor = True
-    if current_component_is_query_processor:
-        additional_variables += "topics = dataset.get_topics(variant='title')\n"
+    dataset_initialization = textwrap.dedent('''
+    # TODO: replace Robust04 with any dataset of your choosing
+    dataset_id = disks45/nocr/trec-robust-2004
+    pt.get_dataset(f"irds:{dataset_id}")
+    ''').strip()
+    snippet = ''
 
-    component_definitions = "tira.pt.transform_queries('ir-benchmarks/ows/query-segmentation-hyb-i', dataset)\n"
+    if component_type == 'dataset':
+        dataset_initialization = ''
+        if ir_datasets_id := component.get('ir_datasets_id'):
+            snippet = f'''
+            dataset = pt.get_dataset('irds:{ir_datasets_id}')
 
-    snippet = (dataset_initialization + additional_variables + component_definitions).strip()
+            indexer = pt.IterDictIndexer('./index')
+            indexref = indexer.index(dataset.get_corpus_iter())
+            '''
+        else:
+            snippet = f'''
+            def get_corpus_iter():
+                # Iterate over the {component['display_name']} corpus
+                corpus = ...
+                for doc in corpus:
+                    yield {{'docno': doc.docno, 'text': doc.content}}
+
+            indexer = pt.IterDictIndexer('./index')
+            indexref = indexer.index(get_corpus_iter())
+            '''
+    elif component_type == 'document_processing':
+        if tirex_submission_id := component.get('tirex_submission_id'):
+            snippet = f'''
+            transformed_docs = tira.pt.transform_documents('{tirex_submission_id}', dataset)
+            '''
+    elif component_type == 'query_processing':
+        if tirex_submission_id := component.get('tirex_submission_id'):
+            snippet = f'''
+            topics = dataset.get_topics(variant='title')
+            transformed_queries = tira.pt.transform_queries('{tirex_submission_id}', topics)
+            '''
+    elif component_type in ('retrieval', 'reranking'):
+        if tirex_submission_id := component.get('tirex_submission_id'):
+            snippet = f'''
+            run = tira.pt.from_retriever_submission('{tirex_submission_id}', dataset=dataset_id)
+            '''
+    elif component_type == 'dataset':
+        pass
+    else:
+        JsonResponse({'status': 1, 'message': f'Component type "{component_type}" does not exist...'})
+
+    if snippet:
+        snippet = textwrap.dedent(snippet).strip()
+
+        if dataset_initialization:
+            snippet = dataset_initialization + '\n' + snippet
 
     return JsonResponse({'status': 0, 'context': {'snippet': snippet}})
 
