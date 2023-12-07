@@ -440,7 +440,8 @@ def add_registration(request, context, task_id, vm_id):
 
 def expand_links(component):
     links = [*component.get('links', [])]
-    if ir_datasets_id := component.pop('ir_datasets_id', None):
+    ir_datasets_id = component.get('ir_datasets_id', None)
+    if ir_datasets_id:
         if '/' in ir_datasets_id:
             base = ir_datasets_id.split('/')[0]
             fragment = f'#{ir_datasets_id}'
