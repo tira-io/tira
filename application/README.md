@@ -4,7 +4,7 @@ The following steps will setup a self-contained, local tira application and a mo
 
 1. Install Python3, pip, virtualenv, yarn and the mysql tools. For Ubuntu:
    ```bash
-   ~$ sudo apt-get update && sudo apt-get install python3 python3-pip python3-venv libmysqlclient-dev yarn
+   ~$ sudo apt-get update && sudo apt-get install python3 python3-pip python3-venv libmysqlclient-dev yarn npm
    ```
 
 2. Setup the local environment
