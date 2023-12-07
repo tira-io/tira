@@ -523,7 +523,8 @@ def get_snippet_to_run_components(request):
 
     if component_type == 'dataset':
         dataset_initialization = ''
-        if ir_datasets_id := component.get('ir_datasets_id'):
+        ir_datasets_id = component.get('ir_datasets_id')
+        if ir_datasets_id:
             snippet = f'''
             dataset = pt.get_dataset('irds:{ir_datasets_id}')
 
@@ -542,18 +543,21 @@ def get_snippet_to_run_components(request):
             indexref = indexer.index(get_corpus_iter())
             '''
     elif component_type == 'document_processing':
-        if tirex_submission_id := component.get('tirex_submission_id'):
+        tirex_submission_id = component.get('tirex_submission_id')
+        if tirex_submission_id:
             snippet = f'''
             transformed_docs = tira.pt.transform_documents('{tirex_submission_id}', dataset)
             '''
     elif component_type == 'query_processing':
-        if tirex_submission_id := component.get('tirex_submission_id'):
+        tirex_submission_id = component.get('tirex_submission_id')
+        if tirex_submission_id:
             snippet = f'''
             topics = dataset.get_topics(variant='title')
             transformed_queries = tira.pt.transform_queries('{tirex_submission_id}', topics)
             '''
     elif component_type in ('retrieval', 'reranking'):
-        if tirex_submission_id := component.get('tirex_submission_id'):
+        tirex_submission_id = component.get('tirex_submission_id')
+        if tirex_submission_id:
             snippet = f'''
             run = tira.pt.from_retriever_submission('{tirex_submission_id}', dataset=dataset_id)
             '''
