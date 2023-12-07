@@ -455,7 +455,8 @@ def expand_links(component):
             'target': '_blank',
         })
 
-    if tirex_submission_id := component.pop('tirex_submission_id', None):
+    tirex_submission_id = component.get('tirex_submission_id', None)
+    if tirex_submission_id:
         links.append({
             'display_name': 'Submission in TIREx',
             'href': f'/submissions/{tirex_submission_id}',
