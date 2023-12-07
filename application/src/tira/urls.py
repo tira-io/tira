@@ -107,6 +107,7 @@ urlpatterns = [
     path('api/registration/add_registration/<str:vm_id>/<str:task_id>', data_api.add_registration, name='add_registration'),
     path('api/submissions-for-task/<str:task_id>/<str:user_id>/<str:submission_type>', data_api.submissions_for_task, name="submissions_for_task"),
     path('api/tirex-components', data_api.tirex_components, name='tirex_components'),
+    path('api/tirex-snippet', data_api.get_snippet_to_run_components, name='get_snippet_to_run_components'),
     path('api/snippets-for-tirex-components', data_api.get_snippet_to_run_components, name='get_snippet_to_run_components'),
     path('api/re-ranking-datasets/<str:task_id>', data_api.reranking_datasets, name='reranking_datasets'),
     path('api/submissions-of-user/<str:vm_id>', data_api.submissions_of_user, name='submissions_of_user'),

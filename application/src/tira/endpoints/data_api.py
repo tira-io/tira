@@ -476,6 +476,9 @@ def flatten_components(components):
         if 'components' in component:
             component['components'] = flatten_components(data['components'])
 
+        if 'tirex_submission_id' in data:
+            component['tirex_submission_id'] = data['tirex_submission_id']
+
         flattened_components.append(expand_links(component))
 
     return flattened_components
