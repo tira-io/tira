@@ -1,4 +1,4 @@
-# docker build -t webis/tira-application:basis-0.0.94 -f Dockerfile.application-dev .
+# docker build -t webis/tira-application:basis-0.0.95 -f Dockerfile.application-dev .
 FROM ubuntu:22.04
 
 RUN apt-get update \
@@ -52,4 +52,27 @@ RUN chown -R tira:tira /usr/local && \
 	chown tira:tira -R /tira
 
 RUN pip3 install tira==0.0.97 ir-measures==0.3.1
+
+RUN apt-get install -y wget curl
+
+RUN wget 'https://nodejs.org/dist/v20.10.0/node-v20.10.0-linux-x64.tar.xz' \
+    && tar -xf node-v20.10.0-linux-x64.tar.xz \
+    && rm node-v20.10.0-linux-x64.tar.xz \
+    && mv node-v20.10.0-linux-x64/bin/* /usr/local/bin/ \
+    && mv node-v20.10.0-linux-x64/lib/node_modules/ /usr/local/lib/ \
+    && npm install --global yarn
+
+ADD src/tira/frontend-vuetify/package.json src/tira/frontend-vuetify/yarn.lock src/tira/frontend-vuetify/vite.config.ts src/tira/frontend-vuetify/jest.config.js src/tira/frontend-vuetify/babel.config.js /tmp-del/
+
+RUN cd /tmp-del \
+    && yarn create vuetify \
+    && yarn install \
+    && yarn install --dev \
+    && mv node_modules/* /usr/local/lib/node_modules \
+    && mv node_modules/.bin /usr/local/lib/node_modules/.bin \
+    && mv node_modules/.yarn-integrity /usr/local/lib/node_modules/.yarn-integrity \
+    && cd / \
+    && rm -R /tmp-del/ \
+    && apt-get install -y vim htop bash-completion \
+    && echo "\n. /usr/share/bash-completion/bash_completion" >> ~/.bashrc
 

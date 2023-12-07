@@ -166,6 +166,12 @@ def main():
             print(f'Done: Evaluation truth for dataset {dataset} is available.')
 
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
+    print(f'''
+########################################### TIRA RUN CONFIGURATION ###########################################
+# image=${args.image}
+# command=${args.command}
+##############################################################################################################
+''')
     client.local_execution.run(identifier=args.approach, image=args.image, command=args.command, input_dir=input_dir, output_dir=args.output_directory, dry_run=args.dry_run, allow_network=args.allow_network, input_run=args.input_run, additional_volumes=args.v, evaluate=evaluate, eval_dir=args.evaluation_directory)
 
     if args.fail_if_output_is_empty and (not os.path.exists(args.output_directory) or not os.listdir(args.output_directory)):

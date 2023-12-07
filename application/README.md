@@ -1,31 +1,33 @@
+# The TIRA Application
+
+The backend server and frontend of the TIRA application.
+
 ## Development Setup
 
-The following steps will setup a self-contained, local tira application and a mockup tira host. See [Development](#development) for more detailed options. 
+We use devcontainers for development. To start your environment, either use Github Codespaces (click on "Code" -> "Codespaces" in Github to open one) as easiest way to get started, or [devpod](https://github.com/loft-sh/devpod) as open source alternative (directly pointing to our Kubernetes or your local docker installation).
 
-1. Install Python3, pip, virtualenv, yarn and the mysql tools. For Ubuntu:
+Run `make` to get an overview of all commands that will setup a self-contained tira application in your dev environment.
+
+1. Setup the database and compile the vuetify frontend
    ```bash
-   ~$ sudo apt-get update && sudo apt-get install python3 python3-pip python3-venv libmysqlclient-dev yarn npm
+   ~$ make setup
    ```
 
-2. Setup the local environment
+2. Start the local environment, point your browser to the specified URL
    ```bash
-   ~$ make setup  # This creates the virtual environment and prepares Django's database
+   ~$ make run-develop
    ```
 
-3. Initialize your development database from a database dump
+3. Optionally: To work on real data, initialize your development database from a database dump
    ```bash
    ~$ make import-data-from-dump
    ```
 
-4. Setup the local environment
-   ```bash
-   ~$ make run-develop  # This updates the config and runs the server within the venv.
-   ```
+4. Optionally: Change the configuration (the settings used for the development setup are: `tira/application/config/settings-dev.yml`)
 
-5. Run all unit tests
-   ```bash
-   ~$ make tests
-   ```
+## Frontend Development
+
+Build the frontend code via `make vite-build`
 
 ## Docker
 
@@ -47,45 +49,36 @@ You need to run two docker containers for a tira-application: `registry.webis.de
 
 ## Build and Deploy
 
-### Run the tests
+### Step 1: Run the tests
 
    ```bash
-   application/src~$ python3 manage.py test test tira/tests/  # run all tests in application/src/tira/tests
-   application/src~$ python3 manage.py test test tira/tests/tests.py  # run an individual test module
+   make tests # run all tests (automatically done in Github Actions on each commit)
    ```
 
-### Deploy on Kubernetes
-
-- Add the discourse secret in the namespace via: `tira-host/src/tira_scripts/k8s-deploy-discourse-api-key.sh`
-
-### Re-build the docker images: 
+### Step 2: Re-build the docker images: 
 
    ```bash
-   protocol~$ make build  # Build the protobuf libraries from source. 
-   ~$ make setup  # This creates the virtual environment and prepares Django's database
-   ~$ make docker-build-tira-application  # Build the docker image (deploy mode with nginx)
-   ~$ make docker-run-tira-application  # Run the docker container with the make command (deploy mode)
-   ~$ make docker-publish-tira-application  # (optional) Publish a new version
+   ~$ make build-docker
+   ~$ make build-docker-all
    ```
 
 These make targets from the deployment configuration: `tira/application/config/settings-deploy.yml`
 
-### Development
+### Step 3: Deploy on Kubernetes
 
-The settings used for the development setup are: `tira/application/config/settings-dev.yml` 
+- `code-admin-knowledge-base/services/tira/` contains all the deployment yamls.
+- Add the discourse secret in the namespace via: `tira-host/src/tira_scripts/k8s-deploy-discourse-api-key.sh`
 
-Frequently used development commands are:
 
-   ```bash
-   application/src~$ python3 manage.py runserver 8080  # Start the application without any grpc server
-   application/src~$ python3 manage.py grpc_server  # Start only the application's grpc server
-   application/src~$ python3 manage.py run_develop  # Start the application and  the application's grpc server. This is used in make run-develop and the container
-   application/src~$ python3 manage.py run_mockup  # Start the application, the application's grpc server, and a mock host grpc server that will reply to the application with fake commands. This is the simplest way to develop the application.
-   ```
+## Create New Zip of the Database Dump
 
-### Frontend Development
+Go the the password database `webis.uni-weimar.de:code-admin/passwords` -> Generic -> tira-development-database-dump
 
-Build the frontend code via `make vite`
+```
+cd /mnt/ceph/storage/data-in-production/tira/development-database-dumps/
+zip --encrypt django-db-dump-<DATE>.zip /mnt/ceph/tira/state/db-backup/django-db-dump-<DATE>.json
+ln -s django-db-dump-<DATE>.zip django-db-dump.zip
+```
 
 ## Troubleshooting
 
