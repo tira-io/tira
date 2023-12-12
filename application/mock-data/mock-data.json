@@ -1,0 +1,204 @@
+[
+    {
+      "model": "tira.organizer",
+      "pk": "org_1",
+      "fields": {
+        "name": "org_1",
+        "years": "2022",
+        "web": "https://www.organizer1.com",
+        "git_integrations": []
+      }
+    
+    },
+    {
+      "model": "tira.organizer",
+      "pk": "org_2",
+      "fields": {
+        "name": "org_2",
+        "years": "2023",
+        "web": "https://www.organizer2.com",
+        "git_integrations": []
+      }
+     
+    },
+    {
+      "model": "tira.virtualmachine",
+      "pk": "vm_1",
+      "fields": {
+        "user_password": "vm_password_1",
+        "roles": "guest",
+        "host": "host1.example.com",
+        "admin_name": "admin_1",
+        "admin_pw": "admin_pw_1",
+        "ip": "192.168.0.1",
+        "ssh": 22,
+        "rdp": null,
+        "archived": false
+      }
+      
+    },
+    {
+      "model": "tira.virtualmachine",
+      "pk": "vm_2",
+      "fields": {
+        "user_password": "vm_password_2",
+        "roles": "admin",
+        "host": "host2.example.com",
+        "admin_name": "admin_2",
+        "admin_pw": "admin_pw_2",
+        "ip": "192.168.0.2",
+        "ssh": 22,
+        "rdp": 3389,
+        "archived": false
+      }
+    
+    }
+  ,
+    {
+      "model": "tira.task",
+      "pk": "task_1",
+      "fields": {
+        "task_name": "task_1",
+        "task_description": "Description for Task 1",
+        "vm": "vm_1",
+        "organizer": "org_1",
+        "web": "https://www.task1.com",
+        "featured": true,
+        "require_registration": false,
+        "require_groups": false,
+        "restrict_groups": false,
+        "max_std_out_chars_on_test_data": 1000,
+        "max_std_err_chars_on_test_data": 500,
+        "max_file_list_chars_on_test_data": 2000
+      }
+      
+    },
+    {
+      "model": "tira.task",
+      "pk": "task_2",
+      "fields": {
+        "task_name": "Task 2",
+        "task_description": "Description for Task 2",
+        "vm": "vm_2",
+        "organizer": "org_2",
+        "web": "https://www.task2.com",
+        "featured": false,
+        "require_registration": false,
+        "require_groups": false,
+        "restrict_groups": true,
+        "max_std_out_chars_on_test_data": 1500,
+        "max_std_err_chars_on_test_data": 600,
+        "max_file_list_chars_on_test_data": 2500
+      }
+      
+    },
+    {
+      "model": "tira.dataset",
+      "pk": "",
+      "fields": {
+        "default_task": null,
+        "display_name": "",
+        "evaluator": null,
+        "is_confidential": false,
+        "is_deprecated": false,
+        "data_server": null,
+        "released": "",
+        "default_upload_name": "predictions",
+        "created": "2022-08-11",
+        "last_modified": "2022-08-11",
+        "irds_docker_image": null,
+        "irds_import_command": null,
+        "irds_import_truth_command": null
+      }
+    },
+    {
+      "model": "tira.dataset",
+      "pk": "dataset_1",
+      "fields": {
+        "default_task": "task_1",
+        "display_name": "dataset_1",
+        "evaluator": null,
+        "is_confidential": false,
+        "is_deprecated": false,
+        "data_server": null,
+        "released": "",
+        "default_upload_name": "predictions",
+        "created": "2022-08-11",
+        "last_modified": "2022-08-11",
+        "irds_docker_image": null,
+        "irds_import_command": null,
+        "irds_import_truth_command": null
+      }
+    },
+    {
+      "model": "tira.software",
+      "pk": 1,
+      "fields": {
+        "software_id": "software1",
+        "vm": "vm_1",
+        "task": "task_1",
+        "count": "1",
+        "command": "./test.exe  $inputDataset $outputDir",
+        "working_directory": "/cygdrive/c/Users/vm_1/test/t30_new",
+        "dataset": "dataset_1",
+        "creation_date": "Sat Jan 23 12:42:39 CET 2023",
+        "last_edit_date": "Sat Jan 23 12:42:39 CET 2023",
+        "deleted": false
+      }
+    },
+    {
+      "model": "tira.dockersoftware",
+      "pk": 1,
+      "fields": {
+        "vm": "vm_1",
+        "task": "task_1",
+        "input_docker_software": null,
+        "input_upload": null,
+        "command": "echo \"Hallo Welt, this is my first command\"",
+        "display_name": "inverse-eaves",
+        "user_image_name": "registry.webis.de/code-research/tira/tira-user-vm-1/my-software:0.0.1",
+        "tira_image_name": "code-research/tira/tira-user-vm-1/my-software:0.0.1-tira-docker-software-id-quadratic-sortie",
+        "deleted": false,
+        "description": "",
+        "paper_link": "",
+        "ir_re_ranker": false,
+        "ir_re_ranking_input": false
+      }
+    },
+    {
+      "model": "tira.registration",
+      "pk": "test_registration",
+      "fields": {
+        "initial_owner": "vm_1",
+        "team_members": null,
+        "registered_on_task": "task_1",
+        "name": "registration_1",
+        "email": "test@test.de",
+        "affiliation": null,
+        "country": null,
+        "employment": null,
+        "participates_for": null,
+        "instructor_name": null,
+        "instructor_email": null,
+        "questions": null,
+        "created": "2022-11-20",
+        "last_modified": "2022-11-20"
+      }
+    },
+    {
+      "model": "tira.run",
+      "pk": "run_1",
+      "fields": {
+        "software": 1,
+        "evaluator": null,
+        "upload": null,
+        "docker_software": 1,
+        "input_dataset": "dataset_1",
+        "input_run": null,
+        "task": "task_1",
+        "downloadable": true,
+        "deleted": false,
+        "access_token": ""
+      }
+    }
+]
