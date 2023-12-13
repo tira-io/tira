@@ -1,4 +1,4 @@
-# docker build -t webis/tira-application:basis-0.0.95 -f Dockerfile.application-dev .
+# docker build -t webis/tira-application:basis-0.0.96 -f Dockerfile.application-dev .
 FROM ubuntu:22.04
 
 RUN apt-get update \
