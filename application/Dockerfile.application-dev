@@ -1,4 +1,4 @@
-# docker build -t webis/tira-application:basis-0.0.96 -f Dockerfile.application-dev .
+# docker build -t webis/tira-application:basis-0.0.97 -f Dockerfile.application-dev .
 FROM ubuntu:22.04
 
 RUN apt-get update \
@@ -75,4 +75,6 @@ RUN cd /tmp-del \
     && rm -R /tmp-del/ \
     && apt-get install -y vim htop bash-completion \
     && echo "\n. /usr/share/bash-completion/bash_completion" >> ~/.bashrc
+
+ENV PATH=${PATH}:./usr/local/lib/node_modules/.bin
 
