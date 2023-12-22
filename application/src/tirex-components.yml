@@ -906,7 +906,7 @@ evaluation:
         - display_name: Criticism of MAP
           href: https://ir.webis.de/anthology/2017.sigirjournals_journal-ir0anthology0volumeA51A3.3/
           target: _blank
-        - display_name: Defense of MRR
+        - display_name: Defense of MAP
           href: https://ir.webis.de/anthology/2020.sigirjournals_journal-ir0anthology0volumeA54A1.11/
           target: _blank
     mrr:
@@ -921,6 +921,12 @@ evaluation:
           target: _blank
         - display_name: Criticism of MRR
           href: https://ir.webis.de/anthology/2017.sigirjournals_journal-ir0anthology0volumeA51A3.3/
+          target: _blank
+        - display_name: Defense of MRR
+          href: https://ir.webis.de/anthology/2020.sigirjournals_journal-ir0anthology0volumeA54A1.11/
+          target: _blank
+        - display_name: The Case for Reciprocal Rank
+          href: https://arxiv.org/pdf/2312.12672.pdf
           target: _blank
     ndcg:
       display_name: nDCG
