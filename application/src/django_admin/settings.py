@@ -246,6 +246,7 @@ GIT_CI_AVAILABLE_RESOURCES = {
     'medium-resources': {'cores': 2, 'ram': 20, 'gpu': 0, 'data': 'no', 'description': 'Medium (2 CPU Cores, 20GB of RAM)', 'key': 'medium-resources'},
     'large-resources': {'cores': 4, 'ram': 40, 'gpu': 0, 'data': 'no', 'description': 'Large (4 CPU Cores, 40GB of RAM)', 'key': 'large-resources'},
     'small-resources-gpu': {'cores': 1, 'ram': 10, 'gpu': '1-nvidia-1080', 'data': 'no', 'description': 'Small w. GPU (1 CPU Cores, 10GB of RAM, 1 Nvidia GTX 1080 with 8GB)', 'key': 'small-resources-gpu'},
+    'medium-resources-gpu': {'cores': 2, 'ram': 20, 'gpu': '1-nvidia-1080', 'data': 'no', 'description': 'Medium w. GPU (2 CPU Cores, 20GB of RAM, 1 Nvidia GTX 1080 with 8GB)', 'key': 'medium-resources-gpu'},
 }
 
 DEFAULT_GIT_INTEGRATION_URL = 'https://git.webis.de/code-research/tira'
