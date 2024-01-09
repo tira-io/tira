@@ -1,11 +1,11 @@
 <template>
     <loading :loading="loading"/>
     <v-data-table v-if="!loading" :headers="table_headers" :items="count_of_missing_reviews" density="compact" v-model:expanded="expanded" show-expand expand-on-click>
-      <template v-slot:expanded-row="{ columns, item }">
+      <template v-slot:expanded-row="{ columns, internalItem }">
         <tr>
           <td :colspan="columns.length">
-            More info about {{ item.value.dataset_id }}
-            <run-list :task_id="task.task_id" :organizer="task.organizer" :organizer_id="task.organizer_id" :dataset_id="item.value.dataset_id" show_only_unreviewed="true"/>
+            More info about {{ internalItem.value.dataset_id }}
+            <run-list :task_id="task.task_id" :organizer="task.organizer" :organizer_id="task.organizer_id" :dataset_id="internalItem.value.dataset_id" show_only_unreviewed="true"/>
           </td>
         </tr>
       </template>
@@ -25,7 +25,7 @@ export default {
   props: ['task'],
   data() { return {
     loading: true,
-    expanded: null, 
+    expanded: [] as string[], 
     count_of_missing_reviews: [],
     table_headers: [
       { title: 'Dataset', key: 'dataset_id' },
