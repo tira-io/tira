@@ -43,10 +43,6 @@
 <script lang="ts">
   import { get, reportError, inject_response, extractRole } from './utils';
   import { Loading, TiraBreadcrumb, EditTask } from './components'
-  import { VSheet } from 'vuetify/components';
-  import { type ExtractPropTypes } from 'vue'
-
-  type VSheetPropTypes = Partial<ExtractPropTypes<typeof VSheet>>
 
   export default {
     name: "tasks",
