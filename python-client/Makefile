@@ -7,7 +7,7 @@ build-pypi-package: run-tests
 
 run-tests:
 	docker run -u root --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${PWD}:/app -w /app --entrypoint pytest webis/tira:python-client-dev-0.0.4
-	docker run -u root --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${PWD}:/app -w /app --entrypoint pytest mam10eks/splade_tira:0.0.1
+	docker run -u root --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${PWD}:/app -w /app --entrypoint pytest webis/tira:python-client-dev-0.0.4-python3.7
 
 run-tests-legacy:
 	../application/venv/bin/coverage run --data-file=tests/test-coverage/.coverage ../application/venv/bin/pytest \
