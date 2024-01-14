@@ -93,6 +93,34 @@ class Authentication(object):
                                        dataset_id_from_params, run_id_from_params, vm_id_from_params, role):
         return False
 
+    def is_admin_for_task(self, request):
+        """
+        Returns true if the user is an admin for the task specified in the request (false if the request url does not point to a task or if the user is only admin for some other task).
+        """
+        organizer_ids = auth.get_organizer_ids(request)
+
+        if not organizer_ids or type(organizer_ids) != list or len(organizer_ids) < 1:
+            return False
+
+        task_id = None
+        if request.path_info.startswith('submit/') or request.path_info.startswith('/submit/'):
+            task_id = (request.path_info + '/').split('submit/')[1].split('/')[0]
+        elif request.path_info.startswith('task-overview/') or request.path_info.startswith('/task-overview/'):
+            task_id = (request.path_info + '/').split('task-overview/')[1].split('/')[0]
+
+        if not task_id:
+            return False
+
+        try:
+            task = model.get_task(task_id)
+        except: 
+            return False
+
+        if not task:
+            return False
+
+        return task is not None and 'organizer_id' in task and task['organizer_id'] in organizer_ids
+
 
 class LegacyAuthentication(Authentication):
     _AUTH_SOURCE = "legacy"
@@ -141,7 +169,7 @@ class LegacyAuthentication(Authentication):
         if not user:
             return self.ROLE_GUEST
 
-        if 'reviewer' in user['roles']:
+        if 'reviewer' in user['roles'] or self.is_admin_for_task(request):
             return self.ROLE_ADMIN
 
         # NOTE: in the old user management vm_id == user_id
@@ -261,7 +289,7 @@ class DisraptorAuthentication(Authentication):
         Currently only checks: (1) is user admin, (2) otherwise, is user owner of the vm (ROLE_PARTICIPANT)
         """
 
-        if self._is_in_group(request, "admins") or self._is_in_group(request, "tira_reviewer"):
+        if self._is_in_group(request, "admins") or self._is_in_group(request, "tira_reviewer") or self.is_admin_for_task(request):
             return self.ROLE_ADMIN
 
         user_groups = self._get_user_groups(request, group_type='vm')
