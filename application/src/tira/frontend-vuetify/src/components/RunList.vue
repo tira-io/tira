@@ -2,7 +2,7 @@
   <loading :loading="loading"/>
   <div v-if="!loading">
     <v-data-table v-if="showTable" v-model="selected_runs" show-expand :headers="table_headers"
-                  :items="runs" item-value="Run" v-model:sort-by="table_sort_by" density="compact"
+                  :items="runs" item-value="run_id" v-model:sort-by="table_sort_by" density="compact"
                   show-select class="elevation-1 d-none d-md-block" hover>
       <template v-slot:item.actions="{item}">
         <run-actions :run="item" @reviewRun="(i: any) => reviewChanged(i)"/>
