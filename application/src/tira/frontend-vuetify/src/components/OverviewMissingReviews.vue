@@ -1,6 +1,6 @@
 <template>
     <loading :loading="loading"/>
-    <v-data-table v-if="!loading" :headers="table_headers" :items="count_of_missing_reviews" density="compact" v-model:expanded="expanded" show-expand expand-on-click>
+    <v-data-table v-if="!loading" :headers="table_headers" :items="count_of_missing_reviews" density="compact" v-model:expanded="expanded" show-expand expand-on-click item-value="dataset_id">
       <template v-slot:expanded-row="{ columns, item }">
         <tr>
           <td :colspan="columns.length">
