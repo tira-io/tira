@@ -33,9 +33,14 @@ Run `make` to get an overview of all commands that will setup a self-contained t
    ~$ make run-develop
    ```
 
-3. Optionally: To work on real data, initialize your development database from a database dump
+3. Optionally: To work on real data, initialize your development database from a database dump via
    ```bash
    ~$ make import-data-from-dump
+   ```
+   or to work with mock data run:
+    ```bash
+   ~$ cd application
+   ~$ make import-mock-data
    ```
 
 

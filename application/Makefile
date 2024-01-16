@@ -1,7 +1,7 @@
 .PHONY: help setup run-develop build-docker clean
 
-VERSION_APPLICATION=0.0.97
-VERSION_GRPC=0.0.97
+VERSION_APPLICATION=0.0.99
+VERSION_GRPC=0.0.99
 
 .DEFAULT: help
 help:
@@ -72,6 +72,9 @@ import-data-from-dump: .data-dumps/django-db-dump.zip
 	${PYTHON} src/manage.py makemigrations tira && \
 	${PYTHON} src/manage.py migrate tira && \
 	${PYTHON} src/manage.py loaddata .data-dumps/django-db-dump.json
+
+import-mock-data:
+	${PYTHON} src/manage.py loaddata mock-data/mock-data.json
 
 vite-build-docker:
 	docker run -v ${PWD}:/app --platform linux/amd64 --rm -ti -w /app/src/tira/frontend-vuetify --entrypoint yarn webis/tira-application:basis-0.0.95 build

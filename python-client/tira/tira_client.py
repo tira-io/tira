@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import TYPE_CHECKING, Literal, Union, overload
+from typing import TYPE_CHECKING, Union, overload
 
 if TYPE_CHECKING:
     from typing import Any, Dict, Optional
@@ -49,7 +49,7 @@ class TiraClient(ABC):
         software,
         team=None,
         previous_stage=None,
-        return_metadata: Literal[True] = False,
+        return_metadata: bool = False,
     ) -> "tuple[pd.DataFrame, str]":
         # .. todo:: typehint
         ...
@@ -62,7 +62,7 @@ class TiraClient(ABC):
         software,
         team=None,
         previous_stage=None,
-        return_metadata: Literal[False] = False,
+        return_metadata: bool = False,
     ) -> "pd.DataFrame":
         # .. todo:: typehint
         ...
