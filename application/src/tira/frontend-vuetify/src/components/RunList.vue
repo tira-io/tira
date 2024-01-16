@@ -2,34 +2,34 @@
   <loading :loading="loading"/>
   <div v-if="!loading">
     <v-data-table v-if="showTable" v-model="selected_runs" show-expand :headers="table_headers"
-                  :items="runs" item-value="Run" v-model:sort-by="table_sort_by" density="compact"
+                  :items="runs" item-value="run_id" v-model:sort-by="table_sort_by" density="compact"
                   show-select class="elevation-1 d-none d-md-block" hover>
-      <template v-slot:item.actions="{internalItem}">
-        <run-actions :run="internalItem.value" @reviewRun="(i: any) => reviewChanged(i)"/>
+      <template v-slot:item.actions="{item}">
+        <run-actions :run="item" @reviewRun="(i: any) => reviewChanged(i)"/>
       </template>
-      <template #item.vm_id="{ internalItem }">
-        <submission-icon :submission="internalItem.value" />
-        <a v-if="role != 'admin'" target="_blank" :href="internalItem.value.link_to_team">{{ internalItem.value.vm_id }}</a>
+      <template #item.vm_id="{ item }">
+        <submission-icon :submission="item" />
+        <a v-if="role != 'admin'" target="_blank" :href="item.link_to_team">{{ item.vm_id }}</a>
 
         <v-menu v-if="role == 'admin'" transition="slide-y-transition">
           <template v-slot:activator="{ props }">
-            <a href="javascript:void(0)" v-bind="props">{{ internalItem.value.vm_id }}</a>
+            <a href="javascript:void(0)" v-bind="props">{{ item.vm_id }}</a>
           </template>
           <v-list>
-            <v-list-item key="team-page"><a target="_blank" :href="internalItem.value.link_to_team">Team Page of {{ internalItem.value.vm_id }}</a></v-list-item>
-            <v-list-item key="submission-page"><a target="_blank" :href="'/submit/' + task_id + '/user/' + internalItem.value.vm_id">Submission Page of {{ internalItem.value.vm_id }}</a></v-list-item>
+            <v-list-item key="team-page"><a target="_blank" :href="item.link_to_team">Team Page of {{ item.vm_id }}</a></v-list-item>
+            <v-list-item key="submission-page"><a target="_blank" :href="'/submit/' + task_id + '/user/' + item.vm_id">Submission Page of {{ item.vm_id }}</a></v-list-item>
           </v-list>
         </v-menu>
       </template>
 
-      <template #item.dataset_id="{ internalItem }">
-        <submission-icon :submission="internalItem.value" /> {{ internalItem.value.dataset_id }}
+      <template #item.dataset_id="{ item }">
+        <submission-icon :submission="item"/> {{ item.dataset_id }}
       </template>
 
-      <template v-slot:expanded-row="{ columns, internalItem }">
+      <template v-slot:expanded-row="{ columns, item }">
         <tr>
           <td :colspan="columns.length" style="background-color: white;" class="px-0 mx-0">
-            <software-details :run="internalItem.value" :columns_to_skip="table_headers" :organizer="organizer" :organizer_id="organizer_id"/>
+            <software-details :run="item" :columns_to_skip="table_headers" :organizer="organizer" :organizer_id="organizer_id"/>
           </td>
         </tr>
       </template>
@@ -38,13 +38,13 @@
     <v-data-table v-if="showTable" show-expand :headers="table_headers_small_layout"
                   :items="runs" item-value="Run" v-model:sort-by="table_sort_by" expand-on-click density="compact"
                   class="elevation-1 d-md-none" hover>
-                  <template #item.vm_id="{ internalItem }">
-        <a target="_blank" :href="internalItem.value.link_to_team">{{ internalItem.value.vm_id }}</a>
+                  <template #item.vm_id="{ item }">
+        <a target="_blank" :href="item.link_to_team">{{ item.vm_id }}</a>
       </template>
-      <template v-slot:expanded-row="{ columns, internalItem }">
+      <template v-slot:expanded-row="{ columns, item }">
         <tr>
           <td :colspan="columns.length" style="background-color: white;"  class="px-0 mx-0">
-            <software-details :run="internalItem.value" :columns_to_skip="table_headers_small_layout" :organizer="organizer" :organizer_id="organizer_id" @reviewRun="(i: any) => reviewChanged(i)"/>
+            <software-details :run="item" :columns_to_skip="table_headers_small_layout" :organizer="organizer" :organizer_id="organizer_id" @reviewRun="(i: any) => reviewChanged(i)"/>
           </td>
         </tr>
       </template>
@@ -66,6 +66,7 @@ import Loading from "./Loading.vue"
 import SubmissionIcon from "./SubmissionIcon.vue"
 import { get, reportError, inject_response, extractRole } from '../utils'
 
+
 export default {
   name: "run-list",
   components: {RunActions, SoftwareDetails, Loading, SubmissionIcon},
@@ -73,7 +74,7 @@ export default {
   data() { return {
       selected_runs: [],
       loading: true,
-      runs: [{'run_id': 'loading...', 'review_state': 'no-review'}],
+      runs: [{'run_id': 'loading...', 'review_state': 'no-review', 'vm_id': '1', 'link_to_team': 'link', 'dataset_id': '1'}],
       table_headers: [],
       table_headers_small_layout: [],
       table_sort_by: [],
