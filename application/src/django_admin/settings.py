@@ -341,6 +341,7 @@ WEBPACK_LOADER = {
 }
 
 DISCOURSE_API_URL = 'https://www.tira.io'
+PUBLIC_TRAINING_DATA = set(['jena-topics-20231026-test', 'leipzig-topics-20231025-test'])
 
 CODE_SUBMISSION_REFERENCE_REPOSITORIES = {
     'ir-lab-jena-leipzig-wise-2023': 'tira-io/tira-ir-lab-wise-submission-template',
