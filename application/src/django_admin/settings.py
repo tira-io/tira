@@ -348,6 +348,7 @@ CODE_SUBMISSION_REFERENCE_REPOSITORIES = {
     'ir-benchmarks': 'tira-io/tira-ir-lab-wise-submission-template',
     'webpage-classification': 'OpenWebSearch/irixys23-tira-submission-template',
     'valueeval-2024-human-value-detection': 'touche-webis-de/valueeval24-tira-software-submission-template',
+    'workshop-on-open-web-search': 'tira-io/wows24-submission-template',
 }
 CODE_SUBMISSION_REPOSITORY_NAMESPACE = 'tira-io'
 try:
