@@ -66,7 +66,7 @@ export default {
   props: ['step_prop', 'organizer', 'organizer_id', 'is_ir_task'],
   data() {
     return {
-      tab: null,
+      tab: 'newDockerImage',
       role: extractRole(),
       task_id: extractTaskFromCurrentUrl(),
       user_id_for_submission: extractUserFromCurrentUrl(),
@@ -130,7 +130,7 @@ export default {
       .then(inject_response(this, {'loading': false}, true))
       .catch(reportError("Problem While Loading the Docker Details of the Task " + this.task_id, "This might be a short-term hiccup, please try again. We got the following error: "))
     this.load_re_ranking_datasets()
-    this.tab = this.docker.images[0].display_name
+    this.tab = docker.docker_softwares[0].display_name
   },
   watch: {
     step(old_value, new_value) {
