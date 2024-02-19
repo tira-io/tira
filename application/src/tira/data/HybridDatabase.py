@@ -594,6 +594,14 @@ class HybridDatabase(object):
                     previous_stages += [i.input_docker_software.display_name]
                 else:
                     previous_stages += [i.input_upload.display_name]
+        link_code = None
+
+        try:
+            link_code = modeldb.LinkToSoftwareSubmissionGitRepository.objects.get(docker_software__docker_software_id=ds.docker_software_id)
+            link_code = self.__link_to_code(link_code.build_environment)
+        except Exception as e:
+            logger.error(f"Could not get the link to the code: " + e)
+            link_code = None
 
         return {'docker_software_id': ds.docker_software_id, 'display_name': ds.display_name,
                 'user_image_name': ds.user_image_name, 'command': ds.command,
@@ -605,7 +613,8 @@ class HybridDatabase(object):
                 "ir_re_ranker": True if ds.ir_re_ranker else False,
                 'public_image_name': ds.public_image_name,
                 "ir_re_ranking_input": True if ds.ir_re_ranking_input else False,
-                'previous_stages': previous_stages
+                'previous_stages': previous_stages,
+                'link_code': link_code
                 }
 
     @staticmethod
