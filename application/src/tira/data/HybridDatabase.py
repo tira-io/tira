@@ -600,7 +600,7 @@ class HybridDatabase(object):
             link_code = modeldb.LinkToSoftwareSubmissionGitRepository.objects.get(docker_software__docker_software_id=ds.docker_software_id)
             link_code = self.__link_to_code(link_code.build_environment)
         except Exception as e:
-            logger.error(f"Could not get the link to the code: " + e)
+            logger.error(f"Could not get the link to the code: ", e)
             link_code = None
 
         return {'docker_software_id': ds.docker_software_id, 'display_name': ds.display_name,
