@@ -245,6 +245,7 @@ class GitRunner:
                              'architecture': image_manifest['architecture'],
                              'created': image_manifest['created'].split('.')[0],
                              'size': image_manifest['size'],
+                             'raw_size': image_manifest['raw_size'],
                              'digest': image_manifest['digest']
                            }]
     
@@ -457,7 +458,7 @@ class GitRunner:
 
         if download_images:
             print(f'Run docker pull {image}.')
-            run_cmd(['docker', 'pull', image])
+            run_cmd(['podman', 'pull', image])
 
         description = docker_image_details(image)
         
@@ -466,12 +467,12 @@ class GitRunner:
 
         if persist_images and not os.path.isfile(image_name):
             print(f'Run image save {image} -o {image_name}.')
-            run_cmd(['docker', 'image', 'save', image, '-o', image_name])
+            run_cmd(['podman', 'image', 'save', image, '-o', image_name])
 
         if upload_images and dockerhub_image:
-            run_cmd(['docker', 'tag', image, dockerhub_image])
+            run_cmd(['podman', 'tag', image, dockerhub_image])
             print(f'Run image push {dockerhub_image}.')
-            run_cmd(['docker', 'push', dockerhub_image])
+            run_cmd(['podman', 'push', dockerhub_image])
 
         description['local_image'] = image_name
         software_definition['image_details'] = description
@@ -672,7 +673,8 @@ class GitLabRunner(GitRunner):
                 raise ValueError('-->' + manifest.content.decode('UTF-8'))
     
             image_metadata = json.loads(manifest.content.decode('UTF-8'))
-            size = convert_size(image_metadata['config']['size'] + sum([i['size'] for i in image_metadata['layers']]))
+            raw_size = image_metadata['config']['size'] + sum([i['size'] for i in image_metadata['layers']])
+            size = convert_size(raw_size)
 
             image_config = requests.get(f'https://{registry_host}/v2/{repository_name}/blobs/{image_metadata["config"]["digest"]}', headers=headers)
 
@@ -685,6 +687,7 @@ class GitLabRunner(GitRunner):
                 'architecture': image_config['architecture'],
                 'created': image_config['created'],
                 'size': size,
+                'raw_size': raw_size,
                 'digest': image_metadata["config"]["digest"].split(':')[-1][:12]
             }
         except Exception as e:
@@ -693,7 +696,8 @@ class GitLabRunner(GitRunner):
                 'architecture': 'Loading...',
                 'created': 'Loading...',
                 'size': 'Loading...',
-                'digest': 'Loading...'
+                'digest': 'Loading...',
+                'raw_size': 'Loading...',
             }
 
         if cache:

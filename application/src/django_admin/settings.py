@@ -20,6 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 custom_settings = {}
 for cfg in (BASE_DIR / "config").glob("*.yml"):
+    print(f'Load settings from {cfg}.')
     custom_settings.update(yaml.load(open(cfg, "r").read(), Loader=yaml.FullLoader))
 
 if 'database' not in custom_settings:

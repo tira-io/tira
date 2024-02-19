@@ -10,6 +10,7 @@ from django.core.management import call_command
 from django.core.cache import cache
 from tqdm import tqdm
 import json
+from slugify import slugify
 
 from tira.git_runner import get_git_runner
 from tira.tira_model import load_refresh_timestamp_for_cache_key, get_git_integration, create_re_rank_output_on_dataset, get_all_reranking_datasets, add_input_run_id_to_all_rerank_runs
@@ -72,7 +73,34 @@ class Command(BaseCommand):
                 software.public_image_size = max(l['image_details']['size'], l['image_details']['virtual_size'])
                 software.save()
 
-                
+    def archive_docker_software(self, approach, git_runner):
+        import tira.model as modeldb
+        from tira.util import docker_image_details
+
+        task_id, vm_id, name = approach.split('/')
+        software = modeldb.DockerSoftware.objects.filter(vm__vm_id=vm_id, task__task_id=task_id, display_name=name, deleted=False)
+
+        if len(software) != 1:
+            raise ValueError(f'Found {software} but expected a single entry.')
+
+        software = software[0]
+        if software.public_image_name and software.public_image_size:
+            print(f'Software "{approach}" is already public.')
+            return
+
+        print(software)
+        image_name = (slugify(software.tira_image_name)).replace('/', '-')
+        dockerhub_image = f'docker.io/webis/{task_id}-submissions:' + image_name.split('-tira-user-')[1].strip()
+
+        software_definition = {'TIRA_IMAGE_TO_EXECUTE': software.tira_image_name, 'TIRA_IMAGE_TO_EXECUTE_IN_DOCKERHUB': dockerhub_image}
+        git_runner.archive_software('/tmp/', software_definition, download_images=True, persist_images=False, upload_images=True)
+        image_metadata = docker_image_details(software.tira_image_name)
+
+        print(image_metadata)
+        print(image_name)
+        print(dockerhub_image)
+        software.public_image_name = dockerhub_image
+        software.public_image_size = image_metadata['size']
 
     def handle(self, *args, **options):
         if 'organization' not in options or not options['organization']:
@@ -106,6 +134,9 @@ class Command(BaseCommand):
             
         if 'archive_repository_add_images_from_git_repo' in options and options['archive_repository_add_images_from_git_repo']:
             self.archive_repository_add_images_from_git_repo(options)
+
+        if 'archive_docker_software' in options and options['archive_docker_software']:
+            self.archive_docker_software(options['archive_docker_software'], git_runner)
 
         if 'run_image' in options and options['run_image']:
             git_runner.start_git_workflow(task_id='clickbait-spoiling',
@@ -185,6 +216,7 @@ class Command(BaseCommand):
         parser.add_argument('--archive_repository_persist_images', default='false', type=str)
         parser.add_argument('--archive_repository_upload_images', default='false', type=str)
         parser.add_argument('--archive_repository_add_images_from_git_repo', default=None, type=str)
+        parser.add_argument('--archive_docker_software', default=None, type=str)
         parser.add_argument('--archive_repository_persist_datasets', default='false', type=str)
         parser.add_argument('--archive_repository_copy_runs', default='false', type=str)
         parser.add_argument('--running_jobs', default=None, type=str)
