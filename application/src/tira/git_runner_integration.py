@@ -115,7 +115,7 @@ class GitRunner:
         return repo
 
     def dict_to_key_value_file(self, d):
-        return '\n'.join([(k + '=' + v).strip() for (k,v) in d.items()])
+        return '\n'.join([(k + '=' + str(v)).strip() for (k,v) in d.items()])
 
     def write_metadata_for_ci_job_to_repository(self, tmp_dir, task_id, transaction_id, dataset_id, vm_id, run_id, identifier,
                                                   git_runner_image, git_runner_command, evaluator_id,

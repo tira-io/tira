@@ -477,6 +477,7 @@ class HybridDatabase(object):
         elif run.upload:
             software = run.upload.display_name
             upload_id = run.upload.id
+            vm = run.upload.vm.vm_id
 
         return {"software": software,
                 "vm": vm,

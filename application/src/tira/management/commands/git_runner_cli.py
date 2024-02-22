@@ -101,6 +101,7 @@ class Command(BaseCommand):
         print(dockerhub_image)
         software.public_image_name = dockerhub_image
         software.public_image_size = image_metadata['size']
+        software.save()
 
     def handle(self, *args, **options):
         if 'organization' not in options or not options['organization']:

@@ -16,7 +16,8 @@ urlpatterns = [
 
     re_path(r'^frontend-vuetify/.*', views.veutify_page, name='vuetify_page'),
     re_path(r'^task-overview/.*', views.veutify_page, name='vuetify_page'),
-    re_path(r'^task/.*', views.veutify_page, name='vuetify_page'),
+    path('task/<str:task_id>', views.veutify_page, name='vuetify_page'),
+    path('task/<str:task_id>/', views.veutify_page, name='vuetify_page'),
     re_path(r'^submit/.*', views.veutify_page, name='vuetify_page'),
     re_path(r'^tirex/.*', views.veutify_page, name='tirex'),
     path('login', views.login, name='login'),
