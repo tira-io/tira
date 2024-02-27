@@ -66,7 +66,7 @@ def background_jobs(request, context, task_id, job_id):
 
 
 @add_context
-def veutify_page(request, context):
+def veutify_page(request, context, **kwargs):
     return render(request, 'tira/veutify_page.html', context)
 
 
