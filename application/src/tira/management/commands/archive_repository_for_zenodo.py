@@ -2,9 +2,10 @@ from django.core.management.base import BaseCommand, CommandError
 from django.core.management import call_command
 from django.apps import apps
 from tira.views import zip_run
-from tira.endpoints.data_api import public_submission_or_none
+from tira.endpoints.data_api import model, public_submission_or_none
 from tqdm import tqdm
 import json
+import shutil
 
 class Command(BaseCommand):
     help = 'Dump software outputs for Zenodo'
@@ -29,7 +30,7 @@ class Command(BaseCommand):
         systems = {
             'ir-benchmarks': {
                 'tira-ir-starter': {
-                    'Index (tira-ir-starter-pyterrier)': 'data-in-production/data-research/tira-zenodo-dump-preparation/pyterrier-indexes'
+                    'Index (tira-ir-starter-pyterrier)': 'pyterrier-indexes'
                 }
             }
         }
@@ -44,9 +45,10 @@ class Command(BaseCommand):
                     ret[task_id][user_id][display_name] = {}
                     output_dir = systems[task_id][user_id][display_name]
                     for i in tqdm(datasets):
-                        submission = public_submission_or_none(task_id, user_id, display_name)
-
-                        ret[task_id][user_id][display_name][i] = submission
+                        run_id = model.runs(task_id, i, user_id, display_name)[0]
+                        zip_file = zip_run(i, user_id, run_id)
+                        ret[task_id][user_id][display_name][i] = run_id
+                        shutil.copyfile(zip_file, f'{output_dir}/{i}.zip')
 
         print(json.dumps(ret))
 
