@@ -375,12 +375,19 @@ def public_submissions(request, context, task_id):
     return JsonResponse({'status': 0, "context": context})
 
 
-@add_context
-def public_submission(request, context, task_id, user_id, display_name):
+def public_submission_or_none(task_id, user_id, display_name):
     for i in model.model.get_public_docker_softwares(task_id, return_only_names=False, return_details=True):
         if i['display_name'] == display_name and i['vm_id'] == user_id:
-            context['submission'] = i
-            return JsonResponse({'status': 0, "context": context})
+            return i
+    return None
+
+
+@add_context
+def public_submission(request, context, task_id, user_id, display_name):
+    ret = public_submission_or_none(task_id, user_id, display_name)
+    if ret:
+        context['submission'] = ret
+        return JsonResponse({'status': 0, "context": context})
 
     return JsonResponse({'status': 1, "messge": "Software '{task_id}/{user_id}/{display_name}' does not exist."})
 
