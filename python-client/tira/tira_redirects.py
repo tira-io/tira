@@ -2,8 +2,8 @@ STATIC_REDIRECTS = {
     'ir-benchmarks': {
         'tira-ir-starter': {
             'Index (tira-ir-starter-pyterrier)': {
-                'msmarco-passage-trec-dl-2019-judged-20230107-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/pyterrier-indexes/msmarco-passage-trec-dl-2019.zip',
-                'msmarco-passage-trec-dl-2020-judged-20230107-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/pyterrier-indexes/msmarco-passage-trec-dl-2019.zip',
+                'msmarco-passage-trec-dl-2019-judged-20230107-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/pyterrier-indexes/msmarco-passage-trec-dl-2019-judged-20230107-training.zip',
+                'msmarco-passage-trec-dl-2020-judged-20230107-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/pyterrier-indexes/msmarco-passage-trec-dl-2019-judged-20230107-training.zip',
                 'antique-test-20230107-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/pyterrier-indexes/antique-test-20230107-training.zip',
                 #'vaswani-20230107-training': 'todo',
                 #'antique-test-20230107-training': 'todo',
@@ -38,4 +38,5 @@ def redirects(approach=None, dataset=None, url=None):
             return url
     else:
         task, team, system = approach.split('/')
+
     return STATIC_REDIRECTS.get(task, {}).get(team, {}).get(system, {}).get(dataset, url)

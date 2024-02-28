@@ -13,9 +13,9 @@
             "run_url": "https://www.tira.io/task/ir-benchmarks/user/tira-ir-starter/dataset/antique-test-20230107-training/download/Index (tira-ir-starter-pyterrier).zip"
         },
         "msmarco-passage-trec-dl-2019-judged-20230107-training": {
-            "md5_of_first_kilobyte": "d0638e32abedd4d2c8ef2a43da58941a",
-            "redirect_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/pyterrier-indexes/msmarco-passage-trec-dl-2019.zip",
-            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/pyterrier-indexes/msmarco-passage-trec-dl-2019.zip",
+            "md5_of_first_kilobyte": "f7a9688ca2f5b74e5879fb0b03f6bc9a",
+            "redirect_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/pyterrier-indexes/msmarco-passage-trec-dl-2019-judged-20230107-training.zip",
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/pyterrier-indexes/msmarco-passage-trec-dl-2019-judged-20230107-training.zip",
             "run_execution": {
                 "dataset": "msmarco-passage-trec-dl-2019-judged-20230107-training",
                 "run_id": "Index (tira-ir-starter-pyterrier)",
@@ -25,9 +25,9 @@
             "run_url": "https://www.tira.io/task/ir-benchmarks/user/tira-ir-starter/dataset/msmarco-passage-trec-dl-2019-judged-20230107-training/download/Index (tira-ir-starter-pyterrier).zip"
         },
         "msmarco-passage-trec-dl-2020-judged-20230107-training": {
-            "md5_of_first_kilobyte": "d0638e32abedd4d2c8ef2a43da58941a",
-            "redirect_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/pyterrier-indexes/msmarco-passage-trec-dl-2019.zip",
-            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/pyterrier-indexes/msmarco-passage-trec-dl-2019.zip",
+            "md5_of_first_kilobyte": "f7a9688ca2f5b74e5879fb0b03f6bc9a",
+            "redirect_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/pyterrier-indexes/msmarco-passage-trec-dl-2019-judged-20230107-training.zip",
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/pyterrier-indexes/msmarco-passage-trec-dl-2019-judged-20230107-training.zip",
             "run_execution": {
                 "dataset": "msmarco-passage-trec-dl-2020-judged-20230107-training",
                 "run_id": "Index (tira-ir-starter-pyterrier)",
