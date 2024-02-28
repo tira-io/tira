@@ -1,4 +1,4 @@
-#docker build -t webis/tira:python-client-dev-0.0.3 -f Dockerfile.dev .
+#docker build -t webis/tira:python-client-dev-0.0.5 -f Dockerfile.dev .
 FROM ubuntu:latest
 
 ENV TZ=Europe/Berlin
@@ -23,6 +23,14 @@ RUN apt-get install -y curl \
 # Change root Password to 1234
 RUN echo 'root:1234' | chpasswd
 
+RUN pip3 install twine coverage-badge python-terrier coverage
+RUN pip3 install pytest docker
+RUN pip3 install sphinx furo myst-parser sphinx-toolbox
+RUN pip3 install tira approvaltests \
+	&& cd /tmp \
+	&& python3 -c 'from tira.third_party_integrations import ensure_pyterrier_is_loaded; ensure_pyterrier_is_loaded();' \
+	&& pip3 uninstall -y tira
+
 # Create new user: "dev" with password "1234" and change to that user
 RUN useradd -ms /bin/bash dev \
  	&& echo 'dev:1234' | chpasswd \
@@ -30,12 +38,4 @@ RUN useradd -ms /bin/bash dev \
 	&& groupadd -g 973 docker \
 	&& usermod -aG docker dev
 USER dev
-
-RUN pip3 install twine coverage-badge python-terrier coverage
-RUN pip3 install pytest docker
-RUN pip3 install sphinx furo myst-parser sphinx-toolbox
-RUN pip3 install tira \
-	&& cd /tmp \
-	&& python3 -c 'from tira.third_party_integrations import ensure_pyterrier_is_loaded; ensure_pyterrier_is_loaded();' \
-	&& pip3 uninstall -y tira
 
