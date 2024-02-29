@@ -16,7 +16,7 @@
                 "task": "ir-benchmarks",
                 "team": "tira-ir-starter"
             },
-            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tira-ir-starter/dataset/antique-test-20230107-training/download/Index (tira-ir-starter-pyterrier).zip"
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tira-ir-starter/dataset/antique-test-20230107-training/download/2023-01-07-13-40-04.zip"
         },
         "msmarco-passage-trec-dl-2019-judged-20230107-training": {
             "md5_of_first_kilobyte": "2ab6080ab76182d7b55661d355771007",
@@ -34,7 +34,7 @@
                 "task": "ir-benchmarks",
                 "team": "tira-ir-starter"
             },
-            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tira-ir-starter/dataset/msmarco-passage-trec-dl-2019-judged-20230107-training/download/Index (tira-ir-starter-pyterrier).zip"
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tira-ir-starter/dataset/msmarco-passage-trec-dl-2019-judged-20230107-training/download/2023-01-07-22-09-56.zip"
         },
         "msmarco-passage-trec-dl-2020-judged-20230107-training": {
             "md5_of_first_kilobyte": "2ab6080ab76182d7b55661d355771007",
@@ -52,7 +52,7 @@
                 "task": "ir-benchmarks",
                 "team": "tira-ir-starter"
             },
-            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tira-ir-starter/dataset/msmarco-passage-trec-dl-2020-judged-20230107-training/download/Index (tira-ir-starter-pyterrier).zip"
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tira-ir-starter/dataset/msmarco-passage-trec-dl-2020-judged-20230107-training/download/2023-01-07-22-09-56.zip"
         }
     }
 }
