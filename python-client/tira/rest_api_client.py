@@ -333,6 +333,10 @@ class Client(TiraClient):
 
     def download_and_extract_zip(self, url, target_dir):
         url = redirects(url=url)['url']
+        if url.split('://')[1].startswith('files.webis.de'):
+            print(f'Download from the Incubator: {url}')
+            print('\tThis is only used for last spot checks before archival to Zenodo.')
+
         for _ in range(self.failsave_retries):
             status_code = None
             try:
