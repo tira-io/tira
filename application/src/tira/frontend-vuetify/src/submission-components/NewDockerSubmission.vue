@@ -1,16 +1,15 @@
 <template>
   <import-submission submission_type="docker"/>
   <h2>Create New Docker Software</h2>
-  <v-stepper v-model="stepperModel">
+  <v-stepper v-model="stepperModel" flat :border=false>
     <template v-slot:default="{ prev, next }">
     <v-stepper-header>
       <template v-for="n in stepperTitles.length" :key="`step-${n}`">
         <v-stepper-item
-          :title="`Step ${n}`"
           :complete="stepperModel > n"
           :step="`Step {{ n }}`"
           :value="n"
-          editable
+          :editable="false"
         ></v-stepper-item>
 
         <v-divider
@@ -195,7 +194,7 @@ export default {
       public_docker_softwares: [{"docker_software_id": 'loading...', "display_name": 'loading...', 'vm_id': 'loading...'}],
       user_id_for_task: extractUserFromCurrentUrl(),
       stepperTitles: ['Local Tests of your Docker Submission', 'Add the Docker Submission', 'Final Checks'],
-      stepperModel: parseInt(String(this.step).split('-')[1]),
+      stepperModel: this.step_prop === "step-1" || '' ? 1 : 2,
       steps: 3
     }
   },
