@@ -188,7 +188,7 @@ def check_conditional_permissions(restricted=False, public_data_ok=False, privat
 
 
 def run_is_public(run_id, vm_id, dataset_id):
-    if not run_id or not vm_id or not dataset_id or not dataset_id.endswith('-training'):
+    if not run_id or not vm_id or not dataset_id or (dataset_id not in settings.PUBLIC_TRAINING_DATA and not dataset_id.endswith('-training')):
         return False
 
     i = model.get_run_review(dataset_id, vm_id, run_id)
@@ -199,7 +199,7 @@ def run_is_public(run_id, vm_id, dataset_id):
 
 
 def dataset_is_public(dataset_id):
-    if not dataset_id or not dataset_id.endswith('-training'):
+    if not dataset_id or (dataset_id not in settings.PUBLIC_TRAINING_DATA and not dataset_id.endswith('-training')):
         return False
 
     i = model.get_dataset(dataset_id)

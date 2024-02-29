@@ -79,6 +79,39 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
+        url_pattern='task/<str:task_id>',
+        params=None,
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 200,
+            PARTICIPANT: 200,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 200,
+        },
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>/',
+        params=None,
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 200,
+            PARTICIPANT: 200,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 200,
+        },
+    ),
+    route_to_test(
+        url_pattern='task/<str:task_id>/<str:dataset_id>',
+        params=None,
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 200,
+            PARTICIPANT: 200,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 200,
+        },
+    ),
+    route_to_test(
         url_pattern='tasks',
         params=None,
         group_to_expected_status_code={

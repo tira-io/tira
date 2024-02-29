@@ -20,6 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 custom_settings = {}
 for cfg in (BASE_DIR / "config").glob("*.yml"):
+    print(f'Load settings from {cfg}.')
     custom_settings.update(yaml.load(open(cfg, "r").read(), Loader=yaml.FullLoader))
 
 if 'database' not in custom_settings:
@@ -341,12 +342,14 @@ WEBPACK_LOADER = {
 }
 
 DISCOURSE_API_URL = 'https://www.tira.io'
+PUBLIC_TRAINING_DATA = set(['jena-topics-20231026-test', 'leipzig-topics-20231025-test'])
 
 CODE_SUBMISSION_REFERENCE_REPOSITORIES = {
     'ir-lab-jena-leipzig-wise-2023': 'tira-io/tira-ir-lab-wise-submission-template',
     'ir-benchmarks': 'tira-io/tira-ir-lab-wise-submission-template',
     'webpage-classification': 'OpenWebSearch/irixys23-tira-submission-template',
     'valueeval-2024-human-value-detection': 'touche-webis-de/valueeval24-tira-software-submission-template',
+    'workshop-on-open-web-search': 'tira-io/wows24-submission-template',
 }
 CODE_SUBMISSION_REPOSITORY_NAMESPACE = 'tira-io'
 try:

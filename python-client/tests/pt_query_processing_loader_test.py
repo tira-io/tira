@@ -60,7 +60,7 @@ class TestQueryProcessingLoader(unittest.TestCase):
         ensure_pyterrier_is_loaded()
         tira = Client()
 
-        q = tira.pt.transform_queries('ir-benchmarks/fschlatt/matching-taping', pt.get_dataset("irds:clueweb09/en/trec-web-2009"))
+        q = tira.pt.transform_queries('ir-benchmarks/fschlatt/query-health-classification', pt.get_dataset("irds:clueweb09/en/trec-web-2009"))
         assert len(q(pd.DataFrame([{'qid': '26'}]))) == 1
         assert q(pd.DataFrame([{'qid': '26'}])).iloc[0].to_dict()['mean_health_score'] == 168.416
         assert q(pd.DataFrame([{'qid': '26'}])).iloc[0].to_dict()['median_health_score'] == 130.3137
@@ -72,7 +72,7 @@ class TestQueryProcessingLoader(unittest.TestCase):
         ensure_pyterrier_is_loaded()
         tira = Client()
 
-        q = tira.pt.transform_queries('ir-benchmarks/fschlatt/matching-taping', pt.get_dataset("irds:clueweb09/en/trec-web-2009"), '/q*.jsonl')
+        q = tira.pt.transform_queries('ir-benchmarks/fschlatt/query-health-classification', pt.get_dataset("irds:clueweb09/en/trec-web-2009"), '/q*.jsonl')
         assert len(q(pd.DataFrame([{'qid': '26'}]))) == 1
         assert q(pd.DataFrame([{'qid': '26'}])).iloc[0].to_dict()['mean_health_score'] == 168.416
         assert q(pd.DataFrame([{'qid': '26'}])).iloc[0].to_dict()['median_health_score'] == 130.3137

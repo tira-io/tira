@@ -171,9 +171,10 @@ def run_cmd_as_documented_background_process(cmd, vm_id, task_id, title, descrip
 def docker_image_details(image):
     import json
     import subprocess
-    ret = subprocess.check_output(['docker', 'image', 'inspect', image])
+    ret = subprocess.check_output(['podman', 'image', 'inspect', image])
     ret = json.loads(ret)
     if len(ret) != 1:
         raise ValueError(f'Could not handle {ret}')
     ret = ret[0]
-    return {'image_id': ret['Id'].split(':')[1], 'size': ret['Size'], 'virtual_size': ret['VirtualSize']}
+    image_id = ret['Id'] if ':' not in ret['Id'] else ret['Id'].split(':')[1]
+    return {'image_id': image_id, 'size': ret['Size'], 'virtual_size': ret['VirtualSize']}

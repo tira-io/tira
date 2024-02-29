@@ -58,7 +58,7 @@ def test_multiple_copies_of_same_job():
         'TIRA_INPUT_RUN_RUN_IDS': '["run-1", "run-1"]',
     }
     expected = {
-        'file_skip_list': ['documents.jsonl'],
+        'file_skip_list': [],
         'ret': ['inputRun=dataset-1/merged-input-run/pseudo-run-id/output'],
         'tira_cleanup_command': ';rm -Rf dataset-1/merged-input-run/pseudo-run-id/output'
     }
@@ -78,7 +78,7 @@ def test_multiple_copies_of_same_job_variant2():
         'TIRA_INPUT_RUN_RUN_IDS': '["run-3", "run-4", "run-1"]',
     }
     expected = {
-        'file_skip_list': ['documents.jsonl'],
+        'file_skip_list': [],
         'ret': ['inputRun=dataset-2/merged-input-run/pseudo-run-id/output'],
         'tira_cleanup_command': ';rm -Rf dataset-2/merged-input-run/pseudo-run-id/output'
     }

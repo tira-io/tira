@@ -2,7 +2,7 @@
 
 echo "Check that the runner is trustworthy..."
 
-URLS="google.com github.com gitlab.com webis.de"
+URLS="google.com github.com gitlab.com"
 
 which curl  2> /dev/null 1> /dev/null
 

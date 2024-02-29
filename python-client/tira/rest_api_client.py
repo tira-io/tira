@@ -14,7 +14,8 @@ import logging
 from .tira_client import TiraClient
 from typing import Optional, List, Dict, Union
 from functools import lru_cache
-
+from tira.tira_redirects import redirects
+from tqdm import tqdm
 
 class Client(TiraClient):
     base_url: str
@@ -195,6 +196,10 @@ class Client(TiraClient):
 
     def get_run_execution_or_none(self, approach, dataset, previous_stage_run_id=None):
         task, team, software = approach.split('/')
+        redirect = redirects(approach, dataset)
+
+        if redirect is not None and 'run_id' in redirect and redirect['run_id'] is not None:
+            return {'task': task, 'dataset': dataset, 'team': team, 'run_id': redirect['run_id']}
 
         public_runs = self.json_response(f'/api/list-runs/{task}/{dataset}/{team}/' + software.replace(' ', '%20'))
         if public_runs and 'context' in public_runs and 'runs' in public_runs['context'] and public_runs['context']['runs']:
@@ -327,6 +332,7 @@ class Client(TiraClient):
         return ret
 
     def download_and_extract_zip(self, url, target_dir):
+        url = redirects(url=url)['url']
         for _ in range(self.failsave_retries):
             status_code = None
             try:
@@ -337,9 +343,17 @@ class Client(TiraClient):
                     del headers["Api-Username"]
 
                 r = requests.get(url, headers=headers)
+                total = int(r.headers.get('content-length', 0))
                 status_code = r.status_code
-                z = zipfile.ZipFile(io.BytesIO(r.content))
+                response_content = io.BytesIO()
+                with tqdm(desc='Download', total=total, unit='iB', unit_scale=True, unit_divisor=1024,) as bar:
+                    for data in r.iter_content(chunk_size=1024):
+                        size = response_content.write(data)
+                        bar.update(size)
+                print('Download finished. Extract...')
+                z = zipfile.ZipFile(response_content)
                 z.extractall(target_dir)
+                print('Extraction finished: ', target_dir)
 
                 return
             except Exception as e:

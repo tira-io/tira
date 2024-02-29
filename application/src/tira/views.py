@@ -66,7 +66,7 @@ def background_jobs(request, context, task_id, job_id):
 
 
 @add_context
-def veutify_page(request, context):
+def veutify_page(request, context, **kwargs):
     return render(request, 'tira/veutify_page.html', context)
 
 
@@ -144,15 +144,35 @@ def _add_user_vms_to_context(request, context, task_id, include_docker_details=T
         context['docker_documentation'] = docker
 
 
+def zip_run(dataset_id, vm_id, run_id):
+    """ Zip the given run and hand it out for download. Deletes the zip on the server again. """
+    path_to_be_zipped = Path(settings.TIRA_ROOT) / "data" / "runs" / dataset_id / vm_id / run_id
+    zipped = Path(f"{path_to_be_zipped.stem}.zip")
+
+    with zipfile.ZipFile(zipped, "w", zipfile.ZIP_DEFLATED) as zipf:
+        for f in path_to_be_zipped.rglob('*'):
+            zipf.write(f, arcname=f.relative_to(path_to_be_zipped.parent))
+
+    return zipped
+
+def zip_runs(vm_id, dataset_ids_and_run_ids, name):
+    """ Zip the given run and hand it out for download. Deletes the zip on the server again. """
+    
+    zipped = Path(f"{path_to_be_zipped.stem}.zip")
+
+    with zipfile.ZipFile(zipped, "w", zipfile.ZIP_DEFLATED) as zipf:
+        for dataset_id, run_id in dataset_ids_and_run_ids:
+            path_to_be_zipped = Path(settings.TIRA_ROOT) / "data" / "runs" / dataset_id / vm_id / run_id
+            for f in path_to_be_zipped.rglob('*'):
+                zipf.write(f, arcname=f.relative_to(path_to_be_zipped.parent))
+
+    return zipped
+
 @check_conditional_permissions(public_data_ok=True)
 @check_resources_exist('json')
 def download_rundir(request, task_id, dataset_id, vm_id, run_id):
     """ Zip the given run and hand it out for download. Deletes the zip on the server again. """
-    path_to_be_zipped = Path(settings.TIRA_ROOT) / "data" / "runs" / dataset_id / vm_id / run_id
-    zipped = Path(f"{path_to_be_zipped.stem}.zip")
-    with zipfile.ZipFile(zipped, "w") as zipf:
-        for f in path_to_be_zipped.rglob('*'):
-            zipf.write(f, arcname=f.relative_to(path_to_be_zipped.parent))
+    zipped = zip_run(dataset_id, vm_id, run_id)
 
     if zipped.exists():
         response = FileResponse(open(zipped, "rb"), as_attachment=True, filename=f"{run_id}-{zipped.stem}.zip")

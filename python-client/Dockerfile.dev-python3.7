@@ -1,4 +1,4 @@
-#docker build -t webis/tira:python-client-dev-0.0.4-python3.7 -f Dockerfile.dev-python3.7 .
+#docker build -t webis/tira:python-client-dev-0.0.5-python3.7 -f Dockerfile.dev-python3.7 .
 FROM mam10eks/splade_tira:0.0.1
 
 RUN apt-get install -y curl gpg \
@@ -12,5 +12,5 @@ RUN apt-get install -y curl gpg \
 	&& apt-get update -y \
 	&& apt-get install -y docker-ce-cli
 
-RUN pip3 install twine coverage-badge python-terrier coverage
+RUN pip3 install twine coverage-badge python-terrier coverage approvaltests
 RUN pip3 install pytest docker
