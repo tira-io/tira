@@ -149,7 +149,7 @@ def zip_run(dataset_id, vm_id, run_id):
     path_to_be_zipped = Path(settings.TIRA_ROOT) / "data" / "runs" / dataset_id / vm_id / run_id
     zipped = Path(f"{path_to_be_zipped.stem}.zip")
 
-    with zipfile.ZipFile(zipped, "w") as zipf:
+    with zipfile.ZipFile(zipped, "w", zipfile.ZIP_DEFLATED) as zipf:
         for f in path_to_be_zipped.rglob('*'):
             zipf.write(f, arcname=f.relative_to(path_to_be_zipped.parent))
 

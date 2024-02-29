@@ -12,19 +12,15 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         datasets = [
-            'msmarco-passage-trec-dl-2019-judged-20230107-training', 'msmarco-passage-trec-dl-2020-judged-20230107-training',
+            'msmarco-passage-trec-dl-2019-judged-20230107-training','msmarco-passage-trec-dl-2020-judged-20230107-training',
             'antique-test-20230107-training', 'vaswani-20230107-training',
-            'antique-test-20230107-training', 'cranfield-20230107-training',
-            'medline-2004-trec-genomics-2004-20230107-training', 'medline-2017-trec-pm-2017-20230211-training',
-            'cord19-fulltext-trec-covid-20230107-training', 'nfcorpus-test-20230107-training',
-            'argsme-touche-2020-task-1-20230209-training', 'argsme-touche-2021-task-1-20230209-training',
-            'medline-2017-trec-pm-2018-20230211-training', 'medline-2004-trec-genomics-2005-20230107-training'
-
-                # second tranche, keep this for longer in files.webis.de as it is not part of original TIREx
-                #'trec-tip-of-the-tongue-dev-20230607-training': 'todo',
-                #'longeval-short-july-20230513-training': 'todo',
-                #'longeval-heldout-20230513-training': 'todo',
-                #'longeval-long-september-20230513-training': 'todo',]
+            'cranfield-20230107-training', 'medline-2004-trec-genomics-2004-20230107-training',
+            'medline-2017-trec-pm-2017-20230211-training', 'cord19-fulltext-trec-covid-20230107-training',
+            'nfcorpus-test-20230107-training', 'argsme-touche-2020-task-1-20230209-training',
+            'argsme-touche-2021-task-1-20230209-training', 'medline-2017-trec-pm-2018-20230211-training',
+            'medline-2004-trec-genomics-2005-20230107-training', 'trec-tip-of-the-tongue-dev-20230607-training',
+            'longeval-short-july-20230513-training', 'longeval-heldout-20230513-training',
+            'longeval-long-september-20230513-training', 'longeval-train-20230513-training',
         ]
 
         systems = {
@@ -48,7 +44,7 @@ class Command(BaseCommand):
                         run_id = model.runs(task_id, i, user_id, display_name)[0]
                         zip_file = zip_run(i, user_id, run_id)
                         ret[task_id][user_id][display_name][i] = run_id
-                        shutil.copyfile(zip_file, f'{output_dir}/{i}.zip')
+                        shutil.copyfile(zip_file, f'{output_dir}/{run_id}.zip')
 
         print(json.dumps(ret))
 

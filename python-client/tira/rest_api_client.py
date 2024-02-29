@@ -15,6 +15,7 @@ from .tira_client import TiraClient
 from typing import Optional, List, Dict, Union
 from functools import lru_cache
 from tira.tira_redirects import redirects
+from tqdm import tqdm
 
 class Client(TiraClient):
     base_url: str
@@ -341,9 +342,17 @@ class Client(TiraClient):
                     del headers["Api-Username"]
 
                 r = requests.get(url, headers=headers)
+                total = int(r.headers.get('content-length', 0))
                 status_code = r.status_code
-                z = zipfile.ZipFile(io.BytesIO(r.content))
+                response_content = io.BytesIO()
+                with tqdm(desc='Download', total=total, unit='iB', unit_scale=True, unit_divisor=1024,) as bar:
+                    for data in r.iter_content(chunk_size=1024):
+                        size = response_content.write(data)
+                        bar.update(size)
+                print('Download finished. Extract...')
+                z = zipfile.ZipFile(response_content)
                 z.extractall(target_dir)
+                print('Extraction finished: ', target_dir)
 
                 return
             except Exception as e:
