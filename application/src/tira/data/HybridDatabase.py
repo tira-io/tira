@@ -12,7 +12,7 @@ import json
 
 from tira.util import TiraModelWriteError, TiraModelIntegrityError
 from tira.proto import TiraClientWebMessages_pb2 as modelpb
-from tira.util import auto_reviewer, now, get_today_timestamp, get_tira_id
+from tira.util import auto_reviewer, now, get_today_timestamp, get_tira_id, link_to_discourse_team
 
 import tira.model as modeldb
 import tira.data.data as dbops
@@ -667,6 +667,35 @@ class HybridDatabase(object):
             ret += [{'dataset_id': dataset_id, 'to_review': to_review, 'submissions': submissions}]
 
         return ret
+
+    def get_count_of_team_submissions(self, task_id):
+            prepared_statement = """
+            SELECT
+                tira_dockersoftware.vm_id as vm,
+                SUM(CASE WHEN tira_review.has_errors = False AND tira_review.has_no_errors = FALSE AND tira_review.has_warnings = FALSE THEN 1 ELSE 0 END) as ToReview,
+                COUNT(*) - SUM(CASE WHEN tira_review.has_errors = False AND tira_review.has_no_errors = FALSE AND tira_review.has_warnings = FALSE THEN 1 ELSE 0 END) as submissions,
+                COUNT(*) as total
+            FROM
+                tira_run
+            INNER JOIN
+                tira_taskhasdataset ON tira_run.input_dataset_id = tira_taskhasdataset.dataset_id
+            LEFT JOIN
+                tira_review ON tira_run.run_id = tira_review.run_id
+            LEFT JOIN
+                tira_dockersoftware ON tira_run.docker_software_id = tira_dockersoftware.docker_software_id
+            WHERE
+                tira_taskhasdataset.task_id = %s
+            GROUP BY
+                tira_dockersoftware.vm_id;
+            """
+
+            ret = []
+            rows = self.execute_raw_sql_statement(prepared_statement, params=[task_id])
+            for vm, to_review, submissions, total in rows:
+                if vm is not None:
+                    ret += [{'team': vm, 'reviewed': submissions, 'to_review': to_review, 'total': total, 'link': link_to_discourse_team(vm)}]
+            print(ret)
+            return ret
 
     def runs(self, task_id, dataset_id, vm_id, software_id):
         prepared_statement = """

@@ -49,3 +49,10 @@ def blind(request, vm_id, dataset_id, run_id, value):
 def get_count_of_missing_reviews(request, task_id):
     context = {"count_of_missing_reviews": model.get_count_of_missing_reviews(task_id)}
     return JsonResponse({"status": 0, "context": context})
+
+
+@check_permissions
+@check_resources_exist('json')
+def get_count_of_team_submissions(request, task_id):
+    context = {"count_of_team_submissions": model.get_count_of_team_submissions(task_id)}
+    return JsonResponse({"status": 0, "context": context})
