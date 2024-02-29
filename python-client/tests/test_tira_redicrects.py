@@ -26,7 +26,7 @@ class TestRedirects(unittest.TestCase):
                     'run_execution': tira.get_run_execution_or_none(software, dataset),
                     'run_url': run_url,
                     'redirected_run_url': redirects(url=run_url),
-                    'md5_of_first_kilobyte': md5_of_first_kilobyte_of_http_resource(redirects(url=run_url))
+                    'md5_of_first_kilobyte': md5_of_first_kilobyte_of_http_resource(redirects(url=run_url)['url'])
                 }
         
         verify_as_json(ret)

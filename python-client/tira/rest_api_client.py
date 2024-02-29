@@ -196,9 +196,10 @@ class Client(TiraClient):
 
     def get_run_execution_or_none(self, approach, dataset, previous_stage_run_id=None):
         task, team, software = approach.split('/')
+        redirect = redirects(approach, dataset)
 
-        if redirects(approach, dataset) is not None:
-            return {'task': task, 'dataset': dataset, 'team': team, 'run_id': approach.split('/')[-1]}
+        if redirect is not None and 'run_id' in redirect and redirect['run_id'] is not None:
+            return {'task': task, 'dataset': dataset, 'team': team, 'run_id': redirect['run_id']}
 
         public_runs = self.json_response(f'/api/list-runs/{task}/{dataset}/{team}/' + software.replace(' ', '%20'))
         if public_runs and 'context' in public_runs and 'runs' in public_runs['context'] and public_runs['context']['runs']:
@@ -331,7 +332,7 @@ class Client(TiraClient):
         return ret
 
     def download_and_extract_zip(self, url, target_dir):
-        url = redirects(url=url)
+        url = redirects(url=url)['url']
         for _ in range(self.failsave_retries):
             status_code = None
             try:
