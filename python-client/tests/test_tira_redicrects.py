@@ -10,13 +10,22 @@ def md5_of_first_kilobyte_of_http_resource(url):
         raise ValueError(f'URL {url} is not from webis.de')
     return md5(requests.get(url, headers={'Range': f'bytes=0-1024'}).content).hexdigest()
 
-RUN_IDS = {"ir-benchmarks": {"tira-ir-starter": {"Index (tira-ir-starter-pyterrier)": {"msmarco-passage-trec-dl-2019-judged-20230107-training": "2023-01-07-22-09-56", "msmarco-passage-trec-dl-2020-judged-20230107-training": "2023-01-07-22-09-56", "antique-test-20230107-training": "2023-01-07-13-40-04", "vaswani-20230107-training": "2023-01-07-19-01-50", "cranfield-20230107-training": "2023-01-07-13-39-11", "medline-2004-trec-genomics-2004-20230107-training": "2023-01-07-19-37-49", "medline-2017-trec-pm-2017-20230211-training": "2023-02-11-20-52-47", "cord19-fulltext-trec-covid-20230107-training": "2023-01-08-15-18-20", "nfcorpus-test-20230107-training": "2023-02-09-15-46-37", "argsme-touche-2020-task-1-20230209-training": "2023-02-09-17-50-22", "argsme-touche-2021-task-1-20230209-training": "2023-02-09-17-50-31", "medline-2017-trec-pm-2018-20230211-training": "2023-02-11-15-15-35", "medline-2004-trec-genomics-2005-20230107-training": "2023-02-09-22-14-32", "trec-tip-of-the-tongue-dev-20230607-training": "2023-11-10-23-23-59", "longeval-short-july-20230513-training": "2023-11-10-23-22-59", "longeval-heldout-20230513-training": "2023-11-10-23-21-55", "longeval-long-september-20230513-training": "2023-11-10-21-09-17", "longeval-train-20230513-training": "2023-11-11-06-49-15"}}}}
+RUN_IDS = {"ir-benchmarks": {"tira-ir-starter": {"Index (tira-ir-starter-pyterrier)": {"msmarco-passage-trec-dl-2019-judged-20230107-training": "2023-01-07-22-09-56", "msmarco-passage-trec-dl-2020-judged-20230107-training": "2023-01-07-22-09-56", "antique-test-20230107-training": "2023-01-07-13-40-04", "vaswani-20230107-training": "2023-01-07-19-01-50", "cranfield-20230107-training": "2023-01-07-13-39-11", "medline-2004-trec-genomics-2004-20230107-training": "2023-01-07-19-37-49", "medline-2017-trec-pm-2017-20230211-training": "2023-02-11-20-52-47", "cord19-fulltext-trec-covid-20230107-training": "2023-01-08-15-18-20", "nfcorpus-test-20230107-training": "2023-02-09-15-46-37", "argsme-touche-2020-task-1-20230209-training": "2023-02-09-17-50-22", "argsme-touche-2021-task-1-20230209-training": "2023-02-09-17-50-22", "medline-2017-trec-pm-2018-20230211-training": "2023-02-11-15-15-35", "medline-2004-trec-genomics-2005-20230107-training": "2023-02-09-22-14-32", "trec-tip-of-the-tongue-dev-20230607-training": "2023-11-10-23-23-59", "longeval-short-july-20230513-training": "2023-11-10-23-22-59", "longeval-heldout-20230513-training": "2023-11-10-23-21-55", "longeval-long-september-20230513-training": "2023-11-10-21-09-17", "longeval-train-20230513-training": "2023-11-11-06-49-15"}}}}
 
 class TestRedirects(unittest.TestCase):
 
     def test_approve_all_redirects(self):
         softwareto_approve = sorted(['ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)'])
-        datasets_to_approve = sorted(['msmarco-passage-trec-dl-2019-judged-20230107-training', 'msmarco-passage-trec-dl-2020-judged-20230107-training', 'antique-test-20230107-training'])
+        datasets_to_approve = sorted([
+            'msmarco-passage-trec-dl-2019-judged-20230107-training', 'msmarco-passage-trec-dl-2020-judged-20230107-training',
+            'antique-test-20230107-training', 'vaswani-20230107-training',
+            'cranfield-20230107-training', 'medline-2004-trec-genomics-2004-20230107-training',
+            'medline-2017-trec-pm-2017-20230211-training', 'cord19-fulltext-trec-covid-20230107-training',
+            'nfcorpus-test-20230107-training', 'argsme-touche-2020-task-1-20230209-training', 
+            'argsme-touche-2021-task-1-20230209-training', 'medline-2017-trec-pm-2018-20230211-training', 'medline-2004-trec-genomics-2005-20230107-training', 'trec-tip-of-the-tongue-dev-20230607-training',
+            'longeval-short-july-20230513-training', 'longeval-heldout-20230513-training',
+            'longeval-long-september-20230513-training', 'longeval-train-20230513-training'
+        ])
         tira = Client()
 
         ret = {}
