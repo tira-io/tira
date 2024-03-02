@@ -7,6 +7,10 @@ from tqdm import tqdm
 import json
 import shutil
 
+def md5(filename):
+    import hashlib
+    return hashlib.md5(open(filename,'rb').read()).hexdigest()
+
 class Command(BaseCommand):
     help = 'Dump software outputs for Zenodo'
 
@@ -58,8 +62,8 @@ class Command(BaseCommand):
                         target_file = f'{output_dir}/{run_id}.zip'
 
                         zip_file = zip_run(i, user_id, run_id)
-                        ret[task_id][user_id][display_name][i] = run_id
                         shutil.copyfile(zip_file, target_file)
+                        ret[task_id][user_id][display_name][i] = {'run_id': run_id, 'md5': md5(target_file)}
 
         print(json.dumps(ret))
 
