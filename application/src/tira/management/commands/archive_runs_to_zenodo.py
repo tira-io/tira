@@ -52,6 +52,9 @@ class Command(BaseCommand):
                 'qpptk': {
                     'all-predictors': 'qpptk-all-predictors',
                 },
+                'salamander': {
+                    'classify-comparative-queries': 'qpptk-all-predictors',
+                }
                 # pre-retrieval query intent, post-retrieval query intent
                 # splade
                 # comparative questions
