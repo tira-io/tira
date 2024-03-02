@@ -158,7 +158,7 @@ def zip_run(dataset_id, vm_id, run_id):
 def zip_runs(vm_id, dataset_ids_and_run_ids, name):
     """ Zip the given run and hand it out for download. Deletes the zip on the server again. """
     
-    zipped = Path(f"{path_to_be_zipped.stem}.zip")
+    zipped = Path(f"{name}.zip")
 
     with zipfile.ZipFile(zipped, "w", zipfile.ZIP_DEFLATED) as zipf:
         for dataset_id, run_id in dataset_ids_and_run_ids:

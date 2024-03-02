@@ -1,0 +1,531 @@
+{
+    "ir-benchmarks/qpptk/all-predictors": {
+        "antique-test-20230107-training": {
+            "md5_of_first_kilobyte": "636ed5757d023857a106d976dbad29dc",
+            "redirect_url": {
+                "run_id": "2024-02-27-20-06-32",
+                "url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/qpptk-all-predictors-tiny-test-collections.zip"
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/qpptk-all-predictors-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "antique-test-20230107-training",
+                "run_id": "2024-02-27-20-06-32",
+                "task": "ir-benchmarks",
+                "team": "qpptk"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/qpptk/dataset/antique-test-20230107-training/download/2024-02-27-20-06-32.zip"
+        },
+        "argsme-touche-2020-task-1-20230209-training": {
+            "md5_of_first_kilobyte": "63347a749bc999fcca53bc0cd2f89a76",
+            "redirect_url": {
+                "run_id": "2024-02-27-20-09-14",
+                "url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/qpptk-all-predictors-clef-labs.zip"
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/qpptk-all-predictors-clef-labs.zip",
+            "run_execution": {
+                "dataset": "argsme-touche-2020-task-1-20230209-training",
+                "run_id": "2024-02-27-20-09-14",
+                "task": "ir-benchmarks",
+                "team": "qpptk"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/qpptk/dataset/argsme-touche-2020-task-1-20230209-training/download/2024-02-27-20-09-14.zip"
+        },
+        "argsme-touche-2021-task-1-20230209-training": {
+            "md5_of_first_kilobyte": "63347a749bc999fcca53bc0cd2f89a76",
+            "redirect_url": {
+                "run_id": "2024-02-27-20-10-51",
+                "url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/qpptk-all-predictors-clef-labs.zip"
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/qpptk-all-predictors-clef-labs.zip",
+            "run_execution": {
+                "dataset": "argsme-touche-2021-task-1-20230209-training",
+                "run_id": "2024-02-27-20-10-51",
+                "task": "ir-benchmarks",
+                "team": "qpptk"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/qpptk/dataset/argsme-touche-2021-task-1-20230209-training/download/2024-02-27-20-10-51.zip"
+        },
+        "cord19-fulltext-trec-covid-20230107-training": {
+            "md5_of_first_kilobyte": "5757f585a597b4885d1804e8b69c7a11",
+            "redirect_url": {
+                "run_id": "2024-02-27-20-18-28",
+                "url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/qpptk-all-predictors-trec-medical.zip"
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/qpptk-all-predictors-trec-medical.zip",
+            "run_execution": {
+                "dataset": "cord19-fulltext-trec-covid-20230107-training",
+                "run_id": "2024-02-27-20-18-28",
+                "task": "ir-benchmarks",
+                "team": "qpptk"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/qpptk/dataset/cord19-fulltext-trec-covid-20230107-training/download/2024-02-27-20-18-28.zip"
+        },
+        "cranfield-20230107-training": {
+            "md5_of_first_kilobyte": "636ed5757d023857a106d976dbad29dc",
+            "redirect_url": {
+                "run_id": "2024-02-27-20-20-33",
+                "url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/qpptk-all-predictors-tiny-test-collections.zip"
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/qpptk-all-predictors-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "cranfield-20230107-training",
+                "run_id": "2024-02-27-20-20-33",
+                "task": "ir-benchmarks",
+                "team": "qpptk"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/qpptk/dataset/cranfield-20230107-training/download/2024-02-27-20-20-33.zip"
+        },
+        "longeval-heldout-20230513-training": {
+            "md5_of_first_kilobyte": "63347a749bc999fcca53bc0cd2f89a76",
+            "redirect_url": {
+                "run_id": "2024-02-27-20-56-41",
+                "url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/qpptk-all-predictors-clef-labs.zip"
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/qpptk-all-predictors-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-heldout-20230513-training",
+                "run_id": "2024-02-27-20-56-41",
+                "task": "ir-benchmarks",
+                "team": "qpptk"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/qpptk/dataset/longeval-heldout-20230513-training/download/2024-02-27-20-56-41.zip"
+        },
+        "longeval-long-september-20230513-training": {
+            "md5_of_first_kilobyte": "63347a749bc999fcca53bc0cd2f89a76",
+            "redirect_url": {
+                "run_id": "2024-02-27-21-10-42",
+                "url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/qpptk-all-predictors-clef-labs.zip"
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/qpptk-all-predictors-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-long-september-20230513-training",
+                "run_id": "2024-02-27-21-10-42",
+                "task": "ir-benchmarks",
+                "team": "qpptk"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/qpptk/dataset/longeval-long-september-20230513-training/download/2024-02-27-21-10-42.zip"
+        },
+        "longeval-short-july-20230513-training": {
+            "md5_of_first_kilobyte": "63347a749bc999fcca53bc0cd2f89a76",
+            "redirect_url": {
+                "run_id": "2024-02-27-21-15-17",
+                "url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/qpptk-all-predictors-clef-labs.zip"
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/qpptk-all-predictors-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-short-july-20230513-training",
+                "run_id": "2024-02-27-21-15-17",
+                "task": "ir-benchmarks",
+                "team": "qpptk"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/qpptk/dataset/longeval-short-july-20230513-training/download/2024-02-27-21-15-17.zip"
+        },
+        "longeval-train-20230513-training": {
+            "md5_of_first_kilobyte": "63347a749bc999fcca53bc0cd2f89a76",
+            "redirect_url": {
+                "run_id": "2024-02-27-21-19-19",
+                "url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/qpptk-all-predictors-clef-labs.zip"
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/qpptk-all-predictors-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-train-20230513-training",
+                "run_id": "2024-02-27-21-19-19",
+                "task": "ir-benchmarks",
+                "team": "qpptk"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/qpptk/dataset/longeval-train-20230513-training/download/2024-02-27-21-19-19.zip"
+        },
+        "medline-2004-trec-genomics-2004-20230107-training": {
+            "md5_of_first_kilobyte": "5757f585a597b4885d1804e8b69c7a11",
+            "redirect_url": {
+                "run_id": "2024-02-27-21-21-07",
+                "url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/qpptk-all-predictors-trec-medical.zip"
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/qpptk-all-predictors-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2004-trec-genomics-2004-20230107-training",
+                "run_id": "2024-02-27-21-21-07",
+                "task": "ir-benchmarks",
+                "team": "qpptk"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/qpptk/dataset/medline-2004-trec-genomics-2004-20230107-training/download/2024-02-27-21-21-07.zip"
+        },
+        "medline-2004-trec-genomics-2005-20230107-training": {
+            "md5_of_first_kilobyte": "5757f585a597b4885d1804e8b69c7a11",
+            "redirect_url": {
+                "run_id": "2024-02-27-21-26-22",
+                "url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/qpptk-all-predictors-trec-medical.zip"
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/qpptk-all-predictors-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2004-trec-genomics-2005-20230107-training",
+                "run_id": "2024-02-27-21-26-22",
+                "task": "ir-benchmarks",
+                "team": "qpptk"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/qpptk/dataset/medline-2004-trec-genomics-2005-20230107-training/download/2024-02-27-21-26-22.zip"
+        },
+        "medline-2017-trec-pm-2017-20230211-training": {
+            "md5_of_first_kilobyte": "5757f585a597b4885d1804e8b69c7a11",
+            "redirect_url": {
+                "run_id": "2024-02-27-21-27-05",
+                "url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/qpptk-all-predictors-trec-medical.zip"
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/qpptk-all-predictors-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2017-trec-pm-2017-20230211-training",
+                "run_id": "2024-02-27-21-27-05",
+                "task": "ir-benchmarks",
+                "team": "qpptk"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/qpptk/dataset/medline-2017-trec-pm-2017-20230211-training/download/2024-02-27-21-27-05.zip"
+        },
+        "medline-2017-trec-pm-2018-20230211-training": {
+            "md5_of_first_kilobyte": "5757f585a597b4885d1804e8b69c7a11",
+            "redirect_url": {
+                "run_id": "2024-02-27-21-28-47",
+                "url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/qpptk-all-predictors-trec-medical.zip"
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/qpptk-all-predictors-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2017-trec-pm-2018-20230211-training",
+                "run_id": "2024-02-27-21-28-47",
+                "task": "ir-benchmarks",
+                "team": "qpptk"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/qpptk/dataset/medline-2017-trec-pm-2018-20230211-training/download/2024-02-27-21-28-47.zip"
+        },
+        "msmarco-passage-trec-dl-2019-judged-20230107-training": {
+            "md5_of_first_kilobyte": "56c1fff3754576c64048d5326cba4ca6",
+            "redirect_url": {
+                "run_id": "2024-02-27-21-30-47",
+                "url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/qpptk-all-predictors-trec-recent.zip"
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/qpptk-all-predictors-trec-recent.zip",
+            "run_execution": {
+                "dataset": "msmarco-passage-trec-dl-2019-judged-20230107-training",
+                "run_id": "2024-02-27-21-30-47",
+                "task": "ir-benchmarks",
+                "team": "qpptk"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/qpptk/dataset/msmarco-passage-trec-dl-2019-judged-20230107-training/download/2024-02-27-21-30-47.zip"
+        },
+        "msmarco-passage-trec-dl-2020-judged-20230107-training": {
+            "md5_of_first_kilobyte": "56c1fff3754576c64048d5326cba4ca6",
+            "redirect_url": {
+                "run_id": "2024-02-27-21-31-54",
+                "url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/qpptk-all-predictors-trec-recent.zip"
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/qpptk-all-predictors-trec-recent.zip",
+            "run_execution": {
+                "dataset": "msmarco-passage-trec-dl-2020-judged-20230107-training",
+                "run_id": "2024-02-27-21-31-54",
+                "task": "ir-benchmarks",
+                "team": "qpptk"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/qpptk/dataset/msmarco-passage-trec-dl-2020-judged-20230107-training/download/2024-02-27-21-31-54.zip"
+        },
+        "nfcorpus-test-20230107-training": {
+            "md5_of_first_kilobyte": "636ed5757d023857a106d976dbad29dc",
+            "redirect_url": {
+                "run_id": "2024-02-27-21-34-23",
+                "url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/qpptk-all-predictors-tiny-test-collections.zip"
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/qpptk-all-predictors-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "nfcorpus-test-20230107-training",
+                "run_id": "2024-02-27-21-34-23",
+                "task": "ir-benchmarks",
+                "team": "qpptk"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/qpptk/dataset/nfcorpus-test-20230107-training/download/2024-02-27-21-34-23.zip"
+        },
+        "trec-tip-of-the-tongue-dev-20230607-training": {
+            "md5_of_first_kilobyte": "56c1fff3754576c64048d5326cba4ca6",
+            "redirect_url": {
+                "run_id": "2024-02-27-21-36-40",
+                "url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/qpptk-all-predictors-trec-recent.zip"
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/qpptk-all-predictors-trec-recent.zip",
+            "run_execution": {
+                "dataset": "trec-tip-of-the-tongue-dev-20230607-training",
+                "run_id": "2024-02-27-21-36-40",
+                "task": "ir-benchmarks",
+                "team": "qpptk"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/qpptk/dataset/trec-tip-of-the-tongue-dev-20230607-training/download/2024-02-27-21-36-40.zip"
+        },
+        "vaswani-20230107-training": {
+            "md5_of_first_kilobyte": "636ed5757d023857a106d976dbad29dc",
+            "redirect_url": {
+                "run_id": "2024-02-27-21-38-47",
+                "url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/qpptk-all-predictors-tiny-test-collections.zip"
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/qpptk-all-predictors-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "vaswani-20230107-training",
+                "run_id": "2024-02-27-21-38-47",
+                "task": "ir-benchmarks",
+                "team": "qpptk"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/qpptk/dataset/vaswani-20230107-training/download/2024-02-27-21-38-47.zip"
+        }
+    },
+    "ir-benchmarks/salamander/classify-comparative-queries": {
+        "antique-test-20230107-training": {
+            "md5_of_first_kilobyte": "9e677547ffbeb81d195f47d3d7a99d2f",
+            "redirect_url": {
+                "run_id": "2024-02-25-15-17-55",
+                "url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/salamander-classify-comparative-queries-tiny-test-collections.zip"
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/salamander-classify-comparative-queries-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "antique-test-20230107-training",
+                "run_id": "2024-02-25-15-17-55",
+                "task": "ir-benchmarks",
+                "team": "salamander"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/salamander/dataset/antique-test-20230107-training/download/2024-02-25-15-17-55.zip"
+        },
+        "argsme-touche-2020-task-1-20230209-training": {
+            "md5_of_first_kilobyte": "bd12645c490bb6227fec034d0a06731d",
+            "redirect_url": {
+                "run_id": "2024-02-25-15-19-08",
+                "url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/salamander-classify-comparative-queries-clef-labs.zip"
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/salamander-classify-comparative-queries-clef-labs.zip",
+            "run_execution": {
+                "dataset": "argsme-touche-2020-task-1-20230209-training",
+                "run_id": "2024-02-25-15-19-08",
+                "task": "ir-benchmarks",
+                "team": "salamander"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/salamander/dataset/argsme-touche-2020-task-1-20230209-training/download/2024-02-25-15-19-08.zip"
+        },
+        "argsme-touche-2021-task-1-20230209-training": {
+            "md5_of_first_kilobyte": "bd12645c490bb6227fec034d0a06731d",
+            "redirect_url": {
+                "run_id": "2024-02-25-15-20-13",
+                "url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/salamander-classify-comparative-queries-clef-labs.zip"
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/salamander-classify-comparative-queries-clef-labs.zip",
+            "run_execution": {
+                "dataset": "argsme-touche-2021-task-1-20230209-training",
+                "run_id": "2024-02-25-15-20-13",
+                "task": "ir-benchmarks",
+                "team": "salamander"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/salamander/dataset/argsme-touche-2021-task-1-20230209-training/download/2024-02-25-15-20-13.zip"
+        },
+        "cord19-fulltext-trec-covid-20230107-training": {
+            "md5_of_first_kilobyte": "0a7657bb210fa8b506887a40087d7393",
+            "redirect_url": {
+                "run_id": "2024-02-25-15-44-30",
+                "url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/salamander-classify-comparative-queries-trec-medical.zip"
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/salamander-classify-comparative-queries-trec-medical.zip",
+            "run_execution": {
+                "dataset": "cord19-fulltext-trec-covid-20230107-training",
+                "run_id": "2024-02-25-15-44-30",
+                "task": "ir-benchmarks",
+                "team": "salamander"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/salamander/dataset/cord19-fulltext-trec-covid-20230107-training/download/2024-02-25-15-44-30.zip"
+        },
+        "cranfield-20230107-training": {
+            "md5_of_first_kilobyte": "9e677547ffbeb81d195f47d3d7a99d2f",
+            "redirect_url": {
+                "run_id": "2024-02-25-15-45-40",
+                "url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/salamander-classify-comparative-queries-tiny-test-collections.zip"
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/salamander-classify-comparative-queries-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "cranfield-20230107-training",
+                "run_id": "2024-02-25-15-45-40",
+                "task": "ir-benchmarks",
+                "team": "salamander"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/salamander/dataset/cranfield-20230107-training/download/2024-02-25-15-45-40.zip"
+        },
+        "longeval-heldout-20230513-training": {
+            "md5_of_first_kilobyte": "bd12645c490bb6227fec034d0a06731d",
+            "redirect_url": {
+                "run_id": "2024-02-25-16-01-03",
+                "url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/salamander-classify-comparative-queries-clef-labs.zip"
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/salamander-classify-comparative-queries-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-heldout-20230513-training",
+                "run_id": "2024-02-25-16-01-03",
+                "task": "ir-benchmarks",
+                "team": "salamander"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/salamander/dataset/longeval-heldout-20230513-training/download/2024-02-25-16-01-03.zip"
+        },
+        "longeval-long-september-20230513-training": {
+            "md5_of_first_kilobyte": "bd12645c490bb6227fec034d0a06731d",
+            "redirect_url": {
+                "run_id": "2024-02-25-16-03-12",
+                "url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/salamander-classify-comparative-queries-clef-labs.zip"
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/salamander-classify-comparative-queries-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-long-september-20230513-training",
+                "run_id": "2024-02-25-16-03-12",
+                "task": "ir-benchmarks",
+                "team": "salamander"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/salamander/dataset/longeval-long-september-20230513-training/download/2024-02-25-16-03-12.zip"
+        },
+        "longeval-short-july-20230513-training": {
+            "md5_of_first_kilobyte": "bd12645c490bb6227fec034d0a06731d",
+            "redirect_url": {
+                "run_id": "2024-02-25-16-04-17",
+                "url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/salamander-classify-comparative-queries-clef-labs.zip"
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/salamander-classify-comparative-queries-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-short-july-20230513-training",
+                "run_id": "2024-02-25-16-04-17",
+                "task": "ir-benchmarks",
+                "team": "salamander"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/salamander/dataset/longeval-short-july-20230513-training/download/2024-02-25-16-04-17.zip"
+        },
+        "longeval-train-20230513-training": {
+            "md5_of_first_kilobyte": "bd12645c490bb6227fec034d0a06731d",
+            "redirect_url": {
+                "run_id": "2024-02-25-16-06-29",
+                "url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/salamander-classify-comparative-queries-clef-labs.zip"
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/salamander-classify-comparative-queries-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-train-20230513-training",
+                "run_id": "2024-02-25-16-06-29",
+                "task": "ir-benchmarks",
+                "team": "salamander"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/salamander/dataset/longeval-train-20230513-training/download/2024-02-25-16-06-29.zip"
+        },
+        "medline-2004-trec-genomics-2004-20230107-training": {
+            "md5_of_first_kilobyte": "0a7657bb210fa8b506887a40087d7393",
+            "redirect_url": {
+                "run_id": "2024-02-25-16-09-36",
+                "url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/salamander-classify-comparative-queries-trec-medical.zip"
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/salamander-classify-comparative-queries-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2004-trec-genomics-2004-20230107-training",
+                "run_id": "2024-02-25-16-09-36",
+                "task": "ir-benchmarks",
+                "team": "salamander"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/salamander/dataset/medline-2004-trec-genomics-2004-20230107-training/download/2024-02-25-16-09-36.zip"
+        },
+        "medline-2004-trec-genomics-2005-20230107-training": {
+            "md5_of_first_kilobyte": "0a7657bb210fa8b506887a40087d7393",
+            "redirect_url": {
+                "run_id": "2024-02-25-16-11-16",
+                "url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/salamander-classify-comparative-queries-trec-medical.zip"
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/salamander-classify-comparative-queries-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2004-trec-genomics-2005-20230107-training",
+                "run_id": "2024-02-25-16-11-16",
+                "task": "ir-benchmarks",
+                "team": "salamander"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/salamander/dataset/medline-2004-trec-genomics-2005-20230107-training/download/2024-02-25-16-11-16.zip"
+        },
+        "medline-2017-trec-pm-2017-20230211-training": {
+            "md5_of_first_kilobyte": "0a7657bb210fa8b506887a40087d7393",
+            "redirect_url": {
+                "run_id": "2024-02-25-16-12-21",
+                "url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/salamander-classify-comparative-queries-trec-medical.zip"
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/salamander-classify-comparative-queries-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2017-trec-pm-2017-20230211-training",
+                "run_id": "2024-02-25-16-12-21",
+                "task": "ir-benchmarks",
+                "team": "salamander"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/salamander/dataset/medline-2017-trec-pm-2017-20230211-training/download/2024-02-25-16-12-21.zip"
+        },
+        "medline-2017-trec-pm-2018-20230211-training": {
+            "md5_of_first_kilobyte": "0a7657bb210fa8b506887a40087d7393",
+            "redirect_url": {
+                "run_id": "2024-02-25-16-57-26",
+                "url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/salamander-classify-comparative-queries-trec-medical.zip"
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/salamander-classify-comparative-queries-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2017-trec-pm-2018-20230211-training",
+                "run_id": "2024-02-25-16-57-26",
+                "task": "ir-benchmarks",
+                "team": "salamander"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/salamander/dataset/medline-2017-trec-pm-2018-20230211-training/download/2024-02-25-16-57-26.zip"
+        },
+        "msmarco-passage-trec-dl-2019-judged-20230107-training": {
+            "md5_of_first_kilobyte": "5e4fb728752c3e3e73c761e56054ed26",
+            "redirect_url": {
+                "run_id": "2024-02-25-16-58-54",
+                "url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/salamander-classify-comparative-queries-trec-recent.zip"
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/salamander-classify-comparative-queries-trec-recent.zip",
+            "run_execution": {
+                "dataset": "msmarco-passage-trec-dl-2019-judged-20230107-training",
+                "run_id": "2024-02-25-16-58-54",
+                "task": "ir-benchmarks",
+                "team": "salamander"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/salamander/dataset/msmarco-passage-trec-dl-2019-judged-20230107-training/download/2024-02-25-16-58-54.zip"
+        },
+        "msmarco-passage-trec-dl-2020-judged-20230107-training": {
+            "md5_of_first_kilobyte": "5e4fb728752c3e3e73c761e56054ed26",
+            "redirect_url": {
+                "run_id": "2024-02-25-20-36-41",
+                "url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/salamander-classify-comparative-queries-trec-recent.zip"
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/salamander-classify-comparative-queries-trec-recent.zip",
+            "run_execution": {
+                "dataset": "msmarco-passage-trec-dl-2020-judged-20230107-training",
+                "run_id": "2024-02-25-20-36-41",
+                "task": "ir-benchmarks",
+                "team": "salamander"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/salamander/dataset/msmarco-passage-trec-dl-2020-judged-20230107-training/download/2024-02-25-20-36-41.zip"
+        },
+        "nfcorpus-test-20230107-training": {
+            "md5_of_first_kilobyte": "9e677547ffbeb81d195f47d3d7a99d2f",
+            "redirect_url": {
+                "run_id": "2024-02-25-20-37-46",
+                "url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/salamander-classify-comparative-queries-tiny-test-collections.zip"
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/salamander-classify-comparative-queries-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "nfcorpus-test-20230107-training",
+                "run_id": "2024-02-25-20-37-46",
+                "task": "ir-benchmarks",
+                "team": "salamander"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/salamander/dataset/nfcorpus-test-20230107-training/download/2024-02-25-20-37-46.zip"
+        },
+        "vaswani-20230107-training": {
+            "md5_of_first_kilobyte": "9e677547ffbeb81d195f47d3d7a99d2f",
+            "redirect_url": {
+                "run_id": "2024-02-25-20-40-09",
+                "url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/salamander-classify-comparative-queries-tiny-test-collections.zip"
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/salamander-classify-comparative-queries-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "vaswani-20230107-training",
+                "run_id": "2024-02-25-20-40-09",
+                "task": "ir-benchmarks",
+                "team": "salamander"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/salamander/dataset/vaswani-20230107-training/download/2024-02-25-20-40-09.zip"
+        }
+    }
+}
