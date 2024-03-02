@@ -288,7 +288,7 @@ class Client(TiraClient):
 
         .. code:: py
 
-            for approach in ['approach-1', ..., 'approach-n]:
+            for approach in ['approach-1', ..., 'approach-n']:
                 runs_for_approach = tira.submissions_with_evaluation_or_none(task, dataset, team, approach)
                 for i in runs_for_approach:
                     if i['evaluation']:
