@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from django.core.management import call_command
 from django.apps import apps
-from tira.views import zip_run
+from tira.views import zip_run, zip_runs
 from tira.endpoints.data_api import model, public_submission_or_none
 from tqdm import tqdm
 import json
@@ -43,7 +43,7 @@ class Command(BaseCommand):
         aggregated_systems = {
             'ir-benchmarks': {
                 'qpptk': {
-                    'all-predictors', 'qpptk-all-predictors.zip'
+                    'all-predictors', 'qpptk-all-predictors',
                 }
             }
         }
@@ -67,3 +67,26 @@ class Command(BaseCommand):
 
         print(json.dumps(ret))
 
+        ret = {}
+
+        for task_id in aggregated_systems.keys():
+            ret[task_id] = {}
+            for user_id in aggregated_systems[task_id].keys():
+                ret[task_id][user_id] = {}
+                for display_name in aggregated_systems[task_id][user_id].keys():
+                    for dataset_group, datasets in tqdm(dataset_groups.values(), display_name):
+                        run_ids = set()
+                        target_file = f'{output_dir}/{dataset_group}.zip'
+
+                        for dataset in datasets:
+                            run_ids.add(model.runs(task_id, dataset, user_id, display_name)[0])
+
+                        run_ids = sorted(list(run_ids))
+                        zip_file = zip_runs(i, user_id, run_ids)
+                        shutil.copyfile(zip_file, target_file)
+                        ret[task_id][user_id][display_name][dataset_group] = {'dataset_group': dataset_group, 'md5': md5(target_file), 'run_ids': run_ids}
+
+        print(json.dumps(ret))
+
+
+                    
