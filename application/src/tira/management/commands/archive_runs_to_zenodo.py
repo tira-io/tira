@@ -43,7 +43,7 @@ class Command(BaseCommand):
         aggregated_systems = {
             'ir-benchmarks': {
                 'qpptk': {
-                    'all-predictors', 'qpptk-all-predictors',
+                    'all-predictors': 'qpptk-all-predictors',
                 }
             }
         }
@@ -73,16 +73,16 @@ class Command(BaseCommand):
             ret[task_id] = {}
             for user_id in aggregated_systems[task_id].keys():
                 ret[task_id][user_id] = {}
-                for display_name in aggregated_systems[task_id][user_id].keys():
-                    for dataset_group, datasets in tqdm(dataset_groups.values(), display_name):
-                        run_ids = set()
-                        target_file = f'{output_dir}/{dataset_group}.zip'
+                for display_name, output_dir in aggregated_systems[task_id][user_id].items():
+                    for dataset_group, datasets in tqdm(dataset_groups.items(), display_name):
+                        run_ids = {}
+                        target_file = f'{output_dir}/{user_id}-{display_name}-{dataset_group}.zip'
 
                         for dataset in datasets:
-                            run_ids.add(model.runs(task_id, dataset, user_id, display_name)[0])
+                            run_ids[dataset] = model.runs(task_id, dataset, user_id, display_name)[0]
 
                         run_ids = sorted(list(run_ids))
-                        zip_file = zip_runs(i, user_id, run_ids)
+                        zip_file = zip_runs(i, user_id, [(k, v) for k,v in run_ids.items()])
                         shutil.copyfile(zip_file, target_file)
                         ret[task_id][user_id][display_name][dataset_group] = {'dataset_group': dataset_group, 'md5': md5(target_file), 'run_ids': run_ids}
 
