@@ -1,0 +1,775 @@
+openapi: '3.0.2'
+info:
+  title: TIRA API
+  version: "1.0.0-draft"
+servers:
+  - url: https://www.tira.io/api
+  # - url: https://api.tira.io/ <-- maybe for the future?
+security:
+  - bearerAuth: []
+
+paths:
+  # Legacy API
+  /evaluations/{taskId}/{datasetId}:
+    get:
+      summary: |
+        Deprecated, use /v1/evaluations instead with `filter[taskId]={taskId}` and `filter[datasetId]={datasetId}` or
+        use /v1/tasks/{taskId}/evaluations with `filter[datasetId]={datasetId}`.
+      description: |
+        Return all evaluation results for all submission to a dataset The frontend calls this to build the leaderboard
+        in the task page when a task is selected from the dropdown.
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /evaluations-of-vm/{taskId}/{vmId}:
+    get:
+      summary: |
+        Deprecated, use /v1/evaluations instead with `filter[taskId]={taskId}` and `filter[vmId]={vmId}` or use
+        /v1/tasks/{taskId}/evaluations with `filter[vmId]={vmId}`.
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /evaluation/{vmId}/{runId}:
+    get:
+      summary: |
+        Deprecated, use /v1/evaluations instead with `filter[runId]={runId}` and `filter[vmId]={vmId}`.
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /submissions/{taskId}/{datasetId}:
+    get:
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /docker-software-details/{vmId}/{dockerSoftwareId}:
+    get:
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /upload-group-details/{taskId}/{vmId}/{uploadId}:
+    get:
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /evaluations_of_run/{vmId}/{runId}:
+    get:
+      summary: |
+        Deprecated, use /v1/evaluations instead with `filter[runId]={runId}` and `filter[vmId]={vmId}`.
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /configuration-of-evaluation/{taskId}/{datasetId}:
+    get:
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /list-runs/{taskId}/{datasetId}/{vmId}/{softwareId}:
+    get:
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /ova-list:  # TODO: I believe, this can be removed without replacement
+    get:
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /host-list:
+    get:
+      summary: Deprecated, use /v1/hosts instead.
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /organizer-list:
+    get:
+      summary: Deprecated, use /v1/organizers instead.
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /task-list:
+    get:
+      summary: Deprecated, use /v1/tasks instead.
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  context:
+                    type: object
+                    properties:
+                      include_navigation:
+                        type: boolean
+                      user_id:
+                        type: string
+                        nullable: true
+                      role:
+                        type: string
+                        enum:
+                          - "guest"
+                      organizer_teams:
+                        type: string  # TODO: this is really odd that it is a string and not a list
+                      task_list:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/TaskLegacy"
+      tags: [legacy]
+  /task/{taskId}:
+    get:
+      summary: Deprecated, use /v1/tasks/{taskId} instead.
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /registration_formular/{taskId}:
+    get:
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /dataset/{datasetId}:
+    get:
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /datasets_by_task/{taskId}:
+    get:
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /organizer/{organizerId}:
+    get:
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /role:
+    get:
+      summary: Deprecated, use /v1/user instead.
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Role'
+      tags: [legacy]
+  /task/{taskId}/user/{userId}:
+    get:
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /task/{taskId}/user/{userId}/refresh-docker-images:
+    get:
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /count-of-missing-reviews/{taskId}:
+    get:
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /task/{taskId}/user/{userId}/software/running/{forceCacheRefresh}:
+    get:
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /task/{taskId}/public-submissions:
+    get:
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /task/{taskId}/submission-details/{userId}/{displayName}:
+    get:
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /review/{datasetId}/{vmId}/{runId}:
+    get:
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /registration/add_registration/{vmId}/{taskId}:
+    get:
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /submission-for-task/{taskId}/{userId}/{submissionType}:
+    get:
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /tirex-components:
+    get:
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /tirex-snippet:
+    get:
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /snippet-for-tirex-components:
+    get:
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /re-ranking-datasets/{taskId}:
+    get:
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /submissions-for-user/{vmId}:
+    get:
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /add_software_submission_git_repository/{taskId}/{vmId}:
+    get:
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /get_software_submission_git_repository/{taskId}/{vmId}:
+    get:
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /import-submissions/{taskId}/{vmId}/{submissionType}/{sId}:
+    get:
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /diffir/{taskId}/{topk}/{runId1}/{runId2}:
+    get:
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /serp/{taskId}/user/{vmId}/dataset/{datasetId}/{topk}/{runId}:
+    get:
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+
+  # V1 API
+  /v1/datasets:
+    get:
+      responses:
+        '200':
+          description: TODO
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+      tags: [v1]
+  /v1/evaluations:
+    get:
+      parameters:
+        - name: filter  # https://jsonapi.org/recommendations/#filtering
+          in: query
+          style: deepObject
+          schema:
+            type: object
+            properties:
+              datasetId:
+                type: string
+              runId:
+                type: string
+              taskId:
+                type: string
+              vmId:
+                type: string
+      responses:
+        '200':
+          description: TODO
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+      tags: [v1]
+  /v1/hosts:
+    get:
+      responses:
+        '200':
+          description: TODO
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+      tags: [v1]
+  /v1/organizers:
+    get:
+      responses:
+        '200':
+          description: TODO
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+      tags: [v1]
+  /v1/organizers/{organizerId}:
+    get:
+      parameters:
+        - name: organizerId
+          in: path
+          description: The identifier of the organizer for which to fetch infromation
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: TODO
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+        '404':
+           $ref: "#/components/responses/ForbiddenOrNotFoundError"
+      tags: [v1]
+  /v1/runs:
+    get:
+      responses:
+        '200':
+          description: TODO
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+      tags: [v1]
+  /v1/runs/{runId}:
+    get:
+      parameters:
+        - name: runId
+          in: path
+          description: The identifier of the run for which to fetch information
+          required: true
+          schema:
+            type: string
+        - name: filter  # https://jsonapi.org/recommendations/#filtering
+          in: query
+          style: deepObject
+          schema:
+            type: object
+            properties:
+              dataset:
+                type: string
+              taskId:
+                type: string
+              vmId:
+                type: string
+        - name: topk
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: TODO
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+        '404':
+           $ref: "#/components/responses/ForbiddenOrNotFoundError"
+      tags: [v1]
+  /v1/submissions:
+    get:
+      responses:
+        '200':
+          description: TODO
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+      tags: [v1]
+  /v1/tasks:
+    get:
+      responses:
+        '200':
+          description: TODO
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+      tags: [v1]
+  /v1/tasks/{taskId}:
+    get:
+      parameters:
+        - name: taskId
+          in: path
+          description: The identifier of the requested task
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: TODO
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+        '404':
+           $ref: "#/components/responses/ForbiddenOrNotFoundError"
+      tags: [v1]
+  /v1/tasks/{taskId}/evaluations:
+    get:
+      parameters:
+        - name: taskId
+          in: path
+          description: The identifier of the task for which to fetch evaluations
+          required: true
+          schema:
+            type: string
+        - name: filter
+          in: query
+          style: deepObject
+          schema:
+            type: object
+            properties:
+              vmId:
+                type: string
+              dataset:
+                type: string
+              runId:
+                type: string
+      responses:
+        '200':
+          description: TODO
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+        '404':
+           $ref: "#/components/responses/ForbiddenOrNotFoundError"
+      tags: [v1]
+  /v1/tirex:
+    get:
+      responses:
+        '200':
+          description: TODO
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+      tags: [v1]
+  /v1/user:
+    get:
+      responses:
+        '200':
+          description: TODO
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+      tags: [v1]
+
+components:
+  securitySchemes:
+    # Legacy
+    LegacyApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+    # V1
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    # https://www.rfc-editor.org/rfc/rfc9457
+    ProblemJSON:
+      type: object
+      description: |
+        The problem+json object contains all the necessary information to create helpful user-facing error messages.
+        Further fields can be appended to provide additional information to the consumer (e.g. arguments with which the
+        problem was triggered).
+      properties:
+        type:
+          type: string
+          format: uri
+          default: "about:blank"
+        status:
+          type: number
+        title:
+          type: string
+          description: |
+            Short, human-readable description of the problem. Should only be used, e.g., for logging. The "type"-URI
+            should be preferred to display a (potentially localized) description in user-facing error messages.
+        detail:
+          type: string
+          description: |
+            Human-readable explanation of the specific problem. Should help the user fix the problem rather than provide
+            debugging information. This should not be parsed by consumers of the REST-API (e.g., to display a localized
+            error message). Instead, additional fields should be added to the problem+json.
+        instance:
+          type: string
+          format: uri
+          description: The specific URI at which the problem occured. Should contain absolute paths.
+        errors:
+          description: |
+            If multiple errors occured with the same status-code, they can be reported together as members of the
+            errors-array.
+          type: array
+          items:
+            type: object
+            properties:
+              detail:
+                type: string
+    Role:
+      type: object
+      properties:
+        status:
+          type: integer
+        role:
+          type: string
+          enum: [guest]
+        organizer_teams:
+          type: array
+          items:
+            type: string
+    TaskLegacy:  # Field names don't follow the naming guidelines (they are snake_case instead of camelCase)
+      type: object
+      properties:
+        task_id:
+          type: string
+        task_name:
+          type: string
+        task_description:
+          type: string
+        organizer:
+          type: string
+        organizer_id:
+          type: string
+        web:
+          type: string
+          format: uri
+        year:
+          type: string
+          pattern: '^\d{4}(?:-\d{4})?$'  # YEAR or YEAR-YEAR
+        featured:
+          type: boolean
+        require_registration:
+          type: boolean
+        require_groups:
+          type: boolean
+        restrict_groups:
+          type: boolean
+        allowed_task_teams:
+          type: string
+          default: ""
+        master_vm_id:
+          type: string
+        is_ir_task:
+          type: boolean
+        irds_re_ranking_image:  # TODO: is this only necessary for ir_tasks? Consider polymorphism
+          type: string
+        irds_re_ranking_command:  # TODO: is this only necessary for ir_tasks? Consider polymorphism
+          type: string
+        irds_re_ranking_resource:  # TODO: is this only necessary for ir_tasks? Consider polymorphism
+          type: string
+        dataset_count:
+          type: integer
+        software_count:
+          type: integer
+        max_stmax_std_out_chars_on_test_data:
+          type: integer
+        max_std_err_chars_on_test_data:
+          type: integer
+        max_file_list_chars_on_test_data:
+          type: integer
+        command_placeholder:
+          type: string
+        command_description:
+          type: string
+        dataset_label:
+          type: string
+        max_std_out_chars_on_test_data_eval:
+          type: integer
+        max_std_err_chars_on_test_data_eval:
+          type: integer
+        max_file_list_chars_on_test_data_eval:
+          type: integer
+    Task:  # Updated version of TaskLegacy. Not yet done. TODO: complete
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        organizer:
+          $ref: "#/components/schemas/Organizer"
+        website:
+          type: string
+          format: uri
+        year:
+          type: string
+          pattern: '^\d{4}(?:-\d{4})?$'  # YEAR or YEAR-YEAR
+      oneOf:
+        - $ref: "#/components/schemas/BaseTask"
+        - $ref: "#/components/schemas/IRTask"
+      discriminator:
+        propertyName: type
+        mapping:
+          basetask: "#/components/schemas/BaseTask"
+          irtask: "#/components/schemas/IRTask"
+    BaseTask:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+    IRTask:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+    Organizer:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+  responses:
+    UnauthorizedError: # https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.2
+      description: |
+        API Key is missing or invalid.
+      headers:
+        WWW_Authenticate:
+          schema:
+            type: string
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ProblemJSON'
+              - type: object
+                properties:
+                  title:
+                    default: "Unauthorized"
+                  status:
+                    default: 401
+    ForbiddenOrNotFoundError: # https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.4
+      description: |
+        The resource was not found or the service does not want to disclose if the resource exists but the user does not
+        have access to it. As per W3C this should be a 404 but can fulfill the purpose of a 403 internally.
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ProblemJSON'
+              - type: object
+                properties:
+                  title:
+                    default: "Not Found"
+                  status:
+                    default: 404
