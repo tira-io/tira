@@ -80,7 +80,7 @@ class TiraClient(ABC):
         # .. todo:: typehint
         pass
 
-    def create_new_upload(self, task_id: str, vm_id: str) -> Optional[str]:
+    def create_new_upload(self, task_id: str, vm_id: str) -> "Optional[str]":
         """
         Creates a new upload and returns the newly created id. Returns None on failure.
         """
