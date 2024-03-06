@@ -1,6 +1,6 @@
 import unittest
 from approvaltests import verify_as_json
-from tira.tira_redirects import redirects
+from tira.tira_redirects import redirects, mirror_url
 from tira.rest_api_client import Client
 import requests
 from hashlib import md5
@@ -80,7 +80,7 @@ class TestRedirects(unittest.TestCase):
                     continue
 
                 run_url = f'https://www.tira.io/task/{task}/user/{team}/dataset/{dataset}/download/{RUN_IDS[task][team][system][dataset]}.zip'
-                redirected_run_url = redirects(url=run_url)['url']
+                redirected_run_url = redirects(url=run_url)['urls'][0]
                 if not redirected_run_url.startswith('https://files.'):
                     continue
 
@@ -89,7 +89,31 @@ class TestRedirects(unittest.TestCase):
                     'run_execution': tira.get_run_execution_or_none(software, dataset),
                     'run_url': run_url,
                     'redirected_run_url': redirected_run_url,
-                    'md5_of_first_kilobyte': md5_of_first_kilobyte_of_http_resource(redirects(url=run_url)['url'])
+                    'md5_of_first_kilobyte': md5_of_first_kilobyte_of_http_resource(redirects(url=run_url)['urls'][0])
                 }
         
+        verify_as_json(ret)
+
+
+    def test_mirrors_for_zenodo(self):
+        softwareto_approve = sorted(['ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)'])
+        datasets_to_approve = sorted([
+            'msmarco-passage-trec-dl-2019-judged-20230107-training', 'msmarco-passage-trec-dl-2020-judged-20230107-training',
+            'antique-test-20230107-training', 'vaswani-20230107-training',
+            'cranfield-20230107-training', 'medline-2004-trec-genomics-2004-20230107-training',
+            'medline-2017-trec-pm-2017-20230211-training', 'cord19-fulltext-trec-covid-20230107-training',
+            'nfcorpus-test-20230107-training', 'argsme-touche-2020-task-1-20230209-training', 
+            'argsme-touche-2021-task-1-20230209-training', 'medline-2017-trec-pm-2018-20230211-training', 'medline-2004-trec-genomics-2005-20230107-training', 'trec-tip-of-the-tongue-dev-20230607-training',
+            'longeval-short-july-20230513-training', 'longeval-heldout-20230513-training',
+            'longeval-long-september-20230513-training', 'longeval-train-20230513-training'
+        ])
+
+        ret = {}
+        for software in softwareto_approve:
+            for dataset in datasets_to_approve:
+                task, team, system = software.split('/')
+                run_url = f'https://www.tira.io/task/{task}/user/{team}/dataset/{dataset}/download/{RUN_IDS[task][team][system][dataset]}.zip'
+                run_url = redirects(url=run_url)['urls'][0]
+                ret[run_url] = mirror_url(run_url)
+
         verify_as_json(ret)
