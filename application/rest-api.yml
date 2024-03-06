@@ -10,6 +10,276 @@ security:
 
 paths:
   # Legacy API
+  /tira-admin/reload/vms:
+    post:
+      servers:
+        - url: https://www.tira.io
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy, dead?]
+  /tira-admin/reload/datasets:
+    post:
+      servers:
+        - url: https://www.tira.io
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy, dead?]
+  /tira-admin/reload/tasks:
+    post:
+      servers:
+        - url: https://www.tira.io
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy, dead?]
+  /tira-admin/reload-data:
+    post:
+      servers:
+        - url: https://www.tira.io
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy, dead?]
+  /tira-admin/reload-runs/{vmId}:
+    post:
+      servers:
+        - url: https://www.tira.io
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy, dead?]
+  /tira-admin/create-vm:
+    post:
+      servers:
+        - url: https://www.tira.io
+      description: Hook for create_vm posts. Responds with json objects indicating the state of the create process.
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy, dead?]
+  /tira-admin/archive-vm:
+    post:
+      servers:
+        - url: https://www.tira.io
+      summary: Deprecated, may be deleted without replacement?
+      description: TODO
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy, dead?]
+  /tira-admin/modify-vm:
+    post:
+      servers:
+        - url: https://www.tira.io
+      description: TODO
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy, dead?]
+  /tira-admin/export-participants/{taskId}.csv:
+    get:
+      servers:
+        - url: https://www.tira.io
+      summary: Deprecated, use `/v1/tasks/{taskId}/registrations` instead with MIME-type text/csv
+      description: TODO
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /tira-admin/{organizerId}/create-task:
+    post:
+      servers:
+        - url: https://www.tira.io
+      summary: Deprecated, use a POST to `/v1/tasks` instead
+      description: TODO
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /tira-admin/edit-task/{taskId}:
+    post:
+      servers:
+        - url: https://www.tira.io
+      summary: Deprecated, use a PATCH to `/v1/tasks/{taskId}` instead
+      description: TODO
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /tira-admin/delete-task/{taskId}:
+    post:
+      servers:
+        - url: https://www.tira.io
+      summary: Deprecated, use a DELETE to `/v1/tasks/{taskId}` instead
+      description: TODO
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /tira-admin/add-dataset/{taskId}:
+    post:
+      servers:
+        - url: https://www.tira.io
+      summary: Deprecated, use a POST to `/v1/datasets` instead
+      description: TODO
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /tira-admin/upload-dataset/{taskId}/{datasetId}/{datasetType}:
+    post:
+      servers:
+        - url: https://www.tira.io
+      description: TODO
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /tira-admin/imports-irds-dataset/{taskId}:
+    post:
+      servers:
+        - url: https://www.tira.io
+      description: TODO
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /tira-admin/edit-dataset/{datasetId}:
+    post:
+      servers:
+        - url: https://www.tira.io
+      summary: Deprecated, use a PATCH to `/v1/datasets/{datasetId}` instead
+      description: TODO
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /tira-admin/delete-dataset/{datasetId}:
+    post:
+      servers:
+        - url: https://www.tira.io
+      summary: Deprecated, use a DELETE to `/v1/datasets/{datasetId}` instead
+      description: TODO
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /tira-admin/add-organizer/{organizerId}:
+    post:
+      servers:
+        - url: https://www.tira.io
+      summary: Deprecated, use a POST to `/v1/organizers` instead
+      description: TODO
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /tira-admin/edit-organizer/{organizerId}:
+    post:
+      servers:
+        - url: https://www.tira.io
+      summary: Deprecated, use a PATCH to `/v1/organizers/{organizerId}` instead
+      description: TODO
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /tira-admin/edit-review/{datasetId}/{vmId}/{runId}:
+    post:
+      servers:
+        - url: https://www.tira.io
+      description: TODO
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /tira-admin/create-group/{vmId}:
+    post:
+      servers:
+        - url: https://www.tira.io
+      description: TODO
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy, dead?]
+
+  /publish/{vmId}/{datasetId}/{runId}/{value}:
+    get:
+      servers:
+        - url: https://www.tira.io
+      description: TODO
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /blind/{vmId}/{datasetId}/{runId}/{value}:
+    get:
+      servers:
+        - url: https://www.tira.io
+      description: TODO
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+
   /evaluations/{taskId}/{datasetId}:
     get:
       summary: |
@@ -47,17 +317,32 @@ paths:
       responses:
         '200':
           description: TODO
-      tags: [legacy]
+      tags: [legacy, dead?]
   /submissions/{taskId}/{datasetId}:
     get:
+      summary: Deprecated, use `/v1/tasks/{taskId}/submissions?filter[datasetId]={datasetId}` instead.
+      deprecated: true
       security:
         - LegacyApiKeyAuth: []
       responses:
         '200':
           description: TODO
       tags: [legacy]
-  /docker-software-details/{vmId}/{dockerSoftwareId}:
+  /docker-softwares-details/{vmId}/{dockerSoftwareId}:
     get:
+      parameters:
+        - name: vmId
+          in: header
+          description: The identifier of the VM for which to fetch docker details
+          required: true
+          schema:
+            type: string
+        - name: dockerSoftwareId
+          in: header
+          description: The identifier of the software for which to fetch details
+          required: true
+          schema:
+            type: integer
       security:
         - LegacyApiKeyAuth: []
       responses:
@@ -65,7 +350,7 @@ paths:
           description: TODO
       tags: [legacy]
   /upload-group-details/{taskId}/{vmId}/{uploadId}:
-    get:
+    post:
       security:
         - LegacyApiKeyAuth: []
       responses:
@@ -101,12 +386,14 @@ paths:
       tags: [legacy]
   /ova-list:  # TODO: I believe, this can be removed without replacement
     get:
+      summary: NO LONGER IN USE?
+      deprecated: true
       security:
         - LegacyApiKeyAuth: []
       responses:
         '200':
           description: TODO
-      tags: [legacy]
+      tags: [legacy, dead?]
   /host-list:
     get:
       summary: Deprecated, use /v1/hosts instead.
@@ -164,6 +451,13 @@ paths:
       tags: [legacy]
   /task/{taskId}:
     get:
+      parameters:
+        - name: taskId
+          in: path
+          description: The identifier of the task for which to fetch information
+          required: true
+          schema:
+            type: string
       summary: Deprecated, use /v1/tasks/{taskId} instead.
       deprecated: true
       security:
@@ -171,6 +465,31 @@ paths:
       responses:
         '200':
           description: TODO
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  context:
+                    type: object
+                    properties:
+                      include_navigation:
+                        type: boolean
+                      user_id:
+                        type: string
+                        nullable: true
+                      role:
+                        type: string
+                        enum:
+                          - "guest"
+                      organizer_teams:
+                        type: string  # TODO: this is really odd that it is a string and not a list
+                      task:
+                        $ref: "#/components/schemas/TaskLegacy"
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [legacy]
   /registration_formular/{taskId}:
     get:
@@ -182,6 +501,8 @@ paths:
       tags: [legacy]
   /dataset/{datasetId}:
     get:
+      summary: Deprecated, use `/v1/datasets/{datasetId}` instead.
+      deprecated: true
       security:
         - LegacyApiKeyAuth: []
       responses:
@@ -190,6 +511,8 @@ paths:
       tags: [legacy]
   /datasets_by_task/{taskId}:
     get:
+      summary: Deprecated, use `/v1/datasets?filter[taskId]={taskId}` instead.
+      deprecated: true
       security:
         - LegacyApiKeyAuth: []
       responses:
@@ -198,6 +521,15 @@ paths:
       tags: [legacy]
   /organizer/{organizerId}:
     get:
+      summary: Deprecated, use `/v1/organizers/{organizerId}` instead.
+      deprecated: true
+      parameters:
+        - name: organizerId
+          in: path
+          description: The identifier of the organizer for which to fetch information
+          required: true
+          schema:
+            type: string
       security:
         - LegacyApiKeyAuth: []
       responses:
@@ -225,6 +557,8 @@ paths:
       responses:
         '200':
           description: TODO
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [legacy]
   /task/{taskId}/user/{userId}/refresh-docker-images:
     get:
@@ -233,6 +567,8 @@ paths:
       responses:
         '200':
           description: TODO
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [legacy]
   /count-of-missing-reviews/{taskId}:
     get:
@@ -249,6 +585,8 @@ paths:
       responses:
         '200':
           description: TODO
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [legacy]
   /task/{taskId}/public-submissions:
     get:
@@ -257,14 +595,18 @@ paths:
       responses:
         '200':
           description: TODO
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [legacy]
-  /task/{taskId}/submission-details/{userId}/{displayName}:
+  /task/{taskId}/submission-details/{userId}/{software}:
     get:
       security:
         - LegacyApiKeyAuth: []
       responses:
         '200':
           description: TODO
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [legacy]
   /review/{datasetId}/{vmId}/{runId}:
     get:
@@ -273,17 +615,89 @@ paths:
       responses:
         '200':
           description: TODO
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [legacy]
   /registration/add_registration/{vmId}/{taskId}:
-    get:
+    post:
+      parameters:
+        - name: vmId
+          in: path
+          description: The identifier of the VM for which to add a registration
+          required: true
+          schema:
+            type: string
+        - name: taskId
+          in: path
+          description: The identifier of the task for which to add a registration
+          required: true
+          schema:
+            type: string
       security:
         - LegacyApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - group
+              properties:
+                group:
+                  type: string
+                team:
+                  type: string
+                username:
+                  type: string
+                email:
+                  type: string
+                affiliation:
+                  type: string
+                country:
+                  type: string
+                employment:
+                  type: string
+                participation:
+                  type: string
+                instructorName:
+                  type: string
+                instructorEmail:
+                  type: string
+                questions:
+                  type: string
       responses:
         '200':
           description: TODO
       tags: [legacy]
-  /submission-for-task/{taskId}/{userId}/{submissionType}:
+  /submissions-for-task/{taskId}/{userId}/{submissionType}:
     get:
+      summary: |
+        Deprecated, use `/v1/tasks/{taskId}/submissions?filter[userId]={userId}&filter[type]={submissionType}` instead.
+      deprecated: true
+      parameters:
+        - name: taskId
+          in: path
+          description: The identifier of the task for which to upload a submission
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: path
+          description: The identifier of the user for which to upload a submission
+          required: true
+          schema:
+            type: string
+        - name: submissionType
+          in: path
+          description: The type of submission to upload
+          required: true
+          schema:
+            type: string
+            enum:
+              - upload
+              - docker
+              # - vm    # deprecated and will be answered with a standard error response
       security:
         - LegacyApiKeyAuth: []
       responses:
@@ -322,7 +736,7 @@ paths:
         '200':
           description: TODO
       tags: [legacy]
-  /submissions-for-user/{vmId}:
+  /submissions-of-user/{vmId}:
     get:
       security:
         - LegacyApiKeyAuth: []
@@ -362,7 +776,7 @@ paths:
         '200':
           description: TODO
       tags: [legacy]
-  /serp/{taskId}/user/{vmId}/dataset/{datasetId}/{topk}/{runId}:
+  /serp/{taskId}/user/{vmId}/dataset/{datasetId}/{topk}/{runId}:  # TODO: is this one still in use?
     get:
       security:
         - LegacyApiKeyAuth: []
@@ -372,13 +786,102 @@ paths:
       tags: [legacy]
 
   # V1 API
+  /health:
+    get:
+      security: []
+      responses:
+        '200':
+          description: TODO
+      tags: [v1]
   /v1/datasets:
     get:
+      summary: Returns a (optionally filtered) list of all datasets
+      parameters:
+        - name: filter  # https://jsonapi.org/recommendations/#filtering
+          in: query
+          style: deepObject
+          schema:
+            type: object
+            properties:
+              taskId:
+                type: string
       responses:
         '200':
           description: TODO
         '401':
            $ref: "#/components/responses/UnauthorizedError"
+      tags: [v1]
+    post:
+      summary: Creates a new dataset and returns it
+      responses:
+        '201':
+          description: TODO
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+      tags: [v1]
+  /v1/datasets/{datasetId}:
+    get:
+      summary: Returns information on the specified dataset
+      parameters:
+        - name: datasetId
+          in: path
+          description: The identifier of the requested dataset
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: TODO
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+      tags: [v1]
+    patch:
+      summary: Updates the specified dataset
+      parameters:
+        - name: datasetId
+          in: path
+          description: The identifier of the dataset to be updated
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: TODO
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+      tags: [v1]
+    delete:
+      summary: Deletes the specified dataset
+      parameters:
+        - name: datasetId
+          in: path
+          description: The identifier of the dataset to be deleted
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: TODO
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [v1]
   /v1/evaluations:
     get:
@@ -413,7 +916,17 @@ paths:
       tags: [v1]
   /v1/organizers:
     get:
+      summary: Returns a (optionally filtered) list of all organizers
       responses:
+        '201':
+          description: TODO
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+      tags: [v1]
+    post:
+      summary: Creates a new organizer and returns it
+      responses:
+        
         '200':
           description: TODO
         '401':
@@ -421,6 +934,7 @@ paths:
       tags: [v1]
   /v1/organizers/{organizerId}:
     get:
+      summary: Returns the specified organizer
       parameters:
         - name: organizerId
           in: path
@@ -429,12 +943,42 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        '204':
           description: TODO
         '401':
            $ref: "#/components/responses/UnauthorizedError"
         '404':
-           $ref: "#/components/responses/ForbiddenOrNotFoundError"
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+      tags: [v1]
+    patch:
+      summary: Updates the specified organizer
+      parameters:
+        - name: organizerId
+          in: path
+          description: The identifier of the organizer to update
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: TODO
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+      tags: [v1]
+    delete:
+      summary: Deletes the specified organizer
+      parameters:
+        - name: organizerId
+          in: path
+          description: The identifier of the organizer to be deleted
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: TODO
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
       tags: [v1]
   /v1/runs:
     get:
@@ -476,15 +1020,7 @@ paths:
         '401':
            $ref: "#/components/responses/UnauthorizedError"
         '404':
-           $ref: "#/components/responses/ForbiddenOrNotFoundError"
-      tags: [v1]
-  /v1/submissions:
-    get:
-      responses:
-        '200':
-          description: TODO
-        '401':
-           $ref: "#/components/responses/UnauthorizedError"
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [v1]
   /v1/tasks:
     get:
@@ -497,6 +1033,13 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Task'
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+      tags: [v1]
+    post:
+      responses:
+        '201':
+          description: TODO
         '401':
            $ref: "#/components/responses/UnauthorizedError"
       tags: [v1]
@@ -519,7 +1062,23 @@ paths:
         '401':
            $ref: "#/components/responses/UnauthorizedError"
         '404':
-           $ref: "#/components/responses/ForbiddenOrNotFoundError"
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+      tags: [v1]
+    delete:
+      parameters:
+        - name: taskId
+          in: path
+          description: The identifier of the requested task
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: TODO
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [v1]
   /v1/tasks/{taskId}/evaluations:
     get:
@@ -538,7 +1097,7 @@ paths:
             properties:
               vmId:
                 type: string
-              dataset:
+              datasetId:
                 type: string
               runId:
                 type: string
@@ -548,7 +1107,94 @@ paths:
         '401':
            $ref: "#/components/responses/UnauthorizedError"
         '404':
-           $ref: "#/components/responses/ForbiddenOrNotFoundError"
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+      tags: [v1]
+  /v1/tasks/{taskId}/registrations:
+    get:
+      summary: Returns a list of all users registered for the task referenced by `taskId`
+      parameters:
+        - name: taskId
+          in: path
+          description: The identifier of the task for which to fetch evaluations
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: TODO
+          content:
+            text/csv: {}
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+      tags: [v1]
+    post:
+      summary: Registers a new user for the task referenced by `taskId`
+      parameters:
+        - name: taskId
+          in: path
+          description: The identifier of the task for which to fetch evaluations
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          description: The registrations was created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  uri:
+                    type: string
+                    format: uri
+                    description: The location the newly created registration is located at
+                  registration:
+                    type: object
+                    description: |
+                      The newly created registration object. This should be identical to the one returned from the URI
+                      field.
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+      tags: [v1]
+  /v1/tasks/{taskId}/submissions:
+    get:
+      parameters:
+        - name: taskId
+          in: path
+          description: The identifier of the requested task
+          required: true
+          schema:
+            type: string
+        - name: filter
+          in: query
+          style: deepObject
+          schema:
+            type: object
+            properties:
+              datasetId:
+                type: string
+              userId:
+                type: string
+              type:
+                type: string
+                enum:
+                  - upload
+                  - docker
+      responses:
+        '200':
+          description: TODO
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [v1]
   /v1/tirex:
     get:
@@ -560,6 +1206,7 @@ paths:
       tags: [v1]
   /v1/user:
     get:
+      summary: The user associated with the authenticated state
       responses:
         '200':
           description: TODO
@@ -758,7 +1405,7 @@ components:
                     default: "Unauthorized"
                   status:
                     default: 401
-    ForbiddenOrNotFoundError: # https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.4
+    UnauthorizedOrNotFoundError:  # https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.2
       description: |
         The resource was not found or the service does not want to disclose if the resource exists but the user does not
         have access to it. As per W3C this should be a 404 but can fulfill the purpose of a 403 internally.
@@ -773,3 +1420,22 @@ components:
                     default: "Not Found"
                   status:
                     default: 404
+    ForbiddenError:  # https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.4
+      description: The service refuses to fulfill the request. Authorization would not help.
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ProblemJSON'
+              - type: object
+                properties:
+                  title:
+                    default: "Forbidden"
+                  status:
+                    default: 403
+
+tags:
+  - name: legacy
+    description: The pre 1.0 REST API. It may not adhere to our REST API guidelines and will be removed in the future.
+  - name: v1
+    description: The REST API for the TIRA 1.0 release
