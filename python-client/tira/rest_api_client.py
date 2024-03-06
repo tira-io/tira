@@ -371,7 +371,7 @@ class Client(TiraClient):
             except Exception as e:
                 sleep_time = randint(1, self.failsave_max_delay)
                 print(f'Code: {status_code}')
-                print(f'Error occured while fetching {url}. I will sleep {sleep_time} seconds and continue.', exc_info=e)
+                print(f'Error occured while fetching {url}. I will sleep {sleep_time} seconds and continue.')
                 url = mirror_url(url)
                 time.sleep(sleep_time)
 
