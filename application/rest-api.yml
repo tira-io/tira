@@ -837,9 +837,15 @@ paths:
             properties:
               taskId:
                 type: string
+        - $ref: '#/components/parameters/cursor'
+        - $ref: '#/components/parameters/limit'
       responses:
         '200':
           description: TODO
+        '204':
+           $ref: "#/components/responses/PaginationEmpty"
+        '400':
+           $ref: "#/components/responses/PaginationError"
         '401':
            $ref: "#/components/responses/UnauthorizedError"
       tags: [v1]
@@ -942,26 +948,46 @@ paths:
                 type: string
               vmId:
                 type: string
+        - $ref: '#/components/parameters/cursor'
+        - $ref: '#/components/parameters/limit'
       responses:
         '200':
           description: TODO
+        '204':
+           $ref: "#/components/responses/PaginationEmpty"
+        '400':
+           $ref: "#/components/responses/PaginationError"
         '401':
            $ref: "#/components/responses/UnauthorizedError"
       tags: [v1]
   /v1/hosts:
     get:
+      parameters:
+        - $ref: '#/components/parameters/cursor'
+        - $ref: '#/components/parameters/limit'
       responses:
         '200':
           description: TODO
+        '204':
+           $ref: "#/components/responses/PaginationEmpty"
+        '400':
+           $ref: "#/components/responses/PaginationError"
         '401':
            $ref: "#/components/responses/UnauthorizedError"
       tags: [v1]
   /v1/organizers:
     get:
       summary: Returns a (optionally filtered) list of all organizers
+      parameters:
+        - $ref: '#/components/parameters/cursor'
+        - $ref: '#/components/parameters/limit'
       responses:
         '201':
           description: TODO
+        '204':
+           $ref: "#/components/responses/PaginationEmpty"
+        '400':
+           $ref: "#/components/responses/PaginationError"
         '401':
            $ref: "#/components/responses/UnauthorizedError"
       tags: [v1]
@@ -1074,6 +1100,9 @@ paths:
   /v1/tasks:
     get:
       summary: Returns a (optionally filtered) list of all tasks
+      parameters:
+        - $ref: '#/components/parameters/cursor'
+        - $ref: '#/components/parameters/limit'
       responses:
         '200':
           description: TODO
@@ -1083,6 +1112,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Task'
+        '204':
+           $ref: "#/components/responses/PaginationEmpty"
+        '400':
+           $ref: "#/components/responses/PaginationError"
         '401':
            $ref: "#/components/responses/UnauthorizedError"
         '404':
@@ -1286,6 +1319,26 @@ paths:
       tags: [v1]
 
 components:
+  parameters:
+    cursor:
+      name: cursor
+      in: query
+      description: |
+        The cursor with which (inclusively) to begin returning a range of results. Starts at the beginning if not set or
+        set to `null`.
+      required: false
+      schema:
+        type: string
+        nullable: true
+    limit:
+      name: limit
+      in: query
+      description: |
+        Limits the number of elements the response may contain. This should be used for pagination together with
+        `cursor` or `offset`.
+      required: false
+      schema:
+        type: integer
   securitySchemes:
     # Legacy
     LegacyApiKeyAuth:
@@ -1458,6 +1511,23 @@ components:
         name:
           type: string
   responses:
+    PaginationError:
+      description: |
+        The pagination arguments were malformed. This is triggered if the limit argument is 0 or smaller or if the
+        cursor points to a non-existing resource or to a resource the caller does not have access to.
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ProblemJSON'
+              - type: object
+                properties:
+                  title:
+                    default: "Bad Request"
+                  status:
+                    default: 400
+    PaginationEmpty:
+      description: Offset-based pagination is used and the offset is too big such that the response is empty (204).
     UnauthorizedError: # https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.2
       description: API Key is missing or invalid.
       headers:

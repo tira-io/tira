@@ -18,7 +18,12 @@ REST-API Guidelines
 1. Underscores SHOULD NOT be used in URIs to avoid problems when the URI is rendered underlined
 1. URIs MUST be in lower kebab case
 1. Parameters and fields MUST be in lower camel case following the [Google JSON Style Guide](https://google.github.io/styleguide/jsoncstyleguide.xml?showone=Property_Name_Format#Property_Name_Format)
-1. Big collections MUST be filterable and paginated
+1. Big collections MUST be paginated and SHOULD be filterable 
+1. Pagination SHOULD use cursors instead of offsets if able (e.g. cursor based pagination does not work with sorting)
+1. If pagination returns no elements (possible for offset-based pagination if the offset is too large), a 204 MUST be
+   returned.
+1. If the pagination parameters a malformed (cursor is not a valid id or the user does not have access to that entry or
+   limit is less than or equal to 0), a 400 MUST be returned.
 1. GET requests MUST NOT change any resource
 1. GET requests SHOULD NOT contain payload (https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/GET)
 1. The query parameter `fields` MAY be used with GET requests to only retrieve certain fields. For example, the
