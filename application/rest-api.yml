@@ -12,6 +12,9 @@ paths:
   # Legacy API
   /tira-admin/reload/vms:
     post:
+      summary: Deprecated, may be deleted without replacement?
+      description: TODO
+      deprecated: true
       servers:
         - url: https://www.tira.io
       security:
@@ -22,6 +25,9 @@ paths:
       tags: [legacy, dead?]
   /tira-admin/reload/datasets:
     post:
+      summary: Deprecated, may be deleted without replacement?
+      description: TODO
+      deprecated: true
       servers:
         - url: https://www.tira.io
       security:
@@ -32,6 +38,9 @@ paths:
       tags: [legacy, dead?]
   /tira-admin/reload/tasks:
     post:
+      summary: Deprecated, may be deleted without replacement?
+      description: TODO
+      deprecated: true
       servers:
         - url: https://www.tira.io
       security:
@@ -42,6 +51,9 @@ paths:
       tags: [legacy, dead?]
   /tira-admin/reload-data:
     post:
+      summary: Deprecated, may be deleted without replacement?
+      description: TODO
+      deprecated: true
       servers:
         - url: https://www.tira.io
       security:
@@ -52,6 +64,9 @@ paths:
       tags: [legacy, dead?]
   /tira-admin/reload-runs/{vmId}:
     post:
+      summary: Deprecated, may be deleted without replacement?
+      description: TODO
+      deprecated: true
       servers:
         - url: https://www.tira.io
       security:
@@ -62,6 +77,8 @@ paths:
       tags: [legacy, dead?]
   /tira-admin/create-vm:
     post:
+      summary: Deprecated, may be deleted without replacement?
+      deprecated: true
       servers:
         - url: https://www.tira.io
       description: Hook for create_vm posts. Responds with json objects indicating the state of the create process.
@@ -86,6 +103,8 @@ paths:
       tags: [legacy, dead?]
   /tira-admin/modify-vm:
     post:
+      summary: Deprecated, may be deleted without replacement?
+      deprecated: true
       servers:
         - url: https://www.tira.io
       description: TODO
@@ -151,7 +170,7 @@ paths:
     post:
       servers:
         - url: https://www.tira.io
-      summary: Deprecated, use a POST to `/v1/datasets` instead
+      summary: Deprecated, use a POST to `/v1/datasets` instead with the "create" action
       description: TODO
       deprecated: true
       security:
@@ -175,7 +194,9 @@ paths:
     post:
       servers:
         - url: https://www.tira.io
+      summary: Deprecated, use a POST to `/v1/datasets` instead with the "import" action
       description: TODO
+      deprecated: true
       security:
         - LegacyApiKeyAuth: []
       responses:
@@ -247,6 +268,8 @@ paths:
       tags: [legacy]
   /tira-admin/create-group/{vmId}:
     post:
+      summary: Deprecated, may be deleted without replacement?
+      deprecated: true
       servers:
         - url: https://www.tira.io
       description: TODO
@@ -261,7 +284,9 @@ paths:
     get:
       servers:
         - url: https://www.tira.io
+      summary: Deprecated, use a PATCH to `/v1/runs/{runId}` instead
       description: TODO
+      deprecated: true
       security:
         - LegacyApiKeyAuth: []
       responses:
@@ -272,7 +297,9 @@ paths:
     get:
       servers:
         - url: https://www.tira.io
+      summary: Deprecated, use a PATCH to `/v1/runs/{runId}` instead
       description: TODO
+      deprecated: true
       security:
         - LegacyApiKeyAuth: []
       responses:
@@ -562,8 +589,7 @@ paths:
       tags: [legacy]
   /task/{taskId}/user/{userId}/refresh-docker-images:
     get:
-      security:
-        - LegacyApiKeyAuth: []
+      security: []
       responses:
         '200':
           description: TODO
@@ -706,28 +732,31 @@ paths:
       tags: [legacy]
   /tirex-components:
     get:
-      security:
-        - LegacyApiKeyAuth: []
+      summary: Deprecated, use `/v1/tirex/components` instead.
+      deprecated: true
+      security: []
       responses:
         '200':
           description: TODO
       tags: [legacy]
   /tirex-snippet:
     get:
-      security:
-        - LegacyApiKeyAuth: []
+      summary: Deprecated, use `/v1/tirex/components/{componentId}/snippet`
+      deprecated: true
+      security: []
       responses:
         '200':
           description: TODO
       tags: [legacy]
-  /snippet-for-tirex-components:
+  /snippets-for-tirex-components:
     get:
-      security:
-        - LegacyApiKeyAuth: []
+      summary: Deprecated. I think, this was superseded by `/tirex-snippet`
+      deprecated: true
+      security: []
       responses:
         '200':
           description: TODO
-      tags: [legacy]
+      tags: [legacy, dead?]
   /re-ranking-datasets/{taskId}:
     get:
       security:
@@ -745,7 +774,7 @@ paths:
           description: TODO
       tags: [legacy]
   /add_software_submission_git_repository/{taskId}/{vmId}:
-    get:
+    post:
       security:
         - LegacyApiKeyAuth: []
       responses:
@@ -760,7 +789,7 @@ paths:
         '200':
           description: TODO
       tags: [legacy]
-  /import-submissions/{taskId}/{vmId}/{submissionType}/{sId}:
+  /import-submission/{taskId}/{vmId}/{submissionType}/{sId}:
     get:
       security:
         - LegacyApiKeyAuth: []
@@ -785,6 +814,8 @@ paths:
           description: TODO
       tags: [legacy]
 
+
+
   # V1 API
   /health:
     get:
@@ -793,6 +824,7 @@ paths:
         '200':
           description: TODO
       tags: [v1]
+  /v1: {}
   /v1/datasets:
     get:
       summary: Returns a (optionally filtered) list of all datasets
@@ -813,6 +845,27 @@ paths:
       tags: [v1]
     post:
       summary: Creates a new dataset and returns it
+      requestBody:
+        content:
+          application/json:
+            schema:
+              discriminator:
+                propertyName: action
+              oneOf:
+                - type: object
+                  properties:
+                    action:
+                      type: string
+                      enum:
+                        - create
+                - type: object
+                  properties:
+                    action:
+                      type: string
+                      enum:
+                        - import
+                    irDatasetsName:
+                      type: string
       responses:
         '201':
           description: TODO
@@ -820,15 +873,15 @@ paths:
            $ref: "#/components/responses/UnauthorizedError"
       tags: [v1]
   /v1/datasets/{datasetId}:
+    parameters:
+      - name: datasetId
+        in: path
+        description: The identifier of the dataset to operate on
+        required: true
+        schema:
+          type: string
     get:
       summary: Returns information on the specified dataset
-      parameters:
-        - name: datasetId
-          in: path
-          description: The identifier of the requested dataset
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: TODO
@@ -843,13 +896,9 @@ paths:
       tags: [v1]
     patch:
       summary: Updates the specified dataset
-      parameters:
-        - name: datasetId
-          in: path
-          description: The identifier of the dataset to be updated
-          required: true
-          schema:
-            type: string
+      requestBody:
+        content:
+          application/json-patch+json: {}
       responses:
         '204':
           description: TODO
@@ -864,13 +913,6 @@ paths:
       tags: [v1]
     delete:
       summary: Deletes the specified dataset
-      parameters:
-        - name: datasetId
-          in: path
-          description: The identifier of the dataset to be deleted
-          required: true
-          schema:
-            type: string
       responses:
         '204':
           description: TODO
@@ -924,7 +966,7 @@ paths:
            $ref: "#/components/responses/UnauthorizedError"
       tags: [v1]
     post:
-      summary: Creates a new organizer and returns it
+      summary: Creates a new organizer and returns its URL
       responses:
         
         '200':
@@ -933,15 +975,15 @@ paths:
            $ref: "#/components/responses/UnauthorizedError"
       tags: [v1]
   /v1/organizers/{organizerId}:
+    parameters:
+      - name: organizerId
+        in: path
+        description: The identifier of the organizer to operate on
+        required: true
+        schema:
+          type: string
     get:
       summary: Returns the specified organizer
-      parameters:
-        - name: organizerId
-          in: path
-          description: The identifier of the organizer for which to fetch infromation
-          required: true
-          schema:
-            type: string
       responses:
         '204':
           description: TODO
@@ -952,13 +994,9 @@ paths:
       tags: [v1]
     patch:
       summary: Updates the specified organizer
-      parameters:
-        - name: organizerId
-          in: path
-          description: The identifier of the organizer to update
-          required: true
-          schema:
-            type: string
+      requestBody:
+        content:
+          application/json-patch+json: {}
       responses:
         '204':
           description: TODO
@@ -967,36 +1005,24 @@ paths:
       tags: [v1]
     delete:
       summary: Deletes the specified organizer
-      parameters:
-        - name: organizerId
-          in: path
-          description: The identifier of the organizer to be deleted
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: TODO
         '401':
            $ref: "#/components/responses/UnauthorizedError"
       tags: [v1]
-  /v1/runs:
-    get:
-      responses:
-        '200':
-          description: TODO
-        '401':
-           $ref: "#/components/responses/UnauthorizedError"
-      tags: [v1]
+  /v1/runs: {}
   /v1/runs/{runId}:
+    parameters:
+      - name: runId
+        in: path
+        description: The identifier of the run to operate on
+        required: true
+        schema:
+          type: string
     get:
+      summary: Returns a (optionally filtered) list of all runs
       parameters:
-        - name: runId
-          in: path
-          description: The identifier of the run for which to fetch information
-          required: true
-          schema:
-            type: string
         - name: filter  # https://jsonapi.org/recommendations/#filtering
           in: query
           style: deepObject
@@ -1022,8 +1048,32 @@ paths:
         '404':
            $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [v1]
+    patch:
+      summary: Updates the specified organizer
+      requestBody:
+        content:
+          application/json-patch+json: {}
+      responses:
+        '204':
+          description: TODO
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+      tags: [v1]
+    delete:
+      summary: Deletes the specified organizer
+      responses:
+        '200':
+          description: TODO
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+      tags: [v1]
   /v1/tasks:
     get:
+      summary: Returns a (optionally filtered) list of all tasks
       responses:
         '200':
           description: TODO
@@ -1035,8 +1085,11 @@ paths:
                   $ref: '#/components/schemas/Task'
         '401':
            $ref: "#/components/responses/UnauthorizedError"
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [v1]
     post:
+      summary: Creates a new task and returns its URL
       responses:
         '201':
           description: TODO
@@ -1044,14 +1097,15 @@ paths:
            $ref: "#/components/responses/UnauthorizedError"
       tags: [v1]
   /v1/tasks/{taskId}:
+    parameters:
+      - name: taskId
+        in: path
+        description: The identifier of the task to operate on
+        required: true
+        schema:
+          type: string
     get:
-      parameters:
-        - name: taskId
-          in: path
-          description: The identifier of the requested task
-          required: true
-          schema:
-            type: string
+      summary: Returns the specified task
       responses:
         '200':
           description: TODO
@@ -1065,13 +1119,7 @@ paths:
            $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [v1]
     delete:
-      parameters:
-        - name: taskId
-          in: path
-          description: The identifier of the requested task
-          required: true
-          schema:
-            type: string
+      summary: Deletes the specified task
       responses:
         '204':
           description: TODO
@@ -1081,14 +1129,16 @@ paths:
            $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [v1]
   /v1/tasks/{taskId}/evaluations:
+    parameters:
+      - name: taskId
+        in: path
+        description: The identifier of the task to operate on
+        required: true
+        schema:
+          type: string
     get:
+      summary: Returns a list of all evaluations associated with this task
       parameters:
-        - name: taskId
-          in: path
-          description: The identifier of the task for which to fetch evaluations
-          required: true
-          schema:
-            type: string
         - name: filter
           in: query
           style: deepObject
@@ -1110,15 +1160,15 @@ paths:
            $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [v1]
   /v1/tasks/{taskId}/registrations:
+    parameters:
+      - name: taskId
+        in: path
+        description: The identifier of the task to operate on
+        required: true
+        schema:
+          type: string
     get:
       summary: Returns a list of all users registered for the task referenced by `taskId`
-      parameters:
-        - name: taskId
-          in: path
-          description: The identifier of the task for which to fetch evaluations
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: TODO
@@ -1131,13 +1181,6 @@ paths:
       tags: [v1]
     post:
       summary: Registers a new user for the task referenced by `taskId`
-      parameters:
-        - name: taskId
-          in: path
-          description: The identifier of the task for which to fetch evaluations
-          required: true
-          schema:
-            type: string
       responses:
         '201':
           description: The registrations was created successfully
@@ -1161,14 +1204,15 @@ paths:
            $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [v1]
   /v1/tasks/{taskId}/submissions:
+    parameters:
+      - name: taskId
+        in: path
+        description: The identifier of the requested task
+        required: true
+        schema:
+          type: string
     get:
       parameters:
-        - name: taskId
-          in: path
-          description: The identifier of the requested task
-          required: true
-          schema:
-            type: string
         - name: filter
           in: query
           style: deepObject
@@ -1196,13 +1240,40 @@ paths:
         '404':
            $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [v1]
-  /v1/tirex:
+  /v1/tirex: {}
+  /v1/tirex/components:
     get:
+      summary: Returns a description of all tirex components
+      security: []
       responses:
         '200':
-          description: TODO
-        '401':
-           $ref: "#/components/responses/UnauthorizedError"
+          description: |
+            The request was fulfilled successfully and the response contains a serialized list of all the components
+            installed into this instance of TIREx.
+          content:
+            application/json: {}
+      tags: [v1]
+  /v1/tirex/components/{componentId}/snippet:
+    parameters:
+      - name: componentId
+        in: path
+        description: The identifier of the requested component
+        required: true
+        schema:
+          type: string
+          format: ulid
+    get:
+      summary: Returns a snippet demonstrating the usage of the specified TIREx component
+      security: []
+      responses:
+        '200':
+          description: |
+            The request was fulfilled successfully and the response contains a plain-text snippet demonstrating the
+            usage of the TIREx component uniquely identified by the query parameter `componentId`.
+          content:
+            text/plain: {}
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [v1]
   /v1/user:
     get:
@@ -1388,8 +1459,7 @@ components:
           type: string
   responses:
     UnauthorizedError: # https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.2
-      description: |
-        API Key is missing or invalid.
+      description: API Key is missing or invalid.
       headers:
         WWW_Authenticate:
           schema:
