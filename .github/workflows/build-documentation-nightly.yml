@@ -13,7 +13,7 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt-get install -y python3-pip
-          pip install sphinx furo myst-parser sphinx-toolbox
+          pip install sphinx furo myst-parser sphinx-toolbox sphinx-design
           pip install pandas pyterrier ir_datasets
           cd python-client/sphinx
           # sphinx-apidoc -o . ../tira
