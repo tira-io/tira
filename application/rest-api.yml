@@ -316,8 +316,7 @@ paths:
         Return all evaluation results for all submission to a dataset The frontend calls this to build the leaderboard
         in the task page when a task is selected from the dropdown.
       deprecated: true
-      security:
-        - LegacyApiKeyAuth: []
+      security: []
       responses:
         '200':
           description: TODO
@@ -349,8 +348,7 @@ paths:
     get:
       summary: Deprecated, use `/v1/tasks/{taskId}/submissions?filter[datasetId]={datasetId}` instead.
       deprecated: true
-      security:
-        - LegacyApiKeyAuth: []
+      security: []
       responses:
         '200':
           description: TODO
@@ -397,23 +395,21 @@ paths:
       tags: [legacy]
   /configuration-of-evaluation/{taskId}/{datasetId}:
     get:
-      security:
-        - LegacyApiKeyAuth: []
+      security: []
       responses:
         '200':
           description: TODO
       tags: [legacy]
   /list-runs/{taskId}/{datasetId}/{vmId}/{softwareId}:
     get:
-      security:
-        - LegacyApiKeyAuth: []
+      security: []
       responses:
         '200':
           description: TODO
       tags: [legacy]
-  /ova-list:  # TODO: I believe, this can be removed without replacement
+  /ova-list:
     get:
-      summary: NO LONGER IN USE?
+      summary: Deprecated, may be deleted without replacement?
       deprecated: true
       security:
         - LegacyApiKeyAuth: []
@@ -445,8 +441,7 @@ paths:
     get:
       summary: Deprecated, use /v1/tasks instead.
       deprecated: true
-      security:
-        - LegacyApiKeyAuth: []
+      security: []
       responses:
         '200':
           description: TODO
@@ -487,8 +482,7 @@ paths:
             type: string
       summary: Deprecated, use /v1/tasks/{taskId} instead.
       deprecated: true
-      security:
-        - LegacyApiKeyAuth: []
+      security: []
       responses:
         '200':
           description: TODO
@@ -520,8 +514,7 @@ paths:
       tags: [legacy]
   /registration_formular/{taskId}:
     get:
-      security:
-        - LegacyApiKeyAuth: []
+      security: []
       responses:
         '200':
           description: TODO
@@ -530,8 +523,7 @@ paths:
     get:
       summary: Deprecated, use `/v1/datasets/{datasetId}` instead.
       deprecated: true
-      security:
-        - LegacyApiKeyAuth: []
+      security: []
       responses:
         '200':
           description: TODO
@@ -540,8 +532,7 @@ paths:
     get:
       summary: Deprecated, use `/v1/datasets?filter[taskId]={taskId}` instead.
       deprecated: true
-      security:
-        - LegacyApiKeyAuth: []
+      security: []
       responses:
         '200':
           description: TODO
@@ -557,8 +548,7 @@ paths:
           required: true
           schema:
             type: string
-      security:
-        - LegacyApiKeyAuth: []
+      security: []
       responses:
         '200':
           description: TODO
@@ -567,8 +557,7 @@ paths:
     get:
       summary: Deprecated, use /v1/user instead.
       deprecated: true
-      security:
-        - LegacyApiKeyAuth: []
+      security: []
       responses:
         '200':
           description: TODO
@@ -579,8 +568,10 @@ paths:
       tags: [legacy]
   /task/{taskId}/user/{userId}:
     get:
-      security:
-        - LegacyApiKeyAuth: []
+      summary: Deprecated, use `/v1/users/{userId}` instead
+      description: TODO
+      deprecated: true
+      security: []
       responses:
         '200':
           description: TODO
@@ -606,8 +597,7 @@ paths:
       tags: [legacy]
   /task/{taskId}/user/{userId}/software/running/{forceCacheRefresh}:
     get:
-      security:
-        - LegacyApiKeyAuth: []
+      security: []
       responses:
         '200':
           description: TODO
@@ -616,8 +606,10 @@ paths:
       tags: [legacy]
   /task/{taskId}/public-submissions:
     get:
-      security:
-        - LegacyApiKeyAuth: []
+      summary: Deprecated, use `/v1/tasks/{taskId}/submissions?filter[visibility]=public` instead
+      description: TODO
+      deprecated: true
+      security: []
       responses:
         '200':
           description: TODO
@@ -626,8 +618,7 @@ paths:
       tags: [legacy]
   /task/{taskId}/submission-details/{userId}/{software}:
     get:
-      security:
-        - LegacyApiKeyAuth: []
+      security: []
       responses:
         '200':
           description: TODO
@@ -645,22 +636,24 @@ paths:
            $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [legacy]
   /registration/add_registration/{vmId}/{taskId}:
-    post:
-      parameters:
-        - name: vmId
-          in: path
-          description: The identifier of the VM for which to add a registration
-          required: true
-          schema:
-            type: string
-        - name: taskId
-          in: path
-          description: The identifier of the task for which to add a registration
-          required: true
-          schema:
-            type: string
-      security:
-        - LegacyApiKeyAuth: []
+    parameters:
+      - name: vmId
+        in: path
+        description: The identifier of the VM for which to add a registration
+        required: true
+        schema:
+          type: string
+      - name: taskId
+        in: path
+        description: The identifier of the task for which to add a registration
+        required: true
+        schema:
+          type: string
+    post:  # FIXME: why is this endpoint not protected?
+      summary: Deprecated, use a POST on `/v1/tasks/{taskId}/registrations` instead
+      description: TODO
+      deprecated: true
+      security: []
       requestBody:
         required: true
         content:
@@ -697,33 +690,33 @@ paths:
           description: TODO
       tags: [legacy]
   /submissions-for-task/{taskId}/{userId}/{submissionType}:
+    parameters:
+      - name: taskId
+        in: path
+        description: The identifier of the task for which to upload a submission
+        required: true
+        schema:
+          type: string
+      - name: userId
+        in: path
+        description: The identifier of the user for which to upload a submission
+        required: true
+        schema:
+          type: string
+      - name: submissionType
+        in: path
+        description: The type of submission to upload
+        required: true
+        schema:
+          type: string
+          enum:
+            - upload
+            - docker
+            # - vm    # deprecated and will be answered with a standard error response
     get:
       summary: |
         Deprecated, use `/v1/tasks/{taskId}/submissions?filter[userId]={userId}&filter[type]={submissionType}` instead.
       deprecated: true
-      parameters:
-        - name: taskId
-          in: path
-          description: The identifier of the task for which to upload a submission
-          required: true
-          schema:
-            type: string
-        - name: userId
-          in: path
-          description: The identifier of the user for which to upload a submission
-          required: true
-          schema:
-            type: string
-        - name: submissionType
-          in: path
-          description: The type of submission to upload
-          required: true
-          schema:
-            type: string
-            enum:
-              - upload
-              - docker
-              # - vm    # deprecated and will be answered with a standard error response
       security:
         - LegacyApiKeyAuth: []
       responses:
@@ -758,23 +751,45 @@ paths:
           description: TODO
       tags: [legacy, dead?]
   /re-ranking-datasets/{taskId}:
+    parameters:
+      - name: taskId
+        in: path
+        description: The identifier of the task for which to fetch re-ranking datasets
+        required: true
+        schema:
+          type: string
     get:
+      summary: Deprecated, use a GET to `/v1/tasks/{taskId}/datasets?filter[type]=reranking` instead.
+      description: TODO
+      deprecated: true
+      security: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /submissions-of-user/{userId}:
+    parameters:
+      - name: userId
+        in: path
+        description: The identifier of the user for which to fetch submissions
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Deprecated, use a GET on `/v1/users/{userId}/submissions` instead
+      description: TODO
+      deprecated: true
       security:
         - LegacyApiKeyAuth: []
       responses:
         '200':
           description: TODO
       tags: [legacy]
-  /submissions-of-user/{vmId}:
-    get:
-      security:
-        - LegacyApiKeyAuth: []
-      responses:
-        '200':
-          description: TODO
-      tags: [legacy]
-  /add_software_submission_git_repository/{taskId}/{vmId}:
+  /add_software_submission_git_repository/{taskId}/{userId}:
     post:
+      summary: Deprecated, use a POST on `/v1/tasks/{taskId}/submissions` instead with `type=repository`
+      description: TODO
+      deprecated: true
       security:
         - LegacyApiKeyAuth: []
       responses:
@@ -783,13 +798,16 @@ paths:
       tags: [legacy]
   /get_software_submission_git_repository/{taskId}/{vmId}:
     get:
+      summary: Deprecated, use a GET on `/v1/tasks/{taskId}/submissions?filter[type]=repository` instead
+      description: TODO
+      deprecated: true
       security:
         - LegacyApiKeyAuth: []
       responses:
         '200':
           description: TODO
       tags: [legacy]
-  /import-submission/{taskId}/{vmId}/{submissionType}/{sId}:
+  /import-submission/{taskId}/{vmId}/{submissionType}/{softwareId}:
     get:
       security:
         - LegacyApiKeyAuth: []
@@ -839,6 +857,9 @@ paths:
                 type: string
         - $ref: '#/components/parameters/cursor'
         - $ref: '#/components/parameters/limit'
+      security:
+        - {}
+        - bearerAuth: []
       responses:
         '200':
           description: TODO
@@ -846,8 +867,6 @@ paths:
            $ref: "#/components/responses/PaginationEmpty"
         '400':
            $ref: "#/components/responses/PaginationError"
-        '401':
-           $ref: "#/components/responses/UnauthorizedError"
       tags: [v1]
     post:
       summary: Creates a new dataset and returns it
@@ -888,6 +907,9 @@ paths:
           type: string
     get:
       summary: Returns information on the specified dataset
+      security:
+        - {}
+        - bearerAuth: []
       responses:
         '200':
           description: TODO
@@ -895,8 +917,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Task'
-        '401':
-           $ref: "#/components/responses/UnauthorizedError"
         '404':
            $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [v1]
@@ -1103,6 +1123,9 @@ paths:
       parameters:
         - $ref: '#/components/parameters/cursor'
         - $ref: '#/components/parameters/limit'
+      security:
+        - {}
+        - bearerAuth: []
       responses:
         '200':
           description: TODO
@@ -1116,8 +1139,6 @@ paths:
            $ref: "#/components/responses/PaginationEmpty"
         '400':
            $ref: "#/components/responses/PaginationError"
-        '401':
-           $ref: "#/components/responses/UnauthorizedError"
         '404':
            $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [v1]
@@ -1139,6 +1160,9 @@ paths:
           type: string
     get:
       summary: Returns the specified task
+      security:
+        - {}
+        - bearerAuth: []
       responses:
         '200':
           description: TODO
@@ -1146,8 +1170,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Task'
-        '401':
-           $ref: "#/components/responses/UnauthorizedError"
         '404':
            $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [v1]
@@ -1245,6 +1267,7 @@ paths:
         schema:
           type: string
     get:
+      summary: Returns a (optionally filtered) list of all submissions for the task references by `taskId`
       parameters:
         - name: filter
           in: query
@@ -1256,22 +1279,51 @@ paths:
                 type: string
               userId:
                 type: string
+              visibility:
+                $ref: "#/components/schemas/Submission/properties/visibility"
               type:
                 type: string
                 enum:
                   - upload
                   - docker
+                  - repository
+      security:
+        - {}
+        - bearerAuth: []
       responses:
         '200':
           description: TODO
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Task'
-        '401':
-           $ref: "#/components/responses/UnauthorizedError"
+                type: array
+                items:
+                  $ref: '#/components/schemas/Submission'
+        '204':
+          description: The request was successful but no submissions satisfy the filter criteria for the given task.
         '404':
            $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+      tags: [v1]
+    post:
+      summary: Submits a new submission for the authenticated user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Submission'
+
+      responses:
+        '201':
+          description: The submission was successfully added.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Submission'
+        '202':
+          description: The submission was successfully enqueued and will be processed later. It may not be successful.
+        '401':
+          $ref: "#/components/responses/UnauthorizedError"
       tags: [v1]
   /v1/tirex: {}
   /v1/tirex/components:
@@ -1316,6 +1368,32 @@ paths:
           description: TODO
         '401':
            $ref: "#/components/responses/UnauthorizedError"
+      tags: [v1]
+  /v1/users: {}
+  /v1/users/{userId}: {}
+  /v1/users/{userId}/submissions:
+    parameters:
+      - name: userId
+        in: path
+        description: The identifier of the requested user
+        required: true
+        schema:
+          type: string
+          format: ulid
+    get:
+      summary: Returns all submissions of the specified user
+      description: Returns all submissions of the specified user.
+      security: []
+      responses:
+        '200':
+          description: |
+            The request was fulfilled successfully and the response contains a list of the user's submissions.
+          content:
+            application/json: {}
+        '204':
+          description: The user was found but does not have any submissions yet.
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [v1]
 
 components:
@@ -1402,6 +1480,40 @@ components:
           type: array
           items:
             type: string
+    Submission:
+      type: object
+      required:
+        - visibility
+      properties:
+        taskId:
+          type: string
+          format: ulid
+        userId:
+          type: string
+          format: ulid
+        visibility:
+          type: string
+          enum:
+            - private
+            - public
+      oneOf:
+        - $ref: "#/components/schemas/RepoSubmission"
+      discriminator:
+        propertyName: type
+        mapping:
+          repository: "#/components/schemas/RepoSubmission"
+    RepoSubmission:
+      type: object
+      required:
+        - type
+        - url
+      properties:
+        type:
+          type: string
+          enum: [repository]
+        url:
+          type: string
+          format: url
     TaskLegacy:  # Field names don't follow the naming guidelines (they are snake_case instead of camelCase)
       type: object
       properties:
