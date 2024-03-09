@@ -439,7 +439,7 @@ class Client(TiraClient):
         logging.debug(f"Created new upload with id {content.upload}")
         return content.upload
 
-    def upload_run(self, task_id: str, vm_id: str, dataset_id: str, upload_id: str, filestream: io.IOBase) -> bool:
+    def upload_run(self, filestream: io.IOBase, dataset_id: str, approach: str=None, task_id: str=None, vm_id: str=None, upload_id: str=None) -> bool:
         logging.info(f"Submitting {upload_id} for Task {task_id}:{dataset_id} on VM {vm_id}")
         # TODO: check that task_id and vm_id don't contain illegal characters (e.g., '/')
         url = f"{self.base_url}/task/{task_id}/vm/{vm_id}/upload/{dataset_id}/{upload_id}"

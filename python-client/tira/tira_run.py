@@ -30,7 +30,7 @@ def upload_run_command(args: argparse.Namespace) -> int:
     if args.vm_id is None:
         raise argparse.ArgumentTypeError("Please populate --vm-id or set the environment variable TIRA_VM_ID")
     upload_id = tira.create_upload_group(args.task_id, args.vm_id, args.upload_group)
-    success = tira.upload_run(args.task_id, args.vm_id, args.dataset_id, upload_id, args.runfile)
+    success = tira.upload_run(task_id=args.task_id, vm_id=args.vm_id, dataset_id=args.dataset_id, upload_id=upload_id, filestream=args.runfile)
     return 0 if success else 1
 
 
