@@ -416,8 +416,9 @@ class Client(TiraClient):
         ret = json.loads(ret)
         assert ret['status'] == 0
     
-    def create_new_upload(self, task_id: str, vm_id: str) -> Optional[str]:
+    def create_upload_group(self, task_id: str, vm_id: str, display_name: str) -> Optional[str]:
         # TODO: check that task_id and vm_id don't contain illegal characters (e.g., '/')
+        # TODO: Make this idempotent: reuse existing upload group if it already exists.
         url = f"{self.base_url}/task/{task_id}/vm/{vm_id}/add_software/upload"
         logging.debug(f"Creating a new upload at {url}")
         response = requests.get(url, allow_redirects=True)
@@ -438,7 +439,7 @@ class Client(TiraClient):
         logging.debug(f"Created new upload with id {content.upload}")
         return content.upload
 
-    def submit_run(self, task_id: str, vm_id: str, dataset_id: str, upload_id: str, filestream: io.IOBase) -> bool:
+    def upload_run(self, task_id: str, vm_id: str, dataset_id: str, upload_id: str, filestream: io.IOBase) -> bool:
         logging.info(f"Submitting {upload_id} for Task {task_id}:{dataset_id} on VM {vm_id}")
         # TODO: check that task_id and vm_id don't contain illegal characters (e.g., '/')
         url = f"{self.base_url}/task/{task_id}/vm/{vm_id}/upload/{dataset_id}/{upload_id}"

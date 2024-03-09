@@ -12,24 +12,25 @@ if TYPE_CHECKING:
     from .tira_client import TiraClient
 
 
-def setup_submit_command(parser: argparse.ArgumentParser) -> None:
+def setup_upload_run_command(parser: argparse.ArgumentParser) -> None:
     parser.add_argument('runfile', type=argparse.FileType('rb'), help="Path to the runfile to be uploaded")
     parser.add_argument('--dataset-id', required=True, type=str)
     parser.add_argument('--task-id', required=False, default=os.environ.get('TIRA_TASK_ID'), type=str)
     parser.add_argument('--vm-id', required=False, default=os.environ.get('TIRA_VM_ID'), type=str)
+    parser.add_argument('--upload-group', required=True, type=str)
 
-    # Register the run_submit_command method as the "main"-method
-    parser.set_defaults(executable=run_submit_command)
+    # Register the upload_run_command method as the "main"-method
+    parser.set_defaults(executable=upload_run_command)
 
-def run_submit_command(args: argparse.Namespace) -> int:
+def upload_run_command(args: argparse.Namespace) -> int:
     # TODO: allow the user to override some settings (e.g., API key and URL) via arguments
     tira = RestClient()
     if args.task_id is None:
         raise argparse.ArgumentTypeError("Please populate --task-id or set the environment variable TIRA_TASK_ID")
     if args.vm_id is None:
         raise argparse.ArgumentTypeError("Please populate --vm-id or set the environment variable TIRA_VM_ID")
-    upload_id = tira.create_new_upload(args.task_id, args.vm_id)
-    success = tira.submit_run(args.task_id, args.vm_id, args.dataset_id, upload_id, args.runfile)
+    upload_id = tira.create_upload_group(args.task_id, args.vm_id, args.upload_group)
+    success = tira.upload_run(args.task_id, args.vm_id, args.dataset_id, upload_id, args.runfile)
     return 0 if success else 1
 
 
@@ -67,7 +68,7 @@ def parse_args():
     parser.add_argument('--fail-if-output-is-empty', required=False, default=False, action='store_true', help='After the execution of the software, fail if the output directory is empty.')
 
     subparsers = parser.add_subparsers()
-    setup_submit_command(subparsers.add_parser('submit', help="For submitting runs"))
+    setup_upload_run_command(subparsers.add_parser('upload', help="For uploading runs"))
 
     args = parser.parse_args()
     if args.export_submission_from_jupyter_notebook:
