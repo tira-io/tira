@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 import argparse
 from tira.local_client import Client
-from tira.rest_api_client import Client as RestClient
+from .rest_api_client import Client as RestClient
 from tira.local_execution_integration import LocalExecutionIntegration
-from pathlib import Path
 import os
 import shutil
 import logging
@@ -13,12 +12,35 @@ if TYPE_CHECKING:
     from .tira_client import TiraClient
 
 
+def setup_upload_run_command(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument('runfile', type=argparse.FileType('rb'), help="Path to the runfile to be uploaded")
+    parser.add_argument('--dataset-id', required=True, type=str)
+    parser.add_argument('--task-id', required=False, default=os.environ.get('TIRA_TASK_ID'), type=str)
+    parser.add_argument('--vm-id', required=False, default=os.environ.get('TIRA_VM_ID'), type=str)
+    parser.add_argument('--upload-group', required=True, type=str)
+
+    # Register the upload_run_command method as the "main"-method
+    parser.set_defaults(executable=upload_run_command)
+
+def upload_run_command(args: argparse.Namespace) -> int:
+    # TODO: allow the user to override some settings (e.g., API key and URL) via arguments
+    tira = RestClient()
+    if args.task_id is None:
+        raise argparse.ArgumentTypeError("Please populate --task-id or set the environment variable TIRA_TASK_ID")
+    if args.vm_id is None:
+        raise argparse.ArgumentTypeError("Please populate --vm-id or set the environment variable TIRA_VM_ID")
+    upload_id = tira.create_upload_group(args.task_id, args.vm_id, args.upload_group)
+    success = tira.upload_run(task_id=args.task_id, vm_id=args.vm_id, dataset_id=args.dataset_id, upload_id=upload_id, filestream=args.runfile)
+    return 0 if success else 1
+
+
 def parse_args():
     parser = argparse.ArgumentParser(prog='tira-run')
     parser.add_argument('--input-directory', required=False, default=str(os.path.abspath(".")))
     parser.add_argument('--input-dataset', required=False, default=None)
     parser.add_argument('--input-run', required=False, default=None)
-    group = parser.add_mutually_exclusive_group(required=True)
+    # Not required if the subcommand "tira-run submit" is used. FIXME: the arguments in this group should probably be subcommands
+    group = parser.add_mutually_exclusive_group(required=False)
     group.add_argument('--image')
     group.add_argument('--approach')
     group.add_argument('--export-dataset', required=False, default=None, type=str)
@@ -44,6 +66,9 @@ def parse_args():
     parser.add_argument('--tira-task-id', required=False, default=os.environ.get('TIRA_TASK_ID'))
     parser.add_argument('--tira-code-repository-id', required=False, default=os.environ.get('TIRA_CODE_REPOSITORY_ID'))
     parser.add_argument('--fail-if-output-is-empty', required=False, default=False, action='store_true', help='After the execution of the software, fail if the output directory is empty.')
+
+    subparsers = parser.add_subparsers()
+    setup_upload_run_command(subparsers.add_parser('upload', help="For uploading runs"))
 
     args = parser.parse_args()
     if args.export_submission_from_jupyter_notebook:
@@ -85,7 +110,13 @@ def parse_args():
 
 def main():
     args = parse_args()
+    logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
+
     client: "TiraClient" = Client()
+
+    # Subcommands store their executable into args.executable which takes the parsed arguments and returns an integer
+    if args.executable is not None:
+        exit(args.executable(args))
 
     if args.export_submission_from_jupyter_notebook:
         ret = LocalExecutionIntegration().export_submission_from_jupyter_notebook(args.export_submission_from_jupyter_notebook)
@@ -165,7 +196,6 @@ def main():
             evaluate['truth_directory'] = tira.download_dataset(task, dataset, truth_dataset=True)
             print(f'Done: Evaluation truth for dataset {dataset} is available.')
 
-    logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
     print(f'''
 ########################################### TIRA RUN CONFIGURATION ###########################################
 # image=${args.image}
