@@ -2,6 +2,7 @@ from abc import ABC
 from typing import TYPE_CHECKING, Union, overload
 
 if TYPE_CHECKING:
+    import io
     from typing import Any, Dict, Optional
 
     import pandas as pd
@@ -77,4 +78,17 @@ class TiraClient(ABC):
         return_metadata: bool = False,
     ) -> "Union[pd.DataFrame, tuple[pd.DataFrame, str]]":
         # .. todo:: typehint
+        pass
+
+    def create_new_upload(self, task_id: str, vm_id: str) -> "Optional[str]":
+        """
+        Creates a new upload and returns the newly created id. Returns None on failure.
+        """
+        pass
+
+    def submit_run(self, task_id: str, vm_id: str, dataset_id: str, upload_id: str, run: "io.IOBase") -> bool:
+        """
+        Submits the runfile located at `run` for the given task and vm for the given upload id. Returns true on success,
+        false  otherwise.
+        """
         pass

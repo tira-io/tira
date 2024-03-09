@@ -1,6 +1,7 @@
 import requests
 import json
 import pandas as pd
+from pathlib import Path
 import os
 import zipfile
 import io
@@ -414,6 +415,51 @@ class Client(TiraClient):
         logging.info(ret)
         ret = json.loads(ret)
         assert ret['status'] == 0
+    
+    def create_new_upload(self, task_id: str, vm_id: str) -> Optional[str]:
+        # TODO: check that task_id and vm_id don't contain illegal characters (e.g., '/')
+        url = f"{self.base_url}/task/{task_id}/vm/{vm_id}/add_software/upload"
+        logging.debug(f"Creating a new upload at {url}")
+        response = requests.get(url, allow_redirects=True)
+        if not response.ok:
+            logging.error(f"Failed to create a new upload with HTTP code {response.status_code}")
+            logging.debug(response.content)
+            return None
+        try:
+            content = response.json()
+        except requests.exceptions.JSONDecodeError as e:
+            logging.error(f"Failed to decode response body: {e}")
+            logging.debug(response.content)
+            return None
+        if content.status != 0:
+            logging.error(f"Failed to create a new upload with status code {content.status}")
+            logging.debug(content)
+            return None
+        logging.debug(f"Created new upload with id {content.upload}")
+        return content.upload
+
+    def submit_run(self, task_id: str, vm_id: str, dataset_id: str, upload_id: str, filestream: io.IOBase) -> bool:
+        logging.info(f"Submitting {upload_id} for Task {task_id}:{dataset_id} on VM {vm_id}")
+        # TODO: check that task_id and vm_id don't contain illegal characters (e.g., '/')
+        url = f"{self.base_url}/task/{task_id}/vm/{vm_id}/upload/{dataset_id}/{upload_id}"
+        logging.debug(f"Submitting the runfile at {url}")
+        files = {'file': filestream}
+        response = requests.post(url, files=files, allow_redirects=True)
+        if not response.ok:
+            logging.error(f"Failed to upload with HTTP code {response.status_code}")
+            logging.debug(response.content)
+            return False
+        try:
+            content = response.json()
+        except requests.exceptions.JSONDecodeError as e:
+            logging.error(f"Failed to decode response body: {e}")
+            logging.debug(response.content)
+            return False
+        if content.status != 0:
+            logging.error(f"Failed to upload with status code {content.status}")
+            logging.debug(content)
+            return False
+        return True
 
     def get_csrf_token(self):
         ret = requests.get(f'{self.base_url}/', headers={"Api-Key": self.api_key})
