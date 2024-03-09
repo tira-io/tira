@@ -53,6 +53,12 @@
           <overview-missing-reviews :task="task" />
         </v-expansion-panel-text>
       </v-expansion-panel>
+      <v-expansion-panel>
+        <v-expansion-panel-title>Overview Team Submissions</v-expansion-panel-title>
+        <v-expansion-panel-text>
+          <overview-team-submissions :task="task" />
+        </v-expansion-panel-text>
+      </v-expansion-panel>
     </v-expansion-panels>
   </v-container>
 </template>
@@ -61,13 +67,14 @@
 import { extractTaskFromCurrentUrl, extractRole, get, reportError, reportSuccess } from '../utils'
 import {VAutocomplete} from "vuetify/components";
 import OverviewMissingReviews from './OverviewMissingReviews.vue';
+import OverviewTeamSubmissions from './OverviewTeamSubmissions.vue';
 import EditTask from './EditTask.vue';
 import EditDataset from './EditDataset.vue';
 import ConfirmDelete from './ConfirmDelete.vue';
 
 export default {
   name: "tira-task-admin",
-  components: {OverviewMissingReviews, EditTask, VAutocomplete, EditDataset, ConfirmDelete},
+  components: {OverviewMissingReviews, OverviewTeamSubmissions, EditTask, VAutocomplete, EditDataset, ConfirmDelete},
   props: ['datasets', 'task'],
   emits: ['add-dataset', 'delete-dataset'],
   data() {
