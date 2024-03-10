@@ -403,7 +403,7 @@ def run_abort(request, vm_id):
     del grpc_client
     return response
 
-
+@csrf_exempt
 @check_permissions
 @check_resources_exist("json")
 def upload(request, task_id, vm_id, dataset_id, upload_id):

@@ -82,7 +82,7 @@ class Client(TiraClient):
         return self.json_response(f'/api/task/{task_name}/user/{team_name}')
 
     def add_docker_software(self, image, command, tira_vm_id, tira_task_id, code_repository_id, build_environment):
-        headers = {   
+        headers = {
             'Api-Key': self.api_key,
             'Api-Username': self.api_user_name,
             'Accept': 'application/json',
@@ -458,7 +458,9 @@ class Client(TiraClient):
         if len(previous_uploads) > 0:
             logging.warn(f'Skip upload of file {file_path} for dataset {dataset_id} because there are already {len(previous_uploads)} for this dataset. Pass allow_multiple_uploads=True to upload a new dataset or delete the uploads in the UI.')
             return True
-        
+
+        self.fail_if_api_key_is_invalid()
+
         # TODO: check that task_id and vm_id don't contain illegal characters (e.g., '/')
         url = f"/task/{task_id}/vm/{vm_id}/upload/{dataset_id}/{upload_id}"
         logging.info(f"Submitting the runfile at {url}")
@@ -477,13 +479,13 @@ class Client(TiraClient):
             'Api-Username': self.api_user_name,
             'Accept': 'application/json',
         }
-
         for _ in range(self.failsave_retries):
             try:
                 files={'file': open(file_path, 'rb')}
+
                 resp = requests.post(url=f'{self.base_url}{endpoint}', files=files, headers=headers, params=params)
                 if resp.status_code not in {200, 202}:
-                    raise ValueError(f'Got statuscode {resp.status_code} for {endpoint}. Got {resp}')
+                    raise ValueError(f'Got statuscode {resp.status_code} for {endpoint}. Got {resp.content}')
                 else:
                     break
             except Exception as e:
