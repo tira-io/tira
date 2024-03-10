@@ -449,15 +449,18 @@ class Client(TiraClient):
         return content.upload
 
     def upload_run(self, file_path: Path, dataset_id: str, approach: str=None, task_id: str=None, vm_id: str=None, upload_id: str=None, allow_multiple_uploads=False) -> bool:
+        """
+        Returns true if the upload was successfull, false if not, or none if it was already uploaded.
+        """
         logging.info(f"Submitting {upload_id} for Task {task_id}:{dataset_id} on VM {vm_id}")
         if approach:
             task_id, vm_id, display_name = approach.split('/')
             upload_id = self.get_upload_group_id(task_id, vm_id, display_name)    
-        
+
         previous_uploads = self.upload_submissions(task_id, vm_id, upload_id, dataset_id)
         if len(previous_uploads) > 0:
             logging.warn(f'Skip upload of file {file_path} for dataset {dataset_id} because there are already {len(previous_uploads)} for this dataset. Pass allow_multiple_uploads=True to upload a new dataset or delete the uploads in the UI.')
-            return True
+            return None
 
         self.fail_if_api_key_is_invalid()
 
@@ -465,8 +468,8 @@ class Client(TiraClient):
         url = f"/task/{task_id}/vm/{vm_id}/upload/{dataset_id}/{upload_id}"
         logging.info(f"Submitting the runfile at {url}")
         response = self.execute_post_return_json(url, file_path=file_path)
-        print(response)
-        return True
+
+        return 'status' in response and response['status'] == 0 and 'message' in response and response['message'] == 'ok' and 'new_run' in response
 
     def get_csrf_token(self):
         ret = requests.get(f'{self.base_url}/', headers={"Api-Key": self.api_key})
