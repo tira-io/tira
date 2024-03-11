@@ -92,6 +92,14 @@ class PyTerrierIntegration():
 
         return run_file
 
+    def index(self, approach, dataset):
+        """
+        Load an PyTerrier index from TIRA.
+        """
+        import pyterrier as pt
+        ret = tira.get_run_output(approach, dataset) + '/index'
+        return pt.IndexFactory.of(ret)
+
     def from_submission(self, approach, dataset=None, datasets=None):
         software = self.tira_client.docker_software(approach)
         if software.get('ir_re_ranker', False):
