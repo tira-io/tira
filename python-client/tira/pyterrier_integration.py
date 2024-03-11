@@ -114,7 +114,7 @@ class PyTerrierIntegration():
 
         return pt.Transformer.from_df(ret)
 
-    def transform_queries(self, approach, dataset, file_selection=('/*.jsonl', '/*.jsonl.gz')):
+    def transform_queries(self, approach, dataset, file_selection=('/*.jsonl', '/*.jsonl.gz'), prefix=''):
         from pyterrier.apply import generic
         ret = self.pd.transform_queries(approach, dataset, file_selection)
         cols = [i for i in ret.columns if i not in ['qid']]
@@ -122,12 +122,12 @@ class PyTerrierIntegration():
 
         def __transform_df(df):
             for col in cols:
-                df[col] = df['qid'].apply(lambda i: ret[str(i)][col])
+                df[prefix + col] = df['qid'].apply(lambda i: ret[str(i)][col])
             return df
 
         return generic(__transform_df)
 
-    def transform_documents(self, approach, dataset, file_selection=('/*.jsonl', '/*.jsonl.gz')):
+    def transform_documents(self, approach, dataset, file_selection=('/*.jsonl', '/*.jsonl.gz'), prefix=''):
         from pyterrier.apply import generic
         ret = self.pd.transform_documents(approach, dataset, file_selection)
         cols = [i for i in ret.columns if i not in ['docno']]
@@ -135,7 +135,7 @@ class PyTerrierIntegration():
 
         def __transform_df(df):
             for col in cols:
-                df[col] = df['docno'].apply(lambda i: ret[str(i)][col])
+                df[prefix + col] = df['docno'].apply(lambda i: ret[str(i)][col])
             return df
 
         return generic(__transform_df)
