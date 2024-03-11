@@ -121,6 +121,7 @@ class PyTerrierIntegration():
         ret = {str(i['qid']): i for _, i in ret.iterrows()}
 
         def __transform_df(df):
+            df = df.copy()
             for col in cols:
                 df[prefix + col] = df['qid'].apply(lambda i: ret[str(i)][col])
             return df
