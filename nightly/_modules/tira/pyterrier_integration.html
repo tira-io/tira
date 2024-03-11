@@ -345,7 +345,7 @@
 <span class="linenos"> 97</span><span class="sd">        Load an PyTerrier index from TIRA.</span>
 <span class="linenos"> 98</span><span class="sd">        &quot;&quot;&quot;</span>
 <span class="linenos"> 99</span>        <span class="kn">import</span> <span class="nn">pyterrier</span> <span class="k">as</span> <span class="nn">pt</span>
-<span class="linenos">100</span>        <span class="n">ret</span> <span class="o">=</span> <span class="n">tira_client</span><span class="o">.</span><span class="n">get_run_output</span><span class="p">(</span><span class="n">approach</span><span class="p">,</span> <span class="n">dataset</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;/index&#39;</span>
+<span class="linenos">100</span>        <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tira_client</span><span class="o">.</span><span class="n">get_run_output</span><span class="p">(</span><span class="n">approach</span><span class="p">,</span> <span class="n">dataset</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;/index&#39;</span>
 <span class="linenos">101</span>        <span class="k">return</span> <span class="n">pt</span><span class="o">.</span><span class="n">IndexFactory</span><span class="o">.</span><span class="n">of</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span></div>
 
 <span class="linenos">102</span>
