@@ -97,7 +97,7 @@ class PyTerrierIntegration():
         Load an PyTerrier index from TIRA.
         """
         import pyterrier as pt
-        ret = tira.get_run_output(approach, dataset) + '/index'
+        ret = tira_client.get_run_output(approach, dataset) + '/index'
         return pt.IndexFactory.of(ret)
 
     def from_submission(self, approach, dataset=None, datasets=None):
