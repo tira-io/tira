@@ -1,9 +1,0 @@
-*.pyc
-log.txt
-.DS_Store
-._.DS_Store
-.idea
-.venv
-.project
-.pydevproject
-src/tira_host/conf/grpc_service.ini
