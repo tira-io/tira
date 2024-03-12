@@ -74,3 +74,16 @@ Filtering and Pagination
     Especially if a resource is a collection, PUT MUST set the entire colleciton.
 #.  **To update only part of a resource, PATCH SHOULD be used** (`RFC 5789 <https://www.rfc-editor.org/rfc/rfc5789>`_).
 #.  **To update (parts of) a resource, JSON Patch** (`RFC 6902 <https://www.rfc-editor.org/rfc/rfc6902>`_) **MAY be used.**
+
+    For example, the following HTTP request will rename the user with ID ``1234`` to ``newname``:
+
+    .. code:: http
+        
+        PATCH /users/1234 HTTP/2
+        Host: http://example.org/
+        Accept: */*
+        Content-Type: application/json-patch+json
+
+        [
+            { "op": "replace", "path": "username", "value": "newname"}
+        ]
