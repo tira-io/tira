@@ -102,6 +102,7 @@ urlpatterns = [
     path('api/role', data_api.get_role, name='get_role'),
     path('api/task/<str:task_id>/user/<str:user_id>', data_api.get_user, name='get_user'),
     path('api/task/<str:task_id>/user/<str:user_id>/refresh-docker-images', data_api.update_docker_images, name="get_updated_docker_images"),
+    path('api/count-of-team-submissions/<str:task_id>', organizer_api.get_count_of_team_submissions, name='get_count_of_team_submissions'),
     path('api/count-of-missing-reviews/<str:task_id>', organizer_api.get_count_of_missing_reviews, name='get_count_of_missing_reviews'),
     path('api/task/<str:task_id>/user/<str:user_id>/software/running/<str:force_cache_refresh>', data_api.get_running_software, name='get_running_software'),
     path('api/task/<str:task_id>/public-submissions', data_api.public_submissions, name='public_submissions'),

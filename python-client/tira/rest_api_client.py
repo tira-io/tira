@@ -1,6 +1,7 @@
 import requests
 import json
 import pandas as pd
+from pathlib import Path
 import os
 import zipfile
 import io
@@ -14,7 +15,7 @@ import logging
 from .tira_client import TiraClient
 from typing import Optional, List, Dict, Union
 from functools import lru_cache
-from tira.tira_redirects import redirects
+from tira.tira_redirects import redirects, mirror_url
 from tqdm import tqdm
 
 class Client(TiraClient):
@@ -181,8 +182,9 @@ class Client(TiraClient):
         Downloads the run (or uses the cached version) of the specified approach on the specified dataset.
         Returns the directory containing the outputs of the run.
         """
-        task, team, software = approach.split('/')
+        task, team, software = approach.split('/')        
         run_execution = self.get_run_execution_or_none(approach, dataset)
+
         if run_execution:
             return self.download_zip_to_cache_directory(task, dataset, team, run_execution['run_id'])
 
@@ -288,7 +290,7 @@ class Client(TiraClient):
 
         .. code:: py
 
-            for approach in ['approach-1', ..., 'approach-n]:
+            for approach in ['approach-1', ..., 'approach-n']:
                 runs_for_approach = tira.submissions_with_evaluation_or_none(task, dataset, team, approach)
                 for i in runs_for_approach:
                     if i['evaluation']:
@@ -332,7 +334,15 @@ class Client(TiraClient):
         return ret
 
     def download_and_extract_zip(self, url, target_dir):
-        url = redirects(url=url)['url']
+        url = redirects(url=url)['urls'][0]
+        if url.split('://')[1].startswith('files.webis.de'):
+            print(f'Download from the Incubator: {url}')
+            print('\tThis is only used for last spot checks before archival to Zenodo.')
+        
+        if  url.split('://')[1].startswith('zenodo.org'):
+            print(f'Download from Zenodo: {url}')
+
+
         for _ in range(self.failsave_retries):
             status_code = None
             try:
@@ -342,9 +352,12 @@ class Client(TiraClient):
                 if self.api_user_name == 'no-api-key-user':
                     del headers["Api-Username"]
 
-                r = requests.get(url, headers=headers)
+                r = requests.get(url, headers=headers, stream=True)
                 total = int(r.headers.get('content-length', 0))
                 status_code = r.status_code
+                if status_code < 200 or status_code >= 300:
+                    raise ValueError(f'Got non 200 status code {status_code} for {url}.')
+
                 response_content = io.BytesIO()
                 with tqdm(desc='Download', total=total, unit='iB', unit_scale=True, unit_divisor=1024,) as bar:
                     for data in r.iter_content(chunk_size=1024):
@@ -358,8 +371,9 @@ class Client(TiraClient):
                 return
             except Exception as e:
                 sleep_time = randint(1, self.failsave_max_delay)
-                logging.info(f'Code: {status_code}')
-                logging.info(f'Error occured while fetching {url}. I will sleep {sleep_time} seconds and continue.', exc_info=e)
+                print(f'Code: {status_code}')
+                print(f'Error occured while fetching {url}. I will sleep {sleep_time} seconds and continue.')
+                url = mirror_url(url)
                 time.sleep(sleep_time)
 
     def get_authentication_cookie(self, user, password):
@@ -401,6 +415,52 @@ class Client(TiraClient):
         logging.info(ret)
         ret = json.loads(ret)
         assert ret['status'] == 0
+    
+    def create_upload_group(self, task_id: str, vm_id: str, display_name: str) -> Optional[str]:
+        # TODO: check that task_id and vm_id don't contain illegal characters (e.g., '/')
+        # TODO: Make this idempotent: reuse existing upload group if it already exists.
+        url = f"{self.base_url}/task/{task_id}/vm/{vm_id}/add_software/upload"
+        logging.debug(f"Creating a new upload at {url}")
+        response = requests.get(url, allow_redirects=True)
+        if not response.ok:
+            logging.error(f"Failed to create a new upload with HTTP code {response.status_code}")
+            logging.debug(response.content)
+            return None
+        try:
+            content = response.json()
+        except requests.exceptions.JSONDecodeError as e:
+            logging.error(f"Failed to decode response body: {e}")
+            logging.debug(response.content)
+            return None
+        if content.status != 0:
+            logging.error(f"Failed to create a new upload with status code {content.status}")
+            logging.debug(content)
+            return None
+        logging.debug(f"Created new upload with id {content.upload}")
+        return content.upload
+
+    def upload_run(self, filestream: io.IOBase, dataset_id: str, approach: str=None, task_id: str=None, vm_id: str=None, upload_id: str=None) -> bool:
+        logging.info(f"Submitting {upload_id} for Task {task_id}:{dataset_id} on VM {vm_id}")
+        # TODO: check that task_id and vm_id don't contain illegal characters (e.g., '/')
+        url = f"{self.base_url}/task/{task_id}/vm/{vm_id}/upload/{dataset_id}/{upload_id}"
+        logging.debug(f"Submitting the runfile at {url}")
+        files = {'file': filestream}
+        response = requests.post(url, files=files, allow_redirects=True)
+        if not response.ok:
+            logging.error(f"Failed to upload with HTTP code {response.status_code}")
+            logging.debug(response.content)
+            return False
+        try:
+            content = response.json()
+        except requests.exceptions.JSONDecodeError as e:
+            logging.error(f"Failed to decode response body: {e}")
+            logging.debug(response.content)
+            return False
+        if content.status != 0:
+            logging.error(f"Failed to upload with status code {content.status}")
+            logging.debug(content)
+            return False
+        return True
 
     def get_csrf_token(self):
         ret = requests.get(f'{self.base_url}/', headers={"Api-Key": self.api_key})

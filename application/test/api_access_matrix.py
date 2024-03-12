@@ -288,7 +288,17 @@ API_ACCESS_MATRIX = [
             ORGANIZER_WRONG_TASK: 405,
         },
     ),
-
+    route_to_test(
+        url_pattern='api/count-of-team-submissions/<str:task_id>',
+        params={'task_id': 'task-of-organizer-1'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 405,
+            PARTICIPANT: 405,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 405,
+        },
+    ),
     route_to_test(
         url_pattern='api/add_software_submission_git_repository/<str:task_id>/<str:vm_id>',
         params={'task_id': 'task-of-organizer-1', 'vm_id': PARTICIPANT.split('_')[-1]},
