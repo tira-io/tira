@@ -68,6 +68,7 @@ These make targets from the deployment configuration: `tira/application/config/s
 
 - `code-admin-knowledge-base/services/tira/` contains all the deployment yamls.
 - Add the discourse secret in the namespace via: `tira-host/src/tira_scripts/k8s-deploy-discourse-api-key.sh`
+   (this part is entirely deprecated and should be updated)
 
 
 ## Create New Zip of the Database Dump
