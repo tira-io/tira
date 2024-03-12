@@ -26,7 +26,6 @@ class FileDatabase(FileSystemEventHandler):
     vm_list_file = tira_root / Path("model/virtual-machines/virtual-machines.txt")
     vm_dir_path = tira_root / Path("model/virtual-machines")
     host_list_file = tira_root / Path("model/virtual-machine-hosts/virtual-machine-hosts.txt")
-    ova_dir = tira_root / Path("data/virtual-machine-templates/")
     datasets_dir_path = tira_root / Path("model/datasets")
     softwares_dir_path = tira_root / Path("model/softwares")
     data_path = tira_root / Path("data/datasets")

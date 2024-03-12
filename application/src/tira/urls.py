@@ -90,7 +90,6 @@ urlpatterns = [
     path('api/evaluations_of_run/<str:vm_id>/<str:run_id>', data_api.get_evaluations_of_run, name='evaluations_of_run'),
     path('api/configuration-of-evaluation/<str:task_id>/<str:dataset_id>', data_api.get_configuration_of_evaluation, name='get_configuration_of_evaluation'),
     path('api/list-runs/<str:task_id>/<str:dataset_id>/<str:vm_id>/<str:software_id>', data_api.runs, name='runs'),
-    path('api/ova-list', data_api.get_ova_list, name='get_ova_list'),
     path('api/host-list', data_api.get_host_list, name='get_host_list'),
     path('api/organizer-list', data_api.get_organizer_list, name='get_organizer_list'),
     path('api/task-list', data_api.get_task_list, name='get_task_list'),
