@@ -16,8 +16,8 @@ Contributions can take many forms, and all are very welcome:
 Bugs are annoying for everyone, so please help us identify and fix the bug by providing a good bug report.
 
 **What is a good Bug Report?**
-A good bug report should contain the expected behavior, the observed behavior and all the necessary actions you took.
-Ideally, it should be reproducible but we understand that this is not always possible. Please make sure to follow these
+A good bug report should contain the expected behavior, the observed behavior, and all the necessary actions you took.
+Ideally, it should be reproducible, but we understand that this is not always possible. Please make sure to follow these
 steps before submitting a bug report:
 
 - Check the [Issues Page](https://github.com/tira-io/tira/issues) if others have reported similar problems (also make
@@ -36,7 +36,7 @@ your issue. You can report a bug using GitHub Issues as follows:
 4. **Make sure you do NOT leak any confidential data (e.g., API Keys or Secrets) on accident!**
 
 ## Reporting Vulnerabilities
-Vulnerabilities should not publicly be disclosed until they are fixed. Please have a look at our
+Vulnerabilities should not be publicly disclosed until they are fixed. Please take a look at our
 [Security Policy](SECURITY.md) for more information.
 
 ## Suggesting Enhancements and new Features
@@ -45,16 +45,23 @@ Please open an [Enhancement Issue](https://github.com/tira-io/tira/issues/new?as
 and make sure to cover the following points to give your idea the best chance of being implemented:
 
 - **Clearly and concisely** describe the idea behind the enhancement or feature. The more people have to read, the less
-    they are motivated to read your entire proposal and the less likely they are to support it.
-- Now that you got people hooked, you can be more elaborate: how (if at all) can the goal be achieved now? How do you
+    they are motivated to read your entire proposal, and the less likely they are to support it.
+- Now that you have people hooked, you can be more elaborate: how (if at all) can the goal be achieved now? How do you
     envision it to work if your feature request or enhancement is implemented?
 - A picture is worth a thousand words &mdash; you may add pictures to show what you envision. This is, of course, not
     required.
 
 ## Contributing Code
-TODO
+Code contributions can take many forms... from minor bug fixes, to bigger patches to entirely new features but they are
+worth nothing if the code is unreadable, unmaintainable or does not fit into TIRAs architecture. If you consider
+contributing code, please have a look at our [Code Guidelines](https://tira-io.github.io/tira/development/contributing/guidelines.html)
+and read our [Documentation for Developers](https://tira-io.github.io/tira/development/index.html). We are very happy
+about all code contributions and features and with these rules we want to ensure that they can be part of TIRAs future
+even when the original developer has left TIRAs development.
 
 ## Improving the Documentation
 Documentation is *PART OF* the software and not a second class citizen. Good documentation simplifies the onboarding
 process of new programmers and new users. Generally, the same guidelines apply as for
-[contributing code](#contributing-code).
+[contributing code](#contributing-code). If you feel like some parts of the documentation are out-of-date or not clear,
+feel free to create a [Documentation Issue](https://github.com/tira-io/tira/issues/new?assignees=&labels=documentation&projects=&template=50-documentation-issue.md)
+after you made sure that the same issue did not exist previously (open or closed).
