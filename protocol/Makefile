@@ -13,8 +13,6 @@ help:
 	@echo "       install protobuf from the included distribution"
 	@echo "make build"
 	@echo "       compile tira's protobufs"
-	@echo "make build-java"
-	@echo "       compile tira's protobufs"
 	@echo "make build-python"
 	@echo "       compile tira's protobufs"
 	@echo "make clean"
@@ -34,7 +32,6 @@ build:
     # TODO check if virtualenv is installed
 	! command -v protoc > /dev/null 2>&1 || make setup
 	make venv
-	make build-java
 	make build-python
 
 # Requirements are in setup.py, so whenever setup.py is changed, re-run installation of dependencies.
@@ -53,12 +50,6 @@ build-python:
 	${PYTHON} -m grpc_tools.protoc -I=$(SRC_DIR) --python_out=$(BUILD_PATH)/python --grpc_python_out=$(BUILD_PATH)/python tira_host.proto
 	sed -i 's/import tira_host_pb2 as tira__host__pb2/from . import tira_host_pb2 as tira__host__pb2/g' $(BUILD_PATH)/python/tira_host_pb2_grpc.py
 	touch $(BUILD_PATH)/python/__init__.py
-
-build-java:
-	mkdir -p $(BUILD_PATH)/java
-	protoc -I=$(SRC_DIR) --java_out=$(BUILD_PATH)/java $(SRC_DIR)/tira_to_web.proto
-	protoc -I=$(SRC_DIR) --java_out=$(BUILD_PATH)/java $(SRC_DIR)/tira_messages.proto
-	protoc -I=$(SRC_DIR) --java_out=$(BUILD_PATH)/java $(SRC_DIR)/TiraClientWebMessages.proto
 
 clean:
 	rm -r $(VENV_NAME)

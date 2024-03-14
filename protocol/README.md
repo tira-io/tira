@@ -17,6 +17,5 @@ Or use the individual targets, depending on your needs:
 ```bash
 sudo make setup  # install protoc, the protobuf compiler from the distribution
 make venv  # setup python to compile the python targets
-make build-java
 make build-python
 ```
