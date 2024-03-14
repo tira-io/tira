@@ -115,7 +115,7 @@ def main():
     client: "TiraClient" = Client()
 
     # Subcommands store their executable into args.executable which takes the parsed arguments and returns an integer
-    if args.executable is not None:
+    if hasattr(args, 'executable') and args.executable is not None:
         exit(args.executable(args))
 
     if args.export_submission_from_jupyter_notebook:
