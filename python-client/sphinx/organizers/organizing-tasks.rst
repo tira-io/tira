@@ -206,14 +206,6 @@ Set up the master VM
     
     This should be done for **training-datasets-truth, test-datasets, and test-datasets-truth**
 
-Local installation of the tira command on your machine
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-- Navigate to :code:`/usr/local/share/`
-- Clone the tira repository: :code:`git clone git@github.com:tira-io/tira.git`
-- Add the tira cmd to your PATH: :code:`ln -s /usr/local/share/tira/tira-host/src/tira_scripts/tira.sh /usr/local/bin/tira`
-- Test your local installation: The execution of :code:`tira k8s hostname -s` should print the name of the pod to the
-  console (something like :code:`tira-bg-web-client-7c76f8bb8f-dmfwv`).
-
 
 Troubleshooting
 ~~~~~~~~~~~~~~~

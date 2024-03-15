@@ -93,11 +93,13 @@ Run the tests
 
 Deploy on Kubernetes
 ~~~~~~~~~~~~~~~~~~~~
+.. todo:: This step is deprecated and the documentation must be updated
+
 Add the discourse secret in the namespace via:
 
 .. code:: bash
 
-    tira-host/src/tira_scripts/k8s-deploy-discourse-api-key.sh
+    ??? TODO?
 
 Re-build the docker images 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~

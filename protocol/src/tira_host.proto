@@ -9,9 +9,6 @@ syntax = "proto3";
 //
 // Compile the schema file to generate source code:
 //   C++ : $ protoc --cpp_out=path/to/generated/code  tira_host.proto
-//   Java: $ protoc --java_out=path/to/generated/code tira_host.proto
-//   Java gRPC: $ protoc --plugin=protoc-gen-grpc-java=build/exe/java_plugin/protoc-gen-grpc-java --grpc-java_out=. --proto_path=. tira_host.proto
-//     See https://github.com/grpc/grpc-java/tree/master/compiler
 //
 // Python:
 //   Install gRPC for Python: https://grpc.io/docs/languages/python/quickstart/
@@ -26,11 +23,6 @@ package tira.generated;
 import "google/protobuf/empty.proto";
 // import "tira_messages.proto";
 
-// Becomes the package name of the generated Java code
-option java_package = "de.webis.tira.client.web.generated";
-
-// option java_multiple_files = true;
-option java_outer_classname = "TiraHostMessages";
 // option objc_class_prefix = "THM";
 
 // Other options

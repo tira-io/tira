@@ -14,7 +14,6 @@ syntax = "proto2";
 //
 // Compile the schema file to generate source code:
 //   C++ : $ protoc --cpp_out=path/to/generated/code  TiraClientWebMessages.proto
-//   Java: $ protoc --java_out=path/to/generated/code TiraClientWebMessages.proto
 
 // -----------------------------------------------------------------------------
 // Options
@@ -22,9 +21,6 @@ syntax = "proto2";
 
 // Becomes the namespace of the generated C++ code
 package tira.generated;
-
-// Becomes the package name of the generated Java code
-option java_package = "de.webis.tira.client.web.generated";
 
 // Other options
 option optimize_for = SPEED;
