@@ -15,10 +15,11 @@ preferred-citation:
   pages: 236--241
   conference:
     name: Lecture Notes in Computer Science
-    city: Berlin, Heidelberg, New York
+    location: Berlin, Heidelberg, New York
+    city: Test?
   publisher:
     name: Springer
-  doi: doi.org/10.1007/978-3-031-28241-6_20
+  doi: 10.1007/978-3-031-28241-6_20
   url: https://doi.org/10.1007/978-3-031-28241-6_20
   authors:
     - given-names: Maik
