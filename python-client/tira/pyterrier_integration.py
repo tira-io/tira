@@ -92,6 +92,14 @@ class PyTerrierIntegration():
 
         return run_file
 
+    def index(self, approach, dataset):
+        """
+        Load an PyTerrier index from TIRA.
+        """
+        import pyterrier as pt
+        ret = self.tira_client.get_run_output(approach, dataset) + '/index'
+        return pt.IndexFactory.of(ret)
+
     def from_submission(self, approach, dataset=None, datasets=None):
         software = self.tira_client.docker_software(approach)
         if software.get('ir_re_ranker', False):
@@ -106,20 +114,21 @@ class PyTerrierIntegration():
 
         return pt.Transformer.from_df(ret)
 
-    def transform_queries(self, approach, dataset, file_selection=('/*.jsonl', '/*.jsonl.gz')):
+    def transform_queries(self, approach, dataset, file_selection=('/*.jsonl', '/*.jsonl.gz'), prefix=''):
         from pyterrier.apply import generic
         ret = self.pd.transform_queries(approach, dataset, file_selection)
         cols = [i for i in ret.columns if i not in ['qid']]
         ret = {str(i['qid']): i for _, i in ret.iterrows()}
 
         def __transform_df(df):
+            df = df.copy()
             for col in cols:
-                df[col] = df['qid'].apply(lambda i: ret[str(i)][col])
+                df[prefix + col] = df['qid'].apply(lambda i: ret[str(i)][col])
             return df
 
         return generic(__transform_df)
 
-    def transform_documents(self, approach, dataset, file_selection=('/*.jsonl', '/*.jsonl.gz')):
+    def transform_documents(self, approach, dataset, file_selection=('/*.jsonl', '/*.jsonl.gz'), prefix=''):
         from pyterrier.apply import generic
         ret = self.pd.transform_documents(approach, dataset, file_selection)
         cols = [i for i in ret.columns if i not in ['docno']]
@@ -127,7 +136,7 @@ class PyTerrierIntegration():
 
         def __transform_df(df):
             for col in cols:
-                df[col] = df['docno'].apply(lambda i: ret[str(i)][col])
+                df[prefix + col] = df['docno'].apply(lambda i: ret[str(i)][col])
             return df
 
         return generic(__transform_df)

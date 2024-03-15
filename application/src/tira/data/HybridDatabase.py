@@ -9,6 +9,7 @@ import randomname
 import os
 import zipfile
 import json
+import gzip
 
 from tira.util import TiraModelWriteError, TiraModelIntegrityError
 from tira.proto import TiraClientWebMessages_pb2 as modelpb
@@ -1626,8 +1627,18 @@ class HybridDatabase(object):
         dirs = sum([1 if d.is_dir() else 0 for d in output_dir.glob("*")])
         files = sum([1 if not d.is_dir() else 0 for d in output_dir.rglob("*[!.zip]")])
         root_files = list(output_dir.glob("*[!.zip]"))
+
+        def count_lines(file_name):
+            try:
+                if file_name.suffix == '.gz':
+                    return len(gzip.open(file_name, 'r').readlines())
+                else:
+                    return len(open(file_name, 'r').readlines())
+            except:
+                return '--'
+
         if root_files and not root_files[0].is_dir():
-            lines = len(open(root_files[0], 'r').readlines())
+            lines = count_lines(root_files[0])
             size = root_files[0].stat().st_size
         else:
             lines = "--"

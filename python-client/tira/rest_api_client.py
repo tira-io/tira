@@ -82,7 +82,7 @@ class Client(TiraClient):
         return self.json_response(f'/api/task/{task_name}/user/{team_name}')
 
     def add_docker_software(self, image, command, tira_vm_id, tira_task_id, code_repository_id, build_environment):
-        headers = {   
+        headers = {
             'Api-Key': self.api_key,
             'Api-Username': self.api_user_name,
             'Accept': 'application/json',
@@ -112,6 +112,12 @@ class Client(TiraClient):
                 ret += [{**{'task': response['task_id'], 'dataset': response['dataset_id'], 'team': vm['vm_id']}, **run}]
 
         return pd.DataFrame(ret)
+
+    def upload_submissions(self, task_id, vm_id, upload_id, dataset=None):
+        ret = self.json_response(f'/api/upload-group-details/{task_id}/{vm_id}/{upload_id}')
+        ret = ret['context']['upload_group_details']['runs']
+        
+        return [i for i in ret if dataset is None or dataset == i['dataset']]
 
     def submissions_with_evaluation_or_none(self, task, dataset, team, software):
         """ This method returns all runs of the specified software in the task on the dataset by the team.
@@ -416,55 +422,81 @@ class Client(TiraClient):
         ret = json.loads(ret)
         assert ret['status'] == 0
     
+    def get_upload_group_id(self, task_id: str, vm_id: str, display_name: str) -> int:
+        """Get the id of the upload group of user specified with vm_id for the task task_id with the display_name. Raises an error if no matching upload_group was found."""
+        url = f"/api/submissions-for-task/{task_id}/{vm_id}/upload"
+        ret = self.json_response(url)
+        if 'context' not in ret or 'all_uploadgroups' not in ret['context']:
+            logging.error(f"Failed to get upload id, response does not contain the expected fields.")
+            logging.debug(response.content)
+            raise ValueError(f'Invalid response for request {url}: {ret}.')
+
+        for upload_group in ret['context']['all_uploadgroups']:
+            if display_name is not None and upload_group['display_name'] == display_name:
+                return upload_group['id']
+
+        logging.error(f"Could not find upload with display_name {display_name} for task {task_id} of user {vm_id}. Got:", ret['context']['all_uploadgroups'])
+        raise ValueError("Could not find upload with display_name {display_name} for task {task_id} of user {vm_id}. Got:", ret['context']['all_uploadgroups'])
+    
     def create_upload_group(self, task_id: str, vm_id: str, display_name: str) -> Optional[str]:
         # TODO: check that task_id and vm_id don't contain illegal characters (e.g., '/')
         # TODO: Make this idempotent: reuse existing upload group if it already exists.
         url = f"{self.base_url}/task/{task_id}/vm/{vm_id}/add_software/upload"
         logging.debug(f"Creating a new upload at {url}")
-        response = requests.get(url, allow_redirects=True)
-        if not response.ok:
-            logging.error(f"Failed to create a new upload with HTTP code {response.status_code}")
-            logging.debug(response.content)
-            return None
-        try:
-            content = response.json()
-        except requests.exceptions.JSONDecodeError as e:
-            logging.error(f"Failed to decode response body: {e}")
-            logging.debug(response.content)
-            return None
-        if content.status != 0:
-            logging.error(f"Failed to create a new upload with status code {content.status}")
-            logging.debug(content)
-            return None
+        ret = json_response(url)
+            
         logging.debug(f"Created new upload with id {content.upload}")
         return content.upload
 
-    def upload_run(self, filestream: io.IOBase, dataset_id: str, approach: str=None, task_id: str=None, vm_id: str=None, upload_id: str=None) -> bool:
+    def upload_run(self, file_path: Path, dataset_id: str, approach: str=None, task_id: str=None, vm_id: str=None, upload_id: str=None, allow_multiple_uploads=False) -> bool:
+        """
+        Returns true if the upload was successfull, false if not, or none if it was already uploaded.
+        """
         logging.info(f"Submitting {upload_id} for Task {task_id}:{dataset_id} on VM {vm_id}")
+        if approach:
+            task_id, vm_id, display_name = approach.split('/')
+            upload_id = self.get_upload_group_id(task_id, vm_id, display_name)    
+
+        previous_uploads = self.upload_submissions(task_id, vm_id, upload_id, dataset_id)
+        if len(previous_uploads) > 0:
+            logging.warn(f'Skip upload of file {file_path} for dataset {dataset_id} because there are already {len(previous_uploads)} for this dataset. Pass allow_multiple_uploads=True to upload a new dataset or delete the uploads in the UI.')
+            return None
+
+        self.fail_if_api_key_is_invalid()
+
         # TODO: check that task_id and vm_id don't contain illegal characters (e.g., '/')
-        url = f"{self.base_url}/task/{task_id}/vm/{vm_id}/upload/{dataset_id}/{upload_id}"
-        logging.debug(f"Submitting the runfile at {url}")
-        files = {'file': filestream}
-        response = requests.post(url, files=files, allow_redirects=True)
-        if not response.ok:
-            logging.error(f"Failed to upload with HTTP code {response.status_code}")
-            logging.debug(response.content)
-            return False
-        try:
-            content = response.json()
-        except requests.exceptions.JSONDecodeError as e:
-            logging.error(f"Failed to decode response body: {e}")
-            logging.debug(response.content)
-            return False
-        if content.status != 0:
-            logging.error(f"Failed to upload with status code {content.status}")
-            logging.debug(content)
-            return False
-        return True
+        url = f"/task/{task_id}/vm/{vm_id}/upload/{dataset_id}/{upload_id}"
+        logging.info(f"Submitting the runfile at {url}")
+        response = self.execute_post_return_json(url, file_path=file_path)
+
+        return 'status' in response and response['status'] == 0 and 'message' in response and response['message'] == 'ok' and 'new_run' in response
 
     def get_csrf_token(self):
         ret = requests.get(f'{self.base_url}/', headers={"Api-Key": self.api_key})
         return ret.content.decode('utf-8').split('name="csrfmiddlewaretoken" value="')[1].split('"')[0]
+
+    def execute_post_return_json(self, endpoint: str, params: Optional[Union[Dict, List[tuple], bytes]] = None, file_path: Path=None) -> Dict: 
+        assert endpoint.startswith('/')
+        headers = {
+            'Api-Key': self.api_key,
+            'Api-Username': self.api_user_name,
+            'Accept': 'application/json',
+        }
+        for _ in range(self.failsave_retries):
+            try:
+                files={'file': open(file_path, 'rb')}
+
+                resp = requests.post(url=f'{self.base_url}{endpoint}', files=files, headers=headers, params=params)
+                if resp.status_code not in {200, 202}:
+                    raise ValueError(f'Got statuscode {resp.status_code} for {endpoint}. Got {resp.content}')
+                else:
+                    break
+            except Exception as e:
+                sleep_time = randint(1, self.failsave_max_delay)
+                logging.warn(f'Error occured while fetching {endpoint}. Code: {resp.status_code}. I will sleep {sleep_time} seconds and continue.', exc_info=e)
+                time.sleep(sleep_time)
+
+        return resp.json()
 
     @lru_cache(maxsize=None)
     def json_response(self, endpoint: str, params: Optional[Union[Dict, List[tuple], bytes]] = None):
@@ -485,8 +517,7 @@ class Client(TiraClient):
                     break
             except Exception as e:
                 sleep_time = randint(1, self.failsave_max_delay)
-                logging.info(f'Code: {resp.status_code}')
-                logging.info(f'Error occured while fetching {endpoint}. I will sleep {sleep_time} seconds and continue.', exc_info=e)
+                logging.warn(f'Error occured while fetching {endpoint}. Code: {resp.status_code}. I will sleep {sleep_time} seconds and continue.', exc_info=e)
                 time.sleep(sleep_time)
 
         return resp.json()
