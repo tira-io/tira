@@ -12,14 +12,17 @@ preferred-citation:
   location: Dublin, Irland
   year: 2023
   month: 4
+  pages: 236--241
   conference:
     name: Lecture Notes in Computer Science
     city: Berlin, Heidelberg, New York
   publisher:
     name: Springer
+  doi: doi.org/10.1007/978-3-031-28241-6_20
+  url: https://doi.org/10.1007/978-3-031-28241-6_20
   authors:
     - given-names: Maik
-      family-names: Fröbe
+      family-names: Fr{\"o"}be
     - given-names: Matti
       family-names: Wiegmann
     - given-names: Nikolay
@@ -36,10 +39,6 @@ preferred-citation:
       family-names: Stein
     - given-names: Martin
       family-names: Potthast
-  identifiers:
-    - type: url
-      value: >-
-        https://link.springer.com/chapter/10.1007/978-3-031-28241-6_20
   abstract: >-
     A major obstacle to the long-term impact of most shared
     tasks is their lack of reproducibility. Often only the
