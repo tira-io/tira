@@ -179,7 +179,7 @@
 <ul>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../development/contributing/index.html">Contributing</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Contributing</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../development/contributing/internals.html">Internals</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../development/contributing/guidelines.html">Contribution Guidelines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../development/contributing/guidelines.html">Code Guidelines</a></li>
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../development/frontend/index.html">Frontend Development</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Frontend Development</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
@@ -450,16 +450,6 @@ during this step.</p></li>
 </li>
 </ol>
 </section>
-<section id="local-installation-of-the-tira-command-on-your-machine">
-<h3>Local installation of the tira command on your machine<a class="headerlink" href="#local-installation-of-the-tira-command-on-your-machine" title="Link to this heading">#</a></h3>
-<ul class="simple">
-<li><p>Navigate to <code class="code docutils literal notranslate"><span class="pre">/usr/local/share/</span></code></p></li>
-<li><p>Clone the tira repository: <code class="code docutils literal notranslate"><span class="pre">git</span> <span class="pre">clone</span> <span class="pre">git&#64;github.com:tira-io/tira.git</span></code></p></li>
-<li><p>Add the tira cmd to your PATH: <code class="code docutils literal notranslate"><span class="pre">ln</span> <span class="pre">-s</span> <span class="pre">/usr/local/share/tira/tira-host/src/tira_scripts/tira.sh</span> <span class="pre">/usr/local/bin/tira</span></code></p></li>
-<li><p>Test your local installation: The execution of <code class="code docutils literal notranslate"><span class="pre">tira</span> <span class="pre">k8s</span> <span class="pre">hostname</span> <span class="pre">-s</span></code> should print the name of the pod to the
-console (something like <code class="code docutils literal notranslate"><span class="pre">tira-bg-web-client-7c76f8bb8f-dmfwv</span></code>).</p></li>
-</ul>
-</section>
 <section id="troubleshooting">
 <h3>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading">#</a></h3>
 <details class="summary-changes-do-not-show-up-on-the-website">
@@ -568,7 +558,6 @@ error.</p></li>
 </li>
 <li><a class="reference internal" href="#moderate-a-task">Moderate a Task:</a><ul>
 <li><a class="reference internal" href="#set-up-the-master-vm">Set up the master VM</a></li>
-<li><a class="reference internal" href="#local-installation-of-the-tira-command-on-your-machine">Local installation of the tira command on your machine</a></li>
 <li><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
 </ul>
 </li>
