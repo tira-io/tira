@@ -1,4 +1,4 @@
-Contribution Guidelines
+Code Guidelines
 =======================
 
-.. include:: ../../../../CONTRIBUTING.md
+.. todo:: Add code guidelines

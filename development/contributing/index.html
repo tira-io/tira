@@ -3,7 +3,7 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../../genindex.html" /><link rel="search" title="Search" href="../../search.html" /><link rel="next" title="Internals" href="internals.html" /><link rel="prev" title="Frequently Asked Questions" href="../../organizers/faq.html" />
+<link rel="index" title="Index" href="../../genindex.html" /><link rel="search" title="Search" href="../../search.html" /><link rel="next" title="Internals" href="internals.html" /><link rel="prev" title="&lt;no title&gt;" href="../index.html" />
 
     <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
         <title>Contributing - TIRA</title>
@@ -135,7 +135,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -179,7 +179,7 @@
 <ul class="current">
 <li class="toctree-l1 current has-children current-page"><a class="current reference internal" href="#">Contributing</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Contributing</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="internals.html">Internals</a></li>
-<li class="toctree-l2"><a class="reference internal" href="guidelines.html">Contribution Guidelines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guidelines.html">Code Guidelines</a></li>
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../frontend/index.html">Frontend Development</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Frontend Development</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
@@ -236,7 +236,7 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <div class="visually-hidden">Toggle table of contents sidebar</div>
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
@@ -244,10 +244,80 @@
         <article role="main">
           <section id="contributing">
 <h1>Contributing<a class="headerlink" href="#contributing" title="Link to this heading">#</a></h1>
-<div class="admonition-todo admonition" id="id1">
-<p class="admonition-title">Todo</p>
-<p>add a nice introductory text and thank for the interest in helping out for further TIRA</p>
-</div>
+<section id="contributing-to-tira">
+<h2>Contributing to TIRA<a class="headerlink" href="#contributing-to-tira" title="Link to this heading">#</a></h2>
+<p>Thank you for considering a contribution to TIRA!</p>
+<p>Below, you will find all the information on how you can help, how to get started and what to consider when contributing.
+Please also have a look TIRA’s <a class="reference internal" href="#./CODE_OF_CONDUCT.md"><span class="xref myst">Code of Conduct</span></a>.</p>
+<p>Contributions can take many forms, and all are very welcome:</p>
+<ol class="arabic simple">
+<li><p>Reporting Bugs</p></li>
+<li><p>Reporting Vulnerabilities</p></li>
+<li><p>Suggesting Enhancements and new Features</p></li>
+<li><p>Contributing Code</p></li>
+<li><p>Improving the Documentation</p></li>
+</ol>
+<section id="reporting-bugs">
+<h3>Reporting Bugs<a class="headerlink" href="#reporting-bugs" title="Link to this heading">#</a></h3>
+<p>Bugs are annoying for everyone, so please help us identify and fix the bug by providing a good bug report.</p>
+<p><strong>What is a good Bug Report?</strong>
+A good bug report should contain the expected behavior, the observed behavior, and all the necessary actions you took.
+Ideally, it should be reproducible, but we understand that this is not always possible. Please make sure to follow these
+steps before submitting a bug report:</p>
+<ul class="simple">
+<li><p>Check the <a class="reference external" href="https://github.com/tira-io/tira/issues">Issues Page</a> if others have reported similar problems (also make
+sure to search the open and the closed issues)</p></li>
+<li><p>Check that you are using TIRAs latest version</p></li>
+<li><p>Read the relevant <a class="reference external" href="https://tira-io.github.io/tira/">Documentation</a> to make sure you are experiencing a bug</p></li>
+</ul>
+<p><strong>How do I submit a Bug Report?</strong>
+Bug reports should contain all the relevant information needed for someone else to understand and (hopefully) reproduce
+your issue. You can report a bug using GitHub Issues as follows:</p>
+<ol class="arabic simple">
+<li><p>Make sure you have read “What is a good Bug Report?”</p></li>
+<li><p>Open a new <a class="reference external" href="https://github.com/tira-io/tira/issues/new?assignees=&amp;amp;labels=bug&amp;amp;projects=&amp;amp;template=00-bug-issue.md">Bug Issue</a></p></li>
+<li><p>Fill in the forms to the best of your abilities and try to describe the reproduction steps as concise as possible
+(e.g., only include steps that are relevant to the reproduction)</p></li>
+<li><p><strong>Make sure you do NOT leak any confidential data (e.g., API Keys or Secrets) on accident!</strong></p></li>
+</ol>
+</section>
+<section id="reporting-vulnerabilities">
+<h3>Reporting Vulnerabilities<a class="headerlink" href="#reporting-vulnerabilities" title="Link to this heading">#</a></h3>
+<p>Vulnerabilities should not be publicly disclosed until they are fixed. Please take a look at our
+<a class="reference internal" href="#SECURITY.md"><span class="xref myst">Security Policy</span></a> for more information.</p>
+</section>
+<section id="suggesting-enhancements-and-new-features">
+<h3>Suggesting Enhancements and new Features<a class="headerlink" href="#suggesting-enhancements-and-new-features" title="Link to this heading">#</a></h3>
+<p>Is there something that is bugging you (but is not a bug) or a feature you believe should be part of TIRA? Perfect!
+Please open an <a class="reference external" href="https://github.com/tira-io/tira/issues/new?assignees=&amp;amp;labels=enhancement&amp;amp;projects=&amp;amp;template=40-enhancement-issue.md">Enhancement Issue</a>
+and make sure to cover the following points to give your idea the best chance of being implemented:</p>
+<ul class="simple">
+<li><p><strong>Clearly and concisely</strong> describe the idea behind the enhancement or feature. The more people have to read, the less
+they are motivated to read your entire proposal, and the less likely they are to support it.</p></li>
+<li><p>Now that you have people hooked, you can be more elaborate: how (if at all) can the goal be achieved now? How do you
+envision it to work if your feature request or enhancement is implemented?</p></li>
+<li><p>A picture is worth a thousand words — you may add pictures to show what you envision. This is, of course, not
+required.</p></li>
+</ul>
+</section>
+<section id="contributing-code">
+<h3>Contributing Code<a class="headerlink" href="#contributing-code" title="Link to this heading">#</a></h3>
+<p>Code contributions can take many forms… from minor bug fixes, to bigger patches to entirely new features but they are
+worth nothing if the code is unreadable, unmaintainable or does not fit into TIRAs architecture. If you consider
+contributing code, please have a look at our <a class="reference external" href="https://tira-io.github.io/tira/development/contributing/guidelines.html">Code Guidelines</a>
+and read our <a class="reference external" href="https://tira-io.github.io/tira/development/index.html">Documentation for Developers</a>. We are very happy
+about all code contributions and features and with these rules we want to ensure that they can be part of TIRAs future
+even when the original developer has left TIRAs development.</p>
+</section>
+<section id="improving-the-documentation">
+<h3>Improving the Documentation<a class="headerlink" href="#improving-the-documentation" title="Link to this heading">#</a></h3>
+<p>Documentation is <em>PART OF</em> the software and not a second class citizen. Good documentation simplifies the onboarding
+process of new programmers and new users. Generally, the same guidelines apply as for
+<a class="reference internal" href="#contributing-code"><span class="xref myst">contributing code</span></a>. If you feel like some parts of the documentation are out-of-date or not clear,
+feel free to create a <a class="reference external" href="https://github.com/tira-io/tira/issues/new?assignees=&amp;amp;labels=documentation&amp;amp;projects=&amp;amp;template=50-documentation-issue.md">Documentation Issue</a>
+after you made sure that the same issue did not exist previously (open or closed).</p>
+</section>
+</section>
 <div class="toctree-wrapper compound">
 </div>
 </section>
@@ -266,14 +336,14 @@
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="../../organizers/faq.html">
+          <a class="prev-page" href="../index.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Frequently Asked Questions</div>
+                <div class="title">&lt;no title&gt;</div>
                 
               </div>
             </a>
@@ -302,8 +372,34 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Contributing</a><ul>
+<li><a class="reference internal" href="#contributing-to-tira">Contributing to TIRA</a><ul>
+<li><a class="reference internal" href="#reporting-bugs">Reporting Bugs</a></li>
+<li><a class="reference internal" href="#reporting-vulnerabilities">Reporting Vulnerabilities</a></li>
+<li><a class="reference internal" href="#suggesting-enhancements-and-new-features">Suggesting Enhancements and new Features</a></li>
+<li><a class="reference internal" href="#contributing-code">Contributing Code</a></li>
+<li><a class="reference internal" href="#improving-the-documentation">Improving the Documentation</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

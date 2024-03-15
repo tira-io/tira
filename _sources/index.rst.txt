@@ -26,13 +26,7 @@ TIRA is a platform for experiments in artificial intelligence that ensures blind
    :caption: Development
    :hidden:
 
-   development/contributing/index
-   development/frontend/index
-   development/backend/index
-   development/python-client/index
-   development/specification/index
-   development/changelog
-   development/license
+   development/index
 
 Indices and tables
 ==================
