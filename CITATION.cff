@@ -8,12 +8,12 @@ license: MIT
 preferred-citation:
   type: conference-paper
   title: Continuous Integration for Reproducible Shared Tasks with TIRA.io
-  collection-title: Lecture Notes in Computer Science
+  collection-title: Advances in Information Retrieval. 45th European Conference on IR Research (ECIR 2023)
   location: Dublin, Irland
   year: 2023
   month: 4
   conference:
-    name: Advances in Information Retrieval. 45th European Conference on IR Research (ECIR 2023)
+    name: Lecture Notes in Computer Science
     city: Berlin, Heidelberg, New York
   publisher:
     name: Springer
