@@ -5,7 +5,6 @@ from pathlib import Path
 import os
 import zipfile
 import io
-import docker
 import time
 from random import randint
 from tira.pyterrier_integration import PyTerrierIntegration

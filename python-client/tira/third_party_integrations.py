@@ -2,6 +2,7 @@ import os
 import json
 from tira.io_utils import all_lines_to_pandas
 import logging
+from pathlib import Path
 
 
 def ensure_pyterrier_is_loaded(boot_packages=("com.github.terrierteam:terrier-prf:-SNAPSHOT", ), packages=(), patch_ir_datasets=True):
@@ -142,6 +143,83 @@ def normalize_run(run, system_name, depth=1000):
 
     return run[['qid', 'Q0', 'docno', 'rank', 'score', 'system']]
 
+
+def extract_to_be_executed_notebook_from_command_or_none(command:str):
+    if command is not None and '--notebook' in command:
+        return command.split('--notebook')[1].strip().split(' ')[0].strip()
+    return None
+
+
+def extract_ast_value(v):
+    if hasattr(v, 's'):
+        # python3.7
+        return v.s
+    if hasattr(v, 'n'):
+        # python3.7
+        return v.n
+    else:
+        return v.value
+
+
+def parse_ast_extract_assignment(python_line: str):
+    try:
+        import ast
+        python_line = ast.parse(python_line).body[0]
+
+        return python_line.targets[0].id, extract_ast_value(python_line.value)
+    except:
+        return None, None
+
+
+def parse_extraction_of_tira_approach(python_line: str):
+    try:
+        import ast
+        python_line = ast.parse(python_line).body[0]
+
+        if python_line.value.func.value.attr != 'pt':
+            return None
+
+        if python_line.value.func.value.value.id != 'tira':
+            return None
+
+        if python_line.value.func.attr != 'index':
+            return None
+        
+        return extract_ast_value(python_line.value.args[0])
+    except:
+        return None
+
+
+def extract_previous_stages_from_notebook(notebook:Path):
+    if not notebook.exists():
+        return []
+
+    ret = []
+    json_notebook = json.load(open(notebook))
+    for cell in json_notebook['cells']:
+        if cell['cell_type'] == 'code':
+            for src_line in cell['source']:
+                approach = parse_extraction_of_tira_approach(src_line)
+                if approach is not None:
+                    ret += [approach]
+
+    return ret
+
+
+def extract_previous_stages_from_docker_image(image:str, command:str):
+    notebook = extract_to_be_executed_notebook_from_command_or_none(command)
+
+    if notebook is None:
+        return []
+
+    import tempfile
+    from tira.local_execution_integration import LocalExecutionIntegration as Client
+    tira = Client()
+
+    local_file = tempfile.NamedTemporaryFile().name
+    tira.export_file_from_software(notebook, local_file, image=image)
+
+    return extract_previous_stages_from_notebook(Path(local_file))
 
 def load_ir_datasets():
     # Detect if we are in the TIRA sandbox

@@ -1,0 +1,5 @@
+#docker build -t mam10eks/bash-with-notebooks:latest -f dockerfile_with_notebooks .
+from bash
+
+ADD *.ipynb /
+
