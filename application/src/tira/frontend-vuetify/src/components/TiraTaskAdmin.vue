@@ -56,7 +56,7 @@
       <v-expansion-panel>
         <v-expansion-panel-title>Overview Registered Teams</v-expansion-panel-title>
         <v-expansion-panel-text>
-          <overview-team-submissions :task="task" />
+          <overview-registered-teams :task="task" />
         </v-expansion-panel-text>
       </v-expansion-panel>
     </v-expansion-panels>
