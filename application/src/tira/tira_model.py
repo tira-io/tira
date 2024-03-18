@@ -843,7 +843,7 @@ def create_re_rank_output_on_dataset(task_id: str, vm_id: str, software_id: str,
     ]
 
     print('Input run:', path_to_run)
-    print('Rerank dir:', path_to_run)
+    print('Rerank dir:', rerank_dir)
 
     rerank_dir.mkdir(parents=True, exist_ok=True)
     register_run(dataset_id, vm_id, rerank_run_id, evaluator['evaluator_id'])

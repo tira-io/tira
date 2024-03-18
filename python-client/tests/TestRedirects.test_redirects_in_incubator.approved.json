@@ -1,4 +1,569 @@
 {
+    "ir-benchmarks/dossier/pre-retrieval-query-intent": {
+        "antique-test-20230107-training": {
+            "md5_of_first_kilobyte": "8f89286ed2b353b62f293503fc6aa6a4",
+            "redirect_url": {
+                "run_id": "2024-02-26-17-12-41",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/dossier-pre-retrieval-query-intent-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/dossier-pre-retrieval-query-intent-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "antique-test-20230107-training",
+                "run_id": "2024-02-26-17-12-41",
+                "task": "ir-benchmarks",
+                "team": "dossier"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/dossier/dataset/antique-test-20230107-training/download/2024-02-26-17-12-41.zip"
+        },
+        "argsme-touche-2020-task-1-20230209-training": {
+            "md5_of_first_kilobyte": "76dd62be13c29cf09d2e417a33ef4636",
+            "redirect_url": {
+                "run_id": "2024-02-26-17-15-36",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/dossier-pre-retrieval-query-intent-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/dossier-pre-retrieval-query-intent-clef-labs.zip",
+            "run_execution": {
+                "dataset": "argsme-touche-2020-task-1-20230209-training",
+                "run_id": "2024-02-26-17-15-36",
+                "task": "ir-benchmarks",
+                "team": "dossier"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/dossier/dataset/argsme-touche-2020-task-1-20230209-training/download/2024-02-26-17-15-36.zip"
+        },
+        "argsme-touche-2021-task-1-20230209-training": {
+            "md5_of_first_kilobyte": "76dd62be13c29cf09d2e417a33ef4636",
+            "redirect_url": {
+                "run_id": "2024-02-26-17-17-33",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/dossier-pre-retrieval-query-intent-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/dossier-pre-retrieval-query-intent-clef-labs.zip",
+            "run_execution": {
+                "dataset": "argsme-touche-2021-task-1-20230209-training",
+                "run_id": "2024-02-26-17-17-33",
+                "task": "ir-benchmarks",
+                "team": "dossier"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/dossier/dataset/argsme-touche-2021-task-1-20230209-training/download/2024-02-26-17-17-33.zip"
+        },
+        "cord19-fulltext-trec-covid-20230107-training": {
+            "md5_of_first_kilobyte": "12b751ccccec45cbd9394e58498f0377",
+            "redirect_url": {
+                "run_id": "2024-02-26-17-43-08",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/dossier-pre-retrieval-query-intent-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/dossier-pre-retrieval-query-intent-trec-medical.zip",
+            "run_execution": {
+                "dataset": "cord19-fulltext-trec-covid-20230107-training",
+                "run_id": "2024-02-26-17-43-08",
+                "task": "ir-benchmarks",
+                "team": "dossier"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/dossier/dataset/cord19-fulltext-trec-covid-20230107-training/download/2024-02-26-17-43-08.zip"
+        },
+        "cranfield-20230107-training": {
+            "md5_of_first_kilobyte": "8f89286ed2b353b62f293503fc6aa6a4",
+            "redirect_url": {
+                "run_id": "2024-02-26-17-44-46",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/dossier-pre-retrieval-query-intent-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/dossier-pre-retrieval-query-intent-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "cranfield-20230107-training",
+                "run_id": "2024-02-26-17-44-46",
+                "task": "ir-benchmarks",
+                "team": "dossier"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/dossier/dataset/cranfield-20230107-training/download/2024-02-26-17-44-46.zip"
+        },
+        "longeval-heldout-20230513-training": {
+            "md5_of_first_kilobyte": "76dd62be13c29cf09d2e417a33ef4636",
+            "redirect_url": {
+                "run_id": "2024-02-26-19-22-37",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/dossier-pre-retrieval-query-intent-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/dossier-pre-retrieval-query-intent-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-heldout-20230513-training",
+                "run_id": "2024-02-26-19-22-37",
+                "task": "ir-benchmarks",
+                "team": "dossier"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/dossier/dataset/longeval-heldout-20230513-training/download/2024-02-26-19-22-37.zip"
+        },
+        "longeval-long-september-20230513-training": {
+            "md5_of_first_kilobyte": "76dd62be13c29cf09d2e417a33ef4636",
+            "redirect_url": {
+                "run_id": "2024-02-26-19-24-16",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/dossier-pre-retrieval-query-intent-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/dossier-pre-retrieval-query-intent-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-long-september-20230513-training",
+                "run_id": "2024-02-26-19-24-16",
+                "task": "ir-benchmarks",
+                "team": "dossier"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/dossier/dataset/longeval-long-september-20230513-training/download/2024-02-26-19-24-16.zip"
+        },
+        "longeval-short-july-20230513-training": {
+            "md5_of_first_kilobyte": "76dd62be13c29cf09d2e417a33ef4636",
+            "redirect_url": {
+                "run_id": "2024-02-26-19-25-39",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/dossier-pre-retrieval-query-intent-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/dossier-pre-retrieval-query-intent-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-short-july-20230513-training",
+                "run_id": "2024-02-26-19-25-39",
+                "task": "ir-benchmarks",
+                "team": "dossier"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/dossier/dataset/longeval-short-july-20230513-training/download/2024-02-26-19-25-39.zip"
+        },
+        "longeval-train-20230513-training": {
+            "md5_of_first_kilobyte": "76dd62be13c29cf09d2e417a33ef4636",
+            "redirect_url": {
+                "run_id": "2024-02-26-19-27-33",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/dossier-pre-retrieval-query-intent-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/dossier-pre-retrieval-query-intent-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-train-20230513-training",
+                "run_id": "2024-02-26-19-27-33",
+                "task": "ir-benchmarks",
+                "team": "dossier"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/dossier/dataset/longeval-train-20230513-training/download/2024-02-26-19-27-33.zip"
+        },
+        "medline-2004-trec-genomics-2004-20230107-training": {
+            "md5_of_first_kilobyte": "12b751ccccec45cbd9394e58498f0377",
+            "redirect_url": {
+                "run_id": "2024-02-26-19-28-40",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/dossier-pre-retrieval-query-intent-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/dossier-pre-retrieval-query-intent-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2004-trec-genomics-2004-20230107-training",
+                "run_id": "2024-02-26-19-28-40",
+                "task": "ir-benchmarks",
+                "team": "dossier"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/dossier/dataset/medline-2004-trec-genomics-2004-20230107-training/download/2024-02-26-19-28-40.zip"
+        },
+        "medline-2004-trec-genomics-2005-20230107-training": {
+            "md5_of_first_kilobyte": "12b751ccccec45cbd9394e58498f0377",
+            "redirect_url": {
+                "run_id": "2024-02-26-19-30-06",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/dossier-pre-retrieval-query-intent-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/dossier-pre-retrieval-query-intent-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2004-trec-genomics-2005-20230107-training",
+                "run_id": "2024-02-26-19-30-06",
+                "task": "ir-benchmarks",
+                "team": "dossier"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/dossier/dataset/medline-2004-trec-genomics-2005-20230107-training/download/2024-02-26-19-30-06.zip"
+        },
+        "medline-2017-trec-pm-2017-20230211-training": {
+            "md5_of_first_kilobyte": "12b751ccccec45cbd9394e58498f0377",
+            "redirect_url": {
+                "run_id": "2024-02-26-19-31-16",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/dossier-pre-retrieval-query-intent-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/dossier-pre-retrieval-query-intent-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2017-trec-pm-2017-20230211-training",
+                "run_id": "2024-02-26-19-31-16",
+                "task": "ir-benchmarks",
+                "team": "dossier"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/dossier/dataset/medline-2017-trec-pm-2017-20230211-training/download/2024-02-26-19-31-16.zip"
+        },
+        "medline-2017-trec-pm-2018-20230211-training": {
+            "md5_of_first_kilobyte": "12b751ccccec45cbd9394e58498f0377",
+            "redirect_url": {
+                "run_id": "2024-02-26-19-32-28",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/dossier-pre-retrieval-query-intent-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/dossier-pre-retrieval-query-intent-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2017-trec-pm-2018-20230211-training",
+                "run_id": "2024-02-26-19-32-28",
+                "task": "ir-benchmarks",
+                "team": "dossier"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/dossier/dataset/medline-2017-trec-pm-2018-20230211-training/download/2024-02-26-19-32-28.zip"
+        },
+        "msmarco-passage-trec-dl-2019-judged-20230107-training": {
+            "md5_of_first_kilobyte": "867502cea04f6007a09cc908472308d3",
+            "redirect_url": {
+                "run_id": "2024-02-26-19-33-36",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/dossier-pre-retrieval-query-intent-trec-recent.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/dossier-pre-retrieval-query-intent-trec-recent.zip",
+            "run_execution": {
+                "dataset": "msmarco-passage-trec-dl-2019-judged-20230107-training",
+                "run_id": "2024-02-26-19-33-36",
+                "task": "ir-benchmarks",
+                "team": "dossier"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/dossier/dataset/msmarco-passage-trec-dl-2019-judged-20230107-training/download/2024-02-26-19-33-36.zip"
+        },
+        "msmarco-passage-trec-dl-2020-judged-20230107-training": {
+            "md5_of_first_kilobyte": "867502cea04f6007a09cc908472308d3",
+            "redirect_url": {
+                "run_id": "2024-02-26-19-35-37",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/dossier-pre-retrieval-query-intent-trec-recent.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/dossier-pre-retrieval-query-intent-trec-recent.zip",
+            "run_execution": {
+                "dataset": "msmarco-passage-trec-dl-2020-judged-20230107-training",
+                "run_id": "2024-02-26-19-35-37",
+                "task": "ir-benchmarks",
+                "team": "dossier"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/dossier/dataset/msmarco-passage-trec-dl-2020-judged-20230107-training/download/2024-02-26-19-35-37.zip"
+        },
+        "nfcorpus-test-20230107-training": {
+            "md5_of_first_kilobyte": "8f89286ed2b353b62f293503fc6aa6a4",
+            "redirect_url": {
+                "run_id": "2024-02-26-19-37-52",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/dossier-pre-retrieval-query-intent-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/dossier-pre-retrieval-query-intent-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "nfcorpus-test-20230107-training",
+                "run_id": "2024-02-26-19-37-52",
+                "task": "ir-benchmarks",
+                "team": "dossier"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/dossier/dataset/nfcorpus-test-20230107-training/download/2024-02-26-19-37-52.zip"
+        },
+        "trec-tip-of-the-tongue-dev-20230607-training": {
+            "md5_of_first_kilobyte": "867502cea04f6007a09cc908472308d3",
+            "redirect_url": {
+                "run_id": "2024-02-26-19-40-46",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/dossier-pre-retrieval-query-intent-trec-recent.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/dossier-pre-retrieval-query-intent-trec-recent.zip",
+            "run_execution": {
+                "dataset": "trec-tip-of-the-tongue-dev-20230607-training",
+                "run_id": "2024-02-26-19-40-46",
+                "task": "ir-benchmarks",
+                "team": "dossier"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/dossier/dataset/trec-tip-of-the-tongue-dev-20230607-training/download/2024-02-26-19-40-46.zip"
+        },
+        "vaswani-20230107-training": {
+            "md5_of_first_kilobyte": "8f89286ed2b353b62f293503fc6aa6a4",
+            "redirect_url": {
+                "run_id": "2024-02-26-19-42-46",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/dossier-pre-retrieval-query-intent-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/dossier-pre-retrieval-query-intent-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "vaswani-20230107-training",
+                "run_id": "2024-02-26-19-42-46",
+                "task": "ir-benchmarks",
+                "team": "dossier"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/dossier/dataset/vaswani-20230107-training/download/2024-02-26-19-42-46.zip"
+        }
+    },
+    "ir-benchmarks/ows/query-segmentation-hyb-a": {
+        "antique-test-20230107-training": {
+            "md5_of_first_kilobyte": "ce39313e67b457bbd964dd1717cc7770",
+            "redirect_url": {
+                "run_id": "2024-02-25-06-14-01",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/ows-query-segmentation-hyb-a-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/ows-query-segmentation-hyb-a-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "antique-test-20230107-training",
+                "run_id": "2024-02-25-06-14-01",
+                "task": "ir-benchmarks",
+                "team": "ows"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/ows/dataset/antique-test-20230107-training/download/2024-02-25-06-14-01.zip"
+        },
+        "argsme-touche-2020-task-1-20230209-training": {
+            "md5_of_first_kilobyte": "35b20e0de5f5eacb6f3bf934ad323b48",
+            "redirect_url": {
+                "run_id": "2024-02-25-06-15-29",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/ows-query-segmentation-hyb-a-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/ows-query-segmentation-hyb-a-clef-labs.zip",
+            "run_execution": {
+                "dataset": "argsme-touche-2020-task-1-20230209-training",
+                "run_id": "2024-02-25-06-15-29",
+                "task": "ir-benchmarks",
+                "team": "ows"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/ows/dataset/argsme-touche-2020-task-1-20230209-training/download/2024-02-25-06-15-29.zip"
+        },
+        "argsme-touche-2021-task-1-20230209-training": {
+            "md5_of_first_kilobyte": "35b20e0de5f5eacb6f3bf934ad323b48",
+            "redirect_url": {
+                "run_id": "2024-02-24-23-35-21",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/ows-query-segmentation-hyb-a-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/ows-query-segmentation-hyb-a-clef-labs.zip",
+            "run_execution": {
+                "dataset": "argsme-touche-2021-task-1-20230209-training",
+                "run_id": "2024-02-24-23-35-21",
+                "task": "ir-benchmarks",
+                "team": "ows"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/ows/dataset/argsme-touche-2021-task-1-20230209-training/download/2024-02-24-23-35-21.zip"
+        },
+        "cord19-fulltext-trec-covid-20230107-training": {
+            "md5_of_first_kilobyte": "43c9c9da256be7b3ba55226d5c245206",
+            "redirect_url": {
+                "run_id": "2024-02-25-00-17-52",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/ows-query-segmentation-hyb-a-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/ows-query-segmentation-hyb-a-trec-medical.zip",
+            "run_execution": {
+                "dataset": "cord19-fulltext-trec-covid-20230107-training",
+                "run_id": "2024-02-25-00-17-52",
+                "task": "ir-benchmarks",
+                "team": "ows"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/ows/dataset/cord19-fulltext-trec-covid-20230107-training/download/2024-02-25-00-17-52.zip"
+        },
+        "longeval-heldout-20230513-training": {
+            "md5_of_first_kilobyte": "35b20e0de5f5eacb6f3bf934ad323b48",
+            "redirect_url": {
+                "run_id": "2024-02-25-08-09-09",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/ows-query-segmentation-hyb-a-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/ows-query-segmentation-hyb-a-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-heldout-20230513-training",
+                "run_id": "2024-02-25-08-09-09",
+                "task": "ir-benchmarks",
+                "team": "ows"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/ows/dataset/longeval-heldout-20230513-training/download/2024-02-25-08-09-09.zip"
+        },
+        "longeval-long-september-20230513-training": {
+            "md5_of_first_kilobyte": "35b20e0de5f5eacb6f3bf934ad323b48",
+            "redirect_url": {
+                "run_id": "2024-02-25-08-10-24",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/ows-query-segmentation-hyb-a-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/ows-query-segmentation-hyb-a-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-long-september-20230513-training",
+                "run_id": "2024-02-25-08-10-24",
+                "task": "ir-benchmarks",
+                "team": "ows"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/ows/dataset/longeval-long-september-20230513-training/download/2024-02-25-08-10-24.zip"
+        },
+        "longeval-short-july-20230513-training": {
+            "md5_of_first_kilobyte": "35b20e0de5f5eacb6f3bf934ad323b48",
+            "redirect_url": {
+                "run_id": "2024-02-25-08-11-42",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/ows-query-segmentation-hyb-a-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/ows-query-segmentation-hyb-a-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-short-july-20230513-training",
+                "run_id": "2024-02-25-08-11-42",
+                "task": "ir-benchmarks",
+                "team": "ows"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/ows/dataset/longeval-short-july-20230513-training/download/2024-02-25-08-11-42.zip"
+        },
+        "longeval-train-20230513-training": {
+            "md5_of_first_kilobyte": "35b20e0de5f5eacb6f3bf934ad323b48",
+            "redirect_url": {
+                "run_id": "2024-02-25-08-12-47",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/ows-query-segmentation-hyb-a-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/ows-query-segmentation-hyb-a-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-train-20230513-training",
+                "run_id": "2024-02-25-08-12-47",
+                "task": "ir-benchmarks",
+                "team": "ows"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/ows/dataset/longeval-train-20230513-training/download/2024-02-25-08-12-47.zip"
+        },
+        "medline-2004-trec-genomics-2004-20230107-training": {
+            "md5_of_first_kilobyte": "43c9c9da256be7b3ba55226d5c245206",
+            "redirect_url": {
+                "run_id": "2024-02-25-06-54-36",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/ows-query-segmentation-hyb-a-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/ows-query-segmentation-hyb-a-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2004-trec-genomics-2004-20230107-training",
+                "run_id": "2024-02-25-06-54-36",
+                "task": "ir-benchmarks",
+                "team": "ows"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/ows/dataset/medline-2004-trec-genomics-2004-20230107-training/download/2024-02-25-06-54-36.zip"
+        },
+        "medline-2017-trec-pm-2017-20230211-training": {
+            "md5_of_first_kilobyte": "43c9c9da256be7b3ba55226d5c245206",
+            "redirect_url": {
+                "run_id": "2024-02-25-06-58-31",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/ows-query-segmentation-hyb-a-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/ows-query-segmentation-hyb-a-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2017-trec-pm-2017-20230211-training",
+                "run_id": "2024-02-25-06-58-31",
+                "task": "ir-benchmarks",
+                "team": "ows"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/ows/dataset/medline-2017-trec-pm-2017-20230211-training/download/2024-02-25-06-58-31.zip"
+        },
+        "medline-2017-trec-pm-2018-20230211-training": {
+            "md5_of_first_kilobyte": "43c9c9da256be7b3ba55226d5c245206",
+            "redirect_url": {
+                "run_id": "2024-02-25-08-00-37",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/ows-query-segmentation-hyb-a-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/ows-query-segmentation-hyb-a-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2017-trec-pm-2018-20230211-training",
+                "run_id": "2024-02-25-08-00-37",
+                "task": "ir-benchmarks",
+                "team": "ows"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/ows/dataset/medline-2017-trec-pm-2018-20230211-training/download/2024-02-25-08-00-37.zip"
+        },
+        "msmarco-passage-trec-dl-2019-judged-20230107-training": {
+            "md5_of_first_kilobyte": "849bbf1335d9474ec0459442ffd4e087",
+            "redirect_url": {
+                "run_id": "2024-02-25-07-57-14",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/ows-query-segmentation-hyb-a-trec-recent.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/ows-query-segmentation-hyb-a-trec-recent.zip",
+            "run_execution": {
+                "dataset": "msmarco-passage-trec-dl-2019-judged-20230107-training",
+                "run_id": "2024-02-25-07-57-14",
+                "task": "ir-benchmarks",
+                "team": "ows"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/ows/dataset/msmarco-passage-trec-dl-2019-judged-20230107-training/download/2024-02-25-07-57-14.zip"
+        },
+        "msmarco-passage-trec-dl-2020-judged-20230107-training": {
+            "md5_of_first_kilobyte": "849bbf1335d9474ec0459442ffd4e087",
+            "redirect_url": {
+                "run_id": "2024-02-25-07-58-43",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/ows-query-segmentation-hyb-a-trec-recent.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/ows-query-segmentation-hyb-a-trec-recent.zip",
+            "run_execution": {
+                "dataset": "msmarco-passage-trec-dl-2020-judged-20230107-training",
+                "run_id": "2024-02-25-07-58-43",
+                "task": "ir-benchmarks",
+                "team": "ows"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/ows/dataset/msmarco-passage-trec-dl-2020-judged-20230107-training/download/2024-02-25-07-58-43.zip"
+        },
+        "nfcorpus-test-20230107-training": {
+            "md5_of_first_kilobyte": "ce39313e67b457bbd964dd1717cc7770",
+            "redirect_url": {
+                "run_id": "2024-02-25-09-31-46",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/ows-query-segmentation-hyb-a-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/ows-query-segmentation-hyb-a-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "nfcorpus-test-20230107-training",
+                "run_id": "2024-02-25-09-31-46",
+                "task": "ir-benchmarks",
+                "team": "ows"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/ows/dataset/nfcorpus-test-20230107-training/download/2024-02-25-09-31-46.zip"
+        },
+        "vaswani-20230107-training": {
+            "md5_of_first_kilobyte": "ce39313e67b457bbd964dd1717cc7770",
+            "redirect_url": {
+                "run_id": "2024-02-25-09-10-19",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/ows-query-segmentation-hyb-a-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/ows-query-segmentation-hyb-a-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "vaswani-20230107-training",
+                "run_id": "2024-02-25-09-10-19",
+                "task": "ir-benchmarks",
+                "team": "ows"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/ows/dataset/vaswani-20230107-training/download/2024-02-25-09-10-19.zip"
+        }
+    },
     "ir-benchmarks/qpptk/all-predictors": {
         "antique-test-20230107-training": {
             "md5_of_first_kilobyte": "636ed5757d023857a106d976dbad29dc",

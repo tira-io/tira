@@ -54,6 +54,12 @@ class Command(BaseCommand):
                 },
                 'salamander': {
                     'classify-comparative-queries': 'qpptk-all-predictors',
+                },
+                'ows': {
+                    'query-segmentation-hyb-a': 'qpptk-all-predictors',
+                },
+                'dossier': {
+                    'pre-retrieval-query-intent': 'qpptk-all-predictors'
                 }
                 # pre-retrieval query intent, post-retrieval query intent
                 # splade
