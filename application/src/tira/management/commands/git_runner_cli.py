@@ -175,6 +175,9 @@ class Command(BaseCommand):
             'gov-trec-web-2002-20230209-training', 'gov-trec-web-2003-20230209-training', 'gov-trec-web-2004-20230209-training',
             'gov2-trec-tb-2006-20230209-training', 'gov2-trec-tb-2004-20230209-training', 'gov2-trec-tb-2005-20230209-training',
             'medline-2017-trec-pm-2017-20230211-training', 'medline-2017-trec-pm-2018-20230211-training',
+            'clueweb12-trec-misinfo-2019-20240214-training', 'longeval-heldout-20230513-training',
+            'longeval-long-september-20230513-training', 'longeval-short-july-20230513-training',
+            'longeval-train-20230513-training'
             ]
             for dataset in datasets:
                 print(dataset)
