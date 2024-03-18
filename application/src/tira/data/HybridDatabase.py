@@ -669,6 +669,8 @@ class HybridDatabase(object):
         return ret
 
     def get_count_of_team_submissions(self, task_id):
+            task = self.get_task(task_id, False)
+            all_teams_on_task = set([i.strip() for i in task['allowed_task_teams'].split() if i.strip()])
             prepared_statement = """
             SELECT
                 tira_dockersoftware.vm_id as vm,
@@ -694,7 +696,9 @@ class HybridDatabase(object):
             for vm, to_review, submissions, total in rows:
                 if vm is not None:
                     ret += [{'team': vm, 'reviewed': submissions, 'to_review': to_review, 'total': total, 'link': link_to_discourse_team(vm)}]
-            print(ret)
+            for team in all_teams_on_task:
+                if team not in [t['team'] for t in ret]:
+                    ret += [{'team': team, 'reviewed': 0, 'to_review': 0, 'total': 0, 'link': link_to_discourse_team(team)}]
             return ret
 
     def runs(self, task_id, dataset_id, vm_id, software_id):
