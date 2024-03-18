@@ -1162,5 +1162,2777 @@
             },
             "run_url": "https://www.tira.io/task/ir-benchmarks/user/salamander/dataset/vaswani-20230107-training/download/2024-02-25-20-40-09.zip"
         }
+    },
+    "ir-benchmarks/tu-dresden-03/qe-flan-ul2-cot": {
+        "antique-test-20230107-training": {
+            "md5_of_first_kilobyte": "b61b092ee4fc52d02620664800070000",
+            "redirect_url": {
+                "run_id": "2024-03-12-05-24-20",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-cot-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-cot-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "antique-test-20230107-training",
+                "run_id": "2024-03-12-05-24-20",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/antique-test-20230107-training/download/2024-03-12-05-24-20.zip"
+        },
+        "argsme-touche-2020-task-1-20230209-training": {
+            "md5_of_first_kilobyte": "428adab8062f22b1df340b2fa84e6d33",
+            "redirect_url": {
+                "run_id": "2024-03-12-05-28-04",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-cot-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-cot-clef-labs.zip",
+            "run_execution": {
+                "dataset": "argsme-touche-2020-task-1-20230209-training",
+                "run_id": "2024-03-12-05-28-04",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/argsme-touche-2020-task-1-20230209-training/download/2024-03-12-05-28-04.zip"
+        },
+        "argsme-touche-2021-task-1-20230209-training": {
+            "md5_of_first_kilobyte": "428adab8062f22b1df340b2fa84e6d33",
+            "redirect_url": {
+                "run_id": "2024-03-12-05-31-40",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-cot-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-cot-clef-labs.zip",
+            "run_execution": {
+                "dataset": "argsme-touche-2021-task-1-20230209-training",
+                "run_id": "2024-03-12-05-31-40",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/argsme-touche-2021-task-1-20230209-training/download/2024-03-12-05-31-40.zip"
+        },
+        "cord19-fulltext-trec-covid-20230107-training": {
+            "md5_of_first_kilobyte": "7477254dba1c3aafe520131cdfd6abd7",
+            "redirect_url": {
+                "run_id": "2024-03-12-05-45-38",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-cot-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-cot-trec-medical.zip",
+            "run_execution": {
+                "dataset": "cord19-fulltext-trec-covid-20230107-training",
+                "run_id": "2024-03-12-05-45-38",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/cord19-fulltext-trec-covid-20230107-training/download/2024-03-12-05-45-38.zip"
+        },
+        "cranfield-20230107-training": {
+            "md5_of_first_kilobyte": "b61b092ee4fc52d02620664800070000",
+            "redirect_url": {
+                "run_id": "2024-03-12-05-49-13",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-cot-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-cot-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "cranfield-20230107-training",
+                "run_id": "2024-03-12-05-49-13",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/cranfield-20230107-training/download/2024-03-12-05-49-13.zip"
+        },
+        "longeval-heldout-20230513-training": {
+            "md5_of_first_kilobyte": "428adab8062f22b1df340b2fa84e6d33",
+            "redirect_url": {
+                "run_id": "2024-03-12-06-57-04",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-cot-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-cot-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-heldout-20230513-training",
+                "run_id": "2024-03-12-06-57-04",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/longeval-heldout-20230513-training/download/2024-03-12-06-57-04.zip"
+        },
+        "longeval-long-september-20230513-training": {
+            "md5_of_first_kilobyte": "428adab8062f22b1df340b2fa84e6d33",
+            "redirect_url": {
+                "run_id": "2024-03-12-07-01-01",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-cot-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-cot-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-long-september-20230513-training",
+                "run_id": "2024-03-12-07-01-01",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/longeval-long-september-20230513-training/download/2024-03-12-07-01-01.zip"
+        },
+        "longeval-short-july-20230513-training": {
+            "md5_of_first_kilobyte": "428adab8062f22b1df340b2fa84e6d33",
+            "redirect_url": {
+                "run_id": "2024-03-12-07-04-50",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-cot-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-cot-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-short-july-20230513-training",
+                "run_id": "2024-03-12-07-04-50",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/longeval-short-july-20230513-training/download/2024-03-12-07-04-50.zip"
+        },
+        "longeval-train-20230513-training": {
+            "md5_of_first_kilobyte": "428adab8062f22b1df340b2fa84e6d33",
+            "redirect_url": {
+                "run_id": "2024-03-12-07-08-41",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-cot-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-cot-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-train-20230513-training",
+                "run_id": "2024-03-12-07-08-41",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/longeval-train-20230513-training/download/2024-03-12-07-08-41.zip"
+        },
+        "medline-2004-trec-genomics-2004-20230107-training": {
+            "md5_of_first_kilobyte": "7477254dba1c3aafe520131cdfd6abd7",
+            "redirect_url": {
+                "run_id": "2024-03-12-06-23-45",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-cot-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-cot-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2004-trec-genomics-2004-20230107-training",
+                "run_id": "2024-03-12-06-23-45",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/medline-2004-trec-genomics-2004-20230107-training/download/2024-03-12-06-23-45.zip"
+        },
+        "medline-2004-trec-genomics-2005-20230107-training": {
+            "md5_of_first_kilobyte": "7477254dba1c3aafe520131cdfd6abd7",
+            "redirect_url": {
+                "run_id": "2024-03-12-06-27-14",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-cot-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-cot-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2004-trec-genomics-2005-20230107-training",
+                "run_id": "2024-03-12-06-27-14",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/medline-2004-trec-genomics-2005-20230107-training/download/2024-03-12-06-27-14.zip"
+        },
+        "medline-2017-trec-pm-2017-20230211-training": {
+            "md5_of_first_kilobyte": "7477254dba1c3aafe520131cdfd6abd7",
+            "redirect_url": {
+                "run_id": "2024-03-12-06-30-44",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-cot-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-cot-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2017-trec-pm-2017-20230211-training",
+                "run_id": "2024-03-12-06-30-44",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/medline-2017-trec-pm-2017-20230211-training/download/2024-03-12-06-30-44.zip"
+        },
+        "medline-2017-trec-pm-2018-20230211-training": {
+            "md5_of_first_kilobyte": "7477254dba1c3aafe520131cdfd6abd7",
+            "redirect_url": {
+                "run_id": "2024-03-12-06-34-03",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-cot-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-cot-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2017-trec-pm-2018-20230211-training",
+                "run_id": "2024-03-12-06-34-03",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/medline-2017-trec-pm-2018-20230211-training/download/2024-03-12-06-34-03.zip"
+        },
+        "msmarco-passage-trec-dl-2019-judged-20230107-training": {
+            "md5_of_first_kilobyte": "e10024f8625b506a676e39d709e20e67",
+            "redirect_url": {
+                "run_id": "2024-03-12-06-37-28",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-cot-trec-recent.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-cot-trec-recent.zip",
+            "run_execution": {
+                "dataset": "msmarco-passage-trec-dl-2019-judged-20230107-training",
+                "run_id": "2024-03-12-06-37-28",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/msmarco-passage-trec-dl-2019-judged-20230107-training/download/2024-03-12-06-37-28.zip"
+        },
+        "msmarco-passage-trec-dl-2020-judged-20230107-training": {
+            "md5_of_first_kilobyte": "e10024f8625b506a676e39d709e20e67",
+            "redirect_url": {
+                "run_id": "2024-03-12-06-42-04",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-cot-trec-recent.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-cot-trec-recent.zip",
+            "run_execution": {
+                "dataset": "msmarco-passage-trec-dl-2020-judged-20230107-training",
+                "run_id": "2024-03-12-06-42-04",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/msmarco-passage-trec-dl-2020-judged-20230107-training/download/2024-03-12-06-42-04.zip"
+        },
+        "nfcorpus-test-20230107-training": {
+            "md5_of_first_kilobyte": "b61b092ee4fc52d02620664800070000",
+            "redirect_url": {
+                "run_id": "2024-03-12-06-45-38",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-cot-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-cot-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "nfcorpus-test-20230107-training",
+                "run_id": "2024-03-12-06-45-38",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/nfcorpus-test-20230107-training/download/2024-03-12-06-45-38.zip"
+        },
+        "trec-tip-of-the-tongue-dev-20230607-training": {
+            "md5_of_first_kilobyte": "e10024f8625b506a676e39d709e20e67",
+            "redirect_url": {
+                "run_id": "2024-03-12-07-13-34",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-cot-trec-recent.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-cot-trec-recent.zip",
+            "run_execution": {
+                "dataset": "trec-tip-of-the-tongue-dev-20230607-training",
+                "run_id": "2024-03-12-07-13-34",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/trec-tip-of-the-tongue-dev-20230607-training/download/2024-03-12-07-13-34.zip"
+        },
+        "vaswani-20230107-training": {
+            "md5_of_first_kilobyte": "b61b092ee4fc52d02620664800070000",
+            "redirect_url": {
+                "run_id": "2024-03-12-06-49-24",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-cot-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-cot-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "vaswani-20230107-training",
+                "run_id": "2024-03-12-06-49-24",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/vaswani-20230107-training/download/2024-03-12-06-49-24.zip"
+        }
+    },
+    "ir-benchmarks/tu-dresden-03/qe-flan-ul2-sq-fs": {
+        "antique-test-20230107-training": {
+            "md5_of_first_kilobyte": "4dd45abdfde47e64903973ff4951e854",
+            "redirect_url": {
+                "run_id": "2024-03-12-10-02-37",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-fs-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-fs-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "antique-test-20230107-training",
+                "run_id": "2024-03-12-10-02-37",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/antique-test-20230107-training/download/2024-03-12-10-02-37.zip"
+        },
+        "argsme-touche-2020-task-1-20230209-training": {
+            "md5_of_first_kilobyte": "f61f38d0eda2686569fd203c51610154",
+            "redirect_url": {
+                "run_id": "2024-03-12-10-06-10",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-fs-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-fs-clef-labs.zip",
+            "run_execution": {
+                "dataset": "argsme-touche-2020-task-1-20230209-training",
+                "run_id": "2024-03-12-10-06-10",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/argsme-touche-2020-task-1-20230209-training/download/2024-03-12-10-06-10.zip"
+        },
+        "argsme-touche-2021-task-1-20230209-training": {
+            "md5_of_first_kilobyte": "f61f38d0eda2686569fd203c51610154",
+            "redirect_url": {
+                "run_id": "2024-03-12-10-09-37",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-fs-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-fs-clef-labs.zip",
+            "run_execution": {
+                "dataset": "argsme-touche-2021-task-1-20230209-training",
+                "run_id": "2024-03-12-10-09-37",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/argsme-touche-2021-task-1-20230209-training/download/2024-03-12-10-09-37.zip"
+        },
+        "cord19-fulltext-trec-covid-20230107-training": {
+            "md5_of_first_kilobyte": "b7b3e4dd2093e86a2b8f460021e05ae1",
+            "redirect_url": {
+                "run_id": "2024-03-12-10-28-22",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-fs-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-fs-trec-medical.zip",
+            "run_execution": {
+                "dataset": "cord19-fulltext-trec-covid-20230107-training",
+                "run_id": "2024-03-12-10-28-22",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/cord19-fulltext-trec-covid-20230107-training/download/2024-03-12-10-28-22.zip"
+        },
+        "cranfield-20230107-training": {
+            "md5_of_first_kilobyte": "4dd45abdfde47e64903973ff4951e854",
+            "redirect_url": {
+                "run_id": "2024-03-12-10-30-49",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-fs-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-fs-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "cranfield-20230107-training",
+                "run_id": "2024-03-12-10-30-49",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/cranfield-20230107-training/download/2024-03-12-10-30-49.zip"
+        },
+        "longeval-heldout-20230513-training": {
+            "md5_of_first_kilobyte": "f61f38d0eda2686569fd203c51610154",
+            "redirect_url": {
+                "run_id": "2024-03-12-11-13-18",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-fs-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-fs-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-heldout-20230513-training",
+                "run_id": "2024-03-12-11-13-18",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/longeval-heldout-20230513-training/download/2024-03-12-11-13-18.zip"
+        },
+        "longeval-long-september-20230513-training": {
+            "md5_of_first_kilobyte": "f61f38d0eda2686569fd203c51610154",
+            "redirect_url": {
+                "run_id": "2024-03-12-11-15-27",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-fs-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-fs-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-long-september-20230513-training",
+                "run_id": "2024-03-12-11-15-27",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/longeval-long-september-20230513-training/download/2024-03-12-11-15-27.zip"
+        },
+        "longeval-short-july-20230513-training": {
+            "md5_of_first_kilobyte": "f61f38d0eda2686569fd203c51610154",
+            "redirect_url": {
+                "run_id": "2024-03-12-11-17-17",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-fs-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-fs-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-short-july-20230513-training",
+                "run_id": "2024-03-12-11-17-17",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/longeval-short-july-20230513-training/download/2024-03-12-11-17-17.zip"
+        },
+        "longeval-train-20230513-training": {
+            "md5_of_first_kilobyte": "f61f38d0eda2686569fd203c51610154",
+            "redirect_url": {
+                "run_id": "2024-03-12-11-19-15",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-fs-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-fs-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-train-20230513-training",
+                "run_id": "2024-03-12-11-19-15",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/longeval-train-20230513-training/download/2024-03-12-11-19-15.zip"
+        },
+        "medline-2004-trec-genomics-2004-20230107-training": {
+            "md5_of_first_kilobyte": "b7b3e4dd2093e86a2b8f460021e05ae1",
+            "redirect_url": {
+                "run_id": "2024-03-12-10-50-07",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-fs-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-fs-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2004-trec-genomics-2004-20230107-training",
+                "run_id": "2024-03-12-10-50-07",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/medline-2004-trec-genomics-2004-20230107-training/download/2024-03-12-10-50-07.zip"
+        },
+        "medline-2004-trec-genomics-2005-20230107-training": {
+            "md5_of_first_kilobyte": "b7b3e4dd2093e86a2b8f460021e05ae1",
+            "redirect_url": {
+                "run_id": "2024-03-12-10-52-16",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-fs-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-fs-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2004-trec-genomics-2005-20230107-training",
+                "run_id": "2024-03-12-10-52-16",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/medline-2004-trec-genomics-2005-20230107-training/download/2024-03-12-10-52-16.zip"
+        },
+        "medline-2017-trec-pm-2017-20230211-training": {
+            "md5_of_first_kilobyte": "b7b3e4dd2093e86a2b8f460021e05ae1",
+            "redirect_url": {
+                "run_id": "2024-03-12-10-58-26",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-fs-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-fs-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2017-trec-pm-2017-20230211-training",
+                "run_id": "2024-03-12-10-58-26",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/medline-2017-trec-pm-2017-20230211-training/download/2024-03-12-10-58-26.zip"
+        },
+        "medline-2017-trec-pm-2018-20230211-training": {
+            "md5_of_first_kilobyte": "b7b3e4dd2093e86a2b8f460021e05ae1",
+            "redirect_url": {
+                "run_id": "2024-03-12-11-00-24",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-fs-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-fs-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2017-trec-pm-2018-20230211-training",
+                "run_id": "2024-03-12-11-00-24",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/medline-2017-trec-pm-2018-20230211-training/download/2024-03-12-11-00-24.zip"
+        },
+        "msmarco-passage-trec-dl-2019-judged-20230107-training": {
+            "md5_of_first_kilobyte": "fff8b84c1ea298ff71db225090671bce",
+            "redirect_url": {
+                "run_id": "2024-03-12-11-02-51",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-fs-trec-recent.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-fs-trec-recent.zip",
+            "run_execution": {
+                "dataset": "msmarco-passage-trec-dl-2019-judged-20230107-training",
+                "run_id": "2024-03-12-11-02-51",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/msmarco-passage-trec-dl-2019-judged-20230107-training/download/2024-03-12-11-02-51.zip"
+        },
+        "msmarco-passage-trec-dl-2020-judged-20230107-training": {
+            "md5_of_first_kilobyte": "fff8b84c1ea298ff71db225090671bce",
+            "redirect_url": {
+                "run_id": "2024-03-12-11-04-38",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-fs-trec-recent.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-fs-trec-recent.zip",
+            "run_execution": {
+                "dataset": "msmarco-passage-trec-dl-2020-judged-20230107-training",
+                "run_id": "2024-03-12-11-04-38",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/msmarco-passage-trec-dl-2020-judged-20230107-training/download/2024-03-12-11-04-38.zip"
+        },
+        "nfcorpus-test-20230107-training": {
+            "md5_of_first_kilobyte": "4dd45abdfde47e64903973ff4951e854",
+            "redirect_url": {
+                "run_id": "2024-03-12-11-06-57",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-fs-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-fs-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "nfcorpus-test-20230107-training",
+                "run_id": "2024-03-12-11-06-57",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/nfcorpus-test-20230107-training/download/2024-03-12-11-06-57.zip"
+        },
+        "trec-tip-of-the-tongue-dev-20230607-training": {
+            "md5_of_first_kilobyte": "fff8b84c1ea298ff71db225090671bce",
+            "redirect_url": {
+                "run_id": "2024-03-12-11-21-42",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-fs-trec-recent.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-fs-trec-recent.zip",
+            "run_execution": {
+                "dataset": "trec-tip-of-the-tongue-dev-20230607-training",
+                "run_id": "2024-03-12-11-21-42",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/trec-tip-of-the-tongue-dev-20230607-training/download/2024-03-12-11-21-42.zip"
+        },
+        "vaswani-20230107-training": {
+            "md5_of_first_kilobyte": "4dd45abdfde47e64903973ff4951e854",
+            "redirect_url": {
+                "run_id": "2024-03-12-11-08-58",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-fs-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-fs-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "vaswani-20230107-training",
+                "run_id": "2024-03-12-11-08-58",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/vaswani-20230107-training/download/2024-03-12-11-08-58.zip"
+        }
+    },
+    "ir-benchmarks/tu-dresden-03/qe-flan-ul2-sq-zs": {
+        "antique-test-20230107-training": {
+            "md5_of_first_kilobyte": "44898758956ec1260aa9fac120d2fbcf",
+            "redirect_url": {
+                "run_id": "2024-03-12-11-42-21",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-zs-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-zs-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "antique-test-20230107-training",
+                "run_id": "2024-03-12-11-42-21",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/antique-test-20230107-training/download/2024-03-12-11-42-21.zip"
+        },
+        "argsme-touche-2020-task-1-20230209-training": {
+            "md5_of_first_kilobyte": "3b615927c5d561a0d737f5a0fc68a058",
+            "redirect_url": {
+                "run_id": "2024-03-12-11-44-07",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-zs-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-zs-clef-labs.zip",
+            "run_execution": {
+                "dataset": "argsme-touche-2020-task-1-20230209-training",
+                "run_id": "2024-03-12-11-44-07",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/argsme-touche-2020-task-1-20230209-training/download/2024-03-12-11-44-07.zip"
+        },
+        "argsme-touche-2021-task-1-20230209-training": {
+            "md5_of_first_kilobyte": "3b615927c5d561a0d737f5a0fc68a058",
+            "redirect_url": {
+                "run_id": "2024-03-12-11-46-01",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-zs-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-zs-clef-labs.zip",
+            "run_execution": {
+                "dataset": "argsme-touche-2021-task-1-20230209-training",
+                "run_id": "2024-03-12-11-46-01",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/argsme-touche-2021-task-1-20230209-training/download/2024-03-12-11-46-01.zip"
+        },
+        "cord19-fulltext-trec-covid-20230107-training": {
+            "md5_of_first_kilobyte": "beadb1f132408c8384c6da5bee071db5",
+            "redirect_url": {
+                "run_id": "2024-03-12-12-44-56",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-zs-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-zs-trec-medical.zip",
+            "run_execution": {
+                "dataset": "cord19-fulltext-trec-covid-20230107-training",
+                "run_id": "2024-03-12-12-44-56",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/cord19-fulltext-trec-covid-20230107-training/download/2024-03-12-12-44-56.zip"
+        },
+        "cranfield-20230107-training": {
+            "md5_of_first_kilobyte": "44898758956ec1260aa9fac120d2fbcf",
+            "redirect_url": {
+                "run_id": "2024-03-12-12-47-07",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-zs-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-zs-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "cranfield-20230107-training",
+                "run_id": "2024-03-12-12-47-07",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/cranfield-20230107-training/download/2024-03-12-12-47-07.zip"
+        },
+        "longeval-heldout-20230513-training": {
+            "md5_of_first_kilobyte": "3b615927c5d561a0d737f5a0fc68a058",
+            "redirect_url": {
+                "run_id": "2024-03-12-13-36-26",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-zs-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-zs-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-heldout-20230513-training",
+                "run_id": "2024-03-12-13-36-26",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/longeval-heldout-20230513-training/download/2024-03-12-13-36-26.zip"
+        },
+        "longeval-long-september-20230513-training": {
+            "md5_of_first_kilobyte": "3b615927c5d561a0d737f5a0fc68a058",
+            "redirect_url": {
+                "run_id": "2024-03-12-13-38-45",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-zs-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-zs-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-long-september-20230513-training",
+                "run_id": "2024-03-12-13-38-45",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/longeval-long-september-20230513-training/download/2024-03-12-13-38-45.zip"
+        },
+        "longeval-short-july-20230513-training": {
+            "md5_of_first_kilobyte": "3b615927c5d561a0d737f5a0fc68a058",
+            "redirect_url": {
+                "run_id": "2024-03-12-13-41-03",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-zs-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-zs-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-short-july-20230513-training",
+                "run_id": "2024-03-12-13-41-03",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/longeval-short-july-20230513-training/download/2024-03-12-13-41-03.zip"
+        },
+        "longeval-train-20230513-training": {
+            "md5_of_first_kilobyte": "3b615927c5d561a0d737f5a0fc68a058",
+            "redirect_url": {
+                "run_id": "2024-03-12-13-43-24",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-zs-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-zs-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-train-20230513-training",
+                "run_id": "2024-03-12-13-43-24",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/longeval-train-20230513-training/download/2024-03-12-13-43-24.zip"
+        },
+        "medline-2004-trec-genomics-2004-20230107-training": {
+            "md5_of_first_kilobyte": "beadb1f132408c8384c6da5bee071db5",
+            "redirect_url": {
+                "run_id": "2024-03-12-13-09-45",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-zs-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-zs-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2004-trec-genomics-2004-20230107-training",
+                "run_id": "2024-03-12-13-09-45",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/medline-2004-trec-genomics-2004-20230107-training/download/2024-03-12-13-09-45.zip"
+        },
+        "medline-2004-trec-genomics-2005-20230107-training": {
+            "md5_of_first_kilobyte": "beadb1f132408c8384c6da5bee071db5",
+            "redirect_url": {
+                "run_id": "2024-03-12-13-11-55",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-zs-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-zs-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2004-trec-genomics-2005-20230107-training",
+                "run_id": "2024-03-12-13-11-55",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/medline-2004-trec-genomics-2005-20230107-training/download/2024-03-12-13-11-55.zip"
+        },
+        "medline-2017-trec-pm-2017-20230211-training": {
+            "md5_of_first_kilobyte": "beadb1f132408c8384c6da5bee071db5",
+            "redirect_url": {
+                "run_id": "2024-03-12-13-13-39",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-zs-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-zs-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2017-trec-pm-2017-20230211-training",
+                "run_id": "2024-03-12-13-13-39",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/medline-2017-trec-pm-2017-20230211-training/download/2024-03-12-13-13-39.zip"
+        },
+        "medline-2017-trec-pm-2018-20230211-training": {
+            "md5_of_first_kilobyte": "beadb1f132408c8384c6da5bee071db5",
+            "redirect_url": {
+                "run_id": "2024-03-12-13-15-57",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-zs-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-zs-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2017-trec-pm-2018-20230211-training",
+                "run_id": "2024-03-12-13-15-57",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/medline-2017-trec-pm-2018-20230211-training/download/2024-03-12-13-15-57.zip"
+        },
+        "msmarco-passage-trec-dl-2019-judged-20230107-training": {
+            "md5_of_first_kilobyte": "226f8c56b7d4ba00516510aaf45028f1",
+            "redirect_url": {
+                "run_id": "2024-03-12-13-22-06",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-zs-trec-recent.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-zs-trec-recent.zip",
+            "run_execution": {
+                "dataset": "msmarco-passage-trec-dl-2019-judged-20230107-training",
+                "run_id": "2024-03-12-13-22-06",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/msmarco-passage-trec-dl-2019-judged-20230107-training/download/2024-03-12-13-22-06.zip"
+        },
+        "msmarco-passage-trec-dl-2020-judged-20230107-training": {
+            "md5_of_first_kilobyte": "226f8c56b7d4ba00516510aaf45028f1",
+            "redirect_url": {
+                "run_id": "2024-03-12-13-24-02",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-zs-trec-recent.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-zs-trec-recent.zip",
+            "run_execution": {
+                "dataset": "msmarco-passage-trec-dl-2020-judged-20230107-training",
+                "run_id": "2024-03-12-13-24-02",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/msmarco-passage-trec-dl-2020-judged-20230107-training/download/2024-03-12-13-24-02.zip"
+        },
+        "nfcorpus-test-20230107-training": {
+            "md5_of_first_kilobyte": "44898758956ec1260aa9fac120d2fbcf",
+            "redirect_url": {
+                "run_id": "2024-03-12-13-25-53",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-zs-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-zs-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "nfcorpus-test-20230107-training",
+                "run_id": "2024-03-12-13-25-53",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/nfcorpus-test-20230107-training/download/2024-03-12-13-25-53.zip"
+        },
+        "trec-tip-of-the-tongue-dev-20230607-training": {
+            "md5_of_first_kilobyte": "226f8c56b7d4ba00516510aaf45028f1",
+            "redirect_url": {
+                "run_id": "2024-03-12-13-45-36",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-zs-trec-recent.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-zs-trec-recent.zip",
+            "run_execution": {
+                "dataset": "trec-tip-of-the-tongue-dev-20230607-training",
+                "run_id": "2024-03-12-13-45-36",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/trec-tip-of-the-tongue-dev-20230607-training/download/2024-03-12-13-45-36.zip"
+        },
+        "vaswani-20230107-training": {
+            "md5_of_first_kilobyte": "44898758956ec1260aa9fac120d2fbcf",
+            "redirect_url": {
+                "run_id": "2024-03-12-13-32-08",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-zs-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-zs-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "vaswani-20230107-training",
+                "run_id": "2024-03-12-13-32-08",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/vaswani-20230107-training/download/2024-03-12-13-32-08.zip"
+        }
+    },
+    "ir-benchmarks/tu-dresden-03/qe-gpt3.5-cot": {
+        "antique-test-20230107-training": {
+            "md5_of_first_kilobyte": "4641921a3aaa31ac7b88daa2e08bfcf3",
+            "redirect_url": {
+                "run_id": "2024-03-10-17-31-31",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-cot-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-cot-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "antique-test-20230107-training",
+                "run_id": "2024-03-10-17-31-31",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/antique-test-20230107-training/download/2024-03-10-17-31-31.zip"
+        },
+        "argsme-touche-2020-task-1-20230209-training": {
+            "md5_of_first_kilobyte": "af84235bea83c5895efc6e4580b0b5c9",
+            "redirect_url": {
+                "run_id": "2024-03-10-17-32-46",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-cot-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-cot-clef-labs.zip",
+            "run_execution": {
+                "dataset": "argsme-touche-2020-task-1-20230209-training",
+                "run_id": "2024-03-10-17-32-46",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/argsme-touche-2020-task-1-20230209-training/download/2024-03-10-17-32-46.zip"
+        },
+        "argsme-touche-2021-task-1-20230209-training": {
+            "md5_of_first_kilobyte": "af84235bea83c5895efc6e4580b0b5c9",
+            "redirect_url": {
+                "run_id": "2024-03-10-17-34-14",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-cot-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-cot-clef-labs.zip",
+            "run_execution": {
+                "dataset": "argsme-touche-2021-task-1-20230209-training",
+                "run_id": "2024-03-10-17-34-14",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/argsme-touche-2021-task-1-20230209-training/download/2024-03-10-17-34-14.zip"
+        },
+        "cord19-fulltext-trec-covid-20230107-training": {
+            "md5_of_first_kilobyte": "13d7eaacf366b70f1dd6b81b7d2bdcc5",
+            "redirect_url": {
+                "run_id": "2024-03-10-17-40-32",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-cot-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-cot-trec-medical.zip",
+            "run_execution": {
+                "dataset": "cord19-fulltext-trec-covid-20230107-training",
+                "run_id": "2024-03-10-17-40-32",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/cord19-fulltext-trec-covid-20230107-training/download/2024-03-10-17-40-32.zip"
+        },
+        "cranfield-20230107-training": {
+            "md5_of_first_kilobyte": "4641921a3aaa31ac7b88daa2e08bfcf3",
+            "redirect_url": {
+                "run_id": "2024-03-10-17-42-13",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-cot-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-cot-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "cranfield-20230107-training",
+                "run_id": "2024-03-10-17-42-13",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/cranfield-20230107-training/download/2024-03-10-17-42-13.zip"
+        },
+        "longeval-heldout-20230513-training": {
+            "md5_of_first_kilobyte": "af84235bea83c5895efc6e4580b0b5c9",
+            "redirect_url": {
+                "run_id": "2024-03-10-19-03-22",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-cot-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-cot-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-heldout-20230513-training",
+                "run_id": "2024-03-10-19-03-22",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/longeval-heldout-20230513-training/download/2024-03-10-19-03-22.zip"
+        },
+        "longeval-long-september-20230513-training": {
+            "md5_of_first_kilobyte": "af84235bea83c5895efc6e4580b0b5c9",
+            "redirect_url": {
+                "run_id": "2024-03-10-19-06-51",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-cot-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-cot-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-long-september-20230513-training",
+                "run_id": "2024-03-10-19-06-51",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/longeval-long-september-20230513-training/download/2024-03-10-19-06-51.zip"
+        },
+        "longeval-short-july-20230513-training": {
+            "md5_of_first_kilobyte": "af84235bea83c5895efc6e4580b0b5c9",
+            "redirect_url": {
+                "run_id": "2024-03-10-19-10-03",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-cot-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-cot-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-short-july-20230513-training",
+                "run_id": "2024-03-10-19-10-03",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/longeval-short-july-20230513-training/download/2024-03-10-19-10-03.zip"
+        },
+        "longeval-train-20230513-training": {
+            "md5_of_first_kilobyte": "af84235bea83c5895efc6e4580b0b5c9",
+            "redirect_url": {
+                "run_id": "2024-03-10-19-13-34",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-cot-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-cot-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-train-20230513-training",
+                "run_id": "2024-03-10-19-13-34",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/longeval-train-20230513-training/download/2024-03-10-19-13-34.zip"
+        },
+        "medline-2004-trec-genomics-2004-20230107-training": {
+            "md5_of_first_kilobyte": "13d7eaacf366b70f1dd6b81b7d2bdcc5",
+            "redirect_url": {
+                "run_id": "2024-03-10-18-32-29",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-cot-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-cot-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2004-trec-genomics-2004-20230107-training",
+                "run_id": "2024-03-10-18-32-29",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/medline-2004-trec-genomics-2004-20230107-training/download/2024-03-10-18-32-29.zip"
+        },
+        "medline-2004-trec-genomics-2005-20230107-training": {
+            "md5_of_first_kilobyte": "13d7eaacf366b70f1dd6b81b7d2bdcc5",
+            "redirect_url": {
+                "run_id": "2024-03-10-18-35-54",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-cot-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-cot-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2004-trec-genomics-2005-20230107-training",
+                "run_id": "2024-03-10-18-35-54",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/medline-2004-trec-genomics-2005-20230107-training/download/2024-03-10-18-35-54.zip"
+        },
+        "medline-2017-trec-pm-2017-20230211-training": {
+            "md5_of_first_kilobyte": "13d7eaacf366b70f1dd6b81b7d2bdcc5",
+            "redirect_url": {
+                "run_id": "2024-03-10-18-39-13",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-cot-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-cot-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2017-trec-pm-2017-20230211-training",
+                "run_id": "2024-03-10-18-39-13",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/medline-2017-trec-pm-2017-20230211-training/download/2024-03-10-18-39-13.zip"
+        },
+        "medline-2017-trec-pm-2018-20230211-training": {
+            "md5_of_first_kilobyte": "13d7eaacf366b70f1dd6b81b7d2bdcc5",
+            "redirect_url": {
+                "run_id": "2024-03-10-18-42-37",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-cot-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-cot-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2017-trec-pm-2018-20230211-training",
+                "run_id": "2024-03-10-18-42-37",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/medline-2017-trec-pm-2018-20230211-training/download/2024-03-10-18-42-37.zip"
+        },
+        "msmarco-passage-trec-dl-2019-judged-20230107-training": {
+            "md5_of_first_kilobyte": "bb7e390710e5e29952ef33e73db9b2dc",
+            "redirect_url": {
+                "run_id": "2024-03-10-18-45-51",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-cot-trec-recent.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-cot-trec-recent.zip",
+            "run_execution": {
+                "dataset": "msmarco-passage-trec-dl-2019-judged-20230107-training",
+                "run_id": "2024-03-10-18-45-51",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/msmarco-passage-trec-dl-2019-judged-20230107-training/download/2024-03-10-18-45-51.zip"
+        },
+        "msmarco-passage-trec-dl-2020-judged-20230107-training": {
+            "md5_of_first_kilobyte": "bb7e390710e5e29952ef33e73db9b2dc",
+            "redirect_url": {
+                "run_id": "2024-03-10-18-49-22",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-cot-trec-recent.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-cot-trec-recent.zip",
+            "run_execution": {
+                "dataset": "msmarco-passage-trec-dl-2020-judged-20230107-training",
+                "run_id": "2024-03-10-18-49-22",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/msmarco-passage-trec-dl-2020-judged-20230107-training/download/2024-03-10-18-49-22.zip"
+        },
+        "nfcorpus-test-20230107-training": {
+            "md5_of_first_kilobyte": "4641921a3aaa31ac7b88daa2e08bfcf3",
+            "redirect_url": {
+                "run_id": "2024-03-10-18-53-00",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-cot-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-cot-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "nfcorpus-test-20230107-training",
+                "run_id": "2024-03-10-18-53-00",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/nfcorpus-test-20230107-training/download/2024-03-10-18-53-00.zip"
+        },
+        "trec-tip-of-the-tongue-dev-20230607-training": {
+            "md5_of_first_kilobyte": "bb7e390710e5e29952ef33e73db9b2dc",
+            "redirect_url": {
+                "run_id": "2024-03-10-19-17-06",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-cot-trec-recent.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-cot-trec-recent.zip",
+            "run_execution": {
+                "dataset": "trec-tip-of-the-tongue-dev-20230607-training",
+                "run_id": "2024-03-10-19-17-06",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/trec-tip-of-the-tongue-dev-20230607-training/download/2024-03-10-19-17-06.zip"
+        },
+        "vaswani-20230107-training": {
+            "md5_of_first_kilobyte": "4641921a3aaa31ac7b88daa2e08bfcf3",
+            "redirect_url": {
+                "run_id": "2024-03-10-18-56-33",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-cot-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-cot-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "vaswani-20230107-training",
+                "run_id": "2024-03-10-18-56-33",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/vaswani-20230107-training/download/2024-03-10-18-56-33.zip"
+        }
+    },
+    "ir-benchmarks/tu-dresden-03/qe-gpt3.5-sq-fs": {
+        "antique-test-20230107-training": {
+            "md5_of_first_kilobyte": "f9f4df835b8b7b26265b3c263e124ed3",
+            "redirect_url": {
+                "run_id": "2024-03-10-20-00-03",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-fs-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-fs-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "antique-test-20230107-training",
+                "run_id": "2024-03-10-20-00-03",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/antique-test-20230107-training/download/2024-03-10-20-00-03.zip"
+        },
+        "argsme-touche-2020-task-1-20230209-training": {
+            "md5_of_first_kilobyte": "091b403ac0793a0414eb89cb511b3b5c",
+            "redirect_url": {
+                "run_id": "2024-03-10-20-03-26",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-fs-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-fs-clef-labs.zip",
+            "run_execution": {
+                "dataset": "argsme-touche-2020-task-1-20230209-training",
+                "run_id": "2024-03-10-20-03-26",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/argsme-touche-2020-task-1-20230209-training/download/2024-03-10-20-03-26.zip"
+        },
+        "argsme-touche-2021-task-1-20230209-training": {
+            "md5_of_first_kilobyte": "091b403ac0793a0414eb89cb511b3b5c",
+            "redirect_url": {
+                "run_id": "2024-03-10-20-06-52",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-fs-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-fs-clef-labs.zip",
+            "run_execution": {
+                "dataset": "argsme-touche-2021-task-1-20230209-training",
+                "run_id": "2024-03-10-20-06-52",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/argsme-touche-2021-task-1-20230209-training/download/2024-03-10-20-06-52.zip"
+        },
+        "cord19-fulltext-trec-covid-20230107-training": {
+            "md5_of_first_kilobyte": "bfc4734f04aaeb41a4e7761cd83d7aad",
+            "redirect_url": {
+                "run_id": "2024-03-10-20-20-39",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-fs-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-fs-trec-medical.zip",
+            "run_execution": {
+                "dataset": "cord19-fulltext-trec-covid-20230107-training",
+                "run_id": "2024-03-10-20-20-39",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/cord19-fulltext-trec-covid-20230107-training/download/2024-03-10-20-20-39.zip"
+        },
+        "cranfield-20230107-training": {
+            "md5_of_first_kilobyte": "f9f4df835b8b7b26265b3c263e124ed3",
+            "redirect_url": {
+                "run_id": "2024-03-10-20-24-07",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-fs-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-fs-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "cranfield-20230107-training",
+                "run_id": "2024-03-10-20-24-07",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/cranfield-20230107-training/download/2024-03-10-20-24-07.zip"
+        },
+        "longeval-heldout-20230513-training": {
+            "md5_of_first_kilobyte": "091b403ac0793a0414eb89cb511b3b5c",
+            "redirect_url": {
+                "run_id": "2024-03-10-21-28-33",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-fs-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-fs-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-heldout-20230513-training",
+                "run_id": "2024-03-10-21-28-33",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/longeval-heldout-20230513-training/download/2024-03-10-21-28-33.zip"
+        },
+        "longeval-long-september-20230513-training": {
+            "md5_of_first_kilobyte": "091b403ac0793a0414eb89cb511b3b5c",
+            "redirect_url": {
+                "run_id": "2024-03-10-21-32-14",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-fs-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-fs-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-long-september-20230513-training",
+                "run_id": "2024-03-10-21-32-14",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/longeval-long-september-20230513-training/download/2024-03-10-21-32-14.zip"
+        },
+        "longeval-short-july-20230513-training": {
+            "md5_of_first_kilobyte": "091b403ac0793a0414eb89cb511b3b5c",
+            "redirect_url": {
+                "run_id": "2024-03-10-21-35-45",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-fs-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-fs-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-short-july-20230513-training",
+                "run_id": "2024-03-10-21-35-45",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/longeval-short-july-20230513-training/download/2024-03-10-21-35-45.zip"
+        },
+        "longeval-train-20230513-training": {
+            "md5_of_first_kilobyte": "091b403ac0793a0414eb89cb511b3b5c",
+            "redirect_url": {
+                "run_id": "2024-03-10-21-39-04",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-fs-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-fs-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-train-20230513-training",
+                "run_id": "2024-03-10-21-39-04",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/longeval-train-20230513-training/download/2024-03-10-21-39-04.zip"
+        },
+        "medline-2004-trec-genomics-2004-20230107-training": {
+            "md5_of_first_kilobyte": "bfc4734f04aaeb41a4e7761cd83d7aad",
+            "redirect_url": {
+                "run_id": "2024-03-10-20-57-14",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-fs-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-fs-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2004-trec-genomics-2004-20230107-training",
+                "run_id": "2024-03-10-20-57-14",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/medline-2004-trec-genomics-2004-20230107-training/download/2024-03-10-20-57-14.zip"
+        },
+        "medline-2004-trec-genomics-2005-20230107-training": {
+            "md5_of_first_kilobyte": "bfc4734f04aaeb41a4e7761cd83d7aad",
+            "redirect_url": {
+                "run_id": "2024-03-10-21-00-38",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-fs-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-fs-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2004-trec-genomics-2005-20230107-training",
+                "run_id": "2024-03-10-21-00-38",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/medline-2004-trec-genomics-2005-20230107-training/download/2024-03-10-21-00-38.zip"
+        },
+        "medline-2017-trec-pm-2017-20230211-training": {
+            "md5_of_first_kilobyte": "bfc4734f04aaeb41a4e7761cd83d7aad",
+            "redirect_url": {
+                "run_id": "2024-03-10-21-04-20",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-fs-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-fs-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2017-trec-pm-2017-20230211-training",
+                "run_id": "2024-03-10-21-04-20",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/medline-2017-trec-pm-2017-20230211-training/download/2024-03-10-21-04-20.zip"
+        },
+        "medline-2017-trec-pm-2018-20230211-training": {
+            "md5_of_first_kilobyte": "bfc4734f04aaeb41a4e7761cd83d7aad",
+            "redirect_url": {
+                "run_id": "2024-03-10-21-08-00",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-fs-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-fs-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2017-trec-pm-2018-20230211-training",
+                "run_id": "2024-03-10-21-08-00",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/medline-2017-trec-pm-2018-20230211-training/download/2024-03-10-21-08-00.zip"
+        },
+        "msmarco-passage-trec-dl-2019-judged-20230107-training": {
+            "md5_of_first_kilobyte": "fe3d683cf99753aea7caa62fefec629a",
+            "redirect_url": {
+                "run_id": "2024-03-10-21-11-31",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-fs-trec-recent.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-fs-trec-recent.zip",
+            "run_execution": {
+                "dataset": "msmarco-passage-trec-dl-2019-judged-20230107-training",
+                "run_id": "2024-03-10-21-11-31",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/msmarco-passage-trec-dl-2019-judged-20230107-training/download/2024-03-10-21-11-31.zip"
+        },
+        "msmarco-passage-trec-dl-2020-judged-20230107-training": {
+            "md5_of_first_kilobyte": "fe3d683cf99753aea7caa62fefec629a",
+            "redirect_url": {
+                "run_id": "2024-03-10-21-14-53",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-fs-trec-recent.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-fs-trec-recent.zip",
+            "run_execution": {
+                "dataset": "msmarco-passage-trec-dl-2020-judged-20230107-training",
+                "run_id": "2024-03-10-21-14-53",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/msmarco-passage-trec-dl-2020-judged-20230107-training/download/2024-03-10-21-14-53.zip"
+        },
+        "nfcorpus-test-20230107-training": {
+            "md5_of_first_kilobyte": "f9f4df835b8b7b26265b3c263e124ed3",
+            "redirect_url": {
+                "run_id": "2024-03-10-21-18-21",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-fs-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-fs-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "nfcorpus-test-20230107-training",
+                "run_id": "2024-03-10-21-18-21",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/nfcorpus-test-20230107-training/download/2024-03-10-21-18-21.zip"
+        },
+        "trec-tip-of-the-tongue-dev-20230607-training": {
+            "md5_of_first_kilobyte": "fe3d683cf99753aea7caa62fefec629a",
+            "redirect_url": {
+                "run_id": "2024-03-10-21-42-29",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-fs-trec-recent.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-fs-trec-recent.zip",
+            "run_execution": {
+                "dataset": "trec-tip-of-the-tongue-dev-20230607-training",
+                "run_id": "2024-03-10-21-42-29",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/trec-tip-of-the-tongue-dev-20230607-training/download/2024-03-10-21-42-29.zip"
+        },
+        "vaswani-20230107-training": {
+            "md5_of_first_kilobyte": "f9f4df835b8b7b26265b3c263e124ed3",
+            "redirect_url": {
+                "run_id": "2024-03-10-21-21-33",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-fs-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-fs-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "vaswani-20230107-training",
+                "run_id": "2024-03-10-21-21-33",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/vaswani-20230107-training/download/2024-03-10-21-21-33.zip"
+        }
+    },
+    "ir-benchmarks/tu-dresden-03/qe-gpt3.5-sq-zs": {
+        "antique-test-20230107-training": {
+            "md5_of_first_kilobyte": "565a08a451008cd0494a254260b9b7dc",
+            "redirect_url": {
+                "run_id": "2024-03-10-22-10-01",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-zs-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-zs-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "antique-test-20230107-training",
+                "run_id": "2024-03-10-22-10-01",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/antique-test-20230107-training/download/2024-03-10-22-10-01.zip"
+        },
+        "argsme-touche-2020-task-1-20230209-training": {
+            "md5_of_first_kilobyte": "2c4e7f7b7f34212d2742b815d0c9bfa5",
+            "redirect_url": {
+                "run_id": "2024-03-10-22-13-28",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-zs-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-zs-clef-labs.zip",
+            "run_execution": {
+                "dataset": "argsme-touche-2020-task-1-20230209-training",
+                "run_id": "2024-03-10-22-13-28",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/argsme-touche-2020-task-1-20230209-training/download/2024-03-10-22-13-28.zip"
+        },
+        "argsme-touche-2021-task-1-20230209-training": {
+            "md5_of_first_kilobyte": "2c4e7f7b7f34212d2742b815d0c9bfa5",
+            "redirect_url": {
+                "run_id": "2024-03-10-22-17-02",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-zs-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-zs-clef-labs.zip",
+            "run_execution": {
+                "dataset": "argsme-touche-2021-task-1-20230209-training",
+                "run_id": "2024-03-10-22-17-02",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/argsme-touche-2021-task-1-20230209-training/download/2024-03-10-22-17-02.zip"
+        },
+        "cord19-fulltext-trec-covid-20230107-training": {
+            "md5_of_first_kilobyte": "8f23ce5280c66247e5d83a1deefb1954",
+            "redirect_url": {
+                "run_id": "2024-03-10-22-31-58",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-zs-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-zs-trec-medical.zip",
+            "run_execution": {
+                "dataset": "cord19-fulltext-trec-covid-20230107-training",
+                "run_id": "2024-03-10-22-31-58",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/cord19-fulltext-trec-covid-20230107-training/download/2024-03-10-22-31-58.zip"
+        },
+        "cranfield-20230107-training": {
+            "md5_of_first_kilobyte": "565a08a451008cd0494a254260b9b7dc",
+            "redirect_url": {
+                "run_id": "2024-03-10-22-35-20",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-zs-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-zs-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "cranfield-20230107-training",
+                "run_id": "2024-03-10-22-35-20",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/cranfield-20230107-training/download/2024-03-10-22-35-20.zip"
+        },
+        "longeval-heldout-20230513-training": {
+            "md5_of_first_kilobyte": "2c4e7f7b7f34212d2742b815d0c9bfa5",
+            "redirect_url": {
+                "run_id": "2024-03-10-23-38-30",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-zs-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-zs-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-heldout-20230513-training",
+                "run_id": "2024-03-10-23-38-30",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/longeval-heldout-20230513-training/download/2024-03-10-23-38-30.zip"
+        },
+        "longeval-long-september-20230513-training": {
+            "md5_of_first_kilobyte": "2c4e7f7b7f34212d2742b815d0c9bfa5",
+            "redirect_url": {
+                "run_id": "2024-03-10-23-42-12",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-zs-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-zs-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-long-september-20230513-training",
+                "run_id": "2024-03-10-23-42-12",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/longeval-long-september-20230513-training/download/2024-03-10-23-42-12.zip"
+        },
+        "longeval-short-july-20230513-training": {
+            "md5_of_first_kilobyte": "2c4e7f7b7f34212d2742b815d0c9bfa5",
+            "redirect_url": {
+                "run_id": "2024-03-10-23-46-07",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-zs-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-zs-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-short-july-20230513-training",
+                "run_id": "2024-03-10-23-46-07",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/longeval-short-july-20230513-training/download/2024-03-10-23-46-07.zip"
+        },
+        "longeval-train-20230513-training": {
+            "md5_of_first_kilobyte": "2c4e7f7b7f34212d2742b815d0c9bfa5",
+            "redirect_url": {
+                "run_id": "2024-03-10-23-49-34",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-zs-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-zs-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-train-20230513-training",
+                "run_id": "2024-03-10-23-49-34",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/longeval-train-20230513-training/download/2024-03-10-23-49-34.zip"
+        },
+        "medline-2004-trec-genomics-2004-20230107-training": {
+            "md5_of_first_kilobyte": "8f23ce5280c66247e5d83a1deefb1954",
+            "redirect_url": {
+                "run_id": "2024-03-10-23-07-10",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-zs-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-zs-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2004-trec-genomics-2004-20230107-training",
+                "run_id": "2024-03-10-23-07-10",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/medline-2004-trec-genomics-2004-20230107-training/download/2024-03-10-23-07-10.zip"
+        },
+        "medline-2004-trec-genomics-2005-20230107-training": {
+            "md5_of_first_kilobyte": "8f23ce5280c66247e5d83a1deefb1954",
+            "redirect_url": {
+                "run_id": "2024-03-10-23-10-24",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-zs-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-zs-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2004-trec-genomics-2005-20230107-training",
+                "run_id": "2024-03-10-23-10-24",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/medline-2004-trec-genomics-2005-20230107-training/download/2024-03-10-23-10-24.zip"
+        },
+        "medline-2017-trec-pm-2017-20230211-training": {
+            "md5_of_first_kilobyte": "8f23ce5280c66247e5d83a1deefb1954",
+            "redirect_url": {
+                "run_id": "2024-03-10-23-13-46",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-zs-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-zs-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2017-trec-pm-2017-20230211-training",
+                "run_id": "2024-03-10-23-13-46",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/medline-2017-trec-pm-2017-20230211-training/download/2024-03-10-23-13-46.zip"
+        },
+        "medline-2017-trec-pm-2018-20230211-training": {
+            "md5_of_first_kilobyte": "8f23ce5280c66247e5d83a1deefb1954",
+            "redirect_url": {
+                "run_id": "2024-03-10-23-17-22",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-zs-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-zs-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2017-trec-pm-2018-20230211-training",
+                "run_id": "2024-03-10-23-17-22",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/medline-2017-trec-pm-2018-20230211-training/download/2024-03-10-23-17-22.zip"
+        },
+        "msmarco-passage-trec-dl-2019-judged-20230107-training": {
+            "md5_of_first_kilobyte": "42c5b8c9298ea65ef8df87b3a532f6cb",
+            "redirect_url": {
+                "run_id": "2024-03-10-23-21-00",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-zs-trec-recent.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-zs-trec-recent.zip",
+            "run_execution": {
+                "dataset": "msmarco-passage-trec-dl-2019-judged-20230107-training",
+                "run_id": "2024-03-10-23-21-00",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/msmarco-passage-trec-dl-2019-judged-20230107-training/download/2024-03-10-23-21-00.zip"
+        },
+        "msmarco-passage-trec-dl-2020-judged-20230107-training": {
+            "md5_of_first_kilobyte": "42c5b8c9298ea65ef8df87b3a532f6cb",
+            "redirect_url": {
+                "run_id": "2024-03-10-23-24-23",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-zs-trec-recent.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-zs-trec-recent.zip",
+            "run_execution": {
+                "dataset": "msmarco-passage-trec-dl-2020-judged-20230107-training",
+                "run_id": "2024-03-10-23-24-23",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/msmarco-passage-trec-dl-2020-judged-20230107-training/download/2024-03-10-23-24-23.zip"
+        },
+        "nfcorpus-test-20230107-training": {
+            "md5_of_first_kilobyte": "565a08a451008cd0494a254260b9b7dc",
+            "redirect_url": {
+                "run_id": "2024-03-10-23-28-11",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-zs-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-zs-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "nfcorpus-test-20230107-training",
+                "run_id": "2024-03-10-23-28-11",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/nfcorpus-test-20230107-training/download/2024-03-10-23-28-11.zip"
+        },
+        "trec-tip-of-the-tongue-dev-20230607-training": {
+            "md5_of_first_kilobyte": "42c5b8c9298ea65ef8df87b3a532f6cb",
+            "redirect_url": {
+                "run_id": "2024-03-10-23-53-03",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-zs-trec-recent.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-zs-trec-recent.zip",
+            "run_execution": {
+                "dataset": "trec-tip-of-the-tongue-dev-20230607-training",
+                "run_id": "2024-03-10-23-53-03",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/trec-tip-of-the-tongue-dev-20230607-training/download/2024-03-10-23-53-03.zip"
+        },
+        "vaswani-20230107-training": {
+            "md5_of_first_kilobyte": "565a08a451008cd0494a254260b9b7dc",
+            "redirect_url": {
+                "run_id": "2024-03-10-23-31-54",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-zs-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-zs-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "vaswani-20230107-training",
+                "run_id": "2024-03-10-23-31-54",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/vaswani-20230107-training/download/2024-03-10-23-31-54.zip"
+        }
+    },
+    "ir-benchmarks/tu-dresden-03/qe-llama-cot": {
+        "antique-test-20230107-training": {
+            "md5_of_first_kilobyte": "dd268c1d1a29a1286a1413f80dbf84b2",
+            "redirect_url": {
+                "run_id": "2024-03-11-05-02-44",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-cot-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-cot-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "antique-test-20230107-training",
+                "run_id": "2024-03-11-05-02-44",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/antique-test-20230107-training/download/2024-03-11-05-02-44.zip"
+        },
+        "argsme-touche-2020-task-1-20230209-training": {
+            "md5_of_first_kilobyte": "7e5389479e1d0ba1164293f65f086446",
+            "redirect_url": {
+                "run_id": "2024-03-11-05-06-08",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-cot-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-cot-clef-labs.zip",
+            "run_execution": {
+                "dataset": "argsme-touche-2020-task-1-20230209-training",
+                "run_id": "2024-03-11-05-06-08",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/argsme-touche-2020-task-1-20230209-training/download/2024-03-11-05-06-08.zip"
+        },
+        "argsme-touche-2021-task-1-20230209-training": {
+            "md5_of_first_kilobyte": "7e5389479e1d0ba1164293f65f086446",
+            "redirect_url": {
+                "run_id": "2024-03-11-05-09-23",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-cot-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-cot-clef-labs.zip",
+            "run_execution": {
+                "dataset": "argsme-touche-2021-task-1-20230209-training",
+                "run_id": "2024-03-11-05-09-23",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/argsme-touche-2021-task-1-20230209-training/download/2024-03-11-05-09-23.zip"
+        },
+        "cord19-fulltext-trec-covid-20230107-training": {
+            "md5_of_first_kilobyte": "cf94bb344602a2dd3b17f462f4ed5a2e",
+            "redirect_url": {
+                "run_id": "2024-03-11-05-54-54",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-cot-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-cot-trec-medical.zip",
+            "run_execution": {
+                "dataset": "cord19-fulltext-trec-covid-20230107-training",
+                "run_id": "2024-03-11-05-54-54",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/cord19-fulltext-trec-covid-20230107-training/download/2024-03-11-05-54-54.zip"
+        },
+        "cranfield-20230107-training": {
+            "md5_of_first_kilobyte": "dd268c1d1a29a1286a1413f80dbf84b2",
+            "redirect_url": {
+                "run_id": "2024-03-11-05-58-31",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-cot-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-cot-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "cranfield-20230107-training",
+                "run_id": "2024-03-11-05-58-31",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/cranfield-20230107-training/download/2024-03-11-05-58-31.zip"
+        },
+        "longeval-heldout-20230513-training": {
+            "md5_of_first_kilobyte": "7e5389479e1d0ba1164293f65f086446",
+            "redirect_url": {
+                "run_id": "2024-03-11-07-18-03",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-cot-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-cot-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-heldout-20230513-training",
+                "run_id": "2024-03-11-07-18-03",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/longeval-heldout-20230513-training/download/2024-03-11-07-18-03.zip"
+        },
+        "longeval-long-september-20230513-training": {
+            "md5_of_first_kilobyte": "7e5389479e1d0ba1164293f65f086446",
+            "redirect_url": {
+                "run_id": "2024-03-11-07-21-27",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-cot-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-cot-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-long-september-20230513-training",
+                "run_id": "2024-03-11-07-21-27",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/longeval-long-september-20230513-training/download/2024-03-11-07-21-27.zip"
+        },
+        "longeval-short-july-20230513-training": {
+            "md5_of_first_kilobyte": "7e5389479e1d0ba1164293f65f086446",
+            "redirect_url": {
+                "run_id": "2024-03-11-07-24-45",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-cot-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-cot-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-short-july-20230513-training",
+                "run_id": "2024-03-11-07-24-45",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/longeval-short-july-20230513-training/download/2024-03-11-07-24-45.zip"
+        },
+        "longeval-train-20230513-training": {
+            "md5_of_first_kilobyte": "7e5389479e1d0ba1164293f65f086446",
+            "redirect_url": {
+                "run_id": "2024-03-11-07-28-35",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-cot-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-cot-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-train-20230513-training",
+                "run_id": "2024-03-11-07-28-35",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/longeval-train-20230513-training/download/2024-03-11-07-28-35.zip"
+        },
+        "medline-2004-trec-genomics-2004-20230107-training": {
+            "md5_of_first_kilobyte": "cf94bb344602a2dd3b17f462f4ed5a2e",
+            "redirect_url": {
+                "run_id": "2024-03-11-06-30-51",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-cot-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-cot-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2004-trec-genomics-2004-20230107-training",
+                "run_id": "2024-03-11-06-30-51",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/medline-2004-trec-genomics-2004-20230107-training/download/2024-03-11-06-30-51.zip"
+        },
+        "medline-2004-trec-genomics-2005-20230107-training": {
+            "md5_of_first_kilobyte": "cf94bb344602a2dd3b17f462f4ed5a2e",
+            "redirect_url": {
+                "run_id": "2024-03-11-06-34-42",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-cot-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-cot-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2004-trec-genomics-2005-20230107-training",
+                "run_id": "2024-03-11-06-34-42",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/medline-2004-trec-genomics-2005-20230107-training/download/2024-03-11-06-34-42.zip"
+        },
+        "medline-2017-trec-pm-2017-20230211-training": {
+            "md5_of_first_kilobyte": "cf94bb344602a2dd3b17f462f4ed5a2e",
+            "redirect_url": {
+                "run_id": "2024-03-11-06-37-54",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-cot-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-cot-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2017-trec-pm-2017-20230211-training",
+                "run_id": "2024-03-11-06-37-54",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/medline-2017-trec-pm-2017-20230211-training/download/2024-03-11-06-37-54.zip"
+        },
+        "medline-2017-trec-pm-2018-20230211-training": {
+            "md5_of_first_kilobyte": "cf94bb344602a2dd3b17f462f4ed5a2e",
+            "redirect_url": {
+                "run_id": "2024-03-11-06-41-21",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-cot-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-cot-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2017-trec-pm-2018-20230211-training",
+                "run_id": "2024-03-11-06-41-21",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/medline-2017-trec-pm-2018-20230211-training/download/2024-03-11-06-41-21.zip"
+        },
+        "msmarco-passage-trec-dl-2019-judged-20230107-training": {
+            "md5_of_first_kilobyte": "f48538d7378991b8fb14ad1d779900e7",
+            "redirect_url": {
+                "run_id": "2024-03-11-06-44-59",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-cot-trec-recent.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-cot-trec-recent.zip",
+            "run_execution": {
+                "dataset": "msmarco-passage-trec-dl-2019-judged-20230107-training",
+                "run_id": "2024-03-11-06-44-59",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/msmarco-passage-trec-dl-2019-judged-20230107-training/download/2024-03-11-06-44-59.zip"
+        },
+        "msmarco-passage-trec-dl-2020-judged-20230107-training": {
+            "md5_of_first_kilobyte": "f48538d7378991b8fb14ad1d779900e7",
+            "redirect_url": {
+                "run_id": "2024-03-11-06-48-35",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-cot-trec-recent.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-cot-trec-recent.zip",
+            "run_execution": {
+                "dataset": "msmarco-passage-trec-dl-2020-judged-20230107-training",
+                "run_id": "2024-03-11-06-48-35",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/msmarco-passage-trec-dl-2020-judged-20230107-training/download/2024-03-11-06-48-35.zip"
+        },
+        "nfcorpus-test-20230107-training": {
+            "md5_of_first_kilobyte": "dd268c1d1a29a1286a1413f80dbf84b2",
+            "redirect_url": {
+                "run_id": "2024-03-11-06-52-23",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-cot-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-cot-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "nfcorpus-test-20230107-training",
+                "run_id": "2024-03-11-06-52-23",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/nfcorpus-test-20230107-training/download/2024-03-11-06-52-23.zip"
+        },
+        "trec-tip-of-the-tongue-dev-20230607-training": {
+            "md5_of_first_kilobyte": "f48538d7378991b8fb14ad1d779900e7",
+            "redirect_url": {
+                "run_id": "2024-03-11-07-32-21",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-cot-trec-recent.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-cot-trec-recent.zip",
+            "run_execution": {
+                "dataset": "trec-tip-of-the-tongue-dev-20230607-training",
+                "run_id": "2024-03-11-07-32-21",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/trec-tip-of-the-tongue-dev-20230607-training/download/2024-03-11-07-32-21.zip"
+        },
+        "vaswani-20230107-training": {
+            "md5_of_first_kilobyte": "dd268c1d1a29a1286a1413f80dbf84b2",
+            "redirect_url": {
+                "run_id": "2024-03-11-06-56-01",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-cot-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-cot-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "vaswani-20230107-training",
+                "run_id": "2024-03-11-06-56-01",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/vaswani-20230107-training/download/2024-03-11-06-56-01.zip"
+        }
+    },
+    "ir-benchmarks/tu-dresden-03/qe-llama-sq-fs": {
+        "antique-test-20230107-training": {
+            "md5_of_first_kilobyte": "77cf7e7ac03eb682a473a31304d6f232",
+            "redirect_url": {
+                "run_id": "2024-03-11-08-01-16",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-fs-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-fs-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "antique-test-20230107-training",
+                "run_id": "2024-03-11-08-01-16",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/antique-test-20230107-training/download/2024-03-11-08-01-16.zip"
+        },
+        "argsme-touche-2020-task-1-20230209-training": {
+            "md5_of_first_kilobyte": "cdcb0151ecac4e3af7f651d6d23e772d",
+            "redirect_url": {
+                "run_id": "2024-03-11-08-05-00",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-fs-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-fs-clef-labs.zip",
+            "run_execution": {
+                "dataset": "argsme-touche-2020-task-1-20230209-training",
+                "run_id": "2024-03-11-08-05-00",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/argsme-touche-2020-task-1-20230209-training/download/2024-03-11-08-05-00.zip"
+        },
+        "argsme-touche-2021-task-1-20230209-training": {
+            "md5_of_first_kilobyte": "cdcb0151ecac4e3af7f651d6d23e772d",
+            "redirect_url": {
+                "run_id": "2024-03-11-08-08-49",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-fs-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-fs-clef-labs.zip",
+            "run_execution": {
+                "dataset": "argsme-touche-2021-task-1-20230209-training",
+                "run_id": "2024-03-11-08-08-49",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/argsme-touche-2021-task-1-20230209-training/download/2024-03-11-08-08-49.zip"
+        },
+        "cord19-fulltext-trec-covid-20230107-training": {
+            "md5_of_first_kilobyte": "2474dc4263a3109690fca2411205426c",
+            "redirect_url": {
+                "run_id": "2024-03-11-08-22-58",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-fs-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-fs-trec-medical.zip",
+            "run_execution": {
+                "dataset": "cord19-fulltext-trec-covid-20230107-training",
+                "run_id": "2024-03-11-08-22-58",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/cord19-fulltext-trec-covid-20230107-training/download/2024-03-11-08-22-58.zip"
+        },
+        "cranfield-20230107-training": {
+            "md5_of_first_kilobyte": "77cf7e7ac03eb682a473a31304d6f232",
+            "redirect_url": {
+                "run_id": "2024-03-11-08-26-26",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-fs-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-fs-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "cranfield-20230107-training",
+                "run_id": "2024-03-11-08-26-26",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/cranfield-20230107-training/download/2024-03-11-08-26-26.zip"
+        },
+        "longeval-heldout-20230513-training": {
+            "md5_of_first_kilobyte": "cdcb0151ecac4e3af7f651d6d23e772d",
+            "redirect_url": {
+                "run_id": "2024-03-11-09-30-01",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-fs-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-fs-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-heldout-20230513-training",
+                "run_id": "2024-03-11-09-30-01",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/longeval-heldout-20230513-training/download/2024-03-11-09-30-01.zip"
+        },
+        "longeval-long-september-20230513-training": {
+            "md5_of_first_kilobyte": "cdcb0151ecac4e3af7f651d6d23e772d",
+            "redirect_url": {
+                "run_id": "2024-03-11-09-34-00",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-fs-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-fs-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-long-september-20230513-training",
+                "run_id": "2024-03-11-09-34-00",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/longeval-long-september-20230513-training/download/2024-03-11-09-34-00.zip"
+        },
+        "longeval-short-july-20230513-training": {
+            "md5_of_first_kilobyte": "cdcb0151ecac4e3af7f651d6d23e772d",
+            "redirect_url": {
+                "run_id": "2024-03-11-09-37-33",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-fs-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-fs-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-short-july-20230513-training",
+                "run_id": "2024-03-11-09-37-33",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/longeval-short-july-20230513-training/download/2024-03-11-09-37-33.zip"
+        },
+        "longeval-train-20230513-training": {
+            "md5_of_first_kilobyte": "cdcb0151ecac4e3af7f651d6d23e772d",
+            "redirect_url": {
+                "run_id": "2024-03-11-09-41-08",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-fs-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-fs-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-train-20230513-training",
+                "run_id": "2024-03-11-09-41-08",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/longeval-train-20230513-training/download/2024-03-11-09-41-08.zip"
+        },
+        "medline-2004-trec-genomics-2004-20230107-training": {
+            "md5_of_first_kilobyte": "2474dc4263a3109690fca2411205426c",
+            "redirect_url": {
+                "run_id": "2024-03-11-08-58-33",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-fs-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-fs-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2004-trec-genomics-2004-20230107-training",
+                "run_id": "2024-03-11-08-58-33",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/medline-2004-trec-genomics-2004-20230107-training/download/2024-03-11-08-58-33.zip"
+        },
+        "medline-2004-trec-genomics-2005-20230107-training": {
+            "md5_of_first_kilobyte": "2474dc4263a3109690fca2411205426c",
+            "redirect_url": {
+                "run_id": "2024-03-11-09-01-54",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-fs-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-fs-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2004-trec-genomics-2005-20230107-training",
+                "run_id": "2024-03-11-09-01-54",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/medline-2004-trec-genomics-2005-20230107-training/download/2024-03-11-09-01-54.zip"
+        },
+        "medline-2017-trec-pm-2017-20230211-training": {
+            "md5_of_first_kilobyte": "2474dc4263a3109690fca2411205426c",
+            "redirect_url": {
+                "run_id": "2024-03-11-09-05-18",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-fs-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-fs-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2017-trec-pm-2017-20230211-training",
+                "run_id": "2024-03-11-09-05-18",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/medline-2017-trec-pm-2017-20230211-training/download/2024-03-11-09-05-18.zip"
+        },
+        "medline-2017-trec-pm-2018-20230211-training": {
+            "md5_of_first_kilobyte": "2474dc4263a3109690fca2411205426c",
+            "redirect_url": {
+                "run_id": "2024-03-11-09-08-56",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-fs-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-fs-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2017-trec-pm-2018-20230211-training",
+                "run_id": "2024-03-11-09-08-56",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/medline-2017-trec-pm-2018-20230211-training/download/2024-03-11-09-08-56.zip"
+        },
+        "msmarco-passage-trec-dl-2019-judged-20230107-training": {
+            "md5_of_first_kilobyte": "cdd95b9523319b3514969dc0ea138d0b",
+            "redirect_url": {
+                "run_id": "2024-03-11-09-12-36",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-fs-trec-recent.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-fs-trec-recent.zip",
+            "run_execution": {
+                "dataset": "msmarco-passage-trec-dl-2019-judged-20230107-training",
+                "run_id": "2024-03-11-09-12-36",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/msmarco-passage-trec-dl-2019-judged-20230107-training/download/2024-03-11-09-12-36.zip"
+        },
+        "msmarco-passage-trec-dl-2020-judged-20230107-training": {
+            "md5_of_first_kilobyte": "cdd95b9523319b3514969dc0ea138d0b",
+            "redirect_url": {
+                "run_id": "2024-03-11-09-16-25",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-fs-trec-recent.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-fs-trec-recent.zip",
+            "run_execution": {
+                "dataset": "msmarco-passage-trec-dl-2020-judged-20230107-training",
+                "run_id": "2024-03-11-09-16-25",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/msmarco-passage-trec-dl-2020-judged-20230107-training/download/2024-03-11-09-16-25.zip"
+        },
+        "nfcorpus-test-20230107-training": {
+            "md5_of_first_kilobyte": "77cf7e7ac03eb682a473a31304d6f232",
+            "redirect_url": {
+                "run_id": "2024-03-11-09-20-02",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-fs-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-fs-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "nfcorpus-test-20230107-training",
+                "run_id": "2024-03-11-09-20-02",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/nfcorpus-test-20230107-training/download/2024-03-11-09-20-02.zip"
+        },
+        "trec-tip-of-the-tongue-dev-20230607-training": {
+            "md5_of_first_kilobyte": "cdd95b9523319b3514969dc0ea138d0b",
+            "redirect_url": {
+                "run_id": "2024-03-11-09-44-45",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-fs-trec-recent.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-fs-trec-recent.zip",
+            "run_execution": {
+                "dataset": "trec-tip-of-the-tongue-dev-20230607-training",
+                "run_id": "2024-03-11-09-44-45",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/trec-tip-of-the-tongue-dev-20230607-training/download/2024-03-11-09-44-45.zip"
+        },
+        "vaswani-20230107-training": {
+            "md5_of_first_kilobyte": "77cf7e7ac03eb682a473a31304d6f232",
+            "redirect_url": {
+                "run_id": "2024-03-11-09-23-25",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-fs-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-fs-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "vaswani-20230107-training",
+                "run_id": "2024-03-11-09-23-25",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/vaswani-20230107-training/download/2024-03-11-09-23-25.zip"
+        }
+    },
+    "ir-benchmarks/tu-dresden-03/qe-llama-sq-zs": {
+        "antique-test-20230107-training": {
+            "md5_of_first_kilobyte": "54aca4b9228f0e4eaa0c04597b9c67f3",
+            "redirect_url": {
+                "run_id": "2024-03-11-10-12-20",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-zs-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-zs-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "antique-test-20230107-training",
+                "run_id": "2024-03-11-10-12-20",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/antique-test-20230107-training/download/2024-03-11-10-12-20.zip"
+        },
+        "argsme-touche-2020-task-1-20230209-training": {
+            "md5_of_first_kilobyte": "ce3d5c4e2cdb4bfd632e78c8ba096e23",
+            "redirect_url": {
+                "run_id": "2024-03-11-10-15-56",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-zs-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-zs-clef-labs.zip",
+            "run_execution": {
+                "dataset": "argsme-touche-2020-task-1-20230209-training",
+                "run_id": "2024-03-11-10-15-56",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/argsme-touche-2020-task-1-20230209-training/download/2024-03-11-10-15-56.zip"
+        },
+        "argsme-touche-2021-task-1-20230209-training": {
+            "md5_of_first_kilobyte": "ce3d5c4e2cdb4bfd632e78c8ba096e23",
+            "redirect_url": {
+                "run_id": "2024-03-11-10-19-55",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-zs-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-zs-clef-labs.zip",
+            "run_execution": {
+                "dataset": "argsme-touche-2021-task-1-20230209-training",
+                "run_id": "2024-03-11-10-19-55",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/argsme-touche-2021-task-1-20230209-training/download/2024-03-11-10-19-55.zip"
+        },
+        "cord19-fulltext-trec-covid-20230107-training": {
+            "md5_of_first_kilobyte": "3a63640f70923303b63b686faac3e455",
+            "redirect_url": {
+                "run_id": "2024-03-11-10-34-13",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-zs-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-zs-trec-medical.zip",
+            "run_execution": {
+                "dataset": "cord19-fulltext-trec-covid-20230107-training",
+                "run_id": "2024-03-11-10-34-13",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/cord19-fulltext-trec-covid-20230107-training/download/2024-03-11-10-34-13.zip"
+        },
+        "cranfield-20230107-training": {
+            "md5_of_first_kilobyte": "54aca4b9228f0e4eaa0c04597b9c67f3",
+            "redirect_url": {
+                "run_id": "2024-03-11-10-37-42",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-zs-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-zs-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "cranfield-20230107-training",
+                "run_id": "2024-03-11-10-37-42",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/cranfield-20230107-training/download/2024-03-11-10-37-42.zip"
+        },
+        "longeval-heldout-20230513-training": {
+            "md5_of_first_kilobyte": "ce3d5c4e2cdb4bfd632e78c8ba096e23",
+            "redirect_url": {
+                "run_id": "2024-03-11-12-41-01",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-zs-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-zs-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-heldout-20230513-training",
+                "run_id": "2024-03-11-12-41-01",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/longeval-heldout-20230513-training/download/2024-03-11-12-41-01.zip"
+        },
+        "longeval-long-september-20230513-training": {
+            "md5_of_first_kilobyte": "ce3d5c4e2cdb4bfd632e78c8ba096e23",
+            "redirect_url": {
+                "run_id": "2024-03-11-12-44-42",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-zs-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-zs-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-long-september-20230513-training",
+                "run_id": "2024-03-11-12-44-42",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/longeval-long-september-20230513-training/download/2024-03-11-12-44-42.zip"
+        },
+        "longeval-short-july-20230513-training": {
+            "md5_of_first_kilobyte": "ce3d5c4e2cdb4bfd632e78c8ba096e23",
+            "redirect_url": {
+                "run_id": "2024-03-11-12-48-27",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-zs-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-zs-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-short-july-20230513-training",
+                "run_id": "2024-03-11-12-48-27",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/longeval-short-july-20230513-training/download/2024-03-11-12-48-27.zip"
+        },
+        "longeval-train-20230513-training": {
+            "md5_of_first_kilobyte": "ce3d5c4e2cdb4bfd632e78c8ba096e23",
+            "redirect_url": {
+                "run_id": "2024-03-11-12-52-26",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-zs-clef-labs.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-zs-clef-labs.zip",
+            "run_execution": {
+                "dataset": "longeval-train-20230513-training",
+                "run_id": "2024-03-11-12-52-26",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/longeval-train-20230513-training/download/2024-03-11-12-52-26.zip"
+        },
+        "medline-2004-trec-genomics-2004-20230107-training": {
+            "md5_of_first_kilobyte": "3a63640f70923303b63b686faac3e455",
+            "redirect_url": {
+                "run_id": "2024-03-11-11-09-58",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-zs-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-zs-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2004-trec-genomics-2004-20230107-training",
+                "run_id": "2024-03-11-11-09-58",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/medline-2004-trec-genomics-2004-20230107-training/download/2024-03-11-11-09-58.zip"
+        },
+        "medline-2004-trec-genomics-2005-20230107-training": {
+            "md5_of_first_kilobyte": "3a63640f70923303b63b686faac3e455",
+            "redirect_url": {
+                "run_id": "2024-03-11-11-13-15",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-zs-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-zs-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2004-trec-genomics-2005-20230107-training",
+                "run_id": "2024-03-11-11-13-15",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/medline-2004-trec-genomics-2005-20230107-training/download/2024-03-11-11-13-15.zip"
+        },
+        "medline-2017-trec-pm-2017-20230211-training": {
+            "md5_of_first_kilobyte": "3a63640f70923303b63b686faac3e455",
+            "redirect_url": {
+                "run_id": "2024-03-11-11-17-03",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-zs-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-zs-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2017-trec-pm-2017-20230211-training",
+                "run_id": "2024-03-11-11-17-03",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/medline-2017-trec-pm-2017-20230211-training/download/2024-03-11-11-17-03.zip"
+        },
+        "medline-2017-trec-pm-2018-20230211-training": {
+            "md5_of_first_kilobyte": "3a63640f70923303b63b686faac3e455",
+            "redirect_url": {
+                "run_id": "2024-03-11-11-20-41",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-zs-trec-medical.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-zs-trec-medical.zip",
+            "run_execution": {
+                "dataset": "medline-2017-trec-pm-2018-20230211-training",
+                "run_id": "2024-03-11-11-20-41",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/medline-2017-trec-pm-2018-20230211-training/download/2024-03-11-11-20-41.zip"
+        },
+        "msmarco-passage-trec-dl-2019-judged-20230107-training": {
+            "md5_of_first_kilobyte": "3504de3db066e6ac4263f6a044fa98fa",
+            "redirect_url": {
+                "run_id": "2024-03-11-11-24-14",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-zs-trec-recent.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-zs-trec-recent.zip",
+            "run_execution": {
+                "dataset": "msmarco-passage-trec-dl-2019-judged-20230107-training",
+                "run_id": "2024-03-11-11-24-14",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/msmarco-passage-trec-dl-2019-judged-20230107-training/download/2024-03-11-11-24-14.zip"
+        },
+        "msmarco-passage-trec-dl-2020-judged-20230107-training": {
+            "md5_of_first_kilobyte": "3504de3db066e6ac4263f6a044fa98fa",
+            "redirect_url": {
+                "run_id": "2024-03-11-11-28-01",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-zs-trec-recent.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-zs-trec-recent.zip",
+            "run_execution": {
+                "dataset": "msmarco-passage-trec-dl-2020-judged-20230107-training",
+                "run_id": "2024-03-11-11-28-01",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/msmarco-passage-trec-dl-2020-judged-20230107-training/download/2024-03-11-11-28-01.zip"
+        },
+        "nfcorpus-test-20230107-training": {
+            "md5_of_first_kilobyte": "54aca4b9228f0e4eaa0c04597b9c67f3",
+            "redirect_url": {
+                "run_id": "2024-03-11-11-31-37",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-zs-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-zs-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "nfcorpus-test-20230107-training",
+                "run_id": "2024-03-11-11-31-37",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/nfcorpus-test-20230107-training/download/2024-03-11-11-31-37.zip"
+        },
+        "trec-tip-of-the-tongue-dev-20230607-training": {
+            "md5_of_first_kilobyte": "3504de3db066e6ac4263f6a044fa98fa",
+            "redirect_url": {
+                "run_id": "2024-03-11-12-56-13",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-zs-trec-recent.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-zs-trec-recent.zip",
+            "run_execution": {
+                "dataset": "trec-tip-of-the-tongue-dev-20230607-training",
+                "run_id": "2024-03-11-12-56-13",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/trec-tip-of-the-tongue-dev-20230607-training/download/2024-03-11-12-56-13.zip"
+        },
+        "vaswani-20230107-training": {
+            "md5_of_first_kilobyte": "54aca4b9228f0e4eaa0c04597b9c67f3",
+            "redirect_url": {
+                "run_id": "2024-03-11-12-33-41",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-zs-tiny-test-collections.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-zs-tiny-test-collections.zip",
+            "run_execution": {
+                "dataset": "vaswani-20230107-training",
+                "run_id": "2024-03-11-12-33-41",
+                "task": "ir-benchmarks",
+                "team": "tu-dresden-03"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/tu-dresden-03/dataset/vaswani-20230107-training/download/2024-03-11-12-33-41.zip"
+        }
     }
 }

@@ -60,11 +60,29 @@ class Command(BaseCommand):
                 },
                 'dossier': {
                     'pre-retrieval-query-intent': 'qpptk-all-predictors'
+                },
+                'tu-dresden-03': {
+                    'qe-gpt3.5-sq-zs': 'qpptk-all-predictors',
+                    'qe-llama-sq-zs': 'qpptk-all-predictors',
+                    'qe-llama-sq-fs': 'qpptk-all-predictors',
+                    'qe-llama-cot': 'qpptk-all-predictors',
+                    'qe-flan-ul2-sq-zs': 'qpptk-all-predictors',
+                    'qe-flan-ul2-sq-fs': 'qpptk-all-predictors',
+                    'qe-flan-ul2-cot': 'qpptk-all-predictors',
                 }
+
                 # pre-retrieval query intent, post-retrieval query intent
                 # splade
                 # comparative questions
                 # entity linking
+            },
+
+            'workshop-on-open-web-search': {
+                 'tu-dresden-03': {
+                    
+                    'qe-gpt3.5-cot': 'qpptk-all-predictors',
+                    'qe-gpt3.5-sq-fs': 'qpptk-all-predictors',
+                 }
             }
         }
         
