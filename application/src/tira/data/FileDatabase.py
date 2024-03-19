@@ -33,7 +33,6 @@ class FileDatabase(object):
     vm_list_file = tira_root / Path("model/virtual-machines/virtual-machines.txt")
     vm_dir_path = tira_root / Path("model/virtual-machines")
     host_list_file = tira_root / Path("model/virtual-machine-hosts/virtual-machine-hosts.txt")
-    ova_dir = tira_root / Path("data/virtual-machine-templates/")
     datasets_dir_path = tira_root / Path("model/datasets")
     softwares_dir_path = tira_root / Path("model/softwares")
     data_path = tira_root / Path("data/datasets")
@@ -612,9 +611,6 @@ class FileDatabase(object):
 
     def get_host_list(self) -> list:
         return list(open(self.host_list_file, "r").readlines())
-
-    def get_ova_list(self) -> list:
-        return [f"{ova_file.stem}.ova" for ova_file in self.ova_dir.glob("*.ova")]
 
     def get_vm_list(self):
         """ load the vm-info file which stores all active vms as such:

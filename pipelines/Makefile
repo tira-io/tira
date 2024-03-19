@@ -1,5 +1,9 @@
 IMAGE_VERSION=0.0.28
 
+build-tira-git-docker:
+	cp -r ../host/src/tira_host src
+	docker build -t webis/tira-git-pipelines:${IMAGE_VERSION} src
+
 publish-tira-git-docker:
 	docker push webis/tira-git-pipelines:${IMAGE_VERSION}
 
