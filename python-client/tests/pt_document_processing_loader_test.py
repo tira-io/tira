@@ -14,6 +14,14 @@ def keyphrase_extraction(docs):
     return {i['docno']: i['keyphrases'] for _, i in ret.iterrows()}
 
 
+def doc_processor(docs, name):
+    queries = pd.DataFrame([{'docno': str(i)} for i in docs])
+    tira = Client('tests/resources/')
+    query_segmentation =  tira.pt.transform_documents('ir-benchmarks/tira-ir-starters/' + name, dataset='d1')
+    
+    ret = query_segmentation(queries)
+    return {i['docno']: i['key'] for _, i in ret.iterrows()}
+
 class TestPtDocumentProcessingLoaderTest(unittest.TestCase):
     def test_for_loading_keyphrase_extraction_for_multiple_documents(self):
         expected = {
@@ -39,3 +47,15 @@ class TestPtDocumentProcessingLoaderTest(unittest.TestCase):
     def test_pyterrier_can_be_loaded(self):
         from tira.third_party_integrations import ensure_pyterrier_is_loaded
         ensure_pyterrier_is_loaded()
+
+    def test_document_transformation_with_docno(self):
+        expected = {'doc-01': 'value'}
+        actual = doc_processor(['doc-01'], 'tiny-example-01')
+
+        self.assertEqual(expected, actual)
+
+    def test_document_transformation_with_doc_id(self):
+        expected = {'doc-01': 'value'}
+        actual = doc_processor(['doc-01'], 'tiny-example-02')
+
+        self.assertEqual(expected, actual)

@@ -2,3 +2,5 @@
 {"TIRA_TASK_ID": "ir-benchmarks", "TIRA_VM_ID": "webis-keyphrase-extraction", "TIRA_SOFTWARE_NAME": "BCExtractorFO", "dataset": "d1", "output_directory": "document-processing-outputs/keyphrase-extraction"}
 {"TIRA_TASK_ID": "ir-benchmarks", "TIRA_VM_ID": "tira-ir-starters", "TIRA_SOFTWARE_NAME": "retriever", "dataset": "d1", "output_directory": "ranking-outputs"}
 {"TIRA_TASK_ID": "ir-benchmarks", "TIRA_VM_ID": "tira-ir-starters", "TIRA_SOFTWARE_NAME": "retriever-for-re-ranking", "dataset": "d1", "output_directory": "re-ranking-outputs"}
+{"TIRA_TASK_ID": "ir-benchmarks", "TIRA_VM_ID": "tira-ir-starters", "TIRA_SOFTWARE_NAME": "tiny-example-01", "dataset": "d1", "output_directory": "document-processing-outputs/tiny-example-01"}
+{"TIRA_TASK_ID": "ir-benchmarks", "TIRA_VM_ID": "tira-ir-starters", "TIRA_SOFTWARE_NAME": "tiny-example-02", "dataset": "d1", "output_directory": "document-processing-outputs/tiny-example-02"}
