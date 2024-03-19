@@ -85,6 +85,81 @@ STATIC_REDIRECTS = {
                     'run_id': '2023-11-11-06-49-15',
                 },
             }
+        },
+
+        "seanmacavaney": {
+            "DocT5Query": {
+                "msmarco-passage-trec-dl-2019-judged-20230107-training": {
+                    "run_id": "2024-03-19-20-04-59",
+                    "md5": "3d07a6c1364534a3c62825316703845a",
+                    'urls': ['https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-20-04-59.zip'],
+                },
+                'msmarco-passage-trec-dl-2020-judged-20230107-training': {
+                    # better caching: dl2020 and 2019 used the same corpus
+                    "run_id": "2024-03-19-20-04-59",
+                    "md5": "3d07a6c1364534a3c62825316703845a",
+                    'urls': ['https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-20-04-59.zip'],
+                },
+                "trec-tip-of-the-tongue-dev-20230607-training": {
+                    "run_id": "2024-03-19-19-58-58",
+                    "md5": "365ff525cca8302608c2df113eaad170",
+                    'urls': ['https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-19-58-58.zip'],
+                },
+                "antique-test-20230107-training": {
+                    "run_id": "2024-03-19-18-06-23",
+                    "md5": "b019d109841dfce4db65bb315750024b",
+                    'urls': ['https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-18-06-23.zip'],
+                },
+                "vaswani-20230107-training": {
+                    "run_id": "2024-03-19-19-32-44",
+                    "md5": "00d788fd9ccc6eba51558800ba94c731",
+                    'urls': ['https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-19-32-44.zip'],
+                },
+                "cranfield-20230107-training": {
+                    "run_id": "2024-03-19-17-50-12",
+                    "md5": "07d8fd9ab63569f6ea2a80aee86db55a",
+                    'urls': ['https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-17-50-12.zip'],
+                },
+                "nfcorpus-test-20230107-training": {
+                    "run_id": "2024-03-19-19-51-27",
+                    "md5": "047e5276a69ab7353f584ab08e817539",
+                    'urls': ['https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-19-51-27.zip'],
+                },
+                "medline-2017-trec-pm-2017-20230211-training": {
+                    "run_id": "2024-03-19-19-48-04",
+                    "md5": "e23d2535cc67c7bafe513c40510da6fa",
+                    'urls': ['https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-19-48-04.zip'],
+                },
+                "argsme-touche-2020-task-1-20230209-training": {
+                    "run_id": "2024-03-19-17-52-36",
+                    "md5": "6698ba27029448dac2a8a7293d0376a2",
+                    'urls': ['https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-17-52-36.zip'],
+                },
+                "argsme-touche-2021-task-1-20230209-training": {
+                    "run_id": "2024-03-19-17-59-19",
+                    "md5": "f22fdcb8c25255e64a2380de42414689",
+                    'urls': ['https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-17-59-19.zip'],
+                },
+                "longeval-short-july-20230513-training": {
+                    "run_id": "2024-03-19-19-57-39",
+                    "md5": "ea47bb4a0f7d8999db1e510d45096214",
+                    'urls': ['https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-19-57-39.zip'],
+                },
+                "longeval-heldout-20230513-training": {
+                    "run_id": "2024-03-19-19-49-22",
+                    "md5": "9b97188e7d7383d1cea4dc6630c37081",
+                    'urls': ['https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-19-49-22.zip'],
+                },
+                "longeval-long-september-20230513-training": {
+                    "run_id": "2024-03-19-19-52-58",
+                    "md5": "1895e01418d7170ac02be6ac1a9a185f",
+                    'urls': ['https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-19-52-58.zip'],
+                }, "longeval-train-20230513-training": {
+                    "run_id": "2024-03-19-19-46-01",
+                    "md5": "44504a96a16e4e4eaef760025cb9c91b",
+                    'urls': ['https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-19-46-01.zip'],
+                }
+            }
         }
     }
 }

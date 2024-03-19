@@ -15,6 +15,13 @@ RUN_IDS = {
         "tira-ir-starter": {
             "Index (tira-ir-starter-pyterrier)": {"msmarco-passage-trec-dl-2019-judged-20230107-training": "2023-01-07-22-09-56", "msmarco-passage-trec-dl-2020-judged-20230107-training": "2023-01-07-22-09-56", "antique-test-20230107-training": "2023-01-07-13-40-04", "vaswani-20230107-training": "2023-01-07-19-01-50", "cranfield-20230107-training": "2023-01-07-13-39-11", "medline-2004-trec-genomics-2004-20230107-training": "2023-01-07-19-37-49", "medline-2017-trec-pm-2017-20230211-training": "2023-02-11-20-52-47", "cord19-fulltext-trec-covid-20230107-training": "2023-01-08-15-18-20", "nfcorpus-test-20230107-training": "2023-02-09-15-46-37", "argsme-touche-2020-task-1-20230209-training": "2023-02-09-17-50-22", "argsme-touche-2021-task-1-20230209-training": "2023-02-09-17-50-22", "medline-2017-trec-pm-2018-20230211-training": "2023-02-11-15-15-35", "medline-2004-trec-genomics-2005-20230107-training": "2023-02-09-22-14-32", "trec-tip-of-the-tongue-dev-20230607-training": "2023-11-10-23-23-59", "longeval-short-july-20230513-training": "2023-11-10-23-22-59", "longeval-heldout-20230513-training": "2023-11-10-23-21-55", "longeval-long-september-20230513-training": "2023-11-10-21-09-17", "longeval-train-20230513-training": "2023-11-11-06-49-15"}
         },
+
+        "seanmacavaney": {
+            "DocT5Query": {
+                "msmarco-passage-trec-dl-2019-judged-20230107-training": "2024-03-19-20-04-59", "msmarco-passage-trec-dl-2020-judged-20230107-training": "2024-03-19-20-04-59","trec-tip-of-the-tongue-dev-20230607-training": "2024-03-19-19-58-58", "antique-test-20230107-training": "2024-03-19-18-06-23", "vaswani-20230107-training":  "2024-03-19-19-32-44", "cranfield-20230107-training": "2024-03-19-17-50-12", "nfcorpus-test-20230107-training": "2024-03-19-19-51-27", "medline-2017-trec-pm-2017-20230211-training": "2024-03-19-19-48-04", "argsme-touche-2020-task-1-20230209-training": "2024-03-19-17-52-36", "argsme-touche-2021-task-1-20230209-training": "2024-03-19-17-59-19", "longeval-short-july-20230513-training": "2024-03-19-19-57-39", "longeval-heldout-20230513-training": "2024-03-19-19-49-22", "longeval-long-september-20230513-training": "2024-03-19-19-52-58", "longeval-train-20230513-training": "2024-03-19-19-46-01"
+            }
+        },
+
         "qpptk": {
             "all-predictors": {"msmarco-passage-trec-dl-2019-judged-20230107-training": "2024-02-27-21-30-47", "msmarco-passage-trec-dl-2020-judged-20230107-training": "2024-02-27-21-31-54", "trec-tip-of-the-tongue-dev-20230607-training": "2024-02-27-21-36-40", "antique-test-20230107-training": "2024-02-27-20-06-32", "vaswani-20230107-training": "2024-02-27-21-38-47", "cranfield-20230107-training": "2024-02-27-20-20-33", "nfcorpus-test-20230107-training": "2024-02-27-21-34-23", "medline-2004-trec-genomics-2004-20230107-training": "2024-02-27-21-21-07", "medline-2017-trec-pm-2017-20230211-training": "2024-02-27-21-27-05", "cord19-fulltext-trec-covid-20230107-training": "2024-02-27-20-18-28", "medline-2017-trec-pm-2018-20230211-training": "2024-02-27-21-28-47", "medline-2004-trec-genomics-2005-20230107-training": "2024-02-27-21-26-22", "argsme-touche-2020-task-1-20230209-training": "2024-02-27-20-09-14", "argsme-touche-2021-task-1-20230209-training": "2024-02-27-20-10-51", "longeval-short-july-20230513-training": "2024-02-27-21-15-17", "longeval-heldout-20230513-training": "2024-02-27-20-56-41", "longeval-long-september-20230513-training": "2024-02-27-21-10-42", "longeval-train-20230513-training": "2024-02-27-21-19-19", "clueweb12-trec-misinfo-2019-20240214-training": "2024-02-27-20-13-20", "gov-trec-web-2002-20230209-training": "2024-02-27-20-26-06", "gov-trec-web-2003-20230209-training": "2024-02-27-20-27-09", "gov-trec-web-2004-20230209-training": "2024-02-27-20-29-21", "gov2-trec-tb-2004-20230209-training": "2024-02-27-20-30-58", "gov2-trec-tb-2005-20230209-training": "2024-02-27-20-33-27", "gov2-trec-tb-2006-20230209-training": "2024-02-27-20-37-51", "wapo-v2-trec-core-2018-20230107-training": "2024-02-27-21-40-17", "disks45-nocr-trec8-20230209-training": "2024-02-27-20-24-50", "disks45-nocr-trec7-20230209-training": "2024-02-27-20-23-24", "disks45-nocr-trec-robust-2004-20230209-training": "2024-02-27-20-22-13"}
         },
@@ -115,6 +122,19 @@ class TestRedirects(unittest.TestCase):
             'ir-benchmarks/tu-dresden-03/qe-flan-ul2-sq-zs',
             'ir-benchmarks/tu-dresden-03/qe-flan-ul2-sq-fs',
             'ir-benchmarks/tu-dresden-03/qe-flan-ul2-cot',
+            'ir-benchmarks/seanmacavaney/DocT5Query',
+
+
+            #'ir-benchmarks/tira-ir-starter/BM25 Re-Rank (tira-ir-starter-pyterrier)',
+            #'ir-benchmarks/tira-ir-starter/LGD Re-Rank (tira-ir-starter-pyterrier)',
+            #'ir-benchmarks/tira-ir-starter/PL2 Re-Rank (tira-ir-starter-pyterrier)',
+            #'ir-benchmarks/tira-ir-starter/Hiemstra_LM Re-Rank (tira-ir-starter-pyterrier)',
+            #'ir-benchmarks/tira-ir-starter/DirichletLM Re-Rank (tira-ir-starter-pyterrier)',
+            #'SBERT multi-qa-MiniLM-L6-dot-v1 (tira-ir-starter-beir)',
+            #'ColBERT Re-Rank (tira-ir-starter-pyterrier)',
+            #'ANCE Base Cosine (tira-ir-starter-beir)',
+            #'MonoT5 Base (tira-ir-starter-gygaggle)',
+            #'SBERT multi-qa-mpnet-base-cos-v1 (tira-ir-starter-beir)',
         ])
         datasets_to_approve = sorted([
             'msmarco-passage-trec-dl-2019-judged-20230107-training', 'msmarco-passage-trec-dl-2020-judged-20230107-training',

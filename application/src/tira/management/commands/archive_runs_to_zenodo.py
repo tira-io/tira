@@ -43,8 +43,11 @@ class Command(BaseCommand):
             'ir-benchmarks': {
                 'tira-ir-starter': {
                     'Index (tira-ir-starter-pyterrier)': 'pyterrier-indexes'
+                },
+                'seanmacavaney': {
+                    'DocT5Query': 'doc-t5-query'
                 }
-            }
+            },
         }
 
         aggregated_systems = {
@@ -82,6 +85,10 @@ class Command(BaseCommand):
                     
                     'qe-gpt3.5-cot': 'qpptk-all-predictors',
                     'qe-gpt3.5-sq-fs': 'qpptk-all-predictors',
+                 },
+                 'marcel-gohsen': {
+                     'query-interpretation': 'qpptk-all-predictors',
+                     'entity-linking': 'qpptk-all-predictors',
                  }
             }
         }
