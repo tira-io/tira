@@ -617,9 +617,9 @@
     },
     "ir-benchmarks/marcel-gohsen/query-interpretation": {
         "antique-test-20230107-training": {
-            "md5_of_first_kilobyte": "98e87fb596ae1bb9525308251f15c921",
+            "md5_of_first_kilobyte": "15bb8682c36a443df2995c99633b6b63",
             "redirect_url": {
-                "run_id": "2024-02-21-16-29-52",
+                "run_id": "2024-02-22-23-06-50",
                 "urls": [
                     "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/marcel-gohsen-query-interpretation-tiny-test-collections.zip"
                 ]
@@ -627,16 +627,16 @@
             "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/marcel-gohsen-query-interpretation-tiny-test-collections.zip",
             "run_execution": {
                 "dataset": "antique-test-20230107-training",
-                "run_id": "2024-02-21-16-29-52",
+                "run_id": "2024-02-22-23-06-50",
                 "task": "ir-benchmarks",
                 "team": "marcel-gohsen"
             },
-            "run_url": "https://www.tira.io/task/ir-benchmarks/user/marcel-gohsen/dataset/antique-test-20230107-training/download/2024-02-21-16-29-52.zip"
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/marcel-gohsen/dataset/antique-test-20230107-training/download/2024-02-22-23-06-50.zip"
         },
         "argsme-touche-2020-task-1-20230209-training": {
-            "md5_of_first_kilobyte": "f7ab85d2c993e96d32ebb8375dd274cb",
+            "md5_of_first_kilobyte": "5cc7d2aadd978c37221cecdaa2926a68",
             "redirect_url": {
-                "run_id": "2024-02-21-20-33-45",
+                "run_id": "2024-02-22-23-21-20",
                 "urls": [
                     "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/marcel-gohsen-query-interpretation-clef-labs.zip"
                 ]
@@ -644,16 +644,16 @@
             "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/marcel-gohsen-query-interpretation-clef-labs.zip",
             "run_execution": {
                 "dataset": "argsme-touche-2020-task-1-20230209-training",
-                "run_id": "2024-02-21-20-33-45",
+                "run_id": "2024-02-22-23-21-20",
                 "task": "ir-benchmarks",
                 "team": "marcel-gohsen"
             },
-            "run_url": "https://www.tira.io/task/ir-benchmarks/user/marcel-gohsen/dataset/argsme-touche-2020-task-1-20230209-training/download/2024-02-21-20-33-45.zip"
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/marcel-gohsen/dataset/argsme-touche-2020-task-1-20230209-training/download/2024-02-22-23-21-20.zip"
         },
         "argsme-touche-2021-task-1-20230209-training": {
-            "md5_of_first_kilobyte": "f7ab85d2c993e96d32ebb8375dd274cb",
+            "md5_of_first_kilobyte": "5cc7d2aadd978c37221cecdaa2926a68",
             "redirect_url": {
-                "run_id": "2024-02-21-20-34-46",
+                "run_id": "2024-02-22-23-22-30",
                 "urls": [
                     "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/marcel-gohsen-query-interpretation-clef-labs.zip"
                 ]
@@ -661,16 +661,16 @@
             "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/marcel-gohsen-query-interpretation-clef-labs.zip",
             "run_execution": {
                 "dataset": "argsme-touche-2021-task-1-20230209-training",
-                "run_id": "2024-02-21-20-34-46",
+                "run_id": "2024-02-22-23-22-30",
                 "task": "ir-benchmarks",
                 "team": "marcel-gohsen"
             },
-            "run_url": "https://www.tira.io/task/ir-benchmarks/user/marcel-gohsen/dataset/argsme-touche-2021-task-1-20230209-training/download/2024-02-21-20-34-46.zip"
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/marcel-gohsen/dataset/argsme-touche-2021-task-1-20230209-training/download/2024-02-22-23-22-30.zip"
         },
         "cord19-fulltext-trec-covid-20230107-training": {
-            "md5_of_first_kilobyte": "b862195ba7693eec1864dd4aed54f5bf",
+            "md5_of_first_kilobyte": "679df2b557a1bce872d674b4d365fa60",
             "redirect_url": {
-                "run_id": "2024-02-21-22-38-29",
+                "run_id": "2024-02-23-04-47-37",
                 "urls": [
                     "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/marcel-gohsen-query-interpretation-trec-medical.zip"
                 ]
@@ -678,33 +678,16 @@
             "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/marcel-gohsen-query-interpretation-trec-medical.zip",
             "run_execution": {
                 "dataset": "cord19-fulltext-trec-covid-20230107-training",
-                "run_id": "2024-02-21-22-38-29",
+                "run_id": "2024-02-23-04-47-37",
                 "task": "ir-benchmarks",
                 "team": "marcel-gohsen"
             },
-            "run_url": "https://www.tira.io/task/ir-benchmarks/user/marcel-gohsen/dataset/cord19-fulltext-trec-covid-20230107-training/download/2024-02-21-22-38-29.zip"
-        },
-        "cranfield-20230107-training": {
-            "md5_of_first_kilobyte": "98e87fb596ae1bb9525308251f15c921",
-            "redirect_url": {
-                "run_id": "2024-02-21-22-39-20",
-                "urls": [
-                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/marcel-gohsen-query-interpretation-tiny-test-collections.zip"
-                ]
-            },
-            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/marcel-gohsen-query-interpretation-tiny-test-collections.zip",
-            "run_execution": {
-                "dataset": "cranfield-20230107-training",
-                "run_id": "2024-02-21-22-39-20",
-                "task": "ir-benchmarks",
-                "team": "marcel-gohsen"
-            },
-            "run_url": "https://www.tira.io/task/ir-benchmarks/user/marcel-gohsen/dataset/cranfield-20230107-training/download/2024-02-21-22-39-20.zip"
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/marcel-gohsen/dataset/cord19-fulltext-trec-covid-20230107-training/download/2024-02-23-04-47-37.zip"
         },
         "longeval-heldout-20230513-training": {
-            "md5_of_first_kilobyte": "f7ab85d2c993e96d32ebb8375dd274cb",
+            "md5_of_first_kilobyte": "5cc7d2aadd978c37221cecdaa2926a68",
             "redirect_url": {
-                "run_id": "2024-02-22-04-59-59",
+                "run_id": "2024-02-23-07-14-14",
                 "urls": [
                     "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/marcel-gohsen-query-interpretation-clef-labs.zip"
                 ]
@@ -712,16 +695,16 @@
             "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/marcel-gohsen-query-interpretation-clef-labs.zip",
             "run_execution": {
                 "dataset": "longeval-heldout-20230513-training",
-                "run_id": "2024-02-22-04-59-59",
+                "run_id": "2024-02-23-07-14-14",
                 "task": "ir-benchmarks",
                 "team": "marcel-gohsen"
             },
-            "run_url": "https://www.tira.io/task/ir-benchmarks/user/marcel-gohsen/dataset/longeval-heldout-20230513-training/download/2024-02-22-04-59-59.zip"
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/marcel-gohsen/dataset/longeval-heldout-20230513-training/download/2024-02-23-07-14-14.zip"
         },
         "longeval-long-september-20230513-training": {
-            "md5_of_first_kilobyte": "f7ab85d2c993e96d32ebb8375dd274cb",
+            "md5_of_first_kilobyte": "5cc7d2aadd978c37221cecdaa2926a68",
             "redirect_url": {
-                "run_id": "2024-02-22-05-02-53",
+                "run_id": "2024-02-23-07-15-04",
                 "urls": [
                     "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/marcel-gohsen-query-interpretation-clef-labs.zip"
                 ]
@@ -729,16 +712,16 @@
             "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/marcel-gohsen-query-interpretation-clef-labs.zip",
             "run_execution": {
                 "dataset": "longeval-long-september-20230513-training",
-                "run_id": "2024-02-22-05-02-53",
+                "run_id": "2024-02-23-07-15-04",
                 "task": "ir-benchmarks",
                 "team": "marcel-gohsen"
             },
-            "run_url": "https://www.tira.io/task/ir-benchmarks/user/marcel-gohsen/dataset/longeval-long-september-20230513-training/download/2024-02-22-05-02-53.zip"
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/marcel-gohsen/dataset/longeval-long-september-20230513-training/download/2024-02-23-07-15-04.zip"
         },
         "longeval-short-july-20230513-training": {
-            "md5_of_first_kilobyte": "f7ab85d2c993e96d32ebb8375dd274cb",
+            "md5_of_first_kilobyte": "5cc7d2aadd978c37221cecdaa2926a68",
             "redirect_url": {
-                "run_id": "2024-02-22-05-03-49",
+                "run_id": "2024-02-23-07-15-45",
                 "urls": [
                     "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/marcel-gohsen-query-interpretation-clef-labs.zip"
                 ]
@@ -746,16 +729,16 @@
             "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/marcel-gohsen-query-interpretation-clef-labs.zip",
             "run_execution": {
                 "dataset": "longeval-short-july-20230513-training",
-                "run_id": "2024-02-22-05-03-49",
+                "run_id": "2024-02-23-07-15-45",
                 "task": "ir-benchmarks",
                 "team": "marcel-gohsen"
             },
-            "run_url": "https://www.tira.io/task/ir-benchmarks/user/marcel-gohsen/dataset/longeval-short-july-20230513-training/download/2024-02-22-05-03-49.zip"
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/marcel-gohsen/dataset/longeval-short-july-20230513-training/download/2024-02-23-07-15-45.zip"
         },
         "longeval-train-20230513-training": {
-            "md5_of_first_kilobyte": "f7ab85d2c993e96d32ebb8375dd274cb",
+            "md5_of_first_kilobyte": "5cc7d2aadd978c37221cecdaa2926a68",
             "redirect_url": {
-                "run_id": "2024-02-22-05-05-35",
+                "run_id": "2024-02-23-07-19-23",
                 "urls": [
                     "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/marcel-gohsen-query-interpretation-clef-labs.zip"
                 ]
@@ -763,50 +746,16 @@
             "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/marcel-gohsen-query-interpretation-clef-labs.zip",
             "run_execution": {
                 "dataset": "longeval-train-20230513-training",
-                "run_id": "2024-02-22-05-05-35",
+                "run_id": "2024-02-23-07-19-23",
                 "task": "ir-benchmarks",
                 "team": "marcel-gohsen"
             },
-            "run_url": "https://www.tira.io/task/ir-benchmarks/user/marcel-gohsen/dataset/longeval-train-20230513-training/download/2024-02-22-05-05-35.zip"
-        },
-        "medline-2004-trec-genomics-2004-20230107-training": {
-            "md5_of_first_kilobyte": "b862195ba7693eec1864dd4aed54f5bf",
-            "redirect_url": {
-                "run_id": "2024-02-22-05-21-04",
-                "urls": [
-                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/marcel-gohsen-query-interpretation-trec-medical.zip"
-                ]
-            },
-            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/marcel-gohsen-query-interpretation-trec-medical.zip",
-            "run_execution": {
-                "dataset": "medline-2004-trec-genomics-2004-20230107-training",
-                "run_id": "2024-02-22-05-21-04",
-                "task": "ir-benchmarks",
-                "team": "marcel-gohsen"
-            },
-            "run_url": "https://www.tira.io/task/ir-benchmarks/user/marcel-gohsen/dataset/medline-2004-trec-genomics-2004-20230107-training/download/2024-02-22-05-21-04.zip"
-        },
-        "medline-2004-trec-genomics-2005-20230107-training": {
-            "md5_of_first_kilobyte": "b862195ba7693eec1864dd4aed54f5bf",
-            "redirect_url": {
-                "run_id": "2024-02-22-05-24-31",
-                "urls": [
-                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/marcel-gohsen-query-interpretation-trec-medical.zip"
-                ]
-            },
-            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/marcel-gohsen-query-interpretation-trec-medical.zip",
-            "run_execution": {
-                "dataset": "medline-2004-trec-genomics-2005-20230107-training",
-                "run_id": "2024-02-22-05-24-31",
-                "task": "ir-benchmarks",
-                "team": "marcel-gohsen"
-            },
-            "run_url": "https://www.tira.io/task/ir-benchmarks/user/marcel-gohsen/dataset/medline-2004-trec-genomics-2005-20230107-training/download/2024-02-22-05-24-31.zip"
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/marcel-gohsen/dataset/longeval-train-20230513-training/download/2024-02-23-07-19-23.zip"
         },
         "medline-2017-trec-pm-2017-20230211-training": {
-            "md5_of_first_kilobyte": "b862195ba7693eec1864dd4aed54f5bf",
+            "md5_of_first_kilobyte": "679df2b557a1bce872d674b4d365fa60",
             "redirect_url": {
-                "run_id": "2024-02-22-05-28-20",
+                "run_id": "2024-02-24-22-31-42",
                 "urls": [
                     "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/marcel-gohsen-query-interpretation-trec-medical.zip"
                 ]
@@ -814,16 +763,16 @@
             "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/marcel-gohsen-query-interpretation-trec-medical.zip",
             "run_execution": {
                 "dataset": "medline-2017-trec-pm-2017-20230211-training",
-                "run_id": "2024-02-22-05-28-20",
+                "run_id": "2024-02-24-22-31-42",
                 "task": "ir-benchmarks",
                 "team": "marcel-gohsen"
             },
-            "run_url": "https://www.tira.io/task/ir-benchmarks/user/marcel-gohsen/dataset/medline-2017-trec-pm-2017-20230211-training/download/2024-02-22-05-28-20.zip"
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/marcel-gohsen/dataset/medline-2017-trec-pm-2017-20230211-training/download/2024-02-24-22-31-42.zip"
         },
         "medline-2017-trec-pm-2018-20230211-training": {
-            "md5_of_first_kilobyte": "b862195ba7693eec1864dd4aed54f5bf",
+            "md5_of_first_kilobyte": "679df2b557a1bce872d674b4d365fa60",
             "redirect_url": {
-                "run_id": "2024-02-22-05-31-55",
+                "run_id": "2024-02-24-22-32-52",
                 "urls": [
                     "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/marcel-gohsen-query-interpretation-trec-medical.zip"
                 ]
@@ -831,16 +780,16 @@
             "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/marcel-gohsen-query-interpretation-trec-medical.zip",
             "run_execution": {
                 "dataset": "medline-2017-trec-pm-2018-20230211-training",
-                "run_id": "2024-02-22-05-31-55",
+                "run_id": "2024-02-24-22-32-52",
                 "task": "ir-benchmarks",
                 "team": "marcel-gohsen"
             },
-            "run_url": "https://www.tira.io/task/ir-benchmarks/user/marcel-gohsen/dataset/medline-2017-trec-pm-2018-20230211-training/download/2024-02-22-05-31-55.zip"
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/marcel-gohsen/dataset/medline-2017-trec-pm-2018-20230211-training/download/2024-02-24-22-32-52.zip"
         },
         "msmarco-passage-trec-dl-2019-judged-20230107-training": {
-            "md5_of_first_kilobyte": "2b5cde143fb87a6f400dcce0f1e2caa5",
+            "md5_of_first_kilobyte": "6afdd858f2bd02945c86e8ac3567f813",
             "redirect_url": {
-                "run_id": "2024-02-22-05-34-17",
+                "run_id": "2024-02-24-22-34-40",
                 "urls": [
                     "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/marcel-gohsen-query-interpretation-trec-recent.zip"
                 ]
@@ -848,16 +797,16 @@
             "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/marcel-gohsen-query-interpretation-trec-recent.zip",
             "run_execution": {
                 "dataset": "msmarco-passage-trec-dl-2019-judged-20230107-training",
-                "run_id": "2024-02-22-05-34-17",
+                "run_id": "2024-02-24-22-34-40",
                 "task": "ir-benchmarks",
                 "team": "marcel-gohsen"
             },
-            "run_url": "https://www.tira.io/task/ir-benchmarks/user/marcel-gohsen/dataset/msmarco-passage-trec-dl-2019-judged-20230107-training/download/2024-02-22-05-34-17.zip"
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/marcel-gohsen/dataset/msmarco-passage-trec-dl-2019-judged-20230107-training/download/2024-02-24-22-34-40.zip"
         },
         "msmarco-passage-trec-dl-2020-judged-20230107-training": {
-            "md5_of_first_kilobyte": "2b5cde143fb87a6f400dcce0f1e2caa5",
+            "md5_of_first_kilobyte": "6afdd858f2bd02945c86e8ac3567f813",
             "redirect_url": {
-                "run_id": "2024-02-22-05-39-34",
+                "run_id": "2024-02-24-22-38-34",
                 "urls": [
                     "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/marcel-gohsen-query-interpretation-trec-recent.zip"
                 ]
@@ -865,16 +814,16 @@
             "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/marcel-gohsen-query-interpretation-trec-recent.zip",
             "run_execution": {
                 "dataset": "msmarco-passage-trec-dl-2020-judged-20230107-training",
-                "run_id": "2024-02-22-05-39-34",
+                "run_id": "2024-02-24-22-38-34",
                 "task": "ir-benchmarks",
                 "team": "marcel-gohsen"
             },
-            "run_url": "https://www.tira.io/task/ir-benchmarks/user/marcel-gohsen/dataset/msmarco-passage-trec-dl-2020-judged-20230107-training/download/2024-02-22-05-39-34.zip"
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/marcel-gohsen/dataset/msmarco-passage-trec-dl-2020-judged-20230107-training/download/2024-02-24-22-38-34.zip"
         },
         "nfcorpus-test-20230107-training": {
-            "md5_of_first_kilobyte": "98e87fb596ae1bb9525308251f15c921",
+            "md5_of_first_kilobyte": "15bb8682c36a443df2995c99633b6b63",
             "redirect_url": {
-                "run_id": "2024-02-22-05-52-56",
+                "run_id": "2024-02-28-15-31-40",
                 "urls": [
                     "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/marcel-gohsen-query-interpretation-tiny-test-collections.zip"
                 ]
@@ -882,16 +831,16 @@
             "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/marcel-gohsen-query-interpretation-tiny-test-collections.zip",
             "run_execution": {
                 "dataset": "nfcorpus-test-20230107-training",
-                "run_id": "2024-02-22-05-52-56",
+                "run_id": "2024-02-28-15-31-40",
                 "task": "ir-benchmarks",
                 "team": "marcel-gohsen"
             },
-            "run_url": "https://www.tira.io/task/ir-benchmarks/user/marcel-gohsen/dataset/nfcorpus-test-20230107-training/download/2024-02-22-05-52-56.zip"
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/marcel-gohsen/dataset/nfcorpus-test-20230107-training/download/2024-02-28-15-31-40.zip"
         },
         "vaswani-20230107-training": {
-            "md5_of_first_kilobyte": "98e87fb596ae1bb9525308251f15c921",
+            "md5_of_first_kilobyte": "15bb8682c36a443df2995c99633b6b63",
             "redirect_url": {
-                "run_id": "2024-02-22-05-59-53",
+                "run_id": "2024-02-28-15-30-25",
                 "urls": [
                     "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/marcel-gohsen-query-interpretation-tiny-test-collections.zip"
                 ]
@@ -899,11 +848,11 @@
             "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/marcel-gohsen-query-interpretation-tiny-test-collections.zip",
             "run_execution": {
                 "dataset": "vaswani-20230107-training",
-                "run_id": "2024-02-22-05-59-53",
+                "run_id": "2024-02-28-15-30-25",
                 "task": "ir-benchmarks",
                 "team": "marcel-gohsen"
             },
-            "run_url": "https://www.tira.io/task/ir-benchmarks/user/marcel-gohsen/dataset/vaswani-20230107-training/download/2024-02-22-05-59-53.zip"
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/marcel-gohsen/dataset/vaswani-20230107-training/download/2024-02-28-15-30-25.zip"
         }
     },
     "ir-benchmarks/ows/query-segmentation-hyb-a": {
