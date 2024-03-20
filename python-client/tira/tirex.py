@@ -11,6 +11,7 @@ IRDS_TO_TIREX_DATASET = {
     'argsme/2020-04-01/touche-2021-task-1': 'argsme-touche-2021-task-1-20230209-training',
     'clueweb12/touche-2020-task-2': 'clueweb12-touche-2020-task-2-20230209-training',
     'clueweb12/touche-2021-task-2': 'clueweb12-touche-2021-task-2-20230209-training',
+    'clueweb12/b13/trec-misinfo-2019': 'clueweb12-trec-misinfo-2019-20240214-training',
     'cord19/fulltext/trec-covid': 'cord19-fulltext-trec-covid-20230107-training',
     'cranfield': 'cranfield-20230107-training',
     'disks45/nocr/trec7': 'disks45-nocr-trec7-20230209-training',
@@ -29,7 +30,12 @@ IRDS_TO_TIREX_DATASET = {
     'msmarco-passage/trec-dl-2020/judged': 'msmarco-passage-trec-dl-2020-judged-20230107-training',
     'nfcorpus/test': 'nfcorpus-test-20230107-training',
     'vaswani': 'vaswani-20230107-training',
-    'wapo/v2/trec-core-2018': 'wapo-v2-trec-core-2018-20230107-training'
+    'wapo/v2/trec-core-2018': 'wapo-v2-trec-core-2018-20230107-training',
+    'longeval/heldout': 'longeval-heldout-20230513-training',
+    'longeval/long-september': 'longeval-long-september-20230513-training',
+    'longeval/short-july': 'longeval-short-july-20230513-training',
+    'longeval/train': 'longeval-train-20230513-training',
+    'trec-tip-of-the-tongue/dev': 'trec-tip-of-the-tongue-dev-20230607-training',
 }
 
 TIREX_DATASETS = IRDS_TO_TIREX_DATASET.values()

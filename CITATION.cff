@@ -1,0 +1,62 @@
+cff-version: 1.2.0
+type: software
+title: TIRA
+repository-code: 'https://github.com/tira-io/tira'
+url: 'https://tira.io/'
+license: MIT
+
+preferred-citation:
+  type: conference-paper
+  title: Continuous Integration for Reproducible Shared Tasks with TIRA.io
+  collection-title: Advances in Information Retrieval. 45th European Conference on IR Research (ECIR 2023)
+  location: Dublin, Irland
+  year: 2023
+  month: 4
+  pages: 236--241
+  conference:
+    name: Lecture Notes in Computer Science
+    city: Berlin, Heidelberg, New York
+  publisher:
+    name: Springer
+  doi: doi.org/10.1007/978-3-031-28241-6_20
+  url: https://doi.org/10.1007/978-3-031-28241-6_20
+  authors:
+    - given-names: Maik
+      family-names: Fr{\"o}be
+    - given-names: Matti
+      family-names: Wiegmann
+    - given-names: Nikolay
+      family-names: Kolyada
+    - given-names: Bastian
+      family-names: Grahm
+    - given-names: Theresa
+      family-names: Elstner
+    - given-names: Frank
+      family-names: Loebe
+    - given-names: Matthias
+      family-names: Hagen
+    - given-names: Benno
+      family-names: Stein
+    - given-names: Martin
+      family-names: Potthast
+  abstract: >-
+    A major obstacle to the long-term impact of most shared
+    tasks is their lack of reproducibility. Often only the
+    test collections and the papers of the organizers and
+    participants are published. Third parties who want to
+    independently evaluate the state of the art for a task on
+    other data must re-implement the participants’ software.
+    The tools developed to collect software from participants
+    in shared tasks only partially verify its reliability at
+    the time of submission, much less long-term, and do not
+    enable third parties to reuse it later. We have overhauled
+    the TIRA Integrated Research Architecture to address all
+    of these issues. The new version simplifies task setup for
+    organizers and software submission for participants,
+    scales from a local computer to the cloud, supports
+    on-demand resource allocation up to parallel CPU and GPU
+    processing, and enables export for local reproduction with
+    just a few lines of code. This is achieved by implementing
+    the TIRA protocol with an industry-standard continuous
+    integration and deployment (CI/CD) pipeline using Git,
+    Docker, and Kubernetes.

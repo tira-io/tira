@@ -1,5 +1,4 @@
-Contribution Guidelines
+Code Guidelines
 =======================
 
-.. include:: ../../../../CONTRIBUTING.md
-   :parser: myst_parser.sphinx_
+.. todo:: Add code guidelines

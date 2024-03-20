@@ -83,6 +83,7 @@ html_theme_options: Dict[str, Any] = {
     "source_directory": "python-client/sphinx",
     "sidebar_hide_name": True,
     "navigation_with_keys": True,
+    "announcement": '<a href="https://tira-io.github.io/tira/unlisted/maintenance.html">Due to planned maintenance starting on March 25, TIRA is currently down.</a><br>While you wait until the March 28 for us to be back, you may read our documentation. GLHF',
 }
 
 

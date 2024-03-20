@@ -9,7 +9,6 @@ syntax = "proto3";
 //
 // Compile the schema file to generate source code:
 //   C++ : $ protoc --cpp_out=path/to/generated/code  TiraClientWebMessages.proto
-//   Java: $ protoc --java_out=path/to/generated/code TiraClientWebMessages.proto
 
 // -----------------------------------------------------------------------------
 // Options
@@ -19,9 +18,6 @@ package tira;
 
 // import "google/protobuf/timestamp.proto";
 import "tira_messages.proto";
-
-// Becomes the package name of the generated Java code
-option java_package = "de.webis.tira.client.web.grpc";
 
 // Other options
 option optimize_for = SPEED;
