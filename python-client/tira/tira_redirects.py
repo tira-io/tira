@@ -159,6 +159,45 @@ STATIC_REDIRECTS = {
                     "md5": "44504a96a16e4e4eaef760025cb9c91b",
                     'urls': ['https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-19-46-01.zip'],
                 }
+            },
+
+            "corpus-graph": {
+                "msmarco-passage-trec-dl-2019-judged-20230107-training": {
+                    "run_id": "2024-03-21-12-27-29",
+                    "md5": "93d2166f8498bb664afc1782ffdf2106",
+                    "urls": ["https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/corpus-graph/2024-03-21-12-27-29.zip"],
+                },
+                'msmarco-passage-trec-dl-2020-judged-20230107-training': {
+                    # better caching: dl2020 and 2019 used the same corpus
+                    "run_id": "2024-03-21-12-27-29",
+                    "md5": "93d2166f8498bb664afc1782ffdf2106",
+                    "urls": ["https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/corpus-graph/2024-03-21-12-27-29.zip"],
+                },
+                "antique-test-20230107-training": {
+                    "run_id": "2024-03-21-15-00-49",
+                    "md5": "0fe6df76b5fd121c395a5008c0485447",
+                    "urls": ["https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/corpus-graph/2024-03-21-15-00-49.zip"],
+                },
+                "longeval-short-july-20230513-training": {
+                    "run_id": "2024-03-21-12-45-07",
+                    "md5": "cb813f8d7193b436132e035613f983d4",
+                    "urls": ["https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/corpus-graph/2024-03-21-12-45-07.zip"],
+                },
+                "longeval-heldout-20230513-training": {
+                    "run_id": "2024-03-21-12-39-51",
+                    "md5": "290a3fb49d516b4dee3c1ddcf61c0884",
+                    "urls": ["https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/corpus-graph/2024-03-21-12-39-51.zip"],
+                },
+                "longeval-long-september-20230513-training": {
+                    "run_id": "2024-03-21-12-40-32",
+                    "md5": "467241170d83d8320df5207a20c95454",
+                    "urls": ["https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/corpus-graph/2024-03-21-12-40-32.zip"],
+                },
+                "longeval-train-20230513-training": {
+                    "run_id": "2024-03-21-12-46-50",
+                    "md5": "4c6a959deadcbd8a4327c10270ff5b63",
+                    "urls": ["https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/corpus-graph/2024-03-21-12-46-50.zip"],
+                }
             }
         }
     }

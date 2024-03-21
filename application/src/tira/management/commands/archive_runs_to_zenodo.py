@@ -45,7 +45,8 @@ class Command(BaseCommand):
                     'Index (tira-ir-starter-pyterrier)': 'pyterrier-indexes'
                 },
                 'seanmacavaney': {
-                    'DocT5Query': 'doc-t5-query'
+                    'DocT5Query': 'doc-t5-query',
+                    'corpus-graph': 'corpus-graph',
                 }
             },
         }

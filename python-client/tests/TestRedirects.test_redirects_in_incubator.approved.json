@@ -1948,6 +1948,116 @@
             "run_url": "https://www.tira.io/task/ir-benchmarks/user/seanmacavaney/dataset/vaswani-20230107-training/download/2024-03-19-19-32-44.zip"
         }
     },
+    "ir-benchmarks/seanmacavaney/corpus-graph": {
+        "antique-test-20230107-training": {
+            "md5_of_first_kilobyte": "554e08b9670df156a5dd59320f66b639",
+            "redirect_url": {
+                "md5": "0fe6df76b5fd121c395a5008c0485447",
+                "run_id": "2024-03-21-15-00-49",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/corpus-graph/2024-03-21-15-00-49.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/corpus-graph/2024-03-21-15-00-49.zip",
+            "run_execution": {
+                "dataset": "antique-test-20230107-training",
+                "run_id": "2024-03-21-15-00-49",
+                "task": "ir-benchmarks",
+                "team": "seanmacavaney"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/seanmacavaney/dataset/antique-test-20230107-training/download/2024-03-21-15-00-49.zip"
+        },
+        "longeval-heldout-20230513-training": {
+            "md5_of_first_kilobyte": "f480538269176e26f9b78161af628045",
+            "redirect_url": {
+                "md5": "290a3fb49d516b4dee3c1ddcf61c0884",
+                "run_id": "2024-03-21-12-39-51",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/corpus-graph/2024-03-21-12-39-51.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/corpus-graph/2024-03-21-12-39-51.zip",
+            "run_execution": {
+                "dataset": "longeval-heldout-20230513-training",
+                "run_id": "2024-03-21-12-39-51",
+                "task": "ir-benchmarks",
+                "team": "seanmacavaney"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/seanmacavaney/dataset/longeval-heldout-20230513-training/download/2024-03-21-12-39-51.zip"
+        },
+        "longeval-long-september-20230513-training": {
+            "md5_of_first_kilobyte": "b6b7780b4e127e154b117bb9e70e9554",
+            "redirect_url": {
+                "md5": "467241170d83d8320df5207a20c95454",
+                "run_id": "2024-03-21-12-40-32",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/corpus-graph/2024-03-21-12-40-32.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/corpus-graph/2024-03-21-12-40-32.zip",
+            "run_execution": {
+                "dataset": "longeval-long-september-20230513-training",
+                "run_id": "2024-03-21-12-40-32",
+                "task": "ir-benchmarks",
+                "team": "seanmacavaney"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/seanmacavaney/dataset/longeval-long-september-20230513-training/download/2024-03-21-12-40-32.zip"
+        },
+        "longeval-short-july-20230513-training": {
+            "md5_of_first_kilobyte": "de037a51895bf4bb92bbe7247dafc487",
+            "redirect_url": {
+                "md5": "cb813f8d7193b436132e035613f983d4",
+                "run_id": "2024-03-21-12-45-07",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/corpus-graph/2024-03-21-12-45-07.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/corpus-graph/2024-03-21-12-45-07.zip",
+            "run_execution": {
+                "dataset": "longeval-short-july-20230513-training",
+                "run_id": "2024-03-21-12-45-07",
+                "task": "ir-benchmarks",
+                "team": "seanmacavaney"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/seanmacavaney/dataset/longeval-short-july-20230513-training/download/2024-03-21-12-45-07.zip"
+        },
+        "longeval-train-20230513-training": {
+            "md5_of_first_kilobyte": "c92c360087836706094f9648a1ed080d",
+            "redirect_url": {
+                "md5": "4c6a959deadcbd8a4327c10270ff5b63",
+                "run_id": "2024-03-21-12-46-50",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/corpus-graph/2024-03-21-12-46-50.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/corpus-graph/2024-03-21-12-46-50.zip",
+            "run_execution": {
+                "dataset": "longeval-train-20230513-training",
+                "run_id": "2024-03-21-12-46-50",
+                "task": "ir-benchmarks",
+                "team": "seanmacavaney"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/seanmacavaney/dataset/longeval-train-20230513-training/download/2024-03-21-12-46-50.zip"
+        },
+        "msmarco-passage-trec-dl-2019-judged-20230107-training": {
+            "md5_of_first_kilobyte": "97c82bf998ed7c8ca7d1a2aff82d5239",
+            "redirect_url": {
+                "md5": "93d2166f8498bb664afc1782ffdf2106",
+                "run_id": "2024-03-21-12-27-29",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/corpus-graph/2024-03-21-12-27-29.zip"
+                ]
+            },
+            "redirected_run_url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/corpus-graph/2024-03-21-12-27-29.zip",
+            "run_execution": {
+                "dataset": "msmarco-passage-trec-dl-2019-judged-20230107-training",
+                "run_id": "2024-03-21-12-27-29",
+                "task": "ir-benchmarks",
+                "team": "seanmacavaney"
+            },
+            "run_url": "https://www.tira.io/task/ir-benchmarks/user/seanmacavaney/dataset/msmarco-passage-trec-dl-2019-judged-20230107-training/download/2024-03-21-12-27-29.zip"
+        }
+    },
     "ir-benchmarks/tu-dresden-03/qe-flan-ul2-cot": {
         "antique-test-20230107-training": {
             "md5_of_first_kilobyte": "b61b092ee4fc52d02620664800070000",

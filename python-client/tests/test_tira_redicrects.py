@@ -19,6 +19,9 @@ RUN_IDS = {
         "seanmacavaney": {
             "DocT5Query": {
                 "msmarco-passage-trec-dl-2019-judged-20230107-training": "2024-03-19-20-04-59", "msmarco-passage-trec-dl-2020-judged-20230107-training": "2024-03-19-20-04-59","trec-tip-of-the-tongue-dev-20230607-training": "2024-03-19-19-58-58", "antique-test-20230107-training": "2024-03-19-18-06-23", "vaswani-20230107-training":  "2024-03-19-19-32-44", "cranfield-20230107-training": "2024-03-19-17-50-12", "nfcorpus-test-20230107-training": "2024-03-19-19-51-27", "medline-2017-trec-pm-2017-20230211-training": "2024-03-19-19-48-04", "argsme-touche-2020-task-1-20230209-training": "2024-03-19-17-52-36", "argsme-touche-2021-task-1-20230209-training": "2024-03-19-17-59-19", "longeval-short-july-20230513-training": "2024-03-19-19-57-39", "longeval-heldout-20230513-training": "2024-03-19-19-49-22", "longeval-long-september-20230513-training": "2024-03-19-19-52-58", "longeval-train-20230513-training": "2024-03-19-19-46-01"
+            },
+            "corpus-graph": {
+                "msmarco-passage-trec-dl-2019-judged-20230107-training": "2024-03-21-12-27-29", "antique-test-20230107-training": "2024-03-21-15-00-49", "longeval-short-july-20230513-training": "2024-03-21-12-45-07", "longeval-heldout-20230513-training": "2024-03-21-12-39-51", "longeval-long-september-20230513-training": "2024-03-21-12-40-32", "longeval-train-20230513-training": "2024-03-21-12-46-50"
             }
         },
 
@@ -129,6 +132,7 @@ class TestRedirects(unittest.TestCase):
             'ir-benchmarks/tu-dresden-03/qe-flan-ul2-sq-fs',
             'ir-benchmarks/tu-dresden-03/qe-flan-ul2-cot',
             'ir-benchmarks/seanmacavaney/DocT5Query',
+            'ir-benchmarks/seanmacavaney/corpus-graph',
             'ir-benchmarks/marcel-gohsen/entity-linking',
             'ir-benchmarks/marcel-gohsen/query-interpretation',
 
