@@ -360,6 +360,7 @@ def redirects(approach=None, dataset=None, url=None):
 
             if dataset_id in STATIC_DATASET_REDIRECTS:
                 ds_id = dataset_id if '20230618' in dataset_id else dataset_id.replace('-training', '')
+                suffix = suffix if '20230618' in dataset_id or suffix != '-truths.zip' else '-truth.zip'
                 return {'urls': [STATIC_DATASET_REDIRECTS[dataset_id] + ds_id + suffix + '?download=1']}
             else:
                 return default_ret

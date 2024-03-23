@@ -27,9 +27,9 @@ class TestRedirects(unittest.TestCase):
         self.assertEqual(expected_md5_first_kilobyte, actual_md5_first_kilobyte)
 
     def test_redirect_ir_lab_leipzig_wise23_train_truths(self):
-        expected_redirect = 'https://zenodo.org/records/10628882/files/training-20231104-truths.zip?download=1'
+        expected_redirect = 'https://zenodo.org/records/10628882/files/training-20231104-truth.zip?download=1'
         dataset_url = 'https://www.tira.io/data-download/training/input-truth/training-20231104-training.zip'
-        expected_md5_first_kilobyte = '85e40610278e0f37edc519ba6269773d'
+        expected_md5_first_kilobyte = '6d1ef9e09c40e9b0664366a2a003fa64'
 
         actual_redirect =  redirects(url=dataset_url)['urls'][0]
         actual_mirror = mirror_url(actual_redirect)
@@ -55,9 +55,9 @@ class TestRedirects(unittest.TestCase):
         self.assertEqual(expected_md5_first_kilobyte, actual_md5_first_kilobyte)
 
     def test_redirect_ir_lab_padua_sose23_train_truths(self):
-        expected_redirect = 'https://zenodo.org/records/10628882/files/training-20231104-truths.zip?download=1'
+        expected_redirect = 'https://zenodo.org/records/10628882/files/training-20231104-truth.zip?download=1'
         dataset_url = 'https://www.tira.io/data-download/training/input-truth/longeval-tiny-train-20240315-training.zip'
-        expected_md5_first_kilobyte = '85e40610278e0f37edc519ba6269773d'
+        expected_md5_first_kilobyte = '6d1ef9e09c40e9b0664366a2a003fa64'
 
         actual_redirect =  redirects(url=dataset_url)['urls'][0]
         actual_mirror = mirror_url(actual_redirect)
@@ -83,9 +83,9 @@ class TestRedirects(unittest.TestCase):
         self.assertEqual(expected_md5_first_kilobyte, actual_md5_first_kilobyte)
 
     def test_redirect_ir_lab_leipzig_wise23_jena_truths(self):
-        expected_redirect = 'https://zenodo.org/records/10628882/files/jena-topics-small-20240119-truths.zip?download=1'
+        expected_redirect = 'https://zenodo.org/records/10628882/files/jena-topics-small-20240119-truth.zip?download=1'
         dataset_url = 'https://www.tira.io/data-download/training/input-truth/jena-topics-small-20240119-training.zip'
-        expected_md5_first_kilobyte = 'b7b4c8ad3e85c418cb144f0dcaf568b2'
+        expected_md5_first_kilobyte = 'aa25f6931bed856fdb29d0374ff107e3'
 
         actual_redirect =  redirects(url=dataset_url)['urls'][0]
         actual_mirror = mirror_url(actual_redirect)
@@ -124,9 +124,9 @@ class TestRedirects(unittest.TestCase):
         self.assertEqual(expected_md5_first_kilobyte, actual_md5_first_kilobyte)
 
     def test_redirect_ir_lab_leipzig_wise23_leipzig_truths(self):
-        expected_redirect = 'https://zenodo.org/records/10628882/files/leipzig-topics-small-20240119-truths.zip?download=1'
+        expected_redirect = 'https://zenodo.org/records/10628882/files/leipzig-topics-small-20240119-truth.zip?download=1'
         dataset_url = 'https://www.tira.io/data-download/training/input-truth/leipzig-topics-small-20240119-training.zip'
-        expected_md5_first_kilobyte = '3420611e46a5381317b9cbacb6a6c164'
+        expected_md5_first_kilobyte = '7a60ab76ed8c3423bd407932a1e7e910'
 
         actual_redirect =  redirects(url=dataset_url)['urls'][0]
         actual_mirror = mirror_url(actual_redirect)
@@ -137,8 +137,8 @@ class TestRedirects(unittest.TestCase):
         self.assertEqual(expected_md5_first_kilobyte, actual_md5_first_kilobyte)
 
     def test_redirect_ir_lab_leipzig_wise23_validation_truths(self):
-        expected_redirect = 'https://zenodo.org/records/10628882/files/validation-20231104-truths.zip?download=1'
-        expected_md5_first_kilobyte = '7fc0c9fa3b7d3ea7e846d51bbb192928'
+        expected_redirect = 'https://zenodo.org/records/10628882/files/validation-20231104-truth.zip?download=1'
+        expected_md5_first_kilobyte = '92ba3a87c1d4cceebccbefd1aa5f944e'
         dataset_url = 'https://www.tira.io/data-download/training/input-truth/validation-20231104-training.zip'
 
         actual_redirect =  redirects(url=dataset_url)['urls'][0]
