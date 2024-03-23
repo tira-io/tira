@@ -295,6 +295,18 @@ QUERY_PROCESSORS_PREFIX = {"ir-benchmarks": {
     },
 }}
 
+STATIC_DATASET_REDIRECTS = {
+    'iranthology-20230618-training': 'https://zenodo.org/records/10628640/files/',
+    'validation-20231104-training': 'https://zenodo.org/records/10628882/files/',
+    'training-20231104-training': 'https://zenodo.org/records/10628882/files/',
+    'jena-topics-small-20240119-training': 'https://zenodo.org/records/10628882/files/',
+    'leipzig-topics-small-20240119-training': 'https://zenodo.org/records/10628882/files/',
+}
+
+DATASET_ID_REDIRECTS = {
+    'longeval-tiny-train-20240315-training': 'training-20231104-training'
+}
+
 
 for task in QUERY_PROCESSORS.keys():
     for team in QUERY_PROCESSORS[task].keys():
@@ -341,6 +353,16 @@ def redirects(approach=None, dataset=None, url=None):
             ret = ret.split('/')
             task, team, dataset, run_id = ret[0], ret[2], ret[4], ret[6].replace('.zip', '')
             system = RUN_ID_TO_SYSTEM.get(run_id, None)
+        elif '/data-download/training/' in url:
+            dataset_id = url.split('/')[-1].replace('.zip', '')
+            dataset_id = DATASET_ID_REDIRECTS.get(dataset_id, dataset_id)
+            suffix = '-truths.zip' if '/input-truth/' in url else '-inputs.zip'
+
+            if dataset_id in STATIC_DATASET_REDIRECTS:
+                ds_id = dataset_id if '20230618' in dataset_id else dataset_id.replace('-training', '')
+                return {'urls': [STATIC_DATASET_REDIRECTS[dataset_id] + ds_id + suffix + '?download=1']}
+            else:
+                return default_ret
         else:
             return default_ret
 
