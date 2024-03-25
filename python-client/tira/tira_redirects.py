@@ -1,4 +1,6 @@
 
+
+
 STATIC_REDIRECTS = {
     'ir-benchmarks': {
         'tira-ir-starter': {
@@ -91,72 +93,72 @@ STATIC_REDIRECTS = {
                 "msmarco-passage-trec-dl-2019-judged-20230107-training": {
                     "run_id": "2024-03-19-20-04-59",
                     "md5": "3d07a6c1364534a3c62825316703845a",
-                    'urls': ['https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-20-04-59.zip'],
+                    'urls': ['https://zenodo.org/records/10852971/files/2024-03-19-20-04-59.zip?download=1', 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-20-04-59.zip'],
                 },
                 'msmarco-passage-trec-dl-2020-judged-20230107-training': {
                     # better caching: dl2020 and 2019 used the same corpus
                     "run_id": "2024-03-19-20-04-59",
                     "md5": "3d07a6c1364534a3c62825316703845a",
-                    'urls': ['https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-20-04-59.zip'],
+                    'urls': ['https://zenodo.org/records/10852971/files/2024-03-19-20-04-59.zip?download=1', 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-20-04-59.zip'],
                 },
                 "trec-tip-of-the-tongue-dev-20230607-training": {
                     "run_id": "2024-03-19-19-58-58",
                     "md5": "365ff525cca8302608c2df113eaad170",
-                    'urls': ['https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-19-58-58.zip'],
+                    'urls': ['https://zenodo.org/records/10852971/files/2024-03-19-19-58-58.zip?download=1', 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-19-58-58.zip'],
                 },
                 "antique-test-20230107-training": {
                     "run_id": "2024-03-19-18-06-23",
                     "md5": "b019d109841dfce4db65bb315750024b",
-                    'urls': ['https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-18-06-23.zip'],
+                    'urls': ['https://zenodo.org/records/10852971/files/2024-03-19-18-06-23.zip?download=1', 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-18-06-23.zip'],
                 },
                 "vaswani-20230107-training": {
                     "run_id": "2024-03-19-19-32-44",
                     "md5": "00d788fd9ccc6eba51558800ba94c731",
-                    'urls': ['https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-19-32-44.zip'],
+                    'urls': ['https://zenodo.org/records/10852971/files/2024-03-19-19-32-44.zip?download=1', 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-19-32-44.zip'],
                 },
                 "cranfield-20230107-training": {
                     "run_id": "2024-03-19-17-50-12",
                     "md5": "07d8fd9ab63569f6ea2a80aee86db55a",
-                    'urls': ['https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-17-50-12.zip'],
+                    'urls': ['https://zenodo.org/records/10852971/files/2024-03-19-17-50-12.zip?download=1', 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-17-50-12.zip'],
                 },
                 "nfcorpus-test-20230107-training": {
                     "run_id": "2024-03-19-19-51-27",
                     "md5": "047e5276a69ab7353f584ab08e817539",
-                    'urls': ['https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-19-51-27.zip'],
+                    'urls': ['https://zenodo.org/records/10852971/files/2024-03-19-19-51-27.zip?download=1',  'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-19-51-27.zip'],
                 },
                 "medline-2017-trec-pm-2017-20230211-training": {
                     "run_id": "2024-03-19-19-48-04",
                     "md5": "e23d2535cc67c7bafe513c40510da6fa",
-                    'urls': ['https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-19-48-04.zip'],
+                    'urls': ['https://zenodo.org/records/10852971/files/2024-03-19-19-48-04.zip?download=1', 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-19-48-04.zip'],
                 },
                 "argsme-touche-2020-task-1-20230209-training": {
                     "run_id": "2024-03-19-17-52-36",
                     "md5": "6698ba27029448dac2a8a7293d0376a2",
-                    'urls': ['https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-17-52-36.zip'],
+                    'urls': ['https://zenodo.org/records/10852971/files/2024-03-19-17-52-36.zip?download=1', 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-17-52-36.zip'],
                 },
                 "argsme-touche-2021-task-1-20230209-training": {
                     "run_id": "2024-03-19-17-59-19",
                     "md5": "f22fdcb8c25255e64a2380de42414689",
-                    'urls': ['https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-17-59-19.zip'],
+                    'urls': ['https://zenodo.org/records/10852971/files/2024-03-19-17-59-19.zip?download=1', 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-17-59-19.zip'],
                 },
                 "longeval-short-july-20230513-training": {
                     "run_id": "2024-03-19-19-57-39",
                     "md5": "ea47bb4a0f7d8999db1e510d45096214",
-                    'urls': ['https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-19-57-39.zip'],
+                    'urls': ['https://zenodo.org/records/10852971/files/2024-03-19-19-57-39.zip?download=1', 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-19-57-39.zip'],
                 },
                 "longeval-heldout-20230513-training": {
                     "run_id": "2024-03-19-19-49-22",
                     "md5": "9b97188e7d7383d1cea4dc6630c37081",
-                    'urls': ['https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-19-49-22.zip'],
+                    'urls': ['https://zenodo.org/records/10852971/files/2024-03-19-19-49-22.zip?download=1', 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-19-49-22.zip'],
                 },
                 "longeval-long-september-20230513-training": {
                     "run_id": "2024-03-19-19-52-58",
                     "md5": "1895e01418d7170ac02be6ac1a9a185f",
-                    'urls': ['https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-19-52-58.zip'],
+                    'urls': ['https://zenodo.org/records/10852971/files/2024-03-19-19-52-58.zip?download=1', 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-19-52-58.zip'],
                 }, "longeval-train-20230513-training": {
                     "run_id": "2024-03-19-19-46-01",
                     "md5": "44504a96a16e4e4eaef760025cb9c91b",
-                    'urls': ['https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-19-46-01.zip'],
+                    'urls': ['https://zenodo.org/records/10852971/files/2024-03-19-19-46-01.zip?download=1', 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-19-46-01.zip'],
                 }
             },
 
@@ -164,38 +166,38 @@ STATIC_REDIRECTS = {
                 "msmarco-passage-trec-dl-2019-judged-20230107-training": {
                     "run_id": "2024-03-21-12-27-29",
                     "md5": "93d2166f8498bb664afc1782ffdf2106",
-                    "urls": ["https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/corpus-graph/2024-03-21-12-27-29.zip"],
+                    "urls": ['https://zenodo.org/records/10852971/files/2024-03-21-12-27-29.zip?download=1', "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/corpus-graph/2024-03-21-12-27-29.zip"],
                 },
                 'msmarco-passage-trec-dl-2020-judged-20230107-training': {
                     # better caching: dl2020 and 2019 used the same corpus
                     "run_id": "2024-03-21-12-27-29",
                     "md5": "93d2166f8498bb664afc1782ffdf2106",
-                    "urls": ["https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/corpus-graph/2024-03-21-12-27-29.zip"],
+                    "urls": ['https://zenodo.org/records/10852971/files/2024-03-21-12-27-29.zip?download=1', "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/corpus-graph/2024-03-21-12-27-29.zip"],
                 },
                 "antique-test-20230107-training": {
                     "run_id": "2024-03-21-15-00-49",
                     "md5": "0fe6df76b5fd121c395a5008c0485447",
-                    "urls": ["https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/corpus-graph/2024-03-21-15-00-49.zip"],
+                    "urls": ['https://zenodo.org/records/10852971/files/2024-03-21-15-00-49.zip?download=1', "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/corpus-graph/2024-03-21-15-00-49.zip"],
                 },
                 "longeval-short-july-20230513-training": {
                     "run_id": "2024-03-21-12-45-07",
                     "md5": "cb813f8d7193b436132e035613f983d4",
-                    "urls": ["https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/corpus-graph/2024-03-21-12-45-07.zip"],
+                    "urls": ['https://zenodo.org/records/10852971/files/2024-03-21-12-45-07.zip?download=1', "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/corpus-graph/2024-03-21-12-45-07.zip"],
                 },
                 "longeval-heldout-20230513-training": {
                     "run_id": "2024-03-21-12-39-51",
                     "md5": "290a3fb49d516b4dee3c1ddcf61c0884",
-                    "urls": ["https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/corpus-graph/2024-03-21-12-39-51.zip"],
+                    "urls": ['https://zenodo.org/records/10852971/files/2024-03-21-12-39-51.zip?download=1', "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/corpus-graph/2024-03-21-12-39-51.zip"],
                 },
                 "longeval-long-september-20230513-training": {
                     "run_id": "2024-03-21-12-40-32",
                     "md5": "467241170d83d8320df5207a20c95454",
-                    "urls": ["https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/corpus-graph/2024-03-21-12-40-32.zip"],
+                    "urls": ['https://zenodo.org/records/10852971/files/2024-03-21-12-40-32.zip?download=1', "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/corpus-graph/2024-03-21-12-40-32.zip"],
                 },
                 "longeval-train-20230513-training": {
                     "run_id": "2024-03-21-12-46-50",
                     "md5": "4c6a959deadcbd8a4327c10270ff5b63",
-                    "urls": ["https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/corpus-graph/2024-03-21-12-46-50.zip"],
+                    "urls": ['https://zenodo.org/records/10852971/files/2024-03-21-12-46-50.zip?download=1', "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/corpus-graph/2024-03-21-12-46-50.zip"],
                 }
             }
         }
@@ -257,40 +259,40 @@ QUERY_PROCESSORS = {"ir-benchmarks": {
 
 QUERY_PROCESSORS_PREFIX = {"ir-benchmarks": {
     "qpptk": {
-        "all-predictors": 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/qpptk-all-predictors'
+        "all-predictors":  'https://zenodo.org/records/10852738/files/qpptk-all-predictors' #'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/qpptk-all-predictors'
     }, "salamander": {
-        "classify-comparative-queries": 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/salamander-classify-comparative-queries'
+        "classify-comparative-queries": 'https://zenodo.org/records/10852738/files/salamander-classify-comparative-queries' #'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/salamander-classify-comparative-queries'
     },
     "ows": {
-        "query-segmentation-hyb-a": 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/ows-query-segmentation-hyb-a'
+        "query-segmentation-hyb-a": 'https://zenodo.org/records/10852738/files/ows-query-segmentation-hyb-a' #'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/ows-query-segmentation-hyb-a'
     },
     "dossier": {
-        "pre-retrieval-query-intent": 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/dossier-pre-retrieval-query-intent'
+        "pre-retrieval-query-intent": 'https://zenodo.org/records/10852738/files/dossier-pre-retrieval-query-intent' #'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/dossier-pre-retrieval-query-intent'
     },
     
     "tu-dresden-03": {
-        "qe-gpt3.5-sq-zs": 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-zs',
+        "qe-gpt3.5-sq-zs": 'https://zenodo.org/records/10852738/files/tu-dresden-03-qe-gpt3.5-sq-zs', #'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-zs',
 
-        "qe-gpt3.5-cot": 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-cot',
+        "qe-gpt3.5-cot": 'https://zenodo.org/records/10852738/files/tu-dresden-03-qe-gpt3.5-cot', #'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-cot',
 
-        "qe-gpt3.5-sq-fs": 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-fs',
+        "qe-gpt3.5-sq-fs": 'https://zenodo.org/records/10852738/files/tu-dresden-03-qe-gpt3.5-sq-fs', #'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-gpt3.5-sq-fs',
 
-        "qe-llama-sq-zs": 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-zs',
+        "qe-llama-sq-zs": 'https://zenodo.org/records/10852738/files/tu-dresden-03-qe-llama-sq-zs', #'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-zs',
 
-        "qe-llama-sq-fs": 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-fs',
+        "qe-llama-sq-fs": 'https://zenodo.org/records/10852738/files/tu-dresden-03-qe-llama-sq-fs', #'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-sq-fs',
 
-        "qe-llama-cot": 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-cot',
+        "qe-llama-cot": 'https://zenodo.org/records/10852738/files/tu-dresden-03-qe-llama-cot', #'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-llama-cot',
 
-        "qe-flan-ul2-sq-zs": 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-zs',
+        "qe-flan-ul2-sq-zs": 'https://zenodo.org/records/10852738/files/tu-dresden-03-qe-flan-ul2-sq-zs', #'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-zs',
 
-        "qe-flan-ul2-sq-fs": 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-fs',
+        "qe-flan-ul2-sq-fs": 'https://zenodo.org/records/10852738/files/tu-dresden-03-qe-flan-ul2-sq-fs', #'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-sq-fs',
 
-        "qe-flan-ul2-cot": 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-cot',
+        "qe-flan-ul2-cot": 'https://zenodo.org/records/10852738/files/tu-dresden-03-qe-flan-ul2-cot', #'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/tu-dresden-03-qe-flan-ul2-cot',
     },
 
     "marcel-gohsen": {
-        "query-interpretation": 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/marcel-gohsen-query-interpretation',
-        "entity-linking": 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/marcel-gohsen-entity-linking'
+        "query-interpretation": 'https://zenodo.org/records/10852738/files/marcel-gohsen-query-interpretation', #'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/marcel-gohsen-query-interpretation',
+        "entity-linking": 'https://zenodo.org/records/10852738/files/marcel-gohsen-entity-linking' #'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/marcel-gohsen-entity-linking'
     },
 }}
 
