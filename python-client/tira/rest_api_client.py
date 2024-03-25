@@ -14,7 +14,7 @@ import logging
 from .tira_client import TiraClient
 from typing import Optional, List, Dict, Union
 from functools import lru_cache
-from tira.tira_redirects import redirects, mirror_url
+from tira.tira_redirects import redirects, mirror_url, dataset_ir_redirects
 from tqdm import tqdm
 
 class Client(TiraClient):
@@ -266,6 +266,8 @@ class Client(TiraClient):
         """
         Download the dataset. Set truth_dataset to true to load the truth used for evaluations.
         """
+        dataset = dataset_ir_redirects(dataset)
+
         target_dir = f'{self.tira_cache_dir}/extracted_datasets/{task}/{dataset}/'
         suffix = ("input-data" if not truth_dataset else "truth-data")
         if os.path.isdir(target_dir + suffix):

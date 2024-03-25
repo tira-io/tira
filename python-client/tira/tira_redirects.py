@@ -1,5 +1,4 @@
 
-
 STATIC_REDIRECTS = {
     'ir-benchmarks': {
         'tira-ir-starter': {
@@ -307,6 +306,9 @@ DATASET_ID_REDIRECTS = {
     'longeval-tiny-train-20240315-training': 'training-20231104-training'
 }
 
+
+def dataset_ir_redirects(dataset_id):
+    return DATASET_ID_REDIRECTS.get(dataset_id, dataset_id)
 
 for task in QUERY_PROCESSORS.keys():
     for team in QUERY_PROCESSORS[task].keys():
