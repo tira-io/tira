@@ -62,4 +62,9 @@ class PandasIntegration():
         if len(matching_files) == 0:
             raise ValueError('Could not find a matching document output. Used file_selection: ' + str(file_selection) + '. Please specify the file_selection to resolve this.')
 
-        return pd.read_json(matching_files[0], lines=True, dtype={'docno': str, 'doc_id': str})
+        ret = pd.read_json(matching_files[0], lines=True, dtype={'docno': str, 'doc_id': str})
+
+        if 'doc_id' in ret.columns and 'docno' not in ret.columns:
+            ret['docno'] = ret['doc_id']
+            del ret['doc_id']
+        return ret

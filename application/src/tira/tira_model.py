@@ -824,9 +824,8 @@ def create_re_rank_output_on_dataset(task_id: str, vm_id: str, software_id: str,
         return ValueError("The dataset is misconfigured. Docker-execute only available for git-evaluators")
 
     input_run = latest_output_of_software_on_dataset(task_id, vm_id, software_id, docker_software_id, dataset_id, None)
-    input_run = input_run['run_id']
-    path_to_run = Path(settings.TIRA_ROOT) / "data" / "runs" / dataset_id / vm_id / input_run / "output"
-    rerank_run_id = input_run + '-rerank-' + get_tira_id()
+    path_to_run = Path(settings.TIRA_ROOT) / "data" / "runs" / dataset_id / vm_id / input_run['run_id'] / "output"
+    rerank_run_id = input_run['run_id'] + '-rerank-' + get_tira_id()
     rerank_dir = Path(settings.TIRA_ROOT) / "data" / "runs" / dataset_id / vm_id / rerank_run_id
 
     input_run['vm_id'] = vm_id
@@ -835,19 +834,27 @@ def create_re_rank_output_on_dataset(task_id: str, vm_id: str, software_id: str,
     raw_command = raw_command.replace('$outputDir', '/tira-output/current-output')
     raw_command = raw_command.replace('$inputDataset', '/tira-input/current-input')
 
+    #docker run --rm -ti --entrypoint sh -v ${PWD}:/data -v /mnt/ceph/tira/data/datasets/training-datasets/ir-benchmarks/clueweb12-trec-misinfo-2019-20240214-training/:/irds-data/:ro docker.io/webis/tira-ir-datasets-starter:0.0.56
+    #export TIRA_INPUT_DATASET=/irds-data/ /irds_cli.sh --ir_datasets_id ignored --rerank /data/output-run/ --input_dataset_directory /irds-data/
     command = [
         ['sudo', 'podman', '--storage-opt', 'mount_program=/usr/bin/fuse-overlayfs', 'run',
          '-v', f'{output_directory}:/tira-output/current-output', '-v', f'{path_to_run}:/tira-input/current-input:ro',
          '--entrypoint', 'sh', evaluator['git_runner_image'], '-c', raw_command]
     ]
 
+    print('Input run:', path_to_run)
+    print('Rerank dir:', rerank_dir)
+
+    rerank_dir.mkdir(parents=True, exist_ok=True)
+    register_run(dataset_id, vm_id, rerank_run_id, evaluator['evaluator_id'])
+
     def register_reranking():
         rerank_dir.mkdir(parents=True, exist_ok=True)
         copy_tree(output_directory.name, rerank_dir / "output")
         register_run(dataset_id, vm_id, rerank_run_id, evaluator['evaluator_id'])
 
-    return run_cmd_as_documented_background_process(command, vm_id, task_id, 'Create Re-ranking file.',
-                                                    ['Create rerankings.'], register_reranking)
+    #return run_cmd_as_documented_background_process(command, vm_id, task_id, 'Create Re-ranking file.',
+    #                                                ['Create rerankings.'], register_reranking)
 
 
 def add_input_run_id_to_all_rerank_runs():

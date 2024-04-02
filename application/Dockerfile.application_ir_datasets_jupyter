@@ -1,5 +1,11 @@
-FROM webis/tira-ir-datasets-starter:0.0.54
+#docker build -t docker.io/webis/tira-ir-datasets-starter:0.0.56 -f Dockerfile.application_ir_datasets_jupyter .
+FROM docker.io/webis/tira-ir-datasets-starter:0.0.55
 
-# Add additional dependencies: jupyter so that we can run a notebook directly in the container and jq that we can easily look into the data
-RUN apk add jq libffi-dev && pip3 install jupyter
+RUN pip3 uninstall -y tira && pip3 install tira \
+	&& cp /usr/lib/python3.8/site-packages/tira/third_party_integrations.py tira \
+	&& cp /usr/lib/python3.8/site-packages/tira/io_utils.py tira \
+	&& cp /usr/lib/python3.8/site-packages/tira/tirex.py tira \
+	&& cp /usr/lib/python3.8/site-packages/tira/ir_datasets_util.py  tira
+
+ADD src/tira/ir_datasets_loader.py /tira/application/src/tira/ir_datasets_loader.py
 

@@ -4,5 +4,7 @@
     "vscode": {
       "extensions": ["ms-python.python", "ms-python.vscode-pylance", "ms-toolsai.jupyter"]
     }
-  }
+  },
+  "runArgs": ["--privileged"],
+  "mounts": ["source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"]
 }

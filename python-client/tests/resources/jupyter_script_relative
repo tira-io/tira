@@ -1,0 +1,7 @@
+from bash
+
+WORKDIR /usr/bin
+
+ADD tests/resources/retrieve-with-pyterrier-index.py /usr/bin/
+
+ENTRYPOINT [ "./retrieve-with-pyterrier-index.py" ]
