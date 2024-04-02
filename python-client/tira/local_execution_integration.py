@@ -89,7 +89,8 @@ class LocalExecutionIntegration():
 
         print('\n\n Image pulled successfully.\n\nI will now run the software.\n\n')
 
-    def extract_entrypoint(self, image_name):
+    def extract_entrypoint(self, image):
+        image_name = image
         from tira.third_party_integrations import extract_to_be_executed_notebook_from_command_or_none
         self.ensure_image_available_locally(image_name)
         image = self.__docker_client().images.get(image_name)
