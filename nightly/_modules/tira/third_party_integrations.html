@@ -411,120 +411,138 @@
 <span class="linenos">147</span><span class="k">def</span> <span class="nf">extract_to_be_executed_notebook_from_command_or_none</span><span class="p">(</span><span class="n">command</span><span class="p">:</span><span class="nb">str</span><span class="p">):</span>
 <span class="linenos">148</span>    <span class="k">if</span> <span class="n">command</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s1">&#39;--notebook&#39;</span> <span class="ow">in</span> <span class="n">command</span><span class="p">:</span>
 <span class="linenos">149</span>        <span class="k">return</span> <span class="n">command</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;--notebook&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-<span class="linenos">150</span>    <span class="k">return</span> <span class="kc">None</span></div>
+<span class="linenos">150</span>    
+<span class="linenos">151</span>    <span class="k">if</span> <span class="n">command</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s1">&#39;.py&#39;</span> <span class="ow">in</span> <span class="n">command</span><span class="p">:</span>
+<span class="linenos">152</span>        <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">command</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">):</span>
+<span class="linenos">153</span>            <span class="k">if</span> <span class="n">arg</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.py&#39;</span><span class="p">):</span>
+<span class="linenos">154</span>                <span class="k">return</span> <span class="n">arg</span>
+<span class="linenos">155</span>
+<span class="linenos">156</span>    <span class="k">return</span> <span class="kc">None</span></div>
 
-<span class="linenos">151</span>
-<span class="linenos">152</span>
+<span class="linenos">157</span>
+<span class="linenos">158</span>
 <div class="viewcode-block" id="extract_ast_value">
 <a class="viewcode-back" href="../../users/api.html#tira.third_party_integrations.extract_ast_value">[docs]</a>
-<span class="linenos">153</span><span class="k">def</span> <span class="nf">extract_ast_value</span><span class="p">(</span><span class="n">v</span><span class="p">):</span>
-<span class="linenos">154</span>    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="s1">&#39;s&#39;</span><span class="p">):</span>
-<span class="linenos">155</span>        <span class="c1"># python3.7</span>
-<span class="linenos">156</span>        <span class="k">return</span> <span class="n">v</span><span class="o">.</span><span class="n">s</span>
-<span class="linenos">157</span>    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span><span class="p">):</span>
-<span class="linenos">158</span>        <span class="c1"># python3.7</span>
-<span class="linenos">159</span>        <span class="k">return</span> <span class="n">v</span><span class="o">.</span><span class="n">n</span>
-<span class="linenos">160</span>    <span class="k">else</span><span class="p">:</span>
-<span class="linenos">161</span>        <span class="k">return</span> <span class="n">v</span><span class="o">.</span><span class="n">value</span></div>
+<span class="linenos">159</span><span class="k">def</span> <span class="nf">extract_ast_value</span><span class="p">(</span><span class="n">v</span><span class="p">):</span>
+<span class="linenos">160</span>    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="s1">&#39;s&#39;</span><span class="p">):</span>
+<span class="linenos">161</span>        <span class="c1"># python3.7</span>
+<span class="linenos">162</span>        <span class="k">return</span> <span class="n">v</span><span class="o">.</span><span class="n">s</span>
+<span class="linenos">163</span>    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span><span class="p">):</span>
+<span class="linenos">164</span>        <span class="c1"># python3.7</span>
+<span class="linenos">165</span>        <span class="k">return</span> <span class="n">v</span><span class="o">.</span><span class="n">n</span>
+<span class="linenos">166</span>    <span class="k">else</span><span class="p">:</span>
+<span class="linenos">167</span>        <span class="k">return</span> <span class="n">v</span><span class="o">.</span><span class="n">value</span></div>
 
-<span class="linenos">162</span>
-<span class="linenos">163</span>
+<span class="linenos">168</span>
+<span class="linenos">169</span>
 <div class="viewcode-block" id="parse_ast_extract_assignment">
 <a class="viewcode-back" href="../../users/api.html#tira.third_party_integrations.parse_ast_extract_assignment">[docs]</a>
-<span class="linenos">164</span><span class="k">def</span> <span class="nf">parse_ast_extract_assignment</span><span class="p">(</span><span class="n">python_line</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-<span class="linenos">165</span>    <span class="k">try</span><span class="p">:</span>
-<span class="linenos">166</span>        <span class="kn">import</span> <span class="nn">ast</span>
-<span class="linenos">167</span>        <span class="n">python_line</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">python_line</span><span class="p">)</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="linenos">168</span>
-<span class="linenos">169</span>        <span class="k">return</span> <span class="n">python_line</span><span class="o">.</span><span class="n">targets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">extract_ast_value</span><span class="p">(</span><span class="n">python_line</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-<span class="linenos">170</span>    <span class="k">except</span><span class="p">:</span>
-<span class="linenos">171</span>        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span></div>
+<span class="linenos">170</span><span class="k">def</span> <span class="nf">parse_ast_extract_assignment</span><span class="p">(</span><span class="n">python_line</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="linenos">171</span>    <span class="k">try</span><span class="p">:</span>
+<span class="linenos">172</span>        <span class="kn">import</span> <span class="nn">ast</span>
+<span class="linenos">173</span>        <span class="n">python_line</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">python_line</span><span class="p">)</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="linenos">174</span>
+<span class="linenos">175</span>        <span class="k">return</span> <span class="n">python_line</span><span class="o">.</span><span class="n">targets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">extract_ast_value</span><span class="p">(</span><span class="n">python_line</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<span class="linenos">176</span>    <span class="k">except</span><span class="p">:</span>
+<span class="linenos">177</span>        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span></div>
 
-<span class="linenos">172</span>
-<span class="linenos">173</span>
+<span class="linenos">178</span>
+<span class="linenos">179</span>
 <div class="viewcode-block" id="parse_extraction_of_tira_approach">
 <a class="viewcode-back" href="../../users/api.html#tira.third_party_integrations.parse_extraction_of_tira_approach">[docs]</a>
-<span class="linenos">174</span><span class="k">def</span> <span class="nf">parse_extraction_of_tira_approach</span><span class="p">(</span><span class="n">python_line</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-<span class="linenos">175</span>    <span class="k">try</span><span class="p">:</span>
-<span class="linenos">176</span>        <span class="kn">import</span> <span class="nn">ast</span>
-<span class="linenos">177</span>        <span class="n">python_line</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">python_line</span><span class="p">)</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="linenos">178</span>
-<span class="linenos">179</span>        <span class="k">if</span> <span class="n">python_line</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">attr</span> <span class="o">!=</span> <span class="s1">&#39;pt&#39;</span><span class="p">:</span>
-<span class="linenos">180</span>            <span class="k">return</span> <span class="kc">None</span>
-<span class="linenos">181</span>
-<span class="linenos">182</span>        <span class="k">if</span> <span class="n">python_line</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">id</span> <span class="o">!=</span> <span class="s1">&#39;tira&#39;</span><span class="p">:</span>
-<span class="linenos">183</span>            <span class="k">return</span> <span class="kc">None</span>
+<span class="linenos">180</span><span class="k">def</span> <span class="nf">parse_extraction_of_tira_approach</span><span class="p">(</span><span class="n">python_line</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="linenos">181</span>    <span class="k">try</span><span class="p">:</span>
+<span class="linenos">182</span>        <span class="kn">import</span> <span class="nn">ast</span>
+<span class="linenos">183</span>        <span class="n">python_line</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">python_line</span><span class="p">)</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 <span class="linenos">184</span>
-<span class="linenos">185</span>        <span class="k">if</span> <span class="n">python_line</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="n">attr</span> <span class="o">!=</span> <span class="s1">&#39;index&#39;</span><span class="p">:</span>
+<span class="linenos">185</span>        <span class="k">if</span> <span class="n">python_line</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">attr</span> <span class="o">!=</span> <span class="s1">&#39;pt&#39;</span><span class="p">:</span>
 <span class="linenos">186</span>            <span class="k">return</span> <span class="kc">None</span>
-<span class="linenos">187</span>        
-<span class="linenos">188</span>        <span class="k">return</span> <span class="n">extract_ast_value</span><span class="p">(</span><span class="n">python_line</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-<span class="linenos">189</span>    <span class="k">except</span><span class="p">:</span>
-<span class="linenos">190</span>        <span class="k">return</span> <span class="kc">None</span></div>
+<span class="linenos">187</span>
+<span class="linenos">188</span>        <span class="k">if</span> <span class="n">python_line</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">id</span> <span class="o">!=</span> <span class="s1">&#39;tira&#39;</span><span class="p">:</span>
+<span class="linenos">189</span>            <span class="k">return</span> <span class="kc">None</span>
+<span class="linenos">190</span>
+<span class="linenos">191</span>        <span class="k">if</span> <span class="n">python_line</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="n">attr</span> <span class="o">!=</span> <span class="s1">&#39;index&#39;</span><span class="p">:</span>
+<span class="linenos">192</span>            <span class="k">return</span> <span class="kc">None</span>
+<span class="linenos">193</span>        
+<span class="linenos">194</span>        <span class="k">return</span> <span class="n">extract_ast_value</span><span class="p">(</span><span class="n">python_line</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="linenos">195</span>    <span class="k">except</span><span class="p">:</span>
+<span class="linenos">196</span>        <span class="k">return</span> <span class="kc">None</span></div>
 
-<span class="linenos">191</span>
-<span class="linenos">192</span>
+<span class="linenos">197</span>
+<span class="linenos">198</span><span class="k">def</span> <span class="nf">__read_src_lines</span><span class="p">(</span><span class="n">notebook</span><span class="p">:</span><span class="n">Path</span><span class="p">):</span>
+<span class="linenos">199</span>    <span class="k">if</span> <span class="ow">not</span> <span class="n">notebook</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+<span class="linenos">200</span>        <span class="k">return</span> <span class="p">[]</span>
+<span class="linenos">201</span>
+<span class="linenos">202</span>    <span class="n">ret</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="linenos">203</span>    <span class="k">if</span> <span class="n">notebook</span><span class="o">.</span><span class="n">suffix</span> <span class="o">==</span> <span class="s1">&#39;.py&#39;</span><span class="p">:</span>
+<span class="linenos">204</span>        <span class="k">return</span> <span class="nb">open</span><span class="p">(</span><span class="n">notebook</span><span class="p">)</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+<span class="linenos">205</span>
+<span class="linenos">206</span>    <span class="n">json_notebook</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">notebook</span><span class="p">))</span>
+<span class="linenos">207</span>    <span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="n">json_notebook</span><span class="p">[</span><span class="s1">&#39;cells&#39;</span><span class="p">]:</span>
+<span class="linenos">208</span>        <span class="k">if</span> <span class="n">cell</span><span class="p">[</span><span class="s1">&#39;cell_type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;code&#39;</span><span class="p">:</span>
+<span class="linenos">209</span>            <span class="k">for</span> <span class="n">src_line</span> <span class="ow">in</span> <span class="n">cell</span><span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">]:</span>
+<span class="linenos">210</span>                <span class="n">ret</span> <span class="o">+=</span> <span class="p">[</span><span class="n">src_line</span><span class="p">]</span>
+<span class="linenos">211</span>
+<span class="linenos">212</span>    <span class="k">return</span> <span class="n">ret</span>
+<span class="linenos">213</span>
 <div class="viewcode-block" id="extract_previous_stages_from_notebook">
 <a class="viewcode-back" href="../../users/api.html#tira.third_party_integrations.extract_previous_stages_from_notebook">[docs]</a>
-<span class="linenos">193</span><span class="k">def</span> <span class="nf">extract_previous_stages_from_notebook</span><span class="p">(</span><span class="n">notebook</span><span class="p">:</span><span class="n">Path</span><span class="p">):</span>
-<span class="linenos">194</span>    <span class="k">if</span> <span class="ow">not</span> <span class="n">notebook</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-<span class="linenos">195</span>        <span class="k">return</span> <span class="p">[]</span>
-<span class="linenos">196</span>
-<span class="linenos">197</span>    <span class="n">ret</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="linenos">198</span>    <span class="n">json_notebook</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">notebook</span><span class="p">))</span>
-<span class="linenos">199</span>    <span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="n">json_notebook</span><span class="p">[</span><span class="s1">&#39;cells&#39;</span><span class="p">]:</span>
-<span class="linenos">200</span>        <span class="k">if</span> <span class="n">cell</span><span class="p">[</span><span class="s1">&#39;cell_type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;code&#39;</span><span class="p">:</span>
-<span class="linenos">201</span>            <span class="k">for</span> <span class="n">src_line</span> <span class="ow">in</span> <span class="n">cell</span><span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">]:</span>
-<span class="linenos">202</span>                <span class="n">approach</span> <span class="o">=</span> <span class="n">parse_extraction_of_tira_approach</span><span class="p">(</span><span class="n">src_line</span><span class="p">)</span>
-<span class="linenos">203</span>                <span class="k">if</span> <span class="n">approach</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-<span class="linenos">204</span>                    <span class="n">ret</span> <span class="o">+=</span> <span class="p">[</span><span class="n">approach</span><span class="p">]</span>
-<span class="linenos">205</span>
-<span class="linenos">206</span>    <span class="k">return</span> <span class="n">ret</span></div>
+<span class="linenos">214</span><span class="k">def</span> <span class="nf">extract_previous_stages_from_notebook</span><span class="p">(</span><span class="n">notebook</span><span class="p">:</span><span class="n">Path</span><span class="p">):</span>
+<span class="linenos">215</span>    <span class="k">if</span> <span class="ow">not</span> <span class="n">notebook</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+<span class="linenos">216</span>        <span class="k">return</span> <span class="p">[]</span>
+<span class="linenos">217</span>
+<span class="linenos">218</span>    <span class="n">ret</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="linenos">219</span>    <span class="k">for</span> <span class="n">src_line</span> <span class="ow">in</span> <span class="n">__read_src_lines</span><span class="p">(</span><span class="n">notebook</span><span class="p">):</span>
+<span class="linenos">220</span>        <span class="n">approach</span> <span class="o">=</span> <span class="n">parse_extraction_of_tira_approach</span><span class="p">(</span><span class="n">src_line</span><span class="p">)</span>
+<span class="linenos">221</span>        <span class="k">if</span> <span class="n">approach</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+<span class="linenos">222</span>            <span class="n">ret</span> <span class="o">+=</span> <span class="p">[</span><span class="n">approach</span><span class="p">]</span>
+<span class="linenos">223</span>
+<span class="linenos">224</span>    <span class="k">return</span> <span class="n">ret</span></div>
 
-<span class="linenos">207</span>
-<span class="linenos">208</span>
+<span class="linenos">225</span>
+<span class="linenos">226</span>
 <div class="viewcode-block" id="extract_previous_stages_from_docker_image">
 <a class="viewcode-back" href="../../users/api.html#tira.third_party_integrations.extract_previous_stages_from_docker_image">[docs]</a>
-<span class="linenos">209</span><span class="k">def</span> <span class="nf">extract_previous_stages_from_docker_image</span><span class="p">(</span><span class="n">image</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">command</span><span class="p">:</span><span class="nb">str</span><span class="p">):</span>
-<span class="linenos">210</span>    <span class="n">notebook</span> <span class="o">=</span> <span class="n">extract_to_be_executed_notebook_from_command_or_none</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
-<span class="linenos">211</span>
-<span class="linenos">212</span>    <span class="k">if</span> <span class="n">notebook</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-<span class="linenos">213</span>        <span class="k">return</span> <span class="p">[]</span>
-<span class="linenos">214</span>
-<span class="linenos">215</span>    <span class="kn">import</span> <span class="nn">tempfile</span>
-<span class="linenos">216</span>    <span class="kn">from</span> <span class="nn">tira.local_execution_integration</span> <span class="kn">import</span> <span class="n">LocalExecutionIntegration</span> <span class="k">as</span> <span class="n">Client</span>
-<span class="linenos">217</span>    <span class="n">tira</span> <span class="o">=</span> <span class="n">Client</span><span class="p">()</span>
-<span class="linenos">218</span>
-<span class="linenos">219</span>    <span class="n">local_file</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">NamedTemporaryFile</span><span class="p">()</span><span class="o">.</span><span class="n">name</span>
-<span class="linenos">220</span>    <span class="n">tira</span><span class="o">.</span><span class="n">export_file_from_software</span><span class="p">(</span><span class="n">notebook</span><span class="p">,</span> <span class="n">local_file</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="n">image</span><span class="p">)</span>
-<span class="linenos">221</span>
-<span class="linenos">222</span>    <span class="k">return</span> <span class="n">extract_previous_stages_from_notebook</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">local_file</span><span class="p">))</span></div>
+<span class="linenos">227</span><span class="k">def</span> <span class="nf">extract_previous_stages_from_docker_image</span><span class="p">(</span><span class="n">image</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">command</span><span class="p">:</span><span class="nb">str</span><span class="p">):</span>
+<span class="linenos">228</span>    <span class="n">notebook</span> <span class="o">=</span> <span class="n">extract_to_be_executed_notebook_from_command_or_none</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+<span class="linenos">229</span>
+<span class="linenos">230</span>    <span class="k">if</span> <span class="n">notebook</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+<span class="linenos">231</span>        <span class="k">return</span> <span class="p">[]</span>
+<span class="linenos">232</span>
+<span class="linenos">233</span>    <span class="kn">import</span> <span class="nn">tempfile</span>
+<span class="linenos">234</span>    <span class="kn">from</span> <span class="nn">tira.local_execution_integration</span> <span class="kn">import</span> <span class="n">LocalExecutionIntegration</span> <span class="k">as</span> <span class="n">Client</span>
+<span class="linenos">235</span>    <span class="n">tira</span> <span class="o">=</span> <span class="n">Client</span><span class="p">()</span>
+<span class="linenos">236</span>
+<span class="linenos">237</span>    <span class="n">local_file</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">NamedTemporaryFile</span><span class="p">()</span><span class="o">.</span><span class="n">name</span>
+<span class="linenos">238</span>    <span class="n">tira</span><span class="o">.</span><span class="n">export_file_from_software</span><span class="p">(</span><span class="n">notebook</span><span class="p">,</span> <span class="n">local_file</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="n">image</span><span class="p">)</span>
+<span class="linenos">239</span>
+<span class="linenos">240</span>    <span class="k">return</span> <span class="n">extract_previous_stages_from_notebook</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">local_file</span><span class="p">))</span></div>
 
-<span class="linenos">223</span>
+<span class="linenos">241</span>
 <div class="viewcode-block" id="load_ir_datasets">
 <a class="viewcode-back" href="../../users/api.html#tira.third_party_integrations.load_ir_datasets">[docs]</a>
-<span class="linenos">224</span><span class="k">def</span> <span class="nf">load_ir_datasets</span><span class="p">():</span>
-<span class="linenos">225</span>    <span class="c1"># Detect if we are in the TIRA sandbox</span>
-<span class="linenos">226</span>    <span class="k">if</span> <span class="s1">&#39;TIRA_INPUT_DATASET&#39;</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
-<span class="linenos">227</span>        <span class="kn">from</span> <span class="nn">tira.ir_datasets_util</span> <span class="kn">import</span> <span class="n">static_ir_dataset</span>
-<span class="linenos">228</span>
-<span class="linenos">229</span>        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;TIRA_INPUT_DATASET&#39;</span><span class="p">],</span> <span class="s1">&#39;rerank.jsonl.gz&#39;</span><span class="p">))</span> <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;TIRA_INPUT_DATASET&#39;</span><span class="p">],</span> <span class="s1">&#39;rerank.jsonl&#39;</span><span class="p">)):</span>
-<span class="linenos">230</span>            <span class="kn">import</span> <span class="nn">ir_datasets</span> <span class="k">as</span> <span class="nn">original_ir_datasets</span>
-<span class="linenos">231</span>            <span class="n">register_rerank_data_to_ir_datasets</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;TIRA_INPUT_DATASET&#39;</span><span class="p">],</span> <span class="s1">&#39;dynamic-ds-in-tira&#39;</span><span class="p">)</span>
-<span class="linenos">232</span>
-<span class="linenos">233</span>            <span class="k">return</span> <span class="n">static_ir_dataset</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;TIRA_INPUT_DATASET&#39;</span><span class="p">],</span> <span class="n">original_ir_datasets</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;dynamic-ds-in-tira&#39;</span><span class="p">))</span>
-<span class="linenos">234</span>
-<span class="linenos">235</span>        <span class="k">return</span> <span class="n">static_ir_dataset</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;TIRA_INPUT_DATASET&#39;</span><span class="p">])</span>
-<span class="linenos">236</span>    <span class="k">else</span><span class="p">:</span>
-<span class="linenos">237</span>        <span class="k">try</span><span class="p">:</span>
-<span class="linenos">238</span>            <span class="kn">from</span> <span class="nn">tira.ir_datasets_util</span> <span class="kn">import</span> <span class="n">ir_dataset_from_tira_fallback_to_original_ir_datasets</span>
-<span class="linenos">239</span>            <span class="k">return</span> <span class="n">ir_dataset_from_tira_fallback_to_original_ir_datasets</span><span class="p">()</span>
-<span class="linenos">240</span>        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-<span class="linenos">241</span>            <span class="k">return</span> <span class="kc">None</span></div>
+<span class="linenos">242</span><span class="k">def</span> <span class="nf">load_ir_datasets</span><span class="p">():</span>
+<span class="linenos">243</span>    <span class="c1"># Detect if we are in the TIRA sandbox</span>
+<span class="linenos">244</span>    <span class="k">if</span> <span class="s1">&#39;TIRA_INPUT_DATASET&#39;</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
+<span class="linenos">245</span>        <span class="kn">from</span> <span class="nn">tira.ir_datasets_util</span> <span class="kn">import</span> <span class="n">static_ir_dataset</span>
+<span class="linenos">246</span>
+<span class="linenos">247</span>        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;TIRA_INPUT_DATASET&#39;</span><span class="p">],</span> <span class="s1">&#39;rerank.jsonl.gz&#39;</span><span class="p">))</span> <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;TIRA_INPUT_DATASET&#39;</span><span class="p">],</span> <span class="s1">&#39;rerank.jsonl&#39;</span><span class="p">)):</span>
+<span class="linenos">248</span>            <span class="kn">import</span> <span class="nn">ir_datasets</span> <span class="k">as</span> <span class="nn">original_ir_datasets</span>
+<span class="linenos">249</span>            <span class="n">register_rerank_data_to_ir_datasets</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;TIRA_INPUT_DATASET&#39;</span><span class="p">],</span> <span class="s1">&#39;dynamic-ds-in-tira&#39;</span><span class="p">)</span>
+<span class="linenos">250</span>
+<span class="linenos">251</span>            <span class="k">return</span> <span class="n">static_ir_dataset</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;TIRA_INPUT_DATASET&#39;</span><span class="p">],</span> <span class="n">original_ir_datasets</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;dynamic-ds-in-tira&#39;</span><span class="p">))</span>
+<span class="linenos">252</span>
+<span class="linenos">253</span>        <span class="k">return</span> <span class="n">static_ir_dataset</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;TIRA_INPUT_DATASET&#39;</span><span class="p">])</span>
+<span class="linenos">254</span>    <span class="k">else</span><span class="p">:</span>
+<span class="linenos">255</span>        <span class="k">try</span><span class="p">:</span>
+<span class="linenos">256</span>            <span class="kn">from</span> <span class="nn">tira.ir_datasets_util</span> <span class="kn">import</span> <span class="n">ir_dataset_from_tira_fallback_to_original_ir_datasets</span>
+<span class="linenos">257</span>            <span class="k">return</span> <span class="n">ir_dataset_from_tira_fallback_to_original_ir_datasets</span><span class="p">()</span>
+<span class="linenos">258</span>        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+<span class="linenos">259</span>            <span class="k">return</span> <span class="kc">None</span></div>
 
-<span class="linenos">242</span>
-<span class="linenos">243</span>
-<span class="linenos">244</span><span class="n">ir_datasets</span> <span class="o">=</span> <span class="n">load_ir_datasets</span><span class="p">()</span>
+<span class="linenos">260</span>
+<span class="linenos">261</span>
+<span class="linenos">262</span><span class="n">ir_datasets</span> <span class="o">=</span> <span class="n">load_ir_datasets</span><span class="p">()</span>
 </pre></div>
         </article>
       </div>
