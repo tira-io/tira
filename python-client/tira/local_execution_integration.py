@@ -95,6 +95,9 @@ class LocalExecutionIntegration():
         self.ensure_image_available_locally(image_name)
         image = self.__docker_client().images.get(image_name)
         ret = image.attrs['Config']['Entrypoint']
+        if not ret:
+            return None
+
         for i in deepcopy(ret):
             if i.startswith('[') and i.endswith(']'):
                 print(i)

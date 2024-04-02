@@ -6,6 +6,8 @@ from tira.local_execution_integration import LocalExecutionIntegration
 import os
 import shutil
 import logging
+import tempfile
+from tira.third_party_integrations import extract_previous_stages_from_docker_image
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -85,7 +87,13 @@ def parse_args():
         if args.command is not None:
             print(f'Use command from Docker image "{args.command}".')
         else:
-            parser.error('The options --image and --command have to be used together.')
+            parser.error('I could not find a command to execute, please either configure the entrypoint of the image or use --command.')
+            exit(1)
+        
+        if args.input_run is None:
+            args.input_run = extract_previous_stages_from_docker_image(args.image, args.command)
+            if args.input_run and len(args.input_run) == 1:
+                args.input_run = args.input_run[0]
 
     if args.push.lower() == 'true':
         if not args.tira_docker_registry_token:
@@ -108,8 +116,8 @@ def parse_args():
     return args
 
 
-def main():
-    args = parse_args()
+def main(args=None):
+    args = args if args else parse_args()
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
 
     client: "TiraClient" = Client()
@@ -185,10 +193,18 @@ def main():
         input_dir = tira.download_dataset(task, dataset)
         print(f'Done: Dataset {dataset} is available locally.')
 
-        if args.input_run and 'none' != args.input_run.lower():
+        if args.input_run and type(args.input_run) != list and 'none' != args.input_run.lower():
             print(f'Ensure that the input run {args.input_run} is available.')
             args.input_run = tira.get_run_output(args.input_run, dataset, True)
             print('Done: input run is available locally.')
+        if args.input_run and type(args.input_run) == list and len(args.input_run) > 0:
+            temp_dir = '/tmp/' + tempfile.TemporaryDirectory().name
+            os.makedirs(temp_dir, exist_ok=True)
+            for num, input_run in zip(range(len(args.input_run)), args.input_run):
+                print(f'Ensure that the input run {input_run} is available.')
+                input_run = tira.get_run_output(input_run, dataset, True)
+                shutil.copytree(input_run, temp_dir + '/' + str(1+ num))
+            args.input_run = temp_dir
 
         if args.evaluate:
             print(f'Ensure that the evaluation truth for dataset {dataset} is available.')
