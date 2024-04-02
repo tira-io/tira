@@ -27,7 +27,7 @@ Kernel \\r on an \\m (\\l)
         assert actual == expected
 
     def test_extraction_of_entrypoint(self):
-        expected = 'docker-entrypoint.sh'
+        expected = '/docker-entrypoint.sh'
 
         tira = Client()
         actual = tira.extract_entrypoint(image='bash:alpine3.16')

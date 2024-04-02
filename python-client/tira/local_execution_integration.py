@@ -107,7 +107,7 @@ class LocalExecutionIntegration():
         if not executable or executable.startswith('/'):
             return ret
         else:
-            return ret.replace(executable, self.docker_image_work_dir(image_name) + '/' + executable)
+            return ret.replace(executable, (self.docker_image_work_dir(image_name) + '/' + executable).replace('//', '/'))
 
 
 
