@@ -33,6 +33,14 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
 
         self.assertEqual(expected, actual)
 
+    def test_py_file_is_extracted_for_command_in_between(self):
+        expected = 'app.py'
+        command = 'python3 app.py'
+
+        actual = extract_to_be_executed_notebook_from_command_or_none(command)
+
+        self.assertEqual(expected, actual)
+
     def test_no_previous_stages_are_extracted_from_notebook_without_previous_stages(self):
         notebook = TEST_DIR / 'resources' / 'pyterrier-notebook-without-previous-stages.ipynb'
         expected = []
@@ -41,8 +49,24 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
 
         self.assertEqual(expected, actual)
 
+    def test_no_previous_stages_are_extracted_from_python_file_without_previous_stages(self):
+        notebook = TEST_DIR / 'resources' / 'pyterrier-notebook-without-previous-stages.py'
+        expected = []
+
+        actual = extract_previous_stages_from_notebook(notebook)
+
+        self.assertEqual(expected, actual)
+
     def test_pyterrier_index_as_previous_stage(self):
         notebook = TEST_DIR / 'resources' / 'retrieve-with-pyterrier-index.ipynb'
+        expected = ['ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)']
+
+        actual = extract_previous_stages_from_notebook(notebook)
+
+        self.assertEqual(expected, actual)
+
+    def test_pyterrier_index_as_previous_stage_for_python_file(self):
+        notebook = TEST_DIR / 'resources' / 'retrieve-with-pyterrier-index.py'
         expected = ['ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)']
 
         actual = extract_previous_stages_from_notebook(notebook)

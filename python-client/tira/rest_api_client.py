@@ -16,6 +16,7 @@ from typing import Optional, List, Dict, Union
 from functools import lru_cache
 from tira.tira_redirects import redirects, mirror_url, dataset_ir_redirects
 from tqdm import tqdm
+import hashlib
 
 class Client(TiraClient):
     base_url: str
@@ -187,6 +188,10 @@ class Client(TiraClient):
         Downloads the run (or uses the cached version) of the specified approach on the specified dataset.
         Returns the directory containing the outputs of the run.
         """
+        mounted_output_in_sandbox = self.input_run_in_sandbox(approach)
+        if mounted_output_in_sandbox:
+            return mounted_output_in_sandbox
+
         task, team, software = approach.split('/')        
         run_execution = self.get_run_execution_or_none(approach, dataset)
 
@@ -522,3 +527,38 @@ class Client(TiraClient):
                 time.sleep(sleep_time)
 
         return resp.json()
+
+
+    def __listdir_failsave(self, path: str):
+        try:
+            return os.listdir(path)
+        except:
+            return []
+
+
+    def input_run_in_sandbox(self, approach:str):
+        """
+        Returns the directory with the outputs of an approach in mounted into the sandbox. returns None if not in the sandbox.
+        """
+        if 'TIRA_INPUT_RUN' not in os.environ:
+            return None
+
+        input_run = os.environ['TIRA_INPUT_RUN']
+        input_run_mapping_file = Path(self.tira_cache_dir) / (hashlib.md5(input_run.encode('utf-8')).hexdigest()[:6] +'-input-run-mapping.json')
+
+        files_in_input_dir = self.__listdir_failsave(input_run)
+        if '1' not in files_in_input_dir or '2' not in files_in_input_dir:
+            return input_run
+
+        input_run_mapping = {}
+        if input_run_mapping_file.exists():
+            input_run_mapping = json.load(open(input_run_mapping_file, 'r'))
+
+        if approach not in input_run_mapping:
+            next_id = max(list(input_run_mapping.values()) + [0]) + 1
+            input_run_mapping[approach] = next_id
+            os.makedirs(self.tira_cache_dir, exist_ok=True)
+            json.dump(input_run_mapping, open(input_run_mapping_file, 'w+'))
+
+        return input_run + '/' + str(input_run_mapping[approach])
+

@@ -147,6 +147,12 @@ def normalize_run(run, system_name, depth=1000):
 def extract_to_be_executed_notebook_from_command_or_none(command:str):
     if command is not None and '--notebook' in command:
         return command.split('--notebook')[1].strip().split(' ')[0].strip()
+    
+    if command is not None and '.py' in command:
+        for arg in command.split(' '):
+            if arg.endswith('.py'):
+                return arg
+
     return None
 
 
@@ -189,19 +195,31 @@ def parse_extraction_of_tira_approach(python_line: str):
     except:
         return None
 
+def __read_src_lines(notebook:Path):
+    if not notebook.exists():
+        return []
+
+    ret = []
+    if notebook.suffix == '.py':
+        return open(notebook).readlines()
+
+    json_notebook = json.load(open(notebook))
+    for cell in json_notebook['cells']:
+        if cell['cell_type'] == 'code':
+            for src_line in cell['source']:
+                ret += [src_line]
+
+    return ret
 
 def extract_previous_stages_from_notebook(notebook:Path):
     if not notebook.exists():
         return []
 
     ret = []
-    json_notebook = json.load(open(notebook))
-    for cell in json_notebook['cells']:
-        if cell['cell_type'] == 'code':
-            for src_line in cell['source']:
-                approach = parse_extraction_of_tira_approach(src_line)
-                if approach is not None:
-                    ret += [approach]
+    for src_line in __read_src_lines(notebook):
+        approach = parse_extraction_of_tira_approach(src_line)
+        if approach is not None:
+            ret += [approach]
 
     return ret
 
