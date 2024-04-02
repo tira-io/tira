@@ -271,6 +271,9 @@ class Client(TiraClient):
         """
         Download the dataset. Set truth_dataset to true to load the truth used for evaluations.
         """
+        if 'TIRA_INPUT_DATASET' in os.environ:
+            return os.environ['TIRA_INPUT_DATASET']
+
         dataset = dataset_ir_redirects(dataset)
 
         target_dir = f'{self.tira_cache_dir}/extracted_datasets/{task}/{dataset}/'

@@ -1,6 +1,7 @@
-from tira.third_party_integrations import extract_to_be_executed_notebook_from_command_or_none, extract_previous_stages_from_notebook, parse_ast_extract_assignment, parse_extraction_of_tira_approach, extract_previous_stages_from_docker_image
+from tira.third_party_integrations import extract_to_be_executed_notebook_from_command_or_none, extract_previous_stages_from_notebook, parse_ast_extract_assignment, parse_extraction_of_tira_approach, extract_previous_stages_from_docker_image, parse_extraction_of_tira_approach_bash
 from pathlib import Path
 import unittest
+from subprocess import check_output
 
 TEST_DIR = Path(__file__).parent.resolve()
 
@@ -172,5 +173,119 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
 
         expected = ['ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)']
         actual = extract_previous_stages_from_docker_image(image, command)
+
+        self.assertEqual(expected, actual)
+
+    def test_extraction_of_approach_from_bash_line_non_valid_input_01(self):
+        bash_line = ""
+        actual =  parse_extraction_of_tira_approach_bash(bash_line)
+
+        self.assertIsNone(actual)
+
+    def test_extraction_of_approach_from_bash_line_non_valid_input_02(self):
+        bash_line = None
+        actual =  parse_extraction_of_tira_approach_bash(bash_line)
+
+        self.assertIsNone(actual)
+
+    def test_extraction_of_approach_from_bash_line_non_valid_input_03(self):
+        bash_line = 'tira-cli --help'
+        actual =  parse_extraction_of_tira_approach_bash(bash_line)
+
+        self.assertIsNone(actual)
+
+    def test_extraction_of_approach_from_bash_line_01(self):
+        bash_line = "INDEX=$(tira-cli download --dataset longeval-tiny-train-20240315-training --approach tmp) # some comment"
+        expected = 'tmp'
+        actual =  parse_extraction_of_tira_approach_bash(bash_line)
+
+        self.assertEqual(expected, actual)
+
+    def test_extraction_of_approach_from_bash_line_02(self):
+        bash_line = "INDEX=$(tira-cli download --dataset longeval-tiny-train-20240315-training --approach 'ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)') # some comment"
+        expected = 'ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)'
+        actual =  parse_extraction_of_tira_approach_bash(bash_line)
+
+        self.assertEqual(expected, actual)
+
+    def test_extraction_of_approach_from_bash_line_03(self):
+        bash_line = "INDEX=$(tira-cli download --dataset longeval-tiny-train-20240315-training --approach \"tmp\") # some comment"
+        expected = 'tmp'
+        actual =  parse_extraction_of_tira_approach_bash(bash_line)
+
+        self.assertEqual(expected, actual)
+
+    def test_extraction_of_approach_from_bash_line_04(self):
+        bash_line = "INDEX=$(tira-cli download --dataset longeval-tiny-train-20240315-training --approach \"ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)\") # some comment"
+        expected = 'ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)'
+        actual =  parse_extraction_of_tira_approach_bash(bash_line)
+
+        self.assertEqual(expected, actual)
+
+    def test_extraction_of_approach_from_bash_line_05(self):
+        bash_line = "INDEX=$(tira-cli download --dataset longeval-tiny-train-20240315-training --approach 'tmp') # some comment"
+        expected = 'tmp'
+        actual =  parse_extraction_of_tira_approach_bash(bash_line)
+
+        self.assertEqual(expected, actual)
+
+    def test_pyterrier_index_as_previous_stage_for_bash_file(self):
+        notebook = TEST_DIR / 'resources' / 'retrieve-with-pyterrier-bash.sh'
+        expected = ['ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)']
+
+        actual = extract_previous_stages_from_notebook(notebook)
+
+        self.assertEqual(expected, actual)
+
+    def test_no_previous_stage_for_bash_file(self):
+        notebook = TEST_DIR / 'resources' / 'retrieve-no-previous-stages-bash.sh'
+        expected = []
+
+        actual = extract_previous_stages_from_notebook(notebook)
+
+        self.assertEqual(expected, actual)
+
+    def test_integration_against_custom_docker_image_01(self):
+        image = 'dockerfile_bash_script_absolute'
+        check_output(['docker', 'build', '-t', image, '-f', f'tests/resources/{image}', '.'])
+
+        expected = ['ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)']
+        actual = extract_previous_stages_from_docker_image(image, '/usr/bin/retrieve-with-pyterrier-bash.sh')
+
+        self.assertEqual(expected, actual)
+
+    def test_integration_against_custom_docker_image_02(self):
+        image = 'dockerfile_bash_script_absolute'
+        check_output(['docker', 'build', '-t', image, '-f', f'tests/resources/{image}', '.'])
+
+        expected = ['ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)']
+        actual = extract_previous_stages_from_docker_image(image)
+
+        self.assertEqual(expected, actual)
+
+    def test_integration_against_custom_docker_image_03(self):
+        image = 'dockerfile_bash_script_absolute'
+        check_output(['docker', 'build', '-t', image, '-f', f'tests/resources/{image}', '.'])
+
+        expected = []
+        actual = extract_previous_stages_from_docker_image(image, '/etc/hostname')
+
+        self.assertEqual(expected, actual)
+
+    def test_integration_against_custom_docker_image_04(self):
+        image = 'jupyter_script_relative'
+        check_output(['docker', 'build', '-t', image, '-f', f'tests/resources/{image}', '.'])
+
+        expected = ['ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)']
+        actual = extract_previous_stages_from_docker_image(image)
+
+        self.assertEqual(expected, actual)
+
+    def test_integration_against_custom_docker_image_05(self):
+        image = 'jupyter_script_relative'
+        check_output(['docker', 'build', '-t', image, '-f', f'tests/resources/{image}', '.'])
+
+        expected = ['ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)']
+        actual = extract_previous_stages_from_docker_image(image, 'python3 /usr/bin/retrieve-with-pyterrier-index.py')
 
         self.assertEqual(expected, actual)

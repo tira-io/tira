@@ -89,16 +89,26 @@ class LocalExecutionIntegration():
 
         print('\n\n Image pulled successfully.\n\nI will now run the software.\n\n')
 
-    def extract_entrypoint(self, image):
-        self.ensure_image_available_locally(image)
-        image = self.__docker_client().images.get(image)
+    def extract_entrypoint(self, image_name):
+        from tira.third_party_integrations import extract_to_be_executed_notebook_from_command_or_none
+        self.ensure_image_available_locally(image_name)
+        image = self.__docker_client().images.get(image_name)
         ret = image.attrs['Config']['Entrypoint']
         for i in deepcopy(ret):
             if i.startswith('[') and i.endswith(']'):
                 print(i)
                 ret = json.loads(i)
                 break
-        return ' '.join(ret)
+
+        ret = ' '.join(ret)
+        executable = extract_to_be_executed_notebook_from_command_or_none(ret)
+
+        if not executable or executable.startswith('/'):
+            return ret
+        else:
+            return ret.replace(executable, self.docker_image_work_dir(image_name) + '/' + executable)
+
+
 
     def __docker_client(self):
         try:
@@ -209,6 +219,9 @@ class LocalExecutionIntegration():
             docker_software_id_to_output[s_id] = output_dir
             return docker_software_id_to_output
 
+    def docker_image_work_dir(self, image):
+        image = self.__docker_client().images.get(image).attrs['Config']
+        return '/' + image.get('WorkingDir', '')
 
     def export_file_from_software(self, container_path, host_path, identifier=None, image=None, software_id=None):
         """
@@ -219,7 +232,7 @@ class LocalExecutionIntegration():
             image = ds['tira_image_name']
 
         client = self.__docker_client()
-        self.ensure_image_available_locally(image, client)        
+        self.ensure_image_available_locally(image, client)
         docker_container = client.containers.create(image)
         strm, stat = docker_container.get_archive(container_path, None)
 

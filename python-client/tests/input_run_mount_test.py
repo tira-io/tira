@@ -15,6 +15,30 @@ def get_input_run_mounts(input_run, approach_identifier):
 
     return actual_dir, actual_files
 
+def tira_cli_download_run_output(input_run, approach_identifier):
+    os.environ['TIRA_INPUT_RUN'] = input_run
+    actual_dir = Client().get_run_output(approach_identifier, 'dataset')
+    del os.environ['TIRA_INPUT_RUN']
+    actual_files = []
+    try:
+        actual_files = set(os.listdir(actual_dir))
+    except:
+        pass
+
+    return actual_dir, actual_files
+
+def tira_cli_download_dataset(dataset_path):
+    os.environ['TIRA_INPUT_DATASET'] = dataset_path
+    actual_dir = Client().download_dataset(None, 'dataset')
+    del os.environ['TIRA_INPUT_DATASET']
+    actual_files = []
+    try:
+        actual_files = set(os.listdir(actual_dir))
+    except:
+        pass
+
+    return actual_dir, actual_files
+
 def get_pt_index_in_sandbox(input_run, approach_identifier):
     ensure_pyterrier_is_loaded()
     os.environ['TIRA_INPUT_RUN'] = input_run
@@ -99,3 +123,40 @@ class InputRunMountTest(unittest.TestCase):
     def test_for_index_that_does_not_exist_with_single_input(self):
         index = get_pt_index_in_sandbox('tests/resources/input-run-02/1', 'a')
         self.assertIsNone(index)
+
+    def test_cli_download_run_output_01(self):
+        expected_dir = 'tests/resources/re-ranking-outputs/'
+        expected_files = set(['rerank.jsonl.gz'])
+    
+        actual_dir, actual_files = tira_cli_download_run_output('tests/resources/re-ranking-outputs/', 'a')
+
+        self.assertEqual(expected_dir, actual_dir)
+        self.assertEqual(expected_files, actual_files)
+
+    def test_cli_download_run_output_02(self):
+        expected_dir = 'tests/resources/input-run-02//2'
+        expected_files = set(['.gitkeep', 'index'])
+    
+        tira_cli_download_run_output('tests/resources/input-run-02/', 'a')
+        actual_dir, actual_files = tira_cli_download_run_output('tests/resources/input-run-02/', 'b')
+
+        self.assertEqual(expected_dir, actual_dir)
+        self.assertEqual(expected_files, actual_files)
+
+    def test_cli_download_dataset_01(self):
+        expected_dir = 'tests/resources/re-ranking-outputs/'
+        expected_files = set(['rerank.jsonl.gz'])
+    
+        actual_dir, actual_files = tira_cli_download_dataset('tests/resources/re-ranking-outputs/')
+
+        self.assertEqual(expected_dir, actual_dir)
+        self.assertEqual(expected_files, actual_files)
+
+    def test_cli_download_dataset_02(self):
+        expected_dir = 'tests/resources/input-run-02//2'
+        expected_files = set(['index', '.gitkeep'])
+    
+        actual_dir, actual_files = tira_cli_download_dataset('tests/resources/input-run-02//2')
+
+        self.assertEqual(expected_dir, actual_dir)
+        self.assertEqual(expected_files, actual_files)
