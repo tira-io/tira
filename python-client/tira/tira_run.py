@@ -91,10 +91,10 @@ def parse_args():
             parser.error('I could not find a command to execute, please either configure the entrypoint of the image or use --command.')
             exit(1)
         
-        if args.input_run is None and args.input_run_directory is None:
-            args.input_run = extract_previous_stages_from_docker_image(args.image, args.command)
-            if args.input_run and len(args.input_run) == 1:
-                args.input_run = args.input_run[0]
+    if args.input_run is None and args.input_run_directory is None:
+        args.input_run = extract_previous_stages_from_docker_image(args.image, args.command)
+        if args.input_run and len(args.input_run) == 1:
+            args.input_run = args.input_run[0]
 
     if args.push.lower() == 'true':
         if not args.tira_docker_registry_token:
