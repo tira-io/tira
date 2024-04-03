@@ -41,6 +41,7 @@ def parse_args():
     parser.add_argument('--input-directory', required=False, default=str(os.path.abspath(".")))
     parser.add_argument('--input-dataset', required=False, default=None)
     parser.add_argument('--input-run', required=False, default=None)
+    parser.add_argument('--input-run-directory', required=False, default=None)
     # Not required if the subcommand "tira-run submit" is used. FIXME: the arguments in this group should probably be subcommands
     group = parser.add_mutually_exclusive_group(required=False)
     group.add_argument('--image')
@@ -90,7 +91,7 @@ def parse_args():
             parser.error('I could not find a command to execute, please either configure the entrypoint of the image or use --command.')
             exit(1)
         
-        if args.input_run is None:
+        if args.input_run is None and args.input_run_directory is None:
             args.input_run = extract_previous_stages_from_docker_image(args.image, args.command)
             if args.input_run and len(args.input_run) == 1:
                 args.input_run = args.input_run[0]
@@ -205,6 +206,8 @@ def main(args=None):
                 input_run = tira.get_run_output(input_run, dataset, True)
                 shutil.copytree(input_run, temp_dir + '/' + str(1+ num))
             args.input_run = temp_dir
+        if args.input_run_directory and 'none' != args.input_run_directory.lower():
+            args.input_run = os.path.abspath(args.input_run_directory)
 
         if args.evaluate:
             print(f'Ensure that the evaluation truth for dataset {dataset} is available.')
