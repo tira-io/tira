@@ -50,10 +50,22 @@ class Client(TiraClient):
             logging.info(f'No settings given in {self.tira_cache_dir}/.tira-settings.json. I will use defaults.')
             return {'api_key': 'no-api-key', 'api_user_name': 'no-api-key-user'}
 
-    def fail_if_api_key_is_invalid(self):
+    def update_settings(self, k, v):
+        settings = self.load_settings()
+        settings[k] = v
+        json.dump(settings, open(Path(self.tira_cache_dir) / '.tira-settings.json', 'w+'))
+
+        if k == 'api_key':
+            self.api_key = settings['api_key']
+
+    def api_key_is_valid(self):
         role = self.json_response('/api/role')
         
-        if not role or 'status' not in role or 'role' not in role or 0 != role['status']:
+        return role and 'status' in role and 'role' in role and 0 == role['status']
+
+    def fail_if_api_key_is_invalid(self):
+        if not self.api_key_is_valid():
+            role = self.json_response('/api/role')
             raise ValueError('It seems like the api key is invalid. Got: ', role)
 
     def datasets(self, task):
@@ -78,8 +90,11 @@ class Client(TiraClient):
 
         return ret
 
-    def metadata_for_task(self, task_name, team_name):
-        return self.json_response(f'/api/task/{task_name}/user/{team_name}')
+    def metadata_for_task(self, task_name, team_name=None):
+        if team_name is None:
+            return self.json_response(f'/api/task/{task_name}')
+        else:
+            return self.json_response(f'/api/task/{task_name}/user/{team_name}')
 
     def add_docker_software(self, image, command, tira_vm_id, tira_task_id, code_repository_id, build_environment):
         headers = {
@@ -390,6 +405,18 @@ class Client(TiraClient):
                 print(f'Error occured while fetching {url}. I will sleep {sleep_time} seconds and continue.')
                 url = mirror_url(url)
                 time.sleep(sleep_time)
+
+    def login(self, token):
+        self.api_key = token
+
+        if not self.api_key_is_valid():
+            print('The api key {token} is not valid')
+            raise ValueError(f'The api key {token} is invalid.')
+
+        self.update_settings('api_key', token)
+        
+    def docker_registry(self):
+        return 'registry.webis.de'
 
     def get_authentication_cookie(self, user, password):
         resp = requests.get(f'{self.base_url}/session/csrf', headers={'x-requested-with': 'XMLHttpRequest'})

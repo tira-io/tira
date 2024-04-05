@@ -112,8 +112,6 @@ class LocalExecutionIntegration():
         else:
             return ret.replace(executable, (self.docker_image_work_dir(image_name) + '/' + executable).replace('//', '/'))
 
-
-
     def __docker_client(self):
         try:
             environ = os.environ.copy()
@@ -126,6 +124,42 @@ class LocalExecutionIntegration():
             return client
         except Exception as e:
             raise ValueError('It seems like docker is not installed?', e)
+
+    def docker_client_is_authenticated(self, client=None):
+        if not client:
+            client = self.__docker_client()
+
+        auth_config = client.api._auth_configs
+        if not self.tira_client.docker_registry() or 'auths' not in auth_config  or self.tira_client.docker_registry() not in auth_config['auths']:
+            return False
+
+        auth_config = auth_config['auths'][self.tira_client.docker_registry()]
+
+        if not auth_config or 'username' not in auth_config or 'password' not in auth_config:
+            return False
+
+        login_response = client.login(username=auth_config['username'], password=auth_config['password'], registry=self.tira_client.docker_registry())
+
+        return ('username' in login_response and 'password' in login_response and auth_config['username'] == login_response['username'] and auth_config['password'] == login_response['password']) or ('Status' in login_response and 'login succeeded' == login_response['Status'].lower())
+
+    def login_docker_client(self):
+        client = self.__docker_client()
+        if self.docker_client_is_authenticated(client):
+            return True
+
+        docker_user, docker_password, docker_registry = self.tira_client.docker_credentials()
+
+        if not docker_user or not docker_password or not docker_registry:
+            print('Please login. Run "tira-cli login --token YOUR-TOKEN-HERE"')
+            raise ValueError('Please login. Run "tira-cli login --token YOUR-TOKEN-HERE"')
+
+        login_response = client.login(username=docker_user, password=docker_password, registry=docker_registry)
+        if 'Status' not in login_response or 'login succeeded' != login_response['Status'].lower():
+            print('Credentials are not valid, please run "tira-cli login --token YOUR-TOKEN-HERE"')
+            raise ValueError(f'Login was not successfull, got: {login_response}')
+    
+        return True
+
 
     def run(self, identifier=None, image=None, command=None, input_dir=None, output_dir=None, evaluate=False, dry_run=False, docker_software_id_to_output=None, software_id=None, allow_network=False, input_run=None, additional_volumes=None, eval_dir='tira-evaluation'):
         previous_stages = []
@@ -275,14 +309,10 @@ class LocalExecutionIntegration():
 
         return '\n'.join(ret)
 
-    def push_image(self, image, username, password, authenticate=False):
+    def push_image(self, image):
         client = self.__docker_client()
-
-        if authenticate:
-            login_response = client.login(username=username, password=password, registry='registry.webis.de')
-
-            if 'Status' not in login_response or 'Login Succeeded' != login_response['Status']:
-                raise ValueError(f'Login was not successfull, got: {login_response}')
+        if not self.docker_client_is_authenticated(client):
+            self.login_docker_client()
 
         push_response = client.images.push(image)
         print(push_response)
