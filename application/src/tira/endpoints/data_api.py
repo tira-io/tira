@@ -240,7 +240,11 @@ def get_ova_list(request, context):
 
 @add_context
 def runs(request, context, task_id, dataset_id, vm_id, software_id):
-    context["runs"] = model.runs(task_id, dataset_id, vm_id, software_id)
+    runs = model.runs(task_id, dataset_id, vm_id, software_id)
+    context["runs"] = list(set([i['run_id'] for i in runs]))
+    if len(runs) > 0:
+        context["job_id"] = runs[0]
+
     return JsonResponse({'status': 0, "context": context})
 
 
