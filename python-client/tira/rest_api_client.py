@@ -60,7 +60,10 @@ class Client(TiraClient):
 
     def api_key_is_valid(self):
         role = self.json_response('/api/role')
-        
+
+        if (self.api_user_name is None or self.api_user_name == 'no-api-key-user') and role and 'context' in role and 'user_id' in role['context']:
+            self.api_user_name = role['context']['user_id']
+
         return role and 'status' in role and 'role' in role and 0 == role['status']
 
     def fail_if_api_key_is_invalid(self):
@@ -84,6 +87,12 @@ class Client(TiraClient):
         task, team, software = approach.split('/')
         return self.json_response(f'/api/task/{task}/submission-details/{team}/{software}')['context']['submission']
 
+    def docker_credentials(self, task_name, team_name):
+        ret = self.metadata_for_task(task_name, team_name)
+        if ret and 'status' in ret and ret['status'] == 0 and 'context' in ret and 'docker' in ret['context']:
+            return ret['context']['docker']['docker_registry_user'], ret['context']['docker']['docker_registry_token'], self.docker_registry()
+        return None, None, self.docker_registry()
+
     def docker_software_details(self, approach):
         task, team, software = approach.split('/')
         ret = self.json_response(f'/task/{task}/vm/{team}/software_details/{software}')
@@ -96,7 +105,7 @@ class Client(TiraClient):
         else:
             return self.json_response(f'/api/task/{task_name}/user/{team_name}')
 
-    def add_docker_software(self, image, command, tira_vm_id, tira_task_id, code_repository_id, build_environment):
+    def add_docker_software(self, image, command, tira_vm_id, tira_task_id, code_repository_id, build_environment, previous_stages=[]):
         headers = {
             'Api-Key': self.api_key,
             'Api-Username': self.api_user_name,
@@ -105,10 +114,14 @@ class Client(TiraClient):
         }
         self.fail_if_api_key_is_invalid()
         url = f'{self.base_url}/task/{tira_task_id}/vm/{tira_vm_id}/add_software/docker'
-        ret = requests.post(url, headers=headers, json={"action": "post", "image": image, "command": command, "code_repository_id": code_repository_id,"build_environment": json.dumps(build_environment)})
+        content = {"action": "post", "image": image, "command": command, "code_repository_id": code_repository_id,"build_environment": json.dumps(build_environment)}
+
+        if previous_stages and len(previous_stages) > 0:
+            content['inputJob'] = previous_stages
+
+        ret = requests.post(url, headers=headers, json=content)
         ret = ret.content.decode('utf8')
         ret = json.loads(ret)
-
         assert ret['status'] == 0
         logging.info(f'Software with name {ret["context"]["display_name"]} was created.')
         logging.info(f'Please visit {self.base_url}/submit/{tira_task_id}/user/{tira_vm_id}/docker-submission to run your software.')
@@ -221,6 +234,13 @@ class Client(TiraClient):
 
         return self.download_zip_to_cache_directory(run_execution[0]['task'], run_execution[0]['dataset'], run_execution[0]['team'], run_execution[0]['run_id'])
 
+    def public_runs(self, task, dataset, team, software):
+        ret = self.json_response(f'/api/list-runs/{task}/{dataset}/{team}/' + software.replace(' ', '%20'))
+        if ret and 'context' in ret and 'runs' in ret['context'] and ret['context']['runs']:
+            return ret['context']
+        else:
+            return None
+
     def get_run_execution_or_none(self, approach, dataset, previous_stage_run_id=None):
         task, team, software = approach.split('/')
         redirect = redirects(approach, dataset)
@@ -228,9 +248,9 @@ class Client(TiraClient):
         if redirect is not None and 'run_id' in redirect and redirect['run_id'] is not None:
             return {'task': task, 'dataset': dataset, 'team': team, 'run_id': redirect['run_id']}
 
-        public_runs = self.json_response(f'/api/list-runs/{task}/{dataset}/{team}/' + software.replace(' ', '%20'))
-        if public_runs and 'context' in public_runs and 'runs' in public_runs['context'] and public_runs['context']['runs']:
-            return {'task': task, 'dataset': dataset, 'team': team, 'run_id': public_runs['context']['runs'][0]}
+        public_runs = self.public_runs(task, dataset, team, software)
+        if public_runs:
+            return {'task': task, 'dataset': dataset, 'team': team, 'run_id': public_runs['runs'][0]}
 
         df_eval = self.submissions_of_team(task=task, dataset=dataset, team=team)
         if len(df_eval) <= 0:
@@ -414,9 +434,6 @@ class Client(TiraClient):
             raise ValueError(f'The api key {token} is invalid.')
 
         self.update_settings('api_key', token)
-        
-    def docker_registry(self):
-        return 'registry.webis.de'
 
     def get_authentication_cookie(self, user, password):
         resp = requests.get(f'{self.base_url}/session/csrf', headers={'x-requested-with': 'XMLHttpRequest'})

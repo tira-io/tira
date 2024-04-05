@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import argparse
 from tira.local_client import Client
-from .rest_api_client import Client as RestClient
+from tira.rest_api_client import Client as RestClient
 from tira.local_execution_integration import LocalExecutionIntegration
 import os
 import shutil
@@ -89,30 +89,58 @@ def parse_args():
             print(f'Use command from Docker image "{args.command}".')
         else:
             parser.error('I could not find a command to execute, please either configure the entrypoint of the image or use --command.')
-            exit(1)
-        
+    
+    args.previous_stages = [] if not args.input_run else [args.input_run]
     if args.input_run is None and args.input_run_directory is None:
         args.input_run = extract_previous_stages_from_docker_image(args.image, args.command)
+        args.previous_stages = args.input_run
         if args.input_run and len(args.input_run) == 1:
             args.input_run = args.input_run[0]
 
+    
+
     if args.push.lower() == 'true':
-        if not args.tira_docker_registry_token:
-            parser.error('The option --tira-docker-registry-token (or environment variable TIRA_DOCKER_REGISTRY_TOKEN) is required when --push is active.')
+        rest_client = RestClient()
+        docker_authenticated = rest_client.local_execution.docker_client_is_authenticated()
 
-        if not args.tira_docker_registry_user:
-            parser.error('The option --tira-docker-registry-user (or environment variable TIRA_DOCKER_REGISTRY_USER) is required when --push is active.')
+        api_key_valid = rest_client.api_key_is_valid()
 
-        if not args.tira_client_token:
-            parser.error('The option --tira-client-token (or environment variable TIRA_CLIENT_TOKEN) is required when --push is active.')
+        if args.tira_client_token:
+            if api_key_valid:
+                args.tira_client_token = rest_client.api_key
+            else:
+                parser.error('The option --tira-client-token (or environment variable TIRA_CLIENT_TOKEN) is required when --push is active.')
 
-        if not args.tira_vm_id:
-            parser.error('The option --tira-vm-id (or environment variable TIRA_VM_ID) is required when --push is active.')
+        if not args.tira_task_id and args.input_dataset:
+            args.tira_task_id = args.input_dataset.split('/')[0]
 
         if not args.tira_task_id:
             parser.error('The option --tira-task-id (or environment variable TIRA_TASK_ID) is required when --push is active.')
+
+        if not args.tira_vm_id:
+            tmp = rest_client.metadata_for_task(args.tira_task_id)
+            if tmp and 'status' in tmp and 0 == tmp['status'] and 'context' in tmp and 'user_vms_for_task' in tmp['context']:
+                if len(tmp['context']['user_vms_for_task']) != 1:
+                    parser.error(f'You have multiple vms ({tmp["context"]["user_vms_for_task"]}), use option --tira-vm-id to specify the vm.')
+                else:
+                    args.tira_vm_id = tmp['context']['user_vms_for_task'][0]
+            else:
+                parser.error('The option --tira-vm-id (or environment variable TIRA_VM_ID) is required when --push is active.')
+
         if not args.tira_client_user:
-            parser.error('The option --tira-client-user (or environment variable TIRA_CLIENT_USER) is required when --push is active.')
+            tmp = rest_client.metadata_for_task(args.tira_task_id)
+            if tmp and 'status' in tmp and 0 == tmp['status'] and 'context' in tmp and 'user_id' in tmp['context']:
+                args.tira_client_user = tmp['context']['user_id']
+            else:
+                parser.error('The option --tira-client-user (or environment variable TIRA_CLIENT_USER) is required when --push is active.')
+
+        if not docker_authenticated and  not args.tira_docker_registry_token and not rest_client.local_execution.login_docker_client(args.tira_task_id, args.tira_vm_id):
+                parser.error('The option --tira-docker-registry-token (or environment variable TIRA_DOCKER_REGISTRY_TOKEN) is required when --push is active.')
+
+        if not docker_authenticated and not args.tira_docker_registry_user and not rest_client.local_execution.login_docker_client(args.tira_task_id, args.tira_vm_id):
+            parser.error('The option --tira-docker-registry-user (or environment variable TIRA_DOCKER_REGISTRY_USER) is required when --push is active.')
+
+        args.previous_stages = [rest_client.public_runs(args.tira_task_id, args.input_dataset.split('/')[1], i.split('/')[1], i.split('/')[2]) for i in args.previous_stages]
 
     return args
 
@@ -227,8 +255,14 @@ def main(args=None):
         raise ValueError('The software produced an empty output directory, it likely failed?')
 
     if args.push.lower() == 'true':
+        registry_prefix = client.docker_registry() + '/code-research/tira/tira-user-' + args.tira_vm_id + '/'
         print('Push Docker image')
-        client.local_execution.push_image(args.image, args.tira_docker_registry_user, args.tira_docker_registry_token)
+
+        image = client.local_execution.push_image(args.image, registry_prefix, args.tira_task_id, args.tira_vm_id)
         print('Upload TIRA_SOFTWARE')
+        prev_stages = []
+        for i in args.previous_stages:
+            prev_stages += [str(i['job_id']['software_id'] if i['job_id']['software_id'] else i['job_id']['upload_id'])]
+
         tira = RestClient(api_key=args.tira_client_token, api_user_name=args.tira_client_user)
-        tira.add_docker_software(args.image, args.command, args.tira_vm_id, args.tira_task_id, args.tira_code_repository_id, dict(os.environ))
+        tira.add_docker_software(image, args.command, args.tira_vm_id, args.tira_task_id, args.tira_code_repository_id, dict(os.environ), prev_stages)
