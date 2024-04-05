@@ -320,7 +320,7 @@ def get_organizer(request, context, organizer_id):
 
 @add_context
 def get_role(request, context):
-    return JsonResponse({'status': 0, 'role': context['role'], 'organizer_teams': auth.get_organizer_ids(request)})
+    return JsonResponse({'status': 0, 'role': context['role'], 'organizer_teams': auth.get_organizer_ids(request), 'context': context})
 
 
 @check_resources_exist("json")
