@@ -185,6 +185,18 @@ def github_user_exists(user_name):
     return g.git_user_exists(user_name)
 
 
+def get_discourse_token_for_user(vm_id, disraptor_user):
+    ret = model.get_discourse_token_for_user(vm_id)
+    if ret:
+        return ret
+
+    disraptor_description = disraptor_user + '-repo-' + vm_id
+    discourse_api_key = discourse_api_client().generate_api_key(disraptor_user, disraptor_description)
+
+    model.create_discourse_token_for_user(vm_id, discourse_api_key)
+
+    return model.get_discourse_token_for_user(vm_id)
+
 def get_submission_git_repo(vm_id, task_id, disraptor_user=None, external_owner=None, private=True):
     user_repository_name = slugify(task_id) + '-' + slugify(vm_id)
     repository_url = settings.CODE_SUBMISSION_REPOSITORY_NAMESPACE + '/' + user_repository_name

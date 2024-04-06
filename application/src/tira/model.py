@@ -223,6 +223,9 @@ class DockerSoftwareHasAdditionalInput(models.Model):
     input_docker_software = models.ForeignKey(DockerSoftware, on_delete=models.CASCADE, default=None, null=True, related_name='+')
     input_upload = models.ForeignKey(Upload, on_delete=models.RESTRICT, default=None, null=True)
 
+class DiscourseTokenForUser(models.Model):
+    vm_id = models.OneToOneField(VirtualMachine, on_delete=models.CASCADE, primary_key=True)
+    token = models.CharField(max_length=250)
 
 class SoftwareSubmissionGitRepository(models.Model):
     repository_url = models.CharField(max_length=500, primary_key=True)

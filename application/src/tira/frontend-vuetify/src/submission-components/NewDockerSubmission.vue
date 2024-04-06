@@ -1,6 +1,6 @@
 <template>
   <import-submission submission_type="docker"/>
-  <h2>Create New Docker Software</h2>
+  <h2>Create New Docker Submission</h2>
   <v-stepper v-model="stepperModel" flat :border=false>
     <template v-slot:default="{ prev, next }">
     <v-stepper-header>
@@ -31,11 +31,11 @@
                     
                     <div class="my-3"/>
 
-                    <code-snippet title="Install the TIRA CLI on your machine" code="pip3 install tira" expand_message="(1) Install the TIRA CLI"/>
+                    <code-snippet title="(1) Make sure that your TIRA client is up to date and authenticated" :code="tira_setup_code" expand_message="(1) Make sure that your TIRA client is up to date and authenticated"/>
 
                     <div class="my-3"/>
 
-                    <code-snippet title="Execute your Docker Submission on a Small Example Dataset" :code="tira_initial_run_example" expand_message="(2)  Execute your submission on a small example dataset"/>
+                    <code-snippet title="(2) Execute your Docker Submission on a Small Example Dataset" :code="tira_initial_run_example" expand_message="(2)  Execute your submission on a small example dataset"/>
 
                       <div class="my-3"/>
 
@@ -194,7 +194,8 @@ export default {
       public_docker_softwares: [{"docker_software_id": 'loading...', "display_name": 'loading...', 'vm_id': 'loading...'}],
       user_id_for_task: extractUserFromCurrentUrl(),
       stepperTitles: ['Local Tests of your Docker Submission', 'Add the Docker Submission', 'Final Checks'],
-      stepperModel: this.step_prop === "step-1" || '' ? 1 : 2,
+      stepperModel: 1,
+      token: 'YOUR-TOKEN-HERE',
       steps: 3
     }
   },
@@ -203,6 +204,9 @@ export default {
       return this.docker_softwares
         .concat(this.all_uploadgroups.map((i) => ({"display_name": i.display_name, "docker_software_id": ('upload-' + i.id)})))
         .concat(this.public_docker_softwares.filter((i) => i.vm_id !== this.user_id_for_task).map((i) => ({"display_name": i.vm_id + '/' + i.display_name, "docker_software_id": i.docker_software_id})))
+    },
+    tira_setup_code() {
+      return 'pip3 uninstall -y tira\npip3 install tira\ntira-cli login --token ' + this.token
     },
     double_check_tira_run_command() {
       return this.tira_final_run_example.replace('YOUR-IMAGE', this.selectedDockerImage).replace('YOUR-COMMAND', this.runCommand)
@@ -264,6 +268,11 @@ export default {
   },
   beforeMount() {
     this.loading = true
+
+    get('/api/token/' + this.user_id_for_task)
+      .then(inject_response(this))
+      .catch(reportError("Problem While Loading The Metadata for the team of the Task " + this.user_id_for_task, "This might be a short-term hiccup, please try again. We got the following error: "))
+
     get('/api/submissions-for-task/' + this.task_id + '/' + this.user_id_for_task + '/upload')
       .then(inject_response(this))
       .catch(reportError("Problem While Loading The Submissions of the Task " + this.task_id, "This might be a short-term hiccup, please try again. We got the following error: "))

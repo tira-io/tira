@@ -34,7 +34,6 @@
   </v-row>
   <v-window v-model="tab" v-if="!loading && role !== 'guest'" :touch="{left: null, right: null}">
           <v-window-item value="newUploadGroup">
-              <import-submission submission_type="upload"/>
               <h2>Create Run Upload Group</h2>
               <p>Please click on "Add Upload Group" below to create a new run upload group.</p>
               <p>Please use one upload group (you can edit the metadata of an upload group later) per approach. I.e., in TIRA, you can usually run software submissions on different datasets. For manually uploaded runs, we employ the same methodology: Please create one run upload group per approach, so that you can upload "executions" of the same approach on different datasets while maintaining the documentation.</p>
@@ -53,6 +52,15 @@
               <v-btn variant="outlined" @click="addUpload()">
                   Add Upload Group
               </v-btn>
+
+              <div v-if="!showImportSubmission">
+              <br>
+              If you participate in multiple tasks, you can also <a href="javascript:void(0);" @click="showImportSubmission=true">import your upload group</a>.
+              </div>
+              <div v-if="showImportSubmission">
+                <br>
+                <import-submission submission_type="upload"/>
+              </div>
           </v-window-item>
           <v-window-item v-for="us in this.all_uploadgroups" :value="us.id">
             <loading :loading="description === 'no-description'"/>
@@ -129,6 +137,7 @@ export default {
       editUploadMetadataToggle: false,
       all_uploadgroups: [{"id": null, "display_name": 'loading...'}],
       selectedDataset: '',
+      showImportSubmission: false,
       datasets: [{"dataset_id": "loading...", "display_name": "loading...",}]
     }
   },

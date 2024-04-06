@@ -568,6 +568,16 @@ class HybridDatabase(object):
     def get_upload(self, task_id, vm_id, upload_id):
         return self.upload_to_dict(modeldb.Upload.objects.get(vm__vm_id=vm_id, id=upload_id), vm_id)
 
+    def get_discourse_token_for_user(self, vm_id):
+        try:
+            return modeldb.DiscourseTokenForUser.objects.get(vm_id__vm_id=vm_id).token
+        except:
+            return None
+
+    def create_discourse_token_for_user(self, vm_id, discourse_api_key):
+        modeldb.DiscourseTokenForUser.objects.create(vm_id=modeldb.VirtualMachine.objects.get(vm_id=vm_id),
+                                                     token=discourse_api_key)
+
     @staticmethod
     def get_uploads(task_id, vm_id, return_names_only=True):
         ret = modeldb.Upload.objects.filter(vm__vm_id=vm_id, task__task_id=task_id, deleted=False)
