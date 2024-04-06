@@ -351,6 +351,13 @@ CODE_SUBMISSION_REFERENCE_REPOSITORIES = {
     'valueeval-2024-human-value-detection': 'touche-webis-de/valueeval24-tira-software-submission-template',
     'workshop-on-open-web-search': 'tira-io/wows24-submission-template',
 }
+
+REFERENCE_DATASETS = {
+    'ir-lab-padua-2024': 'ir-lab-padua-2024/longeval-tiny-train-20240315-training',
+    'ir-benchmarks': 'ir-benchmarks/cranfield-20230107-training',
+    'workshop-on-open-web-search': 'workshop-on-open-web-search/retrieval-20231027-training',
+}
+
 CODE_SUBMISSION_REPOSITORY_NAMESPACE = 'tira-io'
 try:
     DISRAPTOR_API_KEY = open(DISRAPTOR_SECRET_FILE, "r").read().strip()
