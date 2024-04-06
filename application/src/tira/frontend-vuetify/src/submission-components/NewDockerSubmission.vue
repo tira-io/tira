@@ -1,5 +1,4 @@
 <template>
-  <import-submission submission_type="docker"/>
   <h2>Create New Docker Submission</h2>
   <v-stepper v-model="stepperModel" flat :border=false>
     <template v-slot:default="{ prev, next }">
@@ -41,6 +40,16 @@
 
                     <div>(3) Verify the outputs of your docker submission<br>
                     The command above has persisted the outputs of your software (by default into a directory "tira-output" or what you have specified via --output-directory). Please have a look at the outputs to verify that they look reasonable.
+                    </div>
+
+
+                    <div v-if="!showImportSubmission">
+                      <br>
+                      If you participate in multiple tasks, you can also <a href="javascript:void(0);" @click="showImportSubmission=true">import your upload group</a>.
+                    </div>
+                    <div v-if="showImportSubmission">
+                      <br>
+                      <import-submission submission_type="docker"/>
                     </div>
                   </v-card-text>
             </v-card>
@@ -174,6 +183,7 @@ export default {
       tira_final_run_example: 'loading...',
       valid: false,
       dialog: false,
+      showImportSubmission: false,
       addSoftwareInProgress: false,
       loading: true,
       step: this.step_prop === '' ? "step-1" : this.step_prop,
