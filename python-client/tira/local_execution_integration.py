@@ -226,7 +226,7 @@ class LocalExecutionIntegration():
         environment = {'outputDir': '/tira-data/output', 'inputDataset': '/tira-data/input', 'TIRA_DATASET_ID': 'id', 'TIRA_OUTPUT_DIR': '/tira-data/output', 'TIRA_INPUT_DATASET': '/tira-data/input'}
 
         if input_run:
-            environment['TIRA_INPUT_RUN'] = '/tira-data/input-run'
+            environment['inputRun'] = '/tira-data/input-run'
 
         container = client.containers.run(image, entrypoint='sh', command=f'-c "{command}; sleep .1"', environment=environment, volumes=volumes, detach=True, remove=True, network_disabled = not allow_network)
 

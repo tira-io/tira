@@ -587,10 +587,10 @@ class Client(TiraClient):
         """
         Returns the directory with the outputs of an approach in mounted into the sandbox. returns None if not in the sandbox.
         """
-        if 'TIRA_INPUT_RUN' not in os.environ:
+        if 'inputRun' not in os.environ:
             return None
 
-        input_run = os.environ['TIRA_INPUT_RUN']
+        input_run = os.environ['inputRun']
         input_run_mapping_file = Path(self.tira_cache_dir) / (hashlib.md5(input_run.encode('utf-8')).hexdigest()[:6] +'-input-run-mapping.json')
 
         files_in_input_dir = self.__listdir_failsave(input_run)
