@@ -80,6 +80,11 @@ def parse_args():
     if args.export_submission_environment:
         return args
 
+    if os.path.exists(args.output_directory) and len(os.listdir(args.output_directory)) > 0:
+        parser.error(f'The output directory {os.path.abspath(args.output_directory)} is not empty. Please empty it or provide a new output directory with --ouptut-directory.')
+        
+
+
     if (args.image is None) == (args.approach is None) == (args.export_dataset):
         parser.error('You have to exclusively use either --approach or --image.')
     if (args.image is None) != (args.command is None):
@@ -97,9 +102,8 @@ def parse_args():
         if args.input_run and len(args.input_run) == 1:
             args.input_run = args.input_run[0]
 
-    
-
     if args.push.lower() == 'true':
+        print('I will check that the API key and the credentials for the image registry are valid.')
         rest_client = RestClient()
         docker_authenticated = rest_client.local_execution.docker_client_is_authenticated()
 
@@ -244,10 +248,10 @@ def main(args=None):
             print(f'Done: Evaluation truth for dataset {dataset} is available.')
 
     print(f'''
-########################################### TIRA RUN CONFIGURATION ###########################################
-# image=${args.image}
-# command=${args.command}
-##############################################################################################################
+########################################### TIRA RUN CONFIGURATION #########################################################
+# image={args.image}
+# command={args.command}
+############################################################################################################################
 ''')
     client.local_execution.run(identifier=args.approach, image=args.image, command=args.command, input_dir=input_dir, output_dir=args.output_directory, dry_run=args.dry_run, allow_network=args.allow_network, input_run=args.input_run, additional_volumes=args.v, evaluate=evaluate, eval_dir=args.evaluation_directory)
 
@@ -255,6 +259,24 @@ def main(args=None):
         raise ValueError('The software produced an empty output directory, it likely failed?')
 
     if args.push.lower() == 'true':
+        print(f'''
+########################################### Review the Outputs of your Software ############################################
+# Your software produced the following outputs in {args.output_directory}.
+# Please shortly review them before we push your software.
+############################################################################################################################
+''')
+        if not os.path.exists(args.output_directory) or not os.listdir(args.output_directory):
+            print('Your software did not produce any output, please review the logs above.')
+        else:
+            for f in os.listdir(args.output_directory):
+                print(f' - {f}: {os.path.getsize(args.output_directory + "/" + f)} bytes')
+    
+        continue_user = input("Are the outputs correct and should I push the software to TIRA? (y/N) ").lower()
+
+        if continue_user and continue_user.lower() not in ['y', 'yes']:
+            print('You did not specify yes, I will not push the software.')
+            return
+
         registry_prefix = client.docker_registry() + '/code-research/tira/tira-user-' + args.tira_vm_id + '/'
         print('Push Docker image')
 
