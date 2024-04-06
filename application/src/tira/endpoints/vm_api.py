@@ -546,7 +546,10 @@ def get_token(request, vm_id):
     if not disraptor_user or not type(disraptor_user) == str:
         return JsonResponse({'status': 1, 'message': f"Please authenticate."})
 
-    return JsonResponse({'status': 0, "context": {'token': model.get_discourse_token_for_user(vm_id, disraptor_user)}})
+    try:
+        return JsonResponse({'status': 0, "context": {'token': model.get_discourse_token_for_user(vm_id, disraptor_user)}})
+    except:
+        return JsonResponse({'status': 1, 'message': f"Could not extract the discourse/disraptor user, please authenticate."})
 
 @check_permissions
 def get_software_submission_git_repository(request, task_id, vm_id):
