@@ -98,6 +98,7 @@ def parse_args():
     args.previous_stages = [] if not args.input_run else [args.input_run]
     if args.input_run is None and args.input_run_directory is None:
         args.input_run = extract_previous_stages_from_docker_image(args.image, args.command)
+        args.command = LocalExecutionIntegration().make_command_absolute(args.image, args.command)
         args.previous_stages = args.input_run
         if args.input_run and len(args.input_run) == 1:
             args.input_run = args.input_run[0]

@@ -91,7 +91,6 @@ class LocalExecutionIntegration():
 
     def extract_entrypoint(self, image):
         image_name = image
-        from tira.third_party_integrations import extract_to_be_executed_notebook_from_command_or_none
         self.ensure_image_available_locally(image_name)
         image = self.__docker_client().images.get(image_name)
         ret = image.attrs['Config']['Entrypoint']
@@ -104,13 +103,16 @@ class LocalExecutionIntegration():
                 ret = json.loads(i)
                 break
 
-        ret = ' '.join(ret)
-        executable = extract_to_be_executed_notebook_from_command_or_none(ret)
+        return self.make_command_absolute(image_name, ' '.join(ret))
+
+    def make_command_absolute(self, image_name, command):
+        from tira.third_party_integrations import extract_to_be_executed_notebook_from_command_or_none
+        executable = extract_to_be_executed_notebook_from_command_or_none(command)
 
         if not executable or executable.startswith('/'):
-            return ret
+            return command
         else:
-            return ret.replace(executable, (self.docker_image_work_dir(image_name) + '/' + executable).replace('//', '/'))
+            return command.replace(executable, (self.docker_image_work_dir(image_name) + '/' + executable).replace('//', '/').replace('/./', '/'))
 
     def __docker_client(self):
         try:
