@@ -289,3 +289,21 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
         actual = extract_previous_stages_from_docker_image(image, 'python3 /usr/bin/retrieve-with-pyterrier-index.py')
 
         self.assertEqual(expected, actual)
+
+    def test_integration_against_custom_docker_image_06(self):
+        image = 'jupyter_script_relative'
+        check_output(['docker', 'build', '-t', image, '-f', f'tests/resources/{image}', '.'])
+
+        expected = ['ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)']
+        actual = extract_previous_stages_from_docker_image(image, 'python3 /usr/bin/retrieve-with-pyterrier-index.py; sleep3')
+
+        self.assertEqual(expected, actual)
+
+    def test_integration_against_custom_docker_image_07(self):
+        image = 'jupyter_script_relative'
+        check_output(['docker', 'build', '-t', image, '-f', f'tests/resources/{image}', '.'])
+
+        expected = ['ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)']
+        actual = extract_previous_stages_from_docker_image(image, 'python3 /usr/bin/retrieve-with-pyterrier-index.py&&sleep3')
+
+        self.assertEqual(expected, actual)

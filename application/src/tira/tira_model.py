@@ -129,9 +129,11 @@ def discourse_api_client():
 
 
 def tira_run_command(image, command, task_id):
-    input_dataset = 'scai-eval-2024-metric-submission/scai-eval24-2023-09-26-20230926-training'
+    input_dataset = f'{task_id}/ADD-DATASET-ID-HERE'
+    if task_id in settings.REFERENCE_DATASETS:
+        input_dataset = settings.REFERENCE_DATASETS[task_id]
 
-    return f'tira-run \\\n  --input-dataset {input_dataset} \\\n  --image {image} \\\n  --evaluate true \\\n  --command \'{command}\''
+    return f'tira-run \\\n  --input-dataset {input_dataset} \\\n  --image {image} \\\n  --command \'{command}\''
 
 
 def tira_docker_registry_token(docker_software_help):
@@ -174,9 +176,10 @@ def load_docker_data(task_id, vm_id, cache, force_cache_refresh):
         "tira_initial_run_example": '# This example shows how to execute the baseline on a small example dataset.\n' +
                                     '# Please adjust the --image and --command parameters accordingly.\n' +
                                    tira_run_command('YOUR-IMAGE', 'YOUR-COMMAND', task_id),
-        "tira_final_run_example": '# The configuration of your software is final, please do a final test:\n' +
-                                  docker_login + '\n' +
-                                  tira_run_command('YOUR-IMAGE', 'YOUR-COMMAND', task_id),
+        "tira_final_run_example": #'# The configuration of your software is final, please do a final test:\n' +
+                                  #docker_login + '\n' +
+                                  '# Please append "--push true" to your previous tira-run command to upload your software.\n# I.e., the --image and --command parameters are as before.\n' + 
+                                  tira_run_command('YOUR-IMAGE', 'YOUR-COMMAND', task_id) + ' \\\n  --push true',
     }
 
 
@@ -184,6 +187,18 @@ def github_user_exists(user_name):
     g = get_git_runner_for_software_integration()
     return g.git_user_exists(user_name)
 
+
+def get_discourse_token_for_user(vm_id, disraptor_user):
+    ret = model.get_discourse_token_for_user(vm_id)
+    if ret:
+        return ret
+
+    disraptor_description = disraptor_user + '-repo-' + vm_id
+    discourse_api_key = discourse_api_client().generate_api_key(disraptor_user, disraptor_description)
+
+    model.create_discourse_token_for_user(vm_id, discourse_api_key)
+
+    return model.get_discourse_token_for_user(vm_id)
 
 def get_submission_git_repo(vm_id, task_id, disraptor_user=None, external_owner=None, private=True):
     user_repository_name = slugify(task_id) + '-' + slugify(vm_id)

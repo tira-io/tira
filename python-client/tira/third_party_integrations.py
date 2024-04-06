@@ -145,6 +145,7 @@ def normalize_run(run, system_name, depth=1000):
 
 
 def extract_to_be_executed_notebook_from_command_or_none(command:str):
+    command = command.replace(';', ' ').replace('&', ' ').replace('|', ' ') if command is not None else None
     if command is not None and '--notebook' in command:
         return command.split('--notebook')[1].strip().split(' ')[0].strip()
     

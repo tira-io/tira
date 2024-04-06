@@ -5,10 +5,10 @@ This is a python client for [TIRA.io](https://tira.io).
 ## Setup REST Client to Access Non-Public Endpoints
 
 To access non-public endpoints, you will need an authentication via an API key to ensure that you have the correct access credentials.
-Please generate your API key online at [tira.io/admin/api/keys](https://www.tira.io/admin/api/keys) and create a credentials file at `~/.tira/.tira-settings.json` with the following content:
+Please generate your API key online at [tira.io/admin/api/keys](https://www.tira.io/admin/api/keys) and login your tira client:
 
 ```
-{"api_key": "<YOUR-API-KEY>"}
+tira-cli login --token YOUR-TOKEN-HERE
 ```
 
 ## Download The results of some Submission

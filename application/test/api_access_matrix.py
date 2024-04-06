@@ -300,6 +300,17 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
+        url_pattern='api/token/<str:vm_id>',
+        params={'vm_id': PARTICIPANT.split('_')[-1]},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 302,
+            PARTICIPANT: 200,
+            ORGANIZER: 302,
+            ORGANIZER_WRONG_TASK: 302,
+        },
+    ),
+    route_to_test(
         url_pattern='api/add_software_submission_git_repository/<str:task_id>/<str:vm_id>',
         params={'task_id': 'task-of-organizer-1', 'vm_id': PARTICIPANT.split('_')[-1]},
         group_to_expected_status_code={

@@ -4,9 +4,9 @@ import os
 import unittest
 
 def get_input_run_mounts(input_run, approach_identifier):
-    os.environ['TIRA_INPUT_RUN'] = input_run
+    os.environ['inputRun'] = input_run
     actual_dir = Client().input_run_in_sandbox(approach_identifier)
-    del os.environ['TIRA_INPUT_RUN']
+    del os.environ['inputRun']
     actual_files = []
     try:
         actual_files = set(os.listdir(actual_dir))
@@ -16,9 +16,9 @@ def get_input_run_mounts(input_run, approach_identifier):
     return actual_dir, actual_files
 
 def tira_cli_download_run_output(input_run, approach_identifier):
-    os.environ['TIRA_INPUT_RUN'] = input_run
+    os.environ['inputRun'] = input_run
     actual_dir = Client().get_run_output(approach_identifier, 'dataset')
-    del os.environ['TIRA_INPUT_RUN']
+    del os.environ['inputRun']
     actual_files = []
     try:
         actual_files = set(os.listdir(actual_dir))
@@ -41,14 +41,14 @@ def tira_cli_download_dataset(dataset_path):
 
 def get_pt_index_in_sandbox(input_run, approach_identifier):
     ensure_pyterrier_is_loaded()
-    os.environ['TIRA_INPUT_RUN'] = input_run
+    os.environ['inputRun'] = input_run
 
     try:
         ret = Client().pt.index(approach_identifier, 'dataset_id')
-        del os.environ['TIRA_INPUT_RUN']
+        del os.environ['inputRun']
         return ret
     except:
-        del os.environ['TIRA_INPUT_RUN']
+        del os.environ['inputRun']
         return None
 
 class InputRunMountTest(unittest.TestCase):

@@ -20,15 +20,15 @@ fi
 # Run on all inputs
 ###########################################################################################
 
-ls ${TIRA_INPUT_RUN}
+ls ${inputRun}
 
 echo "INDEX:"
-ls ${TIRA_INPUT_RUN}/1
+ls ${inputRun}/1
 
 echo "INDEX (BLOCKS):"
-ls ${TIRA_INPUT_RUN}/2
+ls ${inputRun}/2
 
 echo "bm25:"
-ls ${TIRA_INPUT_RUN}/3
+ls ${inputRun}/3
 
 

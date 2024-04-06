@@ -6,7 +6,8 @@ from packaging import version
 from tira.pyterrier_integration import PyTerrierIntegration
 from tira.pandas_integration import PandasIntegration
 from tira.local_execution_integration import LocalExecutionIntegration
-from .tira_client import TiraClient
+from tira.rest_api_client import Client as RestClient
+from tira.tira_client import TiraClient
 
 
 class Client(TiraClient):
@@ -15,8 +16,8 @@ class Client(TiraClient):
         self.pt = PyTerrierIntegration(self)
         self.directory = directory + '/'
         self.tira_cache_dir = os.environ.get('TIRA_CACHE_DIR', os.path.expanduser('~') + '/.tira')
-        self.rest_client = rest_client
-        self.local_execution = LocalExecutionIntegration(self)
+        self.rest_client = rest_client if rest_client else RestClient()
+        self.local_execution = LocalExecutionIntegration(self.rest_client)
 
     def all_datasets(self) -> pd.DataFrame:
         ret = []

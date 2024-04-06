@@ -240,7 +240,11 @@ def get_ova_list(request, context):
 
 @add_context
 def runs(request, context, task_id, dataset_id, vm_id, software_id):
-    context["runs"] = model.runs(task_id, dataset_id, vm_id, software_id)
+    runs = model.runs(task_id, dataset_id, vm_id, software_id)
+    context["runs"] = list(set([i['run_id'] for i in runs]))
+    if len(runs) > 0:
+        context["job_id"] = runs[0]
+
     return JsonResponse({'status': 0, "context": context})
 
 
@@ -316,7 +320,7 @@ def get_organizer(request, context, organizer_id):
 
 @add_context
 def get_role(request, context):
-    return JsonResponse({'status': 0, 'role': context['role'], 'organizer_teams': auth.get_organizer_ids(request)})
+    return JsonResponse({'status': 0, 'role': context['role'], 'organizer_teams': auth.get_organizer_ids(request), 'context': context})
 
 
 @check_resources_exist("json")
