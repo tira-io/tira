@@ -315,13 +315,20 @@ class LocalExecutionIntegration():
 
         return '\n'.join(ret)
 
+    def normalize_image_name(self, image, required_prefix):
+        if required_prefix and not image.startswith(required_prefix):
+            ret = (required_prefix + '/' + image[:10]).replace('//', '/') + ':' + (image.split(':')[-1] if ':' in image else 'latest')
+            return ret.replace('-:', ':').replace('::', ':')
+        else:
+            return image
+
     def push_image(self, image, required_prefix=None, task_name=None, team_name=None):
         client = self.__docker_client()
         if not self.docker_client_is_authenticated(client):
             self.login_docker_client(task_name, team_name, client)
 
         if required_prefix and not image.startswith(required_prefix):
-            new_image = (required_prefix + '/' + image[:10]).replace('//', '/') + ':' + (image.split(':')[-1] if ':' in image else 'latest')
+            new_image = self.normalize_image_name(image, required_prefix)
             client.images.get(image).tag(new_image)
             image = new_image
 
