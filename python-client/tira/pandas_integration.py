@@ -68,3 +68,31 @@ class PandasIntegration():
             ret['docno'] = ret['doc_id']
             del ret['doc_id']
         return ret
+
+    def __matching_dataset_files(self, task, dataset, truth_dataset, file_selection):
+        ret = []
+        local_dir = self.tira_client.download_dataset(self, task, dataset, truth_dataset)
+
+        for glob_entry in file_selection:
+            for i in glob(local_dir + glob_entry):
+                ret.add(i)
+
+        return ret
+        
+
+    def inputs(self, task, dataset, file_selection=('/*.jsonl', '/*.jsonl.gz')):
+        matching_files = self.__matching_dataset_files(task, dataset, false, file_selection)
+
+        if len(matching_files) == 0:
+            raise ValueError('Could not find a dataset output. Used file_selection: ' + str(file_selection) + '. Please specify the file_selection to resolve this.')
+
+        return pd.read_json(matching_files[0], lines=True, dtype={'docno': str, 'doc_id': str, 'id': str})
+    
+    def truths(self, task, dataset, file_selection=('/*.jsonl', '/*.jsonl.gz')):
+        matching_files = self.__matching_dataset_files(task, dataset, true, file_selection)
+
+        if len(matching_files) == 0:
+            raise ValueError('Could not find a dataset output. Used file_selection: ' + str(file_selection) + '. Please specify the file_selection to resolve this.')
+
+        return pd.read_json(matching_files[0], lines=True, dtype={'docno': str, 'doc_id': str, 'id': str})
+
