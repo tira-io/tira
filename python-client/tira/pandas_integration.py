@@ -71,7 +71,7 @@ class PandasIntegration():
 
     def __matching_dataset_files(self, task, dataset, truth_dataset, file_selection):
         ret = []
-        local_dir = self.tira_client.download_dataset(self, task, dataset, truth_dataset)
+        local_dir = self.tira_client.download_dataset(task, dataset, truth_dataset)
 
         for glob_entry in file_selection:
             for i in glob(local_dir + glob_entry):
