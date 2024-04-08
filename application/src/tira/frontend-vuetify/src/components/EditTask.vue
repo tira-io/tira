@@ -33,13 +33,13 @@
               <p>A very small dataset (e.g., of 5 input instances) that can be used that participants get very fast feedback that their software is compatible with the data format for the task. This is intended to be fully public so that participants can use the smoke test dataset to test their software on their machine</p>
               <v-divider/>
               <h3 class="my-1">Component 2 (optional): An Evaluator</h3>
-              <p>A docker image that uses the ground-truth data and the outputs of some software as input to test if the outputs are valid and to measure their effectiveness. We already have many evaluators for many different scenarious available. Please look <a href="https://github.com/tira-io/tira/wiki/Organizing-Tasks#create-a-docker-image-for-your-evaluator">at the documentation</a> for existing evaluators and a step-by-step guide to build a new evaluator.</p>
+              <p>A docker image that uses the ground-truth data and the outputs of some software as input to test if the outputs are valid and to measure their effectiveness. We already have many evaluators for many different scenarious available. Please look <a href="https://tira-io.github.io/tira/organizers/organizing-tasks.html#create-a-docker-image-for-your-evaluator">at the documentation</a> for existing evaluators and a step-by-step guide to build a new evaluator.</p>
               <v-divider/>
               <h3 class="my-1">Component 3 (optional): Datasets</h3>
               <p>You can upload as many datasets (consisting of the inputs for software submissions and the ground truth for evaluation) as you like in whatever format you want. TIRA distinguishes between public datasets for which participants can see the outputs to verify that their software submission is correct and test datasets for which all outputs and evaluations are blinded and not visible to participants.</p>
               <v-divider/>
               <h3 class="my-1">Component 4 (optional): Baselines</h3>
-              <p>In the best case, you provide the code, a published docker image, and instructions on how to compile the code into a docker image to simplify participation in your shared tasks. We have some examples on baselines that you can adopt for your shared task <a href="https://github.com/tira-io/tira/wiki/Organizing-Tasks#provide-public-baselines-to-simplify-participation">in the documentation</a>.</p>
+              <p>In the best case, you provide the code, a published docker image, and instructions on how to compile the code into a docker image to simplify participation in your shared tasks. We have some examples on baselines that you can adopt for your shared task <a href="https://tira-io.github.io/tira/organizers/organizing-tasks.html#provide-public-baselines-to-simplify-participation">in the documentation</a>.</p>
             </v-card-text>
           </v-window-item>
 
