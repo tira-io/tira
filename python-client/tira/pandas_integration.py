@@ -70,6 +70,7 @@ class PandasIntegration():
         return ret
 
     def __matching_dataset_files(self, task, dataset, truth_dataset, file_selection):
+        from glob import glob
         ret = []
         local_dir = self.tira_client.download_dataset(task, dataset, truth_dataset)
 
@@ -81,6 +82,7 @@ class PandasIntegration():
         
 
     def inputs(self, task, dataset, file_selection=('/*.jsonl', '/*.jsonl.gz')):
+        import pandas as pd
         matching_files = self.__matching_dataset_files(task, dataset, False, file_selection)
 
         if len(matching_files) == 0:
@@ -89,6 +91,7 @@ class PandasIntegration():
         return pd.read_json(matching_files[0], lines=True, dtype={'docno': str, 'doc_id': str, 'id': str})
     
     def truths(self, task, dataset, file_selection=('/*.jsonl', '/*.jsonl.gz')):
+        import pandas as pd
         matching_files = self.__matching_dataset_files(task, dataset, True, file_selection)
 
         if len(matching_files) == 0:
