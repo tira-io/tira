@@ -76,7 +76,7 @@ class PandasIntegration():
 
         for glob_entry in file_selection:
             for i in glob(local_dir + glob_entry):
-                ret.add(i)
+                ret += [i]
 
         return ret
         
