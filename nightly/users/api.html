@@ -414,6 +414,25 @@ The original_ir_datasets_id is used to infer the class of documents, qrels, and 
 <section id="module-tira.pyterrier_integration">
 <span id="tira-pyterrier-integration-module"></span><h2>tira.pyterrier_integration module<a class="headerlink" href="#module-tira.pyterrier_integration" title="Link to this heading">#</a></h2>
 <dl class="py class">
+<dt class="sig sig-object py" id="tira.pyterrier_integration.PyTerrierAnceIntegration">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tira.pyterrier_integration.</span></span><span class="sig-name descname"><span class="pre">PyTerrierAnceIntegration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tira_client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/pyterrier_integration.html#PyTerrierAnceIntegration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.pyterrier_integration.PyTerrierAnceIntegration" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>The pyterrier_ance integration to re-use cached ANCE indices. Wraps <a class="reference external" href="https://github.com/terrierteam/pyterrier_ance">https://github.com/terrierteam/pyterrier_ance</a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tira.pyterrier_integration.PyTerrierAnceIntegration.ance_retrieval">
+<span class="sig-name descname"><span class="pre">ance_retrieval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/pyterrier_integration.html#PyTerrierAnceIntegration.ance_retrieval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.pyterrier_integration.PyTerrierAnceIntegration.ance_retrieval" title="Link to this definition">#</a></dt>
+<dd><p>Load a cached pyterrier_ance.ANCEIndexer submitted as workshop-on-open-web-search/ows/pyterrier-anceindex from tira.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>dataset (str): the dataset id, either an tira or ir_datasets id.</p>
+</dd>
+<dt>Returns:</dt><dd><p>pyterrier_ance.ANCERetrieval: the ANCE index.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="tira.pyterrier_integration.PyTerrierIntegration">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tira.pyterrier_integration.</span></span><span class="sig-name descname"><span class="pre">PyTerrierIntegration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tira_client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/pyterrier_integration.html#PyTerrierIntegration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.pyterrier_integration.PyTerrierIntegration" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
@@ -656,6 +675,10 @@ The original_ir_datasets_id is used to infer the class of documents, qrels, and 
 </ul>
 </li>
 <li><a class="reference internal" href="#module-tira.pyterrier_integration">tira.pyterrier_integration module</a><ul>
+<li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierAnceIntegration"><code class="docutils literal notranslate"><span class="pre">PyTerrierAnceIntegration</span></code></a><ul>
+<li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierAnceIntegration.ance_retrieval"><code class="docutils literal notranslate"><span class="pre">PyTerrierAnceIntegration.ance_retrieval()</span></code></a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierIntegration"><code class="docutils literal notranslate"><span class="pre">PyTerrierIntegration</span></code></a><ul>
 <li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierIntegration.create_rerank_file"><code class="docutils literal notranslate"><span class="pre">PyTerrierIntegration.create_rerank_file()</span></code></a></li>
 <li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierIntegration.ensure_dataset_is_cached"><code class="docutils literal notranslate"><span class="pre">PyTerrierIntegration.ensure_dataset_is_cached()</span></code></a></li>
