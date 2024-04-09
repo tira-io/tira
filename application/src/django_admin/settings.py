@@ -350,6 +350,7 @@ CODE_SUBMISSION_REFERENCE_REPOSITORIES = {
     'webpage-classification': 'OpenWebSearch/irixys23-tira-submission-template',
     'valueeval-2024-human-value-detection': 'touche-webis-de/valueeval24-tira-software-submission-template',
     'workshop-on-open-web-search': 'tira-io/wows24-submission-template',
+    'nlpbuw-fsu-sose-24': 'webis-de/natural-language-processing-exercises',
 }
 
 REFERENCE_DATASETS = {

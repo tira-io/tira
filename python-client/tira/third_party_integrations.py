@@ -3,6 +3,7 @@ import json
 from tira.io_utils import all_lines_to_pandas
 import logging
 from pathlib import Path
+import shlex
 
 
 def ensure_pyterrier_is_loaded(boot_packages=("com.github.terrierteam:terrier-prf:-SNAPSHOT", ), packages=(), patch_ir_datasets=True):
@@ -150,13 +151,16 @@ def extract_to_be_executed_notebook_from_command_or_none(command:str):
         return command.split('--notebook')[1].strip().split(' ')[0].strip()
     
     if command is not None and '.py' in command:
-        for arg in command.split(' '):
-            if arg.endswith('.py'):
+        for arg in shlex.split(command, posix=False):
+            if arg.endswith('.py') or arg.endswith('.py"') or arg.endswith('.py\''):
                 return arg
 
     if command is not None:
-        command = command.split(' ')[0]
-        if command.endswith('.sh') or command.endswith('.bash'):
+        command = shlex.split(command, posix=False)
+        if len(command) > 0:
+            command = command[0]
+
+        if command and (command.endswith('.sh') or command.endswith('.bash') or command.endswith('.sh"') or command.endswith('.sh\'') or command.endswith('.bash"') or command.endswith('.bash\'')):
             return command
 
     return None
@@ -263,6 +267,7 @@ def extract_previous_stages_from_docker_image(image:str, command:str = None):
     if notebook is None:
         return []
 
+    notebook = shlex.split(notebook)[0]
 
     tira = Client()
 

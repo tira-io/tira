@@ -109,7 +109,7 @@ class LocalExecutionIntegration():
         from tira.third_party_integrations import extract_to_be_executed_notebook_from_command_or_none
         executable = extract_to_be_executed_notebook_from_command_or_none(command)
 
-        if not executable or executable.startswith('/'):
+        if not executable or executable.startswith('/') or executable.startswith("'/") or executable.startswith('"/'):
             return command
         else:
             return command.replace(executable, (self.docker_image_work_dir(image_name) + '/' + executable).replace('//', '/').replace('/./', '/'))
