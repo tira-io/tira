@@ -7,14 +7,14 @@ import zipfile
 import io
 import time
 from random import randint
-from tira.pyterrier_integration import PyTerrierIntegration
+from tira.pyterrier_integration import PyTerrierIntegration, PyTerrierAnceIntegration
 from tira.pandas_integration import PandasIntegration
 from tira.local_execution_integration import LocalExecutionIntegration
 import logging
 from .tira_client import TiraClient
 from typing import Optional, List, Dict, Union
 from functools import lru_cache
-from tira.tira_redirects import redirects, mirror_url, dataset_ir_redirects
+from tira.tira_redirects import redirects, mirror_url, dataset_ir_redirects, RESOURCE_REDIRECTS
 from tqdm import tqdm
 import hashlib
 
@@ -38,6 +38,7 @@ class Client(TiraClient):
             self.fail_if_api_key_is_invalid()
         self.pd = PandasIntegration(self)
         self.pt = PyTerrierIntegration(self)
+        self.pt_ance = PyTerrierAnceIntegration(self)
         self.local_execution = LocalExecutionIntegration(self)
 
         self.failsave_retries = failsave_retries
@@ -211,6 +212,27 @@ class Client(TiraClient):
     def run_was_already_executed_on_dataset(self, approach, dataset):
         return self.get_run_execution_or_none(approach, dataset) is not None
 
+    def load_resource(self, resource:str):
+        """Load a resource (usually a zip) from TIRA/Zenodo. Serves as utikity function in case some additional resources must be loaded.
+
+        Args:
+            resource (str): The resource identifier
+
+        Raises:
+            ValueError: If the resource is not known.
+
+        Returns:
+            str: The path to the downloaded resource.
+        """
+        target_file = f'{self.tira_cache_dir}/raw_resources/{resource}'
+        if os.path.exists(target_file):
+            return target_file
+
+        if resource not in RESOURCE_REDIRECTS:
+            raise ValueError(f'Resource {resource} not supported.')
+
+        self.download_and_extract_zip(RESOURCE_REDIRECTS[resource], target_file, extract=False)
+
     def get_run_output(self, approach, dataset, allow_without_evaluation=False):
         """
         Downloads the run (or uses the cached version) of the specified approach on the specified dataset.
@@ -383,7 +405,7 @@ class Client(TiraClient):
 
         return ret
 
-    def download_and_extract_zip(self, url, target_dir):
+    def download_and_extract_zip(self, url, target_dir, extract=True):
         url = redirects(url=url)['urls'][0]
         if url.split('://')[1].startswith('files.webis.de'):
             print(f'Download from the Incubator: {url}')
@@ -413,10 +435,16 @@ class Client(TiraClient):
                     for data in r.iter_content(chunk_size=1024):
                         size = response_content.write(data)
                         bar.update(size)
-                print('Download finished. Extract...')
-                z = zipfile.ZipFile(response_content)
-                z.extractall(target_dir)
-                print('Extraction finished: ', target_dir)
+                if extract:
+                    print('Download finished. Extract...')
+                    z = zipfile.ZipFile(response_content)
+                    z.extractall(target_dir)
+                    print('Extraction finished: ', target_dir)
+                else:
+                    print('Download finished. Persist...')
+                    with open(target_dir, 'wb') as file_out:
+                        file_out.write(response_content.getbuffer())
+                    print('Download finished: ', target_dir)
 
                 return
             except Exception as e:

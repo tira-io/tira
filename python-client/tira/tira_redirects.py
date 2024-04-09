@@ -304,6 +304,10 @@ STATIC_DATASET_REDIRECTS = {
     'leipzig-topics-small-20240119-training': 'https://zenodo.org/records/10628882/files/',
 }
 
+RESOURCE_REDIRECTS = {
+    'Passage_ANCE_FirstP_Checkpoint.zip': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/Passage_ANCE_FirstP_Checkpoint.zip'
+}
+
 DATASET_ID_REDIRECTS = {
     'longeval-tiny-train-20240315-training': 'training-20231104-training'
 }

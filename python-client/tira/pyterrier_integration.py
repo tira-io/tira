@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 class PyTerrierIntegration():
     def __init__(self, tira_client):
@@ -147,3 +148,22 @@ class PyTerrierIntegration():
         from tira.pyterrier_util import TiraLocalExecutionRerankingTransformer
         return TiraLocalExecutionRerankingTransformer(approach, self.tira_client, irds_id=irds_id)
 
+class PyTerrierAnceIntegration():
+    """The pyterrier_ance integration to re-use cached ANCE indices. Wraps https://github.com/terrierteam/pyterrier_ance
+    """
+    def __init__(self, tira_client):
+        self.tira_client = tira_client
+    
+    def ance_retrieval(self, dataset:str):
+        """Load a cached pyterrier_ance.ANCEIndexer submitted as workshop-on-open-web-search/ows/pyterrier-anceindex from tira.
+
+        Args:
+            dataset (str): the dataset id, either an tira or ir_datasets id.
+
+        Returns:
+            pyterrier_ance.ANCERetrieval: the ANCE index.
+        """
+        ance_index = Path(self.tira_client.get_run_output('workshop-on-open-web-search/ows/pyterrier-anceindex', dataset)) / 'anceindex'
+        ance_checkpoint = self.tira_client.load_resource('Passage_ANCE_FirstP_Checkpoint.zip')
+        import pyterrier_ance
+        return pyterrier_ance.ANCERetrieval(ance_checkpoint, ance_index)
