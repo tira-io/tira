@@ -570,27 +570,32 @@
 <div class="viewcode-block" id="load_ir_datasets">
 <a class="viewcode-back" href="../../users/api.html#tira.third_party_integrations.load_ir_datasets">[docs]</a>
 <span class="linenos">283</span><span class="k">def</span> <span class="nf">load_ir_datasets</span><span class="p">():</span>
-<span class="linenos">284</span>    <span class="c1"># Detect if we are in the TIRA sandbox</span>
-<span class="linenos">285</span>    <span class="k">if</span> <span class="s1">&#39;TIRA_INPUT_DATASET&#39;</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
-<span class="linenos">286</span>        <span class="kn">from</span> <span class="nn">tira.ir_datasets_util</span> <span class="kn">import</span> <span class="n">static_ir_dataset</span>
-<span class="linenos">287</span>
-<span class="linenos">288</span>        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;TIRA_INPUT_DATASET&#39;</span><span class="p">],</span> <span class="s1">&#39;rerank.jsonl.gz&#39;</span><span class="p">))</span> <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;TIRA_INPUT_DATASET&#39;</span><span class="p">],</span> <span class="s1">&#39;rerank.jsonl&#39;</span><span class="p">)):</span>
-<span class="linenos">289</span>            <span class="kn">import</span> <span class="nn">ir_datasets</span> <span class="k">as</span> <span class="nn">original_ir_datasets</span>
-<span class="linenos">290</span>            <span class="n">register_rerank_data_to_ir_datasets</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;TIRA_INPUT_DATASET&#39;</span><span class="p">],</span> <span class="s1">&#39;dynamic-ds-in-tira&#39;</span><span class="p">)</span>
-<span class="linenos">291</span>
-<span class="linenos">292</span>            <span class="k">return</span> <span class="n">static_ir_dataset</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;TIRA_INPUT_DATASET&#39;</span><span class="p">],</span> <span class="n">original_ir_datasets</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;dynamic-ds-in-tira&#39;</span><span class="p">))</span>
-<span class="linenos">293</span>
-<span class="linenos">294</span>        <span class="k">return</span> <span class="n">static_ir_dataset</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;TIRA_INPUT_DATASET&#39;</span><span class="p">])</span>
-<span class="linenos">295</span>    <span class="k">else</span><span class="p">:</span>
-<span class="linenos">296</span>        <span class="k">try</span><span class="p">:</span>
-<span class="linenos">297</span>            <span class="kn">from</span> <span class="nn">tira.ir_datasets_util</span> <span class="kn">import</span> <span class="n">ir_dataset_from_tira_fallback_to_original_ir_datasets</span>
-<span class="linenos">298</span>            <span class="k">return</span> <span class="n">ir_dataset_from_tira_fallback_to_original_ir_datasets</span><span class="p">()</span>
-<span class="linenos">299</span>        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-<span class="linenos">300</span>            <span class="k">return</span> <span class="kc">None</span></div>
+<span class="linenos">284</span>    <span class="k">try</span><span class="p">:</span>
+<span class="linenos">285</span>        <span class="kn">from</span> <span class="nn">ir_datasets.datasets.base</span> <span class="kn">import</span> <span class="n">Dataset</span>
+<span class="linenos">286</span>    <span class="k">except</span><span class="p">:</span>
+<span class="linenos">287</span>        <span class="k">return</span> <span class="kc">None</span>
+<span class="linenos">288</span>
+<span class="linenos">289</span>    <span class="c1"># Detect if we are in the TIRA sandbox</span>
+<span class="linenos">290</span>    <span class="k">if</span> <span class="s1">&#39;TIRA_INPUT_DATASET&#39;</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
+<span class="linenos">291</span>        <span class="kn">from</span> <span class="nn">tira.ir_datasets_util</span> <span class="kn">import</span> <span class="n">static_ir_dataset</span>
+<span class="linenos">292</span>
+<span class="linenos">293</span>        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;TIRA_INPUT_DATASET&#39;</span><span class="p">],</span> <span class="s1">&#39;rerank.jsonl.gz&#39;</span><span class="p">))</span> <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;TIRA_INPUT_DATASET&#39;</span><span class="p">],</span> <span class="s1">&#39;rerank.jsonl&#39;</span><span class="p">)):</span>
+<span class="linenos">294</span>            <span class="kn">import</span> <span class="nn">ir_datasets</span> <span class="k">as</span> <span class="nn">original_ir_datasets</span>
+<span class="linenos">295</span>            <span class="n">register_rerank_data_to_ir_datasets</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;TIRA_INPUT_DATASET&#39;</span><span class="p">],</span> <span class="s1">&#39;dynamic-ds-in-tira&#39;</span><span class="p">)</span>
+<span class="linenos">296</span>
+<span class="linenos">297</span>            <span class="k">return</span> <span class="n">static_ir_dataset</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;TIRA_INPUT_DATASET&#39;</span><span class="p">],</span> <span class="n">original_ir_datasets</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;dynamic-ds-in-tira&#39;</span><span class="p">))</span>
+<span class="linenos">298</span>
+<span class="linenos">299</span>        <span class="k">return</span> <span class="n">static_ir_dataset</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;TIRA_INPUT_DATASET&#39;</span><span class="p">])</span>
+<span class="linenos">300</span>    <span class="k">else</span><span class="p">:</span>
+<span class="linenos">301</span>        <span class="k">try</span><span class="p">:</span>
+<span class="linenos">302</span>            <span class="kn">from</span> <span class="nn">tira.ir_datasets_util</span> <span class="kn">import</span> <span class="n">ir_dataset_from_tira_fallback_to_original_ir_datasets</span>
+<span class="linenos">303</span>            <span class="k">return</span> <span class="n">ir_dataset_from_tira_fallback_to_original_ir_datasets</span><span class="p">()</span>
+<span class="linenos">304</span>        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+<span class="linenos">305</span>            <span class="k">return</span> <span class="kc">None</span></div>
 
-<span class="linenos">301</span>
-<span class="linenos">302</span>
-<span class="linenos">303</span><span class="n">ir_datasets</span> <span class="o">=</span> <span class="n">load_ir_datasets</span><span class="p">()</span>
+<span class="linenos">306</span>
+<span class="linenos">307</span>
+<span class="linenos">308</span><span class="n">ir_datasets</span> <span class="o">=</span> <span class="n">load_ir_datasets</span><span class="p">()</span>
 </pre></div>
         </article>
       </div>
