@@ -233,6 +233,7 @@ class Client(TiraClient):
 
         os.makedirs(f'{self.tira_cache_dir}/raw_resources', exist_ok=True)
         self.download_and_extract_zip(RESOURCE_REDIRECTS[resource], target_file, extract=False)
+        return target_file
 
     def get_run_output(self, approach, dataset, allow_without_evaluation=False):
         """
