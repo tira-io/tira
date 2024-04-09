@@ -281,6 +281,11 @@ def extract_previous_stages_from_docker_image(image:str, command:str = None):
     return extract_previous_stages_from_notebook(Path(local_file))
 
 def load_ir_datasets():
+    try:
+        from ir_datasets.datasets.base import Dataset
+    except:
+        return None
+
     # Detect if we are in the TIRA sandbox
     if 'TIRA_INPUT_DATASET' in os.environ:
         from tira.ir_datasets_util import static_ir_dataset
