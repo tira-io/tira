@@ -326,7 +326,7 @@ class LocalExecutionIntegration():
         client = self.__docker_client()
         if not self.docker_client_is_authenticated(client):
             self.login_docker_client(task_name, team_name, client)
-
+        new_image = image
         if required_prefix and not image.startswith(required_prefix):
             new_image = self.normalize_image_name(image, required_prefix)
             client.images.get(image).tag(new_image)
