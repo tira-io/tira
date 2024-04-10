@@ -340,6 +340,22 @@ docno values are converted to strings.</p></li>
 <section id="module-tira.ir_datasets_util">
 <span id="tira-ir-datasets-util-module"></span><h2>tira.ir_datasets_util module<a class="headerlink" href="#module-tira.ir_datasets_util" title="Link to this heading">#</a></h2>
 <dl class="py class">
+<dt class="sig sig-object py" id="tira.ir_datasets_util.DictDocsstore">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tira.ir_datasets_util.</span></span><span class="sig-name descname"><span class="pre">DictDocsstore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">docs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/ir_datasets_util.html#DictDocsstore"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.ir_datasets_util.DictDocsstore" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tira.ir_datasets_util.DictDocsstore.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">item</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/ir_datasets_util.html#DictDocsstore.get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.ir_datasets_util.DictDocsstore.get" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tira.ir_datasets_util.DictDocsstore.get_many_iter">
+<span class="sig-name descname"><span class="pre">get_many_iter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">docids</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/ir_datasets_util.html#DictDocsstore.get_many_iter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.ir_datasets_util.DictDocsstore.get_many_iter" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="tira.ir_datasets_util.TirexQuery">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tira.ir_datasets_util.</span></span><span class="sig-name descname"><span class="pre">TirexQuery</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">narrative</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/ir_datasets_util.html#TirexQuery"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.ir_datasets_util.TirexQuery" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">NamedTuple</span></code></p>
@@ -658,6 +674,11 @@ The original_ir_datasets_id is used to infer the class of documents, qrels, and 
 </ul>
 </li>
 <li><a class="reference internal" href="#module-tira.ir_datasets_util">tira.ir_datasets_util module</a><ul>
+<li><a class="reference internal" href="#tira.ir_datasets_util.DictDocsstore"><code class="docutils literal notranslate"><span class="pre">DictDocsstore</span></code></a><ul>
+<li><a class="reference internal" href="#tira.ir_datasets_util.DictDocsstore.get"><code class="docutils literal notranslate"><span class="pre">DictDocsstore.get()</span></code></a></li>
+<li><a class="reference internal" href="#tira.ir_datasets_util.DictDocsstore.get_many_iter"><code class="docutils literal notranslate"><span class="pre">DictDocsstore.get_many_iter()</span></code></a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#tira.ir_datasets_util.TirexQuery"><code class="docutils literal notranslate"><span class="pre">TirexQuery</span></code></a><ul>
 <li><a class="reference internal" href="#tira.ir_datasets_util.TirexQuery.default_text"><code class="docutils literal notranslate"><span class="pre">TirexQuery.default_text()</span></code></a></li>
 <li><a class="reference internal" href="#tira.ir_datasets_util.TirexQuery.description"><code class="docutils literal notranslate"><span class="pre">TirexQuery.description</span></code></a></li>
