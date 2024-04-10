@@ -426,3 +426,33 @@ class TestIRDatasets(unittest.TestCase):
 
         assert len(dataset.get_qrels()) == 3
         assert qrels[0] == {'docno': 'doc-1', 'iteration': '0', 'label': 1, 'qid': '1'}
+
+    def test_ir_datasets_id_is_available(self):
+        ensure_pyterrier_is_loaded(patch_ir_datasets=True)
+        import pyterrier as pt
+        expected = 'workshop-on-open-web-search/retrieval-20231027-training'
+        
+        dataset = pt.get_dataset('irds:workshop-on-open-web-search/retrieval-20231027-training')
+        actual = dataset.irds_ref().dataset_id()
+
+        self.assertEqual(expected, actual)
+
+    def test_ir_datasets_get_many_iter_is_available_01(self):
+        ensure_pyterrier_is_loaded(patch_ir_datasets=True)
+        import pyterrier as pt
+        expected = []
+        
+        dataset = pt.get_dataset('irds:workshop-on-open-web-search/retrieval-20231027-training')
+        actual = [i for i in dataset.irds_ref().docs_store().get_many_iter(['1', '2']) if i]
+
+        self.assertEqual(expected, actual)
+
+    def test_ir_datasets_get_many_iter_is_available_02(self):
+        ensure_pyterrier_is_loaded(patch_ir_datasets=True)
+        import pyterrier as pt
+        expected = ['doc-2', 'doc-3']
+        
+        dataset = pt.get_dataset('irds:workshop-on-open-web-search/retrieval-20231027-training')
+        actual = [i.doc_id for i in dataset.irds_ref().docs_store().get_many_iter(['doc-2', 'doc-3']) if i]
+
+        self.assertEqual(expected, actual)

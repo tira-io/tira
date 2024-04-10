@@ -244,7 +244,10 @@ class Client(TiraClient):
         if mounted_output_in_sandbox:
             return mounted_output_in_sandbox
 
-        task, team, software = approach.split('/')        
+        task, team, software = approach.split('/')
+        if '/' in dataset:
+            dataset = dataset.split('/')[-1]
+        #raise ValueError('Add unit test for the above')
         run_execution = self.get_run_execution_or_none(approach, dataset)
 
         if run_execution:
@@ -300,6 +303,8 @@ class Client(TiraClient):
         return ret[['task', 'dataset', 'team', 'run_id']].iloc[0].to_dict()
         
     def download_run(self, task, dataset, software, team=None, previous_stage=None, return_metadata=False):
+        if '/' in dataset:
+            dataset = dataset.split('/')[-1]
         ret = self.get_run_execution_or_none(f'{task}/{team}/{software}', dataset, previous_stage)
         if not ret:
             raise ValueError(f'I could not find a run for the filter criteria task="{task}", dataset="{dataset}", software="{software}", team={team}, previous_stage={previous_stage}')

@@ -63,3 +63,17 @@ class TestPtFromRetrieverSubmissionLoaderTest(unittest.TestCase):
         assert q(pd.DataFrame([{'qid': '306'}])).iloc[0].to_dict()['qid'] == '306'
         assert q(pd.DataFrame([{'qid': '306'}])).iloc[999].to_dict()['docno'] == 'FBIS4-47956'
         assert q(pd.DataFrame([{'qid': '306'}])).iloc[999].to_dict()['qid'] == '306'
+
+    def test_retrieval_submission_from_rest_api_different_id(self):
+        from tira.rest_api_client import Client
+        from tira.third_party_integrations import ensure_pyterrier_is_loaded
+        import pyterrier as pt
+        ensure_pyterrier_is_loaded()
+        tira = Client()
+
+        q = tira.pt.from_submission('ir-benchmarks/tira-ir-starter/BM25 Re-Rank (tira-ir-starter-pyterrier)', pt.get_dataset("irds:ir-benchmarks/disks45-nocr-trec-robust-2004-20230209-training"))
+        assert len(q(pd.DataFrame([{'qid': '306'}]))) == 1000
+        assert q(pd.DataFrame([{'qid': '306'}])).iloc[0].to_dict()['docno'] == 'LA021790-0114'
+        assert q(pd.DataFrame([{'qid': '306'}])).iloc[0].to_dict()['qid'] == '306'
+        assert q(pd.DataFrame([{'qid': '306'}])).iloc[999].to_dict()['docno'] == 'FBIS4-47956'
+        assert q(pd.DataFrame([{'qid': '306'}])).iloc[999].to_dict()['qid'] == '306'

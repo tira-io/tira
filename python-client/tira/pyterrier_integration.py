@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 
+
 class PyTerrierIntegration():
     def __init__(self, tira_client):
         self.tira_client = tira_client
@@ -100,7 +101,8 @@ class PyTerrierIntegration():
         Load an PyTerrier index from TIRA.
         """
         import pyterrier as pt
-        ret = self.tira_client.get_run_output(approach, dataset) + '/index'
+        from tira.ir_datasets_util import translate_irds_id_to_tirex
+        ret = self.tira_client.get_run_output(approach, translate_irds_id_to_tirex(dataset)) + '/index'
         return pt.IndexFactory.of(os.path.abspath(ret))
 
     def from_submission(self, approach, dataset=None, datasets=None):
@@ -163,7 +165,8 @@ class PyTerrierAnceIntegration():
         Returns:
             pyterrier_ance.ANCERetrieval: the ANCE index.
         """
-        ance_index = Path(self.tira_client.get_run_output('workshop-on-open-web-search/ows/pyterrier-anceindex', dataset)) / 'anceindex'
+        from tira.ir_datasets_util import translate_irds_id_to_tirex
+        ance_index = Path(self.tira_client.get_run_output('workshop-on-open-web-search/ows/pyterrier-anceindex', translate_irds_id_to_tirex(dataset))) / 'anceindex'
         ance_checkpoint = self.tira_client.load_resource('Passage_ANCE_FirstP_Checkpoint.zip')
         import pyterrier_ance
         return pyterrier_ance.ANCERetrieval(ance_checkpoint, ance_index)
