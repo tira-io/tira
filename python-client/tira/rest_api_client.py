@@ -62,10 +62,10 @@ class Client(TiraClient):
     def api_key_is_valid(self):
         role = self.json_response('/api/role')
 
-        if (self.api_user_name is None or self.api_user_name == 'no-api-key-user') and role and 'context' in role and 'user_id' in role['context']:
+        if (self.api_user_name is None or self.api_user_name == 'no-api-key-user') and role and 'context' in role and 'user_id' in role['context'] and role['context']['user_id']:
             self.api_user_name = role['context']['user_id']
 
-        return role and 'status' in role and 'role' in role and 0 == role['status']
+        return role and 'status' in role and 'role' in role and 0 == role['status'] and 'user_id' in role['context'] and role['context']['user_id'] and 'role' in role['context'] and role['context']['role'] and 'guest' != role['context']['role']
 
     def fail_if_api_key_is_invalid(self):
         if not self.api_key_is_valid():
@@ -124,6 +124,8 @@ class Client(TiraClient):
         ret = ret.content.decode('utf8')
         ret = json.loads(ret)
         assert ret['status'] == 0
+        
+        print(f'Software with name {ret["context"]["display_name"]} was created.')
         logging.info(f'Software with name {ret["context"]["display_name"]} was created.')
         logging.info(f'Please visit {self.base_url}/submit/{tira_task_id}/user/{tira_vm_id}/docker-submission to run your software.')
 

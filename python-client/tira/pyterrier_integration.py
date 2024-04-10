@@ -166,7 +166,7 @@ class PyTerrierAnceIntegration():
             pyterrier_ance.ANCERetrieval: the ANCE index.
         """
         from tira.ir_datasets_util import translate_irds_id_to_tirex
-        ance_index = Path(self.tira_client.get_run_output('workshop-on-open-web-search/ows/pyterrier-anceindex', translate_irds_id_to_tirex(dataset))) / 'anceindex'
+        ance_index = Path(self.tira_client.get_run_output('ir-lab-sose-2024/ows/pyterrier-anceindex', translate_irds_id_to_tirex(dataset))) / 'anceindex'
         ance_checkpoint = self.tira_client.load_resource('Passage_ANCE_FirstP_Checkpoint.zip')
         import pyterrier_ance
         return pyterrier_ance.ANCERetrieval(ance_checkpoint, ance_index)

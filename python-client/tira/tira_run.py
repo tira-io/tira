@@ -51,7 +51,7 @@ def parse_args():
     group.add_argument('--export-submission-from-jupyter-notebook', required=False, default=None, type=str)
     group.add_argument('--export-submission-environment', nargs='*', required=False, default=None, type=str)
     parser.add_argument('--command', required=False)
-    parser.add_argument('--verbose', required=False, default=False, type=bool)
+    parser.add_argument('--verbose', required=False, default=False, action='store_true')
     parser.add_argument('--evaluate', required=False, default=False, type=bool)
     parser.add_argument('--evaluation-directory', required=False, default=str(os.path.abspath("tira-evaluation")))
     parser.add_argument('--dry-run', required=False, default=False, type=bool)
@@ -113,6 +113,13 @@ def parse_args():
         if args.tira_client_token:
             if api_key_valid:
                 args.tira_client_token = rest_client.api_key
+            elif 'TIRA_CLIENT_TOKEN' in os.environ and os.environ.get('TIRA_CLIENT_TOKEN'):
+                rest_client = RestClient(api_key=os.environ.get('TIRA_CLIENT_TOKEN'))
+                api_key_valid = rest_client.api_key_is_valid()
+                if api_key_valid:
+                    args.tira_client_token = rest_client.api_key
+                else:
+                    parser.error('The option --tira-client-token (or environment variable TIRA_CLIENT_TOKEN) is required when --push is active.')
             else:
                 parser.error('The option --tira-client-token (or environment variable TIRA_CLIENT_TOKEN) is required when --push is active.')
 
