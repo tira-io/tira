@@ -1,0 +1,132 @@
+{
+    "ir-lab-sose-2024/naverlabseurope/Splade (Index)": {
+        "anthology-20240408-training": {
+            "md5_of_first_kilobyte": "fe1396d3552a3bd06faca4796f253dad",
+            "redirect_url": {
+                "md5": "0208a39356bb2ebf4039b4ac2c595b50",
+                "run_id": "2024-04-09-16-40-49",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-09-16-40-49.zip"
+                ]
+            },
+            "redirected_run_url": {
+                "md5": "0208a39356bb2ebf4039b4ac2c595b50",
+                "run_id": "2024-04-09-16-40-49",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-09-16-40-49.zip"
+                ]
+            },
+            "run_execution": {
+                "dataset": "anthology-20240408-training",
+                "run_id": "2024-04-09-16-40-49",
+                "task": "ir-lab-sose-2024",
+                "team": "naverlabseurope"
+            },
+            "run_url": "https://www.tira.io/task/ir-lab-sose-2024/user/naverlabseurope/dataset/anthology-20240408-training/download/2024-04-09-16-40-49.zip"
+        }
+    },
+    "ir-lab-sose-2024/ows/pyterrier-anceindex": {
+        "anthology-20240408-training": {
+            "md5_of_first_kilobyte": "c98eac0059c6c42c074e49592c52e42d",
+            "redirect_url": {
+                "md5": "851ef64a78159a0ab1a7f86e942aeab5",
+                "run_id": "2024-04-08-18-00-08",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-08-18-00-08.zip"
+                ]
+            },
+            "redirected_run_url": {
+                "md5": "851ef64a78159a0ab1a7f86e942aeab5",
+                "run_id": "2024-04-08-18-00-08",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-08-18-00-08.zip"
+                ]
+            },
+            "run_execution": {
+                "dataset": "anthology-20240408-training",
+                "run_id": "2024-04-08-18-00-08",
+                "task": "ir-lab-sose-2024",
+                "team": "ows"
+            },
+            "run_url": "https://www.tira.io/task/ir-lab-sose-2024/user/ows/dataset/anthology-20240408-training/download/2024-04-08-18-00-08.zip"
+        }
+    },
+    "ir-lab-sose-2024/seanmacavaney/DocT5Query": {
+        "anthology-20240408-training": {
+            "md5_of_first_kilobyte": "4ac020babb47331530ce2a74817880e7",
+            "redirect_url": {
+                "md5": "1a0f65a8f47051db435ec6031106db7b",
+                "run_id": "2024-04-09-22-03-26",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-09-22-03-26.zip"
+                ]
+            },
+            "redirected_run_url": {
+                "md5": "1a0f65a8f47051db435ec6031106db7b",
+                "run_id": "2024-04-09-22-03-26",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-09-22-03-26.zip"
+                ]
+            },
+            "run_execution": {
+                "dataset": "anthology-20240408-training",
+                "run_id": "2024-04-09-22-03-26",
+                "task": "ir-lab-sose-2024",
+                "team": "seanmacavaney"
+            },
+            "run_url": "https://www.tira.io/task/ir-lab-sose-2024/user/seanmacavaney/dataset/anthology-20240408-training/download/2024-04-09-22-03-26.zip"
+        }
+    },
+    "ir-lab-sose-2024/seanmacavaney/corpus-graph": {
+        "anthology-20240408-training": {
+            "md5_of_first_kilobyte": "1c260fcaef90f20828ab8be130f782e0",
+            "redirect_url": {
+                "md5": "75f743914d44d7252425844136ea9722",
+                "run_id": "2024-04-09-16-35-50",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-09-16-35-50.zip"
+                ]
+            },
+            "redirected_run_url": {
+                "md5": "75f743914d44d7252425844136ea9722",
+                "run_id": "2024-04-09-16-35-50",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-09-16-35-50.zip"
+                ]
+            },
+            "run_execution": {
+                "dataset": "anthology-20240408-training",
+                "run_id": "2024-04-09-16-35-50",
+                "task": "ir-lab-sose-2024",
+                "team": "seanmacavaney"
+            },
+            "run_url": "https://www.tira.io/task/ir-lab-sose-2024/user/seanmacavaney/dataset/anthology-20240408-training/download/2024-04-09-16-35-50.zip"
+        }
+    },
+    "ir-lab-sose-2024/tira-ir-starter/Index (tira-ir-starter-pyterrier)": {
+        "anthology-20240408-training": {
+            "md5_of_first_kilobyte": "e9773f9aa6e9c8e09cef437024217f24",
+            "redirect_url": {
+                "md5": "df4fcf8886165e42fe0eeffd14918c2e",
+                "run_id": "2024-04-08-15-52-07",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-08-15-52-07.zip"
+                ]
+            },
+            "redirected_run_url": {
+                "md5": "df4fcf8886165e42fe0eeffd14918c2e",
+                "run_id": "2024-04-08-15-52-07",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-08-15-52-07.zip"
+                ]
+            },
+            "run_execution": {
+                "dataset": "anthology-20240408-training",
+                "run_id": "2024-04-08-15-52-07",
+                "task": "ir-lab-sose-2024",
+                "team": "tira-ir-starter"
+            },
+            "run_url": "https://www.tira.io/task/ir-lab-sose-2024/user/tira-ir-starter/dataset/anthology-20240408-training/download/2024-04-08-15-52-07.zip"
+        }
+    }
+}

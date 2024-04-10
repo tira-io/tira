@@ -33,11 +33,14 @@ class Command(BaseCommand):
             ],
             'trec-core': [
                 'wapo-v2-trec-core-2018-20230107-training', 'disks45-nocr-trec8-20230209-training', 'disks45-nocr-trec7-20230209-training', 'disks45-nocr-trec-robust-2004-20230209-training'
+            ],
+            'ir-lab': [
+                'anthology-20240408-training'
             ]
         }
 
         #we publish document processors only for fully public datasets, query processors can be published on all groups
-        fully_public_datasets = dataset_groups['trec-recent'] + dataset_groups['tiny-test-collections'] + dataset_groups['trec-medical'] + dataset_groups['clef-labs']
+        fully_public_datasets = dataset_groups['trec-recent'] + dataset_groups['tiny-test-collections'] + dataset_groups['trec-medical'] + dataset_groups['clef-labs'] + dataset_groups['ir-lab']
 
         systems = {
             'ir-benchmarks': {
@@ -47,6 +50,23 @@ class Command(BaseCommand):
                 'seanmacavaney': {
                     'DocT5Query': 'doc-t5-query',
                     'corpus-graph': 'corpus-graph',
+                },
+                'ows': {
+                    'pyterrier-anceindex': 'pyterrier-anceindex'
+            },
+            'ir-lab-sose-2024': {
+                'tira-ir-starter': {
+                    'Index (tira-ir-starter-pyterrier)': 'ir-lab-sose-2024'
+                },
+                'seanmacavaney': {
+                    'DocT5Query': 'ir-lab-sose-2024',
+                    'corpus-graph': 'ir-lab-sose-2024',
+                },
+                'ows': {
+                    'pyterrier-anceindex': 'ir-lab-sose-2024'
+                },
+                'naverlabseurope': {
+                    'Splade (Index)': 'ir-lab-sose-2024'
                 }
             },
         }
@@ -105,7 +125,7 @@ class Command(BaseCommand):
                     ret[task_id][user_id][display_name] = {}
                     output_dir = systems[task_id][user_id][display_name]
                     for i in tqdm(fully_public_datasets):
-                        run_id = model.runs(task_id, i, user_id, display_name)[0]
+                        run_id = model.runs(task_id, i, user_id, display_name)[0]['run_id']
                         target_file = f'{output_dir}/{run_id}.zip'
 
                         zip_file = zip_run(i, user_id, run_id)
