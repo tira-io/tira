@@ -21,6 +21,9 @@ def parse_args():
     
     parser_upload = subparsers.add_parser('upload', help='Upload runs or datasets to TIRA.io')
 
+    parser_login = subparsers.add_parser('login', help='Login your TIRA client to the tira server.')
+    parser_login.add_argument('--token', required=True, default=None, help='The token to login to the server.')
+
     args = parser.parse_args()
 
     return args
@@ -40,4 +43,5 @@ def main():
             print(client.get_run_output(args.approach, args.dataset))
         else:
             print(client.download_dataset(None, args.dataset))
-
+    if args.command == 'login':
+        client.login(args.token)

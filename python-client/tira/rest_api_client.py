@@ -5,7 +5,6 @@ from pathlib import Path
 import os
 import zipfile
 import io
-import docker
 import time
 from random import randint
 from tira.pyterrier_integration import PyTerrierIntegration
@@ -15,8 +14,9 @@ import logging
 from .tira_client import TiraClient
 from typing import Optional, List, Dict, Union
 from functools import lru_cache
-from tira.tira_redirects import redirects, mirror_url
+from tira.tira_redirects import redirects, mirror_url, dataset_ir_redirects
 from tqdm import tqdm
+import hashlib
 
 class Client(TiraClient):
     base_url: str
@@ -50,10 +50,25 @@ class Client(TiraClient):
             logging.info(f'No settings given in {self.tira_cache_dir}/.tira-settings.json. I will use defaults.')
             return {'api_key': 'no-api-key', 'api_user_name': 'no-api-key-user'}
 
-    def fail_if_api_key_is_invalid(self):
+    def update_settings(self, k, v):
+        settings = self.load_settings()
+        settings[k] = v
+        json.dump(settings, open(Path(self.tira_cache_dir) / '.tira-settings.json', 'w+'))
+
+        if k == 'api_key':
+            self.api_key = settings['api_key']
+
+    def api_key_is_valid(self):
         role = self.json_response('/api/role')
-        
-        if not role or 'status' not in role or 'role' not in role or 0 != role['status']:
+
+        if (self.api_user_name is None or self.api_user_name == 'no-api-key-user') and role and 'context' in role and 'user_id' in role['context']:
+            self.api_user_name = role['context']['user_id']
+
+        return role and 'status' in role and 'role' in role and 0 == role['status']
+
+    def fail_if_api_key_is_invalid(self):
+        if not self.api_key_is_valid():
+            role = self.json_response('/api/role')
             raise ValueError('It seems like the api key is invalid. Got: ', role)
 
     def datasets(self, task):
@@ -72,16 +87,25 @@ class Client(TiraClient):
         task, team, software = approach.split('/')
         return self.json_response(f'/api/task/{task}/submission-details/{team}/{software}')['context']['submission']
 
+    def docker_credentials(self, task_name, team_name):
+        ret = self.metadata_for_task(task_name, team_name)
+        if ret and 'status' in ret and ret['status'] == 0 and 'context' in ret and 'docker' in ret['context']:
+            return ret['context']['docker']['docker_registry_user'], ret['context']['docker']['docker_registry_token'], self.docker_registry()
+        return None, None, self.docker_registry()
+
     def docker_software_details(self, approach):
         task, team, software = approach.split('/')
         ret = self.json_response(f'/task/{task}/vm/{team}/software_details/{software}')
 
         return ret
 
-    def metadata_for_task(self, task_name, team_name):
-        return self.json_response(f'/api/task/{task_name}/user/{team_name}')
+    def metadata_for_task(self, task_name, team_name=None):
+        if team_name is None:
+            return self.json_response(f'/api/task/{task_name}')
+        else:
+            return self.json_response(f'/api/task/{task_name}/user/{team_name}')
 
-    def add_docker_software(self, image, command, tira_vm_id, tira_task_id, code_repository_id, build_environment):
+    def add_docker_software(self, image, command, tira_vm_id, tira_task_id, code_repository_id, build_environment, previous_stages=[]):
         headers = {
             'Api-Key': self.api_key,
             'Api-Username': self.api_user_name,
@@ -90,10 +114,14 @@ class Client(TiraClient):
         }
         self.fail_if_api_key_is_invalid()
         url = f'{self.base_url}/task/{tira_task_id}/vm/{tira_vm_id}/add_software/docker'
-        ret = requests.post(url, headers=headers, json={"action": "post", "image": image, "command": command, "code_repository_id": code_repository_id,"build_environment": json.dumps(build_environment)})
+        content = {"action": "post", "image": image, "command": command, "code_repository_id": code_repository_id,"build_environment": json.dumps(build_environment)}
+
+        if previous_stages and len(previous_stages) > 0:
+            content['inputJob'] = previous_stages
+
+        ret = requests.post(url, headers=headers, json=content)
         ret = ret.content.decode('utf8')
         ret = json.loads(ret)
-
         assert ret['status'] == 0
         logging.info(f'Software with name {ret["context"]["display_name"]} was created.')
         logging.info(f'Please visit {self.base_url}/submit/{tira_task_id}/user/{tira_vm_id}/docker-submission to run your software.')
@@ -188,6 +216,10 @@ class Client(TiraClient):
         Downloads the run (or uses the cached version) of the specified approach on the specified dataset.
         Returns the directory containing the outputs of the run.
         """
+        mounted_output_in_sandbox = self.input_run_in_sandbox(approach)
+        if mounted_output_in_sandbox:
+            return mounted_output_in_sandbox
+
         task, team, software = approach.split('/')        
         run_execution = self.get_run_execution_or_none(approach, dataset)
 
@@ -202,6 +234,13 @@ class Client(TiraClient):
 
         return self.download_zip_to_cache_directory(run_execution[0]['task'], run_execution[0]['dataset'], run_execution[0]['team'], run_execution[0]['run_id'])
 
+    def public_runs(self, task, dataset, team, software):
+        ret = self.json_response(f'/api/list-runs/{task}/{dataset}/{team}/' + software.replace(' ', '%20'))
+        if ret and 'context' in ret and 'runs' in ret['context'] and ret['context']['runs']:
+            return ret['context']
+        else:
+            return None
+
     def get_run_execution_or_none(self, approach, dataset, previous_stage_run_id=None):
         task, team, software = approach.split('/')
         redirect = redirects(approach, dataset)
@@ -209,9 +248,9 @@ class Client(TiraClient):
         if redirect is not None and 'run_id' in redirect and redirect['run_id'] is not None:
             return {'task': task, 'dataset': dataset, 'team': team, 'run_id': redirect['run_id']}
 
-        public_runs = self.json_response(f'/api/list-runs/{task}/{dataset}/{team}/' + software.replace(' ', '%20'))
-        if public_runs and 'context' in public_runs and 'runs' in public_runs['context'] and public_runs['context']['runs']:
-            return {'task': task, 'dataset': dataset, 'team': team, 'run_id': public_runs['context']['runs'][0]}
+        public_runs = self.public_runs(task, dataset, team, software)
+        if public_runs:
+            return {'task': task, 'dataset': dataset, 'team': team, 'run_id': public_runs['runs'][0]}
 
         df_eval = self.submissions_of_team(task=task, dataset=dataset, team=team)
         if len(df_eval) <= 0:
@@ -267,6 +306,11 @@ class Client(TiraClient):
         """
         Download the dataset. Set truth_dataset to true to load the truth used for evaluations.
         """
+        if 'TIRA_INPUT_DATASET' in os.environ:
+            return os.environ['TIRA_INPUT_DATASET']
+
+        dataset = dataset_ir_redirects(dataset)
+
         target_dir = f'{self.tira_cache_dir}/extracted_datasets/{task}/{dataset}/'
         suffix = ("input-data" if not truth_dataset else "truth-data")
         if os.path.isdir(target_dir + suffix):
@@ -381,6 +425,15 @@ class Client(TiraClient):
                 print(f'Error occured while fetching {url}. I will sleep {sleep_time} seconds and continue.')
                 url = mirror_url(url)
                 time.sleep(sleep_time)
+
+    def login(self, token):
+        self.api_key = token
+
+        if not self.api_key_is_valid():
+            print('The api key {token} is not valid')
+            raise ValueError(f'The api key {token} is invalid.')
+
+        self.update_settings('api_key', token)
 
     def get_authentication_cookie(self, user, password):
         resp = requests.get(f'{self.base_url}/session/csrf', headers={'x-requested-with': 'XMLHttpRequest'})
@@ -521,3 +574,38 @@ class Client(TiraClient):
                 time.sleep(sleep_time)
 
         return resp.json()
+
+
+    def __listdir_failsave(self, path: str):
+        try:
+            return os.listdir(path)
+        except:
+            return []
+
+
+    def input_run_in_sandbox(self, approach:str):
+        """
+        Returns the directory with the outputs of an approach in mounted into the sandbox. returns None if not in the sandbox.
+        """
+        if 'inputRun' not in os.environ:
+            return None
+
+        input_run = os.environ['inputRun']
+        input_run_mapping_file = Path(self.tira_cache_dir) / (hashlib.md5(input_run.encode('utf-8')).hexdigest()[:6] +'-input-run-mapping.json')
+
+        files_in_input_dir = self.__listdir_failsave(input_run)
+        if '1' not in files_in_input_dir or '2' not in files_in_input_dir:
+            return input_run
+
+        input_run_mapping = {}
+        if input_run_mapping_file.exists():
+            input_run_mapping = json.load(open(input_run_mapping_file, 'r'))
+
+        if approach not in input_run_mapping:
+            next_id = max(list(input_run_mapping.values()) + [0]) + 1
+            input_run_mapping[approach] = next_id
+            os.makedirs(self.tira_cache_dir, exist_ok=True)
+            json.dump(input_run_mapping, open(input_run_mapping_file, 'w+'))
+
+        return input_run + '/' + str(input_run_mapping[approach])
+

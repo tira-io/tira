@@ -568,6 +568,16 @@ class HybridDatabase(object):
     def get_upload(self, task_id, vm_id, upload_id):
         return self.upload_to_dict(modeldb.Upload.objects.get(vm__vm_id=vm_id, id=upload_id), vm_id)
 
+    def get_discourse_token_for_user(self, vm_id):
+        try:
+            return modeldb.DiscourseTokenForUser.objects.get(vm_id__vm_id=vm_id).token
+        except:
+            return None
+
+    def create_discourse_token_for_user(self, vm_id, discourse_api_key):
+        modeldb.DiscourseTokenForUser.objects.create(vm_id=modeldb.VirtualMachine.objects.get(vm_id=vm_id),
+                                                     token=discourse_api_key)
+
     @staticmethod
     def get_uploads(task_id, vm_id, return_names_only=True):
         ret = modeldb.Upload.objects.filter(vm__vm_id=vm_id, task__task_id=task_id, deleted=False)
@@ -679,6 +689,8 @@ class HybridDatabase(object):
         return ret
 
     def get_count_of_team_submissions(self, task_id):
+            task = self.get_task(task_id, False)
+            all_teams_on_task = set([i.strip() for i in task['allowed_task_teams'].split() if i.strip()])
             prepared_statement = """
             SELECT
                 tira_dockersoftware.vm_id as vm,
@@ -704,13 +716,15 @@ class HybridDatabase(object):
             for vm, to_review, submissions, total in rows:
                 if vm is not None:
                     ret += [{'team': vm, 'reviewed': submissions, 'to_review': to_review, 'total': total, 'link': link_to_discourse_team(vm)}]
-            print(ret)
+            for team in all_teams_on_task:
+                if team not in [t['team'] for t in ret]:
+                    ret += [{'team': team, 'reviewed': 0, 'to_review': 0, 'total': 0, 'link': link_to_discourse_team(team)}]
             return ret
 
     def runs(self, task_id, dataset_id, vm_id, software_id):
         prepared_statement = """
                 SELECT
-                    DISTINCT tira_run.run_id
+                    tira_run.run_id, tira_dockersoftware.docker_software_id, tira_upload.id
                 FROM
                     tira_run
                 LEFT JOIN
@@ -736,7 +750,7 @@ class HybridDatabase(object):
                     tira_run.run_id ASC;        
                 """
         params = [dataset_id, task_id, task_id, task_id, task_id, task_id, vm_id, vm_id, vm_id, software_id, software_id, software_id]
-        return [i[0] for i in self.execute_raw_sql_statement(prepared_statement, params)]
+        return [{'run_id': i[0], 'software_id': i[1], 'upload_id': i[2]} for i in self.execute_raw_sql_statement(prepared_statement, params)]
 
     def get_runs_for_vm(self, vm_id, docker_software_id, upload_id, include_unpublished=True, round_floats=True, show_only_unreviewed=False):
         prepared_statement = """

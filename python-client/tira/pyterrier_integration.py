@@ -1,3 +1,5 @@
+import os
+
 class PyTerrierIntegration():
     def __init__(self, tira_client):
         self.tira_client = tira_client
@@ -98,7 +100,7 @@ class PyTerrierIntegration():
         """
         import pyterrier as pt
         ret = self.tira_client.get_run_output(approach, dataset) + '/index'
-        return pt.IndexFactory.of(ret)
+        return pt.IndexFactory.of(os.path.abspath(ret))
 
     def from_submission(self, approach, dataset=None, datasets=None):
         software = self.tira_client.docker_software(approach)

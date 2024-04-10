@@ -90,15 +90,27 @@ class LocalExecutionIntegration():
         print('\n\n Image pulled successfully.\n\nI will now run the software.\n\n')
 
     def extract_entrypoint(self, image):
-        self.ensure_image_available_locally(image)
-        image = self.__docker_client().images.get(image)
+        image_name = image
+        from tira.third_party_integrations import extract_to_be_executed_notebook_from_command_or_none
+        self.ensure_image_available_locally(image_name)
+        image = self.__docker_client().images.get(image_name)
         ret = image.attrs['Config']['Entrypoint']
+        if not ret:
+            return None
+
         for i in deepcopy(ret):
             if i.startswith('[') and i.endswith(']'):
                 print(i)
                 ret = json.loads(i)
                 break
-        return ' '.join(ret)
+
+        ret = ' '.join(ret)
+        executable = extract_to_be_executed_notebook_from_command_or_none(ret)
+
+        if not executable or executable.startswith('/'):
+            return ret
+        else:
+            return ret.replace(executable, (self.docker_image_work_dir(image_name) + '/' + executable).replace('//', '/'))
 
     def __docker_client(self):
         try:
@@ -112,6 +124,46 @@ class LocalExecutionIntegration():
             return client
         except Exception as e:
             raise ValueError('It seems like docker is not installed?', e)
+
+    def docker_client_is_authenticated(self, client=None):
+        if not client:
+            client = self.__docker_client()
+
+        auth_config = client.api._auth_configs
+        if not self.tira_client.docker_registry() or 'auths' not in auth_config  or self.tira_client.docker_registry() not in auth_config['auths']:
+            return False
+
+        auth_config = auth_config['auths'][self.tira_client.docker_registry()]
+
+        if not auth_config or 'username' not in auth_config or 'password' not in auth_config:
+            return False
+
+        login_response = client.login(username=auth_config['username'], password=auth_config['password'], registry=self.tira_client.docker_registry())
+
+        return ('username' in login_response and 'password' in login_response and auth_config['username'] == login_response['username'] and auth_config['password'] == login_response['password']) or ('Status' in login_response and 'login succeeded' == login_response['Status'].lower())
+
+    def login_docker_client(self, task_name, team_name, client=None):
+        if not client:
+            client = self.__docker_client()
+
+        if self.docker_client_is_authenticated(client):
+            return True
+
+        docker_user, docker_password, docker_registry = self.tira_client.docker_credentials(task_name, team_name)
+
+        if not docker_user or not docker_password or not docker_registry:
+            print('Please login. Run "tira-cli login --token YOUR-TOKEN-HERE"')
+            raise ValueError('Please login. Run "tira-cli login --token YOUR-TOKEN-HERE"')
+
+        #print('Login: ', docker_user, docker_password, docker_registry)
+        login_response = client.login(username=docker_user, password=docker_password, registry=docker_registry)
+
+        if 'Status' not in login_response or 'login succeeded' != login_response['Status'].lower():
+            print('Credentials are not valid, please run "tira-cli login --token YOUR-TOKEN-HERE"')
+            raise ValueError(f'Login was not successfull, got: {login_response}')
+    
+        return True
+
 
     def run(self, identifier=None, image=None, command=None, input_dir=None, output_dir=None, evaluate=False, dry_run=False, docker_software_id_to_output=None, software_id=None, allow_network=False, input_run=None, additional_volumes=None, eval_dir='tira-evaluation'):
         previous_stages = []
@@ -173,6 +225,9 @@ class LocalExecutionIntegration():
         self.ensure_image_available_locally(image, client)
         environment = {'outputDir': '/tira-data/output', 'inputDataset': '/tira-data/input', 'TIRA_DATASET_ID': 'id', 'TIRA_OUTPUT_DIR': '/tira-data/output', 'TIRA_INPUT_DATASET': '/tira-data/input'}
 
+        if input_run:
+            environment['inputRun'] = '/tira-data/input-run'
+
         container = client.containers.run(image, entrypoint='sh', command=f'-c "{command}; sleep .1"', environment=environment, volumes=volumes, detach=True, remove=True, network_disabled = not allow_network)
 
         for line in container.attach(stdout=True, stream=True, logs=True):
@@ -209,6 +264,9 @@ class LocalExecutionIntegration():
             docker_software_id_to_output[s_id] = output_dir
             return docker_software_id_to_output
 
+    def docker_image_work_dir(self, image):
+        image = self.__docker_client().images.get(image).attrs['Config']
+        return '/' + image.get('WorkingDir', '')
 
     def export_file_from_software(self, container_path, host_path, identifier=None, image=None, software_id=None):
         """
@@ -219,7 +277,7 @@ class LocalExecutionIntegration():
             image = ds['tira_image_name']
 
         client = self.__docker_client()
-        self.ensure_image_available_locally(image, client)        
+        self.ensure_image_available_locally(image, client)
         docker_container = client.containers.create(image)
         strm, stat = docker_container.get_archive(container_path, None)
 
@@ -255,18 +313,20 @@ class LocalExecutionIntegration():
 
         return '\n'.join(ret)
 
-    def push_image(self, image, username, password, authenticate=False):
+    def push_image(self, image, required_prefix=None, task_name=None, team_name=None):
         client = self.__docker_client()
+        if not self.docker_client_is_authenticated(client):
+            self.login_docker_client(task_name, team_name, client)
 
-        if authenticate:
-            login_response = client.login(username=username, password=password, registry='registry.webis.de')
-
-            if 'Status' not in login_response or 'Login Succeeded' != login_response['Status']:
-                raise ValueError(f'Login was not successfull, got: {login_response}')
+        if required_prefix and not image.startswith(required_prefix):
+            new_image = (required_prefix + '/' + image[:10]).replace('//', '/') + ':' + (image.split(':')[-1] if ':' in image else 'latest')
+            client.images.get(image).tag(new_image)
+            image = new_image
 
         push_response = client.images.push(image)
         print(push_response)
 
         if 'error' in push_response:
             raise ValueError('Could not push image')
+        return new_image
 

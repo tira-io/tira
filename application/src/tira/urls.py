@@ -117,6 +117,7 @@ urlpatterns = [
     path('api/submissions-of-user/<str:vm_id>', data_api.submissions_of_user, name='submissions_of_user'),
     path('api/add_software_submission_git_repository/<str:task_id>/<str:vm_id>', vm_api.add_software_submission_git_repository, name='add_software_submission_git_repository'),
     path('api/get_software_submission_git_repository/<str:task_id>/<str:vm_id>', vm_api.get_software_submission_git_repository, name='get_software_submission_git_repository'),
+    path('api/token/<str:vm_id>', vm_api.get_token, name='get_token'),
     path('api/import-submission/<str:task_id>/<str:vm_id>/<str:submission_type>/<str:s_id>', data_api.import_submission, name='import_submission'),
     path('diffir/<str:task_id>/<int:topk>/<str:run_id_1>/<str:run_id_2>', diffir_api.diffir, name='diffir'),
     path('serp/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/<int:topk>/<str:run_id>', serp_api.serp, name='serp'),

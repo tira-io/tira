@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 import argparse
 from tira.local_client import Client
-from .rest_api_client import Client as RestClient
+from tira.rest_api_client import Client as RestClient
 from tira.local_execution_integration import LocalExecutionIntegration
 import os
 import shutil
 import logging
+import tempfile
+from tira.third_party_integrations import extract_previous_stages_from_docker_image
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -39,6 +41,7 @@ def parse_args():
     parser.add_argument('--input-directory', required=False, default=str(os.path.abspath(".")))
     parser.add_argument('--input-dataset', required=False, default=None)
     parser.add_argument('--input-run', required=False, default=None)
+    parser.add_argument('--input-run-directory', required=False, default=None)
     # Not required if the subcommand "tira-run submit" is used. FIXME: the arguments in this group should probably be subcommands
     group = parser.add_mutually_exclusive_group(required=False)
     group.add_argument('--image')
@@ -77,6 +80,11 @@ def parse_args():
     if args.export_submission_environment:
         return args
 
+    if os.path.exists(args.output_directory) and len(os.listdir(args.output_directory)) > 0:
+        parser.error(f'The output directory {os.path.abspath(args.output_directory)} is not empty. Please empty it or provide a new output directory with --ouptut-directory.')
+        
+
+
     if (args.image is None) == (args.approach is None) == (args.export_dataset):
         parser.error('You have to exclusively use either --approach or --image.')
     if (args.image is None) != (args.command is None):
@@ -85,31 +93,64 @@ def parse_args():
         if args.command is not None:
             print(f'Use command from Docker image "{args.command}".')
         else:
-            parser.error('The options --image and --command have to be used together.')
+            parser.error('I could not find a command to execute, please either configure the entrypoint of the image or use --command.')
+    
+    args.previous_stages = [] if not args.input_run else [args.input_run]
+    if args.input_run is None and args.input_run_directory is None:
+        args.input_run = extract_previous_stages_from_docker_image(args.image, args.command)
+        args.previous_stages = args.input_run
+        if args.input_run and len(args.input_run) == 1:
+            args.input_run = args.input_run[0]
 
     if args.push.lower() == 'true':
-        if not args.tira_docker_registry_token:
-            parser.error('The option --tira-docker-registry-token (or environment variable TIRA_DOCKER_REGISTRY_TOKEN) is required when --push is active.')
+        print('I will check that the API key and the credentials for the image registry are valid.')
+        rest_client = RestClient()
+        docker_authenticated = rest_client.local_execution.docker_client_is_authenticated()
 
-        if not args.tira_docker_registry_user:
-            parser.error('The option --tira-docker-registry-user (or environment variable TIRA_DOCKER_REGISTRY_USER) is required when --push is active.')
+        api_key_valid = rest_client.api_key_is_valid()
 
-        if not args.tira_client_token:
-            parser.error('The option --tira-client-token (or environment variable TIRA_CLIENT_TOKEN) is required when --push is active.')
+        if args.tira_client_token:
+            if api_key_valid:
+                args.tira_client_token = rest_client.api_key
+            else:
+                parser.error('The option --tira-client-token (or environment variable TIRA_CLIENT_TOKEN) is required when --push is active.')
 
-        if not args.tira_vm_id:
-            parser.error('The option --tira-vm-id (or environment variable TIRA_VM_ID) is required when --push is active.')
+        if not args.tira_task_id and args.input_dataset:
+            args.tira_task_id = args.input_dataset.split('/')[0]
 
         if not args.tira_task_id:
             parser.error('The option --tira-task-id (or environment variable TIRA_TASK_ID) is required when --push is active.')
+
+        if not args.tira_vm_id:
+            tmp = rest_client.metadata_for_task(args.tira_task_id)
+            if tmp and 'status' in tmp and 0 == tmp['status'] and 'context' in tmp and 'user_vms_for_task' in tmp['context']:
+                if len(tmp['context']['user_vms_for_task']) != 1:
+                    parser.error(f'You have multiple vms ({tmp["context"]["user_vms_for_task"]}), use option --tira-vm-id to specify the vm.')
+                else:
+                    args.tira_vm_id = tmp['context']['user_vms_for_task'][0]
+            else:
+                parser.error('The option --tira-vm-id (or environment variable TIRA_VM_ID) is required when --push is active.')
+
         if not args.tira_client_user:
-            parser.error('The option --tira-client-user (or environment variable TIRA_CLIENT_USER) is required when --push is active.')
+            tmp = rest_client.metadata_for_task(args.tira_task_id)
+            if tmp and 'status' in tmp and 0 == tmp['status'] and 'context' in tmp and 'user_id' in tmp['context']:
+                args.tira_client_user = tmp['context']['user_id']
+            else:
+                parser.error('The option --tira-client-user (or environment variable TIRA_CLIENT_USER) is required when --push is active.')
+
+        if not docker_authenticated and  not args.tira_docker_registry_token and not rest_client.local_execution.login_docker_client(args.tira_task_id, args.tira_vm_id):
+                parser.error('The option --tira-docker-registry-token (or environment variable TIRA_DOCKER_REGISTRY_TOKEN) is required when --push is active.')
+
+        if not docker_authenticated and not args.tira_docker_registry_user and not rest_client.local_execution.login_docker_client(args.tira_task_id, args.tira_vm_id):
+            parser.error('The option --tira-docker-registry-user (or environment variable TIRA_DOCKER_REGISTRY_USER) is required when --push is active.')
+
+        args.previous_stages = [rest_client.public_runs(args.tira_task_id, args.input_dataset.split('/')[1], i.split('/')[1], i.split('/')[2]) for i in args.previous_stages]
 
     return args
 
 
-def main():
-    args = parse_args()
+def main(args=None):
+    args = args if args else parse_args()
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
 
     client: "TiraClient" = Client()
@@ -185,10 +226,20 @@ def main():
         input_dir = tira.download_dataset(task, dataset)
         print(f'Done: Dataset {dataset} is available locally.')
 
-        if args.input_run and 'none' != args.input_run.lower():
+        if args.input_run and type(args.input_run) != list and 'none' != args.input_run.lower():
             print(f'Ensure that the input run {args.input_run} is available.')
             args.input_run = tira.get_run_output(args.input_run, dataset, True)
             print('Done: input run is available locally.')
+        if args.input_run and type(args.input_run) == list and len(args.input_run) > 0:
+            temp_dir = '/tmp/' + tempfile.TemporaryDirectory().name
+            os.makedirs(temp_dir, exist_ok=True)
+            for num, input_run in zip(range(len(args.input_run)), args.input_run):
+                print(f'Ensure that the input run {input_run} is available.')
+                input_run = tira.get_run_output(input_run, dataset, True)
+                shutil.copytree(input_run, temp_dir + '/' + str(1+ num))
+            args.input_run = temp_dir
+        if args.input_run_directory and 'none' != args.input_run_directory.lower():
+            args.input_run = os.path.abspath(args.input_run_directory)
 
         if args.evaluate:
             print(f'Ensure that the evaluation truth for dataset {dataset} is available.')
@@ -197,10 +248,10 @@ def main():
             print(f'Done: Evaluation truth for dataset {dataset} is available.')
 
     print(f'''
-########################################### TIRA RUN CONFIGURATION ###########################################
-# image=${args.image}
-# command=${args.command}
-##############################################################################################################
+########################################### TIRA RUN CONFIGURATION #########################################################
+# image={args.image}
+# command={args.command}
+############################################################################################################################
 ''')
     client.local_execution.run(identifier=args.approach, image=args.image, command=args.command, input_dir=input_dir, output_dir=args.output_directory, dry_run=args.dry_run, allow_network=args.allow_network, input_run=args.input_run, additional_volumes=args.v, evaluate=evaluate, eval_dir=args.evaluation_directory)
 
@@ -208,8 +259,32 @@ def main():
         raise ValueError('The software produced an empty output directory, it likely failed?')
 
     if args.push.lower() == 'true':
+        print(f'''
+########################################### Review the Outputs of your Software ############################################
+# Your software produced the following outputs in {args.output_directory}.
+# Please shortly review them before we push your software.
+############################################################################################################################
+''')
+        if not os.path.exists(args.output_directory) or not os.listdir(args.output_directory):
+            print('Your software did not produce any output, please review the logs above.')
+        else:
+            for f in os.listdir(args.output_directory):
+                print(f' - {f}: {os.path.getsize(args.output_directory + "/" + f)} bytes')
+    
+        continue_user = input("Are the outputs correct and should I push the software to TIRA? (y/N) ").lower()
+
+        if continue_user and continue_user.lower() not in ['y', 'yes']:
+            print('You did not specify yes, I will not push the software.')
+            return
+
+        registry_prefix = client.docker_registry() + '/code-research/tira/tira-user-' + args.tira_vm_id + '/'
         print('Push Docker image')
-        client.local_execution.push_image(args.image, args.tira_docker_registry_user, args.tira_docker_registry_token)
+
+        image = client.local_execution.push_image(args.image, registry_prefix, args.tira_task_id, args.tira_vm_id)
         print('Upload TIRA_SOFTWARE')
+        prev_stages = []
+        for i in args.previous_stages:
+            prev_stages += [str(i['job_id']['software_id'] if i['job_id']['software_id'] else i['job_id']['upload_id'])]
+
         tira = RestClient(api_key=args.tira_client_token, api_user_name=args.tira_client_user)
-        tira.add_docker_software(args.image, args.command, args.tira_vm_id, args.tira_task_id, args.tira_code_repository_id, dict(os.environ))
+        tira.add_docker_software(image, args.command, args.tira_vm_id, args.tira_task_id, args.tira_code_repository_id, dict(os.environ), prev_stages)

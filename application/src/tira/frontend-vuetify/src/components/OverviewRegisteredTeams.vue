@@ -31,7 +31,7 @@ interface CountOfTeamSubmissions {
 }
 
 export default {
-  name: "overview-team-submissions",
+  name: "overview-registered-teams",
   components: {Loading},
   props: ['task'],
   data() { return {
