@@ -1,4 +1,4 @@
-from pyterrier.transformer import Transformer
+from pyterrier.transformer import Transformer, SourceTransformer
 import json
 import pandas as pd
 import tempfile
@@ -24,6 +24,29 @@ def merge_runs(topics, run_file):
 
     return topics[keeping].merge(df, how='left', left_on=join_on, right_on=join_on)
 
+
+class TiraSourceTransformer(SourceTransformer):
+    def __init__(self, rtr, **kwargs):
+        super().__init__(rtr, **kwargs)
+
+    
+    def transform(self, topics):
+        import numpy as np
+        if 'docno' not in topics.columns:
+            return super().transform(topics)
+        elif 'qid' not in topics.columns:
+            raise ValueError('The dataframe needs to have a column "qid"')
+        
+        keeping = topics.columns
+
+        common_columns = np.intersect1d(topics.columns, self.df.columns)
+
+        # we drop columns in topics that exist in the self.df
+        drop_columns = [i for i in common_columns if i not in ("qid", "docno")]
+        if len(drop_columns) > 0:
+            keeping = topics.columns[~ topics.columns.isin(drop_columns)]
+
+        return topics[keeping].merge(self.df, on=["qid", "docno"])
 
 class TiraFullRankTransformer(Transformer):
     """
@@ -69,6 +92,7 @@ class TiraRerankingTransformer(Transformer):
     def transform(self, topics):
         import numpy as np
         assert "qid" in topics.columns
+
         if 'tira_task' not in topics.columns or 'tira_dataset' not in topics.columns or 'tira_first_stage_run_id' not in topics.columns:
             if self.datasets:
                 tira_configurations = [{'tira_task': self.task, 'tira_dataset': i, 'tira_first_stage_run_id': None} for i in self.datasets]

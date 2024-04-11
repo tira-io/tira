@@ -114,10 +114,9 @@ class PyTerrierIntegration():
             return TiraRerankingTransformer(approach, self.tira_client, dataset, datasets)
 
     def from_retriever_submission(self, approach, dataset, previous_stage=None, datasets=None):
-        import pyterrier as pt
+        from tira.pyterrier_util import TiraSourceTransformer
         ret = self.pd.from_retriever_submission(approach, dataset, previous_stage, datasets)
-
-        return pt.Transformer.from_df(ret)
+        return TiraSourceTransformer(ret)
 
     def transform_queries(self, approach, dataset, file_selection=('/*.jsonl', '/*.jsonl.gz'), prefix=''):
         from pyterrier.apply import generic
