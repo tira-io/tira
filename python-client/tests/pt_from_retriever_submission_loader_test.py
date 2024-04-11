@@ -28,6 +28,14 @@ class TestPtFromRetrieverSubmissionLoaderTest(unittest.TestCase):
         assert actual[1] == expected[1]
         assert actual[2] == expected[2]
 
+    def test_feature_union(self):
+        queries = pd.DataFrame([{'qid': str(i)} for i in queries])
+        tira = Client('tests/resources/')
+        retriever =  tira.pt.from_retriever_submission('ir-benchmarks/tira-ir-starters/retriever', dataset='d1')
+    
+        ret = retriever >> (retriever ** retriever)(queries)
+        self.fail('TODO add some test stuff')
+
     def test_for_single_query_no_1(self):
         expected = [
             {'qid': '1', 'docno': 'doc-1', 'score':10},
