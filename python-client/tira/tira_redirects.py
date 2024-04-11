@@ -204,23 +204,23 @@ STATIC_REDIRECTS = {
     "ir-lab-sose-2024": {
         "tira-ir-starter": {
             "Index (tira-ir-starter-pyterrier)": {
-                "anthology-20240408-training": {
-                    "run_id": "2024-04-08-15-52-07",
-                    "md5": "df4fcf8886165e42fe0eeffd14918c2e",
-                    "urls": ["https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-08-15-52-07.zip"],
+                "anthology-20240411-training": {
+                    "run_id": "2024-04-11-16-43-14",
+                    "md5": "20dcab1b9892235140cd9dbce8738e98",
+                    "urls": ["https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-11-16-43-14.zip"],
                 }
             }
         },
         "seanmacavaney": {
             "DocT5Query": {
-                "anthology-20240408-training": {
+                "anthology-20240411-training": {
                     "run_id": "2024-04-09-22-03-26",
                     "md5": "1a0f65a8f47051db435ec6031106db7b",
                     "urls": ["https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-09-22-03-26.zip"],
                 }
             },
             "corpus-graph": {
-                "anthology-20240408-training": {
+                "anthology-20240411-training": {
                     "run_id": "2024-04-09-16-35-50",
                     "md5": "75f743914d44d7252425844136ea9722",
                     "urls": ["https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-09-16-35-50.zip"],
@@ -228,7 +228,7 @@ STATIC_REDIRECTS = {
             },
             #"some-interface": {
                 #copy of corpus-graph
-            #    "anthology-20240408-training": {
+            #    "anthology-20240411-training": {
             #        "run_id": "2024-04-09-16-35-50",
             #        "md5": "75f743914d44d7252425844136ea9722"
             #    }
@@ -236,7 +236,7 @@ STATIC_REDIRECTS = {
         },
         "ows": {
             "pyterrier-anceindex": {
-                "anthology-20240408-training": {
+                "anthology-20240411-training": {
                     "run_id": "2024-04-08-18-00-08",
                     "md5": "851ef64a78159a0ab1a7f86e942aeab5",
                     "urls": ["https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-08-18-00-08.zip"],
@@ -245,7 +245,7 @@ STATIC_REDIRECTS = {
         },
         "naverlabseurope": {
             "Splade (Index)": {
-                "anthology-20240408-training": {
+                "anthology-20240411-training": {
                     "run_id": "2024-04-09-16-40-49",
                     "md5": "0208a39356bb2ebf4039b4ac2c595b50",
                     "urls": ["https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-09-16-40-49.zip"],
@@ -353,7 +353,7 @@ STATIC_DATASET_REDIRECTS = {
     'training-20231104-training': 'https://zenodo.org/records/10628882/files/',
     'jena-topics-small-20240119-training': 'https://zenodo.org/records/10628882/files/',
     'leipzig-topics-small-20240119-training': 'https://zenodo.org/records/10628882/files/',
-    'anthology-20240408-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/',
+    'anthology-20240411-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/',
 }
 
 RESOURCE_REDIRECTS = {

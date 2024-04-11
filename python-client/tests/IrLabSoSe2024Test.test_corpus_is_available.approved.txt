@@ -1,9 +1,9 @@
 {
-    "md5_of_first_kilobyte": "c499ee49812b41d6aa92fc14063bbf91",
+    "md5_of_first_kilobyte": "675771df3fd9094ce208ab83847ca9df",
     "redirect_url": {
         "urls": [
-            "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/anthology-20240408-inputs.zip?download=1"
+            "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/anthology-20240411-inputs.zip?download=1"
         ]
     },
-    "tira_url": "https://www.tira.io/data-download/training/input-/anthology-20240408-training.zip"
+    "tira_url": "https://www.tira.io/data-download/training/input-/anthology-20240411-training.zip"
 }

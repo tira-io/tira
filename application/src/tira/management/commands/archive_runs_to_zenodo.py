@@ -35,7 +35,7 @@ class Command(BaseCommand):
                 'wapo-v2-trec-core-2018-20230107-training', 'disks45-nocr-trec8-20230209-training', 'disks45-nocr-trec7-20230209-training', 'disks45-nocr-trec-robust-2004-20230209-training'
             ],
             'ir-lab': [
-                'anthology-20240408-training'
+                'anthology-20240411-training'
             ]
         }
 
