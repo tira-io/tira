@@ -458,6 +458,11 @@ The original_ir_datasets_id is used to infer the class of documents, qrels, and 
 <dd></dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="tira.pyterrier_integration.PyTerrierIntegration.doc_features">
+<span class="sig-name descname"><span class="pre">doc_features</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">approach</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_selection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('/*.jsonl',</span> <span class="pre">'/*.jsonl.gz')</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/pyterrier_integration.html#PyTerrierIntegration.doc_features"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.pyterrier_integration.PyTerrierIntegration.doc_features" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="tira.pyterrier_integration.PyTerrierIntegration.ensure_dataset_is_cached">
 <span class="sig-name descname"><span class="pre">ensure_dataset_is_cached</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">irds_dataset_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/pyterrier_integration.html#PyTerrierIntegration.ensure_dataset_is_cached"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.pyterrier_integration.PyTerrierIntegration.ensure_dataset_is_cached" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
@@ -477,6 +482,11 @@ The original_ir_datasets_id is used to infer the class of documents, qrels, and 
 <span class="sig-name descname"><span class="pre">index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">approach</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/pyterrier_integration.html#PyTerrierIntegration.index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.pyterrier_integration.PyTerrierIntegration.index" title="Link to this definition">#</a></dt>
 <dd><p>Load an PyTerrier index from TIRA.</p>
 </dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="tira.pyterrier_integration.PyTerrierIntegration.query_features">
+<span class="sig-name descname"><span class="pre">query_features</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">approach</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_selection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('/*.jsonl',</span> <span class="pre">'/*.jsonl.gz')</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/pyterrier_integration.html#PyTerrierIntegration.query_features"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.pyterrier_integration.PyTerrierIntegration.query_features" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="tira.pyterrier_integration.PyTerrierIntegration.reranker">
@@ -702,10 +712,12 @@ The original_ir_datasets_id is used to infer the class of documents, qrels, and 
 </li>
 <li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierIntegration"><code class="docutils literal notranslate"><span class="pre">PyTerrierIntegration</span></code></a><ul>
 <li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierIntegration.create_rerank_file"><code class="docutils literal notranslate"><span class="pre">PyTerrierIntegration.create_rerank_file()</span></code></a></li>
+<li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierIntegration.doc_features"><code class="docutils literal notranslate"><span class="pre">PyTerrierIntegration.doc_features()</span></code></a></li>
 <li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierIntegration.ensure_dataset_is_cached"><code class="docutils literal notranslate"><span class="pre">PyTerrierIntegration.ensure_dataset_is_cached()</span></code></a></li>
 <li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierIntegration.from_retriever_submission"><code class="docutils literal notranslate"><span class="pre">PyTerrierIntegration.from_retriever_submission()</span></code></a></li>
 <li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierIntegration.from_submission"><code class="docutils literal notranslate"><span class="pre">PyTerrierIntegration.from_submission()</span></code></a></li>
 <li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierIntegration.index"><code class="docutils literal notranslate"><span class="pre">PyTerrierIntegration.index()</span></code></a></li>
+<li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierIntegration.query_features"><code class="docutils literal notranslate"><span class="pre">PyTerrierIntegration.query_features()</span></code></a></li>
 <li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierIntegration.reranker"><code class="docutils literal notranslate"><span class="pre">PyTerrierIntegration.reranker()</span></code></a></li>
 <li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierIntegration.retriever"><code class="docutils literal notranslate"><span class="pre">PyTerrierIntegration.retriever()</span></code></a></li>
 <li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierIntegration.transform_documents"><code class="docutils literal notranslate"><span class="pre">PyTerrierIntegration.transform_documents()</span></code></a></li>

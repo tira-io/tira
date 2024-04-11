@@ -410,38 +410,72 @@
 <span class="linenos">146</span>        <span class="k">return</span> <span class="n">generic</span><span class="p">(</span><span class="n">__transform_df</span><span class="p">)</span></div>
 
 <span class="linenos">147</span>
+<div class="viewcode-block" id="PyTerrierIntegration.doc_features">
+<a class="viewcode-back" href="../../users/api.html#tira.pyterrier_integration.PyTerrierIntegration.doc_features">[docs]</a>
+<span class="linenos">148</span>    <span class="k">def</span> <span class="nf">doc_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">approach</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">file_selection</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;/*.jsonl&#39;</span><span class="p">,</span> <span class="s1">&#39;/*.jsonl.gz&#39;</span><span class="p">)):</span>
+<span class="linenos">149</span>        <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="linenos">150</span>        <span class="kn">from</span> <span class="nn">pyterrier.apply</span> <span class="kn">import</span> <span class="n">doc_features</span>
+<span class="linenos">151</span>        <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pd</span><span class="o">.</span><span class="n">transform_documents</span><span class="p">(</span><span class="n">approach</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">file_selection</span><span class="p">)</span>
+<span class="linenos">152</span>        <span class="n">cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ret</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;docno&#39;</span><span class="p">]]</span>
+<span class="linenos">153</span>        <span class="n">ret</span> <span class="o">=</span> <span class="p">{</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="s1">&#39;docno&#39;</span><span class="p">]):</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">i</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">])</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ret</span><span class="o">.</span><span class="n">iterrows</span><span class="p">()}</span>
+<span class="linenos">154</span>
+<span class="linenos">155</span>        <span class="k">return</span> <span class="n">doc_features</span><span class="p">(</span><span class="k">lambda</span> <span class="n">row</span><span class="p">:</span> <span class="n">ret</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;docno&#39;</span><span class="p">])])</span></div>
+
+<span class="linenos">156</span>
+<div class="viewcode-block" id="PyTerrierIntegration.query_features">
+<a class="viewcode-back" href="../../users/api.html#tira.pyterrier_integration.PyTerrierIntegration.query_features">[docs]</a>
+<span class="linenos">157</span>    <span class="k">def</span> <span class="nf">query_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">approach</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">file_selection</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;/*.jsonl&#39;</span><span class="p">,</span> <span class="s1">&#39;/*.jsonl.gz&#39;</span><span class="p">)):</span>
+<span class="linenos">158</span>        <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="linenos">159</span>        <span class="kn">from</span> <span class="nn">pyterrier.transformer</span> <span class="kn">import</span> <span class="n">Transformer</span>
+<span class="linenos">160</span>        <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pd</span><span class="o">.</span><span class="n">transform_queries</span><span class="p">(</span><span class="n">approach</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">file_selection</span><span class="p">)</span>
+<span class="linenos">161</span>        <span class="n">cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ret</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;qid&#39;</span><span class="p">]]</span>
+<span class="linenos">162</span>        <span class="n">ret</span> <span class="o">=</span> <span class="p">{</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="s1">&#39;qid&#39;</span><span class="p">]):</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">i</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">])</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ret</span><span class="o">.</span><span class="n">iterrows</span><span class="p">()}</span>
+<span class="linenos">163</span>
+<span class="linenos">164</span>        <span class="k">class</span> <span class="nc">ApplyQueryFeatureTransformer</span><span class="p">(</span><span class="n">Transformer</span><span class="p">):</span>
+<span class="linenos">165</span>            <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="linenos">166</span>                <span class="k">return</span> <span class="s2">&quot;tira.pt.query_features()&quot;</span>
+<span class="linenos">167</span>
+<span class="linenos">168</span>            <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputRes</span><span class="p">):</span>
+<span class="linenos">169</span>                <span class="n">outputRes</span> <span class="o">=</span> <span class="n">inputRes</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="linenos">170</span>                
+<span class="linenos">171</span>                <span class="n">outputRes</span><span class="p">[</span><span class="s2">&quot;features&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">outputRes</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">i</span><span class="p">:</span> <span class="n">ret</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="s1">&#39;qid&#39;</span><span class="p">])],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="linenos">172</span>                <span class="k">return</span> <span class="n">outputRes</span>
+<span class="linenos">173</span>        
+<span class="linenos">174</span>        <span class="k">return</span> <span class="n">ApplyQueryFeatureTransformer</span><span class="p">()</span></div>
+
+<span class="linenos">175</span>
 <div class="viewcode-block" id="PyTerrierIntegration.reranker">
 <a class="viewcode-back" href="../../users/api.html#tira.pyterrier_integration.PyTerrierIntegration.reranker">[docs]</a>
-<span class="linenos">148</span>    <span class="k">def</span> <span class="nf">reranker</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">approach</span><span class="p">,</span> <span class="n">irds_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="linenos">149</span>        <span class="kn">from</span> <span class="nn">tira.pyterrier_util</span> <span class="kn">import</span> <span class="n">TiraLocalExecutionRerankingTransformer</span>
-<span class="linenos">150</span>        <span class="k">return</span> <span class="n">TiraLocalExecutionRerankingTransformer</span><span class="p">(</span><span class="n">approach</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tira_client</span><span class="p">,</span> <span class="n">irds_id</span><span class="o">=</span><span class="n">irds_id</span><span class="p">)</span></div>
+<span class="linenos">176</span>    <span class="k">def</span> <span class="nf">reranker</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">approach</span><span class="p">,</span> <span class="n">irds_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="linenos">177</span>        <span class="kn">from</span> <span class="nn">tira.pyterrier_util</span> <span class="kn">import</span> <span class="n">TiraLocalExecutionRerankingTransformer</span>
+<span class="linenos">178</span>        <span class="k">return</span> <span class="n">TiraLocalExecutionRerankingTransformer</span><span class="p">(</span><span class="n">approach</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tira_client</span><span class="p">,</span> <span class="n">irds_id</span><span class="o">=</span><span class="n">irds_id</span><span class="p">)</span></div>
 </div>
 
-<span class="linenos">151</span>
+<span class="linenos">179</span>
 <div class="viewcode-block" id="PyTerrierAnceIntegration">
 <a class="viewcode-back" href="../../users/api.html#tira.pyterrier_integration.PyTerrierAnceIntegration">[docs]</a>
-<span class="linenos">152</span><span class="k">class</span> <span class="nc">PyTerrierAnceIntegration</span><span class="p">():</span>
-<span class="linenos">153</span><span class="w">    </span><span class="sd">&quot;&quot;&quot;The pyterrier_ance integration to re-use cached ANCE indices. Wraps https://github.com/terrierteam/pyterrier_ance</span>
-<span class="linenos">154</span><span class="sd">    &quot;&quot;&quot;</span>
-<span class="linenos">155</span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tira_client</span><span class="p">):</span>
-<span class="linenos">156</span>        <span class="bp">self</span><span class="o">.</span><span class="n">tira_client</span> <span class="o">=</span> <span class="n">tira_client</span>
-<span class="linenos">157</span>    
+<span class="linenos">180</span><span class="k">class</span> <span class="nc">PyTerrierAnceIntegration</span><span class="p">():</span>
+<span class="linenos">181</span><span class="w">    </span><span class="sd">&quot;&quot;&quot;The pyterrier_ance integration to re-use cached ANCE indices. Wraps https://github.com/terrierteam/pyterrier_ance</span>
+<span class="linenos">182</span><span class="sd">    &quot;&quot;&quot;</span>
+<span class="linenos">183</span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tira_client</span><span class="p">):</span>
+<span class="linenos">184</span>        <span class="bp">self</span><span class="o">.</span><span class="n">tira_client</span> <span class="o">=</span> <span class="n">tira_client</span>
+<span class="linenos">185</span>    
 <div class="viewcode-block" id="PyTerrierAnceIntegration.ance_retrieval">
 <a class="viewcode-back" href="../../users/api.html#tira.pyterrier_integration.PyTerrierAnceIntegration.ance_retrieval">[docs]</a>
-<span class="linenos">158</span>    <span class="k">def</span> <span class="nf">ance_retrieval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span><span class="nb">str</span><span class="p">):</span>
-<span class="linenos">159</span><span class="w">        </span><span class="sd">&quot;&quot;&quot;Load a cached pyterrier_ance.ANCEIndexer submitted as workshop-on-open-web-search/ows/pyterrier-anceindex from tira.</span>
-<span class="linenos">160</span>
-<span class="linenos">161</span><span class="sd">        Args:</span>
-<span class="linenos">162</span><span class="sd">            dataset (str): the dataset id, either an tira or ir_datasets id.</span>
-<span class="linenos">163</span>
-<span class="linenos">164</span><span class="sd">        Returns:</span>
-<span class="linenos">165</span><span class="sd">            pyterrier_ance.ANCERetrieval: the ANCE index.</span>
-<span class="linenos">166</span><span class="sd">        &quot;&quot;&quot;</span>
-<span class="linenos">167</span>        <span class="kn">from</span> <span class="nn">tira.ir_datasets_util</span> <span class="kn">import</span> <span class="n">translate_irds_id_to_tirex</span>
-<span class="linenos">168</span>        <span class="n">ance_index</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tira_client</span><span class="o">.</span><span class="n">get_run_output</span><span class="p">(</span><span class="s1">&#39;ir-lab-sose-2024/ows/pyterrier-anceindex&#39;</span><span class="p">,</span> <span class="n">translate_irds_id_to_tirex</span><span class="p">(</span><span class="n">dataset</span><span class="p">)))</span> <span class="o">/</span> <span class="s1">&#39;anceindex&#39;</span>
-<span class="linenos">169</span>        <span class="n">ance_checkpoint</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tira_client</span><span class="o">.</span><span class="n">load_resource</span><span class="p">(</span><span class="s1">&#39;Passage_ANCE_FirstP_Checkpoint.zip&#39;</span><span class="p">)</span>
-<span class="linenos">170</span>        <span class="kn">import</span> <span class="nn">pyterrier_ance</span>
-<span class="linenos">171</span>        <span class="k">return</span> <span class="n">pyterrier_ance</span><span class="o">.</span><span class="n">ANCERetrieval</span><span class="p">(</span><span class="n">ance_checkpoint</span><span class="p">,</span> <span class="n">ance_index</span><span class="p">)</span></div>
+<span class="linenos">186</span>    <span class="k">def</span> <span class="nf">ance_retrieval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span><span class="nb">str</span><span class="p">):</span>
+<span class="linenos">187</span><span class="w">        </span><span class="sd">&quot;&quot;&quot;Load a cached pyterrier_ance.ANCEIndexer submitted as workshop-on-open-web-search/ows/pyterrier-anceindex from tira.</span>
+<span class="linenos">188</span>
+<span class="linenos">189</span><span class="sd">        Args:</span>
+<span class="linenos">190</span><span class="sd">            dataset (str): the dataset id, either an tira or ir_datasets id.</span>
+<span class="linenos">191</span>
+<span class="linenos">192</span><span class="sd">        Returns:</span>
+<span class="linenos">193</span><span class="sd">            pyterrier_ance.ANCERetrieval: the ANCE index.</span>
+<span class="linenos">194</span><span class="sd">        &quot;&quot;&quot;</span>
+<span class="linenos">195</span>        <span class="kn">from</span> <span class="nn">tira.ir_datasets_util</span> <span class="kn">import</span> <span class="n">translate_irds_id_to_tirex</span>
+<span class="linenos">196</span>        <span class="n">ance_index</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tira_client</span><span class="o">.</span><span class="n">get_run_output</span><span class="p">(</span><span class="s1">&#39;ir-lab-sose-2024/ows/pyterrier-anceindex&#39;</span><span class="p">,</span> <span class="n">translate_irds_id_to_tirex</span><span class="p">(</span><span class="n">dataset</span><span class="p">)))</span> <span class="o">/</span> <span class="s1">&#39;anceindex&#39;</span>
+<span class="linenos">197</span>        <span class="n">ance_checkpoint</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tira_client</span><span class="o">.</span><span class="n">load_resource</span><span class="p">(</span><span class="s1">&#39;Passage_ANCE_FirstP_Checkpoint.zip&#39;</span><span class="p">)</span>
+<span class="linenos">198</span>        <span class="kn">import</span> <span class="nn">pyterrier_ance</span>
+<span class="linenos">199</span>        <span class="k">return</span> <span class="n">pyterrier_ance</span><span class="o">.</span><span class="n">ANCERetrieval</span><span class="p">(</span><span class="n">ance_checkpoint</span><span class="p">,</span> <span class="n">ance_index</span><span class="p">)</span></div>
 </div>
 
 </pre></div>
