@@ -249,7 +249,7 @@ class Client(TiraClient):
         task, team, software = approach.split('/')
         if '/' in dataset:
             dataset = dataset.split('/')[-1]
-        #raise ValueError('Add unit test for the above')
+
         run_execution = self.get_run_execution_or_none(approach, dataset)
 
         if run_execution:
@@ -339,6 +339,8 @@ class Client(TiraClient):
         """
         if 'TIRA_INPUT_DATASET' in os.environ:
             return os.environ['TIRA_INPUT_DATASET']
+        if '/' in dataset:
+            dataset = dataset.split('/')[-1]
 
         dataset = dataset_ir_redirects(dataset)
 
