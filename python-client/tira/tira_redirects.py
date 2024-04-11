@@ -203,11 +203,11 @@ STATIC_REDIRECTS = {
     
     "ir-lab-sose-2024": {
         "tira-ir-starter": {
-            "Index (tira-ir-starter-pyterrier)": {
-                "anthology-20240411-training": {
-                    "run_id": "2024-04-11-16-43-14",
-                    "md5": "20dcab1b9892235140cd9dbce8738e98",
-                    "urls": ["https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-11-16-43-14.zip"],
+            "Index (tira-ir-starter-pyterrier)": {    
+                "ir-acl-anthology-20240411-training": {
+                    "run_id": "2024-04-11-19-43-23",
+                    "md5": "ebb5b8f1d8c7ad36612f408da1203ff2",
+                    "urls": ["https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-11-19-43-23.zip"]
                 }
             }
         },
@@ -353,7 +353,7 @@ STATIC_DATASET_REDIRECTS = {
     'training-20231104-training': 'https://zenodo.org/records/10628882/files/',
     'jena-topics-small-20240119-training': 'https://zenodo.org/records/10628882/files/',
     'leipzig-topics-small-20240119-training': 'https://zenodo.org/records/10628882/files/',
-    'anthology-20240411-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/',
+    'ir-acl-anthology-20240411-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/',
 }
 
 RESOURCE_REDIRECTS = {

@@ -6,12 +6,12 @@ class IrLabSoSe2024Test(unittest.TestCase):
     """Unit tests for all use cases of the ir lab in summer semester 2024.
     """
     def test_corpus_is_available(self):
-        actual = digest_of_dataset('anthology-20240411-training')
+        actual = digest_of_dataset('ir-acl-anthology-20240411-training')
         verify_as_json(actual)
 
     
     def test_digest_of_run_outputs(self):
-        dataset_id = 'anthology-20240411-training'
+        dataset_id = 'ir-acl-anthology-20240411-training'
         approaches = [
             'ir-lab-sose-2024/tira-ir-starter/Index (tira-ir-starter-pyterrier)',
             #'ir-lab-sose-2024/seanmacavaney/DocT5Query',
@@ -23,17 +23,17 @@ class IrLabSoSe2024Test(unittest.TestCase):
 
         run_ids = {"ir-lab-sose-2024": {
             "tira-ir-starter": {
-                "Index (tira-ir-starter-pyterrier)": {"anthology-20240411-training": "2024-04-11-16-43-14"}
+                "Index (tira-ir-starter-pyterrier)": {"ir-acl-anthology-20240411-training": "2024-04-11-19-43-23"}
             }, 
             "seanmacavaney": {
-                "DocT5Query": {"anthology-20240411-training": ""},
-                "corpus-graph": {"anthology-20240411-training": ""}
+                "DocT5Query": {"ir-acl-anthology-20240411-training": ""},
+                "corpus-graph": {"ir-acl-anthology-20240411-training": ""}
             },
             "ows": {
-                "pyterrier-anceindex": {"anthology-20240411-training": ""
+                "pyterrier-anceindex": {"ir-acl-anthology-20240411-training": ""
             }},
             "naverlabseurope": {
-                "Splade (Index)": {"anthology-20240411-training": ""}
+                "Splade (Index)": {"ir-acl-anthology-20240411-training": ""}
             }
         }}
 

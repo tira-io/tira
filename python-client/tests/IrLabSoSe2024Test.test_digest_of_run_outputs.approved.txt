@@ -1,28 +1,28 @@
 {
     "ir-lab-sose-2024/tira-ir-starter/Index (tira-ir-starter-pyterrier)": {
-        "anthology-20240411-training": {
-            "md5_of_first_kilobyte": "a158b32ecaad7c7f43ba51e2f829f65c",
+        "ir-acl-anthology-20240411-training": {
+            "md5_of_first_kilobyte": "d0638e32abedd4d2c8ef2a43da58941a",
             "redirect_url": {
-                "md5": "20dcab1b9892235140cd9dbce8738e98",
-                "run_id": "2024-04-11-16-43-14",
+                "md5": "ebb5b8f1d8c7ad36612f408da1203ff2",
+                "run_id": "2024-04-11-19-43-23",
                 "urls": [
-                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-11-16-43-14.zip"
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-11-19-43-23.zip"
                 ]
             },
             "redirected_run_url": {
-                "md5": "20dcab1b9892235140cd9dbce8738e98",
-                "run_id": "2024-04-11-16-43-14",
+                "md5": "ebb5b8f1d8c7ad36612f408da1203ff2",
+                "run_id": "2024-04-11-19-43-23",
                 "urls": [
-                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-11-16-43-14.zip"
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-11-19-43-23.zip"
                 ]
             },
             "run_execution": {
-                "dataset": "anthology-20240411-training",
-                "run_id": "2024-04-11-16-43-14",
+                "dataset": "ir-acl-anthology-20240411-training",
+                "run_id": "2024-04-11-19-43-23",
                 "task": "ir-lab-sose-2024",
                 "team": "tira-ir-starter"
             },
-            "run_url": "https://www.tira.io/task/ir-lab-sose-2024/user/tira-ir-starter/dataset/anthology-20240411-training/download/2024-04-11-16-43-14.zip"
+            "run_url": "https://www.tira.io/task/ir-lab-sose-2024/user/tira-ir-starter/dataset/ir-acl-anthology-20240411-training/download/2024-04-11-19-43-23.zip"
         }
     }
 }
