@@ -145,6 +145,34 @@ class PyTerrierIntegration():
 
         return generic(__transform_df)
 
+    def doc_features(self, approach, dataset, file_selection=('/*.jsonl', '/*.jsonl.gz')):
+        import numpy as np
+        from pyterrier.apply import doc_features
+        ret = self.pd.transform_documents(approach, dataset, file_selection)
+        cols = [i for i in ret.columns if i not in ['docno']]
+        ret = {str(i['docno']): np.array([i[c] for c in cols]) for _, i in ret.iterrows()}
+
+        return doc_features(lambda row: ret[str(row['docno'])])
+
+    def query_features(self, approach, dataset, file_selection=('/*.jsonl', '/*.jsonl.gz')):
+        import numpy as np
+        from pyterrier.transformer import Transformer
+        ret = self.pd.transform_queries(approach, dataset, file_selection)
+        cols = [i for i in ret.columns if i not in ['qid']]
+        ret = {str(i['qid']): np.array([i[c] for c in cols]) for _, i in ret.iterrows()}
+
+        class ApplyQueryFeatureTransformer(Transformer):
+            def __repr__(self):
+                return "tira.pt.query_features()"
+
+            def transform(self, inputRes):
+                outputRes = inputRes.copy()
+                
+                outputRes["features"] = outputRes.apply(lambda i: ret[str(i['qid'])], axis=1)
+                return outputRes
+        
+        return ApplyQueryFeatureTransformer()
+
     def reranker(self, approach, irds_id=None):
         from tira.pyterrier_util import TiraLocalExecutionRerankingTransformer
         return TiraLocalExecutionRerankingTransformer(approach, self.tira_client, irds_id=irds_id)

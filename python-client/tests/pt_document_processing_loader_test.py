@@ -59,3 +59,27 @@ class TestPtDocumentProcessingLoaderTest(unittest.TestCase):
         actual = doc_processor(['doc-01'], 'tiny-example-02')
 
         self.assertEqual(expected, actual)
+
+    def test_document_features_with_doc_id(self):
+        expected = ['value']
+
+        documents = pd.DataFrame([{'docno': str(i)} for i in ['doc-01']])
+        tira = Client('tests/resources/')
+        doc_features =  tira.pt.doc_features('ir-benchmarks/tira-ir-starters/tiny-example-02', dataset='d1')
+    
+        actual = doc_features(documents)
+
+        self.assertEqual(1, len(actual))
+        self.assertEqual(expected, actual.iloc[0].to_dict()['features'])
+
+    def test_document_features_with_docno(self):
+        expected = ['value']
+
+        documents = pd.DataFrame([{'docno': str(i)} for i in ['doc-01']])
+        tira = Client('tests/resources/')
+        doc_features =  tira.pt.doc_features('ir-benchmarks/tira-ir-starters/tiny-example-01', dataset='d1')
+    
+        actual = doc_features(documents)
+
+        self.assertEqual(1, len(actual))
+        self.assertEqual(expected, actual.iloc[0].to_dict()['features'])
