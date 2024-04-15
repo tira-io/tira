@@ -510,6 +510,26 @@ The original_ir_datasets_id is used to infer the class of documents, qrels, and 
 
 </dd></dl>
 
+<dl class="py class">
+<dt class="sig sig-object py" id="tira.pyterrier_integration.PyTerrierSpladeIntegration">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tira.pyterrier_integration.</span></span><span class="sig-name descname"><span class="pre">PyTerrierSpladeIntegration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tira_client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/pyterrier_integration.html#PyTerrierSpladeIntegration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.pyterrier_integration.PyTerrierSpladeIntegration" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>The pyt_splade integration to re-use cached Splade indices. Wraps <a class="reference external" href="https://github.com/cmacdonald/pyt_splade">https://github.com/cmacdonald/pyt_splade</a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="tira.pyterrier_integration.PyTerrierSpladeIntegration.splade_index">
+<span class="sig-name descname"><span class="pre">splade_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">approach</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'workshop-on-open-web-search/naverlabseurope/Splade</span> <span class="pre">(Index)'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/pyterrier_integration.html#PyTerrierSpladeIntegration.splade_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.pyterrier_integration.PyTerrierSpladeIntegration.splade_index" title="Link to this definition">#</a></dt>
+<dd><p>Load a cached pyt_splade index submitted as the passed approach (default ‘workshop-on-open-web-search/naverlabseurope/Splade (Index)’) from tira.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>dataset (str): the dataset id, either an tira or ir_datasets id.
+approach (str, optional): the approach id, defaults ‘workshop-on-open-web-search/naverlabseurope/Splade (Index)’.</p>
+</dd>
+<dt>Returns:</dt><dd><p>The PyTerrier index suitable for retrieval.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 <section id="tira-pyterrier-util-module">
 <h2>tira.pyterrier_util module<a class="headerlink" href="#tira-pyterrier-util-module" title="Link to this heading">#</a></h2>
@@ -722,6 +742,10 @@ The original_ir_datasets_id is used to infer the class of documents, qrels, and 
 <li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierIntegration.retriever"><code class="docutils literal notranslate"><span class="pre">PyTerrierIntegration.retriever()</span></code></a></li>
 <li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierIntegration.transform_documents"><code class="docutils literal notranslate"><span class="pre">PyTerrierIntegration.transform_documents()</span></code></a></li>
 <li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierIntegration.transform_queries"><code class="docutils literal notranslate"><span class="pre">PyTerrierIntegration.transform_queries()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierSpladeIntegration"><code class="docutils literal notranslate"><span class="pre">PyTerrierSpladeIntegration</span></code></a><ul>
+<li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierSpladeIntegration.splade_index"><code class="docutils literal notranslate"><span class="pre">PyTerrierSpladeIntegration.splade_index()</span></code></a></li>
 </ul>
 </li>
 </ul>
