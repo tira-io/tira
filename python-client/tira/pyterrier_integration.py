@@ -197,3 +197,25 @@ class PyTerrierAnceIntegration():
         ance_checkpoint = self.tira_client.load_resource('Passage_ANCE_FirstP_Checkpoint.zip')
         import pyterrier_ance
         return pyterrier_ance.ANCERetrieval(ance_checkpoint, ance_index)
+
+
+class PyTerrierSpladeIntegration():
+    """The pyt_splade integration to re-use cached Splade indices. Wraps https://github.com/cmacdonald/pyt_splade
+    """
+    def __init__(self, tira_client):
+        self.tira_client = tira_client
+
+    def splade_index(self, dataset:str, approach: str='workshop-on-open-web-search/naverlabseurope/Splade (Index)'):
+        """Load a cached pyt_splade index submitted as the passed approach (default 'workshop-on-open-web-search/naverlabseurope/Splade (Index)') from tira.
+
+        Args:
+            dataset (str): the dataset id, either an tira or ir_datasets id.
+            approach (str, optional): the approach id, defaults 'workshop-on-open-web-search/naverlabseurope/Splade (Index)'.
+
+        Returns:
+            The PyTerrier index suitable for retrieval.
+        """
+        from tira.ir_datasets_util import translate_irds_id_to_tirex
+        import pyterrier as pt
+        ret = Path(self.tira_client.get_run_output('ir-lab-sose-2024/naverlabseurope/Splade (Index)', translate_irds_id_to_tirex(dataset))) / 'spladeindex'
+        return pt.IndexFactory.of(os.path.abspath(ret))

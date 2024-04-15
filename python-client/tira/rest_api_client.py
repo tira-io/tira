@@ -7,7 +7,7 @@ import zipfile
 import io
 import time
 from random import randint
-from tira.pyterrier_integration import PyTerrierIntegration, PyTerrierAnceIntegration
+from tira.pyterrier_integration import PyTerrierIntegration, PyTerrierAnceIntegration, PyTerrierSpladeIntegration
 from tira.pandas_integration import PandasIntegration
 from tira.local_execution_integration import LocalExecutionIntegration
 import logging
@@ -39,6 +39,7 @@ class Client(TiraClient):
         self.pd = PandasIntegration(self)
         self.pt = PyTerrierIntegration(self)
         self.pt_ance = PyTerrierAnceIntegration(self)
+        self.pt_splade = PyTerrierSpladeIntegration(self)
         self.local_execution = LocalExecutionIntegration(self)
 
         self.failsave_retries = failsave_retries
