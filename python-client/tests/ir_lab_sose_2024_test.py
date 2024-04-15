@@ -16,8 +16,8 @@ class IrLabSoSe2024Test(unittest.TestCase):
             'ir-lab-sose-2024/tira-ir-starter/Index (tira-ir-starter-pyterrier)',
             #'ir-lab-sose-2024/seanmacavaney/DocT5Query',
             #'ir-lab-sose-2024/seanmacavaney/corpus-graph',
-            #'ir-lab-sose-2024/ows/pyterrier-anceindex',
-            #'ir-lab-sose-2024/naverlabseurope/Splade (Index)',
+            'ir-lab-sose-2024/ows/pyterrier-anceindex',
+            'ir-lab-sose-2024/naverlabseurope/Splade (Index)',
         ]
         actual = {i: {} for i in approaches}
 
@@ -30,10 +30,10 @@ class IrLabSoSe2024Test(unittest.TestCase):
                 "corpus-graph": {"ir-acl-anthology-20240411-training": ""}
             },
             "ows": {
-                "pyterrier-anceindex": {"ir-acl-anthology-20240411-training": ""
-            }},
+                "pyterrier-anceindex": {"ir-acl-anthology-20240411-training": "2024-04-11-19-47-18"}
+            },
             "naverlabseurope": {
-                "Splade (Index)": {"ir-acl-anthology-20240411-training": ""}
+                "Splade (Index)": {"ir-acl-anthology-20240411-training": "2024-04-14-08-40-58"}
             }
         }}
 

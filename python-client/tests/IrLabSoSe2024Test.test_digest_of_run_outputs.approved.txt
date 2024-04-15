@@ -1,4 +1,56 @@
 {
+    "ir-lab-sose-2024/naverlabseurope/Splade (Index)": {
+        "ir-acl-anthology-20240411-training": {
+            "md5_of_first_kilobyte": "1b0a55f45c78b3b7e4d8399932c1df03",
+            "redirect_url": {
+                "md5": "03f73b47664cc1c843529b948094bf81",
+                "run_id": "2024-04-14-08-40-58",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-14-08-40-58.zip"
+                ]
+            },
+            "redirected_run_url": {
+                "md5": "03f73b47664cc1c843529b948094bf81",
+                "run_id": "2024-04-14-08-40-58",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-14-08-40-58.zip"
+                ]
+            },
+            "run_execution": {
+                "dataset": "ir-acl-anthology-20240411-training",
+                "run_id": "2024-04-14-08-40-58",
+                "task": "ir-lab-sose-2024",
+                "team": "naverlabseurope"
+            },
+            "run_url": "https://www.tira.io/task/ir-lab-sose-2024/user/naverlabseurope/dataset/ir-acl-anthology-20240411-training/download/2024-04-14-08-40-58.zip"
+        }
+    },
+    "ir-lab-sose-2024/ows/pyterrier-anceindex": {
+        "ir-acl-anthology-20240411-training": {
+            "md5_of_first_kilobyte": "30e6cdf863735a1c227cb1bee155e127",
+            "redirect_url": {
+                "md5": "1112dc9e60b6dfa4ac80571ad3425200",
+                "run_id": "2024-04-11-19-47-18",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-11-19-47-18.zip"
+                ]
+            },
+            "redirected_run_url": {
+                "md5": "1112dc9e60b6dfa4ac80571ad3425200",
+                "run_id": "2024-04-11-19-47-18",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-11-19-47-18.zip"
+                ]
+            },
+            "run_execution": {
+                "dataset": "ir-acl-anthology-20240411-training",
+                "run_id": "2024-04-11-19-47-18",
+                "task": "ir-lab-sose-2024",
+                "team": "ows"
+            },
+            "run_url": "https://www.tira.io/task/ir-lab-sose-2024/user/ows/dataset/ir-acl-anthology-20240411-training/download/2024-04-11-19-47-18.zip"
+        }
+    },
     "ir-lab-sose-2024/tira-ir-starter/Index (tira-ir-starter-pyterrier)": {
         "ir-acl-anthology-20240411-training": {
             "md5_of_first_kilobyte": "d508e088b68232a87b8ae569e1e7d71a",

@@ -236,19 +236,19 @@ STATIC_REDIRECTS = {
         },
         "ows": {
             "pyterrier-anceindex": {
-                "anthology-20240411-training": {
-                    "run_id": "2024-04-08-18-00-08",
-                    "md5": "851ef64a78159a0ab1a7f86e942aeab5",
-                    "urls": ["https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-08-18-00-08.zip"],
+                "ir-acl-anthology-20240411-training": {
+                    "run_id": "2024-04-11-19-47-18",
+                    "md5": "1112dc9e60b6dfa4ac80571ad3425200",
+                    "urls": ["https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-11-19-47-18.zip"],
                 }
             }
         },
         "naverlabseurope": {
             "Splade (Index)": {
-                "anthology-20240411-training": {
-                    "run_id": "2024-04-09-16-40-49",
-                    "md5": "0208a39356bb2ebf4039b4ac2c595b50",
-                    "urls": ["https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-09-16-40-49.zip"],
+                "ir-acl-anthology-20240411-training": {
+                    "run_id": "2024-04-14-08-40-58",
+                    "md5": "03f73b47664cc1c843529b948094bf81",
+                    "urls": ["https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-14-08-40-58.zip"],
                 }
             }
         }
