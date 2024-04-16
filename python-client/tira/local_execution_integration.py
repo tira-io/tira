@@ -309,7 +309,7 @@ class LocalExecutionIntegration():
             return None
 
         ret = []
-        
+
         ret += ['TIRA_COMMAND=/workspace/run-pyterrier-notebook.py --input ${TIRA_INPUT_DIRECTORY} --output ${TIRA_OUTPUT_DIRECTORY} --notebook /workspace/' + notebook.split("/")[-1]]
         notebook_content = json.load(open(notebook, 'r'))
 
@@ -318,7 +318,7 @@ class LocalExecutionIntegration():
     def normalize_image_name(self, image, required_prefix):
         if required_prefix and not image.startswith(required_prefix):
             ret = (required_prefix + '/' + image[:10]).replace('//', '/') + ':' + (image.split(':')[-1] if ':' in image else 'latest')
-            return ret.replace('-:', ':').replace('::', ':')
+            return ret.replace('-:', ':').replace('::', ':').replace('/:', ':')
         else:
             return image
 
@@ -329,6 +329,7 @@ class LocalExecutionIntegration():
         new_image = image
         if required_prefix and not image.startswith(required_prefix):
             new_image = self.normalize_image_name(image, required_prefix)
+            print(f'I tag the image "{image}" as "{new_image}" for upload to TIRA (only internal).')
             client.images.get(image).tag(new_image)
             image = new_image
 
