@@ -357,7 +357,8 @@ STATIC_DATASET_REDIRECTS = {
 }
 
 RESOURCE_REDIRECTS = {
-    'Passage_ANCE_FirstP_Checkpoint.zip': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/Passage_ANCE_FirstP_Checkpoint.zip'
+    'Passage_ANCE_FirstP_Checkpoint.zip': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/Passage_ANCE_FirstP_Checkpoint.zip',
+    'custom-terrier-token-processing-1.0-SNAPSHOT-jar-with-dependencies.jar': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/custom-terrier-token-processing-1.0-SNAPSHOT-jar-with-dependencies.jar'
 }
 
 DATASET_ID_REDIRECTS = {
