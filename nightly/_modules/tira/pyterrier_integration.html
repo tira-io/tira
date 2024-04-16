@@ -465,45 +465,53 @@
 <span class="linenos">186</span>    <span class="k">def</span> <span class="nf">ance_retrieval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span><span class="nb">str</span><span class="p">):</span>
 <span class="linenos">187</span><span class="w">        </span><span class="sd">&quot;&quot;&quot;Load a cached pyterrier_ance.ANCEIndexer submitted as workshop-on-open-web-search/ows/pyterrier-anceindex from tira.</span>
 <span class="linenos">188</span>
-<span class="linenos">189</span><span class="sd">        Args:</span>
-<span class="linenos">190</span><span class="sd">            dataset (str): the dataset id, either an tira or ir_datasets id.</span>
-<span class="linenos">191</span>
-<span class="linenos">192</span><span class="sd">        Returns:</span>
-<span class="linenos">193</span><span class="sd">            pyterrier_ance.ANCERetrieval: the ANCE index.</span>
-<span class="linenos">194</span><span class="sd">        &quot;&quot;&quot;</span>
-<span class="linenos">195</span>        <span class="kn">from</span> <span class="nn">tira.ir_datasets_util</span> <span class="kn">import</span> <span class="n">translate_irds_id_to_tirex</span>
-<span class="linenos">196</span>        <span class="n">ance_index</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tira_client</span><span class="o">.</span><span class="n">get_run_output</span><span class="p">(</span><span class="s1">&#39;ir-lab-sose-2024/ows/pyterrier-anceindex&#39;</span><span class="p">,</span> <span class="n">translate_irds_id_to_tirex</span><span class="p">(</span><span class="n">dataset</span><span class="p">)))</span> <span class="o">/</span> <span class="s1">&#39;anceindex&#39;</span>
-<span class="linenos">197</span>        <span class="n">ance_checkpoint</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tira_client</span><span class="o">.</span><span class="n">load_resource</span><span class="p">(</span><span class="s1">&#39;Passage_ANCE_FirstP_Checkpoint.zip&#39;</span><span class="p">)</span>
-<span class="linenos">198</span>        <span class="kn">import</span> <span class="nn">pyterrier_ance</span>
-<span class="linenos">199</span>        <span class="k">return</span> <span class="n">pyterrier_ance</span><span class="o">.</span><span class="n">ANCERetrieval</span><span class="p">(</span><span class="n">ance_checkpoint</span><span class="p">,</span> <span class="n">ance_index</span><span class="p">)</span></div>
+<span class="linenos">189</span><span class="sd">        References (for citation):</span>
+<span class="linenos">190</span><span class="sd">            https://arxiv.org/pdf/2007.00808.pdf</span>
+<span class="linenos">191</span><span class="sd">            https://github.com/microsoft/ANCE/</span>
+<span class="linenos">192</span>
+<span class="linenos">193</span><span class="sd">        Args:</span>
+<span class="linenos">194</span><span class="sd">            dataset (str): the dataset id, either an tira or ir_datasets id.</span>
+<span class="linenos">195</span>
+<span class="linenos">196</span><span class="sd">        Returns:</span>
+<span class="linenos">197</span><span class="sd">            pyterrier_ance.ANCERetrieval: the ANCE index.</span>
+<span class="linenos">198</span><span class="sd">        &quot;&quot;&quot;</span>
+<span class="linenos">199</span>        <span class="kn">from</span> <span class="nn">tira.ir_datasets_util</span> <span class="kn">import</span> <span class="n">translate_irds_id_to_tirex</span>
+<span class="linenos">200</span>        <span class="n">ance_index</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tira_client</span><span class="o">.</span><span class="n">get_run_output</span><span class="p">(</span><span class="s1">&#39;ir-lab-sose-2024/ows/pyterrier-anceindex&#39;</span><span class="p">,</span> <span class="n">translate_irds_id_to_tirex</span><span class="p">(</span><span class="n">dataset</span><span class="p">)))</span> <span class="o">/</span> <span class="s1">&#39;anceindex&#39;</span>
+<span class="linenos">201</span>        <span class="n">ance_checkpoint</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tira_client</span><span class="o">.</span><span class="n">load_resource</span><span class="p">(</span><span class="s1">&#39;Passage_ANCE_FirstP_Checkpoint.zip&#39;</span><span class="p">)</span>
+<span class="linenos">202</span>        <span class="kn">import</span> <span class="nn">pyterrier_ance</span>
+<span class="linenos">203</span>        <span class="k">return</span> <span class="n">pyterrier_ance</span><span class="o">.</span><span class="n">ANCERetrieval</span><span class="p">(</span><span class="n">ance_checkpoint</span><span class="p">,</span> <span class="n">ance_index</span><span class="p">)</span></div>
 </div>
 
-<span class="linenos">200</span>
-<span class="linenos">201</span>
+<span class="linenos">204</span>
+<span class="linenos">205</span>
 <div class="viewcode-block" id="PyTerrierSpladeIntegration">
 <a class="viewcode-back" href="../../users/api.html#tira.pyterrier_integration.PyTerrierSpladeIntegration">[docs]</a>
-<span class="linenos">202</span><span class="k">class</span> <span class="nc">PyTerrierSpladeIntegration</span><span class="p">():</span>
-<span class="linenos">203</span><span class="w">    </span><span class="sd">&quot;&quot;&quot;The pyt_splade integration to re-use cached Splade indices. Wraps https://github.com/cmacdonald/pyt_splade</span>
-<span class="linenos">204</span><span class="sd">    &quot;&quot;&quot;</span>
-<span class="linenos">205</span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tira_client</span><span class="p">):</span>
-<span class="linenos">206</span>        <span class="bp">self</span><span class="o">.</span><span class="n">tira_client</span> <span class="o">=</span> <span class="n">tira_client</span>
-<span class="linenos">207</span>
+<span class="linenos">206</span><span class="k">class</span> <span class="nc">PyTerrierSpladeIntegration</span><span class="p">():</span>
+<span class="linenos">207</span><span class="w">    </span><span class="sd">&quot;&quot;&quot;The pyt_splade integration to re-use cached Splade indices. Wraps https://github.com/cmacdonald/pyt_splade</span>
+<span class="linenos">208</span><span class="sd">    &quot;&quot;&quot;</span>
+<span class="linenos">209</span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tira_client</span><span class="p">):</span>
+<span class="linenos">210</span>        <span class="bp">self</span><span class="o">.</span><span class="n">tira_client</span> <span class="o">=</span> <span class="n">tira_client</span>
+<span class="linenos">211</span>
 <div class="viewcode-block" id="PyTerrierSpladeIntegration.splade_index">
 <a class="viewcode-back" href="../../users/api.html#tira.pyterrier_integration.PyTerrierSpladeIntegration.splade_index">[docs]</a>
-<span class="linenos">208</span>    <span class="k">def</span> <span class="nf">splade_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">approach</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;workshop-on-open-web-search/naverlabseurope/Splade (Index)&#39;</span><span class="p">):</span>
-<span class="linenos">209</span><span class="w">        </span><span class="sd">&quot;&quot;&quot;Load a cached pyt_splade index submitted as the passed approach (default &#39;workshop-on-open-web-search/naverlabseurope/Splade (Index)&#39;) from tira.</span>
-<span class="linenos">210</span>
-<span class="linenos">211</span><span class="sd">        Args:</span>
-<span class="linenos">212</span><span class="sd">            dataset (str): the dataset id, either an tira or ir_datasets id.</span>
-<span class="linenos">213</span><span class="sd">            approach (str, optional): the approach id, defaults &#39;workshop-on-open-web-search/naverlabseurope/Splade (Index)&#39;.</span>
+<span class="linenos">212</span>    <span class="k">def</span> <span class="nf">splade_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">approach</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;workshop-on-open-web-search/naverlabseurope/Splade (Index)&#39;</span><span class="p">):</span>
+<span class="linenos">213</span><span class="w">        </span><span class="sd">&quot;&quot;&quot;Load a cached pyt_splade index submitted as the passed approach (default &#39;workshop-on-open-web-search/naverlabseurope/Splade (Index)&#39;) from tira.</span>
 <span class="linenos">214</span>
-<span class="linenos">215</span><span class="sd">        Returns:</span>
-<span class="linenos">216</span><span class="sd">            The PyTerrier index suitable for retrieval.</span>
-<span class="linenos">217</span><span class="sd">        &quot;&quot;&quot;</span>
-<span class="linenos">218</span>        <span class="kn">from</span> <span class="nn">tira.ir_datasets_util</span> <span class="kn">import</span> <span class="n">translate_irds_id_to_tirex</span>
-<span class="linenos">219</span>        <span class="kn">import</span> <span class="nn">pyterrier</span> <span class="k">as</span> <span class="nn">pt</span>
-<span class="linenos">220</span>        <span class="n">ret</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tira_client</span><span class="o">.</span><span class="n">get_run_output</span><span class="p">(</span><span class="s1">&#39;ir-lab-sose-2024/naverlabseurope/Splade (Index)&#39;</span><span class="p">,</span> <span class="n">translate_irds_id_to_tirex</span><span class="p">(</span><span class="n">dataset</span><span class="p">)))</span> <span class="o">/</span> <span class="s1">&#39;spladeindex&#39;</span>
-<span class="linenos">221</span>        <span class="k">return</span> <span class="n">pt</span><span class="o">.</span><span class="n">IndexFactory</span><span class="o">.</span><span class="n">of</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">ret</span><span class="p">))</span></div>
+<span class="linenos">215</span><span class="sd">        References (for citation):</span>
+<span class="linenos">216</span><span class="sd">            https://github.com/naver/splade?tab=readme-ov-file#cite-scroll</span>
+<span class="linenos">217</span><span class="sd">            ToDo: Ask Thibault what to cite.</span>
+<span class="linenos">218</span>
+<span class="linenos">219</span><span class="sd">        Args:</span>
+<span class="linenos">220</span><span class="sd">            dataset (str): the dataset id, either an tira or ir_datasets id.</span>
+<span class="linenos">221</span><span class="sd">            approach (str, optional): the approach id, defaults &#39;workshop-on-open-web-search/naverlabseurope/Splade (Index)&#39;.</span>
+<span class="linenos">222</span>
+<span class="linenos">223</span><span class="sd">        Returns:</span>
+<span class="linenos">224</span><span class="sd">            The PyTerrier index suitable for retrieval.</span>
+<span class="linenos">225</span><span class="sd">        &quot;&quot;&quot;</span>
+<span class="linenos">226</span>        <span class="kn">from</span> <span class="nn">tira.ir_datasets_util</span> <span class="kn">import</span> <span class="n">translate_irds_id_to_tirex</span>
+<span class="linenos">227</span>        <span class="kn">import</span> <span class="nn">pyterrier</span> <span class="k">as</span> <span class="nn">pt</span>
+<span class="linenos">228</span>        <span class="n">ret</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tira_client</span><span class="o">.</span><span class="n">get_run_output</span><span class="p">(</span><span class="s1">&#39;ir-lab-sose-2024/naverlabseurope/Splade (Index)&#39;</span><span class="p">,</span> <span class="n">translate_irds_id_to_tirex</span><span class="p">(</span><span class="n">dataset</span><span class="p">)))</span> <span class="o">/</span> <span class="s1">&#39;spladeindex&#39;</span>
+<span class="linenos">229</span>        <span class="k">return</span> <span class="n">pt</span><span class="o">.</span><span class="n">IndexFactory</span><span class="o">.</span><span class="n">of</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">ret</span><span class="p">))</span></div>
 </div>
 
 </pre></div>

@@ -439,6 +439,9 @@ The original_ir_datasets_id is used to infer the class of documents, qrels, and 
 <span class="sig-name descname"><span class="pre">ance_retrieval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/pyterrier_integration.html#PyTerrierAnceIntegration.ance_retrieval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.pyterrier_integration.PyTerrierAnceIntegration.ance_retrieval" title="Link to this definition">#</a></dt>
 <dd><p>Load a cached pyterrier_ance.ANCEIndexer submitted as workshop-on-open-web-search/ows/pyterrier-anceindex from tira.</p>
 <dl class="simple">
+<dt>References (for citation):</dt><dd><p><a class="reference external" href="https://arxiv.org/pdf/2007.00808.pdf">https://arxiv.org/pdf/2007.00808.pdf</a>
+<a class="reference external" href="https://github.com/microsoft/ANCE/">https://github.com/microsoft/ANCE/</a></p>
+</dd>
 <dt>Args:</dt><dd><p>dataset (str): the dataset id, either an tira or ir_datasets id.</p>
 </dd>
 <dt>Returns:</dt><dd><p>pyterrier_ance.ANCERetrieval: the ANCE index.</p>
@@ -520,6 +523,9 @@ The original_ir_datasets_id is used to infer the class of documents, qrels, and 
 <span class="sig-name descname"><span class="pre">splade_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">approach</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'workshop-on-open-web-search/naverlabseurope/Splade</span> <span class="pre">(Index)'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/pyterrier_integration.html#PyTerrierSpladeIntegration.splade_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.pyterrier_integration.PyTerrierSpladeIntegration.splade_index" title="Link to this definition">#</a></dt>
 <dd><p>Load a cached pyt_splade index submitted as the passed approach (default ‘workshop-on-open-web-search/naverlabseurope/Splade (Index)’) from tira.</p>
 <dl class="simple">
+<dt>References (for citation):</dt><dd><p><a class="reference external" href="https://github.com/naver/splade?tab=readme-ov-file#cite-scroll">https://github.com/naver/splade?tab=readme-ov-file#cite-scroll</a>
+ToDo: Ask Thibault what to cite.</p>
+</dd>
 <dt>Args:</dt><dd><p>dataset (str): the dataset id, either an tira or ir_datasets id.
 approach (str, optional): the approach id, defaults ‘workshop-on-open-web-search/naverlabseurope/Splade (Index)’.</p>
 </dd>
