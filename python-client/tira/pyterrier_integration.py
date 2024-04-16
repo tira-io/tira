@@ -186,6 +186,10 @@ class PyTerrierAnceIntegration():
     def ance_retrieval(self, dataset:str):
         """Load a cached pyterrier_ance.ANCEIndexer submitted as workshop-on-open-web-search/ows/pyterrier-anceindex from tira.
 
+        References (for citation):
+            https://arxiv.org/pdf/2007.00808.pdf
+            https://github.com/microsoft/ANCE/
+
         Args:
             dataset (str): the dataset id, either an tira or ir_datasets id.
 
@@ -207,6 +211,10 @@ class PyTerrierSpladeIntegration():
 
     def splade_index(self, dataset:str, approach: str='workshop-on-open-web-search/naverlabseurope/Splade (Index)'):
         """Load a cached pyt_splade index submitted as the passed approach (default 'workshop-on-open-web-search/naverlabseurope/Splade (Index)') from tira.
+
+        References (for citation):
+            https://github.com/naver/splade?tab=readme-ov-file#cite-scroll
+            ToDo: Ask Thibault what to cite.
 
         Args:
             dataset (str): the dataset id, either an tira or ir_datasets id.

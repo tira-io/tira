@@ -150,7 +150,9 @@
 
             
             <div v-if="upload_type_next_upload == 'upload-via-script'">
-            Upload via script
+            <code-snippet title="(1) Make sure that your TIRA client is up to date and authenticated" :code="tira_setup_code" expand_message="(1) Make sure that your TIRA client is up to date and authenticated"/>
+
+            <code-snippet title="Batch upload runs via python" :code="batch_upload_code(us.id)" expand_message=""/>
             </div> 
 
             <h2>Your Existing Submissions for Approach {{us.display_name}}</h2>
@@ -198,6 +200,7 @@ export default {
       all_uploadgroups: [{"id": null, "display_name": 'loading...'}],
       selectedDataset: '',
       showImportSubmission: false,
+      token: 'YOUR-TOKEN-HERE',
       datasets: [{"dataset_id": "loading...", "display_name": "loading...",}]
     }
   },
@@ -224,6 +227,9 @@ export default {
     },
     link_organizer() {return get_link_to_organizer(this.organizer_id);},
     contact_organizer() {return get_contact_link_to_organizer(this.organizer_id);},
+    tira_setup_code() {
+      return 'pip3 uninstall -y tira\npip3 install tira\ntira-cli login --token ' + this.token
+    },
     disableUploadStepper() {
       if(this.stepperModel == '1' && !this.upload_configuration) {
         return 'next';
@@ -254,6 +260,16 @@ export default {
     updateUploadDetails(editedDetails) {
       this.description = editedDetails.description
       handleModifiedSubmission(editedDetails, this.all_uploadgroups)
+    },
+    batch_upload_code(display_name) {
+      return 'from tira.rest_api_client import Client\n' +
+        'tira = Client()\n' +
+        'upload_id = ' + display_name + '\n' +
+        'dataset_ids = [' + this.datasets.map((i) => '\'' + i.dataset_id + '\'') + ']\n' +
+        'for dataset_id in dataset_ids:\n' +
+        '  # assume output is located in a file <DATASET_ID>/run \n' +
+        '  run_file = dataset_id + \'/run\'\n' +
+        '  tira.upload_run(task_id=\'' + this.task_id  + '\', vm_id=\'' + this.user_id_for_task + '\', dataset_id=dataset_id, upload_id=approach, filestream=run_file);\n'
     },
     nextStep() {
       if (this.stepperModel == 1) {
@@ -295,6 +311,10 @@ export default {
     get('/api/submissions-for-task/' + this.task_id + '/' + this.user_id_for_task + '/upload')
       .then(inject_response(this, {'loading': false}, true))
       .catch(reportError("Problem While Loading The Submissions of the Task " + this.task_id, "This might be a short-term hiccup, please try again. We got the following error: "))
+
+    get('/api/token/' + this.user_id_for_task)
+      .then(inject_response(this))
+
     this.tab = this.all_uploadgroups[0].display_name
   },
   watch: {
