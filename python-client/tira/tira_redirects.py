@@ -209,6 +209,13 @@ STATIC_REDIRECTS = {
                     "md5": "ebb5b8f1d8c7ad36612f408da1203ff2",
                     "urls": ["https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-11-19-43-23.zip"]
                 }
+            },
+            "Index (pyterrier-stanford-lemmatizer)": {
+                "ir-acl-anthology-20240411-training": {
+                    "run_id": "2024-04-16-11-05-06",
+                    "md5": "70aa7ce8a437ba47ebf9e17d75871a5f",
+                    "urls": ["https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-16-11-05-06.zip"]
+                }
             }
         },
         "seanmacavaney": {

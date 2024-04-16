@@ -56,7 +56,8 @@ class Command(BaseCommand):
             },
             'ir-lab-sose-2024': {
                 'tira-ir-starter': {
-                    'Index (tira-ir-starter-pyterrier)': 'ir-lab-sose-2024'
+                    'Index (tira-ir-starter-pyterrier)': 'ir-lab-sose-2024',
+                    'Index (pyterrier-stanford-lemmatizer)': 'ir-lab-sose-2024',
                 },
                 'seanmacavaney': {
                     'DocT5Query': 'ir-lab-sose-2024',

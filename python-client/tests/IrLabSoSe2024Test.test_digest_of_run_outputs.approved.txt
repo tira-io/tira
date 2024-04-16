@@ -51,6 +51,32 @@
             "run_url": "https://www.tira.io/task/ir-lab-sose-2024/user/ows/dataset/ir-acl-anthology-20240411-training/download/2024-04-11-19-47-18.zip"
         }
     },
+    "ir-lab-sose-2024/tira-ir-starter/Index (pyterrier-stanford-lemmatizer)": {
+        "ir-acl-anthology-20240411-training": {
+            "md5_of_first_kilobyte": "7dc10a0807e8ddf8e80c288916bf2327",
+            "redirect_url": {
+                "md5": "70aa7ce8a437ba47ebf9e17d75871a5f",
+                "run_id": "2024-04-16-11-05-06",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-16-11-05-06.zip"
+                ]
+            },
+            "redirected_run_url": {
+                "md5": "70aa7ce8a437ba47ebf9e17d75871a5f",
+                "run_id": "2024-04-16-11-05-06",
+                "urls": [
+                    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-16-11-05-06.zip"
+                ]
+            },
+            "run_execution": {
+                "dataset": "ir-acl-anthology-20240411-training",
+                "run_id": "2024-04-16-11-05-06",
+                "task": "ir-lab-sose-2024",
+                "team": "tira-ir-starter"
+            },
+            "run_url": "https://www.tira.io/task/ir-lab-sose-2024/user/tira-ir-starter/dataset/ir-acl-anthology-20240411-training/download/2024-04-16-11-05-06.zip"
+        }
+    },
     "ir-lab-sose-2024/tira-ir-starter/Index (tira-ir-starter-pyterrier)": {
         "ir-acl-anthology-20240411-training": {
             "md5_of_first_kilobyte": "d508e088b68232a87b8ae569e1e7d71a",

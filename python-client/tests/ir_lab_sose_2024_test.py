@@ -14,6 +14,7 @@ class IrLabSoSe2024Test(unittest.TestCase):
         dataset_id = 'ir-acl-anthology-20240411-training'
         approaches = [
             'ir-lab-sose-2024/tira-ir-starter/Index (tira-ir-starter-pyterrier)',
+            'ir-lab-sose-2024/tira-ir-starter/Index (pyterrier-stanford-lemmatizer)',
             #'ir-lab-sose-2024/seanmacavaney/DocT5Query',
             #'ir-lab-sose-2024/seanmacavaney/corpus-graph',
             'ir-lab-sose-2024/ows/pyterrier-anceindex',
@@ -23,7 +24,8 @@ class IrLabSoSe2024Test(unittest.TestCase):
 
         run_ids = {"ir-lab-sose-2024": {
             "tira-ir-starter": {
-                "Index (tira-ir-starter-pyterrier)": {"ir-acl-anthology-20240411-training": "2024-04-11-19-43-23"}
+                "Index (tira-ir-starter-pyterrier)": {"ir-acl-anthology-20240411-training": "2024-04-11-19-43-23"},
+                "Index (pyterrier-stanford-lemmatizer)": {"ir-acl-anthology-20240411-training": "2024-04-16-11-05-06"}
             }, 
             "seanmacavaney": {
                 "DocT5Query": {"ir-acl-anthology-20240411-training": ""},
