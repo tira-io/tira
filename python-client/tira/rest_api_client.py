@@ -557,6 +557,10 @@ class Client(TiraClient):
 
         self.fail_if_api_key_is_invalid()
 
+        if file_path is None or not file_path.is_file():
+            logging.warn(f'The passed file {file_path} does not exist.')
+            raise ValueError(f'The passed file {file_path} does not exist.')
+
         # TODO: check that task_id and vm_id don't contain illegal characters (e.g., '/')
         url = f"/task/{task_id}/vm/{vm_id}/upload/{dataset_id}/{upload_id}"
         logging.info(f"Submitting the runfile at {url}")

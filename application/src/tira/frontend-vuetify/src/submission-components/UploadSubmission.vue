@@ -152,7 +152,7 @@
             <div v-if="upload_type_next_upload == 'upload-via-script'">
             <code-snippet title="(1) Make sure that your TIRA client is up to date and authenticated" :code="tira_setup_code" expand_message="(1) Make sure that your TIRA client is up to date and authenticated"/>
 
-            <code-snippet title="Batch upload runs via python" :code="batch_upload_code(us.id)" expand_message=""/>
+            <code-snippet title="Batch upload runs via python" :code="batch_upload_code(us.display_name)" expand_message=""/>
             </div> 
 
             <h2>Your Existing Submissions for Approach {{us.display_name}}</h2>
@@ -264,12 +264,12 @@ export default {
     batch_upload_code(display_name) {
       return 'from tira.rest_api_client import Client\n' +
         'tira = Client()\n' +
-        'upload_id = ' + display_name + '\n' +
-        'dataset_ids = [' + this.datasets.map((i) => '\'' + i.dataset_id + '\'') + ']\n' +
+        'approach = \'' + this.task_id + '/' + this.user_id_for_task + '/' + display_name + '\'\n' +
+        'dataset_ids = [' + this.datasets.map((i) => '\'' + i.dataset_id + '\'') + ']\n\n' +
         'for dataset_id in dataset_ids:\n' +
-        '  # assume output is located in a file <DATASET_ID>/run \n' +
-        '  run_file = dataset_id + \'/run\'\n' +
-        '  tira.upload_run(task_id=\'' + this.task_id  + '\', vm_id=\'' + this.user_id_for_task + '\', dataset_id=dataset_id, upload_id=approach, filestream=run_file);\n'
+        '    # assume output is located in a file <DATASET_ID>/run \n' +
+        '    run_file = dataset_id + \'/run\'\n' +
+        '    tira.upload_run(approach=approach, dataset_id=dataset_id, file_path=run_file);\n'
     },
     nextStep() {
       if (this.stepperModel == 1) {
