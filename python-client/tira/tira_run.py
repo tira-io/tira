@@ -121,7 +121,9 @@ def parse_args():
                 else:
                     parser.error('The option --tira-client-token (or environment variable TIRA_CLIENT_TOKEN) is required when --push is active.')
             else:
-                parser.error('The option --tira-client-token (or environment variable TIRA_CLIENT_TOKEN) is required when --push is active.')
+                rest_client = RestClient(api_key=args.tira_client_token)
+                if not rest_client.api_key_is_valid():
+                    parser.error('The option --tira-client-token (or environment variable TIRA_CLIENT_TOKEN) is required when --push is active.')
 
         if not args.tira_task_id and args.input_dataset:
             args.tira_task_id = args.input_dataset.split('/')[0]
