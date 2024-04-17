@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Deployment" href="deployment/index.html" /><link rel="prev" title="Frequently Asked Questions" href="../users/faq.html" />
 
-    <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
+    <!-- Generated with Sphinx 7.3.5 and Furo 2024.01.29 -->
         <title>Organizing Tasks - TIRA</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
@@ -247,14 +247,14 @@
         </div>
         <article role="main">
           <section id="organizing-tasks">
-<h1>Organizing Tasks<a class="headerlink" href="#organizing-tasks" title="Link to this heading">#</a></h1>
+<h1>Organizing Tasks<a class="headerlink" href="#organizing-tasks" title="Link to this heading">¶</a></h1>
 <section id="get-a-reviewer-account">
-<h2>Get a reviewer account<a class="headerlink" href="#get-a-reviewer-account" title="Link to this heading">#</a></h2>
+<h2>Get a reviewer account<a class="headerlink" href="#get-a-reviewer-account" title="Link to this heading">¶</a></h2>
 <p>Create an account at <a class="reference external" href="https://www.tira.io/">tira.io</a> and ask an admin to add you to the
 <a class="reference external" href="https://www.tira.io/g/tira_reviewer">tira_reviewer</a> group.</p>
 </section>
 <section id="create-edit-your-organization">
-<h2>Create/Edit your Organization<a class="headerlink" href="#create-edit-your-organization" title="Link to this heading">#</a></h2>
+<h2>Create/Edit your Organization<a class="headerlink" href="#create-edit-your-organization" title="Link to this heading">¶</a></h2>
 <ul class="simple">
 <li><p>Click on “Edit Organization” to add / edit your organization.</p></li>
 <li><p>In the “Edit Organization” modal, you can specify the credentials for your git integration that is used as backend in
@@ -262,7 +262,7 @@ your tasks</p></li>
 </ul>
 </section>
 <section id="create-a-docker-image-for-your-evaluator">
-<h2>Create a Docker Image for your Evaluator<a class="headerlink" href="#create-a-docker-image-for-your-evaluator" title="Link to this heading">#</a></h2>
+<h2>Create a Docker Image for your Evaluator<a class="headerlink" href="#create-a-docker-image-for-your-evaluator" title="Link to this heading">¶</a></h2>
 <p>An evaluator is a software that gets a system’s run and the truth data as input to create the run’s evaluation.</p>
 <p>Evaluators get three variables as input in TIRA:</p>
 <ol class="arabic simple">
@@ -293,7 +293,7 @@ experiments.</p></li>
 </ul>
 </section>
 <section id="add-a-new-task-and-new-datasets-to-tira">
-<h2>Add a new Task and new Datasets to TIRA<a class="headerlink" href="#add-a-new-task-and-new-datasets-to-tira" title="Link to this heading">#</a></h2>
+<h2>Add a new Task and new Datasets to TIRA<a class="headerlink" href="#add-a-new-task-and-new-datasets-to-tira" title="Link to this heading">¶</a></h2>
 <p>We assume that you have <a class="reference external" href="#get-a-reviewer-account">a reviewer login to tira</a>, the dataset, and the
 <a class="reference external" href="#create-a-docker-image-for-your-evaluator">evaluator</a> for your task ready.</p>
 <ul class="simple">
@@ -307,7 +307,7 @@ image of the evaluator and the <a class="reference external" href="#create-a-doc
 </ul>
 </section>
 <section id="provide-public-baselines-to-simplify-participation">
-<h2>Provide Public Baselines to Simplify Participation<a class="headerlink" href="#provide-public-baselines-to-simplify-participation" title="Link to this heading">#</a></h2>
+<h2>Provide Public Baselines to Simplify Participation<a class="headerlink" href="#provide-public-baselines-to-simplify-participation" title="Link to this heading">¶</a></h2>
 <p>In the best case, you provide the code, a published docker image, and instructions on how to compile the code into a docker image to simplify participation in your shared tasks.</p>
 <p>We have some examples on baselines that you can adopt for your shared task, e.g.:</p>
 <ul class="simple">
@@ -348,7 +348,7 @@ This command should create the following output in `tira-output`: &lt;TODO_ADD_E
 </pre></div>
 </div>
 <section id="modifying-virtual-machines">
-<h3>Modifying virtual machines<a class="headerlink" href="#modifying-virtual-machines" title="Link to this heading">#</a></h3>
+<h3>Modifying virtual machines<a class="headerlink" href="#modifying-virtual-machines" title="Link to this heading">¶</a></h3>
 <ul>
 <li><p>Login to the machine where the VM exists (<code class="code docutils literal notranslate"><span class="pre">ssh</span> <span class="pre">tira&#64;betawebXYZ`</span></code>)</p></li>
 <li><p>Locate the complete <code class="code docutils literal notranslate"><span class="pre">[vmName]</span></code> from <code class="code docutils literal notranslate"><span class="pre">tira/model/users/[users].prototext</span></code>.</p></li>
@@ -425,7 +425,7 @@ tira<span class="w"> </span>vm-start<span class="w"> </span><span class="o">[</s
 </section>
 </section>
 <section id="moderate-a-task">
-<h2>Moderate a Task:<a class="headerlink" href="#moderate-a-task" title="Link to this heading">#</a></h2>
+<h2>Moderate a Task:<a class="headerlink" href="#moderate-a-task" title="Link to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>Log in to tira.io with a reviewer account.</p></li>
 <li><p>(optional) Add a new organizer using <code class="code docutils literal notranslate"><span class="pre">Add</span> <span class="pre">organizer</span></code> on the website.</p></li>
@@ -437,7 +437,7 @@ during this step.</p></li>
 <li><p>Install the evaluator on the master-vm in accordance to the data entered during step. 6</p></li>
 </ol>
 <section id="set-up-the-master-vm">
-<h3>Set up the master VM<a class="headerlink" href="#set-up-the-master-vm" title="Link to this heading">#</a></h3>
+<h3>Set up the master VM<a class="headerlink" href="#set-up-the-master-vm" title="Link to this heading">¶</a></h3>
 <ol class="arabic">
 <li><p>Create the virtual machine using <code class="code docutils literal notranslate"><span class="pre">tira</span> <span class="pre">vm-create</span></code>. The name should end with <em>-master</em>.</p></li>
 <li><p>Connect to the TIRA host container:</p>
@@ -455,7 +455,7 @@ during this step.</p></li>
 </ol>
 </section>
 <section id="troubleshooting">
-<h3>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading">#</a></h3>
+<h3>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading">¶</a></h3>
 <details class="summary-changes-do-not-show-up-on-the-website">
 <summary>Changes do not show up on the website</summary><p>Go to <a class="reference external" href="https://tira.io/tira-admin">tira-admin</a> and then to <code class="code docutils literal notranslate"><span class="pre">System</span> <span class="pre">Actions</span> <span class="pre">&gt;</span> <span class="pre">Reload</span> <span class="pre">Data</span></code>.</p>
 </details><details class="summary-error-on-creating-a-virtual-machine-code-vboxnetadpctl-error-while-adding-new-interface-failed-to-open-dev-vboxnetctl-no-such-file-or-directory-usually-comes-with-an-error-on-vm-start-code-nonexistent-host-networking-interface-name-vboxnetxx">
@@ -577,7 +577,7 @@ error.</p></li>
     </aside>
   </div>
 </div><script src="../_static/documentation_options.js?v=8a448e45"></script>
-    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=32e29ea5"></script>
     </body>
