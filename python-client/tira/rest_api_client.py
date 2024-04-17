@@ -47,7 +47,12 @@ class Client(TiraClient):
 
     def load_settings(self):
         try:
-            return json.load(open(self.tira_cache_dir + '/.tira-settings.json', 'r'))
+            ret = json.load(open(self.tira_cache_dir + '/.tira-settings.json', 'r'))
+            if 'api_key' not in ret:
+                ret['api_key'] = 'no-api-key'
+            if 'api_user_name' not in ret:
+                ret['api_user_name'] = 'no-api-key-user'
+            return ret
         except Exception:
             logging.info(f'No settings given in {self.tira_cache_dir}/.tira-settings.json. I will use defaults.')
             return {'api_key': 'no-api-key', 'api_user_name': 'no-api-key-user'}

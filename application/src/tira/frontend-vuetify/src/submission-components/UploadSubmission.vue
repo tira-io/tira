@@ -263,12 +263,14 @@ export default {
     },
     batch_upload_code(display_name) {
       return 'from tira.rest_api_client import Client\n' +
+        'from pathlib import Path\n' +
+        'from tqdm import tqdm\n\n' +
         'tira = Client()\n' +
         'approach = \'' + this.task_id + '/' + this.user_id_for_task + '/' + display_name + '\'\n' +
         'dataset_ids = [' + this.datasets.map((i) => '\'' + i.dataset_id + '\'') + ']\n\n' +
-        'for dataset_id in dataset_ids:\n' +
-        '    # assume output is located in a file <DATASET_ID>/run \n' +
-        '    run_file = dataset_id + \'/run\'\n' +
+        'for dataset_id in tqdm(dataset_ids):\n' +
+        '    # assume run to upload is located in a file dataset_id/run\n' +
+        '    run_file = Path(dataset_id) / \'run\'\n' +
         '    tira.upload_run(approach=approach, dataset_id=dataset_id, file_path=run_file);\n'
     },
     nextStep() {
