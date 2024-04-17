@@ -60,6 +60,7 @@ class Client(TiraClient):
     def update_settings(self, k, v):
         settings = self.load_settings()
         settings[k] = v
+        os.makedirs(self.tira_cache_dir, exist_ok=True)
         json.dump(settings, open(Path(self.tira_cache_dir) / '.tira-settings.json', 'w+'))
 
         if k == 'api_key':
