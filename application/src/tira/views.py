@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from django.template.loader import render_to_string
 from django.http import JsonResponse, FileResponse
 from django.conf import settings
 from django.core.cache import cache
@@ -17,6 +18,7 @@ import os
 import zipfile
 import json
 from http import HTTPStatus
+import tempfile
 
 logger = logging.getLogger("tira")
 logger.info("Views: Logger active")
@@ -187,6 +189,31 @@ def download_rundir(request, task_id, dataset_id, vm_id, run_id):
 @check_resources_exist('json')
 def download_input_rundir(request, task_id, dataset_id, vm_id, run_id):
     return download_rundir(request, task_id, dataset_id, vm_id, input_run_id)
+
+def download_repo_template(request, task_id, vm_id):
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        directory = Path(tmpdirname) / f'git-repo-template-{task_id}'
+        os.makedirs(directory, exist_ok=True)
+        os.makedirs(directory / '.github' / 'workflows', exist_ok=True)
+        context = {
+            'task_id': task_id,
+            'image': f'registry.webis.de/code-research/tira/tira-user-{vm_id}/github-action-submission:0.0.1',
+            'input_dataset': model.reference_dataset(task_id),
+        }
+
+        with (directory / 'README.md').open('w') as readme, (directory / 'script.py').open('w') as script, (directory / 'requirements.txt').open('w') as requirements, (directory / 'Dockerfile').open('w') as dockerfile, (directory / '.github' / 'workflows' / 'upload-software-to-tira.yml').open('w') as ci:
+            readme.write(render_to_string('tira/git-repo-template/README.md', context=context))
+            dockerfile.write(render_to_string('tira/git-repo-template/Dockerfile', context=context))
+            requirements.write('argparse')
+            script.write(render_to_string('tira/git-repo-template/script.py', context=context))
+            ci.write(render_to_string('tira/git-repo-template/github-action.yml', context=context))
+
+        zipped = Path(tmpdirname) / f'{task_id}.zip'
+        with zipfile.ZipFile(zipped, "w") as zipf:
+            for f in directory.rglob('*'):
+                zipf.write(f, arcname=f.relative_to(directory))
+
+        return FileResponse(open(zipped, "rb"), as_attachment=True, filename=f"git-repo-template-{task_id}.zip")
 
 @check_permissions
 def download_datadir(request, dataset_type, input_type, dataset_id):

@@ -12,6 +12,7 @@ urlpatterns = [
     path('background_jobs/<str:task_id>/<str:job_id>', views.background_jobs, name='background_jobs'),
 
     path('task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/download/<str:run_id>.zip', views.download_rundir, name='download_rundir'),
+    path('data-download/git-repo-template/<str:vm_id>/<str:task_id>.zip', views.download_repo_template, name='download_repo_template'),
     path('data-download/<str:dataset_type>/<str:input_type>/<str:dataset_id>.zip', views.download_datadir, name='download_datadir'),
 
     re_path(r'^frontend-vuetify/.*', views.veutify_page, name='vuetify_page'),
