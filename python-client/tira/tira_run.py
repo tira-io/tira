@@ -266,7 +266,7 @@ def main(args=None):
 ''')
     gpus = 0
     if args.gpus:
-        gpus = -1 if args.gpus == 'all' else int(gpus)
+        gpus = -1 if args.gpus == 'all' else int(args.gpus)
 
     client.local_execution.run(identifier=args.approach, image=args.image, command=args.command, input_dir=input_dir, output_dir=args.output_directory, dry_run=args.dry_run, allow_network=args.allow_network, input_run=args.input_run, additional_volumes=args.v, evaluate=evaluate, eval_dir=args.evaluation_directory, gpu_count=gpus)
 
