@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../genindex.html" /><link rel="search" title="Search" href="../../search.html" />
 
-    <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
+    <!-- Generated with Sphinx 7.3.7 and Furo 2024.01.29 -->
         <title>tira.ir_datasets_util - TIRA</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=135e06be" />
@@ -276,261 +276,292 @@
 </div>
 
 <span class="linenos"> 33</span>
-<span class="linenos"> 34</span>
+<div class="viewcode-block" id="DictDocsstore">
+<a class="viewcode-back" href="../../users/api.html#tira.ir_datasets_util.DictDocsstore">[docs]</a>
+<span class="linenos"> 34</span><span class="k">class</span> <span class="nc">DictDocsstore</span><span class="p">():</span>
+<span class="linenos"> 35</span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">docs</span><span class="p">):</span>
+<span class="linenos"> 36</span>        <span class="bp">self</span><span class="o">.</span><span class="n">docs</span> <span class="o">=</span> <span class="n">docs</span>
+<span class="linenos"> 37</span>
+<span class="linenos"> 38</span>    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+<span class="linenos"> 39</span>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">docs</span><span class="p">[</span><span class="n">item</span><span class="p">]</span>
+<span class="linenos"> 40</span>
+<div class="viewcode-block" id="DictDocsstore.get">
+<a class="viewcode-back" href="../../users/api.html#tira.ir_datasets_util.DictDocsstore.get">[docs]</a>
+<span class="linenos"> 41</span>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+<span class="linenos"> 42</span>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">docs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">item</span><span class="p">)</span></div>
+
+<span class="linenos"> 43</span>
+<span class="linenos"> 44</span>    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="linenos"> 45</span>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">docs</span><span class="o">.</span><span class="fm">__iter__</span><span class="p">()</span>
+<span class="linenos"> 46</span>
+<span class="linenos"> 47</span>    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="linenos"> 48</span>        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">docs</span><span class="p">)</span>
+<span class="linenos"> 49</span>    
+<div class="viewcode-block" id="DictDocsstore.get_many_iter">
+<a class="viewcode-back" href="../../users/api.html#tira.ir_datasets_util.DictDocsstore.get_many_iter">[docs]</a>
+<span class="linenos"> 50</span>    <span class="k">def</span> <span class="nf">get_many_iter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">docids</span><span class="p">):</span>
+<span class="linenos"> 51</span>        <span class="k">for</span> <span class="n">docid</span> <span class="ow">in</span> <span class="n">docids</span><span class="p">:</span>
+<span class="linenos"> 52</span>            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">docid</span><span class="p">)</span></div>
+</div>
+
+<span class="linenos"> 53</span>
+<span class="linenos"> 54</span>
 <div class="viewcode-block" id="register_dataset_from_re_rank_file">
 <a class="viewcode-back" href="../../users/api.html#tira.ir_datasets_util.register_dataset_from_re_rank_file">[docs]</a>
-<span class="linenos"> 35</span><span class="k">def</span> <span class="nf">register_dataset_from_re_rank_file</span><span class="p">(</span><span class="n">ir_dataset_id</span><span class="p">,</span> <span class="n">df_re_rank</span><span class="p">,</span> <span class="n">original_ir_datasets_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="linenos"> 36</span><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="linenos"> 37</span><span class="sd">    Load a dynamic ir_datasets integration from a given re_rank_file.</span>
-<span class="linenos"> 38</span><span class="sd">    The dataset will be registered for the id ir_dataset_id.</span>
-<span class="linenos"> 39</span><span class="sd">    The original_ir_datasets_id is used to infer the class of documents, qrels, and queries.</span>
-<span class="linenos"> 40</span><span class="sd">    &quot;&quot;&quot;</span>
-<span class="linenos"> 41</span>    <span class="kn">import</span> <span class="nn">ir_datasets</span>
-<span class="linenos"> 42</span>    <span class="kn">from</span> <span class="nn">ir_datasets.datasets.base</span> <span class="kn">import</span> <span class="n">Dataset</span>
-<span class="linenos"> 43</span>    <span class="n">original_dataset</span> <span class="o">=</span> <span class="n">ir_datasets</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">original_ir_datasets_id</span><span class="p">)</span> <span class="k">if</span> <span class="n">original_ir_datasets_id</span> <span class="k">else</span> <span class="kc">None</span>
-<span class="linenos"> 44</span>
-<span class="linenos"> 45</span>    <span class="n">docs</span> <span class="o">=</span> <span class="n">__docs</span><span class="p">(</span><span class="n">df_re_rank</span><span class="p">,</span> <span class="n">original_dataset</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-<span class="linenos"> 46</span>    <span class="n">queries</span> <span class="o">=</span> <span class="n">__queries</span><span class="p">(</span><span class="n">df_re_rank</span><span class="p">,</span> <span class="n">original_dataset</span><span class="p">)</span>
-<span class="linenos"> 47</span>    <span class="n">qrels</span> <span class="o">=</span> <span class="n">__lazy_qrels</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">original_dataset</span><span class="p">)</span>
-<span class="linenos"> 48</span>    <span class="n">scoreddocs</span> <span class="o">=</span> <span class="n">__scored_docs</span><span class="p">(</span><span class="n">df_re_rank</span><span class="p">,</span> <span class="n">original_dataset</span><span class="p">)</span>
-<span class="linenos"> 49</span>
-<span class="linenos"> 50</span>    <span class="n">dataset</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">docs</span><span class="p">,</span> <span class="n">queries</span><span class="p">,</span> <span class="n">qrels</span><span class="p">,</span> <span class="n">scoreddocs</span><span class="p">)</span>
-<span class="linenos"> 51</span>    <span class="n">dataset</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="kc">None</span>
-<span class="linenos"> 52</span>    <span class="n">ir_datasets</span><span class="o">.</span><span class="n">registry</span><span class="o">.</span><span class="n">_allow_overwrite</span> <span class="o">=</span> <span class="kc">True</span>
-<span class="linenos"> 53</span>    <span class="n">ir_datasets</span><span class="o">.</span><span class="n">registry</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">ir_dataset_id</span><span class="p">,</span> <span class="n">dataset</span><span class="p">)</span>
-<span class="linenos"> 54</span>
-<span class="linenos"> 55</span>    <span class="n">__check_registration_was_successful</span><span class="p">(</span><span class="n">ir_dataset_id</span><span class="p">,</span> <span class="n">original_ir_datasets_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span></div>
+<span class="linenos"> 55</span><span class="k">def</span> <span class="nf">register_dataset_from_re_rank_file</span><span class="p">(</span><span class="n">ir_dataset_id</span><span class="p">,</span> <span class="n">df_re_rank</span><span class="p">,</span> <span class="n">original_ir_datasets_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="linenos"> 56</span><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="linenos"> 57</span><span class="sd">    Load a dynamic ir_datasets integration from a given re_rank_file.</span>
+<span class="linenos"> 58</span><span class="sd">    The dataset will be registered for the id ir_dataset_id.</span>
+<span class="linenos"> 59</span><span class="sd">    The original_ir_datasets_id is used to infer the class of documents, qrels, and queries.</span>
+<span class="linenos"> 60</span><span class="sd">    &quot;&quot;&quot;</span>
+<span class="linenos"> 61</span>    <span class="kn">import</span> <span class="nn">ir_datasets</span>
+<span class="linenos"> 62</span>    <span class="kn">from</span> <span class="nn">ir_datasets.datasets.base</span> <span class="kn">import</span> <span class="n">Dataset</span>
+<span class="linenos"> 63</span>    <span class="n">original_dataset</span> <span class="o">=</span> <span class="n">ir_datasets</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">original_ir_datasets_id</span><span class="p">)</span> <span class="k">if</span> <span class="n">original_ir_datasets_id</span> <span class="k">else</span> <span class="kc">None</span>
+<span class="linenos"> 64</span>
+<span class="linenos"> 65</span>    <span class="n">docs</span> <span class="o">=</span> <span class="n">__docs</span><span class="p">(</span><span class="n">df_re_rank</span><span class="p">,</span> <span class="n">original_dataset</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+<span class="linenos"> 66</span>    <span class="n">queries</span> <span class="o">=</span> <span class="n">__queries</span><span class="p">(</span><span class="n">df_re_rank</span><span class="p">,</span> <span class="n">original_dataset</span><span class="p">)</span>
+<span class="linenos"> 67</span>    <span class="n">qrels</span> <span class="o">=</span> <span class="n">__lazy_qrels</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">original_dataset</span><span class="p">)</span>
+<span class="linenos"> 68</span>    <span class="n">scoreddocs</span> <span class="o">=</span> <span class="n">__scored_docs</span><span class="p">(</span><span class="n">df_re_rank</span><span class="p">,</span> <span class="n">original_dataset</span><span class="p">)</span>
+<span class="linenos"> 69</span>
+<span class="linenos"> 70</span>    <span class="n">dataset</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">docs</span><span class="p">,</span> <span class="n">queries</span><span class="p">,</span> <span class="n">qrels</span><span class="p">,</span> <span class="n">scoreddocs</span><span class="p">)</span>
+<span class="linenos"> 71</span>    <span class="n">dataset</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="linenos"> 72</span>    <span class="n">ir_datasets</span><span class="o">.</span><span class="n">registry</span><span class="o">.</span><span class="n">_allow_overwrite</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="linenos"> 73</span>    <span class="n">ir_datasets</span><span class="o">.</span><span class="n">registry</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">ir_dataset_id</span><span class="p">,</span> <span class="n">dataset</span><span class="p">)</span>
+<span class="linenos"> 74</span>
+<span class="linenos"> 75</span>    <span class="n">__check_registration_was_successful</span><span class="p">(</span><span class="n">ir_dataset_id</span><span class="p">,</span> <span class="n">original_ir_datasets_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span></div>
 
-<span class="linenos"> 56</span>
-<span class="linenos"> 57</span>
+<span class="linenos"> 76</span>
+<span class="linenos"> 77</span>
 <div class="viewcode-block" id="translate_irds_id_to_tirex">
 <a class="viewcode-back" href="../../users/api.html#tira.ir_datasets_util.translate_irds_id_to_tirex">[docs]</a>
-<span class="linenos"> 58</span><span class="k">def</span> <span class="nf">translate_irds_id_to_tirex</span><span class="p">(</span><span class="n">dataset</span><span class="p">):</span>
-<span class="linenos"> 59</span>    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">str</span><span class="p">:</span>
-<span class="linenos"> 60</span>        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="s1">&#39;irds_ref&#39;</span><span class="p">):</span>
-<span class="linenos"> 61</span>            <span class="k">return</span> <span class="n">translate_irds_id_to_tirex</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">irds_ref</span><span class="p">()</span><span class="o">.</span><span class="n">dataset_id</span><span class="p">())</span>
-<span class="linenos"> 62</span>        <span class="k">else</span><span class="p">:</span>
-<span class="linenos"> 63</span>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;I can not handle </span><span class="si">{</span><span class="n">dataset</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
-<span class="linenos"> 64</span>    <span class="k">return</span> <span class="n">IRDS_TO_TIREX_DATASET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">dataset</span><span class="p">)</span></div>
+<span class="linenos"> 78</span><span class="k">def</span> <span class="nf">translate_irds_id_to_tirex</span><span class="p">(</span><span class="n">dataset</span><span class="p">):</span>
+<span class="linenos"> 79</span>    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">str</span><span class="p">:</span>
+<span class="linenos"> 80</span>        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="s1">&#39;irds_ref&#39;</span><span class="p">):</span>
+<span class="linenos"> 81</span>            <span class="k">return</span> <span class="n">translate_irds_id_to_tirex</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">irds_ref</span><span class="p">()</span><span class="o">.</span><span class="n">dataset_id</span><span class="p">())</span>
+<span class="linenos"> 82</span>        <span class="k">else</span><span class="p">:</span>
+<span class="linenos"> 83</span>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;I can not handle </span><span class="si">{</span><span class="n">dataset</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+<span class="linenos"> 84</span>    <span class="k">return</span> <span class="n">IRDS_TO_TIREX_DATASET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">dataset</span><span class="p">)</span></div>
 
-<span class="linenos"> 65</span>
-<span class="linenos"> 66</span>
-<span class="linenos"> 67</span><span class="k">def</span> <span class="nf">__docs</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">original_dataset</span><span class="p">,</span> <span class="n">load_default_text</span><span class="p">):</span>
-<span class="linenos"> 68</span>    <span class="kn">from</span> <span class="nn">ir_datasets.formats</span> <span class="kn">import</span> <span class="n">BaseDocs</span><span class="p">,</span> <span class="n">GenericDoc</span>
-<span class="linenos"> 69</span>
-<span class="linenos"> 70</span>    <span class="k">class</span> <span class="nc">DynamicDocs</span><span class="p">(</span><span class="n">BaseDocs</span><span class="p">):</span>
-<span class="linenos"> 71</span>        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_file</span><span class="p">,</span> <span class="n">load_default_text</span><span class="p">):</span>
-<span class="linenos"> 72</span>            <span class="bp">self</span><span class="o">.</span><span class="n">docs</span> <span class="o">=</span> <span class="kc">None</span>
-<span class="linenos"> 73</span>            <span class="bp">self</span><span class="o">.</span><span class="n">input_file</span> <span class="o">=</span> <span class="n">input_file</span>
-<span class="linenos"> 74</span>            <span class="bp">self</span><span class="o">.</span><span class="n">load_default_text</span> <span class="o">=</span> <span class="n">load_default_text</span>
-<span class="linenos"> 75</span>
-<span class="linenos"> 76</span>        <span class="k">def</span> <span class="nf">docs_iter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="linenos"> 77</span>            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream_docs</span><span class="p">()</span>
-<span class="linenos"> 78</span>
-<span class="linenos"> 79</span>        <span class="k">def</span> <span class="nf">docs_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="linenos"> 80</span>            <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream_docs</span><span class="p">())</span>
-<span class="linenos"> 81</span>
-<span class="linenos"> 82</span>        <span class="k">def</span> <span class="nf">docs_store</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="linenos"> 83</span>            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__parsed_docs</span><span class="p">()</span>
-<span class="linenos"> 84</span>
-<span class="linenos"> 85</span>        <span class="k">def</span> <span class="nf">__parsed_docs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="linenos"> 86</span>            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">docs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-<span class="linenos"> 87</span>                <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
-<span class="linenos"> 88</span>                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream_docs</span><span class="p">():</span>
-<span class="linenos"> 89</span>                    <span class="n">d</span><span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">doc_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
-<span class="linenos"> 90</span>
-<span class="linenos"> 91</span>                <span class="bp">self</span><span class="o">.</span><span class="n">docs</span> <span class="o">=</span> <span class="n">d</span>
-<span class="linenos"> 92</span>
-<span class="linenos"> 93</span>            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">docs</span>
-<span class="linenos"> 94</span>
-<span class="linenos"> 95</span>        <span class="k">def</span> <span class="nf">stream_docs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="linenos"> 96</span>            <span class="n">already_covered</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
-<span class="linenos"> 97</span>            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">stream_all_lines</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_input_file</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_default_text</span><span class="p">):</span>
-<span class="linenos"> 98</span>                <span class="k">if</span> <span class="n">i</span><span class="p">[</span><span class="s1">&#39;docno&#39;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">already_covered</span><span class="p">:</span>
-<span class="linenos"> 99</span>                    <span class="n">already_covered</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="s1">&#39;docno&#39;</span><span class="p">])</span>
-<span class="linenos">100</span>                    <span class="k">yield</span> <span class="n">GenericDoc</span><span class="p">(</span><span class="n">doc_id</span><span class="o">=</span><span class="n">i</span><span class="p">[</span><span class="s1">&#39;docno&#39;</span><span class="p">],</span> <span class="n">text</span><span class="o">=</span><span class="n">i</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">])</span>
+<span class="linenos"> 85</span>
+<span class="linenos"> 86</span>
+<span class="linenos"> 87</span><span class="k">def</span> <span class="nf">__docs</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">original_dataset</span><span class="p">,</span> <span class="n">load_default_text</span><span class="p">):</span>
+<span class="linenos"> 88</span>    <span class="kn">from</span> <span class="nn">ir_datasets.formats</span> <span class="kn">import</span> <span class="n">BaseDocs</span><span class="p">,</span> <span class="n">GenericDoc</span>
+<span class="linenos"> 89</span>
+<span class="linenos"> 90</span>    <span class="k">class</span> <span class="nc">DynamicDocs</span><span class="p">(</span><span class="n">BaseDocs</span><span class="p">):</span>
+<span class="linenos"> 91</span>        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_file</span><span class="p">,</span> <span class="n">load_default_text</span><span class="p">):</span>
+<span class="linenos"> 92</span>            <span class="bp">self</span><span class="o">.</span><span class="n">docs</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="linenos"> 93</span>            <span class="bp">self</span><span class="o">.</span><span class="n">input_file</span> <span class="o">=</span> <span class="n">input_file</span>
+<span class="linenos"> 94</span>            <span class="bp">self</span><span class="o">.</span><span class="n">load_default_text</span> <span class="o">=</span> <span class="n">load_default_text</span>
+<span class="linenos"> 95</span>
+<span class="linenos"> 96</span>        <span class="k">def</span> <span class="nf">docs_iter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="linenos"> 97</span>            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream_docs</span><span class="p">()</span>
+<span class="linenos"> 98</span>
+<span class="linenos"> 99</span>        <span class="k">def</span> <span class="nf">docs_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="linenos">100</span>            <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream_docs</span><span class="p">())</span>
 <span class="linenos">101</span>
-<span class="linenos">102</span>        <span class="k">def</span> <span class="nf">get_input_file</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="linenos">103</span>            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_file</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
-<span class="linenos">104</span>                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_file</span>
-<span class="linenos">105</span>
-<span class="linenos">106</span>            <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_file</span><span class="p">()</span>
-<span class="linenos">107</span>            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">ret</span> <span class="o">+</span> <span class="s1">&#39;/documents.jsonl.gz&#39;</span><span class="p">):</span>
-<span class="linenos">108</span>                <span class="k">return</span> <span class="n">ret</span> <span class="o">+</span> <span class="s1">&#39;/documents.jsonl.gz&#39;</span>
-<span class="linenos">109</span>            <span class="k">else</span><span class="p">:</span>
-<span class="linenos">110</span>                <span class="k">return</span> <span class="n">ret</span> <span class="o">+</span> <span class="s1">&#39;/documents.jsonl&#39;</span>
-<span class="linenos">111</span>
-<span class="linenos">112</span>    <span class="k">return</span> <span class="n">DynamicDocs</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">load_default_text</span><span class="p">)</span>
-<span class="linenos">113</span>
+<span class="linenos">102</span>        <span class="k">def</span> <span class="nf">docs_store</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="linenos">103</span>            <span class="k">return</span> <span class="n">DictDocsstore</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__parsed_docs</span><span class="p">())</span>
+<span class="linenos">104</span>
+<span class="linenos">105</span>        <span class="k">def</span> <span class="nf">__parsed_docs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="linenos">106</span>            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">docs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+<span class="linenos">107</span>                <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="linenos">108</span>                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream_docs</span><span class="p">():</span>
+<span class="linenos">109</span>                    <span class="n">d</span><span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">doc_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
+<span class="linenos">110</span>
+<span class="linenos">111</span>                <span class="bp">self</span><span class="o">.</span><span class="n">docs</span> <span class="o">=</span> <span class="n">d</span>
+<span class="linenos">112</span>
+<span class="linenos">113</span>            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">docs</span>
 <span class="linenos">114</span>
-<span class="linenos">115</span><span class="k">def</span> <span class="nf">__lazy_qrels</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">original_qrels</span><span class="p">):</span>
-<span class="linenos">116</span>    <span class="kn">from</span> <span class="nn">ir_datasets.formats</span> <span class="kn">import</span> <span class="n">BaseQrels</span><span class="p">,</span> <span class="n">TrecQrel</span><span class="p">,</span> <span class="n">TrecQrels</span>
-<span class="linenos">117</span>    <span class="kn">from</span> <span class="nn">ir_datasets.util.download</span> <span class="kn">import</span> <span class="n">LocalDownload</span>
-<span class="linenos">118</span>
-<span class="linenos">119</span>    <span class="k">if</span> <span class="n">input_file</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">original_qrels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-<span class="linenos">120</span>        <span class="k">return</span>
+<span class="linenos">115</span>        <span class="k">def</span> <span class="nf">stream_docs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="linenos">116</span>            <span class="n">already_covered</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+<span class="linenos">117</span>            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">stream_all_lines</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_input_file</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_default_text</span><span class="p">):</span>
+<span class="linenos">118</span>                <span class="k">if</span> <span class="n">i</span><span class="p">[</span><span class="s1">&#39;docno&#39;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">already_covered</span><span class="p">:</span>
+<span class="linenos">119</span>                    <span class="n">already_covered</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="s1">&#39;docno&#39;</span><span class="p">])</span>
+<span class="linenos">120</span>                    <span class="k">yield</span> <span class="n">GenericDoc</span><span class="p">(</span><span class="n">doc_id</span><span class="o">=</span><span class="n">i</span><span class="p">[</span><span class="s1">&#39;docno&#39;</span><span class="p">],</span> <span class="n">text</span><span class="o">=</span><span class="n">i</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">])</span>
 <span class="linenos">121</span>
-<span class="linenos">122</span>    <span class="k">class</span> <span class="nc">QrelsFromTira</span><span class="p">(</span><span class="n">BaseQrels</span><span class="p">):</span>
-<span class="linenos">123</span>        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_file</span><span class="p">,</span> <span class="n">original_qrels</span><span class="p">):</span>
-<span class="linenos">124</span>            <span class="bp">self</span><span class="o">.</span><span class="n">qrels</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">original_qrels</span> <span class="k">else</span> <span class="n">original_qrels</span>
-<span class="linenos">125</span>            <span class="bp">self</span><span class="o">.</span><span class="n">input_file</span> <span class="o">=</span> <span class="n">input_file</span>
-<span class="linenos">126</span>            <span class="bp">self</span><span class="o">.</span><span class="n">original_qrels</span> <span class="o">=</span> <span class="n">original_qrels</span>
-<span class="linenos">127</span>
-<span class="linenos">128</span>        <span class="k">def</span> <span class="nf">qrels_cls</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="linenos">129</span>            <span class="k">return</span> <span class="n">TrecQrel</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">original_qrels</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">original_qrels</span><span class="o">.</span><span class="n">qrels_cls</span><span class="p">()</span>
-<span class="linenos">130</span>
-<span class="linenos">131</span>        <span class="k">def</span> <span class="nf">qrels_iter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="linenos">132</span>            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">qrels</span><span class="p">:</span>
-<span class="linenos">133</span>                <span class="n">qrels_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_file</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;/qrels.txt&#39;</span>
+<span class="linenos">122</span>        <span class="k">def</span> <span class="nf">get_input_file</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="linenos">123</span>            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_file</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
+<span class="linenos">124</span>                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_file</span>
+<span class="linenos">125</span>
+<span class="linenos">126</span>            <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_file</span><span class="p">()</span>
+<span class="linenos">127</span>            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">ret</span> <span class="o">+</span> <span class="s1">&#39;/documents.jsonl.gz&#39;</span><span class="p">):</span>
+<span class="linenos">128</span>                <span class="k">return</span> <span class="n">ret</span> <span class="o">+</span> <span class="s1">&#39;/documents.jsonl.gz&#39;</span>
+<span class="linenos">129</span>            <span class="k">else</span><span class="p">:</span>
+<span class="linenos">130</span>                <span class="k">return</span> <span class="n">ret</span> <span class="o">+</span> <span class="s1">&#39;/documents.jsonl&#39;</span>
+<span class="linenos">131</span>
+<span class="linenos">132</span>    <span class="k">return</span> <span class="n">DynamicDocs</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">load_default_text</span><span class="p">)</span>
+<span class="linenos">133</span>
 <span class="linenos">134</span>
-<span class="linenos">135</span>                <span class="bp">self</span><span class="o">.</span><span class="n">qrels</span> <span class="o">=</span> <span class="n">TrecQrels</span><span class="p">(</span><span class="n">LocalDownload</span><span class="p">(</span><span class="n">qrels_file</span><span class="p">),</span> <span class="p">{})</span>
-<span class="linenos">136</span>
-<span class="linenos">137</span>            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">qrels</span><span class="o">.</span><span class="n">qrels_iter</span><span class="p">()</span>
+<span class="linenos">135</span><span class="k">def</span> <span class="nf">__lazy_qrels</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">original_qrels</span><span class="p">):</span>
+<span class="linenos">136</span>    <span class="kn">from</span> <span class="nn">ir_datasets.formats</span> <span class="kn">import</span> <span class="n">BaseQrels</span><span class="p">,</span> <span class="n">TrecQrel</span><span class="p">,</span> <span class="n">TrecQrels</span>
+<span class="linenos">137</span>    <span class="kn">from</span> <span class="nn">ir_datasets.util.download</span> <span class="kn">import</span> <span class="n">LocalDownload</span>
 <span class="linenos">138</span>
-<span class="linenos">139</span>        <span class="k">def</span> <span class="nf">qrels_defs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="linenos">140</span>            <span class="bp">self</span><span class="o">.</span><span class="n">qrels_iter</span><span class="p">()</span>
-<span class="linenos">141</span>            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">qrels</span><span class="o">.</span><span class="n">qrels_defs</span><span class="p">()</span>
-<span class="linenos">142</span>
-<span class="linenos">143</span>    <span class="k">return</span> <span class="n">QrelsFromTira</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">original_qrels</span><span class="p">)</span>
-<span class="linenos">144</span>
-<span class="linenos">145</span>
-<span class="linenos">146</span><span class="k">def</span> <span class="nf">__queries</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">original_dataset</span><span class="p">):</span>
-<span class="linenos">147</span>    <span class="kn">from</span> <span class="nn">ir_datasets.formats</span> <span class="kn">import</span> <span class="n">BaseQueries</span>
-<span class="linenos">148</span>
-<span class="linenos">149</span>    <span class="k">class</span> <span class="nc">DynamicQueries</span><span class="p">(</span><span class="n">BaseQueries</span><span class="p">):</span>
-<span class="linenos">150</span>        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_file</span><span class="p">):</span>
-<span class="linenos">151</span>            <span class="bp">self</span><span class="o">.</span><span class="n">queries</span> <span class="o">=</span> <span class="kc">None</span>
-<span class="linenos">152</span>            <span class="bp">self</span><span class="o">.</span><span class="n">input_file</span> <span class="o">=</span> <span class="n">input_file</span>
-<span class="linenos">153</span>
-<span class="linenos">154</span>        <span class="k">def</span> <span class="nf">queries_iter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="linenos">155</span>            <span class="k">return</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__get_queries</span><span class="p">())</span><span class="o">.</span><span class="n">values</span><span class="p">()</span><span class="o">.</span><span class="fm">__iter__</span><span class="p">()</span>
+<span class="linenos">139</span>    <span class="k">if</span> <span class="n">input_file</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">original_qrels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+<span class="linenos">140</span>        <span class="k">return</span>
+<span class="linenos">141</span>
+<span class="linenos">142</span>    <span class="k">class</span> <span class="nc">QrelsFromTira</span><span class="p">(</span><span class="n">BaseQrels</span><span class="p">):</span>
+<span class="linenos">143</span>        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_file</span><span class="p">,</span> <span class="n">original_qrels</span><span class="p">):</span>
+<span class="linenos">144</span>            <span class="bp">self</span><span class="o">.</span><span class="n">qrels</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">original_qrels</span> <span class="k">else</span> <span class="n">original_qrels</span>
+<span class="linenos">145</span>            <span class="bp">self</span><span class="o">.</span><span class="n">input_file</span> <span class="o">=</span> <span class="n">input_file</span>
+<span class="linenos">146</span>            <span class="bp">self</span><span class="o">.</span><span class="n">original_qrels</span> <span class="o">=</span> <span class="n">original_qrels</span>
+<span class="linenos">147</span>
+<span class="linenos">148</span>        <span class="k">def</span> <span class="nf">qrels_cls</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="linenos">149</span>            <span class="k">return</span> <span class="n">TrecQrel</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">original_qrels</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">original_qrels</span><span class="o">.</span><span class="n">qrels_cls</span><span class="p">()</span>
+<span class="linenos">150</span>
+<span class="linenos">151</span>        <span class="k">def</span> <span class="nf">qrels_iter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="linenos">152</span>            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">qrels</span><span class="p">:</span>
+<span class="linenos">153</span>                <span class="n">qrels_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_file</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;/qrels.txt&#39;</span>
+<span class="linenos">154</span>
+<span class="linenos">155</span>                <span class="bp">self</span><span class="o">.</span><span class="n">qrels</span> <span class="o">=</span> <span class="n">TrecQrels</span><span class="p">(</span><span class="n">LocalDownload</span><span class="p">(</span><span class="n">qrels_file</span><span class="p">),</span> <span class="p">{})</span>
 <span class="linenos">156</span>
-<span class="linenos">157</span>        <span class="k">def</span> <span class="nf">queries_cls</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="linenos">158</span>            <span class="k">return</span> <span class="n">TirexQuery</span>
-<span class="linenos">159</span>
-<span class="linenos">160</span>        <span class="k">def</span> <span class="nf">get_input_file</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="linenos">161</span>            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_file</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
-<span class="linenos">162</span>                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_file</span>
-<span class="linenos">163</span>
-<span class="linenos">164</span>            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_file</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;/queries.jsonl&#39;</span>
+<span class="linenos">157</span>            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">qrels</span><span class="o">.</span><span class="n">qrels_iter</span><span class="p">()</span>
+<span class="linenos">158</span>
+<span class="linenos">159</span>        <span class="k">def</span> <span class="nf">qrels_defs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="linenos">160</span>            <span class="bp">self</span><span class="o">.</span><span class="n">qrels_iter</span><span class="p">()</span>
+<span class="linenos">161</span>            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">qrels</span><span class="o">.</span><span class="n">qrels_defs</span><span class="p">()</span>
+<span class="linenos">162</span>
+<span class="linenos">163</span>    <span class="k">return</span> <span class="n">QrelsFromTira</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">original_qrels</span><span class="p">)</span>
+<span class="linenos">164</span>
 <span class="linenos">165</span>
-<span class="linenos">166</span>        <span class="k">def</span> <span class="nf">__get_queries</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="linenos">167</span>            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">queries</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-<span class="linenos">168</span>                <span class="n">ret</span> <span class="o">=</span> <span class="p">{}</span>
-<span class="linenos">169</span>                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">stream_all_lines</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_input_file</span><span class="p">(),</span> <span class="kc">False</span><span class="p">):</span>
-<span class="linenos">170</span>                    <span class="n">orig_query</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="s1">&#39;original_query&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">i</span> <span class="k">else</span> <span class="n">i</span><span class="p">[</span><span class="s1">&#39;original_query&#39;</span><span class="p">]</span>
-<span class="linenos">171</span>                    <span class="n">description</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">orig_query</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">orig_query</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">dict</span> <span class="ow">or</span> <span class="s1">&#39;description&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">orig_query</span><span class="p">)</span> <span class="k">else</span> <span class="n">orig_query</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">]</span>
-<span class="linenos">172</span>                    <span class="n">narrative</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">orig_query</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">orig_query</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">dict</span> <span class="ow">or</span> <span class="s1">&#39;narrative&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">orig_query</span><span class="p">)</span> <span class="k">else</span> <span class="n">orig_query</span><span class="p">[</span><span class="s1">&#39;narrative&#39;</span><span class="p">]</span>
-<span class="linenos">173</span>                    <span class="k">if</span> <span class="n">i</span><span class="p">[</span><span class="s1">&#39;qid&#39;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ret</span><span class="p">:</span>
-<span class="linenos">174</span>                        <span class="n">ret</span><span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="s1">&#39;qid&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">TirexQuery</span><span class="p">(</span><span class="n">query_id</span><span class="o">=</span><span class="n">i</span><span class="p">[</span><span class="s1">&#39;qid&#39;</span><span class="p">],</span>  <span class="n">text</span><span class="o">=</span><span class="n">i</span><span class="p">[</span><span class="s1">&#39;query&#39;</span><span class="p">],</span> <span class="n">query</span><span class="o">=</span><span class="n">i</span><span class="p">[</span><span class="s1">&#39;query&#39;</span><span class="p">],</span> <span class="n">title</span><span class="o">=</span><span class="n">i</span><span class="p">[</span><span class="s1">&#39;query&#39;</span><span class="p">],</span> <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span> <span class="n">narrative</span><span class="o">=</span><span class="n">narrative</span><span class="p">)</span>
-<span class="linenos">175</span>
-<span class="linenos">176</span>                <span class="bp">self</span><span class="o">.</span><span class="n">queries</span> <span class="o">=</span> <span class="n">ret</span>
-<span class="linenos">177</span>
-<span class="linenos">178</span>            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">queries</span>
+<span class="linenos">166</span><span class="k">def</span> <span class="nf">__queries</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">original_dataset</span><span class="p">):</span>
+<span class="linenos">167</span>    <span class="kn">from</span> <span class="nn">ir_datasets.formats</span> <span class="kn">import</span> <span class="n">BaseQueries</span>
+<span class="linenos">168</span>
+<span class="linenos">169</span>    <span class="k">class</span> <span class="nc">DynamicQueries</span><span class="p">(</span><span class="n">BaseQueries</span><span class="p">):</span>
+<span class="linenos">170</span>        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_file</span><span class="p">):</span>
+<span class="linenos">171</span>            <span class="bp">self</span><span class="o">.</span><span class="n">queries</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="linenos">172</span>            <span class="bp">self</span><span class="o">.</span><span class="n">input_file</span> <span class="o">=</span> <span class="n">input_file</span>
+<span class="linenos">173</span>
+<span class="linenos">174</span>        <span class="k">def</span> <span class="nf">queries_iter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="linenos">175</span>            <span class="k">return</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__get_queries</span><span class="p">())</span><span class="o">.</span><span class="n">values</span><span class="p">()</span><span class="o">.</span><span class="fm">__iter__</span><span class="p">()</span>
+<span class="linenos">176</span>
+<span class="linenos">177</span>        <span class="k">def</span> <span class="nf">queries_cls</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="linenos">178</span>            <span class="k">return</span> <span class="n">TirexQuery</span>
 <span class="linenos">179</span>
-<span class="linenos">180</span>    <span class="k">return</span> <span class="n">DynamicQueries</span><span class="p">(</span><span class="n">input_file</span><span class="p">)</span>
-<span class="linenos">181</span>
-<span class="linenos">182</span>
-<span class="linenos">183</span><span class="k">def</span> <span class="nf">__scored_docs</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">original_dataset</span><span class="p">):</span>
-<span class="linenos">184</span>    <span class="kn">from</span> <span class="nn">ir_datasets.formats</span> <span class="kn">import</span> <span class="n">BaseScoredDocs</span>
+<span class="linenos">180</span>        <span class="k">def</span> <span class="nf">get_input_file</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="linenos">181</span>            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_file</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
+<span class="linenos">182</span>                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_file</span>
+<span class="linenos">183</span>
+<span class="linenos">184</span>            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_file</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;/queries.jsonl&#39;</span>
 <span class="linenos">185</span>
-<span class="linenos">186</span>    <span class="k">class</span> <span class="nc">GenericScoredDocWithRank</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
-<span class="linenos">187</span>        <span class="n">query_id</span><span class="p">:</span> <span class="nb">str</span>
-<span class="linenos">188</span>        <span class="n">doc_id</span><span class="p">:</span> <span class="nb">str</span>
-<span class="linenos">189</span>        <span class="n">score</span><span class="p">:</span> <span class="nb">float</span>
-<span class="linenos">190</span>        <span class="n">rank</span><span class="p">:</span> <span class="nb">int</span>
-<span class="linenos">191</span>
-<span class="linenos">192</span>    <span class="k">class</span> <span class="nc">DynamicScoredDocs</span><span class="p">(</span><span class="n">BaseScoredDocs</span><span class="p">):</span>
-<span class="linenos">193</span>        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">docs</span><span class="p">):</span>
-<span class="linenos">194</span>            <span class="bp">self</span><span class="o">.</span><span class="n">docs</span> <span class="o">=</span> <span class="n">docs</span>
+<span class="linenos">186</span>        <span class="k">def</span> <span class="nf">__get_queries</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="linenos">187</span>            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">queries</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+<span class="linenos">188</span>                <span class="n">ret</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="linenos">189</span>                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">stream_all_lines</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_input_file</span><span class="p">(),</span> <span class="kc">False</span><span class="p">):</span>
+<span class="linenos">190</span>                    <span class="n">orig_query</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="s1">&#39;original_query&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">i</span> <span class="k">else</span> <span class="n">i</span><span class="p">[</span><span class="s1">&#39;original_query&#39;</span><span class="p">]</span>
+<span class="linenos">191</span>                    <span class="n">description</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">orig_query</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">orig_query</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">dict</span> <span class="ow">or</span> <span class="s1">&#39;description&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">orig_query</span><span class="p">)</span> <span class="k">else</span> <span class="n">orig_query</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">]</span>
+<span class="linenos">192</span>                    <span class="n">narrative</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">orig_query</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">orig_query</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">dict</span> <span class="ow">or</span> <span class="s1">&#39;narrative&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">orig_query</span><span class="p">)</span> <span class="k">else</span> <span class="n">orig_query</span><span class="p">[</span><span class="s1">&#39;narrative&#39;</span><span class="p">]</span>
+<span class="linenos">193</span>                    <span class="k">if</span> <span class="n">i</span><span class="p">[</span><span class="s1">&#39;qid&#39;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ret</span><span class="p">:</span>
+<span class="linenos">194</span>                        <span class="n">ret</span><span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="s1">&#39;qid&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">TirexQuery</span><span class="p">(</span><span class="n">query_id</span><span class="o">=</span><span class="n">i</span><span class="p">[</span><span class="s1">&#39;qid&#39;</span><span class="p">],</span>  <span class="n">text</span><span class="o">=</span><span class="n">i</span><span class="p">[</span><span class="s1">&#39;query&#39;</span><span class="p">],</span> <span class="n">query</span><span class="o">=</span><span class="n">i</span><span class="p">[</span><span class="s1">&#39;query&#39;</span><span class="p">],</span> <span class="n">title</span><span class="o">=</span><span class="n">i</span><span class="p">[</span><span class="s1">&#39;query&#39;</span><span class="p">],</span> <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span> <span class="n">narrative</span><span class="o">=</span><span class="n">narrative</span><span class="p">)</span>
 <span class="linenos">195</span>
-<span class="linenos">196</span>        <span class="k">def</span> <span class="nf">scoreddocs_iter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="linenos">197</span>            <span class="k">return</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">docs</span><span class="p">)</span><span class="o">.</span><span class="fm">__iter__</span><span class="p">()</span>
-<span class="linenos">198</span>
-<span class="linenos">199</span>        <span class="k">def</span> <span class="nf">scoreddocs_count</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="linenos">200</span>            <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">docs</span><span class="p">)</span>
+<span class="linenos">196</span>                <span class="bp">self</span><span class="o">.</span><span class="n">queries</span> <span class="o">=</span> <span class="n">ret</span>
+<span class="linenos">197</span>
+<span class="linenos">198</span>            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">queries</span>
+<span class="linenos">199</span>
+<span class="linenos">200</span>    <span class="k">return</span> <span class="n">DynamicQueries</span><span class="p">(</span><span class="n">input_file</span><span class="p">)</span>
 <span class="linenos">201</span>
-<span class="linenos">202</span>    <span class="n">docs</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="linenos">203</span>
-<span class="linenos">204</span>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">stream_all_lines</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
-<span class="linenos">205</span>        <span class="n">docs</span> <span class="o">+=</span> <span class="p">[</span><span class="n">GenericScoredDocWithRank</span><span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="s1">&#39;qid&#39;</span><span class="p">],</span> <span class="n">i</span><span class="p">[</span><span class="s1">&#39;docno&#39;</span><span class="p">],</span> <span class="n">i</span><span class="p">[</span><span class="s1">&#39;score&#39;</span><span class="p">],</span> <span class="n">i</span><span class="p">[</span><span class="s1">&#39;rank&#39;</span><span class="p">])]</span>
-<span class="linenos">206</span>
-<span class="linenos">207</span>    <span class="k">return</span> <span class="n">DynamicScoredDocs</span><span class="p">(</span><span class="n">docs</span><span class="p">)</span>
-<span class="linenos">208</span>
-<span class="linenos">209</span>
+<span class="linenos">202</span>
+<span class="linenos">203</span><span class="k">def</span> <span class="nf">__scored_docs</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">original_dataset</span><span class="p">):</span>
+<span class="linenos">204</span>    <span class="kn">from</span> <span class="nn">ir_datasets.formats</span> <span class="kn">import</span> <span class="n">BaseScoredDocs</span>
+<span class="linenos">205</span>
+<span class="linenos">206</span>    <span class="k">class</span> <span class="nc">GenericScoredDocWithRank</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
+<span class="linenos">207</span>        <span class="n">query_id</span><span class="p">:</span> <span class="nb">str</span>
+<span class="linenos">208</span>        <span class="n">doc_id</span><span class="p">:</span> <span class="nb">str</span>
+<span class="linenos">209</span>        <span class="n">score</span><span class="p">:</span> <span class="nb">float</span>
+<span class="linenos">210</span>        <span class="n">rank</span><span class="p">:</span> <span class="nb">int</span>
+<span class="linenos">211</span>
+<span class="linenos">212</span>    <span class="k">class</span> <span class="nc">DynamicScoredDocs</span><span class="p">(</span><span class="n">BaseScoredDocs</span><span class="p">):</span>
+<span class="linenos">213</span>        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">docs</span><span class="p">):</span>
+<span class="linenos">214</span>            <span class="bp">self</span><span class="o">.</span><span class="n">docs</span> <span class="o">=</span> <span class="n">docs</span>
+<span class="linenos">215</span>
+<span class="linenos">216</span>        <span class="k">def</span> <span class="nf">scoreddocs_iter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="linenos">217</span>            <span class="k">return</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">docs</span><span class="p">)</span><span class="o">.</span><span class="fm">__iter__</span><span class="p">()</span>
+<span class="linenos">218</span>
+<span class="linenos">219</span>        <span class="k">def</span> <span class="nf">scoreddocs_count</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="linenos">220</span>            <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">docs</span><span class="p">)</span>
+<span class="linenos">221</span>
+<span class="linenos">222</span>    <span class="n">docs</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="linenos">223</span>
+<span class="linenos">224</span>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">stream_all_lines</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
+<span class="linenos">225</span>        <span class="n">docs</span> <span class="o">+=</span> <span class="p">[</span><span class="n">GenericScoredDocWithRank</span><span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="s1">&#39;qid&#39;</span><span class="p">],</span> <span class="n">i</span><span class="p">[</span><span class="s1">&#39;docno&#39;</span><span class="p">],</span> <span class="n">i</span><span class="p">[</span><span class="s1">&#39;score&#39;</span><span class="p">],</span> <span class="n">i</span><span class="p">[</span><span class="s1">&#39;rank&#39;</span><span class="p">])]</span>
+<span class="linenos">226</span>
+<span class="linenos">227</span>    <span class="k">return</span> <span class="n">DynamicScoredDocs</span><span class="p">(</span><span class="n">docs</span><span class="p">)</span>
+<span class="linenos">228</span>
+<span class="linenos">229</span>
 <div class="viewcode-block" id="static_ir_dataset">
 <a class="viewcode-back" href="../../users/api.html#tira.ir_datasets_util.static_ir_dataset">[docs]</a>
-<span class="linenos">210</span><span class="k">def</span> <span class="nf">static_ir_dataset</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">existing_ir_dataset</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="linenos">211</span>    <span class="kn">from</span> <span class="nn">ir_datasets.datasets.base</span> <span class="kn">import</span> <span class="n">Dataset</span>
-<span class="linenos">212</span>    <span class="k">if</span> <span class="n">existing_ir_dataset</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-<span class="linenos">213</span>        <span class="n">queries_file</span> <span class="o">=</span> <span class="n">directory</span> <span class="o">+</span> <span class="s1">&#39;/queries.jsonl&#39;</span>
-<span class="linenos">214</span>        <span class="n">docs_file</span> <span class="o">=</span> <span class="n">directory</span>
-<span class="linenos">215</span>        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">docs_file</span> <span class="o">+</span> <span class="s1">&#39;/documents.jsonl.gz&#39;</span><span class="p">):</span>
-<span class="linenos">216</span>            <span class="n">docs_file</span> <span class="o">=</span> <span class="n">docs_file</span> <span class="o">+</span> <span class="s1">&#39;/documents.jsonl.gz&#39;</span>
-<span class="linenos">217</span>        <span class="k">else</span><span class="p">:</span>
-<span class="linenos">218</span>            <span class="n">docs_file</span> <span class="o">=</span> <span class="n">docs_file</span> <span class="o">+</span> <span class="s1">&#39;/documents.jsonl&#39;</span>
-<span class="linenos">219</span>
-<span class="linenos">220</span>        <span class="n">docs</span> <span class="o">=</span> <span class="n">__docs</span><span class="p">(</span><span class="n">docs_file</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-<span class="linenos">221</span>        <span class="n">queries</span> <span class="o">=</span> <span class="n">__queries</span><span class="p">(</span><span class="n">queries_file</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-<span class="linenos">222</span>        <span class="k">return</span> <span class="n">static_ir_dataset</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">docs</span><span class="p">,</span> <span class="n">queries</span><span class="p">))</span>
-<span class="linenos">223</span>
-<span class="linenos">224</span>    <span class="k">class</span> <span class="nc">StaticIrDatasets</span><span class="p">():</span>
-<span class="linenos">225</span>        <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">):</span>
-<span class="linenos">226</span>            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Load ir_dataset from &quot;</span><span class="si">{</span><span class="n">directory</span><span class="si">}</span><span class="s1">&quot; instead of &quot;</span><span class="si">{</span><span class="n">dataset_id</span><span class="si">}</span><span class="s1">&quot; because code is executed in TIRA.&#39;</span><span class="p">)</span>
-<span class="linenos">227</span>            <span class="k">return</span> <span class="n">existing_ir_dataset</span>
-<span class="linenos">228</span>
-<span class="linenos">229</span>        <span class="k">def</span> <span class="nf">topics_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">):</span>
-<span class="linenos">230</span>            <span class="k">return</span> <span class="n">directory</span> <span class="o">+</span> <span class="s1">&#39;/queries.xml&#39;</span>
-<span class="linenos">231</span>
-<span class="linenos">232</span>    <span class="k">return</span> <span class="n">StaticIrDatasets</span><span class="p">()</span></div>
+<span class="linenos">230</span><span class="k">def</span> <span class="nf">static_ir_dataset</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">existing_ir_dataset</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="linenos">231</span>    <span class="kn">from</span> <span class="nn">ir_datasets.datasets.base</span> <span class="kn">import</span> <span class="n">Dataset</span>
+<span class="linenos">232</span>    <span class="k">if</span> <span class="n">existing_ir_dataset</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+<span class="linenos">233</span>        <span class="n">queries_file</span> <span class="o">=</span> <span class="n">directory</span> <span class="o">+</span> <span class="s1">&#39;/queries.jsonl&#39;</span>
+<span class="linenos">234</span>        <span class="n">docs_file</span> <span class="o">=</span> <span class="n">directory</span>
+<span class="linenos">235</span>        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">docs_file</span> <span class="o">+</span> <span class="s1">&#39;/documents.jsonl.gz&#39;</span><span class="p">):</span>
+<span class="linenos">236</span>            <span class="n">docs_file</span> <span class="o">=</span> <span class="n">docs_file</span> <span class="o">+</span> <span class="s1">&#39;/documents.jsonl.gz&#39;</span>
+<span class="linenos">237</span>        <span class="k">else</span><span class="p">:</span>
+<span class="linenos">238</span>            <span class="n">docs_file</span> <span class="o">=</span> <span class="n">docs_file</span> <span class="o">+</span> <span class="s1">&#39;/documents.jsonl&#39;</span>
+<span class="linenos">239</span>
+<span class="linenos">240</span>        <span class="n">docs</span> <span class="o">=</span> <span class="n">__docs</span><span class="p">(</span><span class="n">docs_file</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+<span class="linenos">241</span>        <span class="n">queries</span> <span class="o">=</span> <span class="n">__queries</span><span class="p">(</span><span class="n">queries_file</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<span class="linenos">242</span>        <span class="k">return</span> <span class="n">static_ir_dataset</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">docs</span><span class="p">,</span> <span class="n">queries</span><span class="p">))</span>
+<span class="linenos">243</span>
+<span class="linenos">244</span>    <span class="k">class</span> <span class="nc">StaticIrDatasets</span><span class="p">():</span>
+<span class="linenos">245</span>        <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">):</span>
+<span class="linenos">246</span>            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Load ir_dataset from &quot;</span><span class="si">{</span><span class="n">directory</span><span class="si">}</span><span class="s1">&quot; instead of &quot;</span><span class="si">{</span><span class="n">dataset_id</span><span class="si">}</span><span class="s1">&quot; because code is executed in TIRA.&#39;</span><span class="p">)</span>
+<span class="linenos">247</span>            <span class="k">return</span> <span class="n">existing_ir_dataset</span>
+<span class="linenos">248</span>
+<span class="linenos">249</span>        <span class="k">def</span> <span class="nf">topics_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">):</span>
+<span class="linenos">250</span>            <span class="k">return</span> <span class="n">directory</span> <span class="o">+</span> <span class="s1">&#39;/queries.xml&#39;</span>
+<span class="linenos">251</span>
+<span class="linenos">252</span>    <span class="k">return</span> <span class="n">StaticIrDatasets</span><span class="p">()</span></div>
 
-<span class="linenos">233</span>
-<span class="linenos">234</span>
+<span class="linenos">253</span>
+<span class="linenos">254</span>
 <div class="viewcode-block" id="ir_dataset_from_tira_fallback_to_original_ir_datasets">
 <a class="viewcode-back" href="../../users/api.html#tira.ir_datasets_util.ir_dataset_from_tira_fallback_to_original_ir_datasets">[docs]</a>
-<span class="linenos">235</span><span class="k">def</span> <span class="nf">ir_dataset_from_tira_fallback_to_original_ir_datasets</span><span class="p">():</span>
-<span class="linenos">236</span>    <span class="kn">from</span> <span class="nn">ir_datasets.datasets.base</span> <span class="kn">import</span> <span class="n">Dataset</span>
-<span class="linenos">237</span>
-<span class="linenos">238</span>    <span class="k">def</span> <span class="nf">get_download_dir_from_tira</span><span class="p">(</span><span class="n">tira_path</span><span class="p">,</span> <span class="n">truth_dataset</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;TiraClient&quot;</span><span class="p">:</span>
-<span class="linenos">239</span>        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tira_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">))</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
-<span class="linenos">240</span>            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Please pass tira_path as &lt;task&gt;/&lt;tira-dataset&gt;. Got </span><span class="si">{</span><span class="n">tira_path</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-<span class="linenos">241</span>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Please pass tira_path as &lt;task&gt;/&lt;tira-dataset&gt;. Got </span><span class="si">{</span><span class="n">tira_path</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-<span class="linenos">242</span>
-<span class="linenos">243</span>        <span class="kn">from</span> <span class="nn">tira.rest_api_client</span> <span class="kn">import</span> <span class="n">Client</span> <span class="k">as</span> <span class="n">RestClient</span>
-<span class="linenos">244</span>        <span class="n">task</span><span class="p">,</span> <span class="n">dataset</span> <span class="o">=</span> <span class="n">tira_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
-<span class="linenos">245</span>        <span class="k">return</span> <span class="n">RestClient</span><span class="p">()</span><span class="o">.</span><span class="n">download_dataset</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">truth_dataset</span><span class="o">=</span><span class="n">truth_dataset</span><span class="p">)</span>
-<span class="linenos">246</span>
-<span class="linenos">247</span>    <span class="k">class</span> <span class="nc">IrDatasetsFromTira</span><span class="p">():</span>
-<span class="linenos">248</span>        <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">):</span>
-<span class="linenos">249</span>            <span class="k">try</span><span class="p">:</span>
-<span class="linenos">250</span>                <span class="k">return</span> <span class="n">original_ir_datasets_load</span><span class="p">(</span><span class="n">dataset_id</span><span class="p">)</span>
-<span class="linenos">251</span>            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-<span class="linenos">252</span>                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Load ir_dataset &quot;</span><span class="si">{</span><span class="n">dataset_id</span><span class="si">}</span><span class="s1">&quot; from tira.&#39;</span><span class="p">)</span>
-<span class="linenos">253</span>                <span class="n">docs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lazy_docs</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">get_download_dir_from_tira</span><span class="p">(</span><span class="n">dataset_id</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-<span class="linenos">254</span>                <span class="n">queries</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lazy_queries</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">get_download_dir_from_tira</span><span class="p">(</span><span class="n">dataset_id</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span>
-<span class="linenos">255</span>                <span class="n">qrels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lazy_qrels</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">get_download_dir_from_tira</span><span class="p">(</span><span class="n">dataset_id</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span>
-<span class="linenos">256</span>                <span class="k">return</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">docs</span><span class="p">,</span> <span class="n">queries</span><span class="p">,</span> <span class="n">qrels</span><span class="p">)</span>
+<span class="linenos">255</span><span class="k">def</span> <span class="nf">ir_dataset_from_tira_fallback_to_original_ir_datasets</span><span class="p">():</span>
+<span class="linenos">256</span>    <span class="kn">from</span> <span class="nn">ir_datasets.datasets.base</span> <span class="kn">import</span> <span class="n">Dataset</span>
 <span class="linenos">257</span>
-<span class="linenos">258</span>        <span class="k">def</span> <span class="nf">topics_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tira_path</span><span class="p">):</span>
-<span class="linenos">259</span>            <span class="k">return</span> <span class="n">get_download_dir_from_tira</span><span class="p">(</span><span class="n">tira_path</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;/queries.xml&#39;</span>
-<span class="linenos">260</span>
-<span class="linenos">261</span>    <span class="n">ret</span> <span class="o">=</span> <span class="n">IrDatasetsFromTira</span><span class="p">()</span>
-<span class="linenos">262</span>    <span class="n">ret</span><span class="o">.</span><span class="n">lazy_docs</span> <span class="o">=</span> <span class="n">__docs</span>
-<span class="linenos">263</span>    <span class="n">ret</span><span class="o">.</span><span class="n">lazy_queries</span> <span class="o">=</span> <span class="n">__queries</span>
-<span class="linenos">264</span>    <span class="n">ret</span><span class="o">.</span><span class="n">lazy_qrels</span> <span class="o">=</span> <span class="n">__lazy_qrels</span>
-<span class="linenos">265</span>
-<span class="linenos">266</span>    <span class="k">return</span> <span class="n">ret</span></div>
+<span class="linenos">258</span>    <span class="k">def</span> <span class="nf">get_download_dir_from_tira</span><span class="p">(</span><span class="n">tira_path</span><span class="p">,</span> <span class="n">truth_dataset</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;TiraClient&quot;</span><span class="p">:</span>
+<span class="linenos">259</span>        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tira_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">))</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+<span class="linenos">260</span>            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Please pass tira_path as &lt;task&gt;/&lt;tira-dataset&gt;. Got </span><span class="si">{</span><span class="n">tira_path</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="linenos">261</span>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Please pass tira_path as &lt;task&gt;/&lt;tira-dataset&gt;. Got </span><span class="si">{</span><span class="n">tira_path</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="linenos">262</span>
+<span class="linenos">263</span>        <span class="kn">from</span> <span class="nn">tira.rest_api_client</span> <span class="kn">import</span> <span class="n">Client</span> <span class="k">as</span> <span class="n">RestClient</span>
+<span class="linenos">264</span>        <span class="n">task</span><span class="p">,</span> <span class="n">dataset</span> <span class="o">=</span> <span class="n">tira_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+<span class="linenos">265</span>        <span class="k">return</span> <span class="n">RestClient</span><span class="p">()</span><span class="o">.</span><span class="n">download_dataset</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">truth_dataset</span><span class="o">=</span><span class="n">truth_dataset</span><span class="p">)</span>
+<span class="linenos">266</span>
+<span class="linenos">267</span>    <span class="k">class</span> <span class="nc">IrDatasetsFromTira</span><span class="p">():</span>
+<span class="linenos">268</span>        <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">):</span>
+<span class="linenos">269</span>            <span class="k">try</span><span class="p">:</span>
+<span class="linenos">270</span>                <span class="k">return</span> <span class="n">original_ir_datasets_load</span><span class="p">(</span><span class="n">dataset_id</span><span class="p">)</span>
+<span class="linenos">271</span>            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+<span class="linenos">272</span>                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Load ir_dataset &quot;</span><span class="si">{</span><span class="n">dataset_id</span><span class="si">}</span><span class="s1">&quot; from tira.&#39;</span><span class="p">)</span>
+<span class="linenos">273</span>                <span class="n">docs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lazy_docs</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">get_download_dir_from_tira</span><span class="p">(</span><span class="n">dataset_id</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+<span class="linenos">274</span>                <span class="n">queries</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lazy_queries</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">get_download_dir_from_tira</span><span class="p">(</span><span class="n">dataset_id</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span>
+<span class="linenos">275</span>                <span class="n">qrels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lazy_qrels</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">get_download_dir_from_tira</span><span class="p">(</span><span class="n">dataset_id</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span>
+<span class="linenos">276</span>                <span class="n">ret</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">docs</span><span class="p">,</span> <span class="n">queries</span><span class="p">,</span> <span class="n">qrels</span><span class="p">)</span>
+<span class="linenos">277</span>                <span class="n">ret</span><span class="o">.</span><span class="n">dataset_id</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">dataset_id</span>
+<span class="linenos">278</span>                <span class="k">return</span> <span class="n">ret</span>
+<span class="linenos">279</span>
+<span class="linenos">280</span>        <span class="k">def</span> <span class="nf">topics_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tira_path</span><span class="p">):</span>
+<span class="linenos">281</span>            <span class="k">return</span> <span class="n">get_download_dir_from_tira</span><span class="p">(</span><span class="n">tira_path</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;/queries.xml&#39;</span>
+<span class="linenos">282</span>
+<span class="linenos">283</span>    <span class="n">ret</span> <span class="o">=</span> <span class="n">IrDatasetsFromTira</span><span class="p">()</span>
+<span class="linenos">284</span>    <span class="n">ret</span><span class="o">.</span><span class="n">lazy_docs</span> <span class="o">=</span> <span class="n">__docs</span>
+<span class="linenos">285</span>    <span class="n">ret</span><span class="o">.</span><span class="n">lazy_queries</span> <span class="o">=</span> <span class="n">__queries</span>
+<span class="linenos">286</span>    <span class="n">ret</span><span class="o">.</span><span class="n">lazy_qrels</span> <span class="o">=</span> <span class="n">__lazy_qrels</span>
+<span class="linenos">287</span>
+<span class="linenos">288</span>    <span class="k">return</span> <span class="n">ret</span></div>
 
-<span class="linenos">267</span>
-<span class="linenos">268</span>
-<span class="linenos">269</span><span class="k">def</span> <span class="nf">__check_registration_was_successful</span><span class="p">(</span><span class="n">ir_dataset_id</span><span class="p">,</span> <span class="n">ignore_qrels</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="linenos">270</span>    <span class="kn">import</span> <span class="nn">ir_datasets</span>
-<span class="linenos">271</span>    <span class="n">dataset</span> <span class="o">=</span> <span class="n">ir_datasets</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">ir_dataset_id</span><span class="p">)</span>
-<span class="linenos">272</span>
-<span class="linenos">273</span>    <span class="k">assert</span> <span class="n">dataset</span><span class="o">.</span><span class="n">has_docs</span><span class="p">(),</span> <span class="s2">&quot;dataset has no documents&quot;</span>
-<span class="linenos">274</span>    <span class="k">assert</span> <span class="n">dataset</span><span class="o">.</span><span class="n">has_queries</span><span class="p">(),</span> <span class="s2">&quot;dataset has no queries&quot;</span>
-<span class="linenos">275</span>    <span class="k">assert</span> <span class="n">ignore_qrels</span> <span class="ow">or</span> <span class="n">dataset</span><span class="o">.</span><span class="n">has_qrels</span><span class="p">(),</span> <span class="s2">&quot;dataset has no qrels&quot;</span>
-<span class="linenos">276</span>    <span class="k">assert</span> <span class="n">dataset</span><span class="o">.</span><span class="n">has_scoreddocs</span><span class="p">(),</span> <span class="s2">&quot;dataset has no scored_docs&quot;</span>
+<span class="linenos">289</span>
+<span class="linenos">290</span>
+<span class="linenos">291</span><span class="k">def</span> <span class="nf">__check_registration_was_successful</span><span class="p">(</span><span class="n">ir_dataset_id</span><span class="p">,</span> <span class="n">ignore_qrels</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="linenos">292</span>    <span class="kn">import</span> <span class="nn">ir_datasets</span>
+<span class="linenos">293</span>    <span class="n">dataset</span> <span class="o">=</span> <span class="n">ir_datasets</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">ir_dataset_id</span><span class="p">)</span>
+<span class="linenos">294</span>
+<span class="linenos">295</span>    <span class="k">assert</span> <span class="n">dataset</span><span class="o">.</span><span class="n">has_docs</span><span class="p">(),</span> <span class="s2">&quot;dataset has no documents&quot;</span>
+<span class="linenos">296</span>    <span class="k">assert</span> <span class="n">dataset</span><span class="o">.</span><span class="n">has_queries</span><span class="p">(),</span> <span class="s2">&quot;dataset has no queries&quot;</span>
+<span class="linenos">297</span>    <span class="k">assert</span> <span class="n">ignore_qrels</span> <span class="ow">or</span> <span class="n">dataset</span><span class="o">.</span><span class="n">has_qrels</span><span class="p">(),</span> <span class="s2">&quot;dataset has no qrels&quot;</span>
+<span class="linenos">298</span>    <span class="k">assert</span> <span class="n">dataset</span><span class="o">.</span><span class="n">has_scoreddocs</span><span class="p">(),</span> <span class="s2">&quot;dataset has no scored_docs&quot;</span>
 </pre></div>
         </article>
       </div>
@@ -571,7 +602,7 @@
     </aside>
   </div>
 </div><script src="../../_static/documentation_options.js?v=8a448e45"></script>
-    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/scripts/furo.js?v=32e29ea5"></script>
     </body>

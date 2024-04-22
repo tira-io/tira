@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../../genindex.html" /><link rel="search" title="Search" href="../../search.html" /><link rel="next" title="Maintenance" href="../maintenance.html" /><link rel="prev" title="Deploying the Host Module" href="host.html" />
 
-    <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
+    <!-- Generated with Sphinx 7.3.7 and Furo 2024.01.29 -->
         <title>Deploying the Frontend - TIRA</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=135e06be" />
@@ -247,15 +247,15 @@
         </div>
         <article role="main">
           <section id="deploying-the-frontend">
-<h1>Deploying the Frontend<a class="headerlink" href="#deploying-the-frontend" title="Link to this heading">#</a></h1>
+<h1>Deploying the Frontend<a class="headerlink" href="#deploying-the-frontend" title="Link to this heading">¶</a></h1>
 <div class="admonition-todo admonition" id="id1">
 <p class="admonition-title">Todo</p>
 <p>This page is partially deprecated (e.g., broken links) and should be improved.</p>
 </div>
 <section id="deploy-discourse-on-kubernetes">
-<h2>Deploy Discourse on Kubernetes<a class="headerlink" href="#deploy-discourse-on-kubernetes" title="Link to this heading">#</a></h2>
+<h2>Deploy Discourse on Kubernetes<a class="headerlink" href="#deploy-discourse-on-kubernetes" title="Link to this heading">¶</a></h2>
 <section id="prerequisites">
-<h3>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading">#</a></h3>
+<h3>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading">¶</a></h3>
 <p>Software &amp; Packages</p>
 <ul class="simple">
 <li><p>awk</p></li>
@@ -270,7 +270,7 @@
 </ul>
 </section>
 <section id="production-environment">
-<h3>Production environment<a class="headerlink" href="#production-environment" title="Link to this heading">#</a></h3>
+<h3>Production environment<a class="headerlink" href="#production-environment" title="Link to this heading">¶</a></h3>
 <p>The discourse production environent contains:</p>
 <ul class="simple">
 <li><p>1 Service                 (<a class="reference external" href="https://git.webis.de/code-generic/code-admin-knowledge-base/-/tree/master/services/tira/tira-discourse/prod/discourse-prod.yml">prod/discourse-prod.yml</a>)</p></li>
@@ -281,7 +281,7 @@
 <p>To deploy the files named basic scripts are provided.</p>
 </section>
 <section id="by-script">
-<h3>By Script<a class="headerlink" href="#by-script" title="Link to this heading">#</a></h3>
+<h3>By Script<a class="headerlink" href="#by-script" title="Link to this heading">¶</a></h3>
 <p>To deploy via script all you have to do by hand is fill the information sufficient for your service into
 <code class="code docutils literal notranslate"><span class="pre">prod/data.yml</span></code>. Best create a copy with name <code class="code docutils literal notranslate"><span class="pre">your_service_name.yml</span></code> for that.</p>
 <div class="admonition danger">
@@ -318,11 +318,11 @@ to change NodePorts and image description.</p>
 <p>Everything should be set up now and the container should be running soon.</p>
 </section>
 <section id="by-hand">
-<h3>By Hand<a class="headerlink" href="#by-hand" title="Link to this heading">#</a></h3>
+<h3>By Hand<a class="headerlink" href="#by-hand" title="Link to this heading">¶</a></h3>
 <section id="id3">
-<h4>Prerequisites<a class="headerlink" href="#id3" title="Link to this heading">#</a></h4>
+<h4>Prerequisites<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h4>
 <section id="secret">
-<h5>Secret<a class="headerlink" href="#secret" title="Link to this heading">#</a></h5>
+<h5>Secret<a class="headerlink" href="#secret" title="Link to this heading">¶</a></h5>
 <p>Before the deployment itself can be applied the secret containing SMTP information has to exist.</p>
 <p>For the deployment a SMTP server and a Domain Name are needed. The secret stores information about concerning SMTP.</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
@@ -360,7 +360,7 @@ Kubernetes via</p>
 <code class="code docutils literal notranslate"><span class="pre">&lt;name_of_your_choice&gt;</span></code>.</p>
 </section>
 <section id="image">
-<h5>Image<a class="headerlink" href="#image" title="Link to this heading">#</a></h5>
+<h5>Image<a class="headerlink" href="#image" title="Link to this heading">¶</a></h5>
 <p>The image for the Discourse instance gets created following the tutorial for
 <a class="reference external" href="https://github.com/discourse/discourse/blob/master/docs/INSTALL-cloud.md#Install-Discourse">discourse_docker</a>. I will
 repeat the steps here since there will be some differences.</p>
@@ -426,7 +426,7 @@ $<span class="w"> </span>docker<span class="w"> </span>push<span class="w"> </sp
 <code class="code docutils literal notranslate"><span class="pre">spec.template.spec.containers.image</span></code> accordingly.</p>
 </section>
 <section id="ceph">
-<h5>Ceph<a class="headerlink" href="#ceph" title="Link to this heading">#</a></h5>
+<h5>Ceph<a class="headerlink" href="#ceph" title="Link to this heading">¶</a></h5>
 <p>To mount certain boot-specific resources into the container we use a
 <a class="reference external" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#cephfsvolumesource-v1-core">CephFSVolumeSource</a>.
 Be sure CephFS mounted with the correct permissions (webisstud or webis). For information how to mount ceph follow
@@ -444,14 +444,14 @@ cp<span class="w"> </span>/var/discourse/shared/standalone<span class="w"> </spa
 </section>
 </section>
 <section id="deployment">
-<h4>Deployment<a class="headerlink" href="#deployment" title="Link to this heading">#</a></h4>
+<h4>Deployment<a class="headerlink" href="#deployment" title="Link to this heading">¶</a></h4>
 <p>Complete deployment will be done by:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>prod/k8s-deploy-discourse-prod.sh
 </pre></div>
 </div>
 </section>
 <section id="undeploying">
-<h4>Undeploying<a class="headerlink" href="#undeploying" title="Link to this heading">#</a></h4>
+<h4>Undeploying<a class="headerlink" href="#undeploying" title="Link to this heading">¶</a></h4>
 <p>Remove the deployment by:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>prod/k8s-undeploy-discourse-prod.sh
 </pre></div>
@@ -467,7 +467,7 @@ persistent across deploys.</p>
 </div>
 </div>
 <section id="updating">
-<h5>Updating<a class="headerlink" href="#updating" title="Link to this heading">#</a></h5>
+<h5>Updating<a class="headerlink" href="#updating" title="Link to this heading">¶</a></h5>
 <p>After having done all the manual steps above one does not have to repeat them for updating the Discourse instance.
 This can be done via script, issueing:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># prod/update-discourse.sh -u &lt;DOCKERHUB_USER&gt; -i &lt;DOCKERHUB_IMAGENAME&gt; -t &lt;TAG&gt; -s &lt;SERVICE_NAME&gt;</span>
@@ -480,7 +480,7 @@ exists for the image so you don’t override images.</p>
 </section>
 </section>
 <section id="development-environment">
-<h3>Development environment<a class="headerlink" href="#development-environment" title="Link to this heading">#</a></h3>
+<h3>Development environment<a class="headerlink" href="#development-environment" title="Link to this heading">¶</a></h3>
 <div class="admonition-todo admonition" id="id4">
 <p class="admonition-title">Todo</p>
 <p>This section should be moved to an appropriate location in the developer-documentation instead of the
@@ -494,7 +494,7 @@ organizer-documentation</p>
 </ul>
 <p>To deploy the files named basic scripts are provided.</p>
 <section id="deploying">
-<h4>Deploying<a class="headerlink" href="#deploying" title="Link to this heading">#</a></h4>
+<h4>Deploying<a class="headerlink" href="#deploying" title="Link to this heading">¶</a></h4>
 <p>First, to prevent collision with other development instances you have to choose a port <code class="code docutils literal notranslate"><span class="pre">&lt;PORT&gt;</span></code> for your instance.
 Or rather 2. One for http and one for the mailcatcher. Do this by editing the Service in
 ([dev/discourse-dev.yml](dev/discourse-dev.yml)) at spec.ports accordingly (from 3080X to something you choose).
@@ -521,7 +521,7 @@ via</p>
 <code class="code docutils literal notranslate"><span class="pre">betawebXXX.medien.uni-weimar.de:30804</span></code> does not work, but only <code class="code docutils literal notranslate"><span class="pre">betawebXXX:30804</span></code> does.</p>
 </section>
 <section id="id6">
-<h4>Undeploying<a class="headerlink" href="#id6" title="Link to this heading">#</a></h4>
+<h4>Undeploying<a class="headerlink" href="#id6" title="Link to this heading">¶</a></h4>
 <p>This works the same way, as for the production instance basically.
 Remove the deployment by:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>prod/k8s-undeploy-discourse-dev.sh
@@ -635,7 +635,7 @@ persistent across deploys.</p>
     </aside>
   </div>
 </div><script src="../../_static/documentation_options.js?v=8a448e45"></script>
-    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/scripts/furo.js?v=32e29ea5"></script>
     </body>

@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../../genindex.html" /><link rel="search" title="Search" href="../../search.html" /><link rel="next" title="Deploying the Host Module" href="host.html" /><link rel="prev" title="Deployment" href="index.html" />
 
-    <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
+    <!-- Generated with Sphinx 7.3.7 and Furo 2024.01.29 -->
         <title>Deploying the Application Module - TIRA</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=135e06be" />
@@ -247,9 +247,9 @@
         </div>
         <article role="main">
           <section id="deploying-the-application-module">
-<h1>Deploying the Application Module<a class="headerlink" href="#deploying-the-application-module" title="Link to this heading">#</a></h1>
+<h1>Deploying the Application Module<a class="headerlink" href="#deploying-the-application-module" title="Link to this heading">¶</a></h1>
 <section id="development-setup">
-<h2>Development Setup<a class="headerlink" href="#development-setup" title="Link to this heading">#</a></h2>
+<h2>Development Setup<a class="headerlink" href="#development-setup" title="Link to this heading">¶</a></h2>
 <p>The following steps will setup a self-contained, local tira application and a mockup tira host. See <a class="reference internal" href="#development">Development</a> for
 more detailed options.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install Python3, pip and virtualenv</span>
@@ -263,7 +263,7 @@ make<span class="w"> </span>run-develop<span class="w">  </span><span class="c1"
 </div>
 </section>
 <section id="docker">
-<h2>Docker<a class="headerlink" href="#docker" title="Link to this heading">#</a></h2>
+<h2>Docker<a class="headerlink" href="#docker" title="Link to this heading">¶</a></h2>
 <p>You can run tira in a docker container for a simple deployment.</p>
 <p>You need to run two docker containers for a tira-application:</p>
 <ul class="simple">
@@ -282,7 +282,7 @@ make<span class="w"> </span>run-develop<span class="w">  </span><span class="c1"
 </pre></div>
 </div>
 <section id="use-tira-with-discourse-via-disraptor-optional">
-<h3>Use TIRA with Discourse via Disraptor (optional)<a class="headerlink" href="#use-tira-with-discourse-via-disraptor-optional" title="Link to this heading">#</a></h3>
+<h3>Use TIRA with Discourse via Disraptor (optional)<a class="headerlink" href="#use-tira-with-discourse-via-disraptor-optional" title="Link to this heading">¶</a></h3>
 <p>If you set up Discourse with <a class="reference external" href="https://www.disraptor.org">Disraptor</a>, this will be useful information on how to
 make TIRA work with it.</p>
 <ol class="arabic">
@@ -374,9 +374,9 @@ Rails server.</p>
 </section>
 </section>
 <section id="build-and-deploy">
-<h2>Build and Deploy<a class="headerlink" href="#build-and-deploy" title="Link to this heading">#</a></h2>
+<h2>Build and Deploy<a class="headerlink" href="#build-and-deploy" title="Link to this heading">¶</a></h2>
 <section id="run-the-tests">
-<h3>Run the tests<a class="headerlink" href="#run-the-tests" title="Link to this heading">#</a></h3>
+<h3>Run the tests<a class="headerlink" href="#run-the-tests" title="Link to this heading">¶</a></h3>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># run all tests in application/src/tira/tests</span>
 application/src~$<span class="w"> </span>python3<span class="w"> </span>manage.py<span class="w"> </span><span class="nb">test</span><span class="w"> </span><span class="nb">test</span><span class="w"> </span>tira/tests/
 <span class="c1"># run an individual test module</span>
@@ -385,7 +385,7 @@ application/src~$<span class="w"> </span>python3<span class="w"> </span>manage.p
 </div>
 </section>
 <section id="deploy-on-kubernetes">
-<h3>Deploy on Kubernetes<a class="headerlink" href="#deploy-on-kubernetes" title="Link to this heading">#</a></h3>
+<h3>Deploy on Kubernetes<a class="headerlink" href="#deploy-on-kubernetes" title="Link to this heading">¶</a></h3>
 <div class="admonition-todo admonition" id="id1">
 <p class="admonition-title">Todo</p>
 <p>This step is deprecated and the documentation must be updated</p>
@@ -396,7 +396,7 @@ application/src~$<span class="w"> </span>python3<span class="w"> </span>manage.p
 </div>
 </section>
 <section id="re-build-the-docker-images">
-<h3>Re-build the docker images<a class="headerlink" href="#re-build-the-docker-images" title="Link to this heading">#</a></h3>
+<h3>Re-build the docker images<a class="headerlink" href="#re-build-the-docker-images" title="Link to this heading">¶</a></h3>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Build the protobuf libraries from source.</span>
 make<span class="w"> </span>build
 <span class="c1"># This creates the virtual environment and prepares Django&#39;s database</span>
@@ -412,7 +412,7 @@ make<span class="w"> </span>docker-publish-tira-application
 <p>These make targets from the deployment configuration: <code class="code docutils literal notranslate"><span class="pre">tira/application/config/settings-deploy.yml</span></code>.</p>
 </section>
 <section id="development">
-<h3>Development<a class="headerlink" href="#development" title="Link to this heading">#</a></h3>
+<h3>Development<a class="headerlink" href="#development" title="Link to this heading">¶</a></h3>
 <p>The settings used for the development setup are: <code class="code docutils literal notranslate"><span class="pre">tira/application/config/settings-dev.yml</span></code>.</p>
 <p>Frequently used development commands are:</p>
 <ul>
@@ -441,11 +441,11 @@ with fake commands. This is the simplest way to develop the application.</p>
 </section>
 </section>
 <section id="troubleshooting">
-<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading">#</a></h2>
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading">¶</a></h2>
 <p>If there are problems with the precompiled protobuf parser, you can recompile them from the <code class="code docutils literal notranslate"><span class="pre">tira/protocol</span></code>
 repository and copy them to <code class="code docutils literal notranslate"><span class="pre">tira/application/src/tira/proto</span></code>.</p>
 <section id="setup-on-macos-monterey-m1">
-<h3>Setup on MacOS (Monterey/M1)<a class="headerlink" href="#setup-on-macos-monterey-m1" title="Link to this heading">#</a></h3>
+<h3>Setup on MacOS (Monterey/M1)<a class="headerlink" href="#setup-on-macos-monterey-m1" title="Link to this heading">¶</a></h3>
 <div class="admonition attention">
 <p class="admonition-title">Attention</p>
 <p>This part of the documentation is experimental and may not work for everyone.</p>
@@ -574,7 +574,7 @@ pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </s
     </aside>
   </div>
 </div><script src="../../_static/documentation_options.js?v=8a448e45"></script>
-    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/scripts/furo.js?v=32e29ea5"></script>
     </body>
