@@ -9,7 +9,22 @@ class IrLabSoSe2024Test(unittest.TestCase):
         actual = digest_of_dataset('ir-acl-anthology-20240411-training')
         verify_as_json(actual)
 
+    def test_longeval_06_corpus_is_available(self):
+        actual = digest_of_dataset('longeval-2023-06-20240418-training')
+        verify_as_json(actual)
+
+    def test_longeval_08_corpus_is_available(self):
+        actual = digest_of_dataset('longeval-2023-08-20240418-training')
+        verify_as_json(actual)
     
+    def test_padua_longeval_06_corpus_is_available(self):
+        actual = digest_of_dataset('longeval-2023-06-20240422-training')
+        verify_as_json(actual)
+
+    def test_padua_longeval_08_corpus_is_available(self):
+        actual = digest_of_dataset('longeval-2023-08-20240422-training')
+        verify_as_json(actual)
+
     def test_digest_of_run_outputs(self):
         dataset_id = 'ir-acl-anthology-20240411-training'
         approaches = [

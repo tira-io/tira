@@ -362,6 +362,8 @@ STATIC_DATASET_REDIRECTS = {
     'jena-topics-small-20240119-training': 'https://zenodo.org/records/10628882/files/',
     'leipzig-topics-small-20240119-training': 'https://zenodo.org/records/10628882/files/',
     'ir-acl-anthology-20240411-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/',
+    'longeval-2023-06-20240418-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-padua2024/',
+    'longeval-2023-08-20240418-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-padua2024/',
 }
 
 RESOURCE_REDIRECTS = {
@@ -370,7 +372,9 @@ RESOURCE_REDIRECTS = {
 }
 
 DATASET_ID_REDIRECTS = {
-    'longeval-tiny-train-20240315-training': 'training-20231104-training'
+    'longeval-tiny-train-20240315-training': 'training-20231104-training',
+    'longeval-2023-06-20240422-training': 'longeval-2023-06-20240418-training',
+    'longeval-2023-08-20240422-training': 'longeval-2023-08-20240418-training'
 }
 
 

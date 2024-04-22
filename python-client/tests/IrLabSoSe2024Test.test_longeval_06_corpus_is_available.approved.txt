@@ -1,0 +1,9 @@
+{
+    "md5_of_first_kilobyte": "20472a9f7ee7eeaccf801dc31351a12d",
+    "redirect_url": {
+        "urls": [
+            "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-padua2024/longeval-2023-06-20240418-inputs.zip?download=1"
+        ]
+    },
+    "tira_url": "https://www.tira.io/data-download/training/input-/longeval-2023-06-20240418-training.zip"
+}
