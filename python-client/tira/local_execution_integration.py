@@ -167,7 +167,7 @@ class LocalExecutionIntegration():
         return True
 
 
-    def run(self, identifier=None, image=None, command=None, input_dir=None, output_dir=None, evaluate=False, dry_run=False, docker_software_id_to_output=None, software_id=None, allow_network=False, input_run=None, additional_volumes=None, eval_dir='tira-evaluation'):
+    def run(self, identifier=None, image=None, command=None, input_dir=None, output_dir=None, evaluate=False, dry_run=False, docker_software_id_to_output=None, software_id=None, allow_network=False, input_run=None, additional_volumes=None, eval_dir='tira-evaluation', gpu_count=0):
         previous_stages = []
         original_args = {'identifier': identifier, 'image': image, 'command': command, 'input_dir': input_dir, 'output_dir': output_dir, 'evaluate': evaluate, 'dry_run': dry_run, 'docker_software_id_to_output': docker_software_id_to_output, 'software_id': software_id}
         s_id = 'unknown-software-id'
@@ -230,7 +230,11 @@ class LocalExecutionIntegration():
         if input_run:
             environment['inputRun'] = '/tira-data/input-run'
 
-        container = client.containers.run(image, entrypoint='sh', command=f'-c "{command}; sleep .1"', environment=environment, volumes=volumes, detach=True, remove=True, network_disabled = not allow_network)
+        device_requests = []
+        if gpu_count != 0:
+            device_requests=[docker.types.DeviceRequest(count=gpu_count, capabilities=[['gpu']])]
+
+        container = client.containers.run(image, entrypoint='sh', command=f'-c "{command}; sleep .1"', environment=environment, volumes=volumes, detach=True, remove=True, network_disabled = not allow_network, device_requests=device_requests)
 
         for line in container.attach(stdout=True, stream=True, logs=True):
             print(line.decode('utf-8'))

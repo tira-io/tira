@@ -1,3 +1,4 @@
+from tira.license_agreements import print_license_agreement
 
 STATIC_REDIRECTS = {
     'ir-benchmarks': {
@@ -415,6 +416,8 @@ def mirror_url(url):
 def redirects(approach=None, dataset=None, url=None):
     default_ret = {'urls': [url]}
     if url is not None:
+        print_license_agreement(url)
+
         if '/task/' in url and '/user/' in url and '/dataset/' in url and '/download/' in url and '.zip' in url:
             #/task/{task}/user/{team}/dataset/{dataset}/download/{run_id}.zip
             ret = url.split('/task/')[1]

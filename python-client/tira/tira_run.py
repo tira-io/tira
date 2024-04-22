@@ -52,6 +52,7 @@ def parse_args():
     group.add_argument('--export-submission-environment', nargs='*', required=False, default=None, type=str)
     parser.add_argument('--command', required=False)
     parser.add_argument('--verbose', required=False, default=False, action='store_true')
+    parser.add_argument('--gpus', required=False, default=False, type=str, help='GPU devices to add to the container ("all" or -1 to pass all GPUs, or the number of devices).')
     parser.add_argument('--evaluate', required=False, default=False, type=bool)
     parser.add_argument('--evaluation-directory', required=False, default=str(os.path.abspath("tira-evaluation")))
     parser.add_argument('--dry-run', required=False, default=False, type=bool)
@@ -263,7 +264,11 @@ def main(args=None):
 # command={args.command}
 ############################################################################################################################
 ''')
-    client.local_execution.run(identifier=args.approach, image=args.image, command=args.command, input_dir=input_dir, output_dir=args.output_directory, dry_run=args.dry_run, allow_network=args.allow_network, input_run=args.input_run, additional_volumes=args.v, evaluate=evaluate, eval_dir=args.evaluation_directory)
+    gpus = 0
+    if args.gpus:
+        gpus = -1 if args.gpus == 'all' else int(gpus)
+
+    client.local_execution.run(identifier=args.approach, image=args.image, command=args.command, input_dir=input_dir, output_dir=args.output_directory, dry_run=args.dry_run, allow_network=args.allow_network, input_run=args.input_run, additional_volumes=args.v, evaluate=evaluate, eval_dir=args.evaluation_directory, gpu_count=gpus)
 
     if args.fail_if_output_is_empty and (not os.path.exists(args.output_directory) or not os.listdir(args.output_directory)):
         raise ValueError('The software produced an empty output directory, it likely failed?')
