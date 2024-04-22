@@ -129,12 +129,20 @@ def discourse_api_client():
 
 
 def tira_run_command(image, command, task_id):
-    input_dataset = f'{task_id}/ADD-DATASET-ID-HERE'
-    if task_id in settings.REFERENCE_DATASETS:
-        input_dataset = settings.REFERENCE_DATASETS[task_id]
+    input_dataset = reference_dataset(task_id)
 
     return f'tira-run \\\n  --input-dataset {input_dataset} \\\n  --image {image} \\\n  --command \'{command}\''
 
+def reference_dataset(task_id):
+    if task_id in settings.REFERENCE_DATASETS:
+        return settings.REFERENCE_DATASETS[task_id]
+    else:
+        available_datasets = get_datasets_by_task(task_id)
+        available_datasets = [i['dataset_id'] for i in available_datasets if i['dataset_id'].endswith('-training') and not i['is_confidential'] and not i['is_deprecated']]
+        if len(available_datasets) > 0:
+            return f'{task_id}/{available_datasets[0]}'
+        else:
+            return f'{task_id}/ADD-DATASET-ID-HERE'
 
 def tira_docker_registry_token(docker_software_help):
     ret = docker_software_help.split('docker login -u ')[1].split(' -p')

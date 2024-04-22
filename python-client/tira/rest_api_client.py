@@ -7,14 +7,14 @@ import zipfile
 import io
 import time
 from random import randint
-from tira.pyterrier_integration import PyTerrierIntegration
+from tira.pyterrier_integration import PyTerrierIntegration, PyTerrierAnceIntegration, PyTerrierSpladeIntegration
 from tira.pandas_integration import PandasIntegration
 from tira.local_execution_integration import LocalExecutionIntegration
 import logging
 from .tira_client import TiraClient
 from typing import Optional, List, Dict, Union
 from functools import lru_cache
-from tira.tira_redirects import redirects, mirror_url, dataset_ir_redirects
+from tira.tira_redirects import redirects, mirror_url, dataset_ir_redirects, RESOURCE_REDIRECTS
 from tqdm import tqdm
 import hashlib
 
@@ -38,6 +38,8 @@ class Client(TiraClient):
             self.fail_if_api_key_is_invalid()
         self.pd = PandasIntegration(self)
         self.pt = PyTerrierIntegration(self)
+        self.pt_ance = PyTerrierAnceIntegration(self)
+        self.pt_splade = PyTerrierSpladeIntegration(self)
         self.local_execution = LocalExecutionIntegration(self)
 
         self.failsave_retries = failsave_retries
@@ -45,7 +47,12 @@ class Client(TiraClient):
 
     def load_settings(self):
         try:
-            return json.load(open(self.tira_cache_dir + '/.tira-settings.json', 'r'))
+            ret = json.load(open(self.tira_cache_dir + '/.tira-settings.json', 'r'))
+            if 'api_key' not in ret:
+                ret['api_key'] = 'no-api-key'
+            if 'api_user_name' not in ret:
+                ret['api_user_name'] = 'no-api-key-user'
+            return ret
         except Exception:
             logging.info(f'No settings given in {self.tira_cache_dir}/.tira-settings.json. I will use defaults.')
             return {'api_key': 'no-api-key', 'api_user_name': 'no-api-key-user'}
@@ -53,6 +60,7 @@ class Client(TiraClient):
     def update_settings(self, k, v):
         settings = self.load_settings()
         settings[k] = v
+        os.makedirs(self.tira_cache_dir, exist_ok=True)
         json.dump(settings, open(Path(self.tira_cache_dir) / '.tira-settings.json', 'w+'))
 
         if k == 'api_key':
@@ -61,10 +69,10 @@ class Client(TiraClient):
     def api_key_is_valid(self):
         role = self.json_response('/api/role')
 
-        if (self.api_user_name is None or self.api_user_name == 'no-api-key-user') and role and 'context' in role and 'user_id' in role['context']:
+        if (self.api_user_name is None or self.api_user_name == 'no-api-key-user') and role and 'context' in role and 'user_id' in role['context'] and role['context']['user_id']:
             self.api_user_name = role['context']['user_id']
 
-        return role and 'status' in role and 'role' in role and 0 == role['status']
+        return role and 'status' in role and 'role' in role and 0 == role['status'] and 'user_id' in role['context'] and role['context']['user_id'] and 'role' in role['context'] and role['context']['role'] and 'guest' != role['context']['role']
 
     def fail_if_api_key_is_invalid(self):
         if not self.api_key_is_valid():
@@ -123,6 +131,8 @@ class Client(TiraClient):
         ret = ret.content.decode('utf8')
         ret = json.loads(ret)
         assert ret['status'] == 0
+        
+        print(f'Software with name {ret["context"]["display_name"]} was created.')
         logging.info(f'Software with name {ret["context"]["display_name"]} was created.')
         logging.info(f'Please visit {self.base_url}/submit/{tira_task_id}/user/{tira_vm_id}/docker-submission to run your software.')
 
@@ -211,6 +221,29 @@ class Client(TiraClient):
     def run_was_already_executed_on_dataset(self, approach, dataset):
         return self.get_run_execution_or_none(approach, dataset) is not None
 
+    def load_resource(self, resource:str):
+        """Load a resource (usually a zip) from TIRA/Zenodo. Serves as utikity function in case some additional resources must be loaded.
+
+        Args:
+            resource (str): The resource identifier
+
+        Raises:
+            ValueError: If the resource is not known.
+
+        Returns:
+            str: The path to the downloaded resource.
+        """
+        target_file = f'{self.tira_cache_dir}/raw_resources/{resource}'
+        if os.path.exists(target_file):
+            return target_file
+
+        if resource not in RESOURCE_REDIRECTS:
+            raise ValueError(f'Resource {resource} not supported.')
+
+        os.makedirs(f'{self.tira_cache_dir}/raw_resources', exist_ok=True)
+        self.download_and_extract_zip(RESOURCE_REDIRECTS[resource], target_file, extract=False)
+        return target_file
+
     def get_run_output(self, approach, dataset, allow_without_evaluation=False):
         """
         Downloads the run (or uses the cached version) of the specified approach on the specified dataset.
@@ -220,7 +253,10 @@ class Client(TiraClient):
         if mounted_output_in_sandbox:
             return mounted_output_in_sandbox
 
-        task, team, software = approach.split('/')        
+        task, team, software = approach.split('/')
+        if '/' in dataset:
+            dataset = dataset.split('/')[-1]
+
         run_execution = self.get_run_execution_or_none(approach, dataset)
 
         if run_execution:
@@ -276,6 +312,8 @@ class Client(TiraClient):
         return ret[['task', 'dataset', 'team', 'run_id']].iloc[0].to_dict()
         
     def download_run(self, task, dataset, software, team=None, previous_stage=None, return_metadata=False):
+        if '/' in dataset:
+            dataset = dataset.split('/')[-1]
         ret = self.get_run_execution_or_none(f'{task}/{team}/{software}', dataset, previous_stage)
         if not ret:
             raise ValueError(f'I could not find a run for the filter criteria task="{task}", dataset="{dataset}", software="{software}", team={team}, previous_stage={previous_stage}')
@@ -308,6 +346,8 @@ class Client(TiraClient):
         """
         if 'TIRA_INPUT_DATASET' in os.environ:
             return os.environ['TIRA_INPUT_DATASET']
+        if '/' in dataset:
+            dataset = dataset.split('/')[-1]
 
         dataset = dataset_ir_redirects(dataset)
 
@@ -383,7 +423,7 @@ class Client(TiraClient):
 
         return ret
 
-    def download_and_extract_zip(self, url, target_dir):
+    def download_and_extract_zip(self, url, target_dir, extract=True):
         url = redirects(url=url)['urls'][0]
         if url.split('://')[1].startswith('files.webis.de'):
             print(f'Download from the Incubator: {url}')
@@ -413,10 +453,16 @@ class Client(TiraClient):
                     for data in r.iter_content(chunk_size=1024):
                         size = response_content.write(data)
                         bar.update(size)
-                print('Download finished. Extract...')
-                z = zipfile.ZipFile(response_content)
-                z.extractall(target_dir)
-                print('Extraction finished: ', target_dir)
+                if extract:
+                    print('Download finished. Extract...')
+                    z = zipfile.ZipFile(response_content)
+                    z.extractall(target_dir)
+                    print('Extraction finished: ', target_dir)
+                else:
+                    print('Download finished. Persist...')
+                    with open(target_dir, 'wb') as file_out:
+                        file_out.write(response_content.getbuffer())
+                    print('Download finished: ', target_dir)
 
                 return
             except Exception as e:
@@ -516,6 +562,10 @@ class Client(TiraClient):
             return None
 
         self.fail_if_api_key_is_invalid()
+
+        if file_path is None or not file_path.is_file():
+            logging.warn(f'The passed file {file_path} does not exist.')
+            raise ValueError(f'The passed file {file_path} does not exist.')
 
         # TODO: check that task_id and vm_id don't contain illegal characters (e.g., '/')
         url = f"/task/{task_id}/vm/{vm_id}/upload/{dataset_id}/{upload_id}"

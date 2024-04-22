@@ -141,7 +141,7 @@ export default {
       get('/task/' + this.task_id + '/vm/' + this.run.vm_id + '/run_details/' + this.run.run_id)
         .then(inject_response(this, {'loading': false}))
         .catch(() => {this.details_not_visible = true; this.loading = false})
-      },
+    },
     updateTab() {
       this.component_tab = this.selectedComponentTab
     }

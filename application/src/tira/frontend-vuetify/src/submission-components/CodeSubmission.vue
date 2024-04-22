@@ -3,7 +3,41 @@
     <v-card-item v-if="loading"><loading :loading="loading"/></v-card-item>
     <v-card-item v-if="!loading && disabled">
     <v-card-text>
-      Code submissions are not enabled for this task. Please contact your organizers <a :href="organizer_link">{{organizer}}</a> to enable code submissions.
+      You can submit to TIRA from your source code repository via GitHub actions that dockerize your code, test the docker image, and upload it to TIRA. This way, you don't need to install Docker on your machine, and our prepared Github action sends the metadata (i.e., the commit hash, the branch, the repository, etc.) to TIRA to ensure that the submission can be linked to the code that produced it. Please do not hesitate to contact your organizers <a :href="organizer_link">{{organizer}}</a> or the <a href="https://www.tira.io/categories">forum</a> in case of questions or problems.
+
+      <br><br>
+      You can setup a software submission in three steps:
+      <br>
+
+      <v-stepper :items="['Setup Your Git Repository', 'Add the Github Action', 'Submit']" flat :border=false>
+        <template v-slot:item.1>
+          <v-card title="" flat>
+            <h3>Create your Git repository</h3>
+            Please create your git repository with your code. The repository can be private or public.
+            <br><br>
+            <h3>Add the TIRA_CLIENT_TOKEN secret to your Git repository</h3>
+            In your repository, go to "Settings" -> "Secrets and variables" -> "Actions" and add a new repository secret with the name TIRA_CLIENT_TOKEN and the value:
+            <br><br>
+            <code-snippet title="TIRA_CLIENT_TOKEN" :code="token" expand_message=""/>
+          </v-card>
+        </template>
+
+        <template v-slot:item.2>
+          <v-card title="" flat>
+            Please download the Github action <a :href="'/data-download/git-repo-template/' + user_id + '/' + task_id + '.zip'" target="_blank">here</a>.
+            <br>
+            This zip directory contains the github action in the file ".github/workflows/upload-software-to-tira.yml" that you can add to your git repository. The rest of the zip directory shows exemplary how to connect the code of your repository to your repository, see the README.md in the zip for more details.
+          </v-card>
+        </template>
+
+        <template v-slot:item.3>
+          <v-card title="" flat>
+            After you have added the Github action (e.g., ".github/workflows/upload-software-to-tira.yml") to your Github repository, please run it by clicking on "Actions" -> "Upload Software to TIRA" -> "Run workflow".
+            <br><br>
+            After successful completion of the Github action, your new submission appears under the "Docker" tab above where you can select and run your new submission.
+          </v-card>
+        </template>
+      </v-stepper>
     </v-card-text>
     </v-card-item>
     <v-card-item v-if="!loading && !disabled">
@@ -83,7 +117,8 @@ export default {
         ssh_repo_url: '',
         owner_url: '',
         http_owner_url: '',
-        disabled: false
+        disabled: false,
+        token: '<ADD-YOUR-TOKEN-HERE>'
     }
   },
   methods: {
@@ -106,6 +141,9 @@ export default {
     get(`/api/get_software_submission_git_repository/${this.task_id}/${this.user_id}`)
       .then(inject_response(this, {'loading': false}))
       .catch(reportError("Problem loading the data of the task.", "This might be a short-term hiccup, please try again. We got the following error: "))
+
+    get('/api/token/' + this.user_id)
+      .then(inject_response(this))
   },
   computed: {
     organizer_link() {return get_link_to_organizer(this.organizer_id)},

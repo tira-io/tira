@@ -51,7 +51,8 @@ def parse_args():
     group.add_argument('--export-submission-from-jupyter-notebook', required=False, default=None, type=str)
     group.add_argument('--export-submission-environment', nargs='*', required=False, default=None, type=str)
     parser.add_argument('--command', required=False)
-    parser.add_argument('--verbose', required=False, default=False, type=bool)
+    parser.add_argument('--verbose', required=False, default=False, action='store_true')
+    parser.add_argument('--gpus', required=False, default=False, type=str, help='GPU devices to add to the container ("all" or -1 to pass all GPUs, or the number of devices).')
     parser.add_argument('--evaluate', required=False, default=False, type=bool)
     parser.add_argument('--evaluation-directory', required=False, default=str(os.path.abspath("tira-evaluation")))
     parser.add_argument('--dry-run', required=False, default=False, type=bool)
@@ -98,6 +99,7 @@ def parse_args():
     args.previous_stages = [] if not args.input_run else [args.input_run]
     if args.input_run is None and args.input_run_directory is None:
         args.input_run = extract_previous_stages_from_docker_image(args.image, args.command)
+        args.command = LocalExecutionIntegration().make_command_absolute(args.image, args.command)
         args.previous_stages = args.input_run
         if args.input_run and len(args.input_run) == 1:
             args.input_run = args.input_run[0]
@@ -112,8 +114,17 @@ def parse_args():
         if args.tira_client_token:
             if api_key_valid:
                 args.tira_client_token = rest_client.api_key
+            elif 'TIRA_CLIENT_TOKEN' in os.environ and os.environ.get('TIRA_CLIENT_TOKEN'):
+                rest_client = RestClient(api_key=os.environ.get('TIRA_CLIENT_TOKEN'))
+                api_key_valid = rest_client.api_key_is_valid()
+                if api_key_valid:
+                    args.tira_client_token = rest_client.api_key
+                else:
+                    parser.error('The option --tira-client-token (or environment variable TIRA_CLIENT_TOKEN) is required when --push is active.')
             else:
-                parser.error('The option --tira-client-token (or environment variable TIRA_CLIENT_TOKEN) is required when --push is active.')
+                rest_client = RestClient(api_key=args.tira_client_token)
+                if not rest_client.api_key_is_valid():
+                    parser.error('The option --tira-client-token (or environment variable TIRA_CLIENT_TOKEN) is required when --push is active.')
 
         if not args.tira_task_id and args.input_dataset:
             args.tira_task_id = args.input_dataset.split('/')[0]
@@ -253,7 +264,11 @@ def main(args=None):
 # command={args.command}
 ############################################################################################################################
 ''')
-    client.local_execution.run(identifier=args.approach, image=args.image, command=args.command, input_dir=input_dir, output_dir=args.output_directory, dry_run=args.dry_run, allow_network=args.allow_network, input_run=args.input_run, additional_volumes=args.v, evaluate=evaluate, eval_dir=args.evaluation_directory)
+    gpus = 0
+    if args.gpus:
+        gpus = -1 if args.gpus == 'all' else int(args.gpus)
+
+    client.local_execution.run(identifier=args.approach, image=args.image, command=args.command, input_dir=input_dir, output_dir=args.output_directory, dry_run=args.dry_run, allow_network=args.allow_network, input_run=args.input_run, additional_volumes=args.v, evaluate=evaluate, eval_dir=args.evaluation_directory, gpu_count=gpus)
 
     if args.fail_if_output_is_empty and (not os.path.exists(args.output_directory) or not os.listdir(args.output_directory)):
         raise ValueError('The software produced an empty output directory, it likely failed?')
@@ -271,11 +286,12 @@ def main(args=None):
             for f in os.listdir(args.output_directory):
                 print(f' - {f}: {os.path.getsize(args.output_directory + "/" + f)} bytes')
     
-        continue_user = input("Are the outputs correct and should I push the software to TIRA? (y/N) ").lower()
+        if not args.fail_if_output_is_empty:
+            continue_user = input("Are the outputs correct and should I push the software to TIRA? (y/N) ").lower()
 
-        if continue_user and continue_user.lower() not in ['y', 'yes']:
-            print('You did not specify yes, I will not push the software.')
-            return
+            if continue_user and continue_user.lower() not in ['y', 'yes']:
+                print('You did not specify yes, I will not push the software.')
+                return
 
         registry_prefix = client.docker_registry() + '/code-research/tira/tira-user-' + args.tira_vm_id + '/'
         print('Push Docker image')

@@ -1,0 +1,9 @@
+{
+    "md5_of_first_kilobyte": "c2a03599f209b02f65e9154c5cf4ca84",
+    "redirect_url": {
+        "urls": [
+            "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/custom-terrier-token-processing-1.0-SNAPSHOT-jar-with-dependencies.jar"
+        ]
+    },
+    "url": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/custom-terrier-token-processing-1.0-SNAPSHOT-jar-with-dependencies.jar"
+}

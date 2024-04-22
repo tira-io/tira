@@ -140,6 +140,35 @@ def parse_prototext_key_values(file_name):
             yield ret
 
 
+def to_prototext(m: List[Dict[str, Any]], upper_k: str = "") -> str:
+    ret = ""
+
+    def _to_prototext(d: Dict[str, Any], upper_k: str = "") -> str:
+        ret = ""
+        for k, v in d.items():
+            new_k = upper_k
+            if not new_k:
+                new_k = k
+            elif not new_k.endswith(k):
+                new_k = upper_k + "_" + k
+            if isinstance(v, dict):
+                ret += _to_prototext(v, upper_k=new_k)
+            else:
+                ret += (
+                    'measure{\n  key: "'
+                    + str(new_k.replace("_", " ").title())
+                    + '"\n  value: "'
+                    + str(v)
+                    + '"\n}\n'
+                )
+        return ret
+
+    for d in m:
+        ret += _to_prototext(d, upper_k=upper_k)
+
+    return ret
+
+
 def all_environment_variables_for_github_action_or_fail(params):
     ret = {}
 

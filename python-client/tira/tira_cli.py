@@ -23,6 +23,7 @@ def parse_args():
 
     parser_login = subparsers.add_parser('login', help='Login your TIRA client to the tira server.')
     parser_login.add_argument('--token', required=True, default=None, help='The token to login to the server.')
+    parser_login.add_argument('--print-docker-auth', required=False, default=False, action='store_true', help='Print the docker credentials as TIRA_DOCKER_REGISTRY_USER and TIRA_DOCKER_REGISTRY_TOKEN to stdout.')
 
     args = parser.parse_args()
 
@@ -45,3 +46,5 @@ def main():
             print(client.download_dataset(None, args.dataset))
     if args.command == 'login':
         client.login(args.token)
+        if args.print_docker_auth:
+            print(client.local_execution.docker_client_is_authenticated())
