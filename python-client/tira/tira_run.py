@@ -3,6 +3,7 @@ import argparse
 from tira.local_client import Client
 from tira.rest_api_client import Client as RestClient
 from tira.local_execution_integration import LocalExecutionIntegration
+from tira.io_utils import huggingface_model_mounts
 import os
 import shutil
 import logging
@@ -50,7 +51,7 @@ def parse_args():
     group.add_argument('--export-approach-output', nargs='*', required=False, default=None, type=str)
     group.add_argument('--export-submission-from-jupyter-notebook', required=False, default=None, type=str)
     group.add_argument('--export-submission-environment', nargs='*', required=False, default=None, type=str)
-    parser.add_argument('--command', required=False)
+    parser.add_argument('--command', required=False, help='Command to execute in the container. Has access to variables $inputDataset (points to the directory with the inputs), $outputDir (results should be persisted in this directory), and optionally $inputRun (points to the directory with the outputs of the previous stage).')
     parser.add_argument('--verbose', required=False, default=False, action='store_true')
     parser.add_argument('--gpus', required=False, default=False, type=str, help='GPU devices to add to the container ("all" or -1 to pass all GPUs, or the number of devices).')
     parser.add_argument('--evaluate', required=False, default=False, type=bool)
@@ -70,6 +71,7 @@ def parse_args():
     parser.add_argument('--tira-task-id', required=False, default=os.environ.get('TIRA_TASK_ID'))
     parser.add_argument('--tira-code-repository-id', required=False, default=os.environ.get('TIRA_CODE_REPOSITORY_ID'))
     parser.add_argument('--fail-if-output-is-empty', required=False, default=False, action='store_true', help='After the execution of the software, fail if the output directory is empty.')
+    parser.add_argument('--mount-hf-model', nargs='+', default=[], help='Mount models from the local huggingface hub cache (i.e., $HOME/.cache/huggingface/hub) into the container during execution. This is intended to remove redundancy so that the models must not be embedded into the Docker images.')
 
     subparsers = parser.add_subparsers()
     setup_upload_run_command(subparsers.add_parser('upload', help="For uploading runs"))
@@ -97,7 +99,8 @@ def parse_args():
             parser.error('I could not find a command to execute, please either configure the entrypoint of the image or use --command.')
     
     args.previous_stages = [] if not args.input_run else [args.input_run]
-    if args.input_run is None and args.input_run_directory is None:
+
+    if args.input_run is None and args.input_run_directory is None and args.image is not None:
         args.input_run = extract_previous_stages_from_docker_image(args.image, args.command)
         args.command = LocalExecutionIntegration().make_command_absolute(args.image, args.command)
         args.previous_stages = args.input_run
@@ -156,6 +159,9 @@ def parse_args():
             parser.error('The option --tira-docker-registry-user (or environment variable TIRA_DOCKER_REGISTRY_USER) is required when --push is active.')
 
         args.previous_stages = [rest_client.public_runs(args.tira_task_id, args.input_dataset.split('/')[1], i.split('/')[1], i.split('/')[2]) for i in args.previous_stages]
+
+    if not args.approach and not args.image:
+        parser.error('Please specify what you want to run.')
 
     return args
 
@@ -257,6 +263,13 @@ def main(args=None):
             evaluate = tira.get_configuration_of_evaluation(task, dataset)
             evaluate['truth_directory'] = tira.download_dataset(task, dataset, truth_dataset=True)
             print(f'Done: Evaluation truth for dataset {dataset} is available.')
+    
+    if args.mount_hf_model:
+        hf_models = huggingface_model_mounts(args.mount_hf_model)
+        print(f'The following models from huggingface are mounted: {hf_models}\n\n')
+        if not args.v:
+            args.v = {}
+        args.v += hf_models
 
     print(f'''
 ########################################### TIRA RUN CONFIGURATION #########################################################
