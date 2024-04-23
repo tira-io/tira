@@ -266,9 +266,10 @@ def main(args=None):
     
     if args.mount_hf_model:
         hf_models = huggingface_model_mounts(args.mount_hf_model)
+        hf_models = [k + ':' + v['bind'] + ':' + v['mode'] for k, v in hf_models.items()]
         print(f'The following models from huggingface are mounted: {hf_models}\n\n')
         if not args.v:
-            args.v = {}
+            args.v = []
         args.v += hf_models
 
     print(f'''

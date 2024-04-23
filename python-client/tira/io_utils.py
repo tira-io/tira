@@ -75,7 +75,7 @@ def huggingface_model_mounts(models:Iterable[str]) -> dict:
     Returns:
         dict: The mounts required to make the specified models available in the container.
     """
-    hf_cache = Path(os.path.expanduser("~/.cache/huggingface/cache"))
+    hf_cache = Path(os.path.expanduser("~/.cache/huggingface/hub"))
     if 'HF_HUB_CACHE' in os.environ:
         hf_cache = Path(os.environ['HF_HUB_CACHE'])
     elif 'HF_HOME' in os.environ:
