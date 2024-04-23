@@ -273,6 +273,18 @@
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="tira.io_utils.huggingface_model_mounts">
+<span class="sig-prename descclassname"><span class="pre">tira.io_utils.</span></span><span class="sig-name descname"><span class="pre">huggingface_model_mounts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">models</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../_modules/tira/io_utils.html#huggingface_model_mounts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.io_utils.huggingface_model_mounts" title="Link to this definition">¶</a></dt>
+<dd><p>Determine the mounts to make the described huggingface models available in the container. The models must already exist in the local huggingface cache of the host.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>models (Iterable[str]): A list of huggingface models that you want to mount, e.g., [“openai-community/gpt2”].</p>
+</dd>
+<dt>Returns:</dt><dd><p>dict: The mounts required to make the specified models available in the container.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="tira.io_utils.load_output_of_directory">
 <span class="sig-prename descclassname"><span class="pre">tira.io_utils.</span></span><span class="sig-name descname"><span class="pre">load_output_of_directory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">directory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evaluation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">DataFrame</span></span></span><a class="reference internal" href="../_modules/tira/io_utils.html#load_output_of_directory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.io_utils.load_output_of_directory" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -707,6 +719,7 @@ The original_ir_datasets_id is used to infer the class of documents, qrels, and 
 <li><a class="reference internal" href="#module-tira.io_utils">tira.io_utils module</a><ul>
 <li><a class="reference internal" href="#tira.io_utils.all_environment_variables_for_github_action_or_fail"><code class="docutils literal notranslate"><span class="pre">all_environment_variables_for_github_action_or_fail()</span></code></a></li>
 <li><a class="reference internal" href="#tira.io_utils.all_lines_to_pandas"><code class="docutils literal notranslate"><span class="pre">all_lines_to_pandas()</span></code></a></li>
+<li><a class="reference internal" href="#tira.io_utils.huggingface_model_mounts"><code class="docutils literal notranslate"><span class="pre">huggingface_model_mounts()</span></code></a></li>
 <li><a class="reference internal" href="#tira.io_utils.load_output_of_directory"><code class="docutils literal notranslate"><span class="pre">load_output_of_directory()</span></code></a></li>
 <li><a class="reference internal" href="#tira.io_utils.parse_jsonl_line"><code class="docutils literal notranslate"><span class="pre">parse_jsonl_line()</span></code></a></li>
 <li><a class="reference internal" href="#tira.io_utils.parse_prototext_key_values"><code class="docutils literal notranslate"><span class="pre">parse_prototext_key_values()</span></code></a></li>

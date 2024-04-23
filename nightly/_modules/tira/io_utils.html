@@ -311,186 +311,223 @@
 
 <span class="linenos"> 67</span>
 <span class="linenos"> 68</span>
+<div class="viewcode-block" id="huggingface_model_mounts">
+<a class="viewcode-back" href="../../users/api.html#tira.io_utils.huggingface_model_mounts">[docs]</a>
+<span class="linenos"> 69</span><span class="k">def</span> <span class="nf">huggingface_model_mounts</span><span class="p">(</span><span class="n">models</span><span class="p">:</span><span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="linenos"> 70</span><span class="w">    </span><span class="sd">&quot;&quot;&quot;Determine the mounts to make the described huggingface models available in the container. The models must already exist in the local huggingface cache of the host.</span>
+<span class="linenos"> 71</span>
+<span class="linenos"> 72</span><span class="sd">    Args:</span>
+<span class="linenos"> 73</span><span class="sd">        models (Iterable[str]): A list of huggingface models that you want to mount, e.g., [&quot;openai-community/gpt2&quot;].</span>
+<span class="linenos"> 74</span>
+<span class="linenos"> 75</span><span class="sd">    Returns:</span>
+<span class="linenos"> 76</span><span class="sd">        dict: The mounts required to make the specified models available in the container.</span>
+<span class="linenos"> 77</span><span class="sd">    &quot;&quot;&quot;</span>
+<span class="linenos"> 78</span>    <span class="n">hf_cache</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">&quot;~/.cache/huggingface/cache&quot;</span><span class="p">))</span>
+<span class="linenos"> 79</span>    <span class="k">if</span> <span class="s1">&#39;HF_HUB_CACHE&#39;</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
+<span class="linenos"> 80</span>        <span class="n">hf_cache</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;HF_HUB_CACHE&#39;</span><span class="p">])</span>
+<span class="linenos"> 81</span>    <span class="k">elif</span> <span class="s1">&#39;HF_HOME&#39;</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
+<span class="linenos"> 82</span>        <span class="n">hf_cache</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;HF_HOME&#39;</span><span class="p">])</span> <span class="o">/</span> <span class="s1">&#39;cache&#39;</span>
+<span class="linenos"> 83</span>    <span class="n">ret</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="linenos"> 84</span>    <span class="k">if</span> <span class="ow">not</span> <span class="n">models</span><span class="p">:</span>
+<span class="linenos"> 85</span>        <span class="k">return</span> <span class="n">ret</span>
+<span class="linenos"> 86</span>    
+<span class="linenos"> 87</span>    <span class="n">hf_cache</span> <span class="o">=</span> <span class="n">hf_cache</span><span class="o">.</span><span class="n">absolute</span><span class="p">()</span>
+<span class="linenos"> 88</span>    <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="n">models</span><span class="p">:</span>
+<span class="linenos"> 89</span>        <span class="n">model_in_fs</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;models/&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">model</span><span class="p">))</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="s1">&#39;--&#39;</span><span class="p">)</span>
+<span class="linenos"> 90</span>        <span class="n">model_path</span> <span class="o">=</span> <span class="n">hf_cache</span> <span class="o">/</span> <span class="n">model_in_fs</span>
+<span class="linenos"> 91</span>        <span class="k">if</span> <span class="ow">not</span> <span class="n">model_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+<span class="linenos"> 92</span>            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Model </span><span class="si">{</span><span class="n">model</span><span class="si">}</span><span class="s2"> does not in HF_HUB_CACHE = &#39;</span><span class="si">{</span><span class="n">hf_cache</span><span class="si">}</span><span class="s2">&#39;. Expected a directory &#39;</span><span class="si">{</span><span class="n">model_path</span><span class="si">}</span><span class="s2">&#39; to exist. Please ensure that the model is available via your preferred way to download it.&quot;</span>
+<span class="linenos"> 93</span>            <span class="nb">print</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+<span class="linenos"> 94</span>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+<span class="linenos"> 95</span>        <span class="k">else</span><span class="p">:</span>
+<span class="linenos"> 96</span>            <span class="n">ret</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">model_path</span><span class="p">)]</span> <span class="o">=</span> <span class="p">{</span>
+<span class="linenos"> 97</span>                <span class="s2">&quot;bind&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;/root/.cache/huggingface/hub/</span><span class="si">{</span><span class="n">model_in_fs</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+<span class="linenos"> 98</span>                <span class="s2">&quot;mode&quot;</span><span class="p">:</span> <span class="s2">&quot;ro&quot;</span>
+<span class="linenos"> 99</span>            <span class="p">}</span>
+<span class="linenos">100</span>
+<span class="linenos">101</span>    <span class="k">return</span> <span class="n">ret</span></div>
+
+<span class="linenos">102</span>
 <div class="viewcode-block" id="all_lines_to_pandas">
 <a class="viewcode-back" href="../../users/api.html#tira.io_utils.all_lines_to_pandas">[docs]</a>
-<span class="linenos"> 69</span><span class="k">def</span> <span class="nf">all_lines_to_pandas</span><span class="p">(</span><span class="n">input_file</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="n">load_default_text</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
-<span class="linenos"> 70</span><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="linenos"> 71</span><span class="sd">    .. todo:: add documentation</span>
-<span class="linenos"> 72</span><span class="sd">    .. todo:: this function has two semantics: handling a file and handling file-contents</span>
-<span class="linenos"> 73</span><span class="sd">    &quot;&quot;&quot;</span>
-<span class="linenos"> 74</span>    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">input_file</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
-<span class="linenos"> 75</span>        <span class="k">if</span> <span class="n">input_file</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.gz&#39;</span><span class="p">):</span>
-<span class="linenos"> 76</span>            <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="s1">&#39;rt&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-<span class="linenos"> 77</span>                <span class="k">return</span> <span class="n">all_lines_to_pandas</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">load_default_text</span><span class="p">)</span>
-<span class="linenos"> 78</span>        <span class="k">else</span><span class="p">:</span>
-<span class="linenos"> 79</span>            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-<span class="linenos"> 80</span>                <span class="k">return</span> <span class="n">all_lines_to_pandas</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">load_default_text</span><span class="p">)</span>
-<span class="linenos"> 81</span>
-<span class="linenos"> 82</span>    <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="linenos"> 83</span>    <span class="n">ret</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="linenos"> 84</span>
-<span class="linenos"> 85</span>    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">input_file</span><span class="p">:</span>
-<span class="linenos"> 86</span>        <span class="n">ret</span> <span class="o">+=</span> <span class="p">[</span><span class="n">parse_jsonl_line</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">load_default_text</span><span class="p">)]</span>
-<span class="linenos"> 87</span>
-<span class="linenos"> 88</span>    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span></div>
-
-<span class="linenos"> 89</span>
-<span class="linenos"> 90</span>
-<span class="linenos"> 91</span><span class="k">def</span> <span class="nf">__num</span><span class="p">(</span><span class="nb">input</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
-<span class="linenos"> 92</span><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="linenos"> 93</span><span class="sd">    Converts the input to an int or float if possible. Returns the inputted string otherwise.</span>
-<span class="linenos"> 94</span>
-<span class="linenos"> 95</span><span class="sd">    :param str input: The string that should be converted to a float or int if possible.</span>
-<span class="linenos"> 96</span><span class="sd">    :return: The intrepteted input.</span>
-<span class="linenos"> 97</span><span class="sd">    :rtype: str | int | float</span>
-<span class="linenos"> 98</span>
-<span class="linenos"> 99</span><span class="sd">    :Example:</span>
-<span class="linenos">100</span><span class="sd">        &gt;&gt;&gt; __num(&quot;hello world&quot;)</span>
-<span class="linenos">101</span><span class="sd">        &quot;hello world&quot;</span>
-<span class="linenos">102</span><span class="sd">        &gt;&gt;&gt; __num(&quot;-42&quot;)</span>
-<span class="linenos">103</span><span class="sd">        -42</span>
-<span class="linenos">104</span><span class="sd">        &gt;&gt;&gt; __num(&quot;3.5&quot;)</span>
-<span class="linenos">105</span><span class="sd">        3.5</span>
-<span class="linenos">106</span><span class="sd">        &gt;&gt;&gt; __num(&quot;2e-6&quot;)</span>
-<span class="linenos">107</span><span class="sd">        2e-6</span>
-<span class="linenos">108</span><span class="sd">        &gt;&gt;&gt; __num(&quot; -42&quot;)</span>
-<span class="linenos">109</span><span class="sd">        &quot; -42&quot;</span>
-<span class="linenos">110</span><span class="sd">    &quot;&quot;&quot;</span>
-<span class="linenos">111</span>    <span class="k">try</span><span class="p">:</span>
-<span class="linenos">112</span>        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
-<span class="linenos">113</span>    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-<span class="linenos">114</span>        <span class="k">try</span><span class="p">:</span>
-<span class="linenos">115</span>            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
-<span class="linenos">116</span>        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-<span class="linenos">117</span>            <span class="k">return</span> <span class="nb">input</span>
+<span class="linenos">103</span><span class="k">def</span> <span class="nf">all_lines_to_pandas</span><span class="p">(</span><span class="n">input_file</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="n">load_default_text</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="linenos">104</span><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="linenos">105</span><span class="sd">    .. todo:: add documentation</span>
+<span class="linenos">106</span><span class="sd">    .. todo:: this function has two semantics: handling a file and handling file-contents</span>
+<span class="linenos">107</span><span class="sd">    &quot;&quot;&quot;</span>
+<span class="linenos">108</span>    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">input_file</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
+<span class="linenos">109</span>        <span class="k">if</span> <span class="n">input_file</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.gz&#39;</span><span class="p">):</span>
+<span class="linenos">110</span>            <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="s1">&#39;rt&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+<span class="linenos">111</span>                <span class="k">return</span> <span class="n">all_lines_to_pandas</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">load_default_text</span><span class="p">)</span>
+<span class="linenos">112</span>        <span class="k">else</span><span class="p">:</span>
+<span class="linenos">113</span>            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+<span class="linenos">114</span>                <span class="k">return</span> <span class="n">all_lines_to_pandas</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">load_default_text</span><span class="p">)</span>
+<span class="linenos">115</span>
+<span class="linenos">116</span>    <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="linenos">117</span>    <span class="n">ret</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="linenos">118</span>
-<span class="linenos">119</span>
+<span class="linenos">119</span>    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">input_file</span><span class="p">:</span>
+<span class="linenos">120</span>        <span class="n">ret</span> <span class="o">+=</span> <span class="p">[</span><span class="n">parse_jsonl_line</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">load_default_text</span><span class="p">)]</span>
+<span class="linenos">121</span>
+<span class="linenos">122</span>    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span></div>
+
+<span class="linenos">123</span>
+<span class="linenos">124</span>
+<span class="linenos">125</span><span class="k">def</span> <span class="nf">__num</span><span class="p">(</span><span class="nb">input</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="linenos">126</span><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="linenos">127</span><span class="sd">    Converts the input to an int or float if possible. Returns the inputted string otherwise.</span>
+<span class="linenos">128</span>
+<span class="linenos">129</span><span class="sd">    :param str input: The string that should be converted to a float or int if possible.</span>
+<span class="linenos">130</span><span class="sd">    :return: The intrepteted input.</span>
+<span class="linenos">131</span><span class="sd">    :rtype: str | int | float</span>
+<span class="linenos">132</span>
+<span class="linenos">133</span><span class="sd">    :Example:</span>
+<span class="linenos">134</span><span class="sd">        &gt;&gt;&gt; __num(&quot;hello world&quot;)</span>
+<span class="linenos">135</span><span class="sd">        &quot;hello world&quot;</span>
+<span class="linenos">136</span><span class="sd">        &gt;&gt;&gt; __num(&quot;-42&quot;)</span>
+<span class="linenos">137</span><span class="sd">        -42</span>
+<span class="linenos">138</span><span class="sd">        &gt;&gt;&gt; __num(&quot;3.5&quot;)</span>
+<span class="linenos">139</span><span class="sd">        3.5</span>
+<span class="linenos">140</span><span class="sd">        &gt;&gt;&gt; __num(&quot;2e-6&quot;)</span>
+<span class="linenos">141</span><span class="sd">        2e-6</span>
+<span class="linenos">142</span><span class="sd">        &gt;&gt;&gt; __num(&quot; -42&quot;)</span>
+<span class="linenos">143</span><span class="sd">        &quot; -42&quot;</span>
+<span class="linenos">144</span><span class="sd">    &quot;&quot;&quot;</span>
+<span class="linenos">145</span>    <span class="k">try</span><span class="p">:</span>
+<span class="linenos">146</span>        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+<span class="linenos">147</span>    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+<span class="linenos">148</span>        <span class="k">try</span><span class="p">:</span>
+<span class="linenos">149</span>            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="nb">input</span><span class="p">)</span>
+<span class="linenos">150</span>        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+<span class="linenos">151</span>            <span class="k">return</span> <span class="nb">input</span>
+<span class="linenos">152</span>
+<span class="linenos">153</span>
 <div class="viewcode-block" id="run_cmd">
 <a class="viewcode-back" href="../../users/api.html#tira.io_utils.run_cmd">[docs]</a>
-<span class="linenos">120</span><span class="k">def</span> <span class="nf">run_cmd</span><span class="p">(</span><span class="n">cmd</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">ignore_failure</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="linenos">121</span>    <span class="kn">import</span> <span class="nn">subprocess</span>
-<span class="linenos">122</span>    <span class="n">exit_code</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
-<span class="linenos">123</span>
-<span class="linenos">124</span>    <span class="k">if</span> <span class="ow">not</span> <span class="n">ignore_failure</span> <span class="ow">and</span> <span class="n">exit_code</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-<span class="linenos">125</span>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Command </span><span class="si">{</span><span class="n">cmd</span><span class="si">}</span><span class="s1"> did exit with return code </span><span class="si">{</span><span class="n">exit_code</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span></div>
+<span class="linenos">154</span><span class="k">def</span> <span class="nf">run_cmd</span><span class="p">(</span><span class="n">cmd</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">ignore_failure</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="linenos">155</span>    <span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="linenos">156</span>    <span class="n">exit_code</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+<span class="linenos">157</span>
+<span class="linenos">158</span>    <span class="k">if</span> <span class="ow">not</span> <span class="n">ignore_failure</span> <span class="ow">and</span> <span class="n">exit_code</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+<span class="linenos">159</span>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Command </span><span class="si">{</span><span class="n">cmd</span><span class="si">}</span><span class="s1"> did exit with return code </span><span class="si">{</span><span class="n">exit_code</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span></div>
 
-<span class="linenos">126</span>
-<span class="linenos">127</span>
+<span class="linenos">160</span>
+<span class="linenos">161</span>
 <div class="viewcode-block" id="parse_prototext_key_values">
 <a class="viewcode-back" href="../../users/api.html#tira.io_utils.parse_prototext_key_values">[docs]</a>
-<span class="linenos">128</span><span class="k">def</span> <span class="nf">parse_prototext_key_values</span><span class="p">(</span><span class="n">file_name</span><span class="p">):</span>
-<span class="linenos">129</span>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;measure {&#39;</span><span class="p">)]:</span>
-<span class="linenos">130</span>        <span class="n">ret</span> <span class="o">=</span> <span class="p">{}</span>
-<span class="linenos">131</span>        <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">i</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">):</span>
-<span class="linenos">132</span>            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">))</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
-<span class="linenos">133</span>                <span class="k">continue</span>
-<span class="linenos">134</span>            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
-<span class="linenos">135</span>                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Could not parse &quot;</span><span class="si">{</span><span class="n">l</span><span class="si">}</span><span class="s1">&quot;.&#39;</span><span class="p">)</span>
-<span class="linenos">136</span>            <span class="n">key</span> <span class="o">=</span> <span class="n">l</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-<span class="linenos">137</span>            <span class="n">value</span> <span class="o">=</span> <span class="n">l</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
-<span class="linenos">138</span>            <span class="n">ret</span><span class="p">[</span><span class="n">key</span><span class="o">.</span><span class="n">strip</span><span class="p">()]</span> <span class="o">=</span> <span class="n">__num</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
-<span class="linenos">139</span>        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-<span class="linenos">140</span>            <span class="k">yield</span> <span class="n">ret</span></div>
+<span class="linenos">162</span><span class="k">def</span> <span class="nf">parse_prototext_key_values</span><span class="p">(</span><span class="n">file_name</span><span class="p">):</span>
+<span class="linenos">163</span>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;measure {&#39;</span><span class="p">)]:</span>
+<span class="linenos">164</span>        <span class="n">ret</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="linenos">165</span>        <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">i</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">):</span>
+<span class="linenos">166</span>            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">))</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+<span class="linenos">167</span>                <span class="k">continue</span>
+<span class="linenos">168</span>            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+<span class="linenos">169</span>                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Could not parse &quot;</span><span class="si">{</span><span class="n">l</span><span class="si">}</span><span class="s1">&quot;.&#39;</span><span class="p">)</span>
+<span class="linenos">170</span>            <span class="n">key</span> <span class="o">=</span> <span class="n">l</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<span class="linenos">171</span>            <span class="n">value</span> <span class="o">=</span> <span class="n">l</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+<span class="linenos">172</span>            <span class="n">ret</span><span class="p">[</span><span class="n">key</span><span class="o">.</span><span class="n">strip</span><span class="p">()]</span> <span class="o">=</span> <span class="n">__num</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+<span class="linenos">173</span>        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+<span class="linenos">174</span>            <span class="k">yield</span> <span class="n">ret</span></div>
 
-<span class="linenos">141</span>
-<span class="linenos">142</span>
+<span class="linenos">175</span>
+<span class="linenos">176</span>
 <div class="viewcode-block" id="to_prototext">
 <a class="viewcode-back" href="../../users/api.html#tira.io_utils.to_prototext">[docs]</a>
-<span class="linenos">143</span><span class="k">def</span> <span class="nf">to_prototext</span><span class="p">(</span><span class="n">m</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="n">upper_k</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="linenos">144</span>    <span class="n">ret</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-<span class="linenos">145</span>
-<span class="linenos">146</span>    <span class="k">def</span> <span class="nf">_to_prototext</span><span class="p">(</span><span class="n">d</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">upper_k</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="linenos">147</span>        <span class="n">ret</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-<span class="linenos">148</span>        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-<span class="linenos">149</span>            <span class="n">new_k</span> <span class="o">=</span> <span class="n">upper_k</span>
-<span class="linenos">150</span>            <span class="k">if</span> <span class="ow">not</span> <span class="n">new_k</span><span class="p">:</span>
-<span class="linenos">151</span>                <span class="n">new_k</span> <span class="o">=</span> <span class="n">k</span>
-<span class="linenos">152</span>            <span class="k">elif</span> <span class="ow">not</span> <span class="n">new_k</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">k</span><span class="p">):</span>
-<span class="linenos">153</span>                <span class="n">new_k</span> <span class="o">=</span> <span class="n">upper_k</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="n">k</span>
-<span class="linenos">154</span>            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-<span class="linenos">155</span>                <span class="n">ret</span> <span class="o">+=</span> <span class="n">_to_prototext</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">upper_k</span><span class="o">=</span><span class="n">new_k</span><span class="p">)</span>
-<span class="linenos">156</span>            <span class="k">else</span><span class="p">:</span>
-<span class="linenos">157</span>                <span class="n">ret</span> <span class="o">+=</span> <span class="p">(</span>
-<span class="linenos">158</span>                    <span class="s1">&#39;measure{</span><span class="se">\n</span><span class="s1">  key: &quot;&#39;</span>
-<span class="linenos">159</span>                    <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">new_k</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">title</span><span class="p">())</span>
-<span class="linenos">160</span>                    <span class="o">+</span> <span class="s1">&#39;&quot;</span><span class="se">\n</span><span class="s1">  value: &quot;&#39;</span>
-<span class="linenos">161</span>                    <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
-<span class="linenos">162</span>                    <span class="o">+</span> <span class="s1">&#39;&quot;</span><span class="se">\n</span><span class="s1">}</span><span class="se">\n</span><span class="s1">&#39;</span>
-<span class="linenos">163</span>                <span class="p">)</span>
-<span class="linenos">164</span>        <span class="k">return</span> <span class="n">ret</span>
-<span class="linenos">165</span>
-<span class="linenos">166</span>    <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">m</span><span class="p">:</span>
-<span class="linenos">167</span>        <span class="n">ret</span> <span class="o">+=</span> <span class="n">_to_prototext</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">upper_k</span><span class="o">=</span><span class="n">upper_k</span><span class="p">)</span>
-<span class="linenos">168</span>
-<span class="linenos">169</span>    <span class="k">return</span> <span class="n">ret</span></div>
+<span class="linenos">177</span><span class="k">def</span> <span class="nf">to_prototext</span><span class="p">(</span><span class="n">m</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="n">upper_k</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="linenos">178</span>    <span class="n">ret</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+<span class="linenos">179</span>
+<span class="linenos">180</span>    <span class="k">def</span> <span class="nf">_to_prototext</span><span class="p">(</span><span class="n">d</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">upper_k</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="linenos">181</span>        <span class="n">ret</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+<span class="linenos">182</span>        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+<span class="linenos">183</span>            <span class="n">new_k</span> <span class="o">=</span> <span class="n">upper_k</span>
+<span class="linenos">184</span>            <span class="k">if</span> <span class="ow">not</span> <span class="n">new_k</span><span class="p">:</span>
+<span class="linenos">185</span>                <span class="n">new_k</span> <span class="o">=</span> <span class="n">k</span>
+<span class="linenos">186</span>            <span class="k">elif</span> <span class="ow">not</span> <span class="n">new_k</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">k</span><span class="p">):</span>
+<span class="linenos">187</span>                <span class="n">new_k</span> <span class="o">=</span> <span class="n">upper_k</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="n">k</span>
+<span class="linenos">188</span>            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+<span class="linenos">189</span>                <span class="n">ret</span> <span class="o">+=</span> <span class="n">_to_prototext</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">upper_k</span><span class="o">=</span><span class="n">new_k</span><span class="p">)</span>
+<span class="linenos">190</span>            <span class="k">else</span><span class="p">:</span>
+<span class="linenos">191</span>                <span class="n">ret</span> <span class="o">+=</span> <span class="p">(</span>
+<span class="linenos">192</span>                    <span class="s1">&#39;measure{</span><span class="se">\n</span><span class="s1">  key: &quot;&#39;</span>
+<span class="linenos">193</span>                    <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">new_k</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">title</span><span class="p">())</span>
+<span class="linenos">194</span>                    <span class="o">+</span> <span class="s1">&#39;&quot;</span><span class="se">\n</span><span class="s1">  value: &quot;&#39;</span>
+<span class="linenos">195</span>                    <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+<span class="linenos">196</span>                    <span class="o">+</span> <span class="s1">&#39;&quot;</span><span class="se">\n</span><span class="s1">}</span><span class="se">\n</span><span class="s1">&#39;</span>
+<span class="linenos">197</span>                <span class="p">)</span>
+<span class="linenos">198</span>        <span class="k">return</span> <span class="n">ret</span>
+<span class="linenos">199</span>
+<span class="linenos">200</span>    <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">m</span><span class="p">:</span>
+<span class="linenos">201</span>        <span class="n">ret</span> <span class="o">+=</span> <span class="n">_to_prototext</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">upper_k</span><span class="o">=</span><span class="n">upper_k</span><span class="p">)</span>
+<span class="linenos">202</span>
+<span class="linenos">203</span>    <span class="k">return</span> <span class="n">ret</span></div>
 
-<span class="linenos">170</span>
-<span class="linenos">171</span>
+<span class="linenos">204</span>
+<span class="linenos">205</span>
 <div class="viewcode-block" id="all_environment_variables_for_github_action_or_fail">
 <a class="viewcode-back" href="../../users/api.html#tira.io_utils.all_environment_variables_for_github_action_or_fail">[docs]</a>
-<span class="linenos">172</span><span class="k">def</span> <span class="nf">all_environment_variables_for_github_action_or_fail</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
-<span class="linenos">173</span>    <span class="n">ret</span> <span class="o">=</span> <span class="p">{}</span>
-<span class="linenos">174</span>
-<span class="linenos">175</span>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
-<span class="linenos">176</span>        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">))</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
-<span class="linenos">177</span>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Expect that exactly one &#39;=&#39; occurs in each passed parameter, got: &#39;</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
-<span class="linenos">178</span>
-<span class="linenos">179</span>        <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)</span>
-<span class="linenos">180</span>
-<span class="linenos">181</span>        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">ret</span><span class="p">:</span>
-<span class="linenos">182</span>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Got duplicated key: &#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
-<span class="linenos">183</span>        
-<span class="linenos">184</span>        <span class="n">ret</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
-<span class="linenos">185</span>
-<span class="linenos">186</span>    <span class="n">expected_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;GITHUB_SHA&#39;</span><span class="p">,</span> <span class="s1">&#39;TIRA_VM_ID&#39;</span><span class="p">,</span> <span class="s1">&#39;TIRA_TASK_ID&#39;</span><span class="p">,</span> <span class="s1">&#39;TIRA_DOCKER_REGISTRY_TOKEN&#39;</span><span class="p">,</span> <span class="s1">&#39;TIRA_DOCKER_REGISTRY_USER&#39;</span><span class="p">,</span>
-<span class="linenos">187</span>                     <span class="s1">&#39;TIRA_CLIENT_TOKEN&#39;</span><span class="p">,</span> <span class="s1">&#39;TIRA_CLIENT_USER&#39;</span><span class="p">,</span> <span class="s1">&#39;TIRA_CODE_REPOSITORY_ID&#39;</span><span class="p">]</span>
-<span class="linenos">188</span>
-<span class="linenos">189</span>    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">expected_keys</span><span class="p">:</span>
-<span class="linenos">190</span>        <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ret</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">ret</span><span class="p">[</span><span class="n">k</span><span class="p">]:</span>
-<span class="linenos">191</span>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;I need the parameter </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s1"> to continue, but could not find one or it is empty. This likely is a configuration error, e.g., due to missing secrets.&#39;</span><span class="p">)</span>
-<span class="linenos">192</span>
-<span class="linenos">193</span>    <span class="k">if</span> <span class="s1">&#39;TIRA_JUPYTER_NOTEBOOK&#39;</span> <span class="ow">in</span> <span class="n">ret</span><span class="p">:</span>
-<span class="linenos">194</span>        <span class="k">for</span> <span class="n">to_del</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;TIRA_DOCKER_FILE&#39;</span><span class="p">,</span> <span class="s1">&#39;TIRA_DOCKER_PATH&#39;</span><span class="p">,</span> <span class="s1">&#39;TIRA_COMMAND&#39;</span><span class="p">]:</span>
-<span class="linenos">195</span>            <span class="k">if</span> <span class="n">to_del</span> <span class="ow">in</span> <span class="n">ret</span><span class="p">:</span>
-<span class="linenos">196</span>                <span class="k">del</span> <span class="n">ret</span><span class="p">[</span><span class="n">to_del</span><span class="p">]</span>
-<span class="linenos">197</span>        <span class="n">ret</span><span class="p">[</span><span class="s1">&#39;IMAGE_TAG&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;registry.webis.de/code-research/tira/tira-user-</span><span class="si">{</span><span class="n">ret</span><span class="p">[</span><span class="s2">&quot;TIRA_VM_ID&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">/submission:</span><span class="si">{</span><span class="n">ret</span><span class="p">[</span><span class="s2">&quot;GITHUB_SHA&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span>
-<span class="linenos">198</span>    <span class="k">else</span><span class="p">:</span>
-<span class="linenos">199</span>        <span class="k">for</span> <span class="n">expected_key</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;TIRA_DOCKER_FILE&#39;</span><span class="p">,</span> <span class="s1">&#39;TIRA_DOCKER_PATH&#39;</span><span class="p">,</span> <span class="s1">&#39;TIRA_COMMAND&#39;</span><span class="p">]:</span>
-<span class="linenos">200</span>            <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ret</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">ret</span><span class="p">[</span><span class="n">k</span><span class="p">]:</span>
-<span class="linenos">201</span>                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;I need the parameter </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s1"> to continue, but could not find one or it is empty. This likely is a configuration error, e.g., due to missing secrets.&#39;</span><span class="p">)</span>
-<span class="linenos">202</span>            
-<span class="linenos">203</span>            <span class="n">ret</span><span class="p">[</span><span class="s1">&#39;IMAGE_TAG&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;registry.webis.de/code-research/tira/tira-user-</span><span class="si">{</span><span class="n">ret</span><span class="p">[</span><span class="s2">&quot;TIRA_VM_ID&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">/submission-</span><span class="si">{</span><span class="n">ret</span><span class="p">[</span><span class="s2">&quot;TIRA_DOCKER_PATH&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;-&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;-&quot;</span><span class="p">)</span><span class="si">}</span><span class="s1">:</span><span class="si">{</span><span class="n">ret</span><span class="p">[</span><span class="s2">&quot;GITHUB_SHA&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span>
-<span class="linenos">204</span>
-<span class="linenos">205</span>    <span class="k">return</span> <span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="s1">&#39;=&#39;</span> <span class="o">+</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">ret</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span></div>
+<span class="linenos">206</span><span class="k">def</span> <span class="nf">all_environment_variables_for_github_action_or_fail</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+<span class="linenos">207</span>    <span class="n">ret</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="linenos">208</span>
+<span class="linenos">209</span>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
+<span class="linenos">210</span>        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">))</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+<span class="linenos">211</span>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Expect that exactly one &#39;=&#39; occurs in each passed parameter, got: &#39;</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+<span class="linenos">212</span>
+<span class="linenos">213</span>        <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)</span>
+<span class="linenos">214</span>
+<span class="linenos">215</span>        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">ret</span><span class="p">:</span>
+<span class="linenos">216</span>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Got duplicated key: &#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+<span class="linenos">217</span>        
+<span class="linenos">218</span>        <span class="n">ret</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+<span class="linenos">219</span>
+<span class="linenos">220</span>    <span class="n">expected_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;GITHUB_SHA&#39;</span><span class="p">,</span> <span class="s1">&#39;TIRA_VM_ID&#39;</span><span class="p">,</span> <span class="s1">&#39;TIRA_TASK_ID&#39;</span><span class="p">,</span> <span class="s1">&#39;TIRA_DOCKER_REGISTRY_TOKEN&#39;</span><span class="p">,</span> <span class="s1">&#39;TIRA_DOCKER_REGISTRY_USER&#39;</span><span class="p">,</span>
+<span class="linenos">221</span>                     <span class="s1">&#39;TIRA_CLIENT_TOKEN&#39;</span><span class="p">,</span> <span class="s1">&#39;TIRA_CLIENT_USER&#39;</span><span class="p">,</span> <span class="s1">&#39;TIRA_CODE_REPOSITORY_ID&#39;</span><span class="p">]</span>
+<span class="linenos">222</span>
+<span class="linenos">223</span>    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">expected_keys</span><span class="p">:</span>
+<span class="linenos">224</span>        <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ret</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">ret</span><span class="p">[</span><span class="n">k</span><span class="p">]:</span>
+<span class="linenos">225</span>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;I need the parameter </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s1"> to continue, but could not find one or it is empty. This likely is a configuration error, e.g., due to missing secrets.&#39;</span><span class="p">)</span>
+<span class="linenos">226</span>
+<span class="linenos">227</span>    <span class="k">if</span> <span class="s1">&#39;TIRA_JUPYTER_NOTEBOOK&#39;</span> <span class="ow">in</span> <span class="n">ret</span><span class="p">:</span>
+<span class="linenos">228</span>        <span class="k">for</span> <span class="n">to_del</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;TIRA_DOCKER_FILE&#39;</span><span class="p">,</span> <span class="s1">&#39;TIRA_DOCKER_PATH&#39;</span><span class="p">,</span> <span class="s1">&#39;TIRA_COMMAND&#39;</span><span class="p">]:</span>
+<span class="linenos">229</span>            <span class="k">if</span> <span class="n">to_del</span> <span class="ow">in</span> <span class="n">ret</span><span class="p">:</span>
+<span class="linenos">230</span>                <span class="k">del</span> <span class="n">ret</span><span class="p">[</span><span class="n">to_del</span><span class="p">]</span>
+<span class="linenos">231</span>        <span class="n">ret</span><span class="p">[</span><span class="s1">&#39;IMAGE_TAG&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;registry.webis.de/code-research/tira/tira-user-</span><span class="si">{</span><span class="n">ret</span><span class="p">[</span><span class="s2">&quot;TIRA_VM_ID&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">/submission:</span><span class="si">{</span><span class="n">ret</span><span class="p">[</span><span class="s2">&quot;GITHUB_SHA&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span>
+<span class="linenos">232</span>    <span class="k">else</span><span class="p">:</span>
+<span class="linenos">233</span>        <span class="k">for</span> <span class="n">expected_key</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;TIRA_DOCKER_FILE&#39;</span><span class="p">,</span> <span class="s1">&#39;TIRA_DOCKER_PATH&#39;</span><span class="p">,</span> <span class="s1">&#39;TIRA_COMMAND&#39;</span><span class="p">]:</span>
+<span class="linenos">234</span>            <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ret</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">ret</span><span class="p">[</span><span class="n">k</span><span class="p">]:</span>
+<span class="linenos">235</span>                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;I need the parameter </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s1"> to continue, but could not find one or it is empty. This likely is a configuration error, e.g., due to missing secrets.&#39;</span><span class="p">)</span>
+<span class="linenos">236</span>            
+<span class="linenos">237</span>            <span class="n">ret</span><span class="p">[</span><span class="s1">&#39;IMAGE_TAG&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;registry.webis.de/code-research/tira/tira-user-</span><span class="si">{</span><span class="n">ret</span><span class="p">[</span><span class="s2">&quot;TIRA_VM_ID&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">/submission-</span><span class="si">{</span><span class="n">ret</span><span class="p">[</span><span class="s2">&quot;TIRA_DOCKER_PATH&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;-&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;-&quot;</span><span class="p">)</span><span class="si">}</span><span class="s1">:</span><span class="si">{</span><span class="n">ret</span><span class="p">[</span><span class="s2">&quot;GITHUB_SHA&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span>
+<span class="linenos">238</span>
+<span class="linenos">239</span>    <span class="k">return</span> <span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="s1">&#39;=&#39;</span> <span class="o">+</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">ret</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span></div>
 
-<span class="linenos">206</span>
-<span class="linenos">207</span>
+<span class="linenos">240</span>
+<span class="linenos">241</span>
 <div class="viewcode-block" id="load_output_of_directory">
 <a class="viewcode-back" href="../../users/api.html#tira.io_utils.load_output_of_directory">[docs]</a>
-<span class="linenos">208</span><span class="k">def</span> <span class="nf">load_output_of_directory</span><span class="p">(</span><span class="n">directory</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">evaluation</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Dict</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]:</span>
-<span class="linenos">209</span>    <span class="n">files</span> <span class="o">=</span> <span class="n">glob</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;/*&#39;</span><span class="p">)</span>
-<span class="linenos">210</span>
-<span class="linenos">211</span>    <span class="k">if</span> <span class="n">evaluation</span><span class="p">:</span>
-<span class="linenos">212</span>        <span class="n">files</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">files</span> <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.prototext&#39;</span><span class="p">)]</span>
-<span class="linenos">213</span>
-<span class="linenos">214</span>    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
-<span class="linenos">215</span>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Expected exactly one output file. Got: &#39;</span><span class="p">,</span> <span class="n">files</span><span class="p">)</span>
-<span class="linenos">216</span>
-<span class="linenos">217</span>    <span class="n">files</span> <span class="o">=</span> <span class="n">files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="linenos">218</span>
-<span class="linenos">219</span>    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Read file from </span><span class="si">{</span><span class="n">files</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-<span class="linenos">220</span>
-<span class="linenos">221</span>    <span class="k">if</span> <span class="n">evaluation</span><span class="p">:</span>
-<span class="linenos">222</span>        <span class="n">ret</span> <span class="o">=</span> <span class="p">{}</span>
-<span class="linenos">223</span>        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;measure&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="s1">&#39;key:&#39;</span> <span class="ow">in</span> <span class="n">i</span> <span class="ow">and</span> <span class="s1">&#39;value:&#39;</span> <span class="ow">in</span> <span class="n">i</span><span class="p">]:</span>
-<span class="linenos">224</span>            <span class="n">key</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;key:&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
-<span class="linenos">225</span>            <span class="n">value</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;key:&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
-<span class="linenos">226</span>
-<span class="linenos">227</span>            <span class="n">ret</span><span class="p">[</span><span class="n">key</span><span class="o">.</span><span class="n">strip</span><span class="p">()]</span> <span class="o">=</span> <span class="n">__num</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
-<span class="linenos">228</span>
-<span class="linenos">229</span>        <span class="k">return</span> <span class="n">ret</span>
-<span class="linenos">230</span>    <span class="k">else</span><span class="p">:</span>
-<span class="linenos">231</span>        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_json</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">lines</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;records&#39;</span><span class="p">)</span></div>
+<span class="linenos">242</span><span class="k">def</span> <span class="nf">load_output_of_directory</span><span class="p">(</span><span class="n">directory</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">evaluation</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Dict</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]:</span>
+<span class="linenos">243</span>    <span class="n">files</span> <span class="o">=</span> <span class="n">glob</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;/*&#39;</span><span class="p">)</span>
+<span class="linenos">244</span>
+<span class="linenos">245</span>    <span class="k">if</span> <span class="n">evaluation</span><span class="p">:</span>
+<span class="linenos">246</span>        <span class="n">files</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">files</span> <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.prototext&#39;</span><span class="p">)]</span>
+<span class="linenos">247</span>
+<span class="linenos">248</span>    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+<span class="linenos">249</span>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Expected exactly one output file. Got: &#39;</span><span class="p">,</span> <span class="n">files</span><span class="p">)</span>
+<span class="linenos">250</span>
+<span class="linenos">251</span>    <span class="n">files</span> <span class="o">=</span> <span class="n">files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="linenos">252</span>
+<span class="linenos">253</span>    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Read file from </span><span class="si">{</span><span class="n">files</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="linenos">254</span>
+<span class="linenos">255</span>    <span class="k">if</span> <span class="n">evaluation</span><span class="p">:</span>
+<span class="linenos">256</span>        <span class="n">ret</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="linenos">257</span>        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;measure&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="s1">&#39;key:&#39;</span> <span class="ow">in</span> <span class="n">i</span> <span class="ow">and</span> <span class="s1">&#39;value:&#39;</span> <span class="ow">in</span> <span class="n">i</span><span class="p">]:</span>
+<span class="linenos">258</span>            <span class="n">key</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;key:&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+<span class="linenos">259</span>            <span class="n">value</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;key:&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+<span class="linenos">260</span>
+<span class="linenos">261</span>            <span class="n">ret</span><span class="p">[</span><span class="n">key</span><span class="o">.</span><span class="n">strip</span><span class="p">()]</span> <span class="o">=</span> <span class="n">__num</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+<span class="linenos">262</span>
+<span class="linenos">263</span>        <span class="k">return</span> <span class="n">ret</span>
+<span class="linenos">264</span>    <span class="k">else</span><span class="p">:</span>
+<span class="linenos">265</span>        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_json</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">lines</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;records&#39;</span><span class="p">)</span></div>
 
 </pre></div>
         </article>
