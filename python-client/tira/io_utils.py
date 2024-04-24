@@ -79,7 +79,7 @@ def huggingface_model_mounts(models:Iterable[str]) -> dict:
     if 'HF_HUB_CACHE' in os.environ:
         hf_cache = Path(os.environ['HF_HUB_CACHE'])
     elif 'HF_HOME' in os.environ:
-        hf_cache = Path(os.environ['HF_HOME']) / 'cache'
+        hf_cache = Path(os.environ['HF_HOME']) / 'hub'
     ret = {}
     if not models:
         return ret
