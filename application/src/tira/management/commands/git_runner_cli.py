@@ -177,7 +177,9 @@ class Command(BaseCommand):
             'medline-2017-trec-pm-2017-20230211-training', 'medline-2017-trec-pm-2018-20230211-training',
             'clueweb12-trec-misinfo-2019-20240214-training', 'longeval-heldout-20230513-training',
             'longeval-long-september-20230513-training', 'longeval-short-july-20230513-training',
-            'longeval-train-20230513-training', 'trec-tip-of-the-tongue-dev-20230607-training'
+            'longeval-train-20230513-training', 'trec-tip-of-the-tongue-dev-20230607-training',
+            'longeval-2023-06-20240418-training', 'longeval-2023-08-20240418-training',
+            'ir-acl-anthology-topics-leipzig-20240423-test', 'ir-acl-anthology-topics-leipzig-20240423-test'
             ]
             for dataset in datasets:
                 print(dataset)
