@@ -1,4 +1,6 @@
 import os
+from pathlib import Path
+
 
 class PyTerrierIntegration():
     def __init__(self, tira_client):
@@ -99,7 +101,8 @@ class PyTerrierIntegration():
         Load an PyTerrier index from TIRA.
         """
         import pyterrier as pt
-        ret = self.tira_client.get_run_output(approach, dataset) + '/index'
+        from tira.ir_datasets_util import translate_irds_id_to_tirex
+        ret = self.tira_client.get_run_output(approach, translate_irds_id_to_tirex(dataset)) + '/index'
         return pt.IndexFactory.of(os.path.abspath(ret))
 
     def from_submission(self, approach, dataset=None, datasets=None):
@@ -111,10 +114,9 @@ class PyTerrierIntegration():
             return TiraRerankingTransformer(approach, self.tira_client, dataset, datasets)
 
     def from_retriever_submission(self, approach, dataset, previous_stage=None, datasets=None):
-        import pyterrier as pt
+        from tira.pyterrier_util import TiraSourceTransformer
         ret = self.pd.from_retriever_submission(approach, dataset, previous_stage, datasets)
-
-        return pt.Transformer.from_df(ret)
+        return TiraSourceTransformer(ret)
 
     def transform_queries(self, approach, dataset, file_selection=('/*.jsonl', '/*.jsonl.gz'), prefix=''):
         from pyterrier.apply import generic
@@ -143,7 +145,85 @@ class PyTerrierIntegration():
 
         return generic(__transform_df)
 
+    def doc_features(self, approach, dataset, file_selection=('/*.jsonl', '/*.jsonl.gz')):
+        import numpy as np
+        from pyterrier.apply import doc_features
+        ret = self.pd.transform_documents(approach, dataset, file_selection)
+        cols = [i for i in ret.columns if i not in ['docno']]
+        ret = {str(i['docno']): np.array([i[c] for c in cols]) for _, i in ret.iterrows()}
+
+        return doc_features(lambda row: ret[str(row['docno'])])
+
+    def query_features(self, approach, dataset, file_selection=('/*.jsonl', '/*.jsonl.gz')):
+        import numpy as np
+        from pyterrier.transformer import Transformer
+        ret = self.pd.transform_queries(approach, dataset, file_selection)
+        cols = [i for i in ret.columns if i not in ['qid']]
+        ret = {str(i['qid']): np.array([i[c] for c in cols]) for _, i in ret.iterrows()}
+
+        class ApplyQueryFeatureTransformer(Transformer):
+            def __repr__(self):
+                return "tira.pt.query_features()"
+
+            def transform(self, inputRes):
+                outputRes = inputRes.copy()
+                
+                outputRes["features"] = outputRes.apply(lambda i: ret[str(i['qid'])], axis=1)
+                return outputRes
+        
+        return ApplyQueryFeatureTransformer()
+
     def reranker(self, approach, irds_id=None):
         from tira.pyterrier_util import TiraLocalExecutionRerankingTransformer
         return TiraLocalExecutionRerankingTransformer(approach, self.tira_client, irds_id=irds_id)
 
+class PyTerrierAnceIntegration():
+    """The pyterrier_ance integration to re-use cached ANCE indices. Wraps https://github.com/terrierteam/pyterrier_ance
+    """
+    def __init__(self, tira_client):
+        self.tira_client = tira_client
+    
+    def ance_retrieval(self, dataset:str):
+        """Load a cached pyterrier_ance.ANCEIndexer submitted as workshop-on-open-web-search/ows/pyterrier-anceindex from tira.
+
+        References (for citation):
+            https://arxiv.org/pdf/2007.00808.pdf
+            https://github.com/microsoft/ANCE/
+
+        Args:
+            dataset (str): the dataset id, either an tira or ir_datasets id.
+
+        Returns:
+            pyterrier_ance.ANCERetrieval: the ANCE index.
+        """
+        from tira.ir_datasets_util import translate_irds_id_to_tirex
+        ance_index = Path(self.tira_client.get_run_output('ir-lab-sose-2024/ows/pyterrier-anceindex', translate_irds_id_to_tirex(dataset))) / 'anceindex'
+        ance_checkpoint = self.tira_client.load_resource('Passage_ANCE_FirstP_Checkpoint.zip')
+        import pyterrier_ance
+        return pyterrier_ance.ANCERetrieval(ance_checkpoint, ance_index)
+
+
+class PyTerrierSpladeIntegration():
+    """The pyt_splade integration to re-use cached Splade indices. Wraps https://github.com/cmacdonald/pyt_splade
+    """
+    def __init__(self, tira_client):
+        self.tira_client = tira_client
+
+    def splade_index(self, dataset:str, approach: str='workshop-on-open-web-search/naverlabseurope/Splade (Index)'):
+        """Load a cached pyt_splade index submitted as the passed approach (default 'workshop-on-open-web-search/naverlabseurope/Splade (Index)') from tira.
+
+        References (for citation):
+            https://github.com/naver/splade?tab=readme-ov-file#cite-scroll
+            ToDo: Ask Thibault what to cite.
+
+        Args:
+            dataset (str): the dataset id, either an tira or ir_datasets id.
+            approach (str, optional): the approach id, defaults 'workshop-on-open-web-search/naverlabseurope/Splade (Index)'.
+
+        Returns:
+            The PyTerrier index suitable for retrieval.
+        """
+        from tira.ir_datasets_util import translate_irds_id_to_tirex
+        import pyterrier as pt
+        ret = Path(self.tira_client.get_run_output('ir-lab-sose-2024/naverlabseurope/Splade (Index)', translate_irds_id_to_tirex(dataset))) / 'spladeindex'
+        return pt.IndexFactory.of(os.path.abspath(ret))

@@ -1,5 +1,4 @@
-
-
+from tira.license_agreements import print_license_agreement
 
 STATIC_REDIRECTS = {
     'ir-benchmarks': {
@@ -201,6 +200,66 @@ STATIC_REDIRECTS = {
                 }
             }
         }
+    },
+    
+    "ir-lab-sose-2024": {
+        "tira-ir-starter": {
+            "Index (tira-ir-starter-pyterrier)": {    
+                "ir-acl-anthology-20240411-training": {
+                    "run_id": "2024-04-11-19-43-23",
+                    "md5": "ebb5b8f1d8c7ad36612f408da1203ff2",
+                    "urls": ["https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-11-19-43-23.zip"]
+                }
+            },
+            "Index (pyterrier-stanford-lemmatizer)": {
+                "ir-acl-anthology-20240411-training": {
+                    "run_id": "2024-04-16-11-05-06",
+                    "md5": "70aa7ce8a437ba47ebf9e17d75871a5f",
+                    "urls": ["https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-16-11-05-06.zip"]
+                }
+            }
+        },
+        "seanmacavaney": {
+            "DocT5Query": {
+                "anthology-20240411-training": {
+                    "run_id": "2024-04-09-22-03-26",
+                    "md5": "1a0f65a8f47051db435ec6031106db7b",
+                    "urls": ["https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-09-22-03-26.zip"],
+                }
+            },
+            "corpus-graph": {
+                "anthology-20240411-training": {
+                    "run_id": "2024-04-09-16-35-50",
+                    "md5": "75f743914d44d7252425844136ea9722",
+                    "urls": ["https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-09-16-35-50.zip"],
+                }
+            },
+            #"some-interface": {
+                #copy of corpus-graph
+            #    "anthology-20240411-training": {
+            #        "run_id": "2024-04-09-16-35-50",
+            #        "md5": "75f743914d44d7252425844136ea9722"
+            #    }
+            #}
+        },
+        "ows": {
+            "pyterrier-anceindex": {
+                "ir-acl-anthology-20240411-training": {
+                    "run_id": "2024-04-11-19-47-18",
+                    "md5": "1112dc9e60b6dfa4ac80571ad3425200",
+                    "urls": ["https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-11-19-47-18.zip"],
+                }
+            }
+        },
+        "naverlabseurope": {
+            "Splade (Index)": {
+                "ir-acl-anthology-20240411-training": {
+                    "run_id": "2024-04-14-08-40-58",
+                    "md5": "03f73b47664cc1c843529b948094bf81",
+                    "urls": ["https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-14-08-40-58.zip"],
+                }
+            }
+        }
     }
 }
 
@@ -302,10 +361,20 @@ STATIC_DATASET_REDIRECTS = {
     'training-20231104-training': 'https://zenodo.org/records/10628882/files/',
     'jena-topics-small-20240119-training': 'https://zenodo.org/records/10628882/files/',
     'leipzig-topics-small-20240119-training': 'https://zenodo.org/records/10628882/files/',
+    'ir-acl-anthology-20240411-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/',
+    'longeval-2023-06-20240418-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-padua2024/',
+    'longeval-2023-08-20240418-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-padua2024/',
+}
+
+RESOURCE_REDIRECTS = {
+    'Passage_ANCE_FirstP_Checkpoint.zip': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/Passage_ANCE_FirstP_Checkpoint.zip',
+    'custom-terrier-token-processing-1.0-SNAPSHOT-jar-with-dependencies.jar': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/custom-terrier-token-processing-1.0-SNAPSHOT-jar-with-dependencies.jar'
 }
 
 DATASET_ID_REDIRECTS = {
-    'longeval-tiny-train-20240315-training': 'training-20231104-training'
+    'longeval-tiny-train-20240315-training': 'training-20231104-training',
+    'longeval-2023-06-20240422-training': 'longeval-2023-06-20240418-training',
+    'longeval-2023-08-20240422-training': 'longeval-2023-08-20240418-training'
 }
 
 
@@ -351,6 +420,8 @@ def mirror_url(url):
 def redirects(approach=None, dataset=None, url=None):
     default_ret = {'urls': [url]}
     if url is not None:
+        print_license_agreement(url)
+
         if '/task/' in url and '/user/' in url and '/dataset/' in url and '/download/' in url and '.zip' in url:
             #/task/{task}/user/{team}/dataset/{dataset}/download/{run_id}.zip
             ret = url.split('/task/')[1]

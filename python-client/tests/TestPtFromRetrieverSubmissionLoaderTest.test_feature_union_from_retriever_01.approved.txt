@@ -1,0 +1,42 @@
+[
+    {
+        "docno": "doc-1",
+        "features": [
+            10,
+            10
+        ],
+        "q0": "Q0",
+        "qid": "1",
+        "query": {
+            "0": {
+                "qid": "1"
+            }
+        },
+        "rank": 1,
+        "score": 10,
+        "system": "tag",
+        "tira_dataset": "d1",
+        "tira_first_stage_run_id": "run_id",
+        "tira_task": "ir-benchmarks"
+    },
+    {
+        "docno": "doc-2",
+        "features": [
+            9,
+            9
+        ],
+        "q0": "Q0",
+        "qid": "1",
+        "query": {
+            "0": {
+                "qid": "1"
+            }
+        },
+        "rank": 2,
+        "score": 9,
+        "system": "tag",
+        "tira_dataset": "d1",
+        "tira_first_stage_run_id": "run_id",
+        "tira_task": "ir-benchmarks"
+    }
+]

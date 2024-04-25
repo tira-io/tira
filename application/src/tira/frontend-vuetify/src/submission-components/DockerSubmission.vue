@@ -114,7 +114,7 @@ export default {
       .then(inject_response(this, {'loading': false}, true))
       .catch(reportError("Problem While Loading the Docker Details of the Task " + this.task_id, "This might be a short-term hiccup, please try again. We got the following error: "))
     this.load_re_ranking_datasets()
-    this.step === '' ? this.tab = docker.docker_softwares[0].display_name : this.tab = "newDockerImage"
+    this.step === '' ? this.tab = this.docker.docker_softwares[0].display_name : this.tab = "newDockerImage"
   },
   watch: {
     step(old_value, new_value) {

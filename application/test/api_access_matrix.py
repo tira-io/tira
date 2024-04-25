@@ -232,6 +232,18 @@ API_ACCESS_MATRIX = [
             ORGANIZER_WRONG_TASK: 302,
         },
     ),
+
+    route_to_test(
+        url_pattern='data-download/git-repo-template/<str:vm_id>/<str:task_id>.zip',
+        params={'task_id': f'does-not-exist', 'vm_id': 'does-not-exist'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 200,
+            PARTICIPANT: 200,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 200,
+        },
+    ),
     route_to_test(
         url_pattern='data-download/<str:dataset_type>/<str:input_type>/<str:dataset_id>.zip',
         params={'dataset_type': 'training', 'dataset_id': f'dataset-1-{now}-training', 'input_type': 'input-'},

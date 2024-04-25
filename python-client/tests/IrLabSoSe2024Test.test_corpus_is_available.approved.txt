@@ -1,0 +1,9 @@
+{
+    "md5_of_first_kilobyte": "382cd5927f16904a2aab9f77612535ec",
+    "redirect_url": {
+        "urls": [
+            "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/ir-acl-anthology-20240411-inputs.zip?download=1"
+        ]
+    },
+    "tira_url": "https://www.tira.io/data-download/training/input-/ir-acl-anthology-20240411-training.zip"
+}

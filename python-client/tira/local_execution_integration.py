@@ -91,7 +91,6 @@ class LocalExecutionIntegration():
 
     def extract_entrypoint(self, image):
         image_name = image
-        from tira.third_party_integrations import extract_to_be_executed_notebook_from_command_or_none
         self.ensure_image_available_locally(image_name)
         image = self.__docker_client().images.get(image_name)
         ret = image.attrs['Config']['Entrypoint']
@@ -104,13 +103,16 @@ class LocalExecutionIntegration():
                 ret = json.loads(i)
                 break
 
-        ret = ' '.join(ret)
-        executable = extract_to_be_executed_notebook_from_command_or_none(ret)
+        return self.make_command_absolute(image_name, ' '.join(ret))
 
-        if not executable or executable.startswith('/'):
-            return ret
+    def make_command_absolute(self, image_name, command):
+        from tira.third_party_integrations import extract_to_be_executed_notebook_from_command_or_none
+        executable = extract_to_be_executed_notebook_from_command_or_none(command)
+
+        if not executable or executable.startswith('/') or executable.startswith("'/") or executable.startswith('"/'):
+            return command
         else:
-            return ret.replace(executable, (self.docker_image_work_dir(image_name) + '/' + executable).replace('//', '/'))
+            return command.replace(executable, (self.docker_image_work_dir(image_name) + '/' + executable).replace('//', '/').replace('/./', '/'))
 
     def __docker_client(self):
         try:
@@ -165,7 +167,7 @@ class LocalExecutionIntegration():
         return True
 
 
-    def run(self, identifier=None, image=None, command=None, input_dir=None, output_dir=None, evaluate=False, dry_run=False, docker_software_id_to_output=None, software_id=None, allow_network=False, input_run=None, additional_volumes=None, eval_dir='tira-evaluation'):
+    def run(self, identifier=None, image=None, command=None, input_dir=None, output_dir=None, evaluate=False, dry_run=False, docker_software_id_to_output=None, software_id=None, allow_network=False, input_run=None, additional_volumes=None, eval_dir='tira-evaluation', gpu_count=0):
         previous_stages = []
         original_args = {'identifier': identifier, 'image': image, 'command': command, 'input_dir': input_dir, 'output_dir': output_dir, 'evaluate': evaluate, 'dry_run': dry_run, 'docker_software_id_to_output': docker_software_id_to_output, 'software_id': software_id}
         s_id = 'unknown-software-id'
@@ -228,7 +230,11 @@ class LocalExecutionIntegration():
         if input_run:
             environment['inputRun'] = '/tira-data/input-run'
 
-        container = client.containers.run(image, entrypoint='sh', command=f'-c "{command}; sleep .1"', environment=environment, volumes=volumes, detach=True, remove=True, network_disabled = not allow_network)
+        device_requests = []
+        if gpu_count != 0:
+            device_requests=[docker.types.DeviceRequest(count=gpu_count, capabilities=[['gpu']])]
+
+        container = client.containers.run(image, entrypoint='sh', command=f'-c "{command}; sleep .1"', environment=environment, volumes=volumes, detach=True, remove=True, network_disabled = not allow_network, device_requests=device_requests)
 
         for line in container.attach(stdout=True, stream=True, logs=True):
             print(line.decode('utf-8'))
@@ -307,19 +313,27 @@ class LocalExecutionIntegration():
             return None
 
         ret = []
-        
+
         ret += ['TIRA_COMMAND=/workspace/run-pyterrier-notebook.py --input ${TIRA_INPUT_DIRECTORY} --output ${TIRA_OUTPUT_DIRECTORY} --notebook /workspace/' + notebook.split("/")[-1]]
         notebook_content = json.load(open(notebook, 'r'))
 
         return '\n'.join(ret)
 
+    def normalize_image_name(self, image, required_prefix):
+        if required_prefix and not image.startswith(required_prefix):
+            ret = (required_prefix + '/' + image[:10]).replace('//', '/') + ':' + (image.split(':')[-1] if ':' in image else 'latest')
+            return ret.replace('-:', ':').replace('::', ':').replace('/:', ':')
+        else:
+            return image
+
     def push_image(self, image, required_prefix=None, task_name=None, team_name=None):
         client = self.__docker_client()
         if not self.docker_client_is_authenticated(client):
             self.login_docker_client(task_name, team_name, client)
-
+        new_image = image
         if required_prefix and not image.startswith(required_prefix):
-            new_image = (required_prefix + '/' + image[:10]).replace('//', '/') + ':' + (image.split(':')[-1] if ':' in image else 'latest')
+            new_image = self.normalize_image_name(image, required_prefix)
+            print(f'I tag the image "{image}" as "{new_image}" for upload to TIRA (only internal).')
             client.images.get(image).tag(new_image)
             image = new_image
 

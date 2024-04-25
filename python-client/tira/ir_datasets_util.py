@@ -31,6 +31,26 @@ class TirexQuery(NamedTuple):
         """
         return self.title
 
+class DictDocsstore():
+    def __init__(self, docs):
+        self.docs = docs
+
+    def __getitem__(self, item):
+        return self.docs[item]
+
+    def get(self, item):
+        return self.docs.get(item)
+
+    def __iter__(self):
+        return self.docs.__iter__()
+
+    def __len__(self):
+        return len(self.docs)
+    
+    def get_many_iter(self, docids):
+        for docid in docids:
+            yield self.get(docid)
+
 
 def register_dataset_from_re_rank_file(ir_dataset_id, df_re_rank, original_ir_datasets_id=None):
     """
@@ -80,7 +100,7 @@ def __docs(input_file, original_dataset, load_default_text):
             return sum(1 for _ in self.stream_docs())
 
         def docs_store(self):
-            return self.__parsed_docs()
+            return DictDocsstore(self.__parsed_docs())
 
         def __parsed_docs(self):
             if self.docs is None:
@@ -253,7 +273,9 @@ def ir_dataset_from_tira_fallback_to_original_ir_datasets():
                 docs = self.lazy_docs(lambda: get_download_dir_from_tira(dataset_id, False), None, True)
                 queries = self.lazy_queries(lambda: get_download_dir_from_tira(dataset_id, True), None)
                 qrels = self.lazy_qrels(lambda: get_download_dir_from_tira(dataset_id, True), None)
-                return Dataset(docs, queries, qrels)
+                ret = Dataset(docs, queries, qrels)
+                ret.dataset_id = lambda: dataset_id
+                return ret
 
         def topics_file(self, tira_path):
             return get_download_dir_from_tira(tira_path, True) + '/queries.xml'
