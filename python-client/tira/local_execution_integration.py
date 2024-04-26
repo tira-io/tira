@@ -321,7 +321,7 @@ class LocalExecutionIntegration():
 
     def normalize_image_name(self, image, required_prefix):
         if required_prefix and not image.startswith(required_prefix):
-            ret = (required_prefix + '/' + image[:10]).replace('//', '/') + ':' + (image.split(':')[-1] if ':' in image else 'latest')
+            ret = (required_prefix + '/' + (image + ':').split(':')[0][:10]).replace('//', '/') + ':' + (image.split(':')[-1] if ':' in image else 'latest')
             return ret.replace('-:', ':').replace('::', ':').replace('/:', ':')
         else:
             return image

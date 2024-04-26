@@ -19,3 +19,9 @@ class TestLocalExecutionIntegrationTest(unittest.TestCase):
         actual = Client().normalize_image_name('panospetr/av-software-petropoulos-pan2024:1.1.2', 'registry.webis.de/code-research/tira/tira-user-petropoulossiblings/')
 
         self.assertEqual(expected, actual)
+
+    def test_04(self):
+        expected = 'registry.webis.de/code-research/tira/tira-user-petropoulossiblings/bash:latest'
+        actual = Client().normalize_image_name('bash:latest', 'registry.webis.de/code-research/tira/tira-user-petropoulossiblings/')
+
+        self.assertEqual(expected, actual)
