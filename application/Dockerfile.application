@@ -19,6 +19,8 @@ COPY application /tira/application
 
 WORKDIR /tira/application/src
 
+ENV HF_HOME=/mnt/ceph/tira/data/publicly-shared-datasets/huggingface/
+
 RUN cd /tira/application/src && \
 	chown tira:tira -R /tira/application && \
 	python3 manage.py collectstatic && \

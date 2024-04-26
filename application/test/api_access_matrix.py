@@ -301,6 +301,17 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
+        url_pattern='api/huggingface_model_mounts/<str:hf_model>',
+        params={'hf_model': 'does-not-exist'},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 200,
+            PARTICIPANT: 200,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 200,
+        },
+    ),
+    route_to_test(
         url_pattern='api/count-of-team-submissions/<str:task_id>',
         params={'task_id': 'task-of-organizer-1'},
         group_to_expected_status_code={

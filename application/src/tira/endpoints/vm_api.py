@@ -141,6 +141,18 @@ def docker_software_details(request, context, vm_id, docker_software_id):
     return JsonResponse({'status': 0, "context": context})
 
 
+def huggingface_model_mounts(request, hf_model):
+    from tira.huggingface_hub_integration import huggingface_model_mounts
+    context = {'hf_model_available': False}
+
+    try:
+        context['hf_model_available'] = huggingface_model_mounts([hf_model.replace('--', '/')]) is not None
+    except:
+        pass
+
+    return JsonResponse({'status': 0, "context": context})
+
+
 @add_context
 @check_permissions
 def upload_group_details(request, context, task_id, vm_id, upload_id):
@@ -491,6 +503,16 @@ def docker_software_add(request, task_id, vm_id):
                                                         data.get('inputJob', None),
                                                         submission_git_repo, build_environment
                                                         )
+
+        if data.get('mount_hf_model'):
+            try:
+                from tira.huggingface_hub_integration import huggingface_model_mounts
+                mounts = huggingface_model_mounts(data.get('mount_hf_model'))
+                model.add_docker_software_mounts(new_docker_software, mounts)
+
+            except Exception as e:
+                return JsonResponse({"status": 1, "message": str(e)})
+
         return JsonResponse({"status": 0, "message": "ok", "context": new_docker_software})
     else:
         return JsonResponse({"status": 1, "message": "GET is not allowed here."})

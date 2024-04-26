@@ -1763,6 +1763,12 @@ class HybridDatabase(object):
             paper_link=paper_link,
         )
 
+    def add_docker_software_mounts(self, docker_software, mounts):
+        modeldb.HuggingFaceModelsOfSoftware.objects.create(
+            docker_software__docker_software_id=docker_software['docker_software_id'],
+            hf_home = mounts['HF_HOME'], mount_hf_model = mounts['MOUNT_HF_MODEL'], models_scan= mounts['HF_CACHE_SCAN']
+        )
+
     def add_docker_software(self, task_id, vm_id, user_image_name, command, tira_image_name, input_docker_job=None,
                             input_upload=None, submission_git_repo=None, build_environment=None):
         input_docker_software, input_upload_software = None, None

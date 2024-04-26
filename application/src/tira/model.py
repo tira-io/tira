@@ -258,6 +258,16 @@ class SoftwareClone(models.Model):
     upload = models.ForeignKey(Upload, on_delete=models.CASCADE, default=None, null=True)
 
 
+class HuggingFaceModelsOfSoftware(models.Model):
+    """
+    - The Huggingface models to mount into some software.
+    """
+    docker_software = models.ForeignKey(DockerSoftware, on_delete=models.CASCADE, default=None, null=True)
+    hf_home = models.CharField(max_length=250, default="")
+    mount_hf_model = models.TextField(default="")
+    models_scan = models.TextField(default="")
+
+
 class Run(models.Model):
     run_id = models.CharField(max_length=150, primary_key=True)
     software = models.ForeignKey(Software, on_delete=models.CASCADE, null=True)
