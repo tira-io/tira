@@ -354,7 +354,7 @@ CODE_SUBMISSION_REFERENCE_REPOSITORIES = {
 }
 
 REFERENCE_DATASETS = {
-    'ir-lab-padua-2024': 'ir-lab-padua-2024/longeval-tiny-train-20240315-training',
+    'ir-lab-padua-2024': 'ir-lab-padua-2024/spot-check-20240424-training',
     'ir-benchmarks': 'ir-benchmarks/cranfield-20230107-training',
     'workshop-on-open-web-search': 'workshop-on-open-web-search/retrieval-20231027-training',
     'generative-ai-authorship-verification-panclef-2024': 'generative-ai-authorship-verification-panclef-2024/pan24-generative-authorship-tiny-smoke-20240417-training',

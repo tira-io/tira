@@ -34,6 +34,8 @@
 
                     <div class="my-3"/>
 
+                    During execution in TIRA, the environment variables $inputDataset and $outputDir are available. Your software is expected to process the dataset in the directory at $inputDataset and write the results into the directory $outputDir. E.g., you can incorporate both variables in the command.
+
                     <code-snippet title="(2) Execute your Docker Submission on a Small Example Dataset" :code="tira_initial_run_example" expand_message=""/>
 
                       <div class="my-3"/>
