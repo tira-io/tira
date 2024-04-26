@@ -100,6 +100,14 @@ def huggingface_model_mounts(models:Iterable[str]) -> dict:
 
     return ret
 
+def _default_hf_home_in_tira_host() -> str:
+    """Returns the location of the hf home on the tira hosts that are mounted read-only into the pods.
+
+    Returns:
+        str: the HF_HOME on a tira host.
+    """
+    return '/mnt/ceph/tira/data/publicly-shared-datasets/huggingface/'
+
 def all_lines_to_pandas(input_file: Union[str, Iterable[str]], load_default_text: bool) -> pd.DataFrame:
     """
     .. todo:: add documentation
