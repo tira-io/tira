@@ -303,7 +303,7 @@ def main(args=None):
         if not args.fail_if_output_is_empty:
             continue_user = input("Are the outputs correct and should I push the software to TIRA? (y/N) ").lower()
 
-            if continue_user and continue_user.lower() not in ['y', 'yes']:
+            if not continue_user or continue_user.lower() not in ['y', 'yes']:
                 print('You did not specify yes, I will not push the software.')
                 return
 

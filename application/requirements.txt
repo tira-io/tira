@@ -27,3 +27,4 @@ coverage
 coverage-badge
 discourse-client-in-disraptor==0.0.8
 tira>=0.0.97
+huggingface-hub

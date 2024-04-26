@@ -11,6 +11,13 @@ import gzip
 from base64 import b64encode
 
 
+def translate_irds_id_to_tirex(dataset):
+    import importlib
+    spec = importlib.util.spec_from_file_location("tira_cli.ir_datasets_util", "/usr/local/lib/python3.10/dist-packages/tira/tirex.py")
+    ir_datasets_util = importlib.util.module_from_spec("tira_cli.ir_datasets_util")
+    return 'sadsa'
+    return ir_datasets_util.translate_irds_id_to_tirex(dataset)
+
 def run_irds_command(task_id, dataset_id, image, command, output_dir, truth_command, truth_output_dir):
     from tira.tira_model import model
     from tira.util import run_cmd_as_documented_background_process
