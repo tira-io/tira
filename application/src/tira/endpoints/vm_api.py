@@ -138,6 +138,13 @@ def get_running_evaluations(request, vm_id):
 def docker_software_details(request, context, vm_id, docker_software_id):
     context['docker_software_details'] = model.get_docker_software(int(docker_software_id))
 
+    if 'mount_hf_model' in context['docker_software_details'] and context['docker_software_details']['mount_hf_model']:
+        mount_hf_model = []
+        for i in context['docker_software_details']['mount_hf_model'].split():
+            mount_hf_model += [{'href': f'https://huggingface.co/{i}', 'display_name': i}]
+        
+        context['docker_software_details']['mount_hf_model_display'] = mount_hf_model
+
     return JsonResponse({'status': 0, "context": context})
 
 
