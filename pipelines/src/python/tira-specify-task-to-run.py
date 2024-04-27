@@ -90,7 +90,7 @@ def identify_environment_variables(job_file):
         'TIRA_RUN_ID=' + tira_run_id,
         'TIRA_OUTPUT_DIR=' + job_dir + '/output',
         'TIRA_JOB_FILE=' + job_file,
-        'TIRA_HF_MOUNT_TO_EXECUTE=' _ln_huggingface_model_mounts(job_configuration.get('TIRA_MOUNT_HF_MODEL', '')
+        'TIRA_HF_MOUNT_TO_EXECUTE=' + _ln_huggingface_model_mounts(job_configuration.get('TIRA_MOUNT_HF_MODEL', ''),
     ]
 
     if 'TIRA_INPUT_RUN_DATASET_ID' in job_configuration and 'TIRA_INPUT_RUN_VM_ID' in job_configuration and 'TIRA_INPUT_RUN_RUN_ID' in job_configuration and 'TIRA_INPUT_RUN_REPLACES_ORIGINAL_DATASET' not in job_configuration:
