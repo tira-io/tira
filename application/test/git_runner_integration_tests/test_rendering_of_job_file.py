@@ -27,6 +27,15 @@ class TestRenderingOfJobFile(TestCase):
         args = {'tira_software_id': '1', 'resources': 'small-resources', 'input_run': input_run}
         self.verify_metadata(args, 'test_rendering_with_multiple_input_runs')
 
+    def test_rendering_with_multiple_input_runs_and_hf_mounts(self):
+        input_run = [
+            {'vm_id': 'vm1', 'dataset_id': 'd1', 'run_id': 'r1'},
+            {'vm_id': 'vm2', 'dataset_id': 'd1', 'run_id': 'r2'},
+            {'vm_id': 'vm3', 'dataset_id': 'd1', 'run_id': 'r3'}
+        ]
+        args = {'tira_software_id': '1', 'resources': 'small-resources', 'input_run': input_run, 'mount_hf_model': 'a b c'}
+        self.verify_metadata(args, 'test_rendering_with_multiple_input_runs_and_hf_mounts')
+
     @staticmethod
     def verify_metadata(args, test_name):
         from approvaltests import verify
@@ -43,7 +52,7 @@ class TestRenderingOfJobFile(TestCase):
                 args.get('git_runner_command', 'command in the git runner'), args.get('evaluator_id', 'evaluator_id'),
                 args.get('user_image_to_execute', 'docker image specified by user'),
                 args.get('user_command_to_execute', 'command in the git runner specified by the user'),
-                args['tira_software_id'], args['resources'], args['input_run'])
+                args['tira_software_id'], args['resources'], args['input_run'], args.get('mount_hf_model', None))
 
             job_file = Path(temp_dir) / args.get('dataset_id', 'dataset_id') / args.get('vm_id', 'vm_id') / \
                        args.get('run_id', 'run_id') / 'job-to-execute.txt'
