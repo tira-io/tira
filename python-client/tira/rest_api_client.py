@@ -133,8 +133,11 @@ class Client(TiraClient):
         ret = requests.post(url, headers=headers, json=content)
         ret = ret.content.decode('utf8')
         ret = json.loads(ret)
-        assert ret['status'] == 0
-        
+        if ret['status'] != 0:
+            msg = f'Upload of software failed with error {ret}'
+            print(msg)
+            raise ValueError(msg)
+
         print(f'Software with name {ret["context"]["display_name"]} was created.')
         logging.info(f'Software with name {ret["context"]["display_name"]} was created.')
         logging.info(f'Please visit {self.base_url}/submit/{tira_task_id}/user/{tira_vm_id}/docker-submission to run your software.')
