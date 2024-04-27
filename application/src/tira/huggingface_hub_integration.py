@@ -2,12 +2,17 @@ import importlib
 from typing import Iterable
 from huggingface_hub import scan_cache_dir
 import os
+import sys
 
 tira_cli_io_utils = None
 
-for supported_python_version in ['10', '11', '12', '9', '8', '7']:
-    if os.path.exists(f"/usr/local/lib/python3.{supported_python_version}/dist-packages/tira/io_utils.py"):
-        tira_cli_io_utils_spec = importlib.util.spec_from_file_location("tira_cli.io_utils", f"/usr/local/lib/python3.{supported_python_version}/dist-packages/tira/io_utils.py")
+for p in sys.path:
+    p = str(os.path.abspath(p)) + '/'
+    if ('-packages/') in p:
+        p = p.split('-packages/')[0] + '-packages/'
+    
+    if os.path.exists(f"{p}/tira/io_utils.py"):
+        tira_cli_io_utils_spec = importlib.util.spec_from_file_location("tira_cli.io_utils", f"{p}/tira/io_utils.py")
         tira_cli_io_utils = importlib.util.module_from_spec(tira_cli_io_utils_spec)
         tira_cli_io_utils_spec.loader.exec_module(tira_cli_io_utils)
         continue
