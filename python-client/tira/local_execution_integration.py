@@ -328,7 +328,8 @@ class LocalExecutionIntegration():
 
     def show_docker_progress(self, line, tasks):
         from tqdm import tqdm
-        if line['status'] != 'Downloading' and line['status'] != 'Extracting' and line['status'] != 'Pushing':
+
+        if 'status' not in line or (line['status'] != 'Downloading' and line['status'] != 'Extracting' and line['status'] != 'Pushing'):
             # skip other statuses
             return
 
