@@ -931,7 +931,8 @@ def run_execute_docker_software(request, task_id, vm_id, dataset_id, docker_soft
         evaluator['git_runner_command'], evaluator['git_repository_id'], evaluator['evaluator_id'],
         docker_software['tira_image_name'], docker_software['command'],
         'docker-software-' + docker_software_id, docker_resources,
-        input_run if input_run else input_runs
+        input_run if input_run else input_runs,
+        docker_software.get('mount_hf_model', None)
     )
 
     running_pipelines = git_runner.all_running_pipelines_for_repository(
