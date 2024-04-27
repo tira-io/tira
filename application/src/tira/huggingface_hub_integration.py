@@ -2,11 +2,16 @@ import importlib
 from typing import Iterable
 from huggingface_hub import scan_cache_dir
 
+tira_cli_io_utils = None
 
-tira_cli_io_utils_spec = importlib.util.spec_from_file_location("tira_cli.io_utils", "/usr/local/lib/python3.10/dist-packages/tira/io_utils.py")
-tira_cli_io_utils = importlib.util.module_from_spec(tira_cli_io_utils_spec)
-tira_cli_io_utils_spec.loader.exec_module(tira_cli_io_utils)
-import json
+for supported_python_version in ['10', '11', '12', '9', '8', '7']:
+    try:
+        tira_cli_io_utils_spec = importlib.util.spec_from_file_location("tira_cli.io_utils", f"/usr/local/lib/python3.{supported_python_version}/dist-packages/tira/io_utils.py")
+        tira_cli_io_utils = importlib.util.module_from_spec(tira_cli_io_utils_spec)
+        tira_cli_io_utils_spec.loader.exec_module(tira_cli_io_utils)
+        continue
+    except:
+        pass
 
 TIRA_HOST_HF_HOME = tira_cli_io_utils._default_hf_home_in_tira_host()
 HF_CACHE = None
