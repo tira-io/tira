@@ -147,15 +147,23 @@ def docker_software_details(request, context, vm_id, docker_software_id):
 
     return JsonResponse({'status': 0, "context": context})
 
-
-def huggingface_model_mounts(request, hf_model):
-    from tira.huggingface_hub_integration import huggingface_model_mounts
-    context = {'hf_model_available': False}
+@check_permissions
+def huggingface_model_mounts(request, vm_id, hf_model):
+    from tira.huggingface_hub_integration import huggingface_model_mounts, snapshot_download_hf_model
+    context = {'hf_model_available': False, 'hf_model_for_vm': vm_id}
 
     try:
         context['hf_model_available'] = huggingface_model_mounts([hf_model.replace('--', '/')]) is not None
     except:
         pass
+
+    if not context['hf_model_available']:
+        try:
+            snapshot_download_hf_model(hf_model)
+            context['hf_model_available'] = True
+        except Exception as e:
+            logger.warning(e)
+            return JsonResponse({'status': '1', 'message': str(e)})
 
     return JsonResponse({'status': 0, "context": context})
 

@@ -103,9 +103,13 @@
 
               <template v-slot:item.3>
                 <v-card flat>
+
+                <div v-if="hf_model_available === 'loading'">
+                  Download the model ...
+                </div>
                 <loading :loading="hf_model_available === 'loading'"/>
 
-                <span v-if="hf_model_available">
+                <span v-if="hf_model_available && hf_model_available !== 'loading'">
                 The Huggingface model {{hugging_face_model}} is already available in TIRA.
                 </span>
                 <span v-if="!hf_model_available">
@@ -115,7 +119,7 @@
               </template>
 
 
-              <v-stepper-actions @click:prev="stepperModel=1" @click:next="nextStep" :disabled='disableUploadStepper'></v-stepper-actions>
+              <v-stepper-actions @click:prev="stepperModel=Math.max(1, stepperModel-1)" @click:next="nextStep" :disabled='disableUploadStepper'></v-stepper-actions>
 
             </v-stepper>
             <br>
@@ -288,8 +292,9 @@ export default {
       }
       else if (this.stepperModel == 2 && this.upload_configuration === 'upload-config-2') {
         this.hf_model_available = 'loading'
-        get('/api/huggingface_model_mounts/' + this.hugging_face_model.replace('/', '--'))
+        get('/api/huggingface_model_mounts/vm/' + this.user_id_for_task + '/' + this.hugging_face_model.replace('/', '--'))
           .then(inject_response(this))
+          .catch(reportError("Problem While importing the Hugging Face model " + this.hugging_face_model, "This might be a short-term hiccup, please try again. We got the following error: "))
         this.stepperModel = 3;
       }
     },

@@ -1,6 +1,6 @@
 import importlib
 from typing import Iterable
-from huggingface_hub import scan_cache_dir
+from huggingface_hub import scan_cache_dir, snapshot_download
 import os
 import sys
 
@@ -45,3 +45,6 @@ def huggingface_model_mounts(models:Iterable[str]):
 
     return {'MOUNT_HF_MODEL': ' '.join(models), 'HF_HOME': TIRA_HOST_HF_HOME, 'HF_CACHE_SCAN': ret}
 
+def snapshot_download_hf_model(model: str):
+    os.environ['HF_HOME'] = TIRA_HOST_HF_HOME
+    snapshot_download(repo_id=model.replace('--', '/'))
