@@ -1,0 +1,24 @@
+{
+    "md5_of_first_kilobyte": "a31d7acf79e2c9ed2653f521678d059c",
+    "redirect_url": {
+        "md5": "8bb006a0e8d32a2d1d3030f7140ea205",
+        "run_id": "2024-04-24-01-24-17",
+        "urls": [
+            "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-padua2024/2024-04-24-01-24-17.zip"
+        ]
+    },
+    "redirected_run_url": {
+        "md5": "8bb006a0e8d32a2d1d3030f7140ea205",
+        "run_id": "2024-04-24-01-24-17",
+        "urls": [
+            "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-padua2024/2024-04-24-01-24-17.zip"
+        ]
+    },
+    "run_execution": {
+        "dataset": "longeval-2023-01-20240423-training",
+        "run_id": "2024-04-24-01-24-17",
+        "task": "ir-benchmarks",
+        "team": "tira-ir-starter"
+    },
+    "run_url": "https://www.tira.io/task/ir-benchmarks/user/tira-ir-starter/dataset/longeval-2023-01-20240423-training/download/2024-04-24-01-24-17.zip"
+}

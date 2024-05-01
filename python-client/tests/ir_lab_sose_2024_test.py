@@ -78,3 +78,33 @@ class IrLabSoSe2024Test(unittest.TestCase):
             actual[approach][dataset_id] = digest_of_run_output(approach, dataset_id, run_ids)
 
         verify_as_json(actual)
+    
+    def test_digest_of_index_2023_01(self):
+        approach = 'ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)'
+        dataset_id = 'longeval-2023-01-20240423-training'
+
+        run_id = '2024-04-24-01-24-17'
+        run_ids = {"ir-benchmarks": {"tira-ir-starter": { "Index (tira-ir-starter-pyterrier)": {dataset_id: run_id}}}}
+
+        actual = digest_of_run_output(approach, dataset_id, run_ids)
+        verify_as_json(actual)
+
+    def test_digest_of_index_2023_06(self):
+        approach = 'ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)'
+        dataset_id = 'longeval-2023-06-20240418-training'
+
+        run_id = '2024-04-18-18-04-27'
+        run_ids = {"ir-benchmarks": {"tira-ir-starter": { "Index (tira-ir-starter-pyterrier)": {dataset_id: run_id}}}}
+
+        actual = digest_of_run_output(approach, dataset_id, run_ids)
+        verify_as_json(actual)
+
+    def test_digest_of_index_2023_08(self):
+        approach = 'ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)'
+        dataset_id = 'longeval-2023-08-20240418-training'
+
+        run_id = '2024-04-18-18-16-52'
+        run_ids = {"ir-benchmarks": {"tira-ir-starter": { "Index (tira-ir-starter-pyterrier)": {dataset_id: run_id}}}}
+
+        actual = digest_of_run_output(approach, dataset_id, run_ids)
+        verify_as_json(actual)
