@@ -205,7 +205,7 @@ def parse_extraction_of_tira_approach_bash(bash_line: str):
 def parse_extraction_of_tira_approach(python_line: str):
     try:
         import ast
-        python_line = ast.parse(python_line).body[0]
+        python_line = ast.parse(python_line.strip()).body[0]
 
         if python_line.value.func.value.attr != 'pt':
             return None
