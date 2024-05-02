@@ -2,6 +2,9 @@ API
 ===
 .. todo:: Add a nice introductory text
 
+* :ref:`modindex`
+
+
 tira.io\_utils module
 ---------------------
 

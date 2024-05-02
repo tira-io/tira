@@ -9,8 +9,9 @@
         <title>Organizing Tasks - TIRA</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=437aa6ec" />
+    <link rel="stylesheet" type="text/css" href="../_static/umlet.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=36a5483c" />
-    <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=f683db87" />
     
     
 
@@ -115,11 +116,7 @@
 
 <a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
 
-<div class="announcement">
-  <aside class="announcement-content">
-     <a href="https://tira-io.github.io/tira/unlisted/maintenance.html">Due to planned maintenance starting on March 25, TIRA is currently down.</a><br>While you wait until the March 28 for us to be back, you may read our documentation. GLHF 
-  </aside>
-</div>
+
 
 <div class="page">
   <header class="mobile-header">
@@ -166,6 +163,8 @@
   <p class="caption" role="heading"><span class="caption-text">For Users</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../users/intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../users/participate.html">Participating in a Shared Task</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../users/tiracli.html">TIRA CLI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../users/api.html">API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../users/faq.html">Frequently Asked Questions</a></li>
 </ul>
@@ -174,7 +173,6 @@
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Organizing Tasks</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="deployment/index.html">Deployment</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Deployment</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="deployment/application.html">Deploying the Application Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="deployment/host.html">Deploying the Host Module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="deployment/frontend.html">Deploying the Frontend</a></li>
 </ul>
 </li>
@@ -203,6 +201,12 @@
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../development/specification/index.html">Specification</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of Specification</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../development/specification/userstories.html">User Stories</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../development/specification/architecture.html">Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../development/specification/restapi.html">REST-API</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../development/specification/technology/index.html">Technology</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><div class="visually-hidden">Toggle navigation of Technology</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../development/specification/technology/jwt.html">JSON Web Token (JWT)</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../development/changelog.html">Changelog</a></li>
@@ -459,35 +463,77 @@ during this step.</p></li>
 </section>
 <section id="troubleshooting">
 <h3>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading">¶</a></h3>
-<details class="summary-changes-do-not-show-up-on-the-website">
-<summary>Changes do not show up on the website</summary><p>Go to <a class="reference external" href="https://tira.io/tira-admin">tira-admin</a> and then to <code class="code docutils literal notranslate"><span class="pre">System</span> <span class="pre">Actions</span> <span class="pre">&gt;</span> <span class="pre">Reload</span> <span class="pre">Data</span></code>.</p>
-</details><details class="summary-error-on-creating-a-virtual-machine-code-vboxnetadpctl-error-while-adding-new-interface-failed-to-open-dev-vboxnetctl-no-such-file-or-directory-usually-comes-with-an-error-on-vm-start-code-nonexistent-host-networking-interface-name-vboxnetxx">
-<summary>Error on creating a virtual machine: :code:`VBoxNetAdpCtl: Error while adding new interface: failed to open /dev/vboxnetctl: No such file or directory`,
-usually comes with an error on vm start: :code:`Nonexistent host networking interface, name 'vboxnetXX'`.</summary><ul class="simple">
-<li><p>Log in as webis</p></li>
-<li><p>Check if /dev/vboxnetctl exists &lt;code&gt;ls /dev/vboxnetctl&lt;/code&gt;. If not, proceed. If yes, there is a different
+<details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+Changes do not show up on the website<div class="sd-summary-down docutils">
+<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-down" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M5.22 8.72a.75.75 0 000 1.06l6.25 6.25a.75.75 0 001.06 0l6.25-6.25a.75.75 0 00-1.06-1.06L12 14.44 6.28 8.72a.75.75 0 00-1.06 0z"></path></svg></div>
+<div class="sd-summary-up docutils">
+<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-up" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M18.78 15.28a.75.75 0 000-1.06l-6.25-6.25a.75.75 0 00-1.06 0l-6.25 6.25a.75.75 0 101.06 1.06L12 9.56l5.72 5.72a.75.75 0 001.06 0z"></path></svg></div>
+</summary><div class="sd-summary-content sd-card-body docutils">
+<p class="sd-card-text">Go to <a class="reference external" href="https://tira.io/tira-admin">tira-admin</a> and then to <code class="code docutils literal notranslate"><span class="pre">System</span> <span class="pre">Actions</span> <span class="pre">&gt;</span> <span class="pre">Reload</span> <span class="pre">Data</span></code>.</p>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+Error on creating a virtual machine: <code class="code docutils literal notranslate"><span class="pre">VBoxNetAdpCtl:</span> <span class="pre">Error</span> <span class="pre">while</span> <span class="pre">adding</span> <span class="pre">new</span> <span class="pre">interface:</span> <span class="pre">failed</span> <span class="pre">to</span> <span class="pre">open</span> <span class="pre">/dev/vboxnetctl:</span> <span class="pre">No</span> <span class="pre">such</span> <span class="pre">file</span> <span class="pre">or</span> <span class="pre">directory</span></code>,
+usually comes with an error on vm start: <code class="code docutils literal notranslate"><span class="pre">Nonexistent</span> <span class="pre">host</span> <span class="pre">networking</span> <span class="pre">interface,</span> <span class="pre">name</span> <span class="pre">'vboxnetXX'</span></code>.<div class="sd-summary-down docutils">
+<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-down" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M5.22 8.72a.75.75 0 000 1.06l6.25 6.25a.75.75 0 001.06 0l6.25-6.25a.75.75 0 00-1.06-1.06L12 14.44 6.28 8.72a.75.75 0 00-1.06 0z"></path></svg></div>
+<div class="sd-summary-up docutils">
+<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-up" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M18.78 15.28a.75.75 0 000-1.06l-6.25-6.25a.75.75 0 00-1.06 0l-6.25 6.25a.75.75 0 101.06 1.06L12 9.56l5.72 5.72a.75.75 0 001.06 0z"></path></svg></div>
+</summary><div class="sd-summary-content sd-card-body docutils">
+<ul class="simple">
+<li><p class="sd-card-text">Log in as webis</p></li>
+<li><p class="sd-card-text">Check if /dev/vboxnetctl exists &lt;code&gt;ls /dev/vboxnetctl&lt;/code&gt;. If not, proceed. If yes, there is a different
 error.</p></li>
-<li><p>Run &lt;code&gt;sudo modprobe vboxnetadp&lt;/code&gt;</p></li>
-<li><p>Run &lt;code&gt;sudo modprobe vboxpci&lt;/code&gt; (needs to be a separate call like here!)</p></li>
-<li><p>To check if VMs are running run &lt;code&gt;sudo -H -u tira VBoxManage list runningvms&lt;/code&gt;</p></li>
-<li><p>If so, run &lt;code&gt;tira stop&lt;/code&gt;</p></li>
-<li><p>Wait a few seconds</p></li>
-<li><p>Run &lt;code&gt;sudo service vboxdrv restart&lt;/code&gt;</p></li>
-<li><p>Run &lt;code&gt;tira start&lt;/code&gt;</p></li>
+<li><p class="sd-card-text">Run &lt;code&gt;sudo modprobe vboxnetadp&lt;/code&gt;</p></li>
+<li><p class="sd-card-text">Run &lt;code&gt;sudo modprobe vboxpci&lt;/code&gt; (needs to be a separate call like here!)</p></li>
+<li><p class="sd-card-text">To check if VMs are running run &lt;code&gt;sudo -H -u tira VBoxManage list runningvms&lt;/code&gt;</p></li>
+<li><p class="sd-card-text">If so, run &lt;code&gt;tira stop&lt;/code&gt;</p></li>
+<li><p class="sd-card-text">Wait a few seconds</p></li>
+<li><p class="sd-card-text">Run &lt;code&gt;sudo service vboxdrv restart&lt;/code&gt;</p></li>
+<li><p class="sd-card-text">Run &lt;code&gt;tira start&lt;/code&gt;</p></li>
 </ul>
-</details><details class="summary-a-virtual-machine-does-not-code-tira-vm-start-with-error-code-is-not-a-valid-username-vmname">
-<summary>A virtual machine does not :code:`tira vm-start` with error :code:`is not a valid username/vmname`.</summary><p>The <code class="code docutils literal notranslate"><span class="pre">vbox</span></code> file might be lost. Go to <code class="code docutils literal notranslate"><span class="pre">/home/tira/VirtualBox</span> <span class="pre">VMs/**vm-name**</span></code>. If there is a
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+A virtual machine does not <code class="code docutils literal notranslate"><span class="pre">tira</span> <span class="pre">vm-start</span></code> with error <code class="code docutils literal notranslate"><span class="pre">is</span> <span class="pre">not</span> <span class="pre">a</span> <span class="pre">valid</span> <span class="pre">username/vmname</span></code>.<div class="sd-summary-down docutils">
+<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-down" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M5.22 8.72a.75.75 0 000 1.06l6.25 6.25a.75.75 0 001.06 0l6.25-6.25a.75.75 0 00-1.06-1.06L12 14.44 6.28 8.72a.75.75 0 00-1.06 0z"></path></svg></div>
+<div class="sd-summary-up docutils">
+<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-up" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M18.78 15.28a.75.75 0 000-1.06l-6.25-6.25a.75.75 0 00-1.06 0l-6.25 6.25a.75.75 0 101.06 1.06L12 9.56l5.72 5.72a.75.75 0 001.06 0z"></path></svg></div>
+</summary><div class="sd-summary-content sd-card-body docutils">
+<p class="sd-card-text">The <code class="code docutils literal notranslate"><span class="pre">vbox</span></code> file might be lost. Go to <code class="code docutils literal notranslate"><span class="pre">/home/tira/VirtualBox</span> <span class="pre">VMs/**vm-name**</span></code>. If there is a
 <code class="code docutils literal notranslate"><span class="pre">.vbox-prev</span></code> but no <code class="code docutils literal notranslate"><span class="pre">.vbox</span></code> file, copy the former to create the latter (effectivley restoring it).</p>
-</details><details class="summary-read-only-file-system-in-a-virtual-machine">
-<summary>Read-only file system in a virtual machine.</summary><p>Restart the virtual machine</p>
-</details><details class="summary-a-virtual-machine-has-code-media-training-datasets-not-mounted">
-<summary>A virtual machine has :code:`/media/training-datasets/` not mounted.</summary><p>On betaweb020:</p>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+Read-only file system in a virtual machine.<div class="sd-summary-down docutils">
+<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-down" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M5.22 8.72a.75.75 0 000 1.06l6.25 6.25a.75.75 0 001.06 0l6.25-6.25a.75.75 0 00-1.06-1.06L12 14.44 6.28 8.72a.75.75 0 00-1.06 0z"></path></svg></div>
+<div class="sd-summary-up docutils">
+<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-up" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M18.78 15.28a.75.75 0 000-1.06l-6.25-6.25a.75.75 0 00-1.06 0l-6.25 6.25a.75.75 0 101.06 1.06L12 9.56l5.72 5.72a.75.75 0 001.06 0z"></path></svg></div>
+</summary><div class="sd-summary-content sd-card-body docutils">
+<p class="sd-card-text">Restart the virtual machine</p>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+A virtual machine has <code class="code docutils literal notranslate"><span class="pre">/media/training-datasets/</span></code> not mounted.
+On betaweb020:<div class="sd-summary-down docutils">
+<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-down" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M5.22 8.72a.75.75 0 000 1.06l6.25 6.25a.75.75 0 001.06 0l6.25-6.25a.75.75 0 00-1.06-1.06L12 14.44 6.28 8.72a.75.75 0 00-1.06 0z"></path></svg></div>
+<div class="sd-summary-up docutils">
+<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-up" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M18.78 15.28a.75.75 0 000-1.06l-6.25-6.25a.75.75 0 00-1.06 0l-6.25 6.25a.75.75 0 101.06 1.06L12 9.56l5.72 5.72a.75.75 0 001.06 0z"></path></svg></div>
+</summary><div class="sd-summary-content sd-card-body docutils">
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>salt<span class="w"> </span><span class="s1">&#39;**server**&#39;</span><span class="w"> </span>state.apply<span class="w"> </span>tira
 </pre></div>
 </div>
-<p>Then maybe it is needed to restart the VM</p>
-</details><details class="summary-prometheus-says-there-are-errors-in-code-vboxmanage-list-vms-long">
-<summary>Prometheus says there are errors in :code:`vboxmanage list vms --long`</summary><p>Perform maintenance: “Removal of inaccessible VMs”</p>
+<p class="sd-card-text">Then maybe it is needed to restart the VM</p>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+Prometheus says there are errors in <code class="code docutils literal notranslate"><span class="pre">vboxmanage</span> <span class="pre">list</span> <span class="pre">vms</span> <span class="pre">--long</span></code><div class="sd-summary-down docutils">
+<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-down" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M5.22 8.72a.75.75 0 000 1.06l6.25 6.25a.75.75 0 001.06 0l6.25-6.25a.75.75 0 00-1.06-1.06L12 14.44 6.28 8.72a.75.75 0 00-1.06 0z"></path></svg></div>
+<div class="sd-summary-up docutils">
+<svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-up" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M18.78 15.28a.75.75 0 000-1.06l-6.25-6.25a.75.75 0 00-1.06 0l-6.25 6.25a.75.75 0 101.06 1.06L12 9.56l5.72 5.72a.75.75 0 001.06 0z"></path></svg></div>
+</summary><div class="sd-summary-content sd-card-body docutils">
+<p class="sd-card-text">Perform maintenance: “Removal of inaccessible VMs”</p>
+</div>
 </details></section>
 </section>
 </section>
@@ -521,7 +567,7 @@ error.</p></li>
         <div class="bottom-of-page">
           <div class="left-details">
             <div class="copyright">
-                Copyright &#169; 2023, Webis
+                Copyright &#169; 2024, Webis
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             
@@ -583,5 +629,6 @@ error.</p></li>
     <script src="../_static/doctools.js?v=9a2dae69"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=4e2eecee"></script>
+    <script src="../_static/design-tabs.js?v=36754332"></script>
     </body>
 </html>

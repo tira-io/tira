@@ -1,3 +1,6 @@
 Frequently Asked Questions
 ==========================
-.. todo:: what questions may frequently be asked?
+
+.. dropdown:: How do I participate in a shared task?
+
+    See `here <participate.html>`_.

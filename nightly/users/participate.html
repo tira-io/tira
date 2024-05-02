@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="TIRA CLI" href="tiracli.html" /><link rel="prev" title="Introduction" href="intro.html" />
 
     <!-- Generated with Sphinx 7.3.7 and Furo 2024.04.27 -->
-        <title>We’ll be back soon! - TIRA</title>
+        <title>Participating in a Shared Task - TIRA</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=437aa6ec" />
     <link rel="stylesheet" type="text/css" href="../_static/umlet.css" />
@@ -138,7 +138,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -161,12 +161,12 @@
 </form>
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <p class="caption" role="heading"><span class="caption-text">For Users</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../users/intro.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../users/participate.html">Participating in a Shared Task</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../users/tiracli.html">TIRA CLI</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../users/api.html">API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../users/faq.html">Frequently Asked Questions</a></li>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Participating in a Shared Task</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tiracli.html">TIRA CLI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">For Organizers</span></p>
 <ul>
@@ -231,7 +231,7 @@
         </a>
         <div class="content-icon-container">
           <div class="edit-this-page">
-  <a class="muted-link" href="https://github.com/tira-io/tira/edit/development/python-client/sphinx/unlisted/maintenance.rst" title="Edit this page">
+  <a class="muted-link" href="https://github.com/tira-io/tira/edit/development/python-client/sphinx/users/participate.rst" title="Edit this page">
     <svg aria-hidden="true" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
       <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
       <path d="M4 20h4l10.5 -10.5a1.5 1.5 0 0 0 -4 -4l-10.5 10.5v4" />
@@ -247,16 +247,119 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <div class="visually-hidden">Toggle table of contents sidebar</div>
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="we-ll-be-back-soon">
-<h1>We’ll be back soon!<a class="headerlink" href="#we-ll-be-back-soon" title="Link to this heading">¶</a></h1>
-<p>Sorry for the inconvenience but we’re performing some maintenance at the moment. If you need to, you can always
-<a class="reference external" href="https://webis.de/research/tira">reach out</a> to us, otherwise we’ll be back online shortly!</p>
+          <section id="participating-in-a-shared-task">
+<h1>Participating in a Shared Task<a class="headerlink" href="#participating-in-a-shared-task" title="Link to this heading">¶</a></h1>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This tutorial assumes that you already created a user account. For the sake of the tutorial, we will create
+submissions for the <code class="docutils literal notranslate"><span class="pre">ir-benchmarks</span></code> task but it works the same for any other task.</p>
+</div>
+<section id="joining-a-task-and-preparing-your-environment">
+<h2>Joining a Task and preparing your Environment<a class="headerlink" href="#joining-a-task-and-preparing-your-environment" title="Link to this heading">¶</a></h2>
+<p>To join a task, visit <a class="reference external" href="https://www.tira.io/tasks">tira.io/tasks</a>, search for the task you would like to submit to,
+and click its name to find the task’s page.</p>
+<p>Now you either have a button titled <code class="docutils literal notranslate"><span class="pre">SUBMIT</span></code>, since you already
+registered a group for this task, or it says <code class="docutils literal notranslate"><span class="pre">REGISTER</span></code>. In the latter case, click on <code class="docutils literal notranslate"><span class="pre">REGISTER</span></code>, fill out the form
+that pops up appropriately, and confirm the registration by pressing <code class="docutils literal notranslate"><span class="pre">Submit</span> <span class="pre">Registration</span></code>. After a reload, you should
+see a <code class="docutils literal notranslate"><span class="pre">SUBMIT</span></code> button.</p>
+<figure class="align-center" id="id8">
+<a class="reference internal image-reference" href="../_images/irbenchmarks_task_view.png"><img alt="../_images/irbenchmarks_task_view.png" src="../_images/irbenchmarks_task_view.png" style="width: 300px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">The task view for <code class="docutils literal notranslate"><span class="pre">ir-benchmarks</span></code>. The <code class="docutils literal notranslate"><span class="pre">REGISTER</span></code> button could read <code class="docutils literal notranslate"><span class="pre">SUBMIT</span></code>, if you are part of a group already.</span><a class="headerlink" href="#id8" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>Click on <code class="docutils literal notranslate"><span class="pre">SUBMIT</span></code>. As you can see now, TIRA has three choices for submission (click on each respective tab to find
+out more):</p>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
+</input><label class="sd-tab-label" data-sync-id="upload-submission" for="sd-tab-item-0">
+Upload</label><div class="sd-tab-content docutils">
+<p>The upload submission is the simplest form of submitting and requires you to run the evaluation yourself and
+upload the <a class="reference internal" href="../glossary.html#term-Runfile"><span class="xref std std-term">runfile</span></a>. As such it has two notable drawbacks such that we discourage from using it:</p>
+<ol class="arabic simple">
+<li><p>Participants need access to the dataset. This may not be possible (e.g., due to legal reasons) or desirable
+(e.g., to avoid that future models profit from the author’s analysis of the dataset).</p></li>
+<li><p>The result is not verifiable – the organizer can not ensure that your model actually produced the runfile.</p></li>
+</ol>
+</div>
+<input id="sd-tab-item-1" name="sd-tab-set-0" type="radio">
+</input><label class="sd-tab-label" data-sync-id="docker-submission" for="sd-tab-item-1">
+Docker Submission</label><div class="sd-tab-content docutils">
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>TODO</p>
+</div>
+</div>
+<input id="sd-tab-item-2" name="sd-tab-set-0" type="radio">
+</input><label class="sd-tab-label" data-sync-id="code-submission" for="sd-tab-item-2">
+Code Submission</label><div class="sd-tab-content docutils">
+<p>The code submission is the simplest (recommended) form of submitting.</p>
+<div class="admonition-todo admonition" id="id2">
+<p class="admonition-title">Todo</p>
+<p>TODO</p>
+</div>
+</div>
+</div>
+<div class="admonition hint">
+<p class="admonition-title">Hint</p>
+<p>If you want to use the simplest type of submission, we recommend a <strong>Code Submission</strong>. Note however, that the
+Code Submission requires some access to your GitHub Account to perform all the setup steps for you. Submissions via
+uploads are generally discouraged since they can not be verified. Such that we <em>highly recommend</em>, you either go for
+a <strong>Code Submission</strong> or a <strong>Docker Submission</strong>.</p>
+</div>
+</section>
+<section id="submitting-your-submission">
+<h2>Submitting your Submission<a class="headerlink" href="#submitting-your-submission" title="Link to this heading">¶</a></h2>
+<p>At this point, you came up with a brilliant idea and would like to submit it to TIRA for evaluation and to take pride in
+your leaderboard position.</p>
+<ol class="arabic">
+<li><p>Optional: Uploading Artifacts (e.g., Hugging Face models required by your code)</p></li>
+<li><p>Submitting</p>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-3" name="sd-tab-set-1" type="radio">
+</input><label class="sd-tab-label" data-sync-id="upload-submission" for="sd-tab-item-3">
+Upload</label><div class="sd-tab-content docutils">
+<div class="admonition-todo admonition" id="id3">
+<p class="admonition-title">Todo</p>
+<p>TODO</p>
+</div>
+</div>
+<input id="sd-tab-item-4" name="sd-tab-set-1" type="radio">
+</input><label class="sd-tab-label" data-sync-id="docker-submission" for="sd-tab-item-4">
+Docker Submission</label><div class="sd-tab-content docutils">
+<div class="admonition-todo admonition" id="id4">
+<p class="admonition-title">Todo</p>
+<p>TODO</p>
+</div>
+</div>
+<input id="sd-tab-item-5" name="sd-tab-set-1" type="radio">
+</input><label class="sd-tab-label" data-sync-id="code-submission" for="sd-tab-item-5">
+Code Submission</label><div class="sd-tab-content docutils">
+<div class="admonition-todo admonition" id="id5">
+<p class="admonition-title">Todo</p>
+<p>TODO</p>
+</div>
+</div>
+</div>
+</li>
+</ol>
+<div class="admonition-todo admonition" id="id6">
+<p class="admonition-title">Todo</p>
+<p>For development: The “Country” field should probably be a dropdown</p>
+</div>
+<div class="admonition-todo admonition" id="id7">
+<p class="admonition-title">Todo</p>
+<p>The upload of artifacts should not be inside the file-upload-submission since it indicates that it would not
+apply to docker- or code submissions, which it does.</p>
+</div>
+</section>
 </section>
 
         </article>
@@ -264,8 +367,26 @@
       <footer>
         
         <div class="related-pages">
-          
-          
+          <a class="next-page" href="tiracli.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">TIRA CLI</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="intro.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Introduction</div>
+                
+              </div>
+            </a>
         </div>
         <div class="bottom-of-page">
           <div class="left-details">
@@ -291,8 +412,28 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Participating in a Shared Task</a><ul>
+<li><a class="reference internal" href="#joining-a-task-and-preparing-your-environment">Joining a Task and preparing your Environment</a></li>
+<li><a class="reference internal" href="#submitting-your-submission">Submitting your Submission</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>
