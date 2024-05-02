@@ -1,5 +1,4 @@
 Architecture
 ===================
 
-.. image:: architecture.dio.svg
-   :align: center
+.. .. umlet-figure:: architecture.uxf

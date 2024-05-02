@@ -8,6 +8,5 @@ Specification
     :maxdepth: 2
     :hidden:
 
-    architecture
-    restapi
     userstories
+    architecture

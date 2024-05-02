@@ -32,8 +32,9 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.doctest',
     'sphinx.ext.viewcode',
-    'sphinx_toolbox.collapse',
     'sphinx_design',
+    'sphinxcontrib.plantuml',
+    'sphinxcontrib.umlet',
     'myst_parser',
 ]
 
@@ -83,9 +84,10 @@ html_theme_options: Dict[str, Any] = {
     "source_directory": "python-client/sphinx",
     "sidebar_hide_name": True,
     "navigation_with_keys": True,
-    "announcement": '<a href="https://tira-io.github.io/tira/unlisted/maintenance.html">Due to planned maintenance starting on March 25, TIRA is currently down.</a><br>While you wait until the March 28 for us to be back, you may read our documentation. GLHF',
 }
 
+
+plantuml_output_format = 'svg_img'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

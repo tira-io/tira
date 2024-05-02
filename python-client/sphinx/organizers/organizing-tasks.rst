@@ -210,13 +210,11 @@ Set up the master VM
 Troubleshooting
 ~~~~~~~~~~~~~~~
 .. dropdown:: Changes do not show up on the website
-    :animate: fade-in-slide-down
 
     Go to `tira-admin <https://tira.io/tira-admin>`__ and then to :code:`System Actions > Reload Data`.
 
 .. dropdown:: Error on creating a virtual machine: :code:`VBoxNetAdpCtl: Error while adding new interface: failed to open /dev/vboxnetctl: No such file or directory`,
     usually comes with an error on vm start: :code:`Nonexistent host networking interface, name 'vboxnetXX'`.
-    :animate: fade-in-slide-down
 
     - Log in as webis
     - Check if /dev/vboxnetctl exists <code>ls /dev/vboxnetctl</code>. If not, proceed. If yes, there is a different
@@ -230,19 +228,15 @@ Troubleshooting
     - Run <code>tira start</code>
 
 .. dropdown:: A virtual machine does not :code:`tira vm-start` with error :code:`is not a valid username/vmname`.
-    :animate: fade-in-slide-down
 
     The :code:`vbox` file might be lost. Go to :code:`/home/tira/VirtualBox VMs/**vm-name**`. If there is a
     :code:`.vbox-prev` but no :code:`.vbox` file, copy the former to create the latter (effectivley restoring it).
 
 .. dropdown:: Read-only file system in a virtual machine.
-    :animate: fade-in-slide-down
 
     Restart the virtual machine
 
 .. dropdown:: A virtual machine has :code:`/media/training-datasets/` not mounted.
-    :animate: fade-in-slide-down
-
     On betaweb020:
     
     .. code:: bash
@@ -252,6 +246,5 @@ Troubleshooting
     Then maybe it is needed to restart the VM
 
 .. dropdown:: Prometheus says there are errors in :code:`vboxmanage list vms --long`
-    :animate: fade-in-slide-down
 
     Perform maintenance: "Removal of inaccessible VMs"

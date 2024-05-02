@@ -5,6 +5,7 @@ info:
 servers:
   - url: https://www.tira.io/api
   # - url: https://api.tira.io/ <-- maybe for the future?
+  - url: http://127.0.0.1:8080/api
 security:
   - bearerAuth: []
 
