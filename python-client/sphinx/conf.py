@@ -89,6 +89,8 @@ html_theme_options: Dict[str, Any] = {
 
 plantuml_output_format = 'svg_img'
 
+umlet_binary_path = "/usr/share/umlet/Umlet/umlet.sh"
+
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".

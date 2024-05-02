@@ -1,4 +1,4 @@
 Architecture
 ===================
 
-.. .. umlet-figure:: architecture.uxf
+.. umlet-figure:: architecture.uxf
