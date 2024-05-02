@@ -7,10 +7,6 @@
         <v-expansion-panel-text>
           <h3>Task Configuration</h3>
           You can edit this task: <edit-task :task_id_for_edit="task_id"/>
-          <v-divider class="my-4"/>
-          <h3>Legacy Administration</h3>
-          Not everything of the old admin functionality already ported to the new vuetify frontend.
-          Please <a :href="'/task/' + task_id">go to the old task page if you need some administration functionality not covered above</a>.
         </v-expansion-panel-text>
       </v-expansion-panel>
 
@@ -57,6 +53,12 @@
           <overview-missing-reviews :task="task" />
         </v-expansion-panel-text>
       </v-expansion-panel>
+      <v-expansion-panel>
+        <v-expansion-panel-title>Overview Registered Teams</v-expansion-panel-title>
+        <v-expansion-panel-text>
+          <overview-registered-teams :task="task" />
+        </v-expansion-panel-text>
+      </v-expansion-panel>
     </v-expansion-panels>
   </v-container>
 </template>
@@ -65,13 +67,14 @@
 import { extractTaskFromCurrentUrl, extractRole, get, reportError, reportSuccess } from '../utils'
 import {VAutocomplete} from "vuetify/components";
 import OverviewMissingReviews from './OverviewMissingReviews.vue';
+import OverviewRegisteredTeams from './OverviewRegisteredTeams.vue';
 import EditTask from './EditTask.vue';
 import EditDataset from './EditDataset.vue';
 import ConfirmDelete from './ConfirmDelete.vue';
 
 export default {
   name: "tira-task-admin",
-  components: {OverviewMissingReviews, EditTask, VAutocomplete, EditDataset, ConfirmDelete},
+  components: {OverviewMissingReviews, OverviewRegisteredTeams, EditTask, VAutocomplete, EditDataset, ConfirmDelete},
   props: ['datasets', 'task'],
   emits: ['add-dataset', 'delete-dataset'],
   data() {

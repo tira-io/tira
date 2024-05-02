@@ -1,26 +1,25 @@
 import json
 import pandas as pd
 import os
-import zipfile
-import io
-import docker
-import time
 from glob import glob
-from random import random
 from packaging import version
 from tira.pyterrier_integration import PyTerrierIntegration
+from tira.pandas_integration import PandasIntegration
 from tira.local_execution_integration import LocalExecutionIntegration
+from tira.rest_api_client import Client as RestClient
+from tira.tira_client import TiraClient
 
 
-class Client():
+class Client(TiraClient):
     def __init__(self, directory='.', rest_client=None):
+        self.pd = PandasIntegration(self)
         self.pt = PyTerrierIntegration(self)
         self.directory = directory + '/'
         self.tira_cache_dir = os.environ.get('TIRA_CACHE_DIR', os.path.expanduser('~') + '/.tira')
-        self.rest_client = rest_client
-        self.local_execution = LocalExecutionIntegration(self)
+        self.rest_client = rest_client if rest_client else RestClient()
+        self.local_execution = LocalExecutionIntegration(self.rest_client)
 
-    def all_datasets(self):
+    def all_datasets(self) -> pd.DataFrame:
         ret = []
         for i in glob(self.directory + '*/training-datasets/'):
             cnt = 0
@@ -39,14 +38,14 @@ class Client():
 
         return {i['TIRA_TASK_ID'] + '/' + i['TIRA_VM_ID'] + '/' + i['TIRA_SOFTWARE_NAME']: i for i in softwares}
 
-    def all_softwares(self):
+    def all_softwares(self) -> pd.DataFrame:
         ret = []
         for software_id, software_definition in self.___load_softwares().items():
             ret += [{'approach': software_id, 'id': str(int(software_definition['TIRA_SOFTWARE_ID'].split('docker-software-')[1])), 'team': software_definition['TIRA_VM_ID'], 'image': software_definition['TIRA_IMAGE_TO_EXECUTE_IN_DOCKERHUB'], 'command': software_definition['TIRA_COMMAND_TO_EXECUTE'], 'ids_of_previous_stages': [str(int(i)) for i in software_definition['TIRA_IDS_OF_PREVIOUS_STAGES']]}]
 
         return pd.DataFrame(ret)
 
-    def print_overview_of_all_software(self):
+    def print_overview_of_all_software(self) -> None:
         pre_text = """# Software for [$TASK_ID](https://www.tira.io/task/$TASK_ID)
 
 <p id="instructions">Place <code>todo-replace</code> in a directory <code>$PWD/input</code>.
@@ -97,7 +96,7 @@ and the
         for _, i in softwares.iterrows():
             execution_info = self.local_execution.run(
                 identifier=i['approach'], input_dir='$PWD/input',
-                output_dir='$PWD/output', verbose=False, dry_run=True
+                output_dir='$PWD/output', dry_run=True
             )
 
             software_name = i["approach"].split("/")[-1]
@@ -145,9 +144,9 @@ and the
 
     def __load_job_data(self, job_file):
         job = [i.split('=', 1) for i in open(job_file, 'r')]
-        return {k.strip():v.strip() for k,v in job}
+        return {k.strip(): v.strip() for k, v in job}
 
-    def all_evaluators(self):
+    def all_evaluators(self) -> pd.DataFrame:
         ret = []
         for i in self.__load_evaluators().values():
             ret += [{'dataset': i['TIRA_DATASET_ID'], 'image': i['TIRA_EVALUATION_IMAGE_TO_EXECUTE'], 'command': i['TIRA_EVALUATION_COMMAND_TO_EXECUTE']}]
@@ -166,8 +165,8 @@ and the
 
         raise ValueError(f'There is no {("evaluator" if evaluator else "software")} identified by "{identifier}". Choices are: {sorted(list(softwares))}')
 
-    def all_evaluated_appraoches(self):
-        id_to_software_name = {int(i['TIRA_SOFTWARE_ID'].split('docker-software-')[1]):i['TIRA_SOFTWARE_NAME'] for i in self.___load_softwares().values()}
+    def all_evaluated_appraoches(self) -> pd.DataFrame:
+        id_to_software_name = {int(i['TIRA_SOFTWARE_ID'].split('docker-software-')[1]): i['TIRA_SOFTWARE_NAME'] for i in self.___load_softwares().values()}
         ret = []
         for evaluation in glob('*/*/*/evaluation'):
             job_dir = glob(evaluation + '/../job-executed-on*.txt')
@@ -182,7 +181,7 @@ and the
                     i = {'approach': job_identifier, 'dataset': job_definition['TIRA_DATASET_ID']}
                     i.update(self.__load_output(eval_run, evaluation=True))
                     ret += [i]
-                except:
+                except Exception:
                     pass
 
         return pd.DataFrame(ret)
@@ -242,4 +241,3 @@ and the
             return ret, 'run_id'
         else:
             return ret
-

@@ -1,5 +1,5 @@
 #Build Vuetify in first stage: Only change in case of new / updated dependencies
-FROM webis/tira:vuetify-dev-0.0.1
+FROM webis/tira-application:basis-0.0.97
 
 COPY application/src/tira/frontend-vuetify /src/tira/frontend-vuetify
 
@@ -9,7 +9,7 @@ RUN cd /src/tira/frontend-vuetify \
 
 
 # Only change in case of new / updated dependencies
-FROM webis/tira-application:basis-0.0.76
+FROM webis/tira-application:basis-0.0.96
 
 # This Dockerfile ensures that all dependencies do rarely change by starting from a basis image
 # that contains already all dependencies (so that the minor versions do rarely change, but we
@@ -19,19 +19,15 @@ COPY application /tira/application
 
 WORKDIR /tira/application/src
 
-RUN cd /tira/application/src/tira/frontend/ && \
-	ln -s /tira-dependencies/node_modules/ node_modules && \ 
-	npm run build && \
-	mkdir -p /tira/model/src && \
-	cd /tira/application/src && \
+ENV HF_HOME=/mnt/ceph/tira/data/publicly-shared-datasets/huggingface/
+
+RUN cd /tira/application/src && \
 	chown tira:tira -R /tira/application && \
 	python3 manage.py collectstatic && \
 	chmod +x /tira/application/src/tira/endpoints/aha && \
 	cp /tira/application/src/tira/management/commands/irds_cli.sh /irds_cli.sh && \
 	rm -f ./config/settings.yml ./config/config.yml ./config/tira-application-config.dev.yml && \
-	rm -Rf tira/static/tira/frontend-vuetify/ && rm -Rf /tira/application/src/tira/static/tira/frontend-vuetify/ && \
-	apk add sudo && \
-	echo '%podman ALL=(ALL) ALL' > /etc/sudoers.d/podman
+	rm -Rf tira/static/tira/frontend-vuetify/ && rm -Rf /tira/application/src/tira/static/tira/frontend-vuetify/
 
 COPY --from=0 /src/tira/static/tira/frontend-vuetify/ /tira/application/src/tira/static/tira/frontend-vuetify/
 

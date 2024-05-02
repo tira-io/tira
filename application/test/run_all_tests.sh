@@ -13,9 +13,9 @@ python3 ../src/manage.py makemigrations tira
 python3 ../src/manage.py migrate tira
 
 coverage run --data-file=test-coverage/.coverage ../src/manage.py test --settings=settings_test --failfast
-coverage report --data-file=test-coverage/.coverage > test-coverage/coverage-report
-cd test-coverage
+#coverage report --data-file=test-coverage/.coverage > test-coverage/coverage-report
+#cd test-coverage
 
-rm -Rf coverage.svg
-coverage-badge -o coverage.svg
+#rm -Rf coverage.svg
+#coverage-badge -o coverage.svg
 

@@ -8,6 +8,8 @@ export function extractTaskFromCurrentUrl() {
     
     if (loc.includes('task-overview/')) {
         return loc.split('task-overview/')[1].split('/')[0]
+    } if (loc.includes('task/')) {
+        return loc.split('task/')[1].split('/')[0]
     }
     else if (loc.includes('submit/')){
         return loc.split('submit/')[1].split('/')[0]

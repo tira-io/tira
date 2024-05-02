@@ -27,8 +27,17 @@ import requests
 logger = logging.getLogger('tira')
 
 
-def normalize_file(file_content, tira_user_name):
-    return file_content.replace('TIRA_USER_FOR_AUTOMATIC_REPLACEMENT', tira_user_name)
+def normalize_file(file_content, tira_user_name, task_id):
+    default_datasets = {'webpage-classification': 'webpage-classification/tiny-sample-20231023-training',
+                        'ir-lab-jena-leipzig-wise-2023': 'workshop-on-open-web-search/retrieval-20231027-training',
+                        'ir-lab-jena-leipzig-sose-2023': 'workshop-on-open-web-search/retrieval-20231027-training',
+                        'workshop-on-open-web-search': 'workshop-on-open-web-search/retrieval-20231027-training',
+                        'ir-benchmarks': 'workshop-on-open-web-search/retrieval-20231027-training',
+                        }
+
+    return file_content.replace('TIRA_USER_FOR_AUTOMATIC_REPLACEMENT', tira_user_name) \
+        .replace('TIRA_TASK_ID_FOR_AUTOMATIC_REPLACEMENT', task_id) \
+        .replace('TIRA_DATASET_FOR_AUTOMATIC_REPLACEMENT', default_datasets.get(task_id, '<TODO-ADD-DATASET>'))
 
 
 def convert_size(size_bytes):
@@ -106,12 +115,12 @@ class GitRunner:
         return repo
 
     def dict_to_key_value_file(self, d):
-        return '\n'.join([(k + '=' + v).strip() for (k,v) in d.items()])
+        return '\n'.join([(k + '=' + str(v)).strip() for (k,v) in d.items()])
 
     def write_metadata_for_ci_job_to_repository(self, tmp_dir, task_id, transaction_id, dataset_id, vm_id, run_id, identifier,
                                                   git_runner_image, git_runner_command, evaluator_id,
                                                   user_image_to_execute, user_command_to_execute, tira_software_id,
-                                                  resources, input_run):
+                                                  resources, input_run, mount_hf_model):
         job_dir = Path(tmp_dir) / dataset_id / vm_id / run_id
         job_dir.mkdir(parents=True, exist_ok=True)
 
@@ -138,6 +147,9 @@ class GitRunner:
             'TIRA_EVALUATION_COMMAND_TO_EXECUTE': git_runner_command,
             'TIRA_EVALUATION_SOFTWARE_ID': evaluator_id,
         }
+
+        if mount_hf_model and type(mount_hf_model) == str and len(mount_hf_model.strip()) > 0:
+            metadata['TIRA_MOUNT_HF_MODEL'] = mount_hf_model.strip()
 
         if input_run and type(input_run) != list:
             metadata['TIRA_INPUT_RUN_DATASET_ID'] = input_run['dataset_id']
@@ -184,7 +196,7 @@ class GitRunner:
             'user_name': repo_name.replace('tira-user-', ''),
             'repo_name': repo_name,
             'token': token,
-            'image_prefix': self.image_registry_prefix +'/' + repo_name +'/'
+            'image_prefix': self.image_registry_prefix + '/' + repo_name + '/'
         })
 
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -236,6 +248,7 @@ class GitRunner:
                              'architecture': image_manifest['architecture'],
                              'created': image_manifest['created'].split('.')[0],
                              'size': image_manifest['size'],
+                             'raw_size': image_manifest['raw_size'],
                              'digest': image_manifest['digest']
                            }]
     
@@ -448,7 +461,7 @@ class GitRunner:
 
         if download_images:
             print(f'Run docker pull {image}.')
-            run_cmd(['docker', 'pull', image])
+            run_cmd(['podman', 'pull', image])
 
         description = docker_image_details(image)
         
@@ -457,12 +470,12 @@ class GitRunner:
 
         if persist_images and not os.path.isfile(image_name):
             print(f'Run image save {image} -o {image_name}.')
-            run_cmd(['docker', 'image', 'save', image, '-o', image_name])
+            run_cmd(['podman', 'image', 'save', image, '-o', image_name])
 
         if upload_images and dockerhub_image:
-            run_cmd(['docker', 'tag', image, dockerhub_image])
+            run_cmd(['podman', 'tag', image, dockerhub_image])
             print(f'Run image push {dockerhub_image}.')
-            run_cmd(['docker', 'push', dockerhub_image])
+            run_cmd(['podman', 'push', dockerhub_image])
 
         description['local_image'] = image_name
         software_definition['image_details'] = description
@@ -663,7 +676,8 @@ class GitLabRunner(GitRunner):
                 raise ValueError('-->' + manifest.content.decode('UTF-8'))
     
             image_metadata = json.loads(manifest.content.decode('UTF-8'))
-            size = convert_size(image_metadata['config']['size'] + sum([i['size'] for i in image_metadata['layers']]))
+            raw_size = image_metadata['config']['size'] + sum([i['size'] for i in image_metadata['layers']])
+            size = convert_size(raw_size)
 
             image_config = requests.get(f'https://{registry_host}/v2/{repository_name}/blobs/{image_metadata["config"]["digest"]}', headers=headers)
 
@@ -676,6 +690,7 @@ class GitLabRunner(GitRunner):
                 'architecture': image_config['architecture'],
                 'created': image_config['created'],
                 'size': size,
+                'raw_size': raw_size,
                 'digest': image_metadata["config"]["digest"].split(':')[-1][:12]
             }
         except Exception as e:
@@ -684,7 +699,8 @@ class GitLabRunner(GitRunner):
                 'architecture': 'Loading...',
                 'created': 'Loading...',
                 'size': 'Loading...',
-                'digest': 'Loading...'
+                'digest': 'Loading...',
+                'raw_size': 'Loading...',
             }
 
         if cache:
@@ -711,11 +727,11 @@ class GitLabRunner(GitRunner):
     def run_docker_software_with_git_workflow(self, task_id, dataset_id, vm_id, run_id, git_runner_image,
                                               git_runner_command, git_repository_id, evaluator_id,
                                               user_image_to_execute, user_command_to_execute, tira_software_id,
-                                              resources, input_run):
+                                              resources, input_run, mount_hf_model):
         msg = f"start run_docker_image with git: {task_id} - {dataset_id} - {vm_id} - {run_id}"
         transaction_id = self.start_git_workflow(task_id, dataset_id, vm_id, run_id, git_runner_image,
                            git_runner_command, git_repository_id, evaluator_id,
-                           user_image_to_execute, user_command_to_execute, tira_software_id, resources, input_run)
+                           user_image_to_execute, user_command_to_execute, tira_software_id, resources, input_run, mount_hf_model)
 
         # TODO: add transaction to log
 
@@ -723,7 +739,7 @@ class GitLabRunner(GitRunner):
 
     def start_git_workflow(self, task_id, dataset_id, vm_id, run_id, git_runner_image,
                            git_runner_command, git_repository_id, evaluator_id,
-                           user_image_to_execute, user_command_to_execute, tira_software_id, resources, input_run):
+                           user_image_to_execute, user_command_to_execute, tira_software_id, resources, input_run, mount_hf_model):
         msg = f"start git-workflow with git: {task_id} - {dataset_id} - {vm_id} - {run_id}"
         transaction_id = new_transaction(msg, in_grpc=False)
         logger.info(msg)
@@ -736,7 +752,7 @@ class GitLabRunner(GitRunner):
             self.write_metadata_for_ci_job_to_repository(tmp_dir, task_id, transaction_id, dataset_id, vm_id, run_id,
                                                       identifier, git_runner_image, git_runner_command, evaluator_id,
                                                       user_image_to_execute, user_command_to_execute, tira_software_id,
-                                                      resources, input_run)
+                                                      resources, input_run, mount_hf_model)
 
             self.commit_and_push(repo, dataset_id, vm_id, run_id, identifier, git_repository_id, resources)
 
@@ -1183,7 +1199,7 @@ class GithubRunner(GitRunner):
                                                 user_repository_namespace, github_user, tira_user_name,
                                                 dockerhub_token, dockerhub_user, tira_client_token,
                                                 repository_search_prefix, tira_task_id, tira_code_repository_id,
-                                                tira_client_user):
+                                                tira_client_user, private):
         user = self.gitHoster_client.get_user()
         try:
             user_repo = user.get_repo(f'{user_repository_namespace}/{user_repository_name}')
@@ -1198,27 +1214,25 @@ class GithubRunner(GitRunner):
                                                                    tira_user_name, dockerhub_token, dockerhub_user,
                                                                    tira_client_token, repository_search_prefix,
                                                                    tira_task_id, tira_code_repository_id,
-                                                                   tira_client_user)
+                                                                   tira_client_user, private)
 
     def create_software_submission_repository_for_user(self, reference_repository_name, user_repository_name,
                                                        user_repository_namespace, github_user, tira_user_name,
                                                        dockerhub_token, dockerhub_user, tira_client_token,
                                                        repository_search_prefix, tira_task_id, tira_code_repository_id,
-                                                       tira_client_user):
+                                                       tira_client_user, private):
         reference_repo = self.gitHoster_client.get_repo(reference_repository_name)
 
         org = self.gitHoster_client.get_organization(user_repository_namespace)
         repo = org.create_repo(user_repository_name,
-                               f'The repository of user {tira_user_name} for code submissions in TIRA.', private=True)
+                               f'The repository of user {tira_user_name} for code submissions in TIRA.', private=private)
         repo.add_to_collaborators(github_user, 'admin')
 
         repo.create_secret('TIRA_DOCKER_REGISTRY_TOKEN', dockerhub_token)
         repo.create_secret('TIRA_DOCKER_REGISTRY_USER', dockerhub_user)
         repo.create_secret('TIRA_CLIENT_TOKEN', tira_client_token)
         repo.create_secret('TIRA_CLIENT_USER', tira_client_user)
-        repo.create_secret('TIRA_TASK_ID', tira_task_id)
         repo.create_secret('TIRA_CODE_REPOSITORY_ID', tira_code_repository_id)
-        repo.create_secret('TIRA_VM_ID', tira_user_name)
 
         contents = reference_repo.get_contents(repository_search_prefix)
         while contents:
@@ -1227,7 +1241,7 @@ class GithubRunner(GitRunner):
                 contents.extend(reference_repo.get_contents(file_content.path))
             else:
                 decoded_content = file_content.decoded_content.decode()
-                decoded_content = normalize_file(decoded_content, tira_user_name)
+                decoded_content = normalize_file(decoded_content, tira_user_name, tira_task_id)
                 repo.create_file(file_content.path, 'Initial Commit.', decoded_content)
 
         return repo

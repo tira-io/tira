@@ -8,7 +8,7 @@ stages:
 prepare-tira-environment:
   stage: Preparation
   image:
-    name: webis/tira-git-pipelines:0.0.26
+    name: webis/tira-git-pipelines:0.0.30
     pull_policy: if-not-present
   artifacts:
     untracked: true
@@ -16,7 +16,7 @@ prepare-tira-environment:
       dotenv: task.env
   script:
     - tira-test-runner-is-trustworthy.sh
-    - tira-specify-task-to-run.py > task.env
+    - HF_HOME=/mnt/ceph/tira/data/publicly-shared-datasets/huggingface/ tira-specify-task-to-run.py > task.env
     - cat task.env
   tags:
     - tira-evaluator
@@ -45,6 +45,8 @@ run-user-software:
     - test -n "${TIRA_OUTPUT_DIR}" && mkdir -p ${TIRA_OUTPUT_DIR}
     - echo "${TIRA_COMMAND_TO_EXECUTE}"
     - export inputDataset="${PWD}/${inputDataset}" && export outputDir="${PWD}/${outputDir}" && export WORKING_DIR_BEFORE_CMD=${PWD} && export TIRA_COMMAND_TO_EXECUTE=$(eval "echo \"${TIRA_COMMAND_TO_EXECUTE}\"")
+    - echo "${TIRA_HF_MOUNT_TO_EXECUTE}"
+    - eval "${TIRA_HF_MOUNT_TO_EXECUTE}"
     - echo "${TIRA_COMMAND_TO_EXECUTE}"
     - eval "${TIRA_COMMAND_TO_EXECUTE}"
     - cd ${WORKING_DIR_BEFORE_CMD}
@@ -61,7 +63,7 @@ run-user-software:
 persist-software-result:
   stage: Persist Software Result
   image:
-    name: webis/tira-git-pipelines:0.0.26
+    name: webis/tira-git-pipelines:0.0.30
     pull_policy: if-not-present
   artifacts:
     untracked: true
@@ -98,7 +100,7 @@ evaluate-software-result:
 persist-evaluation-result:
   stage: Persist Evaluation Result
   image:
-    name: webis/tira-git-pipelines:0.0.26
+    name: webis/tira-git-pipelines:0.0.30
     pull_policy: if-not-present
   script:
     - tira-persist-evaluation-result.sh

@@ -47,7 +47,7 @@ class IrDatasetsLoader(object):
     """ Base class for loading datasets in a standardized format"""
 
     def load_irds(self, ir_datasets_id):
-        import ir_datasets
+        from tira.third_party_integrations import ir_datasets
         try:
             return ir_datasets.load(ir_datasets_id)
         except:
@@ -204,11 +204,20 @@ class IrDatasetsLoader(object):
 
     def get_docs_by_ids(self, dataset, doc_ids: list) -> dict:
         docstore = dataset.docs_store()
-        ret = {}
-        doc_ids = set(doc_ids)
-        for doc in tqdm(docstore.get_many_iter(doc_ids), total=len(doc_ids), desc='Get Docs'):
-            ret[doc.doc_id] = doc
-        return ret
+        try:
+            ret = {}
+            doc_ids = set(doc_ids)
+            for doc in tqdm(docstore.get_many_iter(doc_ids), total=len(doc_ids), desc='Get Docs'):
+                ret[doc.doc_id] = doc
+            return ret
+        except:
+            ret = {}
+            doc_ids = set(doc_ids)
+            for doc_id in tqdm(doc_ids, total=len(doc_ids), desc='Get Docs'):
+                doc = docstore.get(doc_id)
+                ret[doc.doc_id] = doc
+            return ret
+
 
     def make_serializable(self, o: dict):
         for k in o.keys():

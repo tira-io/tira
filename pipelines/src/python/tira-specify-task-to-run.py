@@ -8,6 +8,12 @@ from pathlib import Path
 from django.conf import settings
 import json
 import sys
+import importlib
+
+tira_cli_io_utils_spec = importlib.util.spec_from_file_location("tira_cli.io_utils", f"/usr/lib/python3.8/site-packages/tira/io_utils.py")
+tira_cli_io_utils = importlib.util.module_from_spec(tira_cli_io_utils_spec)
+tira_cli_io_utils_spec.loader.exec_module(tira_cli_io_utils)
+
 
 def find_job_to_execute():
      ret = list(glob('*/*/*/job-to-execute.txt'))
@@ -54,9 +60,9 @@ def copy_multiple_input_runs_to_local_environment(job_configuration, file_skip_l
             
             local_input_run_directory = Path(local_base_directory) / str(i+1)
             print(f'The software uses an input run. I will copy data from {absolute_input_run_directory} to {local_input_run_directory}', file=sys.stderr)
-            copy_from_to(absolute_input_run_directory, local_input_run_directory, ([] if not file_skip_list else file_skip_list) + ['documents.jsonl'])
+            copy_from_to(absolute_input_run_directory, local_input_run_directory, ([] if not file_skip_list else file_skip_list) + [])
         
-        return {'file_skip_list': ['documents.jsonl'], 'ret': ['inputRun=' + local_base_directory], 'tira_cleanup_command': ';rm -Rf ' + local_base_directory}
+        return {'file_skip_list': [], 'ret': ['inputRun=' + local_base_directory], 'tira_cleanup_command': ';rm -Rf ' + local_base_directory}
 
     return {}
 
@@ -89,8 +95,9 @@ def identify_environment_variables(job_file):
         'TIRA_RUN_ID=' + tira_run_id,
         'TIRA_OUTPUT_DIR=' + job_dir + '/output',
         'TIRA_JOB_FILE=' + job_file,
+        'TIRA_HF_MOUNT_TO_EXECUTE=' + tira_cli_io_utils._ln_huggingface_model_mounts(job_configuration.get('TIRA_MOUNT_HF_MODEL', '')),
     ]
-    
+
     if 'TIRA_INPUT_RUN_DATASET_ID' in job_configuration and 'TIRA_INPUT_RUN_VM_ID' in job_configuration and 'TIRA_INPUT_RUN_RUN_ID' in job_configuration and 'TIRA_INPUT_RUN_REPLACES_ORIGINAL_DATASET' not in job_configuration:
         local_input_run_directory = job_configuration['TIRA_INPUT_RUN_DATASET_ID'] + '/' + job_configuration['TIRA_INPUT_RUN_VM_ID'] + '/' + job_configuration['TIRA_INPUT_RUN_RUN_ID'] + '/output'
         absolute_input_run_directory = settings.TIRA_ROOT / 'data' / 'runs' / job_configuration['TIRA_INPUT_RUN_DATASET_ID'] / job_configuration['TIRA_INPUT_RUN_VM_ID'] / job_configuration['TIRA_INPUT_RUN_RUN_ID'] / 'output'
@@ -98,7 +105,6 @@ def identify_environment_variables(job_file):
         
         print(f'The software uses an input run. I will copy data from {absolute_input_run_directory} to {local_input_run_directory}', file=sys.stderr)
         copy_from_to(absolute_input_run_directory, local_input_run_directory, file_skip_list)
-        file_skip_list += ['documents.jsonl']
         ret += ['inputRun=' + local_input_run_directory]
         tira_cleanup_command += ';rm -Rf ' + local_input_run_directory
     if 'TIRA_INPUT_RUN_DATASET_IDS' in job_configuration and 'TIRA_INPUT_RUN_VM_IDS' in job_configuration and 'TIRA_INPUT_RUN_RUN_IDS' in job_configuration and 'TIRA_INPUT_RUN_REPLACES_ORIGINAL_DATASET' not in job_configuration:

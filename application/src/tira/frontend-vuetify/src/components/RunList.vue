@@ -89,7 +89,8 @@ export default {
   props: ['task_id', 'organizer', 'organizer_id', 'vm_id', 'docker_software_id', 'upload_id', 'show_only_unreviewed', 'datasets', 'component_type'],
   data() { return {
       loading: true,
-      runs: [{'run_id': 'loading...', 'review_state': 'no-review', 'dataset_id': 'loading...', 'input_software_name': 'loading...'}] as run[],
+      runs: [{'run_id': 'loading...', 'review_state': 'no-review', 'vm_id': '1', 'link_to_team': 'link', 'dataset_id': 'loading...', 'input_software_name': 'loading...'}] as run[],
+      // runs: [{'run_id': 'loading...', 'review_state': 'no-review', 'vm_id': '1', 'link_to_team': 'link', 'dataset_id': '1'}],
       table_headers: [],
       table_headers_small_layout: [],
       table_sort_by: [],

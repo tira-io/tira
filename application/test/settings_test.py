@@ -318,13 +318,18 @@ WEBPACK_LOADER = {
     }
 }
 
-TIREX_COMPONENTS = {}
+TIREX_COMPONENTS = yaml.load(open(BASE_DIR / 'src' / 'tirex-components.yml').read(), Loader=yaml.FullLoader)
 
 GIT_CI_AVAILABLE_RESOURCES = {
     'small-resources': {'cores': 1, 'ram': 10, 'gpu': 0, 'data': 'no', 'description': 'Small (1 CPU Cores, 10GB of RAM)', 'key': 'small-resources'}
 }
 
-CODE_SUBMISSION_REFERENCE_REPOSITORY = 'mam10eks/tira-software-submission-template'
+CODE_SUBMISSION_REFERENCE_REPOSITORIES = {
+    'ir-lab-jena-leipzig-wise-2023': 'mam10eks/tira-software-submission-template',
+    'webpage-classification': 'OpenWebSearch/irixys23-tira-submission-template',
+}
 CODE_SUBMISSION_REPOSITORY_NAMESPACE = 'tira-io'
 DISRAPTOR_API_KEY = ''
 DISCOURSE_API_URL = ''
+PUBLIC_TRAINING_DATA = set(['jena-topics-20231026-test', 'leipzig-topics-20231025-test'])
+REFERENCE_DATASETS = {}

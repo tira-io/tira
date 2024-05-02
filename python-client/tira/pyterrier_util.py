@@ -1,4 +1,4 @@
-from pyterrier.transformer import Transformer
+from pyterrier.transformer import Transformer, SourceTransformer
 import json
 import pandas as pd
 import tempfile
@@ -25,16 +25,38 @@ def merge_runs(topics, run_file):
     return topics[keeping].merge(df, how='left', left_on=join_on, right_on=join_on)
 
 
+class TiraSourceTransformer(SourceTransformer):
+    def __init__(self, rtr, **kwargs):
+        super().__init__(rtr, **kwargs)
+
+    
+    def transform(self, topics):
+        import numpy as np
+        if 'docno' not in topics.columns:
+            return super().transform(topics)
+        elif 'qid' not in topics.columns:
+            raise ValueError('The dataframe needs to have a column "qid"')
+        
+        keeping = topics.columns
+
+        common_columns = np.intersect1d(topics.columns, self.df.columns)
+
+        # we drop columns in topics that exist in the self.df
+        drop_columns = [i for i in common_columns if i not in ("qid", "docno")]
+        if len(drop_columns) > 0:
+            keeping = topics.columns[~ topics.columns.isin(drop_columns)]
+
+        return topics[keeping].merge(self.df, on=["qid", "docno"])
+
 class TiraFullRankTransformer(Transformer):
     """
     A Transformer that re-executes some full-rank approach submitted to a shared task in TIRA.
     """
 
-    def __init__(self, approach, tira_client, input_dir, verbose=False, **kwargs):
+    def __init__(self, approach, tira_client, input_dir, **kwargs):
         self.approach = approach
         self.tira_client = tira_client
         self.input_dir = input_dir
-        self.verbose = verbose
 
     def transform(self, topics):
         output_dir = tempfile.TemporaryDirectory('-pt-tira-local-execution-full-rank-transformer').name + '/output'
@@ -42,7 +64,7 @@ class TiraFullRankTransformer(Transformer):
 
         self.tira_client.local_execution.run(identifier=self.approach,
             input_dir=self.input_dir, output_dir=output_dir,
-            evaluate=False, verbose=self.verbose, dry_run=False
+            evaluate=False, dry_run=False
         )
 
         return merge_runs(topics, output_dir + '/run.txt')
@@ -70,6 +92,7 @@ class TiraRerankingTransformer(Transformer):
     def transform(self, topics):
         import numpy as np
         assert "qid" in topics.columns
+
         if 'tira_task' not in topics.columns or 'tira_dataset' not in topics.columns or 'tira_first_stage_run_id' not in topics.columns:
             if self.datasets:
                 tira_configurations = [{'tira_task': self.task, 'tira_dataset': i, 'tira_first_stage_run_id': None} for i in self.datasets]
@@ -104,16 +127,15 @@ class TiraLocalExecutionRerankingTransformer(Transformer):
     A Transformer that re-execues software submitted in TIRA.
     """
 
-    def __init__(self, approach, tira_client, verbose=False, irds_id=None, **kwargs):
+    def __init__(self, approach, tira_client, irds_id=None, **kwargs):
         self.task, self.team, self.software = approach.split('/')
         self.approach = approach
         self.tira_client = tira_client
-        self.verbose = verbose
         self.irds_id = irds_id
 
     def transform(self, topics):
         assert "qid" in topics.columns
-        
+
         tmp_directory = tempfile.TemporaryDirectory('-pt-tira-local-execution-reranking-transformer').name
         input_dir = self.tira_client.pt.create_rerank_file(run_df=topics, irds_dataset_id=self.irds_id)
         output_dir = tmp_directory + '/output'
@@ -121,7 +143,7 @@ class TiraLocalExecutionRerankingTransformer(Transformer):
 
         self.tira_client.local_execution.run(identifier=self.approach,
             input_dir=input_dir, output_dir=output_dir,
-            evaluate=False, verbose=self.verbose, dry_run=False
+            evaluate=False, dry_run=False
         )
 
         return merge_runs(topics, tmp_directory + '/output/run.txt')

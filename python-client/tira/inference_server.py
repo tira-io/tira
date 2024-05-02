@@ -120,16 +120,16 @@ class InferenceServer(BaseHTTPRequestHandler):
 ####################################
 
 
-def run_inference_server(base_module: str, absolute_path: str, internal_port: int = 8001, loglevel: str = 'INFO'):
+def run_inference_server(base_module: str, absolute_path: str, internal_port: int = 8001, loglevel: int = logging.INFO):
     # logging
     log_filename = 'inference_server_' + datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.log'
     _setup_logging(log_filename=log_filename, loglevel=loglevel)
 
     # load module and import predict function
-    with add_to_path(os.path.dirname(absolute_path)):
+    with _add_to_path(os.path.dirname(absolute_path)):
         predict = _load_predict_from_imported_module(module_name=base_module, absolute_path=absolute_path)
     if predict is None:
-        sys.exit(f'unable to import predict predict function. See log file for details.')
+        sys.exit('unable to import predict predict function. See log file for details.')
     _set_predict_function(predict=predict)
 
     # start HTTP server
@@ -151,7 +151,7 @@ def run_inference_server(base_module: str, absolute_path: str, internal_port: in
         pass
 
 
-def _setup_logging(log_filename: str, loglevel: str = 'INFO'):
+def _setup_logging(log_filename: str, loglevel: int = logging.INFO):
     log_folder = 'logs'
 
     if not os.path.isdir(log_folder):
@@ -159,15 +159,10 @@ def _setup_logging(log_filename: str, loglevel: str = 'INFO'):
 
     log_file = os.path.join(log_folder, log_filename)
 
-    default_log_level = 'INFO'
-    numeric_level = getattr(logging, loglevel.upper(), None)
-    if not isinstance(numeric_level, int):
-        print(f'Unknown log level "{loglevel}". Using default level "{default_log_level}".')
-        loglevel = default_log_level
     logging.basicConfig(
         format='[%(asctime)s] %(levelname)s %(message)s',
         filename=log_file,
-        level=getattr(logging, loglevel.upper()),
+        level=loglevel,
         datefmt='%Y-%m-%d %H:%M:%S'
     )
 
@@ -204,12 +199,10 @@ def _load_predict_from_imported_module(module_name: str, absolute_path: str = No
 
 
 @contextmanager
-def add_to_path(p):
-    import sys
-    old_path = sys.path
-    sys.path = sys.path[:]
-    sys.path.insert(0, p)
+def _add_to_path(p):
+    old_path = sys.path.copy()
     try:
+        sys.path.insert(0, p)
         yield
     finally:
         sys.path = old_path

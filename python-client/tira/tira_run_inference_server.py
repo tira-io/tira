@@ -1,31 +1,37 @@
 #!/usr/bin/env python3
-import argparse
+from argparse import ArgumentParser, ArgumentTypeError
 import os
 import sys
 import subprocess
+import logging
 
 from tira.inference_server import run_inference_server
 
 
+def limited_int_arg(lower_bound: int, upper_bound: int):
+    def ret(arg: str) -> int:
+        i = int(arg)
+        if not (lower_bound <= i <= upper_bound):
+            raise ArgumentTypeError(f"{i} is outside the permissible range from {lower_bound} to {upper_bound}")
+        return i
+    return ret
+
+
 def parse_args():
-    parser = argparse.ArgumentParser(prog='tira-run-inference-server', description='')
+    parser = ArgumentParser(prog='tira-run-inference-server', description='')
 
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument('--script', type=str, help='The python script containing the model and the predict function.', required=False)
     group.add_argument('--notebook', type=str, help='The notebook containing the model and the predict function.', required=False)
 
-    parser.add_argument('--port', type=int, help='Port number of local server.', required=True)
-    parser.add_argument('--log', type=str, help='Server log level. One of [INFO, WARNING, DEBUG]. Default is INFO', default='INFO', required=False)
+    parser.add_argument('--port', type=limited_int_arg(5000, 65536), help='Port number of local server.', required=True)
+    parser.add_argument('-v', '--verbose', action='count', default=0, help='Sets the output verbosity. Default is INFO. Can be repeated for more verbose output.')
 
     return parser.parse_args()
 
 
 def main():
     args = parse_args()
-
-    if not (5000 <= args.port <= 65536):
-        print(f"Invalid port number {args.port}. Must be in range 5000 - 65536.")
-        sys.exit(-1)
 
     if args.notebook is not None:
         notebook_name = args.notebook
@@ -48,4 +54,6 @@ def main():
     # flag execution for running as inference server (see third_party_integrations.is_running_as_inference_server)
     os.environ['TIRA_INFERENCE_SERVER'] = 'True'
 
-    run_inference_server(base_module=module_name, absolute_path=absolute_path, internal_port=args.port, loglevel=args.log)
+    loglevels = [logging.INFO, logging.DEBUG]
+    loglevel = loglevels[min(args.verbose, len(loglevels)-1)]
+    run_inference_server(base_module=module_name, absolute_path=absolute_path, internal_port=args.port, loglevel=loglevel)

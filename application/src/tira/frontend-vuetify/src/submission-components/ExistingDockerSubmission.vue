@@ -24,6 +24,15 @@
       <v-card-subtitle class="my-4">{{ docker_software_details.description }}</v-card-subtitle>
       <v-form id="docker-submission-readonly-input">
         <v-text-field label="Previous Stages (Immutable for Reproducibility)" v-if="docker_software_details.previous_stages" v-model="docker_software_details.previous_stages" readonly/>
+
+        <div v-if="docker_software_details.mount_hf_model_display && docker_software_details.mount_hf_model_display[0].href != 'loading...'">
+        This software mounts the Hugging Face models 
+        <span v-for="hf_model in docker_software_details.mount_hf_model_display">
+          <a :href="hf_model.href" target="_blank">{{hf_model.display_name}}</a>&nbsp;
+        </span>
+        into the Docker image.
+        </div>
+
         <v-text-field label="Docker Image (Immutable for Reproducibility)" v-model="docker_software_details.user_image_name" readonly/>
         <v-text-field label="Command (Immutable for Reproducibility)" v-model="docker_software_details.command" readonly/>
       </v-form>
@@ -62,7 +71,7 @@ export default {
     return {loading: true, runSoftwareInProgress: false, selectedDataset: '', valid: false, selectedResource: '',
       docker_software_details: {
         'display_name': 'loading ...', 'user_image_name': 'loading', 'command': 'loading',
-        'description': 'loading ...', 'previous_stages': 'loading ...', 'paper_link': 'loading ...', 'ir_re_ranker': false
+        'description': 'loading ...', 'previous_stages': 'loading ...', 'paper_link': 'loading ...', 'ir_re_ranker': false, 'mount_hf_model_display': [{'href': 'loading...', 'display_name': 'loading...', }]
       },
       task_id: extractTaskFromCurrentUrl(), selectedRerankingDataset: '', component_type: 'Submission',
     }

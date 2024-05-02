@@ -16,22 +16,6 @@
         <v-btn color="primary" prepend-icon="mdi-plus" size="large" @click="this.tab = 'newDockerImage'" block rounded>New Submission</v-btn>
     </v-col>
   </v-row>
-  <v-row v-if="!loading && role !== 'guest'">
-    <v-col cols="10">
-      <v-tabs v-model="tab" fixed-tabs class="mb-10 d-none">
-        <v-tab variant="outlined" v-for="ds in this.docker.docker_softwares" :value="ds.docker_software_id">
-          {{ ds.display_name }}
-        </v-tab>
-      </v-tabs>
-    </v-col>
-    <v-col cols="2">
-      <v-tabs v-model="tab" fixed-tabs class="mb-10 d-none">
-        <v-tab value="newDockerImage" color="primary" style="max-width: 100px;" variant="outlined">
-          <v-icon>mdi-plus</v-icon>
-        </v-tab>
-      </v-tabs>
-    </v-col>
-  </v-row>
 
   <v-window v-model="tab" v-if="!loading && role !== 'guest'" :touch="{left: null, right: null}">
     <v-window-item v-for="ds in this.docker.docker_softwares" :value="ds.docker_software_id">
@@ -130,7 +114,7 @@ export default {
       .then(inject_response(this, {'loading': false}, true))
       .catch(reportError("Problem While Loading the Docker Details of the Task " + this.task_id, "This might be a short-term hiccup, please try again. We got the following error: "))
     this.load_re_ranking_datasets()
-    this.tab = this.docker.images[0].display_name
+    this.step === '' ? this.tab = this.docker.docker_softwares[0].display_name : this.tab = "newDockerImage"
   },
   watch: {
     step(old_value, new_value) {

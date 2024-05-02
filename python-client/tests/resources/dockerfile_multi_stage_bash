@@ -1,0 +1,7 @@
+from bash
+
+WORKDIR /usr/bin
+
+ADD tests/resources/multi-stage-bash.sh /usr/bin/
+
+ENTRYPOINT [ "./multi-stage-bash.sh" ]

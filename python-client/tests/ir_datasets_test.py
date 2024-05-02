@@ -4,7 +4,7 @@ import os
 import unittest
 
 
-# TODO: this file still uses "unclean" assertions and should be converted to use unittest assertions
+# .. todo:: this file still uses "unclean" assertions and should be converted to use unittest assertions
 
 class TestIRDatasets(unittest.TestCase):
 
@@ -81,16 +81,17 @@ class TestIRDatasets(unittest.TestCase):
         assert '1' == list(dataset.scoreddocs)[0].query_id
 
 
-    def test_for_scoreddocs_count_01(self):
-        ensure_pyterrier_is_loaded(patch_ir_datasets=False)
-        dataset = ir_datasets.load('tirex-sample-dataset')
-        self.assertEqual(dataset.scoreddocs_count(), 10)
-
-
-    def test_for_scoreddocs_count_02(self):
+    def test_for_scoreddocs_within_tira(self):
+        os.environ['TIRA_INPUT_DATASET'] = 'tests/resources/re-ranking-outputs'
         ensure_pyterrier_is_loaded(patch_ir_datasets=True)
-        dataset = ir_datasets.load('tirex-sample-dataset')
-        self.assertEqual(dataset.scoreddocs_count(), 10)
+        dataset = ir_datasets.load('msmarco-passage/eval/small')
+        print(list(dataset.scoreddocs))
+        del os.environ['TIRA_INPUT_DATASET']
+        assert len(list(dataset.scoreddocs)) == 3
+        assert 'doc-1' == list(dataset.scoreddocs)[0].doc_id
+        assert '1' == list(dataset.scoreddocs)[0].query_id
+        assert 10 == list(dataset.scoreddocs)[0].score
+        register_rerank_data_to_ir_datasets('tests/sample-tirex-rerank-data', 'tirex-sample-dataset', None)
 
 
     def test_loading_raw_ir_datasets_01(self):
@@ -425,3 +426,33 @@ class TestIRDatasets(unittest.TestCase):
 
         assert len(dataset.get_qrels()) == 3
         assert qrels[0] == {'docno': 'doc-1', 'iteration': '0', 'label': 1, 'qid': '1'}
+
+    def test_ir_datasets_id_is_available(self):
+        ensure_pyterrier_is_loaded(patch_ir_datasets=True)
+        import pyterrier as pt
+        expected = 'workshop-on-open-web-search/retrieval-20231027-training'
+        
+        dataset = pt.get_dataset('irds:workshop-on-open-web-search/retrieval-20231027-training')
+        actual = dataset.irds_ref().dataset_id()
+
+        self.assertEqual(expected, actual)
+
+    def test_ir_datasets_get_many_iter_is_available_01(self):
+        ensure_pyterrier_is_loaded(patch_ir_datasets=True)
+        import pyterrier as pt
+        expected = []
+        
+        dataset = pt.get_dataset('irds:workshop-on-open-web-search/retrieval-20231027-training')
+        actual = [i for i in dataset.irds_ref().docs_store().get_many_iter(['1', '2']) if i]
+
+        self.assertEqual(expected, actual)
+
+    def test_ir_datasets_get_many_iter_is_available_02(self):
+        ensure_pyterrier_is_loaded(patch_ir_datasets=True)
+        import pyterrier as pt
+        expected = ['doc-2', 'doc-3']
+        
+        dataset = pt.get_dataset('irds:workshop-on-open-web-search/retrieval-20231027-training')
+        actual = [i.doc_id for i in dataset.irds_ref().docs_store().get_many_iter(['doc-2', 'doc-3']) if i]
+
+        self.assertEqual(expected, actual)

@@ -20,6 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 custom_settings = {}
 for cfg in (BASE_DIR / "config").glob("*.yml"):
+    print(f'Load settings from {cfg}.')
     custom_settings.update(yaml.load(open(cfg, "r").read(), Loader=yaml.FullLoader))
 
 if 'database' not in custom_settings:
@@ -246,6 +247,10 @@ GIT_CI_AVAILABLE_RESOURCES = {
     'medium-resources': {'cores': 2, 'ram': 20, 'gpu': 0, 'data': 'no', 'description': 'Medium (2 CPU Cores, 20GB of RAM)', 'key': 'medium-resources'},
     'large-resources': {'cores': 4, 'ram': 40, 'gpu': 0, 'data': 'no', 'description': 'Large (4 CPU Cores, 40GB of RAM)', 'key': 'large-resources'},
     'small-resources-gpu': {'cores': 1, 'ram': 10, 'gpu': '1-nvidia-1080', 'data': 'no', 'description': 'Small w. GPU (1 CPU Cores, 10GB of RAM, 1 Nvidia GTX 1080 with 8GB)', 'key': 'small-resources-gpu'},
+    'medium-resources-gpu': {'cores': 2, 'ram': 20, 'gpu': '1-nvidia-1080', 'data': 'no', 'description': 'Medium w. GPU (2 CPU Cores, 20GB of RAM, 1 Nvidia GTX 1080 with 8GB)', 'key': 'medium-resources-gpu'},
+    'large-resources-gpu': {'cores': 4, 'ram': 40, 'gpu': '1-nvidia-1080', 'data': 'no', 'description': 'Large w. GPU (4 CPU Cores, 40GB of RAM, 1 Nvidia GTX 1080 with 8GB)', 'key': 'large-resources-gpu'},
+    'xl-resources-gpu': {'cores': 8, 'ram': 80, 'gpu': '1-nvidia-1080', 'data': 'no', 'description': 'XL w. GPU (8 CPU Cores, 80GB of RAM, 1 Nvidia GTX 1080 with 8GB)', 'key': 'xl-resources-gpu'},
+    'a100-resources-gpu': {'cores': 5, 'ram': 50, 'gpu': '1-nvidia-a100', 'data': 'no', 'description': 'A100 GPU (5 CPU Cores, 50GB of RAM, 1 Nvidia A100 with 40GB)', 'key': 'a100-resources-gpu'}
 }
 
 DEFAULT_GIT_INTEGRATION_URL = 'https://git.webis.de/code-research/tira'
@@ -338,8 +343,24 @@ WEBPACK_LOADER = {
 }
 
 DISCOURSE_API_URL = 'https://www.tira.io'
+PUBLIC_TRAINING_DATA = set(['jena-topics-20231026-test', 'leipzig-topics-20231025-test'])
 
-CODE_SUBMISSION_REFERENCE_REPOSITORY = 'mam10eks/tira-software-submission-template'
+CODE_SUBMISSION_REFERENCE_REPOSITORIES = {
+    'ir-lab-jena-leipzig-wise-2023': 'tira-io/tira-ir-lab-wise-submission-template',
+    'ir-benchmarks': 'tira-io/tira-ir-lab-wise-submission-template',
+    'webpage-classification': 'OpenWebSearch/irixys23-tira-submission-template',
+    'valueeval-2024-human-value-detection': 'touche-webis-de/valueeval24-tira-software-submission-template',
+    'workshop-on-open-web-search': 'tira-io/wows24-submission-template',
+    'nlpbuw-fsu-sose-24': 'webis-de/natural-language-processing-exercises',
+}
+
+REFERENCE_DATASETS = {
+    'ir-lab-padua-2024': 'ir-lab-padua-2024/spot-check-20240424-training',
+    'ir-benchmarks': 'ir-benchmarks/cranfield-20230107-training',
+    'workshop-on-open-web-search': 'workshop-on-open-web-search/retrieval-20231027-training',
+    'generative-ai-authorship-verification-panclef-2024': 'generative-ai-authorship-verification-panclef-2024/pan24-generative-authorship-tiny-smoke-20240417-training',
+}
+
 CODE_SUBMISSION_REPOSITORY_NAMESPACE = 'tira-io'
 try:
     DISRAPTOR_API_KEY = open(DISRAPTOR_SECRET_FILE, "r").read().strip()

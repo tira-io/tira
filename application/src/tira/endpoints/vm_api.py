@@ -138,6 +138,33 @@ def get_running_evaluations(request, vm_id):
 def docker_software_details(request, context, vm_id, docker_software_id):
     context['docker_software_details'] = model.get_docker_software(int(docker_software_id))
 
+    if 'mount_hf_model' in context['docker_software_details'] and context['docker_software_details']['mount_hf_model']:
+        mount_hf_model = []
+        for i in context['docker_software_details']['mount_hf_model'].split():
+            mount_hf_model += [{'href': f'https://huggingface.co/{i}', 'display_name': i}]
+        
+        context['docker_software_details']['mount_hf_model_display'] = mount_hf_model
+
+    return JsonResponse({'status': 0, "context": context})
+
+@check_permissions
+def huggingface_model_mounts(request, vm_id, hf_model):
+    from tira.huggingface_hub_integration import huggingface_model_mounts, snapshot_download_hf_model
+    context = {'hf_model_available': False, 'hf_model_for_vm': vm_id}
+
+    try:
+        context['hf_model_available'] = huggingface_model_mounts([hf_model.replace('--', '/')]) is not None
+    except:
+        pass
+
+    if not context['hf_model_available']:
+        try:
+            snapshot_download_hf_model(hf_model)
+            context['hf_model_available'] = True
+        except Exception as e:
+            logger.warning(e)
+            return JsonResponse({'status': '1', 'message': str(e)})
+
     return JsonResponse({'status': 0, "context": context})
 
 
@@ -403,7 +430,7 @@ def run_abort(request, vm_id):
     del grpc_client
     return response
 
-
+@csrf_exempt
 @check_permissions
 @check_resources_exist("json")
 def upload(request, task_id, vm_id, dataset_id, upload_id):
@@ -491,6 +518,16 @@ def docker_software_add(request, task_id, vm_id):
                                                         data.get('inputJob', None),
                                                         submission_git_repo, build_environment
                                                         )
+
+        if data.get('mount_hf_model'):
+            try:
+                from tira.huggingface_hub_integration import huggingface_model_mounts
+                mounts = huggingface_model_mounts(data.get('mount_hf_model'))
+                model.add_docker_software_mounts(new_docker_software, mounts)
+
+            except Exception as e:
+                return JsonResponse({"status": 1, "message": str(e)})
+
         return JsonResponse({"status": 0, "message": "ok", "context": new_docker_software})
     else:
         return JsonResponse({"status": 1, "message": "GET is not allowed here."})
@@ -521,6 +558,7 @@ def add_software_submission_git_repository(request, task_id, vm_id):
     try:
         data = json.loads(request.body)
         external_owner = data['external_owner']
+        private = not data.get('allow_public_repo', False)
         disraptor_user = get_disraptor_user(request, allow_unauthenticated_user=False)
 
         if not disraptor_user or not type(disraptor_user) == str:
@@ -529,7 +567,8 @@ def add_software_submission_git_repository(request, task_id, vm_id):
         if not model.github_user_exists(external_owner):
             return JsonResponse({'status': 1, 'message': f"The user '{external_owner}' does not exist on Github, maybe a typo?"})
 
-        software_submission_git_repo = model.get_submission_git_repo(vm_id, task_id, disraptor_user, external_owner)
+        software_submission_git_repo = model.get_submission_git_repo(vm_id, task_id, disraptor_user, external_owner,
+                                                                     private)
 
         return JsonResponse({'status': 0, "context": software_submission_git_repo})
     except Exception as e:
@@ -537,11 +576,22 @@ def add_software_submission_git_repository(request, task_id, vm_id):
         logger.warning('Error while adding your git repository: ' + str(e))
         return JsonResponse({'status': 1, 'message': f"Error while adding your git repository: " + str(e)})
 
+@check_permissions
+def get_token(request, vm_id):
+    disraptor_user = get_disraptor_user(request, allow_unauthenticated_user=False)
+
+    if not disraptor_user or not type(disraptor_user) == str:
+        return JsonResponse({'status': 1, 'message': f"Please authenticate."})
+
+    try:
+        return JsonResponse({'status': 0, "context": {'token': model.get_discourse_token_for_user(vm_id, disraptor_user)}})
+    except:
+        return JsonResponse({'status': 1, 'message': f"Could not extract the discourse/disraptor user, please authenticate."})
 
 @check_permissions
 def get_software_submission_git_repository(request, task_id, vm_id):
     try:
-        if not model.load_docker_data(task_id, vm_id, cache, force_cache_refresh=False):
+        if task_id not in settings.CODE_SUBMISSION_REFERENCE_REPOSITORIES or not model.load_docker_data(task_id, vm_id, cache, force_cache_refresh=False):
             return JsonResponse({'status': 0, "context": {'disabled': True}})
 
         return JsonResponse({'status': 0, "context": model.get_submission_git_repo(vm_id, task_id)})
@@ -889,7 +939,8 @@ def run_execute_docker_software(request, task_id, vm_id, dataset_id, docker_soft
         evaluator['git_runner_command'], evaluator['git_repository_id'], evaluator['evaluator_id'],
         docker_software['tira_image_name'], docker_software['command'],
         'docker-software-' + docker_software_id, docker_resources,
-        input_run if input_run else input_runs
+        input_run if input_run else input_runs,
+        docker_software.get('mount_hf_model', None)
     )
 
     running_pipelines = git_runner.all_running_pipelines_for_repository(

@@ -223,6 +223,9 @@ class DockerSoftwareHasAdditionalInput(models.Model):
     input_docker_software = models.ForeignKey(DockerSoftware, on_delete=models.CASCADE, default=None, null=True, related_name='+')
     input_upload = models.ForeignKey(Upload, on_delete=models.RESTRICT, default=None, null=True)
 
+class DiscourseTokenForUser(models.Model):
+    vm_id = models.OneToOneField(VirtualMachine, on_delete=models.CASCADE, primary_key=True)
+    token = models.CharField(max_length=250)
 
 class SoftwareSubmissionGitRepository(models.Model):
     repository_url = models.CharField(max_length=500, primary_key=True)
@@ -253,6 +256,16 @@ class SoftwareClone(models.Model):
     task = models.ForeignKey(Task, on_delete=models.SET_NULL, null=True)
     docker_software = models.ForeignKey(DockerSoftware, on_delete=models.CASCADE, default=None, null=True)
     upload = models.ForeignKey(Upload, on_delete=models.CASCADE, default=None, null=True)
+
+
+class HuggingFaceModelsOfSoftware(models.Model):
+    """
+    - The Huggingface models to mount into some software.
+    """
+    docker_software = models.ForeignKey(DockerSoftware, on_delete=models.CASCADE, default=None, null=True)
+    hf_home = models.CharField(max_length=250, default="")
+    mount_hf_model = models.TextField(default="")
+    models_scan = models.TextField(default="")
 
 
 class Run(models.Model):

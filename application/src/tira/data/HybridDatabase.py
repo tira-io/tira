@@ -8,16 +8,19 @@ from datetime import datetime as dt
 import randomname
 import os
 import zipfile
+import json
+import gzip
 
 from tira.util import TiraModelWriteError, TiraModelIntegrityError
 from tira.proto import TiraClientWebMessages_pb2 as modelpb
-from tira.util import auto_reviewer, now, get_today_timestamp, get_tira_id
+from tira.util import auto_reviewer, now, get_today_timestamp, get_tira_id, link_to_discourse_team
 
 import tira.model as modeldb
 import tira.data.data as dbops
 
 logger = logging.getLogger("tira_db")
 
+#SELECT tira_dockersoftware.vm_id, COUNT(DISTINCT(tira_dockersoftware.docker_software_id)) AS 'Software Count', SUM(tira_run.run_id IS NOT NULL) AS 'Executed Runs' FROM tira_dockersoftware LEFT JOIN tira_run ON tira_dockersoftware.docker_software_id = tira_run.docker_software_id where tira_dockersoftware.task_id = 'webpage-classification' GROUP BY tira_dockersoftware.vm_id;
 
 class HybridDatabase(object):
     """
@@ -475,6 +478,7 @@ class HybridDatabase(object):
         elif run.upload:
             software = run.upload.display_name
             upload_id = run.upload.id
+            vm = run.upload.vm.vm_id
 
         return {"software": software,
                 "vm": vm,
@@ -564,6 +568,16 @@ class HybridDatabase(object):
     def get_upload(self, task_id, vm_id, upload_id):
         return self.upload_to_dict(modeldb.Upload.objects.get(vm__vm_id=vm_id, id=upload_id), vm_id)
 
+    def get_discourse_token_for_user(self, vm_id):
+        try:
+            return modeldb.DiscourseTokenForUser.objects.get(vm_id__vm_id=vm_id).token
+        except:
+            return None
+
+    def create_discourse_token_for_user(self, vm_id, discourse_api_key):
+        modeldb.DiscourseTokenForUser.objects.create(vm_id=modeldb.VirtualMachine.objects.get(vm_id=vm_id),
+                                                     token=discourse_api_key)
+
     @staticmethod
     def get_uploads(task_id, vm_id, return_names_only=True):
         ret = modeldb.Upload.objects.filter(vm__vm_id=vm_id, task__task_id=task_id, deleted=False)
@@ -592,6 +606,21 @@ class HybridDatabase(object):
                     previous_stages += [i.input_docker_software.display_name]
                 else:
                     previous_stages += [i.input_upload.display_name]
+        link_code = None
+
+        try:
+            link_code = modeldb.LinkToSoftwareSubmissionGitRepository.objects.get(docker_software__docker_software_id=ds.docker_software_id)
+            link_code = self.__link_to_code(link_code.build_environment)
+        except Exception as e:
+            link_code = None
+
+        mount_hf_model = None
+        hf_models = modeldb.HuggingFaceModelsOfSoftware.objects \
+                .filter(docker_software__docker_software_id=ds.docker_software_id) \
+                .only('mount_hf_model')
+
+        if hf_models and len(hf_models) > 0:
+            mount_hf_model = hf_models[0].mount_hf_model
 
         return {'docker_software_id': ds.docker_software_id, 'display_name': ds.display_name,
                 'user_image_name': ds.user_image_name, 'command': ds.command,
@@ -603,7 +632,8 @@ class HybridDatabase(object):
                 "ir_re_ranker": True if ds.ir_re_ranker else False,
                 'public_image_name': ds.public_image_name,
                 "ir_re_ranking_input": True if ds.ir_re_ranking_input else False,
-                'previous_stages': previous_stages
+                'previous_stages': previous_stages,
+                'link_code': link_code, 'mount_hf_model': mount_hf_model
                 }
 
     @staticmethod
@@ -666,10 +696,43 @@ class HybridDatabase(object):
 
         return ret
 
+    def get_count_of_team_submissions(self, task_id):
+            task = self.get_task(task_id, False)
+            all_teams_on_task = set([i.strip() for i in task['allowed_task_teams'].split() if i.strip()])
+            prepared_statement = """
+            SELECT
+                tira_dockersoftware.vm_id as vm,
+                SUM(CASE WHEN tira_review.has_errors = False AND tira_review.has_no_errors = FALSE AND tira_review.has_warnings = FALSE THEN 1 ELSE 0 END) as ToReview,
+                COUNT(*) - SUM(CASE WHEN tira_review.has_errors = False AND tira_review.has_no_errors = FALSE AND tira_review.has_warnings = FALSE THEN 1 ELSE 0 END) as submissions,
+                COUNT(*) as total
+            FROM
+                tira_run
+            INNER JOIN
+                tira_taskhasdataset ON tira_run.input_dataset_id = tira_taskhasdataset.dataset_id
+            LEFT JOIN
+                tira_review ON tira_run.run_id = tira_review.run_id
+            LEFT JOIN
+                tira_dockersoftware ON tira_run.docker_software_id = tira_dockersoftware.docker_software_id
+            WHERE
+                tira_taskhasdataset.task_id = %s
+            GROUP BY
+                tira_dockersoftware.vm_id;
+            """
+
+            ret = []
+            rows = self.execute_raw_sql_statement(prepared_statement, params=[task_id])
+            for vm, to_review, submissions, total in rows:
+                if vm is not None:
+                    ret += [{'team': vm, 'reviewed': submissions, 'to_review': to_review, 'total': total, 'link': link_to_discourse_team(vm)}]
+            for team in all_teams_on_task:
+                if team not in [t['team'] for t in ret]:
+                    ret += [{'team': team, 'reviewed': 0, 'to_review': 0, 'total': 0, 'link': link_to_discourse_team(team)}]
+            return ret
+
     def runs(self, task_id, dataset_id, vm_id, software_id):
         prepared_statement = """
                 SELECT
-                    DISTINCT tira_run.run_id
+                    tira_run.run_id, tira_dockersoftware.docker_software_id, tira_upload.id
                 FROM
                     tira_run
                 LEFT JOIN
@@ -695,7 +758,7 @@ class HybridDatabase(object):
                     tira_run.run_id ASC;        
                 """
         params = [dataset_id, task_id, task_id, task_id, task_id, task_id, vm_id, vm_id, vm_id, software_id, software_id, software_id]
-        return [i[0] for i in self.execute_raw_sql_statement(prepared_statement, params)]
+        return [{'run_id': i[0], 'software_id': i[1], 'upload_id': i[2]} for i in self.execute_raw_sql_statement(prepared_statement, params)]
 
     def get_runs_for_vm(self, vm_id, docker_software_id, upload_id, include_unpublished=True, round_floats=True, show_only_unreviewed=False):
         prepared_statement = """
@@ -705,7 +768,7 @@ class HybridDatabase(object):
             tira_evaluation_review.published, tira_evaluation_review.blinded, tira_run_review.published, 
             tira_run_review.blinded, tira_evaluation.measure_key, tira_evaluation.measure_value,
             tira_run_review.reviewer_id, tira_run_review.no_errors, tira_run_review.has_errors,
-            tira_run_review.has_no_errors, tira_evaluation_review.reviewer_id, tira_run_review.reviewer_id
+            tira_run_review.has_no_errors, tira_evaluation_review.reviewer_id, tira_run_review.reviewer_id, tira_linktosoftwaresubmissiongitrepository.build_environment
         FROM
             tira_run as evaluation_run
         INNER JOIN 
@@ -716,6 +779,8 @@ class HybridDatabase(object):
             tira_software ON input_run.software_id = tira_software.id
         LEFT JOIN
             tira_dockersoftware ON input_run.docker_software_id = tira_dockersoftware.docker_software_id
+        LEFT JOIN
+            tira_linktosoftwaresubmissiongitrepository ON tira_dockersoftware.docker_software_id = tira_linktosoftwaresubmissiongitrepository.docker_software_id
         LEFT JOIN
             tira_review as tira_evaluation_review ON evaluation_run.run_id = tira_evaluation_review.run_id
         LEFT JOIN
@@ -993,7 +1058,8 @@ class HybridDatabase(object):
             tira_evaluation_review.blinded, tira_run_review.published, tira_run_review.blinded,
             tira_evaluation.measure_key, tira_evaluation.measure_value, tira_run_review.reviewer_id, 
             tira_run_review.no_errors, tira_run_review.has_errors, tira_run_review.has_no_errors,
-            tira_evaluation_review.reviewer_id, tira_run_review.reviewer_id
+            tira_evaluation_review.reviewer_id, tira_run_review.reviewer_id, 
+            tira_linktosoftwaresubmissiongitrepository.build_environment
         FROM
             tira_run as evaluation_run
         INNER JOIN 
@@ -1004,6 +1070,8 @@ class HybridDatabase(object):
             tira_software ON input_run.software_id = tira_software.id
         LEFT JOIN
             tira_dockersoftware ON input_run.docker_software_id = tira_dockersoftware.docker_software_id
+        LEFT JOIN
+            tira_linktosoftwaresubmissiongitrepository ON tira_dockersoftware.docker_software_id = tira_linktosoftwaresubmissiongitrepository.docker_software_id
         LEFT JOIN
             tira_review as tira_evaluation_review ON evaluation_run.run_id = tira_evaluation_review.run_id
         LEFT JOIN
@@ -1033,7 +1101,33 @@ class HybridDatabase(object):
         return self.__parse_submissions(rows, include_unpublished, round_floats, show_only_unreviewed, show_only_unreviewed)
 
     @staticmethod
-    def __parse_submissions(rows, include_unpublished, round_floats, include_without_evaluation=False, show_only_unreviewed=False):
+    def __link_to_code(build_environment):
+        if not build_environment:
+            return None
+
+        try:
+            build_environment = json.loads(json.loads(build_environment))
+        except:
+            return None
+
+        if 'GITHUB_REPOSITORY' not in build_environment or 'GITHUB_WORKFLOW' not in build_environment or 'GITHUB_SHA' not in build_environment:
+            return None
+
+        if build_environment['GITHUB_WORKFLOW'] == "Upload Docker Software to TIRA":
+            if 'TIRA_DOCKER_PATH' not in build_environment:
+                return None
+
+            return f'https://github.com/{build_environment["GITHUB_REPOSITORY"]}/tree/{build_environment["GITHUB_SHA"]}/{build_environment["TIRA_DOCKER_PATH"]}'
+
+        if build_environment['GITHUB_WORKFLOW'] == ".github/workflows/upload-notebook-submission.yml" or build_environment['GITHUB_WORKFLOW'] == 'Upload Notebook to TIRA':
+            if 'TIRA_JUPYTER_NOTEBOOK' not in build_environment:
+                return None
+
+            return f'https://github.com/{build_environment["GITHUB_REPOSITORY"]}/tree/{build_environment["GITHUB_SHA"]}/jupyter-notebook-submissions/{build_environment["TIRA_JUPYTER_NOTEBOOK"]}'
+
+        return None
+
+    def __parse_submissions(self, rows, include_unpublished, round_floats, include_without_evaluation=False, show_only_unreviewed=False):
         keys = dict()
         input_run_to_evaluation = {}
 
@@ -1047,7 +1141,7 @@ class HybridDatabase(object):
 
         for dataset_id, run_id, input_run_id, upload_display_name, upload_vm_id, software_vm_id, docker_display_name, \
                 docker_vm_id, eval_published, eval_blinded, run_published, run_blinded, m_key, m_value, \
-                reviewer_id, no_errors, has_errors, has_no_errors, tira_evaluation_reviewer_id, tira_run_reviewer_id in rows:
+                reviewer_id, no_errors, has_errors, has_no_errors, tira_evaluation_reviewer_id, tira_run_reviewer_id, build_environment in rows:
 
             if (not include_without_evaluation and not m_key) or (not include_unpublished and not eval_published):
                 continue
@@ -1088,6 +1182,7 @@ class HybridDatabase(object):
             input_run_to_evaluation[run_id]['is_upload'] = is_upload
             input_run_to_evaluation[run_id]['is_software'] = is_software
             input_run_to_evaluation[run_id]['review_state'] = review_state
+            input_run_to_evaluation[run_id]['link_code'] = self.__link_to_code(build_environment)
 
             if m_key:
                 input_run_to_evaluation[run_id]['measures'][m_key] = m_value
@@ -1554,8 +1649,18 @@ class HybridDatabase(object):
         dirs = sum([1 if d.is_dir() else 0 for d in output_dir.glob("*")])
         files = sum([1 if not d.is_dir() else 0 for d in output_dir.rglob("*[!.zip]")])
         root_files = list(output_dir.glob("*[!.zip]"))
+
+        def count_lines(file_name):
+            try:
+                if file_name.suffix == '.gz':
+                    return len(gzip.open(file_name, 'r').readlines())
+                else:
+                    return len(open(file_name, 'r').readlines())
+            except:
+                return '--'
+
         if root_files and not root_files[0].is_dir():
-            lines = len(open(root_files[0], 'r').readlines())
+            lines = count_lines(root_files[0])
             size = root_files[0].stat().st_size
         else:
             lines = "--"
@@ -1664,6 +1769,12 @@ class HybridDatabase(object):
             display_name=display_name,
             description=description,
             paper_link=paper_link,
+        )
+
+    def add_docker_software_mounts(self, docker_software, mounts):
+        docker_software = modeldb.DockerSoftware.objects.get(docker_software_id=docker_software['docker_software_id'])
+        modeldb.HuggingFaceModelsOfSoftware.objects.create(
+            docker_software=docker_software, hf_home = mounts['HF_HOME'], mount_hf_model = mounts['MOUNT_HF_MODEL'], models_scan= mounts['HF_CACHE_SCAN']
         )
 
     def add_docker_software(self, task_id, vm_id, user_image_name, command, tira_image_name, input_docker_job=None,

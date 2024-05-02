@@ -9,6 +9,7 @@ from contextlib import redirect_stdout, redirect_stderr
 from datetime import datetime
 import json
 from tira.tira_model import model as tira_model
+import gzip
 
 #Used for some tests
 now = datetime.now().strftime("%Y%m%d")
@@ -117,6 +118,8 @@ def set_up_tira_environment():
     modeldb.DockerSoftwareHasAdditionalInput.objects.create(position=2, docker_software=s1_tmp,
                                                             input_docker_software=s3_tmp)
 
+    tira_model.add_docker_software_mounts({'docker_software_id': es1.docker_software_id}, {'HF_HOME': '1', 'MOUNT_HF_MODEL': '2', 'HF_CACHE_SCAN': '3'})
+
     d = modeldb.Dataset.objects.get(dataset_id=dataset_meta)
     d.meta_dataset_of = dataset_1 + ',' + dataset_2
     d.save()
@@ -152,6 +155,24 @@ def set_up_tira_environment():
 
             k_1 -= 0.1
             k_2 += 0.1
+
+    Path('tira-root/data/runs/dataset-1/example_participant/run-3-example_participant/output').mkdir(parents=True, exist_ok=True)
+    open('tira-root/data/runs/dataset-1/example_participant/run-3-example_participant/output/run.txt', 'w').write(
+        'q072210025 0 doc072207504499 1 16.214817060525405 pl2-baseline\nq072210025 0 doc072212607743 2 14.878122569655583 pl2-baseline')
+    Path('tira-root/data/runs/dataset-1/example_participant/run-3-example_participant-eval/output').mkdir(parents=True,
+                                                                                                     exist_ok=True)
+    open('tira-root/data/runs/dataset-1/example_participant/run-3-example_participant-eval/output/.data-top-10-for-rendering.jsonl', 'w').write(
+        '{"queries": {"q072210025": {"qid": "q072210025","query": "recipe spring roll","original_query": {"query_id": "q072210025","text": "recipe spring roll"}}}, "documents": {}, "qrels": {}}')
+
+    Path('tira-root/data/runs/dataset-1/example_participant/run-5-example_participant/output').mkdir(parents=True,
+                                                                                                     exist_ok=True)
+    open('tira-root/data/runs/dataset-1/example_participant/run-5-example_participant/output/run.txt', 'w').write(
+        'q072210025 0 doc072207504499 1 16.214817060525405 pl2-baseline\nq072210025 0 doc072212607743 2 14.878122569655583 pl2-baseline')
+
+    Path('tira-root/data/runs/dataset-1/example_participant/run-5-example_participant-eval/output').mkdir(parents=True,
+                                                                                                          exist_ok=True)
+    gzip.open('tira-root/data/runs/dataset-1/example_participant/run-5-example_participant-eval/output/.data-top-10-for-rendering.jsonl.gz', 'wt').write(
+        '{"queries": {"q072210025": {"qid": "q072210025","query": "recipe spring roll","original_query": {"query_id": "q072210025","text": "recipe spring roll"}}}, "documents": {}, "qrels": {}}')
 
     d = modeldb.Dataset.objects.get(dataset_id=dataset_2)
     for i in range(2):

@@ -1,19 +1,23 @@
+import os
+from pathlib import Path
+
+
 class PyTerrierIntegration():
     def __init__(self, tira_client):
         self.tira_client = tira_client
+        self.pd = tira_client.pd
         self.irds_docker_image = 'webis/tira-application:0.0.36'
 
-    def retriever(self, approach, dataset=None, verbose=False):
+    def retriever(self, approach, dataset=None):
         from tira.pyterrier_util import TiraFullRankTransformer
         input_dir = self.ensure_dataset_is_cached(dataset, dataset)
-        return TiraFullRankTransformer(approach, self.tira_client, input_dir, verbose)
+        return TiraFullRankTransformer(approach, self.tira_client, input_dir)
 
     def ensure_dataset_is_cached(self, irds_dataset_id, dataset):
         import os
         from pathlib import Path
         from tira.io_utils import run_cmd
-        import json
-
+        
         cache_dir = self.tira_client.tira_cache_dir + '/pyterrier/' + irds_dataset_id
         full_rank_data = cache_dir + '/full-rank/'
         truth_data = cache_dir + '/truth-data/'
@@ -92,90 +96,134 @@ class PyTerrierIntegration():
 
         return run_file
 
+    def index(self, approach, dataset):
+        """
+        Load an PyTerrier index from TIRA.
+        """
+        import pyterrier as pt
+        from tira.ir_datasets_util import translate_irds_id_to_tirex
+        ret = self.tira_client.get_run_output(approach, translate_irds_id_to_tirex(dataset)) + '/index'
+        return pt.IndexFactory.of(os.path.abspath(ret))
+
     def from_submission(self, approach, dataset=None, datasets=None):
         software = self.tira_client.docker_software(approach)
-        
-        if not 'ir_re_ranker' in software or not software['ir_re_ranker']:
+        if software.get('ir_re_ranker', False):
             return self.from_retriever_submission(approach, dataset, datasets=datasets)
         else:
             from tira.pyterrier_util import TiraRerankingTransformer
-            
             return TiraRerankingTransformer(approach, self.tira_client, dataset, datasets)
 
     def from_retriever_submission(self, approach, dataset, previous_stage=None, datasets=None):
-        import pyterrier as pt
-        import pandas as pd
-        from tira.ir_datasets_util import translate_irds_id_to_tirex
-        task, team, software = approach.split('/')
+        from tira.pyterrier_util import TiraSourceTransformer
+        ret = self.pd.from_retriever_submission(approach, dataset, previous_stage, datasets)
+        return TiraSourceTransformer(ret)
 
-        if dataset and datasets:
-            raise ValueError(f'You can not pass both, dataset and datasets. Got dataset = {dataset} and datasets= {datasets}')
-
-        if not datasets:
-            datasets = [dataset]
-
-        df_ret = []
-        for dataset in datasets:
-            ret, run_id = self.tira_client.download_run(task, translate_irds_id_to_tirex(dataset), software, team, previous_stage, return_metadata=True)
-            ret['qid'] = ret['query'].astype(str)
-            ret['docno'] = ret['docid'].astype(str)
-            del ret['query']
-            del ret['docid']
-
-            ret['tira_task'] = task
-            ret['tira_dataset'] = dataset
-            ret['tira_first_stage_run_id'] = run_id
-            df_ret += [ret]
-
-        return pt.Transformer.from_df(pd.concat(df_ret))
-
-    def transform_queries(self, approach, dataset, file_selection= '/*.jsonl'):
+    def transform_queries(self, approach, dataset, file_selection=('/*.jsonl', '/*.jsonl.gz'), prefix=''):
         from pyterrier.apply import generic
-        import pandas as pd
-        from glob import glob
-        from tira.ir_datasets_util import translate_irds_id_to_tirex
-        glob_entry = self.tira_client.get_run_output(approach, translate_irds_id_to_tirex(dataset)) + file_selection
-        matching_files = glob(glob_entry)
-        if len(matching_files) == 0:
-            raise ValueError(f'Could not find a matching query output. Found: {matching_files}. Please specify the file_selection to resolve this.')
-
-        ret = pd.read_json(matching_files[0], lines=True, dtype={'qid': str, 'query': str, 'query_id': str})
-        if 'qid' not in ret and 'query_id' in ret:
-            ret['qid'] = ret['query_id']
-            del ret['query_id']
-
+        ret = self.pd.transform_queries(approach, dataset, file_selection)
         cols = [i for i in ret.columns if i not in ['qid']]
         ret = {str(i['qid']): i for _, i in ret.iterrows()}
 
         def __transform_df(df):
+            df = df.copy()
             for col in cols:
-                df[col] = df['qid'].apply(lambda i: ret[str(i)][col])
+                df[prefix + col] = df['qid'].apply(lambda i: ret[str(i)][col])
             return df
 
         return generic(__transform_df)
 
-    def transform_documents(self, approach, dataset, file_selection= '/*.jsonl'):
+    def transform_documents(self, approach, dataset, file_selection=('/*.jsonl', '/*.jsonl.gz'), prefix=''):
         from pyterrier.apply import generic
-        import pandas as pd
-        from glob import glob
-        from tira.ir_datasets_util import translate_irds_id_to_tirex
-        glob_entry = self.tira_client.get_run_output(approach, translate_irds_id_to_tirex(dataset)) + file_selection
-        matching_files = glob(glob_entry)
-        if len(matching_files) == 0:
-            raise ValueError('Could not find a matching document output. Found: ' + matching_files + '. Please specify the file_selection to resolve this.')
-
-        ret = pd.read_json(matching_files[0], lines=True)
+        ret = self.pd.transform_documents(approach, dataset, file_selection)
         cols = [i for i in ret.columns if i not in ['docno']]
         ret = {str(i['docno']): i for _, i in ret.iterrows()}
 
         def __transform_df(df):
             for col in cols:
-                df[col] = df['docno'].apply(lambda i: ret[str(i)][col])
+                df[prefix + col] = df['docno'].apply(lambda i: ret[str(i)][col])
             return df
 
         return generic(__transform_df)
+
+    def doc_features(self, approach, dataset, file_selection=('/*.jsonl', '/*.jsonl.gz')):
+        import numpy as np
+        from pyterrier.apply import doc_features
+        ret = self.pd.transform_documents(approach, dataset, file_selection)
+        cols = [i for i in ret.columns if i not in ['docno']]
+        ret = {str(i['docno']): np.array([i[c] for c in cols]) for _, i in ret.iterrows()}
+
+        return doc_features(lambda row: ret[str(row['docno'])])
+
+    def query_features(self, approach, dataset, file_selection=('/*.jsonl', '/*.jsonl.gz')):
+        import numpy as np
+        from pyterrier.transformer import Transformer
+        ret = self.pd.transform_queries(approach, dataset, file_selection)
+        cols = [i for i in ret.columns if i not in ['qid']]
+        ret = {str(i['qid']): np.array([i[c] for c in cols]) for _, i in ret.iterrows()}
+
+        class ApplyQueryFeatureTransformer(Transformer):
+            def __repr__(self):
+                return "tira.pt.query_features()"
+
+            def transform(self, inputRes):
+                outputRes = inputRes.copy()
+                
+                outputRes["features"] = outputRes.apply(lambda i: ret[str(i['qid'])], axis=1)
+                return outputRes
+        
+        return ApplyQueryFeatureTransformer()
 
     def reranker(self, approach, irds_id=None):
         from tira.pyterrier_util import TiraLocalExecutionRerankingTransformer
         return TiraLocalExecutionRerankingTransformer(approach, self.tira_client, irds_id=irds_id)
 
+class PyTerrierAnceIntegration():
+    """The pyterrier_ance integration to re-use cached ANCE indices. Wraps https://github.com/terrierteam/pyterrier_ance
+    """
+    def __init__(self, tira_client):
+        self.tira_client = tira_client
+    
+    def ance_retrieval(self, dataset:str):
+        """Load a cached pyterrier_ance.ANCEIndexer submitted as workshop-on-open-web-search/ows/pyterrier-anceindex from tira.
+
+        References (for citation):
+            https://arxiv.org/pdf/2007.00808.pdf
+            https://github.com/microsoft/ANCE/
+
+        Args:
+            dataset (str): the dataset id, either an tira or ir_datasets id.
+
+        Returns:
+            pyterrier_ance.ANCERetrieval: the ANCE index.
+        """
+        from tira.ir_datasets_util import translate_irds_id_to_tirex
+        ance_index = Path(self.tira_client.get_run_output('ir-lab-sose-2024/ows/pyterrier-anceindex', translate_irds_id_to_tirex(dataset))) / 'anceindex'
+        ance_checkpoint = self.tira_client.load_resource('Passage_ANCE_FirstP_Checkpoint.zip')
+        import pyterrier_ance
+        return pyterrier_ance.ANCERetrieval(ance_checkpoint, ance_index)
+
+
+class PyTerrierSpladeIntegration():
+    """The pyt_splade integration to re-use cached Splade indices. Wraps https://github.com/cmacdonald/pyt_splade
+    """
+    def __init__(self, tira_client):
+        self.tira_client = tira_client
+
+    def splade_index(self, dataset:str, approach: str='workshop-on-open-web-search/naverlabseurope/Splade (Index)'):
+        """Load a cached pyt_splade index submitted as the passed approach (default 'workshop-on-open-web-search/naverlabseurope/Splade (Index)') from tira.
+
+        References (for citation):
+            https://github.com/naver/splade?tab=readme-ov-file#cite-scroll
+            ToDo: Ask Thibault what to cite.
+
+        Args:
+            dataset (str): the dataset id, either an tira or ir_datasets id.
+            approach (str, optional): the approach id, defaults 'workshop-on-open-web-search/naverlabseurope/Splade (Index)'.
+
+        Returns:
+            The PyTerrier index suitable for retrieval.
+        """
+        from tira.ir_datasets_util import translate_irds_id_to_tirex
+        import pyterrier as pt
+        ret = Path(self.tira_client.get_run_output('ir-lab-sose-2024/naverlabseurope/Splade (Index)', translate_irds_id_to_tirex(dataset))) / 'spladeindex'
+        return pt.IndexFactory.of(os.path.abspath(ret))

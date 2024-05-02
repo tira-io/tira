@@ -1,0 +1,16 @@
+details {
+    border: 2pt solid var(--color-background-border);
+    background-color: var(--color-background-secondary);
+    margin: 2pt;
+    padding: 0pt 10pt;
+}
+  
+details > summary {
+    padding: 2pt 0pt;
+    cursor: pointer;
+    font-weight: bold;
+}
+  
+details[open] > summary {
+    border-bottom: 2pt solid var(--color-background-border);
+}
