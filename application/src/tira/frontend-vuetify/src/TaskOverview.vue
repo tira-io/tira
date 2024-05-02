@@ -76,12 +76,14 @@
             <h2>Submissions</h2>
             <run-list :task_id="task_id" :organizer="task.organizer"
                       :organizer_id="task.organizer_id"
-                      :datasets="datasets" :component_type="component_type"/>
+                      :datasets="datasets" :component_type="component_type"
+            />
           </v-container>
   </div>
 </template>
 
 <script lang="ts">
+// @pass_dataset_ids="receiveDatasetIds"
   import { TiraBreadcrumb, TiraTaskAdmin, RunList, Loading, SubmitButton, TaskDocumentation } from './components'
   import RunUpload from "@/RunUpload.vue"
   import { VAutocomplete } from 'vuetify/components'
@@ -94,7 +96,7 @@
         task_id: extractTaskFromCurrentUrl(),
         loading: true,
         role: extractRole(), // Values: guest, user, participant, admin
-        selectedDataset: '',
+        selectedDataset: extractDatasetFromCurrentUrl(),
         task: { "task_id": "", "task_name": "", "task_description": "",
                 "organizer": "", "organizer_id": "", "web": "", "year": "",
                 "dataset_count": 0, "software_count": 0, "teams": 0, "is_ir_task": false
@@ -115,7 +117,7 @@
   methods: {
     updateDataset() {
       this.selectedDataset = extractDatasetFromCurrentUrl(this.datasets, this.selectedDataset)
-      this.newDatasetSelected();
+      this.newDatasetSelected()
     },
     newDatasetSelected() {
       changeCurrentUrlToDataset(this.selectedDataset)
@@ -144,6 +146,9 @@
       // filter by dataset on datasets
       this.datasets = this.datasets.filter(d => d['dataset_id'] !== dataset_id)
       this.updateDataset()
+    },
+    receiveDatasetIds(dataset_ids: string){
+      this.selectedDataset = dataset_ids
     },
   },
   beforeMount() {

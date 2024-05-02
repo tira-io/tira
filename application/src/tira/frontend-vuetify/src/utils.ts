@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import app from "@/App.vue";
 
 let allowed_roles = new Set(['guest', 'user', 'participant', 'admin'])
 
@@ -44,36 +45,83 @@ export function get_contact_link_to_organizer(organizer_id: string) {
 
 export function extractDatasetFromCurrentUrl(options: Array<any> = [], default_choice: string='') {
     var loc = ref(window.location).value.href.split('#')[0].split('?')[0]
+
+    //.log('dataset loc: ' + loc)
+
     var dataset_from_url = ''
     let to_split = 'task-overview/' + extractTaskFromCurrentUrl() + '/'
+    let to_split2 = 'submit/'
+        //+ extractTaskFromCurrentUrl() + '/'
+    console.log("split2: " + to_split2)
     
     if (loc.includes(to_split)) {
         dataset_from_url = loc.split(to_split)[1].split('/')[0]
     }
 
     if (options.length === 0) {
-        return dataset_from_url
+        return decodeURIComponent(decodeURIComponent(dataset_from_url))
     }
 
     if (default_choice !== '') {
-        for (var dataset of options) {
+        for (var dataset of options) {history.replaceState
             if (default_choice === dataset['dataset_id']) {
                 return dataset['dataset_id']
             }
         }
     }
-
-    var ret = ''
-
-    for (var dataset of options) {
-        if ((dataset_from_url !== '' && dataset_from_url === dataset['dataset_id']) || ret === '') {
-            ret = dataset['dataset_id']
-        }
+    else {
+        return decodeURIComponent(decodeURIComponent(options[0]['dataset_id']))
     }
 
-    return ret
+    var ret = ''
+    var url_datasets = dataset_from_url.split(';')
+    let dataset_ids = options.map((dataset => dataset['dataset_id']))
+
+    if ((dataset_from_url !== '' && dataset_ids.includes(url_datasets)) || ret === '') {
+        ret = dataset_from_url
+    }
+
+    return decodeURIComponent(decodeURIComponent(ret))
+
 }
 
+export function extractEvKeysFromCurrentUrl(){
+    var loc = ref(window.location).value.href.split('#')[0].split('?')[0] + '/'
+    let to_split = 'task-overview/' + extractTaskFromCurrentUrl() + '/'
+    let keys_from_url = ''
+
+    if (loc.includes(to_split)) {
+        keys_from_url = loc.split(to_split)[1].split('/')[1]
+        if (keys_from_url === undefined){
+            return ''
+        }
+        else {
+            return decodeURIComponent(decodeURIComponent(keys_from_url))
+        }
+    }
+    else {
+        return ''
+    }
+}
+
+export function extractApproachFromCurrentUrl(){
+    var loc = decodeURIComponent(decodeURIComponent(window.location.href))
+    let to_split = 'task-overview/' + extractTaskFromCurrentUrl() + '/' + extractDatasetFromCurrentUrl() + '/' + extractEvKeysFromCurrentUrl() + '/'
+    let approach_from_url = ''
+
+    if (loc.includes(to_split)) {
+        approach_from_url = loc.split(to_split)[1]
+        if (approach_from_url === undefined){
+            return ''
+        }
+        else {
+            return decodeURI(decodeURI(approach_from_url))
+        }
+    }
+    else {
+        return ''
+    }
+}
 export function extractSubView() {
     return extracSubViewForLevel(1)
 }
@@ -264,9 +312,53 @@ export function extractCurrentStepFromCurrentUrl() {
 
 export function changeCurrentUrlToDataset(dataset: string) {
     var loc = ref(window.location).value.href
+    //console.log('change loc: ' + loc)
 
     if (loc.includes('task-overview/')) {
-        loc = loc.split('task-overview/')[0] + 'task-overview/' + loc.split('task-overview/')[1].split('/')[0] + '/' + dataset
+        if (loc.split(dataset)[1] === undefined) {
+            loc = loc.split('task-overview/')[0] + 'task-overview/' + loc.split('task-overview/')[1].split('/')[0] + '/' + dataset
+        } else {
+            loc = loc.split('task-overview/')[0] + 'task-overview/' + loc.split('task-overview/')[1].split('/')[0] + '/' + dataset + loc.split(dataset)[1]
+        }
+    }
+    //console.log('change log 2: ' + loc)
+    history.replaceState({'url': loc}, 'TIRA', loc)
+}
+
+export function changeCurrentUrlToEvKeys(ev_keys: string, datasets: string) {
+    var loc = ref(window.location).value.href
+    var ek = ev_keys
+    if (loc.includes('task-overview/') && loc.includes(datasets)) {
+
+        if (loc.includes(';')) {
+            //console.log("test2: " + loc.split('task-overview/')[0] + 'task-overview/' + loc.split('task-overview/')[1])
+
+            loc = loc.split('task-overview/')[0]
+                + 'task-overview/'
+                + loc.split('task-overview/')[1].split(';')[0]
+                + ';' + ek
+
+            history.replaceState({'url': loc}, 'TIRA', loc)
+        }
+        else {
+            //console.log("test: " + loc.split('task-overview/')[0] + 'task-overview/' + loc.split('task-overview/')[1] + ';' + ek)
+
+            loc = loc.split('task-overview/')[0]
+                + 'task-overview/'
+                + loc.split('task-overview/')[1]
+                + ';' + ek
+
+            history.replaceState({'url': loc}, 'TIRA', loc)
+        }
+    }
+    else if (loc.includes('task-overview/')) {
+        loc = loc.split('task-overview/')[0]
+            + 'task-overview/'
+            + loc.split('task-overview/')[1]
+            + '/'
+            + datasets
+            + ';' + ek
+
         history.replaceState({'url': loc}, 'TIRA', loc)
     }
 }

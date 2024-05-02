@@ -42,7 +42,9 @@
   </v-container>
 
   <h2>Submissions</h2>
-    <run-list :task_id="task_id" :organizer="organizer" :organizer_id="organizer_id" :vm_id="user_id" :docker_software_id="docker_software_id" :component_type="component_type" :datasets="datasets" :dataset_id="''"/>
+    <run-list :task_id="task_id" :organizer="organizer" :organizer_id="organizer_id" :vm_id="user_id" :docker_software_id="docker_software_id" :component_type="component_type" :datasets="datasets"  />
+              <!--  :dataset_id="''" -->
+
 </template>
 
 <script lang="ts">

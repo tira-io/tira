@@ -1,10 +1,12 @@
 <template>
-  <submission-filter :datasets="datasets" :selected_dataset="dataset_ids"
-                     :ev_keys="ev_keys" :runs="runs" :component_type="component_type" @pass_dataset="receiveFilteredDataset"
-                     @pass_keys="receiveFilteredKeys" @pass_runs="receiveFilteredRuns"/>
   <div>
     <loading :loading="loading"/>
     <div v-if="!loading">
+      <submission-filter :datasets="datasets" :selected_dataset="dataset_ids" :isMounted="isMounted"
+                         :ev_keys="ev_keys" :runs="runs" :component_type="component_type" :empty="empty"
+                         :runs_url="runs_url" :datasets_url="datasets_url" :ev_keys_url="ev_keys_url"
+                         @pass_dataset="receiveFilteredDataset" @pass_keys="receiveFilteredKeys" @pass_runs="receiveFilteredRuns"/>
+
       <v-data-table v-if="showTable" v-model="selected_runs" show-expand :headers="table_headers"
                     :items="computedRuns" item-value="Run" v-model:sort-by="table_sort_by" density="compact"
                     show-select class="elevation-1 d-none d-md-block" hover>
@@ -70,7 +72,14 @@ import SoftwareDetails from './SoftwareDetails.vue'
 import Loading from "./Loading.vue"
 import SubmissionIcon from "./SubmissionIcon.vue"
 import SubmissionFilter from "./SubmissionFilter.vue"
-import {get, reportError, inject_response, extractRole, extractDatasetFromCurrentUrl} from '../utils'
+import {
+  get,
+  reportError,
+  inject_response,
+  extractRole,
+  extractDatasetFromCurrentUrl,
+  extractEvKeysFromCurrentUrl, extractApproachFromCurrentUrl
+} from '../utils'
 
 type run = { run_id: string; review_state: string; dataset_id: string; input_software_name: string; }
 
@@ -79,16 +88,24 @@ export default {
   components: {RunActions, SoftwareDetails, Loading, SubmissionIcon, SubmissionFilter},
   props: ['task_id', 'organizer', 'organizer_id', 'vm_id', 'docker_software_id', 'upload_id', 'show_only_unreviewed', 'datasets', 'component_type'],
   data() { return {
-      selected_runs: [],
       loading: true,
       runs: [{'run_id': 'loading...', 'review_state': 'no-review', 'dataset_id': 'loading...', 'input_software_name': 'loading...'}] as run[],
       table_headers: [],
       table_headers_small_layout: [],
       table_sort_by: [],
       ev_keys: [],
+      selected_runs: [],
+
+      dataset_ids: '',
+      filtered_ev_keys: [] as string[],
       filtered_runs: [] as run[],
       filtered_datasets: [],
-      dataset_ids: '',
+      isMounted: 'test_alt',
+
+      runs_url: extractApproachFromCurrentUrl().split(','),
+      datasets_url: extractDatasetFromCurrentUrl().split(','),
+      ev_keys_url: extractEvKeysFromCurrentUrl() === "nk" ? [] : extractEvKeysFromCurrentUrl().split(','),
+
       role: extractRole(), // Values: guest, user, participant, admin
     }
   },
@@ -99,7 +116,8 @@ export default {
     computedRuns() {
       if (this.component_type === 'Overview') {return this.filtered_runs.length != 0 ? this.filtered_runs : this.runs}
       else if (this.component_type === 'Submission'){return this.filtered_datasets.length > 0 ? this.filtered_runs : this.runs}
-    }
+    },
+    empty(){return this.checkEmptyApproaches(this.runs)}
   },
   methods: {
     createCompareLink(src: any[]) {
@@ -128,26 +146,46 @@ export default {
           this.filtered_datasets = received_datasets
           this.dataset_ids = received_datasets.join(',')
         }
-
       }
       else {
         this.filtered_datasets = received_datasets.filter((x: string | any[]) => x.length > 0)
         this.filtered_runs = this.runs.filter(run => received_datasets.includes(run['dataset_id'])) as never
       }
     },
-    receiveFilteredKeys(filtered_ev_keys: never[]) {
-      let header_keys = this.table_headers
-          .filter(header => header['title'] === header['key'])
-          .map(measurement => measurement['title'])
+    receiveFilteredKeys(received_ev_keys: never[]) {
+      let header_keys = this.extractEvKeys()
 
-      if (filtered_ev_keys.length < header_keys.length){
-        let remove_keys = header_keys.filter((x) => !filtered_ev_keys.includes(x))
-        this.table_headers = this.table_headers.filter(header => header['title'] !== remove_keys[0])
+      if (received_ev_keys.length < header_keys.length){
+        let remove_keys = header_keys.filter((x) => !received_ev_keys.includes(x))
+        this.table_headers = this.table_headers.filter(header => !remove_keys.includes(header['title']))
       }
-      else if (filtered_ev_keys.length > header_keys.length){
-        let add_keys = filtered_ev_keys.filter((x) => !header_keys.includes(x))
+      else if (received_ev_keys.length > header_keys.length){
+        let add_keys = (received_ev_keys).filter((x) => !header_keys.includes(x as never))
         let dict = {'title': add_keys[0], 'key': add_keys[0]}
         this.table_headers.splice(this.table_headers.length -1, 0, dict as never)
+      }
+
+      this.filtered_ev_keys = this.extractEvKeys()
+    },
+    receiveFilteredKeys2() {
+      let received_ev_keys = this.ev_keys_url
+      let header_keys = this.extractEvKeys()
+
+      if (received_ev_keys.length === 1){
+        console.log('test: ' + received_ev_keys)
+        // do nothing
+      }
+      else {
+
+        if (received_ev_keys.length < header_keys.length) {
+          let remove_keys = header_keys.filter((x) => !received_ev_keys.includes(x))
+          this.table_headers = this.table_headers.filter(header => !remove_keys.includes(header['title']))
+        } else if (received_ev_keys.length > header_keys.length) {
+          let add_keys = (received_ev_keys).filter((x) => !header_keys.includes(x as never))
+          let dict = {'title': add_keys[0], 'key': add_keys[0]}
+          this.table_headers.splice(this.table_headers.length - 1, 0, dict as never)
+        }
+        //this.filtered_ev_keys = this.extractEvKeys()
       }
     },
     receiveFilteredRuns(receivedRuns: any[]){
@@ -155,31 +193,83 @@ export default {
       let runs_by_dataset: run[] = this.runs.filter(run => this.filtered_datasets.includes(run['dataset_id'] as never))
       this.filtered_runs = (runs_by_dataset.filter(run => approaches.includes(run['input_software_name'])))
     },
-    fetchData() {
-      if (this.dataset_ids === '' && this.component_type === 'Overview'){return /* dont fetch */}
-      else {
-      this.loading = true
-      var rest_endpoint = ''
-      if (this.task_id && this.dataset_ids) {
-        rest_endpoint = '/api/evaluations/' + this.task_id + '/' + this.dataset_ids
-
-        if (this.show_only_unreviewed) {
-          rest_endpoint += '?show_only_unreviewed=true'
-        }
-      } else if (this.task_id && this.vm_id) {
-        rest_endpoint = '/api/evaluations-of-vm/' + this.task_id + '/' + this.vm_id
-
-        if (this.docker_software_id) {
-          rest_endpoint += '?docker_software_id=' + this.docker_software_id
-        } else if (this.upload_id) {
-          rest_endpoint += '?upload_id=' + this.upload_id
-        }
+    checkEmptyApproaches(runs: any[]){
+      return !runs.map((run: { [x: string]: any }) => run['input_software_name']).every((approach: string) => approach === '')
+    },
+    extractEvKeys(){
+      return this.table_headers.filter(header => header['title'] === header['key']).map(measurement => measurement['title'])
+    },
+    updateUrlToCurrentFilterCriteria() {
+      if (this.component_type === 'Overview'){
+        this.$router.replace({name: 'task-overview', params: {task_id: this.task_id, dataset_id: encodeURIComponent(this.dataset_ids), ev_keys: encodeURIComponent((this.filtered_ev_keys as string[]).join(',').length === 0 ? "nk" : (this.filtered_ev_keys as string[]).join(',')), approach: encodeURI(this.filtered_runs.map(x => x.input_software_name).join(','))}})
       }
-      get(rest_endpoint)
-          .then(inject_response(this, {'loading': false}))
-          .catch(reportError("Problem While Loading the List of Runs", "This might be a short-term hiccup, please try again. We got the following error: "))
+      else if (this.component_type === 'Submission'){
+        console.log("component_type: " + this.component_type)
+        this.$router.replace({
+          name: 'submission',
+          params: {submission_type: this.$route.params.submission_type, dataset_id: encodeURIComponent(this.dataset_ids), ev_keys: encodeURIComponent((this.filtered_ev_keys as string[]).join(',').length === 0 ? "nk" : (this.filtered_ev_keys as string[]).join(','))}})
+      }
+    },
+    matchRuns(){
+      if (this.runs_url[0] === ''){
+        return []
+      }
+      else {
+        console.log("real runs: " + this.runs[0]['input_software_name'])
+        console.log('runs_url in match_runs: ' + this.runs_url[0])
+        console.log("else: " + this.runs.filter(run => this.runs_url.includes(run['input_software_name'])))
+        return this.runs.filter(run => this.runs_url.includes(run['input_software_name']))
+      }
+    },
+    setupComponent() {
+    if (this.component_type === 'Overview') {
+      this.filtered_datasets = this.datasets_url[0] === '' ? this.datasets[0]['dataset_id'] : this.datasets_url
+      this.filtered_ev_keys = this.ev_keys_url[0] === '' ? this.ev_keys : this.ev_keys_url
+      this.receiveFilteredKeys2()
+      this.filtered_runs = this.matchRuns()
+      this.isMounted = "test_neu"
+    } else {
+      this.filtered_datasets = []
+      this.filtered_ev_keys = this.ev_keys
     }
-      },
+  },
+    fetchData() {
+        //this.loading = true
+        var rest_endpoint = ''
+        if (this.task_id && this.dataset_ids && this.component_type === 'Overview') {
+          rest_endpoint = '/api/evaluations/' + this.task_id + '/' + this.dataset_ids
+          console.log("endpoint1: " + rest_endpoint)
+
+          if (this.show_only_unreviewed) {
+            rest_endpoint += '?show_only_unreviewed=true'
+          }
+        } else if (this.task_id && this.vm_id) {
+          rest_endpoint = '/api/evaluations-of-vm/' + this.task_id + '/' + this.vm_id
+          console.log("endpoint2: " + rest_endpoint)
+
+          if (this.docker_software_id) {
+            rest_endpoint += '?docker_software_id=' + this.docker_software_id
+            console.log("endpoint3: " + rest_endpoint)
+          } else if (this.upload_id) {
+            rest_endpoint += '?upload_id=' + this.upload_id
+            console.log("endpoint4: " + rest_endpoint)
+          }
+        }
+      return new Promise<void>((resolve, reject) => {
+        get(rest_endpoint)
+            .then((response) => {
+                inject_response(this, { 'loading': false })(response);
+                resolve(); // Resolve the promise when the injection is complete
+            })
+            .catch((error) => {
+                reportError("Problem While Loading the List of Runs", "This might be a short-term hiccup, please try again. We got the following error: ")(error);
+                reject(error); // Reject the promise if there is an error
+            });
+    });
+        //get(rest_endpoint)   //
+        //    .then(inject_response(this, {'loading': false}))
+        //    .catch(reportError("Problem While Loading the List of Runs", "This might be a short-term hiccup, please try again. We got the following error: "))
+    },
     reviewChanged(review: any) {
       for (let run of this.runs) {
         if (run['run_id'] === review['run_id']) {
@@ -197,19 +287,29 @@ export default {
     }
   },
   beforeMount() {
-    this.fetchData()
+    //this.fetchData()
   },
-  mounted(){
-    if (this.component_type === 'Overview'){
-      this.filtered_datasets = extractDatasetFromCurrentUrl() ? extractDatasetFromCurrentUrl() : this.datasets[0]['dataset_id']
-      this.dataset_ids = extractDatasetFromCurrentUrl() ? extractDatasetFromCurrentUrl() : this.datasets[0]['dataset_id']
-    } else {
-      this.filtered_datasets = []
+  async mounted() {
+    try {
+        await this.fetchData();
+        this.setupComponent();
+    } catch (error) {
+        console.error('Error fetching data:', error);
     }
+},
+  created(){
+    this.dataset_ids = this.datasets_url[0] === '' ? this.datasets[0]['dataset_id'] : this.datasets_url.join(',')
   },
   watch: {
     task_id(old_id, new_id) {this.fetchData()},
-    dataset_ids(old_value, new_value) {this.fetchData()},
+    dataset_ids(old_value, new_value) {
+      this.updateUrlToCurrentFilterCriteria()
+      this.fetchData()
+    },
+    filtered_ev_keys(old_value, new_value) {
+      this.updateUrlToCurrentFilterCriteria()
+    },
+    filtered_runs(old_value, new_value) {this.updateUrlToCurrentFilterCriteria()},
   }
 }
 </script>

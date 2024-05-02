@@ -117,6 +117,7 @@ def get_evaluations_by_dataset_2(request, context, task_id, dataset_id):
                  measures is a list sorted by the keys in ev_keys
     }
     """
+
     task = model.get_task(task_id, False)
     is_ir_task = 'is_ir_task' in task and task['is_ir_task']
     is_admin = context["role"] == "admin"
