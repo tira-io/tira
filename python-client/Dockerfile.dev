@@ -26,7 +26,9 @@ RUN echo 'root:1234' | chpasswd
 RUN pip3 install twine coverage-badge python-terrier coverage
 RUN pip3 install pytest docker
 # Install umlet
-RUN wget https://www.umlet.com/download/umlet_15_1/umlet-standalone-15.1.zip -O "/usr/share/umlet/download.zip" \
+RUN mkdir -p /usr/share/umlet \
+	&& cd /usr/share/umlet \
+	&& wget https://www.umlet.com/download/umlet_15_1/umlet-standalone-15.1.zip -O download.zip \
 	&& cd /usr/share/umlet \
 	&& unzip download.zip
 # Install sphinx dependencies
