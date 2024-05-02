@@ -326,6 +326,20 @@ class LocalExecutionIntegration():
         else:
             return image
 
+    def show_docker_progress(self, line, tasks):
+        from tqdm import tqdm
+
+        if 'status' not in line or (line['status'] != 'Downloading' and line['status'] != 'Extracting' and line['status'] != 'Pushing'):
+            # skip other statuses
+            return
+
+        id = f'{line["id"]}--{line["status"]}'
+
+        if id not in tasks:
+            tasks[id] = tqdm(position=len(tasks) +1, desc=f'{line["status"]} ({line["id"]}):')
+
+        tasks[id].update(line['progressDetail']['total'])
+
     def push_image(self, image, required_prefix=None, task_name=None, team_name=None):
         client = self.__docker_client()
         if not self.docker_client_is_authenticated(client):
@@ -337,10 +351,12 @@ class LocalExecutionIntegration():
             client.images.get(image).tag(new_image)
             image = new_image
 
-        push_response = client.images.push(image)
-        print(push_response)
+        tasks = {}
+        push_response = ''
+        for line in client.images.push(image, stream=True, decode=True):
+            push_response += str(line)
+            self.show_docker_progress(line, tasks)
 
         if 'error' in push_response:
             raise ValueError('Could not push image')
         return new_image
-

@@ -74,8 +74,8 @@ def parse_args():
     # Register all subcommands here:
     subparsers = parser.add_subparsers(dest='command', required=True)
     setup_download_command(subparsers.add_parser('download', help='Download runs or datasets from TIRA.io'))
-    setup_login_command(subparsers.add_parser('upload', help='Upload runs or datasets to TIRA.io'))
-    setup_upload_command(subparsers.add_parser('login', help='Login your TIRA client to the tira server.'))
+    setup_upload_command(subparsers.add_parser('upload', help='Upload runs or datasets to TIRA.io'))
+    setup_login_command(subparsers.add_parser('login', help='Login your TIRA client to the tira server.'))
 
     return parser.parse_args()
 

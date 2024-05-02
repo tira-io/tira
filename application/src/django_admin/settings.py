@@ -249,7 +249,8 @@ GIT_CI_AVAILABLE_RESOURCES = {
     'small-resources-gpu': {'cores': 1, 'ram': 10, 'gpu': '1-nvidia-1080', 'data': 'no', 'description': 'Small w. GPU (1 CPU Cores, 10GB of RAM, 1 Nvidia GTX 1080 with 8GB)', 'key': 'small-resources-gpu'},
     'medium-resources-gpu': {'cores': 2, 'ram': 20, 'gpu': '1-nvidia-1080', 'data': 'no', 'description': 'Medium w. GPU (2 CPU Cores, 20GB of RAM, 1 Nvidia GTX 1080 with 8GB)', 'key': 'medium-resources-gpu'},
     'large-resources-gpu': {'cores': 4, 'ram': 40, 'gpu': '1-nvidia-1080', 'data': 'no', 'description': 'Large w. GPU (4 CPU Cores, 40GB of RAM, 1 Nvidia GTX 1080 with 8GB)', 'key': 'large-resources-gpu'},
-    'xl-resources-gpu': {'cores': 8, 'ram': 80, 'gpu': '1-nvidia-1080', 'data': 'no', 'description': 'XL w. GPU (8 CPU Cores, 80GB of RAM, 1 Nvidia GTX 1080 with 8GB)', 'key': 'xl-resources-gpu'}
+    'xl-resources-gpu': {'cores': 8, 'ram': 80, 'gpu': '1-nvidia-1080', 'data': 'no', 'description': 'XL w. GPU (8 CPU Cores, 80GB of RAM, 1 Nvidia GTX 1080 with 8GB)', 'key': 'xl-resources-gpu'},
+    'a100-resources-gpu': {'cores': 5, 'ram': 50, 'gpu': '1-nvidia-a100', 'data': 'no', 'description': 'A100 GPU (5 CPU Cores, 50GB of RAM, 1 Nvidia A100 with 40GB)', 'key': 'a100-resources-gpu'}
 }
 
 DEFAULT_GIT_INTEGRATION_URL = 'https://git.webis.de/code-research/tira'

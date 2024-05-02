@@ -102,13 +102,24 @@
         </template>
 
               <template v-slot:item.3>
-                <v-card title="Step Three" flat>
-                The Huggingface upload is disabled for this task. Please <a :href="contact_organizer">contact</a> the organizer <a :href="link_organizer"> {{ organizer }}</a> to enable this.
+                <v-card flat>
+
+                <div v-if="hf_model_available === 'loading'">
+                  Download the model ...
+                </div>
+                <loading :loading="hf_model_available === 'loading'"/>
+
+                <span v-if="hf_model_available && hf_model_available !== 'loading'">
+                The Huggingface model {{hugging_face_model}} is already available in TIRA.
+                </span>
+                <span v-if="!hf_model_available">
+                The Huggingface model {{hugging_face_model}} is not yet available in TIRA and the automatic upload is disabled for this task. Please <a :href="contact_organizer">contact</a> the organizer <a :href="link_organizer"> {{ organizer }}</a> to manually upload the model (this is usually finished within 24 hours).
+                </span>
                 </v-card>
               </template>
 
 
-              <v-stepper-actions @click:prev="stepperModel=1" @click:next="nextStep" :disabled='disableUploadStepper'></v-stepper-actions>
+              <v-stepper-actions @click:prev="stepperModel=Math.max(1, stepperModel-1)" @click:next="nextStep" :disabled='disableUploadStepper'></v-stepper-actions>
 
             </v-stepper>
             <br>
@@ -117,6 +128,7 @@
           </v-window-item>
           <v-window-item v-for="us in this.all_uploadgroups" :value="us.id">
             <loading :loading="description === 'no-description'"/>
+            
             <div v-if="description !== 'no-description'" class="d-flex flex-column">
 
               <div class="d-flex justify-end">
@@ -197,6 +209,7 @@ export default {
       description: 'no-description',
       rename_to: '',
       editUploadMetadataToggle: false,
+      hf_model_available: 'loading',
       all_uploadgroups: [{"id": null, "display_name": 'loading...'}],
       selectedDataset: '',
       showImportSubmission: false,
@@ -278,6 +291,10 @@ export default {
         this.stepperModel = 2;
       }
       else if (this.stepperModel == 2 && this.upload_configuration === 'upload-config-2') {
+        this.hf_model_available = 'loading'
+        get('/api/huggingface_model_mounts/vm/' + this.user_id_for_task + '/' + this.hugging_face_model.replace('/', '--'))
+          .then(inject_response(this))
+          .catch(reportError("Problem While importing the Hugging Face model " + this.hugging_face_model, "This might be a short-term hiccup, please try again. We got the following error: "))
         this.stepperModel = 3;
       }
     },

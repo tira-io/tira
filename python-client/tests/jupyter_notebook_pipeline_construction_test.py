@@ -74,6 +74,21 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
 
         self.assertEqual(expected, actual)
 
+    def test_pyterrier_index_as_previous_stage_for_python_file_with_utility_function(self):
+        python_line = '    index = tira.pt.index("ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)", pt_dataset)'
+        expected = 'ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)'
+        actual = parse_extraction_of_tira_approach(python_line)
+
+        self.assertEqual(expected, actual)
+
+    def test_pyterrier_index_as_previous_stage_for_python_file_with_utility_function_complete(self):
+        notebook = TEST_DIR / 'resources' / 'corpus-graph-with-pyterrier-index.py'
+        expected = ['ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)']
+
+        actual = extract_previous_stages_from_notebook(notebook)
+
+        self.assertEqual(expected, actual)
+
     def test_parsing_of_ast_assignment_none(self):
         python_line = None
         k, v =  parse_ast_extract_assignment(python_line)

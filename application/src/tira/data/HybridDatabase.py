@@ -614,6 +614,14 @@ class HybridDatabase(object):
         except Exception as e:
             link_code = None
 
+        mount_hf_model = None
+        hf_models = modeldb.HuggingFaceModelsOfSoftware.objects \
+                .filter(docker_software__docker_software_id=ds.docker_software_id) \
+                .only('mount_hf_model')
+
+        if hf_models and len(hf_models) > 0:
+            mount_hf_model = hf_models[0].mount_hf_model
+
         return {'docker_software_id': ds.docker_software_id, 'display_name': ds.display_name,
                 'user_image_name': ds.user_image_name, 'command': ds.command,
                 'tira_image_name': ds.tira_image_name, 'task_id': ds.task.task_id,
@@ -625,7 +633,7 @@ class HybridDatabase(object):
                 'public_image_name': ds.public_image_name,
                 "ir_re_ranking_input": True if ds.ir_re_ranking_input else False,
                 'previous_stages': previous_stages,
-                'link_code': link_code
+                'link_code': link_code, 'mount_hf_model': mount_hf_model
                 }
 
     @staticmethod
@@ -1761,6 +1769,12 @@ class HybridDatabase(object):
             display_name=display_name,
             description=description,
             paper_link=paper_link,
+        )
+
+    def add_docker_software_mounts(self, docker_software, mounts):
+        docker_software = modeldb.DockerSoftware.objects.get(docker_software_id=docker_software['docker_software_id'])
+        modeldb.HuggingFaceModelsOfSoftware.objects.create(
+            docker_software=docker_software, hf_home = mounts['HF_HOME'], mount_hf_model = mounts['MOUNT_HF_MODEL'], models_scan= mounts['HF_CACHE_SCAN']
         )
 
     def add_docker_software(self, task_id, vm_id, user_image_name, command, tira_image_name, input_docker_job=None,

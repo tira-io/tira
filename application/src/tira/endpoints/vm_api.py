@@ -138,6 +138,33 @@ def get_running_evaluations(request, vm_id):
 def docker_software_details(request, context, vm_id, docker_software_id):
     context['docker_software_details'] = model.get_docker_software(int(docker_software_id))
 
+    if 'mount_hf_model' in context['docker_software_details'] and context['docker_software_details']['mount_hf_model']:
+        mount_hf_model = []
+        for i in context['docker_software_details']['mount_hf_model'].split():
+            mount_hf_model += [{'href': f'https://huggingface.co/{i}', 'display_name': i}]
+        
+        context['docker_software_details']['mount_hf_model_display'] = mount_hf_model
+
+    return JsonResponse({'status': 0, "context": context})
+
+@check_permissions
+def huggingface_model_mounts(request, vm_id, hf_model):
+    from tira.huggingface_hub_integration import huggingface_model_mounts, snapshot_download_hf_model
+    context = {'hf_model_available': False, 'hf_model_for_vm': vm_id}
+
+    try:
+        context['hf_model_available'] = huggingface_model_mounts([hf_model.replace('--', '/')]) is not None
+    except:
+        pass
+
+    if not context['hf_model_available']:
+        try:
+            snapshot_download_hf_model(hf_model)
+            context['hf_model_available'] = True
+        except Exception as e:
+            logger.warning(e)
+            return JsonResponse({'status': '1', 'message': str(e)})
+
     return JsonResponse({'status': 0, "context": context})
 
 
@@ -491,6 +518,16 @@ def docker_software_add(request, task_id, vm_id):
                                                         data.get('inputJob', None),
                                                         submission_git_repo, build_environment
                                                         )
+
+        if data.get('mount_hf_model'):
+            try:
+                from tira.huggingface_hub_integration import huggingface_model_mounts
+                mounts = huggingface_model_mounts(data.get('mount_hf_model'))
+                model.add_docker_software_mounts(new_docker_software, mounts)
+
+            except Exception as e:
+                return JsonResponse({"status": 1, "message": str(e)})
+
         return JsonResponse({"status": 0, "message": "ok", "context": new_docker_software})
     else:
         return JsonResponse({"status": 1, "message": "GET is not allowed here."})
@@ -902,7 +939,8 @@ def run_execute_docker_software(request, task_id, vm_id, dataset_id, docker_soft
         evaluator['git_runner_command'], evaluator['git_repository_id'], evaluator['evaluator_id'],
         docker_software['tira_image_name'], docker_software['command'],
         'docker-software-' + docker_software_id, docker_resources,
-        input_run if input_run else input_runs
+        input_run if input_run else input_runs,
+        docker_software.get('mount_hf_model', None)
     )
 
     running_pipelines = git_runner.all_running_pipelines_for_repository(

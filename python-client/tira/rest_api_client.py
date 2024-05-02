@@ -113,7 +113,7 @@ class Client(TiraClient):
         else:
             return self.json_response(f'/api/task/{task_name}/user/{team_name}')
 
-    def add_docker_software(self, image, command, tira_vm_id, tira_task_id, code_repository_id, build_environment, previous_stages=[]):
+    def add_docker_software(self, image, command, tira_vm_id, tira_task_id, code_repository_id, build_environment, previous_stages=[], mount_hf_model=[]):
         headers = {
             'Api-Key': self.api_key,
             'Api-Username': self.api_user_name,
@@ -127,11 +127,17 @@ class Client(TiraClient):
         if previous_stages and len(previous_stages) > 0:
             content['inputJob'] = previous_stages
 
+        if mount_hf_model and len(mount_hf_model) > 0:
+            content['mount_hf_model'] = mount_hf_model
+
         ret = requests.post(url, headers=headers, json=content)
         ret = ret.content.decode('utf8')
         ret = json.loads(ret)
-        assert ret['status'] == 0
-        
+        if ret['status'] != 0:
+            msg = f'Upload of software failed with error {ret}'
+            print(msg)
+            raise ValueError(msg)
+
         print(f'Software with name {ret["context"]["display_name"]} was created.')
         logging.info(f'Software with name {ret["context"]["display_name"]} was created.')
         logging.info(f'Please visit {self.base_url}/submit/{tira_task_id}/user/{tira_vm_id}/docker-submission to run your software.')
