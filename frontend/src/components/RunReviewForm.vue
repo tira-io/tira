@@ -61,6 +61,8 @@
 </template>
       
 <script lang="ts">
+import { inject } from 'vue'
+
 import Loading from './Loading.vue'
 import CodeSnippet from "@/components/CodeSnippet.vue";
 import MetadataItems from './MetadataItems.vue'
@@ -98,7 +100,7 @@ export default {
   methods: {
     togglePublish() {
       this.toggle_publish_in_progress = true
-      get('/publish/' + this.vm_id + '/' + this.ds_id() + '/' + this.run_id + '/' + !this.review.published)
+      get(inject("REST base URL")+'/publish/' + this.vm_id + '/' + this.ds_id() + '/' + this.run_id + '/' + !this.review.published)
       	.then(message => {this.review.published = message.published})
       	.catch(reportError("Problem While (un)publishing the run.", "This might be a short-term hiccup, please try again. We got the following error: "))
         .then(() => { this.toggle_publish_in_progress = false })
@@ -106,7 +108,7 @@ export default {
     },
     toggleVisible() {
       this.toggle_visible_in_progress = true
-      get(`/blind/${this.vm_id}/${this.ds_id()}/${this.run_id}/${!this.review.blinded}`)
+      get(inject("REST base URL")+`/blind/${this.vm_id}/${this.ds_id()}/${this.run_id}/${!this.review.blinded}`)
         .then(message => {this.review.blinded = message.blinded})
       	.catch(reportError("Problem While (un)blinding the run.", "This might be a short-term hiccup, please try again. We got the following error: "))
         .then(() => { this.toggle_visible_in_progress = false })
@@ -114,7 +116,7 @@ export default {
     },
     submitReview() {
       this.edit_review_in_progress = true
-      post(`/tira-admin/edit-review/${this.ds_id()}/${this.vm_id}/${this.run_id}`, {
+      post(inject("REST base URL")+`/tira-admin/edit-review/${this.ds_id()}/${this.vm_id}/${this.run_id}`, {
             'no_errors': this.review.noErrors,
             'output_error': this.review.invalidOutput,
             'software_error': this.review.otherErrors,
@@ -131,7 +133,7 @@ export default {
   beforeMount() {
     this.loading = true
 
-    get('/api/review/' + this.ds_id() + '/' + this.vm_id + '/' + this.run_id)
+    get(inject("REST base URL")+'/api/review/' + this.ds_id() + '/' + this.vm_id + '/' + this.run_id)
         .then(inject_response(this, {'loading': false}))
         .catch(reportError("Problem While Loading the Review", "This might be a short-term hiccup, please try again. We got the following error: "))
   }

@@ -34,13 +34,6 @@ export default function register_app() {
     {path: '/task-overview/:task_id?/:dataset_id?', component: TaskOverview},
     {path: '/task/:task_id?/:dataset_id?', component: TaskOverview},
     {path: '/submit/:task/user/:user/:submission_type?/:selected_step?', name: 'submission', component: RunUpload},
-    // TODO: Temporary additional routes for transition form previous TIRA UI version.
-    {path: '/frontend-vuetify/landing', component: Home},
-    {path: '/frontend-vuetify/tasks', component: Tasks},
-    {path: '/frontend-vuetify/task-overview/:task_id?/:dataset_id?', component: TaskOverview},
-    {path: '/frontend-vuetify/task/:task_id?/:dataset_id?', component: TaskOverview},
-    {path: '/frontend-vuetify/submit/:task/user/:user/:submission_type?/:selected_step?', name: 'frontend-vuetify-submission', component: RunUpload},
-    {path: '/frontend-vuetify/task-overview/:task_id?/:dataset_id?/:sub-view?/:sub-sub-view?', component: TaskOverview},
     { path: '/tirex/components/:component_types?/:focus_types?/:search_query?',name:'tirex', component: IrComponents },
     { path: '/tirex/:pathMatch(.*)*', component: Tirex },
 
@@ -53,6 +46,8 @@ export default function register_app() {
   })
 
   const app = createApp(App)
+  app.provide("gRPC base URL", 'http://127.0.0.1:8080') /* TODO: replace with not hardcoded */
+  app.provide("REST base URL", 'http://127.0.0.1:8080') /* TODO: replace with not hardcoded */
   app.use(router)
 
   registerPlugins(app)

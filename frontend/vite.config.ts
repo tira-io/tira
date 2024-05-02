@@ -32,7 +32,7 @@ export default defineConfig({
         entryFileNames: 'entries/[name].js',
       },
     },
-    outDir: '../static/tira/frontend-vuetify',
+    outDir: 'static/tira/frontend-vuetify',
   },
   experimental: {
     renderBuiltUrl(filename: string, { hostType }: { hostType: 'js' | 'css' | 'html' }) {

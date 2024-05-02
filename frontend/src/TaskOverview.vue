@@ -84,6 +84,8 @@
 </template>
 
 <script lang="ts">
+import { inject } from 'vue'
+
   import { TiraBreadcrumb, TiraTaskAdmin, RunList, Loading, SubmitButton, TaskDocumentation } from './components'
   import RunUpload from "@/RunUpload.vue";
   import { VAutocomplete } from 'vuetify/components'
@@ -148,7 +150,7 @@
     }
   },
   beforeMount() {
-    get('/api/task/' + this.task_id)
+    get(inject("REST base URL")+'/api/task/' + this.task_id)
       .then(inject_response(this, {'loading': false}, true))
       .then(this.updateDataset)
       .catch(reportError("Problem While Loading the Details of the Task " + this.task_id, "This might be a short-term hiccup, please try again. We got the following error: "))

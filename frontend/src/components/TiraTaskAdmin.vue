@@ -64,6 +64,8 @@
 </template>
 
 <script lang="ts">
+import { inject } from 'vue'
+
 import { extractTaskFromCurrentUrl, extractRole, get, reportError, reportSuccess } from '../utils'
 import {VAutocomplete} from "vuetify/components";
 import OverviewMissingReviews from './OverviewMissingReviews.vue';
@@ -92,7 +94,7 @@ export default {
     },
     deleteDataset(x: any) {
       if (x['action'] == 'delete_dataset') {
-        get('/tira-admin/delete-dataset/' + x['dataset_id'])
+        get(inject("REST base URL")+'/tira-admin/delete-dataset/' + x['dataset_id'])
         .then(() => {
           this.$emit('delete-dataset', x['dataset_id'])
           this.selectedDatasetForDelete = ''

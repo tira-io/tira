@@ -111,6 +111,8 @@
     </template>
         
     <script lang="ts">
+    import { inject } from 'vue'
+
     import { Loading } from '.'
     import {VAutocomplete} from "vuetify/components";
     import { get, post, post_file, reportError, slugify, reportSuccess, inject_response } from '../utils'
@@ -142,7 +144,7 @@
           if (this.newDataset()) {
             this.loading = false
           } else {
-            get(`/api/dataset/${this.dataset_id_from_props}`)
+            get(inject("REST base URL")+`/api/dataset/${this.dataset_id_from_props}`)
               .then(inject_response(this, {'loading': false}, true, ['dataset', 'evaluator']))
               .catch(reportError("Problem loading the dataset.", "This might be a short-term hiccup, please try again. We got the following error: "))
               .then(() => {this.is_confidential = '' + this.is_confidential; this.evaluation_type = 'eval-3'})

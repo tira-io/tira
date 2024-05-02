@@ -68,11 +68,6 @@ def background_jobs(request, context, task_id, job_id):
 
 
 @add_context
-def veutify_page(request, context, **kwargs):
-    return render(request, 'tira/veutify_page.html', context)
-
-
-@add_context
 def login(request, context):
     """ Hand out the login form 
     Note that this is only called in legacy deployment. Disraptor is supposed to catch the route to /login

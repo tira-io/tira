@@ -30,6 +30,8 @@
 </template>
 
 <script>
+import { inject } from 'vue'
+
 import {extractTaskFromCurrentUrl, get, inject_response, post, reportError} from "@/utils";
 import {Loading} from "@/components";
 
@@ -54,10 +56,10 @@ export default {
       this.loading = true
       let url = null
       if (this.type === 'docker') {
-        url = '/api/docker-softwares-details/' + this.user_id + '/' + this.id
+        url = inject("REST base URL")+'/api/docker-softwares-details/' + this.user_id + '/' + this.id
       }
       if (this.type === 'upload') {
-        url = `/api/upload-group-details/${this.task_id}/${this.user_id}/${this.id}`
+        url = inject("REST base URL")+`/api/upload-group-details/${this.task_id}/${this.user_id}/${this.id}`
       }
 
       get(url)

@@ -91,6 +91,8 @@
 </template>
 
 <script lang="ts">
+import { inject } from 'vue'
+
 import Loading from './Loading.vue'
 import TiraDataExport from './TiraDataExport.vue'
 import RunActions from './RunActions.vue'
@@ -138,7 +140,7 @@ export default {
   methods: {
     fetchData() {
       this.loading = true
-      get('/task/' + this.task_id + '/vm/' + this.run.vm_id + '/run_details/' + this.run.run_id)
+      get(inject("REST base URL")+'/task/' + this.task_id + '/vm/' + this.run.vm_id + '/run_details/' + this.run.run_id)
         .then(inject_response(this, {'loading': false}))
         .catch(() => {this.details_not_visible = true; this.loading = false})
     },

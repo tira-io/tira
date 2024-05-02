@@ -81,6 +81,8 @@
 
 
 <script lang="ts">
+import { inject } from 'vue'
+
 import {is_mobile, Loading} from './components'
 import {compareArrays, extractComponentTypesFromCurrentUrl, extractFocusTypesFromCurrentUrl, extractSearchQueryFromCurrentUrl, get, inject_response, reportError} from './utils';
 import CodeSnippet from "@/components/CodeSnippet.vue";
@@ -153,7 +155,7 @@ export default {
     },
     fetch_code(index: number, i: number) {
       this.code = ''
-      get('/api/tirex-snippet?component='+ this.vectorizedComponents[index][i].tirex_submission_id)
+      get(inject("REST base URL")+'/api/tirex-snippet?component='+ this.vectorizedComponents[index][i].tirex_submission_id)
         .then((message) => {this.code = message['context']['snippet']})
     },
     colorOfComponent(c:string) : string {
@@ -275,7 +277,7 @@ export default {
     },
   },
   beforeMount() {
-    get('/api/tirex-components')
+    get(inject("REST base URL")+'/api/tirex-components')
       .then(inject_response(this, {'loading': false}))
       .catch(reportError("Problem while loading the overview of the components.", "This might be a short-term hiccup, please try again. We got the following error: "))
   },

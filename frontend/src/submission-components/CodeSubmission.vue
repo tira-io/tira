@@ -98,6 +98,8 @@
 </template>
 
 <script lang="ts">
+import { inject } from 'vue'
+
 import {get, post, inject_response, reportError, reportSuccess, get_link_to_organizer} from "@/utils";
 import {Loading, CodeSnippet} from '../components'
 
@@ -130,7 +132,7 @@ export default {
       }
 
       this.submit_in_progress = true
-      post(`/api/add_software_submission_git_repository/${this.task_id}/${this.user_id}`, {"external_owner": this.new_git_account, "allow_public_repo": this.allow_public_repo})
+      post(inject("REST base URL")+`/api/add_software_submission_git_repository/${this.task_id}/${this.user_id}`, {"external_owner": this.new_git_account, "allow_public_repo": this.allow_public_repo})
         .then(reportSuccess('Your git repository was created.'))
         .then(inject_response(this))
         .catch(reportError("Problem while adding your git repository.", "This might be a short-term hiccup, please try again. We got the following error: "))
@@ -138,11 +140,11 @@ export default {
     },
   },
   beforeMount() {
-    get(`/api/get_software_submission_git_repository/${this.task_id}/${this.user_id}`)
+    get(inject("REST base URL")+`/api/get_software_submission_git_repository/${this.task_id}/${this.user_id}`)
       .then(inject_response(this, {'loading': false}))
       .catch(reportError("Problem loading the data of the task.", "This might be a short-term hiccup, please try again. We got the following error: "))
 
-    get('/api/token/' + this.user_id)
+    get(inject("REST base URL")+'/api/token/' + this.user_id)
       .then(inject_response(this))
   },
   computed: {

@@ -13,6 +13,8 @@
 </template>
 
 <script lang="ts">
+import { inject } from 'vue'
+
 import { extractTaskFromCurrentUrl, extractUserFromCurrentUrl, get, reportError, inject_response } from '../utils'
 import { VAutocomplete } from "vuetify/components"
 
@@ -33,11 +35,11 @@ export default {
   },
   methods: {
     importDataset() {
-        get('/api/import-submission/' + this.task_id + '/' + this.user_id_for_submission + '/' + this.submission_type + '/' + this.selectedImport)
+        get(inject("REST base URL")+'/api/import-submission/' + this.task_id + '/' + this.user_id_for_submission + '/' + this.submission_type + '/' + this.selectedImport)
     }
   },
   beforeMount() {
-    get('/api/submissions-of-user/' + this.user_id_for_submission)
+    get(inject("REST base URL")+'/api/submissions-of-user/' + this.user_id_for_submission)
       .then(inject_response(this, {'loading': false}, true))
       .catch(reportError("Problem While Loading Existing Submissions.", "This might be a short-term hiccup, please try again. We got the following error: "))
   },

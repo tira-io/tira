@@ -62,7 +62,7 @@ RUN wget 'https://nodejs.org/dist/v20.10.0/node-v20.10.0-linux-x64.tar.xz' \
     && mv node-v20.10.0-linux-x64/lib/node_modules/ /usr/local/lib/ \
     && npm install --global yarn
 
-ADD src/tira/frontend-vuetify/package.json src/tira/frontend-vuetify/yarn.lock src/tira/frontend-vuetify/vite.config.ts src/tira/frontend-vuetify/jest.config.js src/tira/frontend-vuetify/babel.config.js /tmp-del/
+ADD frontend/package.json frontend/yarn.lock frontend/vite.config.ts frontend/jest.config.js frontend/babel.config.js /tmp-del/
 
 RUN cd /tmp-del \
     && yarn create vuetify \

@@ -29,6 +29,8 @@
 </template>
 
 <script>
+import { inject } from 'vue'
+
 import DockerSubmission from "@/submission-components/DockerSubmission.vue";
 import CodeSubmission from "@/submission-components/CodeSubmission.vue";
 import UploadSubmission from "@/submission-components/UploadSubmission";
@@ -55,7 +57,7 @@ export default {
     }
   },
   beforeMount() {
-    get('/api/task/' + this.task_id)
+    get(inject("REST base URL")+'/api/task/' + this.task_id)
             .then(inject_response(this, {}, true, 'task'))
             .catch(reportError("Problem loading the data of the task.", "This might be a short-term hiccup, please try again. We got the following error: "))
   },

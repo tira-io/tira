@@ -103,6 +103,8 @@
 </template>
     
 <script lang="ts">
+import { inject } from 'vue'
+
 import { Loading } from '.'
 import {VAutocomplete} from "vuetify/components";
 import { get, post, reportError, slugify, extractRole, extractOrganizations, inject_response } from '../utils'
@@ -128,7 +130,7 @@ export default {
         if (this.task_id_for_edit === '') {
           this.loading = false
         } else {
-          get('/api/task/' + this.task_id_for_edit)
+          get(inject("REST base URL")+'/api/task/' + this.task_id_for_edit)
             .then(inject_response(this, {'loading': false}, true, 'task'))
             .catch(reportError("Problem loading the data of the task.", "This might be a short-term hiccup, please try again. We got the following error: "))
             .then(() => console.log(this.$data))

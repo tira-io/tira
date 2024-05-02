@@ -60,6 +60,8 @@
 </template>
 
 <script lang="ts">
+import { inject } from 'vue'
+
 import RunActions from './RunActions.vue'
 import SoftwareDetails from './SoftwareDetails.vue'
 import Loading from "./Loading.vue"
@@ -106,13 +108,13 @@ export default {
       this.loading = true
       var rest_endpoint = ''
       if (this.task_id && this.dataset_id) {
-        rest_endpoint = '/api/evaluations/' + this.task_id + '/' + this.dataset_id
+        rest_endpoint = inject("REST base URL")+'/api/evaluations/' + this.task_id + '/' + this.dataset_id
         
         if (this.show_only_unreviewed) {
           rest_endpoint += '?show_only_unreviewed=true'
         }
       } else if (this.task_id && this.vm_id) {
-        rest_endpoint = '/api/evaluations-of-vm/' + this.task_id + '/' + this.vm_id 
+        rest_endpoint = inject("REST base URL")+'/api/evaluations-of-vm/' + this.task_id + '/' + this.vm_id 
         
         if (this.docker_software_id) {
           rest_endpoint += '?docker_software_id=' + this.docker_software_id

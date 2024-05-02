@@ -128,18 +128,18 @@ test('First dataset is used if dataset from URL does not exist.', () => {
 
 //TODO check if more tests are needed, especially regarding the optional url-parameters,
 test('Task extracted from submission route should be correct, regardless of nesting-depth', () => {
-  (window as Window).location.href = '/frontend-vuetify/submit/task-1234/user/user-test/chosen-submission-type/current-step'
+  (window as Window).location.href = '/submit/task-1234/user/user-test/chosen-submission-type/current-step'
 
   expect(extractTaskFromCurrentUrl()).toStrictEqual('task-1234');
 });
 
 test('User extracted from submission route should be correct', () => {
-  (window as Window).location.href = '/frontend-vuetify/submit/task-1234/user/user-test/chosen-submission-type/current-step'
+  (window as Window).location.href = '/submit/task-1234/user/user-test/chosen-submission-type/current-step'
 
   expect(extractUserFromCurrentUrl()).toStrictEqual('user-test');
 });
 test('User extracted from submission route with subpath should be correct', () => {
-  (window as Window).location.href = '/frontend-vuetify/submit/task-1234/user/user-test/'
+  (window as Window).location.href = '/submit/task-1234/user/user-test/'
 
   expect(extractUserFromCurrentUrl()).toStrictEqual('user-test');
 });
@@ -147,47 +147,47 @@ test('User extracted from submission route with subpath should be correct', () =
 //TODO test for guest user
 
 test('Submission-type extracted from submission route should be correct', () => {
-  (window as Window).location.href = '/frontend-vuetify/submit/task-1234/user/user-test/chosen-submission-type/current-step'
+  (window as Window).location.href = '/submit/task-1234/user/user-test/chosen-submission-type/current-step'
 
   expect(extractSubmissionTypeFromCurrentUrl()).toStrictEqual('chosen-submission-type');
 });
 
 test('Submission-type extracted from submission route without step should be correct', () => {
-  (window as Window).location.href = '/frontend-vuetify/submit/task-1234/user/user-test/chosen-submission-type'
+  (window as Window).location.href = '/submit/task-1234/user/user-test/chosen-submission-type'
 
   expect(extractSubmissionTypeFromCurrentUrl()).toStrictEqual('chosen-submission-type');
 });
 
 test('Submission-type extracted from submission route without step, but subpath should be correct', () => {
-  (window as Window).location.href = '/frontend-vuetify/submit/task-1234/user/user-test/chosen-submission-type/'
+  (window as Window).location.href = '/submit/task-1234/user/user-test/chosen-submission-type/'
 
   expect(extractSubmissionTypeFromCurrentUrl()).toStrictEqual('chosen-submission-type');
 });
 
 test('Submission-type extracted from submission route should be null if not provided', () => {
-  (window as Window).location.href = '/frontend-vuetify/submit/task-1234/user/user-test'
+  (window as Window).location.href = '/submit/task-1234/user/user-test'
 
   expect(extractSubmissionTypeFromCurrentUrl()).toBeNull();
 });
 
 test('Submission-type extracted from submission route with subpath should be null', () => {
-  (window as Window).location.href = '/frontend-vuetify/submit/task-1234/user/user-test/'
+  (window as Window).location.href = '/submit/task-1234/user/user-test/'
 
   expect(extractSubmissionTypeFromCurrentUrl()).toBeNull();
 });
 test('Current step extracted from submission route should be null if not provided', () => {
-  (window as Window).location.href = '/frontend-vuetify/submit/task-1234/user/user-test/chosen-submission-type'
+  (window as Window).location.href = '/submit/task-1234/user/user-test/chosen-submission-type'
 
   expect(extractCurrentStepFromCurrentUrl()).toBeNull();
 });
 
 test('Current step extracted from submission route should be correct', () => {
-  (window as Window).location.href = '/frontend-vuetify/submit/task-1234/user/user-test/chosen-submission-type/current-step'
+  (window as Window).location.href = '/submit/task-1234/user/user-test/chosen-submission-type/current-step'
 
   expect(extractCurrentStepFromCurrentUrl()).toStrictEqual('current-step');
 });
 test('Expect current step from subpath to be null if not exists', () => {
-  (window as Window).location.href = '/frontend-vuetify/submit/task-1234/user/user-test/chosen-submission-type/'
+  (window as Window).location.href = '/submit/task-1234/user/user-test/chosen-submission-type/'
 
   expect(extractCurrentStepFromCurrentUrl()).toBeNull();
 });

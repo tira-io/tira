@@ -36,6 +36,8 @@
 </template>
   
 <script lang="ts">
+import { inject } from 'vue'
+
 import Loading from './Loading.vue'
 import RunReviewForm from './RunReviewForm.vue'
 import { get, reportError, inject_response } from '../utils'
@@ -69,7 +71,7 @@ export default {
     methods: {
       clicked: function() {
         this.loading = true
-        get('/api/evaluations_of_run/' + this.vm_id + '/' + this.run_id)
+        get(inject("REST base URL")+'/api/evaluations_of_run/' + this.vm_id + '/' + this.run_id)
           .then(inject_response(this, {'loading': false}))
           .catch(reportError("Problem While Loading the the runs and evaluations for review", "This might be a short-term hiccup, please try again. We got the following error: "))
       }

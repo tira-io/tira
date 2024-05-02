@@ -16,6 +16,8 @@
 </template>
   
 <script lang="ts">
+import { inject } from 'vue'
+
 import { RunList, Loading } from '.'
 import { get, reportError, inject_response } from '../utils'
 
@@ -39,7 +41,7 @@ export default {
   }},
   beforeMount() {
     this.loading = true
-    get('/api/count-of-missing-reviews/' + this.task.task_id)
+    get(inject("REST base URL")+'/api/count-of-missing-reviews/' + this.task.task_id)
       .then(inject_response(this, {'loading': false}))
       .catch(reportError("Problem While Loading the Overview of missing Reviews", "This might be a short-term hiccup, please try again. We got the following error: "))
   },

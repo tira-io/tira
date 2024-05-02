@@ -6,7 +6,7 @@ This repository contains the source code for all components of the [TIRA](https:
 Components:
 
 - [Backend](application) (test coverage: ![test coverage backend](application/test/test-coverage/coverage.svg))
-- [Frontend](application/src/tira/frontend-vuetify) (test coverage: ![Coverage of the frontend](application/src/tira/frontend-vuetify/coverage/badge-lines.svg))
+- [Frontend](frontend) (test coverage: ![Coverage of the frontend](frontend/coverage/coverage/badge-lines.svg))
 - [Python Client](python-client) (test coverage: ![Coverage of the python client](python-client/tests/test-coverage/coverage.svg))
 
 

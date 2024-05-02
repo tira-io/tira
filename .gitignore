@@ -286,4 +286,4 @@ tira-web/tira-web/lib/
 .DS_Store
 
 # TextMate
-application/src/tira/frontend-vuetify/.editorconfig
+frontend/.editorconfig

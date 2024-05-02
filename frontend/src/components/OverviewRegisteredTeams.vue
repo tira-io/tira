@@ -18,6 +18,8 @@
 </template>
   
 <script lang="ts">
+import { inject } from 'vue'
+
 import { Loading } from '.'
 import { get, reportError, inject_response} from '../utils'
 
@@ -47,7 +49,7 @@ export default {
   }},
    beforeMount() {
     this.loading = true
-    get('/api/count-of-team-submissions/' + this.task.task_id)
+    get(inject("REST base URL")+'/api/count-of-team-submissions/' + this.task.task_id)
       .then(inject_response(this, {'loading': false}))
       .catch(reportError("Problem While Loading the Overview of Submissions per Team", "This might be a short-term hiccup, please try again. We got the following error: "))
   }

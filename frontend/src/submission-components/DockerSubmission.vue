@@ -38,6 +38,7 @@
 </template>
 
 <script>
+import { inject } from 'vue'
 
 import {VAutocomplete} from 'vuetify/components'
 import { get, reportError, extractRole, extractTaskFromCurrentUrl, extractUserFromCurrentUrl, inject_response, filterByDisplayName, handleModifiedSubmission } from "@/utils";
@@ -89,13 +90,13 @@ export default {
     },
     load_re_ranking_datasets() {
       if (this.is_ir_task) {
-        get('/api/re-ranking-datasets/' + this.task_id)
+        get(inject("REST base URL")+'/api/re-ranking-datasets/' + this.task_id)
           .then(inject_response(this))
           .catch(reportError("Problem While Loading the re-rankign datasets for " + this.task_id, "This might be a short-term hiccup, please try again. We got the following error: "))
       }
     },
     handleDeleteDockerImage() {
-      get(`/task/${this.task_id}/vm/${this.user_id_for_submission}/delete_software/docker/${this.tab}`)
+      get(inject("REST base URL")+`/task/${this.task_id}/vm/${this.user_id_for_submission}/delete_software/docker/${this.tab}`)
           .then(message => {
             this.docker.images = this.docker.images.filter(i => i.id != this.docker.images.find(i => i.display_name === this.tab).id)
             this.tab = this.docker.images.length > 0 ? this.docker.images[0].display_name : null
@@ -110,7 +111,7 @@ export default {
     handleModifiedSubmission
   },
   beforeMount() {
-    get('/api/submissions-for-task/' + this.task_id + '/' + this.user_id_for_submission + '/docker')
+    get(inject("REST base URL")+'/api/submissions-for-task/' + this.task_id + '/' + this.user_id_for_submission + '/docker')
       .then(inject_response(this, {'loading': false}, true))
       .catch(reportError("Problem While Loading the Docker Details of the Task " + this.task_id, "This might be a short-term hiccup, please try again. We got the following error: "))
     this.load_re_ranking_datasets()

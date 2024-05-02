@@ -174,6 +174,7 @@
 </template>
 
 <script>
+import { inject } from 'vue'
 
 import { VAutocomplete } from 'vuetify/components'
 import { extractTaskFromCurrentUrl, extractUserFromCurrentUrl, get, inject_response, reportError, extractRole, post_file, reportSuccess, handleModifiedSubmission, get_link_to_organizer, get_contact_link_to_organizer } from "@/utils";
@@ -261,7 +262,7 @@ export default {
         upload_type_var += this.rename_file_to
       }
 
-      get(`/task/${this.task_id}/vm/${this.user_id_for_task}/add_software/upload${upload_type_var}`).then(message => {
+      get(inject("REST base URL")+`/task/${this.task_id}/vm/${this.user_id_for_task}/add_software/upload${upload_type_var}`).then(message => {
               this.all_uploadgroups.push({"id": message.context.upload.id, "display_name": message.context.upload.display_name})
               this.tab = message.context.upload.id
               this.upload_type = 'upload-1'
@@ -292,14 +293,14 @@ export default {
       }
       else if (this.stepperModel == 2 && this.upload_configuration === 'upload-config-2') {
         this.hf_model_available = 'loading'
-        get('/api/huggingface_model_mounts/vm/' + this.user_id_for_task + '/' + this.hugging_face_model.replace('/', '--'))
+        get(inject("REST base URL")+'/api/huggingface_model_mounts/vm/' + this.user_id_for_task + '/' + this.hugging_face_model.replace('/', '--'))
           .then(inject_response(this))
           .catch(reportError("Problem While importing the Hugging Face model " + this.hugging_face_model, "This might be a short-term hiccup, please try again. We got the following error: "))
         this.stepperModel = 3;
       }
     },
     deleteUpload(id_to_delete) {
-      get(`/task/${this.task_id}/vm/${this.user_id_for_task}/upload-delete/${this.tab}`)
+      get(inject("REST base URL")+`/task/${this.task_id}/vm/${this.user_id_for_task}/upload-delete/${this.tab}`)
       .then(message => {
               this.all_uploadgroups = this.all_uploadgroups.filter(i => i.id !== id_to_delete)
               this.tab = this.all_uploadgroups.length > 0 ? this.all_uploadgroups[0].display_name : null
@@ -327,11 +328,11 @@ export default {
     }
   },
   beforeMount() {
-    get('/api/submissions-for-task/' + this.task_id + '/' + this.user_id_for_task + '/upload')
+    get(inject("REST base URL")+'/api/submissions-for-task/' + this.task_id + '/' + this.user_id_for_task + '/upload')
       .then(inject_response(this, {'loading': false}, true))
       .catch(reportError("Problem While Loading The Submissions of the Task " + this.task_id, "This might be a short-term hiccup, please try again. We got the following error: "))
 
-    get('/api/token/' + this.user_id_for_task)
+    get(inject("REST base URL")+'/api/token/' + this.user_id_for_task)
       .then(inject_response(this))
 
     this.tab = this.all_uploadgroups[0].display_name
@@ -341,7 +342,7 @@ export default {
       this.description = 'no-description'
       this.rename_to = ''
       if (new_value !== 'newUploadGroup' && '' + new_value !== 'null' && '' + new_value !== 'undefined' && '' + new_value !== 'loading...') {
-        get(`/api/upload-group-details/${this.task_id}/${this.user_id_for_task}/${new_value}`).then(message => {
+        get(inject("REST base URL")+`/api/upload-group-details/${this.task_id}/${this.user_id_for_task}/${new_value}`).then(message => {
           this.description = message.context.upload_group_details.description
           this.rename_to = message.context.upload_group_details.rename_to
         })

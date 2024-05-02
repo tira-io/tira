@@ -41,6 +41,8 @@
 </template>
 
 <script lang="ts">
+import { inject } from 'vue'
+
   import { get, reportError, inject_response, extractRole } from './utils';
   import { Loading, TiraBreadcrumb, EditTask } from './components'
 
@@ -108,7 +110,7 @@
       }
     },
     beforeMount() {
-      get('/api/task-list')
+      get(inject("REST base URL")+'/api/task-list')
         .then(inject_response(this))
         .catch(reportError("Problem While Loading the Overview of the Tasks.", "This might be a short-term hiccup, please try again. We got the following error: "))
     }
