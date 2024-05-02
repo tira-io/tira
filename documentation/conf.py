@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.abspath('../'))
 # -- Project information -----------------------------------------------------
 
 project = 'TIRA'
-copyright = '2023, Webis'
+copyright = '2024, Webis'
 author = 'Webis'
 
 
@@ -32,7 +32,9 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.doctest',
     'sphinx.ext.viewcode',
-    'sphinx_toolbox.collapse',
+    'sphinx_design',
+    'sphinxcontrib.plantuml',
+    'sphinxcontrib.umlet',
     'myst_parser',
 ]
 
@@ -82,15 +84,18 @@ html_theme_options: Dict[str, Any] = {
     "source_directory": "python-client/sphinx",
     "sidebar_hide_name": True,
     "navigation_with_keys": True,
-    "announcement": '<a href="https://tira-io.github.io/tira/unlisted/maintenance.html">Due to planned maintenance starting on March 25, TIRA is currently down.</a><br>While you wait until the March 28 for us to be back, you may read our documentation. GLHF',
 }
 
+
+plantuml_output_format = 'svg_img'
+
+umlet_binary_path = "/usr/share/umlet/Umlet/umlet.sh"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+# html_static_path = ['_static']
 
-html_css_files = [
-    'css/custom.css',
-]
+# html_css_files = [
+#     'css/custom.css',
+# ]

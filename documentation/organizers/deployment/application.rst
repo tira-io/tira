@@ -37,8 +37,12 @@ You need to run two docker containers for a tira-application:
 		 -v="</path/to/model>":/mnt/ceph/tira \
 		 registry.webis.de/code-lib/public-images/tira-application-grpc:latest
 
-Use TIRA with Discourse via Disraptor (optional)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Use TIRA with Discourse via Disraptor
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note:: This step is, in theory, optional but, if left out, user credentials will be transmitted and stored in
+        plaintext and can be read by anyone using the public REST-API.
+
 If you set up Discourse with `Disraptor <https://www.disraptor.org>`_, this will be useful information on how to
 make TIRA work with it.
 

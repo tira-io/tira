@@ -25,7 +25,13 @@ RUN echo 'root:1234' | chpasswd
 
 RUN pip3 install twine coverage-badge python-terrier coverage
 RUN pip3 install pytest docker
-RUN pip3 install sphinx furo myst-parser sphinx-toolbox
+# Install umlet
+RUN wget https://www.umlet.com/download/umlet_15_1/umlet-standalone-15.1.zip -O "/usr/share/umlet/download.zip" \
+	&& cd /usr/share/umlet \
+	&& unzip download.zip
+# Install sphinx dependencies
+RUN pip3 install sphinx furo myst-parser sphinx-design sphinxcontrib-plantuml sphinxcontrib-umlet
+RUN apt-get update && apt-get install -y plantuml
 RUN pip3 install tira approvaltests \
 	&& cd /tmp \
 	&& python3 -c 'from tira.third_party_integrations import ensure_pyterrier_is_loaded; ensure_pyterrier_is_loaded();' \

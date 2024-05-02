@@ -1,0 +1,1881 @@
+openapi: '3.0.2'
+info:
+  title: TIRA API
+  version: "1.0.0-draft"
+servers:
+  - url: https://www.tira.io/api
+  # - url: https://api.tira.io/ <-- maybe for the future?
+  - url: http://127.0.0.1:8080/api
+security:
+  - bearerAuth: []
+
+paths:
+  # Legacy API
+  /tira-admin/reload/vms:
+    post:
+      summary: Deprecated, may be deleted without replacement?
+      description: TODO
+      deprecated: true
+      servers:
+        - url: https://www.tira.io
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy, "dead?"]
+  /tira-admin/reload/datasets:
+    post:
+      summary: Deprecated, may be deleted without replacement?
+      description: TODO
+      deprecated: true
+      servers:
+        - url: https://www.tira.io
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy, "dead?"]
+  /tira-admin/reload/tasks:
+    post:
+      summary: Deprecated, may be deleted without replacement?
+      description: TODO
+      deprecated: true
+      servers:
+        - url: https://www.tira.io
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy, "dead?"]
+  /tira-admin/reload-data:
+    post:
+      summary: Deprecated, may be deleted without replacement?
+      description: TODO
+      deprecated: true
+      servers:
+        - url: https://www.tira.io
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy, "dead?"]
+  /tira-admin/reload-runs/{vmId}:
+    post:
+      summary: Deprecated, may be deleted without replacement?
+      description: TODO
+      deprecated: true
+      servers:
+        - url: https://www.tira.io
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy, "dead?"]
+  /tira-admin/create-vm:
+    post:
+      summary: Deprecated, may be deleted without replacement?
+      deprecated: true
+      servers:
+        - url: https://www.tira.io
+      description: Hook for create_vm posts. Responds with json objects indicating the state of the create process.
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy, "dead?"]
+  /tira-admin/archive-vm:
+    post:
+      servers:
+        - url: https://www.tira.io
+      summary: Deprecated, may be deleted without replacement?
+      description: TODO
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy, "dead?"]
+  /tira-admin/modify-vm:
+    post:
+      summary: Deprecated, may be deleted without replacement?
+      deprecated: true
+      servers:
+        - url: https://www.tira.io
+      description: TODO
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy, "dead?"]
+  /tira-admin/export-participants/{taskId}.csv:
+    get:
+      servers:
+        - url: https://www.tira.io
+      summary: Deprecated, use `/v1/tasks/{taskId}/registrations` instead with MIME-type text/csv
+      description: TODO
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /tira-admin/{organizerId}/create-task:
+    post:
+      servers:
+        - url: https://www.tira.io
+      summary: Deprecated, use a POST to `/v1/tasks` instead
+      description: TODO
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /tira-admin/edit-task/{taskId}:
+    post:
+      servers:
+        - url: https://www.tira.io
+      summary: Deprecated, use a PATCH to `/v1/tasks/{taskId}` instead
+      description: TODO
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /tira-admin/delete-task/{taskId}:
+    post:
+      servers:
+        - url: https://www.tira.io
+      summary: Deprecated, use a DELETE to `/v1/tasks/{taskId}` instead
+      description: TODO
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /tira-admin/add-dataset/{taskId}:
+    post:
+      servers:
+        - url: https://www.tira.io
+      summary: Deprecated, use a POST to `/v1/datasets` instead with the "create" action
+      description: TODO
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /tira-admin/upload-dataset/{taskId}/{datasetId}/{datasetType}:
+    post:
+      servers:
+        - url: https://www.tira.io
+      summary: Deprecated, use a POST to `/v1/datasets` or to `/v1/datasets/{datasetId}` instead
+      description: TODO
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /tira-admin/imports-irds-dataset/{taskId}:
+    post:
+      servers:
+        - url: https://www.tira.io
+      summary: Deprecated, use a POST to `/v1/datasets` instead with the "import" action
+      description: TODO
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /tira-admin/edit-dataset/{datasetId}:
+    post:
+      servers:
+        - url: https://www.tira.io
+      summary: Deprecated, use a PATCH to `/v1/datasets/{datasetId}` instead
+      description: TODO
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /tira-admin/delete-dataset/{datasetId}:
+    post:
+      servers:
+        - url: https://www.tira.io
+      summary: Deprecated, use a DELETE to `/v1/datasets/{datasetId}` instead
+      description: TODO
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /tira-admin/add-organizer/{organizerId}:
+    post:
+      servers:
+        - url: https://www.tira.io
+      summary: Deprecated, use a POST to `/v1/organizers` instead
+      description: TODO
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /tira-admin/edit-organizer/{organizerId}:
+    post:
+      servers:
+        - url: https://www.tira.io
+      summary: Deprecated, use a PATCH to `/v1/organizers/{organizerId}` instead
+      description: TODO
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /tira-admin/edit-review/{datasetId}/{vmId}/{runId}:
+    post:
+      servers:
+        - url: https://www.tira.io
+      summary: Deprecated, use a PATCH on `/v1/runs/{runId}/review` instead
+      description: TODO
+      deprecated: True
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /tira-admin/create-group/{vmId}:
+    post:
+      summary: Deprecated, may be deleted without replacement?
+      deprecated: true
+      servers:
+        - url: https://www.tira.io
+      description: TODO
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy, "dead?"]
+
+  /publish/{vmId}/{datasetId}/{runId}/{value}:
+    get:
+      servers:
+        - url: https://www.tira.io
+      summary: Deprecated, use a PATCH to `/v1/runs/{runId}` instead
+      description: TODO
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /blind/{vmId}/{datasetId}/{runId}/{value}:
+    get:
+      servers:
+        - url: https://www.tira.io
+      summary: Deprecated, use a PATCH to `/v1/runs/{runId}` instead
+      description: TODO
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+
+  /evaluations/{taskId}/{datasetId}:
+    get:
+      summary: |
+        Deprecated, use /v1/evaluations instead with `filter[taskId]={taskId}` and `filter[datasetId]={datasetId}` or
+        use /v1/tasks/{taskId}/evaluations with `filter[datasetId]={datasetId}`.
+      description: |
+        Return all evaluation results for all submission to a dataset The frontend calls this to build the leaderboard
+        in the task page when a task is selected from the dropdown.
+      deprecated: true
+      security: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /evaluations-of-vm/{taskId}/{vmId}:
+    get:
+      summary: |
+        Deprecated, use /v1/evaluations instead with `filter[taskId]={taskId}` and `filter[vmId]={vmId}` or use
+        /v1/tasks/{taskId}/evaluations with `filter[vmId]={vmId}`.
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /evaluation/{vmId}/{runId}:
+    get:
+      summary: |
+        Deprecated, use /v1/evaluations instead with `filter[runId]={runId}` and `filter[vmId]={vmId}`.
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy, "dead?"]
+  /submissions/{taskId}/{datasetId}:
+    get:
+      summary: Deprecated, use `/v1/tasks/{taskId}/submissions?filter[datasetId]={datasetId}` instead.
+      deprecated: true
+      security: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /docker-softwares-details/{vmId}/{dockerSoftwareId}:
+    parameters:
+      - name: vmId
+        in: path
+        description: The identifier of the VM for which to fetch docker details
+        required: true
+        schema:
+          type: string
+      - name: dockerSoftwareId
+        in: path
+        description: The identifier of the software for which to fetch details
+        required: true
+        schema:
+          type: integer
+    get:
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /upload-group-details/{taskId}/{vmId}/{uploadId}:
+    post:
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /evaluations_of_run/{vmId}/{runId}:
+    get:
+      summary: |
+        Deprecated, use /v1/evaluations instead with `filter[runId]={runId}` and `filter[vmId]={vmId}`.
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /configuration-of-evaluation/{taskId}/{datasetId}:
+    parameters:
+      - name: taskId
+        in: path
+        description: UNUSED - The identifier of the task for which to fetch the evaluation confgiruation.
+        required: true
+        schema:
+          type: string
+          example: ir_benchmarks
+      - name: datasetId
+        in: path
+        description: The identifier of the dataset for which to fetch the evaluation confgiruation.
+        required: true
+        schema:
+          type: string
+          example: clueweb09-en-trec-web-2009-20230107-training
+    get:
+      summary: All information provided by this endpoint is already provided by `/dataset/{datasetId}`
+      description: TODO
+      deprecated: true
+      security: []
+      responses:
+        '200':
+          description: TODO
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  context:
+                    type: object
+                    properties:
+                      include_navigation:
+                        type: boolean
+                      user_id:
+                        nullable: true
+                      role:
+                        $ref: "#/components/schemas/Role/properties/role"
+                      organizer_teams:
+                        $ref: "#/components/schemas/Role/properties/organizer_teams"
+                      dataset:
+                        type: object
+                        properties:
+                          display_name:
+                            type: string
+                          evaluator_id:
+                            type: string
+                          dataset_id:
+                            type: string
+                          evaluator_git_runner_image:
+                            type: string
+                          evaluator_git_runner_command:
+                            type: string
+                        example:
+                          display_name: clueweb09-en-trec-web-2009
+                          evaluator_id: clueweb09-en-trec-web-2009-20230107-training-evaluator
+                          dataset_id: clueweb09-en-trec-web-2009-20230107-training
+                          evaluator_git_runner_image: "webis/ir_measures_evaluator:1.0.5"
+                          evaluator_git_runner_command: |
+                            /ir_measures_evaluator.py --run ${inputRun}/run.txt --topics ${inputDataset}/queries.jsonl
+                            --qrels ${inputDataset}/qrels.txt --output_path ${outputDir} --measures "P@10" "nDCG@10"
+                            "MRR"
+      tags: [legacy,redundant]
+  /list-runs/{taskId}/{datasetId}/{vmId}/{softwareId}:
+    get:
+      summary: |
+        Deprecated, use `/v1/runs?filter[taskId]={taskId}&filter[datasetId]={datasetId}&filter[userId]={userId}&filter[softwareId]={softwareId}`
+        instead.
+      description: TODO
+      deprecated: true
+      security: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /ova-list:
+    get:
+      summary: Deprecated, may be deleted without replacement?
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy, "dead?"]
+  /host-list:
+    get:
+      summary: Deprecated, use /v1/hosts instead.
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /organizer-list:
+    get:
+      summary: Deprecated, use /v1/organizers instead.
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /task-list:
+    get:
+      summary: Deprecated, use /v1/tasks instead.
+      deprecated: true
+      security: []
+      responses:
+        '200':
+          description: TODO
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  context:
+                    type: object
+                    properties:
+                      include_navigation:
+                        type: boolean
+                      user_id:
+                        type: string
+                        nullable: true
+                      role:
+                        type: string
+                        enum:
+                          - "guest"
+                      organizer_teams:
+                        type: string  # TODO: this is really odd that it is a string and not a list
+                      task_list:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/TaskLegacy"
+      tags: [legacy]
+  /task/{taskId}:
+    get:
+      parameters:
+        - name: taskId
+          in: path
+          description: The identifier of the task for which to fetch information
+          required: true
+          schema:
+            type: string
+      summary: Deprecated, use /v1/tasks/{taskId} instead.
+      deprecated: true
+      security: []
+      responses:
+        '200':
+          description: TODO
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  context:
+                    type: object
+                    properties:
+                      include_navigation:
+                        type: boolean
+                      user_id:
+                        type: string
+                        nullable: true
+                      role:
+                        type: string
+                        enum:
+                          - "guest"
+                      organizer_teams:
+                        type: string  # TODO: this is really odd that it is a string and not a list
+                      task:
+                        $ref: "#/components/schemas/TaskLegacy"
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+      tags: [legacy]
+  /registration_formular/{taskId}:
+    get:
+      security: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /dataset/{datasetId}:
+    get:
+      summary: Deprecated, use `/v1/datasets/{datasetId}` instead.
+      deprecated: true
+      security: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /datasets_by_task/{taskId}:
+    get:
+      summary: Deprecated, use `/v1/datasets?filter[taskId]={taskId}` instead.
+      deprecated: true
+      security: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /organizer/{organizerId}:
+    get:
+      summary: Deprecated, use `/v1/organizers/{organizerId}` instead.
+      deprecated: true
+      parameters:
+        - name: organizerId
+          in: path
+          description: The identifier of the organizer for which to fetch information
+          required: true
+          schema:
+            type: string
+      security: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /role:
+    get:
+      summary: Deprecated, use /v1/user instead.
+      deprecated: true
+      security: []
+      responses:
+        '200':
+          description: TODO
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Role'
+      tags: [legacy]
+  /task/{taskId}/user/{userId}:
+    get:
+      summary: Deprecated, use `/v1/users/{userId}` instead
+      description: TODO
+      deprecated: true
+      security: []
+      responses:
+        '200':
+          description: TODO
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+      tags: [legacy]
+  /task/{taskId}/user/{userId}/refresh-docker-images:
+    get:
+      security: []
+      responses:
+        '200':
+          description: TODO
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+      tags: [legacy]
+  /count-of-missing-reviews/{taskId}:
+    get:
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /task/{taskId}/user/{userId}/software/running/{forceCacheRefresh}:
+    get:
+      security: []
+      responses:
+        '200':
+          description: TODO
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+      tags: [legacy]
+  /task/{taskId}/public-submissions:
+    get:
+      summary: Deprecated, use `/v1/tasks/{taskId}/submissions?filter[visibility]=public` instead
+      description: TODO
+      deprecated: true
+      security: []
+      responses:
+        '200':
+          description: TODO
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+      tags: [legacy]
+  /task/{taskId}/submission-details/{userId}/{software}:
+    get:
+      security: []
+      responses:
+        '200':
+          description: TODO
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+      tags: [legacy]
+  /review/{datasetId}/{vmId}/{runId}:
+    get:
+      summary: Deprecated, use a GET on `/v1/runs/{runId}/review` instead
+      description: TODO
+      deprecated: True
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+      tags: [legacy]
+  /registration/add_registration/{vmId}/{taskId}:
+    parameters:
+      - name: vmId
+        in: path
+        description: The identifier of the VM for which to add a registration
+        required: true
+        schema:
+          type: string
+      - name: taskId
+        in: path
+        description: The identifier of the task for which to add a registration
+        required: true
+        schema:
+          type: string
+    post:  # FIXME: why is this endpoint not protected?
+      summary: Deprecated, use a POST on `/v1/tasks/{taskId}/registrations` instead
+      description: TODO
+      deprecated: true
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - group
+              properties:
+                group:
+                  type: string
+                team:
+                  type: string
+                username:
+                  type: string
+                email:
+                  type: string
+                affiliation:
+                  type: string
+                country:
+                  type: string
+                employment:
+                  type: string
+                participation:
+                  type: string
+                instructorName:
+                  type: string
+                instructorEmail:
+                  type: string
+                questions:
+                  type: string
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /submissions-for-task/{taskId}/{userId}/{submissionType}:
+    parameters:
+      - name: taskId
+        in: path
+        description: The identifier of the task for which to upload a submission
+        required: true
+        schema:
+          type: string
+      - name: userId
+        in: path
+        description: The identifier of the user for which to upload a submission
+        required: true
+        schema:
+          type: string
+      - name: submissionType
+        in: path
+        description: The type of submission to upload
+        required: true
+        schema:
+          type: string
+          enum:
+            - upload
+            - docker
+            # - vm    # deprecated and will be answered with a standard error response
+    get:
+      summary: |
+        Deprecated, use `/v1/tasks/{taskId}/submissions?filter[userId]={userId}&filter[type]={submissionType}` instead.
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /tirex-components:
+    get:
+      summary: Deprecated, use `/v1/tirex/components` instead.
+      deprecated: true
+      security: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /tirex-snippet:
+    get:
+      summary: Deprecated, use `/v1/tirex/components/{componentId}/snippet`
+      deprecated: true
+      security: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /snippets-for-tirex-components:
+    get:
+      summary: Deprecated. I think, this was superseded by `/tirex-snippet`
+      deprecated: true
+      security: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy, "dead?"]
+  /re-ranking-datasets/{taskId}:
+    parameters:
+      - name: taskId
+        in: path
+        description: The identifier of the task for which to fetch re-ranking datasets
+        required: true
+        schema:
+          type: string
+        example: ir-benchmarks
+    get:
+      summary: Deprecated, use a GET to `/v1/tasks/{taskId}/datasets?filter[type]=reranking` instead.
+      description: TODO
+      deprecated: true
+      security: []
+      responses:
+        '200':
+          description: TODO
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                  context:
+                    type: object
+                    properties:
+                      include_navigation:
+                        type: boolean
+                      user_id:
+                        nullable: true
+                      role:
+                        $ref: "#/components/schemas/Role/properties/role"
+                      organizer_teams:
+                        $ref: "#/components/schemas/Role/properties/organizer_teams"
+                      re_ranking_datasets:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            dataset_id:
+                              type: string
+                            display_name:
+                              type: string
+                            original_dataset_id:
+                              type: string
+                          example:
+                            dataset_id: docker-id-242-on-clueweb09-en-trec-web-2009-20230107-training
+                            display_nam: ChatNoir on clueweb09-en-trec-web-2009-20230107-training
+                            original_dataset_id: clueweb09-en-trec-web-2009-20230107-training
+      tags: [legacy]
+  /submissions-of-user/{userId}:
+    parameters:
+      - name: userId
+        in: path
+        description: The identifier of the user for which to fetch submissions
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Deprecated, use a GET on `/v1/users/{userId}/submissions` instead
+      description: TODO
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /add_software_submission_git_repository/{taskId}/{userId}:
+    post:
+      summary: Deprecated, use a POST on `/v1/tasks/{taskId}/submissions` instead with `type=repository`
+      description: TODO
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /get_software_submission_git_repository/{taskId}/{vmId}:
+    get:
+      summary: Deprecated, use a GET on `/v1/tasks/{taskId}/submissions?filter[type]=repository` instead
+      description: TODO
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /import-submission/{taskId}/{vmId}/{submissionType}/{softwareId}:
+    get:
+      summary: |
+        Deprecated, use a POST on `/v1/tasks/{taskId}/submissions` instead, with `action=import` and appropriate fields
+      description: TODO
+      deprecated: true
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /diffir/{taskId}/{topk}/{runId1}/{runId2}:
+    get:
+      summary: Deprecated, use a POST to `/v1/tools/diffir` instead
+      description: TODO
+      deprecated: True
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+  /serp/{taskId}/user/{vmId}/dataset/{datasetId}/{topk}/{runId}:
+    get:
+      summary: Deprecated, use a POST to `/v1/tools/serp` instead
+      description: TODO
+      deprecated: True
+      security:
+        - LegacyApiKeyAuth: []
+      responses:
+        '200':
+          description: TODO
+      tags: [legacy]
+
+
+
+  # V1 API
+  /health:
+    get:
+      security: []
+      responses:
+        '200':
+          description: TODO
+      tags: [v1]
+  /v1: {}
+  /v1/datasets:
+    get:
+      summary: Returns a (optionally filtered) list of all datasets
+      parameters:
+        - name: filter  # https://jsonapi.org/recommendations/#filtering
+          in: query
+          style: deepObject
+          schema:
+            type: object
+            properties:
+              taskId:
+                type: string
+        - $ref: '#/components/parameters/cursor'
+        - $ref: '#/components/parameters/limit'
+      security:
+        - {}
+        - bearerAuth: []
+      responses:
+        '200':
+          description: TODO
+        '204':
+           $ref: "#/components/responses/PaginationEmpty"
+        '400':
+           $ref: "#/components/responses/PaginationError"
+      tags: [v1]
+    post:
+      summary: Creates a new dataset and returns it
+      requestBody:
+        content:
+          application/json:
+            schema:
+              discriminator:
+                propertyName: action
+              oneOf:
+                - type: object
+                  properties:
+                    action:
+                      type: string
+                      enum:
+                        - create
+                - type: object
+                  properties:
+                    action:
+                      type: string
+                      enum:
+                        - import
+                    irDatasetsName:
+                      type: string
+      responses:
+        '201':
+          description: TODO
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+      tags: [v1]
+  /v1/datasets/{datasetId}:
+    parameters:
+      - name: datasetId
+        in: path
+        description: The identifier of the dataset to operate on
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Returns information on the specified dataset
+      security:
+        - {}
+        - bearerAuth: []
+      responses:
+        '200':
+          description: TODO
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+      tags: [v1]
+    patch:
+      summary: Updates the specified dataset
+      requestBody:
+        content:
+          application/json-patch+json: {}
+      responses:
+        '204':
+          description: TODO
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+      tags: [v1]
+    delete:
+      summary: Deletes the specified dataset
+      responses:
+        '204':
+          description: TODO
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+      tags: [v1]
+  /v1/evaluations:
+    get:
+      parameters:
+        - name: filter  # https://jsonapi.org/recommendations/#filtering
+          in: query
+          style: deepObject
+          schema:
+            type: object
+            properties:
+              datasetId:
+                type: string
+              runId:
+                type: string
+              taskId:
+                type: string
+              vmId:
+                type: string
+        - $ref: '#/components/parameters/cursor'
+        - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          description: TODO
+        '204':
+           $ref: "#/components/responses/PaginationEmpty"
+        '400':
+           $ref: "#/components/responses/PaginationError"
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+      tags: [v1]
+  /v1/hosts:
+    get:
+      parameters:
+        - $ref: '#/components/parameters/cursor'
+        - $ref: '#/components/parameters/limit'
+      responses:
+        '200':
+          description: TODO
+        '204':
+           $ref: "#/components/responses/PaginationEmpty"
+        '400':
+           $ref: "#/components/responses/PaginationError"
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+      tags: [v1]
+  /v1/organizers:
+    get:
+      summary: Returns a (optionally filtered) list of all organizers
+      parameters:
+        - $ref: '#/components/parameters/cursor'
+        - $ref: '#/components/parameters/limit'
+      responses:
+        '201':
+          description: TODO
+        '204':
+           $ref: "#/components/responses/PaginationEmpty"
+        '400':
+           $ref: "#/components/responses/PaginationError"
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+      tags: [v1]
+    post:
+      summary: Creates a new organizer and returns its URL
+      responses:
+        
+        '200':
+          description: TODO
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+      tags: [v1]
+  /v1/organizers/{organizerId}:
+    parameters:
+      - name: organizerId
+        in: path
+        description: The identifier of the organizer to operate on
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Returns the specified organizer
+      responses:
+        '204':
+          description: TODO
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+      tags: [v1]
+    patch:
+      summary: Updates the specified organizer
+      requestBody:
+        content:
+          application/json-patch+json: {}
+      responses:
+        '204':
+          description: TODO
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+      tags: [v1]
+    delete:
+      summary: Deletes the specified organizer
+      responses:
+        '200':
+          description: TODO
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+      tags: [v1]
+  /v1/runs: {}
+  /v1/runs/{runId}:
+    parameters:
+      - name: runId
+        in: path
+        description: The identifier of the run to operate on
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Returns a (optionally filtered) list of all runs
+      parameters:
+        - name: filter  # https://jsonapi.org/recommendations/#filtering
+          in: query
+          style: deepObject
+          schema:
+            type: object
+            properties:
+              dataset:
+                type: string
+              taskId:
+                type: string
+              vmId:
+                type: string
+        - name: topk
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: TODO
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+      tags: [v1]
+    patch:
+      summary: Updates the specified organizer
+      requestBody:
+        content:
+          application/json-patch+json: {}
+      responses:
+        '204':
+          description: TODO
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+      tags: [v1]
+    delete:
+      summary: Deletes the specified organizer
+      responses:
+        '200':
+          description: TODO
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+      tags: [v1]
+  /v1/runs/{runId}/review:
+    parameters:
+      - name: runId
+        in: path
+        description: The identifier of the run to operate on
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Returns the review of the specified run.
+      responses:
+        '200':
+          description: TODO
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+      tags: [v1]
+    patch:
+      summary: Updates the specified review
+      requestBody:
+        content:
+          application/json-patch+json: {}
+      responses:
+        '200':
+          description: TODO
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+      tags: [v1]
+  /v1/tasks:
+    get:
+      summary: Returns a (optionally filtered) list of all tasks
+      parameters:
+        - $ref: '#/components/parameters/cursor'
+        - $ref: '#/components/parameters/limit'
+      security:
+        - {}
+        - bearerAuth: []
+      responses:
+        '200':
+          description: TODO
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+        '204':
+           $ref: "#/components/responses/PaginationEmpty"
+        '400':
+           $ref: "#/components/responses/PaginationError"
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+      tags: [v1]
+    post:
+      summary: Creates a new task and returns its URL
+      responses:
+        '201':
+          description: TODO
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+      tags: [v1]
+  /v1/tasks/{taskId}:
+    parameters:
+      - name: taskId
+        in: path
+        description: The identifier of the task to operate on
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Returns the specified task
+      security:
+        - {}
+        - bearerAuth: []
+      responses:
+        '200':
+          description: TODO
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+      tags: [v1]
+    delete:
+      summary: Deletes the specified task
+      responses:
+        '204':
+          description: TODO
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+      tags: [v1]
+  /v1/tasks/{taskId}/evaluations:
+    parameters:
+      - name: taskId
+        in: path
+        description: The identifier of the task to operate on
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Returns a list of all evaluations associated with this task
+      parameters:
+        - name: filter
+          in: query
+          style: deepObject
+          schema:
+            type: object
+            properties:
+              vmId:
+                type: string
+              datasetId:
+                type: string
+              runId:
+                type: string
+      responses:
+        '200':
+          description: TODO
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+      tags: [v1]
+  /v1/tasks/{taskId}/registrations:
+    parameters:
+      - name: taskId
+        in: path
+        description: The identifier of the task to operate on
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Returns a list of all users registered for the task referenced by `taskId`
+      responses:
+        '200':
+          description: TODO
+          content:
+            text/csv: {}
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+      tags: [v1]
+    post:
+      summary: Registers a new user for the task referenced by `taskId`
+      responses:
+        '201':
+          description: The registrations was created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  uri:
+                    type: string
+                    format: uri
+                    description: The location the newly created registration is located at
+                  registration:
+                    type: object
+                    description: |
+                      The newly created registration object. This should be identical to the one returned from the URI
+                      field.
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+      tags: [v1]
+  /v1/tasks/{taskId}/submissions:
+    parameters:
+      - name: taskId
+        in: path
+        description: The identifier of the requested task
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Returns a (optionally filtered) list of all submissions for the task references by `taskId`
+      parameters:
+        - name: filter
+          in: query
+          style: deepObject
+          schema:
+            type: object
+            properties:
+              datasetId:
+                type: string
+              userId:
+                type: string
+              visibility:
+                $ref: "#/components/schemas/Submission/properties/visibility"
+              type:
+                type: string
+                enum:
+                  - upload
+                  - docker
+                  - repository
+      security:
+        - {}
+        - bearerAuth: []
+      responses:
+        '200':
+          description: TODO
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Submission'
+        '204':
+          description: The request was successful but no submissions satisfy the filter criteria for the given task.
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+      tags: [v1]
+    post:
+      summary: Submits a new submission for the authenticated user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              discriminator:
+                propertyName: action
+              oneOf:
+                - type: object
+                  properties:
+                    action:
+                      type: string
+                      enum:
+                        - create
+                    submission:
+                      $ref: '#/components/schemas/Submission'
+                - type: object
+                  properties:
+                    action:
+                      type: string
+                      enum:
+                        - import
+
+      responses:
+        '201':
+          description: The submission was successfully added.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Submission'
+        '202':
+          description: The submission was successfully enqueued and will be processed later. It may not be successful.
+        '401':
+          $ref: "#/components/responses/UnauthorizedError"
+      tags: [v1]
+  /v1/tirex: {}
+  /v1/tirex/components:
+    get:
+      summary: Returns a description of all tirex components
+      security: []
+      responses:
+        '200':
+          description: |
+            The request was fulfilled successfully and the response contains a serialized list of all the components
+            installed into this instance of TIREx.
+          content:
+            application/json: {}
+      tags: [v1]
+  /v1/tirex/components/{componentId}/snippet:
+    parameters:
+      - name: componentId
+        in: path
+        description: The identifier of the requested component
+        required: true
+        schema:
+          type: string
+          format: ulid
+    get:
+      summary: Returns a snippet demonstrating the usage of the specified TIREx component
+      security: []
+      responses:
+        '200':
+          description: |
+            The request was fulfilled successfully and the response contains a plain-text snippet demonstrating the
+            usage of the TIREx component uniquely identified by the query parameter `componentId`.
+          content:
+            text/plain: {}
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+      tags: [v1]
+  /v1/tools:
+    get:
+      summary: Returns a list of tools
+      security:
+        - {}
+        - bearerAuth: []
+      responses:
+        '200':
+          description: |
+            The request was fulfilled successfully and the response contains a list of the installed tools and a
+            description of each.
+        '204':
+          description: |
+            The request was fulfilled successfully but the response is empty since there are no tools installed.
+      tags: [v1]
+  /v1/tools/{tool}:
+    post:
+      summary: Invokes the specified tool
+      security:
+        - {}
+        - bearerAuth: []
+      responses:
+        '200':
+          description: The tool was invoked successfully and its response is attached.
+      tags: [v1]
+  /v1/user:
+    get:
+      summary: The user associated with the authenticated state
+      responses:
+        '200':
+          description: TODO
+        '401':
+           $ref: "#/components/responses/UnauthorizedError"
+      tags: [v1]
+  /v1/users: {}
+  /v1/users/{userId}: {}
+  /v1/users/{userId}/submissions:
+    parameters:
+      - name: userId
+        in: path
+        description: The identifier of the requested user
+        required: true
+        schema:
+          type: string
+          format: ulid
+    get:
+      summary: Returns all submissions of the specified user
+      description: Returns all submissions of the specified user.
+      security: []
+      responses:
+        '200':
+          description: |
+            The request was fulfilled successfully and the response contains a list of the user's submissions.
+          content:
+            application/json: {}
+        '204':
+          description: The user was found but does not have any submissions yet.
+        '404':
+           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+      tags: [v1]
+
+components:
+  parameters:
+    cursor:
+      name: cursor
+      in: query
+      description: |
+        The cursor with which (inclusively) to begin returning a range of results. Starts at the beginning if not set or
+        set to `null`.
+      required: false
+      schema:
+        type: string
+        nullable: true
+    limit:
+      name: limit
+      in: query
+      description: |
+        Limits the number of elements the response may contain. This should be used for pagination together with
+        `cursor` or `offset`.
+      required: false
+      schema:
+        type: integer
+  securitySchemes:
+    # Legacy
+    LegacyApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+    # V1
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    # https://www.rfc-editor.org/rfc/rfc9457
+    ProblemJSON:
+      type: object
+      description: |
+        The problem+json object contains all the necessary information to create helpful user-facing error messages.
+        Further fields can be appended to provide additional information to the consumer (e.g. arguments with which the
+        problem was triggered).
+      properties:
+        type:
+          type: string
+          format: uri
+          default: "about:blank"
+        status:
+          type: number
+        title:
+          type: string
+          description: |
+            Short, human-readable description of the problem. Should only be used, e.g., for logging. The "type"-URI
+            should be preferred to display a (potentially localized) description in user-facing error messages.
+        detail:
+          type: string
+          description: |
+            Human-readable explanation of the specific problem. Should help the user fix the problem rather than provide
+            debugging information. This should not be parsed by consumers of the REST-API (e.g., to display a localized
+            error message). Instead, additional fields should be added to the problem+json.
+        instance:
+          type: string
+          format: uri
+          description: The specific URI at which the problem occured. Should contain absolute paths.
+        errors:
+          description: |
+            If multiple errors occured with the same status-code, they can be reported together as members of the
+            errors-array.
+          type: array
+          items:
+            type: object
+            properties:
+              detail:
+                type: string
+    Role:
+      type: object
+      properties:
+        status:
+          type: integer
+        role:
+          type: string
+          enum: [guest]
+        organizer_teams:
+          type: array
+          items:
+            type: string
+    Submission:
+      type: object
+      required:
+        - visibility
+      properties:
+        taskId:
+          type: string
+          format: ulid
+        userId:
+          type: string
+          format: ulid
+        visibility:
+          type: string
+          enum:
+            - private
+            - public
+      oneOf:
+        - $ref: "#/components/schemas/RepoSubmission"
+      discriminator:
+        propertyName: type
+        mapping:
+          repository: "#/components/schemas/RepoSubmission"
+    RepoSubmission:
+      type: object
+      required:
+        - type
+        - url
+      properties:
+        type:
+          type: string
+          enum: [repository]
+        url:
+          type: string
+          format: url
+    TaskLegacy:  # Field names don't follow the naming guidelines (they are snake_case instead of camelCase)
+      type: object
+      properties:
+        task_id:
+          type: string
+        task_name:
+          type: string
+        task_description:
+          type: string
+        organizer:
+          type: string
+        organizer_id:
+          type: string
+        web:
+          type: string
+          format: uri
+        year:
+          type: string
+          pattern: '^\d{4}(?:-\d{4})?$'  # YEAR or YEAR-YEAR
+        featured:
+          type: boolean
+        require_registration:
+          type: boolean
+        require_groups:
+          type: boolean
+        restrict_groups:
+          type: boolean
+        allowed_task_teams:
+          type: string
+          default: ""
+        master_vm_id:
+          type: string
+        is_ir_task:
+          type: boolean
+        irds_re_ranking_image:  # TODO: is this only necessary for ir_tasks? Consider polymorphism
+          type: string
+        irds_re_ranking_command:  # TODO: is this only necessary for ir_tasks? Consider polymorphism
+          type: string
+        irds_re_ranking_resource:  # TODO: is this only necessary for ir_tasks? Consider polymorphism
+          type: string
+        dataset_count:
+          type: integer
+        software_count:
+          type: integer
+        max_stmax_std_out_chars_on_test_data:
+          type: integer
+        max_std_err_chars_on_test_data:
+          type: integer
+        max_file_list_chars_on_test_data:
+          type: integer
+        command_placeholder:
+          type: string
+        command_description:
+          type: string
+        dataset_label:
+          type: string
+        max_std_out_chars_on_test_data_eval:
+          type: integer
+        max_std_err_chars_on_test_data_eval:
+          type: integer
+        max_file_list_chars_on_test_data_eval:
+          type: integer
+    Task:  # Updated version of TaskLegacy. Not yet done. TODO: complete
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        organizer:
+          $ref: "#/components/schemas/Organizer"
+        website:
+          type: string
+          format: uri
+        year:
+          type: string
+          pattern: '^\d{4}(?:-\d{4})?$'  # YEAR or YEAR-YEAR
+      oneOf:
+        - $ref: "#/components/schemas/BaseTask"
+        - $ref: "#/components/schemas/IRTask"
+      discriminator:
+        propertyName: type
+        mapping:
+          basetask: "#/components/schemas/BaseTask"
+          irtask: "#/components/schemas/IRTask"
+    BaseTask:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+    IRTask:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+    Organizer:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+  responses:
+    PaginationError:
+      description: |
+        The pagination arguments were malformed. This is triggered if the limit argument is 0 or smaller or if the
+        cursor points to a non-existing resource or to a resource the caller does not have access to.
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ProblemJSON'
+              - type: object
+                properties:
+                  title:
+                    default: "Bad Request"
+                  status:
+                    default: 400
+    PaginationEmpty:
+      description: Offset-based pagination is used and the offset is too big such that the response is empty (204).
+    UnauthorizedError: # https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.2
+      description: API Key is missing or invalid.
+      headers:
+        WWW_Authenticate:
+          schema:
+            type: string
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ProblemJSON'
+              - type: object
+                properties:
+                  title:
+                    default: "Unauthorized"
+                  status:
+                    default: 401
+    UnauthorizedOrNotFoundError:  # https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.2
+      description: |
+        The resource was not found or the service does not want to disclose if the resource exists but the user does not
+        have access to it. As per W3C this should be a 404 but can fulfill the purpose of a 403 internally.
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ProblemJSON'
+              - type: object
+                properties:
+                  title:
+                    default: "Not Found"
+                  status:
+                    default: 404
+    ForbiddenError:  # https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.4
+      description: The service refuses to fulfill the request. Authorization would not help.
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ProblemJSON'
+              - type: object
+                properties:
+                  title:
+                    default: "Forbidden"
+                  status:
+                    default: 403
+
+tags:
+  - name: legacy
+    description: The pre 1.0 REST API. It may not adhere to our REST API guidelines and will be removed in the future.
+  - name: v1
+    description: The REST API for the TIRA 1.0 release

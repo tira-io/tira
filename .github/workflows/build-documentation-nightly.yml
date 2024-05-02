@@ -9,19 +9,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+      - name: Install UMLet
+        run: |
+          wget https://www.umlet.com/download/umlet_15_1/umlet-standalone-15.1.zip -O "/usr/share/umlet/download.zip"
+          cd /usr/share/umlet
+          unzip download.zip
       - name: Install Dependencies
         run: |
           sudo apt-get install -y python3-pip
-          pip install sphinx furo myst-parser sphinx-toolbox
+          pip install sphinx furo myst-parser sphinx-design sphinxcontrib-plantuml sphinxcontrib-umlet
           pip install pandas pyterrier ir_datasets
-          cd python-client/sphinx
-          # sphinx-apidoc -o . ../tira
+          cd documentation
+          # sphinx-apidoc -o . ../python-client/tira
           make doctest
           make html
           touch _build/html/.nojekyll
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: python-client/sphinx/_build/html
+          folder: documentation/_build/html
           target-folder: nightly
