@@ -1,4 +1,4 @@
-# grpcio==1.53.2
+grpcio==1.63.0
 protobuf<4.0dev
 pyuwsgi
 Django

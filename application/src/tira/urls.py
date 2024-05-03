@@ -10,9 +10,6 @@ urlpatterns = [
     path('data-download/git-repo-template/<str:vm_id>/<str:task_id>.zip', views.download_repo_template, name='download_repo_template'),
     path('data-download/<str:dataset_type>/<str:input_type>/<str:dataset_id>.zip', views.download_datadir, name='download_datadir'),
 
-    path('login', views.login, name='login'),       # TODO: remove; this should be part of the frontend
-    path('logout', views.logout, name='logout'),    # TODO: remove; this should be part of the frontend
-
     # grpc client endpoints
     path('task/<str:task_id>/vm/<str:vm_id>/add_software/vm', vm_api.software_add, name='software_add'),
     path('task/<str:task_id>/vm/<str:vm_id>/add_software/docker', vm_api.docker_software_add, name='docker_software_add'),

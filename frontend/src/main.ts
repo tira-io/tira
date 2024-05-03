@@ -46,8 +46,8 @@ export default function register_app() {
   })
 
   const app = createApp(App)
-  app.provide("gRPC base URL", 'http://127.0.0.1:8080') /* TODO: replace with not hardcoded */
-  app.provide("REST base URL", 'http://127.0.0.1:8080') /* TODO: replace with not hardcoded */
+  app.provide("gRPC base URL", 'https://127.0.0.1:8080') /* TODO: replace with not hardcoded */
+  app.provide("REST base URL", 'https://127.0.0.1:8080') /* TODO: replace with not hardcoded */
   app.use(router)
 
   registerPlugins(app)

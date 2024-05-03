@@ -622,7 +622,7 @@ privacy_policy:
 access_control:
   ## Default policy can either be 'bypass', 'one_factor', 'two_factor' or 'deny'. It is the policy applied to any
   ## resource if there is no policy to be applied to the user.
-  default_policy: 'one_factor'
+  default_policy: 'bypass'
 
   # networks:
     # - name: 'internal'
@@ -636,12 +636,8 @@ access_control:
     ## Rules applied to everyone
     - domain: '127.0.0.1'
       resources:
-        - '^/apple-touch-icon-precomposed\\.png$'
-        - '^/assets/safari-pinned-tab\\.svg$'
-        - '^/apple-touch-icon-180x180\\.png$'
-        - '^/apple-touch-icon\\.png$'
-        - '^/favicon\\.ico$'
-      policy: 'bypass'
+        - '/login'
+      policy: 'one_factor'
 
     ## Domain Regex examples. Generally we recommend just using a standard domain.
     # - domain_regex: '^(?P<User>\w+)\.example\.com$'
@@ -772,7 +768,7 @@ session:
 
       ## The time before the session cookie expires and the session is destroyed if remember me IS NOT selected by the
       ## user.
-      # expiration: '1 hour'
+      expiration: '1 hour'
 
       ## The time before the cookie expires and the session is destroyed if remember me IS selected by the user. Setting
       ## this value to -1 disables remember me for this session cookie domain. If allowed and the user uses the remember

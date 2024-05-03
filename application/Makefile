@@ -29,7 +29,6 @@ setup:
 	python3 src/manage.py makemigrations tira
 	python3 src/manage.py migrate tira 
 	python3 src/manage.py index_model
-	make frontend
 
 tests:
 	./test/run_all_tests.sh

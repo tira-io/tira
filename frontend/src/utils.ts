@@ -312,7 +312,7 @@ export function inject_response(obj: any, default_values: any={}, debug=false, s
 }
 
 export async function get(url: string) {
-    const response = await fetch(url)
+    const response = await fetch(url, {credentials: 'include'})
     if (!response.ok) {
       throw new Error(`Error fetching endpoint: ${url} with ${response.status}`);
     }

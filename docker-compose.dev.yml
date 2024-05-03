@@ -7,12 +7,11 @@ services:
     restart: unless-stopped
     environment:
       # TIRA Frontend Environment Variables
-      TIRA_REST_BASE_URL: http://127.0.0.1:8080
-      TIRA_GRPC_BASE_URL: http://127.0.0.1:8080
-    links:
+      TIRA_REST_BASE_URL: http://api.tira.local:8080
+      TIRA_GRPC_BASE_URL: http://api.tira.local:8080
+    external_links:
       - "auth:auth.tira.local"
-    depends_on:
-      - auth
+      - "nginx:api.tira.local"
   auth:
     image: ghcr.io/authelia/authelia
     restart: unless-stopped
@@ -23,15 +22,15 @@ services:
     image: lscr.io/linuxserver/nginx
     restart: unless-stopped
     ports:
+      - "8080:8080"
       - "8081:8081"
       - "8082:8082"
-    links:
+    external_links:
       - "auth:auth.tira.local"
       - "devenv:www.tira.local"
-    depends_on:
-      - auth
     volumes:
       - ./.devfiles/nginx/tira.conf:/config/nginx/site-confs/tira.conf
+      - ./.devfiles/nginx/tira-backend.conf:/config/nginx/site-confs/tira-backend.conf
       - ./.devfiles/nginx/auth.conf:/config/nginx/site-confs/auth.conf
       - ./.devfiles/nginx/snippets/:/config/nginx/snippets/
       - ./.devfiles/nginx/certs/:/etc/nginx/certs/

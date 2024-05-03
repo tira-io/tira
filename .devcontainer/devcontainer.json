@@ -21,7 +21,8 @@
 		"vscode": {
 			"extensions": [
 				"Vue.volar",
-				"ms-vscode.live-server"
+				"ms-vscode.live-server",
+				"ms-python.python"
 			]
 		}
 	}

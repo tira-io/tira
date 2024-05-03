@@ -1,7 +1,7 @@
 # ---task/celebrity-profiling/user/hodge20a
 debug: true
 allowed_hosts:
-  - "127.0.0.1"
+  - "0.0.0.0"
 django_secret: 'not-so-secret'
 # ---
 # tira_root: /mnt/ceph/tira

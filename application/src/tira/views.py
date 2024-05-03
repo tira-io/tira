@@ -67,33 +67,6 @@ def background_jobs(request, context, task_id, job_id):
     return render(request, 'tira/background_jobs.html', context)
 
 
-@add_context
-def login(request, context):
-    """ Hand out the login form 
-    Note that this is only called in legacy deployment. Disraptor is supposed to catch the route to /login
-    """
-
-    if request.method == "POST":
-        form = LoginForm(request.POST)
-        if form.is_valid():
-            # read form data, do auth.login(request, user_id, password)
-            valid = auth.login(request, user_id=form.cleaned_data["user_id"], password=form.cleaned_data["password"])
-            if valid:
-                return redirect('tira:index')
-            else:
-                context["form_error"] = "Login Invalid"
-    else:
-        form = LoginForm()
-
-    context["form"] = form
-    return render(request, 'tira/login.html', context)
-
-
-def logout(request):
-    auth.logout(request)
-    return redirect('tira:index')
-
-
 def _add_task_to_context(context, task_id, dataset_id):
     datasets = model.get_datasets_by_task(task_id)
 
