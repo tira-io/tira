@@ -137,8 +137,10 @@ def check_disraptor_token(func):
 class DisraptorAuthentication(Authentication):
     _AUTH_SOURCE = "disraptor"
 
-    def __init__(self,  **kwargs):
+    def __init__(self, **kwargs):
         """ Disraptor authentication that delegates all authentication to discourse/disraptor.
+        @param kwargs:
+            unused, only for consistency to the LegacyAuthentication
         """
         super(DisraptorAuthentication, self).__init__(**kwargs)
         self.discourse_client = model.discourse_api_client()
@@ -375,4 +377,3 @@ Best regards'''
 
 
 auth = Authentication(authentication_source=settings.DEPLOYMENT)
-
