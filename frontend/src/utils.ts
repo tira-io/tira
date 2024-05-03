@@ -311,8 +311,9 @@ export function inject_response(obj: any, default_values: any={}, debug=false, s
     }
 }
 
-export async function get(url: string) {
-    const response = await fetch(url, {credentials: 'include'})
+/* TODO: credentials=true can be called the legacy behavior when frontend and backend were on the same URL. This should maybe be limited more */
+export async function get(url: string, credentials=true) {
+    const response = await fetch(url, {credentials: credentials? 'include' : 'omit'})
     if (!response.ok) {
       throw new Error(`Error fetching endpoint: ${url} with ${response.status}`);
     }
@@ -323,7 +324,8 @@ export async function get(url: string) {
     return results
 }
 
-export async function post(url: string, params: any, debug=false) {
+/* TODO: credentials=true can be called the legacy behavior when frontend and backend were on the same URL. This should maybe be limited more */
+export async function post(url: string, params: any, debug=false, credentials=true) {
     const headers = new Headers({
         'Accept': 'application/json',
         'Content-Type': 'application/json',
@@ -331,19 +333,21 @@ export async function post(url: string, params: any, debug=false) {
     })
     params = JSON.stringify(params)
 
-    return post_raw(url, headers, params, debug)
+    return post_raw(url, headers, params, debug, credentials)
 }
 
-export async function post_file(url: string, params: any, debug=false) {
+/* TODO: credentials=true can be called the legacy behavior when frontend and backend were on the same URL. This should maybe be limited more */
+export async function post_file(url: string, params: any, debug=false, credentials=true) {
     const headers = new Headers({
         'Accept': 'application/json',
         'X-CSRFToken': extractCsrf(),
     })
 
-    return post_raw(url, headers, params, debug)
+    return post_raw(url, headers, params, debug, credentials)
 }
 
-export async function post_raw(url: string, headers: any, params: any, debug=false) {
+/* TODO: credentials=true can be called the legacy behavior when frontend and backend were on the same URL. This should maybe be limited more */
+export async function post_raw(url: string, headers: any, params: any, debug=false, credentials=true) {
     if (debug) {
         console.log("Post " + params)
     }
@@ -351,7 +355,8 @@ export async function post_raw(url: string, headers: any, params: any, debug=fal
     const response = await fetch(url, {
         method: "POST",
         headers,
-        body: params
+        body: params,
+        credentials: credentials? 'include' : 'omit',
     })
     if (debug) {
         console.log("Received " + response)
