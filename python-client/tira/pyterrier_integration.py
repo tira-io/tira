@@ -1,8 +1,6 @@
 import os
 from pathlib import Path
 
-import numpy as np
-
 
 class PyTerrierIntegration():
     def __init__(self, tira_client):
@@ -149,6 +147,7 @@ class PyTerrierIntegration():
 
     @staticmethod
     def _get_features_from_row(row, cols, map_features=None):
+        import numpy as np
         res = []
 
         for c in cols:
