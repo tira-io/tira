@@ -1,0 +1,37 @@
+version: '3.8'
+services:
+  devenv:
+    build:
+      context: ./
+      dockerfile: Dockerfile.dev
+    restart: unless-stopped
+    environment:
+      # TIRA Frontend Environment Variables
+      TIRA_REST_BASE_URL: http://127.0.0.1:8080
+      TIRA_GRPC_BASE_URL: http://127.0.0.1:8080
+    links:
+      - "auth:auth.tira.local"
+    depends_on:
+      - auth
+  auth:
+    image: ghcr.io/authelia/authelia
+    restart: unless-stopped
+    volumes:
+      - ./.devfiles/authelia/configuration.dev.yml:/config/configuration.yml
+      - ./.devfiles/authelia/users-database.yml:/config/users_database.yml
+  nginx:
+    image: lscr.io/linuxserver/nginx
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+      - "8082:8082"
+    links:
+      - "auth:auth.tira.local"
+      - "devenv:www.tira.local"
+    depends_on:
+      - auth
+    volumes:
+      - ./.devfiles/nginx/tira.conf:/config/nginx/site-confs/tira.conf
+      - ./.devfiles/nginx/auth.conf:/config/nginx/site-confs/auth.conf
+      - ./.devfiles/nginx/snippets/:/config/nginx/snippets/
+      - ./.devfiles/nginx/certs/:/etc/nginx/certs/

@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "license": "MIT",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host 0.0.0.0",
     "build-light": "vue-tsc --noEmit && vite --emptyOutDir build",
     "build": "jest --coverage && jest-coverage-badges && vue-tsc --noEmit && vite --emptyOutDir build",
     "preview": "vite preview",
