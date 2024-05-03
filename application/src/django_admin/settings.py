@@ -43,8 +43,7 @@ if not TIRA_ROOT.is_dir():
 
 (TIRA_ROOT / "state").mkdir(parents=True, exist_ok=True)
 
-DEPLOYMENT = custom_settings.get("deployment", "legacy")
-LEGACY_USER_FILE = Path(custom_settings.get("legacy_users_file", TIRA_ROOT / "model" / "users" / "users.prototext"))
+DEPLOYMENT = custom_settings.get("deployment", "disraptor")
 DISRAPTOR_SECRET_FILE = Path(custom_settings.get("disraptor_secret_file", "/etc/discourse/client-api-key"))
 HOST_GRPC_PORT = custom_settings.get("host_grpc_port", "50051")
 APPLICATION_GRPC_PORT = custom_settings.get("application_grpc_port", "50052")

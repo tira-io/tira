@@ -35,7 +35,7 @@ def add_context(func):
             vm_id = kwargs['vm_id']
 
         context = {
-            "include_navigation": True if settings.DEPLOYMENT == "legacy" else False,
+            "include_navigation": False,
             "user_id": uid,
             "role": auth.get_role(request, user_id=uid, vm_id=vm_id),
             "organizer_teams": mark_safe(json.dumps(auth.get_organizer_ids(request)))

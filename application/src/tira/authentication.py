@@ -36,10 +36,9 @@ class Authentication(object):
         super().__init_subclass__()
         cls.subclasses[cls._AUTH_SOURCE] = cls
 
-    def __new__(cls, authentication_source=None, **kwargs):
+    def __new__(cls, authentication_source=None):
         """ Create base class based on parameter of construction
         :param api: the api type
-        :param kwargs: other parameters of creation, they may differ between subclasses
         :return: the instance
         """
         return super(Authentication, cls).__new__(cls.subclasses[authentication_source])
@@ -138,7 +137,7 @@ def check_disraptor_token(func):
 class DisraptorAuthentication(Authentication):
     _AUTH_SOURCE = "disraptor"
 
-    def __init__(self):
+    def __init__(self,  **kwargs):
         """ Disraptor authentication that delegates all authentication to discourse/disraptor.
         """
         super(DisraptorAuthentication, self).__init__(**kwargs)
