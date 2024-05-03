@@ -106,12 +106,19 @@ class PyTerrierIntegration():
         return pt.IndexFactory.of(os.path.abspath(ret))
 
     def from_submission(self, approach, dataset=None, datasets=None):
-        software = self.tira_client.docker_software(approach)
-        if software.get('ir_re_ranker', False):
+        if self.__is_re_ranker(approach):
             return self.from_retriever_submission(approach, dataset, datasets=datasets)
         else:
             from tira.pyterrier_util import TiraRerankingTransformer
             return TiraRerankingTransformer(approach, self.tira_client, dataset, datasets)
+
+    def __is_re_ranker(self, approach):
+        if self.tira_client.input_run_in_sandbox(approach):
+            # If the input run is in the sandbox, everything behaves as a re-ranker
+            return True
+
+        software = self.tira_client.docker_software(approach)
+        return software.get('ir_re_ranker', False)
 
     def from_retriever_submission(self, approach, dataset, previous_stage=None, datasets=None):
         from tira.pyterrier_util import TiraSourceTransformer
