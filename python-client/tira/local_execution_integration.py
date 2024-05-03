@@ -338,7 +338,10 @@ class LocalExecutionIntegration():
         if id not in tasks:
             tasks[id] = tqdm(position=len(tasks) +1, desc=f'{line["status"]} ({line["id"]}):')
 
-        tasks[id].update(line['progressDetail']['total'])
+        try:
+            tasks[id].update(line['progressDetail']['total'])
+        except:
+            pass
 
     def push_image(self, image, required_prefix=None, task_name=None, team_name=None):
         client = self.__docker_client()
