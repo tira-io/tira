@@ -748,7 +748,7 @@ class HybridDatabase(object):
                 LEFT JOIN
                     tira_softwareclone AS upload_clone ON tira_run.upload_id = software_clone.upload_id
                 WHERE
-                    tira_run_review.published = TRUE AND tira_run_review.blinded = FALSE
+                    ((tira_run_review.published = TRUE AND tira_run_review.blinded = FALSE) OR tira_dockersoftware.task_id = 'ir-lab-padua-2024')
                     AND tira_run.input_dataset_id = %s
                     AND (tira_dockersoftware.task_id = %s OR tira_upload.task_id = %s OR tira_software.task_id = %s  or software_clone.task_id = %s or upload_clone.task_id = %s)
                     AND (tira_dockersoftware.vm_id = %s OR tira_upload.vm_id = %s OR tira_software.vm_id = %s)
