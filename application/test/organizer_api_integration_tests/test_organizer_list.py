@@ -47,7 +47,7 @@ class TestOrganizerList(TestCase):
         from approvaltests.namer.cli_namer import CliNamer
         import json
         
-        self.assertEquals(200, actual.status_code)
+        self.assertEqual(200, actual.status_code)
         verify_as_json(json.loads(actual.content), options=Options().with_namer(CliNamer(test_name)))
 
     @classmethod
