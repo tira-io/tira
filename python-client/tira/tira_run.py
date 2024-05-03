@@ -63,7 +63,7 @@ def parse_args():
     parser.add_argument('--output-directory', required=False, default=str(os.path.abspath("tira-output")))
 
     parser.add_argument('--push', required=False, default='false')
-    parser.add_argument('--skip-local-test', required=False, type=bool, action='store_true', help='Skip the execution of the local test, only upload the submission to TIRA.')
+    parser.add_argument('--skip-local-test', required=False, default=False, action='store_true', help='Skip the execution of the local test, only upload the submission to TIRA.')
     parser.add_argument('--tira-docker-registry-token', required=False, default=os.environ.get('TIRA_DOCKER_REGISTRY_TOKEN'))
     parser.add_argument('--tira-docker-registry-user', required=False, default=os.environ.get('TIRA_DOCKER_REGISTRY_USER'))
     parser.add_argument('--tira-client-token', required=False, default=os.environ.get('TIRA_CLIENT_TOKEN'))
