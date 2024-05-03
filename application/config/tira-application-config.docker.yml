@@ -6,7 +6,7 @@ django_secret: 'not-so-secret'
 # ---
 # tira_root: /mnt/ceph/tira
 # deployment = {disraptor, legacy}
-deployment: legacy
+deployment: disraptor
 # in the legacy deployment, a path to the users file is needed. With the default tira model this is TIRA_ROOT/model/users/users.prototext
 # legacy_users_file: model/users/users.prototext
 # disraptor_secret_file: /etc/discourse/client-api-key

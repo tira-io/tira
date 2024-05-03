@@ -122,92 +122,6 @@ class Authentication(object):
         return task is not None and 'organizer_id' in task and task['organizer_id'] in organizer_ids
 
 
-class LegacyAuthentication(Authentication):
-    _AUTH_SOURCE = "legacy"
-
-    def __init__(self, **kwargs):
-        """ Load data from the file database to support legacy authentication
-        @param kwargs:
-        - :param users_file: path to the users.prototext that contains the user data
-        """
-        super(LegacyAuthentication, self).__init__(**kwargs)
-
-    def login(self, request, **kwargs):
-        """ Set a user_id cookie to the django session
-        @param kwargs:
-        - :param user_id:
-        - :param password:
-        """
-        try:
-            user = model.get_vm(kwargs["user_id"])
-            if kwargs["password"] == user['user_password']:
-                request.session["user_id"] = kwargs["user_id"]
-            else:
-                return False
-        except:
-            return False
-        return True
-
-    def logout(self, request, **kwargs):
-        """ Remove a user_id cookie from the django session """
-        try:
-            del request.session["user_id"]
-        except KeyError:
-            pass
-
-    def get_role(self, request, user_id: str = None, vm_id: str = None, task_id: str = None):
-        """ Determine the role of the user on the requested page (determined by the given directives).
-        This is a minimalistic implementation using the legacy account storage.
-
-        This implementation ignores the request object. User get_user_id and get_vm_id
-
-        Currently only checks: (1) is user admin, (2) otherwise, is user owner of the vm (ROLE_PARTICIPANT)
-        """
-        if not user_id:
-            return self.ROLE_GUEST
-        user = model.get_vm(user_id)
-        if not user:
-            return self.ROLE_GUEST
-
-        if 'reviewer' in user['roles'] or self.is_admin_for_task(request):
-            return self.ROLE_ADMIN
-
-        # NOTE: in the old user management vm_id == user_id
-        if user_id == vm_id or Authentication.get_default_vm_id(user_id) == vm_id:
-            return self.ROLE_PARTICIPANT
-
-        if user_id != vm_id and vm_id is not None and vm_id != Authentication.get_default_vm_id(user_id):
-            return self.ROLE_FORBIDDEN
-
-        return self.ROLE_USER
-
-    # TODO creating the default user should be done at some other point that's less frequently called.
-    def get_user_id(self, request):
-        user_id = request.session.get("user_id", None)
-        if user_id:
-            vm_id = Authentication.get_default_vm_id(user_id)
-            _ = model.get_vm(vm_id, create_if_none=True)
-
-        return user_id
-
-    def get_vm_id(self, request, user_id):
-        """ Note: in the old schema, user_id == vm_id"""
-        user = model.get_vm(user_id)
-        if user and user['host']:  # i.e. if there is a host somewhere
-            return user_id
-        return Authentication.get_default_vm_id(user_id)
-
-    def get_organizer_ids(self, request, user_id=None):
-        return []
-
-    def get_vm_ids(self, request, user_id=None):
-        return []
-
-    def user_is_organizer_for_endpoint(self, request, path, task_id, organizer_id_from_params,
-                                       dataset_id_from_params, run_id_from_params, vm_id_from_params, role):
-        return False
-
-
 def check_disraptor_token(func):
     @wraps(func)
     def func_wrapper(auth, request, *args, **kwargs):
@@ -224,10 +138,8 @@ def check_disraptor_token(func):
 class DisraptorAuthentication(Authentication):
     _AUTH_SOURCE = "disraptor"
 
-    def __init__(self, **kwargs):
+    def __init__(self):
         """ Disraptor authentication that delegates all authentication to discourse/disraptor.
-        @param kwargs:
-            unused, only for consistency to the LegacyAuthentication
         """
         super(DisraptorAuthentication, self).__init__(**kwargs)
         self.discourse_client = model.discourse_api_client()
