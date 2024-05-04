@@ -100,6 +100,21 @@ def huggingface_model_mounts(models:Iterable[str]) -> dict:
 
     return ret
 
+def change_workdir_cmd(workdir: str):
+    """
+    Returns a shell command that changes the working directory to the specified directory to be executed in the TIRA sandbox before the real command.
+    """
+
+    if not workdir:
+        return 'echo "did not change the working directory"'
+    
+    workdir = workdir.strip()
+
+    if not workdir or not workdir.startswith('/'):
+        return 'echo "did not change the working directory"'
+
+    return f'cd {workdir}; echo "changed workdir to {workdir}"'
+
 def _ln_huggingface_model_mounts(models: str) -> str:
     """Create a set of ln statements for symbolic links to huggingface models within a running container. Fails if the models do not exist in the local huggingface cache of the host.
 

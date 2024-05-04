@@ -8,7 +8,7 @@ stages:
 prepare-tira-environment:
   stage: Preparation
   image:
-    name: webis/tira-git-pipelines:0.0.30
+    name: webis/tira-git-pipelines:0.0.31
     pull_policy: if-not-present
   artifacts:
     untracked: true
@@ -47,6 +47,8 @@ run-user-software:
     - export inputDataset="${PWD}/${inputDataset}" && export outputDir="${PWD}/${outputDir}" && export WORKING_DIR_BEFORE_CMD=${PWD} && export TIRA_COMMAND_TO_EXECUTE=$(eval "echo \"${TIRA_COMMAND_TO_EXECUTE}\"")
     - echo "${TIRA_HF_MOUNT_TO_EXECUTE}"
     - eval "${TIRA_HF_MOUNT_TO_EXECUTE}"
+    - echo "${TIRA_WORKDIR_TO_EXECUTE}"
+    - eval "${TIRA_WORKDIR_TO_EXECUTE}"
     - echo "${TIRA_COMMAND_TO_EXECUTE}"
     - eval "${TIRA_COMMAND_TO_EXECUTE}"
     - cd ${WORKING_DIR_BEFORE_CMD}
@@ -63,7 +65,7 @@ run-user-software:
 persist-software-result:
   stage: Persist Software Result
   image:
-    name: webis/tira-git-pipelines:0.0.30
+    name: webis/tira-git-pipelines:0.0.31
     pull_policy: if-not-present
   artifacts:
     untracked: true
@@ -100,7 +102,7 @@ evaluate-software-result:
 persist-evaluation-result:
   stage: Persist Evaluation Result
   image:
-    name: webis/tira-git-pipelines:0.0.30
+    name: webis/tira-git-pipelines:0.0.31
     pull_policy: if-not-present
   script:
     - tira-persist-evaluation-result.sh
