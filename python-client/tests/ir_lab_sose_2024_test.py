@@ -37,6 +37,10 @@ class IrLabSoSe2024Test(unittest.TestCase):
         actual = digest_of_dataset('longeval-heldout-20230513-training')
         verify_as_json(actual)
 
+    def test_training_corpus_is_available(self):
+        actual = digest_of_dataset('ir-acl-anthology-20240504-training')
+        verify_as_json(actual)
+
     def test_longeval_long_september_corpus_is_available(self):
         actual = digest_of_dataset('longeval-long-september-20230513-training')
         verify_as_json(actual)
