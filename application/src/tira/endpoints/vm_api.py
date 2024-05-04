@@ -940,7 +940,8 @@ def run_execute_docker_software(request, task_id, vm_id, dataset_id, docker_soft
         docker_software['tira_image_name'], docker_software['command'],
         'docker-software-' + docker_software_id, docker_resources,
         input_run if input_run else input_runs,
-        docker_software.get('mount_hf_model', None)
+        docker_software.get('mount_hf_model', None),
+        docker_software.get('tira_image_workdir', None),
     )
 
     running_pipelines = git_runner.all_running_pipelines_for_repository(
