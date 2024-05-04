@@ -41,6 +41,10 @@ class IrLabSoSe2024Test(unittest.TestCase):
         actual = digest_of_dataset('ir-acl-anthology-20240504-training')
         verify_as_json(actual)
 
+    def test_training_corpus_truth_is_available(self):
+        actual = digest_of_dataset('ir-acl-anthology-20240504-training', truth=True)
+        verify_as_json(actual)
+
     def test_longeval_long_september_corpus_is_available(self):
         actual = digest_of_dataset('longeval-long-september-20230513-training')
         verify_as_json(actual)
@@ -63,7 +67,9 @@ class IrLabSoSe2024Test(unittest.TestCase):
 
         run_ids = {"ir-lab-sose-2024": {
             "tira-ir-starter": {
-                "Index (tira-ir-starter-pyterrier)": {"ir-acl-anthology-20240411-training": "2024-04-11-19-43-23"},
+                "Index (tira-ir-starter-pyterrier)": {
+                    "ir-acl-anthology-20240411-training": "2024-04-11-19-43-23",
+                },
                 "Index (pyterrier-stanford-lemmatizer)": {"ir-acl-anthology-20240411-training": "2024-04-16-11-05-06"}
             }, 
             "seanmacavaney": {
@@ -82,7 +88,18 @@ class IrLabSoSe2024Test(unittest.TestCase):
             actual[approach][dataset_id] = digest_of_run_output(approach, dataset_id, run_ids)
 
         verify_as_json(actual)
+
     
+    def test_digest_of_index_ir_lab_training(self):
+        approach = 'ir-lab-sose-2024/tira-ir-starter/Index (tira-ir-starter-pyterrier)'
+        dataset_id = "ir-acl-anthology-20240504-training"
+
+        run_id = "2024-05-04-16-05-53"
+        run_ids = {"ir-lab-sose-2024": {"tira-ir-starter": { "Index (tira-ir-starter-pyterrier)": {dataset_id: run_id}}}}
+
+        actual = digest_of_run_output(approach, dataset_id, run_ids)
+        verify_as_json(actual)    
+
     def test_digest_of_index_2023_01(self):
         approach = 'ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)'
         dataset_id = 'longeval-2023-01-20240423-training'
