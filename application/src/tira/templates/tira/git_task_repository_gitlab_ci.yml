@@ -44,7 +44,7 @@ run-user-software:
     - env|grep 'TIRA' > task.env
     - test -n "${TIRA_OUTPUT_DIR}" && mkdir -p ${TIRA_OUTPUT_DIR}
     - echo "${TIRA_COMMAND_TO_EXECUTE}"
-    - export inputDataset="${PWD}/${inputDataset}" && export outputDir="${PWD}/${outputDir}" && export WORKING_DIR_BEFORE_CMD=${PWD} && export TIRA_COMMAND_TO_EXECUTE=$(eval "echo \"${TIRA_COMMAND_TO_EXECUTE}\"")
+    - export inputDataset="${PWD}/${inputDataset}" && export outputDir="${PWD}/${outputDir}" && export WORKING_DIR_BEFORE_CMD=${PWD} && export TIRA_INPUT_DATASET="${inputDataset}" && export TIRA_OUTPUT_DIR_ORIG="${TIRA_OUTPUT_DIR}" && export TIRA_OUTPUT_DIR="${outputDir}" && export TIRA_COMMAND_TO_EXECUTE=$(eval "echo \"${TIRA_COMMAND_TO_EXECUTE}\"")
     - echo "${TIRA_HF_MOUNT_TO_EXECUTE}"
     - eval "${TIRA_HF_MOUNT_TO_EXECUTE}"
     - echo "${TIRA_WORKDIR_TO_EXECUTE}"
@@ -52,6 +52,7 @@ run-user-software:
     - echo "${TIRA_COMMAND_TO_EXECUTE}"
     - eval "${TIRA_COMMAND_TO_EXECUTE}"
     - cd ${WORKING_DIR_BEFORE_CMD}
+    - export TIRA_OUTPUT_DIR="${TIRA_OUTPUT_DIR_ORIG}"
     - env|grep 'TIRA' > task.env
     - echo "${TIRA_CLEAN_UP_COMMAND}"
     - eval "${TIRA_CLEAN_UP_COMMAND}"
