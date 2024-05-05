@@ -124,6 +124,7 @@ class TestIRDatasets(unittest.TestCase):
 
         assert len(list(dataset.queries_iter())) == 2
         assert queries['1'] == 'fox jumps above animal'
+        self.assertEqual("static_ir_dataset-tests/resources/sample-input-full-rank", dataset.dataset_id)
 
 
     def test_loading_queries_from_ir_datasets_from_custom_directory_02(self):
