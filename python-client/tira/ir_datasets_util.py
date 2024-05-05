@@ -240,7 +240,7 @@ def static_ir_dataset(directory, existing_ir_dataset=None):
         docs = __docs(docs_file, None, True)
         queries = __queries(queries_file, None)
         ret = Dataset(docs, queries)
-        ret.dataset_id = f'static_ir_dataset-{directory}'
+        ret.dataset_id = lambda: f'static_ir_dataset-{directory}'
         return static_ir_dataset(directory, ret)
 
     class StaticIrDatasets():
