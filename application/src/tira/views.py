@@ -45,19 +45,6 @@ def add_context(func):
     return func_wrapper
 
 
-# TODO: Am I dead?
-@add_context
-def index(request, context):
-    context["tasks"] = model.get_tasks(include_dataset_stats=True)
-    context["organizer_teams"] = auth.get_organizer_ids(request)
-    context["vm_ids"] = auth.get_vm_ids(request, None)
-    
-    
-    if context["role"] != auth.ROLE_GUEST:
-        context["vm_id"] = auth.get_vm_id(request, context["user_id"])
-
-    return render(request, 'tira/index.html', context)
-
 @check_permissions
 @add_context
 def background_jobs(request, context, task_id, job_id):
