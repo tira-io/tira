@@ -34,9 +34,9 @@ tests:
 	./test/run_all_tests.sh
 
 run-develop:
-	python src/manage.py makemigrations \
-	&& python src/manage.py migrate --fake \
-	&& python src/manage.py run_develop
+	python3 src/manage.py makemigrations \
+	&& python3 src/manage.py migrate --fake \
+	&& python3 src/manage.py run_develop
 
 .data-dumps/django-db-dump.zip:
 	@mkdir -p .data-dumps && \

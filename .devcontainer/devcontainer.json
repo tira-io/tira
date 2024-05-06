@@ -17,21 +17,31 @@
 	// The optional 'workspaceFolder' property is the path VS Code should open by default when
 	// connected. This is typically a file mount in .devcontainer/docker-compose.yml
 	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
-	"customizations": {
-		"vscode": {
-			"extensions": [
-				"Vue.volar",
-				"ms-vscode.live-server",
-				"ms-python.python"
-			]
-		}
-	}
-
+	
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	// "forwardPorts": [],
+	"forwardPorts": [
+		"nginx:8080",
+		"nginx:8081",
+		"nginx:8082"
+	],
+
+	"portsAttributes": {
+		"nginx:8080": {
+			"label": "TIRA Backend",
+			"protocol": "https"
+		},
+		"nginx:8081": {
+			"label": "Authentication",
+			"protocol": "https"
+		},
+		"nginx:8082": {
+			"label": "TIRA Frontend",
+			"protocol": "https"
+		}
+	},
 
 	// Uncomment the next line if you want start specific services in your Docker Compose config.
 	// "runServices": [],
@@ -43,7 +53,18 @@
 	// "postCreateCommand": "cat /etc/os-release",
 
 	// Configure tool-specific properties.
-	// "customizations": {},
+	"customizations": {
+		"vscode": {
+			"settings": {
+				"remote.autoForwardPorts": false
+			},
+			"extensions": [
+				"Vue.volar",
+				"ms-vscode.live-server",
+				"ms-python.python"
+			]
+		}
+	}
 
 	// Uncomment to connect as an existing user other than the container default. More info: https://aka.ms/dev-containers-non-root.
 	// "remoteUser": "devcontainer"
