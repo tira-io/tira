@@ -34,9 +34,9 @@ jobs:
         with:
           node-version: 18.x
       - name: Install dependencies
-        working-directory: ${{github.workspace}} / frontend
+        working-directory: ${{github.workspace}}/frontend
         run: yarn --frozen-lockfile
       - name: Run frontend tests
-        working-directory: ${{github.workspace}} / frontend
+        working-directory: ${{github.workspace}}/frontend
         run: yarn test
 
