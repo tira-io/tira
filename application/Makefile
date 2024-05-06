@@ -38,17 +38,6 @@ run-develop:
 	&& python src/manage.py migrate --fake \
 	&& python src/manage.py run_develop
 
-frontend:
-	make vite-build
-
-vite-build:
-	@cd ../frontend \
-	&& yarn build
-
-vite-build-light:
-	@cd ../frontend \
-	&& yarn build-light
-
 .data-dumps/django-db-dump.zip:
 	@mkdir -p .data-dumps && \
 	echo "Please run scp <YOUR-USR-NAME>@ssh.webis.de:/mnt/ceph/storage/data-in-production/tira/development-database-dumps/django-db-dump.zip .data-dumps/" && \
@@ -74,12 +63,6 @@ import-data-from-dump: .data-dumps/django-db-dump.zip
 
 import-mock-data:
 	${PYTHON} src/manage.py loaddata mock-data/mock-data.json
-
-vite-build-docker:
-	docker run -v ${PWD}:/app --platform linux/amd64 --rm -ti -w /app/src/tira/frontend-vuetify --entrypoint yarn webis/tira-application:basis-0.0.95 build
-
-vite-build-light-docker:
-	docker run -v ${PWD}:/app --platform linux/amd64 --rm -ti -w /app/src/tira/frontend-vuetify --entrypoint yarn webis/tira-application:basis-0.0.95 build-light
 
 run-docker:
 	docker run -td --rm \
