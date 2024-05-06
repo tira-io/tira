@@ -15,6 +15,8 @@ TIRA's development has at most two requirements: `VSCode <https://code.visualstu
 use GitHub Codespaces by visiting the `TIRA repository <https://github.com/tira-io/tira/>`_ and clicking on
 :menuselection:`Code --> Codespaces`.
 
+.. todo:: GitHub Codespaces are not currently supported.
+
 Getting Started
 ---------------
 Open the repository in GitHub codespaces or VSCode. If you are using VSCode, a dialog (depicted below) should pop up
