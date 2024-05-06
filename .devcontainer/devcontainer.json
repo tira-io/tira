@@ -64,8 +64,12 @@
 				"ms-python.python"
 			]
 		}
-	}
+	},
 
 	// Uncomment to connect as an existing user other than the container default. More info: https://aka.ms/dev-containers-non-root.
 	// "remoteUser": "devcontainer"
+
+	// Needed for parts of the python-client that build and run docker containers
+	"privileged": true,
+	"mounts": ["source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"]
 }
