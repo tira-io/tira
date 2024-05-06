@@ -3,7 +3,7 @@ from django.urls import resolve
 from .authentication import auth
 import tira.tira_model as model
 from django.core.exceptions import PermissionDenied
-from django.http import JsonResponse, Http404, HttpResponseNotAllowed
+from django.http import JsonResponse, Http404, HttpResponseNotAllowed, HttpResponseRedirect
 from http import HTTPStatus
 from functools import wraps
 from django.conf import settings
@@ -11,6 +11,14 @@ import logging
 
 
 logger = logging.getLogger("tira")
+
+
+def redirect_to_login() -> HttpResponseRedirect:
+    """
+    Returns a redirection response that redirects the user to the login page ("/login"). Note that this URL does not
+    "exist" (what even is existance) but is redirected by the reverse proxy to the authentication page.
+    """
+    return redirect("/login", permanent=False)
 
 
 def check_permissions(func):
@@ -71,7 +79,7 @@ def check_permissions(func):
 
         if vm_id:
             if not model.vm_exists(vm_id):  # If the resource does not exist
-                return redirect('tira:login')
+                return redirect_to_login()
             role = auth.get_role(request, user_id=auth.get_user_id(request), vm_id=vm_id)
             if run_id and dataset_id:  # this prevents participants from viewing hidden runs
                 if not model.run_exists(vm_id, dataset_id, run_id):
@@ -88,8 +96,8 @@ def check_permissions(func):
 
         if role == auth.ROLE_PARTICIPANT:
             return func(request, *args, **kwargs)
-        elif role == auth.ROLE_GUEST:  # If guests access a restricted resource, we send them to login
-            return redirect('tira:login')
+        elif role == auth.ROLE_GUEST:
+            return redirect_to_login()
 
         if 'docker_software_id' in kwargs and vm_id:
             docker_software = model.get_docker_software(int(kwargs['docker_software_id']))
@@ -146,7 +154,7 @@ def check_conditional_permissions(restricted=False, public_data_ok=False, privat
 
             if vm_id:  # First we determine the role of the user on the resource he requests
                 if not model.vm_exists(vm_id):
-                    return redirect('tira:login')
+                    return redirect_to_login()
                 role_on_vm = auth.get_role(request, user_id=auth.get_user_id(request), vm_id=vm_id)
                 if run_id and dataset_id:
                     role = auth.ROLE_USER
@@ -179,7 +187,7 @@ def check_conditional_permissions(restricted=False, public_data_ok=False, privat
             if public_data_ok and run_is_public(run_id, vm_id, dataset_id):
                 return func(request, *args, **kwargs)
             elif role == auth.ROLE_GUEST:  # If guests access a restricted resource, we send them to login
-                return redirect('tira:login')
+                return redirect_to_login()
 
             return HttpResponseNotAllowed(f"Access forbidden.")
 
@@ -217,7 +225,7 @@ def check_resources_exist(reply_as='json'):
                     response = JsonResponse({'status': 1, 'message': message})
                     return response
                 if request_vm_instead:
-                    return redirect('tira:login')
+                    return redirect_to_login()
                 return Http404(message)
 
             if "vm_id" in kwargs:
