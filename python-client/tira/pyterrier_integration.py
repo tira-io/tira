@@ -170,49 +170,26 @@ class PyTerrierIntegration():
 
         return np.array(res)
 
-    def doc_features(self, approach, dataset, file_selection=('/*.jsonl', '/*.jsonl.gz'), feature_selection=None, map_features=None):
-        from pyterrier.transformer import Transformer
+    def _features_transformer(self, run, id_col, name, feature_selection=None, map_features=None):
+        from tira.pyterrier_util import TiraApplyFeatureTransformer
 
-        ret = self.pd.transform_documents(approach, dataset, file_selection)
-
-        cols = [col for col in ret.columns if col not in {'docno'}]
+        cols = [col for col in run.columns if col != id_col]
         if feature_selection is not None:
             cols = [col for col in cols if col in feature_selection]
 
-        ret = {str(row['docno']): self._get_features_from_row(row, cols, map_features) for _, row in ret.iterrows()}
+        mapping = {str(row[id_col]): self._get_features_from_row(row, cols, map_features) for _, row in run.iterrows()}
 
-        class ApplyDocFeatureTransformer(Transformer):
-            def __repr__(self):
-                return "tira.pt.doc_features()"
+        return TiraApplyFeatureTransformer(mapping, (id_col,), name)
 
-            def transform(self, inputRes):
-                outputRes = inputRes.copy()
-                outputRes["features"] = outputRes.apply(lambda i: ret[str(i['docno'])], axis=1)
-                return outputRes
+    def doc_features(self, approach, dataset, file_selection=('/*.jsonl', '/*.jsonl.gz'), feature_selection=None, map_features=None):
+        run = self.pd.transform_documents(approach, dataset, file_selection)
 
-        return ApplyDocFeatureTransformer()
+        return self._features_transformer(run, 'docno', 'doc_features', feature_selection, map_features)
 
     def query_features(self, approach, dataset, file_selection=('/*.jsonl', '/*.jsonl.gz'), feature_selection=None, map_features=None):
-        from pyterrier.transformer import Transformer
+        run = self.pd.transform_queries(approach, dataset, file_selection)
 
-        ret = self.pd.transform_queries(approach, dataset, file_selection)
-
-        cols = [col for col in ret.columns if col not in {'qid'}]
-        if feature_selection is not None:
-            cols = [col for col in cols if col in feature_selection]
-
-        ret = {str(row['qid']): self._get_features_from_row(row, cols, map_features) for _, row in ret.iterrows()}
-
-        class ApplyQueryFeatureTransformer(Transformer):
-            def __repr__(self):
-                return "tira.pt.query_features()"
-
-            def transform(self, inputRes):
-                outputRes = inputRes.copy()
-                outputRes["features"] = outputRes.apply(lambda i: ret[str(i['qid'])], axis=1)
-                return outputRes
-        
-        return ApplyQueryFeatureTransformer()
+        return self._features_transformer(run, 'qid', 'query_features', feature_selection, map_features)
 
     def reranker(self, approach, irds_id=None):
         from tira.pyterrier_util import TiraLocalExecutionRerankingTransformer
