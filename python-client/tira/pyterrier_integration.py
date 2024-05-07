@@ -106,12 +106,19 @@ class PyTerrierIntegration():
         return pt.IndexFactory.of(os.path.abspath(ret))
 
     def from_submission(self, approach, dataset=None, datasets=None):
-        software = self.tira_client.docker_software(approach)
-        if software.get('ir_re_ranker', False):
+        if self.__is_re_ranker(approach):
             return self.from_retriever_submission(approach, dataset, datasets=datasets)
         else:
             from tira.pyterrier_util import TiraRerankingTransformer
             return TiraRerankingTransformer(approach, self.tira_client, dataset, datasets)
+
+    def __is_re_ranker(self, approach):
+        if self.tira_client.input_run_in_sandbox(approach):
+            # If the input run is in the sandbox, everything behaves as a re-ranker
+            return True
+
+        software = self.tira_client.docker_software(approach)
+        return software.get('ir_re_ranker', False)
 
     def from_retriever_submission(self, approach, dataset, previous_stage=None, datasets=None):
         from tira.pyterrier_util import TiraSourceTransformer
@@ -145,21 +152,56 @@ class PyTerrierIntegration():
 
         return generic(__transform_df)
 
-    def doc_features(self, approach, dataset, file_selection=('/*.jsonl', '/*.jsonl.gz')):
+    @staticmethod
+    def _get_features_from_row(row, cols, map_features=None):
         import numpy as np
-        from pyterrier.apply import doc_features
-        ret = self.pd.transform_documents(approach, dataset, file_selection)
-        cols = [i for i in ret.columns if i not in ['docno']]
-        ret = {str(i['docno']): np.array([i[c] for c in cols]) for _, i in ret.iterrows()}
+        res = []
 
-        return doc_features(lambda row: ret[str(row['docno'])])
+        for c in cols:
+            if map_features is not None and c in map_features:
+                f = map_features[c](row[c])
+            else:
+                f = row[c]
 
-    def query_features(self, approach, dataset, file_selection=('/*.jsonl', '/*.jsonl.gz')):
-        import numpy as np
+            if isinstance(f, (list, np.ndarray)):
+                res.extend(f)
+            else:
+                res.append(f)
+
+        return np.array(res)
+
+    def doc_features(self, approach, dataset, file_selection=('/*.jsonl', '/*.jsonl.gz'), feature_selection=None, map_features=None):
         from pyterrier.transformer import Transformer
+
+        ret = self.pd.transform_documents(approach, dataset, file_selection)
+
+        cols = [col for col in ret.columns if col not in {'docno'}]
+        if feature_selection is not None:
+            cols = [col for col in cols if col in feature_selection]
+
+        ret = {str(row['docno']): self._get_features_from_row(row, cols, map_features) for _, row in ret.iterrows()}
+
+        class ApplyDocFeatureTransformer(Transformer):
+            def __repr__(self):
+                return "tira.pt.doc_features()"
+
+            def transform(self, inputRes):
+                outputRes = inputRes.copy()
+                outputRes["features"] = outputRes.apply(lambda i: ret[str(i['docno'])], axis=1)
+                return outputRes
+
+        return ApplyDocFeatureTransformer()
+
+    def query_features(self, approach, dataset, file_selection=('/*.jsonl', '/*.jsonl.gz'), feature_selection=None, map_features=None):
+        from pyterrier.transformer import Transformer
+
         ret = self.pd.transform_queries(approach, dataset, file_selection)
-        cols = [i for i in ret.columns if i not in ['qid']]
-        ret = {str(i['qid']): np.array([i[c] for c in cols]) for _, i in ret.iterrows()}
+
+        cols = [col for col in ret.columns if col not in {'qid'}]
+        if feature_selection is not None:
+            cols = [col for col in cols if col in feature_selection]
+
+        ret = {str(row['qid']): self._get_features_from_row(row, cols, map_features) for _, row in ret.iterrows()}
 
         class ApplyQueryFeatureTransformer(Transformer):
             def __repr__(self):
@@ -167,7 +209,6 @@ class PyTerrierIntegration():
 
             def transform(self, inputRes):
                 outputRes = inputRes.copy()
-                
                 outputRes["features"] = outputRes.apply(lambda i: ret[str(i['qid'])], axis=1)
                 return outputRes
         

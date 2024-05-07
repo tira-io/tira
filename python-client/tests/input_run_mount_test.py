@@ -1,6 +1,7 @@
 from tira.rest_api_client import Client
 from tira.third_party_integrations import ensure_pyterrier_is_loaded
 import os
+import pandas as pd
 import unittest
 
 def get_input_run_mounts(input_run, approach_identifier):
@@ -45,6 +46,18 @@ def get_pt_index_in_sandbox(input_run, approach_identifier):
 
     try:
         ret = Client().pt.index(approach_identifier, 'dataset_id')
+        del os.environ['inputRun']
+        return ret
+    except:
+        del os.environ['inputRun']
+        return None
+
+def get_pt_from_submission_in_sandbox(input_run, approach_identifier):
+    ensure_pyterrier_is_loaded()
+    os.environ['inputRun'] = input_run
+
+    try:
+        ret = Client().pt.from_submission(approach_identifier, 'dataset_id')
         del os.environ['inputRun']
         return ret
     except:
@@ -160,3 +173,40 @@ class InputRunMountTest(unittest.TestCase):
 
         self.assertEqual(expected_dir, actual_dir)
         self.assertEqual(expected_files, actual_files)
+
+    def test_from_submission_01(self):
+        run = get_pt_from_submission_in_sandbox('tests/resources/ranking-outputs', 'a111/a123/a234')
+        self.assertIsNotNone(run)
+
+    def test_from_submission_02(self):
+        run = get_pt_from_submission_in_sandbox('tests/resources/ranking-outputs/', 'a345/a567/a678')
+        self.assertIsNotNone(run)
+
+    def test_from_submission_03(self):
+        expected = [
+            {'qid': '1', 'docno': 'doc-1', 'score':10},
+            {'qid': '1', 'docno': 'doc-2', 'score':9},
+            {'qid': '3', 'docno': 'doc-3', 'score': 1},
+        ]
+        queries = pd.DataFrame([{'qid': '1'}, {'qid': '3'}])
+        run = get_pt_from_submission_in_sandbox('tests/resources/ranking-outputs/', 'a456/a567/a678')
+        self.assertIsNotNone(run)
+
+        actual = run(queries)
+        self.assertEqual(3, len(actual))
+        self.assertEqual(expected[0]['docno'], actual.iloc[0].to_dict()['docno'])
+        self.assertEqual(expected[1]['docno'], actual.iloc[1].to_dict()['docno'])
+        self.assertEqual(expected[2]['docno'], actual.iloc[2].to_dict()['docno'])
+
+
+    def test_from_submission_04(self):
+        expected = [
+            {'qid': '3', 'docno': 'doc-3', 'score': 1},
+        ]
+        queries = pd.DataFrame([{'qid': '3'}])
+        run = get_pt_from_submission_in_sandbox('tests/resources/ranking-outputs/', 'a456/a567/a678')
+        self.assertIsNotNone(run)
+
+        actual = run(queries)
+        self.assertEqual(1, len(actual))
+        self.assertEqual(expected[0]['docno'], actual.iloc[0].to_dict()['docno'])

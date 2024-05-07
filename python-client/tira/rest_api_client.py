@@ -318,6 +318,14 @@ class Client(TiraClient):
         return ret[['task', 'dataset', 'team', 'run_id']].iloc[0].to_dict()
         
     def download_run(self, task, dataset, software, team=None, previous_stage=None, return_metadata=False):
+        mounted_output_in_sandbox = self.input_run_in_sandbox(f'{task}/{team}/{software}')
+        if mounted_output_in_sandbox:
+            ret = pd.read_csv(mounted_output_in_sandbox + '/run.txt', sep='\\s+', names=["query", "q0", "docid", "rank", "score", "system"], dtype={"query": str, "docid": str})
+            if return_metadata:
+                return ret, 'run-id'
+            else:
+                return ret
+
         if '/' in dataset:
             dataset = dataset.split('/')[-1]
         ret = self.get_run_execution_or_none(f'{task}/{team}/{software}', dataset, previous_stage)

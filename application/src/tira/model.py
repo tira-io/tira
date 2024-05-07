@@ -208,6 +208,7 @@ class DockerSoftware(models.Model):
     display_name = models.TextField(default="")
     user_image_name = models.TextField(default="")
     tira_image_name = models.TextField(default="")
+    tira_image_workdir = models.TextField(default=None, null=True)
     deleted = models.BooleanField(default=False)
     description = models.TextField(default="")
     paper_link = models.TextField(default="")

@@ -346,6 +346,7 @@ PUBLIC_TRAINING_DATA = set(['jena-topics-20231026-test', 'leipzig-topics-2023102
 
 CODE_SUBMISSION_REFERENCE_REPOSITORIES = {
     'ir-lab-jena-leipzig-wise-2023': 'tira-io/tira-ir-lab-wise-submission-template',
+    'ir-lab-sose-2024': 'webis-de/information-retrieval-exercise',
     'ir-benchmarks': 'tira-io/tira-ir-lab-wise-submission-template',
     'webpage-classification': 'OpenWebSearch/irixys23-tira-submission-template',
     'valueeval-2024-human-value-detection': 'touche-webis-de/valueeval24-tira-software-submission-template',

@@ -63,6 +63,7 @@ def parse_args():
     parser.add_argument('--output-directory', required=False, default=str(os.path.abspath("tira-output")))
 
     parser.add_argument('--push', required=False, default='false')
+    parser.add_argument('--skip-local-test', required=False, default=False, action='store_true', help='Skip the execution of the local test, only upload the submission to TIRA.')
     parser.add_argument('--tira-docker-registry-token', required=False, default=os.environ.get('TIRA_DOCKER_REGISTRY_TOKEN'))
     parser.add_argument('--tira-docker-registry-user', required=False, default=os.environ.get('TIRA_DOCKER_REGISTRY_USER'))
     parser.add_argument('--tira-client-token', required=False, default=os.environ.get('TIRA_CLIENT_TOKEN'))
@@ -282,7 +283,10 @@ def main(args=None):
     if args.gpus:
         gpus = -1 if args.gpus == 'all' else int(args.gpus)
 
-    client.local_execution.run(identifier=args.approach, image=args.image, command=args.command, input_dir=input_dir, output_dir=args.output_directory, dry_run=args.dry_run, allow_network=args.allow_network, input_run=args.input_run, additional_volumes=args.v, evaluate=evaluate, eval_dir=args.evaluation_directory, gpu_count=gpus)
+    if not args.skip_local_test:
+        client.local_execution.run(identifier=args.approach, image=args.image, command=args.command, input_dir=input_dir, output_dir=args.output_directory, dry_run=args.dry_run, allow_network=args.allow_network, input_run=args.input_run, additional_volumes=args.v, evaluate=evaluate, eval_dir=args.evaluation_directory, gpu_count=gpus)
+    else:
+        print('Skip the local test execution of the software.')
 
     if args.fail_if_output_is_empty and (not os.path.exists(args.output_directory) or not os.listdir(args.output_directory)):
         raise ValueError('The software produced an empty output directory, it likely failed?')
