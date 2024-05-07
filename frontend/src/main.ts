@@ -12,6 +12,7 @@ import Tasks from './Tasks.vue'
 import Tirex from './Tirex.vue'
 import TaskOverview from './TaskOverview.vue'
 import RunUpload from './RunUpload.vue'
+import tiraConf from './tira.conf'
 
 // Composables
 import { createApp } from 'vue'
@@ -46,8 +47,8 @@ export default function register_app() {
   })
 
   const app = createApp(App)
-  app.provide("gRPC base URL", 'https://127.0.0.1:8080') /* TODO: replace with not hardcoded */
-  app.provide("REST base URL", 'https://127.0.0.1:8080') /* TODO: replace with not hardcoded */
+  app.provide("gRPC base URL", tiraConf.grpc_endpoint)
+  app.provide("REST base URL", tiraConf.rest_endpoint)
   app.use(router)
 
   registerPlugins(app)

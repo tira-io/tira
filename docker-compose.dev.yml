@@ -7,8 +7,8 @@ services:
     restart: unless-stopped
     environment:
       # TIRA Frontend Environment Variables
-      TIRA_REST_BASE_URL: http://api.tira.local:8080
-      TIRA_GRPC_BASE_URL: http://api.tira.local:8080
+      VITE_TIRA_REST_BASE_URL: https://127.0.0.1:8080
+      VITE_TIRA_GRPC_BASE_URL: https://127.0.0.1:8080
     external_links:
       - "auth:auth.tira.local"
       - "nginx:api.tira.local"

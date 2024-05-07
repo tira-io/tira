@@ -16,3 +16,4 @@ TIRA itself is split into 2 modules that have to be deployed separately:
 
     application
     frontend
+    demo

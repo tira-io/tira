@@ -33,12 +33,12 @@ export default defineConfig({
         entryFileNames: 'entries/[name].js',
       },
     },
-    outDir: 'static/tira/frontend-vuetify',
+    outDir: 'static/',
   },
   experimental: {
     renderBuiltUrl(filename: string, { hostType }: { hostType: 'js' | 'css' | 'html' }) {
       // TIRA expects resourecs/assets at this location
-      return '/public/tira/frontend-vuetify/' + filename
+      return '/' + filename
     }
   }
 })
