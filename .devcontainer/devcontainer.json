@@ -57,7 +57,43 @@
 		"vscode": {
 			"settings": {
 				"livePreview.portNumber": 3080,
-				"remote.autoForwardPorts": false
+				"remote.autoForwardPorts": false,
+				"launch": {
+					"version": "0.2.0",
+					"configurations": [
+						{
+							"name": "TIRA Frontend",
+							"type": "node",
+							"request": "launch",
+							"runtimeExecutable": "yarn",
+							"cwd": "${workspaceFolder}/frontend",
+							"runtimeArgs": [
+								"dev"
+							]
+						},
+						{
+							"name": "TIRA Backend",
+							"type": "debugpy",
+							"request": "launch",
+							"args": [
+								"run_develop"
+							],
+							"django": true,
+							"autoStartBrowser": false,
+							"program": "${workspaceFolder}/application/src/manage.py"
+						}
+					],
+					"compounds": [
+						{
+							"name": "TIRA Stack",
+							"configurations": [
+								"TIRA Backend",
+								"TIRA Frontend"
+							],
+							"stopAll": true
+						}
+					]
+				}
 			},
 			"extensions": [
 				"Vue.volar",
