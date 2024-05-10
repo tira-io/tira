@@ -63,6 +63,7 @@ export default {
     updateUrlToSelectedSubmissionType() {
       this.$router.replace({name: 'submission', params: {submission_type: this.tab}})
     },
+
     refresh_running_submissions() {
       this.$refs['running-processes'].pollRunningSoftware('True')
     }
