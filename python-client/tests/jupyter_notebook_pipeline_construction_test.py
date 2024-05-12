@@ -358,3 +358,10 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
         expected = ['ir-benchmarks/tira-ir-starter/BM25 (tira-ir-starter-pyterrier)',  'ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)',  'ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)']
 
         self.assertEqual(expected, actual)
+
+    def test_pyterrier_from_run_output_01(self):
+        python_line = "        bm25_raw = tira.get_run_output('ir-benchmarks/tira-ir-starter/BM25 (tira-ir-starter-pyterrier)', args.input_dataset)"
+        expected = 'ir-benchmarks/tira-ir-starter/BM25 (tira-ir-starter-pyterrier)'
+        actual = parse_extraction_of_tira_approach(python_line)
+
+        self.assertEqual(expected, actual)
