@@ -209,11 +209,11 @@ Set up the master VM
 
 Troubleshooting
 ~~~~~~~~~~~~~~~
-.. collapse:: Changes do not show up on the website
+.. dropdown:: Changes do not show up on the website
 
     Go to `tira-admin <https://tira.io/tira-admin>`__ and then to :code:`System Actions > Reload Data`.
 
-.. collapse:: Error on creating a virtual machine: :code:`VBoxNetAdpCtl: Error while adding new interface: failed to open /dev/vboxnetctl: No such file or directory`,
+.. dropdown:: Error on creating a virtual machine: :code:`VBoxNetAdpCtl: Error while adding new interface: failed to open /dev/vboxnetctl: No such file or directory`,
     usually comes with an error on vm start: :code:`Nonexistent host networking interface, name 'vboxnetXX'`.
 
     - Log in as webis
@@ -227,17 +227,16 @@ Troubleshooting
     - Run <code>sudo service vboxdrv restart</code>
     - Run <code>tira start</code>
 
-.. collapse:: A virtual machine does not :code:`tira vm-start` with error :code:`is not a valid username/vmname`.
+.. dropdown:: A virtual machine does not :code:`tira vm-start` with error :code:`is not a valid username/vmname`.
 
     The :code:`vbox` file might be lost. Go to :code:`/home/tira/VirtualBox VMs/**vm-name**`. If there is a
     :code:`.vbox-prev` but no :code:`.vbox` file, copy the former to create the latter (effectivley restoring it).
 
-.. collapse:: Read-only file system in a virtual machine.
+.. dropdown:: Read-only file system in a virtual machine.
 
     Restart the virtual machine
 
-.. collapse:: A virtual machine has :code:`/media/training-datasets/` not mounted.
-
+.. dropdown:: A virtual machine has :code:`/media/training-datasets/` not mounted.
     On betaweb020:
     
     .. code:: bash
@@ -246,6 +245,6 @@ Troubleshooting
 
     Then maybe it is needed to restart the VM
 
-.. collapse:: Prometheus says there are errors in :code:`vboxmanage list vms --long`
+.. dropdown:: Prometheus says there are errors in :code:`vboxmanage list vms --long`
 
     Perform maintenance: "Removal of inaccessible VMs"

@@ -6,3 +6,4 @@ Developing the Python Client
     :hidden:
 
     workflow
+    subcommands

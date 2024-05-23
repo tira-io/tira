@@ -3,14 +3,15 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Frequently Asked Questions" href="faq.html" /><link rel="prev" title="Introduction" href="intro.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Frequently Asked Questions" href="faq.html" /><link rel="prev" title="TIRA CLI" href="tiracli.html" />
 
-    <!-- Generated with Sphinx 7.3.7 and Furo 2024.01.29 -->
+    <!-- Generated with Sphinx 7.3.7 and Furo 2024.05.06 -->
         <title>API - TIRA</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
-    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=387cc868" />
+    <link rel="stylesheet" type="text/css" href="../_static/umlet.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=87e54e7c" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=36a5483c" />
-    <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=f683db87" />
     
     
 
@@ -69,7 +70,7 @@
   <symbol id="svg-sun" viewBox="0 0 24 24">
     <title>Light mode</title>
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
       <circle cx="12" cy="12" r="5"></circle>
       <line x1="12" y1="1" x2="12" y2="3"></line>
       <line x1="12" y1="21" x2="12" y2="23"></line>
@@ -84,7 +85,7 @@
   <symbol id="svg-moon" viewBox="0 0 24 24">
     <title>Dark mode</title>
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
       <path stroke="none" d="M0 0h24v24H0z" fill="none" />
       <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
     </svg>
@@ -92,7 +93,7 @@
   <symbol id="svg-sun-half" viewBox="0 0 24 24">
     <title>Auto light/dark mode</title>
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
       <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
       <circle cx="12" cy="12" r="9" />
       <path d="M13 12h5" />
@@ -100,6 +101,60 @@
       <path d="M13 18h1" />
       <path d="M13 9h4" />
       <path d="M13 6h1" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" /
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
     </svg>
   </symbol>
 </svg>
@@ -113,11 +168,9 @@
   <div class="visually-hidden">Hide table of contents sidebar</div>
 </label>
 
-<div class="announcement">
-  <aside class="announcement-content">
-     <a href="https://tira-io.github.io/tira/unlisted/maintenance.html">Due to planned maintenance starting on March 25, TIRA is currently down.</a><br>While you wait until the March 28 for us to be back, you may read our documentation. GLHF 
-  </aside>
-</div>
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
 
 <div class="page">
   <header class="mobile-header">
@@ -134,7 +187,8 @@
       <div class="theme-toggle-container theme-toggle-header">
         <button class="theme-toggle">
           <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
-          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
           <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
@@ -164,6 +218,8 @@
   <p class="caption" role="heading"><span class="caption-text">For Users</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="participate.html">Participating in a Shared Task</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tiracli.html">TIRA CLI</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
 </ul>
@@ -172,7 +228,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../organizers/organizing-tasks.html">Organizing Tasks</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../organizers/deployment/index.html">Deployment</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Deployment</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../organizers/deployment/application.html">Deploying the Application Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../organizers/deployment/host.html">Deploying the Host Module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../organizers/deployment/frontend.html">Deploying the Frontend</a></li>
 </ul>
 </li>
@@ -196,10 +251,17 @@
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../development/python-client/index.html">Developing the Python Client</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of Developing the Python Client</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../development/python-client/workflow.html">Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../development/python-client/subcommands.html">CLI Commands</a></li>
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../development/specification/index.html">Specification</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of Specification</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../development/specification/userstories.html">User Stories</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../development/specification/architecture.html">Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../development/specification/restapi.html">REST-API</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../development/specification/technology/index.html">Technology</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><div class="visually-hidden">Toggle navigation of Technology</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../development/specification/technology/jwt.html">JSON Web Token (JWT)</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../development/changelog.html">Changelog</a></li>
@@ -223,19 +285,21 @@
           <span>Back to top</span>
         </a>
         <div class="content-icon-container">
-          <div class="edit-this-page">
+          <div class="view-this-page">
+  <a class="muted-link" href="https://github.com/tira-io/tira/blob/development/python-client/sphinx/users/api.rst?plain=true" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div><div class="edit-this-page">
   <a class="muted-link" href="https://github.com/tira-io/tira/edit/development/python-client/sphinx/users/api.rst" title="Edit this page">
-    <svg aria-hidden="true" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-      <path d="M4 20h4l10.5 -10.5a1.5 1.5 0 0 0 -4 -4l-10.5 10.5v4" />
-      <line x1="13.5" y1="6.5" x2="17.5" y2="10.5" />
-    </svg>
+    <svg><use href="#svg-pencil"></use></svg>
     <span class="visually-hidden">Edit this page</span>
   </a>
 </div><div class="theme-toggle-container theme-toggle-content">
             <button class="theme-toggle">
               <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
-              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
               <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
@@ -245,399 +309,33 @@
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
         </div>
-        <article role="main">
+        <article role="main" id="furo-main-content">
           <section id="api">
 <h1>API<a class="headerlink" href="#api" title="Link to this heading">¶</a></h1>
 <div class="admonition-todo admonition" id="id1">
 <p class="admonition-title">Todo</p>
 <p>Add a nice introductory text</p>
 </div>
-<section id="module-tira.io_utils">
-<span id="tira-io-utils-module"></span><h2>tira.io_utils module<a class="headerlink" href="#module-tira.io_utils" title="Link to this heading">¶</a></h2>
-<dl class="py function">
-<dt class="sig sig-object py" id="tira.io_utils.all_environment_variables_for_github_action_or_fail">
-<span class="sig-prename descclassname"><span class="pre">tira.io_utils.</span></span><span class="sig-name descname"><span class="pre">all_environment_variables_for_github_action_or_fail</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/io_utils.html#all_environment_variables_for_github_action_or_fail"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.io_utils.all_environment_variables_for_github_action_or_fail" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="tira.io_utils.all_lines_to_pandas">
-<span class="sig-prename descclassname"><span class="pre">tira.io_utils.</span></span><span class="sig-name descname"><span class="pre">all_lines_to_pandas</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_default_text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="../_modules/tira/io_utils.html#all_lines_to_pandas"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.io_utils.all_lines_to_pandas" title="Link to this definition">¶</a></dt>
-<dd><div class="admonition-todo admonition" id="id2">
-<p class="admonition-title">Todo</p>
-<p>add documentation</p>
-</div>
-<div class="admonition-todo admonition" id="id3">
-<p class="admonition-title">Todo</p>
-<p>this function has two semantics: handling a file and handling file-contents</p>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="tira.io_utils.load_output_of_directory">
-<span class="sig-prename descclassname"><span class="pre">tira.io_utils.</span></span><span class="sig-name descname"><span class="pre">load_output_of_directory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">directory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evaluation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">DataFrame</span></span></span><a class="reference internal" href="../_modules/tira/io_utils.html#load_output_of_directory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.io_utils.load_output_of_directory" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="tira.io_utils.parse_jsonl_line">
-<span class="sig-prename descclassname"><span class="pre">tira.io_utils.</span></span><span class="sig-name descname"><span class="pre">parse_jsonl_line</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bytearray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bytes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_default_text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span></span></span><a class="reference internal" href="../_modules/tira/io_utils.html#parse_jsonl_line"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.io_utils.parse_jsonl_line" title="Link to this definition">¶</a></dt>
-<dd><p>Deseralizes the line using JSON deserialization. Optionally strips the ‘original_query’ and ‘original_document’
-fields from the resulting object and converts the qid and docno fields to strings.</p>
-<dl class="field-list">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>input</strong> (<em>str</em><em> | </em><em>bytearray</em><em> | </em><em>bytes</em>) – A json-serialized string.</p></li>
-<li><p><strong>load_default_text</strong> (<em>bool</em>) – If true, the original_query and original_document fields are removed and the qid and
-docno values are converted to strings.</p></li>
+<ul class="simple">
+<li><p><a class="reference internal" href="../py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
 </ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The deserialized and (optionally) processed object.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><em>dict</em></p>
-</dd>
-<dt class="field-even">Example<span class="colon">:</span></dt>
-<dd class="field-even"><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">parse_jsonl_line</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
-<span class="go">{}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">parse_jsonl_line</span><span class="p">(</span><span class="s1">&#39;{&quot;original_query&quot;: &quot;xxxx&quot;}&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
-<span class="go">{&#39;original_query&#39;: &#39;xxxx&#39;}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">parse_jsonl_line</span><span class="p">(</span><span class="s1">&#39;{&quot;original_query&quot;: &quot;xxxx&quot;}&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-<span class="go">{}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">parse_jsonl_line</span><span class="p">(</span><span class="s1">&#39;{&quot;original_query&quot;: &quot;xxxx&quot;, &quot;qid&quot;: 42, &quot;pi&quot;: 3.14}&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
-<span class="go">{&#39;original_query&#39;: &#39;xxxx&#39;, &#39;qid&#39;: 42, &#39;pi&#39;: 3.14}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">parse_jsonl_line</span><span class="p">(</span><span class="s1">&#39;{&quot;original_query&quot;: &quot;xxxx&quot;, &quot;qid&quot;: 42, &quot;pi&quot;: 3.14}&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-<span class="go">{&#39;qid&#39;: &#39;42&#39;, &#39;pi&#39;: 3.14}</span>
-</pre></div>
-</div>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="tira.io_utils.parse_prototext_key_values">
-<span class="sig-prename descclassname"><span class="pre">tira.io_utils.</span></span><span class="sig-name descname"><span class="pre">parse_prototext_key_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/io_utils.html#parse_prototext_key_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.io_utils.parse_prototext_key_values" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="tira.io_utils.run_cmd">
-<span class="sig-prename descclassname"><span class="pre">tira.io_utils.</span></span><span class="sig-name descname"><span class="pre">run_cmd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_failure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/io_utils.html#run_cmd"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.io_utils.run_cmd" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="tira.io_utils.stream_all_lines">
-<span class="sig-prename descclassname"><span class="pre">tira.io_utils.</span></span><span class="sig-name descname"><span class="pre">stream_all_lines</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_default_text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Generator</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/tira/io_utils.html#stream_all_lines"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.io_utils.stream_all_lines" title="Link to this definition">¶</a></dt>
-<dd><div class="admonition-todo admonition" id="id4">
-<p class="admonition-title">Todo</p>
-<p>add documentation</p>
-</div>
-<div class="admonition-todo admonition" id="id5">
-<p class="admonition-title">Todo</p>
-<p>this function has two semantics: handling a file and handling file-contents</p>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="tira.io_utils.to_prototext">
-<span class="sig-prename descclassname"><span class="pre">tira.io_utils.</span></span><span class="sig-name descname"><span class="pre">to_prototext</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper_k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../_modules/tira/io_utils.html#to_prototext"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.io_utils.to_prototext" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
+<section id="tira-io-utils-module">
+<h2>tira.io_utils module<a class="headerlink" href="#tira-io-utils-module" title="Link to this heading">¶</a></h2>
 </section>
-<section id="module-tira.ir_datasets_util">
-<span id="tira-ir-datasets-util-module"></span><h2>tira.ir_datasets_util module<a class="headerlink" href="#module-tira.ir_datasets_util" title="Link to this heading">¶</a></h2>
-<dl class="py class">
-<dt class="sig sig-object py" id="tira.ir_datasets_util.DictDocsstore">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tira.ir_datasets_util.</span></span><span class="sig-name descname"><span class="pre">DictDocsstore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">docs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/ir_datasets_util.html#DictDocsstore"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.ir_datasets_util.DictDocsstore" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="tira.ir_datasets_util.DictDocsstore.get">
-<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">item</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/ir_datasets_util.html#DictDocsstore.get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.ir_datasets_util.DictDocsstore.get" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="tira.ir_datasets_util.DictDocsstore.get_many_iter">
-<span class="sig-name descname"><span class="pre">get_many_iter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">docids</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/ir_datasets_util.html#DictDocsstore.get_many_iter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.ir_datasets_util.DictDocsstore.get_many_iter" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="tira.ir_datasets_util.TirexQuery">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tira.ir_datasets_util.</span></span><span class="sig-name descname"><span class="pre">TirexQuery</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">narrative</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/ir_datasets_util.html#TirexQuery"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.ir_datasets_util.TirexQuery" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">NamedTuple</span></code></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="tira.ir_datasets_util.TirexQuery.default_text">
-<span class="sig-name descname"><span class="pre">default_text</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/ir_datasets_util.html#TirexQuery.default_text"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.ir_datasets_util.TirexQuery.default_text" title="Link to this definition">¶</a></dt>
-<dd><p>title</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="tira.ir_datasets_util.TirexQuery.description">
-<span class="sig-name descname"><span class="pre">description</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#tira.ir_datasets_util.TirexQuery.description" title="Link to this definition">¶</a></dt>
-<dd><p>Alias for field number 4</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="tira.ir_datasets_util.TirexQuery.narrative">
-<span class="sig-name descname"><span class="pre">narrative</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#tira.ir_datasets_util.TirexQuery.narrative" title="Link to this definition">¶</a></dt>
-<dd><p>Alias for field number 5</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="tira.ir_datasets_util.TirexQuery.query">
-<span class="sig-name descname"><span class="pre">query</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#tira.ir_datasets_util.TirexQuery.query" title="Link to this definition">¶</a></dt>
-<dd><p>Alias for field number 3</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="tira.ir_datasets_util.TirexQuery.query_id">
-<span class="sig-name descname"><span class="pre">query_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#tira.ir_datasets_util.TirexQuery.query_id" title="Link to this definition">¶</a></dt>
-<dd><p>Alias for field number 0</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="tira.ir_datasets_util.TirexQuery.text">
-<span class="sig-name descname"><span class="pre">text</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#tira.ir_datasets_util.TirexQuery.text" title="Link to this definition">¶</a></dt>
-<dd><p>Alias for field number 1</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="tira.ir_datasets_util.TirexQuery.title">
-<span class="sig-name descname"><span class="pre">title</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#tira.ir_datasets_util.TirexQuery.title" title="Link to this definition">¶</a></dt>
-<dd><p>Alias for field number 2</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="tira.ir_datasets_util.ir_dataset_from_tira_fallback_to_original_ir_datasets">
-<span class="sig-prename descclassname"><span class="pre">tira.ir_datasets_util.</span></span><span class="sig-name descname"><span class="pre">ir_dataset_from_tira_fallback_to_original_ir_datasets</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/ir_datasets_util.html#ir_dataset_from_tira_fallback_to_original_ir_datasets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.ir_datasets_util.ir_dataset_from_tira_fallback_to_original_ir_datasets" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="tira.ir_datasets_util.register_dataset_from_re_rank_file">
-<span class="sig-prename descclassname"><span class="pre">tira.ir_datasets_util.</span></span><span class="sig-name descname"><span class="pre">register_dataset_from_re_rank_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ir_dataset_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df_re_rank</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">original_ir_datasets_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/ir_datasets_util.html#register_dataset_from_re_rank_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.ir_datasets_util.register_dataset_from_re_rank_file" title="Link to this definition">¶</a></dt>
-<dd><p>Load a dynamic ir_datasets integration from a given re_rank_file.
-The dataset will be registered for the id ir_dataset_id.
-The original_ir_datasets_id is used to infer the class of documents, qrels, and queries.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="tira.ir_datasets_util.static_ir_dataset">
-<span class="sig-prename descclassname"><span class="pre">tira.ir_datasets_util.</span></span><span class="sig-name descname"><span class="pre">static_ir_dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">directory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">existing_ir_dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/ir_datasets_util.html#static_ir_dataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.ir_datasets_util.static_ir_dataset" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="tira.ir_datasets_util.translate_irds_id_to_tirex">
-<span class="sig-prename descclassname"><span class="pre">tira.ir_datasets_util.</span></span><span class="sig-name descname"><span class="pre">translate_irds_id_to_tirex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/ir_datasets_util.html#translate_irds_id_to_tirex"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.ir_datasets_util.translate_irds_id_to_tirex" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
+<section id="tira-ir-datasets-util-module">
+<h2>tira.ir_datasets_util module<a class="headerlink" href="#tira-ir-datasets-util-module" title="Link to this heading">¶</a></h2>
 </section>
-<section id="module-tira.pyterrier_integration">
-<span id="tira-pyterrier-integration-module"></span><h2>tira.pyterrier_integration module<a class="headerlink" href="#module-tira.pyterrier_integration" title="Link to this heading">¶</a></h2>
-<dl class="py class">
-<dt class="sig sig-object py" id="tira.pyterrier_integration.PyTerrierAnceIntegration">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tira.pyterrier_integration.</span></span><span class="sig-name descname"><span class="pre">PyTerrierAnceIntegration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tira_client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/pyterrier_integration.html#PyTerrierAnceIntegration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.pyterrier_integration.PyTerrierAnceIntegration" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>The pyterrier_ance integration to re-use cached ANCE indices. Wraps <a class="reference external" href="https://github.com/terrierteam/pyterrier_ance">https://github.com/terrierteam/pyterrier_ance</a></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="tira.pyterrier_integration.PyTerrierAnceIntegration.ance_retrieval">
-<span class="sig-name descname"><span class="pre">ance_retrieval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/pyterrier_integration.html#PyTerrierAnceIntegration.ance_retrieval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.pyterrier_integration.PyTerrierAnceIntegration.ance_retrieval" title="Link to this definition">¶</a></dt>
-<dd><p>Load a cached pyterrier_ance.ANCEIndexer submitted as workshop-on-open-web-search/ows/pyterrier-anceindex from tira.</p>
-<dl class="simple">
-<dt>References (for citation):</dt><dd><p><a class="reference external" href="https://arxiv.org/pdf/2007.00808.pdf">https://arxiv.org/pdf/2007.00808.pdf</a>
-<a class="reference external" href="https://github.com/microsoft/ANCE/">https://github.com/microsoft/ANCE/</a></p>
-</dd>
-<dt>Args:</dt><dd><p>dataset (str): the dataset id, either an tira or ir_datasets id.</p>
-</dd>
-<dt>Returns:</dt><dd><p>pyterrier_ance.ANCERetrieval: the ANCE index.</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="tira.pyterrier_integration.PyTerrierIntegration">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tira.pyterrier_integration.</span></span><span class="sig-name descname"><span class="pre">PyTerrierIntegration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tira_client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/pyterrier_integration.html#PyTerrierIntegration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.pyterrier_integration.PyTerrierIntegration" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="tira.pyterrier_integration.PyTerrierIntegration.create_rerank_file">
-<span class="sig-name descname"><span class="pre">create_rerank_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run_df</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">irds_dataset_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/pyterrier_integration.html#PyTerrierIntegration.create_rerank_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.pyterrier_integration.PyTerrierIntegration.create_rerank_file" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="tira.pyterrier_integration.PyTerrierIntegration.doc_features">
-<span class="sig-name descname"><span class="pre">doc_features</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">approach</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_selection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('/*.jsonl',</span> <span class="pre">'/*.jsonl.gz')</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/pyterrier_integration.html#PyTerrierIntegration.doc_features"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.pyterrier_integration.PyTerrierIntegration.doc_features" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="tira.pyterrier_integration.PyTerrierIntegration.ensure_dataset_is_cached">
-<span class="sig-name descname"><span class="pre">ensure_dataset_is_cached</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">irds_dataset_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/pyterrier_integration.html#PyTerrierIntegration.ensure_dataset_is_cached"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.pyterrier_integration.PyTerrierIntegration.ensure_dataset_is_cached" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="tira.pyterrier_integration.PyTerrierIntegration.from_retriever_submission">
-<span class="sig-name descname"><span class="pre">from_retriever_submission</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">approach</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">previous_stage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datasets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/pyterrier_integration.html#PyTerrierIntegration.from_retriever_submission"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.pyterrier_integration.PyTerrierIntegration.from_retriever_submission" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="tira.pyterrier_integration.PyTerrierIntegration.from_submission">
-<span class="sig-name descname"><span class="pre">from_submission</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">approach</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datasets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/pyterrier_integration.html#PyTerrierIntegration.from_submission"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.pyterrier_integration.PyTerrierIntegration.from_submission" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="tira.pyterrier_integration.PyTerrierIntegration.index">
-<span class="sig-name descname"><span class="pre">index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">approach</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/pyterrier_integration.html#PyTerrierIntegration.index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.pyterrier_integration.PyTerrierIntegration.index" title="Link to this definition">¶</a></dt>
-<dd><p>Load an PyTerrier index from TIRA.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="tira.pyterrier_integration.PyTerrierIntegration.query_features">
-<span class="sig-name descname"><span class="pre">query_features</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">approach</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_selection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('/*.jsonl',</span> <span class="pre">'/*.jsonl.gz')</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/pyterrier_integration.html#PyTerrierIntegration.query_features"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.pyterrier_integration.PyTerrierIntegration.query_features" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="tira.pyterrier_integration.PyTerrierIntegration.reranker">
-<span class="sig-name descname"><span class="pre">reranker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">approach</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">irds_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/pyterrier_integration.html#PyTerrierIntegration.reranker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.pyterrier_integration.PyTerrierIntegration.reranker" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="tira.pyterrier_integration.PyTerrierIntegration.retriever">
-<span class="sig-name descname"><span class="pre">retriever</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">approach</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/pyterrier_integration.html#PyTerrierIntegration.retriever"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.pyterrier_integration.PyTerrierIntegration.retriever" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="tira.pyterrier_integration.PyTerrierIntegration.transform_documents">
-<span class="sig-name descname"><span class="pre">transform_documents</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">approach</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_selection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('/*.jsonl',</span> <span class="pre">'/*.jsonl.gz')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/pyterrier_integration.html#PyTerrierIntegration.transform_documents"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.pyterrier_integration.PyTerrierIntegration.transform_documents" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="tira.pyterrier_integration.PyTerrierIntegration.transform_queries">
-<span class="sig-name descname"><span class="pre">transform_queries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">approach</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_selection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('/*.jsonl',</span> <span class="pre">'/*.jsonl.gz')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/pyterrier_integration.html#PyTerrierIntegration.transform_queries"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.pyterrier_integration.PyTerrierIntegration.transform_queries" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="tira.pyterrier_integration.PyTerrierSpladeIntegration">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">tira.pyterrier_integration.</span></span><span class="sig-name descname"><span class="pre">PyTerrierSpladeIntegration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tira_client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/pyterrier_integration.html#PyTerrierSpladeIntegration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.pyterrier_integration.PyTerrierSpladeIntegration" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>The pyt_splade integration to re-use cached Splade indices. Wraps <a class="reference external" href="https://github.com/cmacdonald/pyt_splade">https://github.com/cmacdonald/pyt_splade</a></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="tira.pyterrier_integration.PyTerrierSpladeIntegration.splade_index">
-<span class="sig-name descname"><span class="pre">splade_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">approach</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'workshop-on-open-web-search/naverlabseurope/Splade</span> <span class="pre">(Index)'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/pyterrier_integration.html#PyTerrierSpladeIntegration.splade_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.pyterrier_integration.PyTerrierSpladeIntegration.splade_index" title="Link to this definition">¶</a></dt>
-<dd><p>Load a cached pyt_splade index submitted as the passed approach (default ‘workshop-on-open-web-search/naverlabseurope/Splade (Index)’) from tira.</p>
-<dl class="simple">
-<dt>References (for citation):</dt><dd><p><a class="reference external" href="https://github.com/naver/splade?tab=readme-ov-file#cite-scroll">https://github.com/naver/splade?tab=readme-ov-file#cite-scroll</a>
-ToDo: Ask Thibault what to cite.</p>
-</dd>
-<dt>Args:</dt><dd><p>dataset (str): the dataset id, either an tira or ir_datasets id.
-approach (str, optional): the approach id, defaults ‘workshop-on-open-web-search/naverlabseurope/Splade (Index)’.</p>
-</dd>
-<dt>Returns:</dt><dd><p>The PyTerrier index suitable for retrieval.</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
+<section id="tira-pyterrier-integration-module">
+<h2>tira.pyterrier_integration module<a class="headerlink" href="#tira-pyterrier-integration-module" title="Link to this heading">¶</a></h2>
 </section>
 <section id="tira-pyterrier-util-module">
 <h2>tira.pyterrier_util module<a class="headerlink" href="#tira-pyterrier-util-module" title="Link to this heading">¶</a></h2>
 </section>
-<section id="module-tira.third_party_integrations">
-<span id="tira-third-party-integrations-module"></span><h2>tira.third_party_integrations module<a class="headerlink" href="#module-tira.third_party_integrations" title="Link to this heading">¶</a></h2>
-<dl class="py function">
-<dt class="sig sig-object py" id="tira.third_party_integrations.ensure_pyterrier_is_loaded">
-<span class="sig-prename descclassname"><span class="pre">tira.third_party_integrations.</span></span><span class="sig-name descname"><span class="pre">ensure_pyterrier_is_loaded</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">boot_packages</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('com.github.terrierteam:terrier-prf:-SNAPSHOT',)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">packages</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_ir_datasets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/third_party_integrations.html#ensure_pyterrier_is_loaded"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.third_party_integrations.ensure_pyterrier_is_loaded" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="tira.third_party_integrations.extract_ast_value">
-<span class="sig-prename descclassname"><span class="pre">tira.third_party_integrations.</span></span><span class="sig-name descname"><span class="pre">extract_ast_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/third_party_integrations.html#extract_ast_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.third_party_integrations.extract_ast_value" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="tira.third_party_integrations.extract_previous_stages_from_docker_image">
-<span class="sig-prename descclassname"><span class="pre">tira.third_party_integrations.</span></span><span class="sig-name descname"><span class="pre">extract_previous_stages_from_docker_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">command</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/third_party_integrations.html#extract_previous_stages_from_docker_image"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.third_party_integrations.extract_previous_stages_from_docker_image" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="tira.third_party_integrations.extract_previous_stages_from_notebook">
-<span class="sig-prename descclassname"><span class="pre">tira.third_party_integrations.</span></span><span class="sig-name descname"><span class="pre">extract_previous_stages_from_notebook</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">notebook</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/third_party_integrations.html#extract_previous_stages_from_notebook"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.third_party_integrations.extract_previous_stages_from_notebook" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="tira.third_party_integrations.extract_to_be_executed_notebook_from_command_or_none">
-<span class="sig-prename descclassname"><span class="pre">tira.third_party_integrations.</span></span><span class="sig-name descname"><span class="pre">extract_to_be_executed_notebook_from_command_or_none</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/third_party_integrations.html#extract_to_be_executed_notebook_from_command_or_none"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.third_party_integrations.extract_to_be_executed_notebook_from_command_or_none" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="tira.third_party_integrations.get_input_directory_and_output_directory">
-<span class="sig-prename descclassname"><span class="pre">tira.third_party_integrations.</span></span><span class="sig-name descname"><span class="pre">get_input_directory_and_output_directory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">default_input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/tmp/'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/third_party_integrations.html#get_input_directory_and_output_directory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.third_party_integrations.get_input_directory_and_output_directory" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="tira.third_party_integrations.get_output_directory">
-<span class="sig-prename descclassname"><span class="pre">tira.third_party_integrations.</span></span><span class="sig-name descname"><span class="pre">get_output_directory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">default_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/tmp/'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/third_party_integrations.html#get_output_directory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.third_party_integrations.get_output_directory" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="tira.third_party_integrations.get_preconfigured_chatnoir_client">
-<span class="sig-prename descclassname"><span class="pre">tira.third_party_integrations.</span></span><span class="sig-name descname"><span class="pre">get_preconfigured_chatnoir_client</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_directory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">features</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['TARGET_URI']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_results</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/third_party_integrations.html#get_preconfigured_chatnoir_client"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.third_party_integrations.get_preconfigured_chatnoir_client" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="tira.third_party_integrations.is_running_as_inference_server">
-<span class="sig-prename descclassname"><span class="pre">tira.third_party_integrations.</span></span><span class="sig-name descname"><span class="pre">is_running_as_inference_server</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/third_party_integrations.html#is_running_as_inference_server"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.third_party_integrations.is_running_as_inference_server" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="tira.third_party_integrations.load_ir_datasets">
-<span class="sig-prename descclassname"><span class="pre">tira.third_party_integrations.</span></span><span class="sig-name descname"><span class="pre">load_ir_datasets</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/third_party_integrations.html#load_ir_datasets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.third_party_integrations.load_ir_datasets" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="tira.third_party_integrations.load_rerank_data">
-<span class="sig-prename descclassname"><span class="pre">tira.third_party_integrations.</span></span><span class="sig-name descname"><span class="pre">load_rerank_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">default</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_default_text</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/third_party_integrations.html#load_rerank_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.third_party_integrations.load_rerank_data" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="tira.third_party_integrations.normalize_run">
-<span class="sig-prename descclassname"><span class="pre">tira.third_party_integrations.</span></span><span class="sig-name descname"><span class="pre">normalize_run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">system_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/third_party_integrations.html#normalize_run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.third_party_integrations.normalize_run" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="tira.third_party_integrations.parse_ast_extract_assignment">
-<span class="sig-prename descclassname"><span class="pre">tira.third_party_integrations.</span></span><span class="sig-name descname"><span class="pre">parse_ast_extract_assignment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">python_line</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/third_party_integrations.html#parse_ast_extract_assignment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.third_party_integrations.parse_ast_extract_assignment" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="tira.third_party_integrations.parse_extraction_of_tira_approach">
-<span class="sig-prename descclassname"><span class="pre">tira.third_party_integrations.</span></span><span class="sig-name descname"><span class="pre">parse_extraction_of_tira_approach</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">python_line</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/third_party_integrations.html#parse_extraction_of_tira_approach"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.third_party_integrations.parse_extraction_of_tira_approach" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="tira.third_party_integrations.parse_extraction_of_tira_approach_bash">
-<span class="sig-prename descclassname"><span class="pre">tira.third_party_integrations.</span></span><span class="sig-name descname"><span class="pre">parse_extraction_of_tira_approach_bash</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bash_line</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/third_party_integrations.html#parse_extraction_of_tira_approach_bash"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.third_party_integrations.parse_extraction_of_tira_approach_bash" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="tira.third_party_integrations.persist_and_normalize_run">
-<span class="sig-prename descclassname"><span class="pre">tira.third_party_integrations.</span></span><span class="sig-name descname"><span class="pre">persist_and_normalize_run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">run</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">system_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/third_party_integrations.html#persist_and_normalize_run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.third_party_integrations.persist_and_normalize_run" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="tira.third_party_integrations.register_rerank_data_to_ir_datasets">
-<span class="sig-prename descclassname"><span class="pre">tira.third_party_integrations.</span></span><span class="sig-name descname"><span class="pre">register_rerank_data_to_ir_datasets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_to_rerank_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ir_dataset_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">original_ir_datasets_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/tira/third_party_integrations.html#register_rerank_data_to_ir_datasets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#tira.third_party_integrations.register_rerank_data_to_ir_datasets" title="Link to this definition">¶</a></dt>
-<dd><p>Load a dynamic ir_datasets integration from a given re_rank_file.
-The dataset will be registered for the id ir_dataset_id.
-The original_ir_datasets_id is used to infer the class of documents, qrels, and queries.</p>
-</dd></dl>
-
+<section id="tira-third-party-integrations-module">
+<h2>tira.third_party_integrations module<a class="headerlink" href="#tira-third-party-integrations-module" title="Link to this heading">¶</a></h2>
 </section>
-<section id="module-tira">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-tira" title="Link to this heading">¶</a></h2>
+<section id="module-contents">
+<h2>Module contents<a class="headerlink" href="#module-contents" title="Link to this heading">¶</a></h2>
 </section>
 </section>
 
@@ -655,14 +353,14 @@ The original_ir_datasets_id is used to infer the class of documents, qrels, and 
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="intro.html">
+          <a class="prev-page" href="tiracli.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Introduction</div>
+                <div class="title">TIRA CLI</div>
                 
               </div>
             </a>
@@ -670,7 +368,7 @@ The original_ir_datasets_id is used to infer the class of documents, qrels, and 
         <div class="bottom-of-page">
           <div class="left-details">
             <div class="copyright">
-                Copyright &#169; 2023, Webis
+                Copyright &#169; 2024, Webis
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             
@@ -704,86 +402,12 @@ The original_ir_datasets_id is used to infer the class of documents, qrels, and 
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">API</a><ul>
-<li><a class="reference internal" href="#module-tira.io_utils">tira.io_utils module</a><ul>
-<li><a class="reference internal" href="#tira.io_utils.all_environment_variables_for_github_action_or_fail"><code class="docutils literal notranslate"><span class="pre">all_environment_variables_for_github_action_or_fail()</span></code></a></li>
-<li><a class="reference internal" href="#tira.io_utils.all_lines_to_pandas"><code class="docutils literal notranslate"><span class="pre">all_lines_to_pandas()</span></code></a></li>
-<li><a class="reference internal" href="#tira.io_utils.load_output_of_directory"><code class="docutils literal notranslate"><span class="pre">load_output_of_directory()</span></code></a></li>
-<li><a class="reference internal" href="#tira.io_utils.parse_jsonl_line"><code class="docutils literal notranslate"><span class="pre">parse_jsonl_line()</span></code></a></li>
-<li><a class="reference internal" href="#tira.io_utils.parse_prototext_key_values"><code class="docutils literal notranslate"><span class="pre">parse_prototext_key_values()</span></code></a></li>
-<li><a class="reference internal" href="#tira.io_utils.run_cmd"><code class="docutils literal notranslate"><span class="pre">run_cmd()</span></code></a></li>
-<li><a class="reference internal" href="#tira.io_utils.stream_all_lines"><code class="docutils literal notranslate"><span class="pre">stream_all_lines()</span></code></a></li>
-<li><a class="reference internal" href="#tira.io_utils.to_prototext"><code class="docutils literal notranslate"><span class="pre">to_prototext()</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#module-tira.ir_datasets_util">tira.ir_datasets_util module</a><ul>
-<li><a class="reference internal" href="#tira.ir_datasets_util.DictDocsstore"><code class="docutils literal notranslate"><span class="pre">DictDocsstore</span></code></a><ul>
-<li><a class="reference internal" href="#tira.ir_datasets_util.DictDocsstore.get"><code class="docutils literal notranslate"><span class="pre">DictDocsstore.get()</span></code></a></li>
-<li><a class="reference internal" href="#tira.ir_datasets_util.DictDocsstore.get_many_iter"><code class="docutils literal notranslate"><span class="pre">DictDocsstore.get_many_iter()</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#tira.ir_datasets_util.TirexQuery"><code class="docutils literal notranslate"><span class="pre">TirexQuery</span></code></a><ul>
-<li><a class="reference internal" href="#tira.ir_datasets_util.TirexQuery.default_text"><code class="docutils literal notranslate"><span class="pre">TirexQuery.default_text()</span></code></a></li>
-<li><a class="reference internal" href="#tira.ir_datasets_util.TirexQuery.description"><code class="docutils literal notranslate"><span class="pre">TirexQuery.description</span></code></a></li>
-<li><a class="reference internal" href="#tira.ir_datasets_util.TirexQuery.narrative"><code class="docutils literal notranslate"><span class="pre">TirexQuery.narrative</span></code></a></li>
-<li><a class="reference internal" href="#tira.ir_datasets_util.TirexQuery.query"><code class="docutils literal notranslate"><span class="pre">TirexQuery.query</span></code></a></li>
-<li><a class="reference internal" href="#tira.ir_datasets_util.TirexQuery.query_id"><code class="docutils literal notranslate"><span class="pre">TirexQuery.query_id</span></code></a></li>
-<li><a class="reference internal" href="#tira.ir_datasets_util.TirexQuery.text"><code class="docutils literal notranslate"><span class="pre">TirexQuery.text</span></code></a></li>
-<li><a class="reference internal" href="#tira.ir_datasets_util.TirexQuery.title"><code class="docutils literal notranslate"><span class="pre">TirexQuery.title</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#tira.ir_datasets_util.ir_dataset_from_tira_fallback_to_original_ir_datasets"><code class="docutils literal notranslate"><span class="pre">ir_dataset_from_tira_fallback_to_original_ir_datasets()</span></code></a></li>
-<li><a class="reference internal" href="#tira.ir_datasets_util.register_dataset_from_re_rank_file"><code class="docutils literal notranslate"><span class="pre">register_dataset_from_re_rank_file()</span></code></a></li>
-<li><a class="reference internal" href="#tira.ir_datasets_util.static_ir_dataset"><code class="docutils literal notranslate"><span class="pre">static_ir_dataset()</span></code></a></li>
-<li><a class="reference internal" href="#tira.ir_datasets_util.translate_irds_id_to_tirex"><code class="docutils literal notranslate"><span class="pre">translate_irds_id_to_tirex()</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#module-tira.pyterrier_integration">tira.pyterrier_integration module</a><ul>
-<li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierAnceIntegration"><code class="docutils literal notranslate"><span class="pre">PyTerrierAnceIntegration</span></code></a><ul>
-<li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierAnceIntegration.ance_retrieval"><code class="docutils literal notranslate"><span class="pre">PyTerrierAnceIntegration.ance_retrieval()</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierIntegration"><code class="docutils literal notranslate"><span class="pre">PyTerrierIntegration</span></code></a><ul>
-<li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierIntegration.create_rerank_file"><code class="docutils literal notranslate"><span class="pre">PyTerrierIntegration.create_rerank_file()</span></code></a></li>
-<li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierIntegration.doc_features"><code class="docutils literal notranslate"><span class="pre">PyTerrierIntegration.doc_features()</span></code></a></li>
-<li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierIntegration.ensure_dataset_is_cached"><code class="docutils literal notranslate"><span class="pre">PyTerrierIntegration.ensure_dataset_is_cached()</span></code></a></li>
-<li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierIntegration.from_retriever_submission"><code class="docutils literal notranslate"><span class="pre">PyTerrierIntegration.from_retriever_submission()</span></code></a></li>
-<li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierIntegration.from_submission"><code class="docutils literal notranslate"><span class="pre">PyTerrierIntegration.from_submission()</span></code></a></li>
-<li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierIntegration.index"><code class="docutils literal notranslate"><span class="pre">PyTerrierIntegration.index()</span></code></a></li>
-<li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierIntegration.query_features"><code class="docutils literal notranslate"><span class="pre">PyTerrierIntegration.query_features()</span></code></a></li>
-<li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierIntegration.reranker"><code class="docutils literal notranslate"><span class="pre">PyTerrierIntegration.reranker()</span></code></a></li>
-<li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierIntegration.retriever"><code class="docutils literal notranslate"><span class="pre">PyTerrierIntegration.retriever()</span></code></a></li>
-<li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierIntegration.transform_documents"><code class="docutils literal notranslate"><span class="pre">PyTerrierIntegration.transform_documents()</span></code></a></li>
-<li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierIntegration.transform_queries"><code class="docutils literal notranslate"><span class="pre">PyTerrierIntegration.transform_queries()</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierSpladeIntegration"><code class="docutils literal notranslate"><span class="pre">PyTerrierSpladeIntegration</span></code></a><ul>
-<li><a class="reference internal" href="#tira.pyterrier_integration.PyTerrierSpladeIntegration.splade_index"><code class="docutils literal notranslate"><span class="pre">PyTerrierSpladeIntegration.splade_index()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li><a class="reference internal" href="#tira-io-utils-module">tira.io_utils module</a></li>
+<li><a class="reference internal" href="#tira-ir-datasets-util-module">tira.ir_datasets_util module</a></li>
+<li><a class="reference internal" href="#tira-pyterrier-integration-module">tira.pyterrier_integration module</a></li>
 <li><a class="reference internal" href="#tira-pyterrier-util-module">tira.pyterrier_util module</a></li>
-<li><a class="reference internal" href="#module-tira.third_party_integrations">tira.third_party_integrations module</a><ul>
-<li><a class="reference internal" href="#tira.third_party_integrations.ensure_pyterrier_is_loaded"><code class="docutils literal notranslate"><span class="pre">ensure_pyterrier_is_loaded()</span></code></a></li>
-<li><a class="reference internal" href="#tira.third_party_integrations.extract_ast_value"><code class="docutils literal notranslate"><span class="pre">extract_ast_value()</span></code></a></li>
-<li><a class="reference internal" href="#tira.third_party_integrations.extract_previous_stages_from_docker_image"><code class="docutils literal notranslate"><span class="pre">extract_previous_stages_from_docker_image()</span></code></a></li>
-<li><a class="reference internal" href="#tira.third_party_integrations.extract_previous_stages_from_notebook"><code class="docutils literal notranslate"><span class="pre">extract_previous_stages_from_notebook()</span></code></a></li>
-<li><a class="reference internal" href="#tira.third_party_integrations.extract_to_be_executed_notebook_from_command_or_none"><code class="docutils literal notranslate"><span class="pre">extract_to_be_executed_notebook_from_command_or_none()</span></code></a></li>
-<li><a class="reference internal" href="#tira.third_party_integrations.get_input_directory_and_output_directory"><code class="docutils literal notranslate"><span class="pre">get_input_directory_and_output_directory()</span></code></a></li>
-<li><a class="reference internal" href="#tira.third_party_integrations.get_output_directory"><code class="docutils literal notranslate"><span class="pre">get_output_directory()</span></code></a></li>
-<li><a class="reference internal" href="#tira.third_party_integrations.get_preconfigured_chatnoir_client"><code class="docutils literal notranslate"><span class="pre">get_preconfigured_chatnoir_client()</span></code></a></li>
-<li><a class="reference internal" href="#tira.third_party_integrations.is_running_as_inference_server"><code class="docutils literal notranslate"><span class="pre">is_running_as_inference_server()</span></code></a></li>
-<li><a class="reference internal" href="#tira.third_party_integrations.load_ir_datasets"><code class="docutils literal notranslate"><span class="pre">load_ir_datasets()</span></code></a></li>
-<li><a class="reference internal" href="#tira.third_party_integrations.load_rerank_data"><code class="docutils literal notranslate"><span class="pre">load_rerank_data()</span></code></a></li>
-<li><a class="reference internal" href="#tira.third_party_integrations.normalize_run"><code class="docutils literal notranslate"><span class="pre">normalize_run()</span></code></a></li>
-<li><a class="reference internal" href="#tira.third_party_integrations.parse_ast_extract_assignment"><code class="docutils literal notranslate"><span class="pre">parse_ast_extract_assignment()</span></code></a></li>
-<li><a class="reference internal" href="#tira.third_party_integrations.parse_extraction_of_tira_approach"><code class="docutils literal notranslate"><span class="pre">parse_extraction_of_tira_approach()</span></code></a></li>
-<li><a class="reference internal" href="#tira.third_party_integrations.parse_extraction_of_tira_approach_bash"><code class="docutils literal notranslate"><span class="pre">parse_extraction_of_tira_approach_bash()</span></code></a></li>
-<li><a class="reference internal" href="#tira.third_party_integrations.persist_and_normalize_run"><code class="docutils literal notranslate"><span class="pre">persist_and_normalize_run()</span></code></a></li>
-<li><a class="reference internal" href="#tira.third_party_integrations.register_rerank_data_to_ir_datasets"><code class="docutils literal notranslate"><span class="pre">register_rerank_data_to_ir_datasets()</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#module-tira">Module contents</a></li>
+<li><a class="reference internal" href="#tira-third-party-integrations-module">tira.third_party_integrations module</a></li>
+<li><a class="reference internal" href="#module-contents">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -798,6 +422,7 @@ The original_ir_datasets_id is used to infer the class of documents, qrels, and 
 </div><script src="../_static/documentation_options.js?v=8a448e45"></script>
     <script src="../_static/doctools.js?v=9a2dae69"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script src="../_static/scripts/furo.js?v=32e29ea5"></script>
+    <script src="../_static/scripts/furo.js?v=4e2eecee"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
     </body>
 </html>

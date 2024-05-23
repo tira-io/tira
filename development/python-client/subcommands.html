@@ -1,0 +1,589 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../../">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../../genindex.html" /><link rel="search" title="Search" href="../../search.html" /><link rel="next" title="Specification" href="../specification/index.html" /><link rel="prev" title="Workflow" href="workflow.html" />
+
+    <!-- Generated with Sphinx 7.3.7 and Furo 2024.05.06 -->
+        <title>CLI Commands - TIRA</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=387cc868" />
+    <link rel="stylesheet" type="text/css" href="../../_static/umlet.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=87e54e7c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?v=36a5483c" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" /
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../index.html"><div class="brand">TIRA</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../index.html">
+  
+  <div class="sidebar-logo-container">
+    <img class="sidebar-logo" src="https://github.com/tira-io/tira-branding/raw/master/tira-icons/logo-tira-120x120-transparent.png" alt="Logo"/>
+  </div>
+  
+  
+</a><form class="sidebar-search-container" method="get" action="../../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">For Users</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../users/intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../users/participate.html">Participating in a Shared Task</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../users/tiracli.html">TIRA CLI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../users/api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../users/faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">For Organizers</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../organizers/organizing-tasks.html">Organizing Tasks</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../organizers/deployment/index.html">Deployment</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Deployment</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../organizers/deployment/application.html">Deploying the Application Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../organizers/deployment/frontend.html">Deploying the Frontend</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../organizers/maintenance.html">Maintenance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../organizers/faq.html">Frequently Asked Questions</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul class="current">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../contributing/index.html">Contributing</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Contributing</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../contributing/internals.html">Internals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing/guidelines.html">Code Guidelines</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../frontend/index.html">Frontend Development</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Frontend Development</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../frontend/workflow.html">Workflow</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../backend/index.html">Backend Development</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of Backend Development</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../backend/workflow.html">Workflow</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">Developing the Python Client</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of Developing the Python Client</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="workflow.html">Workflow</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">CLI Commands</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../specification/index.html">Specification</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of Specification</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../specification/userstories.html">User Stories</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../specification/architecture.html">Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../specification/restapi.html">REST-API</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../specification/technology/index.html">Technology</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><div class="visually-hidden">Toggle navigation of Technology</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../specification/technology/jwt.html">JSON Web Token (JWT)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="https://github.com/tira-io/tira/blob/development/python-client/sphinx/development/python-client/subcommands.rst?plain=true" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div><div class="edit-this-page">
+  <a class="muted-link" href="https://github.com/tira-io/tira/edit/development/python-client/sphinx/development/python-client/subcommands.rst" title="Edit this page">
+    <svg><use href="#svg-pencil"></use></svg>
+    <span class="visually-hidden">Edit this page</span>
+  </a>
+</div><div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="cli-commands">
+<h1>CLI Commands<a class="headerlink" href="#cli-commands" title="Link to this heading">¶</a></h1>
+<section id="adding-a-new-subcommand">
+<h2>Adding a new subcommand<a class="headerlink" href="#adding-a-new-subcommand" title="Link to this heading">¶</a></h2>
+<p>Currently, all TIRA CLI subcommands live within <code class="docutils literal notranslate"><span class="pre">python-client/tira/tira_cli.py</span></code>. For this tutorial we will create a
+new subcommand <code class="docutils literal notranslate"><span class="pre">tira-cli</span> <span class="pre">repeat</span> <span class="pre">&lt;number&gt;</span> <span class="pre">--text</span> <span class="pre">&lt;text&gt;</span></code> that is supposed to print the given text, <code class="docutils literal notranslate"><span class="pre">&lt;text&gt;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&lt;number&gt;</span></code> times to the console and exit. We already implemented this functionality in the following function</p>
+<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">repeat_command</span><span class="p">(</span><span class="n">number</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">number</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="k">return</span> <span class="mi">0</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>We return 0 to indicate success. Any return code other than 0 should indicate failure and, if you like, you can
+use the return code to communicate different kinds of failures to the user.</p>
+</div>
+<div class="admonition attention">
+<p class="admonition-title">Attention</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">**kwargs</span></code> parameter is important! For ease of use, we forward all command line arguments into the
+command. Try and see what happens if you remove the <code class="docutils literal notranslate"><span class="pre">**kwargs</span></code> or print them to console if you want to understand
+it better.</p>
+</div>
+<p>Now, we only need to register this command with TIRA and tell it the arguments we need. We do this by creating a new
+method within <code class="docutils literal notranslate"><span class="pre">python-client/tira/tira_run.py</span></code> like this:</p>
+<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">setup_repeat_command</span><span class="p">(</span><span class="n">parser</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;number&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The number of times the chosen text should be printed&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-t&quot;</span><span class="p">,</span> <span class="s2">&quot;--text&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;Hi&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The text that should be printed&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Register the repeat_command method as the &quot;main&quot;-method</span>
+    <span class="c1"># This is important as it tells TIRA what command should be run.</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">executable</span><span class="o">=</span><span class="n">repeat_command</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The naming scheme of using <code class="docutils literal notranslate"><span class="pre">setup_{commandname}_command</span></code> to register the command <code class="docutils literal notranslate"><span class="pre">{commandname}_command</span></code>
+is “just” a guideline. But, for consistency, please adhere to it.</p>
+</div>
+<div class="admonition attention">
+<p class="admonition-title">Attention</p>
+<p>The argument names are important. To see why, try and remove <code class="docutils literal notranslate"><span class="pre">&quot;--text&quot;</span></code> such that the text-argument can
+only be invoked via <code class="docutils literal notranslate"><span class="pre">-t</span></code>. Now, <code class="docutils literal notranslate"><span class="pre">repeat_command</span></code> won’t have its <code class="docutils literal notranslate"><span class="pre">text</span></code> parameter set correctly if you supply
+the argument. You should use the <a class="reference external" href="https://docs.python.org/3/library/argparse.html#dest">dest</a> parameter of
+<code class="docutils literal notranslate"><span class="pre">add_argument</span></code> to specify the parameter-name the argument should be stored in when calling your command
+implementation. In this case, it should read:</p>
+<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-t&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;Hi&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The text that should be printed&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>The only thing left to do now is to call this setup function in TIRA’s setup code and we are done! To do so, find the
+following line of code within <code class="docutils literal notranslate"><span class="pre">python-client/tira/tira_run.py</span></code>.</p>
+<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="n">subparsers</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>We use the lines below to register our subcommands. Register your subcommand where appropriate (e.g., in alphabetical
+order). It should now look something like this:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">subparsers</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">()</span>
+<span class="n">setup_a_thing_command</span><span class="p">(</span><span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s1">&#39;a-thing&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;I do stuff&quot;</span><span class="p">))</span>
+<span class="hll"><span class="n">setup_repeat_command</span><span class="p">(</span><span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s1">&#39;repeat&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Repeat the provided text any number of times&quot;</span><span class="p">))</span>
+</span><span class="n">setup_something_else_command</span><span class="p">(</span><span class="n">subparsers</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s1">&#39;something-else&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;I do other stuff&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>We are done! To test your brand new command, set the <code class="docutils literal notranslate"><span class="pre">PYTHONPATH</span></code> environment variable to the path to
+<code class="docutils literal notranslate"><span class="pre">python-client</span></code>. This overrides where the <code class="docutils literal notranslate"><span class="pre">tira-cli</span></code> command is loaded from. For example, if you have cloned the
+repository to <code class="docutils literal notranslate"><span class="pre">/home/me/repos/tira</span></code>, you can set the PYTHONPATH by running
+<code class="docutils literal notranslate"><span class="pre">export</span> <span class="pre">PYTHONPATH=/home/me/repos/tira/python-client</span></code> from the terminal. Now you can call the help page for your
+command and should get the following output:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>tira-cli<span class="w"> </span>repeat<span class="w"> </span>--help
+
+usage:<span class="w"> </span>tira-cli<span class="w"> </span>repeat<span class="w"> </span><span class="o">[</span>-h<span class="o">]</span><span class="w"> </span><span class="o">[</span>-t,--text<span class="w"> </span>T,__TEXT<span class="o">]</span><span class="w"> </span>number
+
+positional<span class="w"> </span>arguments:
+number<span class="w">              </span>The<span class="w"> </span>number<span class="w"> </span>of<span class="w"> </span><span class="nb">times</span><span class="w"> </span>the<span class="w"> </span>chosen<span class="w"> </span>text<span class="w"> </span>should<span class="w"> </span>be<span class="w"> </span>printed
+
+options:
+-h,<span class="w"> </span>--help<span class="w">          </span>show<span class="w"> </span>this<span class="w"> </span><span class="nb">help</span><span class="w"> </span>message<span class="w"> </span>and<span class="w"> </span><span class="nb">exit</span>
+-t,--text<span class="w"> </span>T,__TEXT<span class="w">  </span>The<span class="w"> </span>text<span class="w"> </span>that<span class="w"> </span>should<span class="w"> </span>be<span class="w"> </span>printed
+</pre></div>
+</div>
+<p>Make sure that it works by also trying out</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>tira-cli<span class="w"> </span>repeat<span class="w"> </span><span class="m">3</span>
+$<span class="w"> </span>tira-cli<span class="w"> </span>repeat<span class="w"> </span><span class="m">3</span><span class="w"> </span>--text<span class="w"> </span><span class="s2">&quot;I like TIRA&quot;</span>
+$<span class="w"> </span>tira-cli<span class="w"> </span>repeat<span class="w"> </span><span class="m">5</span><span class="w"> </span>-t<span class="w"> </span><span class="s2">&quot;I like TIRA&quot;</span>
+$<span class="w"> </span>tira-cli<span class="w"> </span>repeat
+$<span class="w"> </span>tira-cli<span class="w"> </span>repeat<span class="w"> </span>not-a-number
+</pre></div>
+</div>
+<p>What would you expect should happen? Does it work?</p>
+<section id="adding-logging-to-our-subcommand">
+<h3>Adding Logging to our Subcommand<a class="headerlink" href="#adding-logging-to-our-subcommand" title="Link to this heading">¶</a></h3>
+<p>For consistency, some arguments should look and feel the same across subcommands. A good example may be the logging
+arguments (<code class="docutils literal notranslate"><span class="pre">--quiet</span></code> and <code class="docutils literal notranslate"><span class="pre">--verbose</span></code>). These argument definitions should be defined in separate functions (e.g.,
+<code class="docutils literal notranslate"><span class="pre">setup_logging_args</span></code> for logging) such that they can be reused. In effect this means that adding such functionality to
+our subcommand is as simple as calling these setup-functions. Concretely, for logging, this means that we can configure
+logging for our Subcommand simply by modifying the <code class="docutils literal notranslate"><span class="pre">setup_repeat_command</span></code> method such that it reads</p>
+<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">setup_repeat_command</span><span class="p">(</span><span class="n">parser</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="hll">    <span class="n">setup_logging_args</span><span class="p">(</span><span class="n">parser</span><span class="p">)</span>
+</span>    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;number&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The number of times the chosen text should be printed&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-t&quot;</span><span class="p">,</span> <span class="s2">&quot;--text&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;Hi&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The text that should be printed&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Register the repeat_command method as the &quot;main&quot;-method</span>
+    <span class="c1"># This is important as it tells TIRA what command should be run.</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">executable</span><span class="o">=</span><span class="n">repeat_command</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Test it by adding logs to your subcommand (<code class="docutils literal notranslate"><span class="pre">logging.debug</span></code>, <code class="docutils literal notranslate"><span class="pre">logging.info</span></code>, <code class="docutils literal notranslate"><span class="pre">logging.warning</span></code>, <code class="docutils literal notranslate"><span class="pre">logging.error</span></code>,
+<code class="docutils literal notranslate"><span class="pre">logging.critical</span></code>) and append <code class="docutils literal notranslate"><span class="pre">-v</span></code>, <code class="docutils literal notranslate"><span class="pre">-q</span></code> and <code class="docutils literal notranslate"><span class="pre">-vv</span></code> to your command. What do you expect and what happens? Consider
+that the default log-level is <code class="docutils literal notranslate"><span class="pre">INFO</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Keep in mind that logging can be disabled by the user, redirected to a file or formatted arbitrarily (e.g.,
+JSON logs for deployment but simple text logs for development). This means that anything that semantically should
+or must be printed to the console should not be logged but printed instead.</p>
+</div>
+</section>
+</section>
+<section id="typing-arguments-a-more-complex-example">
+<h2>Typing Arguments (A more complex example)<a class="headerlink" href="#typing-arguments-a-more-complex-example" title="Link to this heading">¶</a></h2>
+<p>Not all arguments are primitives like <code class="docutils literal notranslate"><span class="pre">str</span></code> or <code class="docutils literal notranslate"><span class="pre">int</span></code>. While we could encode all arguments this way and let our code
+check if the argument follows the correct format, this does not follow the philosphy behind Python’s <code class="docutils literal notranslate"><span class="pre">argparse</span></code> API
+and should be avoided (unless it is more readable). To illustrate this, we want to create the CLI for the following
+function:</p>
+<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">writestuff_command</span><span class="p">(</span><span class="nb">input</span><span class="p">:</span> <span class="n">TextIO</span><span class="p">,</span> <span class="n">output</span><span class="p">:</span> <span class="n">TextIO</span><span class="p">,</span> <span class="n">approach</span><span class="p">:</span> <span class="n">Approach</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a new file at the specified output path and writes the following lines to it:</span>
+<span class="sd">    &lt;first line of the input file&gt;\\n</span>
+<span class="sd">    &lt;approach.taskid&gt;\\n</span>
+<span class="sd">    &lt;approach.userid&gt;\\n</span>
+<span class="sd">    &lt;approach.name&gt;\\n</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">input</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">approach</span><span class="o">.</span><span class="n">taskid</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">approach</span><span class="o">.</span><span class="n">userid</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">approach</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Here, <code class="docutils literal notranslate"><span class="pre">Approach</span></code> is a <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.NamedTuple">named tuple</a>:</p>
+<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Approach</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
+    <span class="n">taskid</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">userid</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+</pre></div>
+</div>
+<p>which the user should provide on the CLI as <code class="docutils literal notranslate"><span class="pre">--approach</span> <span class="pre">&lt;task-id&gt;/&lt;user-id&gt;/&lt;approach-name&gt;</span></code>. To enforce this
+behavior, we generally do the same as for <code class="docutils literal notranslate"><span class="pre">repeat_command</span></code> but we use the <code class="docutils literal notranslate"><span class="pre">type</span></code> argument to convert the arguments
+from strings and enforce constraints (e.g., that the input-path must exist). This may look like this:</p>
+<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="c1"># Please don&#39;t place me with the setup_..._command methods but somewhere else to keep tira_cli.py clutter free :)</span>
+<span class="k">def</span> <span class="nf">approach_from_str</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Approach</span><span class="p">:</span>
+    <span class="n">split</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">split</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentTypeError</span><span class="p">(</span><span class="s2">&quot;Approaches MUST be encoded as &#39;&lt;task-id&gt;/&lt;user-id&gt;/&lt;approach-name&gt;&#39;&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Approach</span><span class="p">(</span><span class="n">taskid</span><span class="o">=</span><span class="n">split</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">userid</span><span class="o">=</span><span class="n">split</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="n">split</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+
+<span class="k">def</span> <span class="nf">setup_writestuff_command</span><span class="p">(</span><span class="n">parser</span><span class="p">:</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;input&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">FileType</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">),</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;...&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-o&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">FileType</span><span class="p">(</span><span class="s1">&#39;w&#39;</span><span class="p">),</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;output&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;...&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--approach&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">approach_from_str</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;...&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">executable</span><span class="o">=</span><span class="n">writestuff_command</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Don’t forget to register the subcommand and check with <code class="docutils literal notranslate"><span class="pre">tira-cli</span> <span class="pre">writestuff</span> <span class="pre">--help</span></code> that it works. Now play around
+with different arguments. For example:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>tira-cli<span class="w"> </span>writestuff<span class="w"> </span>&lt;non-existent-file&gt;<span class="w"> </span>-o<span class="w"> </span>&lt;file&gt;<span class="w"> </span>--approach<span class="w"> </span>task/user/name
+$<span class="w"> </span>tira-cli<span class="w"> </span>writestuff<span class="w"> </span>&lt;existing-file&gt;<span class="w"> </span>-o<span class="w"> </span>&lt;file&gt;<span class="w"> </span>--approach<span class="w"> </span>task/user/name
+$<span class="w"> </span>tira-cli<span class="w"> </span>writestuff<span class="w"> </span>&lt;existing-file&gt;<span class="w"> </span>-o<span class="w"> </span>&lt;file&gt;<span class="w"> </span>--approach<span class="w"> </span>task/user
+</pre></div>
+</div>
+<p>Does it do what you expect?</p>
+<div class="admonition hint">
+<p class="admonition-title">Hint</p>
+<p><code class="docutils literal notranslate"><span class="pre">argparse.FileType</span></code> has the neat feature that it can also pass <code class="docutils literal notranslate"><span class="pre">stdin</span></code> and <code class="docutils literal notranslate"><span class="pre">stdout</span></code> to your command if
+you set the parameter value to <code class="docutils literal notranslate"><span class="pre">-</span></code> (you may already know this notation, e.g., from <code class="docutils literal notranslate"><span class="pre">wget</span></code>), like so:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Hello World&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>tira-cli<span class="w"> </span>writestuff<span class="w"> </span>-<span class="w"> </span>-o-<span class="w"> </span>--approach<span class="w"> </span>task/user/name
+</pre></div>
+</div>
+</div>
+</section>
+<section id="implementation-details-and-hints">
+<h2>Implementation Details and Hints<a class="headerlink" href="#implementation-details-and-hints" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>For argument parsing, we use Python’s <a class="reference external" href="https://docs.python.org/3/library/argparse.html">argparse</a> library. If you
+want to find more information on how to properly configure your command line arguments, their documentation is a good
+start.</p></li>
+<li><p>Please keep in mind that some arguments are already in use by TIRA and could cause problems if you are not careful.
+These are <code class="docutils literal notranslate"><span class="pre">command</span></code> and <code class="docutils literal notranslate"><span class="pre">executable</span></code>. If you want to use such a name for your argument (e.g., <code class="docutils literal notranslate"><span class="pre">--command</span></code>), you
+can do so but you have to set the <a class="reference external" href="https://docs.python.org/3/library/argparse.html#dest">dest</a> argument to something
+other than the protected names.</p></li>
+</ul>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="../specification/index.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Specification</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="workflow.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Workflow</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2024, Webis
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            <div class="icons">
+              <a class="muted-link " href="https://github.com/tira-io/tira" aria-label="GitHub">
+                <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path>
+                </svg>
+            </a>
+              
+            </div>
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">CLI Commands</a><ul>
+<li><a class="reference internal" href="#adding-a-new-subcommand">Adding a new subcommand</a><ul>
+<li><a class="reference internal" href="#adding-logging-to-our-subcommand">Adding Logging to our Subcommand</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#typing-arguments-a-more-complex-example">Typing Arguments (A more complex example)</a></li>
+<li><a class="reference internal" href="#implementation-details-and-hints">Implementation Details and Hints</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../../_static/documentation_options.js?v=8a448e45"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/scripts/furo.js?v=4e2eecee"></script>
+    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    </body>
+</html>

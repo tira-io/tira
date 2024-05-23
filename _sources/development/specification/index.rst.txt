@@ -9,3 +9,6 @@ Specification
     :hidden:
 
     userstories
+    architecture
+    restapi
+    technology/index
