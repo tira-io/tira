@@ -5,6 +5,7 @@
    frontend/index
    backend/index
    python-client/index
+   documentation
    specification/index
    changelog
    license
