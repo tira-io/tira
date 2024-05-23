@@ -208,6 +208,7 @@ class DockerSoftware(models.Model):
     display_name = models.TextField(default="")
     user_image_name = models.TextField(default="")
     tira_image_name = models.TextField(default="")
+    tira_image_workdir = models.TextField(default=None, null=True)
     deleted = models.BooleanField(default=False)
     description = models.TextField(default="")
     paper_link = models.TextField(default="")
@@ -256,6 +257,16 @@ class SoftwareClone(models.Model):
     task = models.ForeignKey(Task, on_delete=models.SET_NULL, null=True)
     docker_software = models.ForeignKey(DockerSoftware, on_delete=models.CASCADE, default=None, null=True)
     upload = models.ForeignKey(Upload, on_delete=models.CASCADE, default=None, null=True)
+
+
+class HuggingFaceModelsOfSoftware(models.Model):
+    """
+    - The Huggingface models to mount into some software.
+    """
+    docker_software = models.ForeignKey(DockerSoftware, on_delete=models.CASCADE, default=None, null=True)
+    hf_home = models.CharField(max_length=250, default="")
+    mount_hf_model = models.TextField(default="")
+    models_scan = models.TextField(default="")
 
 
 class Run(models.Model):

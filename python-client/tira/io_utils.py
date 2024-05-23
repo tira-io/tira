@@ -66,6 +66,92 @@ def stream_all_lines(input_file: Union[str, Iterable[bytes]], load_default_text:
         yield parse_jsonl_line(line, load_default_text)
 
 
+def huggingface_model_mounts(models:Iterable[str]) -> dict:
+    """Determine the mounts to make the described huggingface models available in the container. The models must already exist in the local huggingface cache of the host.
+
+    Args:
+        models (Iterable[str]): A list of huggingface models that you want to mount, e.g., ["openai-community/gpt2"].
+
+    Returns:
+        dict: The mounts required to make the specified models available in the container.
+    """
+    hf_cache = Path(os.path.expanduser("~/.cache/huggingface/hub"))
+    if 'HF_HUB_CACHE' in os.environ:
+        hf_cache = Path(os.environ['HF_HUB_CACHE'])
+    elif 'HF_HOME' in os.environ:
+        hf_cache = Path(os.environ['HF_HOME']) / 'hub'
+    ret = {}
+    if not models:
+        return ret
+    
+    hf_cache = hf_cache.absolute()
+    for model in models:
+        model_in_fs = ('models/' + str(model)).replace('/', '--')
+        model_path = hf_cache / model_in_fs
+        if not model_path.exists():
+            msg = f"Model {model} does not in HF_HUB_CACHE = '{hf_cache}'. Expected a directory '{model_path}' to exist. Please ensure that the model is available via your preferred way to download it."
+            print(msg)
+            raise ValueError(msg)
+        else:
+            ret[str(model_path)] = {
+                "bind": f"/root/.cache/huggingface/hub/{model_in_fs}",
+                "mode": "ro"
+            }
+
+    return ret
+
+def change_workdir_cmd(workdir: str):
+    """
+    Returns a shell command that changes the working directory to the specified directory to be executed in the TIRA sandbox before the real command.
+    """
+
+    if not workdir:
+        return 'echo "did not change the working directory"'
+    
+    workdir = workdir.strip()
+
+    if not workdir or not workdir.startswith('/'):
+        return 'echo "did not change the working directory"'
+
+    return f'cd {workdir}; echo "changed workdir to {workdir}"'
+
+def _ln_huggingface_model_mounts(models: str) -> str:
+    """Create a set of ln statements for symbolic links to huggingface models within a running container. Fails if the models do not exist in the local huggingface cache of the host.
+
+    Args:
+        models (str): A space seperated list of huggingface models that you want to mount, e.g., "openai-community/gpt2 openai-community/gpt2-large".
+
+    Returns:
+        str: the ln command for usage with eval.
+    """
+    if not models:
+        return ''
+    models = sorted(list(set([i for i in models.split(' ') if i])))
+
+    if not models:
+        return ''
+    
+    ret = ['mkdir -p /root/.cache/huggingface/hub/']
+    for model in models:
+        i = huggingface_model_mounts([model])
+        k = list(i.keys())
+        if not k or not len(k) == 1:
+            raise ValueError(f"Expected exactly one model to be mounted, got: {i}")
+        target_dir = i[k[0]]['bind']
+        src_dir = k[0]
+
+        ret += [f'rm -Rf {target_dir}', f'ln -s {src_dir} {target_dir}']
+
+    return '; '.join(ret + [f'echo "mounted {len(models)} models"'])
+
+def _default_hf_home_in_tira_host() -> str:
+    """Returns the location of the hf home on the tira hosts that are mounted read-only into the pods.
+
+    Returns:
+        str: the HF_HOME on a tira host.
+    """
+    return '/mnt/ceph/tira/data/publicly-shared-datasets/huggingface/'
+
 def all_lines_to_pandas(input_file: Union[str, Iterable[str]], load_default_text: bool) -> pd.DataFrame:
     """
     .. todo:: add documentation

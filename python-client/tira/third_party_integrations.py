@@ -205,15 +205,15 @@ def parse_extraction_of_tira_approach_bash(bash_line: str):
 def parse_extraction_of_tira_approach(python_line: str):
     try:
         import ast
-        python_line = ast.parse(python_line).body[0]
+        python_line = ast.parse(python_line.split('%')[0].strip()).body[0]
 
-        if python_line.value.func.value.attr != 'pt':
+        if 'attr' in dir(python_line.value.func.value) and python_line.value.func.value.attr != 'pt':
             return None
 
-        if python_line.value.func.value.value.id != 'tira':
+        if not('id' in dir(python_line.value.func.value) and python_line.value.func.value.id == 'tira') and not('value' in dir(python_line.value.func.value) and python_line.value.func.value.value.id == 'tira'):
             return None
 
-        if python_line.value.func.attr != 'index':
+        if python_line.value.func.attr != 'index' and python_line.value.func.attr != 'from_submission' and python_line.value.func.attr != 'get_run_output':
             return None
         
         return extract_ast_value(python_line.value.args[0])

@@ -118,6 +118,8 @@ def set_up_tira_environment():
     modeldb.DockerSoftwareHasAdditionalInput.objects.create(position=2, docker_software=s1_tmp,
                                                             input_docker_software=s3_tmp)
 
+    tira_model.add_docker_software_mounts({'docker_software_id': es1.docker_software_id}, {'HF_HOME': '1', 'MOUNT_HF_MODEL': '2', 'HF_CACHE_SCAN': '3'})
+
     d = modeldb.Dataset.objects.get(dataset_id=dataset_meta)
     d.meta_dataset_of = dataset_1 + ',' + dataset_2
     d.save()

@@ -56,7 +56,10 @@ def __normalize_run(i, ev_keys, is_admin, user_vms_for_task, task_id, is_ir_task
 
     if is_admin or i['published'] or is_training_dataset:
         for j in range(len(ev_keys)):
-            i[ev_keys[j]] = i['measures'][j]
+            try:
+                i[ev_keys[j]] = i['measures'][j]
+            except:
+                i[ev_keys[j]] = None
 
     for j in ['measures']:
         del i[j]

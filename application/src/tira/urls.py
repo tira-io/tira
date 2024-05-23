@@ -87,6 +87,7 @@ urlpatterns = [
     path('api/evaluation/<str:vm_id>/<str:run_id>', data_api.get_evaluation, name='get_evaluation'),
     path('api/submissions/<str:task_id>/<str:dataset_id>', data_api.get_submissions_by_dataset, name='get_submissions_by_dataset'),
     path('api/docker-softwares-details/<str:vm_id>/<str:docker_software_id>', vm_api.docker_software_details, name='software_details'),
+    path('api/huggingface_model_mounts/vm/<str:vm_id>/<str:hf_model>', vm_api.huggingface_model_mounts, name='huggingface_model_mounts'),
     path('api/upload-group-details/<str:task_id>/<str:vm_id>/<str:upload_id>', vm_api.upload_group_details, name='upload_id'),
     path('api/evaluations_of_run/<str:vm_id>/<str:run_id>', data_api.get_evaluations_of_run, name='evaluations_of_run'),
     path('api/configuration-of-evaluation/<str:task_id>/<str:dataset_id>', data_api.get_configuration_of_evaluation, name='get_configuration_of_evaluation'),

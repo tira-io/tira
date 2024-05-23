@@ -74,6 +74,21 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
 
         self.assertEqual(expected, actual)
 
+    def test_pyterrier_index_as_previous_stage_for_python_file_with_utility_function(self):
+        python_line = '    index = tira.pt.index("ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)", pt_dataset)'
+        expected = 'ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)'
+        actual = parse_extraction_of_tira_approach(python_line)
+
+        self.assertEqual(expected, actual)
+
+    def test_pyterrier_index_as_previous_stage_for_python_file_with_utility_function_complete(self):
+        notebook = TEST_DIR / 'resources' / 'corpus-graph-with-pyterrier-index.py'
+        expected = ['ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)']
+
+        actual = extract_previous_stages_from_notebook(notebook)
+
+        self.assertEqual(expected, actual)
+
     def test_parsing_of_ast_assignment_none(self):
         python_line = None
         k, v =  parse_ast_extract_assignment(python_line)
@@ -327,3 +342,26 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
 
         self.assertEqual(expected, actual)
         self.assertEqual("'/usr/bin/retrieve-with-pyterrier-index.py'", extract_to_be_executed_notebook_from_command_or_none("python3 '/usr/bin/retrieve-with-pyterrier-index.py'&&sleep3"))
+
+    def test_pyterrier_from_submission_with_percent_operator_01(self):
+        python_line = "        bm25_raw = tira.pt.from_submission('ir-benchmarks/tira-ir-starter/BM25 (tira-ir-starter-pyterrier)', args.input_dataset) % args.first_stage_top_k"
+        expected = 'ir-benchmarks/tira-ir-starter/BM25 (tira-ir-starter-pyterrier)'
+        actual = parse_extraction_of_tira_approach(python_line)
+
+        self.assertEqual(expected, actual)
+
+    def test_pyterrier_from_submission_with_percent_operator_02(self):
+        notebook = TEST_DIR / 'resources' / 'keyquery-script.py'
+        expected = []
+
+        actual = extract_previous_stages_from_notebook(notebook)
+        expected = ['ir-benchmarks/tira-ir-starter/BM25 (tira-ir-starter-pyterrier)',  'ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)',  'ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)']
+
+        self.assertEqual(expected, actual)
+
+    def test_pyterrier_from_run_output_01(self):
+        python_line = "        bm25_raw = tira.get_run_output('ir-benchmarks/tira-ir-starter/BM25 (tira-ir-starter-pyterrier)', args.input_dataset)"
+        expected = 'ir-benchmarks/tira-ir-starter/BM25 (tira-ir-starter-pyterrier)'
+        actual = parse_extraction_of_tira_approach(python_line)
+
+        self.assertEqual(expected, actual)

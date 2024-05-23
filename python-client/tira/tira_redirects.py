@@ -84,6 +84,24 @@ STATIC_REDIRECTS = {
                     'urls': ['https://zenodo.org/records/10743990/files/2023-11-11-06-49-15.zip?download=1', 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/pyterrier-indexes/2023-11-11-06-49-15.zip'],
                     'run_id': '2023-11-11-06-49-15',
                 },
+
+                "longeval-2023-01-20240423-training": {
+                    "run_id": "2024-04-24-01-24-17",
+                    "md5": "8bb006a0e8d32a2d1d3030f7140ea205",
+                    "urls": ['https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-padua2024/2024-04-24-01-24-17.zip']
+                },
+                
+                "longeval-2023-06-20240418-training": {
+                    "run_id": "2024-04-18-18-04-27",
+                    "md5": "bcc930aded82f2b20269e460a7e8d7bb",
+                    "urls": ['https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-padua2024/2024-04-18-18-04-27.zip']
+                },
+                
+                "longeval-2023-08-20240418-training": {
+                    "run_id": "2024-04-18-18-16-52",
+                    "md5": "47d62f254408281ef03c603248c44abc",
+                    "urls": ['https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-padua2024/2024-04-18-18-16-52.zip']
+                }
             }
         },
 
@@ -209,6 +227,11 @@ STATIC_REDIRECTS = {
                     "run_id": "2024-04-11-19-43-23",
                     "md5": "ebb5b8f1d8c7ad36612f408da1203ff2",
                     "urls": ["https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-11-19-43-23.zip"]
+                },
+                "ir-acl-anthology-20240504-training": {
+                    "run_id": "2024-05-04-16-05-53",
+                    "md5": "d571b44aa24ecd06615932a246ff7e6b",
+                    "urls": ["https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-05-04-16-05-53.zip"]
                 }
             },
             "Index (pyterrier-stanford-lemmatizer)": {
@@ -362,8 +385,14 @@ STATIC_DATASET_REDIRECTS = {
     'jena-topics-small-20240119-training': 'https://zenodo.org/records/10628882/files/',
     'leipzig-topics-small-20240119-training': 'https://zenodo.org/records/10628882/files/',
     'ir-acl-anthology-20240411-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/',
+    'longeval-2023-01-20240423-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-padua2024/',
     'longeval-2023-06-20240418-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-padua2024/',
     'longeval-2023-08-20240418-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-padua2024/',
+    'longeval-heldout-20230513-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-padua2024/',
+    'longeval-train-20230513-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-padua2024/',
+    'longeval-short-july-20230513-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-padua2024/',
+    'longeval-long-september-20230513-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-padua2024/',
+    'ir-acl-anthology-20240504-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/',
 }
 
 RESOURCE_REDIRECTS = {

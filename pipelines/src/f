@@ -1,0 +1,10 @@
+#docker build -t webis/tira-git-pipelines:0.0.29 -f src/f .
+FROM webis/tira-git-pipelines:0.0.28
+
+RUN apk add python3-dev && pip3 install pandas tira
+RUN pip3 uninstall -y tira \
+	&& pip3 install git+https://github.com/tira-io/tira.git@development#\&subdirectory=python-client
+
+ADD ./src/python/tira-specify-task-to-run.py /usr/local/bin/tira-specify-task-to-run.py
+ADD ./src/python/tira-specify-task-to-run.py /tira-git/src/python/tira-specify-task-to-run.py
+

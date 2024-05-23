@@ -1,0 +1,24 @@
+{
+    "md5_of_first_kilobyte": "a7eb39c6bd8383c6c3a6b036b88cfff6",
+    "redirect_url": {
+        "md5": "d571b44aa24ecd06615932a246ff7e6b",
+        "run_id": "2024-05-04-16-05-53",
+        "urls": [
+            "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-05-04-16-05-53.zip"
+        ]
+    },
+    "redirected_run_url": {
+        "md5": "d571b44aa24ecd06615932a246ff7e6b",
+        "run_id": "2024-05-04-16-05-53",
+        "urls": [
+            "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-05-04-16-05-53.zip"
+        ]
+    },
+    "run_execution": {
+        "dataset": "ir-acl-anthology-20240504-training",
+        "run_id": "2024-05-04-16-05-53",
+        "task": "ir-lab-sose-2024",
+        "team": "tira-ir-starter"
+    },
+    "run_url": "https://www.tira.io/task/ir-lab-sose-2024/user/tira-ir-starter/dataset/ir-acl-anthology-20240504-training/download/2024-05-04-16-05-53.zip"
+}
