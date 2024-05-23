@@ -81,7 +81,7 @@ html_theme_options: Dict[str, Any] = {
     ],
     "source_repository": "https://github.com/tira-io/tira",
     "source_branch": "development",
-    "source_directory": "python-client/sphinx",
+    "source_directory": "documentation",
     "sidebar_hide_name": True,
     "navigation_with_keys": True,
 }
