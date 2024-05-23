@@ -50,7 +50,7 @@
 	// "shutdownAction": "none",
 
 	// Uncomment the next line to run commands after the container is created.
-	"postCreateCommand": "cd frontend; yarn",
+	"postCreateCommand": "cd frontend; yarn; cd ../application; make setup; make import-mock-data",
 
 	// Configure tool-specific properties.
 	"customizations": {

@@ -3,6 +3,8 @@
 VERSION_APPLICATION=0.0.104
 VERSION_GRPC=0.0.104
 
+PYTHON=python3
+
 .DEFAULT: help
 help:
 	@echo "make setup"
@@ -23,7 +25,6 @@ clean:
 	rm -f ../model/src/model/virtual-machines/admin.prototext
 
 setup:
-	pip3 install -r requirements.txt
 	python3 src/manage.py migrate
 	python3 src/manage.py createcachetable
 	python3 src/manage.py makemigrations tira

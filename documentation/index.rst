@@ -4,20 +4,20 @@ TIRA is a platform for experiments in artificial intelligence that ensures blind
 
 .. grid:: 2 2 3 3
 
-   .. grid-item-card:: For Users
+   .. grid-item-card:: For Participants
       :class-card: sd-text-white
       :class-body: sd-fs-12 sd-px-0
-      :img-background: https://sphinx-design.readthedocs.io/en/furo-theme/_images/particle_background.jpg
+      :img-background: images/bg.svg
       :img-alt:
       :text-align: center
-      :link: users/intro.html
+      :link: participants/intro.html
       
       How to use tira.io or other hosted instances of TIRA
 
    .. grid-item-card:: For Organizers
       :class-card: sd-text-white
       :class-body: sd-fs-12 sd-px-0
-      :img-background: https://sphinx-design.readthedocs.io/en/furo-theme/_images/particle_background.jpg
+      :img-background: images/bg.svg
       :img-alt:
       :text-align: center
       :link: organizers/index.html
@@ -27,7 +27,7 @@ TIRA is a platform for experiments in artificial intelligence that ensures blind
    .. grid-item-card:: For Developers
       :class-card: sd-text-white
       :class-body: sd-fs-12 sd-px-0
-      :img-background: https://sphinx-design.readthedocs.io/en/furo-theme/_images/particle_background.jpg
+      :img-background: images/bg.svg
       :img-alt:
       :text-align: center
       :link: development/index.html
@@ -41,14 +41,14 @@ TIRA is a platform for experiments in artificial intelligence that ensures blind
 
 .. toctree::
    :maxdepth: 5
-   :caption: For Users
+   :caption: For Participants
    :hidden:
 
-   users/intro
-   users/participate
-   users/tiracli
-   users/api
-   users/faq
+   participants/intro
+   participants/participate
+   participants/tiracli
+   participants/api
+   participants/faq
 
 .. toctree::
    :maxdepth: 5

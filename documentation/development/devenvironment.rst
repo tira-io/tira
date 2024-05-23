@@ -1,3 +1,5 @@
+.. _DevEnvPage:
+
 Development Environment
 =======================
 
@@ -10,16 +12,17 @@ Development Environment
 
 Requirements
 ------------
-TIRA's development has at most two requirements: `VSCode <https://code.visualstudio.com/>`_ and
-`Docker <https://www.docker.com/>`_. Please follow their respective installation guides before proceeding **OR** you can
-use GitHub Codespaces by visiting the `TIRA repository <https://github.com/tira-io/tira/>`_ and clicking on
+TIRA's development has at most two requirements: `VSCode <https://code.visualstudio.com/>`_ (with the
+`Dev Containers <https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers>`_ extension)
+and `Docker <https://www.docker.com/>`_. Please follow their respective installation guides before proceeding **OR**
+you can use GitHub Codespaces by visiting the `TIRA repository <https://github.com/tira-io/tira/>`_ and clicking on
 :menuselection:`Code --> Codespaces`.
 
 .. todo:: GitHub Codespaces are not currently supported.
 
 Getting Started
 ---------------
-Open the repository in GitHub codespaces or VSCode. If you are using VSCode, a dialog (depicted below) should pop up
+Open the repository in GitHub Codespaces or VSCode. If you are using VSCode, a dialog (depicted below) should pop up
 asking if you want to open the repository in a development container -- click ``Reopen in Container``.
 
 .. image:: images/open-in-container.png
@@ -40,7 +43,23 @@ trying to submit again.
 
 .. attention:: You may have noticed that the ports described in this guide **do not** coincide with the ports listened
   to by the frontend and backend. For example, the frontend actually runs on the port 3000 but *must* be accessed via
-  port 8082. To understand why, please read the following section.
+  port 8082. To understand why, please read the section describing the `development infrastructure
+  <#the-development-infrastructure>`_.
+
+
+Debugging
+---------
+You don't actually need to launch TIRA's frontend and backend via the shell but can use our "Run and Debug"
+configuration instead. To access it, press :kbd:`Ctrl+Shift+D` (:kbd:`Cmd+Shift+D` for MacOS). And select ``TIRA Stack``
+from the debug side-bar that opened:
+
+.. image:: images/debug-bar.png
+    :align: center
+    :width: 250pt
+
+Now you can just press :kbd:`F5` every time to run and debug both, the frontend and backend. If an error occurs in any
+of the two, VSCode will pause the execution, show you where the error happened and lets you step through the stackframes
+and local variables.
 
 
 The Development Infrastructure
@@ -110,7 +129,7 @@ TIRA Backend             https://127.0.0.1:8080
 =======================  ======================
 
 .. attention:: The reverse proxy only serves ``https``. Your browser should tell you that it does not trust the
-    certificate. This happens since we self-signed the certificate used by the development deployment. You tell your
+    certificate. This happens since we self-signed the certificate used by the development deployment. You can tell your
     browser to connect anyway.
 
 .. note:: If you can not connect to a service or it tells you that there was a protocol error or similar, check the

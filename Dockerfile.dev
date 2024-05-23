@@ -41,10 +41,13 @@ USER root
 RUN apt-get update && apt-get install -y python3 python3-pip python3-dev pkg-config default-libmysqlclient-dev \
     libpcre3-dev
 COPY application/requirements.txt /tmp/application/requirements.txt
-RUN pip3 install -r /tmp/application/requirements.txt
+RUN <<EOF
 # Create a dummy secret
-RUN mkdir -p "/etc/discourse/" && echo "I am so secret" > "/etc/discourse/client-api-key"
-
+mkdir -p "/etc/discourse/" && echo "I am so secret" > "/etc/discourse/client-api-key"
+# Setup the application
+cd /tmp/application
+pip3 install -r requirements.txt
+EOF
 
 ########################################################################################################################
 # Client                                                                                                               #
