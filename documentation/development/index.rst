@@ -1,3 +1,5 @@
+.. _devintropage:
+
 .. rubric:: For Developers
 
 .. toctree::
