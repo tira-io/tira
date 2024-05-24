@@ -1,5 +1,5 @@
-API
-===
+Python Client
+=============
 .. todo:: Add a nice introductory text
 
 * :ref:`modindex`

@@ -4,6 +4,7 @@ import pandas as pd
 import tempfile
 import gzip
 import os
+from typing import Mapping, Iterable
 
 
 def merge_runs(topics, run_file):
@@ -148,3 +149,35 @@ class TiraLocalExecutionRerankingTransformer(Transformer):
 
         return merge_runs(topics, tmp_directory + '/output/run.txt')
 
+
+class TiraApplyFeatureTransformer(Transformer):
+    """
+    A Transformer that takes a mapping of values (e.g. docids or qids) to features, and applies this
+    mapping to each row of the dataframe to obtain the right feature value or vector for that row.
+
+    The `id_cols` parameter specifies the columns that are used to identify the right feature for a row.
+    For instance:
+    - For query-only features, we set `id_cols` = ('qid',) and the output feature will be `mapping[row['qid']]`.
+    - For document-only features, we set `id_cols` = ('docno',) and the output feature will be `mapping[row['docno']]`.
+    - For query-document features, we set `id_cols` = ('qid', 'docno') and the output feature will be `mapping[row['qid']][row['docno']]`.
+    """
+
+    def __init__(self, mapping: Mapping, id_cols: Iterable[str] = ('qid', 'docno'), name: str = 'apply_features') -> None:
+        self.mapping = mapping
+        self.id_cols = id_cols
+        self.name = name
+
+    def __repr__(self):
+        return f'tira.pt.{self.name}()'
+
+    def transform(self, inputRes):
+        outputRes = inputRes.copy()
+        outputRes["features"] = outputRes.apply(self._get_features_from_row, axis=1)
+        return outputRes
+
+    def _get_features_from_row(self, row):
+        value = self.mapping
+        for col in self.id_cols:
+            value = value[str(row[col])]
+
+        return value

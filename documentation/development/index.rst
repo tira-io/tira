@@ -1,3 +1,5 @@
+.. _devintropage:
+
 .. rubric:: For Developers
 
 .. toctree::
@@ -6,6 +8,7 @@
    frontend/index
    backend/index
    python-client/index
+   documentation
    specification/index
    changelog
    license

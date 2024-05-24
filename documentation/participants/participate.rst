@@ -1,3 +1,5 @@
+.. _ParticipatePage:
+
 Participating in a Shared Task
 ==============================
 
