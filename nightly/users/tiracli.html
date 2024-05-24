@@ -3,7 +3,7 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="API" href="api.html" /><link rel="prev" title="Participating in a Shared Task" href="participate.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Python Client" href="python-client.html" /><link rel="prev" title="Participating in a Shared Task" href="participate.html" />
 
     <!-- Generated with Sphinx 7.3.7 and Furo 2024.05.06 -->
         <title>TIRA CLI - TIRA</title>
@@ -193,7 +193,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -220,19 +220,17 @@
 <li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="participate.html">Participating in a Shared Task</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">TIRA CLI</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="python-client.html">Python Client</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">For Organizers</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../organizers/intro.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../organizers/organizing-tasks.html">Organizing Tasks</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../organizers/deployment/index.html">Deployment</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Deployment</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../organizers/deployment/application.html">Deploying the Application Module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../organizers/deployment/frontend.html">Deploying the Frontend</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../organizers/maintenance.html">Maintenance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../organizers/faq.html">Frequently Asked Questions</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Development</span></p>
 <ul>
@@ -267,6 +265,11 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../development/changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/license.html">License</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Indices</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../genindex.html">Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../glossary.html">Glossary</a></li>
 </ul>
 
 </div>
@@ -305,19 +308,72 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <div class="visually-hidden">Toggle table of contents sidebar</div>
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
         </div>
         <article role="main" id="furo-main-content">
           <section id="tira-cli">
-<h1>TIRA CLI<a class="headerlink" href="#tira-cli" title="Link to this heading">¶</a></h1>
+<span id="tiraclipage"></span><h1>TIRA CLI<a class="headerlink" href="#tira-cli" title="Link to this heading">¶</a></h1>
+<p>You don’t always need to write code to interact with TIRA. For your convenience, we offer a handy command line interface (CLI) for quick and efficient interactions with the TIRA platform.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This documentation is particularly discussing <code class="docutils literal notranslate"><span class="pre">tira-cli</span></code> and not the <code class="docutils literal notranslate"><span class="pre">tira-run</span></code> command. <code class="docutils literal notranslate"><span class="pre">tira-run</span></code>
 should be viewed as legacy and we are committed to move the functionality over to <code class="docutils literal notranslate"><span class="pre">tira-cli</span></code>.</p>
 </div>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading">¶</a></h2>
+<p>The TIRA CLI is part of the TIRA client for Python. To install it, install the TIRA client using</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>tira
+</pre></div>
+</div>
+<p>If everything worked, the CLI’s help page should display the following:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>tira-cli<span class="w"> </span>--help
+usage:<span class="w"> </span>tira-cli<span class="w"> </span><span class="o">[</span>-h<span class="o">]</span><span class="w"> </span><span class="o">{</span>download,upload,login<span class="o">}</span><span class="w"> </span>...
+
+positional<span class="w"> </span>arguments:
+<span class="w">  </span><span class="o">{</span>download,upload,login<span class="o">}</span>
+<span class="w">    </span>download<span class="w">            </span>Download<span class="w"> </span>runs<span class="w"> </span>or<span class="w"> </span>datasets<span class="w"> </span>from<span class="w"> </span>TIRA.io
+<span class="w">    </span>upload<span class="w">              </span>Upload<span class="w"> </span>runs<span class="w"> </span>or<span class="w"> </span>datasets<span class="w"> </span>to<span class="w"> </span>TIRA.io
+<span class="w">    </span>login<span class="w">               </span>Login<span class="w"> </span>your<span class="w"> </span>TIRA<span class="w"> </span>client<span class="w"> </span>to<span class="w"> </span>the<span class="w"> </span>tira<span class="w"> </span>server.
+
+options:
+<span class="w">  </span>-h,<span class="w"> </span>--help<span class="w">            </span>show<span class="w"> </span>this<span class="w"> </span><span class="nb">help</span><span class="w"> </span>message<span class="w"> </span>and<span class="w"> </span><span class="nb">exit</span>
+</pre></div>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>To quickly find out more about <code class="docutils literal notranslate"><span class="pre">tira-cli</span></code> or a specific subcommand, use <code class="docutils literal notranslate"><span class="pre">tira-cli</span> <span class="pre">--help</span></code> or
+<code class="docutils literal notranslate"><span class="pre">tira-cli</span> <span class="pre">&lt;subcommand&gt;</span> <span class="pre">--help</span></code>.</p>
+</div>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>If you encounter any problems, check with <code class="docutils literal notranslate"><span class="pre">tira-cli</span> <span class="pre">--version</span></code> if you are up to date. Please include
+this information as well whenever you file a bug ticket for the CLI.</p>
+</div>
+</section>
+<section id="tira-cli-login">
+<h2>tira-cli login<a class="headerlink" href="#tira-cli-login" title="Link to this heading">¶</a></h2>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>TODO</p>
+</div>
+</section>
+<section id="tira-cli-upload">
+<h2>tira-cli upload<a class="headerlink" href="#tira-cli-upload" title="Link to this heading">¶</a></h2>
+<div class="admonition-todo admonition" id="id2">
+<p class="admonition-title">Todo</p>
+<p>TODO</p>
+</div>
+</section>
+<section id="tira-cli-download">
+<h2>tira-cli download<a class="headerlink" href="#tira-cli-download" title="Link to this heading">¶</a></h2>
+<div class="admonition-todo admonition" id="id3">
+<p class="admonition-title">Todo</p>
+<p>TODO</p>
+</div>
+</section>
 </section>
 
         </article>
@@ -325,12 +381,12 @@ should be viewed as legacy and we are committed to move the functionality over t
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="api.html">
+          <a class="next-page" href="python-client.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">API</div>
+                <div class="title">Python Client</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
@@ -370,8 +426,30 @@ should be viewed as legacy and we are committed to move the functionality over t
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">TIRA CLI</a><ul>
+<li><a class="reference internal" href="#introduction">Introduction</a></li>
+<li><a class="reference internal" href="#tira-cli-login">tira-cli login</a></li>
+<li><a class="reference internal" href="#tira-cli-upload">tira-cli upload</a></li>
+<li><a class="reference internal" href="#tira-cli-download">tira-cli download</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

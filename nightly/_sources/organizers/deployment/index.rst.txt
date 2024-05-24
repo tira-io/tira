@@ -8,7 +8,7 @@ Deployment
 TIRA itself is split into 2 modules that have to be deployed separately:
 
 #. The :doc:`Application Module<application>`
-#. The :doc:`Frontend<host>`
+#. The :doc:`Frontend<frontend>`
 
 .. toctree::
     :maxdepth: 2

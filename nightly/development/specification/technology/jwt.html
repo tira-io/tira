@@ -220,19 +220,17 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../users/intro.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../users/participate.html">Participating in a Shared Task</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../users/tiracli.html">TIRA CLI</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../users/api.html">API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../users/faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../users/python-client.html">Python Client</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">For Organizers</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../organizers/intro.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../organizers/organizing-tasks.html">Organizing Tasks</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../organizers/deployment/index.html">Deployment</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Deployment</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../organizers/deployment/application.html">Deploying the Application Module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../organizers/deployment/frontend.html">Deploying the Frontend</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../../../organizers/maintenance.html">Maintenance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../organizers/faq.html">Frequently Asked Questions</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Development</span></p>
 <ul class="current">
@@ -267,6 +265,11 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../license.html">License</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Indices</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../genindex.html">Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../glossary.html">Glossary</a></li>
 </ul>
 
 </div>
@@ -321,6 +324,33 @@
 The content of this string is dictated by the specific token type that is used. In our case: “JSON Web Token” (“JWT”; <span class="target" id="index-1"></span><a class="rfc reference external" href="https://datatracker.ietf.org/doc/html/rfc7519.html"><strong>RFC 7519</strong></a>). A JWT consists off three parts: A header, payload and signature. The header simply states “this is a JWT”
 while the payload presents “claims”. This can be, for example “My Username is: …” (in JSON this could be, for example, <code class="docutils literal notranslate"><span class="pre">'username':</span> <span class="pre">'...'</span></code>) or even “I have access to resource …”. The advantage with JWT is that the API does not need to check with the authorization or authentication server to request this information as seen in the following example:</p>
 <figure class="align-center" id="id1">
+<p class="plantuml">
+<img src="../../../_images/plantuml-414c7afee6c0b705c6c7f490b789c483705af32d.svg" alt="&#64;startuml
+skinparam monochrome true
+skinparam BackgroundColor #fefefe
+hide footbox
+
+participant Client
+participant TIRA
+participant &quot;Auth Provider&quot;
+actor User
+
+Client -&gt; TIRA: /user
+activate TIRA
+TIRA --&gt; Client: 401 Unauthorized
+deactivate TIRA
+Client -&gt; &quot;Auth Provider&quot;: Auth. Request
+activate &quot;Auth Provider&quot;
+&quot;Auth Provider&quot; &lt;-&gt; User: Login
+&quot;Auth Provider&quot; --&gt; Client: Auth. Reponse with JWT Token
+deactivate &quot;Auth Provider&quot;
+Client -&gt; TIRA: /user with JWT
+activate TIRA
+TIRA -&gt; TIRA: Verify signature
+TIRA --&gt; Client: 200
+deactivate TIRA
+
+&#64;enduml"/></p>
 <figcaption>
 <p><span class="caption-text">An unauthorized request for user information followed by a login and the same, now authorized, request. If the step <code class="docutils literal notranslate"><span class="pre">Verify</span> <span class="pre">Signature</span></code> had failed, a 401 would be returned instead of the 200. The 200 contains user information in the response body.</span><a class="headerlink" href="#id1" title="Link to this image">¶</a></p>
 </figcaption>

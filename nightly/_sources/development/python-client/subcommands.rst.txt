@@ -96,6 +96,8 @@ Make sure that it works by also trying out
 
 What would you expect should happen? Does it work?
 
+.. important:: Please, do not forget to add documentation of your new subcommand to the
+    :ref:`TIRA CLI documentation <TIRACLIPage>`.
 
 Adding Logging to our Subcommand
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

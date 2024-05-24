@@ -220,19 +220,17 @@
 <li class="toctree-l1"><a class="reference internal" href="../users/intro.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../users/participate.html">Participating in a Shared Task</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../users/tiracli.html">TIRA CLI</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../users/api.html">API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../users/faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../users/python-client.html">Python Client</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">For Organizers</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../organizers/intro.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../organizers/organizing-tasks.html">Organizing Tasks</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../organizers/deployment/index.html">Deployment</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Deployment</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../organizers/deployment/application.html">Deploying the Application Module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../organizers/deployment/frontend.html">Deploying the Frontend</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../organizers/maintenance.html">Maintenance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../organizers/faq.html">Frequently Asked Questions</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Development</span></p>
 <ul class="current">
@@ -267,6 +265,11 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Indices</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../genindex.html">Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../glossary.html">Glossary</a></li>
 </ul>
 
 </div>
@@ -341,7 +344,7 @@ The eye icon to the left of it lets you view the file in GitHub.</span><a class=
 <section id="glossary">
 <h2>Glossary<a class="headerlink" href="#glossary" title="Link to this heading">¶</a></h2>
 <p>Terminology can be one of the biggest hurdles for users <strong>and</strong> developers. To help newcomers as well as we can, we
-provide a <a class="reference internal" href="../glossary.html#glossary"><span class="std std-ref">glossary</span></a>. Please add any terms to the glossary that you find should be added or you see
+provide a <span class="xref std std-ref">glossary</span>. Please add any terms to the glossary that you find should be added or you see
 users struggle with. The size of the glossary does not really matter since the reader is not expected to read or even
 skim it all. Instead, link to the when using terms the user may not understand. This helps users who are unfamiliar
 with the term since it gives them the option to help themselves, while it does not affect users familiar with the term
@@ -366,6 +369,35 @@ content. You can find the official documentation <a class="reference external" h
 <div class="sd-row sd-row-cols-2 sd-row-cols-xs-2 sd-row-cols-sm-2 sd-row-cols-md-2 sd-row-cols-lg-2 docutils">
 <div class="sd-col sd-d-flex-column sd-col-12 sd-col-xs-12 sd-col-sm-4 sd-col-md-4 sd-col-lg-4 sd-align-major-center docutils">
 <figure class="align-center" id="id3">
+<p class="plantuml">
+<img src="../_images/plantuml-b1f857d26ee73be5887b93315a1ecaa3af26f619.svg" alt="&#64;startuml
+skinparam monochrome true
+skinparam BackgroundColor #fefefe
+hide footbox
+
+actor User
+participant A
+participant B
+participant C
+
+User -&gt; A: get thing
+activate A
+A -&gt; B: get thing
+activate B
+B --&gt; A: no
+deactivate B
+A -&gt; C: give thing to user
+activate C
+C -&gt; User: here you go
+activate User
+User --&gt; C: thanks
+deactivate User
+C --&gt; A: done
+deactivate C
+A --&gt; User
+deactivate A
+
+&#64;enduml"/></p>
 <figcaption>
 <p><span class="caption-text">I am a caption :)</span><a class="headerlink" href="#id3" title="Link to this image">¶</a></p>
 </figcaption>
