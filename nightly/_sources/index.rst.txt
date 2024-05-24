@@ -36,7 +36,7 @@ TIRA is a platform for experiments in artificial intelligence that ensures blind
 
 
 * :ref:`genindex`
-* `Glossary <glossary.html>`_
+* :ref:`glossary`
 
 
 .. toctree::
