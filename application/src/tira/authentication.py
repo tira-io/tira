@@ -4,21 +4,16 @@
 import json
 import logging
 import os
-from datetime import datetime
 from functools import wraps
 
-import requests
 from django.conf import settings
-from django.http import JsonResponse, Http404, HttpResponseNotAllowed
+from django.http import HttpResponseNotAllowed
 from slugify import slugify
 import tira.tira_model as model
-from google.protobuf.text_format import Parse
-
-from .proto import TiraClientWebMessages_pb2 as modelpb
-import urllib.parse
 
 logger = logging.getLogger(__name__)
 
+# TODO: this file can be reduced significantly when the differen deployment configurations are removed
 
 class Authentication(object):
     """ Base class for Authentication and Role Management"""
