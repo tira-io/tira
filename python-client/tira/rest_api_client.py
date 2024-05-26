@@ -509,11 +509,12 @@ class Client(TiraClient):
 
         return f'_t={resp.cookies["_t"]}; _forum_session={resp.cookies["_forum_session"]}'
 
-    def run_software(self, approach, dataset, resources, rerank_dataset='none'):
+    def run_software(self, approach, dataset, resources, rerank_dataset='none', software_id=None):
         task, team, software = approach.split('/')
         authentication_cookie = self.get_authentication_cookie(self.load_settings()['user'], self.load_settings()['password'])
 
-        software_id = self.docker_software_id(approach)
+        if not software_id:
+            software_id = self.docker_software_id(approach)
         if not software_id:
             raise ValueError(f'Could not find software id for "{approach}". Got: "{software_id}".')
 
