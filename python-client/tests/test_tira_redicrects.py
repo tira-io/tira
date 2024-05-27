@@ -1,7 +1,7 @@
 import unittest
 from approvaltests import verify_as_json
 from tira.tira_redirects import redirects, mirror_url
-from tira.rest_api_client import Client
+from tira.tira_client import RestClient
 import requests
 from hashlib import md5
 
@@ -166,7 +166,7 @@ class TestRedirects(unittest.TestCase):
             'longeval-short-july-20230513-training', 'longeval-heldout-20230513-training',
             'longeval-long-september-20230513-training', 'longeval-train-20230513-training'
         ])
-        tira = Client()
+        tira = RestClient()
 
         ret = {}
         for software in softwareto_approve:

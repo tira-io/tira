@@ -3,9 +3,8 @@ import pathlib
 import pandas as pd
 import argparse
 from tira.third_party_integrations import ensure_pyterrier_is_loaded
-from tira.rest_api_client import Client
+from tira.tira_client import RestClient
 from tqdm import tqdm
-from pathlib import Path
 
 
 def __normalize_queries(q):
@@ -132,7 +131,7 @@ if __name__ == '__main__':
     ensure_pyterrier_is_loaded()
     import pyterrier as pt
 
-    tira = Client()
+    tira = RestClient()
 
     pt_dataset = pt.get_dataset(f'irds:ir-benchmarks/{args.input_dataset}')
     oracle_index = load_oracle_index(args.query_document_pairs, args.oracle_dataset_ids)

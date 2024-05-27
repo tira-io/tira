@@ -1,14 +1,14 @@
-from tira.rest_api_client import Client
+from tira.tira_client import RestClient, TiraClient
 import unittest
 
 # .. todo:: this file still uses "unclean" assertions and should be converted to use unittest assertions
 
 class TestRestAPI(unittest.TestCase):
-    tira: Client
+    tira: TiraClient
 
     @classmethod
     def setUpClass(cls):
-        TestRestAPI.tira = Client()
+        TestRestAPI.tira = RestClient()
 
     def test_all_softwares_works_for_tirex(self):
         actual = TestRestAPI.tira.all_softwares("ir-benchmarks")

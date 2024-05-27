@@ -16,19 +16,19 @@ tira-cli login --token YOUR-TOKEN-HERE
 You can download runs of published and unblinded submissions via:
 
 ```
-from tira.rest_api_client import Client
+from tira.tira_client import RestClient
 
-tira = Client()
+tira = RestClient()
 output = tira.get_run_output('<task>/<team>/<approach>', '<dataset>')
 ```
 
 As an example, you can download all baseline BM25 runs submitted to [TIREx](https://www.tira.io/tirex) via:
 
 ```
-from tira.rest_api_client import Client
+from tira.tira_client import RestClient
 from tira.tirex import TIREX_DATASETS
 
-tira = Client()
+tira = RestClient()
 
 for dataset in TIREX_DATASETS:
     output = tira.get_run_output('ir-benchmarks/tira-ir-starter/BM25 Re-Rank (tira-ir-starter-pyterrier)', dataset)
@@ -39,9 +39,9 @@ for dataset in TIREX_DATASETS:
 As an example, you can see all public software submissions submitted to [TIREx](https://www.tira.io/tirex) via:
 
 ```
-from tira.rest_api_client import Client
+from tira.tira_client import RestClient
 
-tira = Client()
+tira = RestClient()
 submissions = tira.all_softwares("ir-benchmarks")
 ```
 
@@ -56,9 +56,9 @@ tira-run --export-dataset '<task>/<tira-dataset>' --output-directory tira-datase
 
 Export a dataset via the python API:
 ```
-from tira.rest_api_client import Client
+from tira.tira_client import RestClient
 
-tira = Client()
+tira = RestClient()
 tira.download_dataset('<task>', '<tira-dataset>')
 ```
 

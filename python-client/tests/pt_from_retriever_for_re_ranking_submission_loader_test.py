@@ -1,4 +1,4 @@
-from tira.local_client import Client
+from tira.tira_client import LocalClient
 
 import pandas as pd
 import unittest
@@ -7,7 +7,7 @@ import unittest
 
 def retrieval_submission(queries):
     queries = pd.DataFrame([{'qid': str(i)} for i in queries])
-    tira = Client('tests/resources/')
+    tira = LocalClient('tests/resources/')
     retriever =  tira.pt.from_retriever_submission('ir-benchmarks/tira-ir-starters/retriever-for-re-ranking', dataset='d1')
     
     ret = retriever(queries)

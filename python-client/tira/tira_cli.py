@@ -4,12 +4,8 @@ from platform import python_version
 from typing import Optional
 
 from tira import __version__
-from tira.rest_api_client import Client as RestClient
+from .tira_client import RestClient
 import logging
-
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from .tira_client import TiraClient
 
 
 def download_run(client, approach, dataset):
@@ -49,7 +45,7 @@ Implementations of each command. They don't all need to be here but if your comm
 don't know, where else to put it, this is a good place.
 """
 def download_command(dataset: str, approach: Optional[str]=None, **kwargs) -> int:
-    client: "TiraClient" = RestClient()
+    client = RestClient()
     if approach is not None:
         print(client.get_run_output(approach, dataset))
     else:
@@ -57,7 +53,7 @@ def download_command(dataset: str, approach: Optional[str]=None, **kwargs) -> in
     return 0
 
 def login_command(token: str, print_docker_auth: bool, **kwargs) -> int:
-    client: "TiraClient" = RestClient()
+    client = RestClient()
     client.login(token)
     if print_docker_auth:
         print(client.local_execution.docker_client_is_authenticated())

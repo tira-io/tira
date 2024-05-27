@@ -1,17 +1,19 @@
+from typing import Optional
+
 import json
 import pandas as pd
 import os
 from glob import glob
 from packaging import version
-from tira.pyterrier_integration import PyTerrierIntegration
-from tira.pandas_integration import PandasIntegration
-from tira.local_execution_integration import LocalExecutionIntegration
-from tira.rest_api_client import Client as RestClient
-from tira.tira_client import TiraClient
+from ..pyterrier_integration import PyTerrierIntegration
+from ..pandas_integration import PandasIntegration
+from ..local_execution_integration import LocalExecutionIntegration
+from ..tira_client import TiraClient
+from .rest_api_client import Client as RestClient
 
 
 class Client(TiraClient):
-    def __init__(self, directory='.', rest_client=None):
+    def __init__(self, directory='.', rest_client: Optional[TiraClient] = None):
         self.pd = PandasIntegration(self)
         self.pt = PyTerrierIntegration(self)
         self.directory = directory + '/'

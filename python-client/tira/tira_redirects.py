@@ -444,7 +444,7 @@ def mirror_url(url):
     return url
 
 # do some semi fast tests with:
-#    python3 -c 'from tira.rest_api_client import Client; tira = Client(); print(tira.get_run_output("ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)", "argsme-touche-2020-task-1-20230209-training"))'
+#    python3 -c 'from tira.tira_client import RestClient; tira = RestClient(); print(tira.get_run_output("ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)", "argsme-touche-2020-task-1-20230209-training"))'
 
 def redirects(approach=None, dataset=None, url=None):
     default_ret = {'urls': [url]}

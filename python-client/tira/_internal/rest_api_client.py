@@ -11,7 +11,7 @@ from tira.pyterrier_integration import PyTerrierIntegration, PyTerrierAnceIntegr
 from tira.pandas_integration import PandasIntegration
 from tira.local_execution_integration import LocalExecutionIntegration
 import logging
-from .tira_client import TiraClient
+from ..tira_client import TiraClient
 from typing import Optional, List, Dict, Union
 from functools import lru_cache
 from tira.tira_redirects import redirects, mirror_url, dataset_ir_redirects, RESOURCE_REDIRECTS
@@ -305,7 +305,6 @@ class Client(TiraClient):
         if team:
             ret = ret[ret['team'] == team]
 
-        # FIXME: Is this really necessary or is it checked with the if len(ret) <= 0 later on?
         if len(ret) <= 0:
             return None
 

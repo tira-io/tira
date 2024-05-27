@@ -1,18 +1,14 @@
 #!/usr/bin/env python
 import argparse
-from tira.local_client import Client
-from tira.rest_api_client import Client as RestClient
+from .tira_client import LocalClient, RestClient
 from tira.local_execution_integration import LocalExecutionIntegration
 from tira.io_utils import huggingface_model_mounts
 import os
 import shutil
 import logging
+from pathlib import Path
 import tempfile
 from tira.third_party_integrations import extract_previous_stages_from_docker_image
-
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from .tira_client import TiraClient
 
 
 def setup_upload_run_command(parser: argparse.ArgumentParser) -> None:
@@ -171,7 +167,7 @@ def main(args=None):
     args = args if args else parse_args()
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
 
-    client: "TiraClient" = Client()
+    client = LocalClient()
 
     # Subcommands store their executable into args.executable which takes the parsed arguments and returns an integer
     if hasattr(args, 'executable') and args.executable is not None:

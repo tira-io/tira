@@ -95,3 +95,14 @@ class TiraClient(ABC):
         false  otherwise.
         """
         pass
+
+
+
+
+def RestClient(base_url: "Optional[str]"=None, api_key: str=None, failsave_retries: int=5, failsave_max_delay: int=15, api_user_name: "Optional[str]"=None) -> TiraClient:
+    from ._internal.rest_api_client import Client as TiraRestClient
+    return TiraRestClient(base_url=base_url, api_key=api_key, failsave_retries=failsave_retries, failsave_max_delay=failsave_max_delay, api_user_name=api_user_name)
+
+def LocalClient(directory='.', rest_client: "Optional[TiraClient]"=None) -> TiraClient:
+    from ._internal.local_client import Client as TiraLocalClient
+    return TiraLocalClient(directory=directory, rest_client=rest_client)

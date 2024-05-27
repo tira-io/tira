@@ -75,7 +75,7 @@ def load_rerank_data(default, load_default_text=True):
     default_input = get_input_directory_and_output_directory(default)[0]
 
     if not os.path.isdir(default_input) and len(default.split('/')) == 2:
-        from tira.rest_api_client import Client as RestClient
+        from tira.tira_client import RestClient
         default_input = RestClient().download_dataset(default.split('/')[0], default.split('/')[1])
 
     if not default_input.endswith('rerank.jsonl') and not default_input.endswith('rerank.jsonl.gz'):

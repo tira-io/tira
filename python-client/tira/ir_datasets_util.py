@@ -262,7 +262,7 @@ def ir_dataset_from_tira_fallback_to_original_ir_datasets():
             logging.info(f'Please pass tira_path as <task>/<tira-dataset>. Got {tira_path}')
             raise ValueError(f'Please pass tira_path as <task>/<tira-dataset>. Got {tira_path}')
 
-        from tira.rest_api_client import Client as RestClient
+        from tira.tira_client import RestClient
         task, dataset = tira_path.split('/')
         return RestClient().download_dataset(task, dataset, truth_dataset=truth_dataset)
 
