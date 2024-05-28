@@ -1,8 +1,8 @@
 from tira.third_party_integrations import ensure_pyterrier_is_loaded, persist_and_normalize_run
-from tira.rest_api_client import Client
+from tira.tira_client import RestClient
 ensure_pyterrier_is_loaded()
 import pyterrier as pt
-tira = Client()
+tira = RestClient()
 dataset_id = 'longeval-tiny-train-20240315-training'
 pt_dataset = pt.get_dataset(f'irds:ir-lab-padua-2024/{dataset_id}')
 index = tira.pt.index('ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)', dataset_id)

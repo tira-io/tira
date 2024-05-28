@@ -6,25 +6,36 @@ import os
 import zipfile
 import io
 import time
+from typing import TYPE_CHECKING
+
 from random import randint
 from tira.pyterrier_integration import PyTerrierIntegration, PyTerrierAnceIntegration, PyTerrierSpladeIntegration
 from tira.pandas_integration import PandasIntegration
 from tira.local_execution_integration import LocalExecutionIntegration
 import logging
-from .tira_client import TiraClient
-from typing import Optional, List, Dict, Union
+from ..tira_client import TiraClient
 from functools import lru_cache
 from tira.tira_redirects import redirects, mirror_url, dataset_ir_redirects, RESOURCE_REDIRECTS
 from tqdm import tqdm
 import hashlib
 
-class Client(TiraClient):
-    base_url: str
+if TYPE_CHECKING:
+    from typing import Optional, List, Dict, Union
 
-    def __init__(self, base_url: Optional[str]=None, api_key: str=None, failsave_retries: int=5, failsave_max_delay: int=15, api_user_name: Optional[str]=None):
+
+class Client(TiraClient):
+
+    def __init__(
+        self,
+        base_url: "Optional[str]" = None,
+        api_key: "Optional[str]" = None,
+        failsave_retries: int = 5,
+        failsave_max_delay: int = 15,
+        api_user_name: "Optional[str]" = None,
+    ):
         self.base_url = base_url or 'https://www.tira.io'
         self.tira_cache_dir = os.environ.get('TIRA_CACHE_DIR', os.path.expanduser('~') + '/.tira')
-        self.json_cache = {}
+        self.json_cache: dict = {}  # TODO: Am I used?
 
         if api_key is None:
             self.api_key = self.load_settings()['api_key']
@@ -145,7 +156,7 @@ class Client(TiraClient):
     def submissions(self, task, dataset):
         response = self.json_response(f'/api/submissions/{task}/{dataset}')['context']
         ret = []
-        
+
         for vm in response['vms']:
             for run in vm['runs']:
                 if 'review' in run:
@@ -160,7 +171,7 @@ class Client(TiraClient):
     def upload_submissions(self, task_id, vm_id, upload_id, dataset=None):
         ret = self.json_response(f'/api/upload-group-details/{task_id}/{vm_id}/{upload_id}')
         ret = ret['context']['upload_group_details']['runs']
-        
+
         return [i for i in ret if dataset is None or dataset == i['dataset']]
 
     def submissions_with_evaluation_or_none(self, task, dataset, team, software):
@@ -227,7 +238,7 @@ class Client(TiraClient):
     def run_was_already_executed_on_dataset(self, approach, dataset):
         return self.get_run_execution_or_none(approach, dataset) is not None
 
-    def load_resource(self, resource:str):
+    def load_resource(self, resource: str):
         """Load a resource (usually a zip) from TIRA/Zenodo. Serves as utikity function in case some additional resources must be loaded.
 
         Args:
@@ -301,11 +312,10 @@ class Client(TiraClient):
         ret = df_eval[(df_eval['dataset'] == dataset) & (df_eval['software'] == software)]
         if len(ret) <= 0:
             return None
-        
+
         if team:
             ret = ret[ret['team'] == team]
 
-        # FIXME: Is this really necessary or is it checked with the if len(ret) <= 0 later on?
         if len(ret) <= 0:
             return None
 
@@ -316,7 +326,7 @@ class Client(TiraClient):
             return None
 
         return ret[['task', 'dataset', 'team', 'run_id']].iloc[0].to_dict()
-        
+
     def download_run(self, task, dataset, software, team=None, previous_stage=None, return_metadata=False):
         mounted_output_in_sandbox = self.input_run_in_sandbox(f'{task}/{team}/{software}')
         if mounted_output_in_sandbox:
@@ -332,7 +342,7 @@ class Client(TiraClient):
         if not ret:
             raise ValueError(f'I could not find a run for the filter criteria task="{task}", dataset="{dataset}", software="{software}", team={team}, previous_stage={previous_stage}')
         run_id = ret['run_id']
-        
+
         ret = self.download_zip_to_cache_directory(**ret)
         ret = pd.read_csv(ret + '/run.txt', sep='\\s+', names=["query", "q0", "docid", "rank", "score", "system"], dtype={"query": str, "docid": str})
         if return_metadata:
@@ -354,7 +364,7 @@ class Client(TiraClient):
 
         return self.download_zip_to_cache_directory(task, dataset, team, submissions.iloc[0].to_dict()['run_id'])
 
-    def download_dataset(self, task, dataset, truth_dataset=False):
+    def download_dataset(self, task: str, dataset: str, truth_dataset: bool=False) -> str:
         """
         Download the dataset. Set truth_dataset to true to load the truth used for evaluations.
         """
@@ -442,10 +452,9 @@ class Client(TiraClient):
         if url.split('://')[1].startswith('files.webis.de'):
             print(f'Download from the Incubator: {url}')
             print('\tThis is only used for last spot checks before archival to Zenodo.')
-        
+
         if  url.split('://')[1].startswith('zenodo.org'):
             print(f'Download from Zenodo: {url}')
-
 
         for _ in range(self.failsave_retries):
             status_code = None
@@ -535,7 +544,7 @@ class Client(TiraClient):
         logging.info(ret)
         ret = json.loads(ret)
         assert ret['status'] == 0
-    
+
     def get_upload_group_id(self, task_id: str, vm_id: str, display_name: str) -> int:
         """Get the id of the upload group of user specified with vm_id for the task task_id with the display_name. Raises an error if no matching upload_group was found."""
         url = f"/api/submissions-for-task/{task_id}/{vm_id}/upload"
@@ -551,18 +560,27 @@ class Client(TiraClient):
 
         logging.error(f"Could not find upload with display_name {display_name} for task {task_id} of user {vm_id}. Got:", ret['context']['all_uploadgroups'])
         raise ValueError("Could not find upload with display_name {display_name} for task {task_id} of user {vm_id}. Got:", ret['context']['all_uploadgroups'])
-    
-    def create_upload_group(self, task_id: str, vm_id: str, display_name: str) -> Optional[str]:
+
+    def create_upload_group(self, task_id: str, vm_id: str, display_name: str) -> "Optional[str]":
         # TODO: check that task_id and vm_id don't contain illegal characters (e.g., '/')
         # TODO: Make this idempotent: reuse existing upload group if it already exists.
         url = f"{self.base_url}/task/{task_id}/vm/{vm_id}/add_software/upload"
         logging.debug(f"Creating a new upload at {url}")
         ret = json_response(url)
-            
+
         logging.debug(f"Created new upload with id {content.upload}")
         return content.upload
 
-    def upload_run(self, file_path: Path, dataset_id: str, approach: str=None, task_id: str=None, vm_id: str=None, upload_id: str=None, allow_multiple_uploads=False) -> bool:
+    def upload_run(
+        self,
+        file_path: Path,
+        dataset_id: str,
+        approach: "Optional[str]" = None,
+        task_id: "Optional[str]" = None,
+        vm_id: "Optional[str]" = None,
+        upload_id: "Optional[str]" = None,
+        allow_multiple_uploads: bool = False,
+    ) -> bool:
         """
         Returns true if the upload was successfull, false if not, or none if it was already uploaded.
         """
@@ -593,7 +611,12 @@ class Client(TiraClient):
         ret = requests.get(f'{self.base_url}/', headers={"Api-Key": self.api_key})
         return ret.content.decode('utf-8').split('name="csrfmiddlewaretoken" value="')[1].split('"')[0]
 
-    def execute_post_return_json(self, endpoint: str, params: Optional[Union[Dict, List[tuple], bytes]] = None, file_path: Path=None) -> Dict: 
+    def execute_post_return_json(
+        self,
+        endpoint: str,
+        params: "Optional[Union[Dict, List[tuple], bytes]]" = None,
+        file_path: "Optional[Path]" = None,
+    ) -> "Dict":
         assert endpoint.startswith('/')
         headers = {
             'Api-Key': self.api_key,
@@ -606,7 +629,7 @@ class Client(TiraClient):
 
                 resp = requests.post(url=f'{self.base_url}{endpoint}', files=files, headers=headers, params=params)
                 if resp.status_code not in {200, 202}:
-                    raise ValueError(f'Got statuscode {resp.status_code} for {endpoint}. Got {resp.content}')
+                    raise ValueError(f'Got statuscode {resp.status_code} for {endpoint}. Got {resp.content.decode()}')
                 else:
                     break
             except Exception as e:
@@ -617,7 +640,7 @@ class Client(TiraClient):
         return resp.json()
 
     @lru_cache(maxsize=None)
-    def json_response(self, endpoint: str, params: Optional[Union[Dict, List[tuple], bytes]] = None):
+    def json_response(self, endpoint: str, params: "Optional[Union[Dict, List[tuple], bytes]]" = None):
         assert endpoint.startswith('/')
         headers = {"Accept": "application/json"}
 
@@ -640,13 +663,11 @@ class Client(TiraClient):
 
         return resp.json()
 
-
     def __listdir_failsave(self, path: str):
         try:
             return os.listdir(path)
         except:
             return []
-
 
     def input_run_in_sandbox(self, approach:str):
         """
@@ -673,4 +694,3 @@ class Client(TiraClient):
             json.dump(input_run_mapping, open(input_run_mapping_file, 'w+'))
 
         return input_run + '/' + str(input_run_mapping[approach])
-

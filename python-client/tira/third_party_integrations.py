@@ -1,9 +1,14 @@
 import os
 import json
-from tira.io_utils import all_lines_to_pandas
 import logging
 from pathlib import Path
+from typing import TYPE_CHECKING
 import shlex
+
+from .io_utils import all_lines_to_pandas
+
+if TYPE_CHECKING:
+    from typing import Optional
 
 
 def ensure_pyterrier_is_loaded(boot_packages=("com.github.terrierteam:terrier-prf:-SNAPSHOT", ), packages=(), patch_ir_datasets=True):
@@ -75,7 +80,7 @@ def load_rerank_data(default, load_default_text=True):
     default_input = get_input_directory_and_output_directory(default)[0]
 
     if not os.path.isdir(default_input) and len(default.split('/')) == 2:
-        from tira.rest_api_client import Client as RestClient
+        from tira.tira_client import RestClient
         default_input = RestClient().download_dataset(default.split('/')[0], default.split('/')[1])
 
     if not default_input.endswith('rerank.jsonl') and not default_input.endswith('rerank.jsonl.gz'):
@@ -145,7 +150,7 @@ def normalize_run(run, system_name, depth=1000):
     return run[['qid', 'Q0', 'docno', 'rank', 'score', 'system']]
 
 
-def extract_to_be_executed_notebook_from_command_or_none(command:str):
+def extract_to_be_executed_notebook_from_command_or_none(command: "Optional[str]"):
     command = command.replace(';', ' ').replace('&', ' ').replace('|', ' ') if command is not None else None
     if command is not None and '--notebook' in command:
         return command.split('--notebook')[1].strip().split(' ')[0].strip()
@@ -254,7 +259,7 @@ def extract_previous_stages_from_notebook(notebook:Path):
     return ret
 
 
-def extract_previous_stages_from_docker_image(image:str, command:str = None):
+def extract_previous_stages_from_docker_image(image: str, command: "Optional[str]" = None):
     import tempfile
     from tira.local_execution_integration import LocalExecutionIntegration as Client
 

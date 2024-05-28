@@ -14,7 +14,3 @@ run-tests-legacy:
 	&& ../application/venv/bin/coverage report --data-file=tests/test-coverage/.coverage > tests/test-coverage/coverage-report \
 	&& cd tests/test-coverage \
 	&& ../../../application/venv/bin/coverage-badge -o coverage.svg
-
-docs:
-	docker run --rm -ti -v ${PWD}:/app -w /app webis/tira:python-client-dev-0.0.3 bash -c \
-	    'sphinx-apidoc -o docs tira/ && cd docs && make html'

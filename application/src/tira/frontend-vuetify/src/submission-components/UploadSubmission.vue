@@ -275,10 +275,10 @@ export default {
       handleModifiedSubmission(editedDetails, this.all_uploadgroups)
     },
     batch_upload_code(display_name) {
-      return 'from tira.rest_api_client import Client\n' +
+      return 'from tira.tira_client import RestClient\n' +
         'from pathlib import Path\n' +
         'from tqdm import tqdm\n\n' +
-        'tira = Client()\n' +
+        'tira = RestClient()\n' +
         'approach = \'' + this.task_id + '/' + this.user_id_for_task + '/' + display_name + '\'\n' +
         'dataset_ids = [' + this.datasets.map((i) => '\'' + i.dataset_id + '\'') + ']\n\n' +
         'for dataset_id in tqdm(dataset_ids):\n' +

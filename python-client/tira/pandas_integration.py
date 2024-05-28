@@ -1,5 +1,19 @@
-from typing import List, Tuple
-PANDAS_DTYPES = {'docno': str, 'doc_id': str, 'id': str, 'qid': str, 'query_id': str, 'queryid': str, 'docno': str, 'doc_id': str, 'docid': str}
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing import List, Optional, Tuple
+
+PANDAS_DTYPES = {
+    "docno": str,
+    "doc_id": str,
+    "id": str,
+    "qid": str,
+    "query_id": str,
+    "queryid": str,
+    "docno": str,
+    "doc_id": str,
+    "docid": str,
+}
 
 class PandasIntegration():
     """Handling of inputs/outputs in TIRA with pandas. All methods here work in the TIRA sandbox without internet connection (when the data is mounted read-only).
@@ -7,7 +21,13 @@ class PandasIntegration():
     def __init__(self, tira_client):
         self.tira_client = tira_client
 
-    def from_retriever_submission(self, approach: str, dataset: str, previous_stage: str=None, datasets: List[str]=None):
+    def from_retriever_submission(
+        self,
+        approach: str,
+        dataset: str,
+        previous_stage: "Optional[str]" = None,
+        datasets: "Optional[List[str]]" = None,
+    ):
         """Load a run file as pandas dataframe from tira. Compatible with PyTerrier.
 
         Args:
@@ -26,7 +46,7 @@ class PandasIntegration():
         if dataset and datasets:
             raise ValueError(f'You can not pass both, dataset and datasets. Got dataset = {dataset} and datasets= {datasets}')
 
-        if not datasets:
+        if datasets is None:
             datasets = [dataset]
 
         df_ret = []
@@ -48,17 +68,19 @@ class PandasIntegration():
         from glob import glob
         from tira.ir_datasets_util import translate_irds_id_to_tirex
         ret = set()
-        
+
         if type(file_selection) is str:
             file_selection = [file_selection]
-        
+
         for glob_entry in file_selection:
             glob_entry = self.tira_client.get_run_output(approach, (translate_irds_id_to_tirex(dataset))) + glob_entry
             for i in glob(glob_entry): ret.add(i)
-        
+
         return sorted(list(ret))
 
-    def transform_queries(self, approach:str, dataset:str, file_selection: Tuple[str,...]=('/*.jsonl', '/*.jsonl.gz')):
+    def transform_queries(
+        self, approach: str, dataset: str, file_selection: "Tuple[str,...]" = ("/*.jsonl", "/*.jsonl.gz")
+    ):
         """Load and transform the query processing outputs specified by the approach on the dataset for direct re-use as a PyTerrier query transformation.
 
         Args:
@@ -74,7 +96,7 @@ class PandasIntegration():
         """
         import pandas as pd
         matching_files = self.__matching_files(approach, dataset, file_selection)
-        
+
         if len(matching_files) == 0:
             raise ValueError(f'Could not find a matching query output. Found: {matching_files}. Please specify the file_selection to resolve this.')
 

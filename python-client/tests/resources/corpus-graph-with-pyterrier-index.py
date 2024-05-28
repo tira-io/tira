@@ -3,7 +3,7 @@ import pathlib
 import pandas as pd
 import argparse
 from tira.third_party_integrations import ensure_pyterrier_is_loaded
-from tira.rest_api_client import Client
+from tira.tira_client import RestClient
 from tqdm import tqdm
 
 def load_oracle_index(file_name):
@@ -41,7 +41,7 @@ if __name__ == '__main__':
     oracle_index = load_oracle_index(args.query_document_pairs)
 
     # This method ensures that that PyTerrier is loaded so that it also works in the TIRA sandbox
-    tira = Client()
+    tira = RestClient()
     ensure_pyterrier_is_loaded()
     import pyterrier as pt
 

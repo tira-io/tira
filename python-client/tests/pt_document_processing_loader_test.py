@@ -1,4 +1,4 @@
-from tira.local_client import Client
+from tira.tira_client import LocalClient
 
 import pandas as pd
 import unittest
@@ -7,7 +7,7 @@ import unittest
 
 def keyphrase_extraction(docs):
     queries = pd.DataFrame([{'docno': str(i)} for i in docs])
-    tira = Client('tests/resources/')
+    tira = LocalClient('tests/resources/')
     query_segmentation =  tira.pt.transform_documents('ir-benchmarks/webis-keyphrase-extraction/BCExtractorFO', dataset='d1')
     
     ret = query_segmentation(queries)
@@ -16,7 +16,7 @@ def keyphrase_extraction(docs):
 
 def doc_processor(docs, name):
     queries = pd.DataFrame([{'docno': str(i)} for i in docs])
-    tira = Client('tests/resources/')
+    tira = LocalClient('tests/resources/')
     query_segmentation =  tira.pt.transform_documents('ir-benchmarks/tira-ir-starters/' + name, dataset='d1')
     
     ret = query_segmentation(queries)
@@ -64,7 +64,7 @@ class TestPtDocumentProcessingLoaderTest(unittest.TestCase):
         expected = ['value']
 
         documents = pd.DataFrame([{'docno': str(i)} for i in ['doc-01']])
-        tira = Client('tests/resources/')
+        tira = LocalClient('tests/resources/')
         doc_features =  tira.pt.doc_features('ir-benchmarks/tira-ir-starters/tiny-example-02', dataset='d1')
     
         actual = doc_features(documents)
@@ -76,7 +76,7 @@ class TestPtDocumentProcessingLoaderTest(unittest.TestCase):
         expected = ['value']
 
         documents = pd.DataFrame([{'docno': str(i)} for i in ['doc-01']])
-        tira = Client('tests/resources/')
+        tira = LocalClient('tests/resources/')
         doc_features =  tira.pt.doc_features('ir-benchmarks/tira-ir-starters/tiny-example-01', dataset='d1')
     
         actual = doc_features(documents)

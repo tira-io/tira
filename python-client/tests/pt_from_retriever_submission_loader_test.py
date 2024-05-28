@@ -1,4 +1,4 @@
-from tira.local_client import Client
+from tira.tira_client import LocalClient
 
 import pandas as pd
 import unittest
@@ -8,7 +8,7 @@ import json
 
 def retrieval_submission(queries):
     queries = pd.DataFrame([{'qid': str(i)} for i in queries])
-    tira = Client('tests/resources/')
+    tira = LocalClient('tests/resources/')
     retriever =  tira.pt.from_retriever_submission('ir-benchmarks/tira-ir-starters/retriever', dataset='d1')
     
     ret = retriever(queries)
@@ -31,7 +31,7 @@ class TestPtFromRetrieverSubmissionLoaderTest(unittest.TestCase):
 
     def test_cascading_with_retriever_is_idempotent_01(self):
         queries = pd.DataFrame([{'qid': str(i)} for i in [1]])
-        tira = Client('tests/resources/')
+        tira = LocalClient('tests/resources/')
         retriever =  tira.pt.from_retriever_submission('ir-benchmarks/tira-ir-starters/retriever', dataset='d1')
     
         ret = (retriever >> retriever).search(queries)
@@ -40,7 +40,7 @@ class TestPtFromRetrieverSubmissionLoaderTest(unittest.TestCase):
 
     def test_cascading_with_retriever_is_idempotent_02(self):
         queries = pd.DataFrame([{'qid': str(i)} for i in [1]])
-        tira = Client('tests/resources/')
+        tira = LocalClient('tests/resources/')
         retriever =  tira.pt.from_retriever_submission('ir-benchmarks/tira-ir-starters/retriever', dataset='d1')
     
         ret = (retriever >> retriever >> retriever >> retriever).search(queries)
@@ -49,7 +49,7 @@ class TestPtFromRetrieverSubmissionLoaderTest(unittest.TestCase):
 
     def test_cascading_with_retriever_is_idempotent_03(self):
         queries = pd.DataFrame([{'qid': str(i)} for i in [1]])
-        tira = Client('tests/resources/')
+        tira = LocalClient('tests/resources/')
         retriever =  tira.pt.from_retriever_submission('ir-benchmarks/tira-ir-starters/retriever', dataset='d1')
     
         ret = ((retriever >> retriever >> retriever >> retriever) >> (retriever >> retriever >> retriever >> retriever)).search(queries)
@@ -58,7 +58,7 @@ class TestPtFromRetrieverSubmissionLoaderTest(unittest.TestCase):
 
     def test_feature_union_from_retriever_01(self):
         queries = pd.DataFrame([{'qid': str(i)} for i in [1]])
-        tira = Client('tests/resources/')
+        tira = LocalClient('tests/resources/')
         retriever =  tira.pt.from_retriever_submission('ir-benchmarks/tira-ir-starters/retriever', dataset='d1')
     
         ret = (retriever >>(retriever ** retriever)).search(queries)
@@ -68,7 +68,7 @@ class TestPtFromRetrieverSubmissionLoaderTest(unittest.TestCase):
 
     def test_feature_union_from_retriever_02(self):
         queries = pd.DataFrame([{'qid': str(i)} for i in [1]])
-        tira = Client('tests/resources/')
+        tira = LocalClient('tests/resources/')
         retriever =  tira.pt.from_retriever_submission('ir-benchmarks/tira-ir-starters/retriever', dataset='d1')
     
         ret = (retriever >>(retriever ** retriever ** retriever ** retriever)).search(queries)
@@ -98,11 +98,11 @@ class TestPtFromRetrieverSubmissionLoaderTest(unittest.TestCase):
         self.assertEqual(actual[0], expected[0])
 
     def test_retrieval_submission_from_rest_api(self):
-        from tira.rest_api_client import Client
+        from tira.tira_client import RestClient
         from tira.third_party_integrations import ensure_pyterrier_is_loaded
         import pyterrier as pt
         ensure_pyterrier_is_loaded()
-        tira = Client()
+        tira = RestClient()
 
         q = tira.pt.from_submission('ir-benchmarks/tira-ir-starter/BM25 Re-Rank (tira-ir-starter-pyterrier)', pt.get_dataset("irds:disks45/nocr/trec-robust-2004"))
         self.assertEqual(len(q(pd.DataFrame([{'qid': '306'}]))), 1000)
@@ -112,11 +112,11 @@ class TestPtFromRetrieverSubmissionLoaderTest(unittest.TestCase):
         self.assertEqual(q(pd.DataFrame([{'qid': '306'}])).iloc[999].to_dict()['qid'], '306')
 
     def test_retrieval_submission_from_rest_api_different_id(self):
-        from tira.rest_api_client import Client
+        from tira.tira_client import RestClient
         from tira.third_party_integrations import ensure_pyterrier_is_loaded
         import pyterrier as pt
         ensure_pyterrier_is_loaded()
-        tira = Client()
+        tira = RestClient()
 
         q = tira.pt.from_submission('ir-benchmarks/tira-ir-starter/BM25 Re-Rank (tira-ir-starter-pyterrier)', pt.get_dataset("irds:ir-benchmarks/disks45-nocr-trec-robust-2004-20230209-training"))
         self.assertEqual(len(q(pd.DataFrame([{'qid': '306'}]))), 1000)

@@ -1,4 +1,3 @@
-from tira.rest_api_client import Client
 from tira.tira_redirects import redirects
 import unittest
 from contextlib import redirect_stdout

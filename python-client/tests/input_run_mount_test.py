@@ -1,4 +1,4 @@
-from tira.rest_api_client import Client
+from tira.tira_client import RestClient
 from tira.third_party_integrations import ensure_pyterrier_is_loaded
 import os
 import pandas as pd
@@ -6,7 +6,7 @@ import unittest
 
 def get_input_run_mounts(input_run, approach_identifier):
     os.environ['inputRun'] = input_run
-    actual_dir = Client().input_run_in_sandbox(approach_identifier)
+    actual_dir = RestClient().input_run_in_sandbox(approach_identifier)
     del os.environ['inputRun']
     actual_files = []
     try:
@@ -18,7 +18,7 @@ def get_input_run_mounts(input_run, approach_identifier):
 
 def tira_cli_download_run_output(input_run, approach_identifier):
     os.environ['inputRun'] = input_run
-    actual_dir = Client().get_run_output(approach_identifier, 'dataset')
+    actual_dir = RestClient().get_run_output(approach_identifier, 'dataset')
     del os.environ['inputRun']
     actual_files = []
     try:
@@ -30,7 +30,7 @@ def tira_cli_download_run_output(input_run, approach_identifier):
 
 def tira_cli_download_dataset(dataset_path):
     os.environ['TIRA_INPUT_DATASET'] = dataset_path
-    actual_dir = Client().download_dataset(None, 'dataset')
+    actual_dir = RestClient().download_dataset(None, 'dataset')
     del os.environ['TIRA_INPUT_DATASET']
     actual_files = []
     try:
@@ -45,7 +45,7 @@ def get_pt_index_in_sandbox(input_run, approach_identifier):
     os.environ['inputRun'] = input_run
 
     try:
-        ret = Client().pt.index(approach_identifier, 'dataset_id')
+        ret = RestClient().pt.index(approach_identifier, 'dataset_id')
         del os.environ['inputRun']
         return ret
     except:
@@ -57,7 +57,7 @@ def get_pt_from_submission_in_sandbox(input_run, approach_identifier):
     os.environ['inputRun'] = input_run
 
     try:
-        ret = Client().pt.from_submission(approach_identifier, 'dataset_id')
+        ret = RestClient().pt.from_submission(approach_identifier, 'dataset_id')
         del os.environ['inputRun']
         return ret
     except:
