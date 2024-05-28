@@ -254,14 +254,6 @@ def runs(request, context, task_id, dataset_id, vm_id, software_id):
 @check_permissions
 @check_resources_exist("json")
 @add_context
-def get_host_list(request, context):
-    context["host_list"] = model.get_host_list()
-    return JsonResponse({'status': 0, "context": context})
-
-
-@check_permissions
-@check_resources_exist("json")
-@add_context
 def get_organizer_list(request, context):
     organizer_list = model.get_organizer_list()
     is_admin = context and 'role' in context and context['role'] == 'admin'

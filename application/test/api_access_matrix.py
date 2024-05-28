@@ -1546,17 +1546,6 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
-        url_pattern='api/host-list',
-        params={},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 405,
-            PARTICIPANT: 405,
-            ORGANIZER: 405,
-            ORGANIZER_WRONG_TASK: 405,
-        },
-    ),
-    route_to_test(
         url_pattern='api/organizer-list',
         params={},
         group_to_expected_status_code={

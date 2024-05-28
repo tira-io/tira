@@ -5,7 +5,7 @@ info:
 servers:
   - url: https://www.tira.io/api
   # - url: https://api.tira.io/ <-- maybe for the future?
-  - url: http://127.0.0.1:8080/api
+  - url: http://api.tira.local
 security:
   - bearerAuth: []
 
@@ -485,16 +485,6 @@ paths:
         '200':
           description: TODO
       tags: [legacy, "dead?"]
-  /host-list:
-    get:
-      summary: Deprecated, use /v1/hosts instead.
-      deprecated: true
-      security:
-        - LegacyApiKeyAuth: []
-      responses:
-        '200':
-          description: TODO
-      tags: [legacy]
   /organizer-list:
     get:
       summary: Deprecated, use /v1/organizers instead.
@@ -1083,21 +1073,6 @@ paths:
                 type: string
               vmId:
                 type: string
-        - $ref: '#/components/parameters/cursor'
-        - $ref: '#/components/parameters/limit'
-      responses:
-        '200':
-          description: TODO
-        '204':
-           $ref: "#/components/responses/PaginationEmpty"
-        '400':
-           $ref: "#/components/responses/PaginationError"
-        '401':
-           $ref: "#/components/responses/UnauthorizedError"
-      tags: [v1]
-  /v1/hosts:
-    get:
-      parameters:
         - $ref: '#/components/parameters/cursor'
         - $ref: '#/components/parameters/limit'
       responses:

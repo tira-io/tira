@@ -42,7 +42,6 @@ class HybridDatabase(object):
     organizers_file_path = tira_root / Path("model/organizers/organizers.prototext")
     vm_list_file = tira_root / Path("model/virtual-machines/virtual-machines.txt")
     vm_dir_path = tira_root / Path("model/virtual-machines")
-    host_list_file = tira_root / Path("model/virtual-machine-hosts/virtual-machine-hosts.txt")
     ova_dir = tira_root / Path("data/virtual-machine-templates/")
     datasets_dir_path = tira_root / Path("model/datasets")
     softwares_dir_path = tira_root / Path("model/softwares")
@@ -58,7 +57,6 @@ class HybridDatabase(object):
         self.tasks_dir_path.mkdir(exist_ok=True, parents=True)
         self.organizers_file_path.parent.mkdir(exist_ok=True, parents=True)
         self.vm_dir_path.mkdir(exist_ok=True, parents=True)
-        self.host_list_file.parent.mkdir(exist_ok=True, parents=True)
         self.ova_dir.mkdir(exist_ok=True, parents=True)
         self.datasets_dir_path.mkdir(exist_ok=True, parents=True)
         self.softwares_dir_path.mkdir(exist_ok=True, parents=True)
@@ -69,7 +67,6 @@ class HybridDatabase(object):
 
         self.users_file_path.touch(exist_ok=True)
         self.vm_list_file.touch(exist_ok=True)
-        self.host_list_file.touch(exist_ok=True)
         self.organizers_file_path.touch(exist_ok=True)
 
         modeldb.VirtualMachine.objects.create(vm_id=admin_user_name, user_password=admin_password,
@@ -421,9 +418,6 @@ class HybridDatabase(object):
                     }
         except:
             return {} if not return_object else None
-
-    def get_host_list(self) -> list:
-        return [line.strip() for line in open(self.host_list_file, "r").readlines()]
 
     def get_ova_list(self) -> list:
         return [f"{ova_file.stem}.ova" for ova_file in self.ova_dir.glob("*.ova")]

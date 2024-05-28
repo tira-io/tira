@@ -357,10 +357,6 @@ def get_organizer(organizer_id: str):
     return model.get_organizer(organizer_id)
 
 
-def get_host_list() -> list:
-    return model.get_host_list()
-
-
 def get_ova_list() -> list:
     return model.get_ova_list()
 
