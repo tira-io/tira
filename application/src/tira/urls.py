@@ -1,7 +1,8 @@
-from django.urls import path
+from django.urls import include, path
 
 from . import views
 from .endpoints import organizer_api, admin_api, vm_api, data_api, diffir_api, serp_api
+from .endpoints.v1 import endpoints as v1_endpoints
 
 urlpatterns = [
     path('background_jobs/<str:task_id>/<str:job_id>', views.background_jobs, name='background_jobs'),
@@ -108,7 +109,7 @@ urlpatterns = [
     path('api/import-submission/<str:task_id>/<str:vm_id>/<str:submission_type>/<str:s_id>', data_api.import_submission, name='import_submission'),
     path('diffir/<str:task_id>/<int:topk>/<str:run_id_1>/<str:run_id_2>', diffir_api.diffir, name='diffir'),
     path('serp/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/<int:topk>/<str:run_id>', serp_api.serp, name='serp'),
-
+    path('v1/', include(v1_endpoints)),
 ]
 
 app_name = 'tira'

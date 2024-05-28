@@ -98,7 +98,8 @@
 			"extensions": [
 				"Vue.volar",
 				"ms-vscode.live-server",
-				"ms-python.python"
+				"ms-python.python",
+				"42Crunch.vscode-openapi"
 			]
 		}
 	},
