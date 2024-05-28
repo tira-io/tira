@@ -1,0 +1,84 @@
+name: Linters
+
+on:
+  pull_request: {}
+  push: {}
+  workflow_dispatch: {}
+
+jobs:
+  mypy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+      - name: Install mypy
+        run: pip3 install mypy
+      - name: Run mypy on backend
+        working-directory: ${{github.workspace}}/application
+        run: |
+          mkdir .mypy_cache
+          mypy . --disallow-untyped-calls --explicit-package-bases --ignore-missing-imports --install-types --non-interactive --cache-dir=.mypy_cache/
+      - name: Run mypy on python-client
+        working-directory: ${{github.workspace}}/python-client
+        run: |
+          mkdir .mypy_cache
+          mypy . --disallow-untyped-calls --explicit-package-bases --ignore-missing-imports --install-types --non-interactive --cache-dir=.mypy_cache/
+
+  flake8:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+      - name: Install flake8
+        run: pip3 install flake8
+      - name: Run flake8 on backend
+        working-directory: ${{github.workspace}}/application
+        run: flake8 .
+      - name: Run flake8 on python-client
+        working-directory: ${{github.workspace}}/python-client
+        run: flake8 .
+  
+  black:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+      - name: Install black
+        run: pip3 install black
+      - name: Run black on backend
+        working-directory: ${{github.workspace}}/application
+        run: black --check .
+      - name: Run black on python-client
+        working-directory: ${{github.workspace}}/python-client
+        run: black --check .
+
+  isort:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+      - name: Install isort
+        run: pip3 install isort
+      - name: Run isort on backend
+        working-directory: ${{github.workspace}}/application
+        run: isort --check .
+      - name: Run isort on python-client
+        working-directory: ${{github.workspace}}/python-client
+        run: isort --check .
