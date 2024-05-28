@@ -27,7 +27,7 @@ would like to edit and spot the edit-icon in the top right corner:
 
 Creating a new page
 -------------------
-.. todo::
+.. todo:: TODO
 
 
 Glossary
@@ -133,11 +133,12 @@ content. You can find the official documentation `here <https://plantuml.com/>`_
                 deactivate A
 
                 @enduml
-.. todo::
+
+.. todo:: TODO
 
 UMLet
 ~~~~~~~
-.. todo::
+.. todo:: TODO
 
 
 Deployment

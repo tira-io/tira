@@ -396,7 +396,7 @@ def public_submission(request, context, task_id, user_id, display_name):
         context['submission'] = ret
         return JsonResponse({'status': 0, "context": context})
 
-    return JsonResponse({'status': 1, "messge": "Software '{task_id}/{user_id}/{display_name}' does not exist."})
+    return JsonResponse({'status': 1, "messge": f"Software '{task_id}/{user_id}/{display_name}' does not exist."})
 
 
 @check_permissions

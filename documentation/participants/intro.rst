@@ -16,8 +16,17 @@ Getting Started
 
 
 .. _userfaq:
-.. rubric:: Frequently Asked Questions
+Frequently Asked Questions
+--------------------------
+
+.. rubric:: Participation
 
 .. dropdown:: How do I participate in a shared task?
 
     See :ref:`ParticipatePage`.
+
+.. rubric:: Problems
+
+.. dropdown:: I believe, I found a bug with TIRA. What do I do?
+
+    Please have a look at `Reporting Bugs <../development/contributing/index.html#reporting-bugs>`_
