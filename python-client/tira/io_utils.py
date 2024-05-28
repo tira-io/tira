@@ -66,7 +66,7 @@ def stream_all_lines(input_file: Union[str, Iterable[bytes]], load_default_text:
         yield parse_jsonl_line(line, load_default_text)
 
 
-def huggingface_model_mounts(models:Iterable[str]) -> dict:
+def huggingface_model_mounts(models: Iterable[str]) -> Dict[str, Dict[str, str]]:
     """Determine the mounts to make the described huggingface models available in the container. The models must already exist in the local huggingface cache of the host.
 
     Args:
@@ -80,7 +80,7 @@ def huggingface_model_mounts(models:Iterable[str]) -> dict:
         hf_cache = Path(os.environ['HF_HUB_CACHE'])
     elif 'HF_HOME' in os.environ:
         hf_cache = Path(os.environ['HF_HOME']) / 'hub'
-    ret = {}
+    ret: dict[str, dict[str, str]] = {}
     if not models:
         return ret
     

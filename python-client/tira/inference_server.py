@@ -5,7 +5,7 @@ import json
 import logging
 import os
 import sys
-from typing import List, Dict, Callable, Union
+from typing import List, Dict, Callable, Union, Optional
 from http import HTTPStatus
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
@@ -167,7 +167,9 @@ def _setup_logging(log_filename: str, loglevel: int = logging.INFO):
     )
 
 
-def _load_predict_from_imported_module(module_name: str, absolute_path: str = None) -> Union[Callable, None]:
+def _load_predict_from_imported_module(
+    module_name: str, absolute_path: "Optional[str]" = None
+) -> "Union[Callable, None]":
     if module_name in sys.modules:
         logging.warning(f"{module_name!r} already in sys.modules")
         module = importlib.import_module(module_name)
@@ -181,6 +183,7 @@ def _load_predict_from_imported_module(module_name: str, absolute_path: str = No
         if spec is not None:
             module = importlib.util.module_from_spec(spec)
             sys.modules[module_name] = module
+            assert spec.loader is not None
             spec.loader.exec_module(module)
             logging.info(f"{module_name!r} has been imported")
             try:

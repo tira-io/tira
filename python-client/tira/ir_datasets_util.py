@@ -14,6 +14,7 @@ except ImportError:
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
+    from typing import Optional
     from .tira_client import TiraClient
 
 
@@ -132,7 +133,7 @@ def __docs(input_file, original_dataset, load_default_text):
     return DynamicDocs(input_file, load_default_text)
 
 
-def __lazy_qrels(input_file, original_qrels):
+def __lazy_qrels(input_file, original_qrels) -> "Optional":
     from ir_datasets.formats import BaseQrels, TrecQrel, TrecQrels
     from ir_datasets.util.download import LocalDownload
 

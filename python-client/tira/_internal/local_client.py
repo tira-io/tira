@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import TYPE_CHECKING
 
 import json
 import pandas as pd
@@ -11,9 +11,14 @@ from ..local_execution_integration import LocalExecutionIntegration
 from ..tira_client import TiraClient
 from .rest_api_client import Client as RestClient
 
+if TYPE_CHECKING:
+    import io
+    from pathlib import Path
+    from typing import Optional
+
 
 class Client(TiraClient):
-    def __init__(self, directory='.', rest_client: Optional[TiraClient] = None):
+    def __init__(self, directory='.', rest_client: "Optional[TiraClient]" = None):
         self.pd = PandasIntegration(self)
         self.pt = PyTerrierIntegration(self)
         self.directory = directory + '/'
@@ -21,7 +26,7 @@ class Client(TiraClient):
         self.rest_client = rest_client if rest_client else RestClient()
         self.local_execution = LocalExecutionIntegration(self.rest_client)
 
-    def all_datasets(self) -> pd.DataFrame:
+    def all_datasets(self) -> "pd.DataFrame":
         ret = []
         for i in glob(self.directory + '*/training-datasets/'):
             cnt = 0
@@ -243,3 +248,27 @@ and the
             return ret, 'run_id'
         else:
             return ret
+
+    def create_new_upload(self, task_id: str, vm_id: str) -> "Optional[str]":
+        raise NotImplementedError()
+    
+    def create_upload_group(self, task_id: str, vm_id: str, display_name: str) -> "Optional[str]":
+        raise NotImplementedError()
+    
+    def download_dataset(self, task: str, dataset: str, truth_dataset: bool = False) -> str:
+        raise NotImplementedError()
+
+    def submit_run(self, task_id: str, vm_id: str, dataset_id: str, upload_id: str, run: "io.IOBase") -> bool:
+        raise NotImplementedError()
+    
+    def upload_run(
+        self,
+        file_path: "Path",
+        dataset_id: str,
+        approach: "Optional[str]" = None,
+        task_id: "Optional[str]" = None,
+        vm_id: "Optional[str]" = None,
+        upload_id: "Optional[str]" = None,
+        allow_multiple_uploads: bool = False,
+    ) -> bool:
+        raise NotImplementedError()

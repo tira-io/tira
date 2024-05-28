@@ -44,7 +44,7 @@ def setup_upload_command(parser: argparse.ArgumentParser) -> None:
 Implementations of each command. They don't all need to be here but if your command is short and sweet and you don't
 don't know, where else to put it, this is a good place.
 """
-def download_command(dataset: str, approach: Optional[str]=None, **kwargs) -> int:
+def download_command(dataset: str, approach: "Optional[str]" = None, **kwargs) -> int:
     client = RestClient()
     if approach is not None:
         print(client.get_run_output(approach, dataset))
