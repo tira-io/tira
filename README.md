@@ -1,7 +1,7 @@
 <h1 align="center">TIRA</h1>
 
 <p align="center">
-   <img src="https://github.com/tira-io/tira-branding/raw/master/tira-icons/logo-tira-120x120-transparent.png">
+   <img width=120px src="https://assets.tira.io/tira-icons/tira-logo.svg">
    <!--h3>Integrated Research Architecture</h3-->
    <br/>
    <br/>
@@ -13,6 +13,12 @@
    </a>
    <a href="https://tira.io">
    <img alt="Deployment" src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fwww.tira.io%2Fapi%2Fv1%2F&query=%24.version&prefix=v.&label=tira.io"/>
+   </a>
+   <a href="https://github.com/tira-io/tira/actions/workflows/run-all-tests.yml">
+   <img alt="Tests" src="https://github.com/tira-io/tira/actions/workflows/run-all-tests.yml/badge.svg"/>
+   </a>
+   <a href="https://github.com/tira-io/tira/actions/workflows/linters.yml">
+   <img alt="Linters" src="https://github.com/tira-io/tira/actions/workflows/linters.yml/badge.svg"/>
    </a>
    <br>
    <a href="https://tira-io.github.io/tira/">Documentation</a> &nbsp;|&nbsp;
