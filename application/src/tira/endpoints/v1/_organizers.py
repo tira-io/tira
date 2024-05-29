@@ -29,6 +29,6 @@ class _OrganizerView(ModelViewSet):
 
 
 endpoints = [
-    path("", _OrganizerView.as_view({'get': 'list'})),
-    path("<str:organizer_id>/", _OrganizerView.as_view({'get': 'retrieve'}))
+    path("", _OrganizerView.as_view({'get': 'list', 'post': 'create'})),
+    path("<str:organizer_id>/", _OrganizerView.as_view({'get': 'retrieve', 'delete': 'destroy'})),
 ]

@@ -29,4 +29,5 @@ discourse-client-in-disraptor==0.0.8
 tira>=0.0.97
 huggingface-hub
 djangorestframework==3.15.1
-djangorestframework-jsonapi['django-filter']==7.0.0
+django-filter==24.2
+djangorestframework-jsonapi==7.0.0

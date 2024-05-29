@@ -1,15 +1,7 @@
-from google.protobuf.text_format import Parse
-from google.protobuf.json_format import MessageToDict
-from pathlib import Path
 import logging
-from django.conf import settings
 from django.db import models
 from django.core.exceptions import ValidationError
-import socket
-from datetime import datetime
 
-from tira.proto import TiraClientWebMessages_pb2 as modelpb
-from tira.proto import tira_host_pb2 as model_host
 
 logger = logging.getLogger("tira")
 # Transition is powering_on (3), powering_off (4), sandboxing (5), unsandboxing (6), executing (7)

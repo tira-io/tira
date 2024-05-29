@@ -38,6 +38,6 @@ class _ReviewDetailView(RetrieveAPIView):
 
 endpoints = [
     path("", _RunView.as_view({'get': 'list'})),
-    path("<str:run_id>/", _RunView.as_view({'get': 'retrieve'})),
+    path("<str:run_id>/", _RunView.as_view({'get': 'retrieve', 'delete': 'destroy'})),
     path("<str:run>/review", _ReviewDetailView.as_view())
 ]

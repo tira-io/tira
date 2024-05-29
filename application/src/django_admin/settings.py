@@ -90,7 +90,8 @@ MIDDLEWARE = [
 ]
 
 REST_FRAMEWORK = {
-    'DEFAULT_FILTER_BACKENDS': ('rest_framework_json_api.django_filters.DjangoFilterBackend',)
+    'DEFAULT_AUTHENTICATION_CLASSES': ('tira.authentication.TrustedHeaderAuthentication',),
+    'DEFAULT_FILTER_BACKENDS': ('rest_framework_json_api.django_filters.DjangoFilterBackend',),
 }
 
 ROOT_URLCONF = 'django_admin.urls'

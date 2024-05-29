@@ -372,3 +372,73 @@ Best regards'''
 
 
 auth = Authentication(authentication_source=settings.DEPLOYMENT)
+
+
+"""
+Trusted Header Authentication implementation to integrate with Django
+"""
+
+from typing import NamedTuple
+
+from django.contrib.auth.models import AnonymousUser
+from rest_framework import authentication, permissions
+
+_DISRAPTOR_APP_SECRET_KEY = os.getenv("DISRAPTOR_APP_SECRET_KEY")
+
+class User(NamedTuple):
+    username: str
+    is_staff: bool
+
+class TiraAdmin(AnonymousUser):
+    pass
+
+class TiraGuest(AnonymousUser):
+    def __init__(self) -> None:
+        super().__init__()
+        self.username = "guest"
+        self._groups = []
+    
+    def __str__(self) -> str:
+        return self.username
+    
+    @property
+    def is_anonymous(self):
+        return True
+
+    @property
+    def is_authenticated(self):
+        return False
+
+class TiraUser(AnonymousUser):
+    def __init__(self, username: str, groups: list[str]) -> None:
+        super().__init__()
+        self.username = username
+        self._groups = groups
+    
+    def __str__(self) -> str:
+        return self.username
+    
+    @property
+    def is_anonymous(self):
+        return False
+
+    @property
+    def is_authenticated(self):
+        return True
+
+class TrustedHeaderAuthentication(authentication.BaseAuthentication):
+    
+    def authenticate(self, request) -> tuple[User, None]:
+        if not request.headers.get('X-Disraptor-App-Secret-Key', None) == _DISRAPTOR_APP_SECRET_KEY:
+            return HttpResponseNotAllowed(f"Access forbidden.")
+        username = request.headers.get('X-Disraptor-User')
+        groups = request.headers.get('X-Disraptor-Groups')
+        grouplist = [] if not groups else groups.split(",")
+        if not username:
+            return (TiraGuest(), None)
+
+        return (TiraUser(username, grouplist), None)
+
+
+class IsOrganizerOrReadOnly(permissions.BasePermission):
+    pass
