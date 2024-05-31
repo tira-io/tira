@@ -211,7 +211,7 @@ class HybridDatabase(object):
         """ Return the users list. """
         return [self._vm_as_dict(vm) for vm in modeldb.VirtualMachine.objects.all()]
 
-    def _task_to_dict(self, task, include_dataset_stats=False):
+    def _task_to_dict(self, task: modeldb.Task, include_dataset_stats=False):
         def _add_dataset_stats(res, dataset_set):
             if not dataset_set:
                 res["dataset_last_created"] = ''

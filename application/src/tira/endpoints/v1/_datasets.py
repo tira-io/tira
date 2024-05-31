@@ -7,7 +7,7 @@ from ... import model as modeldb
 from ._tasks import TaskSerializer
 
 
-class _DatasetSerializer(ModelSerializer):
+class DatasetSerializer(ModelSerializer):
     id = CharField(source="dataset_id")
     default_task = TaskSerializer()
 
@@ -18,7 +18,7 @@ class _DatasetSerializer(ModelSerializer):
 
 class _DatasetView(ModelViewSet):
     queryset = modeldb.Dataset.objects.all()
-    serializer_class = _DatasetSerializer
+    serializer_class = DatasetSerializer
     pagination_class = pagination.CursorPagination
     lookup_field="dataset_id"
 

@@ -1,6 +1,6 @@
 from django.urls import path
 from rest_framework_json_api.views import ModelViewSet
-from rest_framework.serializers import Serializer, CharField, ModelSerializer
+from rest_framework.serializers import Serializer, CharField, ModelSerializer, PrimaryKeyRelatedField
 from rest_framework import pagination
 
 from ._organizers import OrganizerSerializer
@@ -9,12 +9,25 @@ from ...authentication import IsOrganizerOrReadOnly
 from ... import model as modeldb
 
 
-class TaskSerializer(Serializer):
+class DatasetNameOnlySerializer(ModelSerializer):
+    id = CharField(source="dataset_id")
+
+    class Meta:
+        model = modeldb.Dataset
+        fields = ['id', 'display_name']
+
+
+class TaskSerializer(ModelSerializer):
     id = CharField(source="task_id")
     name = CharField(source="task_name")
     description = CharField(source="task_description")
     organizer = OrganizerSerializer()
     website = CharField(source="web")
+    datasets = DatasetNameOnlySerializer(source="dataset_set", many=True, required=False, read_only=True)
+
+    class Meta:
+        model = modeldb.Task
+        fields = "__all__"
 
 
 class RegistrationSerializer(ModelSerializer):
