@@ -635,7 +635,12 @@ class Client(TiraClient):
                     break
             except Exception as e:
                 sleep_time = randint(1, self.failsave_max_delay)
-                logging.warn(f'Error occured while fetching {endpoint}. Code: {resp.status_code}. I will sleep {sleep_time} seconds and continue.', exc_info=e)
+                response_code = "'unknown response code, maybe there was a timeout?'"
+                try:
+                    response_code = resp.status_code
+                except:
+                    pass
+                logging.warn(f'Error occured while fetching {endpoint}. Code: {response_code}. I will sleep {sleep_time} seconds and continue.', exc_info=e)
                 time.sleep(sleep_time)
 
         return resp.json()
