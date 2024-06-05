@@ -43,8 +43,6 @@ def handle_get_model_exceptions(func):
 @handle_get_model_exceptions
 def admin_reload_data():
     model.build_model()
-    if auth.get_auth_source() == 'legacy':
-        auth.load_legacy_users()
     return "Model data was reloaded successfully"
 
 

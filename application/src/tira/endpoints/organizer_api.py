@@ -7,7 +7,7 @@ from django.conf import settings
 
 import tira.tira_model as model
 
-include_navigation = True if settings.DEPLOYMENT == "legacy" else False
+include_navigation = False
 
 logger = logging.getLogger("tira")
 logger.info("ajax_routes: Logger active")

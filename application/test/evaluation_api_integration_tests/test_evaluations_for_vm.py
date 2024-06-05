@@ -267,7 +267,7 @@ class TestEvaluationsForVm(TestCase):
                           l = re.split(r'\d\d\d\d\d\d\d\d', i[t])
                           i[t] = l[0] + '<TIME>' + l[1]
 
-        self.assertEquals(200, actual.status_code)
+        self.assertEqual(200, actual.status_code)
         verify_as_json(content, options=Options().with_namer(CliNamer(test_name)))
 
     @classmethod

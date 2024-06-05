@@ -21,7 +21,7 @@ from functools import wraps
 import json
 from markdown import markdown
 
-include_navigation = True if settings.DEPLOYMENT == "legacy" else False
+include_navigation = False
 from discourse_client_in_disraptor.discourse_api_client import get_disraptor_user
 
 logger = logging.getLogger("tira")

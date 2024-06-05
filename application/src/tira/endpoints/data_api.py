@@ -23,7 +23,7 @@ from copy import deepcopy
 from tira.util import link_to_discourse_team
 from slugify import slugify
 
-include_navigation = True if settings.DEPLOYMENT == "legacy" else False
+include_navigation = False
 
 logger = logging.getLogger("tira")
 logger.info("ajax_routes: Logger active")

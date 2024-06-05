@@ -19,7 +19,7 @@ class TestCreationOfDatasetId(TestCase):
 
         actual_dataset_id = model.get_new_dataset_id(dataset_name, task_id, dataset_type)
 
-        self.assertEquals(expected_dataset_id, actual_dataset_id)
+        self.assertEqual(expected_dataset_id, actual_dataset_id)
 
     def test_dataset_id_forn_new_dataset_on_task_1(self):
         task_id = 'shared-task-1'
@@ -29,7 +29,7 @@ class TestCreationOfDatasetId(TestCase):
 
         actual_dataset_id = model.get_new_dataset_id(dataset_name, task_id, dataset_type)
 
-        self.assertEquals(expected_dataset_id, actual_dataset_id)
+        self.assertEqual(expected_dataset_id, actual_dataset_id)
 
     @classmethod
     def tearDownClass(cls):

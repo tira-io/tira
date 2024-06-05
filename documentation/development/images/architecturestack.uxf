@@ -1,0 +1,10 @@
+<diagram program="umletino" version="15.1"><zoom_level>10</zoom_level><help_text>Space for diagram notes</help_text><element><id>UMLClass</id><coordinates><x>890</x><y>470</y><w>450</w><h>60</h></coordinates><panel_attributes>Reverse Proxy
+(Disraptor / nginx)</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>890</x><y>400</y><w>150</w><h>60</h></coordinates><panel_attributes>Authentication
+(Discourse / Authelia)</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>1060</x><y>400</y><w>140</w><h>60</h></coordinates><panel_attributes>TIRA Backend</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>1220</x><y>400</y><w>120</w><h>60</h></coordinates><panel_attributes>TIRA Frontend</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>1040</x><y>350</y><w>70</w><h>140</h></coordinates><panel_attributes>lt=.
+m1=Isolated
+m1pos=0,-20
+</panel_attributes><additional_attributes>10;10;10;120</additional_attributes></element><element><id>Relation</id><coordinates><x>1200</x><y>350</y><w>70</w><h>140</h></coordinates><panel_attributes>lt=.
+m1=Isolated
+m1pos=0,-20
+</panel_attributes><additional_attributes>10;10;10;120</additional_attributes></element><element><id>UMLClass</id><coordinates><x>870</x><y>340</y><w>490</w><h>210</h></coordinates><panel_attributes>bg=white
+transparency=0</panel_attributes><additional_attributes></additional_attributes></element></diagram>

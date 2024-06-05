@@ -1,14 +1,12 @@
 # ---task/celebrity-profiling/user/hodge20a
 debug: true
 allowed_hosts:
-  - "127.0.0.1"
+  - "0.0.0.0"
 django_secret: 'not-so-secret'
 # ---
 # tira_root: /mnt/ceph/tira
-# deployment = {disraptor, legacy}
-deployment: legacy
-# in the legacy deployment, a path to the users file is needed. With the default tira model this is TIRA_ROOT/model/users/users.prototext
-# legacy_users_file: model/users/users.prototext
+# deployment = {disraptor}
+deployment: disraptor
 # disraptor_secret_file: /etc/discourse/client-api-key
 # The directory where logs are written to. Defaults to TIRA_ROOT/log/tira-application
 # logging_dir: /mnt/ceph/tira/log/tira-application
