@@ -23,7 +23,7 @@ RUN addgroup --gid 1010 tira && \
 
 COPY application/requirements.txt /tira-dependencies/
 COPY application/src/tira/frontend /tira-dependencies/webpack-frontend
-COPY application/src/tira/frontend-vuetify /tira-dependencies/vite-frontend
+COPY frontend /tira-dependencies/vite-frontend
 COPY protocol/build/python/* /tira/application/src/tira/proto/
 COPY model/src/* /mnt/ceph/tira/model/
 COPY application/src/tira_nginx.conf /etc/nginx/nginx.conf

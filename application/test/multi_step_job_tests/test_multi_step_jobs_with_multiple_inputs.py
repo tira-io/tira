@@ -14,13 +14,13 @@ class TestMultiStepJobsWithMultipleInputs(TestCase):
         docker_software = None
         actual = model.get_ordered_additional_input_runs_of_software(docker_software)
 
-        self.assertEquals(actual, [], 'Should return list of length 0')
+        self.assertEqual(actual, [], 'Should return list of length 0')
 
     def test_for_non_existing_software(self):
         docker_software = {'docker_software_id': -120102121}
         actual = model.get_ordered_additional_input_runs_of_software(docker_software)
 
-        self.assertEquals(actual, [], 'Should return list of length 0')
+        self.assertEqual(actual, [], 'Should return list of length 0')
 
     def test_for_existing_software_without_inputs(self):
         docker_software = model.get_docker_software_by_name(software_public, PARTICIPANT, TASK)
@@ -28,7 +28,7 @@ class TestMultiStepJobsWithMultipleInputs(TestCase):
 
         self.assertIsNotNone(docker_software)
         self.assertIsNotNone(docker_software['docker_software_id'])
-        self.assertEquals(actual, [], 'Should return list of length 0')
+        self.assertEqual(actual, [], 'Should return list of length 0')
 
     def test_for_existing_software_with_inputs(self):
         docker_software = model.get_docker_software_by_name(software_with_inputs, PARTICIPANT, TASK)
@@ -42,8 +42,8 @@ class TestMultiStepJobsWithMultipleInputs(TestCase):
 
         self.assertIsNotNone(docker_software)
         self.assertIsNotNone(docker_software['docker_software_id'])
-        self.assertEquals(len(actual), 3, 'Should return list of length 3')
-        self.assertEquals(actual, expected, 'Order should be public, non public, public')
+        self.assertEqual(len(actual), 3, 'Should return list of length 3')
+        self.assertEqual(actual, expected, 'Order should be public, non public, public')
 
     @classmethod
     def tearDownClass(cls):

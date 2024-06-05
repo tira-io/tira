@@ -5,10 +5,10 @@ In science, shared tasks are crucial for collecting diverse approaches to tackle
 
 .. grid:: 2 2 3 3
 
-   .. grid-item-card:: For Users
+   .. grid-item-card:: For Participants
       :class-card: sd-text-white
       :class-body: sd-fs-12 sd-px-0
-      :img-background: https://sphinx-design.readthedocs.io/en/furo-theme/_images/particle_background.jpg
+      :img-background: images/bg.svg
       :img-alt:
       :text-align: center
       :link: userintropage
@@ -19,7 +19,7 @@ In science, shared tasks are crucial for collecting diverse approaches to tackle
    .. grid-item-card:: For Organizers
       :class-card: sd-text-white
       :class-body: sd-fs-12 sd-px-0
-      :img-background: https://sphinx-design.readthedocs.io/en/furo-theme/_images/particle_background.jpg
+      :img-background: images/bg.svg
       :img-alt:
       :text-align: center
       :link: orgintropage
@@ -30,7 +30,7 @@ In science, shared tasks are crucial for collecting diverse approaches to tackle
    .. grid-item-card:: For Developers
       :class-card: sd-text-white
       :class-body: sd-fs-12 sd-px-0
-      :img-background: https://sphinx-design.readthedocs.io/en/furo-theme/_images/particle_background.jpg
+      :img-background: images/bg.svg
       :img-alt:
       :text-align: center
       :link: devintropage
@@ -41,13 +41,13 @@ In science, shared tasks are crucial for collecting diverse approaches to tackle
 
 .. toctree::
    :maxdepth: 5
-   :caption: For Users
+   :caption: For Participants
    :hidden:
 
-   users/intro
-   users/participate
-   users/tiracli
-   users/python-client
+   participants/intro
+   participants/participate
+   participants/tiracli
+   participants/python-client
 
 .. toctree::
    :maxdepth: 5
