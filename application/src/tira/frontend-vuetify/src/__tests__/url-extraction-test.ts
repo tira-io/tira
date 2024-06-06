@@ -8,7 +8,9 @@ import {
   extractUserFromCurrentUrl,
   extractFocusTypesFromCurrentUrl,
   extractSearchQueryFromCurrentUrl,
-  extractComponentTypesFromCurrentUrl
+  extractComponentTypesFromCurrentUrl,
+  extractEvKeysFromCurrentUrl,
+  extractApproachFromCurrentUrl
 } from '../utils'
 
 Object.defineProperty((window as Window), 'location', {
@@ -123,6 +125,60 @@ test('First dataset is used if dataset from URL does not exist.', () => {
   let selectedDataset = ''
 
   expect(extractDatasetFromCurrentUrl(options, selectedDataset)).toStrictEqual('ds');
+});
+
+test('Ev Keys, Approaches from current Url should be Null.', () => {
+  (window as Window).location.href = "http://dummy.com";
+  expect(extractEvKeysFromCurrentUrl()).toStrictEqual('');
+  expect(extractApproachFromCurrentUrl()).toStrictEqual('');
+});
+
+test('Ev Keys, Approaches from Url without datasets, Ev Keys and Approaches should be the empty string.', () => {
+  (window as Window).location.href = 'task-overview/abc/'
+  expect(extractEvKeysFromCurrentUrl()).toStrictEqual('');
+  expect(extractApproachFromCurrentUrl()).toStrictEqual('');
+});
+
+test('Ev Keys, Approaches from Url without Ev Keys and Approaches with datasets should be the empty string.', () => {
+  (window as Window).location.href = 'task-overview/abc/ds'
+  expect(extractEvKeysFromCurrentUrl()).toStrictEqual('');
+  expect(extractApproachFromCurrentUrl()).toStrictEqual('');
+});
+
+test('Ev keys from Url without Approaches Should be correct.', () => {
+  (window as Window).location.href = 'task-overview/abc/ds/key1'
+  expect(extractEvKeysFromCurrentUrl()).toStrictEqual('key1');
+  expect(extractApproachFromCurrentUrl()).toStrictEqual('');
+});
+
+test('Ev_keys from Url with approaches should be correct.', () => {
+  (window as Window).location.href = 'task-overview/abc/ds/key1/bm25'
+  expect(extractEvKeysFromCurrentUrl()).toStrictEqual('key1');
+  expect(extractApproachFromCurrentUrl()).toStrictEqual('bm25');
+});
+
+test('Ev_keys from Url Should be correct with question mark.', () => {
+  (window as Window).location.href = 'task-overview/abc/ds/key1?xy=1'
+  expect(extractEvKeysFromCurrentUrl()).toStrictEqual('key1');
+  expect(extractApproachFromCurrentUrl()).toStrictEqual('');
+});
+
+test('Ev_keys from Url without Subpath Should be correct with # symbol.', () => {
+  (window as Window).location.href = 'task-overview/abc/ds/key1#sasa'
+  expect(extractEvKeysFromCurrentUrl()).toStrictEqual('key1');
+  expect(extractApproachFromCurrentUrl()).toStrictEqual('');
+});
+
+test('Ev_keys from Url without Subpath should be correct with ? symbol.', () => {
+  (window as Window).location.href = 'task-overview/abc/ds/key1/bm25?xy=1'
+  expect(extractEvKeysFromCurrentUrl()).toStrictEqual('key1');
+  expect(extractApproachFromCurrentUrl()).toStrictEqual('bm25');
+});
+
+test('Ev_keys from Url without Subpath should be correct with # symbol.', () => {
+  (window as Window).location.href = 'task-overview/abc/ds/key1/bm25#sasa'
+  expect(extractEvKeysFromCurrentUrl()).toStrictEqual('key1');
+  expect(extractApproachFromCurrentUrl()).toStrictEqual('bm25');
 });
 
 

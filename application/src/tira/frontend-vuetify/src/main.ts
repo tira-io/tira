@@ -31,8 +31,10 @@ export default function register_app() {
   const routes = [
     {path: '/', component: Home},
     {path: '/tasks', component: Tasks},
-    {path: '/task-overview/:task_id?/:dataset_id?/:ev_keys?/:approach?', name:'task-overview', component: TaskOverview}, {path: '/task/:task_id?/:dataset_id?', component: TaskOverview},
-    {path: '/submit/:task/user/:user/:submission_type?/:selected_step?/:dataset_id?/:ev_keys?', name: 'submission', component: RunUpload},
+    {path: '/task-overview/:task_id?/:dataset_id?/:ev_keys?/:approach?', name:'task-overview', component: TaskOverview},
+    {path: '/task/:task_id?/:dataset_id?', component: TaskOverview},
+    {path: '/submit/:task/user/:user/:submission_type?/:selected_step?', name: 'submission', component: RunUpload},
+    //{path: '/submit/:task/user/:user/:submission_type?/:dataset_id?/:ev_keys?', name: 'submission2', component: RunUpload},
     // TODO: Temporary additional routes for transition form previous TIRA UI version.
     {path: '/frontend-vuetify/landing', component: Home},
     {path: '/frontend-vuetify/tasks', component: Tasks},

@@ -2,9 +2,6 @@
   <div>
     <loading :loading="loading"/>
     <div v-if="!loading">
-
-      <v-text-field>HALLLOOOOO</v-text-field>
-
       <submission-filter :datasets="datasets" :selected_dataset="dataset_ids" :isMounted="isMounted"
                          :ev_keys="ev_keys" :runs="runs" :component_type="component_type" :empty="empty"
                          :runs_url="runs_url" :datasets_url="datasets_url" :ev_keys_url="ev_keys_url"
@@ -14,31 +11,31 @@
                     :items="computedRuns" item-value="Run" v-model:sort-by="table_sort_by" density="compact"
                     show-select class="elevation-1 d-none d-md-block" hover>
         <template v-slot:item.actions="{item}">
-          <run-actions :run="item.value" @reviewRun="(i: any) => reviewChanged(i)"/>
+          <run-actions :run="item" @reviewRun="(i: any) => reviewChanged(i)"/>
         </template>
         <template #item.vm_id="{ item }">
-          <submission-icon :submission="item.value" />
-          <a v-if="role != 'admin'" target="_blank" :href="item.value.link_to_team">{{ item.value.vm_id }}</a>
+          <submission-icon :submission="item" />
+          <a v-if="role != 'admin'" target="_blank" :href="item.link_to_team">{{ item.vm_id }}</a>
 
           <v-menu v-if="role == 'admin'" transition="slide-y-transition">
             <template v-slot:activator="{ props }">
-              <a href="javascript:void(0)" v-bind="props">{{ item.value.vm_id }}</a>
+              <a href="javascript:void(0)" v-bind="props">{{ item.vm_id }}</a>
             </template>
             <v-list>
-              <v-list-item key="team-page"><a target="_blank" :href="item.value.link_to_team">Team Page of {{ item.value.vm_id }}</a></v-list-item>
-              <v-list-item key="submission-page"><a target="_blank" :href="'/submit/' + task_id + '/user/' + item.value.vm_id">Submission Page of {{ item.value.vm_id }}</a></v-list-item>
+              <v-list-item key="team-page"><a target="_blank" :href="item.link_to_team">Team Page of {{ item.vm_id }}</a></v-list-item>
+              <v-list-item key="submission-page"><a target="_blank" :href="'/submit/' + task_id + '/user/' + item.vm_id">Submission Page of {{ item.vm_id }}</a></v-list-item>
             </v-list>
           </v-menu>
         </template>
 
         <template #item.dataset_id="{ item }">
-          <submission-icon :submission="item.value" /> {{ item.value.dataset_id }}
+          <submission-icon :submission="item" /> {{ item.dataset_id }}
         </template>
 
         <template v-slot:expanded-row="{ columns, item }">
           <tr>
             <td :colspan="columns.length" style="background-color: white;" class="px-0 mx-0">
-              <software-details :run="item.value" :columns_to_skip="table_headers" :organizer="organizer" :organizer_id="organizer_id"/>
+              <software-details :run="item" :columns_to_skip="table_headers" :organizer="organizer" :organizer_id="organizer_id"/>
             </td>
           </tr>
         </template>
@@ -48,12 +45,12 @@
                     :items="computedRuns" item-value="Run" v-model:sort-by="table_sort_by" expand-on-click density="compact"
                     class="elevation-1 d-md-none" hover>
                     <template #item.vm_id="{ item }">
-          <a target="_blank" :href="item.value.link_to_team">{{ item.value.vm_id }}</a>
+          <a target="_blank" :href="item.link_to_team">{{ item.vm_id }}</a>
         </template>
         <template v-slot:expanded-row="{ columns, item }">
           <tr>
             <td :colspan="columns.length" style="background-color: white;"  class="px-0 mx-0">
-              <software-details :run="item.value" :columns_to_skip="table_headers_small_layout" :organizer="organizer" :organizer_id="organizer_id" @reviewRun="(i: any) => reviewChanged(i)"/>
+              <software-details :run="item" :columns_to_skip="table_headers_small_layout" :organizer="organizer" :organizer_id="organizer_id" @reviewRun="(i: any) => reviewChanged(i)"/>
             </td>
           </tr>
         </template>
@@ -84,7 +81,7 @@ import {
   extractEvKeysFromCurrentUrl, extractApproachFromCurrentUrl
 } from '../utils'
 
-type run = { run_id: string; review_state: string; dataset_id: string; input_software_name: string; }
+type run = { run_id: string; review_state: string; dataset_id: string; input_software_name: string; link_to_team: string; vm_id: string }
 
 export default {
   name: "run-list",
@@ -93,7 +90,6 @@ export default {
   data() { return {
       loading: true,
       runs: [{'run_id': 'loading...', 'review_state': 'no-review', 'vm_id': '1', 'link_to_team': 'link', 'dataset_id': 'loading...', 'input_software_name': 'loading...'}] as run[],
-      // runs: [{'run_id': 'loading...', 'review_state': 'no-review', 'vm_id': '1', 'link_to_team': 'link', 'dataset_id': '1'}],
       table_headers: [],
       table_headers_small_layout: [],
       table_sort_by: [],
@@ -104,9 +100,9 @@ export default {
       filtered_ev_keys: [] as string[],
       filtered_runs: [] as run[],
       filtered_datasets: [],
-      isMounted: 'test_alt',
+      isMounted: false,
 
-      runs_url: extractApproachFromCurrentUrl().split(','),
+      runs_url: extractApproachFromCurrentUrl() === "na" ? [] : extractApproachFromCurrentUrl().split(','),
       datasets_url: extractDatasetFromCurrentUrl().split(','),
       ev_keys_url: extractEvKeysFromCurrentUrl() === "nk" ? [] : extractEvKeysFromCurrentUrl().split(','),
 
@@ -171,13 +167,12 @@ export default {
 
       this.filtered_ev_keys = this.extractEvKeys()
     },
-    receiveFilteredKeys2() {
+    setupFilteredKeys() {
       let received_ev_keys = this.ev_keys_url
       let header_keys = this.extractEvKeys()
 
       if (received_ev_keys.length === 1){
-        console.log('test: ' + received_ev_keys)
-        // do nothing
+        console.log('received keys: ' + received_ev_keys)
       }
       else {
 
@@ -189,7 +184,6 @@ export default {
           let dict = {'title': add_keys[0], 'key': add_keys[0]}
           this.table_headers.splice(this.table_headers.length - 1, 0, dict as never)
         }
-        //this.filtered_ev_keys = this.extractEvKeys()
       }
     },
     receiveFilteredRuns(receivedRuns: any[]){
@@ -205,10 +199,15 @@ export default {
     },
     updateUrlToCurrentFilterCriteria() {
       if (this.component_type === 'Overview'){
-        this.$router.replace({name: 'task-overview', params: {task_id: this.task_id, dataset_id: encodeURIComponent(this.dataset_ids), ev_keys: encodeURIComponent((this.filtered_ev_keys as string[]).join(',').length === 0 ? "nk" : (this.filtered_ev_keys as string[]).join(',')), approach: encodeURI(this.filtered_runs.map(x => x.input_software_name).join(','))}})
+        this.$router.replace({
+          name: 'task-overview', 
+          params: {
+            task_id: this.task_id, dataset_id: encodeURIComponent(this.dataset_ids),
+            ev_keys: encodeURIComponent((this.filtered_ev_keys as string[]).join(',').length === 0 ? "nk" : (this.filtered_ev_keys as string[]).join(',')),
+            approach: encodeURI(this.filtered_runs.map(x => x.input_software_name).join(','))}})
       }
       else if (this.component_type === 'Submission'){
-        console.log("component_type: " + this.component_type)
+        
         this.$router.replace({
           name: 'submission',
           params: {submission_type: this.$route.params.submission_type, dataset_id: encodeURIComponent(this.dataset_ids), ev_keys: encodeURIComponent((this.filtered_ev_keys as string[]).join(',').length === 0 ? "nk" : (this.filtered_ev_keys as string[]).join(','))}})
@@ -229,12 +228,13 @@ export default {
     if (this.component_type === 'Overview') {
       this.filtered_datasets = this.datasets_url[0] === '' ? this.datasets[0]['dataset_id'] : this.datasets_url
       this.filtered_ev_keys = this.ev_keys_url[0] === '' ? this.ev_keys : this.ev_keys_url
-      this.receiveFilteredKeys2()
+      this.setupFilteredKeys()
       this.filtered_runs = this.matchRuns()
-      this.isMounted = "test_neu"
+      this.isMounted = true
     } else {
-      this.filtered_datasets = []
+      this.filtered_datasets = this.datasets_url[0] === '' ? this.datasets[0]['dataset_id'] : this.datasets_url
       this.filtered_ev_keys = this.ev_keys
+      this.isMounted = true
     }
   },
     fetchData() {
@@ -270,9 +270,6 @@ export default {
                 reject(error); // Reject the promise if there is an error
             });
     });
-        //get(rest_endpoint)   //
-        //    .then(inject_response(this, {'loading': false}))
-        //    .catch(reportError("Problem While Loading the List of Runs", "This might be a short-term hiccup, please try again. We got the following error: "))
     },
     reviewChanged(review: any) {
       for (let run of this.runs) {
@@ -290,9 +287,6 @@ export default {
       }
     }
   },
-  beforeMount() {
-    //this.fetchData()
-  },
   async mounted() {
     try {
         await this.fetchData();
@@ -302,10 +296,16 @@ export default {
     }
 },
   created(){
-    this.dataset_ids = this.datasets_url[0] === '' ? this.datasets[0]['dataset_id'] : this.datasets_url.join(',')
+    if (this.component_type === 'Overview'){
+      this.dataset_ids = this.datasets_url[0] === '' ? this.datasets[0]['dataset_id'] : this.datasets_url.join(',')
+    } else {
+      this.dataset_ids = this.datasets_url[0] === '' ? this.datasets[0]['dataset_id'] : this.datasets_url.join(',')
+    }
   },
   watch: {
-    task_id(old_id, new_id) {this.fetchData()},
+    task_id(old_id, new_id) {
+      this.fetchData()
+    },
     dataset_ids(old_value, new_value) {
       this.updateUrlToCurrentFilterCriteria()
       this.fetchData()

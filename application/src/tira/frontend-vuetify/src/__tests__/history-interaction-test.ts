@@ -33,8 +33,3 @@ test('History entry is added if we are on a url with a selectable dataset (using
     expect(history.state.url).toBe("task-overview/abc/ds")
 });
 
-test('History entry is added if we are on a url with a selectable dataset (using task abc) and noise is removed.', () => {
-    (window as Window).location.href = "task-overview/1234/dataset-02/this-is-some-noise";
-    changeCurrentUrlToDataset('a')
-    expect(history.state.url).toBe("task-overview/1234/a")
-});

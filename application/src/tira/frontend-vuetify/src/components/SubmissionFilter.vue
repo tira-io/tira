@@ -42,23 +42,6 @@ export default {
 
     }
   },
-  mounted(){
-    //setTimeout(() => {
-
-       //}, 1500)
-  },
-  /*
-  async mounted() {
-  try {
-    await this.waitForParentComponentMounted();
-    this.filtered_datasets = extractDatasetFromCurrentUrl().split(',');
-    this.filtered_ev_keys = extractEvKeysFromCurrentUrl() === '' ? this.ev_keys : extractEvKeysFromCurrentUrl().split(',');
-    this.filtered_runs = this.matchRuns();
-  } catch (error) {
-    console.error('Error in child component:', error);
-  }
-},
- */
   updated() {
     if (this.selected_dataset.split(',').filter(x => x.length > 1).length === this.datasets.length){
       return this.filtered_datasets = []
@@ -75,7 +58,11 @@ export default {
   methods:{
 
     initFilter(){
-      this.filtered_datasets = this.datasets_url
+      console.log("filtered datasets: " + this.filtered_datasets)
+      console.log("url datasets: " + this.datasets_url)
+      console.log("datasets[0]: " + this.datasets[0]['dataset_id'])
+      this.filtered_datasets = this.datasets_url[0] === "" ? this.datasets[0]['dataset_id'] : this.datasets_url
+      console.log("filtered datasets 2: " + this.filtered_datasets)
       this.filtered_ev_keys = this.ev_keys_url[0] === "" ? this.ev_keys : this.ev_keys_url
       this.filtered_runs = this.matchRuns()
     },
@@ -88,14 +75,6 @@ export default {
         this.$emit('pass_runs', this.filtered_runs)
       }
     },
-    waitForParentComponentMounted() {
-    return new Promise((resolve) => {
-      // Use Vue.nextTick to wait for the next DOM update
-      this.$nextTick(() => {
-        resolve();
-      });
-    });
-  },
     removeDuplicateRuns(runs) {
       let approaches = new Set();
       return runs

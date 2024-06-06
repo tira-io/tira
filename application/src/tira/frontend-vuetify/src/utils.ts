@@ -48,13 +48,8 @@ export function get_contact_link_to_organizer(organizer_id: string) {
 export function extractDatasetFromCurrentUrl(options: Array<any> = [], default_choice: string='') {
     var loc = ref(window.location).value.href.split('#')[0].split('?')[0]
 
-    //.log('dataset loc: ' + loc)
-
     var dataset_from_url = ''
     let to_split = 'task-overview/' + extractTaskFromCurrentUrl() + '/'
-    let to_split2 = 'submit/'
-        //+ extractTaskFromCurrentUrl() + '/'
-    console.log("split2: " + to_split2)
     
     if (loc.includes(to_split)) {
         dataset_from_url = loc.split(to_split)[1].split('/')[0]
@@ -70,17 +65,29 @@ export function extractDatasetFromCurrentUrl(options: Array<any> = [], default_c
                 return dataset['dataset_id']
             }
         }
-    }
-    else {
-        return decodeURIComponent(decodeURIComponent(options[0]['dataset_id']))
+        // if nothing is returned within the above condition, the default choice does not match with any dataset
+        // so we need to check if the extracted dataset is within the options
+        
+        if (dataset_from_url.split('%252C').some(d => options.map(dataset => dataset['dataset_id']).includes(d))){
+            return decodeURIComponent(decodeURIComponent(dataset_from_url))
+        }
+
+        else {
+            return decodeURIComponent(decodeURIComponent(options[0]['dataset_id']))
+        }
     }
 
     var ret = ''
-    var url_datasets = dataset_from_url.split(';')
+
+    var url_datasets = dataset_from_url.split('%252C')
     let dataset_ids = options.map((dataset => dataset['dataset_id']))
 
-    if ((dataset_from_url !== '' && dataset_ids.includes(url_datasets)) || ret === '') {
+    if ((dataset_from_url !== '' && url_datasets.some(dataset => dataset_ids.includes(dataset)))) {
         ret = dataset_from_url
+    }
+    
+    if ((dataset_from_url !== '' && !url_datasets.some(dataset => dataset_ids.includes(dataset)))) {
+        ret = options[0]['dataset_id']
     }
 
     return decodeURIComponent(decodeURIComponent(ret))
@@ -107,7 +114,7 @@ export function extractEvKeysFromCurrentUrl(){
 }
 
 export function extractApproachFromCurrentUrl(){
-    var loc = decodeURIComponent(decodeURIComponent(window.location.href))
+    var loc = decodeURIComponent(decodeURIComponent(ref(window.location).value.href.split('#')[0].split('?')[0]))
     let to_split = 'task-overview/' + extractTaskFromCurrentUrl() + '/' + extractDatasetFromCurrentUrl() + '/' + extractEvKeysFromCurrentUrl() + '/'
     let approach_from_url = ''
 
@@ -314,17 +321,16 @@ export function extractCurrentStepFromCurrentUrl() {
 
 export function changeCurrentUrlToDataset(dataset: string) {
     var loc = ref(window.location).value.href
-    //console.log('change loc: ' + loc)
 
     if (loc.includes('task-overview/')) {
         if (loc.split(dataset)[1] === undefined) {
             loc = loc.split('task-overview/')[0] + 'task-overview/' + loc.split('task-overview/')[1].split('/')[0] + '/' + dataset
         } else {
-            loc = loc.split('task-overview/')[0] + 'task-overview/' + loc.split('task-overview/')[1].split('/')[0] + '/' + dataset + loc.split(dataset)[1]
+            loc = loc.split('task-overview/')[0] + 'task-overview/' + loc.split('task-overview/')[1].split('/')[0] + '/' + dataset + '/' + loc.split('task-overview/')[1].split('/')[2]
         }
+        history.replaceState({'url': loc}, 'TIRA', loc)
     }
-    //console.log('change log 2: ' + loc)
-    history.replaceState({'url': loc}, 'TIRA', loc)
+    
 }
 
 export function changeCurrentUrlToEvKeys(ev_keys: string, datasets: string) {
@@ -333,7 +339,6 @@ export function changeCurrentUrlToEvKeys(ev_keys: string, datasets: string) {
     if (loc.includes('task-overview/') && loc.includes(datasets)) {
 
         if (loc.includes(';')) {
-            //console.log("test2: " + loc.split('task-overview/')[0] + 'task-overview/' + loc.split('task-overview/')[1])
 
             loc = loc.split('task-overview/')[0]
                 + 'task-overview/'
@@ -343,7 +348,6 @@ export function changeCurrentUrlToEvKeys(ev_keys: string, datasets: string) {
             history.replaceState({'url': loc}, 'TIRA', loc)
         }
         else {
-            //console.log("test: " + loc.split('task-overview/')[0] + 'task-overview/' + loc.split('task-overview/')[1] + ';' + ek)
 
             loc = loc.split('task-overview/')[0]
                 + 'task-overview/'
