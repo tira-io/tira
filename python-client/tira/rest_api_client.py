@@ -318,6 +318,14 @@ class Client(TiraClient):
         return ret[['task', 'dataset', 'team', 'run_id']].iloc[0].to_dict()
         
     def download_run(self, task, dataset, software, team=None, previous_stage=None, return_metadata=False):
+        mounted_output_in_sandbox = self.input_run_in_sandbox(f'{task}/{team}/{software}')
+        if mounted_output_in_sandbox:
+            ret = pd.read_csv(mounted_output_in_sandbox + '/run.txt', sep='\\s+', names=["query", "q0", "docid", "rank", "score", "system"], dtype={"query": str, "docid": str})
+            if return_metadata:
+                return ret, 'run-id'
+            else:
+                return ret
+
         if '/' in dataset:
             dataset = dataset.split('/')[-1]
         ret = self.get_run_execution_or_none(f'{task}/{team}/{software}', dataset, previous_stage)
@@ -501,11 +509,12 @@ class Client(TiraClient):
 
         return f'_t={resp.cookies["_t"]}; _forum_session={resp.cookies["_forum_session"]}'
 
-    def run_software(self, approach, dataset, resources, rerank_dataset='none'):
+    def run_software(self, approach, dataset, resources, rerank_dataset='none', software_id=None):
         task, team, software = approach.split('/')
         authentication_cookie = self.get_authentication_cookie(self.load_settings()['user'], self.load_settings()['password'])
 
-        software_id = self.docker_software_id(approach)
+        if not software_id:
+            software_id = self.docker_software_id(approach)
         if not software_id:
             raise ValueError(f'Could not find software id for "{approach}". Got: "{software_id}".')
 
@@ -626,7 +635,12 @@ class Client(TiraClient):
                     break
             except Exception as e:
                 sleep_time = randint(1, self.failsave_max_delay)
-                logging.warn(f'Error occured while fetching {endpoint}. Code: {resp.status_code}. I will sleep {sleep_time} seconds and continue.', exc_info=e)
+                response_code = "'unknown response code, maybe there was a timeout?'"
+                try:
+                    response_code = resp.status_code
+                except:
+                    pass
+                logging.warn(f'Error occured while fetching {endpoint}. Code: {response_code}. I will sleep {sleep_time} seconds and continue.', exc_info=e)
                 time.sleep(sleep_time)
 
         return resp.json()

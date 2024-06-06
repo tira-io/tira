@@ -1,7 +1,7 @@
 .PHONY: help setup run-develop build-docker clean
 
-VERSION_APPLICATION=0.0.104
-VERSION_GRPC=0.0.104
+VERSION_APPLICATION=0.0.105
+VERSION_GRPC=0.0.105
 
 .DEFAULT: help
 help:

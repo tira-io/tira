@@ -85,14 +85,24 @@ class LocalExecutionIntegration():
             return
 
         if image_pull_code != 0:
+            if client is None:
+                client=self.__docker_client()
+            try:
+                client.images.pull(image)
+                image_pull_code = 0
+            except:
+                image_pull_code = 1
+
+        if image_pull_code != 0:
             raise ValueError(f'Image could not be successfully pulled. Got return code {image_pull_code}. (expected 0.)')
 
         print('\n\n Image pulled successfully.\n\nI will now run the software.\n\n')
 
     def extract_entrypoint(self, image):
         image_name = image
-        self.ensure_image_available_locally(image_name)
-        image = self.__docker_client().images.get(image_name)
+        docker_client = self.__docker_client()
+        self.ensure_image_available_locally(image_name, docker_client)
+        image = docker_client.images.get(image_name)
         ret = image.attrs['Config']['Entrypoint']
         if not ret:
             return None
@@ -114,11 +124,28 @@ class LocalExecutionIntegration():
         else:
             return command.replace(executable, (self.docker_image_work_dir(image_name) + '/' + executable).replace('//', '/').replace('/./', '/'))
 
+    def __docker_linux_sockets(self):
+        ret = [os.path.expanduser("~/.docker/desktop/docker.sock"), "/run/podman/podman.sock"]
+
+        try:
+            ret += ["/run/user/" + str(os.getuid()) + "/podman/podman.sock"]
+        except:
+            pass
+
+        return ret
+        
+
     def __docker_client(self):
         try:
             environ = os.environ.copy()
-            if sys.platform == "linux" and os.path.exists(os.path.expanduser("~/.docker/desktop/docker.sock")):
-                environ["DOCKER_HOST"] = "unix:///" + os.path.expanduser("~/.docker/desktop/docker.sock")
+            if sys.platform == "linux" and "DOCKER_HOST" not in environ:
+                for docker_socket in self.__docker_linux_sockets():
+                    if os.path.exists(docker_socket):
+                        environ["DOCKER_HOST"] = "unix://" + docker_socket
+                
+                if "DOCKER_HOST" in environ:
+                    logging.info("Set DOCKER_HOST to '" + environ["DOCKER_HOST"] + "'.")
+
             client = docker.from_env(environment=environ)
 
             assert len(client.images.list()) >= 0
@@ -338,7 +365,10 @@ class LocalExecutionIntegration():
         if id not in tasks:
             tasks[id] = tqdm(position=len(tasks) +1, desc=f'{line["status"]} ({line["id"]}):')
 
-        tasks[id].update(line['progressDetail']['total'])
+        try:
+            tasks[id].update(line['progressDetail']['total'])
+        except:
+            pass
 
     def push_image(self, image, required_prefix=None, task_name=None, team_name=None):
         client = self.__docker_client()

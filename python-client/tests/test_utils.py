@@ -25,7 +25,8 @@ def digest_of_resource(resource):
     }
 
 def digest_of_dataset(dataset_id, truth=False):
-    tira_url = f'https://www.tira.io/data-download/training/input-/{dataset_id}.zip'
+    t = 'input-' if not truth else 'input-truth'
+    tira_url = f'https://www.tira.io/data-download/training/{t}/{dataset_id}.zip'
     url_redirects = redirects(url=tira_url)
 
     return {

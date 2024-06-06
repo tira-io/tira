@@ -56,7 +56,10 @@ def __normalize_run(i, ev_keys, is_admin, user_vms_for_task, task_id, is_ir_task
 
     if is_admin or i['published'] or is_training_dataset:
         for j in range(len(ev_keys)):
-            i[ev_keys[j]] = i['measures'][j]
+            try:
+                i[ev_keys[j]] = i['measures'][j]
+            except:
+                i[ev_keys[j]] = None
 
     for j in ['measures']:
         del i[j]
@@ -403,7 +406,7 @@ def public_submission(request, context, task_id, user_id, display_name):
         context['submission'] = ret
         return JsonResponse({'status': 0, "context": context})
 
-    return JsonResponse({'status': 1, "messge": "Software '{task_id}/{user_id}/{display_name}' does not exist."})
+    return JsonResponse({'status': 1, "messge": f"Software '{task_id}/{user_id}/{display_name}' does not exist."})
 
 
 @check_permissions
