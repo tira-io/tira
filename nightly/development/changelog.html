@@ -194,7 +194,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -314,7 +314,7 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <div class="visually-hidden">Toggle table of contents sidebar</div>
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
@@ -322,10 +322,33 @@
         <article role="main" id="furo-main-content">
           <section id="changelog">
 <h1>Changelog<a class="headerlink" href="#changelog" title="Link to this heading">¶</a></h1>
-<div class="admonition-todo admonition" id="id1">
-<p class="admonition-title">Todo</p>
-<p>This page will log changes once we reached the 1.0.0 release</p>
+<section id="v1-0-0-in-development">
+<h2>v1.0.0 (in development)<a class="headerlink" href="#v1-0-0-in-development" title="Link to this heading">¶</a></h2>
+<div class="admonition attention">
+<p class="admonition-title">Attention</p>
+<p>TIRA v1.0.0 is under active development and may change considerably before the final release.</p>
 </div>
+<section id="features-added">
+<h3>Features Added<a class="headerlink" href="#features-added" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Standardized REST-API</p></li>
+<li><p>TIRA CLI</p></li>
+</ul>
+</section>
+<section id="removed">
+<h3>Removed<a class="headerlink" href="#removed" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Legacy REST-API and gRPC endpoints (superseded by a more standardized REST-API)</p></li>
+<li><p>TIRA Run command (superseeded by TIRA CLI)</p></li>
+</ul>
+</section>
+</section>
+<section id="alpha">
+<h2>Alpha<a class="headerlink" href="#alpha" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Initial release</p></li>
+</ul>
+</section>
 </section>
 
         </article>
@@ -378,8 +401,32 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Changelog</a><ul>
+<li><a class="reference internal" href="#v1-0-0-in-development">v1.0.0 (in development)</a><ul>
+<li><a class="reference internal" href="#features-added">Features Added</a></li>
+<li><a class="reference internal" href="#removed">Removed</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#alpha">Alpha</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>
