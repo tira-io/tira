@@ -1,5 +1,3 @@
-.. _devintropage:
-
 .. rubric:: For Developers
 
 
