@@ -18,6 +18,8 @@
       - Documentation
 
    .. grid-item-card:: :octicon:`rocket` Getting Started
+      :link: devenvironment
+      :link-type: doc
 
    .. grid-item-card:: :octicon:`pencil` Specification
       :link: specification/index
