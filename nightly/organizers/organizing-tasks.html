@@ -322,92 +322,76 @@
         <article role="main" id="furo-main-content">
           <section id="organizing-tasks">
 <h1>Organizing Tasks<a class="headerlink" href="#organizing-tasks" title="Link to this heading">¶</a></h1>
-<section id="get-a-reviewer-account">
-<h2>Get a reviewer account<a class="headerlink" href="#get-a-reviewer-account" title="Link to this heading">¶</a></h2>
-<p>Create an account at <a class="reference external" href="https://www.tira.io/">tira.io</a> and ask an admin to add you to the
-<a class="reference external" href="https://www.tira.io/g/tira_reviewer">tira_reviewer</a> group.</p>
-</section>
-<section id="create-edit-your-organization">
-<h2>Create/Edit your Organization<a class="headerlink" href="#create-edit-your-organization" title="Link to this heading">¶</a></h2>
+<details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text"><svg version="4.0.0.63c5cb3" width="1.5em" height="1.5em" class="sd-material-icon sd-material-icon-looks_one" viewBox="0 0 24 24" aria-hidden="true"><path d="M0 0h24v24H0z" fill="none"></path><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14h-2V9h-2V7h4v10z"></path></svg> Apply for a Reviewer Account</span><span class="sd-summary-state-marker sd-summary-chevron-down"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-down" viewBox="0 0 24 24" aria-hidden="true"><path d="M5.22 8.22a.749.749 0 0 0 0 1.06l6.25 6.25a.749.749 0 0 0 1.06 0l6.25-6.25a.749.749 0 1 0-1.06-1.06L12 13.939 6.28 8.22a.749.749 0 0 0-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<p class="sd-card-text">Create an account at <a class="reference external" href="https://www.tira.io/">tira.io</a> and ask an admin to add you to the <a class="reference external" href="https://www.tira.io/g/tira_reviewer">tira_reviewer</a> group.</p>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text"><svg version="4.0.0.63c5cb3" width="1.5em" height="1.5em" class="sd-material-icon sd-material-icon-looks_two" viewBox="0 0 24 24" aria-hidden="true"><path d="M0 0h24v24H0z" fill="none"></path><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-4 8c0 1.11-.9 2-2 2h-2v2h4v2H9v-4c0-1.11.9-2 2-2h2V9H9V7h4c1.1 0 2 .89 2 2v2z"></path></svg> Setup the Git Runner</span><span class="sd-summary-state-marker sd-summary-chevron-down"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-down" viewBox="0 0 24 24" aria-hidden="true"><path d="M5.22 8.22a.749.749 0 0 0 0 1.06l6.25 6.25a.749.749 0 0 0 1.06 0l6.25-6.25a.749.749 0 1 0-1.06-1.06L12 13.939 6.28 8.22a.749.749 0 0 0-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
 <ul class="simple">
-<li><p>Click on “Edit Organization” to add / edit your organization.</p></li>
-<li><p>In the “Edit Organization” modal, you can specify the credentials for your git integration that is used as backend in
-your tasks</p></li>
+<li><p class="sd-card-text">Click on “Edit Organization” to add / edit your organization.</p></li>
+<li><p class="sd-card-text">In the “Edit Organization” modal, you can specify the credentials for your git integration that is used as backend in your tasks</p></li>
 </ul>
-</section>
-<section id="create-a-docker-image-for-your-evaluator">
-<h2>Create a Docker Image for your Evaluator<a class="headerlink" href="#create-a-docker-image-for-your-evaluator" title="Link to this heading">¶</a></h2>
-<p>An evaluator is a software that gets a system’s run and the truth data as input to create the run’s evaluation.</p>
-<p>Evaluators get three variables as input in TIRA:</p>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text"><svg version="4.0.0.63c5cb3" width="1.5em" height="1.5em" class="sd-material-icon sd-material-icon-looks_3" viewBox="0 0 24 24" aria-hidden="true"><path d="M.01 0h24v24h-24z" fill="none"></path><path d="M19.01 3h-14c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-4 7.5c0 .83-.67 1.5-1.5 1.5.83 0 1.5.67 1.5 1.5V15c0 1.11-.9 2-2 2h-4v-2h4v-2h-2v-2h2V9h-4V7h4c1.1 0 2 .89 2 2v1.5z"></path></svg> Create a Docker Image for the Evaluator</span><span class="sd-summary-state-marker sd-summary-chevron-down"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-down" viewBox="0 0 24 24" aria-hidden="true"><path d="M5.22 8.22a.749.749 0 0 0 0 1.06l6.25 6.25a.749.749 0 0 0 1.06 0l6.25-6.25a.749.749 0 1 0-1.06-1.06L12 13.939 6.28 8.22a.749.749 0 0 0-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<p class="sd-card-text">An evaluator is a software that gets a system’s run and the truth data as input to create the run’s evaluation.</p>
+<p class="sd-card-text">Evaluators get three variables as input in TIRA:</p>
 <ol class="arabic simple">
-<li><p>the <code class="code docutils literal notranslate"><span class="pre">$inputDataset</span></code> variable contains the ground-truth data,</p></li>
-<li><p>the <code class="code docutils literal notranslate"><span class="pre">$inputRun</span></code> variable contains the to-be-evaluated run, and</p></li>
-<li><p>the <code class="code docutils literal notranslate"><span class="pre">$outputDir</span></code> variable points to the directory at which the evaluator should create the
+<li><p class="sd-card-text">the <code class="code docutils literal notranslate"><span class="pre">$inputDataset</span></code> variable contains the ground-truth data,</p></li>
+<li><p class="sd-card-text">the <code class="code docutils literal notranslate"><span class="pre">$inputRun</span></code> variable contains the to-be-evaluated run, and</p></li>
+<li><p class="sd-card-text">the <code class="code docutils literal notranslate"><span class="pre">$outputDir</span></code> variable points to the directory at which the evaluator should create the
 <code class="code docutils literal notranslate"><span class="pre">evaluation.prototext</span></code> file containing the evaluation results.</p></li>
 </ol>
-<p>Evaluators should produce helpful guidance for runs that are not valid (e.g., clarify the inconsistency with a message
-printed to stdout instead of failing with an exception). Users can see the output (stdout and stderr) and the evaluation
-results of unblinded evaluations (in case it is a test dataset an admin manually unblinds the evaluation after ensuring
-it does not leak confidential data) or all training/validation evaluations (i.e., evaluations that use a training or
-validation dataset as input).</p>
-<p>Your evaluator must be compiled as a docker image and uploaded to Docker Hub so that TIRA can load your image. Here are
-some recent evaluators that you can use as blueprint for your own evaluator:</p>
+<p class="sd-card-text">Evaluators should produce helpful guidance for runs that are not valid (e.g., clarify the inconsistency with a message printed to stdout instead of failing with an exception). Users can see the output (stdout and stderr) and the evaluation results of unblinded evaluations (in case it is a test dataset an admin manually unblinds the evaluation after ensuring it does not leak confidential data) or all training/validation evaluations (i.e., evaluations that use a training or validation dataset as input).</p>
+<p class="sd-card-text">Your evaluator must be compiled as a docker image and uploaded to Docker Hub so that TIRA can load your image. Here are some recent evaluators that you can use as blueprint for your own evaluator:</p>
 <ul class="simple">
-<li><p>The <a class="reference external" href="https://github.com/tira-io/hf-evaluator">huggingface evaluator</a> is an evaluator that supports all evaluations
-in huggingface evaluate. This should be the default evaluator in most cases.</p></li>
-<li><p>The <a class="reference external" href="https://github.com/touche-webis-de/touche-code/blob/main/clef23/multilingual-stance-classification/evaluation/evaluation.py">evaluator for multilingual stance detection of Touché23</a>
-together with <a class="reference external" href="https://github.com/touche-webis-de/touche-code/tree/main/clef23/multilingual-stance-classification#build-the-evaluator">instructions on how to build the docker image</a></p></li>
-<li><p>The <a class="reference external" href="https://github.com/pan-webis-de/pan-code/blob/master/semeval23/clickbait-spoiling-eval.py">clickbait-spoiling-eval.py</a>
-script used in the Clickbait Spoiling task at SemEval 23 together with <a class="reference external" href="https://github.com/pan-webis-de/pan-code/tree/master/semeval23#development">instructions on how to build the docker image</a>
-and the <a class="reference external" href="https://github.com/pan-webis-de/pan-code/tree/master/semeval23#integration-in-tira">command to add in TIRA</a>.</p></li>
-<li><p>The <a class="reference external" href="https://github.com/touche-webis-de/touche-code/tree/main/semeval23/human-value-detection/evaluator">ValueEval 2023 evaluator</a>
-used in SemEval-2023.</p></li>
-<li><p><a class="reference external" href="https://github.com/tira-io/ir-experiment-platform/tree/main/ir-measures">ir_measures</a> for the evaluation of IR
-experiments.</p></li>
+<li><p class="sd-card-text">The <a class="reference external" href="https://github.com/tira-io/hf-evaluator">huggingface evaluator</a> is an evaluator that supports all evaluations in huggingface evaluate. This should be the default evaluator in most cases.</p></li>
+<li><p class="sd-card-text">The <a class="reference external" href="https://github.com/touche-webis-de/touche-code/blob/main/clef23/multilingual-stance-classification/evaluation/evaluation.py">evaluator for multilingual stance detection of Touché23</a> together with <a class="reference external" href="https://github.com/touche-webis-de/touche-code/tree/main/clef23/multilingual-stance-classification#build-the-evaluator">instructions on how to build the docker image</a></p></li>
+<li><p class="sd-card-text">The <a class="reference external" href="https://github.com/pan-webis-de/pan-code/blob/master/semeval23/clickbait-spoiling-eval.py">clickbait-spoiling-eval.py</a> script used in the Clickbait Spoiling task at SemEval 23 together with <a class="reference external" href="https://github.com/pan-webis-de/pan-code/tree/master/semeval23#development">instructions on how to build the docker image</a> and the <a class="reference external" href="https://github.com/pan-webis-de/pan-code/tree/master/semeval23#integration-in-tira">command to add in TIRA</a>.</p></li>
+<li><p class="sd-card-text">The <a class="reference external" href="https://github.com/touche-webis-de/touche-code/tree/main/semeval23/human-value-detection/evaluator">ValueEval 2023 evaluator</a> used in SemEval-2023.</p></li>
+<li><p class="sd-card-text"><a class="reference external" href="https://github.com/tira-io/ir-experiment-platform/tree/main/ir-measures">ir_measures</a> for the evaluation of IR experiments.</p></li>
 </ul>
-</section>
-<section id="add-a-new-task-and-new-datasets-to-tira">
-<h2>Add a new Task and new Datasets to TIRA<a class="headerlink" href="#add-a-new-task-and-new-datasets-to-tira" title="Link to this heading">¶</a></h2>
-<p>We assume that you have <a class="reference external" href="#get-a-reviewer-account">a reviewer login to tira</a>, the dataset, and the
-<a class="reference external" href="#create-a-docker-image-for-your-evaluator">evaluator</a> for your task ready.</p>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text"><svg version="4.0.0.63c5cb3" width="1.5em" height="1.5em" class="sd-material-icon sd-material-icon-looks_4" viewBox="0 0 24 24" aria-hidden="true"><path d="M0 0h24v24H0z" fill="none"></path><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-4 14h-2v-4H9V7h2v4h2V7h2v10z"></path></svg> Add the new Task and Dataset to TIRA</span><span class="sd-summary-state-marker sd-summary-chevron-down"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-down" viewBox="0 0 24 24" aria-hidden="true"><path d="M5.22 8.22a.749.749 0 0 0 0 1.06l6.25 6.25a.749.749 0 0 0 1.06 0l6.25-6.25a.749.749 0 1 0-1.06-1.06L12 13.939 6.28 8.22a.749.749 0 0 0-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<p class="sd-card-text">We assume that you have <a class="reference external" href="#get-a-reviewer-account">a reviewer login to tira</a>, the dataset, and the <a class="reference external" href="#create-a-docker-image-for-your-evaluator">evaluator</a> for your task ready.</p>
+<ol class="arabic simple">
+<li><p class="sd-card-text">Visit the overview of all tasks at <a class="reference external" href="https://www.tira.io/">tira.io</a></p></li>
+<li><p class="sd-card-text">Click on “Add Task” and fill out the corresponding form (use the Master VM Id that you received during registration, e.g., <code class="code docutils literal notranslate"><span class="pre">princess-knight</span></code> was a baseline in Touché)</p></li>
+<li><p class="sd-card-text">Click on your newly created task</p></li>
+<li><p class="sd-card-text">Click on “Add a new Dataset” and fill out the corresponding form</p></li>
+<li><p class="sd-card-text">Navigate to the Evaluator section of your new dataset. Click on “Git CI” to use the CI backend and specify the Docker image of the evaluator and the <a class="reference external" href="#create-a-docker-image-for-your-evaluator">evaluation command</a>.</p></li>
+</ol>
+</div>
+</details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text"><svg version="4.0.0.63c5cb3" width="1.5em" height="1.5em" class="sd-material-icon sd-material-icon-looks_4" viewBox="0 0 24 24" aria-hidden="true"><path d="M0 0h24v24H0z" fill="none"></path><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-4 14h-2v-4H9V7h2v4h2V7h2v10z"></path></svg> Upload Public Baselines</span><span class="sd-summary-state-marker sd-summary-chevron-down"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-down" viewBox="0 0 24 24" aria-hidden="true"><path d="M5.22 8.22a.749.749 0 0 0 0 1.06l6.25 6.25a.749.749 0 0 0 1.06 0l6.25-6.25a.749.749 0 1 0-1.06-1.06L12 13.939 6.28 8.22a.749.749 0 0 0-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<p class="sd-card-text">In the best case, you provide the code, a published docker image, and instructions on how to compile the code into a docker image to simplify participation in your shared tasks.</p>
+<p class="sd-card-text">We have some examples on baselines that you can adopt for your shared task, e.g.:</p>
 <ul class="simple">
-<li><p>Visit the overview of all tasks at <a class="reference external" href="https://www.tira.io/">tira.io</a></p></li>
-<li><p>Click on “Add Task” and fill out the corresponding form (use the Master VM Id that you received during registration,
-e.g., <code class="code docutils literal notranslate"><span class="pre">princess-knight</span></code> was a baseline in Touché)</p></li>
-<li><p>Click on your newly created task</p></li>
-<li><p>Click on “Add a new Dataset” and fill out the corresponding form</p></li>
-<li><p>Navigate to the Evaluator section of your new dataset. Click on “Git CI” to use the CI backend and specify the Docker
-image of the evaluator and the <a class="reference external" href="#create-a-docker-image-for-your-evaluator">evaluation command</a>.</p></li>
+<li><p class="sd-card-text">The <a class="reference external" href="https://github.com/pan-webis-de/pan-code/tree/master/semeval23/baselines">clickbait spoiling baselines from SemEval-2023</a></p></li>
+<li><p class="sd-card-text">The <a class="reference external" href="https://github.com/touche-webis-de/touche-code/tree/main/semeval23/human-value-detection/1-baseline">ValueEval baseline from SemEval-2023</a></p></li>
+<li><p class="sd-card-text">The baselines for <a class="reference external" href="https://github.com/touche-webis-de/touche-code/tree/main/clef23/evidence-retrieval-for-causal-questions/baseline-pyterrier">Touché-2023 at CLEF</a></p></li>
+<li><p class="sd-card-text">The baseline for <a class="reference external" href="https://github.com/pan-webis-de/pan-code/tree/master/clef23/trigger-detection/baselines">PAN-2023 at CLEF</a></p></li>
 </ul>
-</section>
-<section id="provide-public-baselines-to-simplify-participation">
-<h2>Provide Public Baselines to Simplify Participation<a class="headerlink" href="#provide-public-baselines-to-simplify-participation" title="Link to this heading">¶</a></h2>
-<p>In the best case, you provide the code, a published docker image, and instructions on how to compile the code into a docker image to simplify participation in your shared tasks.</p>
-<p>We have some examples on baselines that you can adopt for your shared task, e.g.:</p>
+<p class="sd-card-text">To simplify testing software submissions locally before they are uploaded to TIRA, we provide a <code class="code docutils literal notranslate"><span class="pre">tira-run</span></code> command that participants can use to test their image locally. The <code class="code docutils literal notranslate"><span class="pre">tira-run</span></code> commands executes a software as it would be executed in TIRA.</p>
+<p class="sd-card-text">You can find some examples of shared tasks that use <code class="code docutils literal notranslate"><span class="pre">tira-run</span></code> in their baselines to simplify participation here:</p>
 <ul class="simple">
-<li><p>The <a class="reference external" href="https://github.com/pan-webis-de/pan-code/tree/master/semeval23/baselines">clickbait spoiling baselines from SemEval-2023</a></p></li>
-<li><p>The <a class="reference external" href="https://github.com/touche-webis-de/touche-code/tree/main/semeval23/human-value-detection/1-baseline">ValueEval baseline from SemEval-2023</a></p></li>
-<li><p>The baselines for <a class="reference external" href="https://github.com/touche-webis-de/touche-code/tree/main/clef23/evidence-retrieval-for-causal-questions/baseline-pyterrier">Touché-2023 at CLEF</a></p></li>
-<li><p>The baseline for <a class="reference external" href="https://github.com/pan-webis-de/pan-code/tree/master/clef23/trigger-detection/baselines">PAN-2023 at CLEF</a></p></li>
+<li><p class="sd-card-text"><a class="reference external" href="https://github.com/touche-webis-de/touche-code/tree/main/clef23/evidence-retrieval-for-causal-questions/baseline-pyterrier">https://github.com/touche-webis-de/touche-code/tree/main/clef23/evidence-retrieval-for-causal-questions/baseline-pyterrier</a></p></li>
+<li><p class="sd-card-text"><a class="reference external" href="https://github.com/touche-webis-de/touche-code/tree/main/clef23/multilingual-stance-classification">https://github.com/touche-webis-de/touche-code/tree/main/clef23/multilingual-stance-classification</a></p></li>
 </ul>
-<p>To simplify testing software submissions locally before they are uploaded to TIRA, we provide a <code class="code docutils literal notranslate"><span class="pre">tira-run</span></code> command
-that participants can use to test their image locally. The <code class="code docutils literal notranslate"><span class="pre">tira-run</span></code> commands executes a software as it would be
-executed in TIRA.</p>
-<p>You can find some examples of shared tasks that use <code class="code docutils literal notranslate"><span class="pre">tira-run</span></code> in their baselines to simplify participation here:</p>
+<p class="sd-card-text">We recommend that you have for all of your baselines an <code class="code docutils literal notranslate"><span class="pre">tira-run</span></code> example so that you can point participants to this example if their software submission fails in TIRA. For this, you need:</p>
 <ul class="simple">
-<li><p><a class="reference external" href="https://github.com/touche-webis-de/touche-code/tree/main/clef23/evidence-retrieval-for-causal-questions/baseline-pyterrier">https://github.com/touche-webis-de/touche-code/tree/main/clef23/evidence-retrieval-for-causal-questions/baseline-pyterrier</a></p></li>
-<li><p><a class="reference external" href="https://github.com/touche-webis-de/touche-code/tree/main/clef23/multilingual-stance-classification">https://github.com/touche-webis-de/touche-code/tree/main/clef23/multilingual-stance-classification</a></p></li>
+<li><p class="sd-card-text">The baseline should be publicly available, e.g., at Dockerhub</p></li>
+<li><p class="sd-card-text">You need a small sample of the data (can be artificial, but must have the same structure/format as the test data)</p></li>
 </ul>
-<p>We recommend that you have for all of your baselines an <code class="code docutils literal notranslate"><span class="pre">tira-run</span></code> example so that you can point participants to
-this example if their software submission fails in TIRA. For this, you need:</p>
-<ul class="simple">
-<li><p>The baseline should be publicly available, e.g., at Dockerhub</p></li>
-<li><p>You need a small sample of the data (can be artificial, but must have the same structure/format as the test data)</p></li>
-</ul>
-<p>Assuming that you have published the baseline for your task at dockerhub under the name <code class="code docutils literal notranslate"><span class="pre">&lt;DOCKER_IMAGE_BASELINE&gt;</span></code>
-and that the baseline is executed via the command <code class="code docutils literal notranslate"><span class="pre">&lt;BASELINE_SOFTWARE_COMMAND&gt;</span></code> inside the container and that you
-have a directory <code class="code docutils literal notranslate"><span class="pre">tira-sample-input</span></code> with the sample data in the git repository of your baseline, you can add the
-following documentation (replace the placeholders with the correct values) to your README:</p>
+<p class="sd-card-text">Assuming that you have published the baseline for your task at dockerhub under the name <code class="code docutils literal notranslate"><span class="pre">&lt;DOCKER_IMAGE_BASELINE&gt;</span></code>
+and that the baseline is executed via the command <code class="code docutils literal notranslate"><span class="pre">&lt;BASELINE_SOFTWARE_COMMAND&gt;</span></code> inside the container and that you have a directory <code class="code docutils literal notranslate"><span class="pre">tira-sample-input</span></code> with the sample data in the git repository of your baseline, you can add the following documentation (replace the placeholders with the correct values) to your README:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>You can test docker images that you would submit to TIRA locally via `tira-run`.
 The `tira-run` commands executes a software as it would be executed in TIRA (i.e., with sandboxing using the same command pattern).
 
@@ -421,8 +405,14 @@ After `tira-run` is installed, you can execute the baseline on the sample datase
 This command should create the following output in `tira-output`: &lt;TODO_ADD_EXAMPLE_OUTPUT&gt;
 </pre></div>
 </div>
+</div>
+</details><hr class="docutils" />
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This is the previous version</p>
+</div>
 <section id="modifying-virtual-machines">
-<h3>Modifying virtual machines<a class="headerlink" href="#modifying-virtual-machines" title="Link to this heading">¶</a></h3>
+<h2>Modifying virtual machines<a class="headerlink" href="#modifying-virtual-machines" title="Link to this heading">¶</a></h2>
 <ul>
 <li><p>Login to the machine where the VM exists (<code class="code docutils literal notranslate"><span class="pre">ssh</span> <span class="pre">tira&#64;betawebXYZ`</span></code>)</p></li>
 <li><p>Locate the complete <code class="code docutils literal notranslate"><span class="pre">[vmName]</span></code> from <code class="code docutils literal notranslate"><span class="pre">tira/model/users/[users].prototext</span></code>.</p></li>
@@ -496,10 +486,8 @@ tira<span class="w"> </span>vm-start<span class="w"> </span><span class="o">[</s
 </dl>
 </li>
 </ul>
-</section>
-</section>
 <section id="moderate-a-task">
-<h2>Moderate a Task:<a class="headerlink" href="#moderate-a-task" title="Link to this heading">¶</a></h2>
+<h3>Moderate a Task:<a class="headerlink" href="#moderate-a-task" title="Link to this heading">¶</a></h3>
 <ol class="arabic simple">
 <li><p>Log in to tira.io with a reviewer account.</p></li>
 <li><p>(optional) Add a new organizer using <code class="code docutils literal notranslate"><span class="pre">Add</span> <span class="pre">organizer</span></code> on the website.</p></li>
@@ -510,8 +498,10 @@ tira<span class="w"> </span>vm-start<span class="w"> </span><span class="o">[</s
 during this step.</p></li>
 <li><p>Install the evaluator on the master-vm in accordance to the data entered during step. 6</p></li>
 </ol>
+</section>
+</section>
 <section id="set-up-the-master-vm">
-<h3>Set up the master VM<a class="headerlink" href="#set-up-the-master-vm" title="Link to this heading">¶</a></h3>
+<h2>Set up the master VM<a class="headerlink" href="#set-up-the-master-vm" title="Link to this heading">¶</a></h2>
 <ol class="arabic">
 <li><p>Create the virtual machine using <code class="code docutils literal notranslate"><span class="pre">tira</span> <span class="pre">vm-create</span></code>. The name should end with <em>-master</em>.</p></li>
 <li><p>Connect to the TIRA host container:</p>
@@ -529,7 +519,7 @@ during this step.</p></li>
 </ol>
 </section>
 <section id="troubleshooting">
-<h3>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading">¶</a></h3>
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading">¶</a></h2>
 <details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
 <summary class="sd-summary-title sd-card-header">
 <span class="sd-summary-text">Changes do not show up on the website</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
@@ -578,7 +568,6 @@ On betaweb020:</span><span class="sd-summary-state-marker sd-summary-chevron-rig
 <p class="sd-card-text">Perform maintenance: “Removal of inaccessible VMs”</p>
 </div>
 </details></section>
-</section>
 </section>
 
         </article>
@@ -644,19 +633,12 @@ On betaweb020:</span><span class="sd-summary-state-marker sd-summary-chevron-rig
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">Organizing Tasks</a><ul>
-<li><a class="reference internal" href="#get-a-reviewer-account">Get a reviewer account</a></li>
-<li><a class="reference internal" href="#create-edit-your-organization">Create/Edit your Organization</a></li>
-<li><a class="reference internal" href="#create-a-docker-image-for-your-evaluator">Create a Docker Image for your Evaluator</a></li>
-<li><a class="reference internal" href="#add-a-new-task-and-new-datasets-to-tira">Add a new Task and new Datasets to TIRA</a></li>
-<li><a class="reference internal" href="#provide-public-baselines-to-simplify-participation">Provide Public Baselines to Simplify Participation</a><ul>
-<li><a class="reference internal" href="#modifying-virtual-machines">Modifying virtual machines</a></li>
+<li><a class="reference internal" href="#modifying-virtual-machines">Modifying virtual machines</a><ul>
+<li><a class="reference internal" href="#moderate-a-task">Moderate a Task:</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#moderate-a-task">Moderate a Task:</a><ul>
 <li><a class="reference internal" href="#set-up-the-master-vm">Set up the master VM</a></li>
 <li><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
-</ul>
-</li>
 </ul>
 </li>
 </ul>

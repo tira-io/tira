@@ -8,20 +8,20 @@ In science, shared tasks are crucial for collecting diverse approaches to tackle
    :gutter: 1
 
    .. grid-item-card:: :octicon:`person` For Users
-      :link: userintropage
-      :link-type: ref
+      :link: users/intro
+      :link-type: doc
       
       How to use tira.io or other hosted instances of TIRA
 
    .. grid-item-card:: :octicon:`organization` For Organizers
-      :link: orgintropage
-      :link-type: ref
+      :link: organizers/intro
+      :link-type: doc
 
       Create new shared tasks or host your own TIRA instance
 
    .. grid-item-card:: :octicon:`code-square` For Developers
-      :link: devintropage
-      :link-type: ref
+      :link: development/index
+      :link-type: doc
 
       Help extend TIRA and make it more awesome than ever
 
