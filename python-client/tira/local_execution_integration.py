@@ -125,14 +125,14 @@ class LocalExecutionIntegration():
             return command.replace(executable, (self.docker_image_work_dir(image_name) + '/' + executable).replace('//', '/').replace('/./', '/'))
 
     def __docker_linux_sockets(self):
-        ret = [os.path.expanduser("~/.docker/desktop/docker.sock"), "/run/podman/podman.sock", "/var/run/docker.sock"]
+        ret = [os.path.expanduser("~/.docker/desktop/docker.sock"), "/run/podman/podman.sock"]
 
         try:
             ret += ["/run/user/" + str(os.getuid()) + "/podman/podman.sock"]
         except:
             pass
 
-        return ret
+        return ret + ["/var/run/docker.sock"]
         
 
     def __docker_client(self):
@@ -144,7 +144,6 @@ class LocalExecutionIntegration():
                         environ["DOCKER_HOST"] = "unix://" + docker_socket
                 
                 if "DOCKER_HOST" in environ:
-                    print("Set DOCKER_HOST to '" + environ["DOCKER_HOST"] + "'. Prevent this by explicitly setting the environment variable DOCKER_HOST.")
                     logging.warn("Set DOCKER_HOST to '" + environ["DOCKER_HOST"] + "'. Prevent this by explicitly setting the environment variable DOCKER_HOST.")
 
             client = docker.from_env(environment=environ)
