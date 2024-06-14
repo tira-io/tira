@@ -3,15 +3,16 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Frequently Asked Questions" href="faq.html" /><link rel="prev" title="TIRA CLI" href="tiracli.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="TIRA Client" href="python-client/tiraclient.html" /><link rel="prev" title="TIRA CLI" href="tiracli.html" />
 
     <!-- Generated with Sphinx 7.3.7 and Furo 2024.05.06 -->
-        <title>API - TIRA</title>
+        <title>Python Client - TIRA</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=387cc868" />
     <link rel="stylesheet" type="text/css" href="../_static/umlet.css" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=87e54e7c" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=36a5483c" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=55730460" />
     
     
 
@@ -193,7 +194,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -205,7 +206,7 @@
       <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
   
   <div class="sidebar-logo-container">
-    <img class="sidebar-logo" src="https://github.com/tira-io/tira-branding/raw/master/tira-icons/logo-tira-120x120-transparent.png" alt="Logo"/>
+    <img class="sidebar-logo" src="https://assets.tira.io/tira-icons/tira-logo.svg" alt="Logo"/>
   </div>
   
   
@@ -220,45 +221,49 @@
 <li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="participate.html">Participating in a Shared Task</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tiracli.html">TIRA CLI</a></li>
-<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1 current has-children current-page"><a class="current reference internal" href="#">Python Client</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Python Client</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="python-client/tiraclient.html">TIRA Client</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python-client/pyterrier.html">Pyterrier Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python-client/ir-datasets.html">IR-Datasets Integration</a></li>
+</ul>
+</li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">For Organizers</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../organizers/intro.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../organizers/organizing-tasks.html">Organizing Tasks</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../organizers/deployment/index.html">Deployment</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Deployment</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../organizers/deployment/index.html">Deployment</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Deployment</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../organizers/deployment/application.html">Deploying the Application Module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../organizers/deployment/frontend.html">Deploying the Frontend</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../organizers/maintenance.html">Maintenance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../organizers/faq.html">Frequently Asked Questions</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Development</span></p>
 <ul>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../development/contributing/index.html">Contributing</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Contributing</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../development/contributing/index.html">Contributing</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Contributing</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../development/contributing/internals.html">Internals</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../development/contributing/guidelines.html">Code Guidelines</a></li>
 </ul>
 </li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../development/frontend/index.html">Frontend Development</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Frontend Development</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../development/frontend/index.html">Frontend Development</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of Frontend Development</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../development/frontend/workflow.html">Workflow</a></li>
 </ul>
 </li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../development/backend/index.html">Backend Development</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of Backend Development</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../development/backend/index.html">Backend Development</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of Backend Development</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../development/backend/workflow.html">Workflow</a></li>
 </ul>
 </li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../development/python-client/index.html">Developing the Python Client</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of Developing the Python Client</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../development/python-client/index.html">Developing the Python Client</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of Developing the Python Client</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../development/python-client/workflow.html">Workflow</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../development/python-client/subcommands.html">CLI Commands</a></li>
 </ul>
 </li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../development/specification/index.html">Specification</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of Specification</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/documentation.html">Documentation</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../development/specification/index.html">Specification</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><div class="visually-hidden">Toggle navigation of Specification</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../development/specification/userstories.html">User Stories</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../development/specification/architecture.html">Architecture</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../development/specification/restapi.html">REST-API</a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../development/specification/technology/index.html">Technology</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><div class="visually-hidden">Toggle navigation of Technology</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../development/specification/technology/index.html">Technology</a><input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><div class="visually-hidden">Toggle navigation of Technology</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../development/specification/technology/jwt.html">JSON Web Token (JWT)</a></li>
 </ul>
 </li>
@@ -266,6 +271,11 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../development/changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/license.html">License</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Indices</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../genindex.html">Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../glossary.html">Glossary</a></li>
 </ul>
 
 </div>
@@ -286,12 +296,12 @@
         </a>
         <div class="content-icon-container">
           <div class="view-this-page">
-  <a class="muted-link" href="https://github.com/tira-io/tira/blob/development/python-client/sphinx/users/api.rst?plain=true" title="View this page">
+  <a class="muted-link" href="https://github.com/tira-io/tira/blob/development/documentation/users/python-client.rst?plain=true" title="View this page">
     <svg><use href="#svg-eye"></use></svg>
     <span class="visually-hidden">View this page</span>
   </a>
 </div><div class="edit-this-page">
-  <a class="muted-link" href="https://github.com/tira-io/tira/edit/development/python-client/sphinx/users/api.rst" title="Edit this page">
+  <a class="muted-link" href="https://github.com/tira-io/tira/edit/development/documentation/users/python-client.rst" title="Edit this page">
     <svg><use href="#svg-pencil"></use></svg>
     <span class="visually-hidden">Edit this page</span>
   </a>
@@ -304,39 +314,33 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
             <div class="visually-hidden">Toggle table of contents sidebar</div>
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="api">
-<h1>API<a class="headerlink" href="#api" title="Link to this heading">¶</a></h1>
-<div class="admonition-todo admonition" id="id1">
-<p class="admonition-title">Todo</p>
-<p>Add a nice introductory text</p>
+          <section id="python-client">
+<h1>Python Client<a class="headerlink" href="#python-client" title="Link to this heading">¶</a></h1>
+<p>For programatic access to TIRA, we provide a python API, the “Python Client”, which serves two use-cases:</p>
+<ol class="arabic simple">
+<li><p>Interfacing with the TIRA platform</p></li>
+<li><p>Integrating with third party APIs (e.g., ir-datasets) that would not work otherwise due to TIRA’s sandbox.</p></li>
+</ol>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>TIRA sandboxes all the evaluation runs to avoid publicizing evaluation data and maintain comparability
+beyond the initial shared task. For you, this means that you can’t access arbitrary external resources. Since you
+should not, of course, have to abstain from using <cite>hugging-face</cite>, <cite>ìr_datasets</cite> or other crucial dependencies, we
+integrated some of these into the sandbox.</p>
 </div>
-<ul class="simple">
-<li><p><a class="reference internal" href="../py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="python-client/tiraclient.html">TIRA Client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="python-client/pyterrier.html">Pyterrier Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="python-client/ir-datasets.html">IR-Datasets Integration</a></li>
 </ul>
-<section id="tira-io-utils-module">
-<h2>tira.io_utils module<a class="headerlink" href="#tira-io-utils-module" title="Link to this heading">¶</a></h2>
-</section>
-<section id="tira-ir-datasets-util-module">
-<h2>tira.ir_datasets_util module<a class="headerlink" href="#tira-ir-datasets-util-module" title="Link to this heading">¶</a></h2>
-</section>
-<section id="tira-pyterrier-integration-module">
-<h2>tira.pyterrier_integration module<a class="headerlink" href="#tira-pyterrier-integration-module" title="Link to this heading">¶</a></h2>
-</section>
-<section id="tira-pyterrier-util-module">
-<h2>tira.pyterrier_util module<a class="headerlink" href="#tira-pyterrier-util-module" title="Link to this heading">¶</a></h2>
-</section>
-<section id="tira-third-party-integrations-module">
-<h2>tira.third_party_integrations module<a class="headerlink" href="#tira-third-party-integrations-module" title="Link to this heading">¶</a></h2>
-</section>
-<section id="module-contents">
-<h2>Module contents<a class="headerlink" href="#module-contents" title="Link to this heading">¶</a></h2>
-</section>
+</div>
 </section>
 
         </article>
@@ -344,12 +348,12 @@
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="faq.html">
+          <a class="next-page" href="python-client/tiraclient.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Frequently Asked Questions</div>
+                <div class="title">TIRA Client</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
@@ -389,32 +393,8 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer">
+    <aside class="toc-drawer no-toc">
       
-      
-      <div class="toc-sticky toc-scroll">
-        <div class="toc-title-container">
-          <span class="toc-title">
-            On this page
-          </span>
-        </div>
-        <div class="toc-tree-container">
-          <div class="toc-tree">
-            <ul>
-<li><a class="reference internal" href="#">API</a><ul>
-<li><a class="reference internal" href="#tira-io-utils-module">tira.io_utils module</a></li>
-<li><a class="reference internal" href="#tira-ir-datasets-util-module">tira.ir_datasets_util module</a></li>
-<li><a class="reference internal" href="#tira-pyterrier-integration-module">tira.pyterrier_integration module</a></li>
-<li><a class="reference internal" href="#tira-pyterrier-util-module">tira.pyterrier_util module</a></li>
-<li><a class="reference internal" href="#tira-third-party-integrations-module">tira.third_party_integrations module</a></li>
-<li><a class="reference internal" href="#module-contents">Module contents</a></li>
-</ul>
-</li>
-</ul>
-
-          </div>
-        </div>
-      </div>
       
       
     </aside>

@@ -12,6 +12,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/umlet.css" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=87e54e7c" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=36a5483c" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=55730460" />
     
     
 
@@ -205,7 +206,7 @@
       <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
   
   <div class="sidebar-logo-container">
-    <img class="sidebar-logo" src="https://github.com/tira-io/tira-branding/raw/master/tira-icons/logo-tira-120x120-transparent.png" alt="Logo"/>
+    <img class="sidebar-logo" src="https://assets.tira.io/tira-icons/tira-logo.svg" alt="Logo"/>
   </div>
   
   
@@ -220,45 +221,49 @@
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="participate.html">Participating in a Shared Task</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tiracli.html">TIRA CLI</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="python-client.html">Python Client</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Python Client</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="python-client/tiraclient.html">TIRA Client</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python-client/pyterrier.html">Pyterrier Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python-client/ir-datasets.html">IR-Datasets Integration</a></li>
+</ul>
+</li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">For Organizers</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../organizers/intro.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../organizers/organizing-tasks.html">Organizing Tasks</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../organizers/deployment/index.html">Deployment</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Deployment</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../organizers/deployment/index.html">Deployment</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Deployment</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../organizers/deployment/application.html">Deploying the Application Module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../organizers/deployment/frontend.html">Deploying the Frontend</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../organizers/maintenance.html">Maintenance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../organizers/faq.html">Frequently Asked Questions</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Development</span></p>
 <ul>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../development/contributing/index.html">Contributing</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Contributing</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../development/contributing/index.html">Contributing</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Contributing</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../development/contributing/internals.html">Internals</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../development/contributing/guidelines.html">Code Guidelines</a></li>
 </ul>
 </li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../development/frontend/index.html">Frontend Development</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Frontend Development</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../development/frontend/index.html">Frontend Development</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of Frontend Development</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../development/frontend/workflow.html">Workflow</a></li>
 </ul>
 </li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../development/backend/index.html">Backend Development</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of Backend Development</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../development/backend/index.html">Backend Development</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of Backend Development</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../development/backend/workflow.html">Workflow</a></li>
 </ul>
 </li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../development/python-client/index.html">Developing the Python Client</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of Developing the Python Client</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../development/python-client/index.html">Developing the Python Client</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of Developing the Python Client</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../development/python-client/workflow.html">Workflow</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../development/python-client/subcommands.html">CLI Commands</a></li>
 </ul>
 </li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../development/specification/index.html">Specification</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of Specification</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l1"><a class="reference internal" href="../development/documentation.html">Documentation</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../development/specification/index.html">Specification</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><div class="visually-hidden">Toggle navigation of Specification</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../development/specification/userstories.html">User Stories</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../development/specification/architecture.html">Architecture</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../development/specification/restapi.html">REST-API</a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../development/specification/technology/index.html">Technology</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><div class="visually-hidden">Toggle navigation of Technology</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../development/specification/technology/index.html">Technology</a><input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><div class="visually-hidden">Toggle navigation of Technology</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../development/specification/technology/jwt.html">JSON Web Token (JWT)</a></li>
 </ul>
 </li>
@@ -266,6 +271,11 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../development/changelog.html">Changelog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../development/license.html">License</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Indices</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../genindex.html">Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../glossary.html">Glossary</a></li>
 </ul>
 
 </div>
@@ -286,12 +296,12 @@
         </a>
         <div class="content-icon-container">
           <div class="view-this-page">
-  <a class="muted-link" href="https://github.com/tira-io/tira/blob/development/python-client/sphinx/users/intro.rst?plain=true" title="View this page">
+  <a class="muted-link" href="https://github.com/tira-io/tira/blob/development/documentation/users/intro.rst?plain=true" title="View this page">
     <svg><use href="#svg-eye"></use></svg>
     <span class="visually-hidden">View this page</span>
   </a>
 </div><div class="edit-this-page">
-  <a class="muted-link" href="https://github.com/tira-io/tira/edit/development/python-client/sphinx/users/intro.rst" title="Edit this page">
+  <a class="muted-link" href="https://github.com/tira-io/tira/edit/development/documentation/users/intro.rst" title="Edit this page">
     <svg><use href="#svg-pencil"></use></svg>
     <span class="visually-hidden">Edit this page</span>
   </a>
@@ -312,24 +322,117 @@
         <article role="main" id="furo-main-content">
           <section id="introduction">
 <h1>Introduction<a class="headerlink" href="#introduction" title="Link to this heading">¶</a></h1>
-<div class="admonition-todo admonition" id="id1">
-<p class="admonition-title">Todo</p>
-<p>what is TIRA?</p>
+<p>In science, shared tasks are crucial for collecting diverse approaches to tackle complex problems. TIRA provides a platform for organizing these tasks and welcoming submissions, whether for research or education.</p>
+<section id="getting-started">
+<h2>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading">¶</a></h2>
+<p>Completing your first submission in just 4 steps!</p>
+<div class="sd-container-fluid sd-sphinx-override sd-mt-4 sd-mb-4 sd-ml-0 sd-mr-0 docutils">
+<div class="sd-row sd-row-cols-1 sd-row-cols-xs-1 sd-row-cols-sm-1 sd-row-cols-md-1 sd-row-cols-lg-1 sd-g-1 sd-g-xs-1 sd-g-sm-1 sd-g-md-1 sd-g-lg-1 docutils">
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm docutils">
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+<svg version="4.0.0.63c5cb3" width="1.5em" height="1.5em" class="sd-material-icon sd-material-icon-looks_one" viewBox="0 0 24 24" aria-hidden="true"><path d="M0 0h24v24H0z" fill="none"></path><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14h-2V9h-2V7h4v10z"></path></svg> Join <a class="reference external" href="https://www.tira.io">tira.io</a> (or the instance you want to participate on)</div>
 </div>
-<section id="installation">
-<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading">¶</a></h2>
-<div class="admonition-todo admonition" id="id2">
-<p class="admonition-title">Todo</p>
-<p>How to install TIRA</p>
+</div>
+</div>
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover docutils">
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+<svg version="4.0.0.63c5cb3" width="1.5em" height="1.5em" class="sd-material-icon sd-material-icon-looks_two" viewBox="0 0 24 24" aria-hidden="true"><path d="M0 0h24v24H0z" fill="none"></path><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-4 8c0 1.11-.9 2-2 2h-2v2h4v2H9v-4c0-1.11.9-2 2-2h2V9H9V7h4c1.1 0 2 .89 2 2v2z"></path></svg> Prepare your Submission</div>
+</div>
+<a class="sd-stretched-link sd-hide-link-text reference internal" href="participate.html#participatepage"><span class="std std-ref">Participating in a Shared Task</span></a></div>
+</div>
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover docutils">
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+<svg version="4.0.0.63c5cb3" width="1.5em" height="1.5em" class="sd-material-icon sd-material-icon-looks_3" viewBox="0 0 24 24" aria-hidden="true"><path d="M.01 0h24v24h-24z" fill="none"></path><path d="M19.01 3h-14c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-4 7.5c0 .83-.67 1.5-1.5 1.5.83 0 1.5.67 1.5 1.5V15c0 1.11-.9 2-2 2h-4v-2h4v-2h-2v-2h2V9h-4V7h4c1.1 0 2 .89 2 2v1.5z"></path></svg> Sign up for a Shared Task</div>
+</div>
+<a class="sd-stretched-link sd-hide-link-text reference internal" href="participate.html#jointask"><span class="std std-ref">Joining a Task and preparing your Environment</span></a></div>
+</div>
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover docutils">
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+<svg version="4.0.0.63c5cb3" width="1.5em" height="1.5em" class="sd-material-icon sd-material-icon-looks_4" viewBox="0 0 24 24" aria-hidden="true"><path d="M0 0h24v24H0z" fill="none"></path><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-4 14h-2v-4H9V7h2v4h2V7h2v10z"></path></svg> Submit</div>
+</div>
+<a class="sd-stretched-link sd-hide-link-text reference internal" href="participate.html#submitsubmission"><span class="std std-ref">Submitting your Submission</span></a></div>
+</div>
+</div>
 </div>
 </section>
-<section id="basic-usage">
-<h2>Basic Usage<a class="headerlink" href="#basic-usage" title="Link to this heading">¶</a></h2>
-<div class="admonition-todo admonition" id="id3">
-<p class="admonition-title">Todo</p>
-<p>How to use TIRA</p>
+<section id="quicklinks">
+<h2>Quicklinks<a class="headerlink" href="#quicklinks" title="Link to this heading">¶</a></h2>
+<div class="sd-container-fluid sd-sphinx-override sd-mt-4 sd-mb-4 sd-ml-0 sd-mr-0 docutils">
+<div class="sd-row sd-row-cols-1 sd-row-cols-xs-1 sd-row-cols-sm-2 sd-row-cols-md-3 sd-row-cols-lg-3 sd-g-1 sd-g-xs-1 sd-g-sm-1 sd-g-md-1 sd-g-lg-1 docutils">
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover docutils">
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+<svg version="1.1" width="1.0em" height="1.0em" class="sd-octicon sd-octicon-command-palette" viewBox="0 0 16 16" aria-hidden="true"><path d="m6.354 8.04-4.773 4.773a.75.75 0 1 0 1.061 1.06L7.945 8.57a.75.75 0 0 0 0-1.06L2.642 2.206a.75.75 0 0 0-1.06 1.061L6.353 8.04ZM8.75 11.5a.75.75 0 0 0 0 1.5h5.5a.75.75 0 0 0 0-1.5h-5.5Z"></path></svg> TIRA-CLI</div>
+<p class="sd-card-text">Interacting with TIRA from the comfort of your command line.</p>
+</div>
+<a class="sd-stretched-link sd-hide-link-text reference internal" href="tiracli.html"><span class="doc">TIRA CLI</span></a></div>
+</div>
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover docutils">
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+<svg version="1.1" width="1.0em" height="1.0em" class="sd-octicon sd-octicon-code-square" viewBox="0 0 16 16" aria-hidden="true"><path d="M0 1.75C0 .784.784 0 1.75 0h12.5C15.216 0 16 .784 16 1.75v12.5A1.75 1.75 0 0 1 14.25 16H1.75A1.75 1.75 0 0 1 0 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25V1.75a.25.25 0 0 0-.25-.25Zm7.47 3.97a.75.75 0 0 1 1.06 0l2 2a.75.75 0 0 1 0 1.06l-2 2a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734L10.69 8 9.22 6.53a.75.75 0 0 1 0-1.06ZM6.78 6.53 5.31 8l1.47 1.47a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215l-2-2a.75.75 0 0 1 0-1.06l2-2a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042Z"></path></svg> Python Client</div>
+<p class="sd-card-text">Interacting with TIRA from your Python code.</p>
+</div>
+<a class="sd-stretched-link sd-hide-link-text reference internal" href="python-client.html"><span class="doc">Python Client</span></a></div>
+</div>
+</div>
+</div>
+<p class="rubric">Integrations</p>
+<p>For reproducibility and confidentiality reasons, all TIRA submissions are sandboxed and can not access the internet. But we created TIRA integrations for important libraries so that you don’t have to refrain from using them. These integrations are designed to be unintrusive small changes and allow your code to run inside and outside the sandbox.</p>
+<div class="sd-container-fluid sd-sphinx-override sd-mt-4 sd-mb-4 sd-ml-0 sd-mr-0 docutils">
+<div class="sd-row sd-row-cols-1 sd-row-cols-xs-1 sd-row-cols-sm-2 sd-row-cols-md-3 sd-row-cols-lg-4 sd-g-1 sd-g-xs-1 sd-g-sm-1 sd-g-md-1 sd-g-lg-1 docutils">
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover docutils">
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+<svg version="1.1" width="1.0em" height="1.0em" class="sd-octicon sd-octicon-repo" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 2.5A2.5 2.5 0 0 1 4.5 0h8.75a.75.75 0 0 1 .75.75v12.5a.75.75 0 0 1-.75.75h-2.5a.75.75 0 0 1 0-1.5h1.75v-2h-8a1 1 0 0 0-.714 1.7.75.75 0 1 1-1.072 1.05A2.495 2.495 0 0 1 2 11.5Zm10.5-1h-8a1 1 0 0 0-1 1v6.708A2.486 2.486 0 0 1 4.5 9h8ZM5 12.25a.25.25 0 0 1 .25-.25h3.5a.25.25 0 0 1 .25.25v3.25a.25.25 0 0 1-.4.2l-1.45-1.087a.249.249 0 0 0-.3 0L5.4 15.7a.25.25 0 0 1-.4-.2Z"></path></svg> huggingface</div>
+</div>
+<span class="sd-stretched-link sd-hide-link-text">python-client/huggingface</span></div>
+</div>
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover docutils">
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+<svg version="1.1" width="1.0em" height="1.0em" class="sd-octicon sd-octicon-repo" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 2.5A2.5 2.5 0 0 1 4.5 0h8.75a.75.75 0 0 1 .75.75v12.5a.75.75 0 0 1-.75.75h-2.5a.75.75 0 0 1 0-1.5h1.75v-2h-8a1 1 0 0 0-.714 1.7.75.75 0 1 1-1.072 1.05A2.495 2.495 0 0 1 2 11.5Zm10.5-1h-8a1 1 0 0 0-1 1v6.708A2.486 2.486 0 0 1 4.5 9h8ZM5 12.25a.25.25 0 0 1 .25-.25h3.5a.25.25 0 0 1 .25.25v3.25a.25.25 0 0 1-.4.2l-1.45-1.087a.249.249 0 0 0-.3 0L5.4 15.7a.25.25 0 0 1-.4-.2Z"></path></svg> ir_datasets</div>
+</div>
+<a class="sd-stretched-link sd-hide-link-text reference internal" href="python-client/ir-datasets.html"><span class="doc">IR-Datasets Integration</span></a></div>
+</div>
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover docutils">
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+<svg version="1.1" width="1.0em" height="1.0em" class="sd-octicon sd-octicon-repo" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 2.5A2.5 2.5 0 0 1 4.5 0h8.75a.75.75 0 0 1 .75.75v12.5a.75.75 0 0 1-.75.75h-2.5a.75.75 0 0 1 0-1.5h1.75v-2h-8a1 1 0 0 0-.714 1.7.75.75 0 1 1-1.072 1.05A2.495 2.495 0 0 1 2 11.5Zm10.5-1h-8a1 1 0 0 0-1 1v6.708A2.486 2.486 0 0 1 4.5 9h8ZM5 12.25a.25.25 0 0 1 .25-.25h3.5a.25.25 0 0 1 .25.25v3.25a.25.25 0 0 1-.4.2l-1.45-1.087a.249.249 0 0 0-.3 0L5.4 15.7a.25.25 0 0 1-.4-.2Z"></path></svg> pyterrier</div>
+</div>
+<a class="sd-stretched-link sd-hide-link-text reference internal" href="python-client/pyterrier.html"><span class="doc">Pyterrier Integration</span></a></div>
+</div>
+</div>
 </div>
 </section>
+<section id="frequently-asked-questions">
+<span id="userfaq"></span><h2>Frequently Asked Questions<a class="headerlink" href="#frequently-asked-questions" title="Link to this heading">¶</a></h2>
+<p class="rubric">Participation</p>
+<details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">How do I participate in a shared task?</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<p class="sd-card-text">See <a class="reference internal" href="participate.html#participatepage"><span class="std std-ref">Participating in a Shared Task</span></a>.</p>
+</div>
+</details><p class="rubric">Problems</p>
+<details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">I believe, I found a bug with TIRA. What do I do?</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<p class="sd-card-text">Please have a look at <a class="reference external" href="../development/contributing/index.html#reporting-bugs">Reporting Bugs</a></p>
+</div>
+</details></section>
 </section>
 
         </article>
@@ -395,8 +498,9 @@
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">Introduction</a><ul>
-<li><a class="reference internal" href="#installation">Installation</a></li>
-<li><a class="reference internal" href="#basic-usage">Basic Usage</a></li>
+<li><a class="reference internal" href="#getting-started">Getting Started</a></li>
+<li><a class="reference internal" href="#quicklinks">Quicklinks</a></li>
+<li><a class="reference internal" href="#frequently-asked-questions">Frequently Asked Questions</a></li>
 </ul>
 </li>
 </ul>
