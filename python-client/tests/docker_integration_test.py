@@ -30,7 +30,7 @@ Kernel \\r on an \\m (\\l)
         expected = '/docker-entrypoint.sh'
 
         tira = Client()
-        actual = tira.extract_entrypoint(image='bash:alpine3.16')
+        actual = tira.extract_entrypoint(image='docker.io/bash:alpine3.16')
 
         assert actual == expected
 

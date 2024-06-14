@@ -2,8 +2,12 @@ from tira.third_party_integrations import extract_to_be_executed_notebook_from_c
 from pathlib import Path
 import unittest
 from subprocess import check_output
+from tira.local_execution_integration import LocalExecutionIntegration as Client
 
 TEST_DIR = Path(__file__).parent.resolve()
+
+def build_docker_image(image):
+    Client()._LocalExecutionIntegration__docker_client().images.build(path='.', dockerfile='tests/resources/'+ image, tag=image)
 
 class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
     def test_no_notebook_is_extracted_for_none_command(self):
@@ -262,7 +266,7 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
 
     def test_integration_against_custom_docker_image_01(self):
         image = 'dockerfile_bash_script_absolute'
-        check_output(['docker', 'build', '-t', image, '-f', f'tests/resources/{image}', '.'])
+        build_docker_image(image)
 
         expected = ['ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)']
         actual = extract_previous_stages_from_docker_image(image, '/usr/bin/retrieve-with-pyterrier-bash.sh')
@@ -271,7 +275,7 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
 
     def test_integration_against_custom_docker_image_02(self):
         image = 'dockerfile_bash_script_absolute'
-        check_output(['docker', 'build', '-t', image, '-f', f'tests/resources/{image}', '.'])
+        build_docker_image(image)
 
         expected = ['ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)']
         actual = extract_previous_stages_from_docker_image(image)
@@ -280,7 +284,7 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
 
     def test_integration_against_custom_docker_image_03(self):
         image = 'dockerfile_bash_script_absolute'
-        check_output(['docker', 'build', '-t', image, '-f', f'tests/resources/{image}', '.'])
+        build_docker_image(image)
 
         expected = []
         actual = extract_previous_stages_from_docker_image(image, '/etc/hostname')
@@ -289,7 +293,7 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
 
     def test_integration_against_custom_docker_image_04(self):
         image = 'jupyter_script_relative'
-        check_output(['docker', 'build', '-t', image, '-f', f'tests/resources/{image}', '.'])
+        build_docker_image(image)
 
         expected = ['ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)']
         actual = extract_previous_stages_from_docker_image(image)
@@ -298,7 +302,7 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
 
     def test_integration_against_custom_docker_image_05(self):
         image = 'jupyter_script_relative'
-        check_output(['docker', 'build', '-t', image, '-f', f'tests/resources/{image}', '.'])
+        build_docker_image(image)
 
         expected = ['ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)']
         actual = extract_previous_stages_from_docker_image(image, 'python3 /usr/bin/retrieve-with-pyterrier-index.py')
@@ -307,7 +311,7 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
 
     def test_integration_against_custom_docker_image_06(self):
         image = 'jupyter_script_relative'
-        check_output(['docker', 'build', '-t', image, '-f', f'tests/resources/{image}', '.'])
+        build_docker_image(image)
 
         expected = ['ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)']
         actual = extract_previous_stages_from_docker_image(image, 'python3 /usr/bin/retrieve-with-pyterrier-index.py; sleep3')
@@ -316,7 +320,7 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
 
     def test_integration_against_custom_docker_image_07(self):
         image = 'jupyter_script_relative'
-        check_output(['docker', 'build', '-t', image, '-f', f'tests/resources/{image}', '.'])
+        build_docker_image(image)
 
         expected = ['ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)']
         actual = extract_previous_stages_from_docker_image(image, 'python3 /usr/bin/retrieve-with-pyterrier-index.py&&sleep3')
@@ -325,7 +329,7 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
 
     def test_integration_against_custom_docker_image_08(self):
         image = 'jupyter_script_relative'
-        check_output(['docker', 'build', '-t', image, '-f', f'tests/resources/{image}', '.'])
+        build_docker_image(image)
 
         expected = ['ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)']
         actual = extract_previous_stages_from_docker_image(image, 'python3 "/usr/bin/retrieve-with-pyterrier-index.py"&&sleep3')
@@ -335,7 +339,7 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
 
     def test_integration_against_custom_docker_image_09(self):
         image = 'jupyter_script_relative'
-        check_output(['docker', 'build', '-t', image, '-f', f'tests/resources/{image}', '.'])
+        build_docker_image(image)
 
         expected = ['ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)']
         actual = extract_previous_stages_from_docker_image(image, "python3 '/usr/bin/retrieve-with-pyterrier-index.py'&&sleep3")

@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 import argparse
+from platform import python_version
 from typing import Optional
 
+from tira import __version__
 from tira.rest_api_client import Client as RestClient
 import logging
 
@@ -70,6 +72,8 @@ Finally, parsing the arguments and running the chose command.
 """
 def parse_args():
     parser = argparse.ArgumentParser(prog='tira-cli')
+    version_str = f'TIRA v{__version__} using Python v{python_version()}'
+    parser.add_argument('-v', '--version', action='version', version=version_str)
     
     # Register all subcommands here:
     subparsers = parser.add_subparsers(dest='command', required=True)

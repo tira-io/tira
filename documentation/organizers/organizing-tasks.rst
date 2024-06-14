@@ -1,106 +1,100 @@
 Organizing Tasks
 ================
-Get a reviewer account
-----------------------
-Create an account at `tira.io <https://www.tira.io/>`__ and ask an admin to add you to the
-`tira_reviewer <https://www.tira.io/g/tira_reviewer>`__ group.
 
-Create/Edit your Organization
------------------------------
+.. dropdown:: :material-regular:`looks_one;1.5em` Apply for a Reviewer Account
+   :chevron: down-up
 
-- Click on "Edit Organization" to add / edit your organization.
-- In the "Edit Organization" modal, you can specify the credentials for your git integration that is used as backend in
-  your tasks
+   Create an account at `tira.io <https://www.tira.io/>`_ and ask an admin to add you to the `tira_reviewer <https://www.tira.io/g/tira_reviewer>`_ group.
 
-Create a Docker Image for your Evaluator
-----------------------------------------
-An evaluator is a software that gets a system's run and the truth data as input to create the run's evaluation.
 
-Evaluators get three variables as input in TIRA:
+.. dropdown:: :material-regular:`looks_two;1.5em` Setup the Git Runner
+   :chevron: down-up
 
-(1) the :code:`$inputDataset` variable contains the ground-truth data,
-(2) the :code:`$inputRun` variable contains the to-be-evaluated run, and
-(3) the :code:`$outputDir` variable points to the directory at which the evaluator should create the
-    :code:`evaluation.prototext` file containing the evaluation results.
+   - Click on "Edit Organization" to add / edit your organization.
+   - In the "Edit Organization" modal, you can specify the credentials for your git integration that is used as backend in your tasks
 
-Evaluators should produce helpful guidance for runs that are not valid (e.g., clarify the inconsistency with a message
-printed to stdout instead of failing with an exception). Users can see the output (stdout and stderr) and the evaluation
-results of unblinded evaluations (in case it is a test dataset an admin manually unblinds the evaluation after ensuring
-it does not leak confidential data) or all training/validation evaluations (i.e., evaluations that use a training or
-validation dataset as input).
 
-Your evaluator must be compiled as a docker image and uploaded to Docker Hub so that TIRA can load your image. Here are
-some recent evaluators that you can use as blueprint for your own evaluator:
+.. dropdown:: :material-regular:`looks_3;1.5em` Create a Docker Image for the Evaluator
+   :chevron: down-up
 
-- The `huggingface evaluator <https://github.com/tira-io/hf-evaluator>`__ is an evaluator that supports all evaluations
-  in huggingface evaluate. This should be the default evaluator in most cases.
-- The `evaluator for multilingual stance detection of Touché23 <https://github.com/touche-webis-de/touche-code/blob/main/clef23/multilingual-stance-classification/evaluation/evaluation.py>`__
-  together with `instructions on how to build the docker image <https://github.com/touche-webis-de/touche-code/tree/main/clef23/multilingual-stance-classification#build-the-evaluator>`__
-- The `clickbait-spoiling-eval.py <https://github.com/pan-webis-de/pan-code/blob/master/semeval23/clickbait-spoiling-eval.py>`__
-  script used in the Clickbait Spoiling task at SemEval 23 together with `instructions on how to build the docker image <https://github.com/pan-webis-de/pan-code/tree/master/semeval23#development>`__
-  and the `command to add in TIRA <https://github.com/pan-webis-de/pan-code/tree/master/semeval23#integration-in-tira>`__.
-- The `ValueEval 2023 evaluator <https://github.com/touche-webis-de/touche-code/tree/main/semeval23/human-value-detection/evaluator>`__
-  used in SemEval-2023.
-- `ir_measures <https://github.com/tira-io/ir-experiment-platform/tree/main/ir-measures>`__ for the evaluation of IR
-  experiments.
+   An evaluator is a software that gets a system's run and the truth data as input to create the run's evaluation.
 
-Add a new Task and new Datasets to TIRA
----------------------------------------
-We assume that you have `a reviewer login to tira <#get-a-reviewer-account>`__, the dataset, and the
-`evaluator <#create-a-docker-image-for-your-evaluator>`__ for your task ready.
+   Evaluators get three variables as input in TIRA:
 
-- Visit the overview of all tasks at `tira.io <https://www.tira.io/>`__
-- Click on "Add Task" and fill out the corresponding form (use the Master VM Id that you received during registration,
-  e.g., :code:`princess-knight` was a baseline in Touché)
-- Click on your newly created task
-- Click on "Add a new Dataset" and fill out the corresponding form
-- Navigate to the Evaluator section of your new dataset. Click on "Git CI" to use the CI backend and specify the Docker
-  image of the evaluator and the `evaluation command <#create-a-docker-image-for-your-evaluator>`__.
+   (1) the :code:`$inputDataset` variable contains the ground-truth data,
+   (2) the :code:`$inputRun` variable contains the to-be-evaluated run, and
+   (3) the :code:`$outputDir` variable points to the directory at which the evaluator should create the
+       :code:`evaluation.prototext` file containing the evaluation results.
 
-Provide Public Baselines to Simplify Participation
---------------------------------------------------
-In the best case, you provide the code, a published docker image, and instructions on how to compile the code into a docker image to simplify participation in your shared tasks.
+   Evaluators should produce helpful guidance for runs that are not valid (e.g., clarify the inconsistency with a message printed to stdout instead of failing with an exception). Users can see the output (stdout and stderr) and the evaluation results of unblinded evaluations (in case it is a test dataset an admin manually unblinds the evaluation after ensuring it does not leak confidential data) or all training/validation evaluations (i.e., evaluations that use a training or validation dataset as input).
 
-We have some examples on baselines that you can adopt for your shared task, e.g.:
+   Your evaluator must be compiled as a docker image and uploaded to Docker Hub so that TIRA can load your image. Here are some recent evaluators that you can use as blueprint for your own evaluator:
 
-- The `clickbait spoiling baselines from SemEval-2023 <https://github.com/pan-webis-de/pan-code/tree/master/semeval23/baselines>`__
-- The `ValueEval baseline from SemEval-2023 <https://github.com/touche-webis-de/touche-code/tree/main/semeval23/human-value-detection/1-baseline>`__
-- The baselines for `Touché-2023 at CLEF <https://github.com/touche-webis-de/touche-code/tree/main/clef23/evidence-retrieval-for-causal-questions/baseline-pyterrier>`__
-- The baseline for `PAN-2023 at CLEF <https://github.com/pan-webis-de/pan-code/tree/master/clef23/trigger-detection/baselines>`__
+   - The `huggingface evaluator <https://github.com/tira-io/hf-evaluator>`__ is an evaluator that supports all evaluations in huggingface evaluate. This should be the default evaluator in most cases.
+   - The `evaluator for multilingual stance detection of Touché23 <https://github.com/touche-webis-de/touche-code/blob/main/clef23/multilingual-stance-classification/evaluation/evaluation.py>`__ together with `instructions on how to build the docker image <https://github.com/touche-webis-de/touche-code/tree/main/clef23/multilingual-stance-classification#build-the-evaluator>`__
+   - The `clickbait-spoiling-eval.py <https://github.com/pan-webis-de/pan-code/blob/master/semeval23/clickbait-spoiling-eval.py>`__ script used in the Clickbait Spoiling task at SemEval 23 together with `instructions on how to build the docker image <https://github.com/pan-webis-de/pan-code/tree/master/semeval23#development>`__ and the `command to add in TIRA <https://github.com/pan-webis-de/pan-code/tree/master/semeval23#integration-in-tira>`__.
+   - The `ValueEval 2023 evaluator <https://github.com/touche-webis-de/touche-code/tree/main/semeval23/human-value-detection/evaluator>`__ used in SemEval-2023.
+   - `ir_measures <https://github.com/tira-io/ir-experiment-platform/tree/main/ir-measures>`__ for the evaluation of IR experiments.
 
-To simplify testing software submissions locally before they are uploaded to TIRA, we provide a :code:`tira-run` command
-that participants can use to test their image locally. The :code:`tira-run` commands executes a software as it would be
-executed in TIRA.
 
-You can find some examples of shared tasks that use :code:`tira-run` in their baselines to simplify participation here:
+.. dropdown:: :material-regular:`looks_4;1.5em` Add the new Task and Dataset to TIRA
+   :chevron: down-up
 
-- https://github.com/touche-webis-de/touche-code/tree/main/clef23/evidence-retrieval-for-causal-questions/baseline-pyterrier
-- https://github.com/touche-webis-de/touche-code/tree/main/clef23/multilingual-stance-classification
+   We assume that you have `a reviewer login to tira <#get-a-reviewer-account>`__, the dataset, and the `evaluator <#create-a-docker-image-for-your-evaluator>`__ for your task ready.
 
-We recommend that you have for all of your baselines an :code:`tira-run` example so that you can point participants to
-this example if their software submission fails in TIRA. For this, you need:
+   (1) Visit the overview of all tasks at `tira.io <https://www.tira.io/>`__
+   (2) Click on "Add Task" and fill out the corresponding form (use the Master VM Id that you received during registration, e.g., :code:`princess-knight` was a baseline in Touché)
+   (3) Click on your newly created task
+   (4) Click on "Add a new Dataset" and fill out the corresponding form
+   (5) Navigate to the Evaluator section of your new dataset. Click on "Git CI" to use the CI backend and specify the Docker image of the evaluator and the `evaluation command <#create-a-docker-image-for-your-evaluator>`__.
 
-- The baseline should be publicly available, e.g., at Dockerhub
-- You need a small sample of the data (can be artificial, but must have the same structure/format as the test data)
 
-Assuming that you have published the baseline for your task at dockerhub under the name :code:`<DOCKER_IMAGE_BASELINE>`
-and that the baseline is executed via the command :code:`<BASELINE_SOFTWARE_COMMAND>` inside the container and that you
-have a directory :code:`tira-sample-input` with the sample data in the git repository of your baseline, you can add the
-following documentation (replace the placeholders with the correct values) to your README:
+.. dropdown:: :material-regular:`looks_4;1.5em` Upload Public Baselines
+   :chevron: down-up
 
-.. code::
+   In the best case, you provide the code, a published docker image, and instructions on how to compile the code into a docker image to simplify participation in your shared tasks.
 
-    You can test docker images that you would submit to TIRA locally via `tira-run`. 
-    The `tira-run` commands executes a software as it would be executed in TIRA (i.e., with sandboxing using the same command pattern).
+   We have some examples on baselines that you can adopt for your shared task, e.g.:
 
-    We recommend that you test your software locally on the sample dataset `tira-sample-input` before uploading it to TIRA to ensure that your software works correctly (this also simplifies debugging as everything is under your control and runs on your machine).
+   - The `clickbait spoiling baselines from SemEval-2023 <https://github.com/pan-webis-de/pan-code/tree/master/semeval23/baselines>`__
+   - The `ValueEval baseline from SemEval-2023 <https://github.com/touche-webis-de/touche-code/tree/main/semeval23/human-value-detection/1-baseline>`__
+   - The baselines for `Touché-2023 at CLEF <https://github.com/touche-webis-de/touche-code/tree/main/clef23/evidence-retrieval-for-causal-questions/baseline-pyterrier>`__
+   - The baseline for `PAN-2023 at CLEF <https://github.com/pan-webis-de/pan-code/tree/master/clef23/trigger-detection/baselines>`__
 
-    Please install `tira-run` via `pip3 install tira`.
+   To simplify testing software submissions locally before they are uploaded to TIRA, we provide a :code:`tira-run` command that participants can use to test their image locally. The :code:`tira-run` commands executes a software as it would be executed in TIRA.
 
-    After `tira-run` is installed, you can execute the baseline on the sample dataset `tira-sample-input` via this command:
-    `tira-run --input-directory ${PWD}/tira-sample-input --image <DOCKER_IMAGE_BASELINE> --command <BASELINE_SOFTWARE_COMMAND>`
+   You can find some examples of shared tasks that use :code:`tira-run` in their baselines to simplify participation here:
 
-    This command should create the following output in `tira-output`: <TODO_ADD_EXAMPLE_OUTPUT>
+   - https://github.com/touche-webis-de/touche-code/tree/main/clef23/evidence-retrieval-for-causal-questions/baseline-pyterrier
+   - https://github.com/touche-webis-de/touche-code/tree/main/clef23/multilingual-stance-classification
+
+   We recommend that you have for all of your baselines an :code:`tira-run` example so that you can point participants to this example if their software submission fails in TIRA. For this, you need:
+
+   - The baseline should be publicly available, e.g., at Dockerhub
+   - You need a small sample of the data (can be artificial, but must have the same structure/format as the test data)
+
+   Assuming that you have published the baseline for your task at dockerhub under the name :code:`<DOCKER_IMAGE_BASELINE>`
+   and that the baseline is executed via the command :code:`<BASELINE_SOFTWARE_COMMAND>` inside the container and that you have a directory :code:`tira-sample-input` with the sample data in the git repository of your baseline, you can add the following documentation (replace the placeholders with the correct values) to your README:
+
+   .. code::
+
+      You can test docker images that you would submit to TIRA locally via `tira-run`. 
+      The `tira-run` commands executes a software as it would be executed in TIRA (i.e., with sandboxing using the same command pattern).
+
+      We recommend that you test your software locally on the sample dataset `tira-sample-input` before uploading it to TIRA to ensure that your software works correctly (this also simplifies debugging as everything is under your control and runs on your machine).
+
+      Please install `tira-run` via `pip3 install tira`.
+
+      After `tira-run` is installed, you can execute the baseline on the sample dataset `tira-sample-input` via this command:
+      `tira-run --input-directory ${PWD}/tira-sample-input --image <DOCKER_IMAGE_BASELINE> --command <BASELINE_SOFTWARE_COMMAND>`
+
+      This command should create the following output in `tira-output`: <TODO_ADD_EXAMPLE_OUTPUT>
+
+
+
+------
+
+.. note:: This is the previous version
 
 Modifying virtual machines
 ~~~~~~~~~~~~~~~~~~~~~~~~~~

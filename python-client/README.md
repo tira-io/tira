@@ -1,6 +1,6 @@
 # The TIRA Client
 
-This is a python client for [TIRA.io](https://tira.io).
+This is a python client for [TIRA.io](https://tira.io). Please find the [documentation online](https://tira-io.github.io/tira/nightly).
 
 ## Setup REST Client to Access Non-Public Endpoints
 

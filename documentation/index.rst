@@ -1,42 +1,29 @@
 TIRA
-================================
-TIRA is a platform for experiments in artificial intelligence that ensures blinded experiments and reproducibility.
+====
+In science, shared tasks are crucial for collecting diverse approaches to tackle complex problems. TIRA provides a platform for organizing these tasks and welcoming submissions, whether for research or education.
 
-.. grid:: 2 2 3 3
 
-   .. grid-item-card:: For Users
-      :class-card: sd-text-white
-      :class-body: sd-fs-12 sd-px-0
-      :img-background: https://sphinx-design.readthedocs.io/en/furo-theme/_images/particle_background.jpg
-      :img-alt:
-      :text-align: center
-      :link: users/intro.html
+.. grid:: 1 2 3 3
+   :margin: 4 4 0 0
+   :gutter: 1
+
+   .. grid-item-card:: :octicon:`person` For Users
+      :link: users/intro
+      :link-type: doc
       
       How to use tira.io or other hosted instances of TIRA
 
-   .. grid-item-card:: For Organizers
-      :class-card: sd-text-white
-      :class-body: sd-fs-12 sd-px-0
-      :img-background: https://sphinx-design.readthedocs.io/en/furo-theme/_images/particle_background.jpg
-      :img-alt:
-      :text-align: center
-      :link: organizers/index.html
+   .. grid-item-card:: :octicon:`organization` For Organizers
+      :link: organizers/intro
+      :link-type: doc
 
       Create new shared tasks or host your own TIRA instance
 
-   .. grid-item-card:: For Developers
-      :class-card: sd-text-white
-      :class-body: sd-fs-12 sd-px-0
-      :img-background: https://sphinx-design.readthedocs.io/en/furo-theme/_images/particle_background.jpg
-      :img-alt:
-      :text-align: center
-      :link: development/index.html
+   .. grid-item-card:: :octicon:`code-square` For Developers
+      :link: development/index
+      :link-type: doc
 
       Help extend TIRA and make it more awesome than ever
-
-
-* :ref:`genindex`
-* `Glossary <glossary.html>`_
 
 
 .. toctree::
@@ -47,18 +34,16 @@ TIRA is a platform for experiments in artificial intelligence that ensures blind
    users/intro
    users/participate
    users/tiracli
-   users/api
-   users/faq
+   users/python-client
 
 .. toctree::
    :maxdepth: 5
    :caption: For Organizers
    :hidden:
 
+   organizers/intro
    organizers/organizing-tasks
    organizers/deployment/index
-   organizers/maintenance
-   organizers/faq
 
 .. toctree::
    :maxdepth: 5
@@ -66,3 +51,10 @@ TIRA is a platform for experiments in artificial intelligence that ensures blind
    :hidden:
 
    development/index
+
+.. toctree::
+   :caption: Indices
+   :hidden:
+
+   genindex
+   glossary
