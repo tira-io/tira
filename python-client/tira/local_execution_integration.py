@@ -132,7 +132,7 @@ class LocalExecutionIntegration():
         except:
             pass
 
-        return ret
+        return ret + ["/var/run/docker.sock"]
         
 
     def __docker_client(self):
@@ -144,7 +144,7 @@ class LocalExecutionIntegration():
                         environ["DOCKER_HOST"] = "unix://" + docker_socket
                 
                 if "DOCKER_HOST" in environ:
-                    logging.info("Set DOCKER_HOST to '" + environ["DOCKER_HOST"] + "'.")
+                    logging.warn("Set DOCKER_HOST to '" + environ["DOCKER_HOST"] + "'. Prevent this by explicitly setting the environment variable DOCKER_HOST.")
 
             client = docker.from_env(environment=environ)
 
