@@ -15,9 +15,13 @@ jobs:
         uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-      - name: Build Image
+      - name: Install Dependencies
         working-directory: ${{github.workspace}}/python-client
         run: |
+          sudo apt-get install -y openjdk-11-jdk
           pip3 install .[test,dev]
+      - name: Running Tests
+        working-directory: ${{github.workspace}}/python-client
+        run: |
           echo running on branch ${GITHUB_REF##*/}
           pytest
