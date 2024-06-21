@@ -10,15 +10,18 @@ jobs:
         python-version: ["3.8", "3.9", "3.10", "3.11"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-      - name: Build Image
+      - name: Install Dependencies
+        working-directory: ${{github.workspace}}/python-client
         run: |
-          cd python-client
-          pip3 install twine coverage-badge python-terrier coverage ir_datasets pytest docker approvaltests
+          sudo apt-get install -y openjdk-11-jdk
+          pip3 install .[test,dev]
+      - name: Running Tests
+        working-directory: ${{github.workspace}}/python-client
+        run: |
           echo running on branch ${GITHUB_REF##*/}
           pytest
-

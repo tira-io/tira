@@ -32,6 +32,8 @@ RUN mkdir -p /usr/share/umlet \
 	&& cd /usr/share/umlet \
 	&& unzip download.zip
 # Install sphinx dependencies
+## TODO: use "pip install .[test,dev,docs]" from setup.cfg ; not done for now since this Docker file should be
+##       superseded anyway
 RUN pip3 install sphinx furo myst-parser sphinx-design sphinxcontrib-plantuml sphinxcontrib-umlet
 RUN apt-get update && apt-get install -y plantuml
 RUN pip3 install tira approvaltests \
