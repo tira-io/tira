@@ -18,6 +18,6 @@ jobs:
       - name: Build Image
         working-directory: ${{github.workspace}}/python-client
         run: |
-          pip3 install .[tests,dev]
+          pip3 install .[test,dev]
           echo running on branch ${GITHUB_REF##*/}
           pytest
