@@ -458,7 +458,7 @@ def redirects(approach=None, dataset=None, url=None):
             ret = ret.split('/')
             task, team, dataset, run_id = ret[0], ret[2], ret[4], ret[6].replace('.zip', '')
             system = RUN_ID_TO_SYSTEM.get(run_id, None)
-        elif '/data-download/training/' in url:
+        elif '/data-download/training/' in url or '/data-download/test/' in url:
             dataset_id = url.split('/')[-1].replace('.zip', '')
             dataset_id = DATASET_ID_REDIRECTS.get(dataset_id, dataset_id)
             suffix = '-truths.zip' if '/input-truth/' in url else '-inputs.zip'
