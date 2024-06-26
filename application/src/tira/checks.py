@@ -40,11 +40,11 @@ def check_permissions(func):
             return func(request, *args, **kwargs)
             
         # Listing runs for ir-lab at CLEF 2024 is public for the moment
-        if request.path_info.startswith('api/list-runs/ir-lab-padua-2024/') or request.path_info.startswith('/api/list-runs/ir-lab-padua-2024/'):
+        if request.path_info.startswith('api/list-runs/ir-lab-padua-2024/') or request.path_info.startswith('/api/list-runs/ir-lab-padua-2024/') or request.path_info.startswith('api/list-runs/ir-lab-sose-2024/') or request.path_info.startswith('/api/list-runs/ir-lab-sose-2024/'):
              return func(request, *args, **kwargs)
         
         # Listing runs for ir-lab at CLEF 2024 is public for the moment
-        if (request.path_info.startswith('task/ir-lab-padua-2024/user/') or request.path_info.startswith('/task/ir-lab-padua-2024/user/')) and request.path_info.endswith('.zip') and '/user/' in request.path_info and '/dataset/' in request.path_info and 'download' in request.path_info and request.path_info.split('/user/')[1].split('/')[1] == 'dataset' and request.path_info.split('/user/')[1].split('/')[3] == 'download':
+        if (request.path_info.startswith('task/ir-lab-padua-2024/user/') or request.path_info.startswith('/task/ir-lab-padua-2024/user/') or request.path_info.startswith('task/ir-lab-sose-2024/user/') or request.path_info.startswith('/task/ir-lab-sose-2024/user/')) and request.path_info.endswith('.zip') and '/user/' in request.path_info and '/dataset/' in request.path_info and 'download' in request.path_info and request.path_info.split('/user/')[1].split('/')[1] == 'dataset' and request.path_info.split('/user/')[1].split('/')[3] == 'download':
             return func(request, *args, **kwargs)
 
         # SERP endpoint is allowed for runs that are published and unblinded
