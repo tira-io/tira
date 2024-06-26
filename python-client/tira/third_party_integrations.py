@@ -213,7 +213,7 @@ def parse_extraction_of_tira_approach(python_line: str):
         if not('id' in dir(python_line.value.func.value) and python_line.value.func.value.id == 'tira') and not('value' in dir(python_line.value.func.value) and python_line.value.func.value.value.id == 'tira'):
             return None
 
-        if python_line.value.func.attr != 'index' and python_line.value.func.attr != 'from_submission' and python_line.value.func.attr != 'get_run_output':
+        if python_line.value.func.attr != 'index' and python_line.value.func.attr != 'from_submission' and python_line.value.func.attr != 'get_run_output' and python_line.value.func.attr != 'transform_queries':
             return None
         
         return extract_ast_value(python_line.value.args[0])

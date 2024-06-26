@@ -70,6 +70,21 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
 
         self.assertEqual(expected, actual)
 
+    def test_extraction_of_approach_for_query_transformation_01(self):
+        python_line = "gpt_sq_zs = tira.pt.transform_queries('ir-benchmarks/tu-dresden-03/qe-gpt3.5-sq-zs', dataset, prefix='llm_expansion_')"
+        expected = 'ir-benchmarks/tu-dresden-03/qe-gpt3.5-sq-zs'
+        actual =  parse_extraction_of_tira_approach(python_line)
+
+        self.assertEqual(expected, actual)
+
+    def test_llm_expansions_as_previous_stage(self):
+        notebook = TEST_DIR / 'resources' / 'jupyter-notebook-with-query-expansion.ipynb'
+        expected = ['ir-benchmarks/tu-dresden-03/qe-gpt3.5-sq-zs']
+
+        actual = extract_previous_stages_from_notebook(notebook)
+
+        self.assertEqual(expected, actual)
+
     def test_pyterrier_index_as_previous_stage_for_python_file(self):
         notebook = TEST_DIR / 'resources' / 'retrieve-with-pyterrier-index.py'
         expected = ['ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)']
