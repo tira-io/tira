@@ -393,6 +393,7 @@ STATIC_DATASET_REDIRECTS = {
     'longeval-short-july-20230513-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-padua2024/',
     'longeval-long-september-20230513-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-padua2024/',
     'ir-acl-anthology-20240504-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/',
+    'ir-acl-anthology-topics-koeln-20240614-in-progress-test': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/',
 }
 
 RESOURCE_REDIRECTS = {
