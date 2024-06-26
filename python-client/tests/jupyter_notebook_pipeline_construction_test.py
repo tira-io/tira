@@ -79,7 +79,7 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
 
     def test_llm_expansions_as_previous_stage(self):
         notebook = TEST_DIR / 'resources' / 'jupyter-notebook-with-query-expansion.ipynb'
-        expected = ['ir-benchmarks/tu-dresden-03/qe-gpt3.5-sq-zs']
+        expected = ['ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)', 'ir-benchmarks/tu-dresden-03/qe-gpt3.5-sq-zs']
 
         actual = extract_previous_stages_from_notebook(notebook)
 
