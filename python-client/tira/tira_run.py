@@ -320,7 +320,7 @@ def main(args=None):
         print('Upload TIRA_SOFTWARE')
         prev_stages = []
         for i in args.previous_stages:
-            prev_stages += [str(i['job_id']['software_id'] if i['job_id']['software_id'] else ('upload-' + i['job_id']['upload_id']))]
+            prev_stages += [str(i['job_id']['software_id'] if i['job_id']['software_id'] else ('upload-' + str(i['job_id']['upload_id'])))]
 
         tira = RestClient(api_key=args.tira_client_token, api_user_name=args.tira_client_user)
         tira.add_docker_software(image, args.command, args.tira_vm_id, args.tira_task_id, args.tira_code_repository_id, dict(os.environ), prev_stages, args.mount_hf_model)
