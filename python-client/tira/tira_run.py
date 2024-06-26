@@ -160,6 +160,8 @@ def parse_args():
             parser.error('The option --tira-docker-registry-user (or environment variable TIRA_DOCKER_REGISTRY_USER) is required when --push is active.')
 
         args.previous_stages = [rest_client.public_runs(args.tira_task_id, args.input_dataset.split('/')[1], i.split('/')[1], i.split('/')[2]) for i in args.previous_stages]
+        if 'none' in args.previous_stages or None in args.previous_stages:
+            parser.error('One of the previous stages is not public. Please contact the organizer with a link to your code so that they can ensure it is public.')
 
     if not args.approach and not args.image:
         parser.error('Please specify what you want to run.')
@@ -318,7 +320,7 @@ def main(args=None):
         print('Upload TIRA_SOFTWARE')
         prev_stages = []
         for i in args.previous_stages:
-            prev_stages += [str(i['job_id']['software_id'] if i['job_id']['software_id'] else i['job_id']['upload_id'])]
+            prev_stages += [str(i['job_id']['software_id'] if i['job_id']['software_id'] else ('upload-' + i['job_id']['upload_id']))]
 
         tira = RestClient(api_key=args.tira_client_token, api_user_name=args.tira_client_user)
         tira.add_docker_software(image, args.command, args.tira_vm_id, args.tira_task_id, args.tira_code_repository_id, dict(os.environ), prev_stages, args.mount_hf_model)
