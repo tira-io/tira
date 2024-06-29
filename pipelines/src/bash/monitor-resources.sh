@@ -31,7 +31,7 @@ done
 for i in $(seq 1 60)
 do
     echo "DATE: $(date)" &>> ${RESULTS_DIR}/ps.log
-    echo ps aux &>> ${RESULTS_DIR}/ps.log
+    ps aux &>> ${RESULTS_DIR}/ps.log
     nvidia-smi -q -d UTILIZATION,MEMORY &>> ${RESULTS_DIR}/nvidia-smi.log
     sleep 30
 done
@@ -39,7 +39,7 @@ done
 while :
 do
     echo "DATE: $(date)" &>> ${RESULTS_DIR}/ps.log
-    echo ps aux &>> ${RESULTS_DIR}/ps.log
+    ps aux &>> ${RESULTS_DIR}/ps.log
     nvidia-smi -q -d UTILIZATION,MEMORY &>> ${RESULTS_DIR}/nvidia-smi.log
     sleep 60
 done
