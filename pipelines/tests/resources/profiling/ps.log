@@ -1,0 +1,1127 @@
+DATE: Sat Jun 29 13:55:08 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.1  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  25076 18432 ?        R    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root          43  0.0  0.0   7076  2816 ?        R    13:55   0:00 ps aux
+DATE: Sat Jun 29 13:55:11 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36 13.6  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root          47  0.0  0.0   7076  2816 ?        R    13:55   0:00 ps aux
+DATE: Sat Jun 29 13:55:14 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  6.8  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root          51  0.0  0.0   7076  2816 ?        R    13:55   0:00 ps aux
+DATE: Sat Jun 29 13:55:17 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  4.5  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root          55  0.0  0.0   7076  2816 ?        R    13:55   0:00 ps aux
+DATE: Sat Jun 29 13:55:20 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  3.4  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root          59  0.0  0.0   7076  2816 ?        R    13:55   0:00 ps aux
+DATE: Sat Jun 29 13:55:23 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  2.7  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root          63  0.0  0.0   7076  2816 ?        R    13:55   0:00 ps aux
+DATE: Sat Jun 29 13:55:26 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  2.2  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root          67  0.0  0.0   7076  2816 ?        R    13:55   0:00 ps aux
+DATE: Sat Jun 29 13:55:29 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  1.9  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root          71  0.0  0.0   7076  2816 ?        R    13:55   0:00 ps aux
+DATE: Sat Jun 29 13:55:32 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  1.7  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root          75  0.0  0.0   7076  2816 ?        R    13:55   0:00 ps aux
+DATE: Sat Jun 29 13:55:35 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  1.5  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root          79  0.0  0.0   7076  2816 ?        R    13:55   0:00 ps aux
+DATE: Sat Jun 29 13:55:38 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  1.3  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root          83  0.0  0.0   7076  2816 ?        R    13:55   0:00 ps aux
+DATE: Sat Jun 29 13:55:41 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  1.2  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root          87  0.0  0.0   7076  2816 ?        R    13:55   0:00 ps aux
+DATE: Sat Jun 29 13:55:44 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  1.1  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root          91  0.0  0.0   7076  3072 ?        R    13:55   0:00 ps aux
+DATE: Sat Jun 29 13:55:47 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  1.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root          95  0.0  0.0   7076  2816 ?        R    13:55   0:00 ps aux
+DATE: Sat Jun 29 13:55:50 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.9  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root          99  0.0  0.0   7076  2816 ?        R    13:55   0:00 ps aux
+DATE: Sat Jun 29 13:55:53 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.9  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         103  0.0  0.0   7076  2816 ?        R    13:55   0:00 ps aux
+DATE: Sat Jun 29 13:55:56 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.8  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         107  0.0  0.0   7076  2816 ?        R    13:55   0:00 ps aux
+DATE: Sat Jun 29 13:55:59 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.8  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         111  0.0  0.0   7076  2816 ?        R    13:55   0:00 ps aux
+DATE: Sat Jun 29 13:56:02 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.7  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         115  0.0  0.0   7076  2816 ?        R    13:56   0:00 ps aux
+DATE: Sat Jun 29 13:56:06 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.7  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         119  0.0  0.0   7076  2816 ?        R    13:56   0:00 ps aux
+DATE: Sat Jun 29 13:56:09 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.6  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         124  0.0  0.0   7076  2816 ?        R    13:56   0:00 ps aux
+DATE: Sat Jun 29 13:56:39 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.4  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         128  0.0  0.0   7076  2816 ?        R    13:56   0:00 ps aux
+DATE: Sat Jun 29 13:57:09 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.3  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         132  0.0  0.0   7076  2816 ?        R    13:57   0:00 ps aux
+DATE: Sat Jun 29 13:57:39 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.2  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         136  0.0  0.0   7076  3072 ?        R    13:57   0:00 ps aux
+DATE: Sat Jun 29 13:58:09 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.2  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         140  0.0  0.0   7076  2816 ?        R    13:58   0:00 ps aux
+DATE: Sat Jun 29 13:58:39 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.1  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         144  0.0  0.0   7076  2816 ?        R    13:58   0:00 ps aux
+DATE: Sat Jun 29 13:59:09 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.1  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         148  0.0  0.0   7076  2816 ?        R    13:59   0:00 ps aux
+DATE: Sat Jun 29 13:59:39 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.1  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         152  0.0  0.0   7076  2816 ?        R    13:59   0:00 ps aux
+DATE: Sat Jun 29 14:00:09 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.1  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         156  0.0  0.0   7076  2816 ?        R    14:00   0:00 ps aux
+DATE: Sat Jun 29 14:00:39 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.1  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         160  0.0  0.0   7076  2816 ?        R    14:00   0:00 ps aux
+DATE: Sat Jun 29 14:01:09 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.1  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         164  0.0  0.0   7076  2816 ?        R    14:01   0:00 ps aux
+DATE: Sat Jun 29 14:01:39 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.1  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         168  0.0  0.0   7076  2816 ?        R    14:01   0:00 ps aux
+DATE: Sat Jun 29 14:02:09 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         172  0.0  0.0   7076  2816 ?        R    14:02   0:00 ps aux
+DATE: Sat Jun 29 14:02:39 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         176  0.0  0.0   7076  3072 ?        R    14:02   0:00 ps aux
+DATE: Sat Jun 29 14:03:09 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         180  0.0  0.0   7076  2816 ?        R    14:03   0:00 ps aux
+DATE: Sat Jun 29 14:03:39 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         184  0.0  0.0   7076  2816 ?        R    14:03   0:00 ps aux
+DATE: Sat Jun 29 14:04:09 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  8.0  0.0 313404 68620 ?        Sl   14:03   0:01 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  100  0.0 5807236 1070984 ?     Rsl  14:03   0:12 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         245  0.0  0.0   7076  2816 ?        R    14:04   0:00 ps aux
+DATE: Sat Jun 29 14:04:39 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  2.4  0.0 313404 68620 ?        Sl   14:03   0:01 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  100  0.2 8452340 3692680 ?     Rsl  14:03   0:42 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         249  0.0  0.0   7076  3072 ?        R    14:04   0:00 ps aux
+DATE: Sat Jun 29 14:05:09 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  1.4  0.0 313404 68620 ?        Sl   14:03   0:01 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  100  0.3 10929500 6137992 ?    Rsl  14:03   1:12 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         253  0.0  0.0   7076  2816 ?        R    14:05   0:00 ps aux
+DATE: Sat Jun 29 14:05:39 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  1.2  0.0 313404 68620 ?        Sl   14:03   0:01 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  100  0.4 18144968 6361632 ?    Rsl  14:03   1:42 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         290  0.0  0.0   7076  2816 ?        R    14:05   0:00 ps aux
+DATE: Sat Jun 29 14:06:09 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  1.2  0.0 313404 68620 ?        Sl   14:03   0:01 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  100  0.4 18144968 6361632 ?    Rsl  14:03   2:12 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         294  0.0  0.0   7076  2816 ?        R    14:06   0:00 ps aux
+DATE: Sat Jun 29 14:06:39 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  1.1  0.0 313404 68620 ?        Sl   14:03   0:01 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  100  0.4 18144968 6361632 ?    Rsl  14:03   2:42 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         298  0.0  0.0   7076  2816 ?        R    14:06   0:00 ps aux
+DATE: Sat Jun 29 14:07:10 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  1.1  0.0 313404 68620 ?        Sl   14:03   0:02 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192 99.9  0.4 18144968 6361632 ?    Rsl  14:03   3:12 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         302  0.0  0.0   7076  2816 ?        R    14:07   0:00 ps aux
+DATE: Sat Jun 29 14:07:40 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  1.0  0.0 313584 68620 ?        Sl   14:03   0:02 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  100  0.4 18144968 6361632 ?    Rsl  14:03   3:43 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         306  0.0  0.0   7076  2816 ?        R    14:07   0:00 ps aux
+DATE: Sat Jun 29 14:08:10 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  1.0  0.0 313584 68620 ?        Sl   14:03   0:02 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  100  0.4 18144968 6361632 ?    Rsl  14:03   4:13 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         310  0.0  0.0   7076  2816 ?        R    14:08   0:00 ps aux
+DATE: Sat Jun 29 14:08:40 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  1.0  0.0 313584 68620 ?        Sl   14:03   0:02 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  100  0.4 18144968 6361632 ?    Rsl  14:03   4:43 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         314  0.0  0.0   7076  2816 ?        R    14:08   0:00 ps aux
+DATE: Sat Jun 29 14:09:10 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.9  0.0 313584 68620 ?        Sl   14:03   0:03 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  100  0.4 18144968 6361632 ?    Rsl  14:03   5:13 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         318  0.0  0.0   7076  2816 ?        R    14:09   0:00 ps aux
+DATE: Sat Jun 29 14:09:40 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.9  0.0 313584 68620 ?        Sl   14:03   0:03 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  100  0.4 18144968 6361632 ?    Rsl  14:03   5:43 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         322  0.0  0.0   7076  2816 ?        R    14:09   0:00 ps aux
+DATE: Sat Jun 29 14:10:10 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.9  0.0 313584 68620 ?        Sl   14:03   0:03 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  100  0.4 18144968 6361632 ?    Rsl  14:03   6:13 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         326  0.0  0.0   7076  3072 ?        R    14:10   0:00 ps aux
+DATE: Sat Jun 29 14:10:40 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.9  0.0 313584 68620 ?        Sl   14:03   0:03 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  102  0.4 23312296 6631712 ?    Rsl  14:03   6:54 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         334  0.0  0.0   7076  2816 ?        R    14:10   0:00 ps aux
+DATE: Sat Jun 29 14:11:10 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.8  0.0 313584 68620 ?        Sl   14:03   0:03 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  105  0.4 23345524 6666528 ?    Ssl  14:03   7:38 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         338  0.0  0.0   7076  2816 ?        R    14:11   0:00 ps aux
+DATE: Sat Jun 29 14:11:40 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.7  0.0 313584 68620 ?        Sl   14:03   0:03 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  108  0.4 23377548 6700064 ?    Rsl  14:03   8:21 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         342  0.0  0.0   7076  2816 ?        R    14:11   0:00 ps aux
+DATE: Sat Jun 29 14:12:10 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.7  0.0 313584 68620 ?        Sl   14:03   0:03 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  110  0.4 23410624 6735392 ?    Ssl  14:03   9:04 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         346  0.0  0.0   7076  2816 ?        R    14:12   0:00 ps aux
+DATE: Sat Jun 29 14:12:40 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.7  0.0 313584 68620 ?        Sl   14:03   0:03 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  112  0.4 23576524 6772000 ?    Ssl  14:03   9:48 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         350  0.0  0.0   7076  2816 ?        R    14:12   0:00 ps aux
+DATE: Sat Jun 29 14:13:10 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.6  0.0 313584 68620 ?        Sl   14:03   0:03 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  114  0.4 23610524 6808096 ?    Rsl  14:03  10:32 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         354  0.0  0.0   7076  2816 ?        R    14:13   0:00 ps aux
+DATE: Sat Jun 29 14:13:40 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.6  0.0 313584 68620 ?        Sl   14:03   0:03 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  115  0.4 23642064 6841632 ?    Rsl  14:03  11:15 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         358  0.0  0.0   7076  2816 ?        R    14:13   0:00 ps aux
+DATE: Sat Jun 29 14:14:10 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.6  0.0 313584 68620 ?        Sl   14:03   0:03 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  117  0.4 23679500 6880544 ?    Rsl  14:03  11:59 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         362  0.0  0.0   7076  2816 ?        R    14:14   0:00 ps aux
+DATE: Sat Jun 29 14:14:40 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.5  0.0 313584 68620 ?        Sl   14:03   0:03 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  118  0.4 23713484 6916896 ?    Rsl  14:03  12:43 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         366  0.0  0.0   7076  2816 ?        R    14:14   0:00 ps aux
+DATE: Sat Jun 29 14:15:10 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.5  0.0 313584 68620 ?        Sl   14:03   0:03 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  119  0.4 23750820 6956064 ?    Ssl  14:03  13:27 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         370  0.0  0.0   7076  2816 ?        R    14:15   0:00 ps aux
+DATE: Sat Jun 29 14:15:40 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.5  0.0 313584 68620 ?        Sl   14:03   0:03 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  121  0.4 23780192 6987808 ?    Ssl  14:03  14:10 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         374  0.0  0.0   7076  2816 ?        R    14:15   0:00 ps aux
+DATE: Sat Jun 29 14:16:10 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.5  0.0 313584 68620 ?        Sl   14:03   0:03 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  122  0.4 23814820 7023904 ?    Ssl  14:03  14:54 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         378  0.0  0.0   7076  2816 ?        R    14:16   0:00 ps aux
+DATE: Sat Jun 29 14:16:40 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.5  0.0 313584 68620 ?        Sl   14:03   0:03 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  123  0.4 23849680 7060512 ?    Ssl  14:03  15:38 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         382  0.0  0.0   7076  2816 ?        R    14:16   0:00 ps aux
+DATE: Sat Jun 29 14:17:10 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.4  0.0 313584 68620 ?        Sl   14:03   0:03 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  123  0.4 23883596 7097120 ?    Ssl  14:03  16:22 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         386  0.0  0.0   7076  3072 ?        R    14:17   0:00 ps aux
+DATE: Sat Jun 29 14:17:40 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.4  0.0 313584 68620 ?        Sl   14:03   0:03 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  124  0.4 23917480 7132448 ?    Ssl  14:03  17:06 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         390  0.0  0.0   7076  2816 ?        R    14:17   0:00 ps aux
+DATE: Sat Jun 29 14:18:10 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.4  0.0 313584 68620 ?        Sl   14:03   0:03 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  125  0.4 23952920 7169312 ?    Ssl  14:03  17:50 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         394  0.0  0.0   7076  2816 ?        R    14:18   0:00 ps aux
+DATE: Sat Jun 29 14:18:40 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.4  0.0 313584 68620 ?        Sl   14:03   0:03 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  126  0.4 23988048 7207200 ?    Ssl  14:03  18:34 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         398  0.0  0.0   7076  2816 ?        R    14:18   0:00 ps aux
+DATE: Sat Jun 29 14:19:10 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.4  0.0 313584 68620 ?        Sl   14:03   0:03 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  126  0.4 24022416 7242272 ?    Rsl  14:03  19:18 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         402  0.0  0.0   7076  2816 ?        R    14:19   0:00 ps aux
+DATE: Sat Jun 29 14:19:41 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.4  0.0 313584 68620 ?        Sl   14:03   0:03 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  127  0.4 24055644 7277856 ?    Ssl  14:03  20:02 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         406  0.0  0.0   7076  2816 ?        R    14:19   0:00 ps aux
+DATE: Sat Jun 29 14:20:11 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.4  0.0 313584 68620 ?        Sl   14:03   0:03 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  127  0.4 24098496 7322144 ?    Rsl  14:03  20:46 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         410  0.0  0.0   7076  2816 ?        R    14:20   0:00 ps aux
+DATE: Sat Jun 29 14:20:41 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.3  0.0 313584 68620 ?        Sl   14:03   0:03 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  128  0.4 24127300 7352864 ?    Rsl  14:03  21:30 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         414  0.0  0.0   7076  2816 ?        R    14:20   0:00 ps aux
+DATE: Sat Jun 29 14:21:11 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.3  0.0 313584 68620 ?        Sl   14:03   0:03 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  128  0.4 24166112 7393056 ?    Ssl  14:03  22:12 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         418  0.0  0.0   7076  2816 ?        R    14:21   0:00 ps aux
+DATE: Sat Jun 29 14:21:41 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.3  0.0 313584 68620 ?        Sl   14:03   0:04 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  129  0.4 24208536 7436064 ?    Ssl  14:03  22:56 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         422  0.0  0.0   7076  2816 ?        R    14:21   0:00 ps aux
+DATE: Sat Jun 29 14:22:11 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.3  0.0 313584 68620 ?        Sl   14:03   0:04 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  129  0.4 24250212 7480096 ?    Ssl  14:03  23:40 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         426  0.0  0.0   7076  2816 ?        R    14:22   0:00 ps aux
+DATE: Sat Jun 29 14:22:41 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.3  0.0 313584 68620 ?        Sl   14:03   0:04 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  130  0.4 24290796 7523616 ?    Ssl  14:03  24:24 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         430  0.0  0.0   7076  2816 ?        R    14:22   0:00 ps aux
+DATE: Sat Jun 29 14:23:11 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.3  0.0 313584 68620 ?        Sl   14:03   0:04 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  130  0.4 24333056 7565600 ?    Ssl  14:03  25:08 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         434  0.0  0.0   7076  2816 ?        R    14:23   0:00 ps aux
+DATE: Sat Jun 29 14:23:41 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.3  0.0 313584 68620 ?        Sl   14:03   0:04 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  131  0.4 24373824 7609120 ?    Ssl  14:03  25:52 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         438  0.0  0.0   7076  3072 ?        R    14:23   0:00 ps aux
+DATE: Sat Jun 29 14:24:11 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.3  0.0 313584 68620 ?        Sl   14:03   0:04 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  131  0.4 24414300 7651360 ?    Ssl  14:03  26:36 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         442  0.0  0.0   7076  2816 ?        R    14:24   0:00 ps aux
+DATE: Sat Jun 29 14:24:41 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.3  0.0 313584 68620 ?        Sl   14:03   0:04 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  131  0.4 24456760 7695136 ?    Ssl  14:03  27:20 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         446  0.0  0.0   7076  2816 ?        R    14:24   0:00 ps aux
+DATE: Sat Jun 29 14:25:11 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.3  0.0 313584 68620 ?        Sl   14:03   0:04 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  132  0.4 24497000 7737888 ?    Rsl  14:03  28:04 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         450  0.0  0.0   7076  2816 ?        R    14:25   0:00 ps aux
+DATE: Sat Jun 29 14:25:41 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.3  0.0 313584 68620 ?        Sl   14:03   0:04 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  132  0.4 24537816 7781152 ?    Rsl  14:03  28:47 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         454  0.0  0.0   7076  2816 ?        R    14:25   0:00 ps aux
+DATE: Sat Jun 29 14:26:11 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.3  0.0 313584 68620 ?        Sl   14:03   0:04 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  132  0.4 24578760 7824416 ?    Rsl  14:03  29:31 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         458  0.0  0.0   7076  2816 ?        R    14:26   0:00 ps aux
+DATE: Sat Jun 29 14:27:11 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.2  0.0 313584 68620 ?        Sl   14:03   0:04 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  133  0.4 24667700 7916832 ?    Rsl  14:03  30:59 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         462  0.0  0.0   7076  2816 ?        R    14:27   0:00 ps aux
+DATE: Sat Jun 29 14:28:11 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.2  0.0 313584 68620 ?        Sl   14:03   0:04 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  133  0.5 24755548 8009504 ?    Rsl  14:03  32:27 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         466  0.0  0.0   7076  2816 ?        R    14:28   0:00 ps aux
+DATE: Sat Jun 29 14:29:11 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.2  0.0 313584 68620 ?        Sl   14:03   0:04 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  134  0.5 24840832 8096800 ?    Ssl  14:03  33:54 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         470  0.0  0.0   7076  2816 ?        R    14:29   0:00 ps aux
+DATE: Sat Jun 29 14:30:11 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.2  0.0 313584 68620 ?        Sl   14:03   0:04 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  134  0.5 24923792 8185120 ?    Ssl  14:03  35:22 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         474  0.0  0.0   7076  2816 ?        R    14:30   0:00 ps aux
+DATE: Sat Jun 29 14:31:11 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.2  0.0 313584 68620 ?        Sl   14:03   0:04 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  135  0.5 25003608 8266528 ?    Rsl  14:03  36:48 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         478  0.0  0.0   7076  2816 ?        R    14:31   0:00 ps aux
+DATE: Sat Jun 29 14:32:11 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.2  0.0 313584 68620 ?        Sl   14:03   0:04 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  135  0.5 25084608 8352544 ?    Ssl  14:03  38:16 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         482  0.0  0.0   7076  2816 ?        R    14:32   0:00 ps aux
+DATE: Sat Jun 29 14:33:11 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.2  0.0 313584 68620 ?        Sl   14:03   0:04 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  135  0.5 25251320 8455456 ?    Ssl  14:03  39:44 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         486  0.0  0.0   7076  2816 ?        R    14:33   0:00 ps aux
+DATE: Sat Jun 29 14:34:11 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.2  0.0 313584 68620 ?        Sl   14:03   0:04 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  136  0.5 25317860 8526112 ?    Ssl  14:03  41:12 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         490  0.0  0.0   7076  3072 ?        R    14:34   0:00 ps aux
+DATE: Sat Jun 29 14:35:11 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.2  0.0 313584 68620 ?        Sl   14:03   0:04 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  136  0.5 25399312 8612640 ?    Rsl  14:03  42:40 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         494  0.0  0.0   7076  2816 ?        R    14:35   0:00 ps aux
+DATE: Sat Jun 29 14:36:11 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.2  0.0 313584 68620 ?        Sl   14:03   0:04 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  136  0.5 25497368 8713760 ?    Rsl  14:03  44:08 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         498  0.0  0.0   7076  2816 ?        R    14:36   0:00 ps aux
+DATE: Sat Jun 29 14:37:11 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.2  0.0 313584 68620 ?        Sl   14:03   0:04 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  137  0.5 25635168 8790048 ?    Ssl  14:03  45:36 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         502  0.0  0.0   7076  2816 ?        R    14:37   0:00 ps aux
+DATE: Sat Jun 29 14:38:11 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.2  0.0 313584 68620 ?        Sl   14:03   0:04 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  136  0.6 27689796 10879008 ?   Rsl  14:03  46:44 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         506  0.0  0.0   7076  2816 ?        R    14:38   0:00 ps aux
+DATE: Sat Jun 29 14:39:12 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.2  0.0 313584 68620 ?        Sl   14:03   0:04 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  135  0.6 27879236 11083808 ?   Rsl  14:03  47:44 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         510  0.0  0.0   7076  2816 ?        R    14:39   0:00 ps aux
+DATE: Sat Jun 29 14:40:12 UTC 2024
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.0   4372  3072 ?        Ss   13:54   0:00 /usr/bin/bash
+root          21  0.0  0.0   2900   512 ?        S    13:55   0:00 sh -c (/scripts-3330-95359/detect_shell_script /scripts-3330-95359/step_script 2>&1 | tee -a /logs-3330-95359/output.log) &
+root          22  0.0  0.0   4584  3584 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          23  0.0  0.0   2804  1280 ?        S    13:55   0:00 tee -a /logs-3330-95359/output.log
+root          27  0.0  0.0   4696  2188 ?        S    13:55   0:00 /usr/bin/bash /scripts-3330-95359/step_script
+root          35  0.0  0.0   2904  1536 ?        S    13:55   0:00 /usr/bin/sh /mnt/ceph/tira/data/publicly-shared-datasets/profiling-utility/monitor-resources.sh ms-marco-all-dev-queries-20240629-training/tinyfsu/2024-06-29-13-52-56/output
+root          36  0.0  0.0  42060 34812 ?        S    13:55   0:00 python3 /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb
+root         187  0.0  0.0   2904  1536 ?        S    14:03   0:00 /bin/sh -c runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         188  0.2  0.0 313584 68620 ?        Sl   14:03   0:04 /opt/conda/bin/python /opt/conda/bin/runnb --allow-not-trusted /re-rank-with-tiny-bert.ipynb
+root         192  134  0.5 26007620 9215144 ?    Rsl  14:03  48:44 /opt/conda/bin/python -m ipykernel_launcher -f /tmp/tmpletgw0cj.json --HistoryManager.hist_file=:memory:
+root         514  0.0  0.0   7076  2816 ?        R    14:40   0:00 ps aux

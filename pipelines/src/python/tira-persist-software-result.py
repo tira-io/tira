@@ -5,9 +5,8 @@ from pathlib import Path
 from os.path import exists
 import json
 import os
-from django.conf import settings
 import shutil
-from tira.git_integration.gitlab_integration import persist_tira_metadata_for_job
+
 
 def fail_if_environment_variables_are_missing():
     for v in ['TIRA_DATASET_ID', 'TIRA_VM_ID', 'TIRA_RUN_ID', 'TIRA_OUTPUT_DIR', 'TIRA_TASK_ID']:
@@ -15,15 +14,18 @@ def fail_if_environment_variables_are_missing():
             raise ValueError('I expect that the environment variable "' + v + '" is set, but it was absent.')
 
 def run_output_dir():
+    from django.conf import settings
     return settings.TIRA_ROOT / 'data' / 'runs' / os.environ['TIRA_DATASET_ID'] / os.environ['TIRA_VM_ID'] / os.environ['TIRA_RUN_ID'] / 'output'
 
 def eval_dir(eval_id):
     return Path(os.environ['TIRA_OUTPUT_DIR']) / '..' / '..' / eval_id
     
 def final_eval_dir(eval_id):
+    from django.conf import settings
     return settings.TIRA_ROOT / 'data' / 'runs' / os.environ['TIRA_DATASET_ID'] / os.environ['TIRA_VM_ID'] / eval_id
 
 def copy_resources():
+    from tira.git_integration.gitlab_integration import persist_tira_metadata_for_job
     if exists(str(run_output_dir())):
         print(str(run_output_dir()) + " exists already. I do not overwrite.")
         return
@@ -43,6 +45,81 @@ def copy_resources():
     
     shutil.copytree(src, str(target))
     persist_tira_metadata_for_job(target_without_output, os.environ['TIRA_RUN_ID'], 'run-user-software')
+    try:
+        process_profiling_logs(target)
+    except Exception as e:
+        print(e)
+
+def parse_profiling_logs(directory):
+    ret = []
+
+    try:
+        if (Path(directory) / 'ps.log').is_file():
+            start_timestamp = None
+            ps_log = open(Path(directory) / 'ps.log').read().split('DATE: ')
+            for ps_entry in ps_log:
+                if 'USER' not in ps_entry:
+                    continue
+
+                timestamp = dt.strptime(ps_entry.split('\n')[0].strip(), '%a %b %d %H:%M:%S %Z %Y').timestamp()
+                if start_timestamp is None:
+                    start_timestamp = timestamp
+                timestamp = timestamp-start_timestamp
+            
+                cpu, vsz, rss = 0, 0, 0
+                
+                for l in ps_entry.split('\n')[1:]:
+                    if l.startswith('USER'):
+                        continue
+                    try:
+                        cpu += float(l.split()[2])
+                        vsz += float(l.split()[4])
+                        rss += float(l.split()[5])
+                    except:
+                        pass
+                        
+                ret += [{'timestamp': timestamp, 'key': 'ps_cpu', 'value': cpu}, {'timestamp': timestamp, 'key': 'ps_vsz', 'value': vsz}, {'timestamp': timestamp, 'key': 'ps_rss', 'value': rss}]
+
+        if not (Path(directory) / 'nvidia-smi.log').is_file():
+            return ret
+        nvidia_log = open(Path(directory) / 'nvidia-smi.log').read().split('============NVSMI LOG============')
+        start_timestamp = None
+        for entry in nvidia_log:
+            if 'Timestamp' not in entry or 'Utilization' not in entry or 'FB Memory Usage' not in entry or 'Memory' not in entry or 'Gpu' not in entry or 'Used' not in entry:
+                continue
+             
+            timestamp = entry.split('Timestamp')[1].split('\n')[0].split(' : ')[1].strip()
+            timestamp = dt.strptime(timestamp, '%a %b %d %H:%M:%S %Y').timestamp()
+            if start_timestamp is None:
+                start_timestamp = timestamp
+            timestamp = timestamp-start_timestamp
+            memory_used = entry.split('FB Memory Usage')[1].split('Used')[1].split('\n')[0].split(' : ')[1].strip()
+            gpu_utilization = entry.split('Utilization')[1].split('Gpu')[1].split('\n')[0].split(' : ')[1].strip()
+            
+            ret += [{'timestamp': timestamp, 'key': 'gpu_memory_used', 'value': memory_used}, {'timestamp': timestamp, 'key': 'gpu_utilization', 'value': gpu_utilization}]
+
+        return ret
+    except Exception as e:
+        return ret
+
+def process_profiling_logs(directory):
+    #TIRA_OUTPUT_DIR points to output
+
+    profile = Path(directory) / 'profiling'
+
+    if not profile.is_dir():
+        print('Can not parse the profiling data')
+        return
+
+    target_dir_zip = Path(directory).parent / 'profiling'
+    target_jsonl = Path(directory).parent / 'parsed_profiling.jsonl'
+    shutil.make_archive(target_dir_zip, 'zip', profile)
+    
+    with open(target_jsonl, 'w') as f:
+        for i in parse_profiling_logs(profile):
+            print(json.dumps(i) + '\n')
+    
+    shutil.rmtree(profile)
 
 def config(job_file):
     ret = {}

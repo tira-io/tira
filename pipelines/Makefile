@@ -1,4 +1,4 @@
-IMAGE_VERSION=0.0.33
+IMAGE_VERSION=0.0.34
 
 publish-tira-git-docker:
 	docker push webis/tira-git-pipelines:${IMAGE_VERSION}

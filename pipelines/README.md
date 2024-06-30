@@ -9,3 +9,9 @@ docker run \
 	--rm -ti webis/tira-git-pipelines:0.0.1
 ```
 
+
+
+```
+pytest tests/
+```
+
