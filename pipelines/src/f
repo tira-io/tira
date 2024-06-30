@@ -7,5 +7,5 @@ RUN pip3 uninstall -y tira \
 
 ADD ./src/python/tira-specify-task-to-run.py /usr/local/bin/tira-specify-task-to-run.py
 ADD ./src/python/tira-specify-task-to-run.py /tira-git/src/python/tira-specify-task-to-run.py
-ADD ./src/python/tira-persist-software-result.py /tira-git/src/python/tira-persist-software-result.py
+ADD ./src/python/tira-persist-software-result.py /usr/local/bin/tira-persist-software-result.py
 

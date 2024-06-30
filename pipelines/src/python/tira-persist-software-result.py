@@ -44,11 +44,14 @@ def copy_resources():
     print('The output dir exists: ' + str(exists(str(run_output_dir()))))
     
     shutil.copytree(src, str(target))
-    persist_tira_metadata_for_job(target_without_output, os.environ['TIRA_RUN_ID'], 'run-user-software')
     try:
+        print(f'Process process_profiling_logs in directory {target}')
         process_profiling_logs(target)
+        print(f'Done process_profiling_logs in directory {target}')
     except Exception as e:
         print(e)
+    persist_tira_metadata_for_job(target_without_output, os.environ['TIRA_RUN_ID'], 'run-user-software')
+
 
 def parse_profiling_logs(directory):
     ret = []
@@ -115,10 +118,12 @@ def process_profiling_logs(directory):
     target_jsonl = Path(directory).parent / 'parsed_profiling.jsonl'
     shutil.make_archive(target_dir_zip, 'zip', profile)
     
+    print(f'Write log to {target_jsonl}.')
     with open(target_jsonl, 'w') as f:
         for i in parse_profiling_logs(profile):
-            print(json.dumps(i) + '\n')
-    
+            f.write(json.dumps(i) + '\n')
+    print(f'Done log written to {target_jsonl}.')
+
     shutil.rmtree(profile)
 
 def config(job_file):

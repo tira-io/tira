@@ -30,6 +30,14 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
 
         self.assertEqual(expected, actual)
 
+    def test_notebook_is_extracted_when_subshell_is_available(self):
+        expected = '/re-rank-with-tiny-bert.ipynb'
+        command = 'bash -c export MODEL="$(huggingface-cli download $MODEL)" && /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb'
+
+        actual = extract_to_be_executed_notebook_from_command_or_none(command)
+
+        self.assertEqual(expected, actual)
+
     def test_notebook_is_extracted_for_command_in_between(self):
         expected = '/notebook.ipynb'
         command = '/workspace/run-notebook.py --notebook /notebook.ipynb --input $inputDataset --output $outputDir'
@@ -73,6 +81,13 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
     def test_extraction_of_approach_for_query_transformation_01(self):
         python_line = "gpt_sq_zs = tira.pt.transform_queries('ir-benchmarks/tu-dresden-03/qe-gpt3.5-sq-zs', dataset, prefix='llm_expansion_')"
         expected = 'ir-benchmarks/tu-dresden-03/qe-gpt3.5-sq-zs'
+        actual =  parse_extraction_of_tira_approach(python_line)
+
+        self.assertEqual(expected, actual)
+
+    def test_extraction_of_approach_for_document_transformation_01(self):
+        python_line = "document_entity_recognition = tira.pt.transform_documents('ir-lab-sose-2024/ir-nfmj/entity-recognition', pt_dataset)"
+        expected = 'ir-lab-sose-2024/ir-nfmj/entity-recognition'
         actual =  parse_extraction_of_tira_approach(python_line)
 
         self.assertEqual(expected, actual)
