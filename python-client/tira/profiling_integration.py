@@ -38,13 +38,14 @@ class ProfilingIntegration():
 
         try:
             run_output_dir = self.tira_client.get_run_output(approach, dataset, allow_without_evaluation)
+            run_output_dir = Path(run_output_dir).parent
         except Exception as e:
             raise Exception(f"No profiling data available for approach '{approach}' on dataset '{dataset}'. Could not load run", e)
-        
-        profiling_file = Path(run_output_dir) / "parsed_profiling.jsonl"
-        start_time = Path(run_output_dir) / "start"
-        end_time = Path(run_output_dir) / "end"
-        profiling_zip = Path(run_output_dir) / "profiling.zip"
+
+        profiling_file = run_output_dir / "parsed_profiling.jsonl"
+        start_time = run_output_dir / "start"
+        end_time = run_output_dir / "end"
+        profiling_zip = run_output_dir / "profiling.zip"
 
         if not profiling_file.exists() or ((not start_time.exists() or not end_time.exists()) and not profiling_zip.exists()):
             raise Exception(f"No profiling data available for approach '{approach}' on dataset '{dataset}'.")
