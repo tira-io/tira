@@ -2,6 +2,8 @@ import json
 from pathlib import Path
 from tira.tira_client import TiraClient
 from datetime import datetime as dt
+import zipfile
+
 
 
 class ProfilingIntegration():
@@ -42,12 +44,21 @@ class ProfilingIntegration():
         profiling_file = Path(run_output_dir) / "parsed_profiling.jsonl"
         start_time = Path(run_output_dir) / "start"
         end_time = Path(run_output_dir) / "end"
+        profiling_zip = Path(run_output_dir) / "profiling.zip"
 
-        if not profiling_file.exists() or not start_time.exists() or not end_time.exists():
+        if not profiling_file.exists() or ((not start_time.exists() or not end_time.exists()) and not profiling_zip.exists()):
             raise Exception(f"No profiling data available for approach '{approach}' on dataset '{dataset}'.")
 
-        start_time = ' '.join(open(start_time).read().split()[:4])
-        end_time = ' '.join(open(end_time).read().split()[:4])
+        try:
+            start_time = open(start_time).read()
+            end_time = open(end_time).read()
+        except:
+            archive = zipfile.ZipFile(profiling_zip, 'r')
+            start_time = archive.read('start').decode('utf-8')
+            end_time = archive.read('end').decode('utf-8')
+
+        start_time = ' '.join(start_time.split()[:4])
+        end_time = ' '.join(end_time.split()[:4])
         start_time = dt.strptime(start_time, '%a %b %d %H:%M:%S').timestamp()
         end_time = dt.strptime(end_time, '%a %b %d %H:%M:%S').timestamp()
         ret = []

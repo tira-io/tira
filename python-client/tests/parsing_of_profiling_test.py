@@ -49,3 +49,11 @@ class ParsingOfProfilingTest(unittest.TestCase):
         actual = profiling_integration.from_submission('run_id', 'dataset', return_pd=True)
         
         self.assertEqual(expected, actual.iloc[0].to_dict())
+
+    def test_profiling_info_has_elpsed_time_as_last_slot_from_zip(self):
+        tira_client = mocked_tira_client('/resources/profiling_logs2')
+        profiling_integration = ProfilingIntegration(tira_client)
+        expected = {"timestamp": 64.0, "key": "elapsed_time", "value": 64}
+        actual = profiling_integration.from_submission('run_id', 'dataset')
+        
+        self.assertEqual(expected, actual[-1])
