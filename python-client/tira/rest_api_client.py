@@ -9,6 +9,7 @@ import time
 from random import randint
 from tira.pyterrier_integration import PyTerrierIntegration, PyTerrierAnceIntegration, PyTerrierSpladeIntegration
 from tira.pandas_integration import PandasIntegration
+from tira.profiling_integration import ProfilingIntegration
 from tira.local_execution_integration import LocalExecutionIntegration
 import logging
 from .tira_client import TiraClient
@@ -38,6 +39,7 @@ class Client(TiraClient):
             self.fail_if_api_key_is_invalid()
         self.pd = PandasIntegration(self)
         self.pt = PyTerrierIntegration(self)
+        self.profiling = ProfilingIntegration(self)
         self.pt_ance = PyTerrierAnceIntegration(self)
         self.pt_splade = PyTerrierSpladeIntegration(self)
         self.local_execution = LocalExecutionIntegration(self)
