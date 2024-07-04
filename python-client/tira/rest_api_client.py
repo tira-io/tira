@@ -133,8 +133,15 @@ class Client(TiraClient):
             content['mount_hf_model'] = mount_hf_model
 
         ret = requests.post(url, headers=headers, json=content)
+        response_code = ret.status_code
         ret = ret.content.decode('utf8')
-        ret = json.loads(ret)
+        try:
+            ret = json.loads(ret)
+        except:
+            msg = f'Upload of software failed with error {ret} and response code {response_code}.'
+            print(msg)
+            raise ValueError(msg)
+
         if ret['status'] != 0:
             msg = f'Upload of software failed with error {ret}'
             print(msg)
