@@ -399,3 +399,10 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
         actual = parse_extraction_of_tira_approach(python_line)
 
         self.assertEqual(expected, actual)
+
+    def test_pyterrier_from_run_output_02(self):
+        python_line = "        plaid_index = tira.get_run_output('reneuir-2024/reneuir-baselines/plaid-x', dataset_id) + '/index'"
+        expected = 'reneuir-2024/reneuir-baselines/plaid-x'
+        actual = parse_extraction_of_tira_approach(python_line)
+
+        self.assertEqual(expected, actual)

@@ -207,6 +207,12 @@ def parse_extraction_of_tira_approach(python_line: str):
         import ast
         python_line = ast.parse(python_line.split('%')[0].strip()).body[0]
 
+        if 'op' in dir(python_line.value) and 'left' in dir(python_line.value) and 'right' in dir(python_line.value):
+            ret = parse_extraction_of_tira_approach(ast.unparse(python_line.value.left))
+            if ret:
+                return ret
+            return parse_extraction_of_tira_approach(ast.unparse(python_line.value.right))
+
         if 'attr' in dir(python_line.value.func.value) and python_line.value.func.value.attr != 'pt':
             return None
 
