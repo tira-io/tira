@@ -30,10 +30,10 @@ class ProfilingIntegration():
         - gpu_utilization: Utilization of the GPU in percent, produced by the `nvidia-smi` command.
 
         Args:
-            approach (str): _description_
+            approach (str): The identifier of the approach, e.g., "<team>/<task>/<approach>".
             dataset (str): The dataset identifier, e.g., "reneuir-2024/dl-top-1000-docs-20240701-training".
             return_pd (str, optional): Return as pandas DataFrame instead of as list of dictionaries. Defaults to False.
-            allow_without_evaluation (_type_, optional): _description_. Defaults to False.
+            allow_without_evaluation (bool, optional): allow to retrieve runs without evaluation. Defaults to False.
         """
 
         try:
@@ -50,6 +50,21 @@ class ProfilingIntegration():
             return archive.read(file).decode('utf-8')
 
     def from_local_run_output(self, run_output_dir: Path, return_pd: bool=False):
+        """Return the profiling of the run within the run output dir, i.e.,  CPU and memory usage, but als GPU utilization if available. Will throw an exception if no profiling data is available (e.g., if profiling was not configured for the task).
+
+        Entries look like [{"timestamp": 0.0, "key": "ps_cpu", "value": 0.3}, ...]. The timestamp is the time in seconds since the start of the run, the key is the name of the metric, and the value is the value of the metric. The following metrics can be available (depending on the run and the system configuration):
+
+        - elapsed_time: elapsed time in seconds since the start of the run until completion of the process.
+        - ps_cpu: CPU usage in percent, produced by the `ps` command.
+        - ps_rss: RSS Memory usage, produced by the `ps` command.
+        - ps_vsz: VSZ Memory usage, produced by the `ps` command.
+        - gpu_memory_used: Memory usage of the GPU in MiB, produced by the `nvidia-smi` command.
+        - gpu_utilization: Utilization of the GPU in percent, produced by the `nvidia-smi` command.
+
+        Args:
+            run_output_dir (Path): The path to the output dir.
+            return_pd (str, optional): Return as pandas DataFrame instead of as list of dictionaries. Defaults to False.
+        """
         profiling_file = run_output_dir / "parsed_profiling.jsonl"
         start_time = run_output_dir / "start"
         end_time = run_output_dir / "end"
