@@ -77,8 +77,8 @@ class ProfilingIntegration():
             start_time = open(start_time).read()
             end_time = open(end_time).read()
         except:
-            start_time = self._read_file_from_profiling_zip('start')
-            end_time = self._read_file_from_profiling_zip('end')
+            start_time = self._read_file_from_profiling_zip(run_output_dir, 'start')
+            end_time = self._read_file_from_profiling_zip(run_output_dir, 'end')
 
         start_time = ' '.join(start_time.split()[:4])
         end_time = ' '.join(end_time.split()[:4])
