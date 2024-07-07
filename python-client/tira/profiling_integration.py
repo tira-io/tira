@@ -41,22 +41,29 @@ class ProfilingIntegration():
             run_output_dir = Path(run_output_dir).parent
         except Exception as e:
             raise Exception(f"No profiling data available for approach '{approach}' on dataset '{dataset}'. Could not load run", e)
+    
+        return self.from_local_run_output(run_output_dir, return_pd)
 
+
+    def _read_file_from_profiling_zip(self, profiling_zip: Path, file: str):
+        with zipfile.ZipFile(profiling_zip, 'r') as archive:
+            return archive.read(file).decode('utf-8')
+
+    def from_local_run_output(self, run_output_dir: Path, return_pd: bool=False):
         profiling_file = run_output_dir / "parsed_profiling.jsonl"
         start_time = run_output_dir / "start"
         end_time = run_output_dir / "end"
         profiling_zip = run_output_dir / "profiling.zip"
 
         if not profiling_file.exists() or ((not start_time.exists() or not end_time.exists()) and not profiling_zip.exists()):
-            raise Exception(f"No profiling data available for approach '{approach}' on dataset '{dataset}'.")
+            raise Exception(f"No profiling data available for run {run_output_dir}.")
 
         try:
             start_time = open(start_time).read()
             end_time = open(end_time).read()
         except:
-            archive = zipfile.ZipFile(profiling_zip, 'r')
-            start_time = archive.read('start').decode('utf-8')
-            end_time = archive.read('end').decode('utf-8')
+            start_time = self._read_file_from_profiling_zip('start')
+            end_time = self._read_file_from_profiling_zip('end')
 
         start_time = ' '.join(start_time.split()[:4])
         end_time = ' '.join(end_time.split()[:4])
