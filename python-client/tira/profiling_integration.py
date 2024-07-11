@@ -61,11 +61,10 @@ class ProfilingIntegration():
         """
         try:
             run_output_dir = self.tira_client.get_run_output(approach, dataset, allow_without_evaluation)
-            run_output_dir = Path(run_output_dir).parent
         except Exception as e:
             raise Exception(f"No profiling data available for approach '{approach}' on dataset '{dataset}'. Could not load run", e)
     
-        return self._read_file_from_profiling_zip(run_output_dir, resource)
+        return self._read_file_from_profiling_zip(Path(run_output_dir) / "profiling.zip", resource)
 
     def _read_file_from_profiling_zip(self, profiling_zip: Path, file: str):
         with zipfile.ZipFile(profiling_zip, 'r') as archive:
