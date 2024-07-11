@@ -44,6 +44,28 @@ class ProfilingIntegration():
     
         return self.from_local_run_output(run_output_dir, return_pd)
 
+    def raw_telemetry(self, approach: str, dataset: str, resource: str, allow_without_evaluation: bool=False) -> str:
+        """Return the raw telemetry "resource" of the run identified by the approach on the dataset. The passed resource specifies which telemetry to return, i.e.,
+
+        - cpuinfo: The content of '/proc/cpuinfo' of the host that executed the run.
+        - meminfo: The content of '/proc/meminfo' of the host that executed the run.
+        - nvidia-smi.out: The content of the 'nvidia-smi' command of the host that executed the run, executed once before the software was started.
+        - nvidia-smi.log: Periodic telemetry of nvidia-smi monitored while the software was executed in the sandbox.
+        - ps.log: Periodic telemetry of 'ps' monitored while the software was executed in the sandbox.
+
+        Args:
+            approach (str): The identifier of the approach, e.g., "<team>/<task>/<approach>".
+            dataset (str): The dataset identifier, e.g., "reneuir-2024/dl-top-1000-docs-20240701-training".
+            resource (str): the telemetry to return.
+            allow_without_evaluation (bool, optional): allow to retrieve runs without evaluation. Defaults to False.
+        """
+        try:
+            run_output_dir = self.tira_client.get_run_output(approach, dataset, allow_without_evaluation)
+            run_output_dir = Path(run_output_dir).parent
+        except Exception as e:
+            raise Exception(f"No profiling data available for approach '{approach}' on dataset '{dataset}'. Could not load run", e)
+    
+        return self._read_file_from_profiling_zipself(run_output_dir, resource)
 
     def _read_file_from_profiling_zip(self, profiling_zip: Path, file: str):
         with zipfile.ZipFile(profiling_zip, 'r') as archive:
