@@ -286,6 +286,11 @@ STATIC_REDIRECTS = {
     }
 }
 
+def join_to_static_redirects(name, http_base_url):
+    pass
+
+join_to_static_redirects('reneuir-2024', 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/reneuir-2024/runs/')
+
 RUN_ID_TO_SYSTEM = {}
 for task in STATIC_REDIRECTS.keys():
     for team in STATIC_REDIRECTS[task].keys():

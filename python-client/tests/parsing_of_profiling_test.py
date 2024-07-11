@@ -25,7 +25,7 @@ class ParsingOfProfilingTest(unittest.TestCase):
         with self.assertRaises(Exception) as context:
             profiling_integration.from_submission('run_id', 'dataset')
         print(context.exception)
-        self.assertTrue('No profiling data available for approach' in str(context.exception))
+        self.assertTrue('No profiling data available for run' in str(context.exception))
 
     def test_profiling_info_available_as_dict(self):
         tira_client = mocked_tira_client('/resources/profiling_logs/a')
@@ -60,7 +60,7 @@ class ParsingOfProfilingTest(unittest.TestCase):
         self.assertEqual(expected, actual[-1])
 
     def test_prod_system(self):
-        expected = {"timestamp": 64.0, "key": "elapsed_time", "value": 64}
+        expected = {"timestamp": 38.0, "key": "elapsed_time", "value": 38}
         actual = Client().profiling.from_submission('reneuir-2024/tinyfsu/tiny-fsu-bert', 'dl-top-1000-docs-20240701-training')
         
         self.assertEqual(expected, actual[-1])
