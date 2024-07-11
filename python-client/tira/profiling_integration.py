@@ -64,7 +64,7 @@ class ProfilingIntegration():
         except Exception as e:
             raise Exception(f"No profiling data available for approach '{approach}' on dataset '{dataset}'. Could not load run", e)
     
-        return self._read_file_from_profiling_zip(Path(run_output_dir) / "profiling.zip", resource)
+        return self._read_file_from_profiling_zip(Path(run_output_dir).parent / "profiling.zip", resource)
 
     def _read_file_from_profiling_zip(self, profiling_zip: Path, file: str):
         with zipfile.ZipFile(profiling_zip, 'r') as archive:
