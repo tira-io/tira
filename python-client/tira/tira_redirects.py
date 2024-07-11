@@ -289,7 +289,7 @@ STATIC_REDIRECTS = {
 }
 
 def join_to_static_redirects(name, http_base_url):
-    json_file = Path(__file__).parent.resolve() / 'static-redirects' / f'{name}.json'
+    json_file = Path(__file__).parent.resolve() / 'static_redirects' / f'{name}.json'
     json_file = json.load(open(json_file, 'r'))
     for redirected_approach in json_file:
         task_id, team_name, approach_name = redirected_approach.split('/')
