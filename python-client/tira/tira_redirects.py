@@ -396,14 +396,15 @@ STATIC_DATASET_REDIRECTS = {
     'ir-acl-anthology-topics-koeln-20240614-in-progress-test': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/',
 
 
-    # ReNeuIr 2024
-    'dl-top-10-docs-20240701-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/reneuir-2024/corpora/',
-    'dl-top-100-docs-20240701-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/reneuir-2024/corpora/',
-    'dl-top-1000-docs-20240701-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/reneuir-2024/corpora/',
-    'ms-marco-100-queries-20240629-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/reneuir-2024/corpora/',
-    'ms-marco-1000-queries-20240629-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/reneuir-2024/corpora/',
-    'ms-marco-all-dev-queries-20240629-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/reneuir-2024/corpora/',
-    're-rank-spot-check-20240624-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/reneuir-2024/corpora/',
+    # ReNeuIr 2024 # mirror: https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/reneuir-2024/corpora/
+
+    'dl-top-10-docs-20240701-training': 'https://zenodo.org/records/12722918/files/',
+    'dl-top-100-docs-20240701-training': 'https://zenodo.org/records/12722918/files/',
+    'dl-top-1000-docs-20240701-training': 'https://zenodo.org/records/12722918/files/',
+    'ms-marco-100-queries-20240629-training': 'https://zenodo.org/records/12722918/files/',
+    'ms-marco-1000-queries-20240629-training': 'https://zenodo.org/records/12722918/files/',
+    'ms-marco-all-dev-queries-20240629-training': 'https://zenodo.org/records/12722918/files/',
+    're-rank-spot-check-20240624-training': 'https://zenodo.org/records/12722918/files/',
 }
 
 RESOURCE_REDIRECTS = {

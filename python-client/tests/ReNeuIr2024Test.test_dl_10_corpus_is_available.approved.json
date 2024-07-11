@@ -2,7 +2,7 @@
     "md5_of_first_kilobyte": "ea6ac1faba13d0338fbba836cedd9491",
     "redirect_url": {
         "urls": [
-            "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/reneuir-2024/corpora/dl-top-10-docs-20240701-inputs.zip?download=1"
+            "https://zenodo.org/records/12722918/files/dl-top-10-docs-20240701-inputs.zip?download=1"
         ]
     },
     "tira_url": "https://www.tira.io/data-download/training/input-/dl-top-10-docs-20240701-training.zip"
