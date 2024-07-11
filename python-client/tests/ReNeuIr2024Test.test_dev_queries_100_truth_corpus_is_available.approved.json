@@ -1,0 +1,9 @@
+{
+    "md5_of_first_kilobyte": "90437be86c1e4f004a3cc4de20ed7bfe",
+    "redirect_url": {
+        "urls": [
+            "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/reneuir-2024/corpora/ms-marco-100-queries-20240629-truth.zip?download=1"
+        ]
+    },
+    "tira_url": "https://www.tira.io/data-download/training/input-truth/ms-marco-100-queries-20240629-training.zip"
+}

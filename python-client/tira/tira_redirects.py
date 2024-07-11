@@ -394,6 +394,16 @@ STATIC_DATASET_REDIRECTS = {
     'longeval-long-september-20230513-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-padua2024/',
     'ir-acl-anthology-20240504-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/',
     'ir-acl-anthology-topics-koeln-20240614-in-progress-test': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/',
+
+
+    # ReNeuIr 2024
+    'dl-top-10-docs-20240701-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/reneuir-2024/corpora/',
+    'dl-top-100-docs-20240701-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/reneuir-2024/corpora/',
+    'dl-top-1000-docs-20240701-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/reneuir-2024/corpora/',
+    'ms-marco-100-queries-20240629-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/reneuir-2024/corpora/',
+    'ms-marco-1000-queries-20240629-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/reneuir-2024/corpora/',
+    'ms-marco-all-dev-queries-20240629-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/reneuir-2024/corpora/',
+    're-rank-spot-check-20240624-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/reneuir-2024/corpora/',
 }
 
 RESOURCE_REDIRECTS = {
