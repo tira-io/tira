@@ -1,4 +1,6 @@
 from tira.license_agreements import print_license_agreement
+from pathlib import Path
+import json
 
 STATIC_REDIRECTS = {
     'ir-benchmarks': {
@@ -287,7 +289,28 @@ STATIC_REDIRECTS = {
 }
 
 def join_to_static_redirects(name, http_base_url):
-    pass
+    json_file = Path(__file__).parent.resolve() / 'static-redirects' / f'{name}.json'
+    json_file = json.load(open(json_file, 'r'))
+    for redirected_approach in json_file:
+        task_id, team_name, approach_name = redirected_approach.split('/')
+        cache_file_name = json_file[redirected_approach]['class'] if 'class' in json_file[redirected_approach] else f'{team_name}-{approach_name}'.lower().replace(' ', '-').replace('(', '').replace(')', '')
+        cache_file_name += '.zip'
+
+        if task_id not in STATIC_REDIRECTS:
+            STATIC_REDIRECTS[task_id] = {}
+        if team_name not in STATIC_REDIRECTS[task_id]:
+            STATIC_REDIRECTS[task_id][team_name] = {}
+        if approach_name not in STATIC_REDIRECTS[task_id][team_name]:
+            STATIC_REDIRECTS[task_id][team_name][approach_name] = {}
+        
+        for dataset_id, run_id in json_file[redirected_approach]['runs'].items():
+            if dataset_id in STATIC_REDIRECTS[task_id][team_name][approach_name]:
+                raise ValueError('Duplicated execution in the cache.')
+
+            STATIC_REDIRECTS[task_id][team_name][approach_name][dataset_id] = {
+                'urls': [http_base_url + cache_file_name + '?download=1'],
+                'run_id': run_id,
+            }
 
 join_to_static_redirects('reneuir-2024', 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/reneuir-2024/runs/')
 
