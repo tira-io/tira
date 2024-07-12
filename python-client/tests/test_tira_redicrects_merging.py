@@ -40,3 +40,11 @@ class TestTiraRedirectsMerging(unittest.TestCase):
         actual = STATIC_REDIRECTS['reneuir-2024']['tira-ir-starter']['Index (tira-ir-starter-pyterrier)']['ms-marco-100-queries-20240629-training']
 
         self.assertEqual(expected, actual)
+
+    def test_tasks_with_redirect_merging(self):
+        expected = ['ir-benchmarks', 'ir-lab-sose-2024', 'reneuir-2024']
+        from tira.tira_redirects import TASKS_WITH_REDIRECT_MERGING
+        actual = sorted(list(TASKS_WITH_REDIRECT_MERGING))
+
+        self.assertEqual(expected, actual)
+

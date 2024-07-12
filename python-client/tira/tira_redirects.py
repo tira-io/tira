@@ -313,9 +313,10 @@ def join_to_static_redirects(name, http_base_url):
             }
 
 join_to_static_redirects('reneuir-2024', 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/reneuir-2024/runs/')
-
+TASKS_WITH_REDIRECT_MERGING = set()
 RUN_ID_TO_SYSTEM = {}
 for task in STATIC_REDIRECTS.keys():
+    TASKS_WITH_REDIRECT_MERGING.add(task)
     for team in STATIC_REDIRECTS[task].keys():
         for system_name in STATIC_REDIRECTS[task][team].keys():
             system = STATIC_REDIRECTS[task][team][system_name]

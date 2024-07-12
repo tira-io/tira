@@ -7,14 +7,15 @@ class PandasIntegration():
     def __init__(self, tira_client):
         self.tira_client = tira_client
 
-    def from_retriever_submission(self, approach: str, dataset: str, previous_stage: str=None, datasets: List[str]=None):
+    def from_retriever_submission(self, approach: str, dataset: str, previous_stage: str=None, datasets: List[str]=None, for_ir_measures: bool=False):
         """Load a run file as pandas dataframe from tira. Compatible with PyTerrier.
 
         Args:
             approach (str): the approach for which the run should be loaded, in the format 'task/team/software'.
             dataset (str): the dataset id, either an tira or ir_datasets id.
             previous_stage (str, optional): The previous stage, in case the approach itself is ambigious. Defaults to None.
-            datasets (List[str], optional): _description_. Defaults to None.
+            datasets (List[str], optional): list of datasets to concat. Defaults to None.
+            for_ir_measures (bool, optional): rename columns qid and docid to query_id respectively doc_id for direct re-use within ir-measures.
 
         Returns:
             pd.DataFrame: The run file parsed to a pandas DataFrame.
@@ -36,6 +37,12 @@ class PandasIntegration():
             ret['docno'] = ret['docid'].astype(str)
             del ret['query']
             del ret['docid']
+
+            if for_ir_measures:
+                ret['query_id'] = ret['qid']
+                ret['doc_id'] = ret['docno']
+                del ret['qid']
+                del ret['docno']
 
             ret['tira_task'] = task
             ret['tira_dataset'] = dataset
