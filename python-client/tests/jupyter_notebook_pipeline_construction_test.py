@@ -30,6 +30,14 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
 
         self.assertEqual(expected, actual)
 
+    def test_notebook_is_extracted_when_subshell_is_available(self):
+        expected = '/re-rank-with-tiny-bert.ipynb'
+        command = 'bash -c export MODEL="$(huggingface-cli download $MODEL)" && /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb'
+
+        actual = extract_to_be_executed_notebook_from_command_or_none(command)
+
+        self.assertEqual(expected, actual)
+
     def test_notebook_is_extracted_for_command_in_between(self):
         expected = '/notebook.ipynb'
         command = '/workspace/run-notebook.py --notebook /notebook.ipynb --input $inputDataset --output $outputDir'
@@ -65,6 +73,28 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
     def test_pyterrier_index_as_previous_stage(self):
         notebook = TEST_DIR / 'resources' / 'retrieve-with-pyterrier-index.ipynb'
         expected = ['ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)']
+
+        actual = extract_previous_stages_from_notebook(notebook)
+
+        self.assertEqual(expected, actual)
+
+    def test_extraction_of_approach_for_query_transformation_01(self):
+        python_line = "gpt_sq_zs = tira.pt.transform_queries('ir-benchmarks/tu-dresden-03/qe-gpt3.5-sq-zs', dataset, prefix='llm_expansion_')"
+        expected = 'ir-benchmarks/tu-dresden-03/qe-gpt3.5-sq-zs'
+        actual =  parse_extraction_of_tira_approach(python_line)
+
+        self.assertEqual(expected, actual)
+
+    def test_extraction_of_approach_for_document_transformation_01(self):
+        python_line = "document_entity_recognition = tira.pt.transform_documents('ir-lab-sose-2024/ir-nfmj/entity-recognition', pt_dataset)"
+        expected = 'ir-lab-sose-2024/ir-nfmj/entity-recognition'
+        actual =  parse_extraction_of_tira_approach(python_line)
+
+        self.assertEqual(expected, actual)
+
+    def test_llm_expansions_as_previous_stage(self):
+        notebook = TEST_DIR / 'resources' / 'jupyter-notebook-with-query-expansion.ipynb'
+        expected = ['ir-lab-sose-2024/tira-ir-starter/Index (tira-ir-starter-pyterrier)', 'ir-benchmarks/tu-dresden-03/qe-gpt3.5-sq-zs']
 
         actual = extract_previous_stages_from_notebook(notebook)
 
@@ -366,6 +396,13 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
     def test_pyterrier_from_run_output_01(self):
         python_line = "        bm25_raw = tira.get_run_output('ir-benchmarks/tira-ir-starter/BM25 (tira-ir-starter-pyterrier)', args.input_dataset)"
         expected = 'ir-benchmarks/tira-ir-starter/BM25 (tira-ir-starter-pyterrier)'
+        actual = parse_extraction_of_tira_approach(python_line)
+
+        self.assertEqual(expected, actual)
+
+    def test_pyterrier_from_run_output_02(self):
+        python_line = "        plaid_index = tira.get_run_output('reneuir-2024/reneuir-baselines/plaid-x', dataset_id) + '/index'"
+        expected = 'reneuir-2024/reneuir-baselines/plaid-x'
         actual = parse_extraction_of_tira_approach(python_line)
 
         self.assertEqual(expected, actual)

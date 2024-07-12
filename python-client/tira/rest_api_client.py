@@ -6,15 +6,17 @@ import os
 import zipfile
 import io
 import time
+from glob import glob
 from random import randint
 from tira.pyterrier_integration import PyTerrierIntegration, PyTerrierAnceIntegration, PyTerrierSpladeIntegration
 from tira.pandas_integration import PandasIntegration
+from tira.profiling_integration import ProfilingIntegration
 from tira.local_execution_integration import LocalExecutionIntegration
 import logging
 from .tira_client import TiraClient
 from typing import Optional, List, Dict, Union
 from functools import lru_cache
-from tira.tira_redirects import redirects, mirror_url, dataset_ir_redirects, RESOURCE_REDIRECTS
+from tira.tira_redirects import redirects, mirror_url, dataset_ir_redirects, RESOURCE_REDIRECTS, TASKS_WITH_REDIRECT_MERGING
 from tqdm import tqdm
 import hashlib
 
@@ -38,6 +40,7 @@ class Client(TiraClient):
             self.fail_if_api_key_is_invalid()
         self.pd = PandasIntegration(self)
         self.pt = PyTerrierIntegration(self)
+        self.profiling = ProfilingIntegration(self)
         self.pt_ance = PyTerrierAnceIntegration(self)
         self.pt_splade = PyTerrierSpladeIntegration(self)
         self.local_execution = LocalExecutionIntegration(self)
@@ -131,8 +134,15 @@ class Client(TiraClient):
             content['mount_hf_model'] = mount_hf_model
 
         ret = requests.post(url, headers=headers, json=content)
+        response_code = ret.status_code
         ret = ret.content.decode('utf8')
-        ret = json.loads(ret)
+        try:
+            ret = json.loads(ret)
+        except:
+            msg = f'Upload of software failed with error {ret} and response code {response_code}.'
+            print(msg)
+            raise ValueError(msg)
+
         if ret['status'] != 0:
             msg = f'Upload of software failed with error {ret}'
             print(msg)
@@ -381,6 +391,10 @@ class Client(TiraClient):
 
         if os.path.isdir(target_dir + f'/{run_id}'):
             return target_dir + f'/{run_id}/output'
+
+        potential_local_matches = glob(f'{self.tira_cache_dir}/extracted_runs/{task}/{dataset}/*/{run_id}/output')
+        if task in TASKS_WITH_REDIRECT_MERGING and len(potential_local_matches) == 1:
+            return potential_local_matches[0]
 
         self.download_and_extract_zip(f'{self.base_url}/task/{task}/user/{team}/dataset/{dataset}/download/{run_id}.zip', target_dir)
 

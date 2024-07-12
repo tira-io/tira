@@ -1,0 +1,46 @@
+{
+    "reneuir-2024/ows/pyterrier-anceretrieval": {
+        "md5_of_first_kilobyte": "1ef5169c1adddd7d351516a2b10e6f9e",
+        "redirect_url": {
+            "run_id": "2024-07-07-15-29-55",
+            "urls": [
+                "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/reneuir-2024/runs/bi-encoder-retriever.zip?download=1"
+            ]
+        },
+        "redirected_run_url": {
+            "run_id": "2024-07-07-15-29-55",
+            "urls": [
+                "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/reneuir-2024/runs/bi-encoder-retriever.zip?download=1"
+            ]
+        },
+        "run_execution": {
+            "dataset": "dl-top-1000-docs-20240701-training",
+            "run_id": "2024-07-07-15-29-55",
+            "task": "reneuir-2024",
+            "team": "ows"
+        },
+        "run_url": "https://www.tira.io/task/reneuir-2024/user/ows/dataset/dl-top-1000-docs-20240701-training/download/2024-07-07-15-29-55.zip"
+    },
+    "reneuir-2024/reneuir-baselines/plaid-x-retrieval": {
+        "md5_of_first_kilobyte": "1ef5169c1adddd7d351516a2b10e6f9e",
+        "redirect_url": {
+            "run_id": "2024-07-06-05-43-12",
+            "urls": [
+                "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/reneuir-2024/runs/bi-encoder-retriever.zip?download=1"
+            ]
+        },
+        "redirected_run_url": {
+            "run_id": "2024-07-06-05-43-12",
+            "urls": [
+                "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/reneuir-2024/runs/bi-encoder-retriever.zip?download=1"
+            ]
+        },
+        "run_execution": {
+            "dataset": "dl-top-1000-docs-20240701-training",
+            "run_id": "2024-07-06-05-43-12",
+            "task": "reneuir-2024",
+            "team": "reneuir-baselines"
+        },
+        "run_url": "https://www.tira.io/task/reneuir-2024/user/reneuir-baselines/dataset/dl-top-1000-docs-20240701-training/download/2024-07-06-05-43-12.zip"
+    }
+}

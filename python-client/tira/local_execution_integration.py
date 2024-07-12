@@ -388,5 +388,6 @@ class LocalExecutionIntegration():
             self.show_docker_progress(line, tasks)
 
         if 'error' in push_response:
+            print(push_response)
             raise ValueError('Could not push image')
         return new_image

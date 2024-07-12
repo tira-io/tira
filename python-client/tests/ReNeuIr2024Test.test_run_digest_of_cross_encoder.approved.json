@@ -1,0 +1,46 @@
+{
+    "reneuir-2024/reneuir-baselines/llm-rankers-flan-t5-xl-top-100": {
+        "md5_of_first_kilobyte": "a2fcf09f0ddf1bcef8b5be18c1f80edb",
+        "redirect_url": {
+            "run_id": "2024-07-04-05-31-10",
+            "urls": [
+                "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/reneuir-2024/runs/llm-cross-encoder-ranker.zip?download=1"
+            ]
+        },
+        "redirected_run_url": {
+            "run_id": "2024-07-04-05-31-10",
+            "urls": [
+                "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/reneuir-2024/runs/llm-cross-encoder-ranker.zip?download=1"
+            ]
+        },
+        "run_execution": {
+            "dataset": "dl-top-1000-docs-20240701-training",
+            "run_id": "2024-07-04-05-31-10",
+            "task": "reneuir-2024",
+            "team": "reneuir-baselines"
+        },
+        "run_url": "https://www.tira.io/task/reneuir-2024/user/reneuir-baselines/dataset/dl-top-1000-docs-20240701-training/download/2024-07-04-05-31-10.zip"
+    },
+    "reneuir-2024/tira-ir-starter/MonoBERT Small (tira-ir-starter-gygaggle)": {
+        "md5_of_first_kilobyte": "abb007212932aeaa09b51675791c1b41",
+        "redirect_url": {
+            "run_id": "2024-07-07-12-53-42",
+            "urls": [
+                "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/reneuir-2024/runs/cross-encoder-ranker.zip?download=1"
+            ]
+        },
+        "redirected_run_url": {
+            "run_id": "2024-07-07-12-53-42",
+            "urls": [
+                "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/reneuir-2024/runs/cross-encoder-ranker.zip?download=1"
+            ]
+        },
+        "run_execution": {
+            "dataset": "dl-top-1000-docs-20240701-training",
+            "run_id": "2024-07-07-12-53-42",
+            "task": "reneuir-2024",
+            "team": "tira-ir-starter"
+        },
+        "run_url": "https://www.tira.io/task/reneuir-2024/user/tira-ir-starter/dataset/dl-top-1000-docs-20240701-training/download/2024-07-07-12-53-42.zip"
+    }
+}
