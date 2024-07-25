@@ -28,13 +28,13 @@ In science, shared tasks are crucial for collecting diverse approaches to tackle
 
 .. toctree::
    :maxdepth: 5
-   :caption: For Users
+   :caption: For Participants
    :hidden:
 
-   users/intro
-   users/participate
-   users/tiracli
-   users/python-client
+   participants/intro
+   participants/participate
+   participants/tiracli
+   participants/python-client
 
 .. toctree::
    :maxdepth: 5
