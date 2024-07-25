@@ -1,5 +1,3 @@
-.. _userintropage:
-
 Introduction
 ============
 In science, shared tasks are crucial for collecting diverse approaches to tackle complex problems. TIRA provides a platform for organizing these tasks and welcoming submissions, whether for research or education.
