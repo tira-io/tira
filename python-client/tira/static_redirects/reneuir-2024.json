@@ -1,0 +1,423 @@
+{
+    "reneuir-2024/reneuir-baselines/plaid-x-index": {
+        "runs": {
+            "dl-top-1000-docs-20240701-training": "2024-07-05-14-44-15",
+            "dl-top-100-docs-20240701-training": "2024-07-05-14-17-33",
+            "dl-top-10-docs-20240701-training": "2024-07-05-14-15-16"
+        }    
+    },
+    "reneuir-2024/reneuir-baselines/plaid-x-retrieval": {
+        "previous-stage": ["reneuir-2024/reneuir-baselines/plaid-x-index"],
+        "runs": {
+            "dl-top-1000-docs-20240701-training": "2024-07-06-05-43-12",
+            "dl-top-100-docs-20240701-training": "2024-07-06-05-41-50",
+            "dl-top-10-docs-20240701-training": "2024-07-06-05-40-43"
+        },
+        "class": "bi-encoder-retriever"
+    },
+    "reneuir-2024/fschlatt/plaid-x-rank-zephyr": {
+        "previous-stage": "reneuir-2024/reneuir-baselines/plaid-x-retrieval",
+        "runs": {"dl-top-1000-docs-20240701-training": "2024-07-07-08-58-25"},
+        "class": "llm-cross-encoder-ranker"
+    },
+    "reneuir-2024/fschlatt/list-in-t5-re-rank-plaid-x": {
+        "runs": {"dl-top-1000-docs-20240701-training": "2024-07-07-07-42-52"},
+        "class": "cross-encoder-ranker"
+    },
+    "reneuir-2024/fschlatt/monoelectra-large": {
+	"runs": {
+            "dl-top-10-docs-20240701-training": "2024-07-05-20-41-51",
+            "dl-top-100-docs-20240701-training": "2024-07-05-20-41-27",
+            "dl-top-1000-docs-20240701-training": "2024-07-04-08-33-20"
+	},
+        "class": "cross-encoder-ranker"
+    },
+    "reneuir-2024/fschlatt/monoelectra-base": {
+	"runs": {
+            "dl-top-1000-docs-20240701-training": "2024-07-04-08-49-41"
+	},
+        "class": "cross-encoder-ranker"
+    },
+    "reneuir-2024/fschlatt/rank-zephyr": {
+	"runs": {
+            "dl-top-1000-docs-20240701-training": "2024-07-02-19-16-06"
+	},
+        "class": "llm-cross-encoder-ranker"
+    },
+    "reneuir-2024/fschlatt/castorini-list-in-t5-150": {
+	"runs": {
+            "dl-top-1000-docs-20240701-training": "2024-07-07-07-36-53"
+        },
+        "class": "cross-encoder-ranker"
+    },
+    "reneuir-2024/fschlatt/sparse-cross-encoder-4-512": {
+	"runs": {
+            "dl-top-1000-docs-20240701-training": "2024-07-04-13-02-55"
+	},
+        "class": "cross-encoder-ranker"
+    },
+    "reneuir-2024/reneuir-baselines/llm-rankers-flan-t5-xl-top-100": {
+	"runs": {
+            "dl-top-1000-docs-20240701-training": "2024-07-04-05-31-10"
+	},
+        "class": "llm-cross-encoder-ranker"
+    },
+    "reneuir-2024/reneuir-baselines/llm-rankers-flan-t5-large-top-100": {
+	"runs": {
+            "dl-top-1000-docs-20240701-training": "2024-07-03-22-27-49"
+	},
+        "class": "llm-cross-encoder-ranker"
+    },
+    "reneuir-2024/reneuir-baselines/llm-rankers-vicuna-13b-v1.5-top-100": {
+	"runs": {
+            "dl-top-1000-docs-20240701-training": "2024-07-04-05-24-13"
+	},
+        "class": "llm-cross-encoder-ranker"
+    },
+    "reneuir-2024/reneuir-baselines/llm-rankers-flan-t5-xxl-top-100": {
+	"runs": {
+            "dl-top-1000-docs-20240701-training": "2024-07-04-06-59-38"
+	},
+        "class": "llm-cross-encoder-ranker"
+    },
+    "reneuir-2024/reneuir-baselines/llm-rankers-llama-2-7b-chat-top-100": {
+	"runs": {
+            "dl-top-1000-docs-20240701-training": "2024-07-04-13-00-15"
+	},
+        "class": "llm-cross-encoder-ranker"
+    },
+    "reneuir-2024/reneuir-baselines/plaid-x-llm-rankers-flan-t5-xxl": {
+        "previous-stage": [],
+        "runs": {"dl-top-1000-docs-20240701-training": "2024-07-08-05-16-00"},
+        "class": "llm-cross-encoder-ranker"
+    },
+    "reneuir-2024/reneuir-baselines/plaid-x-llm-rankers-flan-t5-xl": {
+        "previous-stage": [],
+        "runs": {"dl-top-1000-docs-20240701-training": "2024-07-08-05-19-10"},
+        "class": "llm-cross-encoder-ranker"
+    },
+    "reneuir-2024/reneuir-baselines/plaid-x-llm-rankers-vicuna-13b-v1.5": {
+        "previous-stage": [],
+        "runs": {"dl-top-1000-docs-20240701-training": "2024-07-08-05-24-39"},
+        "class": "llm-cross-encoder-ranker"
+    },
+    "reneuir-2024/reneuir-baselines/plaid-x-llm-rankers-flan-t5-large": {
+        "previous-stage": [],
+        "runs": {"dl-top-1000-docs-20240701-training": "2024-07-08-05-21-14"},
+        "class": "llm-cross-encoder-ranker"
+    },
+    "reneuir-2024/reneuir-baselines/plaid-x-llm-rankers-llama-2-7b-chat": {
+        "previous-stage": [],
+        "runs": {"dl-top-1000-docs-20240701-training": "2024-07-08-05-27-31"},
+        "class": "llm-cross-encoder-ranker"
+    },
+    "reneuir-2024/reneuir-baselines/anserini-index": {
+	"runs": {
+            "dl-top-1000-docs-20240701-training": "2024-07-07-08-09-13",
+            "dl-top-100-docs-20240701-training": "2024-07-07-08-10-08",
+            "dl-top-10-docs-20240701-training": "2024-07-07-08-11-12",
+            "ms-marco-all-dev-queries-20240629-training": "2024-07-07-09-16-00",
+            "ms-marco-1000-queries-20240629-training": "2024-07-07-09-15-27",
+            "ms-marco-100-queries-20240629-training": "2024-07-07-09-14-46"
+	}
+    },
+    "reneuir-2024/reneuir-baselines/anserini-bm25": {
+	"runs": {
+            "dl-top-1000-docs-20240701-training": "2024-07-07-08-37-43"
+	},
+        "class": "sparse-retriever"
+    },
+    "reneuir-2024/reneuir-baselines/anserini-qld": {
+	"runs": {
+            "dl-top-1000-docs-20240701-training": "2024-07-07-08-41-44"
+	},
+        "class": "sparse-retriever"
+    },
+    "reneuir-2024/reneuir-baselines/anserini-inl2": {
+	"runs": {
+            "dl-top-1000-docs-20240701-training": "2024-07-07-08-43-42"
+	},
+        "class": "sparse-retriever"
+    },
+    "reneuir-2024/reneuir-baselines/anserini-spl": {
+	"runs": {
+            "dl-top-1000-docs-20240701-training": "2024-07-07-08-46-48"
+	},
+        "class": "sparse-retriever"
+    },
+    "reneuir-2024/reneuir-baselines/anserini-f2log": {
+	"runs": {
+            "dl-top-1000-docs-20240701-training": "2024-07-07-09-07-27"
+	},
+        "class": "sparse-retriever"
+    },
+    "reneuir-2024/reneuir-baselines/anserini-f2exp": {
+	"runs": {
+            "dl-top-1000-docs-20240701-training": "2024-07-07-09-16-50"
+	},
+        "class": "sparse-retriever"
+    },
+    "reneuir-2024/tu-dresden-03/query-expansion-flan-ul2-chain-of-thoughts": {
+	"runs": {
+            "dl-top-1000-docs-20240701-training": "2024-07-03-17-27-08",
+            "ms-marco-all-dev-queries-20240629-training": "2024-07-04-13-04-24",
+            "ms-marco-1000-queries-20240629-training": "2024-07-04-05-25-58"
+	},
+        "class": "llm-expansions"
+    },
+    "reneuir-2024/tu-dresden-03/query-expansion-flan-ul2-similar-queries-few-shot": {
+	"runs": {
+            "dl-top-1000-docs-20240701-training": "2024-07-03-17-32-34",
+            "ms-marco-1000-queries-20240629-training": "2024-07-04-05-32-25"
+	},
+        "class": "llm-expansions"
+    },
+    "reneuir-2024/tu-dresden-03/query-expansion-flan-ul2-similar-queries-zero-shot": {
+	"runs": {
+            "dl-top-1000-docs-20240701-training": "2024-07-03-17-33-51",
+            "ms-marco-1000-queries-20240629-training": "2024-07-04-05-33-20"
+	},
+        "class": "llm-expansions"
+    },
+    "reneuir-2024/tu-dresden-03/query-expansion-llama2-chat-chain-of-thoughts": {
+	"runs": {
+            "dl-top-1000-docs-20240701-training": "2024-07-03-18-03-45",
+            "ms-marco-1000-queries-20240629-training": "2024-07-03-18-21-11"
+	},
+        "class": "llm-expansions"
+    },
+    "reneuir-2024/tu-dresden-03/query-expansion-llama2-chat-similar-queries-zero-shot": {
+	"runs": {
+            "dl-top-1000-docs-20240701-training": "2024-07-03-18-19-13",
+            "ms-marco-1000-queries-20240629-training": "2024-07-04-05-35-02"
+	},
+        "class": "llm-expansions"
+    },
+    "reneuir-2024/tu-dresden-03/query-expansion-llama2-chat-similar-queries-few-shot": {
+	"runs": {
+            "dl-top-1000-docs-20240701-training": "2024-07-03-18-19-41",
+            "ms-marco-1000-queries-20240629-training": "2024-07-04-13-10-12"
+	},
+        "class": "llm-expansions"
+    },
+    "reneuir-2024/tinyfsu/tiny-fsu-bert": {
+	"runs": {
+            "dl-top-1000-docs-20240701-training": "2024-07-07-11-14-20"
+	},
+        "class": "cross-encoder-ranker"
+    },
+    "reneuir-2024/tinyfsu/cross-encoder-ms-marco-TinyBERT-L-2": {
+	"runs": {
+            "dl-top-1000-docs-20240701-training": "2024-07-07-11-15-00"
+	},
+        "class": "cross-encoder-ranker"
+    },
+    "reneuir-2024/tinyfsu/tiny-bert-ranker-bm25": {
+	"runs": {
+            "dl-top-1000-docs-20240701-training": "2024-07-07-11-15-41"
+	},
+        "class": "cross-encoder-ranker"
+    },
+    "reneuir-2024/tinyfsu/tiny-bert-ranker-l2-bm25": {
+	"runs": {
+            "dl-top-1000-docs-20240701-training": "2024-07-07-11-16-26"
+	},
+        "class": "cross-encoder-ranker"
+    },
+    "reneuir-2024/tinyfsu/tiny-bert-ranker-distillation": {
+	"runs": {
+            "dl-top-1000-docs-20240701-training": "2024-07-07-11-17-39"
+	},
+        "class": "cross-encoder-ranker"
+    },
+    "reneuir-2024/tinyfsu/tiny-bert-ranker-l-2-distillation": {
+	"runs": {
+            "dl-top-1000-docs-20240701-training": "2024-07-07-11-18-49"
+	},
+        "class": "cross-encoder-ranker"
+    },
+    "reneuir-2024/naverlabseurope/Splade (re-ranker)": {
+	"runs": {
+            "dl-top-1000-docs-20240701-training": "2024-07-07-11-38-59"
+	},
+        "class": "cross-encoder-ranker"
+    },
+    "reneuir-2024/naverlabseurope/Splade (Index)": {
+	"runs": {
+            "dl-top-1000-docs-20240701-training": "2024-07-07-13-39-27"
+	}
+    },
+    "reneuir-2024/tu-dresden-03/bm25-flan-ul2-chain-of-thoughts-expansion-10": {
+        "previous-stage": ["reneuir-2024/tira-ir-starter/Index (tira-ir-starter-pyterrier)", "reneuir-2024/tu-dresden-03/query-expansion-flan-ul2-chain-of-thoughts"],
+        "runs": {"dl-top-1000-docs-20240701-training": "2024-07-07-12-19-10"},
+        "class": "llm-expansion-retriever"
+    },
+    "reneuir-2024/tu-dresden-03/bm25-flan-ul2-similar-queries-few-shot-5": {
+        "previous-stage": ["reneuir-2024/tira-ir-starter/Index (tira-ir-starter-pyterrier)", "reneuir-2024/tu-dresden-03/query-expansion-flan-ul2-similar-queries-few-shot"],
+        "runs": {"dl-top-1000-docs-20240701-training": "2024-07-07-12-22-10"},
+        "class": "llm-expansion-retriever"
+    },
+    "reneuir-2024/tu-dresden-03/bm25-flan-ul2-similar-queries-zero-shot-5": {
+        "previous-stage": ["reneuir-2024/tira-ir-starter/Index (tira-ir-starter-pyterrier)", "reneuir-2024/tu-dresden-03/query-expansion-flan-ul2-similar-queries-zero-shot"],
+        "runs": {"dl-top-1000-docs-20240701-training": "2024-07-07-12-26-12"},
+        "class": "llm-expansion-retriever"
+    },
+    "reneuir-2024/tu-dresden-03/bm25-llama2-chain-of-thoughts-10": {
+        "previous-stage": ["reneuir-2024/tira-ir-starter/Index (tira-ir-starter-pyterrier)", "reneuir-2024/tu-dresden-03/query-expansion-llama2-chat-chain-of-thoughts"],
+        "runs": {"dl-top-1000-docs-20240701-training": "2024-07-07-12-29-47"},
+        "class": "llm-expansion-retriever"
+    },
+    "reneuir-2024/tu-dresden-03/bm25-llama2-similar-queries-few-shot-5": {
+        "previous-stage": ["reneuir-2024/tira-ir-starter/Index (tira-ir-starter-pyterrier)", "reneuir-2024/tu-dresden-03/query-expansion-llama2-chat-similar-queries-few-shot"],
+        "runs": {"dl-top-1000-docs-20240701-training": "2024-07-07-12-32-21"},
+        "class": "llm-expansion-retriever"
+    },
+    "reneuir-2024/tu-dresden-03/bm25-llama2-similar-queries-zero-shot-5": {
+        "previous-stage": ["reneuir-2024/tira-ir-starter/Index (tira-ir-starter-pyterrier)", "reneuir-2024/tu-dresden-03/query-expansion-llama2-chat-similar-queries-zero-shot"],
+        "runs": {"dl-top-1000-docs-20240701-training": "2024-07-07-12-45-57"},
+        "class": "llm-expansion-retriever"
+    },
+    "reneuir-2024/tira-ir-starter/MonoT5 Base (tira-ir-starter-gygaggle)": {
+        "previous-stage": [],
+        "runs": {"dl-top-1000-docs-20240701-training": "2024-07-07-12-49-46"},
+        "class": "cross-encoder-ranker"
+    },
+    "reneuir-2024/tira-ir-starter/ColBERT Re-Rank (tira-ir-starter-pyterrier)": {
+        "previous-stage": [],
+        "runs": {"dl-top-1000-docs-20240701-training": "2024-07-07-12-50-35"},
+        "class": "cross-encoder-ranker"
+    },
+    "reneuir-2024/tira-ir-starter/TASB msmarco-distilbert-base-cos (tira-ir-starter-beir)": {
+        "previous-stage": [],
+        "runs": {"dl-top-1000-docs-20240701-training": "2024-07-07-12-51-30"},
+        "class": "cross-encoder-ranker"
+    },
+    "reneuir-2024/tira-ir-starter/ANCE Base Dot (tira-ir-starter-beir)": {
+        "previous-stage": [],
+        "runs": {"dl-top-1000-docs-20240701-training": "2024-07-07-12-52-22"},
+        "class": "cross-encoder-ranker"
+    },
+    "reneuir-2024/tira-ir-starter/MonoT5 3b (tira-ir-starter-gygaggle)": {
+        "previous-stage": [],
+        "runs": {"dl-top-1000-docs-20240701-training": "2024-07-02-19-22-36"},
+        "class": "cross-encoder-ranker"
+    },
+    "reneuir-2024/tira-ir-starter/MonoBERT Large (tira-ir-starter-gygaggle)": {
+        "previous-stage": [],
+        "runs": {"dl-top-1000-docs-20240701-training": "2024-07-02-19-24-18"},
+        "class": "cross-encoder-ranker"
+    },
+    "reneuir-2024/tira-ir-starter/MonoBERT Small (tira-ir-starter-gygaggle)": {
+        "previous-stage": [],
+        "runs": {"dl-top-1000-docs-20240701-training": "2024-07-07-12-53-42"},
+        "class": "cross-encoder-ranker"
+    },
+    "reneuir-2024/tira-ir-starter/SBERT multi-qa-mpnet-base-dot-v1 (tira-ir-starter-beir)": {
+        "previous-stage": [],
+        "runs": {"dl-top-1000-docs-20240701-training": "2024-07-07-12-55-21"},
+        "class": "cross-encoder-ranker"
+    },
+    "reneuir-2024/tira-ir-starter/SBERT msmarco-distilbert-dot-v5 (tira-ir-starter-beir)": {
+        "previous-stage": [],
+        "runs": {"dl-top-1000-docs-20240701-training": "2024-07-07-12-56-47"},
+        "class": "cross-encoder-ranker"
+    },
+    "reneuir-2024/ows/pyterrier-anceindex": {
+        "previous-stage": [],
+        "runs": {
+	    "dl-top-1000-docs-20240701-training": "2024-07-07-13-43-04",
+	    "dl-top-100-docs-20240701-training": "2024-07-07-14-56-34",
+	    "dl-top-10-docs-20240701-training": "2024-07-07-14-05-38"
+	}
+    },
+    "reneuir-2024/ows/pyterrier-anceretrieval": {
+        "previous-stage": [],
+        "runs": {
+	    "dl-top-1000-docs-20240701-training": "2024-07-07-15-29-55",
+	    "dl-top-100-docs-20240701-training": "2024-07-07-15-38-21",
+	    "dl-top-10-docs-20240701-training": "2024-07-07-15-29-20"
+	},
+        "class": "bi-encoder-retriever"
+    },
+
+    "reneuir-2024/reneuir-baselines/mono-duo-t5-3b-top-50": {
+        "previous-stage": [],
+        "runs": {"dl-top-1000-docs-20240701-training": "2024-07-07-14-19-17"},
+        "class": "cross-encoder-ranker"
+    },
+    "reneuir-2024/reneuir-baselines/mono-duo-t5-3b-top-25": {
+        "previous-stage": [],
+        "runs": {"dl-top-1000-docs-20240701-training": "2024-07-06-07-15-53"},
+        "class": "cross-encoder-ranker"
+    },
+    "reneuir-2024/tira-ir-starter/Index (tira-ir-starter-pyterrier)": {
+	"runs": {
+            "dl-top-1000-docs-20240701-training": "2024-07-07-12-47-53",
+            "dl-top-100-docs-20240701-training": "2024-07-07-17-02-03",
+            "dl-top-10-docs-20240701-training": "2024-07-07-13-08-46",
+            "ms-marco-all-dev-queries-20240629-training": "2024-07-07-13-12-11",
+            "ms-marco-1000-queries-20240629-training": "2024-07-07-13-25-57",
+            "ms-marco-100-queries-20240629-training": "2024-07-07-13-27-26"
+	}
+    },
+    "reneuir-2024/reneuir-baselines/pyterrier-bm25": {
+        "previous-stage": [],
+        "runs": {"dl-top-1000-docs-20240701-training": "2024-07-07-15-39-10"},
+        "class": "sparse-retriever"
+    },
+    "reneuir-2024/reneuir-baselines/pyterrier-pl2": {
+        "previous-stage": [],
+        "runs": {"dl-top-1000-docs-20240701-training": "2024-07-07-15-39-40"},
+        "class": "sparse-retriever"
+    },
+    "reneuir-2024/reneuir-baselines/pyterrier-dirichletlm": {
+        "previous-stage": [],
+        "runs": {"dl-top-1000-docs-20240701-training": "2024-07-07-15-40-18"},
+        "class": "sparse-retriever"
+    },
+    "reneuir-2024/reneuir-baselines/pyterrier-dlh": {
+        "previous-stage": [],
+        "runs": {"dl-top-1000-docs-20240701-training": "2024-07-07-15-41-28"},
+        "class": "sparse-retriever"
+    },
+    "reneuir-2024/reneuir-baselines/pyterrier-dph": {
+        "previous-stage": [],
+        "runs": {"dl-top-1000-docs-20240701-training": "2024-07-07-15-42-59"},
+        "class": "sparse-retriever"
+    },
+    "reneuir-2024/reneuir-baselines/pyterrier-ln-exp-b2": {
+        "previous-stage": [],
+        "runs": {"dl-top-1000-docs-20240701-training": "2024-07-07-15-44-56"},
+        "class": "sparse-retriever"
+    },
+    "reneuir-2024/reneuir-baselines/fusion-monot5": {
+        "previous-stages": ["reneuir-2024/reneuir-baselines/plaid-x-retrieval", "reneuir-2024/reneuir-baselines/plaid-mono-t5"],
+        "runs": {"dl-top-1000-docs-20240701-training": "2024-07-07-20-37-22"},
+        "class": "cross-encoder-ranker"
+    },
+    "reneuir-2024/reneuir-baselines/plaid-mono-t5": {
+        "previous-stages": ["reneuir-2024/reneuir-baselines/plaid-x-retrieval"],
+        "runs": {"dl-top-1000-docs-20240701-training": "2024-07-07-18-28-20"},
+        "class": "cross-encoder-ranker"
+    },
+    "reneuir-2024/fschlatt/set-encoder-base": {
+        "previous-stage": ["reneuir-2024/reneuir-baselines/pyterrier-bm25"],
+        "runs": {"dl-top-1000-docs-20240701-training": "2024-07-08-13-41-16"},
+        "class": "cross-encoder-ranker"
+    },
+    "reneuir-2024/fschlatt/set-encoder-large": {
+        "previous-stage": ["reneuir-2024/reneuir-baselines/pyterrier-bm25"],
+        "runs": {"dl-top-1000-docs-20240701-training": "2024-07-08-13-29-40"},
+        "class": "cross-encoder-ranker"
+    },
+    "reneuir-2024/fschlatt/fusion-t5-rank-zephyr": {
+        "previous-stage": ["reneuir-2024/reneuir-baselines/fusion-monot5"],
+        "runs": {"dl-top-1000-docs-20240701-training": "2024-07-07-21-00-29"},
+        "class": "llm-cross-encoder-ranker"
+    },
+    "reneuir-2024/reneuir-baselines/rankllama": {
+        "previous-stage": ["reneuir-2024/reneuir-baselines/pyterrier-bm25"],
+        "runs": {"dl-top-1000-docs-20240701-training": "2024-07-09-06-34-48"},
+        "class": "llm-cross-encoder-ranker"
+    }
+}
