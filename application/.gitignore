@@ -14,4 +14,3 @@ test/tira-root/
 **/*.received.txt
 
 .data-dumps/
-src/tira/static/tira/frontend-vuetify/

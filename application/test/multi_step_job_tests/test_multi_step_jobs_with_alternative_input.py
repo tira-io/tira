@@ -31,7 +31,7 @@ class TestMultiStepJobsWithAlternativeInput(TestCase):
 
         actual = latest_output_of_software_on_dataset('shared-task-1', 'example_participant', 'does-not-exist', es1.docker_software_id, f'dataset-1-{now}-training', None)
 
-        self.assertEquals(expected, actual)
+        self.assertEqual(expected, actual)
 
     def test_suitable_input_does_not_exist_1(self):
         actual = latest_output_of_software_on_dataset('shared-task-1', 'participant-does-not-exist', 'does-not-exist----1', -1, f'dataset-1-{now}-training', None)

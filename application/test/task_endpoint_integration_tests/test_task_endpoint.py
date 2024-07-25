@@ -81,7 +81,7 @@ class TestTaskEndpoint(TestCase):
         from approvaltests.namer.cli_namer import CliNamer
         import json
 
-        self.assertEquals(200, actual.status_code)
+        self.assertEqual(200, actual.status_code)
         content = json.loads(actual.content)
 
         if 'context' in content:

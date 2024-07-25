@@ -20,8 +20,8 @@ transformed_queries = tira.pt.transform_queries(\'ir-benchmarks/ows/query-segmen
         # Act
         actual = snippet_function(request)
         actual_json = json.loads(actual.content.decode())
-        self.assertEquals(0, actual_json['status'])
-        self.assertEquals(expected_snippet, actual_json['context']['snippet'])
+        self.assertEqual(0, actual_json['status'])
+        self.assertEqual(expected_snippet, actual_json['context']['snippet'])
 
     def test_for_single_query_component_hyb_b(self):
         # Arrange
@@ -35,8 +35,8 @@ transformed_queries = tira.pt.transform_queries(\'ir-benchmarks/ows/query-segmen
         # Act
         actual = snippet_function(request)
         actual_json = json.loads(actual.content.decode())
-        self.assertEquals(0, actual_json['status'])
-        self.assertEquals(expected_snippet, actual_json['context']['snippet'])
+        self.assertEqual(0, actual_json['status'])
+        self.assertEqual(expected_snippet, actual_json['context']['snippet'])
 
     def test_for_single_document_processor_bce_fo(self):
         # Arrange
@@ -49,5 +49,5 @@ transformed_docs = tira.pt.transform_documents('ir-benchmarks/ows/bce-fo', datas
         # Act
         actual = snippet_function(request)
         actual_json = json.loads(actual.content.decode())
-        self.assertEquals(0, actual_json['status'])
-        self.assertEquals(expected_snippet, actual_json['context']['snippet'])
+        self.assertEqual(0, actual_json['status'])
+        self.assertEqual(expected_snippet, actual_json['context']['snippet'])

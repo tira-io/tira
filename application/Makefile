@@ -3,6 +3,8 @@
 VERSION_APPLICATION=0.0.105
 VERSION_GRPC=0.0.105
 
+PYTHON=python3
+
 .DEFAULT: help
 help:
 	@echo "make setup"
@@ -23,32 +25,19 @@ clean:
 	rm -f ../model/src/model/virtual-machines/admin.prototext
 
 setup:
-	pip3 install -r requirements.txt
 	python3 src/manage.py migrate
 	python3 src/manage.py createcachetable
 	python3 src/manage.py makemigrations tira
 	python3 src/manage.py migrate tira 
 	python3 src/manage.py index_model
-	make src/tira/static/tira/frontend-vuetify
 
 tests:
 	./test/run_all_tests.sh
 
 run-develop:
-	python src/manage.py makemigrations \
-	&& python src/manage.py migrate --fake \
-	&& python src/manage.py run_develop
-
-src/tira/static/tira/frontend-vuetify:
-	make vite-build
-
-vite-build:
-	@cd src/tira/frontend-vuetify \
-	&& yarn build
-
-vite-build-light:
-	@cd src/tira/frontend-vuetify \
-	&& yarn build-light
+	python3 src/manage.py makemigrations \
+	&& python3 src/manage.py migrate --fake \
+	&& python3 src/manage.py run_develop
 
 .data-dumps/django-db-dump.zip:
 	@mkdir -p .data-dumps && \
@@ -75,12 +64,6 @@ import-data-from-dump: .data-dumps/django-db-dump.zip
 
 import-mock-data:
 	${PYTHON} src/manage.py loaddata mock-data/mock-data.json
-
-vite-build-docker:
-	docker run -v ${PWD}:/app --platform linux/amd64 --rm -ti -w /app/src/tira/frontend-vuetify --entrypoint yarn webis/tira-application:basis-0.0.95 build
-
-vite-build-light-docker:
-	docker run -v ${PWD}:/app --platform linux/amd64 --rm -ti -w /app/src/tira/frontend-vuetify --entrypoint yarn webis/tira-application:basis-0.0.95 build-light
 
 run-docker:
 	docker run -td --rm \

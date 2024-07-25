@@ -45,4 +45,4 @@ class Command(BaseCommand):
         with serve_forever(app_addr, host_addr):
             logger.info(f"Starting tira-application server on {app_addr} and mock host server on {host_addr}")
             self.stdout.write(self.style.SUCCESS(f"Starting tira-application server on {app_addr} and mock host server on {host_addr}"))
-            call_command('runserver', "8080")
+        call_command('runserver', "0.0.0.0:8080")

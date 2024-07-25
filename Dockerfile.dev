@@ -1,0 +1,72 @@
+FROM ubuntu:24.04
+
+ENV TZ=Europe/Berlin
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+RUN apt-get update && apt-get install -y sudo git locales
+RUN echo "en_US.UTF-8 UTF-8" | tee -a /etc/locale.gen && locale-gen
+
+########################################################################################################################
+# Create User                                                                                                          #
+########################################################################################################################
+# Change root Password to 1234
+RUN echo 'root:1234' | chpasswd
+# Create new user: "dev" also with password 1234
+RUN useradd -ms /bin/bash dev && \
+    echo 'dev:1234' | chpasswd && \
+    usermod -aG sudo dev
+
+
+########################################################################################################################
+# Frontend                                                                                                             #
+########################################################################################################################
+USER root
+
+# https://stackoverflow.com/a/47680012
+RUN apt-get update && apt-get install -y curl gnupg2 && \
+    curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
+    echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
+
+RUN apt-get update && apt-get install -y npm yarn
+
+
+
+
+
+########################################################################################################################
+# Backend (Application)                                                                                                #
+########################################################################################################################
+ENV PIP_BREAK_SYSTEM_PACKAGES 1
+USER root
+RUN apt-get update && apt-get install -y python3 python3-pip python3-dev pkg-config default-libmysqlclient-dev \
+    libpcre3-dev
+COPY application/requirements.txt /tmp/application/requirements.txt
+RUN <<EOF
+# Create a dummy secret
+mkdir -p "/etc/discourse/" && echo "I am so secret" > "/etc/discourse/client-api-key"
+# Setup the application
+cd /tmp/application
+pip3 install -r requirements.txt
+EOF
+
+########################################################################################################################
+# Client                                                                                                               #
+########################################################################################################################
+# NOT YET
+
+
+
+########################################################################################################################
+# Documentation                                                                                                        #
+########################################################################################################################
+ENV PIP_BREAK_SYSTEM_PACKAGES 1
+USER root
+RUN apt-get update && apt-get install -y python3 python3-pip pkg-config plantuml wget
+# Install umlet
+RUN mkdir -p /usr/share/umlet \
+	&& cd /usr/share/umlet \
+	&& wget https://www.umlet.com/download/umlet_15_1/umlet-standalone-15.1.zip -O download.zip \
+	&& cd /usr/share/umlet \
+	&& unzip download.zip
+USER dev
+RUN pip3 install sphinx furo myst-parser sphinx-toolbox sphinx-design sphinxcontrib-plantuml sphinxcontrib-umlet

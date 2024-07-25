@@ -35,7 +35,7 @@ def add_context(func):
             vm_id = kwargs['vm_id']
 
         context = {
-            "include_navigation": True if settings.DEPLOYMENT == "legacy" else False,
+            "include_navigation": False,
             "user_id": uid,
             "role": auth.get_role(request, user_id=uid, vm_id=vm_id),
             "organizer_teams": mark_safe(json.dumps(auth.get_organizer_ids(request)))
@@ -45,19 +45,6 @@ def add_context(func):
     return func_wrapper
 
 
-@add_context
-def index(request, context):
-    context["tasks"] = model.get_tasks(include_dataset_stats=True)
-    context["organizer_teams"] = auth.get_organizer_ids(request)
-    context["vm_ids"] = auth.get_vm_ids(request, None)
-    
-    
-    if context["role"] != auth.ROLE_GUEST:
-        context["vm_id"] = auth.get_vm_id(request, context["user_id"])
-
-    return render(request, 'tira/index.html', context)
-
-
 @check_permissions
 @add_context
 def background_jobs(request, context, task_id, job_id):
@@ -65,38 +52,6 @@ def background_jobs(request, context, task_id, job_id):
     context['job'] = model.get_job_details(task_id, None, job_id)
 
     return render(request, 'tira/background_jobs.html', context)
-
-
-@add_context
-def veutify_page(request, context, **kwargs):
-    return render(request, 'tira/veutify_page.html', context)
-
-
-@add_context
-def login(request, context):
-    """ Hand out the login form 
-    Note that this is only called in legacy deployment. Disraptor is supposed to catch the route to /login
-    """
-
-    if request.method == "POST":
-        form = LoginForm(request.POST)
-        if form.is_valid():
-            # read form data, do auth.login(request, user_id, password)
-            valid = auth.login(request, user_id=form.cleaned_data["user_id"], password=form.cleaned_data["password"])
-            if valid:
-                return redirect('tira:index')
-            else:
-                context["form_error"] = "Login Invalid"
-    else:
-        form = LoginForm()
-
-    context["form"] = form
-    return render(request, 'tira/login.html', context)
-
-
-def logout(request):
-    auth.logout(request)
-    return redirect('tira:index')
 
 
 def _add_task_to_context(context, task_id, dataset_id):

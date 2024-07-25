@@ -1,29 +1,14 @@
-from django.urls import path, re_path
-
-from django.views.generic import TemplateView
+from django.urls import path
 
 from . import views
 from .endpoints import organizer_api, admin_api, vm_api, data_api, diffir_api, serp_api
 
 urlpatterns = [
-    path('', views.veutify_page, name='index'),
-    path('task', views.veutify_page, name='index'),
-    path('tasks', views.veutify_page, name='index'),
     path('background_jobs/<str:task_id>/<str:job_id>', views.background_jobs, name='background_jobs'),
 
     path('task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/download/<str:run_id>.zip', views.download_rundir, name='download_rundir'),
     path('data-download/git-repo-template/<str:vm_id>/<str:task_id>.zip', views.download_repo_template, name='download_repo_template'),
     path('data-download/<str:dataset_type>/<str:input_type>/<str:dataset_id>.zip', views.download_datadir, name='download_datadir'),
-
-    re_path(r'^frontend-vuetify/.*', views.veutify_page, name='vuetify_page'),
-    re_path(r'^task-overview/.*', views.veutify_page, name='vuetify_page'),
-    path('task/<str:task_id>', views.veutify_page, name='vuetify_page'),
-    path('task/<str:task_id>/', views.veutify_page, name='vuetify_page'),
-    path('task/<str:task_id>/<str:dataset_id>', views.veutify_page, name='vuetify_page'),
-    re_path(r'^submit/.*', views.veutify_page, name='vuetify_page'),
-    re_path(r'^tirex/.*', views.veutify_page, name='tirex'),
-    path('login', views.login, name='login'),
-    path('logout', views.logout, name='logout'),
 
     # grpc client endpoints
     path('task/<str:task_id>/vm/<str:vm_id>/add_software/vm', vm_api.software_add, name='software_add'),
