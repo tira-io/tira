@@ -2,8 +2,12 @@ from tira.third_party_integrations import extract_to_be_executed_notebook_from_c
 from pathlib import Path
 import unittest
 from subprocess import check_output
+from tira.local_execution_integration import LocalExecutionIntegration as Client
 
 TEST_DIR = Path(__file__).parent.resolve()
+
+def build_docker_image(image):
+    Client()._LocalExecutionIntegration__docker_client().images.build(path='.', dockerfile='tests/resources/'+ image, tag=image)
 
 class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
     def test_no_notebook_is_extracted_for_none_command(self):
@@ -21,6 +25,14 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
     def test_notebook_is_extracted_for_pyterrier_command(self):
         expected = '/workspace/notebook.ipynb'
         command = '/workspace/run-pyterrier-notebook.py --input $inputDataset --output $outputDir --notebook /workspace/notebook.ipynb'
+
+        actual = extract_to_be_executed_notebook_from_command_or_none(command)
+
+        self.assertEqual(expected, actual)
+
+    def test_notebook_is_extracted_when_subshell_is_available(self):
+        expected = '/re-rank-with-tiny-bert.ipynb'
+        command = 'bash -c export MODEL="$(huggingface-cli download $MODEL)" && /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb'
 
         actual = extract_to_be_executed_notebook_from_command_or_none(command)
 
@@ -61,6 +73,28 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
     def test_pyterrier_index_as_previous_stage(self):
         notebook = TEST_DIR / 'resources' / 'retrieve-with-pyterrier-index.ipynb'
         expected = ['ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)']
+
+        actual = extract_previous_stages_from_notebook(notebook)
+
+        self.assertEqual(expected, actual)
+
+    def test_extraction_of_approach_for_query_transformation_01(self):
+        python_line = "gpt_sq_zs = tira.pt.transform_queries('ir-benchmarks/tu-dresden-03/qe-gpt3.5-sq-zs', dataset, prefix='llm_expansion_')"
+        expected = 'ir-benchmarks/tu-dresden-03/qe-gpt3.5-sq-zs'
+        actual =  parse_extraction_of_tira_approach(python_line)
+
+        self.assertEqual(expected, actual)
+
+    def test_extraction_of_approach_for_document_transformation_01(self):
+        python_line = "document_entity_recognition = tira.pt.transform_documents('ir-lab-sose-2024/ir-nfmj/entity-recognition', pt_dataset)"
+        expected = 'ir-lab-sose-2024/ir-nfmj/entity-recognition'
+        actual =  parse_extraction_of_tira_approach(python_line)
+
+        self.assertEqual(expected, actual)
+
+    def test_llm_expansions_as_previous_stage(self):
+        notebook = TEST_DIR / 'resources' / 'jupyter-notebook-with-query-expansion.ipynb'
+        expected = ['ir-lab-sose-2024/tira-ir-starter/Index (tira-ir-starter-pyterrier)', 'ir-benchmarks/tu-dresden-03/qe-gpt3.5-sq-zs']
 
         actual = extract_previous_stages_from_notebook(notebook)
 
@@ -262,7 +296,7 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
 
     def test_integration_against_custom_docker_image_01(self):
         image = 'dockerfile_bash_script_absolute'
-        check_output(['docker', 'build', '-t', image, '-f', f'tests/resources/{image}', '.'])
+        build_docker_image(image)
 
         expected = ['ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)']
         actual = extract_previous_stages_from_docker_image(image, '/usr/bin/retrieve-with-pyterrier-bash.sh')
@@ -271,7 +305,7 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
 
     def test_integration_against_custom_docker_image_02(self):
         image = 'dockerfile_bash_script_absolute'
-        check_output(['docker', 'build', '-t', image, '-f', f'tests/resources/{image}', '.'])
+        build_docker_image(image)
 
         expected = ['ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)']
         actual = extract_previous_stages_from_docker_image(image)
@@ -280,7 +314,7 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
 
     def test_integration_against_custom_docker_image_03(self):
         image = 'dockerfile_bash_script_absolute'
-        check_output(['docker', 'build', '-t', image, '-f', f'tests/resources/{image}', '.'])
+        build_docker_image(image)
 
         expected = []
         actual = extract_previous_stages_from_docker_image(image, '/etc/hostname')
@@ -289,7 +323,7 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
 
     def test_integration_against_custom_docker_image_04(self):
         image = 'jupyter_script_relative'
-        check_output(['docker', 'build', '-t', image, '-f', f'tests/resources/{image}', '.'])
+        build_docker_image(image)
 
         expected = ['ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)']
         actual = extract_previous_stages_from_docker_image(image)
@@ -298,7 +332,7 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
 
     def test_integration_against_custom_docker_image_05(self):
         image = 'jupyter_script_relative'
-        check_output(['docker', 'build', '-t', image, '-f', f'tests/resources/{image}', '.'])
+        build_docker_image(image)
 
         expected = ['ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)']
         actual = extract_previous_stages_from_docker_image(image, 'python3 /usr/bin/retrieve-with-pyterrier-index.py')
@@ -307,7 +341,7 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
 
     def test_integration_against_custom_docker_image_06(self):
         image = 'jupyter_script_relative'
-        check_output(['docker', 'build', '-t', image, '-f', f'tests/resources/{image}', '.'])
+        build_docker_image(image)
 
         expected = ['ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)']
         actual = extract_previous_stages_from_docker_image(image, 'python3 /usr/bin/retrieve-with-pyterrier-index.py; sleep3')
@@ -316,7 +350,7 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
 
     def test_integration_against_custom_docker_image_07(self):
         image = 'jupyter_script_relative'
-        check_output(['docker', 'build', '-t', image, '-f', f'tests/resources/{image}', '.'])
+        build_docker_image(image)
 
         expected = ['ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)']
         actual = extract_previous_stages_from_docker_image(image, 'python3 /usr/bin/retrieve-with-pyterrier-index.py&&sleep3')
@@ -325,7 +359,7 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
 
     def test_integration_against_custom_docker_image_08(self):
         image = 'jupyter_script_relative'
-        check_output(['docker', 'build', '-t', image, '-f', f'tests/resources/{image}', '.'])
+        build_docker_image(image)
 
         expected = ['ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)']
         actual = extract_previous_stages_from_docker_image(image, 'python3 "/usr/bin/retrieve-with-pyterrier-index.py"&&sleep3')
@@ -335,7 +369,7 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
 
     def test_integration_against_custom_docker_image_09(self):
         image = 'jupyter_script_relative'
-        check_output(['docker', 'build', '-t', image, '-f', f'tests/resources/{image}', '.'])
+        build_docker_image(image)
 
         expected = ['ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)']
         actual = extract_previous_stages_from_docker_image(image, "python3 '/usr/bin/retrieve-with-pyterrier-index.py'&&sleep3")
@@ -362,6 +396,13 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
     def test_pyterrier_from_run_output_01(self):
         python_line = "        bm25_raw = tira.get_run_output('ir-benchmarks/tira-ir-starter/BM25 (tira-ir-starter-pyterrier)', args.input_dataset)"
         expected = 'ir-benchmarks/tira-ir-starter/BM25 (tira-ir-starter-pyterrier)'
+        actual = parse_extraction_of_tira_approach(python_line)
+
+        self.assertEqual(expected, actual)
+
+    def test_pyterrier_from_run_output_02(self):
+        python_line = "        plaid_index = tira.get_run_output('reneuir-2024/reneuir-baselines/plaid-x', dataset_id) + '/index'"
+        expected = 'reneuir-2024/reneuir-baselines/plaid-x'
         actual = parse_extraction_of_tira_approach(python_line)
 
         self.assertEqual(expected, actual)

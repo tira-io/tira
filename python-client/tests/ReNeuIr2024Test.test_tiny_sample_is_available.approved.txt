@@ -1,0 +1,9 @@
+{
+    "md5_of_first_kilobyte": "10bc6186c195b85fd76fed49340feee3",
+    "redirect_url": {
+        "urls": [
+            "https://www.tira.io/data-download/training/input-/tiny-sample-20231030-training.zip"
+        ]
+    },
+    "tira_url": "https://www.tira.io/data-download/training/input-/tiny-sample-20231030-training.zip"
+}

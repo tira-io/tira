@@ -201,13 +201,15 @@ def __queries(input_file, original_dataset):
 
 
 def __scored_docs(input_file, original_dataset):
-    from ir_datasets.formats import BaseScoredDocs
+    from ir_datasets.formats import BaseScoredDocs, GenericDoc, GenericQuery
 
     class GenericScoredDocWithRank(NamedTuple):
         query_id: str
         doc_id: str
         score: float
         rank: int
+        document: GenericDoc
+        query: GenericQuery
 
     class DynamicScoredDocs(BaseScoredDocs):
         def __init__(self, docs):
@@ -221,8 +223,22 @@ def __scored_docs(input_file, original_dataset):
 
     docs = []
 
+    if not os.path.isfile(input_file) and os.path.isfile(os.path.join(input_file, 'rerank.jsonl.gz')):
+        input_file = os.path.join(input_file, 'rerank.jsonl.gz')
+    elif not os.path.isfile(input_file) and os.path.isfile(os.path.join(input_file, 'rerank.jsonl')):
+        input_file = os.path.join(input_file, 'rerank.jsonl')
+
     for i in stream_all_lines(input_file, True):
-        docs += [GenericScoredDocWithRank(i['qid'], i['docno'], i['score'], i['rank'])]
+        d, q = None, None
+
+        if 'query' in i and 'text' in i:
+            d = GenericDoc(doc_id=i['docno'], text=i['text'])
+            q = GenericQuery(query_id=i['qid'], text=i['query'])
+
+        doc = GenericScoredDocWithRank(i['qid'], i['docno'], i['score'], i['rank'], d, q)
+
+            
+        docs += [doc]
 
     return DynamicScoredDocs(docs)
 
@@ -275,8 +291,10 @@ def ir_dataset_from_tira_fallback_to_original_ir_datasets():
                 docs = self.lazy_docs(lambda: get_download_dir_from_tira(dataset_id, False), None, True)
                 queries = self.lazy_queries(lambda: get_download_dir_from_tira(dataset_id, True), None)
                 qrels = self.lazy_qrels(lambda: get_download_dir_from_tira(dataset_id, True), None)
+                
                 ret = Dataset(docs, queries, qrels)
                 ret.dataset_id = lambda: dataset_id
+                ret.scoreddocs_iter = lambda: self._load_scored_docs(get_download_dir_from_tira(dataset_id, False), None).scoreddocs_iter()
                 return ret
 
         def topics_file(self, tira_path):
@@ -286,6 +304,7 @@ def ir_dataset_from_tira_fallback_to_original_ir_datasets():
     ret.lazy_docs = __docs
     ret.lazy_queries = __queries
     ret.lazy_qrels = __lazy_qrels
+    ret._load_scored_docs = __scored_docs
 
     return ret
 

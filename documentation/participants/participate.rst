@@ -7,6 +7,7 @@ Participating in a Shared Task
     submissions for the ``ir-benchmarks`` task but it works the same for any other task.
 
 
+.. _JoinTask:
 Joining a Task and preparing your Environment
 ---------------------------------------------
 
@@ -57,6 +58,7 @@ out more):
     a **Code Submission** or a **Docker Submission**.
 
 
+.. _SubmitSubmission:
 Submitting your Submission
 --------------------------
 At this point, you came up with a brilliant idea and would like to submit it to TIRA for evaluation and to take pride in

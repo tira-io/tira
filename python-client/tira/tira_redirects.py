@@ -1,4 +1,6 @@
 from tira.license_agreements import print_license_agreement
+from pathlib import Path
+import json
 
 STATIC_REDIRECTS = {
     'ir-benchmarks': {
@@ -286,8 +288,35 @@ STATIC_REDIRECTS = {
     }
 }
 
+def join_to_static_redirects(name, http_base_url):
+    json_file = Path(__file__).parent.resolve() / 'static_redirects' / f'{name}.json'
+    json_file = json.load(open(json_file, 'r'))
+    for redirected_approach in json_file:
+        task_id, team_name, approach_name = redirected_approach.split('/')
+        cache_file_name = json_file[redirected_approach]['class'] if 'class' in json_file[redirected_approach] else f'{team_name}-{approach_name}'.lower().replace(' ', '-').replace('(', '').replace(')', '')
+        cache_file_name += '.zip'
+
+        if task_id not in STATIC_REDIRECTS:
+            STATIC_REDIRECTS[task_id] = {}
+        if team_name not in STATIC_REDIRECTS[task_id]:
+            STATIC_REDIRECTS[task_id][team_name] = {}
+        if approach_name not in STATIC_REDIRECTS[task_id][team_name]:
+            STATIC_REDIRECTS[task_id][team_name][approach_name] = {}
+        
+        for dataset_id, run_id in json_file[redirected_approach]['runs'].items():
+            if dataset_id in STATIC_REDIRECTS[task_id][team_name][approach_name]:
+                raise ValueError('Duplicated execution in the cache.')
+
+            STATIC_REDIRECTS[task_id][team_name][approach_name][dataset_id] = {
+                'urls': [http_base_url + cache_file_name + '?download=1'],
+                'run_id': run_id,
+            }
+
+join_to_static_redirects('reneuir-2024', 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/reneuir-2024/runs/')
+TASKS_WITH_REDIRECT_MERGING = set()
 RUN_ID_TO_SYSTEM = {}
 for task in STATIC_REDIRECTS.keys():
+    TASKS_WITH_REDIRECT_MERGING.add(task)
     for team in STATIC_REDIRECTS[task].keys():
         for system_name in STATIC_REDIRECTS[task][team].keys():
             system = STATIC_REDIRECTS[task][team][system_name]
@@ -393,6 +422,18 @@ STATIC_DATASET_REDIRECTS = {
     'longeval-short-july-20230513-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-padua2024/',
     'longeval-long-september-20230513-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-padua2024/',
     'ir-acl-anthology-20240504-training': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/',
+    'ir-acl-anthology-topics-koeln-20240614-in-progress-test': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/',
+
+
+    # ReNeuIr 2024 # mirror: https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/reneuir-2024/corpora/
+
+    'dl-top-10-docs-20240701-training': 'https://zenodo.org/records/12722918/files/',
+    'dl-top-100-docs-20240701-training': 'https://zenodo.org/records/12722918/files/',
+    'dl-top-1000-docs-20240701-training': 'https://zenodo.org/records/12722918/files/',
+    'ms-marco-100-queries-20240629-training': 'https://zenodo.org/records/12722918/files/',
+    'ms-marco-1000-queries-20240629-training': 'https://zenodo.org/records/12722918/files/',
+    'ms-marco-all-dev-queries-20240629-training': 'https://zenodo.org/records/12722918/files/',
+    're-rank-spot-check-20240624-training': 'https://zenodo.org/records/12722918/files/',
 }
 
 RESOURCE_REDIRECTS = {
@@ -457,13 +498,13 @@ def redirects(approach=None, dataset=None, url=None):
             ret = ret.split('/')
             task, team, dataset, run_id = ret[0], ret[2], ret[4], ret[6].replace('.zip', '')
             system = RUN_ID_TO_SYSTEM.get(run_id, None)
-        elif '/data-download/training/' in url:
+        elif '/data-download/training/' in url or '/data-download/test/' in url:
             dataset_id = url.split('/')[-1].replace('.zip', '')
             dataset_id = DATASET_ID_REDIRECTS.get(dataset_id, dataset_id)
             suffix = '-truths.zip' if '/input-truth/' in url else '-inputs.zip'
 
             if dataset_id in STATIC_DATASET_REDIRECTS:
-                ds_id = dataset_id if '20230618' in dataset_id else dataset_id.replace('-training', '')
+                ds_id = dataset_id if '20230618' in dataset_id else dataset_id.replace('-training', '').replace('-test', '')
                 suffix = suffix if '20230618' in dataset_id or suffix != '-truths.zip' else '-truth.zip'
                 return {'urls': [STATIC_DATASET_REDIRECTS[dataset_id] + ds_id + suffix + '?download=1']}
             else:

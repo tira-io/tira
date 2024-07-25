@@ -1,0 +1,90 @@
+{
+    "reneuir-2024/ows/pyterrier-anceindex": {
+        "md5_of_first_kilobyte": "766820bb7c12354f9563105ea3c7b6bd",
+        "redirect_url": {
+            "run_id": "2024-07-07-13-43-04",
+            "urls": [
+                "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/reneuir-2024/runs/ows-pyterrier-anceindex.zip?download=1"
+            ]
+        },
+        "redirected_run_url": {
+            "run_id": "2024-07-07-13-43-04",
+            "urls": [
+                "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/reneuir-2024/runs/ows-pyterrier-anceindex.zip?download=1"
+            ]
+        },
+        "run_execution": {
+            "dataset": "dl-top-1000-docs-20240701-training",
+            "run_id": "2024-07-07-13-43-04",
+            "task": "reneuir-2024",
+            "team": "ows"
+        },
+        "run_url": "https://www.tira.io/task/reneuir-2024/user/ows/dataset/dl-top-1000-docs-20240701-training/download/2024-07-07-13-43-04.zip"
+    },
+    "reneuir-2024/reneuir-baselines/anserini-index": {
+        "md5_of_first_kilobyte": "fd261c82e7712c408eb11bc7d71ade4b",
+        "redirect_url": {
+            "run_id": "2024-07-07-08-09-13",
+            "urls": [
+                "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/reneuir-2024/runs/reneuir-baselines-anserini-index.zip?download=1"
+            ]
+        },
+        "redirected_run_url": {
+            "run_id": "2024-07-07-08-09-13",
+            "urls": [
+                "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/reneuir-2024/runs/reneuir-baselines-anserini-index.zip?download=1"
+            ]
+        },
+        "run_execution": {
+            "dataset": "dl-top-1000-docs-20240701-training",
+            "run_id": "2024-07-07-08-09-13",
+            "task": "reneuir-2024",
+            "team": "reneuir-baselines"
+        },
+        "run_url": "https://www.tira.io/task/reneuir-2024/user/reneuir-baselines/dataset/dl-top-1000-docs-20240701-training/download/2024-07-07-08-09-13.zip"
+    },
+    "reneuir-2024/reneuir-baselines/plaid-x-index": {
+        "md5_of_first_kilobyte": "bcf3e8a496fb59ca5082b36a031152fd",
+        "redirect_url": {
+            "run_id": "2024-07-05-14-44-15",
+            "urls": [
+                "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/reneuir-2024/runs/reneuir-baselines-plaid-x-index.zip?download=1"
+            ]
+        },
+        "redirected_run_url": {
+            "run_id": "2024-07-05-14-44-15",
+            "urls": [
+                "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/reneuir-2024/runs/reneuir-baselines-plaid-x-index.zip?download=1"
+            ]
+        },
+        "run_execution": {
+            "dataset": "dl-top-1000-docs-20240701-training",
+            "run_id": "2024-07-05-14-44-15",
+            "task": "reneuir-2024",
+            "team": "reneuir-baselines"
+        },
+        "run_url": "https://www.tira.io/task/reneuir-2024/user/reneuir-baselines/dataset/dl-top-1000-docs-20240701-training/download/2024-07-05-14-44-15.zip"
+    },
+    "reneuir-2024/tira-ir-starter/Index (tira-ir-starter-pyterrier)": {
+        "md5_of_first_kilobyte": "1bc10fee0dceed14b4cb5cf1ce7beffa",
+        "redirect_url": {
+            "run_id": "2024-07-07-12-47-53",
+            "urls": [
+                "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/reneuir-2024/runs/tira-ir-starter-index-tira-ir-starter-pyterrier.zip?download=1"
+            ]
+        },
+        "redirected_run_url": {
+            "run_id": "2024-07-07-12-47-53",
+            "urls": [
+                "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/reneuir-2024/runs/tira-ir-starter-index-tira-ir-starter-pyterrier.zip?download=1"
+            ]
+        },
+        "run_execution": {
+            "dataset": "dl-top-1000-docs-20240701-training",
+            "run_id": "2024-07-07-12-47-53",
+            "task": "reneuir-2024",
+            "team": "tira-ir-starter"
+        },
+        "run_url": "https://www.tira.io/task/reneuir-2024/user/tira-ir-starter/dataset/dl-top-1000-docs-20240701-training/download/2024-07-07-12-47-53.zip"
+    }
+}

@@ -1,0 +1,110 @@
+{"timestamp": 0.0, "key": "ps_cpu", "value": 0.1}
+{"timestamp": 0.0, "key": "ps_vsz", "value": 56988.0}
+{"timestamp": 0.0, "key": "ps_rss", "value": 36496.0}
+{"timestamp": 3.0, "key": "ps_cpu", "value": 122.0}
+{"timestamp": 3.0, "key": "ps_vsz", "value": 4018144.0}
+{"timestamp": 3.0, "key": "ps_rss", "value": 408708.0}
+{"timestamp": 6.0, "key": "ps_cpu", "value": 122.30000000000001}
+{"timestamp": 6.0, "key": "ps_vsz", "value": 5579140.0}
+{"timestamp": 6.0, "key": "ps_rss", "value": 621992.0}
+{"timestamp": 9.0, "key": "ps_cpu", "value": 115.2}
+{"timestamp": 9.0, "key": "ps_vsz", "value": 5844120.0}
+{"timestamp": 9.0, "key": "ps_rss", "value": 841168.0}
+{"timestamp": 12.0, "key": "ps_cpu", "value": 116.3}
+{"timestamp": 12.0, "key": "ps_vsz", "value": 12883616.0}
+{"timestamp": 12.0, "key": "ps_rss", "value": 880116.0}
+{"timestamp": 15.0, "key": "ps_cpu", "value": 113.0}
+{"timestamp": 15.0, "key": "ps_vsz", "value": 12883616.0}
+{"timestamp": 15.0, "key": "ps_rss", "value": 880372.0}
+{"timestamp": 18.0, "key": "ps_cpu", "value": 111.5}
+{"timestamp": 18.0, "key": "ps_vsz", "value": 17805320.0}
+{"timestamp": 18.0, "key": "ps_rss", "value": 1157364.0}
+{"timestamp": 21.0, "key": "ps_cpu", "value": 116.3}
+{"timestamp": 21.0, "key": "ps_vsz", "value": 17838756.0}
+{"timestamp": 21.0, "key": "ps_rss", "value": 1198836.0}
+{"timestamp": 24.0, "key": "ps_cpu", "value": 120.3}
+{"timestamp": 24.0, "key": "ps_vsz", "value": 17842368.0}
+{"timestamp": 24.0, "key": "ps_rss", "value": 1203444.0}
+{"timestamp": 27.0, "key": "ps_cpu", "value": 122.6}
+{"timestamp": 27.0, "key": "ps_vsz", "value": 17847112.0}
+{"timestamp": 27.0, "key": "ps_rss", "value": 1208308.0}
+{"timestamp": 30.0, "key": "ps_cpu", "value": 125.1}
+{"timestamp": 30.0, "key": "ps_vsz", "value": 17851932.0}
+{"timestamp": 30.0, "key": "ps_rss", "value": 1213428.0}
+{"timestamp": 33.0, "key": "ps_cpu", "value": 127.7}
+{"timestamp": 33.0, "key": "ps_vsz", "value": 17856652.0}
+{"timestamp": 33.0, "key": "ps_rss", "value": 1218036.0}
+{"timestamp": 36.0, "key": "ps_cpu", "value": 129.3}
+{"timestamp": 36.0, "key": "ps_vsz", "value": 17861436.0}
+{"timestamp": 36.0, "key": "ps_rss", "value": 1222900.0}
+{"timestamp": 39.0, "key": "ps_cpu", "value": 129.9}
+{"timestamp": 39.0, "key": "ps_vsz", "value": 17866040.0}
+{"timestamp": 39.0, "key": "ps_rss", "value": 1227508.0}
+{"timestamp": 42.0, "key": "ps_cpu", "value": 131.6}
+{"timestamp": 42.0, "key": "ps_vsz", "value": 17870924.0}
+{"timestamp": 42.0, "key": "ps_rss", "value": 1232372.0}
+{"timestamp": 45.0, "key": "ps_cpu", "value": 132.3}
+{"timestamp": 45.0, "key": "ps_vsz", "value": 17875692.0}
+{"timestamp": 45.0, "key": "ps_rss", "value": 1237236.0}
+{"timestamp": 49.0, "key": "ps_cpu", "value": 133.2}
+{"timestamp": 49.0, "key": "ps_vsz", "value": 17880160.0}
+{"timestamp": 49.0, "key": "ps_rss", "value": 1242100.0}
+{"timestamp": 52.0, "key": "ps_cpu", "value": 133.9}
+{"timestamp": 52.0, "key": "ps_vsz", "value": 17884788.0}
+{"timestamp": 52.0, "key": "ps_rss", "value": 1246452.0}
+{"timestamp": 55.0, "key": "ps_cpu", "value": 134.8}
+{"timestamp": 55.0, "key": "ps_vsz", "value": 17889384.0}
+{"timestamp": 55.0, "key": "ps_rss", "value": 1251316.0}
+{"timestamp": 58.0, "key": "ps_cpu", "value": 135.7}
+{"timestamp": 58.0, "key": "ps_vsz", "value": 17894124.0}
+{"timestamp": 58.0, "key": "ps_rss", "value": 1255668.0}
+{"timestamp": 61.0, "key": "ps_cpu", "value": 133.5}
+{"timestamp": 61.0, "key": "ps_vsz", "value": 17957372.0}
+{"timestamp": 61.0, "key": "ps_rss", "value": 1320436.0}
+{"timestamp": 64.0, "key": "ps_cpu", "value": 2.6}
+{"timestamp": 64.0, "key": "ps_vsz", "value": 73300.0}
+{"timestamp": 64.0, "key": "ps_rss", "value": 50832.0}
+{"timestamp": 0.0, "key": "gpu_memory_used", "value": "2 MiB"}
+{"timestamp": 0.0, "key": "gpu_utilization", "value": "0 %"}
+{"timestamp": 3.0, "key": "gpu_memory_used", "value": "2 MiB"}
+{"timestamp": 3.0, "key": "gpu_utilization", "value": "0 %"}
+{"timestamp": 6.0, "key": "gpu_memory_used", "value": "2 MiB"}
+{"timestamp": 6.0, "key": "gpu_utilization", "value": "0 %"}
+{"timestamp": 9.0, "key": "gpu_memory_used", "value": "2 MiB"}
+{"timestamp": 9.0, "key": "gpu_utilization", "value": "0 %"}
+{"timestamp": 12.0, "key": "gpu_memory_used", "value": "4 MiB"}
+{"timestamp": 12.0, "key": "gpu_utilization", "value": "0 %"}
+{"timestamp": 15.0, "key": "gpu_memory_used", "value": "4 MiB"}
+{"timestamp": 15.0, "key": "gpu_utilization", "value": "0 %"}
+{"timestamp": 18.0, "key": "gpu_memory_used", "value": "214 MiB"}
+{"timestamp": 18.0, "key": "gpu_utilization", "value": "5 %"}
+{"timestamp": 21.0, "key": "gpu_memory_used", "value": "246 MiB"}
+{"timestamp": 21.0, "key": "gpu_utilization", "value": "23 %"}
+{"timestamp": 24.0, "key": "gpu_memory_used", "value": "246 MiB"}
+{"timestamp": 24.0, "key": "gpu_utilization", "value": "21 %"}
+{"timestamp": 27.0, "key": "gpu_memory_used", "value": "246 MiB"}
+{"timestamp": 27.0, "key": "gpu_utilization", "value": "20 %"}
+{"timestamp": 30.0, "key": "gpu_memory_used", "value": "246 MiB"}
+{"timestamp": 30.0, "key": "gpu_utilization", "value": "23 %"}
+{"timestamp": 33.0, "key": "gpu_memory_used", "value": "246 MiB"}
+{"timestamp": 33.0, "key": "gpu_utilization", "value": "22 %"}
+{"timestamp": 36.0, "key": "gpu_memory_used", "value": "246 MiB"}
+{"timestamp": 36.0, "key": "gpu_utilization", "value": "20 %"}
+{"timestamp": 39.0, "key": "gpu_memory_used", "value": "250 MiB"}
+{"timestamp": 39.0, "key": "gpu_utilization", "value": "19 %"}
+{"timestamp": 42.0, "key": "gpu_memory_used", "value": "250 MiB"}
+{"timestamp": 42.0, "key": "gpu_utilization", "value": "22 %"}
+{"timestamp": 45.0, "key": "gpu_memory_used", "value": "250 MiB"}
+{"timestamp": 45.0, "key": "gpu_utilization", "value": "21 %"}
+{"timestamp": 49.0, "key": "gpu_memory_used", "value": "250 MiB"}
+{"timestamp": 49.0, "key": "gpu_utilization", "value": "20 %"}
+{"timestamp": 52.0, "key": "gpu_memory_used", "value": "250 MiB"}
+{"timestamp": 52.0, "key": "gpu_utilization", "value": "19 %"}
+{"timestamp": 55.0, "key": "gpu_memory_used", "value": "250 MiB"}
+{"timestamp": 55.0, "key": "gpu_utilization", "value": "23 %"}
+{"timestamp": 58.0, "key": "gpu_memory_used", "value": "250 MiB"}
+{"timestamp": 58.0, "key": "gpu_utilization", "value": "21 %"}
+{"timestamp": 61.0, "key": "gpu_memory_used", "value": "250 MiB"}
+{"timestamp": 61.0, "key": "gpu_utilization", "value": "4 %"}
+{"timestamp": 64.0, "key": "gpu_memory_used", "value": "2 MiB"}
+{"timestamp": 64.0, "key": "gpu_utilization", "value": "4 %"}

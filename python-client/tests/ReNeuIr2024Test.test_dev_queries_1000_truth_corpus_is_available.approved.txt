@@ -1,0 +1,9 @@
+{
+    "md5_of_first_kilobyte": "b382bfa59573ee9aa979152a3a8705bd",
+    "redirect_url": {
+        "urls": [
+            "https://zenodo.org/records/12722918/files/ms-marco-1000-queries-20240629-truth.zip?download=1"
+        ]
+    },
+    "tira_url": "https://www.tira.io/data-download/training/input-truth/ms-marco-1000-queries-20240629-training.zip"
+}

@@ -164,6 +164,13 @@ class Command(BaseCommand):
         
         if 'rerank' in options and options['rerank']:
             docker_software_id = 244 # "BM25 (tira-ir-starter-pyterrier)"
+            # Execute once in k8s: ./manage.py git_runner_cli --organization webis --rerank true
+            # Copy File
+            # Comment out dataset id
+            # configure ir-dataset: add ir_datasets image, ir_datasets re-ranking command, ir_datasets resources
+            # For new datasets: INSERT INTO tira_dockersoftware (`command`, `display_name`, `user_image_name`, `tira_image_name`, `deleted`, `task_id`, `vm_id`, `description`, `paper_link`, `ir_re_ranker`, `ir_re_ranking_input`) VALUES ('tbd', 'Anserini MS-MARCO Dev', 'tbd', 'tbd', 0, 'reneuir-2024', 'froebe', 'tbd', '', 0, 1);
+            # db statement: SELECT * FROM tira_run WHERE run_id LIKE '%rerank-%';
+            # re-run with update re-ranking jobs
             datasets = [
             'cranfield-20230107-training', 'antique-test-20230107-training', 'vaswani-20230107-training',
             'msmarco-passage-trec-dl-2019-judged-20230107-training', 'medline-2004-trec-genomics-2004-20230107-training',
@@ -179,7 +186,13 @@ class Command(BaseCommand):
             'longeval-long-september-20230513-training', 'longeval-short-july-20230513-training',
             'longeval-train-20230513-training', 'trec-tip-of-the-tongue-dev-20230607-training',
             'longeval-2023-06-20240418-training', 'longeval-2023-08-20240418-training',
-            'ir-acl-anthology-topics-leipzig-20240423-test', 'ir-acl-anthology-topics-leipzig-20240423-test', 'ir-acl-anthology-topics-augsburg-20240525_0-test'
+            'ir-acl-anthology-topics-leipzig-20240423-test', 'ir-acl-anthology-topics-leipzig-20240423-test', 'ir-acl-anthology-topics-augsburg-20240525_0-test', 'ir-acl-anthology-20240504-training', 'ir-acl-anthology-topics-koeln-20240614-test',
+            'ms-marco-100-queries-20240629-training', # /mnt/ceph/tira/data/runs/ms-marco-100-queries-20240629-training/froebe/2024-06-30-22-13-09-rerank-2024-06-30-22-23-08
+            'ms-marco-1000-queries-20240629-training',  #/mnt/ceph/tira/data/runs/ms-marco-1000-queries-20240629-training/froebe/2024-06-30-22-14-54-rerank-2024-06-30-23-07-44
+            'ms-marco-all-dev-queries-20240629-training', #/mnt/ceph/tira/data/runs/dl-top-10-docs-20240701-training/tira-ir-starter/2024-07-01-15-45-55-rerank-2024-07-02-10-40-56
+            'dl-top-10-docs-20240701-training',  # /mnt/ceph/tira/data/runs/dl-top-10-docs-20240701-training/froebe/2024-07-01-15-45-55-rerank-2024-07-02-10-40-56
+            'dl-top-100-docs-20240701-training', #/mnt/ceph/tira/data/runs/dl-top-100-docs-20240701-training/tira-ir-starter/2024-07-01-15-46-44-rerank-2024-07-02-10-49-03
+            'dl-top-1000-docs-20240701-training', # /mnt/ceph/tira/data/runs/dl-top-1000-docs-20240701-training/froebe/2024-07-01-15-47-04-rerank-2024-07-02-10-53-30
             ]
             for dataset in datasets:
                 print(dataset)

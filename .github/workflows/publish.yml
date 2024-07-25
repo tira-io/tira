@@ -27,6 +27,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
+<<<<<<< HEAD
           images: ${{ env.REGISTRY }}/tira-frontend
       - name: Publish tira-frontend image
         uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
@@ -34,6 +35,14 @@ jobs:
         with:
           context: .
           file: Dockerfile.prod
+=======
+          images: ${{ env.REGISTRY }}/tira-io/tira-frontend
+      - name: Publish tira-frontend image
+        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+        with:
+          context: ${{ github.workspace }}/frontend
+          file: ${{ github.workspace }}/frontend/Dockerfile.prod
+>>>>>>> 4e23a9769a87d8df4f17ef0c4ed9d25989676320
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
