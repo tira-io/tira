@@ -30,9 +30,8 @@ jobs:
           images: ${{ env.REGISTRY }}/tira-frontend
       - name: Publish tira-frontend image
         uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
-        working-directory: ${{ github.workspace }}/frontend
         with:
-          context: .
+          context: ${{ github.workspace }}/frontend
           file: Dockerfile.prod
           push: true
           tags: ${{ steps.meta.outputs.tags }}
