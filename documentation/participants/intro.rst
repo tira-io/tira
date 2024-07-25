@@ -1,26 +1,10 @@
-<<<<<<< HEAD
 .. _userintropage:
 
-=======
->>>>>>> 4e23a9769a87d8df4f17ef0c4ed9d25989676320
 Introduction
 ============
 In science, shared tasks are crucial for collecting diverse approaches to tackle complex problems. TIRA provides a platform for organizing these tasks and welcoming submissions, whether for research or education.
 
 
-<<<<<<< HEAD
-Getting Started
----------------
-.. todo:: How to use TIRA
-
-
-:octicon:`code-square` Python client
-
-:octicon:`command-palette` TIRA-CLI
-
-
-.. _userfaq:
-=======
 
 Getting Started
 ---------------
@@ -91,7 +75,6 @@ For reproducibility and confidentiality reasons, all TIRA submissions are sandbo
 
 .. _userfaq:
 
->>>>>>> 4e23a9769a87d8df4f17ef0c4ed9d25989676320
 Frequently Asked Questions
 --------------------------
 
@@ -105,8 +88,4 @@ Frequently Asked Questions
 
 .. dropdown:: I believe, I found a bug with TIRA. What do I do?
 
-<<<<<<< HEAD
     Please have a look at `Reporting Bugs <../development/contributing/index.html#reporting-bugs>`_
-=======
-    Please have a look at `Reporting Bugs <../development/contributing/index.html#reporting-bugs>`_
->>>>>>> 4e23a9769a87d8df4f17ef0c4ed9d25989676320
