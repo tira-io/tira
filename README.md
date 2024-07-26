@@ -49,15 +49,14 @@ If you use TIRA in your own research, please cite our paper
 
 ```
 @InProceedings{froebe:2023b,
-  address =                  {Berlin Heidelberg New York},
-  author =                   {Maik Fr{\"o}be and Matti Wiegmann and Nikolay Kolyada and Bastian Grahm and Theresa Elstner and Frank Loebe and Matthias Hagen and Benno Stein and Martin Potthast},
-  booktitle =                {Advances in Information Retrieval. 45th European Conference on {IR} Research ({ECIR} 2023)},
-  month =                    apr,
-  publisher =                {Springer},
-  series =                   {Lecture Notes in Computer Science},
-  site =                     {Dublin, Irland},
-  title =                    {{Continuous Integration for Reproducible Shared Tasks with TIRA.io}},
-  todo =                     {doi, month, pages, code},
-  year =                     2023
+  address   = {Berlin Heidelberg New York},
+  author    = {Maik Fr{\"o}be and Matti Wiegmann and Nikolay Kolyada and Bastian Grahm and Theresa Elstner and Frank Loebe and Matthias Hagen and Benno Stein and Martin Potthast},
+  booktitle = {Advances in Information Retrieval. 45th European Conference on {IR} Research ({ECIR} 2023)},
+  month     = apr,
+  publisher = {Springer},
+  series    = {Lecture Notes in Computer Science},
+  site      = {Dublin, Irland},
+  title     = {{Continuous Integration for Reproducible Shared Tasks with TIRA.io}},
+  year      = 2023
 }
 ```
