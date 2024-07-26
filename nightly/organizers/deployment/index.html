@@ -208,7 +208,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../participants/intro.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../participants/participate.html">Participating in a Shared Task</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../participants/tiracli.html">TIRA CLI</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../../participants/python-client.html">Python Client</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Python Client</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="simple">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../participants/python-client.html">Python Client</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Python Client</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../participants/python-client/tiraclient.html">TIRA Client</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../participants/python-client/pyterrier.html">Pyterrier Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../participants/python-client/ir-datasets.html">IR-Datasets Integration</a></li>
 </ul>
 </li>
 </ul>
@@ -220,6 +223,7 @@
 <li class="toctree-l2"><a class="reference internal" href="application.html">Deploying the Application Module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="frontend.html">Deploying the Frontend</a></li>
 <li class="toctree-l2"><a class="reference internal" href="demo.html">Demo Deployment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="frontend_legacy.html">Deploying the Frontend (Legacy)</a></li>
 </ul>
 </li>
 </ul>
@@ -301,17 +305,68 @@
         </div>
         <article role="main" id="furo-main-content">
           <section id="deployment">
-<h1>Deployment<a class="headerlink" href="#deployment" title="Link to this heading">¶</a></h1>
-<div class="admonition-todo admonition" id="id1">
-<p class="admonition-title">Todo</p>
-<p>This page needs more work. E.g, what do the listed modules do (give a brief overview such that new users know what
-they work with)</p>
+<span id="id1"></span><h1>Deployment<a class="headerlink" href="#deployment" title="Link to this heading">¶</a></h1>
+<div class="admonition hint">
+<p class="admonition-title">Hint</p>
+<p>You just want to try TIRA within your organization without setting up the production deployment? We have created a slimmed down <a class="sd-sphinx-override sd-badge sd-bg-secondary sd-bg-text-secondary reference internal" href="demo.html#demo-deployment"><span class="std std-ref">demo deployment</span></a> just for this!</p>
 </div>
-<p>TIRA itself is split into 2 modules that have to be deployed separately:</p>
-<ol class="arabic simple">
-<li><p>The <a class="reference internal" href="application.html"><span class="doc">Application Module</span></a></p></li>
-<li><p>The <a class="reference internal" href="frontend.html"><span class="doc">Frontend</span></a></p></li>
-</ol>
+<p class="rubric">Modules of a complete TIRA deployment</p>
+<div class="sd-container-fluid sd-sphinx-override sd-mt-4 sd-mb-4 sd-ml-0 sd-mr-0 docutils">
+<div class="sd-row sd-row-cols-1 sd-row-cols-xs-1 sd-row-cols-sm-1 sd-row-cols-md-1 sd-row-cols-lg-1 sd-g-1 sd-g-xs-1 sd-g-sm-1 sd-g-md-1 sd-g-lg-1 docutils">
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover docutils">
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+<svg version="1.1" width="1.0em" height="1.0em" class="sd-octicon sd-octicon-cpu" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.5.75V2h3V.75a.75.75 0 0 1 1.5 0V2h1.25c.966 0 1.75.784 1.75 1.75V5h1.25a.75.75 0 0 1 0 1.5H14v3h1.25a.75.75 0 0 1 0 1.5H14v1.25A1.75 1.75 0 0 1 12.25 14H11v1.25a.75.75 0 0 1-1.5 0V14h-3v1.25a.75.75 0 0 1-1.5 0V14H3.75A1.75 1.75 0 0 1 2 12.25V11H.75a.75.75 0 0 1 0-1.5H2v-3H.75a.75.75 0 0 1 0-1.5H2V3.75C2 2.784 2.784 2 3.75 2H5V.75a.75.75 0 0 1 1.5 0Zm5.75 11.75a.25.25 0 0 0 .25-.25v-8.5a.25.25 0 0 0-.25-.25h-8.5a.25.25 0 0 0-.25.25v8.5c0 .138.112.25.25.25ZM5.75 5h4.5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-.75.75h-4.5a.75.75 0 0 1-.75-.75v-4.5A.75.75 0 0 1 5.75 5Zm.75 4.5h3v-3h-3Z"></path></svg> Backend</div>
+<p class="sd-card-text">TIRA’s brains.</p>
+</div>
+<a class="sd-stretched-link sd-hide-link-text reference internal" href="application.html"><span class="doc">Deploying the Application Module</span></a></div>
+</div>
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover docutils">
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+<svg version="1.1" width="1.0em" height="1.0em" class="sd-octicon sd-octicon-devices" viewBox="0 0 16 16" aria-hidden="true"><path d="M0 2.75C0 1.784.784 1 1.75 1h12.5c.966 0 1.75.784 1.75 1.75V5a.75.75 0 0 1-1.5 0V2.75a.25.25 0 0 0-.25-.25H1.75a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25H7A.75.75 0 0 1 7 12h-.268a5.712 5.712 0 0 1-.765 2.5H7A.75.75 0 0 1 7 16H4.5a.75.75 0 0 1-.565-1.243c.772-.885 1.193-1.716 1.292-2.757H1.75A1.75 1.75 0 0 1 0 10.25v-7.5Z"></path><path d="M10.75 7h3.5c.967 0 1.75.784 1.75 1.75v5.5A1.75 1.75 0 0 1 14.25 16h-3.5A1.75 1.75 0 0 1 9 14.25v-5.5C9 7.784 9.783 7 10.75 7Zm-.25 1.75v5.5c0 .138.112.25.25.25h3.5a.25.25 0 0 0 .25-.25v-5.5a.25.25 0 0 0-.25-.25h-3.5a.25.25 0 0 0-.25.25Z"></path></svg> Frontend</div>
+<p class="sd-card-text">The web frontend presented to TIRA’s users.</p>
+</div>
+<a class="sd-stretched-link sd-hide-link-text reference internal" href="frontend.html"><span class="doc">Deploying the Frontend</span></a></div>
+</div>
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm docutils">
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+<svg version="1.1" width="1.0em" height="1.0em" class="sd-octicon sd-octicon-id-badge" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 7.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1-.5-.5v-3Zm10 .25a.75.75 0 0 1-.75.75h-4.5a.75.75 0 0 1 0-1.5h4.5a.75.75 0 0 1 .75.75ZM10.25 11a.75.75 0 0 0 0-1.5h-2.5a.75.75 0 0 0 0 1.5h2.5Z"></path><path d="M7.25 0h1.5c.966 0 1.75.784 1.75 1.75V3h3.75c.966 0 1.75.784 1.75 1.75v8.5A1.75 1.75 0 0 1 14.25 15H1.75A1.75 1.75 0 0 1 0 13.25v-8.5C0 3.784.784 3 1.75 3H5.5V1.75C5.5.784 6.284 0 7.25 0Zm3.232 4.5A1.75 1.75 0 0 1 8.75 6h-1.5a1.75 1.75 0 0 1-1.732-1.5H1.75a.25.25 0 0 0-.25.25v8.5c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25v-8.5a.25.25 0 0 0-.25-.25ZM7 1.75v2.5c0 .138.112.25.25.25h1.5A.25.25 0 0 0 9 4.25v-2.5a.25.25 0 0 0-.25-.25h-1.5a.25.25 0 0 0-.25.25Z"></path></svg> Authentication Provider</div>
+<p class="sd-card-text">TIRA does not do any user management. Instead, we leave this to third party authentication providers.</p>
+</div>
+<div class="sd-card-footer docutils">
+<p class="sd-card-text">For the official <a class="reference external" href="https://www.tira.io/">tira.io</a> deployment, we use Discourse but any authentication provider that supports trusted header authentication should work.</p>
+</div>
+</div>
+</div>
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm docutils">
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+<svg version="1.1" width="1.0em" height="1.0em" class="sd-octicon sd-octicon-lock" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4a4 4 0 0 1 8 0v2h.25c.966 0 1.75.784 1.75 1.75v5.5A1.75 1.75 0 0 1 12.25 15h-8.5A1.75 1.75 0 0 1 2 13.25v-5.5C2 6.784 2.784 6 3.75 6H4Zm8.25 3.5h-8.5a.25.25 0 0 0-.25.25v5.5c0 .138.112.25.25.25h8.5a.25.25 0 0 0 .25-.25v-5.5a.25.25 0 0 0-.25-.25ZM10.5 6V4a2.5 2.5 0 1 0-5 0v2Z"></path></svg> Reverse Proxy</div>
+<p class="sd-card-text">For security reasons, you <strong>MUST</strong> use a reverse proxy to delegate authentication to the Auth Provider and set the HTTP header fields accordingly. Trusted header authentication works by adding a user identifier as a simple HTTP header field to any request that needs authentication. If any user could just set this field as they whish, they could easily impersonate any user they like.</p>
+</div>
+<div class="sd-card-footer docutils">
+<p class="sd-card-text">For the official <a class="reference external" href="https://www.tira.io/">tira.io</a> deployment, we use Disraptor.</p>
+</div>
+</div>
+</div>
+<div class="sd-col sd-d-flex-row docutils">
+<div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover docutils">
+<div class="sd-card-body docutils">
+<div class="sd-card-title sd-font-weight-bold docutils">
+<svg version="1.1" width="1.0em" height="1.0em" class="sd-octicon sd-octicon-package" viewBox="0 0 16 16" aria-hidden="true"><path d="m8.878.392 5.25 3.045c.54.314.872.89.872 1.514v6.098a1.75 1.75 0 0 1-.872 1.514l-5.25 3.045a1.75 1.75 0 0 1-1.756 0l-5.25-3.045A1.75 1.75 0 0 1 1 11.049V4.951c0-.624.332-1.201.872-1.514L7.122.392a1.75 1.75 0 0 1 1.756 0ZM7.875 1.69l-4.63 2.685L8 7.133l4.755-2.758-4.63-2.685a.248.248 0 0 0-.25 0ZM2.5 5.677v5.372c0 .09.047.171.125.216l4.625 2.683V8.432Zm6.25 8.271 4.625-2.683a.25.25 0 0 0 .125-.216V5.677L8.75 8.432Z"></path></svg> Runner</div>
+<p class="sd-card-text">Runners are responsible for executing and evaluating the submissions.</p>
+</div>
+<span class="sd-stretched-link sd-hide-link-text">runner</span></div>
+</div>
+</div>
+</div>
+<img alt="../../_images/architecturestack.svg" class="umlet align-center" src="../../_images/architecturestack.svg" />
 <div class="toctree-wrapper compound">
 </div>
 </section>

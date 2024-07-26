@@ -181,7 +181,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
         <div class="visually-hidden">Toggle table of contents sidebar</div>
         <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
       </label>
@@ -208,7 +208,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../participants/intro.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../participants/participate.html">Participating in a Shared Task</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../participants/tiracli.html">TIRA CLI</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../../participants/python-client.html">Python Client</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Python Client</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="simple">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../participants/python-client.html">Python Client</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Python Client</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../participants/python-client/tiraclient.html">TIRA Client</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../participants/python-client/pyterrier.html">Pyterrier Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../participants/python-client/ir-datasets.html">IR-Datasets Integration</a></li>
 </ul>
 </li>
 </ul>
@@ -220,6 +223,7 @@
 <li class="toctree-l2"><a class="reference internal" href="application.html">Deploying the Application Module</a></li>
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Deploying the Frontend</a></li>
 <li class="toctree-l2"><a class="reference internal" href="demo.html">Demo Deployment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="frontend_legacy.html">Deploying the Frontend (Legacy)</a></li>
 </ul>
 </li>
 </ul>
@@ -294,299 +298,40 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
             <div class="visually-hidden">Toggle table of contents sidebar</div>
             <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
           </label>
         </div>
         <article role="main" id="furo-main-content">
           <section id="deploying-the-frontend">
-<h1>Deploying the Frontend<a class="headerlink" href="#deploying-the-frontend" title="Link to this heading">¶</a></h1>
-<div class="admonition-todo admonition" id="id1">
-<p class="admonition-title">Todo</p>
-<p>This page is partially deprecated (e.g., broken links) and should be improved.</p>
+<span id="frontend"></span><h1>Deploying the Frontend<a class="headerlink" href="#deploying-the-frontend" title="Link to this heading">¶</a></h1>
+<p>The recommended way to deploy TIRA’s frontend is Docker (or Docker Compose) using the official image, <a class="reference external" href="https://github.com/tira-io/tira/pkgs/container/tira-frontend">ghcr.io/tira-io/tira-frontend:latest</a>.</p>
+<p>The frontend is configured using the following environment variables:</p>
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Environment Variable</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>TIRA_REST_BASE_URL</p></td>
+<td><p>The URL at which the backend’s REST-API can be reached.</p></td>
+</tr>
+<tr class="row-odd"><td><p>TIRA_GRPC_BASE_URL</p></td>
+<td><p>The URL at which the backend’s GRPC-API can be reached. <cite>The GRPC URL only exists for legacy
+reasons and will be removed in the future. In the meantime, set TIRA_GRPC_BASE_URL to the
+same value as TIRA_REST_BASE_URL.</cite></p></td>
+</tr>
+</tbody>
+</table>
 </div>
-<section id="deploy-discourse-on-kubernetes">
-<h2>Deploy Discourse on Kubernetes<a class="headerlink" href="#deploy-discourse-on-kubernetes" title="Link to this heading">¶</a></h2>
-<section id="prerequisites">
-<h3>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading">¶</a></h3>
-<p>Software &amp; Packages</p>
-<ul class="simple">
-<li><p>awk</p></li>
-<li><p>curl</p></li>
-<li><p>docker</p></li>
-<li><p>kubernetes</p></li>
-<li><p>git</p></li>
-</ul>
-<p>Misc</p>
-<ul class="simple">
-<li><p>webis Ceph Secret</p></li>
-</ul>
-</section>
-<section id="production-environment">
-<h3>Production environment<a class="headerlink" href="#production-environment" title="Link to this heading">¶</a></h3>
-<p>The discourse production environent contains:</p>
-<ul class="simple">
-<li><p>1 Service                 (<a class="reference external" href="https://git.webis.de/code-generic/code-admin-knowledge-base/-/tree/master/services/tira/tira-discourse/prod/discourse-prod.yml">prod/discourse-prod.yml</a>)</p></li>
-<li><p>1 Deployment              (<a class="reference external" href="https://git.webis.de/code-generic/code-admin-knowledge-base/-/tree/master/services/tira/tira-discourse/prod/discourse-prod.yml">prod/discourse-prod.yml</a>)</p></li>
-<li><p>2 PersistentVolumeClaims  (<a class="reference external" href="https://git.webis.de/code-generic/code-admin-knowledge-base/-/tree/master/services/tira/tira-discourse/prod/discourse-prod-volumes.yml">prod/discourse-prod-volumes.yml</a>)</p></li>
-<li><p>1 Secret                  (file not stored in this repository)</p></li>
-</ul>
-<p>To deploy the files named basic scripts are provided.</p>
-</section>
-<section id="by-script">
-<h3>By Script<a class="headerlink" href="#by-script" title="Link to this heading">¶</a></h3>
-<p>To deploy via script all you have to do by hand is fill the information sufficient for your service into
-<code class="code docutils literal notranslate"><span class="pre">prod/data.yml</span></code>. Best create a copy with name <code class="code docutils literal notranslate"><span class="pre">your_service_name.yml</span></code> for that.</p>
-<div class="admonition danger">
-<p class="admonition-title">Danger</p>
-<p><strong>BE SURE THAT THIS INFORMATION IS NEVER LEAKED TO THE PUBLIC!</strong> The SMTP user <strong>WILL</strong> be highjacked.</p>
+<p>The frontend configured in the official container is fixed to use <strong>port 80</strong>. Using Docker, you can, of course, remap it to any other port you prefer.</p>
+<div class="admonition attention">
+<p class="admonition-title">Attention</p>
+<p>The frontend SHOULD be deployed behind a reverse proxy which delegates authentication using trusted headers. See <a class="sd-sphinx-override sd-badge sd-bg-secondary sd-bg-text-secondary reference internal" href="index.html#deployment"><span class="std std-ref">Deployment</span></a> for more information on the deployment as a whole or <a class="sd-sphinx-override sd-badge sd-bg-secondary sd-bg-text-secondary reference internal" href="demo.html#demo-deployment"><span class="std std-ref">Demo Deployment</span></a> for a stripped down example of a basic deployment for demo purposes.</p>
 </div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The <code class="code docutils literal notranslate"><span class="pre">developer_emails</span></code> should be a comma-separated list of mails, not a yaml-list.</p>
-</div>
-<div class="admonition caution">
-<p class="admonition-title">Caution</p>
-<p>Not giving all the information may lead to unexpected behavior.</p>
-</div>
-<p>It should look something like:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">service</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;my_service&quot;</span>
-<span class="nt">hostname</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;service.domain.io&quot;</span>
-<span class="nt">developer_emails</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;first@gmail.com,second@gmail.com&quot;</span>
-<span class="nt">smtp</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">address</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;smtp.amazonaws.com&quot;</span>
-<span class="w">    </span><span class="nt">username</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;AKFHAKJSFJBKVAWUHFIA&quot;</span>
-<span class="w">    </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;KAWFdjwdjahWAHkaFHJwhja&quot;</span>
-<span class="w">    </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">587</span>
-</pre></div>
-</div>
-<p>Next manipulate the information in the service configuration :code::<cite>prod/discourse-prod.yml</cite>. Especially you may need
-to change NodePorts and image description.</p>
-<p>After filling the information issue</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>prod
-./setup-discourse<span class="w"> </span>-u<span class="w"> </span>&lt;DOCKERHUB_USER&gt;<span class="w"> </span>-i<span class="w"> </span>&lt;DOCKERHUB_IMAGENAME&gt;<span class="w"> </span>-f<span class="w"> </span>&lt;your_service_name.yml&gt;
-</pre></div>
-</div>
-<p>Everything should be set up now and the container should be running soon.</p>
-</section>
-<section id="by-hand">
-<h3>By Hand<a class="headerlink" href="#by-hand" title="Link to this heading">¶</a></h3>
-<section id="id3">
-<h4>Prerequisites<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h4>
-<section id="secret">
-<h5>Secret<a class="headerlink" href="#secret" title="Link to this heading">¶</a></h5>
-<p>Before the deployment itself can be applied the secret containing SMTP information has to exist.</p>
-<p>For the deployment a SMTP server and a Domain Name are needed. The secret stores information about concerning SMTP.</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
-<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Secret</span>
-<span class="nt">metadata</span><span class="p">:</span>
-<span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">discourse-prod-secret</span>
-<span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Opaque</span>
-<span class="nt">stringData</span><span class="p">:</span>
-<span class="nt">discourse_developer_emails</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;&lt;DEVELOPER_MAIL_1&gt;,&lt;DEVELOPER_MAIL_2&gt;,...&quot;</span>
-<span class="nt">discourse_smtp_address</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;&lt;SMTP_SERVER&gt;&quot;</span>
-<span class="nt">discourse_smtp_user_name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;&lt;SMTP_USERNAME&gt;&quot;</span>
-<span class="nt">discourse_smtp_password</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;&lt;SMTP_PASSWORD&gt;&quot;</span>
-</pre></div>
-</div>
-<p>Currently AWS SES provides mailing for us. For the information log into the AWS Console, find
-<code class="code docutils literal notranslate"><span class="pre">Simple</span> <span class="pre">Email</span> <span class="pre">Service</span></code> and under <code class="code docutils literal notranslate"><span class="pre">Domains</span></code> check if there is an entry for the domain that the Discourse
-instance is referring to.</p>
-<p>If this is the case, click <code class="code docutils literal notranslate"><span class="pre">SMTP</span> <span class="pre">Settings</span></code> on the left. Here you find SMTP server adress and port.</p>
-<p>Now only username and passwort are needed to use the SES server. If there already has been an entry for the domain, you
-are working with chances are, that there also is an existing user. Best ask around your team (User + Password are in the
-<code class="code docutils literal notranslate"><span class="pre">passdb</span></code>).</p>
-<p>When there is no user yet you can create one at
-<code class="code docutils literal notranslate"><span class="pre">Create</span> <span class="pre">My</span> <span class="pre">SMTP</span> <span class="pre">Credentials</span> <span class="pre">&gt;</span> <span class="pre">Create</span> <span class="pre">&gt;</span> <span class="pre">Show</span> <span class="pre">User</span> <span class="pre">SMTP</span> <span class="pre">Credentials</span></code>.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This information is not shown again, so be sure to note it down in a safe place.</p>
-</div>
-<p>Lastly developer mails are mails of your choice used for signin in as an admin after startup.
-You may now fill in the gaps in the YAML above, save it under <code class="code docutils literal notranslate"><span class="pre">&lt;name_of_your_choice&gt;.yml</span></code> and apply it to
-Kubernetes via</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>&lt;name_of_your_choice&gt;.yml
-</pre></div>
-</div>
-<p>Be aware that the name in <code class="code docutils literal notranslate"><span class="pre">discourse-prod.yml</span></code> concerning the secret has to match that
-<code class="code docutils literal notranslate"><span class="pre">&lt;name_of_your_choice&gt;</span></code>.</p>
-</section>
-<section id="image">
-<h5>Image<a class="headerlink" href="#image" title="Link to this heading">¶</a></h5>
-<p>The image for the Discourse instance gets created following the tutorial for
-<a class="reference external" href="https://github.com/discourse/discourse/blob/master/docs/INSTALL-cloud.md#Install-Discourse">discourse_docker</a>. I will
-repeat the steps here since there will be some differences.</p>
-<p>First clone the related repository.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>-s
-<span class="c1"># git clone https://github.com/discourse/discourse_docker.git /var/discourse</span>
-<span class="c1"># cd /var/discourse</span>
-</pre></div>
-</div>
-<p>Next use discourse_dockers launcher to setup the configuration for image creation. Here a file is created at
-<code class="code docutils literal notranslate"><span class="pre">containers/app.yml</span></code>.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># ./discourse-setup</span>
-</pre></div>
-</div>
-<p>You will be asked for the following information. You do not actually have to give the information here, since Discourse
-will pull the information from the <a class="reference external" href="#secret">earlier created secret</a>. You may just supply dummy information.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Hostname for your Discourse? [discourse.example.com]:
-Email address for admin account(s)? [me@example.com,you@example.com]:
-SMTP server address? [smtp.example.com]:
-SMTP port? [587]:
-SMTP user name? [user@example.com]:
-SMTP password? [pa$$word]:
-Let&#39;s Encrypt account email? (ENTER to skip) [me@example.com]:
-</pre></div>
-</div>
-<p>When filling these be sure to also overwrite the <code class="code docutils literal notranslate"><span class="pre">SMTP</span> <span class="pre">port</span></code> with <code class="code docutils literal notranslate"><span class="pre">587</span></code> (if your SMTP server listens to
-that), even when it seems to default to <code class="code docutils literal notranslate"><span class="pre">587</span></code>. If you don’t there might be problems with sending mail, because
-Discourse (sometimes) uses <code class="code docutils literal notranslate"><span class="pre">25</span></code> else. Requests on port <code class="code docutils literal notranslate"><span class="pre">25</span></code> cannot reach AWS SES servers from the Webis
-network (for some reason).</p>
-<div class="admonition important">
-<p class="admonition-title">Important</p>
-<p>If there occurs any error (which is very likely already at the domain check) you have to edit
-<code class="code docutils literal notranslate"><span class="pre">containers/app.yml</span></code> yourself. If so, enter the information which is mentioned aboee at the position you find
-it in the file. When you entered them restart the building process via <code class="code docutils literal notranslate"><span class="pre">./launcher</span> <span class="pre">rebuild</span> <span class="pre">app</span></code>. Do not skip
-this!</p>
-</div>
-<p>After the setup edit the file at <code class="code docutils literal notranslate"><span class="pre">containers/app.yml</span></code> as follows:</p>
-<ul class="simple">
-<li><p>rename the file to <code class="code docutils literal notranslate"><span class="pre">&lt;your_service_name&gt;.yml</span></code></p></li>
-<li><p>make sure the information at <code class="code docutils literal notranslate"><span class="pre">env</span></code>, which got asked for in the setup was entered correctly. Else please correct
-it.</p></li>
-<li><dl class="simple">
-<dt>at <code class="code docutils literal notranslate"><span class="pre">hooks.after_code.exec.cmd</span></code> enter another listentry for Disraptor</dt><dd><ul>
-<li><p><code class="code docutils literal notranslate"><span class="pre">-</span> <span class="pre">git</span> <span class="pre">clone</span> <span class="pre">https://github.com/disraptor/disraptor.git</span></code></p></li>
-</ul>
-</dd>
-</dl>
-</li>
-</ul>
-<p>Everything is ready for image creation now. So leave the previously edited file and start the image and container
-creation.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>docker<span class="w"> </span>stop<span class="w"> </span>app<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>docker<span class="w"> </span>rm<span class="w"> </span>app
-<span class="c1"># ./launcher rebuild &lt;your_service_name&gt;</span>
-</pre></div>
-</div>
-<p>An image will be created and a corresponding container will also be started. This might take a while.</p>
-<p>You can now retag the image by your choice and push it to your docker registry.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>docker<span class="w"> </span>tag<span class="w"> </span>local_discourse/&lt;your_service_name&gt;:latest<span class="w"> </span>&lt;USER&gt;/&lt;NAME&gt;:&lt;TAG&gt;
-$<span class="w"> </span>docker<span class="w"> </span>push<span class="w"> </span>&lt;USER&gt;/&lt;NAME&gt;:&lt;TAG&gt;
-</pre></div>
-</div>
-<p>You may need to change the image information in the Deployment configuration at
-<code class="code docutils literal notranslate"><span class="pre">spec.template.spec.containers.image</span></code> accordingly.</p>
-</section>
-<section id="ceph">
-<h5>Ceph<a class="headerlink" href="#ceph" title="Link to this heading">¶</a></h5>
-<p>To mount certain boot-specific resources into the container we use a
-<a class="reference external" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#cephfsvolumesource-v1-core">CephFSVolumeSource</a>.
-Be sure CephFS mounted with the correct permissions (webisstud or webis). For information how to mount ceph follow
-<a class="reference external" href="https://git.webis.de/code-generic/code-admin-knowledgebase/blob/master/services/ceph/cephfs-usage.md">this</a>.</p>
-<p>Copy the corresponding files by:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>~/discourse-k8s-deploy
-cp<span class="w"> </span>/var/discourse/shared/standalone<span class="w"> </span>/mnt/ceph/storage/data-in-production/disraptor/boot/resource
-</pre></div>
-</div>
-<p>Also the setup file from this repository is needed to setup permissions for the files.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cp<span class="w"> </span>prod/setup<span class="w"> </span>/mnt/ceph/storage/data-in-production/disraptor/boot/setup
-</pre></div>
-</div>
-<p>Now everything is perfectly set up to deploy your Discourse production instance.</p>
-</section>
-</section>
-<section id="deployment">
-<h4>Deployment<a class="headerlink" href="#deployment" title="Link to this heading">¶</a></h4>
-<p>Complete deployment will be done by:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>prod/k8s-deploy-discourse-prod.sh
-</pre></div>
-</div>
-</section>
-<section id="undeploying">
-<h4>Undeploying<a class="headerlink" href="#undeploying" title="Link to this heading">¶</a></h4>
-<p>Remove the deployment by:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>prod/k8s-undeploy-discourse-prod.sh
-</pre></div>
-</div>
-<p>Your volumes will not be removed by this. Only <code class="code docutils literal notranslate"><span class="pre">Service</span></code> and <code class="code docutils literal notranslate"><span class="pre">Deployment</span></code> are defined in
-<code class="code docutils literal notranslate"><span class="pre">prod/discourse-prod.yml</span></code> and therefore only these will be deleted here. This secures persistent data to be
-persistent across deploys.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>If you really want to remove them, use the following command, as it will remove all your Discourse-related data:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl<span class="w"> </span>delete<span class="w"> </span>-f<span class="w"> </span>prod/discourse-prod-volumes.yml
-</pre></div>
-</div>
-</div>
-<section id="updating">
-<h5>Updating<a class="headerlink" href="#updating" title="Link to this heading">¶</a></h5>
-<p>After having done all the manual steps above one does not have to repeat them for updating the Discourse instance.
-This can be done via script, issueing:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># prod/update-discourse.sh -u &lt;DOCKERHUB_USER&gt; -i &lt;DOCKERHUB_IMAGENAME&gt; -t &lt;TAG&gt; -s &lt;SERVICE_NAME&gt;</span>
-</pre></div>
-</div>
-<p>which will rebuild the image for the given service with given Dockerhub imagename and tag. It will proceed to push the
-image to Dockerhub once with the tag you gave and once tagged as latest. The script will fail if the given tag already
-exists for the image so you don’t override images.</p>
-</section>
-</section>
-</section>
-<section id="development-environment">
-<h3>Development environment<a class="headerlink" href="#development-environment" title="Link to this heading">¶</a></h3>
-<div class="admonition-todo admonition" id="id4">
-<p class="admonition-title">Todo</p>
-<p>This section should be moved to an appropriate location in the developer-documentation instead of the
-organizer-documentation</p>
-</div>
-<p>The discourse development environent contains:</p>
-<ul class="simple">
-<li><p>1 Service                 (<a class="reference external" href="https://git.webis.de/code-generic/code-admin-knowledge-base/-/tree/master/services/tira/tira-discourse/dev/discourse-dev.yml">dev/discourse-dev.yml</a>)</p></li>
-<li><p>1 Deployment              (<a class="reference external" href="https://git.webis.de/code-generic/code-admin-knowledge-base/-/tree/master/services/tira/tira-discourse/dev/discourse-dev.yml">dev/discourse-dev.yml</a>)</p></li>
-<li><p>1 PersistentVolumeClaims  (<a class="reference external" href="https://git.webis.de/code-generic/code-admin-knowledge-base/-/tree/master/services/tira/tira-discourse/dev/discourse-dev-volumes.yml">dev/discourse-dev-volumes.yml</a>)</p></li>
-</ul>
-<p>To deploy the files named basic scripts are provided.</p>
-<section id="deploying">
-<h4>Deploying<a class="headerlink" href="#deploying" title="Link to this heading">¶</a></h4>
-<p>First, to prevent collision with other development instances you have to choose a port <code class="code docutils literal notranslate"><span class="pre">&lt;PORT&gt;</span></code> for your instance.
-Or rather 2. One for http and one for the mailcatcher. Do this by editing the Service in
-([dev/discourse-dev.yml](dev/discourse-dev.yml)) at spec.ports accordingly (from 3080X to something you choose).
-If the nodePorts you choose are already occupied in the cluster the pod won’t be able to start up and you have to choose
-others.</p>
-<p>After that deployment of the development environment is as simple as running</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./k8s-deploy-discourse-dev.sh<span class="w"> </span>-n<span class="w"> </span>&lt;NAMESPACE&gt;
-</pre></div>
-</div>
-<p>where <code class="code docutils literal notranslate"><span class="pre">&lt;NAMESPACE&gt;</span></code> refers to the namespace you want to deploy in. All the heavy lifting is then done by the
-configs and the commands executed there. After the pod started, you have the possibility to read through the (pretty
-short) logs produces while starting up by using</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./logs.sh<span class="w"> </span>-n<span class="w"> </span>&lt;NAMESPACE&gt;
-</pre></div>
-</div>
-<p>This is also very handy for unexpected issues.</p>
-<p>Right after startup a admin account for the Discourse instance needs to be created. Because this instance is in
-production mode, and emails can therefore not be sent this has to be done manually with the <code class="code docutils literal notranslate"><span class="pre">create-admin</span></code> script
-via</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./create-admin.sh<span class="w"> </span>-n<span class="w"> </span>&lt;NAMESPACE&gt;
-</pre></div>
-</div>
-<p>Now the instance is visitable on any betaweb machine at port <code class="code docutils literal notranslate"><span class="pre">30804</span></code>. Be aware that
-<code class="code docutils literal notranslate"><span class="pre">betawebXXX.medien.uni-weimar.de:30804</span></code> does not work, but only <code class="code docutils literal notranslate"><span class="pre">betawebXXX:30804</span></code> does.</p>
-</section>
-<section id="id6">
-<h4>Undeploying<a class="headerlink" href="#id6" title="Link to this heading">¶</a></h4>
-<p>This works the same way, as for the production instance basically.
-Remove the deployment by:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>prod/k8s-undeploy-discourse-dev.sh
-</pre></div>
-</div>
-<p>Your volumes will not be removed by this. Only <code class="code docutils literal notranslate"><span class="pre">Service</span></code> and <code class="code docutils literal notranslate"><span class="pre">Deployment</span></code> are defined in
-<code class="code docutils literal notranslate"><span class="pre">prod/discourse-prod.yml</span></code> and therefore only these will be deleted here. This secures persistent data to be
-persistent across deploys.</p>
-</section>
-</section>
-</section>
 </section>
 
         </article>
@@ -639,51 +384,8 @@ persistent across deploys.</p>
         
       </footer>
     </div>
-    <aside class="toc-drawer">
+    <aside class="toc-drawer no-toc">
       
-      
-      <div class="toc-sticky toc-scroll">
-        <div class="toc-title-container">
-          <span class="toc-title">
-            On this page
-          </span>
-        </div>
-        <div class="toc-tree-container">
-          <div class="toc-tree">
-            <ul>
-<li><a class="reference internal" href="#">Deploying the Frontend</a><ul>
-<li><a class="reference internal" href="#deploy-discourse-on-kubernetes">Deploy Discourse on Kubernetes</a><ul>
-<li><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
-<li><a class="reference internal" href="#production-environment">Production environment</a></li>
-<li><a class="reference internal" href="#by-script">By Script</a></li>
-<li><a class="reference internal" href="#by-hand">By Hand</a><ul>
-<li><a class="reference internal" href="#id3">Prerequisites</a><ul>
-<li><a class="reference internal" href="#secret">Secret</a></li>
-<li><a class="reference internal" href="#image">Image</a></li>
-<li><a class="reference internal" href="#ceph">Ceph</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#deployment">Deployment</a></li>
-<li><a class="reference internal" href="#undeploying">Undeploying</a><ul>
-<li><a class="reference internal" href="#updating">Updating</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#development-environment">Development environment</a><ul>
-<li><a class="reference internal" href="#deploying">Deploying</a></li>
-<li><a class="reference internal" href="#id6">Undeploying</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-
-          </div>
-        </div>
-      </div>
       
       
     </aside>

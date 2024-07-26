@@ -3,7 +3,7 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Organizing Tasks" href="organizing-tasks.html" /><link rel="prev" title="Python Client" href="../participants/python-client.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Organizing Tasks" href="organizing-tasks.html" /><link rel="prev" title="IR-Datasets Integration" href="../participants/python-client/ir-datasets.html" />
 
     <!-- Generated with Sphinx 7.4.7 and Furo 2024.07.18 -->
         <title>Introduction - TIRA</title>
@@ -208,7 +208,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../participants/intro.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../participants/participate.html">Participating in a Shared Task</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../participants/tiracli.html">TIRA CLI</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../participants/python-client.html">Python Client</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Python Client</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="simple">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../participants/python-client.html">Python Client</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Python Client</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../participants/python-client/tiraclient.html">TIRA Client</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../participants/python-client/pyterrier.html">Pyterrier Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../participants/python-client/ir-datasets.html">IR-Datasets Integration</a></li>
 </ul>
 </li>
 </ul>
@@ -220,6 +223,7 @@
 <li class="toctree-l2"><a class="reference internal" href="deployment/application.html">Deploying the Application Module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="deployment/frontend.html">Deploying the Frontend</a></li>
 <li class="toctree-l2"><a class="reference internal" href="deployment/demo.html">Demo Deployment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="deployment/frontend_legacy.html">Deploying the Frontend (Legacy)</a></li>
 </ul>
 </li>
 </ul>
@@ -374,7 +378,7 @@
 <svg version="1.1" width="1.0em" height="1.0em" class="sd-octicon sd-octicon-server" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.75 1h12.5c.966 0 1.75.784 1.75 1.75v4c0 .372-.116.717-.314 1 .198.283.314.628.314 1v4a1.75 1.75 0 0 1-1.75 1.75H1.75A1.75 1.75 0 0 1 0 12.75v-4c0-.358.109-.707.314-1a1.739 1.739 0 0 1-.314-1v-4C0 1.784.784 1 1.75 1ZM1.5 2.75v4c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25v-4a.25.25 0 0 0-.25-.25H1.75a.25.25 0 0 0-.25.25Zm.25 5.75a.25.25 0 0 0-.25.25v4c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25v-4a.25.25 0 0 0-.25-.25ZM7 4.75A.75.75 0 0 1 7.75 4h4.5a.75.75 0 0 1 0 1.5h-4.5A.75.75 0 0 1 7 4.75ZM7.75 10h4.5a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1 0-1.5ZM3 4.75A.75.75 0 0 1 3.75 4h.5a.75.75 0 0 1 0 1.5h-.5A.75.75 0 0 1 3 4.75ZM3.75 10h.5a.75.75 0 0 1 0 1.5h-.5a.75.75 0 0 1 0-1.5Z"></path></svg> Host my own Instance</div>
 <p class="sd-card-text">This step is optional. If you need a TIRA instance for internal shared tasks, you are welcome to host you own instance. For a lightweight alternative, also have a look at hosting your own <em>runner</em>.</p>
 </div>
-<span class="sd-stretched-link sd-hide-link-text">deployment/instance</span></div>
+<a class="sd-stretched-link sd-hide-link-text reference internal" href="deployment/index.html"><span class="doc">Deployment</span></a></div>
 </div>
 <div class="sd-col sd-d-flex-row docutils">
 <div class="sd-card sd-sphinx-override sd-w-100 sd-shadow-sm sd-card-hover docutils">
@@ -387,9 +391,9 @@
 </div>
 </div>
 </div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>You just want to try TIRA within your organization without setting up the production deployment? We have created a slimmed down <a class="reference internal" href="deployment/demo.html"><span class="doc">demo deployment</span></a> just for this!</p>
+<div class="admonition hint">
+<p class="admonition-title">Hint</p>
+<p>You just want to try TIRA within your organization without setting up the production deployment? We have created a slimmed down <a class="sd-sphinx-override sd-badge sd-bg-secondary sd-bg-text-secondary reference internal" href="deployment/demo.html#demo-deployment"><span class="std std-ref">demo deployment</span></a> just for this!</p>
 </div>
 <p class="rubric" id="orgfaq">Frequently Asked Questions</p>
 <p>No questions yet <svg version="4.0.0.63c5cb3" width="1.5em" height="1.5em" class="sd-material-icon sd-material-icon-mood sd-text-success" viewBox="0 0 24 24" aria-hidden="true"><path d="M0 0h24v24H0z" fill="none"></path><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"></path></svg>.</p>
@@ -410,14 +414,14 @@
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="../participants/python-client.html">
+          <a class="prev-page" href="../participants/python-client/ir-datasets.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Python Client</div>
+                <div class="title">IR-Datasets Integration</div>
                 
               </div>
             </a>
