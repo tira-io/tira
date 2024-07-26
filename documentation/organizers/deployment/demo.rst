@@ -1,3 +1,5 @@
+.. _demo_deployment:
+
 Demo Deployment
 ===============
 

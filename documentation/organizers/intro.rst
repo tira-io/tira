@@ -42,7 +42,7 @@ How do I...
       For those who have train-, validation-, and test-data and want to see how they can be fitted well.
 
    .. grid-item-card:: :octicon:`server` Host my own Instance
-      :link: deployment/instance
+      :link: deployment/index
       :link-type: doc
 
       This step is optional. If you need a TIRA instance for internal shared tasks, you are welcome to host you own instance. For a lightweight alternative, also have a look at hosting your own *runner*.
@@ -54,7 +54,7 @@ How do I...
       This step is also optional. This is for you if you want to use an external TIRA instance but keep your test data internal.
 
 
-.. note:: You just want to try TIRA within your organization without setting up the production deployment? We have created a slimmed down :doc:`demo deployment <deployment/demo>` just for this!
+.. hint:: You just want to try TIRA within your organization without setting up the production deployment? We have created a slimmed down :bdg-ref-secondary:`demo deployment <demo_deployment>` just for this!
 
 
 .. _orgfaq:
