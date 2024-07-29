@@ -1,15 +1,16 @@
-from google.protobuf.text_format import Parse
-from pathlib import Path
 import logging
-from django.conf import settings
-from datetime import datetime, timezone
 import re
-from shutil import rmtree
+from datetime import datetime
 from datetime import datetime as dt
+from datetime import timezone
+from pathlib import Path
+from shutil import rmtree
 
-from tira.util import TiraModelWriteError, TiraModelIntegrityError
+from django.conf import settings
+from google.protobuf.text_format import Parse
+
 from tira.proto import TiraClientWebMessages_pb2 as modelpb
-from tira.util import auto_reviewer, extract_year_from_dataset_id
+from tira.util import TiraModelWriteError, auto_reviewer, extract_year_from_dataset_id
 
 logger = logging.getLogger("tira")
 
@@ -26,6 +27,7 @@ class FileDatabase(object):
     add is the public IF to add to the model
     get is the public IF to get data from the model
     """
+
     tira_root = settings.TIRA_ROOT
     tasks_dir_path = tira_root / Path("model/tasks")
     users_file_path = tira_root / Path("model/users/users.prototext")
@@ -60,7 +62,7 @@ class FileDatabase(object):
             "software": dt.now(),
             "default_tasks": dt.now(),
             "software_by_vm": dt.now(),
-            "software_count_by_dataset": dt.now()
+            "software_count_by_dataset": dt.now(),
         }
 
         self.build_model()
@@ -78,26 +80,26 @@ class FileDatabase(object):
         self._build_software_counts()
 
     def reload_vms(self):
-        """ reload VM and user data from the export format of the model """
+        """reload VM and user data from the export format of the model"""
         self._parse_vm_list()
 
     def reload_datasets(self):
-        """ reload dataset data from the export format of the model """
+        """reload dataset data from the export format of the model"""
         self._parse_dataset_list()
 
     def reload_tasks(self):
-        """ reload task data from the export format of the model """
+        """reload task data from the export format of the model"""
         self._parse_task_list()
         self._build_task_relations()
         self._build_software_relations()
         self._build_software_counts()
 
     def reload_runs(self, vm_id):
-        """ reload run data for a VM from the export format of the model """
+        """reload run data for a VM from the export format of the model"""
         raise NotImplementedError("Not Implemented: Runs are loaded on access when using FileDatabase")
 
     def _parse_organizer_list(self):
-        """ Parse the PB Database and extract all hosts.
+        """Parse the PB Database and extract all hosts.
         :return: a dict {hostId: {"name", "years"}
         """
         if (dt.now() - self.updates["organizers"]).seconds < 10 and self.organizers:
@@ -116,7 +118,7 @@ class FileDatabase(object):
         self.vms = {user.userName: user for user in users.users}
 
     def _parse_task_list(self):
-        """ Parse the PB Database and extract all tasks.
+        """Parse the PB Database and extract all tasks.
         :return:
         1. a dict with the tasks {"taskId": {"name", "description", "dataset_count", "organizer", "year", "web"}}
         2. a dict with default tasks of datasets {"dataset_id": "task_id"}
@@ -126,7 +128,7 @@ class FileDatabase(object):
         print("parsing tasks")
 
         tasks = {}
-        logger.info('loading tasks')
+        logger.info("loading tasks")
         for task_path in self.tasks_dir_path.glob("*"):
             task = Parse(open(task_path, "r").read(), modelpb.Tasks.Task())
             tasks[task.taskId] = task
@@ -134,14 +136,14 @@ class FileDatabase(object):
         self.tasks = tasks
 
     def _parse_dataset_list(self):
-        """ Load all the datasets from the Filedatabase.
+        """Load all the datasets from the Filedatabase.
         :return: a dict {dataset_id: dataset protobuf object}
         """
         if (dt.now() - self.updates["datasets"]).seconds < 10 and self.datasets:
             return
         print("parsing datasets")
         datasets = {}
-        logger.info('loading datasets')
+        logger.info("loading datasets")
         for dataset_file in self.datasets_dir_path.rglob("*.prototext"):
             dataset = Parse(open(dataset_file, "r").read(), modelpb.Dataset())
             datasets[dataset.datasetId] = dataset
@@ -149,7 +151,7 @@ class FileDatabase(object):
         self.datasets = datasets
 
     def _parse_software_list(self):
-        """ extract the software files. We invent a new id for the lookup since software has none:
+        """extract the software files. We invent a new id for the lookup since software has none:
           - <task_name>$<user_name>
         Afterwards sets self.software: a dict with the new key and a list of software objects as value
         """
@@ -157,7 +159,7 @@ class FileDatabase(object):
             return
         print("parsing software")
         software = {}
-        logger.info('loading softwares')
+        logger.info("loading softwares")
         for task_dir in self.softwares_dir_path.glob("*"):
             for user_dir in task_dir.glob("*"):
                 s = Parse(open(user_dir / "softwares.prototext", "r").read(), modelpb.Softwares())
@@ -168,8 +170,7 @@ class FileDatabase(object):
 
     # _build methods reconstruct the relations once per parse. This is a shortcut for frequent joins.
     def _build_task_relations(self):
-        """ parse the relation dicts self.default_tasks and self.task_organizers from self.tasks
-        """
+        """parse the relation dicts self.default_tasks and self.task_organizers from self.tasks"""
         default_tasks = {}
         task_organizers = {}
         for task_id, task in self.tasks.items():
@@ -214,7 +215,7 @@ class FileDatabase(object):
 
     # _load methods parse files on the fly when pages are called
     def load_review(self, dataset_id, vm_id, run_id):
-        """ This method loads a review or toggles auto reviewer if it does not exist. """
+        """This method loads a review or toggles auto reviewer if it does not exist."""
 
         review_path = self.RUNS_DIR_PATH / dataset_id / vm_id / run_id
         review_file = review_path / "run-review.bin"
@@ -228,7 +229,7 @@ class FileDatabase(object):
         return review
 
     def _load_vm(self, vm_id):
-        """ load a vm object from vm_dir_path """
+        """load a vm object from vm_dir_path"""
         return Parse(open(self.vm_dir_path / f"{vm_id}.prototext").read(), modelpb.VirtualMachine())
 
     def _load_softwares(self, task_id, vm_id):
@@ -238,15 +239,16 @@ class FileDatabase(object):
         if not software_file.exists():
             software_file.touch()
 
-        return Parse(open(self.softwares_dir_path / task_id / vm_id / "softwares.prototext", "r").read(),
-                     modelpb.Softwares())
+        return Parse(
+            open(self.softwares_dir_path / task_id / vm_id / "softwares.prototext", "r").read(), modelpb.Softwares()
+        )
 
     def _load_run(self, dataset_id, vm_id, run_id, return_deleted=False):
         run_dir = self.RUNS_DIR_PATH / dataset_id / vm_id / run_id
         if not (run_dir / "run.bin").exists():
             if (run_dir / "run.prototext").exists():
                 r = Parse(open(run_dir / "run.prototext", "r").read(), modelpb.Run())
-                open(run_dir / "run.bin", 'wb').write(r.SerializeToString())
+                open(run_dir / "run.bin", "wb").write(r.SerializeToString())
             else:
                 logger.error(f"Try to read a run without a run.bin: {dataset_id}-{vm_id}-{run_id}")
                 run = modelpb.Run()
@@ -265,7 +267,7 @@ class FileDatabase(object):
         return run
 
     def _load_vm_evaluations(self, dataset_id, vm_id, only_published):
-        """ load all evaluations for a user on a given dataset
+        """load all evaluations for a user on a given dataset
         :param dataset_id: id/name of the dataset
         :param vm_id: id/name of the user
         :return: {run_id: modelpb.Evaluation}
@@ -292,36 +294,36 @@ class FileDatabase(object):
     # ---------------------------------------------------------------------
 
     def _save_task(self, task_proto, overwrite=False):
-        """ makes persistant changes to task: store in memory and to file.
-         Returns false if task exists and overwrite is false. """
+        """makes persistant changes to task: store in memory and to file.
+        Returns false if task exists and overwrite is false."""
         # open(f'/home/tira/{task_id}.prototext', 'wb').write(new_task.SerializeToString())
-        new_task_file_path = self.tasks_dir_path / f'{task_proto.taskId}.prototext'
+        new_task_file_path = self.tasks_dir_path / f"{task_proto.taskId}.prototext"
         if not overwrite and new_task_file_path.exists():
             raise TiraModelWriteError(f"Failed to write vm, vm exists and overwrite is not allowed here")
         self.tasks[task_proto.taskId] = task_proto
-        open(new_task_file_path, 'w').write(str(task_proto))
+        open(new_task_file_path, "w").write(str(task_proto))
         self._build_task_relations()
 
     def _save_vm(self, vm_proto, overwrite=False):
-        new_vm_file_path = self.vm_dir_path / f'{vm_proto.virtualMachineId}.prototext'
+        new_vm_file_path = self.vm_dir_path / f"{vm_proto.virtualMachineId}.prototext"
         if not overwrite and new_vm_file_path.exists():
             raise TiraModelWriteError(f"Failed to write vm, vm exists and overwrite is not allowed here")
         # self.vms[vm_proto.virtualMachineId] = vm_proto  # TODO see issue:30
-        open(new_vm_file_path, 'w').write(str(vm_proto))
+        open(new_vm_file_path, "w").write(str(vm_proto))
 
     def _save_dataset(self, dataset_proto, task_id, overwrite=False):
-        """ dataset_dir_path/task_id/dataset_id.prototext """
-        new_dataset_file_path = self.datasets_dir_path / task_id / f'{dataset_proto.datasetId}.prototext'
+        """dataset_dir_path/task_id/dataset_id.prototext"""
+        new_dataset_file_path = self.datasets_dir_path / task_id / f"{dataset_proto.datasetId}.prototext"
         if not overwrite and new_dataset_file_path.exists():
             raise TiraModelWriteError(f"Failed to write dataset, dataset exists and overwrite is not allowed here")
         (self.datasets_dir_path / task_id).mkdir(exist_ok=True, parents=True)
-        open(new_dataset_file_path, 'w').write(str(dataset_proto))
+        open(new_dataset_file_path, "w").write(str(dataset_proto))
         self.datasets[dataset_proto.datasetId] = dataset_proto
 
     def _save_review(self, dataset_id, vm_id, run_id, review):
         review_path = self.RUNS_DIR_PATH / dataset_id / vm_id / run_id
-        open(review_path / "run-review.prototext", 'w').write(str(review))
-        open(review_path / "run-review.bin", 'wb').write(review.SerializeToString())
+        open(review_path / "run-review.prototext", "w").write(str(review))
+        open(review_path / "run-review.bin", "wb").write(review.SerializeToString())
 
     def _save_softwares(self, task_id, vm_id, softwares):
         with open(self.softwares_dir_path / task_id / vm_id / "softwares.prototext", "w+") as prototext_file:
@@ -329,18 +331,18 @@ class FileDatabase(object):
             prototext_file.write(str(softwares))
 
     def _save_run(self, dataset_id, vm_id, run_id, run):
-        run_dir = (self.RUNS_DIR_PATH / dataset_id / vm_id / run_id)
+        run_dir = self.RUNS_DIR_PATH / dataset_id / vm_id / run_id
         run_dir.mkdir(parents=True, exist_ok=True)
 
-        open(run_dir / "run.prototext", 'w').write(str(run))
-        open(run_dir / "run.bin", 'wb').write(run.SerializeToString())
+        open(run_dir / "run.prototext", "w").write(str(run))
+        open(run_dir / "run.bin", "wb").write(run.SerializeToString())
 
     # ------------------------------------------------------------
     # add methods to add new data to the model
     # ------------------------------------------------------------
 
     def add_vm(self, vm_id, user_name, initial_user_password, ip, host, ssh, rdp):
-        """ Add a new task to the database.
+        """Add a new task to the database.
         This will not overwrite existing files and instead do nothing and return false
         """
         new_vm = modelpb.VirtualMachine()
@@ -348,8 +350,8 @@ class FileDatabase(object):
         new_vm.vmId = vm_id
         new_vm.vmName = vm_id
         new_vm.host = host
-        new_vm.adminName = 'admin'  # Note these are required but deprecated
-        new_vm.adminPw = 'admin'  # Note these are required but deprecated
+        new_vm.adminName = "admin"  # Note these are required but deprecated
+        new_vm.adminPw = "admin"  # Note these are required but deprecated
         new_vm.userName = user_name
         new_vm.userPw = initial_user_password
         new_vm.ip = ip
@@ -358,8 +360,8 @@ class FileDatabase(object):
         self._save_vm(new_vm)
 
     def create_task(self, task_id, task_name, task_description, master_vm_id, organizer, website):
-        """ Add a new task to the database.
-         CAUTION: This function does not do any sanity checks and will OVERWRITE existing tasks """
+        """Add a new task to the database.
+        CAUTION: This function does not do any sanity checks and will OVERWRITE existing tasks"""
         new_task = modelpb.Tasks.Task()
         new_task.taskId = task_id
         new_task.taskName = task_name
@@ -370,8 +372,7 @@ class FileDatabase(object):
         self._save_task(new_task)
 
     def add_dataset(self, task_id, dataset_id, dataset_type, dataset_name):
-        """ TODO documentation
-        """
+        """TODO documentation"""
 
         # update task_dir_path/task_id.prototext:
         dataset_id = f"{dataset_id}-{dataset_type}"
@@ -379,11 +380,11 @@ class FileDatabase(object):
         if not for_task:
             raise KeyError(f"No task with id {task_id}")
 
-        if dataset_type == 'test' and dataset_id not in for_task.testDataset:
+        if dataset_type == "test" and dataset_id not in for_task.testDataset:
             for_task.testDataset.append(dataset_id)
-        elif dataset_type in {'training', 'dev'} and dataset_id not in for_task.trainingDataset:
+        elif dataset_type in {"training", "dev"} and dataset_id not in for_task.trainingDataset:
             for_task.trainingDataset.append(dataset_id)
-        elif dataset_type not in {'training', 'dev', 'test'}:
+        elif dataset_type not in {"training", "dev", "test"}:
             raise KeyError("dataset type must be test, training, or dev")
         task_ok = self._save_task(for_task, overwrite=True)
 
@@ -392,17 +393,17 @@ class FileDatabase(object):
         ds.datasetId = dataset_id
         ds.displayName = dataset_name
         ds.isDeprecated = False
-        ds.isConfidential = True if dataset_type == 'test' else False
+        ds.isConfidential = True if dataset_type == "test" else False
         dataset_ok = self._save_dataset(ds, task_id)
 
         # create dirs data_path/dataset/test-dataset[-truth]/task_id/dataset-id-type
         new_dirs = []
-        if dataset_type == 'test':
-            new_dirs.append((self.data_path / f'test-datasets' / task_id / dataset_id))
-            new_dirs.append((self.data_path / f'test-datasets-truth' / task_id / dataset_id))
+        if dataset_type == "test":
+            new_dirs.append((self.data_path / f"test-datasets" / task_id / dataset_id))
+            new_dirs.append((self.data_path / f"test-datasets-truth" / task_id / dataset_id))
         else:
-            new_dirs.append((self.data_path / f'training-datasets' / task_id / dataset_id))
-            new_dirs.append((self.data_path / f'training-datasets-truth' / task_id / dataset_id))
+            new_dirs.append((self.data_path / f"training-datasets" / task_id / dataset_id))
+            new_dirs.append((self.data_path / f"training-datasets-truth" / task_id / dataset_id))
         for d in new_dirs:
             d.mkdir(parents=True, exist_ok=True)
 
@@ -413,7 +414,7 @@ class FileDatabase(object):
         software = modelpb.Softwares.Software()
         s = self._load_softwares(task_id, vm_id)
         try:
-            last_software_count = re.search(r'\d+$', s.softwares[-1].id)
+            last_software_count = re.search(r"\d+$", s.softwares[-1].id)
             software_count = int(last_software_count.group()) + 1 if last_software_count else None
             if software_count is None:
                 # invalid software id value
@@ -443,8 +444,7 @@ class FileDatabase(object):
         self.software[f"{task_id}${vm_id}"] = software_list
 
     def add_evaluator(self, vm_id, task_id, dataset_id, dataset_type, command, working_directory, measures):
-        """ TODO documentation
-        """
+        """TODO documentation"""
         evaluator_id = f"{dataset_id}-evaluator"
         dataset_id = f"{dataset_id}-{dataset_type}"
 
@@ -460,18 +460,32 @@ class FileDatabase(object):
             ev.evaluatorId = evaluator_id
             ev.command = command
             ev.workingDirectory = working_directory
-            ev.measures = ",".join([x[0].strip('\r') for x in measures])
-            ev.measureKeys.extend([x[1].strip('\r') for x in measures])
+            ev.measures = ",".join([x[0].strip("\r") for x in measures])
+            ev.measureKeys.extend([x[1].strip("\r") for x in measures])
             vm.evaluators.append(ev)
             self._save_vm(vm, overwrite=True)
 
-    def _update_review(self, dataset_id, vm_id, run_id,
-                       reviewer_id: str = None, review_date: str = None, has_errors: bool = None,
-                       has_no_errors: bool = None, no_errors: bool = None, missing_output: bool = None,
-                       extraneous_output: bool = None, invalid_output: bool = None, has_error_output: bool = None,
-                       other_errors: bool = None, comment: str = None, published: bool = None, blinded: bool = None,
-                       has_warnings: bool = False):
-        """ updates the review specified by dataset_id, vm_id, and run_id with the values given in the parameters.
+    def _update_review(
+        self,
+        dataset_id,
+        vm_id,
+        run_id,
+        reviewer_id: str = None,
+        review_date: str = None,
+        has_errors: bool = None,
+        has_no_errors: bool = None,
+        no_errors: bool = None,
+        missing_output: bool = None,
+        extraneous_output: bool = None,
+        invalid_output: bool = None,
+        has_error_output: bool = None,
+        other_errors: bool = None,
+        comment: str = None,
+        published: bool = None,
+        blinded: bool = None,
+        has_warnings: bool = False,
+    ):
+        """updates the review specified by dataset_id, vm_id, and run_id with the values given in the parameters.
         Required Parameters are also required in the function
         """
         review = self.load_review(dataset_id, vm_id, run_id)
@@ -497,8 +511,8 @@ class FileDatabase(object):
         self._save_review(dataset_id, vm_id, run_id, review)
 
     def _update_run(self, dataset_id, vm_id, run_id, deleted: bool = None):
-        """ updates the run specified by dataset_id, vm_id, and run_id with the values given in the parameters.
-            Required Parameters are also required in the function
+        """updates the run specified by dataset_id, vm_id, and run_id with the values given in the parameters.
+        Required Parameters are also required in the function
         """
         run = self._load_run(dataset_id, vm_id, run_id)
 
@@ -508,8 +522,17 @@ class FileDatabase(object):
         run.deleted = update(run.deleted, deleted)
         self._save_run(dataset_id, vm_id, run_id, run)
 
-    def update_software(self, task_id, vm_id, software_id, command: str = None, working_directory: str = None,
-                        dataset: str = None, run: str = None, deleted: bool = False):
+    def update_software(
+        self,
+        task_id,
+        vm_id,
+        software_id,
+        command: str = None,
+        working_directory: str = None,
+        dataset: str = None,
+        run: str = None,
+        deleted: bool = False,
+    ):
         def update(x, y):
             return y if y is not None else x
 
@@ -554,57 +577,74 @@ class FileDatabase(object):
         return self.vms.get(vm_id, None)
 
     def get_tasks(self) -> list:
-        tasks = [self.get_task(task.taskId)
-                 for task in self.tasks.values()]
+        tasks = [self.get_task(task.taskId) for task in self.tasks.values()]
         return tasks
 
     def get_run(self, dataset_id: str, vm_id: str, run_id: str, return_deleted: bool = False) -> dict:
         run = self._load_run(dataset_id, vm_id, run_id, return_deleted)
-        return {"software": run.softwareId,
-                "run_id": run.runId, "input_run_id": run.inputRun,
-                "dataset": run.inputDataset, "downloadable": run.downloadable}
+        return {
+            "software": run.softwareId,
+            "run_id": run.runId,
+            "input_run_id": run.inputRun,
+            "dataset": run.inputDataset,
+            "downloadable": run.downloadable,
+        }
 
     def get_task(self, task_id: str) -> dict:
         t = self.tasks[task_id]
 
-        return {"task_name": t.taskName,
-                "description": t.taskDescription,
-                "commandPlaceholder": "" if t.commandPlaceholder == "mySoftware -c $inputDataset -r $inputRun -o $outputDir" else t.commandPlaceholder,
-                "commandDescription": "" if t.commandDescription == "Available variables: <code>$inputDataset</code>, <code>$inputRun</code>, <code>$outputDir</code>, <code>$dataServer</code>, and <code>$token</code>." else t.commandDescription,
-                "task_id": t.taskId,
-                "dataset_count": len(t.trainingDataset) + len(t.testDataset),
-                "software_count": len(self.software_by_task.get(t.taskId, {0})),
-                "web": t.web,
-                "organizer": self.organizers.get(t.hostId, modelpb.Hosts.Host()).name,
-                "year": self.organizers.get(t.hostId, modelpb.Hosts.Host()).years
-                }
+        return {
+            "task_name": t.taskName,
+            "description": t.taskDescription,
+            "commandPlaceholder": (
+                ""
+                if t.commandPlaceholder == "mySoftware -c $inputDataset -r $inputRun -o $outputDir"
+                else t.commandPlaceholder
+            ),
+            "commandDescription": (
+                ""
+                if t.commandDescription
+                == "Available variables: <code>$inputDataset</code>, <code>$inputRun</code>, <code>$outputDir</code>, <code>$dataServer</code>, and <code>$token</code>."
+                else t.commandDescription
+            ),
+            "task_id": t.taskId,
+            "dataset_count": len(t.trainingDataset) + len(t.testDataset),
+            "software_count": len(self.software_by_task.get(t.taskId, {0})),
+            "web": t.web,
+            "organizer": self.organizers.get(t.hostId, modelpb.Hosts.Host()).name,
+            "year": self.organizers.get(t.hostId, modelpb.Hosts.Host()).years,
+        }
 
     def get_dataset(self, dataset_id: str) -> dict:
         dataset = self.datasets[dataset_id]
         return {
-            "display_name": dataset.displayName, "evaluator_id": dataset.evaluatorId,
+            "display_name": dataset.displayName,
+            "evaluator_id": dataset.evaluatorId,
             "dataset_id": dataset.datasetId,
-            "is_confidential": dataset.isConfidential, "is_deprecated": dataset.isDeprecated,
+            "is_confidential": dataset.isConfidential,
+            "is_deprecated": dataset.isDeprecated,
             "year": extract_year_from_dataset_id(dataset_id),
             "task": self.default_tasks.get(dataset.datasetId, "None"),
-            'organizer': self.task_organizers.get(dataset.datasetId, ""),
-            "software_count": self.software_count_by_dataset.get(dataset.datasetId, 0)
+            "organizer": self.task_organizers.get(dataset.datasetId, ""),
+            "software_count": self.software_count_by_dataset.get(dataset.datasetId, 0),
         }
 
     def get_datasets(self) -> dict:
-        """ Get a dict of dataset_id: dataset_json_descriptor """
+        """Get a dict of dataset_id: dataset_json_descriptor"""
         return {dataset_id: self.get_dataset(dataset_id) for dataset_id in self.datasets}
 
     def get_datasets_by_task(self, task_id: str, include_deprecated=False) -> list:
-        """ return the list of datasets associated with this task_id
+        """return the list of datasets associated with this task_id
         @param task_id: id string of the task the dataset belongs to
         @param include_deprecated: Default False. If True, also returns datasets marked as deprecated.
         @return: a list of json-formatted datasets, as returned by get_dataset
         """
-        return [self.get_dataset(dataset.datasetId)
-                for dataset in self.datasets.values()
-                if task_id == self.default_tasks.get(dataset.datasetId, "") and
-                not (dataset.isDeprecated and not include_deprecated)]
+        return [
+            self.get_dataset(dataset.datasetId)
+            for dataset in self.datasets.values()
+            if task_id == self.default_tasks.get(dataset.datasetId, "")
+            and not (dataset.isDeprecated and not include_deprecated)
+        ]
 
     def get_organizer(self, organizer_id: str):
         # TODO should return as dict
@@ -617,7 +657,7 @@ class FileDatabase(object):
         return [f"{ova_file.stem}.ova" for ova_file in self.ova_dir.glob("*.ova")]
 
     def get_vm_list(self):
-        """ load the vm-info file which stores all active vms as such:
+        """load the vm-info file which stores all active vms as such:
         <hostname>\t<vm_id>[\t<state>]\n
         ...
 
@@ -628,16 +668,15 @@ class FileDatabase(object):
             for list_entry in vm_list:
                 try:
                     list_entry = list_entry.split("\t")
-                    yield [list_entry[0], list_entry[1].strip(), list_entry[2].strip() if len(list_entry) > 2 else '']
+                    yield [list_entry[0], list_entry[1].strip(), list_entry[2].strip() if len(list_entry) > 2 else ""]
                 except IndexError as e:
                     logger.error(e, list_entry)
 
-        return list(parse_vm_list(open(self.vm_list_file, 'r')))
+        return list(parse_vm_list(open(self.vm_list_file, "r")))
 
     def get_vms_by_dataset(self, dataset_id: str) -> list:
-        """ return a list of vm_id's that have runs on this dataset """
-        return [user_run_dir.stem
-                for user_run_dir in (self.RUNS_DIR_PATH / dataset_id).glob("*")]
+        """return a list of vm_id's that have runs on this dataset"""
+        return [user_run_dir.stem for user_run_dir in (self.RUNS_DIR_PATH / dataset_id).glob("*")]
 
     def get_vm_runs_by_dataset(self, dataset_id: str, vm_id: str, return_deleted: bool = False) -> list:
         runs = {}
@@ -651,7 +690,7 @@ class FileDatabase(object):
         return list(runs.values())
 
     def get_vm_runs_by_task(self, task_id: str, vm_id: str, return_deleted: bool = False) -> list:
-        """ returns a list of all the runs of a user over all datasets in json (as returned by _load_user_runs) """
+        """returns a list of all the runs of a user over all datasets in json (as returned by _load_user_runs)"""
         relevant_datasets = {software["dataset"] for software in self.get_software(task_id, vm_id)}
         runs = []
         for dataset_id in relevant_datasets:
@@ -666,23 +705,36 @@ class FileDatabase(object):
 
         vms = []
         for vm_id, run in vm_runs.items():
-            runs = [{"run": run, "review": vm_reviews.get(vm_id, None).get(run["run_id"], None)}
-                    for run in vm_runs.get(vm_id)]
-            unreviewed_count = len([1 for r in vm_reviews[vm_id].values()
-                                    if not r.get("hasErrors", None) and not r.get("hasNoErrors", None)])
-            published_count = len([1 for r in vm_reviews[vm_id].values()
-                                   if r.get("published", None)])
-            blinded_count = len([1 for r in vm_reviews[vm_id].values()
-                                 if r.get("blinded", None)])
-            vms.append({"vm_id": vm_id, "runs": runs, "unreviewed_count": unreviewed_count,
-                        "blinded_count": blinded_count, "published_count": published_count})
+            runs = [
+                {"run": run, "review": vm_reviews.get(vm_id, None).get(run["run_id"], None)}
+                for run in vm_runs.get(vm_id)
+            ]
+            unreviewed_count = len(
+                [
+                    1
+                    for r in vm_reviews[vm_id].values()
+                    if not r.get("hasErrors", None) and not r.get("hasNoErrors", None)
+                ]
+            )
+            published_count = len([1 for r in vm_reviews[vm_id].values() if r.get("published", None)])
+            blinded_count = len([1 for r in vm_reviews[vm_id].values() if r.get("blinded", None)])
+            vms.append(
+                {
+                    "vm_id": vm_id,
+                    "runs": runs,
+                    "unreviewed_count": unreviewed_count,
+                    "blinded_count": blinded_count,
+                    "published_count": published_count,
+                }
+            )
         return vms
 
     def get_evaluations_with_keys_by_dataset(self, dataset_id, include_unpublished):
         vm_ids = self.get_vms_by_dataset(dataset_id)
         vm_evaluations = {
             vm_id: self.get_vm_evaluations_by_dataset(dataset_id, vm_id, only_public_results=not include_unpublished)
-            for vm_id in vm_ids}
+            for vm_id in vm_ids
+        }
         keys = set()
         for e1 in vm_evaluations.values():
             for e2 in e1.values():
@@ -690,23 +742,27 @@ class FileDatabase(object):
         ev_keys = list(keys)
         if include_unpublished:
             vm_reviews = {vm_id: self.get_vm_reviews_by_dataset(dataset_id, vm_id) for vm_id in vm_ids}
-            evaluations = [{"vm_id": vm_id,
-                            "run_id": run_id,
-                            "blinded": vm_reviews.get(vm_id, {}).get(run_id, {}).get("blinded", False),
-                            "published": vm_reviews.get(vm_id, {}).get(run_id, {}).get("published", False),
-                            "measures": [measures.get(k, "-") for k in ev_keys]}
-                           for vm_id, measures_by_runs in vm_evaluations.items()
-                           for run_id, measures in measures_by_runs.items()]
+            evaluations = [
+                {
+                    "vm_id": vm_id,
+                    "run_id": run_id,
+                    "blinded": vm_reviews.get(vm_id, {}).get(run_id, {}).get("blinded", False),
+                    "published": vm_reviews.get(vm_id, {}).get(run_id, {}).get("published", False),
+                    "measures": [measures.get(k, "-") for k in ev_keys],
+                }
+                for vm_id, measures_by_runs in vm_evaluations.items()
+                for run_id, measures in measures_by_runs.items()
+            ]
         else:
-            evaluations = [{"vm_id": vm_id,
-                            "run_id": run_id,
-                            "measures": [measures.get(k, "-") for k in ev_keys]}
-                           for vm_id, measures_by_runs in vm_evaluations.items()
-                           for run_id, measures in measures_by_runs.items()]
+            evaluations = [
+                {"vm_id": vm_id, "run_id": run_id, "measures": [measures.get(k, "-") for k in ev_keys]}
+                for vm_id, measures_by_runs in vm_evaluations.items()
+                for run_id, measures in measures_by_runs.items()
+            ]
         return ev_keys, evaluations
 
     def get_evaluator(self, dataset_id, task_id=None):
-        """ returns a dict containing the evaluator parameters:
+        """returns a dict containing the evaluator parameters:
 
         vm_id: id of the master vm running the evaluator
         host: ip or hostname of the host
@@ -720,8 +776,7 @@ class FileDatabase(object):
 
         task = self.tasks.get(task_id)
         vm_id = task.virtualMachineId
-        master_vm = Parse(open(self.vm_dir_path / f"{vm_id}.prototext", "r").read(),
-                          modelpb.VirtualMachine())
+        master_vm = Parse(open(self.vm_dir_path / f"{vm_id}.prototext", "r").read(), modelpb.VirtualMachine())
         result = {"vm_id": vm_id, "host": master_vm.host}
 
         for evaluator in master_vm.evaluators:
@@ -733,36 +788,56 @@ class FileDatabase(object):
         return result
 
     def get_vm_evaluations_by_dataset(self, dataset_id, vm_id, only_public_results=True):
-        """ Return a dict of run_id: evaluation_results for the given vm on the given dataset
+        """Return a dict of run_id: evaluation_results for the given vm on the given dataset
         @param only_public_results: only return the measures for published datasets.
         """
-        return {run_id: self.get_evaluation_measures(ev)
-                for run_id, ev in
-                self._load_vm_evaluations(dataset_id, vm_id, only_published=only_public_results).items()}
+        return {
+            run_id: self.get_evaluation_measures(ev)
+            for run_id, ev in self._load_vm_evaluations(dataset_id, vm_id, only_published=only_public_results).items()
+        }
 
     def get_run_review(self, dataset_id: str, vm_id: str, run_id: str) -> dict:
         review = self.load_review(dataset_id, vm_id, run_id)
 
-        return {"reviewer": review.reviewerId, "noErrors": review.noErrors,
-                "missingOutput": review.missingOutput,
-                "extraneousOutput": review.extraneousOutput, "invalidOutput": review.invalidOutput,
-                "hasErrorOutput": review.hasErrorOutput, "otherErrors": review.otherErrors,
-                "comment": review.comment, "hasErrors": review.hasErrors, "hasWarnings": review.hasWarnings,
-                "hasNoErrors": review.hasNoErrors, "published": review.published, "blinded": review.blinded
-                }
+        return {
+            "reviewer": review.reviewerId,
+            "noErrors": review.noErrors,
+            "missingOutput": review.missingOutput,
+            "extraneousOutput": review.extraneousOutput,
+            "invalidOutput": review.invalidOutput,
+            "hasErrorOutput": review.hasErrorOutput,
+            "otherErrors": review.otherErrors,
+            "comment": review.comment,
+            "hasErrors": review.hasErrors,
+            "hasWarnings": review.hasWarnings,
+            "hasNoErrors": review.hasNoErrors,
+            "published": review.published,
+            "blinded": review.blinded,
+        }
 
     def get_vm_reviews_by_dataset(self, dataset_id: str, vm_id: str) -> dict:
-        return {run_id_dir.stem: self.get_run_review(dataset_id, vm_id, run_id_dir.stem)
-                for run_id_dir in (self.RUNS_DIR_PATH / dataset_id / vm_id).glob("*")}
+        return {
+            run_id_dir.stem: self.get_run_review(dataset_id, vm_id, run_id_dir.stem)
+            for run_id_dir in (self.RUNS_DIR_PATH / dataset_id / vm_id).glob("*")
+        }
 
     def get_software(self, task_id, vm_id, software_id=None):
-        """ Returns the software with the given name of a vm on a task """
-        sw = [{"id": software.id, "count": software.count,
-               "task_id": task_id, "vm_id": vm_id,
-               "command": software.command, "working_directory": software.workingDirectory,
-               "dataset": software.dataset, "run": software.run, "creation_date": software.creationDate,
-               "last_edit": software.lastEditDate}
-              for software in self.software.get(f"{task_id}${vm_id}", [])]
+        """Returns the software with the given name of a vm on a task"""
+        sw = [
+            {
+                "id": software.id,
+                "count": software.count,
+                "task_id": task_id,
+                "vm_id": vm_id,
+                "command": software.command,
+                "working_directory": software.workingDirectory,
+                "dataset": software.dataset,
+                "run": software.run,
+                "creation_date": software.creationDate,
+                "last_edit": software.lastEditDate,
+            }
+            for software in self.software.get(f"{task_id}${vm_id}", [])
+        ]
 
         if software_id is None:
             return sw
@@ -772,13 +847,22 @@ class FileDatabase(object):
                 return s
 
     def get_software_by_vm(self, task_id, vm_id):
-        """ Returns the softwares of a vm on a task """
-        return [{"id": software.id, "count": software.count,
-                 "task_id": task_id, "vm_id": vm_id,
-                 "command": software.command, "working_directory": software.workingDirectory,
-                 "dataset": software.dataset, "run": software.run, "creation_date": software.creationDate,
-                 "last_edit": software.lastEditDate}
-                for software in self.software.get(f"{task_id}${vm_id}", [])]
+        """Returns the softwares of a vm on a task"""
+        return [
+            {
+                "id": software.id,
+                "count": software.count,
+                "task_id": task_id,
+                "vm_id": vm_id,
+                "command": software.command,
+                "working_directory": software.workingDirectory,
+                "dataset": software.dataset,
+                "run": software.run,
+                "creation_date": software.creationDate,
+                "last_edit": software.lastEditDate,
+            }
+            for software in self.software.get(f"{task_id}${vm_id}", [])
+        ]
 
     def get_software_with_runs(self, task_id, vm_id):
         softwares = self.get_software_by_vm(task_id, vm_id)
@@ -787,8 +871,8 @@ class FileDatabase(object):
         runs_with_input = {}  # get the runs which have an input_run_id
         for r in runs:
             # if we loop once, might as well get the review-info here.
-            r['review'] = self.get_run_review(r.get("dataset"), vm_id, r.get("run_id"))
-            if r.get("input_run_id") == 'none':
+            r["review"] = self.get_run_review(r.get("dataset"), vm_id, r.get("run_id"))
+            if r.get("input_run_id") == "none":
                 continue
             runs_with_input.setdefault(r.get("input_run_id"), []).append(r)
 
@@ -802,12 +886,10 @@ class FileDatabase(object):
             for r in v:
                 runs_by_software.setdefault(r.get("software"), []).append(r)
 
-        return [{"software": sw,
-                 "runs": runs_by_software.get(sw["id"])
-                 } for sw in softwares]
+        return [{"software": sw, "runs": runs_by_software.get(sw["id"])} for sw in softwares]
 
     def get_users_vms(self):
-        """ Return the users list. """
+        """Return the users list."""
         return self.vms
 
     # ------------------------------------------------------------
@@ -821,33 +903,62 @@ class FileDatabase(object):
             logger.exception(f"Exception while adding software ({task_id}, {vm_id}): {e}")
             raise TiraModelWriteError(f"Failed to write VM {vm_id}")
 
-    def update_review(self, dataset_id, vm_id, run_id,
-                      reviewer_id: str = None, review_date: str = None, has_errors: bool = None,
-                      has_no_errors: bool = None, no_errors: bool = None, missing_output: bool = None,
-                      extraneous_output: bool = None, invalid_output: bool = None, has_error_output: bool = None,
-                      other_errors: bool = None, comment: str = None, published: bool = None, blinded: bool = None,
-                      has_warnings: bool = False) -> bool:
-        """ updates the review specified by dataset_id, vm_id, and run_id with the values given in the parameters.
+    def update_review(
+        self,
+        dataset_id,
+        vm_id,
+        run_id,
+        reviewer_id: str = None,
+        review_date: str = None,
+        has_errors: bool = None,
+        has_no_errors: bool = None,
+        no_errors: bool = None,
+        missing_output: bool = None,
+        extraneous_output: bool = None,
+        invalid_output: bool = None,
+        has_error_output: bool = None,
+        other_errors: bool = None,
+        comment: str = None,
+        published: bool = None,
+        blinded: bool = None,
+        has_warnings: bool = False,
+    ) -> bool:
+        """updates the review specified by dataset_id, vm_id, and run_id with the values given in the parameters.
         Required Parameters are also required in the function
         """
         try:
-            self._update_review(dataset_id, vm_id, run_id, reviewer_id, review_date, has_errors, has_no_errors,
-                                no_errors,
-                                missing_output, extraneous_output, invalid_output, has_error_output,
-                                other_errors, comment, published, blinded, has_warnings)
+            self._update_review(
+                dataset_id,
+                vm_id,
+                run_id,
+                reviewer_id,
+                review_date,
+                has_errors,
+                has_no_errors,
+                no_errors,
+                missing_output,
+                extraneous_output,
+                invalid_output,
+                has_error_output,
+                other_errors,
+                comment,
+                published,
+                blinded,
+                has_warnings,
+            )
             return True
         except Exception as e:
             logger.exception(f"Exception while saving review ({dataset_id}, {vm_id}, {run_id}): {e}")
             return False
 
     def add_run(self, *args, **kwargs):
-        """ The FileDatabase loads runs and reviews from the Protobuf files every time,
-         so this method currently does nothing. """
+        """The FileDatabase loads runs and reviews from the Protobuf files every time,
+        so this method currently does nothing."""
         pass
 
     def update_run(self, dataset_id, vm_id, run_id, deleted: bool = None):
-        """ updates the run specified by dataset_id, vm_id, and run_id with the values given in the parameters.
-            Required Parameters are also required in the function
+        """updates the run specified by dataset_id, vm_id, and run_id with the values given in the parameters.
+        Required Parameters are also required in the function
         """
         try:
             self._update_run(dataset_id, vm_id, run_id, deleted)

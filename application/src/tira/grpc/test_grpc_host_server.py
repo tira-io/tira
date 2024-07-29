@@ -1,16 +1,15 @@
 #!/usr/bin/env python
 
 from concurrent import futures
-import grpc
-import sys
+from functools import wraps
+from threading import Thread
 from time import sleep
 from uuid import uuid4
-from threading import Thread
-from functools import wraps
 
+import grpc
 
-from tira.proto import tira_host_pb2, tira_host_pb2_grpc
 from tira.grpc.test_grpc_host_client import TestGrpcHostClient
+from tira.proto import tira_host_pb2, tira_host_pb2_grpc
 
 VIRTUAL_MACHINES = {}
 
@@ -68,13 +67,16 @@ class DummyVirtualMachine(object):
         return response
 
     def auto_transaction(msg):
-        """ automatically terminate transactions if a method completes """
+        """automatically terminate transactions if a method completes"""
+
         def attribute_decorator(func):
             @wraps(func)
             def func_wrapper(self, transaction_id, *args, complete_transaction=False):
                 # safely reset the transaction_ids
                 if self.transaction_id is not None or self.transaction_id == transaction_id:
-                    TestGrpcHostClient(self.transaction_id).complete_transaction(self.transaction_id, f"transaction superseded by {transaction_id}")
+                    TestGrpcHostClient(self.transaction_id).complete_transaction(
+                        self.transaction_id, f"transaction superseded by {transaction_id}"
+                    )
                     self.transaction_id = None
                 self.transaction_id = transaction_id
 
@@ -85,15 +87,27 @@ class DummyVirtualMachine(object):
                         TestGrpcHostClient(transaction_id).complete_transaction(transaction_id, msg)
                         self.transaction_id = None
                     else:
-                        TestGrpcHostClient(transaction_id).complete_transaction(transaction_id, f"transaction superseded by {self.transaction_id}")
+                        TestGrpcHostClient(transaction_id).complete_transaction(
+                            transaction_id, f"transaction superseded by {self.transaction_id}"
+                        )
+
             return func_wrapper
+
         return attribute_decorator
 
     def create(self, transaction_id):
         test_host_client = TestGrpcHostClient(transaction_id)
         self.state = 2
-        test_host_client.confirm_vm_create(self.vm_id, self.user_name, 'dummy_pw', '127.0.0.1', self.host,
-                                           self.ssh_port, self.rdp_port, self.transaction_id)
+        test_host_client.confirm_vm_create(
+            self.vm_id,
+            self.user_name,
+            "dummy_pw",
+            "127.0.0.1",
+            self.host,
+            self.ssh_port,
+            self.rdp_port,
+            self.transaction_id,
+        )
         self.start(transaction_id)
         self.transaction_id = None
         # TODO check if we need to complete transaction here
@@ -213,12 +227,11 @@ class DummyVirtualMachine(object):
 
 
 def get_or_create_vm(vm_id):
-    """ this is a hack for the dummy server. In reality, the vm need to be created first ;) """
+    """this is a hack for the dummy server. In reality, the vm need to be created first ;)"""
     vm = VIRTUAL_MACHINES.get(vm_id, None)
 
     if vm is None:  # here we cheat
-        vm = DummyVirtualMachine(vm_id, 'tira', 'ubuntu',
-                                 '16000', '2', '1234', '5678', 'localhost')
+        vm = DummyVirtualMachine(vm_id, "tira", "ubuntu", "16000", "2", "1234", "5678", "localhost")
         vm.state = 2
         VIRTUAL_MACHINES[vm_id] = vm
 
@@ -228,12 +241,13 @@ def get_or_create_vm(vm_id):
 class TiraHostService(tira_host_pb2_grpc.TiraHostService):
 
     def check_state(state, ignore_ongoing=False):
-        """ A decorator that checks the STATE precondition for all calls to TiraHostService that thae a VmId message
-            We check:
-              - is the vm in the correct state for the requested transistion
-              - is there already a transaction ongoing
-            The decorator then calls the callback (or not) and sends the appropriate reply
-         """
+        """A decorator that checks the STATE precondition for all calls to TiraHostService that thae a VmId message
+        We check:
+          - is the vm in the correct state for the requested transistion
+          - is there already a transaction ongoing
+        The decorator then calls the callback (or not) and sends the appropriate reply
+        """
+
         def state_check_decorator(func):
             @wraps(func)
             def func_wrapper(self, request, *args, **kwargs):
@@ -248,26 +262,29 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
                     return tira_host_pb2.Transaction(
                         status=tira_host_pb2.Status.FAILED,
                         transactionId=request.transaction.transactionId,
-                        message=f"{request.vmId}: required state {state} but was in state {vm.state}"
+                        message=f"{request.vmId}: required state {state} but was in state {vm.state}",
                     )
 
-                if vm.transaction_id is not None and \
-                        vm.transaction_id != request.transaction.transactionId and \
-                        not ignore_ongoing:
+                if (
+                    vm.transaction_id is not None
+                    and vm.transaction_id != request.transaction.transactionId
+                    and not ignore_ongoing
+                ):
                     return tira_host_pb2.Transaction(
                         status=tira_host_pb2.Status.FAILED,
                         transactionId=request.transaction.transactionId,
-                        message=f"Rejected. {vm_id} already accepted a different transaction"
+                        message=f"Rejected. {vm_id} already accepted a different transaction",
                     )
                 else:
                     func(self, request, *args, **kwargs)
                     return tira_host_pb2.Transaction(
                         status=tira_host_pb2.Status.SUCCESS,
                         transactionId=request.transaction.transactionId,
-                        message=f"Accepted transaction."
+                        message=f"Accepted transaction.",
                     )
 
             return func_wrapper
+
         return state_check_decorator
 
     def vm_info(self, request, context):
@@ -278,16 +295,21 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
 
     def vm_create(self, request, context):
         # TODO transactions
-        print(f"received vm-create for {request.ovaFile} - {request.vmId} - {request.userName} "
-              f"- {request.ip} - {request.host}")
+        print(
+            f"received vm-create for {request.ovaFile} - {request.vmId} - {request.userName} "
+            f"- {request.ip} - {request.host}"
+        )
 
         if request.vmId in VIRTUAL_MACHINES.keys():
-            return tira_host_pb2.Transaction(status=tira_host_pb2.Status.FAILED,
-                                             transactionId=request.transaction.transactionId,
-                                             message="ID already exists")
+            return tira_host_pb2.Transaction(
+                status=tira_host_pb2.Status.FAILED,
+                transactionId=request.transaction.transactionId,
+                message="ID already exists",
+            )
 
-        new_vm = DummyVirtualMachine(request.vmId, request.userName, 'ubuntu',
-                                                    '16000', '2', '1234', '5678', request.host)
+        new_vm = DummyVirtualMachine(
+            request.vmId, request.userName, "ubuntu", "16000", "2", "1234", "5678", request.host
+        )
 
         VIRTUAL_MACHINES[request.vmId] = new_vm
 
@@ -295,9 +317,10 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         t.start()
 
         return tira_host_pb2.Transaction(
-                        status=tira_host_pb2.Status.SUCCESS,
-                        transactionId=request.transaction.transactionId,
-                        message="received vm_create request")
+            status=tira_host_pb2.Status.SUCCESS,
+            transactionId=request.transaction.transactionId,
+            message="received vm_create request",
+        )
 
     @check_state({2})
     def vm_delete(self, request, context):
@@ -314,7 +337,7 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         print(f"received vm-shutdown for {request.vmId}")
         vm = get_or_create_vm(request.vmId)
 
-        t = Thread(target=vm.shutdown, args=(request.transaction.transactionId, ), kwargs={"complete_transaction": True})
+        t = Thread(target=vm.shutdown, args=(request.transaction.transactionId,), kwargs={"complete_transaction": True})
         t.start()
 
     @check_state({2})
@@ -322,7 +345,7 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         print(f"received vm-start for {request.vmId}")
         vm = get_or_create_vm(request.vmId)
 
-        t = Thread(target=vm.start, args=(request.transaction.transactionId, ), kwargs={"complete_transaction": True})
+        t = Thread(target=vm.start, args=(request.transaction.transactionId,), kwargs={"complete_transaction": True})
         t.start()
 
     @check_state({3, 4}, ignore_ongoing=True)
@@ -330,7 +353,7 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         print(f"received vm-stop for {request.vmId}")
         vm = get_or_create_vm(request.vmId)
 
-        t = Thread(target=vm.stop, args=(request.transaction.transactionId, ), kwargs={"complete_transaction": True})
+        t = Thread(target=vm.stop, args=(request.transaction.transactionId,), kwargs={"complete_transaction": True})
         t.start()
 
     @check_state({2})
@@ -338,7 +361,7 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         print(f"received vm-sandbox for {request.vmId}")
         vm = get_or_create_vm(request.vmId)
 
-        t = Thread(target=vm.sandbox, args=(request.transaction.transactionId, ), kwargs={"complete_transaction": True})
+        t = Thread(target=vm.sandbox, args=(request.transaction.transactionId,), kwargs={"complete_transaction": True})
         t.start()
 
     @check_state({7})
@@ -346,48 +369,60 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         print(f"received vm-unsandbox for {request.vmId}")
         vm = get_or_create_vm(request.vmId)
 
-        t = Thread(target=vm.unsandbox, args=(request.transaction.transactionId, ), kwargs={"complete_transaction": True})
+        t = Thread(
+            target=vm.unsandbox, args=(request.transaction.transactionId,), kwargs={"complete_transaction": True}
+        )
         t.start()
 
     @check_state({1, 2})
     def run_execute(self, request, context):
-        """ Here we pretend to do all actions involved in running and executing the software:
-         - shutdown, sandbox, execute, unsandbox, power_on
-         But we sleep instead. Afterwards, we notify the application that the transaction was complete.
-         """
-        print(f"received run-execute for {request.runId.runId} - {request.runId.datasetId} - {request.runId.vmId} - "
-              f"{request.inputRunId.runId} - {request.inputRunId.datasetId} - {request.inputRunId.vmId}")
+        """Here we pretend to do all actions involved in running and executing the software:
+        - shutdown, sandbox, execute, unsandbox, power_on
+        But we sleep instead. Afterwards, we notify the application that the transaction was complete.
+        """
+        print(
+            f"received run-execute for {request.runId.runId} - {request.runId.datasetId} - {request.runId.vmId} - "
+            f"{request.inputRunId.runId} - {request.inputRunId.datasetId} - {request.inputRunId.vmId}"
+        )
         vm = get_or_create_vm(request.runId.vmId)
 
-        t = Thread(target=vm.run_execute, args=(request.transaction.transactionId, ),
-                   kwargs={"complete_transaction": True})
+        t = Thread(
+            target=vm.run_execute, args=(request.transaction.transactionId,), kwargs={"complete_transaction": True}
+        )
         t.start()
 
     # @check_state({1})  # Uncommented for the dummy code. Here we cheat and pretend the master is running already
     def run_eval(self, request, context):
-        print(f"received run-eval for {request.runId.runId} - {request.runId.datasetId} - {request.runId.vmId} - "
-              f"{request.inputRunId.runId} - {request.inputRunId.datasetId} - {request.inputRunId.vmId}")
+        print(
+            f"received run-eval for {request.runId.runId} - {request.runId.datasetId} - {request.runId.vmId} - "
+            f"{request.inputRunId.runId} - {request.inputRunId.datasetId} - {request.inputRunId.vmId}"
+        )
 
         vm = get_or_create_vm(request.runId.vmId)  # eval is executed on the master vm
         vm.state = 1
 
         try:
-            t = Thread(target=vm.run_eval, args=(request.transaction.transactionId,
-                                                 request.inputRunId.vmId,
-                                                 request.inputRunId.datasetId,
-                                                 request.inputRunId.runId),
-                       kwargs={"complete_transaction": True})
+            t = Thread(
+                target=vm.run_eval,
+                args=(
+                    request.transaction.transactionId,
+                    request.inputRunId.vmId,
+                    request.inputRunId.datasetId,
+                    request.inputRunId.runId,
+                ),
+                kwargs={"complete_transaction": True},
+            )
             t.start()
             return tira_host_pb2.Transaction(
                 status=tira_host_pb2.Status.SUCCESS,
                 transactionId=request.transaction.transactionId,
-                message=f"TiraHostService:run_eval:{request.inputRunId.runId} on {request.runId.vmId}:ACCEPTED"
+                message=f"TiraHostService:run_eval:{request.inputRunId.runId} on {request.runId.vmId}:ACCEPTED",
             )
         except Exception as e:
             return tira_host_pb2.Transaction(
                 status=tira_host_pb2.Status.FAILED,
                 transactionId=request.transaction.transactionId,
-                message=f"TiraHostService:run_eval:{request.vmId}:FAILED:{e}"
+                message=f"TiraHostService:run_eval:{request.vmId}:FAILED:{e}",
             )
 
     @check_state({4, 5, 6, 7}, ignore_ongoing=True)
@@ -395,45 +430,50 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
         print(f"received run-abort for {request.vmId}")
         vm = get_or_create_vm(request.vmId)
 
-        t = Thread(target=vm.run_abort, args=(request.transaction.transactionId, ),
-                   kwargs={"complete_transaction": True})
+        t = Thread(
+            target=vm.run_abort, args=(request.transaction.transactionId,), kwargs={"complete_transaction": True}
+        )
         t.start()
 
     # TODO implement
     def vm_list(self, context):
         print(f"received vm-list")
-        return tira_host_pb2.VmList(transaction=tira_host_pb2.Transaction(
-            status=tira_host_pb2.Status.FAILED,
-            message="vm-list: not implemented",
-            transactionId=str(uuid4())
-        ))
+        return tira_host_pb2.VmList(
+            transaction=tira_host_pb2.Transaction(
+                status=tira_host_pb2.Status.FAILED, message="vm-list: not implemented", transactionId=str(uuid4())
+            )
+        )
 
     def vm_backup(self, request, context):
         print(f"received vm-backup for {request.vmId}")
-        return tira_host_pb2.VmList(transaction=tira_host_pb2.Transaction(
-            status=tira_host_pb2.Status.FAILED,
-            message="vm-backup: not implemented",
-            transactionId=request.transaction.transactionId
-        ))
+        return tira_host_pb2.VmList(
+            transaction=tira_host_pb2.Transaction(
+                status=tira_host_pb2.Status.FAILED,
+                message="vm-backup: not implemented",
+                transactionId=request.transaction.transactionId,
+            )
+        )
 
     def vm_snapshot(self, request, context):
         print(f"received vm-snapshot for {request.vmId}")
-        return tira_host_pb2.VmList(transaction=tira_host_pb2.Transaction(
-            status=tira_host_pb2.Status.FAILED,
-            message="vm-snapshot: not implemented",
-            transactionId=request.transaction.transactionId
-        ))
+        return tira_host_pb2.VmList(
+            transaction=tira_host_pb2.Transaction(
+                status=tira_host_pb2.Status.FAILED,
+                message="vm-snapshot: not implemented",
+                transactionId=request.transaction.transactionId,
+            )
+        )
 
 
 def serve(port):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     tira_host_pb2_grpc.add_TiraHostServiceServicer_to_server(TiraHostService(), server)
-    listen_addr = f'[::]:{port}'
+    listen_addr = f"[::]:{port}"
     server.add_insecure_port(listen_addr)
     server.start()
     print("Starting host server on %s", listen_addr)
     server.wait_for_termination()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     serve("50051")
