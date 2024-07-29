@@ -56,6 +56,8 @@
 	"customizations": {
 		"vscode": {
 			"settings": {
+				"editor.formatOnSave": true,
+				"json.format.keepLines": true,
 				"livePreview.portNumber": 3080,
 				"remote.autoForwardPorts": false,
 				"launch": {
@@ -93,12 +95,21 @@
 							"stopAll": true
 						}
 					]
-				}
+				},
+				"[python]": {
+					"editor.codeActionsOnSave": { "source.organizeImports": "explicit" }
+				},
+				"python.formatting.provider": "black",
+				"isort.args": [ "--profile", "black" ]
 			},
 			"extensions": [
 				"Vue.volar",
 				"ms-vscode.live-server",
-				"ms-python.python"
+				"ms-python.python",
+				"ms-python.isort",
+				"ms-python.black-formatter",
+				"ms-python.flake8",
+				"ms-python.mypy-type-checker"
 			]
 		}
 	},
@@ -108,5 +119,5 @@
 
 	// Needed for parts of the python-client that build and run docker containers
 	"privileged": true,
-	"mounts": ["source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"]
+	"mounts": [ "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind" ]
 }
