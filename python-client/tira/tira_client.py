@@ -43,7 +43,7 @@ class TiraClient(ABC):
         pass
 
     def docker_registry(self):
-        return 'registry.webis.de'
+        return "registry.webis.de"
 
     @overload
     def download_run(
