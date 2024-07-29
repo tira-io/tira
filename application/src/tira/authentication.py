@@ -122,7 +122,7 @@ class Authentication(object):
 
         try:
             task = model.get_task(task_id)
-        except Exception as _:
+        except:
             return False
 
         if not task:

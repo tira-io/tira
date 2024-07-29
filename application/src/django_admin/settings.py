@@ -419,5 +419,5 @@ REFERENCE_DATASETS = {
 CODE_SUBMISSION_REPOSITORY_NAMESPACE = "tira-io"
 try:
     DISRAPTOR_API_KEY = open(DISRAPTOR_SECRET_FILE, "r").read().strip()
-except Exception as _:
+except:
     pass

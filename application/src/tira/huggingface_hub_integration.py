@@ -35,6 +35,7 @@ def huggingface_model_mounts(models: Iterable[str]):
 
     mounts = tira_cli_io_utils.huggingface_model_mounts(models)
     repos = _hf_repos()
+    print(mounts)
     print(repos)
     print(models)
 
