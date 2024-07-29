@@ -900,6 +900,7 @@ def run_execute_docker_software(request, task_id, vm_id, dataset_id, docker_soft
 
             visit_job_message = 'Failed to start job.'
 
+            # TODO: what is a new URL for that?
             if background_process:
                 visit_job_message = f'Please visit https://tira.io/background_jobs/{task_id}/{background_process} ' + \
                                      ' to view the progress of the job that creates the rerank output.'

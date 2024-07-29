@@ -376,6 +376,7 @@ def admin_import_ir_dataset(request, task_id):
         model.add_evaluator(master_vm_id, task_id, ds['dataset_id'], evaluator_command, working_directory, not measures,
                             is_git_runner, git_runner_image, git_runner_command, git_repository_id)
 
+        # TODO: what is the up-to-date href for background_jobs?
         try:
             process_id = run_irds_command(ds['task'], ds['dataset_id'], ds['irds_docker_image'], ds['irds_import_command'], dataset_path, ds['irds_import_truth_command'], dataset_truth_path)
             return JsonResponse({'status': 0, 'context': ds, 'message': 'Imported dataset successfull.',

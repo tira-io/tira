@@ -4,8 +4,6 @@ from . import views
 from .endpoints import organizer_api, admin_api, vm_api, data_api, diffir_api, serp_api
 
 urlpatterns = [
-    path('background_jobs/<str:task_id>/<str:job_id>', views.background_jobs, name='background_jobs'),
-
     path('task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/download/<str:run_id>.zip', views.download_rundir, name='download_rundir'),
     path('data-download/git-repo-template/<str:vm_id>/<str:task_id>.zip', views.download_repo_template, name='download_repo_template'),
     path('data-download/<str:dataset_type>/<str:input_type>/<str:dataset_id>.zip', views.download_datadir, name='download_datadir'),

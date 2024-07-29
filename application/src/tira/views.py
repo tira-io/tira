@@ -1,4 +1,3 @@
-from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
 from django.http import JsonResponse, FileResponse
 from django.conf import settings
@@ -8,12 +7,10 @@ from django.core.serializers.json import DjangoJSONEncoder
 import logging
 
 import tira.tira_model as model
-from .tira_data import get_run_runtime, get_run_file_list, get_stderr, get_stdout, get_tira_log
 from .authentication import auth
 from .checks import check_permissions, check_resources_exist, check_conditional_permissions
 from .forms import *
 from pathlib import Path
-from datetime import datetime as dt
 import os
 import zipfile
 import json
@@ -43,15 +40,6 @@ def add_context(func):
         return func(request, context, *args, **kwargs, )
 
     return func_wrapper
-
-
-@check_permissions
-@add_context
-def background_jobs(request, context, task_id, job_id):
-    context['task'] = task_id
-    context['job'] = model.get_job_details(task_id, None, job_id)
-
-    return render(request, 'tira/background_jobs.html', context)
 
 
 def _add_task_to_context(context, task_id, dataset_id):
