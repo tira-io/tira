@@ -1,0 +1,77 @@
+# TODO: this dockerfile is the latest and greatest out of the large quantity found in this folder
+# At some point, Dockerfile.application* and Dockerfile.basis should be obsolete and can be deleted. If you read this in
+# the future and that is the case, then "Hello Future Person" and also please delete these dockerfiles.
+
+########################################################################################################################
+# Production Container                                                                                                 #
+########################################################################################################################
+FROM debian:stable-slim
+
+ENV TZ=Europe/Berlin
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+RUN apt-get update && apt-get install -y locales
+RUN echo "en_US.UTF-8 UTF-8" | tee -a /etc/locale.gen && locale-gen
+
+########################################################################################################################
+# Create User                                                                                                          #
+########################################################################################################################
+RUN useradd -ms /bin/bash tira
+
+
+########################################################################################################################
+# Copy all neccessary files over                                                                                       #
+########################################################################################################################
+USER tira
+WORKDIR /tira/
+COPY --chown=tira:tira . ./
+
+
+########################################################################################################################
+# Install Python and Dependencies                                                                                      #
+########################################################################################################################
+USER root
+ENV PIP_BREAK_SYSTEM_PACKAGES 1
+# For faster build of GRPCIO
+ENV GRPC_PYTHON_BUILD_EXT_COMPILER_JOBS 16
+
+RUN <<EOF
+apt-get update
+# Tools
+apt-get install -y python3 python3-pip git pkg-config
+# Dependencies (stuff needed by at least one python package)
+# Needed by grpcio (TODO: can be removed when GRPC is removed)
+#apt-get install -y g++ linux-headers python3-devel build-base
+#apt-get install -y gcc linux-headers make musl-dev python3-dev build-base libxml2 libxslt libxml2-dev libxslt-dev pcre-dev
+#apt-get install -y zip py3-virtualenv mariadb-dev npm git openssh-client libc6-compat pandas
+# For MariaDB
+apt-get install -y default-libmysqlclient-dev
+#apk add --no-cache mariadb-connector-c-dev
+# For Scipy
+#apk add --no-cache gfortran cmake openblas-dev
+# For Pytrec Eval
+#apk add libffi-dev
+
+python3 -m pip install -r requirements.txt
+EOF
+
+USER root
+RUN cp ./src/tira/management/commands/irds_cli.sh /irds_cli.sh
+
+USER tira
+RUN <<EOF
+python3 manage.py collectstatic
+chmod +x ./src/tira/endpoints/aha
+
+# Run tests
+./test/run_all_tests.sh
+EOF
+
+
+########################################################################################################################
+# Final Configuration Stuff                                                                                            #
+########################################################################################################################
+USER tira
+ENV HF_HOME=/mnt/ceph/tira/data/publicly-shared-datasets/huggingface/
+
+CMD uwsgi --uid 1010 --gid 1010 --ini /tira/src/uwsgi.ini

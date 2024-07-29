@@ -10,7 +10,7 @@ mysqlclient
 python-gitlab
 GitPython
 python-slugify
-# git+https://github.com/allenai/ir_datasets
+ir-datasets
 git+https://github.com/mam10eks/diffir
 pandas
 markdown
