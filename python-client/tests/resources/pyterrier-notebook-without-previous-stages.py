@@ -7,7 +7,7 @@ import pyterrier as pt
 tira = Client()
 dataset_id = "longeval-tiny-train-20240315-training"
 pt_dataset = pt.get_dataset(f"irds:ir-lab-padua-2024/{dataset_id}")
-index = load_index()
+index = tira.pt.load_index()
 bm25 = pt.BatchRetrieve(index, wmodel="BM25", verbose=True)
 print("Create run")
 run = bm25(pt_dataset.get_topics("title"))

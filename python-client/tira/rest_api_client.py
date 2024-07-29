@@ -675,7 +675,6 @@ class Client(TiraClient):
         ret = self.json_response(url)
         if "context" not in ret or "all_uploadgroups" not in ret["context"]:
             logging.error("Failed to get upload id, response does not contain the expected fields.")
-            logging.debug(response.content)
             raise ValueError(f"Invalid response for request {url}: {ret}.")
 
         for upload_group in ret["context"]["all_uploadgroups"]:
@@ -696,10 +695,10 @@ class Client(TiraClient):
         # TODO: Make this idempotent: reuse existing upload group if it already exists.
         url = f"{self.base_url}/task/{task_id}/vm/{vm_id}/add_software/upload"
         logging.debug(f"Creating a new upload at {url}")
-        ret = json_response(url)
+        ret = self.json_response(url)
 
-        logging.debug(f"Created new upload with id {content.upload}")
-        return content.upload
+        logging.debug(f"Created new upload with id {ret['upload']}")
+        return ret['upload']
 
     def upload_run(
         self,

@@ -366,10 +366,10 @@ class LocalExecutionIntegration:
                     evaluate["evaluator_git_runner_command"],
                 )
             elif type(evaluate) is not str:
-                evaluate = data
+                raise ValueError('ToDo Implement this case. I.e., set evaluate variable')
 
             if image == None or command == None:
-                evaluate, image, command = __extract_image_and_command(evaluate, evaluator=True)
+                evaluate, image, command = self.__extract_image_and_command(evaluate, evaluator=True)
 
             command = self.__normalize_command(command, True)
             logging.debug(
@@ -450,6 +450,7 @@ class LocalExecutionIntegration:
             + notebook.split("/")[-1]
         ]
         notebook_content = json.load(open(notebook, "r"))
+        print(f'TODO: process content {notebook_content}.')
 
         return "\n".join(ret)
 
