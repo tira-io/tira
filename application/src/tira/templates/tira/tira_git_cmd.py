@@ -109,7 +109,7 @@ def all_evaluated_appraoches():
                 i = {"approach": job_identifier, "dataset": job_definition["TIRA_DATASET_ID"]}
                 i.update(__load_output(eval_run, evaluation=True))
                 ret += [i]
-            except:
+            except Exception:
                 pass
 
     return pd.DataFrame(ret)
@@ -144,7 +144,8 @@ def __extract_image_and_command(identifier, evaluator=False):
                 )
 
     raise ValueError(
-        f'There is no {("evaluator" if evaluator else "software")} identified by "{identifier}". Choices are: {sorted(list(softwares))}'
+        f'There is no {("evaluator" if evaluator else "software")} identified by "{identifier}". Choices are:'
+        f" {sorted(list(softwares))}"
     )
 
 
@@ -201,7 +202,7 @@ def persist_dataset(data, verbose):
     os.makedirs(str(output_dir.absolute()), exist_ok=True)
     os.makedirs(str(eval_output_dir.absolute()), exist_ok=True)
 
-    if type(data) == pd.DataFrame:
+    if isinstance(data, pd.DataFrame):
         if verbose:
             print(f"Write {len(data)} records to {input_dir}/input.jsonl")
         os.makedirs(str(input_dir.absolute()), exist_ok=True)

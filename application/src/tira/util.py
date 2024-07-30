@@ -119,7 +119,8 @@ def register_run(dataset_id, vm_id, run_id, software_id):
 
     with open(path_for_run / "run.prototext", "w") as f:
         f.write(
-            f'\nsoftwareId: "{software_id}"\nrunId: "{run_id}"\ninputDataset: "{dataset_id}"\ndownloadable: true\ndeleted: false\n'
+            f'\nsoftwareId: "{software_id}"\nrunId: "{run_id}"\ninputDataset: "{dataset_id}"\ndownloadable:'
+            " true\ndeleted: false\n"
         )
 
     tira_model.add_run(dataset_id=dataset_id, vm_id=vm_id, run_id=run_id)

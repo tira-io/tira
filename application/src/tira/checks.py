@@ -89,7 +89,7 @@ def check_permissions(func):
             return func(request, *args, **kwargs)
 
         if "run_id_1" in kwargs or "run_id_2" in kwargs:
-            return HttpResponseNotAllowed(f"Access forbidden.")
+            return HttpResponseNotAllowed("Access forbidden.")
 
         if request.path_info.startswith(f"/task/{task_id}/vm/{vm_id}/software_details/"):
             software_name = request.path_info.split(f"/task/{task_id}/vm/{vm_id}/software_details/")[1].split("/")[0]
@@ -140,7 +140,7 @@ def check_permissions(func):
             if task_id:  # This checks if the registration requirement is fulfilled.
                 if model.get_task(task_id)["require_registration"]:
                     if not model.user_is_registered(task_id, request):
-                        return HttpResponseNotAllowed(f"Access forbidden. You must register first.")
+                        return HttpResponseNotAllowed("Access forbidden. You must register first.")
 
         if role == auth.ROLE_PARTICIPANT:
             return func(request, *args, **kwargs)
@@ -157,7 +157,7 @@ def check_permissions(func):
             ):
                 return func(request, *args, **kwargs)
 
-        return HttpResponseNotAllowed(f"Access forbidden.")
+        return HttpResponseNotAllowed("Access forbidden.")
 
     return func_wrapper
 
@@ -211,7 +211,7 @@ def check_conditional_permissions(
             ):
                 return func(request, *args, **kwargs)
             elif restricted:
-                return HttpResponseNotAllowed(f"Access restricted.")
+                return HttpResponseNotAllowed("Access restricted.")
 
             if vm_id:  # First we determine the role of the user on the resource he requests
                 if not model.vm_exists(vm_id):
@@ -241,18 +241,18 @@ def check_conditional_permissions(
                 if task_id and not not_registered_ok:  # This checks if the registration requirement is fulfilled.
                     if model.get_task(task_id)["require_registration"]:
                         if not model.user_is_registered(task_id, request):
-                            return HttpResponseNotAllowed(f"Access forbidden. You must register first.")
+                            return HttpResponseNotAllowed("Access forbidden. You must register first.")
 
-            if (
-                not restricted and role == auth.ROLE_PARTICIPANT
-            ):  # Participants can access when it is their resource, the resource is visible to them, and the call is not restricted
+            # Participants can access when it is their resource, the resource is visible to them, and the call is not
+            # restricted
+            if not restricted and role == auth.ROLE_PARTICIPANT:
                 return func(request, *args, **kwargs)
             if public_data_ok and run_is_public(run_id, vm_id, dataset_id):
                 return func(request, *args, **kwargs)
             elif role == auth.ROLE_GUEST:  # If guests access a restricted resource, we send them to login
                 return redirect_to_login()
 
-            return HttpResponseNotAllowed(f"Access forbidden.")
+            return HttpResponseNotAllowed("Access forbidden.")
 
         return func_wrapper
 

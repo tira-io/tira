@@ -280,7 +280,7 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
                     return tira_host_pb2.Transaction(
                         status=tira_host_pb2.Status.SUCCESS,
                         transactionId=request.transaction.transactionId,
-                        message=f"Accepted transaction.",
+                        message="Accepted transaction.",
                     )
 
             return func_wrapper
@@ -437,7 +437,7 @@ class TiraHostService(tira_host_pb2_grpc.TiraHostService):
 
     # TODO implement
     def vm_list(self, context):
-        print(f"received vm-list")
+        print("received vm-list")
         return tira_host_pb2.VmList(
             transaction=tira_host_pb2.Transaction(
                 status=tira_host_pb2.Status.FAILED, message="vm-list: not implemented", transactionId=str(uuid4())

@@ -319,8 +319,8 @@ class TestEvaluationsForVm(TestCase):
                 for t in ["link_results_download", "link_run_download"]:
                     if t in i:
                         i[t] = i[t].split("/dataset/")[0] + "/dataset/<TIME>/download/" + i[t].split("/download/")[1]
-                        l = re.split(r"\d\d\d\d\d\d\d\d", i[t])
-                        i[t] = l[0] + "<TIME>" + l[1]
+                        split = re.split(r"\d\d\d\d\d\d\d\d", i[t])
+                        i[t] = split[0] + "<TIME>" + split[1]
 
         self.assertEqual(200, actual.status_code)
         verify_as_json(content, options=Options().with_namer(CliNamer(test_name)))

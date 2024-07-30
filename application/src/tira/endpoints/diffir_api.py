@@ -8,7 +8,6 @@ from django.http import HttpResponse, JsonResponse
 
 import tira.tira_model as model
 from tira.checks import check_permissions
-from tira.forms import *
 from tira.views import add_context
 
 logger = logging.getLogger("tira")

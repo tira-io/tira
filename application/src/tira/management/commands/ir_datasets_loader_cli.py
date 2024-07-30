@@ -18,8 +18,8 @@ class Command(BaseCommand):
     @param --output_dataset_path: optional, string: the path to the directory where the output will be stored
     @param --output_dataset_truth_path: optional, string: the path to the directory where the output will be stored
     @param --include_original {True}: optional, boolean: flag to signal, if the original data should be included
-    @param --rerank: optional, string: if used, mapping will be in preparation for re-ranking operations and a path to file
-                     with TREC-run formatted data is required
+    @param --rerank: optional, string: if used, mapping will be in preparation for re-ranking operations and a path to
+        file with TREC-run formatted data is required
     """
 
     def import_dataset_for_fullrank(
@@ -34,7 +34,8 @@ class Command(BaseCommand):
         allowlist_path_ids: bool,
     ):
         print(
-            f"Task: Full-Rank -> create files: \n documents.jsonl \n queries.jsonl \n qrels.txt \n at {output_dataset_path}/"
+            "Task: Full-Rank -> create files: \n documents.jsonl \n queries.jsonl \n qrels.txt \n at"
+            f" {output_dataset_path}/"
         )
         datasets_loader = IrDatasetsLoader()
         datasets_loader.load_dataset_for_fullrank(

@@ -4,7 +4,6 @@ from django.http import JsonResponse
 
 import tira.tira_model as model
 from tira.checks import check_conditional_permissions, check_permissions, check_resources_exist
-from tira.forms import *
 
 include_navigation = False
 

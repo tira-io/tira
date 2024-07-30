@@ -16,7 +16,6 @@ from slugify import slugify
 import tira.tira_model as model
 from tira.authentication import auth
 from tira.checks import check_permissions, check_resources_exist
-from tira.forms import *
 from tira.tira_data import get_run_file_list, get_run_runtime, get_stderr, get_stdout, get_tira_log
 from tira.util import link_to_discourse_team
 from tira.views import _add_user_vms_to_context, add_context
@@ -60,7 +59,7 @@ def __normalize_run(i, ev_keys, is_admin, user_vms_for_task, task_id, is_ir_task
         for j in range(len(ev_keys)):
             try:
                 i[ev_keys[j]] = i["measures"][j]
-            except:
+            except Exception:
                 i[ev_keys[j]] = None
 
     for j in ["measures"]:
@@ -541,7 +540,7 @@ def tirex_components(request, context):
 def flatten_tirex_components_to_id(obj, t=None):
     ret = {}
 
-    if type(obj) != dict:
+    if not isinstance(obj, dict):
         return ret
 
     if "tirex_submission_id" in obj:
@@ -641,7 +640,7 @@ def submissions_of_user(request, context, vm_id):
     try:
         context["submissions_of_user"] = model.submissions_of_user(vm_id)
         return JsonResponse({"status": 0, "context": context})
-    except:
+    except Exception:
         return JsonResponse({"status": 1})
 
 
@@ -651,7 +650,7 @@ def import_submission(request, context, task_id, vm_id, submission_type, s_id):
     try:
         model.import_submission(task_id, vm_id, submission_type, s_id)
         return JsonResponse({"status": 0, "context": context})
-    except:
+    except Exception:
         return JsonResponse({"status": 1})
 
 

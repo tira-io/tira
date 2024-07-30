@@ -39,7 +39,7 @@ class TestGrpcHostClient:
             response = self.stub.confirm_vm_create(
                 tira_host_pb2.VmDetails(
                     transaction=tira_host_pb2.Transaction(
-                        status=tira_host_pb2.Status.SUCCESS, transactionId=transaction_id, message=f"Created VM"
+                        status=tira_host_pb2.Status.SUCCESS, transactionId=transaction_id, message="Created VM"
                     ),
                     vmId=vm_id,
                     userName=user_name,

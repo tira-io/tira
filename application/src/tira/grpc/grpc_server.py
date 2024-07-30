@@ -20,7 +20,8 @@ class TiraApplicationService(tira_host_pb2_grpc.TiraApplicationService):
         django.db.connection.close()
         logger.debug(f" Application Server received vm-state {request.state} for {request.vmId}")
         print(
-            f"Application Server received vm-state {request.state} for {request.vmId}. Transaction: {request.transaction.transactionId}"
+            f"Application Server received vm-state {request.state} for {request.vmId}. Transaction:"
+            f" {request.transaction.transactionId}"
         )
         try:
             TransactionLog.objects.filter(transaction_id=request.transaction.transactionId).update(
@@ -82,7 +83,7 @@ class TiraApplicationService(tira_host_pb2_grpc.TiraApplicationService):
         """
         django.db.connection.close()
         logger.debug(
-            f" Application Server received vm-create confirmation with \n"
+            " Application Server received vm-create confirmation with \n"
             f"{request.vmID}, {request.userName}, {request.initialUserPw}, {request.ip}, {request.sshPort}, "
             f"{request.rdpPort}"
         )
@@ -121,7 +122,7 @@ class TiraApplicationService(tira_host_pb2_grpc.TiraApplicationService):
         TODO this should remove the deleted vm from the model.
         """
         django.db.connection.close()
-        print(f" Application Server received vm_delete confirmation with: \n" f"{request.vmId.vmId} measures.")
+        print(f" Application Server received vm_delete confirmation with: \n{request.vmId.vmId} measures.")
 
         return tira_host_pb2.Transaction(
             status=tira_host_pb2.Status.SUCCESS,
@@ -136,12 +137,12 @@ class TiraApplicationService(tira_host_pb2_grpc.TiraApplicationService):
         """
         django.db.connection.close()
         logger.debug(
-            f" Application Server received run-eval confirmation with: \n"
-            f"{request.runId.runId} - {request.runId.vmId} - {request.transaction.transactionId} and {len(request.measures)} measures."
+            f" Application Server received run-eval confirmation with: \n{request.runId.runId} - {request.runId.vmId} -"
+            f" {request.transaction.transactionId} and {len(request.measures)} measures."
         )
         print(
-            f" Application Server received run-eval confirmation with: \n"
-            f"{request.runId.runId} - {request.runId.vmId} - {request.transaction.transactionId} and {len(request.measures)} measures."
+            f" Application Server received run-eval confirmation with: \n{request.runId.runId} - {request.runId.vmId} -"
+            f" {request.transaction.transactionId} and {len(request.measures)} measures."
         )
 
         result = model.add_run(request.runId.datasetId, request.runId.vmId, request.runId.runId)
@@ -155,7 +156,10 @@ class TiraApplicationService(tira_host_pb2_grpc.TiraApplicationService):
 
         return tira_host_pb2.Transaction(
             status=tira_host_pb2.Status.SUCCESS,
-            message=f"Application accepted evaluation confirmation with request.runId.datasetId={request.runId.datasetId}, request.runId.vmId={request.runId.vmId}, request.runId.runId={request.runId.runId}. Result {result}.",
+            message=(
+                f"Application accepted evaluation confirmation with request.runId.datasetId={request.runId.datasetId},"
+                f" request.runId.vmId={request.runId.vmId}, request.runId.runId={request.runId.runId}. Result {result}."
+            ),
             transactionId=request.transaction.transactionId,
         )
 
@@ -164,7 +168,7 @@ class TiraApplicationService(tira_host_pb2_grpc.TiraApplicationService):
         See tira_host.proto for request specification.
         """
         django.db.connection.close()
-        logger.debug(f" Application Server received run-eval confirmation with: \n" f"{request.runId.runId}.")
+        logger.debug(f" Application Server received run-eval confirmation with: \n{request.runId.runId}.")
 
         result = model.add_run(request.runId.datasetId, request.runId.vmId, request.runId.runId)
         EvaluationLog.objects.filter(vm_id=request.runId.vmId, run_id=request.runId.runId).delete()
@@ -174,7 +178,11 @@ class TiraApplicationService(tira_host_pb2_grpc.TiraApplicationService):
 
         return tira_host_pb2.Transaction(
             status=tira_host_pb2.Status.SUCCESS,
-            message=f"Application accepted run execute confirmation with: request.runId.datasetId={request.runId.datasetId}, request.runId.vmId={request.runId.vmId}, request.runId.runId={request.runId.runId}. Result {result}.",
+            message=(
+                "Application accepted run execute confirmation with:"
+                f" request.runId.datasetId={request.runId.datasetId}, request.runId.vmId={request.runId.vmId},"
+                f" request.runId.runId={request.runId.runId}. Result {result}."
+            ),
             transactionId=request.transaction.transactionId,
         )
 

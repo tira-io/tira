@@ -124,7 +124,7 @@ def load_refresh_timestamp_for_cache_key(cache, key):
             ret = cursor.fetchall()
             if len(ret) > 0:
                 return ret[0][0] - datetime.timedelta(seconds=settings.CACHES["default"]["TIMEOUT"])
-    except:
+    except Exception:
         pass
 
     return datetime.datetime.now()
@@ -202,9 +202,10 @@ def load_docker_data(task_id, vm_id, cache, force_cache_refresh):
         "tira_initial_run_example": "# This example shows how to execute the baseline on a small example dataset.\n"
         + "# Please adjust the --image and --command parameters accordingly.\n"
         + tira_run_command("YOUR-IMAGE", "YOUR-COMMAND", task_id),
-        "tira_final_run_example":  #'# The configuration of your software is final, please do a final test:\n' +
+        "tira_final_run_example":  # '# The configuration of your software is final, please do a final test:\n' +
         # docker_login + '\n' +
-        '# Please append "--push true" to your previous tira-run command to upload your software.\n# I.e., the --image and --command parameters are as before.\n'
+        '# Please append "--push true" to your previous tira-run command to upload your software.\n# I.e., the --image'
+        " and --command parameters are as before.\n"
         + tira_run_command("YOUR-IMAGE", "YOUR-COMMAND", task_id)
         + " \\\n  --push true",
     }
@@ -297,7 +298,7 @@ def get_evaluators_for_task(task_id, cache, force_cache_refresh=False):
 
     try:
         ret = [get_evaluator(i["dataset_id"]) for i in datasets]
-    except:
+    except Exception:
         ret = []
 
     logger.info(f"Cache refreshed for key {cache_key} ...")
@@ -312,7 +313,7 @@ def run_is_public_and_unblinded(run_id: str) -> bool:
     """
     try:
         return model.run_is_public_and_unblinded(run_id)
-    except:
+    except Exception:
         pass
 
     return False
@@ -343,13 +344,16 @@ def __formatted_error_message_for_missing_input_run(docker_software, input_run):
         return (
             f"The execution of your software depends on the execution of {docker_software['input_docker_software']}"
             + f", but {docker_software['input_docker_software']} was never executed on this dataset. "
-            + f"Please execute first {docker_software['input_docker_software']} on your specified dataset. Found the input {input_run}."
+            + f"Please execute first {docker_software['input_docker_software']} on your specified dataset. Found the"
+            f" input {input_run}."
         )
     else:
         return (
-            f"The execution of your software depends on the upload of a manual run for the group of {docker_software['input_docker_software']}"
+            "The execution of your software depends on the upload of a manual run for the group of"
+            f" {docker_software['input_docker_software']}"
             + f", but {docker_software['input_docker_software']} was not uploaded for this dataset. "
-            + f"Please upload first {docker_software['input_docker_software']} on your specified dataset. Found the input {input_run}."
+            + f"Please upload first {docker_software['input_docker_software']} on your specified dataset. Found the"
+            f" input {input_run}."
         )
 
 

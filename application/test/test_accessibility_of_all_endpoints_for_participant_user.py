@@ -20,9 +20,10 @@ class TestAccessibilityOfEndpointsForParticipantUser(TestCase):
             method_bound_to_url_pattern, request, hide_stdout
         )
 
-        assert (
-            status_code == expected_status_code
-        ), f"Expected response for url_pattern {url_pattern} is {expected_status_code}. But I got {status_code} for {request}"
+        assert status_code == expected_status_code, (
+            f"Expected response for url_pattern {url_pattern} is {expected_status_code}. But I got {status_code} for"
+            f" {request}"
+        )
 
         self.tested_urls += [url_pattern]
 

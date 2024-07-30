@@ -18,7 +18,6 @@ import tira.tira_model as model
 
 from .authentication import auth
 from .checks import check_conditional_permissions, check_permissions, check_resources_exist
-from .forms import *
 
 logger = logging.getLogger("tira")
 logger.info("Views: Logger active")

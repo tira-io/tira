@@ -314,7 +314,8 @@ DEFAULT_GIT_INTEGRATION_URL = "https://git.webis.de/code-research/tira"
 IR_MEASURES_IMAGE = custom_settings.get("IR_MEASURES_IMAGE", "webis/tira-ir-measures-evaluator:0.0.1")
 IR_MEASURES_COMMAND = custom_settings.get(
     "IR_MEASURES_COMMAND",
-    '/ir_measures_evaluator.py --run ${inputRun}/run.txt --topics ${inputDataset}/queries.jsonl --qrels ${inputDataset}/qrels.txt --output ${outputDir} --measures "P@10" "nDCG@10" "MRR"',
+    "/ir_measures_evaluator.py --run ${inputRun}/run.txt --topics ${inputDataset}/queries.jsonl --qrels"
+    ' ${inputDataset}/qrels.txt --output ${outputDir} --measures "P@10" "nDCG@10" "MRR"',
 )
 
 GITHUB_TOKEN = custom_settings.get("github_token", "<TOKEN>")
@@ -413,11 +414,13 @@ REFERENCE_DATASETS = {
     "ir-lab-padua-2024": "ir-lab-padua-2024/spot-check-20240424-training",
     "ir-benchmarks": "ir-benchmarks/cranfield-20230107-training",
     "workshop-on-open-web-search": "workshop-on-open-web-search/retrieval-20231027-training",
-    "generative-ai-authorship-verification-panclef-2024": "generative-ai-authorship-verification-panclef-2024/pan24-generative-authorship-tiny-smoke-20240417-training",
+    "generative-ai-authorship-verification-panclef-2024": (
+        "generative-ai-authorship-verification-panclef-2024/pan24-generative-authorship-tiny-smoke-20240417-training"
+    ),
 }
 
 CODE_SUBMISSION_REPOSITORY_NAMESPACE = "tira-io"
 try:
     DISRAPTOR_API_KEY = open(DISRAPTOR_SECRET_FILE, "r").read().strip()
-except:
+except Exception:
     pass

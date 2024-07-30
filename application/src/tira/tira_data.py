@@ -42,7 +42,7 @@ def get_run_file_list(dataset_id, vm_id, run_id):
     try:
         size = open(run_dir / "size.txt").read().split("\n")
     except Exception as e:
-        logger.error(f"Failed to read output size.txt of: {dataset_id} -- {vm_id} -- {run_id}\n" f"with error: {e}")
+        logger.error(f"Failed to read output size.txt of: {dataset_id} -- {vm_id} -- {run_id}\nwith error: {e}")
         size = ["No output could be found for this run or output was corrupted", None, None, None, None]
 
     if not (run_dir / "file-list.txt").exists():

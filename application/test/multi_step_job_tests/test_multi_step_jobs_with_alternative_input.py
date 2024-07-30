@@ -65,7 +65,7 @@ class TestMultiStepJobsWithAlternativeInput(TestCase):
 
     def test_suitable_input_does_not_exist_3(self):
         actual = latest_output_of_software_on_dataset(
-            "shared-task-1", "example_participant", "does-not-exist", -1, f"dataset-does-not-exist", None
+            "shared-task-1", "example_participant", "does-not-exist", -1, "dataset-does-not-exist", None
         )
 
         self.assertIsNone(actual)

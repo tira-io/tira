@@ -20,10 +20,7 @@ class Command(BaseCommand):
         while True:
             time.sleep(int(sleep_time))
             print(
-                str(datetime.datetime.now())
-                + ": Start loop to keep the running softwares fresh (sleeped "
-                + str(int(sleep_time))
-                + " seconds) ..."
+                f"{datetime.datetime.now()}: Start loop to keep the running softwares fresh (slept for {int(sleep_time)} seconds)..."
             )
             for task in model.get_tasks():
                 if task is None:

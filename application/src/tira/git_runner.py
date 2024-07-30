@@ -12,7 +12,7 @@ def all_git_runners():
     for git_integration in model.all_git_integrations(return_dict=True):
         try:
             ret += [get_git_runner(git_integration)]
-        except Exception as e:
+        except Exception:
             print(f"Could not load git integration: {git_integration}. Skip")
             logger.warn(f"Could not load git integration: {git_integration}. Skip")
 
@@ -29,7 +29,7 @@ def check_that_git_integration_is_valid(namespace_url, private_token):
         git_integration = modeldb.GitIntegration.objects.get(namespace_url=namespace_url)
         git_integration = model._git_integration_to_dict(git_integration)
         git_integration["private_token"] = private_token
-    except:
+    except Exception:
         pass
 
     try:

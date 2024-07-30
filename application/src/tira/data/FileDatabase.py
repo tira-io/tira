@@ -299,7 +299,7 @@ class FileDatabase(object):
         # open(f'/home/tira/{task_id}.prototext', 'wb').write(new_task.SerializeToString())
         new_task_file_path = self.tasks_dir_path / f"{task_proto.taskId}.prototext"
         if not overwrite and new_task_file_path.exists():
-            raise TiraModelWriteError(f"Failed to write vm, vm exists and overwrite is not allowed here")
+            raise TiraModelWriteError("Failed to write vm, vm exists and overwrite is not allowed here")
         self.tasks[task_proto.taskId] = task_proto
         open(new_task_file_path, "w").write(str(task_proto))
         self._build_task_relations()
@@ -307,7 +307,7 @@ class FileDatabase(object):
     def _save_vm(self, vm_proto, overwrite=False):
         new_vm_file_path = self.vm_dir_path / f"{vm_proto.virtualMachineId}.prototext"
         if not overwrite and new_vm_file_path.exists():
-            raise TiraModelWriteError(f"Failed to write vm, vm exists and overwrite is not allowed here")
+            raise TiraModelWriteError("Failed to write vm, vm exists and overwrite is not allowed here")
         # self.vms[vm_proto.virtualMachineId] = vm_proto  # TODO see issue:30
         open(new_vm_file_path, "w").write(str(vm_proto))
 
@@ -315,7 +315,7 @@ class FileDatabase(object):
         """dataset_dir_path/task_id/dataset_id.prototext"""
         new_dataset_file_path = self.datasets_dir_path / task_id / f"{dataset_proto.datasetId}.prototext"
         if not overwrite and new_dataset_file_path.exists():
-            raise TiraModelWriteError(f"Failed to write dataset, dataset exists and overwrite is not allowed here")
+            raise TiraModelWriteError("Failed to write dataset, dataset exists and overwrite is not allowed here")
         (self.datasets_dir_path / task_id).mkdir(exist_ok=True, parents=True)
         open(new_dataset_file_path, "w").write(str(dataset_proto))
         self.datasets[dataset_proto.datasetId] = dataset_proto
@@ -399,11 +399,11 @@ class FileDatabase(object):
         # create dirs data_path/dataset/test-dataset[-truth]/task_id/dataset-id-type
         new_dirs = []
         if dataset_type == "test":
-            new_dirs.append((self.data_path / f"test-datasets" / task_id / dataset_id))
-            new_dirs.append((self.data_path / f"test-datasets-truth" / task_id / dataset_id))
+            new_dirs.append((self.data_path / "test-datasets" / task_id / dataset_id))
+            new_dirs.append((self.data_path / "test-datasets-truth" / task_id / dataset_id))
         else:
-            new_dirs.append((self.data_path / f"training-datasets" / task_id / dataset_id))
-            new_dirs.append((self.data_path / f"training-datasets-truth" / task_id / dataset_id))
+            new_dirs.append((self.data_path / "training-datasets" / task_id / dataset_id))
+            new_dirs.append((self.data_path / "training-datasets-truth" / task_id / dataset_id))
         for d in new_dirs:
             d.mkdir(parents=True, exist_ok=True)
 
@@ -604,7 +604,8 @@ class FileDatabase(object):
             "commandDescription": (
                 ""
                 if t.commandDescription
-                == "Available variables: <code>$inputDataset</code>, <code>$inputRun</code>, <code>$outputDir</code>, <code>$dataServer</code>, and <code>$token</code>."
+                == "Available variables: <code>$inputDataset</code>, <code>$inputRun</code>, <code>$outputDir</code>,"
+                " <code>$dataServer</code>, and <code>$token</code>."
                 else t.commandDescription
             ),
             "task_id": t.taskId,

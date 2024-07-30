@@ -104,7 +104,7 @@ def _parse_vm_list(users_file_path, vm_dir_path):
                 )
                 modeldb.VirtualMachineHasEvaluator.objects.update_or_create(evaluator=ev, vm=vm2)
 
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             logger.exception(f"Could not find VM file for vm_id {user.userName}")
             _, _ = modeldb.VirtualMachine.objects.update_or_create(
                 vm_id=user.userName, defaults={"user_password": user.userPw, "roles": user.roles}
@@ -248,7 +248,7 @@ def _parse_run(run_id, task_id, run_proto, vm, dataset):
             return None
         try:
             return modeldb.Evaluator.objects.get(evaluator_id=run_proto.softwareId)
-        except modeldb.Evaluator.DoesNotExist as e2:
+        except modeldb.Evaluator.DoesNotExist:
             logger.exception(f"Run {run_id} lists an evaluation software {run_proto.softwareId}, but None exists.")
 
         return None
@@ -267,7 +267,7 @@ def _parse_run(run_id, task_id, run_proto, vm, dataset):
     software = __get_software() if not docker_software and not upload and not evaluator else None
 
     if not docker_software and not upload and not evaluator and not software:
-        logger.exception(f"Run {run_id} is dangling:" f"{run_proto}")
+        logger.exception(f"Run {run_id} is dangling:{run_proto}")
 
     r, _ = modeldb.Run.objects.update_or_create(
         run_id=run_proto.runId,
@@ -391,7 +391,7 @@ def parse_run(runs_dir_path, dataset_id, vm_id, run_id):
         return_message += f"|Run added: {run}|"
 
     except Exception as e:
-        msg = f"Skip run {run_id}: Creation of run had an unexpected Error" f"Run: {run_proto}"
+        msg = f"Skip run {run_id}: Creation of run had an unexpected ErrorRun: {run_proto}"
         logger.exception(msg, e)
         return msg
 
@@ -401,11 +401,11 @@ def parse_run(runs_dir_path, dataset_id, vm_id, run_id):
         input_run, _ = modeldb.Run.objects.update_or_create(run_id=run_proto.inputRun)
         run.input_run = input_run
         run.save()
-        return_message += f"|Updated input_run of run |"
+        return_message += "|Updated input_run of run |"
 
     # parse the reviews
     _parse_review(run_dir, run)
-    return_message += f"|Run updated during parsing of reviews|"
+    return_message += "|Run updated during parsing of reviews|"
 
     _parse_evalutions(run_dir, run)
 

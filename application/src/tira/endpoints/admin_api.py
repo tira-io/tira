@@ -14,7 +14,6 @@ from django.http import JsonResponse
 import tira.tira_model as model
 from tira.authentication import auth
 from tira.checks import check_conditional_permissions, check_permissions, check_resources_exist
-from tira.forms import *
 from tira.git_runner import check_that_git_integration_is_valid
 from tira.ir_datasets_loader import run_irds_command
 
@@ -84,12 +83,12 @@ def admin_create_vm(request):  # TODO implement
 
         return JsonResponse({"status": 0, "message": f"Not implemented yet, received: {data}"})
 
-    return JsonResponse({"status": 1, "message": f"GET is not implemented for vm create"})
+    return JsonResponse({"status": 1, "message": "GET is not implemented for vm create"})
 
 
 @check_permissions
 def admin_archive_vm(request):
-    return JsonResponse({"status": 1, "message": f"Not implemented"}, status=HTTPStatus.NOT_IMPLEMENTED)
+    return JsonResponse({"status": 1, "message": "Not implemented"}, status=HTTPStatus.NOT_IMPLEMENTED)
 
 
 @check_permissions
@@ -99,7 +98,7 @@ def admin_modify_vm(request):
 
         return JsonResponse({"status": 0, "message": f"Not implemented yet, received: {data}"})
 
-    return JsonResponse({"status": 1, "message": f"GET is not implemented for modify vm"})
+    return JsonResponse({"status": 1, "message": "GET is not implemented for modify vm"})
 
 
 @check_permissions
@@ -145,7 +144,7 @@ def admin_create_task(request, organizer_id):
         return JsonResponse({"status": 0, "context": new_task, "message": f"Created Task with Id: {data['task_id']}"})
 
     return JsonResponse(
-        {"status": 1, "message": f"GET is not implemented for admin_create_task"}, status=HTTPStatus.NOT_IMPLEMENTED
+        {"status": 1, "message": "GET is not implemented for admin_create_task"}, status=HTTPStatus.NOT_IMPLEMENTED
     )
 
 
@@ -196,7 +195,7 @@ def admin_edit_task(request, task_id):
             }
         )
 
-    return JsonResponse({"status": 1, "message": f"GET is not implemented for edit task"})
+    return JsonResponse({"status": 1, "message": "GET is not implemented for edit task"})
 
 
 @check_permissions
@@ -214,7 +213,7 @@ def admin_add_dataset(request, task_id):
         data = json.loads(request.body)
 
         if not all(k in data.keys() for k in ["dataset_id", "name", "task"]):
-            return JsonResponse({"status": 1, "message": f"Error: Task, dataset name, and dataset ID must be set."})
+            return JsonResponse({"status": 1, "message": "Error: Task, dataset name, and dataset ID must be set."})
 
         dataset_id_prefix = data["dataset_id"]
         dataset_name = data["name"]
@@ -223,7 +222,7 @@ def admin_add_dataset(request, task_id):
         if task_id_from_data != task_id:
             from django.http import HttpResponseNotAllowed
 
-            return HttpResponseNotAllowed(f"Access forbidden.")
+            return HttpResponseNotAllowed("Access forbidden.")
 
         upload_name = data.get("upload_name", "predictions.jsonl")
         command = data.get("evaluator_command", "")
@@ -250,7 +249,7 @@ def admin_add_dataset(request, task_id):
         if not model.task_exists(task_id):
             return JsonResponse({"status": 1, "message": f"Task with ID {task_id} does not exist"})
         if data["type"] not in {"test", "training"}:
-            return JsonResponse({"status": 1, "message": f"Dataset type must be 'test' or 'training'"})
+            return JsonResponse({"status": 1, "message": "Dataset type must be 'test' or 'training'"})
 
         try:
             if data["type"] == "training":
@@ -293,16 +292,18 @@ def admin_add_dataset(request, task_id):
                 {
                     "status": 0,
                     "context": ds,
-                    "message": f"Created new dataset with id {ds['dataset_id']}. "
-                    f"Store your datasets in the following Paths:\n"
-                    f"{path_string}",
+                    "message": (
+                        f"Created new dataset with id {ds['dataset_id']}. "
+                        "Store your datasets in the following Paths:\n"
+                        f"{path_string}"
+                    ),
                 }
             )
         except FileExistsError as e:
             logger.exception(e)
-            return JsonResponse({"status": 1, "message": f"A Dataset with this id already exists."})
+            return JsonResponse({"status": 1, "message": "A Dataset with this id already exists."})
 
-    return JsonResponse({"status": 1, "message": f"GET is not implemented for add dataset"})
+    return JsonResponse({"status": 1, "message": "GET is not implemented for add dataset"})
 
 
 @check_permissions
@@ -375,7 +376,7 @@ def admin_edit_dataset(request, dataset_id):
 
         return JsonResponse({"status": 0, "context": ds, "message": f"Updated Dataset {ds['dataset_id']}."})
 
-    return JsonResponse({"status": 1, "message": f"GET is not implemented for add dataset"})
+    return JsonResponse({"status": 1, "message": "GET is not implemented for add dataset"})
 
 
 def call_django_command_failsave(cmd, args):
@@ -412,7 +413,7 @@ def admin_import_ir_dataset(request, task_id):
         data = json.loads(request.body)
 
         if not all(k in data.keys() for k in ["dataset_id", "name", "image"]):
-            return JsonResponse({"status": 1, "message": f"Error: dataset_id, name, and image must be set."})
+            return JsonResponse({"status": 1, "message": "Error: dataset_id, name, and image must be set."})
 
         dataset_id_prefix = data["dataset_id"]
         dataset_name = data["name"]
@@ -429,7 +430,10 @@ def admin_import_ir_dataset(request, task_id):
         irds_import_command = (
             f'/irds_cli.sh --skip_qrels true --ir_datasets_id {data["dataset_id"]} --output_dataset_path $outputDir'
         )
-        irds_import_truth_command = f'/irds_cli.sh --skip_documents true --ir_datasets_id {data["dataset_id"]} --output_dataset_truth_path $outputDir'
+        irds_import_truth_command = (
+            f'/irds_cli.sh --skip_documents true --ir_datasets_id {data["dataset_id"]} --output_dataset_truth_path'
+            " $outputDir"
+        )
 
         master_vm_id = None
 
@@ -458,11 +462,11 @@ def admin_import_ir_dataset(request, task_id):
                 )
             else:
                 return JsonResponse(
-                    {"status": 1, "message": f"Invalid data type. Expected training or test, got : " + data["type"]}
+                    {"status": 1, "message": "Invalid data type. Expected training or test, got : " + data["type"]}
                 )
         except FileExistsError as e:
             logger.exception(e)
-            return JsonResponse({"status": 1, "message": f"A Dataset with this id already exists. Error: " + str(e)})
+            return JsonResponse({"status": 1, "message": "A Dataset with this id already exists. Error: " + str(e)})
 
         model.add_evaluator(
             master_vm_id,
@@ -498,7 +502,7 @@ def admin_import_ir_dataset(request, task_id):
         except Exception as e:
             return JsonResponse({"status": 1, "context": {}, "message": f"Import of dataset failed with: {e}."})
 
-    return JsonResponse({"status": 1, "message": f"GET is not implemented for add dataset"})
+    return JsonResponse({"status": 1, "message": "GET is not implemented for add dataset"})
 
 
 @check_permissions
@@ -540,7 +544,7 @@ def admin_add_organizer(request, organizer_id):
         auth.create_organizer_group(organizer_id, auth.get_user_id(request))
         return JsonResponse({"status": 0, "message": f"Added Organizer {organizer_id}"})
 
-    return JsonResponse({"status": 1, "message": f"GET is not implemented for add organizer"})
+    return JsonResponse({"status": 1, "message": "GET is not implemented for add organizer"})
 
 
 @check_permissions
@@ -562,7 +566,7 @@ def admin_edit_organizer(request, organizer_id):
         )
         return JsonResponse({"status": 0, "message": f"Updated Organizer {organizer_id}"})
 
-    return JsonResponse({"status": 1, "message": f"GET is not implemented for edit organizer"})
+    return JsonResponse({"status": 1, "message": "GET is not implemented for edit organizer"})
 
 
 @check_conditional_permissions(restricted=True)
@@ -586,7 +590,7 @@ def admin_edit_review(request, dataset_id, vm_id, run_id):
 
         # sanity checks
         if no_errors and (output_error or software_error):
-            JsonResponse({"status": 1, "message": f"Error type is not clearly selected."})
+            JsonResponse({"status": 1, "message": "Error type is not clearly selected."})
 
         username = auth.get_user_id(request)
         has_errors = output_error or software_error
@@ -608,7 +612,7 @@ def admin_edit_review(request, dataset_id, vm_id, run_id):
         )
         return JsonResponse({"status": 0, "message": f"Updated review for run {run_id}"})
 
-    return JsonResponse({"status": 1, "message": f"GET is not implemented for edit organizer"})
+    return JsonResponse({"status": 1, "message": "GET is not implemented for edit organizer"})
 
 
 @check_permissions
@@ -619,7 +623,7 @@ def admin_upload_dataset(request, task_id, dataset_id, dataset_type):
     if not dataset_id or dataset_id is None or dataset_id == "None":
         return JsonResponse({"status": 1, "message": "Please specify the associated dataset."})
 
-    if not dataset_type in ["input", "truth"]:
+    if dataset_type not in ["input", "truth"]:
         return JsonResponse(
             {"status": 1, "message": f"Invalid dataset_type. Expected 'input' or 'truth', but got: '{dataset_type}'"}
         )
@@ -635,26 +639,30 @@ def admin_upload_dataset(request, task_id, dataset_id, dataset_type):
 
     dataset = model.get_dataset(dataset_id)
 
-    if not "dataset_id" in dataset or dataset_id != dataset["dataset_id"]:
-        return JsonResponse({"status": 1, "message": f"Unknown dataset_id."})
+    if "dataset_id" not in dataset or dataset_id != dataset["dataset_id"]:
+        return JsonResponse({"status": 1, "message": "Unknown dataset_id."})
 
     if dataset_id.endswith("-test"):
         dataset_prefix = "test-"
     elif dataset_id.endswith("-training"):
         dataset_prefix = "training-"
     else:
-        return JsonResponse({"status": 1, "message": f"Unknown dataset_id."})
+        return JsonResponse({"status": 1, "message": "Unknown dataset_id."})
 
     target_directory = model.model.data_path / (dataset_prefix + "datasets" + dataset_suffix) / task_id / dataset_id
 
     if not os.path.exists(target_directory):
-        return JsonResponse({"status": 1, "message": f"Dataset directory 'target_directory' does not exist."})
+        return JsonResponse({"status": 1, "message": "Dataset directory 'target_directory' does not exist."})
 
     if len(os.listdir(target_directory)) > 0:
         return JsonResponse(
             {
                 "status": 1,
-                "message": f"There is already some dataset uploaded. We prevent to overwrite data. Please create a new dataset (i.e., a new version) if you want to update the dataset. Please reach out to us if creating a new dataset would not solve your problem.",
+                "message": (
+                    "There is already some dataset uploaded. We prevent to overwrite data. Please create a new dataset"
+                    " (i.e., a new version) if you want to update the dataset. Please reach out to us if creating a"
+                    " new dataset would not solve your problem."
+                ),
             }
         )
 

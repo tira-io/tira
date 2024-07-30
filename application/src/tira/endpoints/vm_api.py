@@ -3,6 +3,7 @@ import logging
 from functools import wraps
 from http import HTTPStatus
 
+from discourse_client_in_disraptor.discourse_api_client import get_disraptor_user
 from django.conf import settings
 from django.core.cache import cache
 from django.db.utils import IntegrityError
@@ -14,14 +15,12 @@ from markdown import markdown
 import tira.tira_model as model
 from tira.authentication import auth
 from tira.checks import check_conditional_permissions, check_permissions, check_resources_exist
-from tira.forms import *
 from tira.grpc_client import GrpcClient
 from tira.model import EvaluationLog, TransitionLog
 from tira.util import get_tira_id, link_to_discourse_team, reroute_host
 from tira.views import add_context
 
 include_navigation = False
-from discourse_client_in_disraptor.discourse_api_client import get_disraptor_user
 
 logger = logging.getLogger("tira")
 logger.info("ajax_routes: Logger active")
@@ -41,10 +40,10 @@ def host_call(func):
                 logger.exception(f"{request.get_full_path()}: connection failed with {e}")
                 if e.code() == StatusCode.UNAVAILABLE:  # .code() is implemented by the _channel._InteractiveRpcError
                     logger.exception(f"Connection Unavailable: {e.debug_error_string()}")
-                    ex_message = (
-                        f"The requested host is unavailable. If you think this is a mistake, please contact "
+                    ex_message = (  # This happens if the GRPC Server is not running
+                        "The requested host is unavailable. If you think this is a mistake, please contact "
                         "your task organizer."
-                    )  # This happens if the GRPC Server is not running
+                    )
                 if e.code() == StatusCode.INVALID_ARGUMENT:
                     logger.exception(f"Invalid Argument: {e.debug_error_string()}")
                     ex_message = f"Response returned with an invalid argument: {e.debug_error_string()}"  #
@@ -168,7 +167,7 @@ def huggingface_model_mounts(request, vm_id, hf_model):
 
     try:
         context["hf_model_available"] = huggingface_model_mounts([hf_model.replace("--", "/")]) is not None
-    except:
+    except Exception:
         pass
 
     if not context["hf_model_available"]:
@@ -336,7 +335,7 @@ def software_save(request, task_id, vm_id, software_id):
             message = str(e)
 
         return JsonResponse({"status": 1, "message": message}, status=HTTPStatus.BAD_REQUEST)
-    return JsonResponse({"status": 1, "message": f"GET is not implemented for add dataset"})
+    return JsonResponse({"status": 1, "message": "GET is not implemented for add dataset"})
 
 
 @check_permissions
@@ -350,8 +349,7 @@ def software_delete(request, task_id, vm_id, software_id):
         return JsonResponse(
             {
                 "status": 1,
-                "message": "Cannot delete software, because it has a valid "
-                "evaluation assigned (or it does not exist.)",
+                "message": "Cannot delete software, because it has a valid evaluation assigned (or it does not exist.)",
             },
             status=HTTPStatus.INTERNAL_SERVER_ERROR,
         )
@@ -556,7 +554,7 @@ def docker_software_add(request, task_id, vm_id):
 
             if not data.get("build_environment"):
                 return JsonResponse(
-                    {"status": 1, "message": f"Please specify the build_environment for linking the code."}
+                    {"status": 1, "message": "Please specify the build_environment for linking the code."}
                 )
 
             build_environment = json.dumps(data.get("build_environment"))
@@ -602,14 +600,14 @@ def docker_software_save(request, task_id, vm_id, docker_software_id):
             )
             return JsonResponse({"status": 0, "message": "Software edited successfully"})
         except Exception as e:
-            return JsonResponse({"status": 1, "message": f"Error while editing software: " + str(e)})
-    return JsonResponse({"status": 1, "message": f"GET is not implemented for edit software"})
+            return JsonResponse({"status": 1, "message": f"Error while editing software: {e}"})
+    return JsonResponse({"status": 1, "message": "GET is not implemented for edit software"})
 
 
 @check_permissions
 def add_software_submission_git_repository(request, task_id, vm_id):
     if request.method != "POST":
-        return JsonResponse({"status": 1, "message": f"GET is not implemented for edit upload"})
+        return JsonResponse({"status": 1, "message": "GET is not implemented for edit upload"})
 
     try:
         data = json.loads(request.body)
@@ -617,8 +615,8 @@ def add_software_submission_git_repository(request, task_id, vm_id):
         private = not data.get("allow_public_repo", False)
         disraptor_user = get_disraptor_user(request, allow_unauthenticated_user=False)
 
-        if not disraptor_user or not type(disraptor_user) == str:
-            return JsonResponse({"status": 1, "message": f"Please authenticate."})
+        if not disraptor_user or not isinstance(disraptor_user, str):
+            return JsonResponse({"status": 1, "message": "Please authenticate."})
 
         if not model.github_user_exists(external_owner):
             return JsonResponse(
@@ -633,23 +631,23 @@ def add_software_submission_git_repository(request, task_id, vm_id):
     except Exception as e:
         logger.exception(e)
         logger.warning("Error while adding your git repository: " + str(e))
-        return JsonResponse({"status": 1, "message": f"Error while adding your git repository: " + str(e)})
+        return JsonResponse({"status": 1, "message": f"Error while adding your git repository: {e}"})
 
 
 @check_permissions
 def get_token(request, vm_id):
     disraptor_user = get_disraptor_user(request, allow_unauthenticated_user=False)
 
-    if not disraptor_user or not type(disraptor_user) == str:
-        return JsonResponse({"status": 1, "message": f"Please authenticate."})
+    if not disraptor_user or not isinstance(disraptor_user, str):
+        return JsonResponse({"status": 1, "message": "Please authenticate."})
 
     try:
         return JsonResponse(
             {"status": 0, "context": {"token": model.get_discourse_token_for_user(vm_id, disraptor_user)}}
         )
-    except:
+    except Exception:
         return JsonResponse(
-            {"status": 1, "message": f"Could not extract the discourse/disraptor user, please authenticate."}
+            {"status": 1, "message": "Could not extract the discourse/disraptor user, please authenticate."}
         )
 
 
@@ -665,7 +663,7 @@ def get_software_submission_git_repository(request, task_id, vm_id):
     except Exception as e:
         logger.exception(e)
         logger.warning("Error while getting your git repository: " + str(e))
-        return JsonResponse({"status": 1, "message": f"Error while getting your git repository: " + str(e)})
+        return JsonResponse({"status": 1, "message": f"Error while getting your git repository: {e}"})
 
 
 @check_permissions
@@ -681,8 +679,8 @@ def upload_save(request, task_id, vm_id, upload_id):
         except Exception as e:
             logger.exception(e)
             logger.warning("Error while editing upload: " + str(e))
-            return JsonResponse({"status": 1, "message": f"Error while editing upload: " + str(e)})
-    return JsonResponse({"status": 1, "message": f"GET is not implemented for edit upload"})
+            return JsonResponse({"status": 1, "message": f"Error while editing upload: {e}"})
+    return JsonResponse({"status": 1, "message": "GET is not implemented for edit upload"})
 
 
 @check_permissions
@@ -696,8 +694,9 @@ def docker_software_delete(request, task_id, vm_id, docker_software_id):
         return JsonResponse(
             {
                 "status": 1,
-                "message": "Cannot delete docker software, because it has a valid "
-                "evaluation assigned (or it does not exist.)",
+                "message": (
+                    "Cannot delete docker software, because it has a valid evaluation assigned (or it does not exist.)"
+                ),
             },
             status=HTTPStatus.INTERNAL_SERVER_ERROR,
         )
@@ -729,9 +728,11 @@ def construct_verbosity_output(image, command, approach, task, dataset):
         + approach
         + "'",
         "python_command": f'tira.run("{approach}", "tira-dataset")',
-        "docker_command": "docker run --rm -ti \\\n  -v ${PWD}/tira-dataset:/tira-data/input:ro \\\n  -v "
-        "${PWD}/tira-output:/tira-data/output:rw -\\\n  -entrypoint sh " + f"\\\n  "
-        f"t{image} \\\n  -c '{command}'",
+        "docker_command": (
+            "docker run --rm -ti \\\n  -v ${PWD}/tira-dataset:/tira-data/input:ro \\\n  -v "
+            "${PWD}/tira-output:/tira-data/output:rw -\\\n  -entrypoint sh "
+        )
+        + f"\\\n  t{image} \\\n  -c '{command}'",
         "image": image,
         "command": command,
     }
@@ -742,7 +743,9 @@ def __rendered_references(task_id, vm_id, run):
     bib_references = {
         "run": "@Comment {No bib entry specified for the run, please contact the team/organizers for clarification.}",
         "task": "@Comment {No bib entry specified for the task, please contact the organizers for clarification.}",
-        "dataset": "@Comment {No bib entry specified for the dataset, please contact the organizers for clarification.}",
+        "dataset": (
+            "@Comment {No bib entry specified for the dataset, please contact the organizers for clarification.}"
+        ),
     }
     markdown_references = {"run": None, "task": None, "dataset": None}
 
@@ -799,7 +802,8 @@ def __rendered_references(task_id, vm_id, run):
 
     if run["software"] == "MonoT5 3b (tira-ir-starter-gygaggle)":
         markdown_references["run"] = (
-            "The implementation of [MonoT5](https://arxiv.org/abs/2101.05667) in [PyGaggle](https://ir.webis.de/anthology/2021.sigirconf_conference-2021.304/)."
+            "The implementation of [MonoT5](https://arxiv.org/abs/2101.05667) in"
+            " [PyGaggle](https://ir.webis.de/anthology/2021.sigirconf_conference-2021.304/)."
         )
         bib_references[
             "run"
@@ -834,7 +838,8 @@ def __rendered_references(task_id, vm_id, run):
 
     if run["software"] == "DLH (tira-ir-starter-pyterrier)":
         markdown_references["run"] = (
-            "The implementation of [DLH](https://ir.webis.de/anthology/2006.ecir_conference-2006.3/) in [PyTerrier](https://ir.webis.de/anthology/2021.cikm_conference-2021.533/)."
+            "The implementation of [DLH](https://ir.webis.de/anthology/2006.ecir_conference-2006.3/) in"
+            " [PyTerrier](https://ir.webis.de/anthology/2021.cikm_conference-2021.533/)."
         )
         bib_references[
             "run"
@@ -853,8 +858,8 @@ def __rendered_references(task_id, vm_id, run):
   timestamp = {Tue, 14 May 2019 10:00:37 +0200},
   biburl    = {https://dblp.org/rec/conf/ecir/Amati06.bib},
   bibsource = {dblp computer science bibliography, https://dblp.org}
-}       
-        
+}
+
 @inproceedings{macdonald-2021-pyterrier,
   author    = {Craig Macdonald and Nicola Tonellotto and Sean MacAvaney and Iadh Ounis},
   editor    = {Gianluca Demartini and Guido Zuccon and J. Shane Culpepper and Zi Huang and Hanghang Tong},
@@ -885,7 +890,7 @@ def __rendered_references(task_id, vm_id, run):
     if missing_references:
         ret_markdown += [
             "There are missing references for "
-            + (", ".join(missing_references))
+            + ", ".join(missing_references)
             + ". "
             + "Please contact the organizers "
             + f'[{task["organizer"]}](https://www.tira.io/g/tira_org_{task["organizer_id"]}) or the team '
@@ -928,7 +933,7 @@ def run_details(request, task_id, vm_id, run_id):
         vm_id_from_run = run_upload.vm.vm_id
 
     if not vm_id_from_run or vm_id != vm_id_from_run:
-        return HttpResponseNotAllowed(f"Access forbidden.")
+        return HttpResponseNotAllowed("Access forbidden.")
 
     ret = {
         "description": "No description is available.",
@@ -1033,10 +1038,12 @@ def run_execute_docker_software(
             return JsonResponse(
                 {
                     "status": 1,
-                    "message": f"The execution of your software depends on the reranking dataset {rerank_dataset}"
-                    f", but {rerank_dataset} was never executed on the dataset {dataset_id}. "
-                    f"Please execute first the software on the specified dataset so that you can re-rank it. "
-                    f"{visit_job_message}",
+                    "message": (
+                        f"The execution of your software depends on the reranking dataset {rerank_dataset}"
+                        f", but {rerank_dataset} was never executed on the dataset {dataset_id}. "
+                        "Please execute first the software on the specified dataset so that you can re-rank it. "
+                        f"{visit_job_message}"
+                    ),
                 }
             )
 

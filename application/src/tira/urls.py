@@ -70,7 +70,10 @@ urlpatterns = [
     path("grpc/<str:vm_id>/get_running_evaluations", vm_api.get_running_evaluations, name="get_running_evaluations"),
     path("grpc/<str:task_id>/<str:vm_id>/run_execute/vm/<str:software_id>", vm_api.run_execute, name="run_execute"),
     path(
-        "grpc/<str:task_id>/<str:vm_id>/run_execute/docker/<str:dataset_id>/<str:docker_software_id>/<str:docker_resources>/<str:rerank_dataset>",
+        (
+            "grpc/<str:task_id>/<str:vm_id>/run_execute/docker/<str:dataset_id>/<str:docker_software_id>/"
+            "<str:docker_resources>/<str:rerank_dataset>"
+        ),
         vm_api.run_execute_docker_software,
         name="run_execute_docker_software",
     ),

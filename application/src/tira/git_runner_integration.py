@@ -109,7 +109,7 @@ class GitRunner:
         try:
             # for some git versions we need to manually switch, may fail if the branch is already correct
             repo.git.checkout("-b", self.user_repository_branch)
-        except:
+        except Exception:
             pass
 
     def clone_repository_and_create_new_branch(self, repo_url, branch_name, directory):
@@ -167,19 +167,19 @@ class GitRunner:
             "TIRA_EVALUATION_SOFTWARE_ID": evaluator_id,
         }
 
-        if mount_hf_model and type(mount_hf_model) == str and len(mount_hf_model.strip()) > 0:
+        if mount_hf_model and isinstance(mount_hf_model, str) and len(mount_hf_model.strip()) > 0:
             metadata["TIRA_MOUNT_HF_MODEL"] = mount_hf_model.strip()
 
-        if workdir_in_user_image and type(workdir_in_user_image) == str and len(workdir_in_user_image.strip()) > 0:
+        if workdir_in_user_image and isinstance(workdir_in_user_image, str) and len(workdir_in_user_image.strip()) > 0:
             metadata["TIRA_WORKDIR"] = workdir_in_user_image.strip()
 
-        if input_run and type(input_run) != list:
+        if input_run and not isinstance(input_run, list):
             metadata["TIRA_INPUT_RUN_DATASET_ID"] = input_run["dataset_id"]
             metadata["TIRA_INPUT_RUN_VM_ID"] = input_run["vm_id"]
             metadata["TIRA_INPUT_RUN_RUN_ID"] = input_run["run_id"]
             if input_run.get("replace_original_dataset", False):
                 metadata["TIRA_INPUT_RUN_REPLACES_ORIGINAL_DATASET"] = "true"
-        elif input_run and type(input_run) == list and len(input_run) > 0:
+        elif input_run and isinstance(input_run, list) and len(input_run) > 0:
             metadata["TIRA_INPUT_RUN_DATASET_IDS"] = json.dumps([i["dataset_id"] for i in input_run])
             metadata["TIRA_INPUT_RUN_VM_IDS"] = json.dumps([i["vm_id"] for i in input_run])
             metadata["TIRA_INPUT_RUN_RUN_IDS"] = json.dumps([i["run_id"] for i in input_run])
@@ -599,7 +599,7 @@ class GitRunner:
                 software_metadata = get_docker_software(int(job["TIRA_SOFTWARE_ID"].replace("docker-software-", "")))
                 if copy_runs:
                     runs = get_docker_softwares_with_runs(job["TIRA_TASK_ID"], job["TIRA_VM_ID"])
-            except:
+            except Exception:
                 continue
 
             if copy_runs:
@@ -685,7 +685,7 @@ class GitRunner:
         # open((Path(working_directory) / 'README.md').absolute(), 'a+').write(render_to_string('tira/tira_git_cmd.py', context={}))
 
         if persist_datasets:
-            logger.info(f"Archive datasets")
+            logger.info("Archive datasets")
             for dataset_name, dataset_definition in tqdm(datasets.items(), "Archive Datasets"):
                 if "is_confidential" in dataset_definition and not dataset_definition["is_confidential"]:
                     for i in ["training-datasets", "training-datasets-truth"]:
@@ -1148,7 +1148,7 @@ class GitLabRunner(GitRunner):
                         stdout = ""
                         user_software_job = gl_project.jobs.get(user_software_job.id)
                         stdout = self.clean_job_output(user_software_job.trace().decode("UTF-8"))
-                    except:
+                    except Exception:
                         # Job is not started or similar
                         pass
 
@@ -1273,7 +1273,10 @@ class GitLabRunner(GitRunner):
                     "run_id": run_id,
                     "execution": {"scheduling": "failed", "execution": "failed", "evaluation": "failed"},
                     "pipeline_name": p,
-                    "stdOutput": "Job did not run. (Maybe it is still submitted to the cluster or failed to start. It might take up to 5 minutes to submit a Job to the cluster.)",
+                    "stdOutput": (
+                        "Job did not run. (Maybe it is still submitted to the cluster or failed to start. It might take"
+                        " up to 5 minutes to submit a Job to the cluster.)"
+                    ),
                     "started_at": p.split("---")[-1],
                     "branch": branch,
                     "job_config": job_config,
@@ -1414,7 +1417,7 @@ class GithubRunner(GitRunner):
     def git_user_exists(self, user_name):
         try:
             return self.gitHoster_client.get_user(user_name) is not None
-        except:
+        except Exception:
             return False
 
     def get_git_runner_for_software_integration(
@@ -1438,7 +1441,7 @@ class GithubRunner(GitRunner):
             user_repo = user.get_repo(f"{user_repository_namespace}/{user_repository_name}")
             if user_repo:
                 return user_repo
-        except:
+        except Exception:
             # repository does not exist.
             pass
 

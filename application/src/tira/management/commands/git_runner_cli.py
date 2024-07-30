@@ -62,24 +62,24 @@ class Command(BaseCommand):
         import tira.model as modeldb
 
         with open(options["archive_repository_add_images_from_git_repo"], "r") as f:
-            for l in tqdm(f):
-                l = json.loads(l)
-                if "docker-software-" not in l["TIRA_SOFTWARE_ID"]:
+            for line in tqdm(f):
+                data = json.loads(line)
+                if "docker-software-" not in data["TIRA_SOFTWARE_ID"]:
                     print("Skip")
                     continue
 
-                docker_software_id = int(l["TIRA_SOFTWARE_ID"].split("docker-software-")[1])
+                docker_software_id = int(data["TIRA_SOFTWARE_ID"].split("docker-software-")[1])
                 software = modeldb.DockerSoftware.objects.get(docker_software_id=docker_software_id)
                 if (
-                    l["TIRA_COMMAND_TO_EXECUTE"] != software.command
-                    or not l["TIRA_IMAGE_TO_EXECUTE"].startswith(software.user_image_name)
-                    or l["TIRA_IMAGE_TO_EXECUTE"] != software.tira_image_name
+                    data["TIRA_COMMAND_TO_EXECUTE"] != software.command
+                    or not data["TIRA_IMAGE_TO_EXECUTE"].startswith(software.user_image_name)
+                    or data["TIRA_IMAGE_TO_EXECUTE"] != software.tira_image_name
                 ):
                     print("Skip")
                     continue
 
-                software.public_image_name = l["TIRA_IMAGE_TO_EXECUTE_IN_DOCKERHUB"]
-                software.public_image_size = max(l["image_details"]["size"], l["image_details"]["virtual_size"])
+                software.public_image_name = data["TIRA_IMAGE_TO_EXECUTE_IN_DOCKERHUB"]
+                software.public_image_size = max(data["image_details"]["size"], data["image_details"]["virtual_size"])
                 software.save()
 
     def archive_docker_software(self, approach, git_runner):
@@ -165,11 +165,13 @@ class Command(BaseCommand):
                 vm_id="princess-knight",
                 run_id=get_tira_id(),
                 git_runner_image="webis/pan-clickbait-spoiling-evaluator:0.0.10",
-                git_runner_command="""bash -c '/clickbait-spoiling-eval.py --task 2 --ground_truth_spoiler $inputDataset --input_run $inputRun --output_prototext ${outputDir}/evaluation.prototext'""",
+                git_runner_command="bash -c '/clickbait-spoiling-eval.py --task 2 --ground_truth_spoiler $inputDataset --input_run $inputRun --output_prototext ${outputDir}/evaluation.prototext'",
                 git_repository_id=2761,
                 evaluator_id="task-2-spoiler-generation-validation-20220924-training-evaluator",
                 user_image_to_execute="registry.webis.de/code-research/tira/tira-user-princess-knight/naive-baseline-task2:0.0.1-tira-docker-software-id-genteel-upstream",
-                user_command_to_execute="/naive-baseline-task-2.py --input $inputDataset/input.jsonl --output $outputDir/run.jsonl",
+                user_command_to_execute=(
+                    "/naive-baseline-task-2.py --input $inputDataset/input.jsonl --output $outputDir/run.jsonl"
+                ),
                 tira_software_id="17",
                 resources="small-resources-gpu",
             )

@@ -13,7 +13,8 @@ if __name__ == "__main__":
     args = parse_args()
 
     print(
-        f"This is a demo, I ignore the passed input {args.input} and write some content into the output file {args.output}."
+        f"This is a demo, I ignore the passed input {args.input} and write some content into the output file"
+        f" {args.output}."
     )
     with open(args.output + "/predictions.jsonl", "w") as f:
         f.write("hello world")

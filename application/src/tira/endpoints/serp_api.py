@@ -6,7 +6,6 @@ from django.http import HttpResponse, JsonResponse
 
 from tira.checks import check_permissions
 from tira.endpoints.diffir_api import doc_file_for_run
-from tira.forms import *
 from tira.views import add_context
 
 logger = logging.getLogger("tira")

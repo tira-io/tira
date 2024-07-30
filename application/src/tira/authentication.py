@@ -1,6 +1,4 @@
-"""
-
-"""
+""" """
 
 import json
 import logging
@@ -26,8 +24,8 @@ class Authentication(object):
     ROLE_TIRA = "tira"  # super admin if we ever need it
     ROLE_ADMIN = "admin"  # is admin for the requested resource, so all permissions
     ROLE_PARTICIPANT = "participant"  # has edit but not admin permissions - user-header is set, group is set
-    ROLE_USER = (
-        "user"  # is logged in, but has no edit permissions - user-header is set, group (tira-vm-vm_id) is not set
+    ROLE_USER = (  # is logged in, but has no edit permissions - user-header is set, group (tira-vm-vm_id) is not set
+        "user"
     )
     ROLE_FORBIDDEN = "forbidden"
     ROLE_GUEST = "guest"  # not logged in -> user-header is not set
@@ -104,7 +102,8 @@ class Authentication(object):
 
     def is_admin_for_task(self, request):
         """
-        Returns true if the user is an admin for the task specified in the request (false if the request url does not point to a task or if the user is only admin for some other task).
+        Returns true if the user is an admin for the task specified in the request (false if the request url does not
+        point to a task or if the user is only admin for some other task).
         """
         organizer_ids = auth.get_organizer_ids(request)
 
@@ -122,7 +121,7 @@ class Authentication(object):
 
         try:
             task = model.get_task(task_id)
-        except:
+        except Exception:
             return False
 
         if not task:
@@ -137,7 +136,7 @@ def check_disraptor_token(func):
         _DISRAPTOR_APP_SECRET_KEY = os.getenv("DISRAPTOR_APP_SECRET_KEY")
 
         if not request.headers.get("X-Disraptor-App-Secret-Key", None) == _DISRAPTOR_APP_SECRET_KEY:
-            return HttpResponseNotAllowed(f"Access forbidden.")
+            return HttpResponseNotAllowed("Access forbidden.")
 
         return func(auth, request, *args, **kwargs)
 
@@ -259,7 +258,7 @@ class DisraptorAuthentication(Authentication):
         vms = self._get_user_groups(request)
         user_id = self._get_user_id(request)
 
-        if user_id == None:
+        if user_id is None:
             return vms
 
         return vms if len(vms) >= 1 else [Authentication.get_default_vm_id(user_id)]
@@ -317,15 +316,16 @@ Best regards"""
         """
         vm_group = self._create_discourse_vm_group(vm)
         invite_link = self.discourse_client.create_invite_link(vm_group)
-        message = f"""Invite Mail: Please use this link to create your login for TIRA: {invite_link}. 
+        message = f"""Invite Mail: Please use this link to create your login for TIRA: {invite_link}.
                       After login to TIRA, you can find the credentials and usage examples for your
                       dedicated virtual machine {vm['vm_id']} here: https://www.tira.io/g/tira_vm_{vm['vm_id']}"""
 
         return message
 
     def create_organizer_group(self, organizer_name, user_name):
-        group_bio = f"""Members of this team organize shared tasks in TIRA as  in shared tasks as {organizer_name}. <br><br>
-        
+        group_bio = f"""Members of this team organize shared tasks in TIRA as  in shared tasks as {organizer_name}.
+        <br><br>
+
         Please do not hesitate to design your page accorging to your needs."""
 
         group_id = self.discourse_client.create_group(f"tira_org_{organizer_name}", group_bio, 0)
@@ -333,7 +333,7 @@ Best regards"""
 
     def create_docker_group(self, team_name, user_name):
         group_bio = f"""Members of this team participate in shared tasks as {team_name}. <br><br>
-        
+
         Please do not hesitate to design your team's page accorging to your needs."""
 
         group_id = self.discourse_client.create_group(f"tira_vm_{slugify(team_name)}", group_bio, 0)
@@ -388,13 +388,13 @@ Best regards"""
             try:
                 dataset_id_from_run = model.get_run(run_id=run_id_from_params, vm_id=None, dataset_id=None)["dataset"]
                 organizer_id_from_run_id = model.get_dataset(dataset_id_from_run)["organizer_id"]
-            except:
+            except Exception:
                 return False
 
         if dataset_id_from_params:
             try:
                 organizer_id_from_dataset_id = model.get_dataset(dataset_id_from_params).get("organizer_id", None)
-            except:
+            except Exception:
                 return False
 
         potentially_inconsistent_ids = [
@@ -409,7 +409,7 @@ Best regards"""
         if task_id:
             try:
                 task = model.get_task(task_id)
-            except:
+            except Exception:
                 pass
 
         return (
@@ -455,7 +455,7 @@ Best regards"""
             or (
                 organizer_id_from_dataset_id
                 and organizer_id_from_dataset_id in organizer_ids
-                and path.startswith(f"/data-download/")
+                and path.startswith("/data-download/")
                 and path.endswith(f"/{dataset_id_from_params}.zip")
             )
         )

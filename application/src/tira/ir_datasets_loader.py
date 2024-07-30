@@ -80,7 +80,7 @@ class IrDatasetsLoader(object):
 
         try:
             return ir_datasets.load(ir_datasets_id)
-        except:
+        except Exception:
             raise ValueError(f"Could not load the dataset {ir_datasets_id}. Does it exist?")
 
     def yield_docs(self, dataset, include_original, skip_duplicate_ids, allowlist_path_ids):
@@ -137,9 +137,11 @@ class IrDatasetsLoader(object):
         if not skip_qrels:
             try:
                 qrels_mapped = [self.map_qrel(qrel) for qrel in dataset.qrels_iter()]
-            except:
+            except Exception:
                 print(
-                    'WARNING: I could not load qrels and will skip writing the file "qrels.txt". This is expected if your dataset has no qrels yet. If you have qrels, please debug this problem locally on your machine.'
+                    'WARNING: I could not load qrels and will skip writing the file "qrels.txt". This is expected if'
+                    " your dataset has no qrels yet. If you have qrels, please debug this problem locally on your"
+                    " machine."
                 )
                 qrels_mapped = []
 
@@ -255,7 +257,7 @@ class IrDatasetsLoader(object):
             for doc in tqdm(docstore.get_many_iter(doc_ids), total=len(doc_ids), desc="Get Docs"):
                 ret[doc.doc_id] = doc
             return ret
-        except:
+        except Exception:
             ret = {}
             doc_ids = set(doc_ids)
             for doc_id in tqdm(doc_ids, total=len(doc_ids), desc="Get Docs"):

@@ -9,7 +9,7 @@ tira_cli_io_utils = None
 
 for p in sys.path:
     p = str(os.path.abspath(p)) + "/"
-    if ("-packages/") in p:
+    if "-packages/" in p:
         p = p.split("-packages/")[0] + "-packages/"
 
     if os.path.exists(f"{p}/tira/io_utils.py"):

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-    GrpcClient to make gRPC calls to the dockerized host running a VM.
+GrpcClient to make gRPC calls to the dockerized host running a VM.
 """
 import logging
 from functools import wraps

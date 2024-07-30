@@ -1,5 +1,7 @@
 from django.core.management.base import BaseCommand
 
+# TODO: can I be removed?
+
 
 class Command(BaseCommand):
     """Runs some playground command."""

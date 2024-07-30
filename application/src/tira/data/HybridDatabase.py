@@ -26,8 +26,6 @@ from tira.util import (
 
 logger = logging.getLogger("tira_db")
 
-# SELECT tira_dockersoftware.vm_id, COUNT(DISTINCT(tira_dockersoftware.docker_software_id)) AS 'Software Count', SUM(tira_run.run_id IS NOT NULL) AS 'Executed Runs' FROM tira_dockersoftware LEFT JOIN tira_run ON tira_dockersoftware.docker_software_id = tira_run.docker_software_id where tira_dockersoftware.task_id = 'webpage-classification' GROUP BY tira_dockersoftware.vm_id;
-
 
 class HybridDatabase(object):
     """
@@ -180,7 +178,7 @@ class HybridDatabase(object):
         new_vm_file_path = self.vm_dir_path / f"{vm_id}.prototext"
 
         if not overwrite and new_vm_file_path.exists():
-            raise TiraModelWriteError(f"Failed to write vm, vm exists and overwrite is not allowed here")
+            raise TiraModelWriteError("Failed to write vm, vm exists and overwrite is not allowed here")
         elif overwrite and new_vm_file_path.exists():
             vm = Parse(open(new_vm_file_path).read(), modelpb.VirtualMachine())
         else:
@@ -269,7 +267,7 @@ class HybridDatabase(object):
             org_id = ""
         try:
             master_vm_id = task.vm.vm_id
-        except AttributeError as e:
+        except AttributeError:
             logger.error(f"Task with id {task.task_id} has no master vm associated")
             master_vm_id = "None"
 
@@ -490,7 +488,7 @@ class HybridDatabase(object):
                 "owner_url": ret.external_owner,
                 "http_owner_url": "https://github.com/" + ret.external_owner,
             }
-        except:
+        except Exception:
             return {} if not return_object else None
 
     def get_host_list(self) -> list:
@@ -670,7 +668,7 @@ class HybridDatabase(object):
     def get_discourse_token_for_user(self, vm_id):
         try:
             return modeldb.DiscourseTokenForUser.objects.get(vm_id__vm_id=vm_id).token
-        except:
+        except Exception:
             return None
 
     def create_discourse_token_for_user(self, vm_id, discourse_api_key):
@@ -714,7 +712,7 @@ class HybridDatabase(object):
                 docker_software__docker_software_id=ds.docker_software_id
             )
             link_code = self.__link_to_code(link_code.build_environment)
-        except Exception as e:
+        except Exception:
             link_code = None
 
         mount_hf_model = None
@@ -807,7 +805,8 @@ class HybridDatabase(object):
         prepared_statement = """
         SELECT
             tira_run.input_dataset_id,
-            SUM(CASE WHEN tira_review.has_errors = False AND tira_review.has_no_errors = FALSE AND tira_review.has_warnings = FALSE THEN 1 ELSE 0 END) as ToReview,
+            SUM(CASE WHEN tira_review.has_errors = False AND tira_review.has_no_errors = FALSE AND
+                tira_review.has_warnings = FALSE THEN 1 ELSE 0 END) as ToReview,
             COUNT(*) as submissions
         FROM
             tira_run
@@ -834,8 +833,10 @@ class HybridDatabase(object):
         prepared_statement = """
             SELECT
                 tira_dockersoftware.vm_id as vm,
-                SUM(CASE WHEN tira_review.has_errors = False AND tira_review.has_no_errors = FALSE AND tira_review.has_warnings = FALSE THEN 1 ELSE 0 END) as ToReview,
-                COUNT(*) - SUM(CASE WHEN tira_review.has_errors = False AND tira_review.has_no_errors = FALSE AND tira_review.has_warnings = FALSE THEN 1 ELSE 0 END) as submissions,
+                SUM(CASE WHEN tira_review.has_errors = False AND tira_review.has_no_errors = FALSE AND
+                    tira_review.has_warnings = FALSE THEN 1 ELSE 0 END) as ToReview,
+                COUNT(*) - SUM(CASE WHEN tira_review.has_errors = False AND tira_review.has_no_errors = FALSE AND
+                    tira_review.has_warnings = FALSE THEN 1 ELSE 0 END) as submissions,
                 COUNT(*) as total
             FROM
                 tira_run
@@ -884,18 +885,23 @@ class HybridDatabase(object):
                 LEFT JOIN
                     tira_review as tira_run_review ON tira_run.run_id = tira_run_review.run_id
                 LEFT JOIN
-                    tira_softwareclone AS software_clone ON tira_dockersoftware.docker_software_id = software_clone.docker_software_id
+                    tira_softwareclone AS software_clone ON
+                        tira_dockersoftware.docker_software_id = software_clone.docker_software_id
                 LEFT JOIN
                     tira_softwareclone AS upload_clone ON tira_run.upload_id = upload_clone.upload_id
                 WHERE
-                    ((tira_run_review.published = TRUE AND tira_run_review.blinded = FALSE) OR tira_dockersoftware.task_id = 'ir-lab-padua-2024' OR tira_dockersoftware.task_id = 'ir-lab-sose-2024')
+                    ((tira_run_review.published = TRUE AND tira_run_review.blinded = FALSE) OR
+                        tira_dockersoftware.task_id = 'ir-lab-padua-2024' OR
+                        tira_dockersoftware.task_id = 'ir-lab-sose-2024')
                     AND tira_run.input_dataset_id = %s
-                    AND (tira_dockersoftware.task_id = %s OR tira_upload.task_id = %s OR tira_software.task_id = %s  or software_clone.task_id = %s or upload_clone.task_id = %s)
+                    AND (tira_dockersoftware.task_id = %s OR tira_upload.task_id = %s OR tira_software.task_id = %s  or
+                        software_clone.task_id = %s or upload_clone.task_id = %s)
                     AND (tira_dockersoftware.vm_id = %s OR tira_upload.vm_id = %s OR tira_software.vm_id = %s)
-                    AND (tira_dockersoftware.display_name = %s OR tira_upload.display_name = %s OR tira_software.id = %s)
-                    
+                    AND (tira_dockersoftware.display_name = %s OR tira_upload.display_name = %s OR
+                        tira_software.id = %s)
+
                 ORDER BY
-                    tira_run.run_id ASC;        
+                    tira_run.run_id ASC;
                 """
         params = [
             dataset_id,
@@ -929,22 +935,24 @@ class HybridDatabase(object):
         SELECT
             evaluation_run.input_dataset_id, evaluation_run.run_id, input_run.run_id, tira_upload.display_name,
             tira_upload.vm_id, tira_software.vm_id, tira_dockersoftware.display_name, tira_dockersoftware.vm_id,
-            tira_evaluation_review.published, tira_evaluation_review.blinded, tira_run_review.published, 
+            tira_evaluation_review.published, tira_evaluation_review.blinded, tira_run_review.published,
             tira_run_review.blinded, tira_evaluation.measure_key, tira_evaluation.measure_value,
             tira_run_review.reviewer_id, tira_run_review.no_errors, tira_run_review.has_errors,
-            tira_run_review.has_no_errors, tira_evaluation_review.reviewer_id, tira_run_review.reviewer_id, tira_linktosoftwaresubmissiongitrepository.build_environment
+            tira_run_review.has_no_errors, tira_evaluation_review.reviewer_id, tira_run_review.reviewer_id,
+            tira_linktosoftwaresubmissiongitrepository.build_environment
         FROM
             tira_run as evaluation_run
-        INNER JOIN 
-            tira_run as input_run ON evaluation_run.input_run_id = input_run.run_id
+        INNER JOIN
+             tira_run as input_run ON evaluation_run.input_run_id = input_run.run_id
         LEFT JOIN
-            tira_upload ON input_run.upload_id = tira_upload.id
+             tira_upload ON input_run.upload_id = tira_upload.id
         LEFT JOIN
-            tira_software ON input_run.software_id = tira_software.id
+             tira_software ON input_run.software_id = tira_software.id
         LEFT JOIN
-            tira_dockersoftware ON input_run.docker_software_id = tira_dockersoftware.docker_software_id
+             tira_dockersoftware ON input_run.docker_software_id = tira_dockersoftware.docker_software_id
         LEFT JOIN
-            tira_linktosoftwaresubmissiongitrepository ON tira_dockersoftware.docker_software_id = tira_linktosoftwaresubmissiongitrepository.docker_software_id
+             tira_linktosoftwaresubmissiongitrepository ON
+                tira_dockersoftware.docker_software_id = tira_linktosoftwaresubmissiongitrepository.docker_software_id
         LEFT JOIN
             tira_review as tira_evaluation_review ON evaluation_run.run_id = tira_evaluation_review.run_id
         LEFT JOIN
@@ -952,11 +960,11 @@ class HybridDatabase(object):
         LEFT JOIN
             tira_evaluation ON tira_evaluation.run_id = evaluation_run.run_id
         WHERE
-            evaluation_run.input_run_id is not null AND evaluation_run.deleted = FALSE 
-            AND evaluation_run.evaluator_id IS NOT NULL AND input_run.deleted = False 
-            AND (tira_dockersoftware.vm_id = %s OR tira_upload.vm_id = %s OR tira_software.vm_id = %s ) AND <CLAUSE>
+            evaluation_run.input_run_id is not null AND evaluation_run.deleted = FALSE
+             AND evaluation_run.evaluator_id IS NOT NULL AND input_run.deleted = False
+             AND (tira_dockersoftware.vm_id = %s OR tira_upload.vm_id = %s OR tira_software.vm_id = %s ) AND <CLAUSE>
         ORDER BY
-            tira_evaluation.id ASC;        
+            tira_evaluation.id ASC;
         """
 
         params = [vm_id, vm_id, vm_id]
@@ -980,13 +988,13 @@ class HybridDatabase(object):
                         tira_run as input_run
                    INNER JOIN
                         tira_upload ON input_run.upload_id = tira_upload.id
-                    LEFT JOIN 
+                    LEFT JOIN
                         tira_run as evaluation_run ON evaluation_run.input_run_id = input_run.run_id
                     WHERE
-                        evaluation_run.input_run_id is null AND input_run.deleted = False 
+                        evaluation_run.input_run_id is null AND input_run.deleted = False
                         AND tira_upload.vm_id = %s AND tira_upload.id = %s
                     ORDER BY
-                        input_run.run_id ASC;        
+                        input_run.run_id ASC;
                     """
 
             rows = self.execute_raw_sql_statement(prepared_statement, [vm_id, upload_id])
@@ -1130,7 +1138,7 @@ class HybridDatabase(object):
                 evaluation_run.run_id
             FROM
                 tira_run as evaluation_run
-            INNER JOIN 
+            INNER JOIN
                 tira_run as input_run ON evaluation_run.input_run_id = input_run.run_id
             LEFT JOIN
                 tira_upload ON input_run.upload_id = tira_upload.id
@@ -1274,16 +1282,16 @@ class HybridDatabase(object):
         """
         prepared_statement = """
         SELECT
-            evaluation_run.input_dataset_id, evaluation_run.run_id, input_run.run_id, tira_upload.display_name, tira_upload.vm_id, tira_software.vm_id,
-            tira_dockersoftware.display_name, tira_dockersoftware.vm_id, tira_evaluation_review.published,
-            tira_evaluation_review.blinded, tira_run_review.published, tira_run_review.blinded,
-            tira_evaluation.measure_key, tira_evaluation.measure_value, tira_run_review.reviewer_id, 
-            tira_run_review.no_errors, tira_run_review.has_errors, tira_run_review.has_no_errors,
-            tira_evaluation_review.reviewer_id, tira_run_review.reviewer_id, 
+            evaluation_run.input_dataset_id, evaluation_run.run_id, input_run.run_id, tira_upload.display_name,
+            tira_upload.vm_id, tira_software.vm_id, tira_dockersoftware.display_name, tira_dockersoftware.vm_id,
+            tira_evaluation_review.published, tira_evaluation_review.blinded, tira_run_review.published,
+            tira_run_review.blinded, tira_evaluation.measure_key, tira_evaluation.measure_value,
+            tira_run_review.reviewer_id, tira_run_review.no_errors, tira_run_review.has_errors,
+            tira_run_review.has_no_errors, tira_evaluation_review.reviewer_id, tira_run_review.reviewer_id,
             tira_linktosoftwaresubmissiongitrepository.build_environment
         FROM
             tira_run as evaluation_run
-        INNER JOIN 
+        INNER JOIN
             tira_run as input_run ON evaluation_run.input_run_id = input_run.run_id
         LEFT JOIN
             tira_upload ON input_run.upload_id = tira_upload.id
@@ -1292,7 +1300,8 @@ class HybridDatabase(object):
         LEFT JOIN
             tira_dockersoftware ON input_run.docker_software_id = tira_dockersoftware.docker_software_id
         LEFT JOIN
-            tira_linktosoftwaresubmissiongitrepository ON tira_dockersoftware.docker_software_id = tira_linktosoftwaresubmissiongitrepository.docker_software_id
+            tira_linktosoftwaresubmissiongitrepository ON
+                tira_dockersoftware.docker_software_id = tira_linktosoftwaresubmissiongitrepository.docker_software_id
         LEFT JOIN
             tira_review as tira_evaluation_review ON evaluation_run.run_id = tira_evaluation_review.run_id
         LEFT JOIN
@@ -1300,7 +1309,7 @@ class HybridDatabase(object):
         LEFT JOIN
             tira_evaluation ON tira_evaluation.run_id = evaluation_run.run_id
         WHERE
-            evaluation_run.input_run_id is not null AND evaluation_run.deleted = FALSE AND input_run.deleted = False 
+            evaluation_run.input_run_id is not null AND evaluation_run.deleted = FALSE AND input_run.deleted = False
             AND evaluation_run.evaluator_id IS NOT NULL AND <DATASET_ID_STATEMENT>
         ORDER BY
             tira_evaluation.id ASC;
@@ -1330,7 +1339,7 @@ class HybridDatabase(object):
 
         try:
             build_environment = json.loads(json.loads(build_environment))
-        except:
+        except Exception:
             return None
 
         if (
@@ -2040,7 +2049,7 @@ class HybridDatabase(object):
                     return len(gzip.open(file_name, "r").readlines())
                 else:
                     return len(open(file_name, "r").readlines())
-            except:
+            except Exception:
                 return "--"
 
         if root_files and not root_files[0].is_dir():
@@ -2087,7 +2096,7 @@ class HybridDatabase(object):
         # Third add to database
         try:
             upload = modeldb.Upload.objects.get(vm__vm_id=vm_id, task__task_id=task_id, id=upload_id)
-        except:
+        except Exception:
             upload = modeldb.Upload.objects.get(vm__vm_id=vm_id, id=upload_id)
 
         upload.last_edit_date = now()
@@ -2272,7 +2281,8 @@ class HybridDatabase(object):
         task_file_path = self.tasks_dir_path / f"{task_id}.prototext"
         if not task_file_path.exists():
             logger.exception(
-                f"Can not save task {task_id} because the task file {task_file_path} does not exist. Creating this file now."
+                f"Can not save task {task_id} because the task file {task_file_path} does not exist. Creating this file"
+                " now."
             )
             self._fdb_create_task(
                 task_id, task_name, task_description, master_vm_id, organizer_id, website, help_command, help_text
@@ -2423,7 +2433,8 @@ class HybridDatabase(object):
             self._fdb_edit_evaluator_to_vm(vm_id, ev_id, command, working_directory, measures)
         except Exception as e:
             logger.exception(
-                f"failed to query 'VirtualMachineHasEvaluator' for evauator {ev_id}. Will not save changes made to the Filestore.",
+                f"failed to query 'VirtualMachineHasEvaluator' for evauator {ev_id}. Will not save changes made to the"
+                " Filestore.",
                 e,
             )
 
