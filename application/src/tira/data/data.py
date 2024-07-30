@@ -12,10 +12,6 @@ import tira.model as modeldb
 from tira.proto import TiraClientWebMessages_pb2 as modelpb
 from tira.util import auto_reviewer, extract_year_from_dataset_id
 
-MODEL_ROOT = Path("/mnt/ceph/tira/model")
-TASKS_DIR_PATH = MODEL_ROOT / Path("tasks")
-ORGANIZERS_FILE_PATH = MODEL_ROOT / Path("organizers/organizers.prototext")
-
 logger = logging.getLogger("tira")
 
 
