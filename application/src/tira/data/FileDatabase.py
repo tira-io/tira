@@ -420,40 +420,6 @@ class FileDatabase(object):
 
         return [str(nd) for nd in new_dirs]
 
-    def _add_software(self, task_id, vm_id):
-        # TODO crashes if software prototext does not exist.
-        software = modelpb.Softwares.Software()
-        s = self._load_softwares(task_id, vm_id)
-        try:
-            last_software_count = re.search(r"\d+$", s.softwares[-1].id)
-            software_count = int(last_software_count.group()) + 1 if last_software_count else None
-            if software_count is None:
-                # invalid software id value
-                return False
-
-            software.id = f"software{software_count}"
-            software.count = str(software_count)
-
-        except IndexError:
-            # no software present yet
-            software.id = "software1"
-            software.count = "1"
-
-        software.command = ""
-        software.workingDirectory = ""
-        software.dataset = "None"
-        software.run = ""
-        software.creationDate = datetime.now(timezone.utc).strftime("%a %b %d %X %Z %Y")
-        software.lastEditDate = software.creationDate
-        software.deleted = False
-
-        s.softwares.append(software)
-        self._save_softwares(task_id, vm_id, s)
-
-        software_list = self.software.get(f"{task_id}${vm_id}", [])
-        software_list.append(software)
-        self.software[f"{task_id}${vm_id}"] = software_list
-
     def add_evaluator(self, vm_id, task_id, dataset_id, dataset_type, command, working_directory, measures):
         """TODO documentation"""
         evaluator_id = f"{dataset_id}-evaluator"
@@ -897,14 +863,6 @@ class FileDatabase(object):
     # ------------------------------------------------------------
     # add methods to add new data to the model
     # ------------------------------------------------------------
-
-    def add_software(self, task_id: str, vm_id: str):
-        try:
-            self._add_software(task_id, vm_id)
-        except FileNotFoundError as e:
-            logger.exception(f"Exception while adding software ({task_id}, {vm_id}): {e}")
-            raise TiraModelWriteError(f"Failed to write VM {vm_id}")
-
     def update_review(
         self,
         dataset_id,

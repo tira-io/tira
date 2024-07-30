@@ -747,10 +747,6 @@ def add_dataset(
     )
 
 
-def add_software(task_id: str, vm_id: str):
-    return model.add_software(task_id, vm_id)
-
-
 def add_evaluator(
     vm_id: str,
     task_id: str,

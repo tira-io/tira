@@ -108,7 +108,6 @@ def set_up_tira_environment():
     del d
 
     tira_model.add_dataset("task-of-organizer-1", "dataset-without-a-name", "training", "", "upload-name")
-    tira_model.add_software(task_id="shared-task-1", vm_id="PARTICIPANT-FOR-TEST-1")
 
     modeldb.DockerSoftware.objects.create(
         display_name=software_non_public,

@@ -1864,37 +1864,6 @@ class HybridDatabase(object):
                 "stdout": ret.stdout,
             }
 
-    def add_software(self, task_id: str, vm_id: str):
-        software = modelpb.Softwares.Software()
-        s = self._load_softwares(task_id, vm_id)
-        date = now()
-
-        new_software_id = randomname.get_name()
-        software.id = new_software_id
-        software.count = ""
-        software.command = ""
-        software.workingDirectory = ""
-        software.dataset = ""
-        software.run = ""
-        software.creationDate = date
-        software.lastEditDate = date
-        software.deleted = False
-
-        s.softwares.append(software)
-        self._save_softwares(task_id, vm_id, s)
-        sw = modeldb.Software.objects.create(
-            software_id=new_software_id,
-            vm=modeldb.VirtualMachine.objects.get(vm_id=vm_id),
-            task=modeldb.Task.objects.get(task_id=task_id),
-            count="",
-            command="",
-            working_directory="",
-            dataset=None,
-            creation_date=date,
-            last_edit_date=date,
-        )
-        return self._software_to_dict(sw)
-
     def update_software(
         self,
         task_id,
