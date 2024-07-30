@@ -496,34 +496,6 @@ class FileDatabase(object):
         run.deleted = update(run.deleted, deleted)
         self._save_run(dataset_id, vm_id, run_id, run)
 
-    def update_software(
-        self,
-        task_id,
-        vm_id,
-        software_id,
-        command: Optional[str] = None,
-        working_directory: Optional[str] = None,
-        dataset: Optional[str] = None,
-        run: Optional[str] = None,
-        deleted: bool = False,
-    ):
-        def update(x, y):
-            return y if y is not None else x
-
-        s = self._load_softwares(task_id, vm_id)
-        for software in s.softwares:
-            if software.id == software_id:
-                software.command = update(software.command, command)
-                software.workingDirectory = update(software.workingDirectory, working_directory)
-                software.dataset = update(software.dataset, dataset)
-                software.run = update(software.run, run)
-                software.deleted = update(software.deleted, deleted)
-                software.lastEditDate = datetime.now(timezone.utc).strftime("%a %b %d %X %Z %Y")
-
-                self._save_softwares(task_id, vm_id, s)
-                software_list = [user_software for user_software in s.softwares if not user_software.deleted]
-                self.software[f"{task_id}${vm_id}"] = software_list
-                return software
 
     # TODO add option to truly delete the software.
     def delete_software(self, task_id, vm_id, software_id):

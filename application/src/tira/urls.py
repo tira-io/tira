@@ -36,11 +36,6 @@ urlpatterns = [
         name="docker_software_save",
     ),
     path(
-        "task/<str:task_id>/vm/<str:vm_id>/save_software/vm/<str:software_id>",
-        vm_api.software_save,
-        name="software_save",
-    ),
-    path(
         "task/<str:task_id>/vm/<str:vm_id>/delete_software/vm/<str:software_id>",
         vm_api.software_delete,
         name="software_delete",

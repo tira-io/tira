@@ -832,19 +832,6 @@ def update_run(dataset_id, vm_id, run_id, deleted: Optional[bool] = None):
     return model.update_run(dataset_id, vm_id, run_id, deleted)
 
 
-def update_software(
-    task_id,
-    vm_id,
-    software_id,
-    command: Optional[str] = None,
-    working_directory: Optional[str] = None,
-    dataset: Optional[str] = None,
-    run: Optional[str] = None,
-    deleted: bool = False,
-):
-    return model.update_software(task_id, vm_id, software_id, command, working_directory, dataset, run, deleted)
-
-
 def edit_task(
     task_id: str,
     task_name: str,

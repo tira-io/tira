@@ -277,39 +277,6 @@ def vm_info(request, vm_id):
 # ---------------------------------------------------------------------
 @check_permissions
 @check_resources_exist("json")
-def software_save(request, task_id, vm_id, software_id):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        new_dataset = data.get("input_dataset")
-        if not model.dataset_exists(new_dataset):
-            return JsonResponse({"status": 1, "message": f"Cannot save, the dataset {new_dataset} does not exist."})
-
-        software = model.update_software(
-            task_id,
-            vm_id,
-            software_id,
-            data.get("command"),
-            data.get("working_dir"),
-            data.get("input_dataset"),
-            data.get("input_run"),
-        )
-
-        message = "failed to save software for an unknown reasons"
-        try:
-            if software:
-                return JsonResponse(
-                    {"status": 0, "message": f"Saved {software_id}", "last_edit": software.lastEditDate},
-                    status=HTTPStatus.ACCEPTED,
-                )
-        except Exception as e:
-            message = str(e)
-
-        return JsonResponse({"status": 1, "message": message}, status=HTTPStatus.BAD_REQUEST)
-    return JsonResponse({"status": 1, "message": "GET is not implemented for add dataset"})
-
-
-@check_permissions
-@check_resources_exist("json")
 def software_delete(request, task_id, vm_id, software_id):
     delete_ok = model.delete_software(task_id, vm_id, software_id)
 

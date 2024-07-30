@@ -1864,49 +1864,6 @@ class HybridDatabase(object):
                 "stdout": ret.stdout,
             }
 
-    def update_software(
-        self,
-        task_id,
-        vm_id,
-        software_id,
-        command: Optional[str] = None,
-        working_directory: Optional[str] = None,
-        dataset: Optional[str] = None,
-        run: Optional[str] = None,
-        deleted: bool = False,
-    ):
-        def update(x, y):
-            return y if y is not None else x
-
-        s = self._load_softwares(task_id, vm_id)
-        date = now()
-        for software in s.softwares:
-            if software.id == software_id:
-                software.command = update(software.command, command)
-                software.workingDirectory = update(software.workingDirectory, working_directory)
-                software.dataset = update(software.dataset, dataset)
-                software.run = update(software.run, run)
-                software.deleted = update(software.deleted, deleted)
-                software.lastEditDate = date
-
-                self._save_softwares(task_id, vm_id, s)
-                modeldb.Software.objects.filter(software_id=software_id, vm__vm_id=vm_id).update(
-                    command=software.command,
-                    working_directory=software.workingDirectory,
-                    deleted=software.deleted,
-                    dataset=modeldb.Dataset.objects.get(dataset_id=software.dataset),
-                    last_edit_date=date,
-                )
-                if run:
-                    modeldb.SoftwareHasInputRun.objects.filter(
-                        software=modeldb.Software.objects.get(software_id=software_id, vm__vm_id=vm_id),
-                        input_run=modeldb.Run.objects.get(run_id=run),
-                    )
-
-                return software
-
-        return False
-
     def update_review(
         self,
         dataset_id,
