@@ -19,7 +19,8 @@ def ensure_pyterrier_is_loaded(
 
             original_ir_datasets.load = load_ir_datasets().load
             logging.info(
-                "Due to execution in TIRA, I have patched ir_datasets to always return the single input dataset mounted to the sandbox."
+                "Due to execution in TIRA, I have patched ir_datasets to always return the single input dataset mounted"
+                " to the sandbox."
             )
         except Exception as e:
             logging.error("Could not patch ir_datasets.", exc_info=e)
@@ -61,7 +62,8 @@ def get_preconfigured_chatnoir_client(
     chatnoir.index = getattr(ChatNoirIndex, chatnoir_config["index"])
 
     logging.info(
-        f'ChatNoir Client will retrieve the top-{chatnoir.num_results} with page size of {chatnoir.page_size} from index {chatnoir_config["index"]} with {chatnoir.retries} retries.'
+        f"ChatNoir Client will retrieve the top-{chatnoir.num_results} with page size of {chatnoir.page_size} from"
+        f" index {chatnoir_config['index']} with {chatnoir.retries} retries."
     )
 
     return chatnoir
@@ -128,7 +130,8 @@ def register_rerank_data_to_ir_datasets(path_to_rerank_file, ir_dataset_id, orig
 def persist_and_normalize_run(run, system_name, default_output=None, output_file=None, depth=1000):
     if output_file is None and default_output is None:
         print(
-            'I use the environment variable "TIRA_OUTPUT_DIR" to determine where I should store the run file using "." as default.'
+            'I use the environment variable "TIRA_OUTPUT_DIR" to determine where I should store the run file using "."'
+            " as default."
         )
         output_file = os.environ.get("TIRA_OUTPUT_DIR", ".")
 
@@ -213,7 +216,7 @@ def parse_ast_extract_assignment(python_line: str):
         python_line = ast.parse(python_line).body[0]
 
         return python_line.targets[0].id, extract_ast_value(python_line.value)
-    except:
+    except Exception:
         return None, None
 
 
@@ -228,7 +231,7 @@ def parse_extraction_of_tira_approach_bash(bash_line: str):
             return bash_line[1:].split('"')[0]
 
         return bash_line.split(")")[0].split()[0].strip()
-    except:
+    except Exception:
         return None
 
 
@@ -259,7 +262,7 @@ def parse_extraction_of_tira_approach(python_line: str):
             return None
 
         return extract_ast_value(python_line.value.args[0])
-    except:
+    except Exception:
         return None
 
 
@@ -329,7 +332,7 @@ def extract_previous_stages_from_docker_image(image: str, command: str = None):
 def load_ir_datasets():
     try:
         from ir_datasets.datasets.base import Dataset  # noqa: F401
-    except:
+    except Exception:
         return None
 
     # Detect if we are in the TIRA sandbox

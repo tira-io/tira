@@ -61,8 +61,8 @@ class IrLabSoSe2024Test(unittest.TestCase):
         approaches = [
             "ir-lab-sose-2024/tira-ir-starter/Index (tira-ir-starter-pyterrier)",
             "ir-lab-sose-2024/tira-ir-starter/Index (pyterrier-stanford-lemmatizer)",
-            #'ir-lab-sose-2024/seanmacavaney/DocT5Query',
-            #'ir-lab-sose-2024/seanmacavaney/corpus-graph',
+            # 'ir-lab-sose-2024/seanmacavaney/DocT5Query',
+            # 'ir-lab-sose-2024/seanmacavaney/corpus-graph',
             "ir-lab-sose-2024/ows/pyterrier-anceindex",
             "ir-lab-sose-2024/naverlabseurope/Splade (Index)",
         ]

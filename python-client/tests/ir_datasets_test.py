@@ -23,7 +23,12 @@ class TestIRDatasets(unittest.TestCase):
         ensure_pyterrier_is_loaded(patch_ir_datasets=False)
         dataset = ir_datasets.load("tirex-sample-dataset")
 
-        expected_text = "microwave spectroscopy  includes chapters on spectroscope technique\nand design on measurements on gases liquids and solids on nuclear\nproperties on molecular structure and on further possible applications\nof microwaves\n"
+        expected_text = (
+            "microwave spectroscopy  includes chapters on spectroscope technique\n"
+            "and design on measurements on gases liquids and solids on nuclear\n"
+            "properties on molecular structure and on further possible applications\n"
+            "of microwaves\n"
+        )
 
         assert expected_text == dataset.docs_store().get("8172").text
         assert "8172" == dataset.docs_store().get("8172").doc_id
@@ -32,7 +37,12 @@ class TestIRDatasets(unittest.TestCase):
         ensure_pyterrier_is_loaded(patch_ir_datasets=True)
         dataset = ir_datasets.load("tirex-sample-dataset")
 
-        expected_text = "microwave spectroscopy  includes chapters on spectroscope technique\nand design on measurements on gases liquids and solids on nuclear\nproperties on molecular structure and on further possible applications\nof microwaves\n"
+        expected_text = (
+            "microwave spectroscopy  includes chapters on spectroscope technique\n"
+            "and design on measurements on gases liquids and solids on nuclear\n"
+            "properties on molecular structure and on further possible applications\n"
+            "of microwaves\n"
+        )
 
         assert expected_text == dataset.docs_store().get("8172").text
         assert "8172" == dataset.docs_store().get("8172").doc_id
@@ -225,12 +235,12 @@ class TestIRDatasets(unittest.TestCase):
         os.environ["TIRA_INPUT_DATASET"] = "tests/resources/sample-input-full-rank"
         import ir_datasets
 
-        l = ir_datasets.load
+        ir_load = ir_datasets.load
         ensure_pyterrier_is_loaded()
         import pyterrier as pt
 
         dataset = pt.get_dataset("irds:does-not-exist-and-is-not-used")
-        ir_datasets.load = l
+        ir_datasets.load = ir_load
         del os.environ["TIRA_INPUT_DATASET"]
 
         queries = {i["qid"]: i["query"] for _, i in dataset.get_topics().iterrows()}
@@ -243,12 +253,12 @@ class TestIRDatasets(unittest.TestCase):
         os.environ["TIRA_INPUT_DATASET"] = "tests/resources/sample-input-full-rank"
         import ir_datasets
 
-        l = ir_datasets.load
+        ir_load = ir_datasets.load
         ensure_pyterrier_is_loaded()
         import pyterrier as pt
 
         dataset = pt.get_dataset("irds:does-not-exist-and-is-not-used")
-        ir_datasets.load = l
+        ir_datasets.load = ir_load
         del os.environ["TIRA_INPUT_DATASET"]
 
         queries = {i["qid"]: i["query"] for _, i in dataset.get_topics().iterrows()}
@@ -261,12 +271,12 @@ class TestIRDatasets(unittest.TestCase):
         os.environ["TIRA_INPUT_DATASET"] = "tests/resources/sample-input-full-rank"
         import ir_datasets
 
-        l = ir_datasets.load
+        ir_load = ir_datasets.load
         ensure_pyterrier_is_loaded()
         import pyterrier as pt
 
         dataset = pt.get_dataset("irds:does-not-exist-and-is-not-used")
-        ir_datasets.load = l
+        ir_datasets.load = ir_load
         del os.environ["TIRA_INPUT_DATASET"]
 
         queries = {i["qid"]: i["query"] for _, i in dataset.get_topics("text").iterrows()}
@@ -279,12 +289,12 @@ class TestIRDatasets(unittest.TestCase):
         os.environ["TIRA_INPUT_DATASET"] = "tests/resources/sample-input-full-rank"
         import ir_datasets
 
-        l = ir_datasets.load
+        ir_load = ir_datasets.load
         ensure_pyterrier_is_loaded()
         import pyterrier as pt
 
         dataset = pt.get_dataset("irds:does-not-exist-and-is-not-used")
-        ir_datasets.load = l
+        ir_datasets.load = ir_load
         del os.environ["TIRA_INPUT_DATASET"]
 
         queries = {i["qid"]: i["query"] for _, i in dataset.get_topics("text").iterrows()}
@@ -297,12 +307,12 @@ class TestIRDatasets(unittest.TestCase):
         os.environ["TIRA_INPUT_DATASET"] = "tests/resources/sample-input-full-rank"
         import ir_datasets
 
-        l = ir_datasets.load
+        ir_load = ir_datasets.load
         ensure_pyterrier_is_loaded()
         import pyterrier as pt
 
         dataset = pt.get_dataset("irds:does-not-exist-and-is-not-used")
-        ir_datasets.load = l
+        ir_datasets.load = ir_load
         del os.environ["TIRA_INPUT_DATASET"]
 
         queries = {i["qid"]: i["query"] for _, i in dataset.get_topics("title").iterrows()}
@@ -315,12 +325,12 @@ class TestIRDatasets(unittest.TestCase):
         os.environ["TIRA_INPUT_DATASET"] = "tests/resources/sample-input-full-rank"
         import ir_datasets
 
-        l = ir_datasets.load
+        ir_load = ir_datasets.load
         ensure_pyterrier_is_loaded()
         import pyterrier as pt
 
         dataset = pt.get_dataset("irds:does-not-exist-and-is-not-used")
-        ir_datasets.load = l
+        ir_datasets.load = ir_load
         del os.environ["TIRA_INPUT_DATASET"]
 
         queries = {i["qid"]: i["query"] for _, i in dataset.get_topics("title").iterrows()}
@@ -356,7 +366,7 @@ class TestIRDatasets(unittest.TestCase):
 
         assert len([i for i in dataset.qrels_iter()]) == 2635
         assert (
-            """TrecQrel(query_id='1', doc_id='2005.ipm_journal-ir0anthology0volumeA41A1.7', relevance=1, iteration='0')"""
+            "TrecQrel(query_id='1', doc_id='2005.ipm_journal-ir0anthology0volumeA41A1.7', relevance=1, iteration='0')"
             == str([i for i in dataset.qrels_iter()][0])
         )
 
@@ -368,7 +378,7 @@ class TestIRDatasets(unittest.TestCase):
 
         assert len([i for i in dataset.qrels_iter()]) == 2635
         assert (
-            """TrecQrel(query_id='1', doc_id='2005.ipm_journal-ir0anthology0volumeA41A1.7', relevance=1, iteration='0')"""
+            "TrecQrel(query_id='1', doc_id='2005.ipm_journal-ir0anthology0volumeA41A1.7', relevance=1, iteration='0')"
             == str([i for i in dataset.qrels_iter()][0])
         )
 
@@ -433,8 +443,12 @@ class TestIRDatasets(unittest.TestCase):
         assert 68 == len(list(dataset.queries_iter()))
         print(str(list(dataset.queries_iter())[0]))
         assert (
-            """TirexQuery(query_id='1', text='retrieval system improving effectiveness', title='retrieval system improving effectiveness', query='retrieval system improving effectiveness', description='What papers focus on improving the effectiveness of a retrieval system?', narrative='Relevant papers include research on what makes a retrieval system effective and what improves the effectiveness of a retrieval system. Papers that focus on improving something else or improving the effectiveness of a system that is not a retrieval system are not relevant.')"""
-            == str(list(dataset.queries_iter())[0])
+            "TirexQuery(query_id='1', text='retrieval system improving effectiveness', title='retrieval system"
+            " improving effectiveness', query='retrieval system improving effectiveness', description='What papers"
+            " focus on improving the effectiveness of a retrieval system?', narrative='Relevant papers include research"
+            " on what makes a retrieval system effective and what improves the effectiveness of a retrieval system."
+            " Papers that focus on improving something else or improving the effectiveness of a system that is not a"
+            " retrieval system are not relevant.')" == str(list(dataset.queries_iter())[0])
         )
 
     def test_loading_queries_via_rest_api_from_tira_02(self):
@@ -446,8 +460,12 @@ class TestIRDatasets(unittest.TestCase):
         assert 68 == len(list(dataset.queries_iter()))
         print(str(list(dataset.queries_iter())[0]))
         assert (
-            """TirexQuery(query_id='1', text='retrieval system improving effectiveness', title='retrieval system improving effectiveness', query='retrieval system improving effectiveness', description='What papers focus on improving the effectiveness of a retrieval system?', narrative='Relevant papers include research on what makes a retrieval system effective and what improves the effectiveness of a retrieval system. Papers that focus on improving something else or improving the effectiveness of a system that is not a retrieval system are not relevant.')"""
-            == str(list(dataset.queries_iter())[0])
+            "TirexQuery(query_id='1', text='retrieval system improving effectiveness', title='retrieval system"
+            " improving effectiveness', query='retrieval system improving effectiveness', description='What papers"
+            " focus on improving the effectiveness of a retrieval system?', narrative='Relevant papers include research"
+            " on what makes a retrieval system effective and what improves the effectiveness of a retrieval system."
+            " Papers that focus on improving something else or improving the effectiveness of a system that is not a"
+            " retrieval system are not relevant.')" == str(list(dataset.queries_iter())[0])
         )
 
     def test_patching_for_pyterrier_datasets_to_tira(self):

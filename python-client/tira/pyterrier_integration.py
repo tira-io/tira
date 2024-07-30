@@ -233,13 +233,16 @@ class PyTerrierIntegration:
 
 
 class PyTerrierAnceIntegration:
-    """The pyterrier_ance integration to re-use cached ANCE indices. Wraps https://github.com/terrierteam/pyterrier_ance"""
+    """
+    The pyterrier_ance integration to re-use cached ANCE indices. Wraps https://github.com/terrierteam/pyterrier_ance
+    """
 
     def __init__(self, tira_client):
         self.tira_client = tira_client
 
     def ance_retrieval(self, dataset: str):
-        """Load a cached pyterrier_ance.ANCEIndexer submitted as workshop-on-open-web-search/ows/pyterrier-anceindex from tira.
+        """Load a cached pyterrier_ance.ANCEIndexer submitted as workshop-on-open-web-search/ows/pyterrier-anceindex
+        from tira.
 
         References (for citation):
             https://arxiv.org/pdf/2007.00808.pdf
@@ -274,7 +277,9 @@ class PyTerrierSpladeIntegration:
         self.tira_client = tira_client
 
     def splade_index(self, dataset: str, approach: str = "workshop-on-open-web-search/naverlabseurope/Splade (Index)"):
-        """Load a cached pyt_splade index submitted as the passed approach (default 'workshop-on-open-web-search/naverlabseurope/Splade (Index)') from tira.
+        """
+        Load a cached pyt_splade index submitted as the passed approach (default
+        'workshop-on-open-web-search/naverlabseurope/Splade (Index)') from tira.
 
         References (for citation):
             https://github.com/naver/splade?tab=readme-ov-file#cite-scroll
@@ -282,7 +287,8 @@ class PyTerrierSpladeIntegration:
 
         Args:
             dataset (str): the dataset id, either an tira or ir_datasets id.
-            approach (str, optional): the approach id, defaults 'workshop-on-open-web-search/naverlabseurope/Splade (Index)'.
+            approach (str, optional): the approach id, defaults
+                'workshop-on-open-web-search/naverlabseurope/Splade (Index)'.
 
         Returns:
             The PyTerrier index suitable for retrieval.

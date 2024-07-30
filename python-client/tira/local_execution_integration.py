@@ -67,8 +67,11 @@ class LocalExecutionIntegration:
                 if "identifier" in original_args and original_args["identifier"] is not None
                 else f'--image {image} --command \'{original_args["command"]}\''
             ),
-            "tira-run-python": "tira.run(" + (", ".join(tira_run_args)) + ")",
-            "docker": f"docker run --rm -ti -v {input_dir}:/tira-data/input:ro -v {output_dir}:/tira-data/output:rw --entrypoint sh {image} -c '{command}'",
+            "tira-run-python": "tira.run(" + ", ".join(tira_run_args) + ")",
+            "docker": (
+                f"docker run --rm -ti -v {input_dir}:/tira-data/input:ro -v {output_dir}:/tira-data/output:rw"
+                f" --entrypoint sh {image} -c '{command}'"
+            ),
         }
 
     def ensure_image_available_locally(self, image, client=None):
@@ -99,7 +102,7 @@ class LocalExecutionIntegration:
             try:
                 client.images.pull(image)
                 image_pull_code = 0
-            except:
+            except Exception:
                 image_pull_code = 1
 
         if image_pull_code != 0:
@@ -144,7 +147,7 @@ class LocalExecutionIntegration:
 
         try:
             ret += ["/run/user/" + str(os.getuid()) + "/podman/podman.sock"]
-        except:
+        except Exception:
             pass
 
         return ret + ["/var/run/docker.sock"]
@@ -297,7 +300,8 @@ class LocalExecutionIntegration:
 
         verbose_data = self.construct_verbosity_output(input_dir, output_dir, image, command, original_args)
         logging.debug(
-            f'Docker:\n\t{verbose_data["docker"]}\n\ntira-run (python):\n\t{verbose_data["tira-run-python"]}\n\ntira-run (CLI):\n\t{verbose_data["tira-run-cli"]}\n\n'
+            f'Docker:\n\t{verbose_data["docker"]}\n\ntira-run'
+            f' (python):\n\t{verbose_data["tira-run-python"]}\n\ntira-run (CLI):\n\t{verbose_data["tira-run-cli"]}\n\n'
         )
 
         if dry_run:
@@ -366,14 +370,15 @@ class LocalExecutionIntegration:
                     evaluate["evaluator_git_runner_command"],
                 )
             elif type(evaluate) is not str:
-                raise ValueError('ToDo Implement this case. I.e., set evaluate variable')
+                raise ValueError("ToDo Implement this case. I.e., set evaluate variable")
 
-            if image == None or command == None:
+            if image is None or command is None:
                 evaluate, image, command = self.__extract_image_and_command(evaluate, evaluator=True)
 
             command = self.__normalize_command(command, True)
             logging.debug(
-                f"Evaluate software with: docker run --rm -ti -v {input_dir}:/tira-data/input -v {output_dir}/:/tira-data/output --entrypoint sh {image} -c '{command}'"
+                f"Evaluate software with: docker run --rm -ti -v {input_dir}:/tira-data/input -v"
+                f" {output_dir}/:/tira-data/output --entrypoint sh {image} -c '{command}'"
             )
 
             container = client.containers.run(
@@ -435,10 +440,11 @@ class LocalExecutionIntegration:
                 try:
                     notebook = "/".join(notebook.split("/")[:-1])
                     print(
-                        f"The directory {notebook} contains the files {os.listdir(notebook)}. Maybe you did mean one of those?",
+                        f"The directory {notebook} contains the files {os.listdir(notebook)}. Maybe you did mean one of"
+                        " those?",
                         file=sys.stderr,
                     )
-                except:
+                except Exception:
                     pass
 
             return None
@@ -446,11 +452,11 @@ class LocalExecutionIntegration:
         ret = []
 
         ret += [
-            "TIRA_COMMAND=/workspace/run-pyterrier-notebook.py --input ${TIRA_INPUT_DIRECTORY} --output ${TIRA_OUTPUT_DIRECTORY} --notebook /workspace/"
-            + notebook.split("/")[-1]
+            "TIRA_COMMAND=/workspace/run-pyterrier-notebook.py --input ${TIRA_INPUT_DIRECTORY} --output"
+            " ${TIRA_OUTPUT_DIRECTORY} --notebook /workspace/" + notebook.split("/")[-1]
         ]
         notebook_content = json.load(open(notebook, "r"))
-        print(f'TODO: process content {notebook_content}.')
+        print(f"TODO: process content {notebook_content}.")
 
         return "\n".join(ret)
 
@@ -481,7 +487,7 @@ class LocalExecutionIntegration:
 
         try:
             tasks[id].update(line["progressDetail"]["total"])
-        except:
+        except Exception:
             pass
 
     def push_image(self, image, required_prefix=None, task_name=None, team_name=None):

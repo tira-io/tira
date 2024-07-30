@@ -14,7 +14,8 @@ PANDAS_DTYPES = {
 
 
 class PandasIntegration:
-    """Handling of inputs/outputs in TIRA with pandas. All methods here work in the TIRA sandbox without internet connection (when the data is mounted read-only)."""
+    """Handling of inputs/outputs in TIRA with pandas. All methods here work in the TIRA sandbox without internet
+    connection (when the data is mounted read-only)."""
 
     def __init__(self, tira_client):
         self.tira_client = tira_client
@@ -32,9 +33,11 @@ class PandasIntegration:
         Args:
             approach (str): the approach for which the run should be loaded, in the format 'task/team/software'.
             dataset (str): the dataset id, either an tira or ir_datasets id.
-            previous_stage (str, optional): The previous stage, in case the approach itself is ambigious. Defaults to None.
+            previous_stage (str, optional): The previous stage, in case the approach itself is ambigious. Defaults to
+                None.
             datasets (List[str], optional): list of datasets to concat. Defaults to None.
-            for_ir_measures (bool, optional): rename columns qid and docid to query_id respectively doc_id for direct re-use within ir-measures.
+            for_ir_measures (bool, optional): rename columns qid and docid to query_id respectively doc_id for direct
+                re-use within ir-measures.
 
         Returns:
             pd.DataFrame: The run file parsed to a pandas DataFrame.
@@ -96,18 +99,22 @@ class PandasIntegration:
     def transform_queries(
         self, approach: str, dataset: str, file_selection: Tuple[str, ...] = ("/*.jsonl", "/*.jsonl.gz")
     ):
-        """Load and transform the query processing outputs specified by the approach on the dataset for direct re-use as a PyTerrier query transformation.
+        """Load and transform the query processing outputs specified by the approach on the dataset for direct re-use
+        as a PyTerrier query transformation.
 
         Args:
             approach str: the approach for which the run should be loaded, in the format 'task/team/software'.
             dataset (str):the dataset id, either an tira or ir_datasets id.
-            file_selection (Tuple[str,...], optional): The search glob to outputs specified by the approach on the dataset. Defaults to ('/*.jsonl', '/*.jsonl.gz').
+            file_selection (Tuple[str,...], optional): The search glob to outputs specified by the approach on the
+                dataset. Defaults to ('/*.jsonl', '/*.jsonl.gz').
 
         Raises:
-            ValueError: If no approach with the identifier 'approach' was found or if there was an error parsing the outputs.
+            ValueError: If no approach with the identifier 'approach' was found or if there was an error parsing the
+            outputs.
 
         Returns:
-            pd.DataFrame: a DataFrame with the parsed query processing outputs compatible with PyTerrier query transformations.
+            pd.DataFrame: a DataFrame with the parsed query processing outputs compatible with PyTerrier query
+            transformations.
         """
         import pandas as pd
 
@@ -115,7 +122,8 @@ class PandasIntegration:
 
         if len(matching_files) == 0:
             raise ValueError(
-                f"Could not find a matching query output. Found: {matching_files}. Please specify the file_selection to resolve this."
+                f"Could not find a matching query output. Found: {matching_files}. Please specify the file_selection to"
+                " resolve this."
             )
 
         ret = pd.read_json(matching_files[0], lines=True, dtype={"qid": str, "query": str, "query_id": str})
@@ -126,18 +134,22 @@ class PandasIntegration:
         return ret
 
     def transform_documents(self, approach, dataset, file_selection=("/*.jsonl", "/*.jsonl.gz")):
-        """Load and transform the document processing outputs specified by the approach on the dataset for direct re-use as a PyTerrier document transformation.
+        """Load and transform the document processing outputs specified by the approach on the dataset for direct
+        re-use as a PyTerrier document transformation.
 
         Args:
             approach str: the approach for which the run should be loaded, in the format 'task/team/software'.
             dataset (str):the dataset id, either an tira or ir_datasets id.
-            file_selection (Tuple[str,...], optional): The search glob to outputs specified by the approach on the dataset. Defaults to ('/*.jsonl', '/*.jsonl.gz').
+            file_selection (Tuple[str,...], optional): The search glob to outputs specified by the approach on the
+                dataset. Defaults to ('/*.jsonl', '/*.jsonl.gz').
 
         Raises:
-            ValueError: If no approach with the identifier 'approach' was found or if there was an error parsing the outputs.
+            ValueError: If no approach with the identifier 'approach' was found or if there was an error parsing the
+            outputs.
 
         Returns:
-            pd.DataFrame: a DataFrame with the parsed document processing outputs compatible with PyTerrier document transformations.
+            pd.DataFrame: a DataFrame with the parsed document processing outputs compatible with PyTerrier document
+            transformations.
         """
         import pandas as pd
 
@@ -174,8 +186,10 @@ class PandasIntegration:
         Args:
             approach str: the approach for which the run should be loaded, in the format 'task/team/software'.
             dataset (str):the dataset id, either an tira or ir_datasets id.
-            file_selection (Tuple[str,...], optional): The search glob to outputs specified by the approach on the dataset. Defaults to ('/*.jsonl', '/*.jsonl.gz').
-            dtype (Tuple[str,...], optional): Transformations of the data types while loading with pandas. Defaults to PANDAS_DTYPES.
+            file_selection (Tuple[str,...], optional): The search glob to outputs specified by the approach on the
+                dataset. Defaults to ('/*.jsonl', '/*.jsonl.gz').
+            dtype (Tuple[str,...], optional): Transformations of the data types while loading with pandas. Defaults to
+                PANDAS_DTYPES.
 
         Raises:
             ValueError: If the dataset is not public or does not exist.
@@ -202,8 +216,10 @@ class PandasIntegration:
         Args:
             approach str: the approach for which the run should be loaded, in the format 'task/team/software'.
             dataset (str):the dataset id, either an tira or ir_datasets id.
-            file_selection (Tuple[str,...], optional): The search glob to outputs specified by the approach on the dataset. Defaults to ('/*.jsonl', '/*.jsonl.gz').
-            dtype (Tuple[str,...], optional): Transformations of the data types while loading with pandas. Defaults to PANDAS_DTYPES.
+            file_selection (Tuple[str,...], optional): The search glob to outputs specified by the approach on the
+                dataset. Defaults to ('/*.jsonl', '/*.jsonl.gz').
+            dtype (Tuple[str,...], optional): Transformations of the data types while loading with pandas. Defaults to
+                PANDAS_DTYPES.
 
         Raises:
             ValueError: If the truth is not public or does not exist.

@@ -185,7 +185,8 @@ and the
                     )
 
         raise ValueError(
-            f'There is no {("evaluator" if evaluator else "software")} identified by "{identifier}". Choices are: {sorted(list(softwares))}'
+            f'There is no {("evaluator" if evaluator else "software")} identified by "{identifier}". Choices are:'
+            f" {sorted(list(softwares))}"
         )
 
     def all_evaluated_appraoches(self) -> pd.DataFrame:
@@ -281,7 +282,8 @@ and the
         ret = self.get_run_execution_or_none(f"{task}/{team}/{software}", dataset, previous_stage)
         if not ret:
             raise ValueError(
-                f'I could not find a run for the filter criteria task="{task}", dataset="{dataset}", software="{software}", team={team}, previous_stage={previous_stage}'
+                f'I could not find a run for the filter criteria task="{task}", dataset="{dataset}",'
+                f' software="{software}", team={team}, previous_stage={previous_stage}'
             )
 
         ret = self.directory + "/" + ret["run_id"]

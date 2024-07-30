@@ -1,7 +1,7 @@
 import logging
 import os
 from copy import deepcopy
-from typing import NamedTuple
+from typing import TYPE_CHECKING, NamedTuple
 
 from tira.io_utils import stream_all_lines
 from tira.tirex import IRDS_TO_TIREX_DATASET
@@ -13,8 +13,6 @@ try:
     original_ir_datasets_load = original_ir_datasets.load
 except ImportError:
     pass
-
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .tira_client import TiraClient

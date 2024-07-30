@@ -68,7 +68,8 @@ def stream_all_lines(input_file: Union[str, Iterable[bytes]], load_default_text:
 
 
 def huggingface_model_mounts(models: Iterable[str]) -> dict:
-    """Determine the mounts to make the described huggingface models available in the container. The models must already exist in the local huggingface cache of the host.
+    """Determine the mounts to make the described huggingface models available in the container. The models must
+    already exist in the local huggingface cache of the host.
 
     Args:
         models (Iterable[str]): A list of huggingface models that you want to mount, e.g., ["openai-community/gpt2"].
@@ -90,7 +91,10 @@ def huggingface_model_mounts(models: Iterable[str]) -> dict:
         model_in_fs = ("models/" + str(model)).replace("/", "--")
         model_path = hf_cache / model_in_fs
         if not model_path.exists():
-            msg = f"Model {model} does not in HF_HUB_CACHE = '{hf_cache}'. Expected a directory '{model_path}' to exist. Please ensure that the model is available via your preferred way to download it."
+            msg = (
+                f"Model {model} does not in HF_HUB_CACHE = '{hf_cache}'. Expected a directory '{model_path}' to exist."
+                " Please ensure that the model is available via your preferred way to download it."
+            )
             print(msg)
             raise ValueError(msg)
         else:
@@ -101,7 +105,8 @@ def huggingface_model_mounts(models: Iterable[str]) -> dict:
 
 def change_workdir_cmd(workdir: str):
     """
-    Returns a shell command that changes the working directory to the specified directory to be executed in the TIRA sandbox before the real command.
+    Returns a shell command that changes the working directory to the specified directory to be executed in the TIRA
+    sandbox before the real command.
     """
 
     if not workdir:
@@ -116,10 +121,12 @@ def change_workdir_cmd(workdir: str):
 
 
 def _ln_huggingface_model_mounts(models: str) -> str:
-    """Create a set of ln statements for symbolic links to huggingface models within a running container. Fails if the models do not exist in the local huggingface cache of the host.
+    """Create a set of ln statements for symbolic links to huggingface models within a running container. Fails if the
+    models do not exist in the local huggingface cache of the host.
 
     Args:
-        models (str): A space seperated list of huggingface models that you want to mount, e.g., "openai-community/gpt2 openai-community/gpt2-large".
+        models (str): A space seperated list of huggingface models that you want to mount, e.g.,
+            "openai-community/gpt2 openai-community/gpt2-large".
 
     Returns:
         str: the ln command for usage with eval.
@@ -218,13 +225,13 @@ def run_cmd(cmd: List[str], ignore_failure=False):
 def parse_prototext_key_values(file_name):
     for i in [i for i in open(file_name, "r").read().split("measure {")]:
         ret = {}
-        for l in i.split("\n"):
-            if len(l.split(":")) < 2:
+        for line in i.split("\n"):
+            if len(line.split(":")) < 2:
                 continue
-            elif len(l.split(":")) > 2:
-                raise ValueError(f'Could not parse "{l}".')
-            key = l.split(":")[0]
-            value = l.split(":")[1].split('"')[1]
+            elif len(line.split(":")) > 2:
+                raise ValueError(f'Could not parse "{line}".')
+            key = line.split(":")[0]
+            value = line.split(":")[1].split('"')[1]
             ret[key.strip()] = __num(value.strip())
         if len(ret) > 0:
             yield ret
@@ -281,7 +288,8 @@ def all_environment_variables_for_github_action_or_fail(params):
     for k in expected_keys:
         if k not in ret or not ret[k]:
             raise ValueError(
-                f"I need the parameter {k} to continue, but could not find one or it is empty. This likely is a configuration error, e.g., due to missing secrets."
+                f"I need the parameter {k} to continue, but could not find one or it is empty. This likely is a"
+                " configuration error, e.g., due to missing secrets."
             )
 
     if "TIRA_JUPYTER_NOTEBOOK" in ret:
@@ -295,11 +303,13 @@ def all_environment_variables_for_github_action_or_fail(params):
         for expected_key in ["TIRA_DOCKER_FILE", "TIRA_DOCKER_PATH", "TIRA_COMMAND"]:
             if k not in ret or not ret[k]:
                 raise ValueError(
-                    f"I need the parameter {k} to continue, but could not find one or it is empty. This likely is a configuration error, e.g., due to missing secrets."
+                    f"I need the parameter {k} to continue, but could not find one or it is empty. This likely is a"
+                    " configuration error, e.g., due to missing secrets."
                 )
 
+            submission_id = f'{ret["TIRA_DOCKER_PATH"].replace("/", "-").replace(" ", "-")}:{ret["GITHUB_SHA"]}'
             ret["IMAGE_TAG"] = (
-                f'registry.webis.de/code-research/tira/tira-user-{ret["TIRA_VM_ID"]}/submission-{ret["TIRA_DOCKER_PATH"].replace("/", "-").replace(" ", "-")}:{ret["GITHUB_SHA"]}'
+                f'registry.webis.de/code-research/tira/tira-user-{ret["TIRA_VM_ID"]}/submission-{submission_id}'
             )
 
     return [k + "=" + v for k, v in ret.items()]

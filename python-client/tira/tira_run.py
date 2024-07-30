@@ -48,7 +48,8 @@ def parse_args():
     parser.add_argument("--input-dataset", required=False, default=None)
     parser.add_argument("--input-run", required=False, default=None)
     parser.add_argument("--input-run-directory", required=False, default=None)
-    # Not required if the subcommand "tira-run submit" is used. FIXME: the arguments in this group should probably be subcommands
+    # Not required if the subcommand "tira-run submit" is used.
+    # FIXME: the arguments in this group should probably be subcommands
     group = parser.add_mutually_exclusive_group(required=False)
     group.add_argument("--image")
     group.add_argument("--approach")
@@ -59,7 +60,11 @@ def parse_args():
     parser.add_argument(
         "--command",
         required=False,
-        help="Command to execute in the container. Has access to variables $inputDataset (points to the directory with the inputs), $outputDir (results should be persisted in this directory), and optionally $inputRun (points to the directory with the outputs of the previous stage).",
+        help=(
+            "Command to execute in the container. Has access to variables $inputDataset (points to the directory with"
+            " the inputs), $outputDir (results should be persisted in this directory), and optionally $inputRun (points"
+            " to the directory with the outputs of the previous stage)."
+        ),
     )
     parser.add_argument("--verbose", required=False, default=False, action="store_true")
     parser.add_argument(
@@ -85,7 +90,11 @@ def parse_args():
         required=False,
         default=False,
         type=bool,
-        help="Is the network available during the execution? (Default = False to improve reproducibility, containers that import ir-datasets can have access to the network, they can be tested with setting allow-network to true.)",
+        help=(
+            "Is the network available during the execution? (Default = False to improve reproducibility, containers"
+            " that import ir-datasets can have access to the network, they can be tested with setting allow-network to"
+            " true.)"
+        ),
     )
     parser.add_argument("--output-directory", required=False, default=str(os.path.abspath("tira-output")))
 
@@ -119,7 +128,11 @@ def parse_args():
         "--mount-hf-model",
         nargs="+",
         default=[],
-        help="Mount models from the local huggingface hub cache (i.e., $HOME/.cache/huggingface/hub) into the container during execution. This is intended to remove redundancy so that the models must not be embedded into the Docker images.",
+        help=(
+            "Mount models from the local huggingface hub cache (i.e., $HOME/.cache/huggingface/hub) into the container"
+            " during execution. This is intended to remove redundancy so that the models must not be embedded into the"
+            " Docker images."
+        ),
     )
 
     subparsers = parser.add_subparsers()
@@ -134,7 +147,8 @@ def parse_args():
 
     if os.path.exists(args.output_directory) and len(os.listdir(args.output_directory)) > 0:
         parser.error(
-            f"The output directory {os.path.abspath(args.output_directory)} is not empty. Please empty it or provide a new output directory with --ouptut-directory."
+            f"The output directory {os.path.abspath(args.output_directory)} is not empty. Please empty it or provide a"
+            " new output directory with --ouptut-directory."
         )
 
     if (args.image is None) == (args.approach is None) == (args.export_dataset):
@@ -146,7 +160,8 @@ def parse_args():
             print(f'Use command from Docker image "{args.command}".')
         else:
             parser.error(
-                "I could not find a command to execute, please either configure the entrypoint of the image or use --command."
+                "I could not find a command to execute, please either configure the entrypoint of the image or use"
+                " --command."
             )
 
     args.previous_stages = [] if not args.input_run else [args.input_run]
@@ -175,13 +190,15 @@ def parse_args():
                     args.tira_client_token = rest_client.api_key
                 else:
                     parser.error(
-                        "The option --tira-client-token (or environment variable TIRA_CLIENT_TOKEN) is required when --push is active."
+                        "The option --tira-client-token (or environment variable TIRA_CLIENT_TOKEN) is required when"
+                        " --push is active."
                     )
             else:
                 rest_client = RestClient(api_key=args.tira_client_token)
                 if not rest_client.api_key_is_valid():
                     parser.error(
-                        "The option --tira-client-token (or environment variable TIRA_CLIENT_TOKEN) is required when --push is active."
+                        "The option --tira-client-token (or environment variable TIRA_CLIENT_TOKEN) is required when"
+                        " --push is active."
                     )
 
         if not args.tira_task_id and args.input_dataset:
@@ -203,7 +220,8 @@ def parse_args():
             ):
                 if len(tmp["context"]["user_vms_for_task"]) != 1:
                     parser.error(
-                        f'You have multiple vms ({tmp["context"]["user_vms_for_task"]}), use option --tira-vm-id to specify the vm.'
+                        f'You have multiple vms ({tmp["context"]["user_vms_for_task"]}), use option --tira-vm-id to'
+                        " specify the vm."
                     )
                 else:
                     args.tira_vm_id = tmp["context"]["user_vms_for_task"][0]
@@ -218,7 +236,8 @@ def parse_args():
                 args.tira_client_user = tmp["context"]["user_id"]
             else:
                 parser.error(
-                    "The option --tira-client-user (or environment variable TIRA_CLIENT_USER) is required when --push is active."
+                    "The option --tira-client-user (or environment variable TIRA_CLIENT_USER) is required when --push"
+                    " is active."
                 )
 
         if (
@@ -227,7 +246,8 @@ def parse_args():
             and not rest_client.local_execution.login_docker_client(args.tira_task_id, args.tira_vm_id)
         ):
             parser.error(
-                "The option --tira-docker-registry-token (or environment variable TIRA_DOCKER_REGISTRY_TOKEN) is required when --push is active."
+                "The option --tira-docker-registry-token (or environment variable TIRA_DOCKER_REGISTRY_TOKEN) is"
+                " required when --push is active."
             )
 
         if (
@@ -236,7 +256,8 @@ def parse_args():
             and not rest_client.local_execution.login_docker_client(args.tira_task_id, args.tira_vm_id)
         ):
             parser.error(
-                "The option --tira-docker-registry-user (or environment variable TIRA_DOCKER_REGISTRY_USER) is required when --push is active."
+                "The option --tira-docker-registry-user (or environment variable TIRA_DOCKER_REGISTRY_USER) is required"
+                " when --push is active."
             )
 
         args.previous_stages = [
@@ -247,7 +268,8 @@ def parse_args():
         ]
         if "none" in args.previous_stages or None in args.previous_stages:
             parser.error(
-                "One of the previous stages is not public. Please contact the organizer with a link to your code so that they can ensure it is public."
+                "One of the previous stages is not public. Please contact the organizer with a link to your code so"
+                " that they can ensure it is public."
             )
 
     if not args.approach and not args.image:
@@ -296,7 +318,8 @@ def main(args=None):
 
         if os.path.exists(args.output_directory):
             print(
-                f"The directory {args.output_directory} specified by --output-directory already exists. I do not overwrite the directory, please remove it manually if you want to export the dataset."
+                f"The directory {args.output_directory} specified by --output-directory already exists. I do not"
+                " overwrite the directory, please remove it manually if you want to export the dataset."
             )
         shutil.copytree(data_dir, args.output_directory)
         return
@@ -304,13 +327,15 @@ def main(args=None):
     if args.export_approach_output:
         if not args.dataset_for_export_approach_output:
             print(
-                "Please specify the dataset for which the approach outputs should be exported via --dataset-for-export-approach-output"
+                "Please specify the dataset for which the approach outputs should be exported via"
+                " --dataset-for-export-approach-output"
             )
             return
 
         if os.path.exists(args.output_directory):
             print(
-                f"The directory {args.output_directory} specified by --output-directory already exists. I do not overwrite the directory, please remove it manually if you want to export the dataset."
+                f"The directory {args.output_directory} specified by --output-directory already exists. I do not"
+                " overwrite the directory, please remove it manually if you want to export the dataset."
             )
             return
 
@@ -344,11 +369,11 @@ def main(args=None):
         input_dir = tira.download_dataset(task, dataset)
         print(f"Done: Dataset {dataset} is available locally.")
 
-        if args.input_run and type(args.input_run) != list and "none" != args.input_run.lower():
+        if args.input_run and not isinstance(args.input_run, list) and "none" != args.input_run.lower():
             print(f"Ensure that the input run {args.input_run} is available.")
             args.input_run = tira.get_run_output(args.input_run, dataset, True)
             print("Done: input run is available locally.")
-        if args.input_run and type(args.input_run) == list and len(args.input_run) > 0:
+        if args.input_run and not isinstance(args.input_run, list) and len(args.input_run) > 0:
             temp_dir = "/tmp/" + tempfile.TemporaryDirectory().name
             os.makedirs(temp_dir, exist_ok=True)
             for num, input_run in zip(range(len(args.input_run)), args.input_run):
@@ -375,10 +400,10 @@ def main(args=None):
 
     print(
         f"""
-########################################### TIRA RUN CONFIGURATION #########################################################
+########################################## TIRA RUN CONFIGURATION ######################################################
 # image={args.image}
 # command={args.command}
-############################################################################################################################
+########################################################################################################################
 """
     )
     gpus = 0
@@ -411,10 +436,10 @@ def main(args=None):
     if args.push.lower() == "true":
         print(
             f"""
-########################################### Review the Outputs of your Software ############################################
+######################################### Review the Outputs of your Software ##########################################
 # Your software produced the following outputs in {args.output_directory}.
 # Please shortly review them before we push your software.
-############################################################################################################################
+########################################################################################################################
 """
         )
         if not os.path.exists(args.output_directory) or not os.listdir(args.output_directory):

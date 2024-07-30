@@ -654,12 +654,14 @@ class TestRedirects(unittest.TestCase):
     def test_approve_all_redirects(self):
         softwareto_approve = sorted(['ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)'])
         datasets_to_approve = sorted([
-            'msmarco-passage-trec-dl-2019-judged-20230107-training', 'msmarco-passage-trec-dl-2020-judged-20230107-training',
+            'msmarco-passage-trec-dl-2019-judged-20230107-training',
+            'msmarco-passage-trec-dl-2020-judged-20230107-training',
             'antique-test-20230107-training', 'vaswani-20230107-training',
             'cranfield-20230107-training', 'medline-2004-trec-genomics-2004-20230107-training',
             'medline-2017-trec-pm-2017-20230211-training', 'cord19-fulltext-trec-covid-20230107-training',
             'nfcorpus-test-20230107-training', 'argsme-touche-2020-task-1-20230209-training',
-            'argsme-touche-2021-task-1-20230209-training', 'medline-2017-trec-pm-2018-20230211-training', 'medline-2004-trec-genomics-2005-20230107-training', 'trec-tip-of-the-tongue-dev-20230607-training',
+            'argsme-touche-2021-task-1-20230209-training', 'medline-2017-trec-pm-2018-20230211-training',
+            'medline-2004-trec-genomics-2005-20230107-training', 'trec-tip-of-the-tongue-dev-20230607-training',
             'longeval-short-july-20230513-training', 'longeval-heldout-20230513-training',
             'longeval-long-september-20230513-training', 'longeval-train-20230513-training'
         ])
@@ -670,7 +672,8 @@ class TestRedirects(unittest.TestCase):
             ret[software] = {}
             for dataset in datasets_to_approve:
                 task, team, system = software.split('/')
-                run_url = f'https://www.tira.io/task/{task}/user/{team}/dataset/{dataset}/download/{RUN_IDS[task][team][system][dataset]}.zip'
+                filename = f"{RUN_IDS[task][team][system][dataset]}.zip"
+                run_url = f'https://www.tira.io/task/{task}/user/{team}/dataset/{dataset}/download/{filename}'
                 ret[software][dataset] = {
                     'redirect_url': redirects(software, dataset),
                     'run_execution': tira.get_run_execution_or_none(software, dataset),
@@ -703,19 +706,19 @@ class TestRedirects(unittest.TestCase):
                 "ir-benchmarks/seanmacavaney/corpus-graph",
                 "ir-benchmarks/marcel-gohsen/entity-linking",
                 "ir-benchmarks/marcel-gohsen/query-interpretation",
-                #'workshop-on-open-web-search/tu-dresden-01/genre-mlp',
-                #'workshop-on-open-web-search/tu-dresden-04/textstat-document-features',
-                #'workshop-on-open-web-search/tu-dresden-04/spacy-document-features',
-                #'ir-benchmarks/tira-ir-starter/BM25 Re-Rank (tira-ir-starter-pyterrier)',
-                #'ir-benchmarks/tira-ir-starter/LGD Re-Rank (tira-ir-starter-pyterrier)',
-                #'ir-benchmarks/tira-ir-starter/PL2 Re-Rank (tira-ir-starter-pyterrier)',
-                #'ir-benchmarks/tira-ir-starter/Hiemstra_LM Re-Rank (tira-ir-starter-pyterrier)',
-                #'ir-benchmarks/tira-ir-starter/DirichletLM Re-Rank (tira-ir-starter-pyterrier)',
-                #'SBERT multi-qa-MiniLM-L6-dot-v1 (tira-ir-starter-beir)',
-                #'ColBERT Re-Rank (tira-ir-starter-pyterrier)',
-                #'ANCE Base Cosine (tira-ir-starter-beir)',
-                #'MonoT5 Base (tira-ir-starter-gygaggle)',
-                #'SBERT multi-qa-mpnet-base-cos-v1 (tira-ir-starter-beir)',
+                # 'workshop-on-open-web-search/tu-dresden-01/genre-mlp',
+                # 'workshop-on-open-web-search/tu-dresden-04/textstat-document-features',
+                # 'workshop-on-open-web-search/tu-dresden-04/spacy-document-features',
+                # 'ir-benchmarks/tira-ir-starter/BM25 Re-Rank (tira-ir-starter-pyterrier)',
+                # 'ir-benchmarks/tira-ir-starter/LGD Re-Rank (tira-ir-starter-pyterrier)',
+                # 'ir-benchmarks/tira-ir-starter/PL2 Re-Rank (tira-ir-starter-pyterrier)',
+                # 'ir-benchmarks/tira-ir-starter/Hiemstra_LM Re-Rank (tira-ir-starter-pyterrier)',
+                # 'ir-benchmarks/tira-ir-starter/DirichletLM Re-Rank (tira-ir-starter-pyterrier)',
+                # 'SBERT multi-qa-MiniLM-L6-dot-v1 (tira-ir-starter-beir)',
+                # 'ColBERT Re-Rank (tira-ir-starter-pyterrier)',
+                # 'ANCE Base Cosine (tira-ir-starter-beir)',
+                # 'MonoT5 Base (tira-ir-starter-gygaggle)',
+                # 'SBERT multi-qa-mpnet-base-cos-v1 (tira-ir-starter-beir)',
             ]
         )
         datasets_to_approve = sorted(
@@ -750,7 +753,8 @@ class TestRedirects(unittest.TestCase):
                 if dataset not in RUN_IDS[task][team][system]:
                     continue
 
-                run_url = f"https://www.tira.io/task/{task}/user/{team}/dataset/{dataset}/download/{RUN_IDS[task][team][system][dataset]}.zip"
+                filename = f"{RUN_IDS[task][team][system][dataset]}.zip"
+                run_url = f"https://www.tira.io/task/{task}/user/{team}/dataset/{dataset}/download/{filename}"
                 redirected_run_url = redirects(url=run_url)["urls"][0]
                 # if not redirected_run_url.startswith('https://files.'):
                 #    continue
@@ -794,7 +798,8 @@ class TestRedirects(unittest.TestCase):
         for software in softwareto_approve:
             for dataset in datasets_to_approve:
                 task, team, system = software.split("/")
-                run_url = f"https://www.tira.io/task/{task}/user/{team}/dataset/{dataset}/download/{RUN_IDS[task][team][system][dataset]}.zip"
+                filename = f"{RUN_IDS[task][team][system][dataset]}.zip"
+                run_url = f"https://www.tira.io/task/{task}/user/{team}/dataset/{dataset}/download/{filename}"
                 run_url = redirects(url=run_url)["urls"][0]
                 ret[run_url] = mirror_url(run_url)
 

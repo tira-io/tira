@@ -7,10 +7,13 @@ from tira.tira_client import TiraClient
 
 
 class ProfilingIntegration:
-    """Access the profiling of runs executed in TIRA, e.g., CPU and memory usage, but als GPU utilization if available."""
+    """
+    Access the profiling of runs executed in TIRA, e.g., CPU and memory usage, but als GPU utilization if available.
+    """
 
     def __init__(self, tira_client: TiraClient):
-        """Instantiate the ProfilingIntegration that uses the passed tira_client to acccess runs and parse their profiling metadata.
+        """Instantiate the ProfilingIntegration that uses the passed tira_client to acccess runs and parse their
+        profiling metadata.
 
         Args:
             tira_client (TiraClient): the tira client to access the runs and their profiling metadata.
@@ -20,9 +23,13 @@ class ProfilingIntegration:
     def from_submission(
         self, approach: str, dataset: str, return_pd: bool = False, allow_without_evaluation: bool = False
     ):
-        """Return the profiling of the run identified by the approach on the dataset, i.e.,  CPU and memory usage, but als GPU utilization if available. Will throw an exception if no profiling data is available (e.g., if profiling was not configured for the task).
+        """Return the profiling of the run identified by the approach on the dataset, i.e.,  CPU and memory usage, but
+        als GPU utilization if available. Will throw an exception if no profiling data is available (e.g., if profiling
+        was not configured for the task).
 
-        Entries look like [{"timestamp": 0.0, "key": "ps_cpu", "value": 0.3}, ...]. The timestamp is the time in seconds since the start of the run, the key is the name of the metric, and the value is the value of the metric. The following metrics can be available (depending on the run and the system configuration):
+        Entries look like [{"timestamp": 0.0, "key": "ps_cpu", "value": 0.3}, ...]. The timestamp is the time in
+        seconds since the start of the run, the key is the name of the metric, and the value is the value of the
+        metric. The following metrics can be available (depending on the run and the system configuration):
 
         - elapsed_time: elapsed time in seconds since the start of the run until completion of the process.
         - ps_cpu: CPU usage in percent, produced by the `ps` command.
@@ -49,11 +56,13 @@ class ProfilingIntegration:
         return self.from_local_run_output(run_output_dir, return_pd)
 
     def raw_telemetry(self, approach: str, dataset: str, resource: str, allow_without_evaluation: bool = False) -> str:
-        """Return the raw telemetry "resource" of the run identified by the approach on the dataset. The passed resource specifies which telemetry to return, i.e.,
+        """Return the raw telemetry "resource" of the run identified by the approach on the dataset. The passed
+        resource specifies which telemetry to return, i.e.,
 
         - cpuinfo: The content of '/proc/cpuinfo' of the host that executed the run.
         - meminfo: The content of '/proc/meminfo' of the host that executed the run.
-        - nvidia-smi.out: The content of the 'nvidia-smi' command of the host that executed the run, executed once before the software was started.
+        - nvidia-smi.out: The content of the 'nvidia-smi' command of the host that executed the run, executed once
+            before the software was started.
         - nvidia-smi.log: Periodic telemetry of nvidia-smi monitored while the software was executed in the sandbox.
         - ps.log: Periodic telemetry of 'ps' monitored while the software was executed in the sandbox.
 
@@ -77,9 +86,13 @@ class ProfilingIntegration:
             return archive.read(file).decode("utf-8")
 
     def from_local_run_output(self, run_output_dir: Path, return_pd: bool = False):
-        """Return the profiling of the run within the run output dir, i.e.,  CPU and memory usage, but als GPU utilization if available. Will throw an exception if no profiling data is available (e.g., if profiling was not configured for the task).
+        """Return the profiling of the run within the run output dir, i.e.,  CPU and memory usage, but als GPU
+        utilization if available. Will throw an exception if no profiling data is available (e.g., if profiling was not
+        configured for the task).
 
-        Entries look like [{"timestamp": 0.0, "key": "ps_cpu", "value": 0.3}, ...]. The timestamp is the time in seconds since the start of the run, the key is the name of the metric, and the value is the value of the metric. The following metrics can be available (depending on the run and the system configuration):
+        Entries look like [{"timestamp": 0.0, "key": "ps_cpu", "value": 0.3}, ...]. The timestamp is the time in
+        seconds since the start of the run, the key is the name of the metric, and the value is the value of the
+        metric. The following metrics can be available (depending on the run and the system configuration):
 
         - elapsed_time: elapsed time in seconds since the start of the run until completion of the process.
         - ps_cpu: CPU usage in percent, produced by the `ps` command.
@@ -105,7 +118,7 @@ class ProfilingIntegration:
         try:
             start_time = open(start_time).read()
             end_time = open(end_time).read()
-        except:
+        except Exception:
             start_time = self._read_file_from_profiling_zip(profiling_zip, "start")
             end_time = self._read_file_from_profiling_zip(profiling_zip, "end")
 

@@ -194,7 +194,7 @@ class Client(TiraClient):
         ret = ret.content.decode("utf8")
         try:
             ret = json.loads(ret)
-        except:
+        except Exception:
             msg = f"Upload of software failed with error {ret} and response code {response_code}."
             print(msg)
             raise ValueError(msg)
@@ -207,7 +207,8 @@ class Client(TiraClient):
         print(f'Software with name {ret["context"]["display_name"]} was created.')
         logging.info(f'Software with name {ret["context"]["display_name"]} was created.')
         logging.info(
-            f"Please visit {self.base_url}/submit/{tira_task_id}/user/{tira_vm_id}/docker-submission to run your software."
+            f"Please visit {self.base_url}/submit/{tira_task_id}/user/{tira_vm_id}/docker-submission to run your"
+            " software."
         )
 
     def submissions(self, task, dataset):
@@ -235,7 +236,8 @@ class Client(TiraClient):
 
     def submissions_with_evaluation_or_none(self, task, dataset, team, software):
         """This method returns all runs of the specified software in the task on the dataset by the team.
-        This is especially suitable to batch evaluate all submissions of the software because the evaluation is none if no successfull evaluation was conducted (or there is a new evaluator).
+        This is especially suitable to batch evaluate all submissions of the software because the evaluation is none if
+        no successfull evaluation was conducted (or there is a new evaluator).
         E.g., by code like:
 
         .. code:: py
@@ -325,7 +327,8 @@ class Client(TiraClient):
         return self.get_run_execution_or_none(approach, dataset) is not None
 
     def load_resource(self, resource: str):
-        """Load a resource (usually a zip) from TIRA/Zenodo. Serves as utikity function in case some additional resources must be loaded.
+        """Load a resource (usually a zip) from TIRA/Zenodo. Serves as utikity function in case some additional
+        resources must be loaded.
 
         Args:
             resource (str): The resource identifier
@@ -437,7 +440,8 @@ class Client(TiraClient):
         ret = self.get_run_execution_or_none(f"{task}/{team}/{software}", dataset, previous_stage)
         if not ret:
             raise ValueError(
-                f'I could not find a run for the filter criteria task="{task}", dataset="{dataset}", software="{software}", team={team}, previous_stage={previous_stage}'
+                f'I could not find a run for the filter criteria task="{task}", dataset="{dataset}",'
+                f' software="{software}", team={team}, previous_stage={previous_stage}'
             )
         run_id = ret["run_id"]
 
@@ -457,7 +461,8 @@ class Client(TiraClient):
         ret = self.submissions_with_evaluation_or_none(task, dataset, team, software)
         if not ret or len(ret) < 1:
             raise ValueError(
-                f'I could not find a run for the filter criteria task="{task}", dataset="{dataset}", software="{software}", team={team}.'
+                f'I could not find a run for the filter criteria task="{task}", dataset="{dataset}",'
+                f' software="{software}", team={team}.'
             )
         run_id = ret[0]["run_id"]
 
@@ -466,7 +471,8 @@ class Client(TiraClient):
 
         if submissions is None or len(submissions) < 1:
             raise ValueError(
-                f'I could not find a evaluation for the filter criteria task="{task}", dataset="{dataset}", software="{software}", team={team}, run_id={run_id}.'
+                f'I could not find a evaluation for the filter criteria task="{task}", dataset="{dataset}",'
+                f' software="{software}", team={team}, run_id={run_id}.'
             )
 
         return self.download_zip_to_cache_directory(task, dataset, team, submissions.iloc[0].to_dict()["run_id"])
@@ -529,7 +535,8 @@ class Client(TiraClient):
         """
         if run_id and evaluation_run_id:
             raise ValueError(
-                f"Please pass either a evaluation_run_id or a run_id, but both were passed: evaluation_run_id={evaluation_run_id}, run_id={run_id}"
+                "Please pass either a evaluation_run_id or a run_id, but both were passed:"
+                f" evaluation_run_id={evaluation_run_id}, run_id={run_id}"
             )
         if run_id and not evaluation_run_id:
             submissions = self.submissions(task, dataset)
@@ -555,7 +562,8 @@ class Client(TiraClient):
         return ret["context"]["dataset"]
 
     def evaluate_run(self, team, dataset, run_id):
-        """Evaluate the run of the specified team and identified by the run_id (the run must be submitted on the specified dataset)."""
+        """Evaluate the run of the specified team and identified by the run_id (the run must be submitted on the
+        specified dataset)."""
         ret = self.json_response(f"/grpc/{team}/run_eval/{dataset}/{run_id}")
 
         if "status" not in ret or "0" != str(ret["status"]):
@@ -651,7 +659,10 @@ class Client(TiraClient):
         if not software_id:
             raise ValueError(f'Could not find software id for "{approach}". Got: "{software_id}".')
 
-        url = f"{self.base_url}/grpc/{task}/{team}/run_execute/docker/{dataset}/{software_id}/{resources}/{rerank_dataset}"
+        url = (
+            f"{self.base_url}/grpc/{task}/{team}/run_execute/docker/"
+            "{dataset}/{software_id}/{resources}/{rerank_dataset}"
+        )
         logging.info(f"Start software...\n\t{url}\n")
 
         csrf_token = self.get_csrf_token()
@@ -670,7 +681,8 @@ class Client(TiraClient):
         assert ret["status"] == 0
 
     def get_upload_group_id(self, task_id: str, vm_id: str, display_name: str) -> int:
-        """Get the id of the upload group of user specified with vm_id for the task task_id with the display_name. Raises an error if no matching upload_group was found."""
+        """Get the id of the upload group of user specified with vm_id for the task task_id with the display_name.
+        Raises an error if no matching upload_group was found."""
         url = f"/api/submissions-for-task/{task_id}/{vm_id}/upload"
         ret = self.json_response(url)
         if "context" not in ret or "all_uploadgroups" not in ret["context"]:
@@ -698,7 +710,7 @@ class Client(TiraClient):
         ret = self.json_response(url)
 
         logging.debug(f"Created new upload with id {ret['upload']}")
-        return ret['upload']
+        return ret["upload"]
 
     def upload_run(
         self,
@@ -721,7 +733,9 @@ class Client(TiraClient):
         previous_uploads = self.upload_submissions(task_id, vm_id, upload_id, dataset_id)
         if len(previous_uploads) > 0:
             logging.warn(
-                f"Skip upload of file {file_path} for dataset {dataset_id} because there are already {len(previous_uploads)} for this dataset. Pass allow_multiple_uploads=True to upload a new dataset or delete the uploads in the UI."
+                f"Skip upload of file {file_path} for dataset {dataset_id} because there are already"
+                f" {len(previous_uploads)} for this dataset. Pass allow_multiple_uploads=True to upload a new dataset"
+                " or delete the uploads in the UI."
             )
             return None
 
@@ -769,7 +783,8 @@ class Client(TiraClient):
             except Exception as e:
                 sleep_time = randint(1, self.failsave_max_delay)
                 logging.warn(
-                    f"Error occured while fetching {endpoint}. Code: {resp.status_code}. I will sleep {sleep_time} seconds and continue.",
+                    f"Error occured while fetching {endpoint}. Code: {resp.status_code}. I will sleep"
+                    f" {sleep_time} seconds and continue.",
                     exc_info=e,
                 )
                 time.sleep(sleep_time)
@@ -798,10 +813,11 @@ class Client(TiraClient):
                 response_code = "'unknown response code, maybe there was a timeout?'"
                 try:
                     response_code = resp.status_code
-                except:
+                except Exception:
                     pass
                 logging.warn(
-                    f"Error occured while fetching {endpoint}. Code: {response_code}. I will sleep {sleep_time} seconds and continue.",
+                    f"Error occured while fetching {endpoint}. Code: {response_code}. I will sleep {sleep_time} seconds"
+                    " and continue.",
                     exc_info=e,
                 )
                 time.sleep(sleep_time)
@@ -811,12 +827,13 @@ class Client(TiraClient):
     def __listdir_failsave(self, path: str):
         try:
             return os.listdir(path)
-        except:
+        except Exception:
             return []
 
     def input_run_in_sandbox(self, approach: str):
         """
-        Returns the directory with the outputs of an approach in mounted into the sandbox. returns None if not in the sandbox.
+        Returns the directory with the outputs of an approach in mounted into the sandbox. returns None if not in the
+        sandbox.
         """
         if "inputRun" not in os.environ:
             return None

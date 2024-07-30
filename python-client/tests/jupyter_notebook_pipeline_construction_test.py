@@ -35,7 +35,10 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
 
     def test_notebook_is_extracted_for_pyterrier_command(self):
         expected = "/workspace/notebook.ipynb"
-        command = "/workspace/run-pyterrier-notebook.py --input $inputDataset --output $outputDir --notebook /workspace/notebook.ipynb"
+        command = (
+            "/workspace/run-pyterrier-notebook.py --input $inputDataset --output $outputDir --notebook"
+            " /workspace/notebook.ipynb"
+        )
 
         actual = extract_to_be_executed_notebook_from_command_or_none(command)
 
@@ -43,7 +46,10 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
 
     def test_notebook_is_extracted_when_subshell_is_available(self):
         expected = "/re-rank-with-tiny-bert.ipynb"
-        command = 'bash -c export MODEL="$(huggingface-cli download $MODEL)" && /run-notebook.py --notebook /re-rank-with-tiny-bert.ipynb'
+        command = (
+            'bash -c export MODEL="$(huggingface-cli download $MODEL)" && /run-notebook.py --notebook'
+            " /re-rank-with-tiny-bert.ipynb"
+        )
 
         actual = extract_to_be_executed_notebook_from_command_or_none(command)
 
@@ -90,14 +96,20 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
         self.assertEqual(expected, actual)
 
     def test_extraction_of_approach_for_query_transformation_01(self):
-        python_line = "gpt_sq_zs = tira.pt.transform_queries('ir-benchmarks/tu-dresden-03/qe-gpt3.5-sq-zs', dataset, prefix='llm_expansion_')"
+        python_line = (
+            "gpt_sq_zs = tira.pt.transform_queries('ir-benchmarks/tu-dresden-03/qe-gpt3.5-sq-zs', dataset,"
+            " prefix='llm_expansion_')"
+        )
         expected = "ir-benchmarks/tu-dresden-03/qe-gpt3.5-sq-zs"
         actual = parse_extraction_of_tira_approach(python_line)
 
         self.assertEqual(expected, actual)
 
     def test_extraction_of_approach_for_document_transformation_01(self):
-        python_line = "document_entity_recognition = tira.pt.transform_documents('ir-lab-sose-2024/ir-nfmj/entity-recognition', pt_dataset)"
+        python_line = (
+            "document_entity_recognition = tira.pt.transform_documents('ir-lab-sose-2024/ir-nfmj/entity-recognition',"
+            " pt_dataset)"
+        )
         expected = "ir-lab-sose-2024/ir-nfmj/entity-recognition"
         actual = parse_extraction_of_tira_approach(python_line)
 
@@ -154,7 +166,10 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
         self.assertIsNone(v)
 
     def test_parsing_of_ast_assignment_method_call(self):
-        python_line = "index = tira.pt.index('ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)', 'longeval-tiny-train-20240315-training')"
+        python_line = (
+            "index = tira.pt.index('ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)',"
+            " 'longeval-tiny-train-20240315-training')"
+        )
         k, v = parse_ast_extract_assignment(python_line)
 
         self.assertIsNone(k)
@@ -193,7 +208,10 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
         self.assertIsNone(actual)
 
     def test_extraction_of_approach_01(self):
-        python_line = "index = tira.pt.index('ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)', 'longeval-tiny-train-20240315-training')"
+        python_line = (
+            "index = tira.pt.index('ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)',"
+            " 'longeval-tiny-train-20240315-training')"
+        )
         expected = "ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)"
         actual = parse_extraction_of_tira_approach(python_line)
 
@@ -215,7 +233,10 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
 
     def test_integration_against_docker_image_01(self):
         image = "mam10eks/bash-with-notebooks:latest"
-        command = "bash /workspace/run-notebook.sh --notebook /pyterrier-notebook-without-previous-stages.ipynb --input $inputDataset --output $outputDir"
+        command = (
+            "bash /workspace/run-notebook.sh --notebook /pyterrier-notebook-without-previous-stages.ipynb --input"
+            " $inputDataset --output $outputDir"
+        )
 
         expected = []
         actual = extract_previous_stages_from_docker_image(image, command)
@@ -224,7 +245,10 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
 
     def test_integration_against_docker_image_02(self):
         image = "mam10eks/bash-with-notebooks:latest"
-        command = "bash /workspace/run-notebook.sh  --input $inputDataset --output $outputDir --notebook /pyterrier-notebook-without-previous-stages.ipynb"
+        command = (
+            "bash /workspace/run-notebook.sh  --input $inputDataset --output $outputDir --notebook"
+            " /pyterrier-notebook-without-previous-stages.ipynb"
+        )
 
         expected = []
         actual = extract_previous_stages_from_docker_image(image, command)
@@ -233,7 +257,10 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
 
     def test_integration_against_docker_image_03(self):
         image = "mam10eks/bash-with-notebooks:latest"
-        command = "bash /workspace/run-notebook.sh  --input $inputDataset --output $outputDir --notebook /retrieve-with-pyterrier-index.ipynb"
+        command = (
+            "bash /workspace/run-notebook.sh  --input $inputDataset --output $outputDir --notebook"
+            " /retrieve-with-pyterrier-index.ipynb"
+        )
 
         expected = ["ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)"]
         actual = extract_previous_stages_from_docker_image(image, command)
@@ -268,7 +295,10 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
         self.assertEqual(expected, actual)
 
     def test_extraction_of_approach_from_bash_line_02(self):
-        bash_line = "INDEX=$(tira-cli download --dataset longeval-tiny-train-20240315-training --approach 'ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)') # some comment"
+        bash_line = (
+            "INDEX=$(tira-cli download --dataset longeval-tiny-train-20240315-training --approach"
+            " 'ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)') # some comment"
+        )
         expected = "ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)"
         actual = parse_extraction_of_tira_approach_bash(bash_line)
 
@@ -284,7 +314,10 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
         self.assertEqual(expected, actual)
 
     def test_extraction_of_approach_from_bash_line_04(self):
-        bash_line = 'INDEX=$(tira-cli download --dataset longeval-tiny-train-20240315-training --approach "ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)") # some comment'
+        bash_line = (
+            "INDEX=$(tira-cli download --dataset longeval-tiny-train-20240315-training --approach"
+            ' "ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)") # some comment'
+        )
         expected = "ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)"
         actual = parse_extraction_of_tira_approach_bash(bash_line)
 
@@ -417,7 +450,10 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
         )
 
     def test_pyterrier_from_submission_with_percent_operator_01(self):
-        python_line = "        bm25_raw = tira.pt.from_submission('ir-benchmarks/tira-ir-starter/BM25 (tira-ir-starter-pyterrier)', args.input_dataset) % args.first_stage_top_k"
+        python_line = (
+            "        bm25_raw = tira.pt.from_submission('ir-benchmarks/tira-ir-starter/BM25"
+            " (tira-ir-starter-pyterrier)', args.input_dataset) % args.first_stage_top_k"
+        )
         expected = "ir-benchmarks/tira-ir-starter/BM25 (tira-ir-starter-pyterrier)"
         actual = parse_extraction_of_tira_approach(python_line)
 
@@ -437,7 +473,10 @@ class JupyterNotebookPipelineConstructionTest(unittest.TestCase):
         self.assertEqual(expected, actual)
 
     def test_pyterrier_from_run_output_01(self):
-        python_line = "        bm25_raw = tira.get_run_output('ir-benchmarks/tira-ir-starter/BM25 (tira-ir-starter-pyterrier)', args.input_dataset)"
+        python_line = (
+            "        bm25_raw = tira.get_run_output('ir-benchmarks/tira-ir-starter/BM25 (tira-ir-starter-pyterrier)',"
+            " args.input_dataset)"
+        )
         expected = "ir-benchmarks/tira-ir-starter/BM25 (tira-ir-starter-pyterrier)"
         actual = parse_extraction_of_tira_approach(python_line)
 

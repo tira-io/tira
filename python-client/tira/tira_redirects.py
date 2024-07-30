@@ -3,6 +3,8 @@ from pathlib import Path
 
 from tira.license_agreements import print_license_agreement
 
+TIRA_ZENODO_BASE_URL = "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation"
+
 STATIC_REDIRECTS = {
     "ir-benchmarks": {
         "tira-ir-starter": {
@@ -10,7 +12,7 @@ STATIC_REDIRECTS = {
                 "msmarco-passage-trec-dl-2019-judged-20230107-training": {
                     "urls": [
                         "https://zenodo.org/records/10743990/files/2023-01-07-22-09-56.zip?download=1",
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/pyterrier-indexes/2023-01-07-22-09-56.zip",
+                        f"{TIRA_ZENODO_BASE_URL}/pyterrier-indexes/2023-01-07-22-09-56.zip",
                     ],
                     "run_id": "2023-01-07-22-09-56",
                 },
@@ -18,65 +20,65 @@ STATIC_REDIRECTS = {
                     # better caching: dl2020 and 2019 used the same corpus
                     "urls": [
                         "https://zenodo.org/records/10743990/files/2023-01-07-22-09-56.zip?download=1",
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/pyterrier-indexes/2023-01-07-22-09-56.zip",
+                        f"{TIRA_ZENODO_BASE_URL}/pyterrier-indexes/2023-01-07-22-09-56.zip",
                     ],
                     "run_id": "2023-01-07-22-09-56",
-                    # 'url': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/pyterrier-indexes/2023-02-09-19-37-45.zip',
+                    # 'url': f"{TIRA_ZENODO_BASE_URL}/pyterrier-indexes/2023-02-09-19-37-45.zip",
                     # 'run_id': '2023-02-09-19-37-45',
                 },
                 "antique-test-20230107-training": {
                     "urls": [
                         "https://zenodo.org/records/10743990/files/2023-01-07-13-40-04.zip?download=1",
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/pyterrier-indexes/2023-01-07-13-40-04.zip",
+                        f"{TIRA_ZENODO_BASE_URL}/pyterrier-indexes/2023-01-07-13-40-04.zip",
                     ],
                     "run_id": "2023-01-07-13-40-04",
                 },
                 "vaswani-20230107-training": {
                     "urls": [
                         "https://zenodo.org/records/10743990/files/2023-01-07-19-01-50.zip?download=1",
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/pyterrier-indexes/2023-01-07-19-01-50.zip",
+                        f"{TIRA_ZENODO_BASE_URL}/pyterrier-indexes/2023-01-07-19-01-50.zip",
                     ],
                     "run_id": "2023-01-07-19-01-50",
                 },
                 "cranfield-20230107-training": {
                     "urls": [
                         "https://zenodo.org/records/10743990/files/2023-01-07-13-39-11.zip?download=1",
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/pyterrier-indexes/2023-01-07-13-39-11.zip",
+                        f"{TIRA_ZENODO_BASE_URL}/pyterrier-indexes/2023-01-07-13-39-11.zip",
                     ],
                     "run_id": "2023-01-07-13-39-11",
                 },
                 "medline-2004-trec-genomics-2004-20230107-training": {
                     "urls": [
                         "https://zenodo.org/records/10743990/files/2023-01-07-19-37-49.zip?download=1",
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/pyterrier-indexes/2023-01-07-19-37-49.zip",
+                        f"{TIRA_ZENODO_BASE_URL}/pyterrier-indexes/2023-01-07-19-37-49.zip",
                     ],
                     "run_id": "2023-01-07-19-37-49",
                 },
                 "medline-2017-trec-pm-2017-20230211-training": {
                     "urls": [
                         "https://zenodo.org/records/10743990/files/2023-02-11-20-52-47.zip?download=1",
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/pyterrier-indexes/2023-02-11-20-52-47.zip",
+                        f"{TIRA_ZENODO_BASE_URL}/pyterrier-indexes/2023-02-11-20-52-47.zip",
                     ],
                     "run_id": "2023-02-11-20-52-47",
                 },
                 "cord19-fulltext-trec-covid-20230107-training": {
                     "urls": [
                         "https://zenodo.org/records/10743990/files/2023-01-08-15-18-20.zip?download=1",
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/pyterrier-indexes/2023-01-08-15-18-20.zip",
+                        f"{TIRA_ZENODO_BASE_URL}/pyterrier-indexes/2023-01-08-15-18-20.zip",
                     ],
                     "run_id": "2023-01-08-15-18-20",
                 },
                 "nfcorpus-test-20230107-training": {
                     "urls": [
                         "https://zenodo.org/records/10743990/files/2023-02-09-15-46-37.zip?download=1",
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/pyterrier-indexes/2023-02-09-15-46-37.zip",
+                        f"{TIRA_ZENODO_BASE_URL}/pyterrier-indexes/2023-02-09-15-46-37.zip",
                     ],
                     "run_id": "2023-02-09-15-46-37",
                 },
                 "argsme-touche-2020-task-1-20230209-training": {
                     "urls": [
                         "https://zenodo.org/records/10743990/files/2023-02-09-17-50-22.zip?download=1",
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/pyterrier-indexes/2023-02-09-17-50-22.zip",
+                        f"{TIRA_ZENODO_BASE_URL}/pyterrier-indexes/2023-02-09-17-50-22.zip",
                     ],
                     "run_id": "2023-02-09-17-50-22",
                 },
@@ -84,81 +86,73 @@ STATIC_REDIRECTS = {
                     # better caching: dl2020 and 2019 used the same corpus
                     "urls": [
                         "https://zenodo.org/records/10743990/files/2023-02-09-17-50-22.zip?download=1",
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/pyterrier-indexes/2023-02-09-17-50-22.zip",
+                        f"{TIRA_ZENODO_BASE_URL}/pyterrier-indexes/2023-02-09-17-50-22.zip",
                     ],
                     "run_id": "2023-02-09-17-50-22",
-                    #    'url': 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/pyterrier-indexes/.zip',
-                    #    'run_id': '',
                 },
                 "medline-2017-trec-pm-2018-20230211-training": {
                     "urls": [
                         "https://zenodo.org/records/10743990/files/2023-02-11-15-15-35.zip?download=1",
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/pyterrier-indexes/2023-02-11-15-15-35.zip",
+                        f"{TIRA_ZENODO_BASE_URL}/pyterrier-indexes/2023-02-11-15-15-35.zip",
                     ],
                     "run_id": "2023-02-11-15-15-35",
                 },
                 "medline-2004-trec-genomics-2005-20230107-training": {
                     "urls": [
                         "https://zenodo.org/records/10743990/files/2023-02-09-22-14-32.zip?download=1",
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/pyterrier-indexes/2023-02-09-22-14-32.zip",
+                        f"{TIRA_ZENODO_BASE_URL}/pyterrier-indexes/2023-02-09-22-14-32.zip",
                     ],
                     "run_id": "2023-02-09-22-14-32",
                 },
                 "trec-tip-of-the-tongue-dev-20230607-training": {
                     "urls": [
                         "https://zenodo.org/records/10743990/files/2023-11-10-23-23-59.zip?download=1",
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/pyterrier-indexes/2023-11-10-23-23-59.zip",
+                        f"{TIRA_ZENODO_BASE_URL}/pyterrier-indexes/2023-11-10-23-23-59.zip",
                     ],
                     "run_id": "2023-11-10-23-23-59",
                 },
                 "longeval-short-july-20230513-training": {
                     "urls": [
                         "https://zenodo.org/records/10743990/files/2023-11-10-23-22-59.zip?download=1",
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/pyterrier-indexes/2023-11-10-23-22-59.zip",
+                        f"{TIRA_ZENODO_BASE_URL}/pyterrier-indexes/2023-11-10-23-22-59.zip",
                     ],
                     "run_id": "2023-11-10-23-22-59",
                 },
                 "longeval-heldout-20230513-training": {
                     "urls": [
                         "https://zenodo.org/records/10743990/files/2023-11-10-23-21-55.zip?download=1",
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/pyterrier-indexes/2023-11-10-23-21-55.zip",
+                        f"{TIRA_ZENODO_BASE_URL}/pyterrier-indexes/2023-11-10-23-21-55.zip",
                     ],
                     "run_id": "2023-11-10-23-21-55",
                 },
                 "longeval-long-september-20230513-training": {
                     "urls": [
                         "https://zenodo.org/records/10743990/files/2023-11-10-21-09-17.zip?download=1",
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/pyterrier-indexes/2023-11-10-21-09-17.zip",
+                        f"{TIRA_ZENODO_BASE_URL}/pyterrier-indexes/2023-11-10-21-09-17.zip",
                     ],
                     "run_id": "2023-11-10-21-09-17",
                 },
                 "longeval-train-20230513-training": {
                     "urls": [
                         "https://zenodo.org/records/10743990/files/2023-11-11-06-49-15.zip?download=1",
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/pyterrier-indexes/2023-11-11-06-49-15.zip",
+                        f"{TIRA_ZENODO_BASE_URL}/pyterrier-indexes/2023-11-11-06-49-15.zip",
                     ],
                     "run_id": "2023-11-11-06-49-15",
                 },
                 "longeval-2023-01-20240423-training": {
                     "run_id": "2024-04-24-01-24-17",
                     "md5": "8bb006a0e8d32a2d1d3030f7140ea205",
-                    "urls": [
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-padua2024/2024-04-24-01-24-17.zip"
-                    ],
+                    "urls": [f"{TIRA_ZENODO_BASE_URL}/ir-lab-padua2024/2024-04-24-01-24-17.zip"],
                 },
                 "longeval-2023-06-20240418-training": {
                     "run_id": "2024-04-18-18-04-27",
                     "md5": "bcc930aded82f2b20269e460a7e8d7bb",
-                    "urls": [
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-padua2024/2024-04-18-18-04-27.zip"
-                    ],
+                    "urls": [f"{TIRA_ZENODO_BASE_URL}/ir-lab-padua2024/2024-04-18-18-04-27.zip"],
                 },
                 "longeval-2023-08-20240418-training": {
                     "run_id": "2024-04-18-18-16-52",
                     "md5": "47d62f254408281ef03c603248c44abc",
-                    "urls": [
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-padua2024/2024-04-18-18-16-52.zip"
-                    ],
+                    "urls": [f"{TIRA_ZENODO_BASE_URL}/ir-lab-padua2024/2024-04-18-18-16-52.zip"],
                 },
             }
         },
@@ -169,7 +163,7 @@ STATIC_REDIRECTS = {
                     "md5": "3d07a6c1364534a3c62825316703845a",
                     "urls": [
                         "https://zenodo.org/records/10852971/files/2024-03-19-20-04-59.zip?download=1",
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-20-04-59.zip",
+                        f"{TIRA_ZENODO_BASE_URL}/doc-t5-query/2024-03-19-20-04-59.zip",
                     ],
                 },
                 "msmarco-passage-trec-dl-2020-judged-20230107-training": {
@@ -178,7 +172,7 @@ STATIC_REDIRECTS = {
                     "md5": "3d07a6c1364534a3c62825316703845a",
                     "urls": [
                         "https://zenodo.org/records/10852971/files/2024-03-19-20-04-59.zip?download=1",
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-20-04-59.zip",
+                        f"{TIRA_ZENODO_BASE_URL}/doc-t5-query/2024-03-19-20-04-59.zip",
                     ],
                 },
                 "trec-tip-of-the-tongue-dev-20230607-training": {
@@ -186,7 +180,7 @@ STATIC_REDIRECTS = {
                     "md5": "365ff525cca8302608c2df113eaad170",
                     "urls": [
                         "https://zenodo.org/records/10852971/files/2024-03-19-19-58-58.zip?download=1",
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-19-58-58.zip",
+                        f"{TIRA_ZENODO_BASE_URL}/doc-t5-query/2024-03-19-19-58-58.zip",
                     ],
                 },
                 "antique-test-20230107-training": {
@@ -194,7 +188,7 @@ STATIC_REDIRECTS = {
                     "md5": "b019d109841dfce4db65bb315750024b",
                     "urls": [
                         "https://zenodo.org/records/10852971/files/2024-03-19-18-06-23.zip?download=1",
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-18-06-23.zip",
+                        f"{TIRA_ZENODO_BASE_URL}/doc-t5-query/2024-03-19-18-06-23.zip",
                     ],
                 },
                 "vaswani-20230107-training": {
@@ -202,7 +196,7 @@ STATIC_REDIRECTS = {
                     "md5": "00d788fd9ccc6eba51558800ba94c731",
                     "urls": [
                         "https://zenodo.org/records/10852971/files/2024-03-19-19-32-44.zip?download=1",
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-19-32-44.zip",
+                        f"{TIRA_ZENODO_BASE_URL}/doc-t5-query/2024-03-19-19-32-44.zip",
                     ],
                 },
                 "cranfield-20230107-training": {
@@ -210,7 +204,7 @@ STATIC_REDIRECTS = {
                     "md5": "07d8fd9ab63569f6ea2a80aee86db55a",
                     "urls": [
                         "https://zenodo.org/records/10852971/files/2024-03-19-17-50-12.zip?download=1",
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-17-50-12.zip",
+                        f"{TIRA_ZENODO_BASE_URL}/doc-t5-query/2024-03-19-17-50-12.zip",
                     ],
                 },
                 "nfcorpus-test-20230107-training": {
@@ -218,7 +212,7 @@ STATIC_REDIRECTS = {
                     "md5": "047e5276a69ab7353f584ab08e817539",
                     "urls": [
                         "https://zenodo.org/records/10852971/files/2024-03-19-19-51-27.zip?download=1",
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-19-51-27.zip",
+                        f"{TIRA_ZENODO_BASE_URL}/doc-t5-query/2024-03-19-19-51-27.zip",
                     ],
                 },
                 "medline-2017-trec-pm-2017-20230211-training": {
@@ -226,7 +220,7 @@ STATIC_REDIRECTS = {
                     "md5": "e23d2535cc67c7bafe513c40510da6fa",
                     "urls": [
                         "https://zenodo.org/records/10852971/files/2024-03-19-19-48-04.zip?download=1",
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-19-48-04.zip",
+                        f"{TIRA_ZENODO_BASE_URL}/doc-t5-query/2024-03-19-19-48-04.zip",
                     ],
                 },
                 "argsme-touche-2020-task-1-20230209-training": {
@@ -234,7 +228,7 @@ STATIC_REDIRECTS = {
                     "md5": "6698ba27029448dac2a8a7293d0376a2",
                     "urls": [
                         "https://zenodo.org/records/10852971/files/2024-03-19-17-52-36.zip?download=1",
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-17-52-36.zip",
+                        f"{TIRA_ZENODO_BASE_URL}/doc-t5-query/2024-03-19-17-52-36.zip",
                     ],
                 },
                 "argsme-touche-2021-task-1-20230209-training": {
@@ -242,7 +236,7 @@ STATIC_REDIRECTS = {
                     "md5": "f22fdcb8c25255e64a2380de42414689",
                     "urls": [
                         "https://zenodo.org/records/10852971/files/2024-03-19-17-59-19.zip?download=1",
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-17-59-19.zip",
+                        f"{TIRA_ZENODO_BASE_URL}/doc-t5-query/2024-03-19-17-59-19.zip",
                     ],
                 },
                 "longeval-short-july-20230513-training": {
@@ -250,7 +244,7 @@ STATIC_REDIRECTS = {
                     "md5": "ea47bb4a0f7d8999db1e510d45096214",
                     "urls": [
                         "https://zenodo.org/records/10852971/files/2024-03-19-19-57-39.zip?download=1",
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-19-57-39.zip",
+                        f"{TIRA_ZENODO_BASE_URL}/doc-t5-query/2024-03-19-19-57-39.zip",
                     ],
                 },
                 "longeval-heldout-20230513-training": {
@@ -258,7 +252,7 @@ STATIC_REDIRECTS = {
                     "md5": "9b97188e7d7383d1cea4dc6630c37081",
                     "urls": [
                         "https://zenodo.org/records/10852971/files/2024-03-19-19-49-22.zip?download=1",
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-19-49-22.zip",
+                        f"{TIRA_ZENODO_BASE_URL}/doc-t5-query/2024-03-19-19-49-22.zip",
                     ],
                 },
                 "longeval-long-september-20230513-training": {
@@ -266,7 +260,7 @@ STATIC_REDIRECTS = {
                     "md5": "1895e01418d7170ac02be6ac1a9a185f",
                     "urls": [
                         "https://zenodo.org/records/10852971/files/2024-03-19-19-52-58.zip?download=1",
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-19-52-58.zip",
+                        f"{TIRA_ZENODO_BASE_URL}/doc-t5-query/2024-03-19-19-52-58.zip",
                     ],
                 },
                 "longeval-train-20230513-training": {
@@ -274,7 +268,7 @@ STATIC_REDIRECTS = {
                     "md5": "44504a96a16e4e4eaef760025cb9c91b",
                     "urls": [
                         "https://zenodo.org/records/10852971/files/2024-03-19-19-46-01.zip?download=1",
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/doc-t5-query/2024-03-19-19-46-01.zip",
+                        f"{TIRA_ZENODO_BASE_URL}/doc-t5-query/2024-03-19-19-46-01.zip",
                     ],
                 },
             },
@@ -284,7 +278,7 @@ STATIC_REDIRECTS = {
                     "md5": "93d2166f8498bb664afc1782ffdf2106",
                     "urls": [
                         "https://zenodo.org/records/10852971/files/2024-03-21-12-27-29.zip?download=1",
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/corpus-graph/2024-03-21-12-27-29.zip",
+                        f"{TIRA_ZENODO_BASE_URL}/corpus-graph/2024-03-21-12-27-29.zip",
                     ],
                 },
                 "msmarco-passage-trec-dl-2020-judged-20230107-training": {
@@ -293,7 +287,7 @@ STATIC_REDIRECTS = {
                     "md5": "93d2166f8498bb664afc1782ffdf2106",
                     "urls": [
                         "https://zenodo.org/records/10852971/files/2024-03-21-12-27-29.zip?download=1",
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/corpus-graph/2024-03-21-12-27-29.zip",
+                        f"{TIRA_ZENODO_BASE_URL}/corpus-graph/2024-03-21-12-27-29.zip",
                     ],
                 },
                 "antique-test-20230107-training": {
@@ -301,7 +295,7 @@ STATIC_REDIRECTS = {
                     "md5": "0fe6df76b5fd121c395a5008c0485447",
                     "urls": [
                         "https://zenodo.org/records/10852971/files/2024-03-21-15-00-49.zip?download=1",
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/corpus-graph/2024-03-21-15-00-49.zip",
+                        f"{TIRA_ZENODO_BASE_URL}/corpus-graph/2024-03-21-15-00-49.zip",
                     ],
                 },
                 "longeval-short-july-20230513-training": {
@@ -309,7 +303,7 @@ STATIC_REDIRECTS = {
                     "md5": "cb813f8d7193b436132e035613f983d4",
                     "urls": [
                         "https://zenodo.org/records/10852971/files/2024-03-21-12-45-07.zip?download=1",
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/corpus-graph/2024-03-21-12-45-07.zip",
+                        f"{TIRA_ZENODO_BASE_URL}/corpus-graph/2024-03-21-12-45-07.zip",
                     ],
                 },
                 "longeval-heldout-20230513-training": {
@@ -317,7 +311,7 @@ STATIC_REDIRECTS = {
                     "md5": "290a3fb49d516b4dee3c1ddcf61c0884",
                     "urls": [
                         "https://zenodo.org/records/10852971/files/2024-03-21-12-39-51.zip?download=1",
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/corpus-graph/2024-03-21-12-39-51.zip",
+                        f"{TIRA_ZENODO_BASE_URL}/corpus-graph/2024-03-21-12-39-51.zip",
                     ],
                 },
                 "longeval-long-september-20230513-training": {
@@ -325,7 +319,7 @@ STATIC_REDIRECTS = {
                     "md5": "467241170d83d8320df5207a20c95454",
                     "urls": [
                         "https://zenodo.org/records/10852971/files/2024-03-21-12-40-32.zip?download=1",
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/corpus-graph/2024-03-21-12-40-32.zip",
+                        f"{TIRA_ZENODO_BASE_URL}/corpus-graph/2024-03-21-12-40-32.zip",
                     ],
                 },
                 "longeval-train-20230513-training": {
@@ -333,7 +327,7 @@ STATIC_REDIRECTS = {
                     "md5": "4c6a959deadcbd8a4327c10270ff5b63",
                     "urls": [
                         "https://zenodo.org/records/10852971/files/2024-03-21-12-46-50.zip?download=1",
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/corpus-graph/2024-03-21-12-46-50.zip",
+                        f"{TIRA_ZENODO_BASE_URL}/corpus-graph/2024-03-21-12-46-50.zip",
                     ],
                 },
             },
@@ -345,25 +339,19 @@ STATIC_REDIRECTS = {
                 "ir-acl-anthology-20240411-training": {
                     "run_id": "2024-04-11-19-43-23",
                     "md5": "ebb5b8f1d8c7ad36612f408da1203ff2",
-                    "urls": [
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-11-19-43-23.zip"
-                    ],
+                    "urls": [f"{TIRA_ZENODO_BASE_URL}/ir-lab-sose2024/2024-04-11-19-43-23.zip"],
                 },
                 "ir-acl-anthology-20240504-training": {
                     "run_id": "2024-05-04-16-05-53",
                     "md5": "d571b44aa24ecd06615932a246ff7e6b",
-                    "urls": [
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-05-04-16-05-53.zip"
-                    ],
+                    "urls": [f"{TIRA_ZENODO_BASE_URL}/ir-lab-sose2024/2024-05-04-16-05-53.zip"],
                 },
             },
             "Index (pyterrier-stanford-lemmatizer)": {
                 "ir-acl-anthology-20240411-training": {
                     "run_id": "2024-04-16-11-05-06",
                     "md5": "70aa7ce8a437ba47ebf9e17d75871a5f",
-                    "urls": [
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-16-11-05-06.zip"
-                    ],
+                    "urls": [f"{TIRA_ZENODO_BASE_URL}/ir-lab-sose2024/2024-04-16-11-05-06.zip"],
                 }
             },
         },
@@ -372,18 +360,14 @@ STATIC_REDIRECTS = {
                 "anthology-20240411-training": {
                     "run_id": "2024-04-09-22-03-26",
                     "md5": "1a0f65a8f47051db435ec6031106db7b",
-                    "urls": [
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-09-22-03-26.zip"
-                    ],
+                    "urls": [f"{TIRA_ZENODO_BASE_URL}/ir-lab-sose2024/2024-04-09-22-03-26.zip"],
                 }
             },
             "corpus-graph": {
                 "anthology-20240411-training": {
                     "run_id": "2024-04-09-16-35-50",
                     "md5": "75f743914d44d7252425844136ea9722",
-                    "urls": [
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-09-16-35-50.zip"
-                    ],
+                    "urls": [f"{TIRA_ZENODO_BASE_URL}/ir-lab-sose2024/2024-04-09-16-35-50.zip"],
                 }
             },
             # "some-interface": {
@@ -399,9 +383,7 @@ STATIC_REDIRECTS = {
                 "ir-acl-anthology-20240411-training": {
                     "run_id": "2024-04-11-19-47-18",
                     "md5": "1112dc9e60b6dfa4ac80571ad3425200",
-                    "urls": [
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-11-19-47-18.zip"
-                    ],
+                    "urls": [f"{TIRA_ZENODO_BASE_URL}/ir-lab-sose2024/2024-04-11-19-47-18.zip"],
                 }
             }
         },
@@ -410,9 +392,7 @@ STATIC_REDIRECTS = {
                 "ir-acl-anthology-20240411-training": {
                     "run_id": "2024-04-14-08-40-58",
                     "md5": "03f73b47664cc1c843529b948094bf81",
-                    "urls": [
-                        "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/2024-04-14-08-40-58.zip"
-                    ],
+                    "urls": [f"{TIRA_ZENODO_BASE_URL}/ir-lab-sose2024/2024-04-14-08-40-58.zip"],
                 }
             }
         },
@@ -451,7 +431,7 @@ def join_to_static_redirects(name, http_base_url):
 
 join_to_static_redirects(
     "reneuir-2024",
-    "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/reneuir-2024/runs/",
+    f"{TIRA_ZENODO_BASE_URL}/reneuir-2024/runs/",
 )
 TASKS_WITH_REDIRECT_MERGING = set()
 RUN_ID_TO_SYSTEM = {}
@@ -462,8 +442,6 @@ for task in STATIC_REDIRECTS.keys():
             system = STATIC_REDIRECTS[task][team][system_name]
             for config in system.values():
                 RUN_ID_TO_SYSTEM[config["run_id"]] = system_name
-
-# {"ir-benchmarks": {"tira-ir-starter": {"Index (tira-ir-starter-pyterrier)": {"msmarco-passage-trec-dl-2019-judged-20230107-training": "2023-01-07-22-09-56", "msmarco-passage-trec-dl-2020-judged-20230107-training": "2023-02-09-19-37-45", "antique-test-20230107-training": "2023-01-07-13-40-04", "vaswani-20230107-training": "2023-01-07-19-01-50", "cranfield-20230107-training": "2023-01-07-13-39-11", "medline-2004-trec-genomics-2004-20230107-training": "2023-01-07-19-37-49", "medline-2017-trec-pm-2017-20230211-training": "2023-02-11-20-52-47", "cord19-fulltext-trec-covid-20230107-training": "2023-01-08-15-18-20", "nfcorpus-test-20230107-training": "2023-02-09-15-46-37", "argsme-touche-2020-task-1-20230209-training": "2023-02-09-17-50-22", "argsme-touche-2021-task-1-20230209-training": "2023-02-09-17-50-31", "medline-2017-trec-pm-2018-20230211-training": "2023-02-11-15-15-35", "medline-2004-trec-genomics-2005-20230107-training": "2023-02-09-22-14-32", "trec-tip-of-the-tongue-dev-20230607-training": "2023-11-10-23-23-59", "longeval-short-july-20230513-training": "2023-11-10-23-22-59", "longeval-heldout-20230513-training": "2023-11-10-23-21-55", "longeval-long-september-20230513-training": "2023-11-10-21-09-17", "longeval-train-20230513-training": "2023-11-11-06-49-15"}}}}
 
 QUERY_PROCESSORS = {
     "ir-benchmarks": {
@@ -1594,18 +1572,22 @@ QUERY_PROCESSORS_PREFIX = {
     "ir-benchmarks": {
         "qpptk": {
             "all-predictors": "https://zenodo.org/records/10852738/files/qpptk-all-predictors",
-            # 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/qpptk-all-predictors'
+            # f"{TIRA_ZENODO_BASE_URL}/query-processors-in-progress/qpptk-all-predictors"
         },
         "salamander": {
-            "classify-comparative-queries": "https://zenodo.org/records/10852738/files/salamander-classify-comparative-queries",
-            # 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/salamander-classify-comparative-queries'
+            "classify-comparative-queries": (
+                "https://zenodo.org/records/10852738/files/salamander-classify-comparative-queries"
+            ),
+            # f"{TIRA_ZENODO_BASE_URL}/query-processors-in-progress/salamander-classify-comparative-queries"
         },
         "ows": {
             "query-segmentation-hyb-a": "https://zenodo.org/records/10852738/files/ows-query-segmentation-hyb-a",
-            # 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/ows-query-segmentation-hyb-a'
+            # f"{TIRA_ZENODO_BASE_URL}/query-processors-in-progress/ows-query-segmentation-hyb-a"
         },
         "dossier": {
-            "pre-retrieval-query-intent": "https://zenodo.org/records/10852738/files/dossier-pre-retrieval-query-intent",
+            "pre-retrieval-query-intent": (
+                "https://zenodo.org/records/10852738/files/dossier-pre-retrieval-query-intent"
+            ),
             # 'https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/query-processors-in-progress/dossier-pre-retrieval-query-intent'
         },
         "tu-dresden-03": {
@@ -1643,16 +1625,16 @@ STATIC_DATASET_REDIRECTS = {
     "training-20231104-training": "https://zenodo.org/records/10628882/files/",
     "jena-topics-small-20240119-training": "https://zenodo.org/records/10628882/files/",
     "leipzig-topics-small-20240119-training": "https://zenodo.org/records/10628882/files/",
-    "ir-acl-anthology-20240411-training": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/",
-    "longeval-2023-01-20240423-training": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-padua2024/",
-    "longeval-2023-06-20240418-training": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-padua2024/",
-    "longeval-2023-08-20240418-training": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-padua2024/",
-    "longeval-heldout-20230513-training": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-padua2024/",
-    "longeval-train-20230513-training": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-padua2024/",
-    "longeval-short-july-20230513-training": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-padua2024/",
-    "longeval-long-september-20230513-training": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-padua2024/",
-    "ir-acl-anthology-20240504-training": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/",
-    "ir-acl-anthology-topics-koeln-20240614-in-progress-test": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/",
+    "ir-acl-anthology-20240411-training": f"{TIRA_ZENODO_BASE_URL}/ir-lab-sose2024/",
+    "longeval-2023-01-20240423-training": f"{TIRA_ZENODO_BASE_URL}/ir-lab-padua2024/",
+    "longeval-2023-06-20240418-training": f"{TIRA_ZENODO_BASE_URL}/ir-lab-padua2024/",
+    "longeval-2023-08-20240418-training": f"{TIRA_ZENODO_BASE_URL}/ir-lab-padua2024/",
+    "longeval-heldout-20230513-training": f"{TIRA_ZENODO_BASE_URL}/ir-lab-padua2024/",
+    "longeval-train-20230513-training": f"{TIRA_ZENODO_BASE_URL}/ir-lab-padua2024/",
+    "longeval-short-july-20230513-training": f"{TIRA_ZENODO_BASE_URL}/ir-lab-padua2024/",
+    "longeval-long-september-20230513-training": f"{TIRA_ZENODO_BASE_URL}/ir-lab-padua2024/",
+    "ir-acl-anthology-20240504-training": f"{TIRA_ZENODO_BASE_URL}/ir-lab-sose2024/",
+    "ir-acl-anthology-topics-koeln-20240614-in-progress-test": f"{TIRA_ZENODO_BASE_URL}/ir-lab-sose2024/",
     # ReNeuIr 2024
     # mirror: https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/reneuir-2024/corpora/
     "dl-top-10-docs-20240701-training": "https://zenodo.org/records/12722918/files/",
@@ -1665,8 +1647,10 @@ STATIC_DATASET_REDIRECTS = {
 }
 
 RESOURCE_REDIRECTS = {
-    "Passage_ANCE_FirstP_Checkpoint.zip": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/Passage_ANCE_FirstP_Checkpoint.zip",
-    "custom-terrier-token-processing-1.0-SNAPSHOT-jar-with-dependencies.jar": "https://files.webis.de/data-in-production/data-research/tira-zenodo-dump-preparation/ir-lab-sose2024/custom-terrier-token-processing-1.0-SNAPSHOT-jar-with-dependencies.jar",
+    "Passage_ANCE_FirstP_Checkpoint.zip": f"{TIRA_ZENODO_BASE_URL}/ir-lab-sose2024/Passage_ANCE_FirstP_Checkpoint.zip",
+    "custom-terrier-token-processing-1.0-SNAPSHOT-jar-with-dependencies.jar": (
+        f"{TIRA_ZENODO_BASE_URL}/ir-lab-sose2024/custom-terrier-token-processing-1.0-SNAPSHOT-jar-with-dependencies.jar"
+    ),
 }
 
 DATASET_ID_REDIRECTS = {
@@ -1716,10 +1700,6 @@ def mirror_url(url):
         print(f"Switch to mirror {mirror_urls[0]} as due to outage of {url}")
         return mirror_urls[0]
     return url
-
-
-# do some semi fast tests with:
-#    python3 -c 'from tira.rest_api_client import Client; tira = Client(); print(tira.get_run_output("ir-benchmarks/tira-ir-starter/Index (tira-ir-starter-pyterrier)", "argsme-touche-2020-task-1-20230209-training"))'
 
 
 def redirects(approach=None, dataset=None, url=None):

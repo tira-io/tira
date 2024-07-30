@@ -12,5 +12,8 @@ def print_license_agreement(url):
         or "validation-20231104-training" in url
     ):
         print(
-            'The download is derived from The LongEval Dataset under the "Qwant LongEval Attribution-NonCommercial-ShareAlike License". Hence, the download is also under this License. By using it, you agree to the terms of this license. Please find details at: https://lindat.mff.cuni.cz/repository/xmlui/page/Qwant_LongEval_BY-NC-SA_License'
+            'The download is derived from The LongEval Dataset under the "Qwant LongEval'
+            ' Attribution-NonCommercial-ShareAlike License". Hence, the download is also under this License. By using'
+            " it, you agree to the terms of this license. Please find details at:"
+            " https://lindat.mff.cuni.cz/repository/xmlui/page/Qwant_LongEval_BY-NC-SA_License"
         )

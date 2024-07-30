@@ -22,7 +22,7 @@ class TestRestAPI(unittest.TestCase):
         actual = TestRestAPI.tira.docker_software("ir-benchmarks/tira-ir-starter/TF_IDF (tira-ir-starter-pyterrier)")
 
         assert actual is not None
-        assert actual["ir_re_ranker"] == False
+        assert actual["ir_re_ranker"] is False
 
     def test_output_of_run(self):
         actual = TestRestAPI.tira.get_run_output(

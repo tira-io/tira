@@ -23,7 +23,12 @@ class TestExporSubmissionFromJupyterNotebook(unittest.TestCase):
     def test_notebook_submission_without_previous_stages(self):
         notebook = "tests/resources/pyterrier-notebook-without-previous-stages.ipynb"
 
-        expected = "TIRA_COMMAND=/workspace/run-pyterrier-notebook.py --input ${TIRA_INPUT_DIRECTORY} --output ${TIRA_OUTPUT_DIRECTORY} --notebook /workspace/pyterrier-notebook-without-previous-stages.ipynb"
+        expected = (
+            "TIRA_COMMAND=/workspace/run-pyterrier-notebook.py "
+            "--input ${TIRA_INPUT_DIRECTORY} "
+            "--output ${TIRA_OUTPUT_DIRECTORY} "
+            "--notebook /workspace/pyterrier-notebook-without-previous-stages.ipynb"
+        )
         actual = LocalExecutionIntegration().export_submission_from_jupyter_notebook(notebook)
 
         assert expected == actual

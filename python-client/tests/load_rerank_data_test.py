@@ -29,7 +29,10 @@ class TestLoadRerankData(unittest.TestCase):
                 "qid": "2",
                 "query": "how to exit vim?",
                 "docno": "doc-1",
-                "text": "Press ESC key, then the : (colon), and type the wq command after the colon and hit the Enter key to save and leave Vim.",
+                "text": (
+                    "Press ESC key, then the : (colon), and type the wq command after the colon and hit the Enter key"
+                    " to save and leave Vim."
+                ),
                 "rank": 1,
                 "score": 10,
             },
@@ -45,7 +48,10 @@ class TestLoadRerankData(unittest.TestCase):
                 "qid": "3",
                 "query": "signs heart attack",
                 "docno": "doc-5",
-                "text": "Common heart attack symptoms include: (1) Chest pain, (2) Pain or discomfort that spreads to the shoulder, arm, back, neck, jaw, teeth or sometimes the upper belly, etc.",
+                "text": (
+                    "Common heart attack symptoms include: (1) Chest pain, (2) Pain or discomfort that spreads to the"
+                    " shoulder, arm, back, neck, jaw, teeth or sometimes the upper belly, etc."
+                ),
                 "rank": 1,
                 "score": 10,
             },
@@ -67,7 +73,8 @@ class TestLoadRerankData(unittest.TestCase):
         self.assertEqual("doc-5", actual[4].doc_id)
         self.assertEqual("signs heart attack", actual[4].query.default_text())
         self.assertEqual(
-            "Common heart attack symptoms include: (1) Chest pain, (2) Pain or discomfort that spreads to the shoulder, arm, back, neck, jaw, teeth or sometimes the upper belly, etc.",
+            "Common heart attack symptoms include: (1) Chest pain, (2) Pain or discomfort that spreads to the shoulder,"
+            " arm, back, neck, jaw, teeth or sometimes the upper belly, etc.",
             actual[4].document.default_text(),
         )
 

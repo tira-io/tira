@@ -2,7 +2,7 @@ from tira.rest_api_client import Client
 from tira.third_party_integrations import ensure_pyterrier_is_loaded, persist_and_normalize_run
 
 ensure_pyterrier_is_loaded()
-import pyterrier as pt
+import pyterrier as pt  # noqa: E402
 
 tira = Client()
 dataset_id = "longeval-tiny-train-20240315-training"

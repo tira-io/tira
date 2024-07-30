@@ -43,7 +43,8 @@ def digest_of_dataset(dataset_id, truth=False):
 def digest_of_run_output(approach, dataset_id, run_ids):
     tira = Client()
     task, team, system = approach.split("/")
-    run_url = f"https://www.tira.io/task/{task}/user/{team}/dataset/{dataset_id}/download/{run_ids[task][team][system][dataset_id]}.zip"
+    filename = f"{run_ids[task][team][system][dataset_id]}.zip"
+    run_url = f"https://www.tira.io/task/{task}/user/{team}/dataset/{dataset_id}/download/{filename}"
 
     return {
         "redirect_url": redirects(approach, dataset_id),

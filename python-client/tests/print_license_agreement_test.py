@@ -22,14 +22,22 @@ class PrintLicenseAgreementTest(unittest.TestCase):
         self.assertEqual(expected, actual)
 
     def test_no_license_agreement_for_run_download_with_non_license_dataset(self):
-        url = "https://www.tira.io/task/ir-benchmarks/user/fschlatt/dataset/antique-test-20230107-training/download/2024-01-15-15-48-32.zip"
+        url = (
+            "https://www.tira.io/task/ir-benchmarks/user/fschlatt/dataset/antique-test-20230107-training/download/"
+            "2024-01-15-15-48-32.zip"
+        )
         expected = ""
 
         actual = capture_potential_license_agreement(url)
         self.assertEqual(expected, actual)
 
     def test_qwant_license_agreement_for_run_download_01(self):
-        expected = 'The download is derived from The LongEval Dataset under the "Qwant LongEval Attribution-NonCommercial-ShareAlike License". Hence, the download is also under this License. By using it, you agree to the terms of this license. Please find details at: https://lindat.mff.cuni.cz/repository/xmlui/page/Qwant_LongEval_BY-NC-SA_License\n'
+        expected = (
+            'The download is derived from The LongEval Dataset under the "Qwant LongEval'
+            ' Attribution-NonCommercial-ShareAlike License". Hence, the download is also under this License. By using'
+            " it, you agree to the terms of this license. Please find details at:"
+            " https://lindat.mff.cuni.cz/repository/xmlui/page/Qwant_LongEval_BY-NC-SA_License\n"
+        )
         datasets = [
             "longeval-train-20230513-training",
             "longeval-short-july-20230513-training",
@@ -49,6 +57,9 @@ class PrintLicenseAgreementTest(unittest.TestCase):
         ]
 
         for dataset in datasets:
-            url = f"https://www.tira.io/task/ir-benchmarks/user/fschlatt/dataset/{dataset}/download/2024-01-15-15-48-32.zip"
+            url = (
+                f"https://www.tira.io/task/ir-benchmarks/user/fschlatt/dataset/{dataset}/download/"
+                "2024-01-15-15-48-32.zip"
+            )
             actual = capture_potential_license_agreement(url)
             self.assertEqual(expected, actual, dataset)

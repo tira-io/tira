@@ -110,7 +110,8 @@ class TiraRerankingTransformer(Transformer):
                 ]
             else:
                 raise ValueError(
-                    "This run needs to know the tira metadata: tira_task, tira_dataset, and tira_first_stage_run_id needs to be in the columns of the dataframe"
+                    "This run needs to know the tira metadata: tira_task, tira_dataset, and tira_first_stage_run_id"
+                    " needs to be in the columns of the dataframe"
                 )
         else:
             tira_configurations = [
@@ -184,7 +185,8 @@ class TiraApplyFeatureTransformer(Transformer):
     For instance:
     - For query-only features, we set `id_cols` = ('qid',) and the output feature will be `mapping[row['qid']]`.
     - For document-only features, we set `id_cols` = ('docno',) and the output feature will be `mapping[row['docno']]`.
-    - For query-document features, we set `id_cols` = ('qid', 'docno') and the output feature will be `mapping[row['qid']][row['docno']]`.
+    - For query-document features, we set `id_cols` = ('qid', 'docno') and the output feature will be
+        `mapping[row['qid']][row['docno']]`.
     """
 
     def __init__(

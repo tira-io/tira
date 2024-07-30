@@ -96,7 +96,12 @@ class MountHfModelTest(unittest.TestCase):
         self.assertTrue("this-model-does-not-exist" in str(context.exception))
 
     def test_ln_mounts_for_single_existing_model(self):
-        expected = 'mkdir -p /root/.cache/huggingface/hub/; rm -Rf /root/.cache/huggingface/hub/models--openai-community--gpt2; ln -s <NORMALIZED>/hub/models--openai-community--gpt2 /root/.cache/huggingface/hub/models--openai-community--gpt2; echo "mounted 1 models"'
+        expected = (
+            "mkdir -p /root/.cache/huggingface/hub/; rm -Rf"
+            " /root/.cache/huggingface/hub/models--openai-community--gpt2; ln -s"
+            " <NORMALIZED>/hub/models--openai-community--gpt2"
+            ' /root/.cache/huggingface/hub/models--openai-community--gpt2; echo "mounted 1 models"'
+        )
         os.environ["HF_HUB_CACHE"] = "tests/resources/hf/hub"
         actual = _ln_huggingface_model_mounts("openai-community/gpt2")
         actual = actual.replace(str(Path("tests/resources/hf").absolute()), "<NORMALIZED>")
@@ -104,7 +109,12 @@ class MountHfModelTest(unittest.TestCase):
         self.assertEqual(actual, expected)
 
     def test_ln_mounts_for_single_existing_model_redundant(self):
-        expected = 'mkdir -p /root/.cache/huggingface/hub/; rm -Rf /root/.cache/huggingface/hub/models--openai-community--gpt2; ln -s <NORMALIZED>/hub/models--openai-community--gpt2 /root/.cache/huggingface/hub/models--openai-community--gpt2; echo "mounted 1 models"'
+        expected = (
+            "mkdir -p /root/.cache/huggingface/hub/; rm -Rf"
+            " /root/.cache/huggingface/hub/models--openai-community--gpt2; ln -s"
+            " <NORMALIZED>/hub/models--openai-community--gpt2"
+            ' /root/.cache/huggingface/hub/models--openai-community--gpt2; echo "mounted 1 models"'
+        )
         os.environ["HF_HUB_CACHE"] = "tests/resources/hf/hub"
         actual = _ln_huggingface_model_mounts("openai-community/gpt2 openai-community/gpt2   openai-community/gpt2")
         actual = actual.replace(str(Path("tests/resources/hf").absolute()), "<NORMALIZED>")
@@ -112,7 +122,15 @@ class MountHfModelTest(unittest.TestCase):
         self.assertEqual(actual, expected)
 
     def test_ln_mounts_for_multiple_existing_models(self):
-        expected = 'mkdir -p /root/.cache/huggingface/hub/; rm -Rf /root/.cache/huggingface/hub/models--openai-community--gpt2; ln -s <NORMALIZED>/hub/models--openai-community--gpt2 /root/.cache/huggingface/hub/models--openai-community--gpt2; rm -Rf /root/.cache/huggingface/hub/models--openai-community--gpt2-large; ln -s <NORMALIZED>/hub/models--openai-community--gpt2-large /root/.cache/huggingface/hub/models--openai-community--gpt2-large; echo "mounted 2 models"'
+        expected = (
+            "mkdir -p /root/.cache/huggingface/hub/; rm -Rf"
+            " /root/.cache/huggingface/hub/models--openai-community--gpt2; ln -s"
+            " <NORMALIZED>/hub/models--openai-community--gpt2"
+            " /root/.cache/huggingface/hub/models--openai-community--gpt2; rm -Rf"
+            " /root/.cache/huggingface/hub/models--openai-community--gpt2-large; ln -s"
+            " <NORMALIZED>/hub/models--openai-community--gpt2-large"
+            ' /root/.cache/huggingface/hub/models--openai-community--gpt2-large; echo "mounted 2 models"'
+        )
         os.environ["HF_HUB_CACHE"] = "tests/resources/hf/hub"
         actual = _ln_huggingface_model_mounts("openai-community/gpt2 openai-community/gpt2-large")
         actual = actual.replace(str(Path("tests/resources/hf").absolute()), "<NORMALIZED>")
@@ -120,10 +138,19 @@ class MountHfModelTest(unittest.TestCase):
         self.assertEqual(actual, expected)
 
     def test_ln_mounts_for_multiple_existing_models_redundant(self):
-        expected = 'mkdir -p /root/.cache/huggingface/hub/; rm -Rf /root/.cache/huggingface/hub/models--openai-community--gpt2; ln -s <NORMALIZED>/hub/models--openai-community--gpt2 /root/.cache/huggingface/hub/models--openai-community--gpt2; rm -Rf /root/.cache/huggingface/hub/models--openai-community--gpt2-large; ln -s <NORMALIZED>/hub/models--openai-community--gpt2-large /root/.cache/huggingface/hub/models--openai-community--gpt2-large; echo "mounted 2 models"'
+        expected = (
+            "mkdir -p /root/.cache/huggingface/hub/; rm -Rf"
+            " /root/.cache/huggingface/hub/models--openai-community--gpt2; ln -s"
+            " <NORMALIZED>/hub/models--openai-community--gpt2"
+            " /root/.cache/huggingface/hub/models--openai-community--gpt2; rm -Rf"
+            " /root/.cache/huggingface/hub/models--openai-community--gpt2-large; ln -s"
+            " <NORMALIZED>/hub/models--openai-community--gpt2-large"
+            ' /root/.cache/huggingface/hub/models--openai-community--gpt2-large; echo "mounted 2 models"'
+        )
         os.environ["HF_HUB_CACHE"] = "tests/resources/hf/hub"
         actual = _ln_huggingface_model_mounts(
-            "openai-community/gpt2 openai-community/gpt2-large openai-community/gpt2 openai-community/gpt2-large openai-community/gpt2 openai-community/gpt2-large"
+            "openai-community/gpt2 openai-community/gpt2-large openai-community/gpt2 openai-community/gpt2-large"
+            " openai-community/gpt2 openai-community/gpt2-large"
         )
         actual = actual.replace(str(Path("tests/resources/hf").absolute()), "<NORMALIZED>")
         del os.environ["HF_HUB_CACHE"]
