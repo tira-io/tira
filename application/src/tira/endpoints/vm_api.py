@@ -6,17 +6,15 @@ from http import HTTPStatus
 from discourse_client_in_disraptor.discourse_api_client import get_disraptor_user
 from django.conf import settings
 from django.core.cache import cache
-from django.db.utils import IntegrityError
 from django.http import HttpResponseNotAllowed, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from grpc import RpcError, StatusCode
 from markdown import markdown
 
 import tira.tira_model as model
-from tira.authentication import auth
 from tira.checks import check_conditional_permissions, check_permissions, check_resources_exist
 from tira.grpc_client import GrpcClient
-from tira.model import EvaluationLog, TransitionLog
+from tira.model import EvaluationLog
 from tira.util import get_tira_id, link_to_discourse_team, reroute_host
 from tira.views import add_context
 
@@ -109,41 +107,6 @@ def host_call(func):
 # ---------------------------------------------------------------------
 #   VM actions
 # ---------------------------------------------------------------------
-
-
-@check_permissions
-@check_resources_exist("json")
-def vm_state(request, vm_id):
-    try:
-        state = TransitionLog.objects.get_or_create(vm_id=vm_id, defaults={"vm_state": 0})[0].vm_state
-    except IntegrityError as e:
-        logger.warning(f"failed to read state for vm {vm_id} with {e}")
-        state = 0
-    return JsonResponse({"status": 0, "state": state})
-
-
-@check_permissions
-@check_resources_exist("json")
-def vm_running_evaluations(request, vm_id):
-    results = EvaluationLog.objects.filter(vm_id=vm_id)
-    return JsonResponse({"status": 0, "running_evaluations": True if results else False})
-
-
-@check_permissions
-@check_resources_exist("json")
-def get_running_evaluations(request, vm_id):
-    results = EvaluationLog.objects.filter(vm_id=vm_id)
-    return JsonResponse(
-        {
-            "status": 0,
-            "running_evaluations": [
-                {"vm_id": r.vm_id, "run_id": r.run_id, "running_on": r.running_on, "last_update": r.last_update}
-                for r in results
-            ],
-        }
-    )
-
-
 @add_context
 @check_permissions
 def docker_software_details(request, context, vm_id, docker_software_id):
@@ -192,115 +155,9 @@ def upload_group_details(request, context, task_id, vm_id, upload_id):
     return JsonResponse({"status": 0, "context": context})
 
 
-@check_conditional_permissions(restricted=True)
-@host_call
-def vm_create(request, hostname, vm_id, ova_file):
-    uid = auth.get_user_id(request)
-    host = reroute_host(hostname)
-    return GrpcClient(host).vm_create(vm_id=vm_id, ova_file=ova_file, user_id=uid, hostname=host)
-
-
-@check_permissions
-@check_resources_exist("json")
-@host_call
-def vm_start(request, vm_id):
-    vm = model.get_vm(vm_id)
-    # NOTE vm_id is different from vm.vmName (latter one includes the 01-tira-ubuntu-...
-    return GrpcClient(reroute_host(vm["host"])).vm_start(vm_id=vm_id)
-
-
-@check_permissions
-@check_resources_exist("json")
-@host_call
-def vm_shutdown(request, vm_id):
-    vm = model.get_vm(vm_id)
-    return GrpcClient(reroute_host(vm["host"])).vm_shutdown(vm_id=vm_id)
-
-
-@check_permissions
-@check_resources_exist("json")
-@host_call
-def vm_stop(request, vm_id):
-    vm = model.get_vm(vm_id)
-    return GrpcClient(reroute_host(vm["host"])).vm_stop(vm_id=vm_id)
-
-
-@check_permissions
-@check_resources_exist("json")
-def vm_info(request, vm_id):
-    vm = model.get_vm(vm_id)
-    host = reroute_host(vm["host"])
-    if not host:
-        logger.exception(f"/grpc/{vm_id}/vm-info: connection to {host} failed, because host is empty")
-        return JsonResponse({"status": "Rejected", "message": "SERVER_ERROR"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
-    try:
-        grpc_client = GrpcClient(host)
-        response_vm_info = grpc_client.vm_info(vm_id=vm_id)
-        _ = TransitionLog.objects.update_or_create(vm_id=vm_id, defaults={"vm_state": response_vm_info.state})
-        del grpc_client
-    except RpcError as e:
-        ex_message = "FAILED"
-        try:
-            if e.code() == StatusCode.UNAVAILABLE:  # .code() is implemented by the _channel._InteractiveRpcError
-                logger.exception(f"/grpc/{vm_id}/vm-info: connection to {host} failed with {e}")
-                ex_message = "Host Unavailable"  # This happens if the GRPC Server is not running
-            if e.code() == StatusCode.INVALID_ARGUMENT:  # .code() is implemented by the _channel._InteractiveRpcError
-                ex_message = "VM is archived"  # If there is no VM with the requested name on the host.
-                _ = TransitionLog.objects.update_or_create(vm_id=vm_id, defaults={"vm_state": 8})
-        except Exception as e2:  # There is a RpcError but not an Interactive one. This should not happen
-            logger.exception(f"/grpc/{vm_id}/vm-info: Unexpected Execption occured: {e2}")
-        return JsonResponse({"status": 1, "message": ex_message}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
-    except Exception as e:
-        logger.exception(f"/grpc/{vm_id}/vm-info: connection to {host} failed with {e}")
-        return JsonResponse({"status": 1, "message": "SERVER_ERROR"}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
-
-    return JsonResponse(
-        {
-            "status": 0,
-            "context": {
-                "guestOs": response_vm_info.guestOs,
-                "memorySize": response_vm_info.memorySize,
-                "numberOfCpus": response_vm_info.numberOfCpus,
-                "sshPort": response_vm_info.sshPort,
-                "rdpPort": response_vm_info.rdpPort,
-                "host": response_vm_info.host,
-                "sshPortStatus": response_vm_info.sshPortStatus,
-                "rdpPortStatus": response_vm_info.rdpPortStatus,
-                "state": response_vm_info.state,
-            },
-        }
-    )
-
-
 # ---------------------------------------------------------------------
 #   Software actions
 # ---------------------------------------------------------------------
-@check_permissions
-@check_resources_exist("json")
-@host_call
-def run_execute(request, task_id, vm_id, software_id):
-    vm = model.get_vm(vm_id)
-    software = model.get_software(task_id, vm_id, software_id=software_id)
-    if not model.dataset_exists(software["dataset"]):
-        return JsonResponse({"status": 1, "message": f'The dataset {software["dataset"]} does not exist'})
-    host = reroute_host(vm["host"])
-    future_run_id = get_tira_id()
-    grpc_client = GrpcClient(host)
-    response = grpc_client.run_execute(
-        vm_id=vm_id,
-        dataset_id=software["dataset"],
-        run_id=future_run_id,
-        input_run_vm_id="",
-        input_run_dataset_id="",
-        input_run_run_id=software["run"],
-        optional_parameters="",
-        task_id=task_id,
-        software_id=software_id,
-    )
-    del grpc_client
-    return response
-
-
 @host_call
 def _master_vm_eval_call(vm_id, dataset_id, run_id, evaluator):
     """Called when the evaluation is done via master vm.
@@ -375,20 +232,6 @@ def run_delete(request, dataset_id, vm_id, run_id):
         {"status": 1, "message": f"Can not delete run {run_id} since it is used as an input run."},
         status=HTTPStatus.ACCEPTED,
     )
-
-
-@check_permissions
-@check_resources_exist("json")
-@host_call
-def run_abort(request, vm_id):
-    """ """
-    vm = model.get_vm(vm_id)
-    host = reroute_host(vm["host"])
-
-    grpc_client = GrpcClient(host)
-    response = grpc_client.run_abort(vm_id=vm_id)
-    del grpc_client
-    return response
 
 
 @csrf_exempt
