@@ -186,7 +186,8 @@ def load_docker_data(task_id, vm_id, cache, force_cache_refresh):
     docker_software_help = git_runner.help_on_uploading_docker_image(vm_id, cache, force_cache_refresh)
     public_docker_softwares = model.get_public_docker_softwares(task_id)
 
-    docker_login = "docker login" + docker_software_help.split("<code>docker login")[1].split("</code>")[0]
+    # removed for the moment as tira-cli uses the above already.
+    # docker_login = "docker login" + docker_software_help.split("<code>docker login")[1].split("</code>")[0]
 
     return {
         "docker_images": docker_images,
@@ -663,7 +664,6 @@ def all_allowed_task_teams(task_id):
 def user_is_registered(task_id, request):
     from tira.authentication import auth
 
-    task = get_task(task_id)
     allowed_task_teams = all_allowed_task_teams(task_id)
     user_vm_ids = [i.strip() for i in auth.get_vm_ids(request) if i.strip()]
 

@@ -25,10 +25,10 @@ class Command(BaseCommand):
 
     def run_command_create_user_repository(self, options, git_runner):
         print(f'Create a user repository for {options["create_user_repository"]}.')
-        repo_id = create_user_repository(options["create_user_repository"])
+        repo_id = git_runner.create_user_repository(options["create_user_repository"])
         print(f"The new repository has the id ${repo_id}")
         print(
-            add_new_tag_to_docker_image_repository(
+            git_runner.add_new_tag_to_docker_image_repository(
                 "registry.webis.de/code-research/tira/tira-user-del-maik-user-repo/my-software",
                 "0.0.3",
                 "0.0.1-tira-docker-software-id-name-x",

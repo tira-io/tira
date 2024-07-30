@@ -170,7 +170,7 @@ def download_rundir(request, task_id, dataset_id, vm_id, run_id):
 @check_conditional_permissions(public_data_ok=True)
 @check_resources_exist("json")
 def download_input_rundir(request, task_id, dataset_id, vm_id, run_id):
-    return download_rundir(request, task_id, dataset_id, vm_id, input_run_id)
+    return download_rundir(request, task_id, dataset_id, vm_id, run_id)
 
 
 def download_repo_template(request, task_id, vm_id):

@@ -596,7 +596,7 @@ def admin_edit_review(request, dataset_id, vm_id, run_id):
         has_errors = output_error or software_error
         has_no_errors = not has_errors
 
-        s = model.update_review(
+        model.update_review(
             dataset_id,
             vm_id,
             run_id,

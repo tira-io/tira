@@ -199,7 +199,6 @@ class GitRunner:
         user_name: str
         Name of the user.  The created repository has the name tira-user-${user_name}
         """
-        client = self.gitHoster_client
         repo = "tira-user-" + user_name
         existing_repo = self.existing_repository(repo)
         if existing_repo:
@@ -350,9 +349,8 @@ class GitRunner:
         raise ValueError("ToDo: Implement.")
 
     def extract_configuration_of_finished_job(self, git_repository_id, dataset_id, vm_id, run_id):
-        gl_project = self.gitHoster_client.projects.get(int(git_repository_id))
         with tempfile.TemporaryDirectory() as tmp_dir:
-            repo = self.clone_repository_and_create_new_branch(self.repo_url(git_repository_id), "dummy-br", tmp_dir)
+            self.clone_repository_and_create_new_branch(self.repo_url(git_repository_id), "dummy-br", tmp_dir)
             f = glob(tmp_dir + "/" + dataset_id + "/" + vm_id + "/" + run_id + "/job-executed-on-*.txt")
 
             if len(f) != 1:
@@ -751,7 +749,6 @@ class GitLabRunner(GitRunner):
         https://dille.name/blog/2018/09/20/how-to-tag-docker-images-without-pulling-them/
         https://gitlab.com/gitlab-org/gitlab/-/issues/23156
         """
-        original_repository_name = repository_name
         registry_host = self.image_registry_prefix.split("/")[0]
         repository_name = repository_name.split(registry_host + "/")[-1]
 
@@ -821,6 +818,7 @@ class GitLabRunner(GitRunner):
         self, task_id, dataset_id, vm_id, run_id, git_runner_image, git_runner_command, git_repository_id, evaluator_id
     ):
         msg = f"start run_eval with git: {task_id} - {dataset_id} - {vm_id} - {run_id}"
+        logger.info(msg)
         transaction_id = self.start_git_workflow(
             task_id,
             dataset_id,
@@ -863,6 +861,7 @@ class GitLabRunner(GitRunner):
         workdir_in_user_image,
     ):
         msg = f"start run_docker_image with git: {task_id} - {dataset_id} - {vm_id} - {run_id}"
+        logger.info(msg)
         transaction_id = self.start_git_workflow(
             task_id,
             dataset_id,
@@ -1117,7 +1116,7 @@ class GitLabRunner(GitRunner):
                 if ret is not None and not force_cache_refresh:
                     logger.debug("get ret from cache", ret)
                     return ret
-            except ModuleNotFoundError as e:
+            except:
                 logger.exception(f"Could not find cache module {cache_key}.")
 
         ret = []
@@ -1133,6 +1132,7 @@ class GitLabRunner(GitRunner):
                         user_software_job = job
                     if "evaluate-software-result" == job.name:
                         evaluation_job = job
+                        logger.debug(f'TODO: pass evaluation jobs in different structure to UI: {evaluation_job}')
 
                 p = (pipeline.ref + "---started-").split("---started-")[0]
 

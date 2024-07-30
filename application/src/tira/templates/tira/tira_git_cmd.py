@@ -233,7 +233,7 @@ def run(identifier=None, image=None, command=None, data=None, evaluate=False, ve
     command = __normalize_command(command)
 
     if verbose:
-        print(f"Run software with: docker run --rm -ti -v {tmp_dir}:/tira-data --entrypoint sh {image} {command}")
+        print(f"Run software with: docker run --rm -ti -v INPUT_DIR:/tira-data --entrypoint sh {image} {command}")
 
     client.containers.run(
         image,
@@ -249,7 +249,7 @@ def run(identifier=None, image=None, command=None, data=None, evaluate=False, ve
         command = __normalize_command(command)
         if verbose:
             print(
-                f"Evaluate software with: docker run --rm -ti -v {tmp_dir}:/tira-data --entrypoint sh {image} {command}"
+                f"Evaluate software with: docker run --rm -ti -v INPUT_DIR:/tira-data --entrypoint sh {image} {command}"
             )
 
         client.containers.run(

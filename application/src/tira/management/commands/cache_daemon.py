@@ -96,7 +96,7 @@ class Command(BaseCommand):
                     flush=True,
                 )
             except Exception as e:
-                print("Exception during refreshing image repository {user}: {e}", flush=True)
+                print(f"Exception during refreshing image repository {user}: {e}", flush=True)
                 continue
             time.sleep(0.1)
 

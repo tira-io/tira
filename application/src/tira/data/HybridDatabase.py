@@ -2238,7 +2238,7 @@ class HybridDatabase(object):
     def update_docker_software_metadata(
         self, docker_software_id, display_name, description, paper_link, ir_re_ranker, ir_re_ranking_input
     ):
-        software = modeldb.DockerSoftware.objects.update_or_create(
+        modeldb.DockerSoftware.objects.update_or_create(
             docker_software_id=docker_software_id,
             defaults={
                 "display_name": display_name,

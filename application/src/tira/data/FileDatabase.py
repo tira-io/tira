@@ -398,7 +398,7 @@ class FileDatabase(object):
             for_task.trainingDataset.append(dataset_id)
         elif dataset_type not in {"training", "dev", "test"}:
             raise KeyError("dataset type must be test, training, or dev")
-        task_ok = self._save_task(for_task, overwrite=True)
+        self._save_task(for_task, overwrite=True)
 
         # create new dataset_dir_path/task_id/dataset_id.prototext
         ds = modelpb.Dataset()
@@ -406,7 +406,7 @@ class FileDatabase(object):
         ds.displayName = dataset_name
         ds.isDeprecated = False
         ds.isConfidential = True if dataset_type == "test" else False
-        dataset_ok = self._save_dataset(ds, task_id)
+        self._save_dataset(ds, task_id)
 
         # create dirs data_path/dataset/test-dataset[-truth]/task_id/dataset-id-type
         new_dirs = []
@@ -563,7 +563,7 @@ class FileDatabase(object):
     # TODO add option to truly delete the software.
     def delete_software(self, task_id, vm_id, software_id):
         s = self._load_softwares(task_id, vm_id)
-        found = False
+
         for software in s.softwares:
             if software.id == software_id:
                 break
