@@ -671,28 +671,6 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
-        url_pattern="task/<str:task_id>/vm/<str:vm_id>/delete_software/vm/<str:software_id>",
-        params={"task_id": "shared-task-1", "vm_id": "example_participant", "software_id": 0},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 302,
-            PARTICIPANT: 302,
-            ORGANIZER: 302,
-            ORGANIZER_WRONG_TASK: 302,
-        },
-    ),
-    route_to_test(
-        url_pattern="task/<str:task_id>/vm/<str:vm_id>/delete_software/vm/<str:software_id>",
-        params={"task_id": "shared-task-1", "vm_id": PARTICIPANT.split("_")[-1], "software_id": 0},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 302,
-            PARTICIPANT: 200,
-            ORGANIZER: 302,
-            ORGANIZER_WRONG_TASK: 302,
-        },
-    ),
-    route_to_test(
         url_pattern="task/<str:task_id>/vm/<str:vm_id>/delete_software/docker/<str:docker_software_id>",
         params={"task_id": "shared-task-1", "vm_id": "example_participant", "software_id": 0},
         group_to_expected_status_code={

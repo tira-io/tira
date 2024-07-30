@@ -243,17 +243,6 @@ class FileDatabase(object):
         """load a vm object from vm_dir_path"""
         return Parse(open(self.vm_dir_path / f"{vm_id}.prototext").read(), modelpb.VirtualMachine())
 
-    def _load_softwares(self, task_id, vm_id):
-        softwares_dir = self.softwares_dir_path / task_id / vm_id
-        softwares_dir.mkdir(parents=True, exist_ok=True)
-        software_file = softwares_dir / "softwares.prototext"
-        if not software_file.exists():
-            software_file.touch()
-
-        return Parse(
-            open(self.softwares_dir_path / task_id / vm_id / "softwares.prototext", "r").read(), modelpb.Softwares()
-        )
-
     def _load_run(self, dataset_id, vm_id, run_id, return_deleted: bool = False):
         run_dir = self.RUNS_DIR_PATH / dataset_id / vm_id / run_id
         if not (run_dir / "run.bin").exists():
@@ -335,11 +324,6 @@ class FileDatabase(object):
         review_path = self.RUNS_DIR_PATH / dataset_id / vm_id / run_id
         open(review_path / "run-review.prototext", "w").write(str(review))
         open(review_path / "run-review.bin", "wb").write(review.SerializeToString())
-
-    def _save_softwares(self, task_id, vm_id, softwares):
-        with open(self.softwares_dir_path / task_id / vm_id / "softwares.prototext", "w+") as prototext_file:
-            # update file
-            prototext_file.write(str(softwares))
 
     def _save_run(self, dataset_id, vm_id, run_id, run):
         run_dir = self.RUNS_DIR_PATH / dataset_id / vm_id / run_id
@@ -495,20 +479,6 @@ class FileDatabase(object):
 
         run.deleted = update(run.deleted, deleted)
         self._save_run(dataset_id, vm_id, run_id, run)
-
-
-    # TODO add option to truly delete the software.
-    def delete_software(self, task_id, vm_id, software_id):
-        s = self._load_softwares(task_id, vm_id)
-
-        for software in s.softwares:
-            if software.id == software_id:
-                break
-        else:
-            raise TiraModelWriteError(f"Software does not exist: {task_id}, {vm_id}, {software_id}")
-        software_list = [software for software in s.softwares if not software.deleted]
-        self.software[f"{task_id}${vm_id}"] = software_list
-        self._save_softwares(task_id, vm_id, s)
 
     def delete_run(self, dataset_id, vm_id, run_id):
         run_dir = Path(self.RUNS_DIR_PATH / dataset_id / vm_id / run_id)

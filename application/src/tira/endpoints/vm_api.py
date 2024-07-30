@@ -277,23 +277,6 @@ def vm_info(request, vm_id):
 # ---------------------------------------------------------------------
 @check_permissions
 @check_resources_exist("json")
-def software_delete(request, task_id, vm_id, software_id):
-    delete_ok = model.delete_software(task_id, vm_id, software_id)
-
-    if delete_ok:
-        return JsonResponse({"status": 0}, status=HTTPStatus.ACCEPTED)
-    else:
-        return JsonResponse(
-            {
-                "status": 1,
-                "message": "Cannot delete software, because it has a valid evaluation assigned (or it does not exist.)",
-            },
-            status=HTTPStatus.INTERNAL_SERVER_ERROR,
-        )
-
-
-@check_permissions
-@check_resources_exist("json")
 @host_call
 def run_execute(request, task_id, vm_id, software_id):
     vm = model.get_vm(vm_id)

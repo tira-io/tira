@@ -80,18 +80,6 @@ class HybridDatabase(object):
         modeldb.VirtualMachine.objects.create(vm_id=admin_user_name, user_password=admin_password, roles="reviewer")
         self._save_vm(vm_id=admin_user_name, user_name=admin_user_name, initial_user_password=admin_password)
 
-    def index_model_from_files(self):
-        self.vm_list_file.touch(exist_ok=True)
-        dbops.index(
-            self.organizers_file_path,
-            self.users_file_path,
-            self.vm_dir_path,
-            self.tasks_dir_path,
-            self.datasets_dir_path,
-            self.softwares_dir_path,
-            self.runs_dir_path,
-        )
-
     def reload_vms(self):
         """reload VM and user data from the export format of the model"""
         dbops.reload_vms(self.users_file_path, self.vm_dir_path)
@@ -122,18 +110,6 @@ class HybridDatabase(object):
         review = modelpb.RunReview()
         review.ParseFromString(open(review_file, "rb").read())
         return review
-
-    def _load_softwares(self, task_id, vm_id):
-        # Leave this
-        softwares_dir = self.softwares_dir_path / task_id / vm_id
-        softwares_dir.mkdir(parents=True, exist_ok=True)
-        software_file = softwares_dir / "softwares.prototext"
-        if not software_file.exists():
-            software_file.touch()
-
-        return Parse(
-            open(self.softwares_dir_path / task_id / vm_id / "softwares.prototext", "r").read(), modelpb.Softwares()
-        )
 
     def _load_run(self, dataset_id, vm_id, run_id, return_deleted=False):
         """Load a protobuf run file with some edge-case checks."""
@@ -203,9 +179,6 @@ class HybridDatabase(object):
         review_path = self.runs_dir_path / dataset_id / vm_id / run_id
         open(review_path / "run-review.prototext", "w").write(str(review))
         open(review_path / "run-review.bin", "wb").write(review.SerializeToString())
-
-    def _save_softwares(self, task_id, vm_id, softwares):
-        open(self.softwares_dir_path / task_id / vm_id / "softwares.prototext", "w+").write(str(softwares))
 
     def _save_run(self, dataset_id, vm_id, run_id, run):
         run_dir = self.runs_dir_path / dataset_id / vm_id / run_id
@@ -2359,32 +2332,6 @@ class HybridDatabase(object):
             )
 
         return self._dataset_to_dict(ds)
-
-    def delete_software(self, task_id, vm_id, software_id):
-        """Delete a software.
-        Deletion is denied when
-        - there is a successful evlauation assigned.
-        """
-        reviews_qs = modeldb.Review.objects.filter(
-            run__input_run__software__software_id=software_id,
-            run__input_run__software__task_id=task_id,
-            run__input_run__software__vm_id=vm_id,
-            no_errors=True,
-        )
-        if reviews_qs.exists():
-            return False
-
-        s = self._load_softwares(task_id, vm_id)
-        found = False
-        for software in s.softwares:
-            if software.id == software_id:
-                software.deleted = True
-                found = True
-
-        self._save_softwares(task_id, vm_id, s)
-        modeldb.Software.objects.filter(software_id=software_id, vm__vm_id=vm_id).delete()
-
-        return found
 
     def delete_run(self, dataset_id, vm_id, run_id):
         """delete the run in the database.

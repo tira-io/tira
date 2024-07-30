@@ -915,12 +915,6 @@ def delete_docker_software(task_id, vm_id, docker_software_id):
     return model.delete_docker_software(task_id, vm_id, docker_software_id)
 
 
-def delete_software(task_id, vm_id, software_id):
-    """Set the Software's deleted flag to true and prune it from the cache.
-    TODO add option to truly delete the software."""
-    return model.delete_software(task_id, vm_id, software_id)
-
-
 def delete_run(dataset_id, vm_id, run_id):
     return model.delete_run(dataset_id, vm_id, run_id)
 
