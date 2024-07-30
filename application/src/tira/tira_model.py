@@ -25,32 +25,6 @@ logger = logging.getLogger("tira")
 model = HybridDatabase()
 
 
-# reloading and reindexing
-def build_model():
-    """reconstruct the caches and the database."""
-    model.build_model()
-
-
-def reload_vms():
-    """reload VM and user data from the export format of the model"""
-    model.reload_vms()
-
-
-def reload_datasets():
-    """reload dataset data from the export format of the model"""
-    model.reload_datasets()
-
-
-def reload_tasks():
-    """reload task data from the export format of the model"""
-    model.reload_tasks()
-
-
-def reload_runs(vm_id):
-    """reload run data for a VM from the export format of the model"""
-    model.reload_runs(vm_id)
-
-
 # get methods are the public interface.
 def get_vm(vm_id: str, create_if_none=False):
     """Returns a vm as dictionary with:

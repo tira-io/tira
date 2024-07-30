@@ -89,25 +89,6 @@ class FileDatabase(object):
         self._build_software_relations()
         self._build_software_counts()
 
-    def reload_vms(self):
-        """reload VM and user data from the export format of the model"""
-        self._parse_vm_list()
-
-    def reload_datasets(self):
-        """reload dataset data from the export format of the model"""
-        self._parse_dataset_list()
-
-    def reload_tasks(self):
-        """reload task data from the export format of the model"""
-        self._parse_task_list()
-        self._build_task_relations()
-        self._build_software_relations()
-        self._build_software_counts()
-
-    def reload_runs(self, vm_id):
-        """reload run data for a VM from the export format of the model"""
-        raise NotImplementedError("Not Implemented: Runs are loaded on access when using FileDatabase")
-
     def _parse_organizer_list(self):
         """Parse the PB Database and extract all hosts.
         :return: a dict {hostId: {"name", "years"}

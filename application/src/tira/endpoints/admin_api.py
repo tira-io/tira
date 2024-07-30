@@ -40,41 +40,6 @@ def handle_get_model_exceptions(func):
 
 
 @check_permissions
-@handle_get_model_exceptions
-def admin_reload_data():
-    model.build_model()
-    return "Model data was reloaded successfully"
-
-
-@check_permissions
-@handle_get_model_exceptions
-def admin_reload_vms():
-    model.reload_vms()
-    return "VM data was reloaded successfully"
-
-
-@check_permissions
-@handle_get_model_exceptions
-def admin_reload_datasets():
-    model.reload_datasets()
-    return "Dataset data was reloaded successfully"
-
-
-@check_permissions
-@handle_get_model_exceptions
-def admin_reload_tasks():
-    model.reload_tasks()
-    return "Task data was reloaded successfully"
-
-
-@check_conditional_permissions(restricted=True)
-@handle_get_model_exceptions
-def admin_reload_runs(vm_id):
-    model.reload_runs(vm_id)
-    return "Runs data was reloaded for {} on {} successfully"
-
-
-@check_permissions
 def admin_create_vm(request):  # TODO implement
     """Hook for create_vm posts. Responds with json objects indicating the state of the create process."""
 

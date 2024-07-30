@@ -80,22 +80,6 @@ class HybridDatabase(object):
         modeldb.VirtualMachine.objects.create(vm_id=admin_user_name, user_password=admin_password, roles="reviewer")
         self._save_vm(vm_id=admin_user_name, user_name=admin_user_name, initial_user_password=admin_password)
 
-    def reload_vms(self):
-        """reload VM and user data from the export format of the model"""
-        dbops.reload_vms(self.users_file_path, self.vm_dir_path)
-
-    def reload_datasets(self):
-        """reload dataset data from the export format of the model"""
-        dbops.reload_datasets(self.datasets_dir_path)
-
-    def reload_tasks(self):
-        """reload task data from the export format of the model"""
-        dbops.reload_tasks(self.tasks_dir_path)
-
-    def reload_runs(self, vm_id):
-        """reload run data for a VM from the export format of the model"""
-        dbops.reload_runs(self.runs_dir_path, vm_id)
-
     # _load methods parse files on the fly when pages are called
     def load_review(self, dataset_id, vm_id, run_id):
         """This method loads a review or toggles auto reviewer if it does not exist."""
