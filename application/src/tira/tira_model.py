@@ -409,10 +409,6 @@ def get_host_list() -> list:
     return model.get_host_list()
 
 
-def get_ova_list() -> list:
-    return model.get_ova_list()
-
-
 def runs(task_id, dataset_id, vm_id, software_id):
     return model.runs(task_id, dataset_id, vm_id, software_id)
 
