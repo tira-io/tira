@@ -1116,7 +1116,7 @@ class GitLabRunner(GitRunner):
                 if ret is not None and not force_cache_refresh:
                     logger.debug("get ret from cache", ret)
                     return ret
-            except:
+            except Exception:
                 logger.exception(f"Could not find cache module {cache_key}.")
 
         ret = []
@@ -1132,7 +1132,7 @@ class GitLabRunner(GitRunner):
                         user_software_job = job
                     if "evaluate-software-result" == job.name:
                         evaluation_job = job
-                        logger.debug(f'TODO: pass evaluation jobs in different structure to UI: {evaluation_job}')
+                        logger.debug(f"TODO: pass evaluation jobs in different structure to UI: {evaluation_job}")
 
                 p = (pipeline.ref + "---started-").split("---started-")[0]
 

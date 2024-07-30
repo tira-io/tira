@@ -6,7 +6,7 @@ import textwrap
 from copy import deepcopy
 from http import HTTPStatus
 from io import StringIO
-from typing import Any, Optional, Union
+from typing import Any, Union
 
 from django.conf import settings
 from django.core.cache import cache

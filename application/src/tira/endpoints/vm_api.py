@@ -439,9 +439,7 @@ def run_eval(request, vm_id, dataset_id, run_id):
     if "is_git_runner" in evaluator and evaluator["is_git_runner"]:
         ret = _git_runner_vm_eval_call(vm_id, dataset_id, run_id, evaluator)
         git_runner = model.get_git_integration(dataset_id=dataset_id)
-        git_runner.all_running_pipelines_for_repository(
-            evaluator["git_repository_id"], cache, force_cache_refresh=True
-        )
+        git_runner.all_running_pipelines_for_repository(evaluator["git_repository_id"], cache, force_cache_refresh=True)
 
         return ret
 

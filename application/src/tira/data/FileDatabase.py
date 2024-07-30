@@ -5,7 +5,7 @@ from datetime import datetime as dt
 from datetime import timezone
 from pathlib import Path
 from shutil import rmtree
-from typing import _T, Iterable, Optional
+from typing import _T, Optional
 
 from django.conf import settings
 from google.protobuf.text_format import Parse
