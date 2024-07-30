@@ -21,7 +21,6 @@ urlpatterns = [
         name="download_datadir",
     ),
     # grpc client endpoints
-    path("task/<str:task_id>/vm/<str:vm_id>/add_software/vm", vm_api.software_add, name="software_add"),
     path(
         "task/<str:task_id>/vm/<str:vm_id>/add_software/docker", vm_api.docker_software_add, name="docker_software_add"
     ),

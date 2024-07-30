@@ -277,36 +277,6 @@ def vm_info(request, vm_id):
 # ---------------------------------------------------------------------
 @check_permissions
 @check_resources_exist("json")
-def software_add(request, task_id, vm_id):
-    if request.method == "GET":
-        if not task_id or task_id is None or task_id == "None":
-            return JsonResponse({"status": 1, "message": "Please specify the associated task_id."})
-
-        software = model.add_software(task_id, vm_id)
-        if not software:
-            return JsonResponse(
-                {"status": 1, "message": "Failed to create a new Software."}, status=HTTPStatus.INTERNAL_SERVER_ERROR
-            )
-
-        context = {
-            "task": task_id,
-            "vm_id": vm_id,
-            "software": {
-                "id": software["id"],
-                "command": software["command"],
-                "working_dir": software["working_directory"],
-                "dataset": software["dataset"],
-                "creation_date": software["creation_date"],
-                "last_edit": software["last_edit"],
-            },
-        }
-        return JsonResponse({"status": 0, "message": "ok", "context": context})
-    else:
-        return JsonResponse({"status": 1, "message": "POST is not allowed here."})
-
-
-@check_permissions
-@check_resources_exist("json")
 def software_save(request, task_id, vm_id, software_id):
     if request.method == "POST":
         data = json.loads(request.body)
