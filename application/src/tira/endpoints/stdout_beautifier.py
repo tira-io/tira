@@ -12,16 +12,16 @@ aha_exec = os.path.abspath(__file__).replace("stdout_beautifier.py", "aha")
 logger = logging.getLogger("tira")
 
 
-def is_start_of_ansi_code(txt, pos):
+def is_start_of_ansi_code(txt: str, pos: int) -> bool:
     if txt[pos] != "[":
         return False
 
     matches = ansi_color_code_regex.search(txt[pos : pos + 8])
 
-    return matches and matches.span()[0] == 0
+    return matches is not None and matches.span()[0] == 0
 
 
-def beautify_ansi_text(txt):
+def beautify_ansi_text(txt: str) -> str:
     #    try:
     ret = ""
     for i in range(len(txt)):
@@ -34,15 +34,9 @@ def beautify_ansi_text(txt):
     if p.returncode != 0:
         raise ValueError(f"Returncode invalid: {p.returncode}. Got {ret}.")
 
-    ret = BeautifulSoup(ret, "html.parser")
-    return "\n\n".join([str(i) for i in ret.select("pre")])
+    soup = BeautifulSoup(ret, "html.parser")
+    return "\n\n".join([str(i) for i in soup.select("pre")])
 
-
-#    except Exception as e:
-#        print(f'Failed to beautify with {e}. Return original text')
-#        logger.warn(f'Failed to beautify with {e}. Return original text', e)
-#
-#        return txt
 
 if __name__ == "__main__":
     print(

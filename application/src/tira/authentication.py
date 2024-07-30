@@ -1,12 +1,11 @@
-""" """
-
 import json
 import logging
 import os
 from functools import wraps
+from typing import Optional
 
 from django.conf import settings
-from django.http import HttpResponseNotAllowed
+from django.http import HttpRequest, HttpResponseNotAllowed
 from slugify import slugify
 
 import tira.tira_model as model
@@ -19,7 +18,7 @@ logger = logging.getLogger(__name__)
 class Authentication(object):
     """Base class for Authentication and Role Management"""
 
-    subclasses = {}
+    subclasses: dict[str, type] = {}
     _AUTH_SOURCE = "superclass"
     ROLE_TIRA = "tira"  # super admin if we ever need it
     ROLE_ADMIN = "admin"  # is admin for the requested resource, so all permissions
@@ -46,10 +45,16 @@ class Authentication(object):
         pass
 
     @staticmethod
-    def get_default_vm_id(user_id):
+    def get_default_vm_id(user_id: str) -> str:
         return f"{user_id}-default"
 
-    def get_role(self, request, user_id: str = None, vm_id: str = None, task_id: str = None):
+    def get_role(
+        self,
+        request: HttpRequest,
+        user_id: Optional[str] = None,
+        vm_id: Optional[str] = None,
+        task_id: Optional[str] = None,
+    ):
         """Determine the role of the user on the requested page (determined by the given directives).
 
         @param request: djangos request object associated to the http request
@@ -66,25 +71,25 @@ class Authentication(object):
     def get_auth_source(self):
         return self._AUTH_SOURCE
 
-    def get_user_id(self, request):
+    def get_user_id(self, request: HttpRequest):
         return None
 
-    def get_vm_id(self, request, user_id):
+    def get_vm_id(self, request: HttpRequest, user_id):
         return "None"
 
-    def login(self, request, **kwargs):
+    def login(self, request: HttpRequest, **kwargs):
         pass
 
-    def logout(self, request, **kwargs):
+    def logout(self, request: HttpRequest, **kwargs):
         pass
 
     def create_group(self, vm_id):
         return {"status": 0, "message": f"create_group is not implemented for {self._AUTH_SOURCE}"}
 
-    def get_organizer_ids(self, request, user_id=None):
+    def get_organizer_ids(self, request: HttpRequest, user_id=None):
         pass
 
-    def get_vm_ids(self, request, user_id=None):
+    def get_vm_ids(self, request: HttpRequest, user_id=None):
         pass
 
     def user_is_organizer_for_endpoint(
@@ -154,19 +159,19 @@ class DisraptorAuthentication(Authentication):
         super(DisraptorAuthentication, self).__init__(**kwargs)
         self.discourse_client = model.discourse_api_client()
 
-    def _get_user_id(self, request):
+    def _get_user_id(self, request: HttpRequest) -> Optional[str]:
         """Return the content of the X-Disraptor-User header set in the http request"""
         user_id = request.headers.get("X-Disraptor-User", None)
-        if user_id:
+        if user_id is not None:
             vm_id = Authentication.get_default_vm_id(user_id)
             _ = model.get_vm(vm_id, create_if_none=True)
         return user_id
 
-    def _is_in_group(self, request, group_name="tira_reviewer") -> bool:
+    def _is_in_group(self, request: HttpRequest, group_name="tira_reviewer") -> bool:
         """return True if the user is in the given disraptor group"""
         return group_name in request.headers.get("X-Disraptor-Groups", "").split(",")
 
-    def _parse_tira_groups(self, groups: list) -> list:
+    def _parse_tira_groups(self, groups: list[str]) -> dict[str, str]:
         """find all groups with 'tira_' prefix and return key and value of the group.
         Note: Groupnames should be in the format '[tira_]key[_value]'
         """
@@ -183,7 +188,7 @@ class DisraptorAuthentication(Authentication):
                     value = None
                 yield {"key": key, "value": value}
 
-    def _get_user_groups(self, request, group_type: str = "vm") -> list:
+    def _get_user_groups(self, request: HttpRequest, group_type: str = "vm") -> list:
         """read groups from the disraptor groups header.
         @param group_type: {"vm", "org"}, indicate the class of groups.
         """
@@ -201,8 +206,16 @@ class DisraptorAuthentication(Authentication):
         if group_type == "org":  # if we check for organizer groups of a user
             return [group["value"] for group in self._parse_tira_groups(all_groups) if group["key"] == "org"]
 
+        raise ValueError(f"Can't handle group type {group_type}")
+
     @check_disraptor_token
-    def get_role(self, request, user_id: str = None, vm_id: str = None, task_id: str = None):
+    def get_role(
+        self,
+        request: HttpRequest,
+        user_id: Optional[str] = None,
+        vm_id: Optional[str] = None,
+        task_id: Optional[str] = None,
+    ):
         """Determine the role of the user on the requested page (determined by the given directives).
         This is a minimalistic implementation that suffices for the current features of TIRA.
 
@@ -230,12 +243,12 @@ class DisraptorAuthentication(Authentication):
         return self.ROLE_GUEST
 
     @check_disraptor_token
-    def get_user_id(self, request):
+    def get_user_id(self, request: HttpRequest):
         """public wrapper of _get_user_id that checks conditions"""
         return self._get_user_id(request)
 
     @check_disraptor_token
-    def get_vm_id(self, request, user_id=None):
+    def get_vm_id(self, request: HttpRequest, user_id=None):
         """return the vm_id of the first vm_group ("tira-vm-<vm_id>") found.
         If there is no vm-group, return "no-vm-assigned"
         """
@@ -243,7 +256,7 @@ class DisraptorAuthentication(Authentication):
         return self.get_vm_ids(request, user_id)[0]
 
     @check_disraptor_token
-    def get_organizer_ids(self, request, user_id=None):
+    def get_organizer_ids(self, request: HttpRequest, user_id=None):
         """return the organizer ids of all organizer teams that the user is found in ("tira-org-<vm_id>").
         If there is no vm-group, return the empty list
         """
@@ -251,7 +264,7 @@ class DisraptorAuthentication(Authentication):
         return self._get_user_groups(request, group_type="org")
 
     @check_disraptor_token
-    def get_vm_ids(self, request, user_id=None):
+    def get_vm_ids(self, request: HttpRequest, user_id=None):
         """returns a list of all vm_ids of the all vm_groups ("tira-vm-<vm_id>") found.
         If there is no vm-group, a list with "no-vm-assigned" is returned
         """

@@ -5,6 +5,7 @@ import os
 import zipfile
 from datetime import datetime as dt
 from pathlib import Path
+from typing import Any, Optional
 
 import randomname
 from django.conf import settings
@@ -220,7 +221,7 @@ class HybridDatabase(object):
     ###################################
 
     @staticmethod
-    def _vm_as_dict(vm):
+    def _vm_as_dict(vm: modeldb.VirtualMachine) -> dict[str, Any]:
         return {
             "vm_id": vm.vm_id,
             "user_password": vm.user_password,
@@ -234,16 +235,12 @@ class HybridDatabase(object):
             "archived": vm.archived,
         }
 
-    def get_vm(self, vm_id: str, create_if_none=False):
+    def get_vm(self, vm_id: str, create_if_none: bool = False) -> dict[str, Any]:
         if create_if_none:
             vm, _ = modeldb.VirtualMachine.objects.get_or_create(vm_id=vm_id)
         else:
             vm = modeldb.VirtualMachine.objects.get(vm_id=vm_id)
         return self._vm_as_dict(vm)
-
-    def get_users_vms(self):
-        """Return the users list."""
-        return [self._vm_as_dict(vm) for vm in modeldb.VirtualMachine.objects.all()]
 
     def _task_to_dict(self, task, include_dataset_stats=False):
         def _add_dataset_stats(res, dataset_set):
@@ -314,10 +311,10 @@ class HybridDatabase(object):
 
             yield self._task_to_dict(task, include_dataset_stats)
 
-    def get_tasks(self, include_dataset_stats=False) -> list:
+    def get_tasks(self, include_dataset_stats: str = False) -> list[dict[str, Any]]:
         return list(self._tasks_to_dict(modeldb.Task.objects.select_related("organizer").all(), include_dataset_stats))
 
-    def get_task(self, task_id: str, include_dataset_stats) -> dict:
+    def get_task(self, task_id: str, include_dataset_stats) -> dict[str, Any]:
         return self._task_to_dict(
             modeldb.Task.objects.select_related("organizer").get(task_id=task_id), include_dataset_stats
         )
@@ -354,7 +351,7 @@ class HybridDatabase(object):
             "evaluator_git_runner_command": dataset.evaluator.git_runner_command if evaluator_id else None,
         }
 
-    def get_dataset(self, dataset_id: str) -> dict:
+    def get_dataset(self, dataset_id: str) -> dict[str, Any]:
         try:
             return self._dataset_to_dict(
                 modeldb.Dataset.objects.select_related("default_task", "evaluator").get(dataset_id=dataset_id)
@@ -369,7 +366,9 @@ class HybridDatabase(object):
             for dataset in modeldb.Dataset.objects.select_related("default_task", "evaluator").all()
         }
 
-    def get_datasets_by_task(self, task_id: str, include_deprecated=False, return_only_names=False) -> list:
+    def get_datasets_by_task(
+        self, task_id: str, include_deprecated=False, return_only_names=False
+    ) -> list[dict[str, Any]]:
         """return the list of datasets associated with this task_id
         @param task_id: id string of the task the dataset belongs to
         @param include_deprecated: Default False. If True, also returns datasets marked as deprecated.
@@ -630,7 +629,7 @@ class HybridDatabase(object):
             for review2 in r2:
                 yield _run_dict(review2)
 
-    def upload_to_dict(self, upload, vm_id):
+    def upload_to_dict(self, upload: modeldb.Upload, vm_id: str) -> dict[str, Any]:
         def _runs_by_upload(up):
             reviews = (
                 modeldb.Review.objects.select_related(
@@ -1209,7 +1208,7 @@ class HybridDatabase(object):
             if (run.deleted or not return_deleted)
         ]
 
-    def get_evaluator(self, dataset_id, task_id=None):
+    def get_evaluator(self, dataset_id: str, task_id: Optional[str] = None) -> dict[str, Any]:
         """returns a dict containing the evaluator parameters:
 
         vm_id: id of the master vm running the evaluator
@@ -1906,10 +1905,10 @@ class HybridDatabase(object):
         task_id,
         vm_id,
         software_id,
-        command: str = None,
-        working_directory: str = None,
-        dataset: str = None,
-        run: str = None,
+        command: Optional[str] = None,
+        working_directory: Optional[str] = None,
+        dataset: Optional[str] = None,
+        run: Optional[str] = None,
         deleted: bool = False,
     ):
         def update(x, y):
@@ -1949,19 +1948,19 @@ class HybridDatabase(object):
         dataset_id,
         vm_id,
         run_id,
-        reviewer_id: str = None,
-        review_date: str = None,
-        has_errors: bool = None,
-        has_no_errors: bool = None,
-        no_errors: bool = None,
-        missing_output: bool = None,
-        extraneous_output: bool = None,
-        invalid_output: bool = None,
-        has_error_output: bool = None,
-        other_errors: bool = None,
-        comment: str = None,
-        published: bool = None,
-        blinded: bool = None,
+        reviewer_id: Optional[str] = None,
+        review_date: Optional[str] = None,
+        has_errors: Optional[bool] = None,
+        has_no_errors: Optional[bool] = None,
+        no_errors: Optional[bool] = None,
+        missing_output: Optional[bool] = None,
+        extraneous_output: Optional[bool] = None,
+        invalid_output: Optional[bool] = None,
+        has_error_output: Optional[bool] = None,
+        other_errors: Optional[bool] = None,
+        comment: Optional[str] = None,
+        published: Optional[bool] = None,
+        blinded: Optional[bool] = None,
         has_warnings: bool = False,
     ) -> bool:
         """updates the review specified by dataset_id, vm_id, and run_id with the values given in the parameters.
@@ -2061,7 +2060,7 @@ class HybridDatabase(object):
         open(run_dir / "size.txt", "w").write(f"0\n{size}\n{lines}\n{files}\n{dirs}")
         open(run_dir / "file-list.txt", "w").write(self._list_files(str(output_dir)))
 
-    def add_upload(self, task_id: str, vm_id: str, rename_to: str = None):
+    def add_upload(self, task_id: str, vm_id: str, rename_to: Optional[str] = None):
         upload = modeldb.Upload.objects.create(
             vm=modeldb.VirtualMachine.objects.get(vm_id=vm_id),
             task=modeldb.Task.objects.get(task_id=task_id),
@@ -2250,7 +2249,7 @@ class HybridDatabase(object):
             },
         )
 
-    def update_run(self, dataset_id, vm_id, run_id, deleted: bool = None):
+    def update_run(self, dataset_id, vm_id, run_id, deleted: Optional[bool] = None):
         """updates the run specified by dataset_id, vm_id, and run_id with the values given in the parameters.
         Required Parameters are also required in the function
         """
@@ -2311,9 +2310,9 @@ class HybridDatabase(object):
         require_registration: str,
         require_groups: str,
         restrict_groups: str,
-        help_command: str = None,
-        help_text: str = None,
-        allowed_task_teams: str = None,
+        help_command: Optional[str] = None,
+        help_text: Optional[str] = None,
+        allowed_task_teams: Optional[str] = None,
         is_ir_task: bool = False,
         irds_re_ranking_image: str = "",
         irds_re_ranking_command: str = "",
@@ -2625,9 +2624,14 @@ class HybridDatabase(object):
 
     @staticmethod
     def all_matching_run_ids(
-        vm_id: str, input_dataset_id: str, task_id: str, software_id: str, docker_software_id: int, upload_id: int
-    ):
-        ret = []
+        vm_id: str,
+        input_dataset_id: str,
+        task_id: str,
+        software_id: Optional[str],
+        docker_software_id: Optional[int],
+        upload_id: Optional[int],
+    ) -> list[str]:
+        ret: list[str] = []
 
         if software_id:
             ret += [

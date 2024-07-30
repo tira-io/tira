@@ -1,7 +1,7 @@
 import argparse
 
 
-def parse_args():
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(prog="script")
     parser.add_argument("-i", "--input", required=True, help="the input to the script.")
     parser.add_argument("-o", "--output", required=True, help="the output of the script.")

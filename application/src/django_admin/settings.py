@@ -330,6 +330,7 @@ CACHES = {
     }
 }
 
+# FIXME: I don't close my file handle :((((((((
 TIREX_COMPONENTS = yaml.load(open(BASE_DIR / "tirex-components.yml").read(), Loader=yaml.FullLoader)
 
 # Logging

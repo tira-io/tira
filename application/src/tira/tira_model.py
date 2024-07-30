@@ -7,11 +7,12 @@ import logging
 import tempfile
 from distutils.dir_util import copy_tree
 from pathlib import Path
+from typing import Any, Optional
 
 import randomname
 from discourse_client_in_disraptor import DiscourseApiClient
 from django.conf import settings
-from django.core.cache import cache
+from django.core.cache import BaseCache, cache
 from django.db import connections, router
 from slugify import slugify
 
@@ -81,7 +82,7 @@ def get_task(task_id: str, include_dataset_stats=False) -> dict:
     return model.get_task(task_id, include_dataset_stats)
 
 
-def get_dataset(dataset_id: str) -> dict:
+def get_dataset(dataset_id: str) -> dict[str, Any]:
     """Return a Dataset as dict with the keys:
 
     {"display_name", "evaluator_id", "dataset_id", "is_confidential", "is_deprecated", "year",
@@ -95,7 +96,7 @@ def get_datasets() -> dict:
     return model.get_datasets()
 
 
-def get_datasets_by_task(task_id: str, include_deprecated=False, return_only_names=False) -> list:
+def get_datasets_by_task(task_id: str, include_deprecated=False, return_only_names=False) -> list[dict[str, Any]]:
     """return the list of datasets associated with this task_id
     @param task_id: id string of the task the dataset belongs to
     @param include_deprecated: Default False. If True, also returns datasets marked as deprecated.
@@ -134,13 +135,13 @@ def discourse_api_client():
     return DiscourseApiClient(url=settings.DISCOURSE_API_URL, api_key=settings.DISRAPTOR_API_KEY)
 
 
-def tira_run_command(image, command, task_id):
+def tira_run_command(image: str, command: str, task_id: str):
     input_dataset = reference_dataset(task_id)
 
     return f"tira-run \\\n  --input-dataset {input_dataset} \\\n  --image {image} \\\n  --command '{command}'"
 
 
-def reference_dataset(task_id):
+def reference_dataset(task_id: str):
     if task_id in settings.REFERENCE_DATASETS:
         return settings.REFERENCE_DATASETS[task_id]
     else:
@@ -280,7 +281,7 @@ def get_submission_git_repo(vm_id, task_id, disraptor_user=None, external_owner=
     return model.get_submission_git_repo_or_none(repository_url, vm_id)
 
 
-def git_pipeline_is_enabled_for_task(task_id, cache, force_cache_refresh=False):
+def git_pipeline_is_enabled_for_task(task_id: str, cache: BaseCache, force_cache_refresh: bool = False):
     evaluators_for_task = get_evaluators_for_task(task_id, cache, force_cache_refresh)
     git_runners_for_task = [i["is_git_runner"] for i in evaluators_for_task]
 
@@ -288,7 +289,7 @@ def git_pipeline_is_enabled_for_task(task_id, cache, force_cache_refresh=False):
     return len(git_runners_for_task) > 0 and all(i for i in git_runners_for_task)
 
 
-def get_evaluators_for_task(task_id, cache, force_cache_refresh=False):
+def get_evaluators_for_task(task_id: str, cache: BaseCache, force_cache_refresh: bool = False):
     cache_key = "get-evaluators-for-task-" + str(task_id)
     ret = cache.get(cache_key)
     if ret is not None and not force_cache_refresh:
@@ -454,7 +455,7 @@ def get_evaluations_of_run(vm_id, run_id):
     return model.get_evaluations_of_run(vm_id, run_id)
 
 
-def get_evaluator(dataset_id, task_id=None):
+def get_evaluator(dataset_id: str, task_id: Optional[str] = None) -> dict[str, Any]:
     """returns a dict containing the evaluator parameters:
 
     vm_id: id of the master vm running the evaluator
@@ -587,12 +588,7 @@ def get_software_by_task(task_id, vm_id):
     return model.get_software_by_task(task_id, vm_id)
 
 
-def get_users_vms():
-    """Return the users list."""
-    return model.get_users_vms()
-
-
-def add_upload(task_id, vm_id, rename_to: str = None):
+def add_upload(task_id, vm_id, rename_to: Optional[str] = None):
     """ " Add empty new upload"""
     return model.add_upload(task_id, vm_id, rename_to)
 
@@ -707,9 +703,9 @@ def create_task(
     require_registration: bool,
     require_groups: bool,
     restrict_groups: bool,
-    help_command: str = None,
-    help_text: str = None,
-    allowed_task_teams: str = None,
+    help_command: Optional[str] = None,
+    help_text: Optional[str] = None,
+    allowed_task_teams: Optional[str] = None,
 ):
     """Add a new task to the database.
     CAUTION: This function does not do any sanity checks and will OVERWRITE existing tasks
@@ -738,9 +734,9 @@ def add_dataset(
     dataset_type: str,
     dataset_name: str,
     upload_name: str,
-    irds_docker_image: str = None,
-    irds_import_command: str = None,
-    irds_import_truth_command: str = None,
+    irds_docker_image: Optional[str] = None,
+    irds_import_command: Optional[str] = None,
+    irds_import_truth_command: Optional[str] = None,
 ) -> list:
     """returns a list of paths of newly created datasets as string."""
     return model.add_dataset(
@@ -766,10 +762,10 @@ def add_evaluator(
     command: str,
     working_directory: str,
     measures,
-    is_git_runner: bool = False,
-    git_runner_image: str = None,
-    git_runner_command: str = None,
-    git_repository_id: str = None,
+    is_git_runner: Optional[bool] = False,
+    git_runner_image: Optional[str] = None,
+    git_runner_command: Optional[str] = None,
+    git_repository_id: Optional[str] = None,
 ):
     ret = model.add_evaluator(
         vm_id,
@@ -800,19 +796,19 @@ def update_review(
     dataset_id,
     vm_id,
     run_id,
-    reviewer_id: str = None,
-    review_date: str = None,
-    has_errors: bool = None,
-    has_no_errors: bool = None,
-    no_errors: bool = None,
-    missing_output: bool = None,
-    extraneous_output: bool = None,
-    invalid_output: bool = None,
-    has_error_output: bool = None,
-    other_errors: bool = None,
-    comment: str = None,
-    published: bool = None,
-    blinded: bool = None,
+    reviewer_id: Optional[str] = None,
+    review_date: Optional[str] = None,
+    has_errors: Optional[bool] = None,
+    has_no_errors: Optional[bool] = None,
+    no_errors: Optional[bool] = None,
+    missing_output: Optional[bool] = None,
+    extraneous_output: Optional[bool] = None,
+    invalid_output: Optional[bool] = None,
+    has_error_output: Optional[bool] = None,
+    other_errors: Optional[bool] = None,
+    comment: Optional[str] = None,
+    published: Optional[bool] = None,
+    blinded: Optional[bool] = None,
     has_warnings: bool = False,
 ):
     """updates the review specified by dataset_id, vm_id, and run_id with the values given in the parameters.
@@ -838,7 +834,7 @@ def update_review(
     )
 
 
-def update_run(dataset_id, vm_id, run_id, deleted: bool = None):
+def update_run(dataset_id, vm_id, run_id, deleted: Optional[bool] = None):
     """updates the run specified by dataset_id, vm_id, and run_id with the values given in the parameters.
     Required Parameters are also required in the function"""
     return model.update_run(dataset_id, vm_id, run_id, deleted)
@@ -848,10 +844,10 @@ def update_software(
     task_id,
     vm_id,
     software_id,
-    command: str = None,
-    working_directory: str = None,
-    dataset: str = None,
-    run: str = None,
+    command: Optional[str] = None,
+    working_directory: Optional[str] = None,
+    dataset: Optional[str] = None,
+    run: Optional[str] = None,
     deleted: bool = False,
 ):
     return model.update_software(task_id, vm_id, software_id, command, working_directory, dataset, run, deleted)
@@ -868,9 +864,9 @@ def edit_task(
     require_registration: str,
     require_groups: str,
     restrict_groups: str,
-    help_command: str = None,
-    help_text: str = None,
-    allowed_task_teams=None,
+    help_command: Optional[str] = None,
+    help_text: Optional[str] = None,
+    allowed_task_teams: Optional[str] = None,
     is_ir_task: bool = False,
     irds_re_ranking_image: str = "",
     irds_re_ranking_command: str = "",
@@ -912,9 +908,9 @@ def edit_dataset(
     upload_name: str,
     is_confidential: bool = False,
     is_git_runner: bool = False,
-    git_runner_image: str = None,
-    git_runner_command: str = None,
-    git_repository_id: str = None,
+    git_runner_image: Optional[str] = None,
+    git_runner_command: Optional[str] = None,
+    git_repository_id: Optional[str] = None,
 ):
     """Update the datasets's data"""
     return model.edit_dataset(
@@ -1031,7 +1027,12 @@ def software_exists(task_id: str, vm_id: str, software_id: str) -> bool:
 
 
 def latest_output_of_software_on_dataset(
-    task_id: str, vm_id: str, software_id: str, docker_software_id: int, dataset_id: str, upload_id: int
+    task_id: str,
+    vm_id: str,
+    software_id: Optional[str],
+    docker_software_id: Optional[int],
+    dataset_id: str,
+    upload_id: Optional[int],
 ):
     run_ids = model.all_matching_run_ids(vm_id, dataset_id, task_id, software_id, docker_software_id, upload_id)
 

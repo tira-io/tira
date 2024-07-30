@@ -1,28 +1,38 @@
-import importlib
 import os
 import sys
+from importlib.util import module_from_spec, spec_from_file_location
+from types import ModuleType
 from typing import Iterable
 
 from huggingface_hub import scan_cache_dir, snapshot_download
 
-tira_cli_io_utils = None
 
-for p in sys.path:
-    p = str(os.path.abspath(p)) + "/"
-    if "-packages/" in p:
-        p = p.split("-packages/")[0] + "-packages/"
+def load_tira_cli_io_utils() -> ModuleType:
+    for p in sys.path:
+        p = str(os.path.abspath(p)) + "/"
+        if "-packages/" in p:
+            p = p.split("-packages/")[0] + "-packages/"
 
-    if os.path.exists(f"{p}/tira/io_utils.py"):
-        tira_cli_io_utils_spec = importlib.util.spec_from_file_location("tira_cli.io_utils", f"{p}/tira/io_utils.py")
-        tira_cli_io_utils = importlib.util.module_from_spec(tira_cli_io_utils_spec)
-        tira_cli_io_utils_spec.loader.exec_module(tira_cli_io_utils)
-        continue
+        if os.path.exists(f"{p}/tira/io_utils.py"):
+            tira_cli_io_utils_spec = spec_from_file_location("tira_cli.io_utils", f"{p}/tira/io_utils.py")
+            assert tira_cli_io_utils_spec is not None
+            assert tira_cli_io_utils_spec.loader is not None
+            tira_cli_io_utils = module_from_spec(tira_cli_io_utils_spec)
+            assert tira_cli_io_utils is not None
+            tira_cli_io_utils_spec.loader.exec_module(tira_cli_io_utils)
+            return tira_cli_io_utils
+
+    raise ModuleNotFoundError()
+
+
+tira_cli_io_utils = load_tira_cli_io_utils()
+
 
 TIRA_HOST_HF_HOME = tira_cli_io_utils._default_hf_home_in_tira_host()
 HF_CACHE = None
 
 
-def _hf_repos():
+def _hf_repos() -> dict[str, str]:
     global HF_CACHE
     if HF_CACHE is None:
         HF_CACHE = scan_cache_dir()

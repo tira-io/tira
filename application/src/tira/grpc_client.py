@@ -18,7 +18,7 @@ logger = logging.getLogger("tira")
 grpc_port = settings.HOST_GRPC_PORT
 
 
-def new_transaction(message, in_grpc=True):
+def new_transaction(message: str, in_grpc=True):
     """A convenience method to create a new transaction with a :@param message:, save it to the database,
     and wrap it in a protobuf Transaction to be returned.
     """
@@ -30,7 +30,7 @@ def new_transaction(message, in_grpc=True):
     return transaction_id
 
 
-def auto_transaction(msg):
+def auto_transaction(msg: str):
     """when we gat a Transaction message as response and it fails, automatically terminate the Transaction
     in the TransactionLog"""
 

@@ -5,6 +5,7 @@ from datetime import datetime as dt
 from datetime import timezone
 from pathlib import Path
 from shutil import rmtree
+from typing import _T, Iterable, Optional
 
 from django.conf import settings
 from google.protobuf.text_format import Parse
@@ -13,6 +14,16 @@ from tira.proto import TiraClientWebMessages_pb2 as modelpb
 from tira.util import TiraModelWriteError, auto_reviewer, extract_year_from_dataset_id
 
 logger = logging.getLogger("tira")
+
+
+def _coalesce(*args: Optional[_T]) -> Optional[_T]:
+    """
+    Returns the first argument that is not None. Returns None if no such value exists.
+    """
+    for x in args:
+        if x is not None:
+            return x
+    return None
 
 
 class FileDatabase(object):
@@ -214,7 +225,7 @@ class FileDatabase(object):
         self.software_count_by_dataset = counts
 
     # _load methods parse files on the fly when pages are called
-    def load_review(self, dataset_id, vm_id, run_id):
+    def load_review(self, dataset_id: str, vm_id: str, run_id: str) -> modelpb.RunReview:
         """This method loads a review or toggles auto reviewer if it does not exist."""
 
         review_path = self.RUNS_DIR_PATH / dataset_id / vm_id / run_id
@@ -225,6 +236,7 @@ class FileDatabase(object):
             return review
 
         review = modelpb.RunReview()
+        # FIXME: I am not closing my file handle :(((((((((
         review.ParseFromString(open(review_file, "rb").read())
         return review
 
@@ -243,7 +255,7 @@ class FileDatabase(object):
             open(self.softwares_dir_path / task_id / vm_id / "softwares.prototext", "r").read(), modelpb.Softwares()
         )
 
-    def _load_run(self, dataset_id, vm_id, run_id, return_deleted=False):
+    def _load_run(self, dataset_id, vm_id, run_id, return_deleted: bool = False):
         run_dir = self.RUNS_DIR_PATH / dataset_id / vm_id / run_id
         if not (run_dir / "run.bin").exists():
             if (run_dir / "run.prototext").exists():
@@ -470,47 +482,44 @@ class FileDatabase(object):
         dataset_id,
         vm_id,
         run_id,
-        reviewer_id: str = None,
-        review_date: str = None,
-        has_errors: bool = None,
-        has_no_errors: bool = None,
-        no_errors: bool = None,
-        missing_output: bool = None,
-        extraneous_output: bool = None,
-        invalid_output: bool = None,
-        has_error_output: bool = None,
-        other_errors: bool = None,
-        comment: str = None,
-        published: bool = None,
-        blinded: bool = None,
-        has_warnings: bool = False,
+        reviewer_id: Optional[str] = None,
+        review_date: Optional[str] = None,
+        has_errors: Optional[bool] = None,
+        has_no_errors: Optional[bool] = None,
+        no_errors: Optional[bool] = None,
+        missing_output: Optional[bool] = None,
+        extraneous_output: Optional[bool] = None,
+        invalid_output: Optional[bool] = None,
+        has_error_output: Optional[bool] = None,
+        other_errors: Optional[bool] = None,
+        comment: Optional[str] = None,
+        published: Optional[bool] = None,
+        blinded: Optional[bool] = None,
+        has_warnings: Optional[bool] = False,
     ):
         """updates the review specified by dataset_id, vm_id, and run_id with the values given in the parameters.
         Required Parameters are also required in the function
         """
         review = self.load_review(dataset_id, vm_id, run_id)
 
-        def update(x, y):
-            return y if y is not None else x
-
-        review.reviewerId = update(review.reviewerId, reviewer_id)
-        review.reviewDate = update(review.reviewDate, review_date)
-        review.hasErrors = update(review.hasErrors, has_errors)
-        review.hasWarnings = update(review.hasWarnings, has_warnings)
-        review.hasNoErrors = update(review.hasNoErrors, has_no_errors)
-        review.noErrors = update(review.noErrors, no_errors)
-        review.missingOutput = update(review.missingOutput, missing_output)
-        review.extraneousOutput = update(review.extraneousOutput, extraneous_output)
-        review.invalidOutput = update(review.invalidOutput, invalid_output)
-        review.hasErrorOutput = update(review.hasErrorOutput, has_error_output)
-        review.otherErrors = update(review.otherErrors, other_errors)
-        review.comment = update(review.comment, comment)
-        review.published = update(review.published, published)
-        review.blinded = update(review.blinded, blinded)
+        review.reviewerId = _coalesce(reviewer_id, review.reviewerId)
+        review.reviewDate = _coalesce(review_date, review.reviewDate)
+        review.hasErrors = _coalesce(has_errors, review.hasErrors)
+        review.hasWarnings = _coalesce(has_warnings, review.hasWarnings)
+        review.hasNoErrors = _coalesce(has_no_errors, review.hasNoErrors)
+        review.noErrors = _coalesce(no_errors, review.noErrors)
+        review.missingOutput = _coalesce(missing_output, review.missingOutput)
+        review.extraneousOutput = _coalesce(extraneous_output, review.extraneousOutput)
+        review.invalidOutput = _coalesce(invalid_output, review.invalidOutput)
+        review.hasErrorOutput = _coalesce(has_error_output, review.hasErrorOutput)
+        review.otherErrors = _coalesce(other_errors, review.otherErrors)
+        review.comment = _coalesce(comment, review.comment)
+        review.published = _coalesce(published, review.published)
+        review.blinded = _coalesce(blinded, review.blinded)
 
         self._save_review(dataset_id, vm_id, run_id, review)
 
-    def _update_run(self, dataset_id, vm_id, run_id, deleted: bool = None):
+    def _update_run(self, dataset_id, vm_id, run_id, deleted: Optional[bool] = None):
         """updates the run specified by dataset_id, vm_id, and run_id with the values given in the parameters.
         Required Parameters are also required in the function
         """
@@ -527,10 +536,10 @@ class FileDatabase(object):
         task_id,
         vm_id,
         software_id,
-        command: str = None,
-        working_directory: str = None,
-        dataset: str = None,
-        run: str = None,
+        command: Optional[str] = None,
+        working_directory: Optional[str] = None,
+        dataset: Optional[str] = None,
+        run: Optional[str] = None,
         deleted: bool = False,
     ):
         def update(x, y):
@@ -889,10 +898,6 @@ class FileDatabase(object):
 
         return [{"software": sw, "runs": runs_by_software.get(sw["id"])} for sw in softwares]
 
-    def get_users_vms(self):
-        """Return the users list."""
-        return self.vms
-
     # ------------------------------------------------------------
     # add methods to add new data to the model
     # ------------------------------------------------------------
@@ -909,19 +914,19 @@ class FileDatabase(object):
         dataset_id,
         vm_id,
         run_id,
-        reviewer_id: str = None,
-        review_date: str = None,
-        has_errors: bool = None,
-        has_no_errors: bool = None,
-        no_errors: bool = None,
-        missing_output: bool = None,
-        extraneous_output: bool = None,
-        invalid_output: bool = None,
-        has_error_output: bool = None,
-        other_errors: bool = None,
-        comment: str = None,
-        published: bool = None,
-        blinded: bool = None,
+        reviewer_id: Optional[str] = None,
+        review_date: Optional[str] = None,
+        has_errors: Optional[bool] = None,
+        has_no_errors: Optional[bool] = None,
+        no_errors: Optional[bool] = None,
+        missing_output: Optional[bool] = None,
+        extraneous_output: Optional[bool] = None,
+        invalid_output: Optional[bool] = None,
+        has_error_output: Optional[bool] = None,
+        other_errors: Optional[bool] = None,
+        comment: Optional[str] = None,
+        published: Optional[bool] = None,
+        blinded: Optional[bool] = None,
         has_warnings: bool = False,
     ) -> bool:
         """updates the review specified by dataset_id, vm_id, and run_id with the values given in the parameters.
@@ -957,7 +962,7 @@ class FileDatabase(object):
         so this method currently does nothing."""
         pass
 
-    def update_run(self, dataset_id, vm_id, run_id, deleted: bool = None):
+    def update_run(self, dataset_id, vm_id, run_id, deleted: Optional[bool] = None):
         """updates the run specified by dataset_id, vm_id, and run_id with the values given in the parameters.
         Required Parameters are also required in the function
         """

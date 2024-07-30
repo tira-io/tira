@@ -4,6 +4,7 @@ from concurrent import futures
 from functools import wraps
 from threading import Thread
 from time import sleep
+from typing import Set
 from uuid import uuid4
 
 import grpc
@@ -11,7 +12,7 @@ import grpc
 from tira.grpc.test_grpc_host_client import TestGrpcHostClient
 from tira.proto import tira_host_pb2, tira_host_pb2_grpc
 
-VIRTUAL_MACHINES = {}
+VIRTUAL_MACHINES: dict[str, "DummyVirtualMachine"] = {}
 
 
 class DummyVirtualMachine(object):
@@ -240,7 +241,8 @@ def get_or_create_vm(vm_id):
 
 class TiraHostService(tira_host_pb2_grpc.TiraHostService):
 
-    def check_state(state, ignore_ongoing=False):
+    @staticmethod
+    def check_state(state: Set[int], ignore_ongoing: bool = False):
         """A decorator that checks the STATE precondition for all calls to TiraHostService that thae a VmId message
         We check:
           - is the vm in the correct state for the requested transistion

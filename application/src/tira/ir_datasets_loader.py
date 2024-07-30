@@ -4,7 +4,7 @@ import json
 import os
 from base64 import b64encode
 from pathlib import Path
-from typing import Iterable
+from typing import Any, Iterable, Optional
 
 import pandas as pd
 from bs4 import BeautifulSoup
@@ -111,7 +111,7 @@ class IrDatasetsLoader(object):
         skip_documents=False,
         skip_qrels=False,
         skip_duplicate_ids=True,
-        allowlist_path_ids: Path = None,
+        allowlist_path_ids: Optional[Path] = None,
     ) -> None:
         """Loads a dataset through the ir_datasets package by the given ir_datasets ID.
         Maps documents, queries, qrels to a standardized format in preparation for full-rank operations with PyTerrier.
@@ -181,7 +181,7 @@ class IrDatasetsLoader(object):
 
         run = self.load_run_file(run_file)
         print("Get Documents")
-        docs = self.get_docs_by_ids(dataset, list(set([str(i["docno"]) for i in run])))
+        docs = self.get_docs_by_ids(dataset, set(str(i["docno"]) for i in run))
         print("Produce rerank data.")
         rerank = tqdm(
             (self.construct_rerank_row(docs, queries, i, include_original) for i in run), "Produce Rerank File."
@@ -249,7 +249,7 @@ class IrDatasetsLoader(object):
 
         return [i.to_dict() for _, i in run[["qid", "Q0", "docno", "rank", "score", "system"]].iterrows()]
 
-    def get_docs_by_ids(self, dataset, doc_ids: list) -> dict:
+    def get_docs_by_ids(self, dataset, doc_ids: set[str]) -> dict[Any, Any]:
         docstore = dataset.docs_store()
         try:
             ret = {}
@@ -273,7 +273,9 @@ class IrDatasetsLoader(object):
 
         return o
 
-    def construct_rerank_row(self, docs: dict, queries: dict, rerank_line: dict, include_original) -> str:
+    def construct_rerank_row(
+        self, docs: dict, queries: dict, rerank_line: dict[str, Any], include_original
+    ) -> Optional[str]:
         query = queries[str(rerank_line["qid"])]
         doc = docs.get(str(rerank_line["docno"]), None)
 

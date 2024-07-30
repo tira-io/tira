@@ -2,7 +2,7 @@ import logging
 from functools import wraps
 
 from django.conf import settings
-from django.http import Http404, HttpResponseNotAllowed, HttpResponseRedirect, JsonResponse
+from django.http import Http404, HttpRequest, HttpResponseNotAllowed, HttpResponseRedirect, JsonResponse
 from django.shortcuts import redirect
 from django.urls import resolve
 
@@ -34,7 +34,7 @@ def check_permissions(func):
     """
 
     @wraps(func)
-    def func_wrapper(request, *args, **kwargs):
+    def func_wrapper(request: HttpRequest, *args, **kwargs):
         vm_id = kwargs.get("vm_id", None)
         user_id = kwargs.get("user_id", None)
         if vm_id is None and user_id is not None:  # some endpoints say user_id instead of vm_id
@@ -275,12 +275,12 @@ def run_is_public(run_id, vm_id, dataset_id):
     return dataset_is_public(dataset_id)
 
 
-def dataset_is_public(dataset_id):
+def dataset_is_public(dataset_id: str) -> bool:
     if not dataset_id or (dataset_id not in settings.PUBLIC_TRAINING_DATA and not dataset_id.endswith("-training")):
         return False
 
     i = model.get_dataset(dataset_id)
-    return i and "is_confidential" in i and not i["is_confidential"] and "is_deprecated" in i and not i["is_deprecated"]
+    return ("is_confidential" in i) and not i["is_confidential"] and ("is_deprecated" in i) and not i["is_deprecated"]
 
 
 def check_resources_exist(reply_as="json"):

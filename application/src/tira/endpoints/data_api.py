@@ -6,6 +6,7 @@ import textwrap
 from copy import deepcopy
 from http import HTTPStatus
 from io import StringIO
+from typing import Any, Optional, Union
 
 from django.conf import settings
 from django.core.cache import cache
@@ -537,7 +538,7 @@ def tirex_components(request, context):
     return JsonResponse({"status": 0, "context": context})
 
 
-def flatten_tirex_components_to_id(obj, t=None):
+def flatten_tirex_components_to_id(obj: Union[dict[str, Any], Any], t=None):
     ret = {}
 
     if not isinstance(obj, dict):
