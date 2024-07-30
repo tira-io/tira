@@ -1,15 +1,7 @@
-from google.protobuf.text_format import Parse
-from google.protobuf.json_format import MessageToDict
-from pathlib import Path
 import logging
-from django.conf import settings
-from django.db import models
-from django.core.exceptions import ValidationError
-import socket
-from datetime import datetime
 
-from tira.proto import TiraClientWebMessages_pb2 as modelpb
-from tira.proto import tira_host_pb2 as model_host
+from django.core.exceptions import ValidationError
+from django.db import models
 
 logger = logging.getLogger("tira")
 # Transition is powering_on (3), powering_off (4), sandboxing (5), unsandboxing (6), executing (7)
@@ -20,7 +12,7 @@ stable_state = {0, 1, 2, 8}
 
 def _validate_transition_state(value):
     if value not in transition_states:
-        raise ValidationError('%(value)s is not a transition state', params={'value': value})
+        raise ValidationError("%(value)s is not a transition state", params={"value": value})
 
 
 class TransactionLog(models.Model):
@@ -52,31 +44,32 @@ class EvaluationLog(models.Model):
 
 class GitIntegration(models.Model):
     namespace_url = models.CharField(max_length=280, primary_key=True)
-    host = models.CharField(max_length=100, default='')
-    private_token = models.CharField(max_length=100, default='')
-    user_name = models.CharField(max_length=100, default='')
-    user_password = models.CharField(max_length=100, default='')
+    host = models.CharField(max_length=100, default="")
+    private_token = models.CharField(max_length=100, default="")
+    user_name = models.CharField(max_length=100, default="")
+    user_password = models.CharField(max_length=100, default="")
     gitlab_repository_namespace_id = models.IntegerField(default=None, null=True)
-    image_registry_prefix = models.CharField(max_length=150, default='')
-    user_repository_branch = models.CharField(max_length=100, default='main')
+    image_registry_prefix = models.CharField(max_length=150, default="")
+    user_repository_branch = models.CharField(max_length=100, default="main")
 
 
 class Organizer(models.Model):
     organizer_id = models.CharField(max_length=280, primary_key=True)
-    name = models.CharField(max_length=100, default='tira')
-    years = models.CharField(max_length=30, default='2022')
-    web = models.CharField(max_length=300, default='https://www.tira.io')
+    name = models.CharField(max_length=100, default="tira")
+    years = models.CharField(max_length=30, default="2022")
+    web = models.CharField(max_length=300, default="https://www.tira.io")
     git_integrations = models.ManyToManyField(GitIntegration, default=None)
 
 
 class VirtualMachine(models.Model):
-    """ This is the equivalent of a 'user' object  (for legacy reasons).
+    """This is the equivalent of a 'user' object  (for legacy reasons).
     Typically, only the vm_id is set. The vm_id is the equivalent of the user name and ends
         in '-default' if there is no virtual machine assigned to this user.
     """
+
     vm_id = models.CharField(max_length=280, primary_key=True)
-    user_password = models.CharField(max_length=280, default='tira')
-    roles = models.CharField(max_length=100, default='guest')
+    user_password = models.CharField(max_length=280, default="tira")
+    roles = models.CharField(max_length=100, default="guest")
     host = models.CharField(max_length=100, default=None, null=True)
     admin_name = models.CharField(max_length=100, default=None, null=True)
     admin_pw = models.CharField(max_length=280, default=None, null=True)
@@ -92,24 +85,29 @@ class Task(models.Model):
     task_description = models.TextField(default="")
     vm = models.ForeignKey(VirtualMachine, on_delete=models.SET_NULL, null=True)
     organizer = models.ForeignKey(Organizer, on_delete=models.SET_NULL, null=True)
-    web = models.CharField(max_length=150, default='')
+    web = models.CharField(max_length=150, default="")
     featured = models.BooleanField(default=False)
     require_registration = models.BooleanField(default=False)
-#    Set to true = users can not submit without a group
+    #    Set to true = users can not submit without a group
     require_groups = models.BooleanField(default=False)
-#    True = users can not create their own groups, they must join the given set
+    #    True = users can not create their own groups, they must join the given set
     restrict_groups = models.BooleanField(default=False)
     max_std_out_chars_on_test_data = models.IntegerField(default=0)
     max_std_err_chars_on_test_data = models.IntegerField(default=0)
     max_file_list_chars_on_test_data = models.IntegerField(default=0)
     command_placeholder = models.TextField(default="mySoftware -c $inputDataset -r $inputRun -o $outputDir")
-    command_description = models.TextField(default="Available variables: <code>$inputDataset</code>, <code>$inputRun</code>, <code>$outputDir</code>, <code>$dataServer</code>, and <code>$token</code>.")
+    command_description = models.TextField(
+        default=(
+            "Available variables: <code>$inputDataset</code>, <code>$inputRun</code>, <code>$outputDir</code>,"
+            " <code>$dataServer</code>, and <code>$token</code>."
+        )
+    )
     allowed_task_teams = models.TextField(default="")
     dataset_label = models.CharField(max_length=280, default="Input dataset")
     max_std_out_chars_on_test_data_eval = models.IntegerField(default=0)
     max_std_err_chars_on_test_data_eval = models.IntegerField(default=0)
     max_file_list_chars_on_test_data_eval = models.IntegerField(default=0)
-    is_ir_task  = models.BooleanField(default=False)
+    is_ir_task = models.BooleanField(default=False)
     irds_re_ranking_image = models.CharField(max_length=150, default="")
     irds_re_ranking_command = models.CharField(max_length=150, default="")
     irds_re_ranking_resource = models.CharField(max_length=150, default="")
@@ -180,13 +178,14 @@ class Software(models.Model):
     deleted = models.BooleanField(default=False)
 
     class Meta:
-        unique_together = (("software_id", "vm", 'task'),)
+        unique_together = (("software_id", "vm", "task"),)
 
 
 class Upload(models.Model):
     """
     - The dataset is only associated for compatibility with Software. It's probably always none.
     """
+
     vm = models.ForeignKey(VirtualMachine, on_delete=models.CASCADE)
     task = models.ForeignKey(Task, on_delete=models.SET_NULL, null=True)
     dataset = models.ForeignKey(Dataset, on_delete=models.SET_NULL, null=True)
@@ -220,13 +219,17 @@ class DockerSoftware(models.Model):
 
 class DockerSoftwareHasAdditionalInput(models.Model):
     position = models.AutoField(primary_key=True)
-    docker_software = models.ForeignKey(DockerSoftware, on_delete=models.CASCADE, related_name='+')
-    input_docker_software = models.ForeignKey(DockerSoftware, on_delete=models.CASCADE, default=None, null=True, related_name='+')
+    docker_software = models.ForeignKey(DockerSoftware, on_delete=models.CASCADE, related_name="+")
+    input_docker_software = models.ForeignKey(
+        DockerSoftware, on_delete=models.CASCADE, default=None, null=True, related_name="+"
+    )
     input_upload = models.ForeignKey(Upload, on_delete=models.RESTRICT, default=None, null=True)
+
 
 class DiscourseTokenForUser(models.Model):
     vm_id = models.OneToOneField(VirtualMachine, on_delete=models.CASCADE, primary_key=True)
     token = models.CharField(max_length=250)
+
 
 class SoftwareSubmissionGitRepository(models.Model):
     repository_url = models.CharField(max_length=500, primary_key=True)
@@ -253,6 +256,7 @@ class SoftwareClone(models.Model):
     """
     - This allows to import/export existing software to other tasks.
     """
+
     vm = models.ForeignKey(VirtualMachine, on_delete=models.CASCADE)
     task = models.ForeignKey(Task, on_delete=models.SET_NULL, null=True)
     docker_software = models.ForeignKey(DockerSoftware, on_delete=models.CASCADE, default=None, null=True)
@@ -263,6 +267,7 @@ class HuggingFaceModelsOfSoftware(models.Model):
     """
     - The Huggingface models to mount into some software.
     """
+
     docker_software = models.ForeignKey(DockerSoftware, on_delete=models.CASCADE, default=None, null=True)
     hf_home = models.CharField(max_length=250, default="")
     mount_hf_model = models.TextField(default="")
@@ -276,7 +281,7 @@ class Run(models.Model):
     upload = models.ForeignKey(Upload, on_delete=models.CASCADE, null=True)
     docker_software = models.ForeignKey(DockerSoftware, on_delete=models.CASCADE, null=True)
     input_dataset = models.ForeignKey(Dataset, on_delete=models.SET_NULL, null=True)
-    input_run = models.ForeignKey('self', on_delete=models.CASCADE, null=True)
+    input_run = models.ForeignKey("self", on_delete=models.CASCADE, null=True)
     task = models.ForeignKey(Task, on_delete=models.SET_NULL, null=True)
     downloadable = models.BooleanField(default=False)
     deleted = models.BooleanField(default=False)

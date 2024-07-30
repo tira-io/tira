@@ -1,8 +1,26 @@
 [tool.black]
 line-length = 120
+exclude = '''/(
+    src/tira/migrations
+    | src/tira/proto
+)'''
 
 [tool.isort]
 profile = "black"
 multi_line_output = 3
 line_length = 120
 include_trailing_comma = true
+skip = [
+    "src/tira/migrations",
+    "src/tira/proto",
+]
+
+[tool.mypy]
+disallow_untyped_calls = true
+explicit_package_bases = true
+ignore_missing_imports = true
+install_types = true
+exclude = [
+    "^src/tira/proto/.*\\.py$",
+    "^src/tira/migrations/.*\\.py$",
+]

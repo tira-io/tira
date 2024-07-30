@@ -1,4 +1,5 @@
 from django.contrib import admin
+
 import tira.model as modeldb
 
 # Register your models here.

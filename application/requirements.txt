@@ -1,4 +1,3 @@
-setuptools==71
 grpcio>=1.53.2
 # grpcio-tools==1.36.1  # still needed?
 protobuf<4.0dev

@@ -21,12 +21,12 @@ jobs:
         working-directory: ${{github.workspace}}/application
         run: |
           mkdir .mypy_cache
-          mypy . --disallow-untyped-calls --explicit-package-bases --ignore-missing-imports --install-types --non-interactive --cache-dir=.mypy_cache/
+          mypy . --non-interactive --cache-dir=.mypy_cache/
       - name: Run mypy on python-client
         working-directory: ${{github.workspace}}/python-client
         run: |
           mkdir .mypy_cache
-          mypy . --disallow-untyped-calls --explicit-package-bases --ignore-missing-imports --install-types --non-interactive --cache-dir=.mypy_cache/
+          mypy .--non-interactive --cache-dir=.mypy_cache/
 
   flake8:
     runs-on: ubuntu-latest
