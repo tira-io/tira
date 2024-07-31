@@ -667,36 +667,3 @@ def submissions_for_task(request, context, task_id, user_id, submission_type):
         )
 
     return JsonResponse({"status": 0, "context": context})
-
-
-@check_permissions
-@check_resources_exist("json")
-@add_context
-def export_registrations(request, context, task_id):
-    ret = StringIO()
-
-    fieldnames = [
-        "team_name",
-        "initial_owner",
-        "team_members",
-        "registered_on_task",
-        "name",
-        "email",
-        "affiliation",
-        "country",
-        "employment",
-        "participates_for",
-        "instructor_name",
-        "instructor_email",
-        "questions",
-        "created",
-        "last_modified",
-    ]
-
-    writer = csv.DictWriter(ret, fieldnames=fieldnames)
-
-    writer.writeheader()
-    for i in model.all_registrations(task_id):
-        writer.writerow(i)
-
-    return HttpResponse(ret.getvalue())

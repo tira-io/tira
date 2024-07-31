@@ -63,9 +63,6 @@ urlpatterns = [
         vm_api.stop_docker_software,
         name="stop_docker_software",
     ),
-    path(
-        "tira-admin/export-participants/<str:task_id>.csv", data_api.export_registrations, name="export_registrations"
-    ),
     path("tira-admin/<str:organizer_id>/create-task", admin_api.admin_create_task, name="tira-admin-create-task"),
     path("tira-admin/edit-task/<str:task_id>", admin_api.admin_edit_task, name="tira-admin-edit-task"),
     path("tira-admin/delete-task/<str:task_id>", admin_api.admin_delete_task, name="tira-admin-delete-task"),

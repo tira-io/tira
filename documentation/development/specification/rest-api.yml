@@ -11,19 +11,6 @@ security:
 
 paths:
   # Legacy API
-  /tira-admin/export-participants/{taskId}.csv:
-    get:
-      servers:
-        - url: https://www.tira.io
-      summary: Deprecated, use `/v1/tasks/{taskId}/registrations` instead with MIME-type text/csv
-      description: TODO
-      deprecated: true
-      security:
-        - LegacyApiKeyAuth: []
-      responses:
-        '200':
-          description: TODO
-      tags: [legacy]
   /tira-admin/{organizerId}/create-task:
     post:
       servers:

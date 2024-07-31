@@ -2538,15 +2538,6 @@ class HybridDatabase(object):
 
         return ret
 
-    def all_registrations(self, task_id):
-        task = modeldb.Task.objects.get(task_id=task_id)
-        ret = []
-
-        for i in modeldb.Registration.objects.filter(registered_on_task=task):
-            ret += [self._registration_to_dict(i)]
-
-        return ret
-
 
 # modeldb.EvaluationLog.objects.filter(vm_id='nlptasks-master').delete()
 # print(modeldb.Run.objects.all().exclude(upload=None).values())

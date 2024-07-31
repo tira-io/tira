@@ -1144,7 +1144,3 @@ def get_all_reranking_datasets(force_cache_refresh=False):
     cache.set(cache_key, ret)
 
     return ret
-
-
-def all_registrations(task_id):
-    return model.all_registrations(task_id)
