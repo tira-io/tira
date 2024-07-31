@@ -76,7 +76,9 @@ urlpatterns = [
     path(
         "tira-admin/delete-dataset/<str:dataset_id>", admin_api.admin_delete_dataset, name="tira-admin-delete-dataset"
     ),
+    # TODO: Unused
     path("tira-admin/add-organizer/<str:organizer_id>", admin_api.admin_add_organizer, name="tira-admin-add-organizer"),
+    # TODO: Unused
     path(
         "tira-admin/edit-organizer/<str:organizer_id>", admin_api.admin_edit_organizer, name="tira-admin-edit-organizer"
     ),
@@ -85,6 +87,7 @@ urlpatterns = [
         admin_api.admin_edit_review,
         name="tira-admin-edit-review",
     ),
+    # TODO: Unused
     path("tira-admin/create-group/<str:vm_id>", admin_api.admin_create_group, name="tira-admin-create-group"),
     path("publish/<str:vm_id>/<str:dataset_id>/<str:run_id>/<str:value>", organizer_api.publish, name="publish"),
     path("blind/<str:vm_id>/<str:dataset_id>/<str:run_id>/<str:value>", organizer_api.blind, name="blind"),
@@ -96,6 +99,7 @@ urlpatterns = [
     path(
         "api/evaluations-of-vm/<str:task_id>/<str:vm_id>", data_api.get_evaluations_by_vm, name="get_evaluations_by_vm"
     ),
+    # TODO: unused
     path("api/evaluation/<str:vm_id>/<str:run_id>", data_api.get_evaluation, name="get_evaluation"),
     path(
         "api/submissions/<str:task_id>/<str:dataset_id>",
@@ -124,7 +128,9 @@ urlpatterns = [
         name="get_configuration_of_evaluation",
     ),
     path("api/list-runs/<str:task_id>/<str:dataset_id>/<str:vm_id>/<str:software_id>", data_api.runs, name="runs"),
+    # TODO: Unused
     path("api/host-list", data_api.get_host_list, name="get_host_list"),
+    # TODO: Unused
     path("api/organizer-list", data_api.get_organizer_list, name="get_organizer_list"),
     path("api/task-list", data_api.get_task_list, name="get_task_list"),
     path("api/task/<str:task_id>", data_api.get_task, name="get_task"),
@@ -133,6 +139,7 @@ urlpatterns = [
     ),
     path("api/dataset/<str:dataset_id>", data_api.get_dataset, name="get_dataset"),
     path("api/datasets_by_task/<str:task_id>", data_api.get_dataset_for_task, name="get_dataset_for_task"),
+    # TODO: Unused
     path("api/organizer/<str:organizer_id>", data_api.get_organizer, name="get_organizer"),
     path("api/role", data_api.get_role, name="get_role"),
     path("api/task/<str:task_id>/user/<str:user_id>", data_api.get_user, name="get_user"),
@@ -175,6 +182,7 @@ urlpatterns = [
     ),
     path("api/tirex-components", data_api.tirex_components, name="tirex_components"),
     path("api/tirex-snippet", data_api.get_snippet_to_run_components, name="get_snippet_to_run_components"),
+    # TODO: Unused
     path(
         "api/snippets-for-tirex-components",
         data_api.get_snippet_to_run_components,

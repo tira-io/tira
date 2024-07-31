@@ -3,7 +3,6 @@ These methods are utilities to parse Tira's Model from the protobuf files into a
 """
 
 import logging
-from pathlib import Path
 
 from google.protobuf.text_format import Parse
 from tqdm import tqdm
