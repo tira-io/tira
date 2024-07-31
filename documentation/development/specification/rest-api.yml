@@ -11,45 +11,6 @@ security:
 
 paths:
   # Legacy API
-  /tira-admin/create-vm:
-    post:
-      summary: Deprecated, may be deleted without replacement?
-      deprecated: true
-      servers:
-        - url: https://www.tira.io
-      description: Hook for create_vm posts. Responds with json objects indicating the state of the create process.
-      security:
-        - LegacyApiKeyAuth: []
-      responses:
-        '200':
-          description: TODO
-      tags: [legacy, "dead?"]
-  /tira-admin/archive-vm:
-    post:
-      servers:
-        - url: https://www.tira.io
-      summary: Deprecated, may be deleted without replacement?
-      description: TODO
-      deprecated: true
-      security:
-        - LegacyApiKeyAuth: []
-      responses:
-        '200':
-          description: TODO
-      tags: [legacy, "dead?"]
-  /tira-admin/modify-vm:
-    post:
-      summary: Deprecated, may be deleted without replacement?
-      deprecated: true
-      servers:
-        - url: https://www.tira.io
-      description: TODO
-      security:
-        - LegacyApiKeyAuth: []
-      responses:
-        '200':
-          description: TODO
-      tags: [legacy, "dead?"]
   /tira-admin/export-participants/{taskId}.csv:
     get:
       servers:

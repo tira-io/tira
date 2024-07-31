@@ -40,33 +40,6 @@ def handle_get_model_exceptions(func):
 
 
 @check_permissions
-def admin_create_vm(request):  # TODO implement
-    """Hook for create_vm posts. Responds with json objects indicating the state of the create process."""
-
-    if request.method == "POST":
-        data = json.loads(request.body)
-
-        return JsonResponse({"status": 0, "message": f"Not implemented yet, received: {data}"})
-
-    return JsonResponse({"status": 1, "message": "GET is not implemented for vm create"})
-
-
-@check_permissions
-def admin_archive_vm(request):
-    return JsonResponse({"status": 1, "message": "Not implemented"}, status=HTTPStatus.NOT_IMPLEMENTED)
-
-
-@check_permissions
-def admin_modify_vm(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-
-        return JsonResponse({"status": 0, "message": f"Not implemented yet, received: {data}"})
-
-    return JsonResponse({"status": 1, "message": "GET is not implemented for modify vm"})
-
-
-@check_permissions
 def admin_create_task(request, organizer_id):
     """Create an entry in the model for the task. Use data supplied by a model.
     Return a json status message."""
