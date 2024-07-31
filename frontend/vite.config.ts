@@ -8,6 +8,7 @@ import { fileURLToPath, URL } from 'node:url'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: "",
   plugins: [
     vue({ template: { transformAssetUrls } }),
     // https://github.com/vuetifyjs/vuetify-loader/tree/next/packages/vite-plugin
@@ -28,10 +29,9 @@ export default defineConfig({
     rollupOptions: {
       output: {
         // TODO: We would usually like to use assets/ here, but we first have to fix this disraptor problem: https://github.com/disraptor/disraptor/issues/33
-        // TODO: Documentation
-        assetFileNames: 'tira-frontend/assets-public/[name].[ext]',
-        chunkFileNames: 'tira-frontend/chunks/[name].js',
-        entryFileNames: 'tira-frontend/entries/[name].js',
+        assetFileNames: 'assets-public/[name].[ext]',
+        chunkFileNames: 'chunks/[name].js',
+        entryFileNames: 'entries/[name].js',
       },
     },
     outDir: 'static/',
