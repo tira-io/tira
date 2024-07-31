@@ -36,8 +36,8 @@ EOF
 # src/tira.conf.js) with the respective environment variable's value.
 COPY --chmod=0755 <<EOF startup.sh
 #!/usr/bin/env sh
-sed -i 's@grpc_endpoint:"[^"]*"@grpc_endpoint:"'"\$TIRA_GRPC_BASE_URL"'"@' /var/www/localhost/htdocs/entries/index.js
-sed -i 's@rest_endpoint:"[^"]*"@rest_endpoint:"'"\$TIRA_REST_BASE_URL"'"@' /var/www/localhost/htdocs/entries/index.js
+sed -i 's@grpc_endpoint:\s*"[^"]*"@grpc_endpoint:"'"\$TIRA_GRPC_BASE_URL"'"@' /var/www/localhost/htdocs/entries/index.js
+sed -i 's@rest_endpoint:\s*"[^"]*"@rest_endpoint:"'"\$TIRA_REST_BASE_URL"'"@' /var/www/localhost/htdocs/entries/index.js
 lighttpd -D -f lighttpd.conf
 EOF
 
