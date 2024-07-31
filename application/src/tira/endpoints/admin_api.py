@@ -15,7 +15,6 @@ import tira.tira_model as model
 from tira.authentication import auth
 from tira.checks import check_conditional_permissions, check_permissions, check_resources_exist
 from tira.git_runner import check_that_git_integration_is_valid
-from tira.ir_datasets_loader import run_irds_command
 
 logger = logging.getLogger("tira")
 logger.info("ajax_routes: Logger active")
@@ -341,106 +340,6 @@ def call_django_command_failsave(cmd, args):
     sys.stderr = sys.__stderr__
 
     return {"stdout": str(captured_stdout.getvalue()), "stderr": str(captured_stderr.getvalue()), "error": error}
-
-
-@check_permissions
-def admin_import_ir_dataset(request, task_id):
-    """Create multiple datasets for the pased ir-dataset.
-    Return a json status message."""
-    if request.method == "POST":
-        data = json.loads(request.body)
-
-        if not all(k in data.keys() for k in ["dataset_id", "name", "image"]):
-            return JsonResponse({"status": 1, "message": "Error: dataset_id, name, and image must be set."})
-
-        dataset_id_prefix = data["dataset_id"]
-        dataset_name = data["name"]
-
-        upload_name = data.get("upload_name", "run.txt")
-        evaluator_command = data.get("evaluator_command", "")
-        working_directory = data.get("evaluator_working_directory", "")
-        measures = data.get("evaluation_measures", "")
-
-        is_git_runner = data.get("is_git_runner", True)
-        git_runner_image = data.get("git_runner_image", data.get("image"))
-        git_runner_command = data.get("git_runner_command", settings.IR_MEASURES_COMMAND)
-        git_repository_id = model.get_git_integration(task_id=task_id).create_task_repository(task_id)
-        irds_import_command = (
-            f'/irds_cli.sh --skip_qrels true --ir_datasets_id {data["dataset_id"]} --output_dataset_path $outputDir'
-        )
-        irds_import_truth_command = (
-            f'/irds_cli.sh --skip_documents true --ir_datasets_id {data["dataset_id"]} --output_dataset_truth_path'
-            " $outputDir"
-        )
-
-        master_vm_id = None
-
-        try:
-            if data["type"] == "training":
-                ds, (dataset_path, dataset_truth_path) = model.add_dataset(
-                    task_id,
-                    dataset_id_prefix,
-                    "training",
-                    dataset_name,
-                    upload_name,
-                    irds_docker_image=git_runner_image,
-                    irds_import_command=irds_import_command,
-                    irds_import_truth_command=irds_import_truth_command,
-                )
-            elif data["type"] == "test":
-                ds, (dataset_path, dataset_truth_path) = model.add_dataset(
-                    task_id,
-                    dataset_id_prefix,
-                    "test",
-                    dataset_name,
-                    upload_name,
-                    irds_docker_image=git_runner_image,
-                    irds_import_command=irds_import_command,
-                    irds_import_truth_command=irds_import_truth_command,
-                )
-            else:
-                return JsonResponse(
-                    {"status": 1, "message": "Invalid data type. Expected training or test, got : " + data["type"]}
-                )
-        except FileExistsError as e:
-            logger.exception(e)
-            return JsonResponse({"status": 1, "message": "A Dataset with this id already exists. Error: " + str(e)})
-
-        model.add_evaluator(
-            master_vm_id,
-            task_id,
-            ds["dataset_id"],
-            evaluator_command,
-            working_directory,
-            not measures,
-            is_git_runner,
-            git_runner_image,
-            git_runner_command,
-            git_repository_id,
-        )
-
-        try:
-            process_id = run_irds_command(
-                ds["task"],
-                ds["dataset_id"],
-                ds["irds_docker_image"],
-                ds["irds_import_command"],
-                dataset_path,
-                ds["irds_import_truth_command"],
-                dataset_truth_path,
-            )
-            return JsonResponse(
-                {
-                    "status": 0,
-                    "context": ds,
-                    "message": "Imported dataset successfull.",
-                    "href": f"/background_jobs/{task_id}/{process_id}",
-                }
-            )
-        except Exception as e:
-            return JsonResponse({"status": 1, "context": {}, "message": f"Import of dataset failed with: {e}."})
-
-    return JsonResponse({"status": 1, "message": "GET is not implemented for add dataset"})
 
 
 @check_permissions

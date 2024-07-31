@@ -72,11 +72,6 @@ urlpatterns = [
         admin_api.admin_upload_dataset,
         name="tira-admin-upload-dataset",
     ),
-    path(
-        "tira-admin/import-irds-dataset/<str:task_id>",
-        admin_api.admin_import_ir_dataset,
-        name="tira-admin-import-irds-dataset",
-    ),
     path("tira-admin/edit-dataset/<str:dataset_id>", admin_api.admin_edit_dataset, name="tira-admin-edit-dataset"),
     path(
         "tira-admin/delete-dataset/<str:dataset_id>", admin_api.admin_delete_dataset, name="tira-admin-delete-dataset"
