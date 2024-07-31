@@ -378,11 +378,6 @@ def get_organizer(organizer_id: str):
     # TODO should return as dict
     return model.get_organizer(organizer_id)
 
-
-def get_host_list() -> list:
-    return model.get_host_list()
-
-
 def runs(task_id, dataset_id, vm_id, software_id):
     return model.runs(task_id, dataset_id, vm_id, software_id)
 

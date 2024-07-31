@@ -42,7 +42,6 @@ class FileDatabase(object):
     organizers_file_path = tira_root / Path("model/organizers/organizers.prototext")
     vm_list_file = tira_root / Path("model/virtual-machines/virtual-machines.txt")
     vm_dir_path = tira_root / Path("model/virtual-machines")
-    host_list_file = tira_root / Path("model/virtual-machine-hosts/virtual-machine-hosts.txt")
     datasets_dir_path = tira_root / Path("model/datasets")
     softwares_dir_path = tira_root / Path("model/softwares")
     data_path = tira_root / Path("data/datasets")
@@ -544,10 +543,6 @@ class FileDatabase(object):
     def get_organizer(self, organizer_id: str):
         # TODO should return as dict
         return self.organizers[organizer_id]
-
-    def get_host_list(self) -> list:
-        # FIXME: I don't close my handle :(((((((
-        return list(open(self.host_list_file, "r").readlines())
 
     def get_vm_list(self):
         """load the vm-info file which stores all active vms as such:

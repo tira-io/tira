@@ -48,7 +48,6 @@ class HybridDatabase(object):
     organizers_file_path = tira_root / Path("model/organizers/organizers.prototext")
     vm_list_file = tira_root / Path("model/virtual-machines/virtual-machines.txt")
     vm_dir_path = tira_root / Path("model/virtual-machines")
-    host_list_file = tira_root / Path("model/virtual-machine-hosts/virtual-machine-hosts.txt")
     datasets_dir_path = tira_root / Path("model/datasets")
     data_path = tira_root / Path("data/datasets")
     runs_dir_path = tira_root / Path("data/runs")
@@ -61,7 +60,6 @@ class HybridDatabase(object):
         self.tasks_dir_path.mkdir(exist_ok=True, parents=True)
         self.organizers_file_path.parent.mkdir(exist_ok=True, parents=True)
         self.vm_dir_path.mkdir(exist_ok=True, parents=True)
-        self.host_list_file.parent.mkdir(exist_ok=True, parents=True)
         self.datasets_dir_path.mkdir(exist_ok=True, parents=True)
         self.data_path.mkdir(exist_ok=True, parents=True)
         self.runs_dir_path.mkdir(exist_ok=True, parents=True)
@@ -439,9 +437,6 @@ class HybridDatabase(object):
             }
         except Exception:
             return {} if not return_object else None
-
-    def get_host_list(self) -> list:
-        return [line.strip() for line in open(self.host_list_file, "r").readlines()]
 
     def get_organizer_list(self) -> list:
         return [self._organizer_to_dict(organizer) for organizer in modeldb.Organizer.objects.all()]
