@@ -546,6 +546,7 @@ class FileDatabase(object):
         return self.organizers[organizer_id]
 
     def get_host_list(self) -> list:
+        # FIXME: I don't close my handle :(((((((
         return list(open(self.host_list_file, "r").readlines())
 
     def get_vm_list(self):

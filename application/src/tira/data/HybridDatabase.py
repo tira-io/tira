@@ -45,13 +45,11 @@ class HybridDatabase(object):
 
     tira_root = settings.TIRA_ROOT
     tasks_dir_path = tira_root / Path("model/tasks")
-    users_file_path = tira_root / Path("model/users/users.prototext")
     organizers_file_path = tira_root / Path("model/organizers/organizers.prototext")
     vm_list_file = tira_root / Path("model/virtual-machines/virtual-machines.txt")
     vm_dir_path = tira_root / Path("model/virtual-machines")
     host_list_file = tira_root / Path("model/virtual-machine-hosts/virtual-machine-hosts.txt")
     datasets_dir_path = tira_root / Path("model/datasets")
-    softwares_dir_path = tira_root / Path("model/softwares")
     data_path = tira_root / Path("data/datasets")
     runs_dir_path = tira_root / Path("data/runs")
     custom_irds_datasets_path = tira_root / "state" / "custom-ir-datasets"
@@ -60,13 +58,11 @@ class HybridDatabase(object):
         pass
 
     def create_model(self, admin_user_name="admin", admin_password="admin"):
-        self.users_file_path.parent.mkdir(exist_ok=True, parents=True)
         self.tasks_dir_path.mkdir(exist_ok=True, parents=True)
         self.organizers_file_path.parent.mkdir(exist_ok=True, parents=True)
         self.vm_dir_path.mkdir(exist_ok=True, parents=True)
         self.host_list_file.parent.mkdir(exist_ok=True, parents=True)
         self.datasets_dir_path.mkdir(exist_ok=True, parents=True)
-        self.softwares_dir_path.mkdir(exist_ok=True, parents=True)
         self.data_path.mkdir(exist_ok=True, parents=True)
         self.runs_dir_path.mkdir(exist_ok=True, parents=True)
         (self.tira_root / "state/virtual-machines").mkdir(exist_ok=True, parents=True)
@@ -74,7 +70,6 @@ class HybridDatabase(object):
 
         self.users_file_path.touch(exist_ok=True)
         self.vm_list_file.touch(exist_ok=True)
-        self.host_list_file.touch(exist_ok=True)
         self.organizers_file_path.touch(exist_ok=True)
 
         modeldb.VirtualMachine.objects.create(vm_id=admin_user_name, user_password=admin_password, roles="reviewer")
