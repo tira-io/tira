@@ -40,17 +40,8 @@ apt-get update
 # Tools
 apt-get install -y python3 python3-pip git pkg-config
 # Dependencies (stuff needed by at least one python package)
-# Needed by grpcio (TODO: can be removed when GRPC is removed)
-#apt-get install -y g++ linux-headers python3-devel build-base
-#apt-get install -y gcc linux-headers make musl-dev python3-dev build-base libxml2 libxslt libxml2-dev libxslt-dev pcre-dev
-#apt-get install -y zip py3-virtualenv mariadb-dev npm git openssh-client libc6-compat pandas
 # For MariaDB
 apt-get install -y default-libmysqlclient-dev
-#apk add --no-cache mariadb-connector-c-dev
-# For Scipy
-#apk add --no-cache gfortran cmake openblas-dev
-# For Pytrec Eval
-#apk add libffi-dev
 
 python3 -m pip install -r requirements.txt
 EOF
