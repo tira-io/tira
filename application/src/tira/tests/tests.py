@@ -6,5 +6,5 @@ class TestSetup(TestCase):
         self.setup = True
 
     def test_setup_success(self):
-        """ test if tests work """
+        """test if tests work"""
         self.assertTrue(self.setup)

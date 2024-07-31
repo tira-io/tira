@@ -1,17 +1,17 @@
-from django.conf import settings
-from concurrent import futures
-import grpc
 import logging
 import time
+from concurrent import futures
 from contextlib import contextmanager
-from django.core.management.base import BaseCommand, CommandError
-from django.core.management import call_command
 
-from tira.proto import tira_host_pb2_grpc
+import grpc
+from django.conf import settings
+from django.core.management.base import BaseCommand
+
 from tira.grpc.grpc_server import TiraApplicationService
+from tira.proto import tira_host_pb2_grpc
 
 grpc_port = settings.APPLICATION_GRPC_PORT
-listen_addr = f'[::]:{grpc_port}'
+listen_addr = f"[::]:{grpc_port}"
 
 logger = logging.getLogger("grpc_server")
 
@@ -27,7 +27,7 @@ def serve_forever():
 
 
 class Command(BaseCommand):
-    help = 'api server'
+    help = "api server"
 
     def handle(self, *args, **options):
         with serve_forever():
@@ -35,6 +35,6 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS(f"Starting tira-application server on {listen_addr}"))
             try:
                 while True:
-                    time.sleep(60*60*24)
+                    time.sleep(60 * 60 * 24)
             except KeyboardInterrupt:
                 pass
