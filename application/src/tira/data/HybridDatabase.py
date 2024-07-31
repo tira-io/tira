@@ -66,7 +66,6 @@ class HybridDatabase(object):
         (self.tira_root / "state/virtual-machines").mkdir(exist_ok=True, parents=True)
         (self.tira_root / "state/softwares").mkdir(exist_ok=True, parents=True)
 
-        self.users_file_path.touch(exist_ok=True)
         self.vm_list_file.touch(exist_ok=True)
         self.organizers_file_path.touch(exist_ok=True)
 
@@ -2527,17 +2526,3 @@ class HybridDatabase(object):
             ]
 
         return ret
-
-
-# modeldb.EvaluationLog.objects.filter(vm_id='nlptasks-master').delete()
-# print(modeldb.Run.objects.all().exclude(upload=None).values())
-
-# Note: To Reindex faulty runs
-# dataset_ids = set([run.input_dataset_id for run in modeldb.Run.objects.filter(upload=None, software=None, docker_software=None, evaluator=None)])
-# runs_dir = settings.TIRA_ROOT / Path("data/runs")
-# for d in dataset_ids:
-#     if not d:
-#         print("d is None")
-#         continue
-#     for vm_dir in (runs_dir / d).glob("*"):
-#         print(dbops.parse_runs_for_vm(runs_dir, d, vm_dir.stem, verbose=True))
