@@ -685,15 +685,6 @@ paths:
         '200':
           description: TODO
       tags: [legacy]
-  /snippets-for-tirex-components:
-    get:
-      summary: Deprecated. I think, this was superseded by `/tirex-snippet`
-      deprecated: true
-      security: []
-      responses:
-        '200':
-          description: TODO
-      tags: [legacy, "dead?"]
   /re-ranking-datasets/{taskId}:
     parameters:
       - name: taskId

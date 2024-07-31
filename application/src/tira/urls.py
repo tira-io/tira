@@ -182,12 +182,6 @@ urlpatterns = [
     ),
     path("api/tirex-components", data_api.tirex_components, name="tirex_components"),
     path("api/tirex-snippet", data_api.get_snippet_to_run_components, name="get_snippet_to_run_components"),
-    # TODO: Unused
-    path(
-        "api/snippets-for-tirex-components",
-        data_api.get_snippet_to_run_components,
-        name="get_snippet_to_run_components",
-    ),
     path("api/re-ranking-datasets/<str:task_id>", data_api.reranking_datasets, name="reranking_datasets"),
     path("api/submissions-of-user/<str:vm_id>", data_api.submissions_of_user, name="submissions_of_user"),
     path(
