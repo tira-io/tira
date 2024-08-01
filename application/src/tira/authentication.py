@@ -4,11 +4,10 @@ import os
 from functools import wraps
 from typing import Optional
 
+import tira.tira_model as model
 from django.conf import settings
 from django.http import HttpRequest, HttpResponseNotAllowed
 from slugify import slugify
-
-import tira.tira_model as model
 
 logger = logging.getLogger(__name__)
 
@@ -371,11 +370,6 @@ Best regards"""
 
         organizer_ids = self.get_organizer_ids(request)
 
-        if path == "/api/organizer-list" and (
-            role == auth.ROLE_PARTICIPANT or role == auth.ROLE_ADMIN or role == auth.ROLE_USER or role == auth.ROLE_TIRA
-        ):
-            return True
-
         if path.startswith("/tira-admin/add-organizer/"):
             existing_organizer_ids = set([i["organizer_id"] for i in model.get_organizer_list()])
             orga_name = path.split("/tira-admin/add-organizer/")[1]
@@ -426,8 +420,7 @@ Best regards"""
                 pass
 
         return (
-            path == "/api/organizer-list"
-            or (task and "organizer_id" in task and task["organizer_id"] in organizer_ids)
+            (task and "organizer_id" in task and task["organizer_id"] in organizer_ids)
             or (
                 organizer_id_from_params
                 and organizer_id_from_params in organizer_ids

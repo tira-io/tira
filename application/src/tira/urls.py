@@ -128,8 +128,6 @@ urlpatterns = [
         name="get_configuration_of_evaluation",
     ),
     path("api/list-runs/<str:task_id>/<str:dataset_id>/<str:vm_id>/<str:software_id>", data_api.runs, name="runs"),
-    # TODO: Unused
-    path("api/organizer-list", data_api.get_organizer_list, name="get_organizer_list"),
     path("api/task-list", data_api.get_task_list, name="get_task_list"),
     path("api/task/<str:task_id>", data_api.get_task, name="get_task"),
     path(

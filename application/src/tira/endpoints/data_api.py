@@ -6,16 +6,21 @@ from copy import deepcopy
 from http import HTTPStatus
 from typing import Any, Union
 
+import tira.tira_model as model
 from django.conf import settings
 from django.core.cache import cache
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import JsonResponse
 from slugify import slugify
-
-import tira.tira_model as model
 from tira.authentication import auth
 from tira.checks import check_permissions, check_resources_exist
-from tira.tira_data import get_run_file_list, get_run_runtime, get_stderr, get_stdout, get_tira_log
+from tira.tira_data import (
+    get_run_file_list,
+    get_run_runtime,
+    get_stderr,
+    get_stdout,
+    get_tira_log,
+)
 from tira.util import link_to_discourse_team
 from tira.views import _add_user_vms_to_context, add_context
 
@@ -249,21 +254,6 @@ def runs(request, context, task_id, dataset_id, vm_id, software_id):
     context["runs"] = list(set([i["run_id"] for i in runs]))
     if len(runs) > 0:
         context["job_id"] = runs[0]
-
-    return JsonResponse({"status": 0, "context": context})
-
-
-@check_permissions
-@check_resources_exist("json")
-@add_context
-def get_organizer_list(request, context):
-    organizer_list = model.get_organizer_list()
-    is_admin = context and "role" in context and context["role"] == "admin"
-    orga_groups_of_user = set(auth.get_organizer_ids(request))
-
-    context["organizer_list"] = [
-        i for i in organizer_list if is_admin or ("organizer_id" in i and i["organizer_id"] in orga_groups_of_user)
-    ]
 
     return JsonResponse({"status": 0, "context": context})
 

@@ -368,16 +368,6 @@ paths:
         '200':
           description: TODO
       tags: [legacy]
-  /organizer-list:
-    get:
-      summary: Deprecated, use /v1/organizers instead.
-      deprecated: true
-      security:
-        - LegacyApiKeyAuth: []
-      responses:
-        '200':
-          description: TODO
-      tags: [legacy]
   /task-list:
     get:
       summary: Deprecated, use /v1/tasks instead.
