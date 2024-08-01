@@ -16,6 +16,10 @@ class OrganizerSerializer(ModelSerializer):
         fields = ["id", "name", "years", "website"]
 
 
+# TODO: creating an organizer should behave like: admin_add_organizer
+# TODO: editing an organizer should behave like: admin_edit_organizer
+
+
 class _OrganizerView(ModelViewSet):
     queryset = modeldb.Organizer.objects.all()
     serializer_class = OrganizerSerializer
