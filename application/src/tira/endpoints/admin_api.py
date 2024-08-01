@@ -7,13 +7,16 @@ import zipfile
 from datetime import datetime as dt
 from http import HTTPStatus
 
+import tira.tira_model as model
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import JsonResponse
-
-import tira.tira_model as model
 from tira.authentication import auth
-from tira.checks import check_conditional_permissions, check_permissions, check_resources_exist
+from tira.checks import (
+    check_conditional_permissions,
+    check_permissions,
+    check_resources_exist,
+)
 from tira.git_runner import check_that_git_integration_is_valid
 
 logger = logging.getLogger("tira")
@@ -404,15 +407,6 @@ def admin_edit_organizer(request, organizer_id):
         return JsonResponse({"status": 0, "message": f"Updated Organizer {organizer_id}"})
 
     return JsonResponse({"status": 1, "message": "GET is not implemented for edit organizer"})
-
-
-@check_conditional_permissions(restricted=True)
-@check_resources_exist("json")
-def admin_create_group(request, vm_id):
-    """this is a rest endpoint to grant a user permissions on a vm"""
-    vm = model.get_vm(vm_id)
-    message = auth.create_group(vm)
-    return JsonResponse({"status": 0, "message": message})
 
 
 @check_conditional_permissions(restricted=True)

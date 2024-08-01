@@ -1133,17 +1133,6 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
-        url_pattern="tira-admin/create-group/<str:vm_id>",
-        params={"vm_id": "vm-id-does-not-exist"},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 405,
-            PARTICIPANT: 405,
-            ORGANIZER: 405,
-            ORGANIZER_WRONG_TASK: 405,
-        },
-    ),
-    route_to_test(
         url_pattern="publish/<str:vm_id>/<str:dataset_id>/<str:run_id>/<str:value>",
         params={
             "dataset_id": "dataset-does-not-exist",

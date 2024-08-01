@@ -87,8 +87,6 @@ urlpatterns = [
         admin_api.admin_edit_review,
         name="tira-admin-edit-review",
     ),
-    # TODO: Unused
-    path("tira-admin/create-group/<str:vm_id>", admin_api.admin_create_group, name="tira-admin-create-group"),
     path("publish/<str:vm_id>/<str:dataset_id>/<str:run_id>/<str:value>", organizer_api.publish, name="publish"),
     path("blind/<str:vm_id>/<str:dataset_id>/<str:run_id>/<str:value>", organizer_api.blind, name="blind"),
     path(
