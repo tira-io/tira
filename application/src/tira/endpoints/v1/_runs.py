@@ -1,6 +1,7 @@
 from django.urls import path
 from rest_framework import pagination
 from rest_framework.generics import RetrieveAPIView
+from rest_framework.permissions import IsAdminUser
 from rest_framework.serializers import CharField, ModelSerializer, Serializer
 from rest_framework_json_api.views import ModelViewSet
 
@@ -50,6 +51,7 @@ class _ReviewDetailView(RetrieveAPIView):
     queryset = modeldb.Review
     serializer_class = _ReviewSerializer
     lookup_field = "run"
+    permission_classes = [IsAdminUser]  # TODO: set to something sensible
 
 
 endpoints = [

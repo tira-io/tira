@@ -484,7 +484,7 @@ Trusted Header Authentication implementation to integrate with Django
 from typing import NamedTuple
 
 from django.contrib.auth.models import AnonymousUser
-from rest_framework import authentication, permissions
+from rest_framework import authentication
 
 _DISRAPTOR_APP_SECRET_KEY = os.getenv("DISRAPTOR_APP_SECRET_KEY")
 
@@ -494,15 +494,11 @@ class User(NamedTuple):
     is_staff: bool
 
 
-class TiraAdmin(AnonymousUser):
-    pass
-
-
 class TiraGuest(AnonymousUser):
     def __init__(self) -> None:
         super().__init__()
         self.username = "guest"
-        self._groups = []
+        self._groups: list[str] = []
 
     def __str__(self) -> str:
         return self.username
@@ -521,6 +517,7 @@ class TiraUser(AnonymousUser):
         super().__init__()
         self.username = username
         self._groups = groups
+        self.is_staff = "admins" in groups
 
     def __str__(self) -> str:
         return self.username
@@ -538,7 +535,7 @@ class TrustedHeaderAuthentication(authentication.BaseAuthentication):
 
     def authenticate(self, request) -> tuple[User, None]:
         if not request.headers.get("X-Disraptor-App-Secret-Key", None) == _DISRAPTOR_APP_SECRET_KEY:
-            return HttpResponseNotAllowed(f"Access forbidden.")
+            return HttpResponseNotAllowed("Access forbidden.")
         username = request.headers.get("X-Disraptor-User")
         groups = request.headers.get("X-Disraptor-Groups")
         grouplist = [] if not groups else groups.split(",")
@@ -546,7 +543,3 @@ class TrustedHeaderAuthentication(authentication.BaseAuthentication):
             return (TiraGuest(), None)
 
         return (TiraUser(username, grouplist), None)
-
-
-class IsOrganizerOrReadOnly(permissions.BasePermission):
-    pass

@@ -1,10 +1,10 @@
 from django.urls import path
 from rest_framework import pagination
-from rest_framework.serializers import CharField, ModelSerializer, PrimaryKeyRelatedField, Serializer
+from rest_framework.permissions import IsAdminUser
+from rest_framework.serializers import CharField, ModelSerializer
 from rest_framework_json_api.views import ModelViewSet
 
 from ... import model as modeldb
-from ...authentication import IsOrganizerOrReadOnly
 from ._evaluations import EvaluationSerializer
 from ._organizers import OrganizerSerializer
 
@@ -41,14 +41,14 @@ class _TaskView(ModelViewSet):
     queryset = modeldb.Task.objects.all()
     serializer_class = TaskSerializer
     pagination_class = pagination.CursorPagination
-    # permission_classes = [IsOrganizerOrReadOnly]
+    permission_classes = [IsAdminUser]  # TODO: set to something sensible
     lookup_field = "task_id"
 
 
 class _EvaluationView(ModelViewSet):
     serializer_class = EvaluationSerializer
     pagination_class = pagination.CursorPagination
-    # permission_classes = [IsOrganizerOrReadOnly]
+    permission_classes = [IsAdminUser]  # TODO: set to something sensible
     lookup_field = "task_id"
 
     def get_queryset(self):
@@ -58,7 +58,7 @@ class _EvaluationView(ModelViewSet):
 class _RegistrationView(ModelViewSet):
     serializer_class = RegistrationSerializer
     pagination_class = pagination.CursorPagination
-    # permission_classes = [IsOrganizerOrReadOnly]
+    permission_classes = [IsAdminUser]  # TODO: set to something sensible
     lookup_field = "task_id"
 
     def get_queryset(self):
