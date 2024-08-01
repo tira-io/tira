@@ -8,12 +8,10 @@ from pathlib import Path
 from typing import Any, Optional
 
 import randomname
+import tira.data.data as dbops
 from django.conf import settings
 from django.db import IntegrityError
 from google.protobuf.text_format import Parse
-
-import tira.data.data as dbops
-import tira.model as modeldb
 from tira.proto import TiraClientWebMessages_pb2 as modelpb
 from tira.util import (
     TiraModelIntegrityError,
@@ -24,6 +22,8 @@ from tira.util import (
     link_to_discourse_team,
     now,
 )
+
+import tira.model as modeldb
 
 logger = logging.getLogger("tira_db")
 
@@ -1408,16 +1408,6 @@ class HybridDatabase(object):
                 ret += [i]
 
         return ret
-
-    def get_evaluation(self, run_id):
-        try:
-            evaluation = modeldb.Evaluation.objects.filter(run__run_id=run_id).all()
-            return {ev.measure_key: ev.measure_value for ev in evaluation}
-
-        except modeldb.Evaluation.DoesNotExist:
-            logger.exception(f"Tried to load evaluation for run {run_id}, but it does not exist")
-
-        return {}
 
     def get_software_with_runs(self, task_id, vm_id):
         def _runs_by_software(software):

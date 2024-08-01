@@ -1180,10 +1180,10 @@ API_ACCESS_MATRIX = [
         params={"task_id": "task-does-not-exist", "dataset_id": "dataset-id-does-not-exist"},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 200,  # TODO Make consistent with "api/evaluation/<str:vm_id>/<str:run_id>"
+            GUEST: 200,
             PARTICIPANT: 200,
             ORGANIZER: 200,
-            ORGANIZER_WRONG_TASK: 200,  # TODO Make consistent with "api/evaluation/<str:vm_id>/<str:run_id>"
+            ORGANIZER_WRONG_TASK: 200,
         },
     ),
     route_to_test(
@@ -1206,28 +1206,6 @@ API_ACCESS_MATRIX = [
             PARTICIPANT: 200,
             ORGANIZER: 200,
             ORGANIZER_WRONG_TASK: 302,
-        },
-    ),
-    route_to_test(
-        url_pattern="api/evaluation/<str:vm_id>/<str:run_id>",
-        params={"vm_id": "example-participant", "run_id": "run-1-example_participant"},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 302,  # TODO Make consistent with "api/evaluations/<str:task_id>/<str:dataset_id>"
-            PARTICIPANT: 302,
-            ORGANIZER: 302,
-            ORGANIZER_WRONG_TASK: 302,  # TODO Make consistent with "api/evaluations/<str:task_id>/<str:dataset_id>"
-        },
-    ),
-    route_to_test(
-        url_pattern="api/evaluation/<str:vm_id>/<str:run_id>",
-        params={"vm_id": PARTICIPANT.split("_")[-1], "run_id": "run-1-example_participant"},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 302,  # TODO Make consistent with "api/evaluations/<str:task_id>/<str:dataset_id>"
-            PARTICIPANT: 200,
-            ORGANIZER: 302,
-            ORGANIZER_WRONG_TASK: 302,  # TODO Make consistent with "api/evaluations/<str:task_id>/<str:dataset_id>"
         },
     ),
     route_to_test(

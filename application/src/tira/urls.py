@@ -99,8 +99,6 @@ urlpatterns = [
     path(
         "api/evaluations-of-vm/<str:task_id>/<str:vm_id>", data_api.get_evaluations_by_vm, name="get_evaluations_by_vm"
     ),
-    # TODO: unused
-    path("api/evaluation/<str:vm_id>/<str:run_id>", data_api.get_evaluation, name="get_evaluation"),
     path(
         "api/submissions/<str:task_id>/<str:dataset_id>",
         data_api.get_submissions_by_dataset,

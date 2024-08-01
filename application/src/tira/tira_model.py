@@ -15,7 +15,6 @@ from django.conf import settings
 from django.core.cache import BaseCache, cache
 from django.db import connections, router
 from slugify import slugify
-
 from tira.data.HybridDatabase import HybridDatabase
 from tira.git_runner import get_git_runner, get_git_runner_for_software_integration
 from tira.util import get_tira_id, register_run
@@ -456,16 +455,6 @@ def get_evaluations_with_keys_by_dataset(dataset_id, include_unpublished=False, 
 
 def get_job_details(task_id, vm_id, job_id):
     return model.get_job_details(task_id, vm_id, job_id)
-
-
-def get_evaluation(run_id: str):
-    """Get the evaluation of this run
-
-    @param run_id: the id of the run
-    @return: a dict with {measure_key: measure_value}
-    """
-    return model.get_evaluation(run_id)
-
 
 def get_count_of_missing_reviews(task_id):
     return model.get_count_of_missing_reviews(task_id)

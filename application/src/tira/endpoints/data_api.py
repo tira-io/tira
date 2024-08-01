@@ -208,26 +208,6 @@ def get_evaluations_by_vm(request, context, task_id, vm_id):
     return JsonResponse({"status": 0, "context": context})
 
 
-@add_context
-@check_permissions
-def get_evaluation(request, context, run_id, vm_id):
-    run = model.get_run(None, None, run_id)
-    review = model.get_run_review(None, None, run_id)
-
-    if not run["is_evaluation"] or not vm_id:
-        # We need the vm_id to get the check working, otherwise we have no direct link to the vm.
-        return JsonResponse({"status": 1, "message": f"Run {run_id} is not an evaluation run."})
-
-    dataset = model.get_dataset(run["dataset"])
-
-    if context["role"] != "admin" and review["blinded"] and dataset["is_confidential"]:
-        return JsonResponse({"status": 1, "message": f"Run {run_id} is not unblinded."})
-
-    context["evaluation"] = model.get_evaluation(run_id)
-
-    return JsonResponse({"status": 0, "context": context})
-
-
 @check_resources_exist("json")
 @add_context
 def get_submissions_by_dataset(request, context, task_id, dataset_id):
