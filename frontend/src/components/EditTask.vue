@@ -84,9 +84,9 @@
                       href="https://www.tira.io/new-message?username=tira_org_webis&title=Request%20&body=message%20body">contact
                       us</a>, we usually respond within one day.</p>
 
-                  <v-autocomplete v-if="task_id_for_edit === ''" v-model="selected_organizer" :items="organizer_teams"
-                    label="Organizer" :rules="[v => !!(v && v.length) || 'Please select the organizer of your task.']"
-                    required />
+                  <v-autocomplete v-if="task_id_for_edit === ''" v-model="selected_organizer"
+                    :items="userinfo.organizer_teams" label="Organizer"
+                    :rules="[v => !!(v && v.length) || 'Please select the organizer of your task.']" required />
                   <v-text-field v-model="web" label="Website"
                     :rules="[v => v && v.length > 2 || 'Please provide a task website.']" required />
 
@@ -148,7 +148,7 @@ import { inject } from 'vue'
 
 import { Loading } from '.'
 import { VAutocomplete } from "vuetify/components";
-import { get, post, reportError, slugify, extractOrganizations, inject_response } from '../utils'
+import { get, post, reportError, slugify, inject_response } from '../utils'
 
 export default {
   name: "edit-task",
@@ -161,7 +161,7 @@ export default {
     }
   },
   data: () => ({
-    loading: true, valid: false, step: 1, submitInProgress: false, organizer_teams: extractOrganizations(), selected_organizer: '', organizer_id: '',
+    loading: true, valid: false, step: 1, submitInProgress: false, selected_organizer: '', organizer_id: '',
     task_name: '', featured: false, web: '', task_description: '', command_description: '', command_placeholder: '',
     require_registration: false, require_groups: false, restrict_groups: false, allowed_task_teams: '',
     is_ir_task: false, irds_re_ranking_image: '', irds_re_ranking_command: '', irds_re_ranking_resource: ''
