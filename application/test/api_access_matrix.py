@@ -36,17 +36,6 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
-        url_pattern="api/snippets-for-tirex-components",
-        params=None,
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 200,
-            PARTICIPANT: 200,
-            ORGANIZER: 200,
-            ORGANIZER_WRONG_TASK: 200,
-        },
-    ),
-    route_to_test(
         url_pattern="api/list-runs/<str:task_id>/<str:dataset_id>/<str:vm_id>/<str:software_id>",
         params={"task_id": "1", "dataset_id": 1, "vm_id": "1", "software_id": "1"},
         group_to_expected_status_code={
@@ -192,17 +181,6 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
-        url_pattern="tira-admin/export-participants/<str:task_id>.csv",
-        params={"task_id": "task-of-organizer-1"},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 405,
-            PARTICIPANT: 405,
-            ORGANIZER: 200,
-            ORGANIZER_WRONG_TASK: 405,
-        },
-    ),
-    route_to_test(
         url_pattern="api/count-of-team-submissions/<str:task_id>",
         params={"task_id": "task-of-organizer-1"},
         group_to_expected_status_code={
@@ -288,17 +266,6 @@ API_ACCESS_MATRIX = [
             PARTICIPANT: 302,
             ORGANIZER: 302,
             ORGANIZER_WRONG_TASK: 302,
-        },
-    ),
-    route_to_test(
-        url_pattern="tira-admin/export-participants/<str:task_id>.csv",
-        params={"task_id": "shared-task-1"},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 405,
-            PARTICIPANT: 405,
-            ORGANIZER: 405,
-            ORGANIZER_WRONG_TASK: 405,
         },
     ),
     route_to_test(
@@ -495,28 +462,6 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
-        url_pattern="task/<str:task_id>/vm/<str:vm_id>/add_software/vm",
-        params={"task_id": "shared-task-1", "vm_id": "example_participant"},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 302,
-            PARTICIPANT: 302,
-            ORGANIZER: 302,
-            ORGANIZER_WRONG_TASK: 302,
-        },
-    ),
-    route_to_test(
-        url_pattern="task/<str:task_id>/vm/<str:vm_id>/add_software/vm",
-        params={"task_id": "shared-task-1", "vm_id": PARTICIPANT.split("_")[-1]},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 302,
-            PARTICIPANT: 200,
-            ORGANIZER: 302,
-            ORGANIZER_WRONG_TASK: 302,
-        },
-    ),
-    route_to_test(
         url_pattern="task/<str:task_id>/vm/<str:vm_id>/add_software/docker",
         params={"task_id": "shared-task-1", "vm_id": "example_participant"},
         group_to_expected_status_code={
@@ -693,61 +638,6 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
-        url_pattern="task/<str:task_id>/vm/<str:vm_id>/save_software/vm/<str:software_id>",
-        params={"task_id": "shared-task-1", "vm_id": "example_participant", "software_id": 0},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 302,
-            PARTICIPANT: 302,
-            ORGANIZER: 302,
-            ORGANIZER_WRONG_TASK: 302,
-        },
-    ),
-    route_to_test(
-        url_pattern="task/<str:task_id>/vm/<str:vm_id>/save_software/vm/<str:software_id>",
-        params={"task_id": "shared-task-1", "vm_id": PARTICIPANT.split("_")[-1], "software_id": 0},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 302,
-            PARTICIPANT: 200,
-            ORGANIZER: 302,
-            ORGANIZER_WRONG_TASK: 302,
-        },
-    ),
-    route_to_test(
-        url_pattern="task/<str:task_id>/vm/<str:vm_id>/save_software/vm/<str:software_id>",
-        params={"task_id": "task-of-organizer-1", "vm_id": "example_participant", "software_id": 0},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 302,
-            PARTICIPANT: 302,
-            ORGANIZER: 200,
-            ORGANIZER_WRONG_TASK: 302,
-        },
-    ),
-    route_to_test(
-        url_pattern="task/<str:task_id>/vm/<str:vm_id>/delete_software/vm/<str:software_id>",
-        params={"task_id": "shared-task-1", "vm_id": "example_participant", "software_id": 0},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 302,
-            PARTICIPANT: 302,
-            ORGANIZER: 302,
-            ORGANIZER_WRONG_TASK: 302,
-        },
-    ),
-    route_to_test(
-        url_pattern="task/<str:task_id>/vm/<str:vm_id>/delete_software/vm/<str:software_id>",
-        params={"task_id": "shared-task-1", "vm_id": PARTICIPANT.split("_")[-1], "software_id": 0},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 302,
-            PARTICIPANT: 200,
-            ORGANIZER: 302,
-            ORGANIZER_WRONG_TASK: 302,
-        },
-    ),
-    route_to_test(
         url_pattern="task/<str:task_id>/vm/<str:vm_id>/delete_software/docker/<str:docker_software_id>",
         params={"task_id": "shared-task-1", "vm_id": "example_participant", "software_id": 0},
         group_to_expected_status_code={
@@ -836,138 +726,6 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
-        url_pattern="grpc/<str:vm_id>/vm_info",
-        params={"vm_id": "does-not-exist"},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 302,
-            PARTICIPANT: 302,
-            ORGANIZER: 302,
-            ORGANIZER_WRONG_TASK: 302,
-        },
-    ),
-    # Skip for the moment, takes too long. Maybe mock later?
-    # route_to_test(
-    #    url_pattern='grpc/<str:vm_id>/vm_info',
-    #    params={'vm_id': PARTICIPANT.split('_')[-1]},
-    #    group_to_expected_status_code={
-    #        ADMIN: 200,
-    #        GUEST: 302,
-    #        PARTICIPANT: 200,
-    #        ORGANIZER: 302,
-    #    },
-    # ),
-    route_to_test(
-        url_pattern="grpc/<str:vm_id>/vm_state",
-        params={"vm_id": "does-not-exist"},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 302,
-            PARTICIPANT: 302,
-            ORGANIZER: 302,
-            ORGANIZER_WRONG_TASK: 302,
-        },
-    ),
-    route_to_test(
-        url_pattern="grpc/<str:vm_id>/vm_state",
-        params={"vm_id": PARTICIPANT.split("_")[-1]},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 302,
-            PARTICIPANT: 200,
-            ORGANIZER: 302,
-            ORGANIZER_WRONG_TASK: 302,
-        },
-    ),
-    route_to_test(
-        url_pattern="grpc/<str:vm_id>/vm_start",
-        params={"vm_id": "does-not-exist"},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 302,
-            PARTICIPANT: 302,
-            ORGANIZER: 302,
-            ORGANIZER_WRONG_TASK: 302,
-        },
-    ),
-    # Skip for the moment, takes too long. Maybe mock later?
-    # route_to_test(
-    #    url_pattern='grpc/<str:vm_id>/vm_start',
-    #    params={'vm_id': PARTICIPANT.split('_')[-1]},
-    #    group_to_expected_status_code={
-    #        ADMIN: 200,
-    #        GUEST: 302,
-    #        PARTICIPANT: 200,
-    #        ORGANIZER: 302,
-    #    },
-    # ),
-    route_to_test(
-        url_pattern="grpc/<str:vm_id>/vm_shutdown",
-        params={"vm_id": "does-not-exist"},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 302,
-            PARTICIPANT: 302,
-            ORGANIZER: 302,
-            ORGANIZER_WRONG_TASK: 302,
-        },
-    ),
-    # Skip for the moment, takes too long. Maybe mock later?
-    # route_to_test(
-    #    url_pattern='grpc/<str:vm_id>/vm_shutdown',
-    #    params={'vm_id': PARTICIPANT.split('_')[-1]},
-    #    group_to_expected_status_code={
-    #        ADMIN: 200,
-    #        GUEST: 302,
-    #        PARTICIPANT: 200,
-    #        ORGANIZER: 302,
-    #    },
-    # ),
-    route_to_test(
-        url_pattern="grpc/<str:vm_id>/vm_stop",
-        params={"vm_id": "does-not-exist"},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 302,
-            PARTICIPANT: 302,
-            ORGANIZER: 302,
-            ORGANIZER_WRONG_TASK: 302,
-        },
-    ),
-    # Skip for the moment, takes too long. Maybe mock later?
-    # route_to_test(
-    #    url_pattern='grpc/<str:vm_id>/vm_stop',
-    #    params={'vm_id': PARTICIPANT.split('_')[-1]},
-    #    group_to_expected_status_code={
-    #        ADMIN: 200,
-    #        GUEST: 302,
-    #        PARTICIPANT: 200,
-    #        ORGANIZER: 302,
-    #    },
-    # ),
-    route_to_test(
-        url_pattern="grpc/<str:vm_id>/run_abort",
-        params={"vm_id": "does-not-exist"},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 302,
-            PARTICIPANT: 302,
-            ORGANIZER: 302,
-            ORGANIZER_WRONG_TASK: 302,
-        },
-    ),
-    # Skip for the moment, takes too long. Maybe mock later?
-    # route_to_test(
-    #    url_pattern='grpc/<str:vm_id>/run_abort',
-    #    params={'vm_id': PARTICIPANT.split('_')[-1]},
-    #    group_to_expected_status_code={
-    #        ADMIN: 200,
-    #        GUEST: 302,
-    #        PARTICIPANT: 200,
-    #        ORGANIZER: 302,
-    #    },
-    # ),
-    route_to_test(
         url_pattern="api/evaluations_of_run/<str:vm_id>/<str:run_id>",
         params={"vm_id": PARTICIPANT.split("_")[-1], "run_id": "run-1-example_participant"},
         group_to_expected_status_code={
@@ -989,72 +747,6 @@ API_ACCESS_MATRIX = [
             ORGANIZER_WRONG_TASK: 302,  # TODO Make consistent with "api/evaluations/<str:task_id>/<str:dataset_id>"
         },
     ),
-    route_to_test(
-        url_pattern="grpc/<str:vm_id>/vm_running_evaluations",
-        params={"vm_id": "does-not-exist"},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 302,
-            PARTICIPANT: 302,
-            ORGANIZER: 302,
-            ORGANIZER_WRONG_TASK: 302,
-        },
-    ),
-    # Skip for the moment, takes too long. Maybe mock later?
-    # route_to_test(
-    #    url_pattern='grpc/<str:vm_id>/vm_running_evaluations',
-    #    params={'vm_id': PARTICIPANT.split('_')[-1]},
-    #    group_to_expected_status_code={
-    #        ADMIN: 200,
-    #        GUEST: 302,
-    #        PARTICIPANT: 200,
-    #        ORGANIZER: 302,
-    #    },
-    # ),
-    route_to_test(
-        url_pattern="grpc/<str:vm_id>/get_running_evaluations",
-        params={"vm_id": "does-not-exist"},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 302,
-            PARTICIPANT: 302,
-            ORGANIZER: 302,
-            ORGANIZER_WRONG_TASK: 302,
-        },
-    ),
-    route_to_test(
-        url_pattern="grpc/<str:vm_id>/get_running_evaluations",
-        params={"vm_id": PARTICIPANT.split("_")[-1]},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 302,
-            PARTICIPANT: 200,
-            ORGANIZER: 302,
-            ORGANIZER_WRONG_TASK: 302,
-        },
-    ),
-    route_to_test(
-        url_pattern="grpc/<str:task_id>/<str:vm_id>/run_execute/vm/<str:software_id>",
-        params={"task_id": "shared-task-1", "vm_id": "does-not-exist", "software_id": "does-not-exist"},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 302,
-            PARTICIPANT: 302,
-            ORGANIZER: 302,
-            ORGANIZER_WRONG_TASK: 302,
-        },
-    ),
-    # TODO Add later
-    # route_to_test(
-    #    url_pattern='grpc/<str:task_id>/<str:vm_id>/run_execute/vm/<str:software_id>',
-    #    params={'task_id': 'shared-task-1', 'vm_id': PARTICIPANT.split('_')[-1], 'software_id': f'software-of-{PARTICIPANT.split("_")[-1]}'},
-    #    group_to_expected_status_code={
-    #        ADMIN: 200,
-    #        GUEST: 302,
-    #        PARTICIPANT: 200,
-    #        ORGANIZER: 302,
-    #    },
-    # ),
     route_to_test(
         url_pattern="grpc/<str:task_id>/<str:vm_id>/run_execute/docker/<str:dataset_id>/<str:docker_software_id>/<str:docker_resources>/<str:rerank_dataset>",
         params={
@@ -1193,61 +885,6 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
-        url_pattern="tira-admin/reload/vms",
-        params={},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 405,
-            PARTICIPANT: 405,
-            ORGANIZER: 405,
-            ORGANIZER_WRONG_TASK: 405,
-        },
-    ),
-    route_to_test(
-        url_pattern="tira-admin/reload/datasets",
-        params={},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 405,
-            PARTICIPANT: 405,
-            ORGANIZER: 405,
-            ORGANIZER_WRONG_TASK: 405,
-        },
-    ),
-    route_to_test(
-        url_pattern="tira-admin/reload/tasks",
-        params={},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 405,
-            PARTICIPANT: 405,
-            ORGANIZER: 405,
-            ORGANIZER_WRONG_TASK: 405,
-        },
-    ),
-    route_to_test(
-        url_pattern="tira-admin/create-vm",
-        params={},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 405,
-            PARTICIPANT: 405,
-            ORGANIZER: 405,
-            ORGANIZER_WRONG_TASK: 405,
-        },
-    ),
-    route_to_test(
-        url_pattern="tira-admin/modify-vm",
-        params={},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 405,
-            PARTICIPANT: 405,
-            ORGANIZER: 405,
-            ORGANIZER_WRONG_TASK: 405,
-        },
-    ),
-    route_to_test(
         url_pattern="tira-admin/edit-task/<str:task_id>",
         params={"task_id": "shared-task-1"},
         group_to_expected_status_code={
@@ -1304,28 +941,6 @@ API_ACCESS_MATRIX = [
     ),
     route_to_test(
         url_pattern="tira-admin/add-dataset/<str:task_id>",
-        params={"task_id": "task-of-organizer-1"},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 405,
-            PARTICIPANT: 405,
-            ORGANIZER: 200,
-            ORGANIZER_WRONG_TASK: 405,
-        },
-    ),
-    route_to_test(
-        url_pattern="tira-admin/import-irds-dataset/<str:task_id>",
-        params={"task_id": "task-does-not-exist"},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 405,
-            PARTICIPANT: 405,
-            ORGANIZER: 405,
-            ORGANIZER_WRONG_TASK: 405,
-        },
-    ),
-    route_to_test(
-        url_pattern="tira-admin/import-irds-dataset/<str:task_id>",
         params={"task_id": "task-of-organizer-1"},
         group_to_expected_status_code={
             ADMIN: 200,
@@ -1402,62 +1017,6 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
-        url_pattern="tira-admin/add-organizer/<str:organizer_id>",
-        params={"organizer_id": "organizer-2"},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 405,  # We expect 405 for existing organizer 'organizer-2'
-            PARTICIPANT: 405,  # We expect 405 for existing organizer 'organizer-2'
-            ORGANIZER: 405,  # We expect 405 for existing organizer 'organizer-2'
-            ORGANIZER_WRONG_TASK: 405,  # We expect 405 for existing 'organizer-2'
-        },
-    ),
-    route_to_test(
-        url_pattern="tira-admin/add-organizer/<str:organizer_id>",
-        params={"organizer_id": "organizer-id-does-not-exist"},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 200,
-            PARTICIPANT: 200,  # We expect 200 for non-existing organizer.
-            ORGANIZER: 200,  # We expect 200 for non-existing organizer.
-            ORGANIZER_WRONG_TASK: 200,  # We expect 200 for non-existing organizer.
-        },
-    ),
-    route_to_test(
-        url_pattern="tira-admin/edit-organizer/<str:organizer_id>",
-        params={"organizer_id": "organizer-id-does-not-exist"},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 405,
-            PARTICIPANT: 405,
-            ORGANIZER: 405,
-            ORGANIZER_WRONG_TASK: 405,
-            ORGANIZER_WRONG_TASK: 405,
-        },
-    ),
-    route_to_test(
-        url_pattern="tira-admin/edit-organizer/<str:organizer_id>",
-        params={"organizer_id": "organizer-2"},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 405,
-            PARTICIPANT: 405,
-            ORGANIZER: 405,
-            ORGANIZER_WRONG_TASK: 405,
-        },
-    ),
-    route_to_test(
-        url_pattern="tira-admin/edit-organizer/<str:organizer_id>",
-        params={"organizer_id": "EXAMPLE-ORGANIZER"},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 405,
-            PARTICIPANT: 405,
-            ORGANIZER: 200,
-            ORGANIZER_WRONG_TASK: 405,
-        },
-    ),
-    route_to_test(
         url_pattern="tira-admin/edit-review/<str:dataset_id>/<str:vm_id>/<str:run_id>",
         params={
             "dataset_id": "dataset-does-not-exist",
@@ -1518,17 +1077,6 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
-        url_pattern="tira-admin/create-group/<str:vm_id>",
-        params={"vm_id": "vm-id-does-not-exist"},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 405,
-            PARTICIPANT: 405,
-            ORGANIZER: 405,
-            ORGANIZER_WRONG_TASK: 405,
-        },
-    ),
-    route_to_test(
         url_pattern="publish/<str:vm_id>/<str:dataset_id>/<str:run_id>/<str:value>",
         params={
             "dataset_id": "dataset-does-not-exist",
@@ -1565,10 +1113,10 @@ API_ACCESS_MATRIX = [
         params={"task_id": "task-does-not-exist", "dataset_id": "dataset-id-does-not-exist"},
         group_to_expected_status_code={
             ADMIN: 200,
-            GUEST: 200,  # TODO Make consistent with "api/evaluation/<str:vm_id>/<str:run_id>"
+            GUEST: 200,
             PARTICIPANT: 200,
             ORGANIZER: 200,
-            ORGANIZER_WRONG_TASK: 200,  # TODO Make consistent with "api/evaluation/<str:vm_id>/<str:run_id>"
+            ORGANIZER_WRONG_TASK: 200,
         },
     ),
     route_to_test(
@@ -1594,65 +1142,10 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
-        url_pattern="api/evaluation/<str:vm_id>/<str:run_id>",
-        params={"vm_id": "example-participant", "run_id": "run-1-example_participant"},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 302,  # TODO Make consistent with "api/evaluations/<str:task_id>/<str:dataset_id>"
-            PARTICIPANT: 302,
-            ORGANIZER: 302,
-            ORGANIZER_WRONG_TASK: 302,  # TODO Make consistent with "api/evaluations/<str:task_id>/<str:dataset_id>"
-        },
-    ),
-    route_to_test(
-        url_pattern="api/evaluation/<str:vm_id>/<str:run_id>",
-        params={"vm_id": PARTICIPANT.split("_")[-1], "run_id": "run-1-example_participant"},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 302,  # TODO Make consistent with "api/evaluations/<str:task_id>/<str:dataset_id>"
-            PARTICIPANT: 200,
-            ORGANIZER: 302,
-            ORGANIZER_WRONG_TASK: 302,  # TODO Make consistent with "api/evaluations/<str:task_id>/<str:dataset_id>"
-        },
-    ),
-    route_to_test(
         url_pattern="api/submissions/<str:task_id>/<str:dataset_id>",
         params={"task_id": "task-id-does-not-exist", "dataset_id": "dataset-id-does-not-exist"},
         group_to_expected_status_code={
             ADMIN: 200,  # TODO: Add more fine-grained tests, as admin gets different response
-            GUEST: 200,
-            PARTICIPANT: 200,
-            ORGANIZER: 200,
-            ORGANIZER_WRONG_TASK: 200,
-        },
-    ),
-    route_to_test(
-        url_pattern="api/ova-list",
-        params={},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 405,
-            PARTICIPANT: 405,
-            ORGANIZER: 405,
-            ORGANIZER_WRONG_TASK: 405,
-        },
-    ),
-    route_to_test(
-        url_pattern="api/host-list",
-        params={},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 405,
-            PARTICIPANT: 405,
-            ORGANIZER: 405,
-            ORGANIZER_WRONG_TASK: 405,
-        },
-    ),
-    route_to_test(
-        url_pattern="api/organizer-list",
-        params={},
-        group_to_expected_status_code={
-            ADMIN: 200,
             GUEST: 200,
             PARTICIPANT: 200,
             ORGANIZER: 200,
@@ -1706,17 +1199,6 @@ API_ACCESS_MATRIX = [
     route_to_test(
         url_pattern="api/datasets_by_task/<str:task_id>",
         params={"task_id": "task-id-does-not-exist"},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 200,
-            PARTICIPANT: 200,
-            ORGANIZER: 200,
-            ORGANIZER_WRONG_TASK: 200,
-        },
-    ),
-    route_to_test(
-        url_pattern="api/organizer/<str:organizer_id>",
-        params={"organizer_id": "organizer-id-id-does-not-exist"},
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 200,
@@ -1885,42 +1367,6 @@ API_ACCESS_MATRIX = [
             ORGANIZER: 302,  # TODO: Is this inconsistent with api/review/<str:dataset_id>/<str:vm_id>/<str:run_id> above?
             ORGANIZER_WRONG_TASK: 302,
             # TODO: Is this inconsistent with api/review/<str:dataset_id>/<str:vm_id>/<str:run_id> above?
-        },
-    ),
-    # TODO: The following methods return 50X at the moment, we should improve the setup so that it returns 200. But for the moment 50X is enough to separate authenticated from unauthenticated.
-    route_to_test(
-        url_pattern="tira-admin/reload-data",
-        params={},
-        group_to_expected_status_code={
-            ADMIN: 500,
-            GUEST: 405,
-            PARTICIPANT: 405,
-            ORGANIZER: 405,
-            ORGANIZER_WRONG_TASK: 405,
-        },
-        hide_stdout=True,
-    ),
-    route_to_test(
-        url_pattern="tira-admin/reload-runs/<str:vm_id>",
-        params={"vm_id": "does-not-exist"},
-        group_to_expected_status_code={
-            ADMIN: 500,
-            GUEST: 405,
-            PARTICIPANT: 405,
-            ORGANIZER: 405,
-            ORGANIZER_WRONG_TASK: 405,
-        },
-        hide_stdout=True,
-    ),
-    route_to_test(
-        url_pattern="tira-admin/archive-vm",
-        params={},
-        group_to_expected_status_code={
-            ADMIN: 501,
-            GUEST: 405,
-            PARTICIPANT: 405,
-            ORGANIZER: 405,
-            ORGANIZER_WRONG_TASK: 405,
         },
     ),
     route_to_test(

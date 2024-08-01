@@ -1,17 +1,15 @@
-import csv
 import datetime
 import json
 import logging
 import textwrap
 from copy import deepcopy
 from http import HTTPStatus
-from io import StringIO
 from typing import Any, Union
 
 from django.conf import settings
 from django.core.cache import cache
 from django.core.serializers.json import DjangoJSONEncoder
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from slugify import slugify
 
 import tira.tira_model as model
@@ -205,26 +203,6 @@ def get_evaluations_by_vm(request, context, task_id, vm_id):
     return JsonResponse({"status": 0, "context": context})
 
 
-@add_context
-@check_permissions
-def get_evaluation(request, context, run_id, vm_id):
-    run = model.get_run(None, None, run_id)
-    review = model.get_run_review(None, None, run_id)
-
-    if not run["is_evaluation"] or not vm_id:
-        # We need the vm_id to get the check working, otherwise we have no direct link to the vm.
-        return JsonResponse({"status": 1, "message": f"Run {run_id} is not an evaluation run."})
-
-    dataset = model.get_dataset(run["dataset"])
-
-    if context["role"] != "admin" and review["blinded"] and dataset["is_confidential"]:
-        return JsonResponse({"status": 1, "message": f"Run {run_id} is not unblinded."})
-
-    context["evaluation"] = model.get_evaluation(run_id)
-
-    return JsonResponse({"status": 0, "context": context})
-
-
 @check_resources_exist("json")
 @add_context
 def get_submissions_by_dataset(request, context, task_id, dataset_id):
@@ -245,43 +223,12 @@ def get_evaluations_of_run(request, context, vm_id, run_id):
     return JsonResponse({"status": 0, "context": context})
 
 
-@check_permissions
-@check_resources_exist("json")
-@add_context
-def get_ova_list(request, context):
-    context["ova_list"] = model.get_ova_list()
-    return JsonResponse({"status": 0, "context": context})
-
-
 @add_context
 def runs(request, context, task_id, dataset_id, vm_id, software_id):
     runs = model.runs(task_id, dataset_id, vm_id, software_id)
     context["runs"] = list(set([i["run_id"] for i in runs]))
     if len(runs) > 0:
         context["job_id"] = runs[0]
-
-    return JsonResponse({"status": 0, "context": context})
-
-
-@check_permissions
-@check_resources_exist("json")
-@add_context
-def get_host_list(request, context):
-    context["host_list"] = model.get_host_list()
-    return JsonResponse({"status": 0, "context": context})
-
-
-@check_permissions
-@check_resources_exist("json")
-@add_context
-def get_organizer_list(request, context):
-    organizer_list = model.get_organizer_list()
-    is_admin = context and "role" in context and context["role"] == "admin"
-    orga_groups_of_user = set(auth.get_organizer_ids(request))
-
-    context["organizer_list"] = [
-        i for i in organizer_list if is_admin or ("organizer_id" in i and i["organizer_id"] in orga_groups_of_user)
-    ]
 
     return JsonResponse({"status": 0, "context": context})
 
@@ -325,13 +272,6 @@ def get_dataset(request, context, dataset_id):
     context["evaluator"] = model.get_evaluator(dataset_id)
 
     return JsonResponse({"status": 0, "context": context})
-
-
-@check_resources_exist("json")
-@add_context
-def get_organizer(request, context, organizer_id):
-    org = model.get_organizer(organizer_id)
-    return JsonResponse({"status": 0, "context": org})
 
 
 @add_context
@@ -675,36 +615,3 @@ def submissions_for_task(request, context, task_id, user_id, submission_type):
         )
 
     return JsonResponse({"status": 0, "context": context})
-
-
-@check_permissions
-@check_resources_exist("json")
-@add_context
-def export_registrations(request, context, task_id):
-    ret = StringIO()
-
-    fieldnames = [
-        "team_name",
-        "initial_owner",
-        "team_members",
-        "registered_on_task",
-        "name",
-        "email",
-        "affiliation",
-        "country",
-        "employment",
-        "participates_for",
-        "instructor_name",
-        "instructor_email",
-        "questions",
-        "created",
-        "last_modified",
-    ]
-
-    writer = csv.DictWriter(ret, fieldnames=fieldnames)
-
-    writer.writeheader()
-    for i in model.all_registrations(task_id):
-        writer.writerow(i)
-
-    return HttpResponse(ret.getvalue())

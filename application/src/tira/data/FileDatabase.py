@@ -1,8 +1,5 @@
 import logging
-import re
-from datetime import datetime
 from datetime import datetime as dt
-from datetime import timezone
 from pathlib import Path
 from shutil import rmtree
 from typing import _T, Optional
@@ -45,8 +42,6 @@ class FileDatabase(object):
     organizers_file_path = tira_root / Path("model/organizers/organizers.prototext")
     vm_list_file = tira_root / Path("model/virtual-machines/virtual-machines.txt")
     vm_dir_path = tira_root / Path("model/virtual-machines")
-    host_list_file = tira_root / Path("model/virtual-machine-hosts/virtual-machine-hosts.txt")
-    ova_dir = tira_root / Path("data/virtual-machine-templates/")
     datasets_dir_path = tira_root / Path("model/datasets")
     softwares_dir_path = tira_root / Path("model/softwares")
     data_path = tira_root / Path("data/datasets")
@@ -89,25 +84,6 @@ class FileDatabase(object):
         self._build_task_relations()
         self._build_software_relations()
         self._build_software_counts()
-
-    def reload_vms(self):
-        """reload VM and user data from the export format of the model"""
-        self._parse_vm_list()
-
-    def reload_datasets(self):
-        """reload dataset data from the export format of the model"""
-        self._parse_dataset_list()
-
-    def reload_tasks(self):
-        """reload task data from the export format of the model"""
-        self._parse_task_list()
-        self._build_task_relations()
-        self._build_software_relations()
-        self._build_software_counts()
-
-    def reload_runs(self, vm_id):
-        """reload run data for a VM from the export format of the model"""
-        raise NotImplementedError("Not Implemented: Runs are loaded on access when using FileDatabase")
 
     def _parse_organizer_list(self):
         """Parse the PB Database and extract all hosts.
@@ -244,17 +220,6 @@ class FileDatabase(object):
         """load a vm object from vm_dir_path"""
         return Parse(open(self.vm_dir_path / f"{vm_id}.prototext").read(), modelpb.VirtualMachine())
 
-    def _load_softwares(self, task_id, vm_id):
-        softwares_dir = self.softwares_dir_path / task_id / vm_id
-        softwares_dir.mkdir(parents=True, exist_ok=True)
-        software_file = softwares_dir / "softwares.prototext"
-        if not software_file.exists():
-            software_file.touch()
-
-        return Parse(
-            open(self.softwares_dir_path / task_id / vm_id / "softwares.prototext", "r").read(), modelpb.Softwares()
-        )
-
     def _load_run(self, dataset_id, vm_id, run_id, return_deleted: bool = False):
         run_dir = self.RUNS_DIR_PATH / dataset_id / vm_id / run_id
         if not (run_dir / "run.bin").exists():
@@ -337,11 +302,6 @@ class FileDatabase(object):
         open(review_path / "run-review.prototext", "w").write(str(review))
         open(review_path / "run-review.bin", "wb").write(review.SerializeToString())
 
-    def _save_softwares(self, task_id, vm_id, softwares):
-        with open(self.softwares_dir_path / task_id / vm_id / "softwares.prototext", "w+") as prototext_file:
-            # update file
-            prototext_file.write(str(softwares))
-
     def _save_run(self, dataset_id, vm_id, run_id, run):
         run_dir = self.RUNS_DIR_PATH / dataset_id / vm_id / run_id
         run_dir.mkdir(parents=True, exist_ok=True)
@@ -421,40 +381,6 @@ class FileDatabase(object):
 
         return [str(nd) for nd in new_dirs]
 
-    def _add_software(self, task_id, vm_id):
-        # TODO crashes if software prototext does not exist.
-        software = modelpb.Softwares.Software()
-        s = self._load_softwares(task_id, vm_id)
-        try:
-            last_software_count = re.search(r"\d+$", s.softwares[-1].id)
-            software_count = int(last_software_count.group()) + 1 if last_software_count else None
-            if software_count is None:
-                # invalid software id value
-                return False
-
-            software.id = f"software{software_count}"
-            software.count = str(software_count)
-
-        except IndexError:
-            # no software present yet
-            software.id = "software1"
-            software.count = "1"
-
-        software.command = ""
-        software.workingDirectory = ""
-        software.dataset = "None"
-        software.run = ""
-        software.creationDate = datetime.now(timezone.utc).strftime("%a %b %d %X %Z %Y")
-        software.lastEditDate = software.creationDate
-        software.deleted = False
-
-        s.softwares.append(software)
-        self._save_softwares(task_id, vm_id, s)
-
-        software_list = self.software.get(f"{task_id}${vm_id}", [])
-        software_list.append(software)
-        self.software[f"{task_id}${vm_id}"] = software_list
-
     def add_evaluator(self, vm_id, task_id, dataset_id, dataset_type, command, working_directory, measures):
         """TODO documentation"""
         evaluator_id = f"{dataset_id}-evaluator"
@@ -530,48 +456,6 @@ class FileDatabase(object):
 
         run.deleted = update(run.deleted, deleted)
         self._save_run(dataset_id, vm_id, run_id, run)
-
-    def update_software(
-        self,
-        task_id,
-        vm_id,
-        software_id,
-        command: Optional[str] = None,
-        working_directory: Optional[str] = None,
-        dataset: Optional[str] = None,
-        run: Optional[str] = None,
-        deleted: bool = False,
-    ):
-        def update(x, y):
-            return y if y is not None else x
-
-        s = self._load_softwares(task_id, vm_id)
-        for software in s.softwares:
-            if software.id == software_id:
-                software.command = update(software.command, command)
-                software.workingDirectory = update(software.workingDirectory, working_directory)
-                software.dataset = update(software.dataset, dataset)
-                software.run = update(software.run, run)
-                software.deleted = update(software.deleted, deleted)
-                software.lastEditDate = datetime.now(timezone.utc).strftime("%a %b %d %X %Z %Y")
-
-                self._save_softwares(task_id, vm_id, s)
-                software_list = [user_software for user_software in s.softwares if not user_software.deleted]
-                self.software[f"{task_id}${vm_id}"] = software_list
-                return software
-
-    # TODO add option to truly delete the software.
-    def delete_software(self, task_id, vm_id, software_id):
-        s = self._load_softwares(task_id, vm_id)
-
-        for software in s.softwares:
-            if software.id == software_id:
-                break
-        else:
-            raise TiraModelWriteError(f"Software does not exist: {task_id}, {vm_id}, {software_id}")
-        software_list = [software for software in s.softwares if not software.deleted]
-        self.software[f"{task_id}${vm_id}"] = software_list
-        self._save_softwares(task_id, vm_id, s)
 
     def delete_run(self, dataset_id, vm_id, run_id):
         run_dir = Path(self.RUNS_DIR_PATH / dataset_id / vm_id / run_id)
@@ -659,12 +543,6 @@ class FileDatabase(object):
     def get_organizer(self, organizer_id: str):
         # TODO should return as dict
         return self.organizers[organizer_id]
-
-    def get_host_list(self) -> list:
-        return list(open(self.host_list_file, "r").readlines())
-
-    def get_ova_list(self) -> list:
-        return [f"{ova_file.stem}.ova" for ova_file in self.ova_dir.glob("*.ova")]
 
     def get_vm_list(self):
         """load the vm-info file which stores all active vms as such:
@@ -901,14 +779,6 @@ class FileDatabase(object):
     # ------------------------------------------------------------
     # add methods to add new data to the model
     # ------------------------------------------------------------
-
-    def add_software(self, task_id: str, vm_id: str):
-        try:
-            self._add_software(task_id, vm_id)
-        except FileNotFoundError as e:
-            logger.exception(f"Exception while adding software ({task_id}, {vm_id}): {e}")
-            raise TiraModelWriteError(f"Failed to write VM {vm_id}")
-
     def update_review(
         self,
         dataset_id,

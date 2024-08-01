@@ -3,7 +3,7 @@ import json
 from django.test import TestCase
 from utils_for_testing import method_for_url_pattern, mock_request
 
-url = "api/snippets-for-tirex-components"
+url = "api/tirex-snippet"
 snippet_function = method_for_url_pattern(url)
 
 

@@ -18,6 +18,7 @@ jobs:
       - name: Install Dependencies
         working-directory: ${{github.workspace}}/python-client
         run: |
+          sudo apt-get update
           sudo apt-get install -y openjdk-11-jdk
           pip3 install .[test,dev]
       - name: Running Tests

@@ -11,123 +11,6 @@ security:
 
 paths:
   # Legacy API
-  /tira-admin/reload/vms:
-    post:
-      summary: Deprecated, may be deleted without replacement?
-      description: TODO
-      deprecated: true
-      servers:
-        - url: https://www.tira.io
-      security:
-        - LegacyApiKeyAuth: []
-      responses:
-        '200':
-          description: TODO
-      tags: [legacy, "dead?"]
-  /tira-admin/reload/datasets:
-    post:
-      summary: Deprecated, may be deleted without replacement?
-      description: TODO
-      deprecated: true
-      servers:
-        - url: https://www.tira.io
-      security:
-        - LegacyApiKeyAuth: []
-      responses:
-        '200':
-          description: TODO
-      tags: [legacy, "dead?"]
-  /tira-admin/reload/tasks:
-    post:
-      summary: Deprecated, may be deleted without replacement?
-      description: TODO
-      deprecated: true
-      servers:
-        - url: https://www.tira.io
-      security:
-        - LegacyApiKeyAuth: []
-      responses:
-        '200':
-          description: TODO
-      tags: [legacy, "dead?"]
-  /tira-admin/reload-data:
-    post:
-      summary: Deprecated, may be deleted without replacement?
-      description: TODO
-      deprecated: true
-      servers:
-        - url: https://www.tira.io
-      security:
-        - LegacyApiKeyAuth: []
-      responses:
-        '200':
-          description: TODO
-      tags: [legacy, "dead?"]
-  /tira-admin/reload-runs/{vmId}:
-    post:
-      summary: Deprecated, may be deleted without replacement?
-      description: TODO
-      deprecated: true
-      servers:
-        - url: https://www.tira.io
-      security:
-        - LegacyApiKeyAuth: []
-      responses:
-        '200':
-          description: TODO
-      tags: [legacy, "dead?"]
-  /tira-admin/create-vm:
-    post:
-      summary: Deprecated, may be deleted without replacement?
-      deprecated: true
-      servers:
-        - url: https://www.tira.io
-      description: Hook for create_vm posts. Responds with json objects indicating the state of the create process.
-      security:
-        - LegacyApiKeyAuth: []
-      responses:
-        '200':
-          description: TODO
-      tags: [legacy, "dead?"]
-  /tira-admin/archive-vm:
-    post:
-      servers:
-        - url: https://www.tira.io
-      summary: Deprecated, may be deleted without replacement?
-      description: TODO
-      deprecated: true
-      security:
-        - LegacyApiKeyAuth: []
-      responses:
-        '200':
-          description: TODO
-      tags: [legacy, "dead?"]
-  /tira-admin/modify-vm:
-    post:
-      summary: Deprecated, may be deleted without replacement?
-      deprecated: true
-      servers:
-        - url: https://www.tira.io
-      description: TODO
-      security:
-        - LegacyApiKeyAuth: []
-      responses:
-        '200':
-          description: TODO
-      tags: [legacy, "dead?"]
-  /tira-admin/export-participants/{taskId}.csv:
-    get:
-      servers:
-        - url: https://www.tira.io
-      summary: Deprecated, use `/v1/tasks/{taskId}/registrations` instead with MIME-type text/csv
-      description: TODO
-      deprecated: true
-      security:
-        - LegacyApiKeyAuth: []
-      responses:
-        '200':
-          description: TODO
-      tags: [legacy]
   /tira-admin/{organizerId}/create-task:
     post:
       servers:
@@ -232,32 +115,6 @@ paths:
         '200':
           description: TODO
       tags: [legacy]
-  /tira-admin/add-organizer/{organizerId}:
-    post:
-      servers:
-        - url: https://www.tira.io
-      summary: Deprecated, use a POST to `/v1/organizers` instead
-      description: TODO
-      deprecated: true
-      security:
-        - LegacyApiKeyAuth: []
-      responses:
-        '200':
-          description: TODO
-      tags: [legacy]
-  /tira-admin/edit-organizer/{organizerId}:
-    post:
-      servers:
-        - url: https://www.tira.io
-      summary: Deprecated, use a PATCH to `/v1/organizers/{organizerId}` instead
-      description: TODO
-      deprecated: true
-      security:
-        - LegacyApiKeyAuth: []
-      responses:
-        '200':
-          description: TODO
-      tags: [legacy]
   /tira-admin/edit-review/{datasetId}/{vmId}/{runId}:
     post:
       servers:
@@ -271,19 +128,6 @@ paths:
         '200':
           description: TODO
       tags: [legacy]
-  /tira-admin/create-group/{vmId}:
-    post:
-      summary: Deprecated, may be deleted without replacement?
-      deprecated: true
-      servers:
-        - url: https://www.tira.io
-      description: TODO
-      security:
-        - LegacyApiKeyAuth: []
-      responses:
-        '200':
-          description: TODO
-      tags: [legacy, "dead?"]
 
   /publish/{vmId}/{datasetId}/{runId}/{value}:
     get:
@@ -475,29 +319,9 @@ paths:
         '200':
           description: TODO
       tags: [legacy]
-  /ova-list:
-    get:
-      summary: Deprecated, may be deleted without replacement?
-      deprecated: true
-      security:
-        - LegacyApiKeyAuth: []
-      responses:
-        '200':
-          description: TODO
-      tags: [legacy, "dead?"]
   /host-list:
     get:
       summary: Deprecated, use /v1/hosts instead.
-      deprecated: true
-      security:
-        - LegacyApiKeyAuth: []
-      responses:
-        '200':
-          description: TODO
-      tags: [legacy]
-  /organizer-list:
-    get:
-      summary: Deprecated, use /v1/organizers instead.
       deprecated: true
       security:
         - LegacyApiKeyAuth: []
@@ -812,15 +636,6 @@ paths:
         '200':
           description: TODO
       tags: [legacy]
-  /snippets-for-tirex-components:
-    get:
-      summary: Deprecated. I think, this was superseded by `/tirex-snippet`
-      deprecated: true
-      security: []
-      responses:
-        '200':
-          description: TODO
-      tags: [legacy, "dead?"]
   /re-ranking-datasets/{taskId}:
     parameters:
       - name: taskId

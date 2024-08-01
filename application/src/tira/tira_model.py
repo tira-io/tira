@@ -25,32 +25,6 @@ logger = logging.getLogger("tira")
 model = HybridDatabase()
 
 
-# reloading and reindexing
-def build_model():
-    """reconstruct the caches and the database."""
-    model.build_model()
-
-
-def reload_vms():
-    """reload VM and user data from the export format of the model"""
-    model.reload_vms()
-
-
-def reload_datasets():
-    """reload dataset data from the export format of the model"""
-    model.reload_datasets()
-
-
-def reload_tasks():
-    """reload task data from the export format of the model"""
-    model.reload_tasks()
-
-
-def reload_runs(vm_id):
-    """reload run data for a VM from the export format of the model"""
-    model.reload_runs(vm_id)
-
-
 # get methods are the public interface.
 def get_vm(vm_id: str, create_if_none=False):
     """Returns a vm as dictionary with:
@@ -405,14 +379,6 @@ def get_organizer(organizer_id: str):
     return model.get_organizer(organizer_id)
 
 
-def get_host_list() -> list:
-    return model.get_host_list()
-
-
-def get_ova_list() -> list:
-    return model.get_ova_list()
-
-
 def runs(task_id, dataset_id, vm_id, software_id):
     return model.runs(task_id, dataset_id, vm_id, software_id)
 
@@ -490,15 +456,6 @@ def get_evaluations_with_keys_by_dataset(dataset_id, include_unpublished=False, 
 
 def get_job_details(task_id, vm_id, job_id):
     return model.get_job_details(task_id, vm_id, job_id)
-
-
-def get_evaluation(run_id: str):
-    """Get the evaluation of this run
-
-    @param run_id: the id of the run
-    @return: a dict with {measure_key: measure_value}
-    """
-    return model.get_evaluation(run_id)
 
 
 def get_count_of_missing_reviews(task_id):
@@ -751,10 +708,6 @@ def add_dataset(
     )
 
 
-def add_software(task_id: str, vm_id: str):
-    return model.add_software(task_id, vm_id)
-
-
 def add_evaluator(
     vm_id: str,
     task_id: str,
@@ -840,19 +793,6 @@ def update_run(dataset_id, vm_id, run_id, deleted: Optional[bool] = None):
     return model.update_run(dataset_id, vm_id, run_id, deleted)
 
 
-def update_software(
-    task_id,
-    vm_id,
-    software_id,
-    command: Optional[str] = None,
-    working_directory: Optional[str] = None,
-    dataset: Optional[str] = None,
-    run: Optional[str] = None,
-    deleted: bool = False,
-):
-    return model.update_software(task_id, vm_id, software_id, command, working_directory, dataset, run, deleted)
-
-
 def edit_task(
     task_id: str,
     task_name: str,
@@ -934,12 +874,6 @@ def delete_docker_software(task_id, vm_id, docker_software_id):
     Delete a given Docker software.
     """
     return model.delete_docker_software(task_id, vm_id, docker_software_id)
-
-
-def delete_software(task_id, vm_id, software_id):
-    """Set the Software's deleted flag to true and prune it from the cache.
-    TODO add option to truly delete the software."""
-    return model.delete_software(task_id, vm_id, software_id)
 
 
 def delete_run(dataset_id, vm_id, run_id):
@@ -1197,7 +1131,3 @@ def get_all_reranking_datasets(force_cache_refresh=False):
     cache.set(cache_key, ret)
 
     return ret
-
-
-def all_registrations(task_id):
-    return model.all_registrations(task_id)

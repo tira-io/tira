@@ -45,14 +45,10 @@ class HybridDatabase(object):
 
     tira_root = settings.TIRA_ROOT
     tasks_dir_path = tira_root / Path("model/tasks")
-    users_file_path = tira_root / Path("model/users/users.prototext")
     organizers_file_path = tira_root / Path("model/organizers/organizers.prototext")
     vm_list_file = tira_root / Path("model/virtual-machines/virtual-machines.txt")
     vm_dir_path = tira_root / Path("model/virtual-machines")
-    host_list_file = tira_root / Path("model/virtual-machine-hosts/virtual-machine-hosts.txt")
-    ova_dir = tira_root / Path("data/virtual-machine-templates/")
     datasets_dir_path = tira_root / Path("model/datasets")
-    softwares_dir_path = tira_root / Path("model/softwares")
     data_path = tira_root / Path("data/datasets")
     runs_dir_path = tira_root / Path("data/runs")
     custom_irds_datasets_path = tira_root / "state" / "custom-ir-datasets"
@@ -61,54 +57,20 @@ class HybridDatabase(object):
         pass
 
     def create_model(self, admin_user_name="admin", admin_password="admin"):
-        self.users_file_path.parent.mkdir(exist_ok=True, parents=True)
         self.tasks_dir_path.mkdir(exist_ok=True, parents=True)
         self.organizers_file_path.parent.mkdir(exist_ok=True, parents=True)
         self.vm_dir_path.mkdir(exist_ok=True, parents=True)
-        self.host_list_file.parent.mkdir(exist_ok=True, parents=True)
-        self.ova_dir.mkdir(exist_ok=True, parents=True)
         self.datasets_dir_path.mkdir(exist_ok=True, parents=True)
-        self.softwares_dir_path.mkdir(exist_ok=True, parents=True)
         self.data_path.mkdir(exist_ok=True, parents=True)
         self.runs_dir_path.mkdir(exist_ok=True, parents=True)
         (self.tira_root / "state/virtual-machines").mkdir(exist_ok=True, parents=True)
         (self.tira_root / "state/softwares").mkdir(exist_ok=True, parents=True)
 
-        self.users_file_path.touch(exist_ok=True)
         self.vm_list_file.touch(exist_ok=True)
-        self.host_list_file.touch(exist_ok=True)
         self.organizers_file_path.touch(exist_ok=True)
 
         modeldb.VirtualMachine.objects.create(vm_id=admin_user_name, user_password=admin_password, roles="reviewer")
         self._save_vm(vm_id=admin_user_name, user_name=admin_user_name, initial_user_password=admin_password)
-
-    def index_model_from_files(self):
-        self.vm_list_file.touch(exist_ok=True)
-        dbops.index(
-            self.organizers_file_path,
-            self.users_file_path,
-            self.vm_dir_path,
-            self.tasks_dir_path,
-            self.datasets_dir_path,
-            self.softwares_dir_path,
-            self.runs_dir_path,
-        )
-
-    def reload_vms(self):
-        """reload VM and user data from the export format of the model"""
-        dbops.reload_vms(self.users_file_path, self.vm_dir_path)
-
-    def reload_datasets(self):
-        """reload dataset data from the export format of the model"""
-        dbops.reload_datasets(self.datasets_dir_path)
-
-    def reload_tasks(self):
-        """reload task data from the export format of the model"""
-        dbops.reload_tasks(self.tasks_dir_path)
-
-    def reload_runs(self, vm_id):
-        """reload run data for a VM from the export format of the model"""
-        dbops.reload_runs(self.runs_dir_path, vm_id)
 
     # _load methods parse files on the fly when pages are called
     def load_review(self, dataset_id, vm_id, run_id):
@@ -124,18 +86,6 @@ class HybridDatabase(object):
         review = modelpb.RunReview()
         review.ParseFromString(open(review_file, "rb").read())
         return review
-
-    def _load_softwares(self, task_id, vm_id):
-        # Leave this
-        softwares_dir = self.softwares_dir_path / task_id / vm_id
-        softwares_dir.mkdir(parents=True, exist_ok=True)
-        software_file = softwares_dir / "softwares.prototext"
-        if not software_file.exists():
-            software_file.touch()
-
-        return Parse(
-            open(self.softwares_dir_path / task_id / vm_id / "softwares.prototext", "r").read(), modelpb.Softwares()
-        )
 
     def _load_run(self, dataset_id, vm_id, run_id, return_deleted=False):
         """Load a protobuf run file with some edge-case checks."""
@@ -205,9 +155,6 @@ class HybridDatabase(object):
         review_path = self.runs_dir_path / dataset_id / vm_id / run_id
         open(review_path / "run-review.prototext", "w").write(str(review))
         open(review_path / "run-review.bin", "wb").write(review.SerializeToString())
-
-    def _save_softwares(self, task_id, vm_id, softwares):
-        open(self.softwares_dir_path / task_id / vm_id / "softwares.prototext", "w+").write(str(softwares))
 
     def _save_run(self, dataset_id, vm_id, run_id, run):
         run_dir = self.runs_dir_path / dataset_id / vm_id / run_id
@@ -489,12 +436,6 @@ class HybridDatabase(object):
             }
         except Exception:
             return {} if not return_object else None
-
-    def get_host_list(self) -> list:
-        return [line.strip() for line in open(self.host_list_file, "r").readlines()]
-
-    def get_ova_list(self) -> list:
-        return [f"{ova_file.stem}.ova" for ova_file in self.ova_dir.glob("*.ova")]
 
     def get_organizer_list(self) -> list:
         return [self._organizer_to_dict(organizer) for organizer in modeldb.Organizer.objects.all()]
@@ -1468,16 +1409,6 @@ class HybridDatabase(object):
 
         return ret
 
-    def get_evaluation(self, run_id):
-        try:
-            evaluation = modeldb.Evaluation.objects.filter(run__run_id=run_id).all()
-            return {ev.measure_key: ev.measure_value for ev in evaluation}
-
-        except modeldb.Evaluation.DoesNotExist:
-            logger.exception(f"Tried to load evaluation for run {run_id}, but it does not exist")
-
-        return {}
-
     def get_software_with_runs(self, task_id, vm_id):
         def _runs_by_software(software):
             reviews = (
@@ -1868,80 +1799,6 @@ class HybridDatabase(object):
                 "exit_code": ret.exit_code,
                 "stdout": ret.stdout,
             }
-
-    def add_software(self, task_id: str, vm_id: str):
-        software = modelpb.Softwares.Software()
-        s = self._load_softwares(task_id, vm_id)
-        date = now()
-
-        new_software_id = randomname.get_name()
-        software.id = new_software_id
-        software.count = ""
-        software.command = ""
-        software.workingDirectory = ""
-        software.dataset = ""
-        software.run = ""
-        software.creationDate = date
-        software.lastEditDate = date
-        software.deleted = False
-
-        s.softwares.append(software)
-        self._save_softwares(task_id, vm_id, s)
-        sw = modeldb.Software.objects.create(
-            software_id=new_software_id,
-            vm=modeldb.VirtualMachine.objects.get(vm_id=vm_id),
-            task=modeldb.Task.objects.get(task_id=task_id),
-            count="",
-            command="",
-            working_directory="",
-            dataset=None,
-            creation_date=date,
-            last_edit_date=date,
-        )
-        return self._software_to_dict(sw)
-
-    def update_software(
-        self,
-        task_id,
-        vm_id,
-        software_id,
-        command: Optional[str] = None,
-        working_directory: Optional[str] = None,
-        dataset: Optional[str] = None,
-        run: Optional[str] = None,
-        deleted: bool = False,
-    ):
-        def update(x, y):
-            return y if y is not None else x
-
-        s = self._load_softwares(task_id, vm_id)
-        date = now()
-        for software in s.softwares:
-            if software.id == software_id:
-                software.command = update(software.command, command)
-                software.workingDirectory = update(software.workingDirectory, working_directory)
-                software.dataset = update(software.dataset, dataset)
-                software.run = update(software.run, run)
-                software.deleted = update(software.deleted, deleted)
-                software.lastEditDate = date
-
-                self._save_softwares(task_id, vm_id, s)
-                modeldb.Software.objects.filter(software_id=software_id, vm__vm_id=vm_id).update(
-                    command=software.command,
-                    working_directory=software.workingDirectory,
-                    deleted=software.deleted,
-                    dataset=modeldb.Dataset.objects.get(dataset_id=software.dataset),
-                    last_edit_date=date,
-                )
-                if run:
-                    modeldb.SoftwareHasInputRun.objects.filter(
-                        software=modeldb.Software.objects.get(software_id=software_id, vm__vm_id=vm_id),
-                        input_run=modeldb.Run.objects.get(run_id=run),
-                    )
-
-                return software
-
-        return False
 
     def update_review(
         self,
@@ -2439,32 +2296,6 @@ class HybridDatabase(object):
 
         return self._dataset_to_dict(ds)
 
-    def delete_software(self, task_id, vm_id, software_id):
-        """Delete a software.
-        Deletion is denied when
-        - there is a successful evlauation assigned.
-        """
-        reviews_qs = modeldb.Review.objects.filter(
-            run__input_run__software__software_id=software_id,
-            run__input_run__software__task_id=task_id,
-            run__input_run__software__vm_id=vm_id,
-            no_errors=True,
-        )
-        if reviews_qs.exists():
-            return False
-
-        s = self._load_softwares(task_id, vm_id)
-        found = False
-        for software in s.softwares:
-            if software.id == software_id:
-                software.deleted = True
-                found = True
-
-        self._save_softwares(task_id, vm_id, s)
-        modeldb.Software.objects.filter(software_id=software_id, vm__vm_id=vm_id).delete()
-
-        return found
-
     def delete_run(self, dataset_id, vm_id, run_id):
         """delete the run in the database.
 
@@ -2685,26 +2516,3 @@ class HybridDatabase(object):
             ]
 
         return ret
-
-    def all_registrations(self, task_id):
-        task = modeldb.Task.objects.get(task_id=task_id)
-        ret = []
-
-        for i in modeldb.Registration.objects.filter(registered_on_task=task):
-            ret += [self._registration_to_dict(i)]
-
-        return ret
-
-
-# modeldb.EvaluationLog.objects.filter(vm_id='nlptasks-master').delete()
-# print(modeldb.Run.objects.all().exclude(upload=None).values())
-
-# Note: To Reindex faulty runs
-# dataset_ids = set([run.input_dataset_id for run in modeldb.Run.objects.filter(upload=None, software=None, docker_software=None, evaluator=None)])
-# runs_dir = settings.TIRA_ROOT / Path("data/runs")
-# for d in dataset_ids:
-#     if not d:
-#         print("d is None")
-#         continue
-#     for vm_dir in (runs_dir / d).glob("*"):
-#         print(dbops.parse_runs_for_vm(runs_dir, d, vm_dir.stem, verbose=True))
