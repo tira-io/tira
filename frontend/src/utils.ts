@@ -109,7 +109,7 @@ export function chanceCurrentUrlToDataset(dataset: string) {
 
 export async function fetchUserInfo() {
     const response = await fetch(inject("REST base URL") + '/api/role', { credentials: 'include' })
-    // TODO: better error handling
+    // TODO: better error handling (to be implemented with the new REST API with problem+json; and the overhauled UI)
     if (!response.ok) {
         throw new Error(`Error and I should be handled better`);
     }
