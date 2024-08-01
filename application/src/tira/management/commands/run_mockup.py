@@ -1,15 +1,14 @@
-from django.conf import settings
-from concurrent import futures
-import grpc
 import logging
-import time
+from concurrent import futures
 from contextlib import contextmanager
-from django.core.management.base import BaseCommand, CommandError
-from django.core.management import call_command
 
-from tira.proto import tira_host_pb2_grpc
+import grpc
+from django.conf import settings
+from django.core.management import call_command
+from django.core.management.base import BaseCommand
 from tira.grpc.grpc_server import TiraApplicationService
 from tira.grpc.test_grpc_host_server import TiraHostService
+from tira.proto import tira_host_pb2_grpc
 
 grpc_app_port = settings.APPLICATION_GRPC_PORT
 grpc_host_port = settings.HOST_GRPC_PORT
@@ -35,14 +34,18 @@ def serve_forever(app_addr, host_addr):
 
 
 class Command(BaseCommand):
-    help = 'api server'
+    help = "api server"
 
     def handle(self, *args, **options):
-        call_command('makemigrations')
-        call_command('migrate')
-        app_addr = f'[::]:{grpc_app_port}'
-        host_addr = f'[::]:{grpc_host_port}'
+        call_command("makemigrations")
+        call_command("migrate")
+        app_addr = f"[::]:{grpc_app_port}"
+        host_addr = f"[::]:{grpc_host_port}"
         with serve_forever(app_addr, host_addr):
             logger.info(f"Starting tira-application server on {app_addr} and mock host server on {host_addr}")
-            self.stdout.write(self.style.SUCCESS(f"Starting tira-application server on {app_addr} and mock host server on {host_addr}"))
-        call_command('runserver', "0.0.0.0:8080")
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"Starting tira-application server on {app_addr} and mock host server on {host_addr}"
+                )
+            )
+        call_command("runserver", "0.0.0.0:8080")

@@ -1,0 +1,5 @@
+{"timestamp": 0.0, "key": "ps_cpu", "value": 0.2}
+{"timestamp": 0.0, "key": "ps_vsz", "value": 39888.0}
+{"timestamp": 0.0, "key": "ps_rss", "value": 23852.0}
+{"timestamp": 0.0, "key": "gpu_memory_used", "value": "2 MiB"}
+{"timestamp": 0.0, "key": "gpu_utilization", "value": "0 %"}

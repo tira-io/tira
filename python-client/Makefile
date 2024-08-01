@@ -3,17 +3,12 @@
 build-pypi-package: run-tests
 	python3 -m build --sdist .
 	python3 -m build --wheel .
-	twine upload dist/tira-0.0.129-py3-none-any.whl dist/tira-0.0.129.tar.gz
+	twine upload dist/tira-0.0.136-py3-none-any.whl dist/tira-0.0.136.tar.gz
 
 run-tests:
 	docker run -u root --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${PWD}:/app -w /app --entrypoint pytest webis/tira:python-client-dev-0.0.5
 	docker run -u root --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${PWD}:/app -w /app --entrypoint pytest webis/tira:python-client-dev-0.0.5-python3.7
-
-run-tests-legacy:
-	../application/venv/bin/coverage run --data-file=tests/test-coverage/.coverage ../application/venv/bin/pytest \
-	&& ../application/venv/bin/coverage report --data-file=tests/test-coverage/.coverage > tests/test-coverage/coverage-report \
-	&& cd tests/test-coverage \
-	&& ../../../application/venv/bin/coverage-badge -o coverage.svg
+	docker run -u root --rm -v /var/run/docker.sock:/run/user/0/podman/podman.sock -v ${PWD}:/app -w /app --entrypoint pytest webis/tira:python-client-dev-0.0.5-python3.7
 
 docs:
 	docker run --rm -ti -v ${PWD}:/app -w /app webis/tira:python-client-dev-0.0.3 bash -c \

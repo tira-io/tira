@@ -17,7 +17,7 @@
 	// The optional 'workspaceFolder' property is the path VS Code should open by default when
 	// connected. This is typically a file mount in .devcontainer/docker-compose.yml
 	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
-	
+
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
 
@@ -56,6 +56,8 @@
 	"customizations": {
 		"vscode": {
 			"settings": {
+				"editor.formatOnSave": true,
+				"json.format.keepLines": true,
 				"livePreview.portNumber": 3080,
 				"remote.autoForwardPorts": false,
 				"launch": {
@@ -93,13 +95,22 @@
 							"stopAll": true
 						}
 					]
-				}
+				},
+				"[python]": {
+					"editor.codeActionsOnSave": { "source.organizeImports": "explicit" }
+				},
+				"python.formatting.provider": "black",
+				"isort.args": [ "--profile", "black" ]
 			},
 			"extensions": [
 				"Vue.volar",
 				"ms-vscode.live-server",
 				"ms-python.python",
-				"42Crunch.vscode-openapi"
+				"ms-python.isort",
+				"ms-python.black-formatter",
+				"ms-python.flake8",
+				"ms-python.mypy-type-checker",
+				"42Crunch.vscode-openapi",
 			]
 		}
 	},
@@ -109,5 +120,5 @@
 
 	// Needed for parts of the python-client that build and run docker containers
 	"privileged": true,
-	"mounts": ["source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"]
+	"mounts": [ "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind" ]
 }

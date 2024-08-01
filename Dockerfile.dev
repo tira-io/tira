@@ -38,8 +38,11 @@ RUN apt-get update && apt-get install -y npm yarn
 ########################################################################################################################
 ENV PIP_BREAK_SYSTEM_PACKAGES 1
 USER root
-RUN apt-get update && apt-get install -y python3 python3-pip python3-dev pkg-config default-libmysqlclient-dev \
+RUN <<EOF
+apt-get update && apt-get install -y python3 python3-pip python3-dev pkg-config default-libmysqlclient-dev \
     libpcre3-dev
+pip3 install black flake8 isort mypy
+EOF
 COPY application/requirements.txt /tmp/application/requirements.txt
 RUN <<EOF
 # Create a dummy secret

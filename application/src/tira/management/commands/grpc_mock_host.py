@@ -1,13 +1,14 @@
-from django.conf import settings
-from concurrent import futures
-import grpc
 import logging
-from contextlib import contextmanager
-from django.core.management.base import BaseCommand
 import time
+from concurrent import futures
+from contextlib import contextmanager
 
-from tira.proto import tira_host_pb2_grpc
+import grpc
+from django.conf import settings
+from django.core.management.base import BaseCommand
+
 from tira.grpc.test_grpc_host_server import TiraHostService
+from tira.proto import tira_host_pb2_grpc
 
 grpc_host_port = settings.HOST_GRPC_PORT
 
@@ -26,15 +27,15 @@ def serve_forever(host_addr):
 
 
 class Command(BaseCommand):
-    help = 'api server'
+    help = "api server"
 
     def handle(self, *args, **options):
-        host_addr = f'[::]:{grpc_host_port}'
+        host_addr = f"[::]:{grpc_host_port}"
         with serve_forever(host_addr):
             logger.info(f"Starting mock host server on {host_addr}")
             self.stdout.write(self.style.SUCCESS(f"Starting tira mock host server on {host_addr}"))
             try:
                 while True:
-                    time.sleep(60*60*24)
+                    time.sleep(60 * 60 * 24)
             except KeyboardInterrupt:
                 pass
