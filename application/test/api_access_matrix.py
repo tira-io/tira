@@ -1297,17 +1297,6 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
-        url_pattern="api/organizer/<str:organizer_id>",
-        params={"organizer_id": "organizer-id-id-does-not-exist"},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 200,
-            PARTICIPANT: 200,
-            ORGANIZER: 200,
-            ORGANIZER_WRONG_TASK: 200,
-        },
-    ),
-    route_to_test(
         url_pattern="api/role",
         params={},
         group_to_expected_status_code={

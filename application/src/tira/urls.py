@@ -135,8 +135,6 @@ urlpatterns = [
     ),
     path("api/dataset/<str:dataset_id>", data_api.get_dataset, name="get_dataset"),
     path("api/datasets_by_task/<str:task_id>", data_api.get_dataset_for_task, name="get_dataset_for_task"),
-    # TODO: Unused
-    path("api/organizer/<str:organizer_id>", data_api.get_organizer, name="get_organizer"),
     path("api/role", data_api.get_role, name="get_role"),
     path("api/task/<str:task_id>/user/<str:user_id>", data_api.get_user, name="get_user"),
     path(

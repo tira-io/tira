@@ -299,13 +299,6 @@ def get_dataset(request, context, dataset_id):
     return JsonResponse({"status": 0, "context": context})
 
 
-@check_resources_exist("json")
-@add_context
-def get_organizer(request, context, organizer_id):
-    org = model.get_organizer(organizer_id)
-    return JsonResponse({"status": 0, "context": org})
-
-
 @add_context
 def get_role(request, context):
     return JsonResponse(
