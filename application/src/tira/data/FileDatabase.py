@@ -45,6 +45,7 @@ class FileDatabase(object):
     organizers_file_path = tira_root / Path("model/organizers/organizers.prototext")
     vm_list_file = tira_root / Path("model/virtual-machines/virtual-machines.txt")
     vm_dir_path = tira_root / Path("model/virtual-machines")
+    host_list_file = tira_root / Path("model/virtual-machine-hosts/virtual-machine-hosts.txt")
     ova_dir = tira_root / Path("data/virtual-machine-templates/")
     datasets_dir_path = tira_root / Path("model/datasets")
     softwares_dir_path = tira_root / Path("model/softwares")
@@ -658,6 +659,9 @@ class FileDatabase(object):
     def get_organizer(self, organizer_id: str):
         # TODO should return as dict
         return self.organizers[organizer_id]
+
+    def get_host_list(self) -> list:
+        return list(open(self.host_list_file, "r").readlines())
 
     def get_ova_list(self) -> list:
         return [f"{ova_file.stem}.ova" for ova_file in self.ova_dir.glob("*.ova")]
