@@ -7,15 +7,12 @@ import zipfile
 from datetime import datetime as dt
 from http import HTTPStatus
 
-import tira.tira_model as model
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import JsonResponse
+
+import tira.tira_model as model
 from tira.authentication import auth
-from tira.checks import (
-    check_conditional_permissions,
-    check_permissions,
-    check_resources_exist,
-)
+from tira.checks import check_conditional_permissions, check_permissions, check_resources_exist
 
 logger = logging.getLogger("tira")
 logger.info("ajax_routes: Logger active")
