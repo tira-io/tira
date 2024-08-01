@@ -78,10 +78,6 @@ urlpatterns = [
     ),
     # TODO: Unused
     path("tira-admin/add-organizer/<str:organizer_id>", admin_api.admin_add_organizer, name="tira-admin-add-organizer"),
-    # TODO: Unused
-    path(
-        "tira-admin/edit-organizer/<str:organizer_id>", admin_api.admin_edit_organizer, name="tira-admin-edit-organizer"
-    ),
     path(
         "tira-admin/edit-review/<str:dataset_id>/<str:vm_id>/<str:run_id>",
         admin_api.admin_edit_review,

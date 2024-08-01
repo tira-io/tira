@@ -128,19 +128,6 @@ paths:
         '200':
           description: TODO
       tags: [legacy]
-  /tira-admin/edit-organizer/{organizerId}:
-    post:
-      servers:
-        - url: https://www.tira.io
-      summary: Deprecated, use a PATCH to `/v1/organizers/{organizerId}` instead
-      description: TODO
-      deprecated: true
-      security:
-        - LegacyApiKeyAuth: []
-      responses:
-        '200':
-          description: TODO
-      tags: [legacy]
   /tira-admin/edit-review/{datasetId}/{vmId}/{runId}:
     post:
       servers:
@@ -154,19 +141,6 @@ paths:
         '200':
           description: TODO
       tags: [legacy]
-  /tira-admin/create-group/{vmId}:
-    post:
-      summary: Deprecated, may be deleted without replacement?
-      deprecated: true
-      servers:
-        - url: https://www.tira.io
-      description: TODO
-      security:
-        - LegacyApiKeyAuth: []
-      responses:
-        '200':
-          description: TODO
-      tags: [legacy, "dead?"]
 
   /publish/{vmId}/{datasetId}/{runId}/{value}:
     get:

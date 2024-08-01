@@ -427,11 +427,6 @@ Best regards"""
                 and path in set(f"/tira-admin/{i}/create-task" for i in organizer_ids)
             )
             or (
-                organizer_id_from_params
-                and organizer_id_from_params in organizer_ids
-                and path in set(f"/tira-admin/edit-organizer/{i}" for i in organizer_ids)
-            )
-            or (
                 organizer_id_from_run_id
                 and organizer_id_from_run_id in organizer_ids
                 and path.startswith(f"/task/{organizer_id_from_run_id}/vm/")

@@ -387,28 +387,6 @@ def admin_add_organizer(request, organizer_id):
     return JsonResponse({"status": 1, "message": "GET is not implemented for add organizer"})
 
 
-@check_permissions
-@check_resources_exist("json")
-def admin_edit_organizer(request, organizer_id):
-    if request.method == "POST":
-        data = json.loads(request.body)
-
-        if data["gitUrlToNamespace"]:
-            git_integration_is_valid, error_message = check_that_git_integration_is_valid(
-                data["gitUrlToNamespace"], data["gitPrivateToken"]
-            )
-
-            if not git_integration_is_valid:
-                return JsonResponse({"status": 1, "message": error_message})
-
-        model.edit_organizer(
-            organizer_id, data["name"], data["years"], data["web"], data["gitUrlToNamespace"], data["gitPrivateToken"]
-        )
-        return JsonResponse({"status": 0, "message": f"Updated Organizer {organizer_id}"})
-
-    return JsonResponse({"status": 1, "message": "GET is not implemented for edit organizer"})
-
-
 @check_conditional_permissions(restricted=True)
 @check_resources_exist("json")
 def admin_edit_review(request, dataset_id, vm_id, run_id):
