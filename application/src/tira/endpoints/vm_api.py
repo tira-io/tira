@@ -3,7 +3,6 @@ import logging
 from functools import wraps
 from http import HTTPStatus
 
-import tira.tira_model as model
 from discourse_client_in_disraptor.discourse_api_client import get_disraptor_user
 from django.conf import settings
 from django.core.cache import cache
@@ -12,17 +11,14 @@ from django.http import HttpResponseNotAllowed, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from grpc import RpcError, StatusCode
 from markdown import markdown
+
+import tira.tira_model as model
 from tira.authentication import auth
-from tira.checks import (
-    check_conditional_permissions,
-    check_permissions,
-    check_resources_exist,
-)
+from tira.checks import check_conditional_permissions, check_permissions, check_resources_exist
 from tira.grpc_client import GrpcClient
+from tira.model import EvaluationLog, TransitionLog
 from tira.util import get_tira_id, link_to_discourse_team, reroute_host
 from tira.views import add_context
-
-from tira.model import EvaluationLog, TransitionLog
 
 include_navigation = False
 
@@ -165,10 +161,7 @@ def docker_software_details(request, context, vm_id, docker_software_id):
 
 @check_permissions
 def huggingface_model_mounts(request, vm_id, hf_model):
-    from tira.huggingface_hub_integration import (
-        huggingface_model_mounts,
-        snapshot_download_hf_model,
-    )
+    from tira.huggingface_hub_integration import huggingface_model_mounts, snapshot_download_hf_model
 
     context = {"hf_model_available": False, "hf_model_for_vm": vm_id}
 

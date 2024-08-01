@@ -1,7 +1,7 @@
 from django.urls import path
-from rest_framework_json_api.views import ModelViewSet
-from rest_framework.serializers import CharField, ModelSerializer
 from rest_framework import pagination
+from rest_framework.serializers import CharField, ModelSerializer
+from rest_framework_json_api.views import ModelViewSet
 
 from ... import model as modeldb
 
@@ -9,7 +9,7 @@ from ... import model as modeldb
 class EvaluationSerializer(ModelSerializer):
     class Meta:
         model = modeldb.Evaluation
-        fields = ['measure_key', 'measure_value', "evaluator", "run"]
+        fields = ["measure_key", "measure_value", "evaluator", "run"]
 
 
 class _EvaluationView(ModelViewSet):
@@ -19,5 +19,5 @@ class _EvaluationView(ModelViewSet):
 
 
 endpoints = [
-    path("", _EvaluationView.as_view({'get': 'list'})),
+    path("", _EvaluationView.as_view({"get": "list"})),
 ]

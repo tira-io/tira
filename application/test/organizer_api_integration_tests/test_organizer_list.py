@@ -1,10 +1,6 @@
 from api_access_matrix import ORGANIZER
 from django.test import TestCase
-from utils_for_testing import (
-    method_for_url_pattern,
-    mock_request,
-    set_up_tira_environment,
-)
+from utils_for_testing import method_for_url_pattern, mock_request, set_up_tira_environment
 
 organizer_function = method_for_url_pattern("api/organizer-list")
 

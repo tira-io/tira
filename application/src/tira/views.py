@@ -6,7 +6,6 @@ import zipfile
 from http import HTTPStatus
 from pathlib import Path
 
-import tira.tira_model as model
 from django.conf import settings
 from django.core.cache import cache
 from django.core.serializers.json import DjangoJSONEncoder
@@ -15,12 +14,10 @@ from django.shortcuts import render
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 
+import tira.tira_model as model
+
 from .authentication import auth
-from .checks import (
-    check_conditional_permissions,
-    check_permissions,
-    check_resources_exist,
-)
+from .checks import check_conditional_permissions, check_permissions, check_resources_exist
 
 logger = logging.getLogger("tira")
 logger.info("Views: Logger active")

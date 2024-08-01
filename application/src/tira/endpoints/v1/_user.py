@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from ... import model as modeldb
 
 
-@api_view(['GET'])
+@api_view(["GET"])
 def user_endpoint(request: Request) -> Response:
     return Response({"username": request.user.username, "groups": request.user.groups})
 

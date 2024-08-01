@@ -1,17 +1,12 @@
 import logging
 from functools import wraps
 
-import tira.tira_model as model
 from django.conf import settings
-from django.http import (
-    Http404,
-    HttpRequest,
-    HttpResponseNotAllowed,
-    HttpResponseRedirect,
-    JsonResponse,
-)
+from django.http import Http404, HttpRequest, HttpResponseNotAllowed, HttpResponseRedirect, JsonResponse
 from django.shortcuts import redirect
 from django.urls import resolve
+
+import tira.tira_model as model
 
 from .authentication import auth
 

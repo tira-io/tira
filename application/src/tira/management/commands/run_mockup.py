@@ -6,6 +6,7 @@ import grpc
 from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
+
 from tira.grpc.grpc_server import TiraApplicationService
 from tira.grpc.test_grpc_host_server import TiraHostService
 from tira.proto import tira_host_pb2_grpc

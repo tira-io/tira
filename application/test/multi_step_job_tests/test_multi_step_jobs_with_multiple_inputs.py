@@ -1,11 +1,7 @@
 from django.test import TestCase
+from utils_for_testing import set_up_tira_environment, software_non_public, software_public, software_with_inputs
+
 from tira.tira_model import model
-from utils_for_testing import (
-    set_up_tira_environment,
-    software_non_public,
-    software_public,
-    software_with_inputs,
-)
 
 PARTICIPANT = "PARTICIPANT-FOR-TEST-1"
 TASK = "shared-task-1"
