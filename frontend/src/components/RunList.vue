@@ -72,7 +72,7 @@ import RunActions from './RunActions.vue'
 import SoftwareDetails from './SoftwareDetails.vue'
 import Loading from "./Loading.vue"
 import SubmissionIcon from "./SubmissionIcon.vue"
-import { get, reportError, inject_response, fetchUserInfo } from '../utils'
+import { get, reportError, inject_response, fetchUserInfo, type UserInfo } from '../utils'
 
 
 export default {
@@ -81,7 +81,7 @@ export default {
   props: ['task_id', 'dataset_id', 'organizer', 'organizer_id', 'vm_id', 'docker_software_id', 'upload_id', 'show_only_unreviewed'],
   data() {
     return {
-      userinfo: { role: 'guest', organizer_teams: [] },
+      userinfo: { role: 'guest', organizer_teams: [] } as UserInfo,
       selected_runs: [],
       loading: true,
       runs: [{ 'run_id': 'loading...', 'review_state': 'no-review', 'vm_id': '1', 'link_to_team': 'link', 'dataset_id': '1' }],

@@ -148,17 +148,20 @@ import { inject } from 'vue'
 
 import { Loading } from '.'
 import { VAutocomplete } from "vuetify/components";
-import { get, post, reportError, slugify, inject_response } from '../utils'
+import { get, post, reportError, slugify, inject_response, type UserInfo } from '../utils'
 
 export default {
   name: "edit-task",
   components: { Loading, VAutocomplete },
   props: {
     'task_id_for_edit': {
-      type: String
-    }, 'userinfo': {
-      type: Object
-    }
+      type: String,
+      required: true,
+    },
+    'userinfo': {
+      type: Object as () => UserInfo,
+      required: true,
+    },
   },
   data: () => ({
     loading: true, valid: false, step: 1, submitInProgress: false, selected_organizer: '', organizer_id: '',

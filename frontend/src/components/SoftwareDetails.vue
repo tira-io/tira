@@ -109,7 +109,7 @@ import Loading from './Loading.vue'
 import TiraDataExport from './TiraDataExport.vue'
 import RunActions from './RunActions.vue'
 import SubmissionIcon from "./SubmissionIcon.vue"
-import { get, inject_response, extractTaskFromCurrentUrl, get_link_to_organizer, get_contact_link_to_organizer, fetchUserInfo } from '../utils';
+import { get, inject_response, extractTaskFromCurrentUrl, get_link_to_organizer, get_contact_link_to_organizer, fetchUserInfo, type UserInfo } from '../utils';
 
 export default {
   name: "software-details",
@@ -118,7 +118,7 @@ export default {
   components: { Loading, TiraDataExport, RunActions, SubmissionIcon },
   data() {
     return {
-      userinfo: { role: 'guest', organizer_teams: [] },
+      userinfo: { role: 'guest', organizer_teams: [] } as UserInfo,
       loading: true,
       task_id: extractTaskFromCurrentUrl(),
       description: 'No description available.',

@@ -43,7 +43,7 @@
 <script lang="ts">
 import { inject } from 'vue'
 
-import { get, reportError, inject_response, fetchUserInfo } from './utils';
+import { get, reportError, inject_response, fetchUserInfo, type UserInfo } from './utils';
 import { Loading, TiraBreadcrumb, EditTask } from './components'
 
 interface Task {
@@ -84,7 +84,7 @@ export default {
   components: { Loading, TiraBreadcrumb, EditTask },
   data() {
     return {
-      userinfo: { role: 'guest', organizer_teams: [] },
+      userinfo: { role: 'guest', organizer_teams: [] } as UserInfo,
       task_filter: '',
       expanded: [],
       headers_md: [

@@ -1,6 +1,14 @@
 import { inject, ref } from 'vue'
 
-let allowed_roles = new Set(['guest', 'user', 'participant', 'admin'])
+export interface DatasetInfo {
+    dataset_id: string;
+    display_name: string;
+}
+
+export interface UserInfo {
+    role: string;
+    organizer_teams: Object[];
+}
 
 export function extractTaskFromCurrentUrl() {
     let loc = ref(window.location).value.href.split('#')[0].split('?')[0]
@@ -107,14 +115,14 @@ export function chanceCurrentUrlToDataset(dataset: string) {
     }
 }
 
-export async function fetchUserInfo() {
+export async function fetchUserInfo(): Promise<UserInfo> {
     const response = await fetch(inject("REST base URL") + '/api/role', { credentials: 'include' })
     // TODO: better error handling (to be implemented with the new REST API with problem+json; and the overhauled UI)
     if (!response.ok) {
         throw new Error(`Error and I should be handled better`);
     }
-    let result = await response.json()
-    console.log(result)
+    // TODO: maybe check here if the response json is actually valid
+    let result: UserInfo = await response.json()
     return result
 }
 

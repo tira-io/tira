@@ -67,7 +67,7 @@
                 <v-list-item v-for="(item, i) in vm_ids" :key="i">
                   <v-btn :href="'https://www.tira.io/g/tira_vm_' + item" variant="outlined" target="_blank" block>Manage
                     Team {{
-                    item }}</v-btn>
+                      item }}</v-btn>
                 </v-list-item>
               </v-list>
             </v-menu>
@@ -77,7 +77,7 @@
     </v-container>
 
     <tira-task-admin v-if="!loading" :datasets="datasets" :task="task" @addDataset="(x: any) => addDataset(x)"
-      @deleteDataset="(dataset_id: string) => deleteDataset(dataset_id)" />
+      @deleteDataset="(dataset_id: string) => deleteDataset(dataset_id)" :userinfo="userinfo" />
     <v-container v-if="!loading" id="dataset-select">
       <h2>Submissions</h2>
       <v-autocomplete label="Dataset" :items="datasets" item-title="display_name" item-value="dataset_id"
@@ -95,12 +95,13 @@ import { inject } from 'vue'
 import { TiraBreadcrumb, TiraTaskAdmin, RunList, Loading, SubmitButton, TaskDocumentation } from './components'
 import RunUpload from "@/RunUpload.vue";
 import { VAutocomplete } from 'vuetify/components'
-import { extractTaskFromCurrentUrl, get_link_to_organizer, get_contact_link_to_organizer, extractDatasetFromCurrentUrl, changeCurrentUrlToDataset, get, inject_response, reportError } from './utils'
+import { extractTaskFromCurrentUrl, get_link_to_organizer, get_contact_link_to_organizer, extractDatasetFromCurrentUrl, changeCurrentUrlToDataset, get, inject_response, reportError, fetchUserInfo, type UserInfo } from './utils'
 export default {
   name: "task-list",
   components: { TiraBreadcrumb, RunList, Loading, VAutocomplete, SubmitButton, TiraTaskAdmin, TaskDocumentation, RunUpload },
   data() {
     return {
+      userinfo: { role: 'guest', organizer_teams: [] } as UserInfo,
       task_id: extractTaskFromCurrentUrl(),
       loading: true,
       selectedDataset: '',
@@ -160,6 +161,7 @@ export default {
       .then(inject_response(this, { 'loading': false }, true))
       .then(this.updateDataset)
       .catch(reportError("Problem While Loading the Details of the Task " + this.task_id, "This might be a short-term hiccup, please try again. We got the following error: "))
+    fetchUserInfo().then((result) => { this.$data.userinfo = result })
   },
   watch: {
     selectedDataset(old_value, new_value) { this.newDatasetSelected() },

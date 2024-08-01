@@ -135,7 +135,7 @@
 <script lang="ts">
 import { inject } from 'vue'
 
-import { get, reportSuccess, reportError, fetchUserInfo } from '../utils'
+import { get, reportSuccess, reportError, fetchUserInfo, type UserInfo } from '../utils'
 import RunReviewWindow from './RunReviewWindow.vue'
 
 export default {
@@ -145,7 +145,7 @@ export default {
   emits: ['review-run'],
   data() {
     return {
-      userinfo: { role: 'guest', organizer_teams: [] },
+      userinfo: { role: 'guest', organizer_teams: [] } as UserInfo,
       start_evaluation_is_pending: false,
       delete_is_pending: false,
     }

@@ -6,7 +6,7 @@
         <v-expansion-panel-title>Manage Task</v-expansion-panel-title>
         <v-expansion-panel-text>
           <h3>Task Configuration</h3>
-          You can edit this task: <edit-task :task_id_for_edit="task_id" />
+          You can edit this task: <edit-task :task_id_for_edit="task_id" :userinfo="userinfo" />
         </v-expansion-panel-text>
       </v-expansion-panel>
 
@@ -77,7 +77,7 @@
 <script lang="ts">
 import { inject } from 'vue'
 
-import { extractTaskFromCurrentUrl, fetchUserInfo, get, reportError, reportSuccess } from '../utils'
+import { extractTaskFromCurrentUrl, get, reportError, reportSuccess, type DatasetInfo, type UserInfo } from '../utils'
 import { VAutocomplete } from "vuetify/components";
 import OverviewMissingReviews from './OverviewMissingReviews.vue';
 import OverviewRegisteredTeams from './OverviewRegisteredTeams.vue';
@@ -88,18 +88,27 @@ import ConfirmDelete from './ConfirmDelete.vue';
 export default {
   name: "tira-task-admin",
   components: { OverviewMissingReviews, OverviewRegisteredTeams, EditTask, VAutocomplete, EditDataset, ConfirmDelete },
-  props: ['datasets', 'task'],
+  props: {
+    'datasets': {
+      type: Object as () => DatasetInfo[], // TODO: add type info
+      required: true,
+    },
+    'task': {
+      type: Object, // TODO: add type info
+      required: true,
+    },
+    'userinfo': {
+      type: Object as () => UserInfo,
+      required: true,
+    },
+  },
   emits: ['add-dataset', 'delete-dataset'],
   data() {
     return {
-      userinfo: { role: 'guest', organizer_teams: [] },
-      task_id: extractTaskFromCurrentUrl(),
+      task_id: extractTaskFromCurrentUrl() as string,
       selectedDataset: '',
       selectedDatasetForDelete: '',
     }
-  },
-  beforeMount() {
-    fetchUserInfo().then((result) => { this.$data.userinfo = result })
   },
   methods: {
     addDataset(x: any) {
