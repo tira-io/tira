@@ -76,7 +76,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "webpack_loader",
 ]
 
 MIDDLEWARE = [
@@ -389,14 +388,6 @@ STATIC_URL = "/public/"
 STATICFILES_DIRS = [BASE_DIR / "tira/static/"]
 
 STATIC_ROOT = "/var/www/public"
-
-WEBPACK_LOADER = {
-    "DEFAULT": {
-        "CACHE": DEBUG,
-        "BUNDLE_DIR_NAME": "/bundles/",
-        "STATS_FILE": BASE_DIR / "tira" / "frontend" / "webpack-stats.json",
-    }
-}
 
 DISCOURSE_API_URL = "https://www.tira.io"
 PUBLIC_TRAINING_DATA = set(["jena-topics-20231026-test", "leipzig-topics-20231025-test"])

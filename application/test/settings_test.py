@@ -69,7 +69,6 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django_extensions",
-    "webpack_loader",
 ]
 
 MIDDLEWARE = [
@@ -307,14 +306,6 @@ STATIC_URL = "/public/"
 STATICFILES_DIRS = [BASE_DIR / "src" / "static/", BASE_DIR / "src" / "tira" / "static/"]
 
 STATIC_ROOT = "/var/www/public"
-
-WEBPACK_LOADER = {
-    "DEFAULT": {
-        "CACHE": DEBUG,
-        "BUNDLE_DIR_NAME": "/bundles/",
-        "STATS_FILE": BASE_DIR / "src" / "tira" / "frontend" / "webpack-stats.json",
-    }
-}
 
 TIREX_COMPONENTS = yaml.load(open(BASE_DIR / "src" / "tirex-components.yml").read(), Loader=yaml.FullLoader)
 

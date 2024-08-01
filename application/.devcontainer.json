@@ -1,8 +1,0 @@
-{
-  "image": "webis/tira-application:basis-0.0.96",
-  "customizations": {
-    "vscode": {
-      "extensions": ["ms-python.python", "ms-python.vscode-pylance", "ms-toolsai.jupyter"]
-    }
-  }
-}

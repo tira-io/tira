@@ -1,2 +1,7 @@
 venv/
-**/node_modules/
+.gitignore
+Dockerfile.*
+Makefile
+README.md
+mock-data
+config/*.dev.yml

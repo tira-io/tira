@@ -481,6 +481,7 @@ def admin_import_ir_dataset(request, task_id):
             git_repository_id,
         )
 
+        # TODO: what is the up-to-date href for background_jobs?
         try:
             process_id = run_irds_command(
                 ds["task"],

@@ -4,7 +4,6 @@ from . import views
 from .endpoints import admin_api, data_api, diffir_api, organizer_api, serp_api, vm_api
 
 urlpatterns = [
-    path("background_jobs/<str:task_id>/<str:job_id>", views.background_jobs, name="background_jobs"),
     path(
         "task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/download/<str:run_id>.zip",
         views.download_rundir,

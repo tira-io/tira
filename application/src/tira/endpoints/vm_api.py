@@ -1027,6 +1027,7 @@ def run_execute_docker_software(
 
             visit_job_message = "Failed to start job."
 
+            # TODO: what is a new URL for that?
             if background_process:
                 visit_job_message = (
                     f"Please visit https://tira.io/background_jobs/{task_id}/{background_process} "
