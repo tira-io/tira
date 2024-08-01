@@ -76,8 +76,6 @@ urlpatterns = [
     path(
         "tira-admin/delete-dataset/<str:dataset_id>", admin_api.admin_delete_dataset, name="tira-admin-delete-dataset"
     ),
-    # TODO: Unused
-    path("tira-admin/add-organizer/<str:organizer_id>", admin_api.admin_add_organizer, name="tira-admin-add-organizer"),
     path(
         "tira-admin/edit-review/<str:dataset_id>/<str:vm_id>/<str:run_id>",
         admin_api.admin_edit_review,

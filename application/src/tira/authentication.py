@@ -370,22 +370,6 @@ Best regards"""
 
         organizer_ids = self.get_organizer_ids(request)
 
-        if path.startswith("/tira-admin/add-organizer/"):
-            existing_organizer_ids = set([i["organizer_id"] for i in model.get_organizer_list()])
-            orga_name = path.split("/tira-admin/add-organizer/")[1]
-
-            return (
-                len(orga_name.split("/")) == 1
-                and orga_name not in existing_organizer_ids
-                and organizer_id_from_params == orga_name
-                and (
-                    role == auth.ROLE_PARTICIPANT
-                    or role == auth.ROLE_ADMIN
-                    or role == auth.ROLE_USER
-                    or role == auth.ROLE_TIRA
-                )
-            )
-
         if not organizer_ids or len(organizer_ids) < 1:
             return False
 

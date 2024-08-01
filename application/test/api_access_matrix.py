@@ -1017,28 +1017,6 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
-        url_pattern="tira-admin/add-organizer/<str:organizer_id>",
-        params={"organizer_id": "organizer-2"},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 405,  # We expect 405 for existing organizer 'organizer-2'
-            PARTICIPANT: 405,  # We expect 405 for existing organizer 'organizer-2'
-            ORGANIZER: 405,  # We expect 405 for existing organizer 'organizer-2'
-            ORGANIZER_WRONG_TASK: 405,  # We expect 405 for existing 'organizer-2'
-        },
-    ),
-    route_to_test(
-        url_pattern="tira-admin/add-organizer/<str:organizer_id>",
-        params={"organizer_id": "organizer-id-does-not-exist"},
-        group_to_expected_status_code={
-            ADMIN: 200,
-            GUEST: 200,
-            PARTICIPANT: 200,  # We expect 200 for non-existing organizer.
-            ORGANIZER: 200,  # We expect 200 for non-existing organizer.
-            ORGANIZER_WRONG_TASK: 200,  # We expect 200 for non-existing organizer.
-        },
-    ),
-    route_to_test(
         url_pattern="tira-admin/edit-review/<str:dataset_id>/<str:vm_id>/<str:run_id>",
         params={
             "dataset_id": "dataset-does-not-exist",

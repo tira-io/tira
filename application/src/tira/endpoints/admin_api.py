@@ -17,7 +17,6 @@ from tira.checks import (
     check_permissions,
     check_resources_exist,
 )
-from tira.git_runner import check_that_git_integration_is_valid
 
 logger = logging.getLogger("tira")
 logger.info("ajax_routes: Logger active")
@@ -353,38 +352,6 @@ def admin_delete_dataset(request, dataset_id):
         return JsonResponse({"status": 0, "message": f"Deleted dataset {dataset_id}"})
     except Exception as e:
         return JsonResponse({"status": 1, "message": f"Could not delete dataset {dataset_id}: {e}"})
-
-
-@check_permissions
-def admin_add_organizer(request, organizer_id):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        add_default_git_integrations = False
-
-        if data["gitUrlToNamespace"]:
-            git_integration_is_valid, error_message = check_that_git_integration_is_valid(
-                data["gitUrlToNamespace"], data["gitPrivateToken"]
-            )
-
-            if not git_integration_is_valid:
-                return JsonResponse({"status": 1, "message": error_message})
-        else:
-            add_default_git_integrations = True
-
-        model.edit_organizer(
-            organizer_id, data["name"], data["years"], data["web"], data["gitUrlToNamespace"], data["gitPrivateToken"]
-        )
-
-        if add_default_git_integrations:
-            git_integrations = [model.model.get_git_integration(settings.DEFAULT_GIT_INTEGRATION_URL, "<OMMITTED>")]
-            model.model.edit_organizer(
-                organizer_id, data["name"], data["years"], data["web"], git_integrations=git_integrations
-            )
-
-        auth.create_organizer_group(organizer_id, auth.get_user_id(request))
-        return JsonResponse({"status": 0, "message": f"Added Organizer {organizer_id}"})
-
-    return JsonResponse({"status": 1, "message": "GET is not implemented for add organizer"})
 
 
 @check_conditional_permissions(restricted=True)

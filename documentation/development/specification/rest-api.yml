@@ -115,19 +115,6 @@ paths:
         '200':
           description: TODO
       tags: [legacy]
-  /tira-admin/add-organizer/{organizerId}:
-    post:
-      servers:
-        - url: https://www.tira.io
-      summary: Deprecated, use a POST to `/v1/organizers` instead
-      description: TODO
-      deprecated: true
-      security:
-        - LegacyApiKeyAuth: []
-      responses:
-        '200':
-          description: TODO
-      tags: [legacy]
   /tira-admin/edit-review/{datasetId}/{vmId}/{runId}:
     post:
       servers:
