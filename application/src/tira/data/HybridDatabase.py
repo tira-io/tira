@@ -8,10 +8,12 @@ from pathlib import Path
 from typing import Any, Optional
 
 import randomname
-import tira.data.data as dbops
 from django.conf import settings
 from django.db import IntegrityError
 from google.protobuf.text_format import Parse
+
+import tira.data.data as dbops
+import tira.model as modeldb
 from tira.proto import TiraClientWebMessages_pb2 as modelpb
 from tira.util import (
     TiraModelIntegrityError,
@@ -22,8 +24,6 @@ from tira.util import (
     link_to_discourse_team,
     now,
 )
-
-import tira.model as modeldb
 
 logger = logging.getLogger("tira_db")
 

@@ -8,7 +8,6 @@ from datetime import datetime as dt
 from http import HTTPStatus
 
 import tira.tira_model as model
-from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import JsonResponse
 from tira.authentication import auth

@@ -4,10 +4,11 @@ import os
 from functools import wraps
 from typing import Optional
 
-import tira.tira_model as model
 from django.conf import settings
 from django.http import HttpRequest, HttpResponseNotAllowed
 from slugify import slugify
+
+import tira.tira_model as model
 
 logger = logging.getLogger(__name__)
 

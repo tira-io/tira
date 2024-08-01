@@ -6,21 +6,16 @@ from copy import deepcopy
 from http import HTTPStatus
 from typing import Any, Union
 
-import tira.tira_model as model
 from django.conf import settings
 from django.core.cache import cache
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import JsonResponse
 from slugify import slugify
+
+import tira.tira_model as model
 from tira.authentication import auth
 from tira.checks import check_permissions, check_resources_exist
-from tira.tira_data import (
-    get_run_file_list,
-    get_run_runtime,
-    get_stderr,
-    get_stdout,
-    get_tira_log,
-)
+from tira.tira_data import get_run_file_list, get_run_runtime, get_stderr, get_stdout, get_tira_log
 from tira.util import link_to_discourse_team
 from tira.views import _add_user_vms_to_context, add_context
 
