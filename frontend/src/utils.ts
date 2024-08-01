@@ -84,37 +84,6 @@ export function extractDatasetFromCurrentUrl(options: Array<any> = [], default_c
     return ret
 }
 
-export function extractSubView() {
-    return extracSubViewForLevel(1)
-}
-
-export function extractSubSubView() {
-    return extracSubViewForLevel(2)
-}
-
-export function extracSubViewForLevel(level: number) {
-    let loc = ref(window.location).value.href.split('#')[0].split('?')[0]
-    let to_split = 'task-overview/' + extractTaskFromCurrentUrl() + '/'
-
-    if (loc.includes(to_split)) {
-        let ret = loc.split(to_split)[1].split('/')
-        if (ret.length >= level) {
-            return ret[level]
-        }
-    }
-
-    return null
-}
-
-export function chanceCurrentUrlToDataset(dataset: string) {
-    var loc = ref(window.location).value.href
-
-    if (loc.includes('task-overview/')) {
-        loc = loc.split('task-overview/')[0] + 'task-overview/' + loc.split('task-overview/')[1].split('/')[0] + '/' + dataset
-        history.replaceState({ 'url': loc }, 'TIRA', loc)
-    }
-}
-
 export async function fetchUserInfo(): Promise<UserInfo> {
     const response = await fetch(inject("REST base URL") + '/api/role', { credentials: 'include' })
     // TODO: better error handling (to be implemented with the new REST API with problem+json; and the overhauled UI)
