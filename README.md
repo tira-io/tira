@@ -12,7 +12,7 @@
    <img alt="Current Release" src="https://img.shields.io/github/release/tira-io/tira.svg"/>
    </a>
    <a href="https://tira.io">
-   <img alt="Deployment" src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fwww.tira.io%2Fapi%2Fv1%2F&query=%24.version&prefix=v.&label=tira.io"/>
+   <img alt="Deployment" src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fwww.tira.io%2Finfo&query=%24.version&prefix=v.&label=tira.io"/>
    </a>
    <a href="https://github.com/tira-io/tira/actions/workflows/run-all-tests.yml">
    <img alt="Tests" src="https://github.com/tira-io/tira/actions/workflows/run-all-tests.yml/badge.svg"/>
