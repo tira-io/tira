@@ -70,7 +70,6 @@ TIRA_DB = {
 
 INSTALLED_APPS = [
     "tira.apps.TiraConfig",
-    "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",

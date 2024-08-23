@@ -13,7 +13,17 @@ class TestDiffirEndpoint(TestCase):
 
     def test_diffir_with_json(self):
         # Arrange
-        request = mock_request(ADMIN, url)
+        request = mock_request(
+            ADMIN,
+            url,
+            params={
+                "task_id": "<str:task_id>",
+                "vm_id": "<str:vm_id>",
+                "dataset_id": "<str:dataset_id>",
+                "topk": "<int:topk>",
+                "run_id": "<str:run_id>",
+            },
+        )
 
         # Act
         actual = diffir(
@@ -30,7 +40,17 @@ class TestDiffirEndpoint(TestCase):
 
     def test_diffir_with_json_gz(self):
         # Arrange
-        request = mock_request(ADMIN, url)
+        request = mock_request(
+            ADMIN,
+            url,
+            params={
+                "task_id": "<str:task_id>",
+                "vm_id": "<str:vm_id>",
+                "dataset_id": "<str:dataset_id>",
+                "topk": "<int:topk>",
+                "run_id": "<str:run_id>",
+            },
+        )
 
         # Act
         actual = diffir(

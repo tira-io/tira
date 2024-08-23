@@ -1,18 +1,26 @@
 import gzip
 import io
 import os
+import re
 import shutil
 from contextlib import redirect_stderr, redirect_stdout
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
+from typing import Any, Iterable, Optional, Union
 
+from django.conf import settings
 from django.core.management import call_command
-from mockito import mock
+from django.http import HttpRequest
+from django.http.request import QueryDict
+from django.urls import URLPattern, URLResolver
+from rest_framework.test import APIRequestFactory
 
 import tira.model as modeldb
+from tira.authentication import TrustedHeaderAuthentication
 from tira.tira_model import model as tira_model
-from tira.urls import urlpatterns
+
+auth_backend = TrustedHeaderAuthentication()  # There must be a way to get this from rest_framework right?
 
 # Used for some tests
 now = datetime.now().strftime("%Y%m%d")
@@ -290,62 +298,49 @@ def set_up_tira_environment():
     tira_model.add_run(dataset_id="dataset-of-organizer", vm_id="example_participant", run_id="run-of-organizer")
 
 
-def mock_request(groups, url_pattern, method="GET", body=None, params=None):
-    if "DISRAPTOR_APP_SECRET_KEY" not in os.environ:
-        os.environ["DISRAPTOR_APP_SECRET_KEY"] = "my-disraptor-key"
-    ret = mock()
-    ret.headers = {
-        "X-Disraptor-App-Secret-Key": "my-disraptor-key",
-        "X-Disraptor-User": "ignored-user.",
-        "X-Disraptor-Groups": groups,
-    }
-    ret.path_info = "/" + url_pattern
+def __resolve_path(url_pattern: str, params: Optional[dict[str, Any]] = None) -> str:
+    """
+    Replaces django template variables with their value from params
 
-    ret.GET = {}
+    >>> __resolve_path("v1/runs/<str:run_id>/review", {"run_id": "blah"})
+    /v1/runs/blah/review
+    """
 
-    if params and "organizer_id" in params and "<str:organizer_id>" in ret.path_info:
-        ret.path_info = ret.path_info.replace("<str:organizer_id>", params["organizer_id"])
+    def _replace_with_value(match: re.Match) -> str:
+        assert params is not None, "Keys were present but no dictionary was given"
+        return str(params[match.group(2)])
 
-    if params and "dataset_id" in params and "<str:dataset_id>" in ret.path_info:
-        ret.path_info = ret.path_info.replace("<str:dataset_id>", str(params["dataset_id"]))
+    return re.sub(r"<(\w+):(\w+)>", _replace_with_value, f"/{url_pattern}")
 
-    if params and "vm_id" in params and "<str:vm_id>" in ret.path_info:
-        ret.path_info = ret.path_info.replace("<str:vm_id>", params["vm_id"])
 
-    if params and "run_id" in params and "<str:run_id>" in ret.path_info:
-        ret.path_info = ret.path_info.replace("<str:run_id>", params["run_id"])
-
-    if params and "task_id" in params and "<str:task_id>" in ret.path_info:
-        ret.path_info = ret.path_info.replace("<str:task_id>", params["task_id"])
-
-    if params and "software_name" in params and "<str:software_name>" in ret.path_info:
-        ret.path_info = ret.path_info.replace("<str:software_name>", params["software_name"])
-
-    ret.META = {
+def mock_request(
+    groups: str, url_pattern: str, method="GET", body: Optional[dict] = None, params: Optional[dict] = None
+) -> HttpRequest:
+    path = __resolve_path(url_pattern, params)
+    # Stuff prefixed with HTTP_ will be added to the headers and to META otherwise
+    headers = {
+        "HTTP_X-Disraptor-App-Secret-Key": os.getenv("DISRAPTOR_APP_SECRET_KEY"),
+        "HTTP_X-Disraptor-User": "ignored-user.",
+        "HTTP_X-Disraptor-Groups": groups,
         "CSRF_COOKIE": "aasa",
     }
-    ret.current_app = "tira"
-    if method:
-        ret.method = method
-    if body:
-        ret.body = body
-
+    factory = APIRequestFactory()
+    ret = factory.generic(method=method, path=path, data=body if body is not None else "", **headers)
+    assert isinstance(ret, HttpRequest)
+    # These should be empty anyway from the code above but are immutable. Override to make them mutable
+    ret.GET = QueryDict("", mutable=True)
+    ret.POST = QueryDict("", mutable=True)
     return ret
 
 
-def method_for_url_pattern(url_pattern):
-    method_bound_to_url_pattern = None
-
-    for pattern in urlpatterns:
-        if str(url_pattern) == str(pattern.pattern):
-            method_bound_to_url_pattern = pattern.callback
-
-    assert method_bound_to_url_pattern, f'No method is bound to pattern "{url_pattern}".'
-
-    return method_bound_to_url_pattern
+def method_for_url_pattern(url_pattern: str):
+    patterns = {f"{pre}{pat.pattern}": pat for pre, pat in get_django_url_patterns()}
+    return patterns[url_pattern].callback
 
 
-def route_to_test(url_pattern, params, group_to_expected_status_code, method="GET", hide_stdout=False, body=None):
+def route_to_test(
+    url_pattern, params, group_to_expected_status_code: dict[str, int], method="GET", hide_stdout=False, body=None
+):
     metadata_for_groups = {}
 
     for group, expected_status_code in group_to_expected_status_code.items():
@@ -369,7 +364,39 @@ def execute_method_behind_url_and_return_status_code(method_bound_to_url_pattern
     return ret.status_code
 
 
-def assert_all_url_patterns_are_tested(tested_url_patterns):
-    tested_url_patterns = set(tested_url_patterns)
-    for url_pattern in urlpatterns:
-        assert str(url_pattern.pattern) in tested_url_patterns, f'The pattern "{url_pattern.pattern}" is not tested.'
+def __django_url_patterns(resolver: URLResolver, prefix: str = "") -> Iterable[tuple[str, URLPattern]]:
+    for p in resolver.url_patterns:
+        if isinstance(p, URLPattern):
+            yield prefix, p
+        elif isinstance(p, URLResolver):
+            yield from __django_url_patterns(p, f"{prefix}{p.pattern}")
+        else:
+            raise TypeError(f"Unexpected entry-type in urlpatterns for {p}")
+
+
+def get_django_url_patterns(
+    urlpatterns: Optional[list[Union[URLResolver, URLPattern]]] = None
+) -> Iterable[tuple[str, URLPattern]]:
+    """
+    Returns an iterable of all configured django endpoints.
+    """
+    if urlpatterns is None:
+        urlconf = __import__(settings.ROOT_URLCONF, {}, {}, [""])
+        urlpatterns = urlconf.urlpatterns
+        assert isinstance(urlpatterns, list)
+
+    for p in urlpatterns:
+        if isinstance(p, URLPattern):
+            yield "", p
+        elif isinstance(p, URLResolver):
+            yield from __django_url_patterns(p, p.pattern)
+        else:
+            raise TypeError(f"Unexpected entry-type in urlpatterns for {p}")
+
+
+def assert_all_url_patterns_are_tested(tested_url_patterns: Iterable[str]):
+    """
+    Asserts that tested_url_patterns is identical or a superset to all the endpoints registered with django.
+    """
+    untested = set(f"{pre}{pat.pattern}" for pre, pat in get_django_url_patterns()).difference(tested_url_patterns)
+    assert len(untested) == 0, f"{len(untested)} patterns are untested: {untested}; tested: {tested_url_patterns}"

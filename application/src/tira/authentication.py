@@ -499,6 +499,7 @@ class TiraGuest(AnonymousUser):
         super().__init__()
         self.username = "guest"
         self._groups: list[str] = []
+        self.is_staff = False
 
     def __str__(self) -> str:
         return self.username
@@ -517,7 +518,7 @@ class TiraUser(AnonymousUser):
         super().__init__()
         self.username = username
         self._groups = groups
-        self.is_staff = "admins" in groups
+        self.is_staff = "admins" in groups or "tira_reviewer" in groups
 
     def __str__(self) -> str:
         return self.username
