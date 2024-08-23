@@ -17,11 +17,11 @@ class TestDiffirEndpoint(TestCase):
             ADMIN,
             url,
             params={
-                "task_id": "<str:task_id>",
-                "vm_id": "<str:vm_id>",
-                "dataset_id": "<str:dataset_id>",
-                "topk": "<int:topk>",
-                "run_id": "<str:run_id>",
+                "task_id": "t1",
+                "vm_id": "example_participant",
+                "dataset_id": "dataset-1",
+                "topk": 10,
+                "run_id": "run-3-example_participant",
             },
         )
 
@@ -44,11 +44,11 @@ class TestDiffirEndpoint(TestCase):
             ADMIN,
             url,
             params={
-                "task_id": "<str:task_id>",
-                "vm_id": "<str:vm_id>",
-                "dataset_id": "<str:dataset_id>",
-                "topk": "<int:topk>",
-                "run_id": "<str:run_id>",
+                "task_id": "t1",
+                "vm_id": "example_participant",
+                "dataset_id": "dataset-1",
+                "topk": 10,
+                "run_id": "run-5-example_participant",
             },
         )
 
