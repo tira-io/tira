@@ -21,7 +21,7 @@ jobs:
         run: |
           # Create a dummy DISRAPTOR_API_KEY
           sudo bash -c 'mkdir -p "/etc/discourse/" && echo "I am so secret" > "/etc/discourse/client-api-key"'
-          pip3 install -e .[test]
+          pip3 install -e .[dev,test]
           make setup
           make tests
 
