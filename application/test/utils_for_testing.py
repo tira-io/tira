@@ -365,6 +365,19 @@ def execute_method_behind_url_and_return_status_code(method_bound_to_url_pattern
 
 
 def __django_url_patterns(resolver: URLResolver, prefix: str = "") -> Iterable[tuple[str, URLPattern]]:
+    """Iterates all URLPatterns resolved by the provided ``resolver`` and their URLs.
+
+    Args:
+        resolver (URLResolver): The resolver for which to fetch the urls and their associated ``URLPattern``.
+        prefix (str, optional): An optional prefix to prepend to all paths. Defaults to "".
+
+    Raises:
+        TypeError: Raised if an unexpected datatype is found to be resolved by the ``URLResolver``. This error should
+            not be captured since it is an internal problem.
+
+    Returns:
+        Iterable[tuple[str, URLPattern]]: An iterable of paths and the URLPattern they are resolved to.
+    """
     for p in resolver.url_patterns:
         if isinstance(p, URLPattern):
             yield prefix, p
@@ -377,8 +390,19 @@ def __django_url_patterns(resolver: URLResolver, prefix: str = "") -> Iterable[t
 def get_django_url_patterns(
     urlpatterns: Optional[list[Union[URLResolver, URLPattern]]] = None
 ) -> Iterable[tuple[str, URLPattern]]:
-    """
-    Returns an iterable of all configured django endpoints.
+    """Returns an iterable of all configured django endpoints.
+
+    Args:
+        urlpatterns (Optional[list[Union[URLResolver, URLPattern]]], optional): A list of the url patterns to extract
+            all configured endpoints on. If None, the endpoints that are configured for django will be used. Defaults
+            to None.
+
+    Raises:
+        TypeError: Raised if an unexpected datatype is found to be resolved by the ``URLResolver``. This error should
+            not be captured since it is an internal problem.
+
+    Returns:
+        Iterable[tuple[str, URLPattern]]: An iterable of paths and the URLPattern they are resolved to.
     """
     if urlpatterns is None:
         urlconf = __import__(settings.ROOT_URLCONF, {}, {}, [""])

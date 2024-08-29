@@ -781,7 +781,12 @@ API_ACCESS_MATRIX = [
     ),
     route_to_test(
         url_pattern="task/<str:task_id>/vm/<str:vm_id>/delete_software/docker/<str:docker_software_id>",
-        params={"task_id": "task-of-organizer-1", "vm_id": "example_participant", "docker_software_id": 0},
+        params={
+            "task_id": "task-of-organizer-1",
+            "vm_id": "example_participant",
+            "software_id": 0,
+            "docker_software_id": "<str:docker_software_id>",
+        },
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 302,
@@ -2245,6 +2250,7 @@ API_ACCESS_MATRIX = [
             ORGANIZER_WRONG_TASK: 403,
             ORGANIZER: 403,
             # ADMIN: 404,  # FIXME: this does not currently work
+            ADMIN: 200,
         },
     ),
     route_to_test(
@@ -2257,6 +2263,7 @@ API_ACCESS_MATRIX = [
             ORGANIZER_WRONG_TASK: 403,
             ORGANIZER: 403,
             # ADMIN: 404,  # FIXME: this does not currently work
+            ADMIN: 200,
         },
     ),
     route_to_test(

@@ -45,6 +45,7 @@ class _RunView(ModelViewSet):
     serializer_class = _RunSerializer
     pagination_class = pagination.CursorPagination
     lookup_field = "run_id"
+    permission_classes = [IsAdminUser]  # TODO: set to something sensible
 
 
 class _ReviewDetailView(RetrieveAPIView):
