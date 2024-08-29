@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from tira.tirex import IRDS_TO_TIREX_DATASET
 
 
 class PyTerrierIntegration():
@@ -245,3 +246,37 @@ class PyTerrierSpladeIntegration():
         import pyterrier as pt
         ret = Path(self.tira_client.get_run_output('ir-lab-sose-2024/naverlabseurope/Splade (Index)', translate_irds_id_to_tirex(dataset))) / 'spladeindex'
         return pt.IndexFactory.of(os.path.abspath(ret))
+
+
+def pt_transformer(path):
+    import pyterrier as pt
+    if not pt.started():
+        pt.init()
+    # TODO hacked for the moment, in reality, we must delegate to the classes above.
+    return pt.transformer.get_transformer(pt.io.read_results(path + '/output/run.txt'))
+
+def pt_artifact_entrypoint(url):
+    url = url.netloc + url.path
+    dataset_id = None, None
+
+    for irds_id, tira_dataset_id in IRDS_TO_TIREX_DATASET.items():
+        if url.startswith(irds_id):
+            dataset_id = tira_dataset_id
+            url = url.replace(irds_id, 'ir-benchmarks')
+            break
+    if not dataset_id:
+        raise ValueError('Very rough implementation...')
+
+    from tira.rest_api_client import Client
+    from pathlib import Path
+    import json
+
+    tira = Client()
+    ret = tira.get_run_output(url, dataset_id)
+
+    ret = Path(ret).parent
+    if not (ret / 'pt_meta.json').is_file():
+        with open(ret / 'pt_meta.json', 'w') as f:
+            f.write(json.dumps({"type": "tira", "format": "pt_transformer"}))
+    return str(ret.absolute())
+
