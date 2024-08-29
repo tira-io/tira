@@ -37,5 +37,6 @@ def serp(request, context, vm_id, dataset_id, task_id, run_id, topk):
 
                 return HttpResponse(rendered_serp)
         except Exception as e:
+            print(e)
             logger.exception(e)
             return JsonResponse({"status": "1", "message": f"Encountered an exception: {e}"})
