@@ -373,7 +373,7 @@ def main(args=None):
             print(f"Ensure that the input run {args.input_run} is available.")
             args.input_run = tira.get_run_output(args.input_run, dataset, True)
             print("Done: input run is available locally.")
-        if args.input_run and not isinstance(args.input_run, list) and len(args.input_run) > 0:
+        elif args.input_run and not isinstance(args.input_run, list) and len(args.input_run) > 0:
             temp_dir = "/tmp/" + tempfile.TemporaryDirectory().name
             os.makedirs(temp_dir, exist_ok=True)
             for num, input_run in zip(range(len(args.input_run)), args.input_run):
@@ -381,7 +381,7 @@ def main(args=None):
                 input_run = tira.get_run_output(input_run, dataset, True)
                 shutil.copytree(input_run, temp_dir + "/" + str(1 + num))
             args.input_run = temp_dir
-        if args.input_run_directory and "none" != args.input_run_directory.lower():
+        elif args.input_run_directory and "none" != args.input_run_directory.lower():
             args.input_run = os.path.abspath(args.input_run_directory)
 
         if args.evaluate:
