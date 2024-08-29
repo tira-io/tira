@@ -1,3 +1,4 @@
+from _utils.mixins import StrAssertMixins
 from api_access_matrix import ADMIN
 from django.test import TestCase
 from utils_for_testing import method_for_url_pattern, mock_request, set_up_tira_environment
@@ -6,7 +7,7 @@ url = "serp/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/<int:topk>/<
 diffir = method_for_url_pattern(url)
 
 
-class TestDiffirEndpoint(TestCase):
+class TestDiffirEndpoint(TestCase, StrAssertMixins):
     @classmethod
     def setUpClass(cls):
         set_up_tira_environment()
@@ -36,7 +37,7 @@ class TestDiffirEndpoint(TestCase):
         )
 
         # Assert
-        self.assertTrue(actual.content.decode("utf-8").startswith("<!doctype html>"))
+        self.assertStartsWith(actual.content.decode("utf-8"), "<!doctype html>")
 
     def test_diffir_with_json_gz(self):
         # Arrange
@@ -63,7 +64,7 @@ class TestDiffirEndpoint(TestCase):
         )
 
         # Assert
-        self.assertTrue(actual.content.decode("utf-8").startswith("<!doctype html>"))
+        self.assertStartsWith(actual.content.decode("utf-8"), "<!doctype html>")
 
     @classmethod
     def tearDownClass(cls):
