@@ -18,11 +18,11 @@ class TestDiffirEndpoint(TestCase, StrAssertMixins):
             ADMIN,
             url,
             params={
-                "task_id": "t1",
-                "vm_id": "example_participant",
-                "dataset_id": "dataset-1",
-                "topk": 10,
-                "run_id": "run-3-example_participant",
+                "task_id": "<str:task_id>",  # "t1",
+                "vm_id": "<str:vm_id>",  # "example_participant",
+                "dataset_id": "<str:dataset_id>",  # "dataset-1",
+                "topk": "<int:topk>",  # 10,
+                "run_id": "<str:run_id>",  # "run-3-example_participant",
             },
         )
 
@@ -45,11 +45,11 @@ class TestDiffirEndpoint(TestCase, StrAssertMixins):
             ADMIN,
             url,
             params={
-                "task_id": "t1",
-                "vm_id": "example_participant",
-                "dataset_id": "dataset-1",
-                "topk": 10,
-                "run_id": "run-5-example_participant",
+                "task_id": "<str:task_id>",  # "t1",
+                "vm_id": "<str:vm_id>",  # "example_participant",
+                "dataset_id": "<str:dataset_id>",  # "dataset-1",
+                "topk": "<int:topk>",  # 10,
+                "run_id": "<str:run_id>",  # "run-5-example_participant",
             },
         )
 
