@@ -50,7 +50,7 @@
 	// "shutdownAction": "none",
 
 	// Uncomment the next line to run commands after the container is created.
-	"postCreateCommand": "cd frontend; yarn; cd ../application; pip install -e .; make setup; make import-mock-data",
+	"postCreateCommand": "cd frontend; yarn; cd ../application/; pip install -e .[test,dev]; make setup; make import-mock-data",
 
 	// Configure tool-specific properties.
 	"customizations": {

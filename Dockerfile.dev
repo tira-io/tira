@@ -43,13 +43,9 @@ apt-get update && apt-get install -y python3 python3-pip python3-dev pkg-config 
     libpcre3-dev
 pip3 install black flake8 isort mypy
 EOF
-COPY application/requirements.txt /tmp/application/requirements.txt
 RUN <<EOF
 # Create a dummy secret
 mkdir -p "/etc/discourse/" && echo "I am so secret" > "/etc/discourse/client-api-key"
-# Setup the application
-cd /tmp/application
-pip3 install -r requirements.txt
 EOF
 
 ########################################################################################################################
