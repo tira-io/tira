@@ -22,13 +22,11 @@ RUN useradd -ms /bin/bash dev && \
 ########################################################################################################################
 USER root
 
-# https://stackoverflow.com/a/47680012
-RUN apt-get update && apt-get install -y curl gnupg2 && \
-    curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
-    echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
-
-RUN apt-get update && apt-get install -y npm yarn
-
+RUN <<EOF
+    apt-get update
+    apt-get install -y npm
+    npm install --global yarn
+EOF
 
 
 
@@ -38,20 +36,21 @@ RUN apt-get update && apt-get install -y npm yarn
 ########################################################################################################################
 ENV PIP_BREAK_SYSTEM_PACKAGES 1
 USER root
-RUN <<EOF
-apt-get update && apt-get install -y python3 python3-pip python3-dev pkg-config default-libmysqlclient-dev \
+RUN apt-get update && apt-get install -y python3 python3-pip python3-dev pkg-config default-libmysqlclient-dev \
     libpcre3-dev
-pip3 install black flake8 isort mypy
-EOF
-RUN <<EOF
 # Create a dummy secret
-mkdir -p "/etc/discourse/" && echo "I am so secret" > "/etc/discourse/client-api-key"
+COPY <<EOF /etc/discourse/client-api-key
+I am so secret
 EOF
 
 ########################################################################################################################
 # Client                                                                                                               #
 ########################################################################################################################
-# NOT YET
+USER root
+RUN <<EOF
+    apt-get update
+    apt-get install -y openjdk-11-jdk
+EOF
 
 
 

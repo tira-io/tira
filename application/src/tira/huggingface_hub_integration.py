@@ -6,27 +6,7 @@ from typing import Iterable
 
 from huggingface_hub import scan_cache_dir, snapshot_download
 
-
-def load_tira_cli_io_utils() -> ModuleType:
-    for p in sys.path:
-        p = str(os.path.abspath(p)) + "/"
-        if "-packages/" in p:
-            p = p.split("-packages/")[0] + "-packages/"
-
-        if os.path.exists(f"{p}/tira/io_utils.py"):
-            tira_cli_io_utils_spec = spec_from_file_location("tira_cli.io_utils", f"{p}/tira/io_utils.py")
-            assert tira_cli_io_utils_spec is not None
-            assert tira_cli_io_utils_spec.loader is not None
-            tira_cli_io_utils = module_from_spec(tira_cli_io_utils_spec)
-            assert tira_cli_io_utils is not None
-            tira_cli_io_utils_spec.loader.exec_module(tira_cli_io_utils)
-            return tira_cli_io_utils
-
-    raise ModuleNotFoundError()
-
-
-tira_cli_io_utils = load_tira_cli_io_utils()
-
+import tira.io_utils as tira_cli_io_utils
 
 TIRA_HOST_HF_HOME = tira_cli_io_utils._default_hf_home_in_tira_host()
 HF_CACHE = None

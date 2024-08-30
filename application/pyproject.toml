@@ -24,3 +24,8 @@ exclude = [
     "^src/tira/proto/.*\\.py$",
     "^src/tira/migrations/.*\\.py$",
 ]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "settings_test"
+pythonpath = ["./src", "./test"]
+python_files = "test_*.py"

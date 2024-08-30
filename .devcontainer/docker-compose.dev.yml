@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   devenv:
     build:
@@ -16,21 +15,21 @@ services:
     image: ghcr.io/authelia/authelia
     restart: unless-stopped
     volumes:
-      - ./.devfiles/authelia/configuration.dev.yml:/config/configuration.yml
-      - ./.devfiles/authelia/users-database.yml:/config/users_database.yml
+      - ./devfiles/authelia/configuration.dev.yml:/config/configuration.yml
+      - ./devfiles/authelia/users-database.yml:/config/users_database.yml
   nginx:
     image: lscr.io/linuxserver/nginx
     restart: unless-stopped
-    ports:
-      - "8080:8080"
-      - "8081:8081"
-      - "8082:8082"
+    #ports:
+    #  - "8080:8080"
+    #  - "8081:8081"
+    #  - "8082:8082"
     external_links:
       - "auth:auth.tira.local"
       - "devenv:www.tira.local"
     volumes:
-      - ./.devfiles/nginx/tira.conf:/config/nginx/site-confs/tira.conf
-      - ./.devfiles/nginx/tira-backend.conf:/config/nginx/site-confs/tira-backend.conf
-      - ./.devfiles/nginx/auth.conf:/config/nginx/site-confs/auth.conf
-      - ./.devfiles/nginx/snippets/:/config/nginx/snippets/
-      - ./.devfiles/nginx/certs/:/etc/nginx/certs/
+      - ./devfiles/nginx/tira.conf:/config/nginx/site-confs/tira.conf
+      - ./devfiles/nginx/tira-backend.conf:/config/nginx/site-confs/tira-backend.conf
+      - ./devfiles/nginx/auth.conf:/config/nginx/site-confs/auth.conf
+      - ./devfiles/nginx/snippets/:/config/nginx/snippets/
+      - ./devfiles/nginx/certs/:/etc/nginx/certs/

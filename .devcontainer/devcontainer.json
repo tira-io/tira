@@ -6,7 +6,7 @@
 	// Update the 'dockerComposeFile' list if you have more compose files or use different names.
 	// The .devcontainer/docker-compose.yml file contains any overrides you need/want to make.
 	"dockerComposeFile": [
-		"../docker-compose.dev.yml",
+		"./docker-compose.dev.yml",
 		"docker-compose.yml"
 	],
 
@@ -50,7 +50,7 @@
 	// "shutdownAction": "none",
 
 	// Uncomment the next line to run commands after the container is created.
-	"postCreateCommand": "cd frontend; yarn; cd ../application/; pip install -e .[test,dev]; make setup; make import-mock-data",
+	"postCreateCommand": "cd frontend; yarn; cd ../python-client; pip install -e .[test,dev]; cd ../application/; pip install -e .[test,dev]; make setup; make import-mock-data",
 
 	// Configure tool-specific properties.
 	"customizations": {
@@ -60,6 +60,14 @@
 				"json.format.keepLines": true,
 				"livePreview.portNumber": 3080,
 				"remote.autoForwardPorts": false,
+				"files.exclude": {
+					"**/__pycache__": true,
+					"**/.mypy_cache": true,
+					"**/.pytest_cache": true,
+					"**/*.egg-info": true,
+					"**/node_modules": true,
+					"application/.data-dumps": true
+				},
 				"launch": {
 					"version": "0.2.0",
 					"configurations": [
@@ -86,7 +94,7 @@
 						},
 						{
 							"name": "TIRA Backend Tests",
-							"type": "python",
+							"type": "debugpy",
 							"request": "launch",
 							"program": "${workspaceFolder:Backend}/src/manage.py",
 							"cwd": "${workspaceFolder:Backend}/test",
