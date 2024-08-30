@@ -59,7 +59,7 @@ class Command(BaseCommand):
                             )
                         except Exception as e:
                             print(f"Exception during refreshing the repository {git_repository_id}: e")
-                            logger.warn(f"Exception during refreshing the repository {git_repository_id}", e)
+                            logger.warn(f"Exception during refreshing the repository {git_repository_id}", exc_info=e)
                             continue
 
                 time.sleep(0.1)

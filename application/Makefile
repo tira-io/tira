@@ -13,8 +13,6 @@ help:
 	@echo "       run the tira server"
 	@echo "make tests"
 	@echo "       run all tests (automatically done in Github Actions on each commit)"
-	@echo "make vite-build"
-	@echo "       build and test the frontnend client code"
 	@echo "make build-docker"
 	@echo "       build the docker containers for deployment"
 	@echo "make clean"
@@ -30,9 +28,6 @@ setup:
 	python3 src/manage.py makemigrations tira
 	python3 src/manage.py migrate tira 
 	python3 src/manage.py index_model
-
-tests:
-	./test/run_all_tests.sh
 
 run-develop:
 	python3 src/manage.py makemigrations \
