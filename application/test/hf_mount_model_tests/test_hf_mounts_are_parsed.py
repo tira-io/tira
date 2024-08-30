@@ -12,7 +12,7 @@ class TestHfMountsAreParsed(unittest.TestCase):
         from huggingface_hub import snapshot_download
 
         snapshot_download(repo_id="prajjwal1/bert-tiny")
-        self.assertTrue(len(_hf_repos()) > 0)
+        self.assertGreater(len(_hf_repos()), 0)
         del os.environ["HF_HOME"]
 
     def test_hf_is_installed(self):
