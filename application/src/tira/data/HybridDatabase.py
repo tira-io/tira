@@ -1568,7 +1568,7 @@ class HybridDatabase(object):
                     vm_id=vm_id, user_password=initial_user_password, roles="user", host=host, ip=ip, ssh=ssh, rdp=rdp
                 )
             except IntegrityError as e:
-                logger.exception(f"Failed to add new vm {vm_id} with ",exc_info= e)
+                logger.exception(f"Failed to add new vm {vm_id} with ", exc_info=e)
                 raise TiraModelIntegrityError(e)
         else:
             raise TiraModelWriteError(f"Failed to write VM {vm_id}")
