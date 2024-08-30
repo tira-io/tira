@@ -102,6 +102,14 @@
 							"django": true,
 							"env": { "PYTHONPATH": ":../src:.", "DJANGO_SETTINGS_MODULE": "settings_test" },
 							"justMyCode": false
+						},
+						{
+							"name": "Frontend Tests",
+							"type": "node",
+							"request": "launch",
+							"runtimeExecutable": "yarn",
+							"args": [ "test" ],
+							"cwd": "${workspaceFolder:Frontend}"
 						}
 					],
 					"compounds": [
@@ -130,6 +138,7 @@
 				"ms-python.flake8",
 				"ms-python.mypy-type-checker",
 				"42Crunch.vscode-openapi",
+				"vuetifyjs.vuetify-vscode"
 			]
 		}
 	},
