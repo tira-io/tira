@@ -62,6 +62,7 @@ python3 manage.py collectstatic
 chmod +x ./src/tira_app/endpoints/aha
 
 # Run tests
+make setup
 cd test
 pytest
 EOF
