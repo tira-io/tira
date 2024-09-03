@@ -2117,7 +2117,7 @@ API_ACCESS_MATRIX = [
             PARTICIPANT: 403,
             ORGANIZER_WRONG_TASK: 403,
             ORGANIZER: 403,
-            # ADMIN: 200,
+            # ADMIN: 200,  # TODO: replace with correct code once the POST is properly implemented
         },
     ),
     route_to_test(
@@ -2213,7 +2213,7 @@ API_ACCESS_MATRIX = [
             PARTICIPANT: 403,
             ORGANIZER_WRONG_TASK: 403,
             ORGANIZER: 403,
-            # ADMIN: 200,
+            # ADMIN: 200,  # TODO: replace with correct code once the POST is properly implemented
         },
     ),
     route_to_test(
