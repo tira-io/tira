@@ -1,9 +1,13 @@
-from django.urls import path
+from typing import Union
+
+from django.urls import URLPattern, URLResolver, include, path
 
 from . import views
 from .endpoints import admin_api, data_api, diffir_api, organizer_api, serp_api, vm_api
+from .endpoints.misc import endpoints as misc_endpoints
+from .endpoints.v1 import endpoints as v1_endpoints
 
-urlpatterns = [
+urlpatterns: list[Union[URLResolver, URLPattern]] = [
     path(
         "task/<str:task_id>/user/<str:vm_id>/dataset/<str:dataset_id>/download/<str:run_id>.zip",
         views.download_rundir,
@@ -241,6 +245,8 @@ urlpatterns = [
         serp_api.serp,
         name="serp",
     ),
+    *misc_endpoints,
+    path("v1/", include(v1_endpoints)),
 ]
 
 app_name = "tira"

@@ -799,7 +799,7 @@ class GitLabRunner(GitRunner):
                 "digest": image_metadata["config"]["digest"].split(":")[-1][:12],
             }
         except Exception as e:
-            logger.warn("Exception during loading of metadata for docker image", e)
+            logger.warn("Exception during loading of metadata for docker image", exc_info=e)
             ret = {
                 "architecture": "Loading...",
                 "created": "Loading...",
@@ -1221,7 +1221,7 @@ class GitLabRunner(GitRunner):
                                 if len(i.split("=")) == 2
                             }
         except Exception as e:
-            logger.warn(f'Could not extract job configuration on "{branch}".', e)
+            logger.warn(f'Could not extract job configuration on "{branch}".', exc_info=e)
             pass
 
         if (

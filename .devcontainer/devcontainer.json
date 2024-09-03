@@ -6,7 +6,7 @@
 	// Update the 'dockerComposeFile' list if you have more compose files or use different names.
 	// The .devcontainer/docker-compose.yml file contains any overrides you need/want to make.
 	"dockerComposeFile": [
-		"../docker-compose.dev.yml",
+		"./docker-compose.dev.yml",
 		"docker-compose.yml"
 	],
 
@@ -17,7 +17,7 @@
 	// The optional 'workspaceFolder' property is the path VS Code should open by default when
 	// connected. This is typically a file mount in .devcontainer/docker-compose.yml
 	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
-	
+
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
 
@@ -50,7 +50,7 @@
 	// "shutdownAction": "none",
 
 	// Uncomment the next line to run commands after the container is created.
-	"postCreateCommand": "cd frontend; yarn; cd ../application; make setup; make import-mock-data",
+	"postCreateCommand": "cd frontend; yarn; cd ../python-client; pip install -e .[test,dev]; cd ../application/; pip install -e .[test,dev]; make setup; make import-mock-data",
 
 	// Configure tool-specific properties.
 	"customizations": {
@@ -60,6 +60,14 @@
 				"json.format.keepLines": true,
 				"livePreview.portNumber": 3080,
 				"remote.autoForwardPorts": false,
+				"files.exclude": {
+					"**/__pycache__": true,
+					"**/.mypy_cache": true,
+					"**/.pytest_cache": true,
+					"**/*.egg-info": true,
+					"**/node_modules": true,
+					"application/.data-dumps": true
+				},
 				"launch": {
 					"version": "0.2.0",
 					"configurations": [
@@ -68,7 +76,7 @@
 							"type": "node",
 							"request": "launch",
 							"runtimeExecutable": "yarn",
-							"cwd": "${workspaceFolder}/frontend",
+							"cwd": "${workspaceFolder:Frontend}/",
 							"runtimeArgs": [
 								"dev"
 							]
@@ -82,7 +90,26 @@
 							],
 							"django": true,
 							"autoStartBrowser": false,
-							"program": "${workspaceFolder}/application/src/manage.py"
+							"program": "${workspaceFolder:Backend}/src/manage.py"
+						},
+						{
+							"name": "TIRA Backend Tests",
+							"type": "debugpy",
+							"request": "launch",
+							"program": "${workspaceFolder:Backend}/src/manage.py",
+							"cwd": "${workspaceFolder:Backend}/test",
+							"args": [ "test", "--failfast", "--settings=settings_test" ],
+							"django": true,
+							"env": { "PYTHONPATH": ":../src:.", "DJANGO_SETTINGS_MODULE": "settings_test" },
+							"justMyCode": false
+						},
+						{
+							"name": "Frontend Tests",
+							"type": "node",
+							"request": "launch",
+							"runtimeExecutable": "yarn",
+							"args": [ "test" ],
+							"cwd": "${workspaceFolder:Frontend}"
 						}
 					],
 					"compounds": [
@@ -109,7 +136,9 @@
 				"ms-python.isort",
 				"ms-python.black-formatter",
 				"ms-python.flake8",
-				"ms-python.mypy-type-checker"
+				"ms-python.mypy-type-checker",
+				"42Crunch.vscode-openapi",
+				"vuetifyjs.vuetify-vscode"
 			]
 		}
 	},

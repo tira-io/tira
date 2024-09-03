@@ -192,7 +192,9 @@ class TestEvaluationsForVm(TestCase):
 
     def test_existing_upload_of_for_user_with_all_published(self):
         # Arrange
-        request = mock_request("tira_vm_" + PARTICIPANT_1, url)
+        request = mock_request(
+            "tira_vm_" + PARTICIPANT_1, url, params={"task_id": "<str:task_id>", "vm_id": "<str:vm_id>"}
+        )
         global UPLOAD
         request.GET["upload_id"] = str(UPLOAD.id)
 
@@ -204,7 +206,7 @@ class TestEvaluationsForVm(TestCase):
 
     def test_for_non_existing_docker_software(self):
         # Arrange
-        request = mock_request(ADMIN, url)
+        request = mock_request(ADMIN, url, params={"task_id": "<str:task_id>", "vm_id": "<str:vm_id>"})
         request.GET["docker_software_id"] = "-1212"
 
         # Act
@@ -215,7 +217,9 @@ class TestEvaluationsForVm(TestCase):
 
     def test_existing_docker_software_of_wrong_user_01(self):
         # Arrange
-        request = mock_request("tira_vm_" + PARTICIPANT_2, url)
+        request = mock_request(
+            "tira_vm_" + PARTICIPANT_2, url, params={"task_id": "<str:task_id>", "vm_id": "<str:vm_id>"}
+        )
         request.GET["docker_software_id"] = SOFTWARE_IDS[SOFTWARE_PARTICIPANT_1]
 
         # Act
@@ -226,7 +230,9 @@ class TestEvaluationsForVm(TestCase):
 
     def test_existing_docker_software_of_wrong_user_02(self):
         # Arrange
-        request = mock_request("tira_vm_" + PARTICIPANT_1, url)
+        request = mock_request(
+            "tira_vm_" + PARTICIPANT_1, url, params={"task_id": "<str:task_id>", "vm_id": "<str:vm_id>"}
+        )
         request.GET["docker_software_id"] = SOFTWARE_IDS[SOFTWARE_PARTICIPANT_2]
 
         # Act
@@ -237,7 +243,9 @@ class TestEvaluationsForVm(TestCase):
 
     def test_existing_docker_software_of_for_user_with_all_published(self):
         # Arrange
-        request = mock_request("tira_vm_" + PARTICIPANT_1, url)
+        request = mock_request(
+            "tira_vm_" + PARTICIPANT_1, url, params={"task_id": "<str:task_id>", "vm_id": "<str:vm_id>"}
+        )
         request.GET["docker_software_id"] = SOFTWARE_IDS[SOFTWARE_PARTICIPANT_1]
 
         # Act
@@ -248,7 +256,9 @@ class TestEvaluationsForVm(TestCase):
 
     def test_existing_docker_software_of_for_user_with_one_published_on_train_data(self):
         # Arrange
-        request = mock_request("tira_vm_" + PARTICIPANT_2, url)
+        request = mock_request(
+            "tira_vm_" + PARTICIPANT_2, url, params={"task_id": "<str:task_id>", "vm_id": "<str:vm_id>"}
+        )
         request.GET["docker_software_id"] = SOFTWARE_IDS[SOFTWARE_PARTICIPANT_2]
 
         # Act
@@ -259,7 +269,9 @@ class TestEvaluationsForVm(TestCase):
 
     def test_existing_docker_software_of_for_user_with_one_published_on_test_data(self):
         # Arrange
-        request = mock_request("tira_vm_" + PARTICIPANT_3, url)
+        request = mock_request(
+            "tira_vm_" + PARTICIPANT_3, url, params={"task_id": "<str:task_id>", "vm_id": "<str:vm_id>"}
+        )
         request.GET["docker_software_id"] = SOFTWARE_IDS[SOFTWARE_PARTICIPANT_3]
 
         # Act
@@ -270,7 +282,9 @@ class TestEvaluationsForVm(TestCase):
 
     def test_existing_docker_software_of_for_user_with_none_published_on_test_data(self):
         # Arrange
-        request = mock_request("tira_vm_" + PARTICIPANT_4, url)
+        request = mock_request(
+            "tira_vm_" + PARTICIPANT_4, url, params={"task_id": "<str:task_id>", "vm_id": "<str:vm_id>"}
+        )
         request.GET["docker_software_id"] = SOFTWARE_IDS[SOFTWARE_PARTICIPANT_4]
 
         # Act
@@ -281,7 +295,9 @@ class TestEvaluationsForVm(TestCase):
 
     def test_existing_docker_software_of_for_user_with_none_published_on_test_data_and_no_evaluations(self):
         # Arrange
-        request = mock_request("tira_vm_" + PARTICIPANT_5, url)
+        request = mock_request(
+            "tira_vm_" + PARTICIPANT_5, url, params={"task_id": "does-not-exist", "vm_id": "does-not-exist"}
+        )
         request.GET["docker_software_id"] = SOFTWARE_IDS[SOFTWARE_PARTICIPANT_5]
 
         # Act

@@ -1,0 +1,34 @@
+{
+	"folders": [
+		{
+			"name": "Backend",
+			"path": "application"
+		},
+		{
+			"name": "Frontend",
+			"path": "frontend"
+		},
+		{
+			"name": "Python API",
+			"path": "python-client"
+		},
+		{
+			"name": "Documentation",
+			"path": "documentation"
+		},
+		{
+			"name": "Root",
+			"path": "."
+		},
+	],
+	"settings": {
+		"files.exclude": {
+			"**/__pycache__": true,
+			"**/.mypy_cache": true,
+			"**/.pytest_cache": true,
+			"**/*.egg-info": true,
+			"**/node_modules": true,
+			"application/.data-dumps": true
+		},
+	}
+}

@@ -25,9 +25,6 @@ Run `make` to get an overview of all commands that will setup a self-contained t
 
 4. Optionally: Change the configuration (the settings used for the development setup are: `tira/application/config/settings-dev.yml`)
 
-## Frontend Development
-
-Build the frontend code via `make vite-build`
 
 ## Docker
 

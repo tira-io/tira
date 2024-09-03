@@ -1,30 +1,7 @@
-# TIRA Vuetify Frontend
+# TIRA Frontend
 
-Start with `yarn dev`.
+To get started, please read our developer documentation on...
+ - [... setting up the development environment](https://tira-io.github.io/tira/nightly/development/devenvironment.html)
+ - [... developing the frontend](https://tira-io.github.io/tira/nightly/development/frontend/index.html)
 
-Go to [http://127.0.0.1:3000/#/tasks](http://127.0.0.1:3000/#/tasks) for plain and to [http://127.0.0.1:3000/index-discourse.html#/tasks](http://127.0.0.1:3000/index-discourse.html#/tasks) for discourse adjusted development.
-
-## Project setup
-
-```
-# yarn
-yarn
-```
-
-### Compiles and hot-reloads for development
-
-```
-# yarn
-yarn dev
-```
-
-### Compiles and minifies for production
-
-```
-# yarn
-yarn build
-```
-
-### Customize configuration
-
-See [Configuration Reference](https://vitejs.dev/config/).
+the latter link contains all you need to know to navigate the development lifecycle.

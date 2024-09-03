@@ -1,19 +1,14 @@
-import os
 import unittest
 
-from tira.huggingface_hub_integration import TIRA_HOST_HF_HOME, _hf_repos, huggingface_model_mounts
+from huggingface_hub import snapshot_download
 
-os.environ["HF_HOME"] = TIRA_HOST_HF_HOME
+from tira.huggingface_hub_integration import _hf_repos, huggingface_model_mounts
 
 
 class TestHfMountsAreParsed(unittest.TestCase):
     def fail_if_hf_is_not_installed(self):
-        os.environ["HF_HOME"] = TIRA_HOST_HF_HOME
-        from huggingface_hub import snapshot_download
-
         snapshot_download(repo_id="prajjwal1/bert-tiny")
-        self.assertTrue(len(_hf_repos()) > 0)
-        del os.environ["HF_HOME"]
+        self.assertGreater(len(_hf_repos()), 0)
 
     def test_hf_is_installed(self):
         self.fail_if_hf_is_not_installed()
@@ -40,8 +35,6 @@ class TestHfMountsAreParsed(unittest.TestCase):
 
     def test_existing_hf_model_can_be_mounted(self):
         self.fail_if_hf_is_not_installed()
-        os.environ["HF_HOME"] = TIRA_HOST_HF_HOME
 
         actual = huggingface_model_mounts(["prajjwal1/bert-tiny"])
-        del os.environ["HF_HOME"]
         self.assertEqual("prajjwal1/bert-tiny", actual["MOUNT_HF_MODEL"])
