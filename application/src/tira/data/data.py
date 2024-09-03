@@ -363,7 +363,7 @@ def parse_run(runs_dir_path, dataset_id, vm_id, run_id):
     except modeldb.VirtualMachine.DoesNotExist as e:
         # If the vm was deleted but runs still exist, we land here. We skip indexing these runs.
         msg = f"Skip run {run_id}: VM {vm_id} does not exist"
-        logger.exception(msg, e)
+        logger.exception(msg, exc_info=e)
         return msg
 
     # Error Correction: Skip runs where Dataset no not exist anymore
@@ -372,7 +372,7 @@ def parse_run(runs_dir_path, dataset_id, vm_id, run_id):
     except modeldb.Dataset.DoesNotExist as e:
         # If the dataset was deleted, but there are still runs left.
         msg = f"Skip run {run_id}: Dataset {run_proto.inputDataset} does not exist {e}"
-        logger.exception(msg, e)
+        logger.exception(msg, exc_info=e)
         return msg
 
     # Error Correction. If run files dont add a task_id (which is optional), we use the default task of the dataset
@@ -388,7 +388,7 @@ def parse_run(runs_dir_path, dataset_id, vm_id, run_id):
 
     except Exception as e:
         msg = f"Skip run {run_id}: Creation of run had an unexpected ErrorRun: {run_proto}"
-        logger.exception(msg, e)
+        logger.exception(msg, exc_info=e)
         return msg
 
     # If this run has an input run (i.e. it's an evaluation) we set the reference here.

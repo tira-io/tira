@@ -28,7 +28,7 @@ def handle_get_model_exceptions(func):
                 msg = func(*args, **kwargs)
                 return JsonResponse({"status": 0, "message": msg}, status=HTTPStatus.OK)
             except Exception as e:
-                logger.exception(f"{func.__name__} failed with {e}", e)
+                logger.exception(f"{func.__name__} failed with {e}", exc_info=e)
                 return JsonResponse(
                     {"status": 1, "message": f"{func.__name__} failed with {e}"},
                     status=HTTPStatus.INTERNAL_SERVER_ERROR,

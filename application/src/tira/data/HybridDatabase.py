@@ -1568,7 +1568,7 @@ class HybridDatabase(object):
                     vm_id=vm_id, user_password=initial_user_password, roles="user", host=host, ip=ip, ssh=ssh, rdp=rdp
                 )
             except IntegrityError as e:
-                logger.exception(f"Failed to add new vm {vm_id} with ", e)
+                logger.exception(f"Failed to add new vm {vm_id} with ", exc_info=e)
                 raise TiraModelIntegrityError(e)
         else:
             raise TiraModelWriteError(f"Failed to write VM {vm_id}")
@@ -2264,7 +2264,7 @@ class HybridDatabase(object):
 
             self._save_run(dataset_id, vm_id, run_id, run)
         except Exception as e:
-            raise TiraModelWriteError(f"Exception while saving run ({dataset_id}, {vm_id}, {run_id})", e)
+            raise TiraModelWriteError(f"Exception while saving run ({dataset_id}, {vm_id}, {run_id})", exc_info=e)
 
     def _fdb_edit_task(
         self,
@@ -2529,7 +2529,7 @@ class HybridDatabase(object):
         #    self._fdb_delete_evaluator_from_vm(vm_id, evaluator_id)
         # except AttributeError as e:
         #    logger.exception(f"Exception deleting evaluator while deleting dataset {dataset_id}. "
-        #                     f"Maybe It never existed?", e)
+        #                     f"Maybe It never existed?", exc_info=e)
         # self._fdb_delete_dataset_from_task(task_id, dataset_id)
         # self._fdb_delete_dataset(task_id, dataset_id)
         # ds.delete()
