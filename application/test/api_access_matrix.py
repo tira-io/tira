@@ -749,7 +749,12 @@ API_ACCESS_MATRIX = [
     ),
     route_to_test(
         url_pattern="task/<str:task_id>/vm/<str:vm_id>/delete_software/docker/<str:docker_software_id>",
-        params={"task_id": "shared-task-1", "vm_id": "example_participant", "software_id": 0},
+        params={
+            "task_id": "shared-task-1",
+            "vm_id": "example_participant",
+            "software_id": 0,
+            "docker_software_id": "<str:docker_software_id>",
+        },
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 302,
@@ -760,7 +765,12 @@ API_ACCESS_MATRIX = [
     ),
     route_to_test(
         url_pattern="task/<str:task_id>/vm/<str:vm_id>/delete_software/docker/<str:docker_software_id>",
-        params={"task_id": "shared-task-1", "vm_id": PARTICIPANT.split("_")[-1], "software_id": 0},
+        params={
+            "task_id": "shared-task-1",
+            "vm_id": PARTICIPANT.split("_")[-1],
+            "software_id": 0,
+            "docker_software_id": "<str:docker_software_id>",
+        },
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 302,
@@ -771,7 +781,12 @@ API_ACCESS_MATRIX = [
     ),
     route_to_test(
         url_pattern="task/<str:task_id>/vm/<str:vm_id>/delete_software/docker/<str:docker_software_id>",
-        params={"task_id": "task-of-organizer-1", "vm_id": "example_participant", "software_id": 0},
+        params={
+            "task_id": "task-of-organizer-1",
+            "vm_id": "example_participant",
+            "software_id": 0,
+            "docker_software_id": "<str:docker_software_id>",
+        },
         group_to_expected_status_code={
             ADMIN: 200,
             GUEST: 302,
@@ -1063,6 +1078,7 @@ API_ACCESS_MATRIX = [
             "dataset_id": "does-not-exist",
             "docker_software_id": "does-not-exist",
             "rerank_dataset": "none",
+            "docker_resources": "<str:docker_resources>",
         },
         group_to_expected_status_code={
             ADMIN: 200,
@@ -1080,6 +1096,7 @@ API_ACCESS_MATRIX = [
             "dataset_id": "does-not-exist",
             "docker_software_id": "does-not-exist",
             "rerank_dataset": "none",
+            "docker_resources": "<str:docker_resources>",
         },
         group_to_expected_status_code={
             ADMIN: 200,
@@ -2009,10 +2026,273 @@ API_ACCESS_MATRIX = [
             ORGANIZER: 200,
         },
     ),
+    route_to_test(
+        url_pattern="health",
+        params={},
+        group_to_expected_status_code={
+            GUEST: 204,
+            PARTICIPANT: 204,
+            ORGANIZER_WRONG_TASK: 204,
+            ORGANIZER: 204,
+            ADMIN: 204,
+        },
+    ),
+    route_to_test(
+        url_pattern="info",
+        params={},
+        group_to_expected_status_code={
+            GUEST: 200,
+            PARTICIPANT: 200,
+            ORGANIZER_WRONG_TASK: 200,
+            ORGANIZER: 200,
+            ADMIN: 200,
+        },
+    ),
+    # The following v1/ endpoints should be restricted to only allow admin-access for now
+    route_to_test(
+        url_pattern="v1/datasets/",
+        params={},
+        group_to_expected_status_code={
+            GUEST: 403,
+            PARTICIPANT: 403,
+            ORGANIZER_WRONG_TASK: 403,
+            ORGANIZER: 403,
+            ADMIN: 200,
+        },
+    ),
+    route_to_test(
+        url_pattern="v1/datasets/<str:dataset_id>/",
+        params={"dataset_id": "i-do-not-exist"},
+        method="GET",
+        group_to_expected_status_code={
+            GUEST: 403,
+            PARTICIPANT: 403,
+            ORGANIZER_WRONG_TASK: 403,
+            ORGANIZER: 403,
+            ADMIN: 404,
+        },
+    ),
+    route_to_test(
+        url_pattern="v1/datasets/<str:dataset_id>/",
+        params={"dataset_id": "i-do-not-exist"},
+        method="DELETE",
+        group_to_expected_status_code={
+            GUEST: 403,
+            PARTICIPANT: 403,
+            ORGANIZER_WRONG_TASK: 403,
+            ORGANIZER: 403,
+            ADMIN: 404,
+        },
+    ),
+    route_to_test(
+        url_pattern="v1/evaluations/",
+        params={},
+        method="GET",
+        group_to_expected_status_code={
+            GUEST: 403,
+            PARTICIPANT: 403,
+            ORGANIZER_WRONG_TASK: 403,
+            ORGANIZER: 403,
+            ADMIN: 200,
+        },
+    ),
+    route_to_test(
+        url_pattern="v1/organizers/",
+        params={},
+        method="GET",
+        group_to_expected_status_code={
+            GUEST: 403,
+            PARTICIPANT: 403,
+            ORGANIZER_WRONG_TASK: 403,
+            ORGANIZER: 403,
+            ADMIN: 200,
+        },
+    ),
+    route_to_test(
+        url_pattern="v1/organizers/",
+        params={},
+        method="POST",
+        group_to_expected_status_code={
+            GUEST: 403,
+            PARTICIPANT: 403,
+            ORGANIZER_WRONG_TASK: 403,
+            ORGANIZER: 403,
+            # ADMIN: 200,  # TODO: replace with correct code once the POST is properly implemented
+        },
+    ),
+    route_to_test(
+        url_pattern="v1/organizers/<str:organizer_id>/",
+        params={"organizer_id": "does-not-exist"},
+        method="GET",
+        group_to_expected_status_code={
+            GUEST: 403,
+            PARTICIPANT: 403,
+            ORGANIZER_WRONG_TASK: 403,
+            ORGANIZER: 403,
+            ADMIN: 404,
+        },
+    ),
+    route_to_test(
+        url_pattern="v1/organizers/<str:organizer_id>/",
+        params={"organizer_id": "does-not-exist"},
+        method="DELETE",
+        group_to_expected_status_code={
+            GUEST: 403,
+            PARTICIPANT: 403,
+            ORGANIZER_WRONG_TASK: 403,
+            ORGANIZER: 403,
+            ADMIN: 404,
+        },
+    ),
+    route_to_test(
+        url_pattern="v1/runs/",
+        params={},
+        method="GET",
+        group_to_expected_status_code={
+            GUEST: 403,
+            PARTICIPANT: 403,
+            ORGANIZER_WRONG_TASK: 403,
+            ORGANIZER: 403,
+            ADMIN: 200,
+        },
+    ),
+    route_to_test(
+        url_pattern="v1/runs/<str:run_id>/",
+        params={"run_id": "does-not-exist"},
+        method="GET",
+        group_to_expected_status_code={
+            GUEST: 403,
+            PARTICIPANT: 403,
+            ORGANIZER_WRONG_TASK: 403,
+            ORGANIZER: 403,
+            ADMIN: 404,
+        },
+    ),
+    route_to_test(
+        url_pattern="v1/runs/<str:run_id>/",
+        params={"run_id": "does-not-exist"},
+        method="DELETE",
+        group_to_expected_status_code={
+            GUEST: 403,
+            PARTICIPANT: 403,
+            ORGANIZER_WRONG_TASK: 403,
+            ORGANIZER: 403,
+            ADMIN: 404,
+        },
+    ),
+    route_to_test(
+        url_pattern="v1/runs/<str:run>/review",
+        params={"run": "does-not-exist"},
+        method="GET",
+        group_to_expected_status_code={
+            GUEST: 403,
+            PARTICIPANT: 403,
+            ORGANIZER_WRONG_TASK: 403,
+            ORGANIZER: 403,
+            ADMIN: 404,
+        },
+    ),
+    route_to_test(
+        url_pattern="v1/tasks/",
+        params={},
+        method="GET",
+        group_to_expected_status_code={
+            GUEST: 403,
+            PARTICIPANT: 403,
+            ORGANIZER_WRONG_TASK: 403,
+            ORGANIZER: 403,
+            ADMIN: 200,
+        },
+    ),
+    route_to_test(
+        url_pattern="v1/tasks/",
+        params={},
+        method="POST",
+        group_to_expected_status_code={
+            GUEST: 403,
+            PARTICIPANT: 403,
+            ORGANIZER_WRONG_TASK: 403,
+            ORGANIZER: 403,
+            # ADMIN: 200,  # TODO: replace with correct code once the POST is properly implemented
+        },
+    ),
+    route_to_test(
+        url_pattern="v1/tasks/<str:task_id>/",
+        params={"task_id": "does-not-exist"},
+        method="GET",
+        group_to_expected_status_code={
+            GUEST: 403,
+            PARTICIPANT: 403,
+            ORGANIZER_WRONG_TASK: 403,
+            ORGANIZER: 403,
+            ADMIN: 404,
+        },
+    ),
+    route_to_test(
+        url_pattern="v1/tasks/<str:task_id>/",
+        params={"task_id": "does-not-exist"},
+        method="DELETE",
+        group_to_expected_status_code={
+            GUEST: 403,
+            PARTICIPANT: 403,
+            ORGANIZER_WRONG_TASK: 403,
+            ORGANIZER: 403,
+            ADMIN: 404,
+        },
+    ),
+    route_to_test(
+        url_pattern="v1/tasks/<str:task_id>/evaluations",
+        params={"task_id": "does-not-exist"},
+        method="GET",
+        group_to_expected_status_code={
+            GUEST: 403,
+            PARTICIPANT: 403,
+            ORGANIZER_WRONG_TASK: 403,
+            ORGANIZER: 403,
+            # ADMIN: 404,  # FIXME: this does not currently work
+            ADMIN: 200,
+        },
+    ),
+    route_to_test(
+        url_pattern="v1/tasks/<str:task_id>/registrations",
+        params={"task_id": "does-not-exist"},
+        method="GET",
+        group_to_expected_status_code={
+            GUEST: 403,
+            PARTICIPANT: 403,
+            ORGANIZER_WRONG_TASK: 403,
+            ORGANIZER: 403,
+            # ADMIN: 404,  # FIXME: this does not currently work
+            ADMIN: 200,
+        },
+    ),
+    route_to_test(
+        url_pattern="v1/tasks/<str:task_id>/registrations",
+        params={"task_id": "does-not-exist"},
+        method="POST",
+        group_to_expected_status_code={
+            GUEST: 403,
+            PARTICIPANT: 403,
+            ORGANIZER_WRONG_TASK: 403,
+            ORGANIZER: 403,
+            # ADMIN: 404,  # TODO: these should give 404 for non-existant tasks. That is not currently the case
+        },
+    ),
+    route_to_test(
+        url_pattern="v1/user/",
+        params={},
+        group_to_expected_status_code={
+            GUEST: 200,
+            PARTICIPANT: 200,
+            ORGANIZER_WRONG_TASK: 200,
+            ORGANIZER: 200,
+            ADMIN: 200,
+        },
+    ),
 ]
 
 
-def access_matrix_for_user(user):
+def access_matrix_for_user(user: str) -> list[tuple]:
     ret = []
     for i in API_ACCESS_MATRIX:
         if user not in i[2]:

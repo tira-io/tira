@@ -17,7 +17,7 @@
 	// The optional 'workspaceFolder' property is the path VS Code should open by default when
 	// connected. This is typically a file mount in .devcontainer/docker-compose.yml
 	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
-	
+
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
 
@@ -50,7 +50,7 @@
 	// "shutdownAction": "none",
 
 	// Uncomment the next line to run commands after the container is created.
-	"postCreateCommand": "cd frontend; yarn; cd ../application; make setup; make import-mock-data",
+	"postCreateCommand": "cd frontend; yarn; cd ../application/; pip install -e .[test,dev]; make setup; make import-mock-data",
 
 	// Configure tool-specific properties.
 	"customizations": {
@@ -68,7 +68,7 @@
 							"type": "node",
 							"request": "launch",
 							"runtimeExecutable": "yarn",
-							"cwd": "${workspaceFolder}/frontend",
+							"cwd": "${workspaceFolder:Frontend}/",
 							"runtimeArgs": [
 								"dev"
 							]
@@ -82,7 +82,18 @@
 							],
 							"django": true,
 							"autoStartBrowser": false,
-							"program": "${workspaceFolder}/application/src/manage.py"
+							"program": "${workspaceFolder:Backend}/src/manage.py"
+						},
+						{
+							"name": "TIRA Backend Tests",
+							"type": "python",
+							"request": "launch",
+							"program": "${workspaceFolder:Backend}/src/manage.py",
+							"cwd": "${workspaceFolder:Backend}/test",
+							"args": [ "test", "--failfast", "--settings=settings_test" ],
+							"django": true,
+							"env": { "PYTHONPATH": ":../src:.", "DJANGO_SETTINGS_MODULE": "settings_test" },
+							"justMyCode": false
 						}
 					],
 					"compounds": [
@@ -109,7 +120,8 @@
 				"ms-python.isort",
 				"ms-python.black-formatter",
 				"ms-python.flake8",
-				"ms-python.mypy-type-checker"
+				"ms-python.mypy-type-checker",
+				"42Crunch.vscode-openapi",
 			]
 		}
 	},

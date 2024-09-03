@@ -15,7 +15,7 @@ class TestTaskEndpoint(TestCase):
 
     def test_response_for_non_existing_task(self):
         # Arrange
-        request = mock_request(GUEST, "api/task/<str:task_id>")
+        request = mock_request(GUEST, "api/task/<str:task_id>", params={"task_id": "<str:task_id>"})
 
         # Act
         actual = task_function(request, task_id="task-does-not-exist")
@@ -25,7 +25,7 @@ class TestTaskEndpoint(TestCase):
 
     def test_result_for_existing_task(self):
         # Arrange
-        request = mock_request(GUEST, "api/task/<str:task_id>")
+        request = mock_request(GUEST, "api/task/<str:task_id>", params={"task_id": "<str:task_id>"})
 
         # Act
         actual = task_function(request, task_id="task-of-organizer-1")
@@ -35,7 +35,11 @@ class TestTaskEndpoint(TestCase):
 
     def test_upload_submissions_for_non_existing_task(self):
         # Arrange
-        request = mock_request(ADMIN, "api/submissions-for-task/<str:task_id>/<str:user_id>/<str:submission_type>")
+        request = mock_request(
+            ADMIN,
+            "api/submissions-for-task/<str:task_id>/<str:user_id>/<str:submission_type>",
+            params={"task_id": "<str:task_id>", "user_id": "<str:user_id>", "submission_type": "<str:submission_type>"},
+        )
 
         # Act
         actual = submission_function(
@@ -47,7 +51,11 @@ class TestTaskEndpoint(TestCase):
 
     def test_software_submissions_for_existing_task(self):
         # Arrange
-        request = mock_request(ADMIN, "api/submissions-for-task/<str:task_id>/<str:user_id>/<str:submission_type>")
+        request = mock_request(
+            ADMIN,
+            "api/submissions-for-task/<str:task_id>/<str:user_id>/<str:submission_type>",
+            params={"task_id": "<str:task_id>", "user_id": "<str:user_id>", "submission_type": "<str:submission_type>"},
+        )
 
         # Act
         actual = submission_function(
@@ -59,7 +67,11 @@ class TestTaskEndpoint(TestCase):
 
     def test_upload_submissions_for_existing_task(self):
         # Arrange
-        request = mock_request(ADMIN, "api/submissions-for-task/<str:task_id>/<str:user_id>/<str:submission_type>")
+        request = mock_request(
+            ADMIN,
+            "api/submissions-for-task/<str:task_id>/<str:user_id>/<str:submission_type>",
+            params={"task_id": "<str:task_id>", "user_id": "<str:user_id>", "submission_type": "<str:submission_type>"},
+        )
 
         # Act
         actual = submission_function(
@@ -71,7 +83,11 @@ class TestTaskEndpoint(TestCase):
 
     def test_software_submissions_for_existing_task_and_user_without_software(self):
         # Arrange
-        request = mock_request(ADMIN, "api/submissions-for-task/<str:task_id>/<str:user_id>/<str:submission_type>")
+        request = mock_request(
+            ADMIN,
+            "api/submissions-for-task/<str:task_id>/<str:user_id>/<str:submission_type>",
+            params={"task_id": "<str:task_id>", "user_id": "<str:user_id>", "submission_type": "<str:submission_type>"},
+        )
 
         # Act
         actual = submission_function(

@@ -20,7 +20,7 @@ class TestEvaluationResults(TestCase):
 
     def test_for_non_existing_task_and_dataset(self):
         # Arrange
-        request = mock_request(GUEST, url)
+        request = mock_request(GUEST, url, params={"task_id": "<str:task_id>", "dataset_id": "<str:dataset_id>"})
 
         # Act
         actual = evaluations_function(request, task_id="does-not-exist", dataset_id="does-not-exist")
@@ -30,7 +30,7 @@ class TestEvaluationResults(TestCase):
 
     def test_for_existing_task_and_dataset_with_few_evaluations(self):
         # Arrange
-        request = mock_request(GUEST, url)
+        request = mock_request(GUEST, url, params={"task_id": "<str:task_id>", "dataset_id": "<str:dataset_id>"})
 
         # Act
         actual = evaluations_function(request, task_id="shared-task-1", dataset_id=dataset_1)
@@ -40,7 +40,7 @@ class TestEvaluationResults(TestCase):
 
     def test_for_existing_task_and_dataset_with_few_evaluations_including_blinded(self):
         # Arrange
-        request = mock_request(ADMIN, url)
+        request = mock_request(ADMIN, url, params={"task_id": "<str:task_id>", "dataset_id": "<str:dataset_id>"})
 
         # Act
         actual = evaluations_function(request, task_id="shared-task-1", dataset_id=dataset_1)
@@ -50,7 +50,7 @@ class TestEvaluationResults(TestCase):
 
     def test_for_existing_task_and_meta_dataset_with_few_evaluations(self):
         # Arrange
-        request = mock_request(GUEST, url)
+        request = mock_request(GUEST, url, params={"task_id": "<str:task_id>", "dataset_id": "<str:dataset_id>"})
 
         # Act
         actual = evaluations_function(request, task_id="shared-task-1", dataset_id=dataset_meta)
@@ -60,7 +60,7 @@ class TestEvaluationResults(TestCase):
 
     def test_for_existing_task_and_dataset_with_little_evaluations(self):
         # Arrange
-        request = mock_request(GUEST, url)
+        request = mock_request(GUEST, url, params={"task_id": "<str:task_id>", "dataset_id": "<str:dataset_id>"})
 
         # Act
         actual = evaluations_function(request, task_id="shared-task-1", dataset_id=dataset_2)
@@ -70,7 +70,7 @@ class TestEvaluationResults(TestCase):
 
     def test_for_existing_task_and_dataset_with_little_evaluations_including_blinded(self):
         # Arrange
-        request = mock_request(ADMIN, url)
+        request = mock_request(ADMIN, url, params={"task_id": "<str:task_id>", "dataset_id": "<str:dataset_id>"})
 
         # Act
         actual = evaluations_function(request, task_id="shared-task-1", dataset_id=dataset_2)
