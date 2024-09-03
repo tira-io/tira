@@ -1,14 +1,11 @@
-import os
-from typing import Iterable
+from typing import Iterable, Optional
 
-from django.conf import settings
-from huggingface_hub import scan_cache_dir
-from huggingface_hub import snapshot_download as hfsnapshot_download
+from huggingface_hub import HFCacheInfo, scan_cache_dir, snapshot_download
+from huggingface_hub.constants import HF_HOME
 
 import tira.io_utils as tira_cli_io_utils
 
-TIRA_HOST_HF_HOME = tira_cli_io_utils.default_hf_home_in_tira_host(settings.TIRA_ROOT)
-HF_CACHE = None
+HF_CACHE: Optional[HFCacheInfo] = None
 
 
 def _hf_repos() -> dict[str, str]:
@@ -35,16 +32,8 @@ def huggingface_model_mounts(models: Iterable[str]):
         else:
             raise Exception(f"Model {model} is not available in the Huggingface cache")
 
-    return {"MOUNT_HF_MODEL": " ".join(models), "HF_HOME": TIRA_HOST_HF_HOME, "HF_CACHE_SCAN": ret}
+    return {"MOUNT_HF_MODEL": " ".join(models), "HF_HOME": HF_HOME, "HF_CACHE_SCAN": ret}
 
 
 def snapshot_download_hf_model(model: str):
-    os.environ["HF_HOME"] = TIRA_HOST_HF_HOME
     snapshot_download(repo_id=model.replace("--", "/"))
-
-
-def snapshot_download(*args, **kwargs) -> str:
-    return hfsnapshot_download(*args, cache_dir=TIRA_HOST_HF_HOME / "hub", **kwargs)
-
-
-snapshot_download.__doc__ = hfsnapshot_download.__doc__

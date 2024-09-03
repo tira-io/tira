@@ -152,19 +152,6 @@ def _ln_huggingface_model_mounts(models: str) -> str:
     return "; ".join(ret + [f'echo "mounted {len(models)} models"'])
 
 
-def default_hf_home_in_tira_host(tira_base: Path) -> str:
-    """Returns the location of the hf home on the tira hosts that are mounted read-only into the pods.
-
-    Args:
-        tira_base (Path): The base path to TIRA's file structure. The hugging face home directory will be located inside
-        it.
-
-    Returns:
-        str: the HF_HOME on a tira host.
-    """
-    return tira_base / "data" / "publicly-shared-datasets" / "huggingface"
-
-
 def all_lines_to_pandas(input_file: Union[str, Iterable[str]], load_default_text: bool) -> pd.DataFrame:
     """
     .. todo:: add documentation
