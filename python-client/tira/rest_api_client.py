@@ -94,6 +94,9 @@ class Client(TiraClient):
         """
         return [task_id + '/' + i['vm_id'] + '/' + i['display_name'] for i in self.json_response(f'/api/task/{task_id}/public-submissions')['context']['public_submissions']]
 
+    def all_tasks(self):
+        return self.json_response(f'/tira-backend/api/task-list')['context']['task_list']
+
     def docker_software(self, approach):
         task, team, software = approach.split('/')
         return self.json_response(f'/api/task/{task}/submission-details/{team}/{software}')['context']['submission']
