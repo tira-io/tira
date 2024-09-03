@@ -5,13 +5,14 @@
 ########################################################################################################################
 # Production Container                                                                                                 #
 ########################################################################################################################
-FROM debian:stable-slim
+FROM debian:stable-slim AS build
 
 ENV TZ=Europe/Berlin
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-
-RUN apt-get update && apt-get install -y locales
-RUN echo "en_US.UTF-8 UTF-8" | tee -a /etc/locale.gen && locale-gen
+RUN <<EOF
+ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+apt-get update && apt-get install -y locales
+echo "en_US.UTF-8 UTF-8" | tee -a /etc/locale.gen && locale-gen
+EOF
 
 ########################################################################################################################
 # Create User                                                                                                          #
@@ -24,16 +25,17 @@ RUN useradd -ms /bin/bash tira
 ########################################################################################################################
 USER tira
 WORKDIR /tira/
-COPY --chown=tira:tira . ./
+COPY --chown=tira:tira ./application ./
+COPY --chown=tira:tira ./python-client ../python-client
 
 
 ########################################################################################################################
 # Install Python and Dependencies                                                                                      #
 ########################################################################################################################
 USER root
-ENV PIP_BREAK_SYSTEM_PACKAGES 1
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
 # For faster build of GRPCIO
-ENV GRPC_PYTHON_BUILD_EXT_COMPILER_JOBS 16
+ENV GRPC_PYTHON_BUILD_EXT_COMPILER_JOBS=16
 
 RUN <<EOF
 apt-get update
@@ -42,27 +44,66 @@ apt-get install -y python3 python3-pip git pkg-config
 # Dependencies (stuff needed by at least one python package)
 # For MariaDB
 apt-get install -y default-libmysqlclient-dev
-
-python3 -m pip install -r requirements.txt
 EOF
-
-USER root
-RUN cp ./src/tira/management/commands/irds_cli.sh /irds_cli.sh
 
 USER tira
 RUN <<EOF
-python3 manage.py collectstatic
-chmod +x ./src/tira/endpoints/aha
-
-# Run tests
-./test/run_all_tests.sh
+# Install dependencies
+pip3 install --no-cache-dir --user ../python-client .[test]
 EOF
 
+USER root
+RUN cp ./src/tira_app/management/commands/irds_cli.sh /irds_cli.sh
+
+USER tira
+RUN <<EOF
+export PATH="/home/tira/.local/bin:$PATH"
+python3 manage.py collectstatic
+chmod +x ./src/tira_app/endpoints/aha
+
+# Run tests
+cd test
+pytest
+EOF
+
+########################################################################################################################
+# Production Container                                                                                                 #
+########################################################################################################################
+FROM debian:stable-slim
+
+
+########################################################################################################################
+# Create User                                                                                                          #
+########################################################################################################################
+RUN useradd -ms /bin/bash tira
+
+
+COPY --from=build --chown=tira:tira /home/tira/.local /home/tira/.local
+COPY --from=build /irds_cli.sh /irds_cli.sh
+
+RUN <<EOF
+ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+apt-get update && apt-get install -y locales
+echo "en_US.UTF-8 UTF-8" | tee -a /etc/locale.gen && locale-gen
+
+apt-get update
+# Tools
+apt-get install -y python3 python3-pip
+export PIP_BREAK_SYSTEM_PACKAGES=1; pip3 install uwsgi
+#
+mkdir -p /tira/application/src
+chown -R tira:tira /tira
+EOF
 
 ########################################################################################################################
 # Final Configuration Stuff                                                                                            #
 ########################################################################################################################
 USER tira
-ENV HF_HOME=/mnt/ceph/tira/data/publicly-shared-datasets/huggingface/
+# CONFIGURE THIS ENVIRONMENT VARIABLE IN YOUR DOCKER-COMPOSE FILE
+ENV HF_HOME=/home/tira/data/publicly-shared-datasets/huggingface/
+ENV PATH=/home/tira/.local/bin:$PATH
 
-CMD uwsgi --uid 1010 --gid 1010 --ini /tira/src/uwsgi.ini
+EXPOSE 80
+
+# TODO: at some point it probably makes sense, not to use /tira/application/src as a working directory anymore
+CMD ["uwsgi", "--strict", "--master", "--enable-threads", "--module", "django_admin.wsgi:application", "--chdir", "/tira/application/src", "--processes", "50", "--http-socket", ":80", "--vacuum", "--max-requests", "5000"]

@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
+import importlib.resources as resources
 import logging
 import os
 from pathlib import Path
@@ -61,7 +62,7 @@ TIRA_DB = {
 # Application definition
 
 INSTALLED_APPS = [
-    "tira.apps.TiraConfig",
+    "tira_app.apps.TiraConfig",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -83,7 +84,7 @@ MIDDLEWARE = [
 ]
 
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": ("tira.authentication.TrustedHeaderAuthentication",),
+    "DEFAULT_AUTHENTICATION_CLASSES": ("tira_app.authentication.TrustedHeaderAuthentication",),
     "DEFAULT_FILTER_BACKENDS": ("rest_framework_json_api.django_filters.DjangoFilterBackend",),
 }
 
@@ -304,7 +305,9 @@ USE_L10N = True
 
 USE_TZ = True
 
-TIREX_COMPONENTS = yaml.load(open(BASE_DIR / "src" / "tirex-components.yml").read(), Loader=yaml.FullLoader)
+TIREX_COMPONENTS = yaml.load(
+    (resources.files("tira_app.res") / "tirex-components.yml").read_bytes(), Loader=yaml.FullLoader
+)
 
 GIT_CI_AVAILABLE_RESOURCES = {
     "small-resources": {

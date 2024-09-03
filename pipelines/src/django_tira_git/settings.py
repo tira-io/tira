@@ -66,7 +66,7 @@ TIRA_DB = {
 # Application definition
 
 INSTALLED_APPS = [
-    "tira.apps.TiraConfig",
+    "tira_app.apps.TiraConfig",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
