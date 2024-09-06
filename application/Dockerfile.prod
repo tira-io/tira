@@ -56,6 +56,7 @@ pip3 install -q --no-cache-dir --user ../python-client .[test,deploy]
 chmod +x ./src/tira_app/endpoints/aha  # FIXME; aha is not copied to the Production Container
 
 # Run tests
+export TIRA_CONFIG="/tira/config/tira-application-config.yml"
 make setup
 cd test
 pytest

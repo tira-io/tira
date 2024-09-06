@@ -28,6 +28,8 @@ jobs:
           sudo bash -c 'mkdir -p "/etc/discourse/" && echo "I am so secret" > "/etc/discourse/client-api-key"'
           pip3 install .[dev,test]
           make setup
+        env:
+          TIRA_CONFIG: ${{github.workspace}}/application/config/tira-application-config.yml
       - name: Run backend tests
         working-directory: ${{github.workspace}}/application/test
         run: pytest
