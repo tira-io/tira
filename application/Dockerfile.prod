@@ -57,6 +57,7 @@ chmod +x ./src/tira_app/endpoints/aha  # FIXME; aha is not copied to the Product
 
 # Run tests
 export TIRA_CONFIG="/tira/config/tira-application-config.yml"
+export TIRA_DEBUG=true
 make setup
 cd test
 pytest
