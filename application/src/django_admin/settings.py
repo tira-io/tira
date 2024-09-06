@@ -19,13 +19,15 @@ from pathlib import Path
 import yaml
 from pyaml_env import parse_config
 
+from tira_app.util import str2bool
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 custom_settings = {}
 cfgpath = os.environ.get("TIRA_CONFIG", str(BASE_DIR / "config" / "tira-application-config.yml"))
 logging.info(f"Load settings from {cfgpath}.")
-config = parse_config(cfgpath, default_value=None)
+config = parse_config(cfgpath, default_value=None, loader=yaml.FullLoader)
 custom_settings.update(config)
 
 if "database" not in custom_settings:
@@ -39,7 +41,7 @@ SECRET_KEY = custom_settings["django_secret"]
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = custom_settings["debug"]
+DEBUG = str2bool(custom_settings["debug"])
 ALLOWED_HOSTS = custom_settings["allowed_hosts"]
 
 TIRA_ROOT = Path(custom_settings["tira_root"])
@@ -95,6 +97,7 @@ MIDDLEWARE = [
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": ("tira_app.authentication.TrustedHeaderAuthentication",),
     "DEFAULT_FILTER_BACKENDS": ("rest_framework_json_api.django_filters.DjangoFilterBackend",),
+    "DEFAULT_RENDERER_CLASSES": ("rest_framework.renderers.JSONRenderer",),
 }
 
 ROOT_URLCONF = "django_admin.urls"

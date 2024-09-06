@@ -5,7 +5,6 @@ from pathlib import Path
 
 from django.conf import settings
 
-from . import tira_model
 from .proto import TiraClientWebMessages_pb2 as modelpb
 
 logger = logging.getLogger("tira")
@@ -114,6 +113,11 @@ def link_to_discourse_team(vm_id):
 
 
 def register_run(dataset_id, vm_id, run_id, software_id):
+    # import tira_model has to be done here since it has a side-effect with django and throws
+    # django.core.exceptions.AppRegistryNotReady: Apps aren't loaded yet.
+    # if it is imported before django is launched otherwise.
+    from . import tira_model
+
     path_for_run = Path(settings.TIRA_ROOT) / "data" / "runs" / dataset_id / vm_id / run_id
 
     with open(path_for_run / "run.prototext", "w") as f:
@@ -191,3 +195,12 @@ def docker_image_details(image):
     ret = ret[0]
     image_id = ret["Id"] if ":" not in ret["Id"] else ret["Id"].split(":")[1]
     return {"image_id": image_id, "size": ret["Size"], "virtual_size": ret["VirtualSize"]}
+
+
+def str2bool(text: str) -> bool:
+    """
+    Extracts the boolean meaning of the given text. A string of the form "yes", "y", "true", "t", and "1" is
+    considered to express the boolean value True. The string may be in upper case as well (e.g., TRUE or True) and may
+    be surrounded by whitespaces. Any value that is not considered true, will return false.
+    """
+    return text.strip().lower() in ("yes", "y", "true", "t", "1")

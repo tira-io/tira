@@ -1,8 +1,8 @@
 [tool.black]
 line-length = 120
 exclude = '''/(
-    src/tira/migrations
-    | src/tira/proto
+    src/tira_app/migrations
+    | src/tira_app/proto
 )'''
 
 [tool.isort]
@@ -11,8 +11,8 @@ multi_line_output = 3
 line_length = 120
 include_trailing_comma = true
 skip = [
-    "src/tira/migrations",
-    "src/tira/proto",
+    "src/tira_app/migrations",
+    "src/tira_app/proto",
 ]
 
 [tool.mypy]
@@ -21,8 +21,8 @@ explicit_package_bases = true
 ignore_missing_imports = true
 install_types = true
 exclude = [
-    "^src/tira/proto/.*\\.py$",
-    "^src/tira/migrations/.*\\.py$",
+    "^src/tira_app/proto/.*\\.py$",
+    "^src/tira_app/migrations/.*\\.py$",
 ]
 
 [tool.pytest.ini_options]
@@ -33,3 +33,5 @@ python_files = "test_*.py"
 [tool.pytest_env]
 HF_HOME = "./tira-root/huggingface"
 TIRA_ROOT = "./tira-root"
+TIRA_CONFIG = "../config/tira-application-config.yml"
+TIRA_DEBUG = true

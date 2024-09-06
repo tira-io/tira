@@ -7,9 +7,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.request import Request
 from rest_framework.response import Response
-
-# TODO: this does not work so I hardcoded for now
-# from tira import __version__ as tira_version
+from tira import __version__ as tira_version
 
 tira_version = "0.0.136"
 rest_api_version = "v1.0.0-draft"

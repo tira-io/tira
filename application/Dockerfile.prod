@@ -12,7 +12,7 @@ FROM debian:stable-slim AS build
 ENV TZ=Europe/Berlin
 RUN <<EOF
 ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-apt-get update && apt-get install -y locales
+apt-get -qq update && apt-get -qq install -y locales
 echo "en_US.UTF-8 UTF-8" | tee -a /etc/locale.gen && locale-gen
 EOF
 
@@ -38,21 +38,21 @@ ENV PIP_BREAK_SYSTEM_PACKAGES=1
 ENV GRPC_PYTHON_BUILD_EXT_COMPILER_JOBS=16
 
 RUN <<EOF
-apt-get update
+apt-get -qq update
 # Tools
-apt-get install -y python3 python3-pip git pkg-config
+apt-get -qq install -y python3 python3-pip git pkg-config
 # Dependencies (stuff needed by at least one python package)
 # For MariaDB
-apt-get install -y default-libmysqlclient-dev
+apt-get -qq install -y default-libmysqlclient-dev
 EOF
 
 USER tira
 RUN <<EOF
-# Install dependencies
-pip3 install --no-cache-dir --user ../python-client .[test,deploy]
-
 export PATH="/home/tira/.local/bin:$PATH"
-python3 manage.py collectstatic
+
+# Install dependencies
+pip3 install -q --no-cache-dir --user ../python-client .[test,deploy]
+
 chmod +x ./src/tira_app/endpoints/aha  # FIXME; aha is not copied to the Production Container
 
 # Run tests
@@ -77,15 +77,16 @@ RUN useradd -ms /bin/bash tira
 # Copy Data & Install Python and Dependencies                                                                          #
 ########################################################################################################################
 COPY --from=build --chown=tira:tira /home/tira/.local /home/tira/.local
+COPY --from=build --chown=tira:tira /tira/config /tira/config
 COPY --from=build /tira/src/tira_app/management/commands/irds_cli.sh /irds_cli.sh
 
 RUN <<EOF
 ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-apt-get update && apt-get install -y locales
+apt-get -qq update && apt-get -qq install -y locales
 echo "en_US.UTF-8 UTF-8" | tee -a /etc/locale.gen && locale-gen
 
 # Tools
-apt-get install -y python3
+apt-get -qq install -y python3 python3-dev
 #
 mkdir -p /tira/application/src
 chown -R tira:tira /tira
@@ -98,7 +99,7 @@ USER tira
 ENV PATH=/home/tira/.local/bin:$PATH
 # CONFIGURE THE FOLLOWING ENVIRONMENT VARIABLES IN YOUR DOCKER-COMPOSE FILE
 ENV HF_HOME=/home/tira/data/publicly-shared-datasets/huggingface/
-ENV TIRA_CONFIG=/tira/config/tira-application-config.docker.yml
+ENV TIRA_CONFIG=/tira/config/tira-application-config.yml
 ENV TIRA_DEBUG=false
 
 EXPOSE 80
