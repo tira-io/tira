@@ -50,6 +50,11 @@ COPY <<EOF /etc/discourse/client-api-key
 I am so secret
 EOF
 
+# Environment Variables for TIRA Configuration:
+ENV TIRA_ROOT=/workspaces/tira/model/src
+ENV TIRA_CONFIG=/workspaces/tira/application/config/tira-application-config.yml
+ENV TIRA_DEBUG=true
+
 ########################################################################################################################
 # Client                                                                                                               #
 ########################################################################################################################

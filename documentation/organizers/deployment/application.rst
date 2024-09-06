@@ -47,7 +47,7 @@ If you set up Discourse with `Disraptor <https://www.disraptor.org>`_, this will
 make TIRA work with it.
 
 (1) Since TIRA has a legacy and a Disraptor :code:`deployment` mode first change that to :code:`disraptor` in the
-    development config file :code:`application/config/tira-application-config.dev.yml`.
+    development config file :code:`application/config/tira-application-config.yml`.
 (2) When you set up Disraptor you set a :code:`Disraptor App Secret Key` that allows Disraptor to communicate with your
     web application. Since TIRA has to evaluate that this secret is correct we have to supply it to it. TIRA expects
     that secret in an environment variable called :code:`DISRAPTOR_APP_SECRET_KEY`, so before starting your development
@@ -171,7 +171,7 @@ Setup on MacOS (Monterey/M1)
     .. code:: bash
 
         brew install python@3.10 pipenv pyvenv mariadb uwsgi
-(2) Inside :code:`tira/application/config/tira-application-config.dev.yml` change :code:`tira_root` to the model you
+(2) Inside :code:`tira/application/config/tira-application-config.yml` change :code:`tira_root` to the model you
     want to use.
 (3) From within :code:`tira/application` execute the makefile at least once. This copies the config and runs
     :code:`manage.py index_model` once.

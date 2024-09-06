@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
+import errno
 import importlib.resources as resources
 import logging
 import os
@@ -22,10 +23,7 @@ from pyaml_env import parse_config
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 custom_settings = {}
-# for cfg in (BASE_DIR / "config").glob("*.yml"):
-#    print(f"Load settings from {cfg}.")
-#    custom_settings.update(yaml.load(open(cfg, "r").read(), Loader=yaml.FullLoader))
-cfgpath = os.environ.get("TIRA_CONFIG", str(BASE_DIR / "config" / "tira-application-config.dev.yml"))
+cfgpath = os.environ.get("TIRA_CONFIG", str(BASE_DIR / "config" / "tira-application-config.yml"))
 logging.info(f"Load settings from {cfgpath}.")
 config = parse_config(cfgpath, default_value=None)
 custom_settings.update(config)
@@ -37,20 +35,20 @@ if "database" not in custom_settings:
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = custom_settings.get("django_secret", "not-so-secret")
+SECRET_KEY = custom_settings["django_secret"]
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = custom_settings.get("debug", True)
-ALLOWED_HOSTS = custom_settings.get("allowed_hosts", [])
+DEBUG = custom_settings["debug"]
+ALLOWED_HOSTS = custom_settings["allowed_hosts"]
 
-TIRA_ROOT = Path(custom_settings.get("tira_root", BASE_DIR.parents[1] / "model" / "src"))
+TIRA_ROOT = Path(custom_settings["tira_root"])
 if not TIRA_ROOT.is_dir():
     logging.warning(f"{TIRA_ROOT} does not exists and will be created now.")
 
 (TIRA_ROOT / "state").mkdir(parents=True, exist_ok=True)
 
-DISRAPTOR_SECRET_FILE = Path(custom_settings.get("disraptor_secret_file", "/etc/discourse/client-api-key"))
+DISRAPTOR_SECRET_FILE = Path(custom_settings["disraptor_secret_file"])
 HOST_GRPC_PORT = custom_settings.get("host_grpc_port", "50051")
 APPLICATION_GRPC_PORT = custom_settings.get("application_grpc_port", "50052")
 GRPC_HOST = custom_settings.get("grpc_host", "local")  # can be local or remote
@@ -361,24 +359,6 @@ else:
         raise PermissionError(f"Can not write to {ld} in production mode.")
 
 
-# Password validation
-# https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
-
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    },
-]
-
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
 
@@ -415,7 +395,10 @@ REFERENCE_DATASETS = {
 }
 
 CODE_SUBMISSION_REPOSITORY_NAMESPACE = "tira-io"
-try:
-    DISRAPTOR_API_KEY = open(DISRAPTOR_SECRET_FILE, "r").read().strip()
-except Exception:
-    pass
+if DISRAPTOR_SECRET_FILE.exists():
+    DISRAPTOR_API_KEY = DISRAPTOR_SECRET_FILE.read_text().strip()
+elif DEBUG:
+    logging.warning(f"The Disraptor Secret File, {DISRAPTOR_SECRET_FILE}, could not be found.")
+    DISRAPTOR_API_KEY = ""
+else:
+    raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), str(DISRAPTOR_SECRET_FILE))
