@@ -2,8 +2,10 @@
 # At some point, Dockerfile.application* and Dockerfile.basis should be obsolete and can be deleted. If you read this in
 # the future and that is the case, then "Hello Future Person" and also please delete these dockerfiles.
 
+# !!!             This Dockerfile needs to be build from the project root and NOT the application folder             !!!
+
 ########################################################################################################################
-# Production Container                                                                                                 #
+# Build Container                                                                                                      #
 ########################################################################################################################
 FROM debian:stable-slim AS build
 
@@ -19,7 +21,6 @@ EOF
 ########################################################################################################################
 RUN useradd -ms /bin/bash tira
 
-
 ########################################################################################################################
 # Copy all neccessary files over                                                                                       #
 ########################################################################################################################
@@ -28,13 +29,12 @@ WORKDIR /tira/
 COPY --chown=tira:tira ./application ./
 COPY --chown=tira:tira ./python-client ../python-client
 
-
 ########################################################################################################################
 # Install Python and Dependencies                                                                                      #
 ########################################################################################################################
 USER root
 ENV PIP_BREAK_SYSTEM_PACKAGES=1
-# For faster build of GRPCIO
+# For faster build of GRPCIO (TODO: remove when GRPC is not used anymore)
 ENV GRPC_PYTHON_BUILD_EXT_COMPILER_JOBS=16
 
 RUN <<EOF
@@ -49,17 +49,11 @@ EOF
 USER tira
 RUN <<EOF
 # Install dependencies
-pip3 install --no-cache-dir --user ../python-client .[test]
-EOF
+pip3 install --no-cache-dir --user ../python-client .[test,deploy]
 
-USER root
-RUN cp ./src/tira_app/management/commands/irds_cli.sh /irds_cli.sh
-
-USER tira
-RUN <<EOF
 export PATH="/home/tira/.local/bin:$PATH"
 python3 manage.py collectstatic
-chmod +x ./src/tira_app/endpoints/aha
+chmod +x ./src/tira_app/endpoints/aha  # FIXME; aha is not copied to the Production Container
 
 # Run tests
 make setup
@@ -67,30 +61,31 @@ cd test
 pytest
 EOF
 
+
+
 ########################################################################################################################
 # Production Container                                                                                                 #
 ########################################################################################################################
 FROM debian:stable-slim
-
 
 ########################################################################################################################
 # Create User                                                                                                          #
 ########################################################################################################################
 RUN useradd -ms /bin/bash tira
 
-
+########################################################################################################################
+# Copy Data & Install Python and Dependencies                                                                          #
+########################################################################################################################
 COPY --from=build --chown=tira:tira /home/tira/.local /home/tira/.local
-COPY --from=build /irds_cli.sh /irds_cli.sh
+COPY --from=build /tira/src/tira_app/management/commands/irds_cli.sh /irds_cli.sh
 
 RUN <<EOF
 ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 apt-get update && apt-get install -y locales
 echo "en_US.UTF-8 UTF-8" | tee -a /etc/locale.gen && locale-gen
 
-apt-get update
 # Tools
-apt-get install -y python3 python3-pip
-export PIP_BREAK_SYSTEM_PACKAGES=1; pip3 install uwsgi
+apt-get install -y python3
 #
 mkdir -p /tira/application/src
 chown -R tira:tira /tira
@@ -100,9 +95,10 @@ EOF
 # Final Configuration Stuff                                                                                            #
 ########################################################################################################################
 USER tira
-# CONFIGURE THIS ENVIRONMENT VARIABLE IN YOUR DOCKER-COMPOSE FILE
-ENV HF_HOME=/home/tira/data/publicly-shared-datasets/huggingface/
 ENV PATH=/home/tira/.local/bin:$PATH
+# CONFIGURE THE FOLLOWING ENVIRONMENT VARIABLES IN YOUR DOCKER-COMPOSE FILE
+ENV HF_HOME=/home/tira/data/publicly-shared-datasets/huggingface/
+ENV TIRA_CONFIG=/tira/config/tira-application-config.docker.yml
 
 EXPOSE 80
 

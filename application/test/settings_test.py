@@ -16,13 +16,19 @@ import os
 from pathlib import Path
 
 import yaml
+from pyaml_env import parse_config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 custom_settings = {}
-for cfg in (BASE_DIR / "config").glob("*.yml"):
-    custom_settings.update(yaml.load(open(cfg, "r").read(), Loader=yaml.FullLoader))
+# for cfg in (BASE_DIR / "config").glob("*.yml"):
+#    print(f"Load settings from {cfg}.")
+#    custom_settings.update(yaml.load(open(cfg, "r").read(), Loader=yaml.FullLoader))
+cfgpath = os.environ.get("TIRA_CONFIG", str(BASE_DIR / "config" / "tira-application-config.dev.yml"))
+logging.info(f"Load settings from {cfgpath}.")
+config = parse_config(cfgpath, default_value=None)
+custom_settings.update(config)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/

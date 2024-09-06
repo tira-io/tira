@@ -32,3 +32,4 @@ python_files = "test_*.py"
 
 [tool.pytest_env]
 HF_HOME = "./tira-root/huggingface"
+TIRA_ROOT = "./tira-root"
