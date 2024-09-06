@@ -5,8 +5,6 @@ allowed_hosts:
 django_secret: "not-so-secret"
 # ---
 tira_root: !ENV ${TIRA_ROOT:/tira}
-# deployment = {disraptor}
-deployment: disraptor
 # disraptor_secret_file: /etc/discourse/client-api-key
 # The directory where logs are written to. Defaults to TIRA_ROOT/log/tira-application
 # logging_dir: /mnt/ceph/tira/log/tira-application
@@ -22,4 +20,5 @@ database:
   password: TODO-ENTER-PASSWORD # ignored when using sqlite3
   host: tira-mariadb # ignored when using sqlite3
   port: 3306 # ignored when using sqlite3
-
+github_token: !ENV ${TIRA_GITHUB_TOKEN}
+discourse_api_url: !ENV ${DISCOURSE_API_URL:https://www.tira.io}

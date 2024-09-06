@@ -15,6 +15,7 @@ import logging
 import os
 from pathlib import Path
 
+import yaml
 from pyaml_env import parse_config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -49,7 +50,6 @@ if not TIRA_ROOT.is_dir():
 
 (TIRA_ROOT / "state").mkdir(parents=True, exist_ok=True)
 
-DEPLOYMENT = custom_settings.get("deployment", "disraptor")
 DISRAPTOR_SECRET_FILE = Path(custom_settings.get("disraptor_secret_file", "/etc/discourse/client-api-key"))
 HOST_GRPC_PORT = custom_settings.get("host_grpc_port", "50051")
 APPLICATION_GRPC_PORT = custom_settings.get("application_grpc_port", "50052")
@@ -328,7 +328,7 @@ IR_MEASURES_COMMAND = custom_settings.get(
     ' ${inputDataset}/qrels.txt --output ${outputDir} --measures "P@10" "nDCG@10" "MRR"',
 )
 
-GITHUB_TOKEN = custom_settings.get("github_token", "<TOKEN>")
+GITHUB_TOKEN = custom_settings["github_token"]
 
 # Caching
 CACHES = {
@@ -392,7 +392,7 @@ USE_L10N = True
 
 USE_TZ = True
 
-DISCOURSE_API_URL = "https://www.tira.io"
+DISCOURSE_API_URL = custom_settings["discourse_api_url"]
 PUBLIC_TRAINING_DATA = set(["jena-topics-20231026-test", "leipzig-topics-20231025-test"])
 
 CODE_SUBMISSION_REFERENCE_REPOSITORIES = {

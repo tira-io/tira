@@ -474,7 +474,7 @@ Best regards"""
         )
 
 
-auth = Authentication(authentication_source=settings.DEPLOYMENT)
+auth = Authentication(authentication_source="disraptor")
 
 
 """

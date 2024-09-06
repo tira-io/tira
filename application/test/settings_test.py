@@ -47,7 +47,6 @@ if not TIRA_ROOT.is_dir():
 
 (TIRA_ROOT / "state").mkdir(parents=True, exist_ok=True)
 
-DEPLOYMENT = "disraptor"
 DISRAPTOR_SECRET_FILE = Path(custom_settings.get("disraptor_secret_file", "/etc/discourse/client-api-key"))
 HOST_GRPC_PORT = custom_settings.get("host_grpc_port", "50051")
 APPLICATION_GRPC_PORT = custom_settings.get("application_grpc_port", "50052")
@@ -246,12 +245,28 @@ def logger_config(log_dir: Path):
     }
 
 
+# Git Integration
+GIT_CI_AVAILABLE_RESOURCES = {
+    "small-resources": {
+        "cores": 1,
+        "ram": 10,
+        "gpu": 0,
+        "data": "no",
+        "description": "Small (1 CPU Cores, 10GB of RAM)",
+        "key": "small-resources",
+    },
+}
+
+DEFAULT_GIT_INTEGRATION_URL = "https://git.webis.de/code-research/tira"
+
 IR_MEASURES_IMAGE = custom_settings.get("IR_MEASURES_IMAGE", "webis/tira-ir-measures-evaluator:0.0.1")
 IR_MEASURES_COMMAND = custom_settings.get(
     "IR_MEASURES_COMMAND",
     "/ir_measures_evaluator.py --run ${inputRun}/run.txt --topics ${inputDataset}/queries.jsonl --qrels"
     ' ${inputDataset}/qrels.txt --output ${outputDir} --measures "P@10" "nDCG@10" "MRR"',
 )
+
+GITHUB_TOKEN = custom_settings["github_token"]
 
 # Caching
 CACHES = {
@@ -262,6 +277,10 @@ CACHES = {
         "OPTIONS": {"MAX_ENTRIES": 100000},
     }
 }
+
+TIREX_COMPONENTS = yaml.load(
+    (resources.files("tira_app.res") / "tirex-components.yml").read_bytes(), Loader=yaml.FullLoader
+)
 
 # Logging
 ld = Path(custom_settings.get("logging_dir", TIRA_ROOT / "log" / "tira-application"))
@@ -311,27 +330,18 @@ USE_L10N = True
 
 USE_TZ = True
 
-TIREX_COMPONENTS = yaml.load(
-    (resources.files("tira_app.res") / "tirex-components.yml").read_bytes(), Loader=yaml.FullLoader
-)
-
-GIT_CI_AVAILABLE_RESOURCES = {
-    "small-resources": {
-        "cores": 1,
-        "ram": 10,
-        "gpu": 0,
-        "data": "no",
-        "description": "Small (1 CPU Cores, 10GB of RAM)",
-        "key": "small-resources",
-    }
-}
+DISCOURSE_API_URL = custom_settings["discourse_api_url"]
+PUBLIC_TRAINING_DATA = set(["jena-topics-20231026-test", "leipzig-topics-20231025-test"])
 
 CODE_SUBMISSION_REFERENCE_REPOSITORIES = {
     "ir-lab-jena-leipzig-wise-2023": "mam10eks/tira-software-submission-template",
     "webpage-classification": "OpenWebSearch/irixys23-tira-submission-template",
 }
-CODE_SUBMISSION_REPOSITORY_NAMESPACE = "tira-io"
-DISRAPTOR_API_KEY = ""
-DISCOURSE_API_URL = ""
-PUBLIC_TRAINING_DATA = set(["jena-topics-20231026-test", "leipzig-topics-20231025-test"])
+
 REFERENCE_DATASETS: dict[str, str] = {}
+
+CODE_SUBMISSION_REPOSITORY_NAMESPACE = "tira-io"
+try:
+    DISRAPTOR_API_KEY = open(DISRAPTOR_SECRET_FILE, "r").read().strip()
+except Exception:
+    pass
