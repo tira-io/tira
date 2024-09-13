@@ -1,8 +1,8 @@
 <template>
   <tira-breadcrumb />
-  <loading :loading="task_list.length === 0" />
+  <loading :loading="task_list === undefined" />
 
-  <v-container v-if="task_list.length > 0">
+  <v-container v-if="task_list !== undefined">
     <h3 class="text-h3 py-5">Choose a Task</h3>
     <div class="py-5"></div>
     <div class="d-flex">
@@ -101,7 +101,7 @@ export default {
         { title: 'Subs', key: 'software_count' },
         { text: 'Description', value: 'data-table-expand' },
       ],
-      task_list: [] as Task[],
+      task_list: undefined as (Task[] | undefined),
     }
   },
   methods: {

@@ -9,7 +9,3 @@ run-tests:
 	docker run -u root --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${PWD}:/app -w /app --entrypoint pytest webis/tira:python-client-dev-0.0.5
 	docker run -u root --rm -v /var/run/docker.sock:/var/run/docker.sock -v ${PWD}:/app -w /app --entrypoint pytest webis/tira:python-client-dev-0.0.5-python3.7
 	docker run -u root --rm -v /var/run/docker.sock:/run/user/0/podman/podman.sock -v ${PWD}:/app -w /app --entrypoint pytest webis/tira:python-client-dev-0.0.5-python3.7
-
-docs:
-	docker run --rm -ti -v ${PWD}:/app -w /app webis/tira:python-client-dev-0.0.3 bash -c \
-	    'sphinx-apidoc -o docs tira/ && cd docs && make html'

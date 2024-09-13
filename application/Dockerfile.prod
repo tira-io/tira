@@ -51,7 +51,7 @@ RUN <<EOF
 export PATH="/home/tira/.local/bin:$PATH"
 
 # Install dependencies
-pip3 install -q --no-cache-dir --user ../python-client .[test,deploy]
+pip3 install -q --no-cache-dir --user ../python-client .[test,deploy,postgreqsql]
 
 chmod +x ./src/tira_app/endpoints/aha  # FIXME; aha is not copied to the Production Container
 

@@ -14,11 +14,11 @@ grpc_host: local
 host_grpc_port: 50051
 application_grpc_port: 50052
 database:
-  engine: django.db.backends.sqlite3 # django.db.backends.mysql or django.db.backends.sqlite3
-  name: tira # when backend is sqlite, this will be the name of the database below TIRA_ROOT/state
-  user: tira # ignored when using sqlite3
-  password: TODO-ENTER-PASSWORD # ignored when using sqlite3
-  host: tira-mariadb # ignored when using sqlite3
-  port: 3306 # ignored when using sqlite3
+  engine: !ENV ${TIRA_DB_ENGINE:django.db.backends.sqlite3} # django.db.backends.mysql or django.db.backends.sqlite3
+  name: !ENV ${TIRA_DB_NAME:tira} # when backend is sqlite, this will be the name of the database below TIRA_ROOT/state
+  user: !ENV ${TIRA_DB_USER:tira} # ignored when using sqlite3
+  password: !ENV ${TIRA_DB_PASSWORD} # ignored when using sqlite3
+  host: !ENV ${TIRA_DB_HOST:tira-mariadb} # ignored when using sqlite3
+  port: !ENV ${TIRA_DB_PORT:3306} # ignored when using sqlite3
 github_token: !ENV ${TIRA_GITHUB_TOKEN}
 discourse_api_url: !ENV ${DISCOURSE_API_URL:https://www.tira.io}

@@ -30,6 +30,12 @@ logging.info(f"Load settings from {cfgpath}.")
 config = parse_config(cfgpath, default_value=None, loader=yaml.FullLoader)
 custom_settings.update(config)
 
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = str2bool(custom_settings["debug"])
+
+if DEBUG:
+    logging.basicConfig(level=logging.DEBUG, force=True)
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
@@ -37,8 +43,6 @@ custom_settings.update(config)
 SECRET_KEY = custom_settings["django_secret"]
 
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = str2bool(custom_settings["debug"])
 ALLOWED_HOSTS = custom_settings["allowed_hosts"]
 
 TIRA_ROOT = Path(custom_settings["tira_root"])
@@ -51,14 +55,14 @@ DISRAPTOR_SECRET_FILE = Path(custom_settings["disraptor_secret_file"])
 HOST_GRPC_PORT = custom_settings.get("host_grpc_port", "50051")
 APPLICATION_GRPC_PORT = custom_settings.get("application_grpc_port", "50052")
 GRPC_HOST = custom_settings.get("grpc_host", "local")  # can be local or remote
-
+TIRA_DB_NAME = custom_settings["database"]["name"]
 TIRA_DB = {
-    "ENGINE": "django.db.backends.sqlite3",
-    "NAME": "test-database/sqlite3",
-    "USER": "tira",
-    "PASSWORD": "replace-with-db-password",
-    "HOST": "tira-mariadb",
-    "PORT": 3306,
+    "ENGINE": custom_settings["database"]["engine"],
+    "NAME": TIRA_DB_NAME,
+    "USER": custom_settings["database"]["user"],
+    "PASSWORD": custom_settings["database"]["password"],
+    "HOST": custom_settings["database"]["host"],
+    "PORT": int(custom_settings["database"]["port"]),
     "TEST": {
         "NAME": "test_tira",
         "ENGINE": "django.db.backends.sqlite3",
@@ -72,7 +76,6 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
-    "django_extensions",
     "django_filters",
     "rest_framework",
     "rest_framework_json_api",
