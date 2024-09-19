@@ -94,10 +94,6 @@ apt-get -qq install -y mariadb-client
 #
 mkdir -p /tira/application/src
 chown -R tira:tira /tira
-
-# Allow binding port 80
-apt-get -qq install libcap2-bin
-setcap CAP_NET_BIND_SERVICE=+eip /home/tira/.local/bin/uwsgi
 EOF
 
 
@@ -124,7 +120,7 @@ ENV HF_HOME=/home/tira/data/publicly-shared-datasets/huggingface/
 ENV TIRA_CONFIG=/tira/config/tira-application-config.yml
 ENV TIRA_DEBUG=false
 
-EXPOSE 80
+EXPOSE 8080
 
 # TODO: at some point it probably makes sense, not to use /tira/application/src as a working directory anymore
 CMD ["uwsgi", "--strict", "--master", "--enable-threads", "--module", "django_admin.wsgi:application", "--chdir", "/tira/application/src", "--processes", "50", "--http-socket", ":80", "--vacuum", "--max-requests", "5000"]
