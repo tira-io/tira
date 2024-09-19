@@ -3,11 +3,6 @@ name: Publish Docker images
 on:
   release:
     types: [published]
-  # TODO: The run on push should be removed (or commented out) in the future. It is here only for testing purposes
-  # while the deployment is WiP
-  push:
-    branches:
-      - updated_backend_deployment
 
 env:
   REGISTRY: ghcr.io
