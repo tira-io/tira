@@ -26,22 +26,20 @@ for cfg in (BASE_DIR / "config").glob("*.yml"):
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = custom_settings.get("django_secret", "not-so-secret")
+# https://docs.djangoproject.com/en/5.1/ref/settings/#std-setting-SECRET_KEY
+SECRET_KEY = custom_settings["django_secret"]
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = custom_settings.get("debug", True)
-ALLOWED_HOSTS = custom_settings.get("allowed_hosts", [])
+DEBUG = custom_settings["debug"]
+ALLOWED_HOSTS = custom_settings["allowed_hosts"]
 
-TIRA_ROOT = Path(
-    custom_settings.get("tira_root", BASE_DIR.parents[1] / "tira-model" / "src")
-)
+TIRA_ROOT = Path(custom_settings["tira_root"])
 if not TIRA_ROOT.is_dir():
     raise FileNotFoundError(
         f"TIRA_ROOT must point to an existing tira model but points to {TIRA_ROOT} instead."
     )
 
-DEPLOYMENT = custom_settings.get("deployment", "disraptor")
 DISRAPTOR_SECRET_FILE = Path(
     custom_settings.get("disraptor_secret_file", "/etc/discourse/client-api-key")
 )
@@ -66,7 +64,7 @@ TIRA_DB = {
 # Application definition
 
 INSTALLED_APPS = [
-    "tira.apps.TiraConfig",
+    "tira_app.apps.TiraConfig",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",

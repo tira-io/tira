@@ -10,57 +10,62 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
+import importlib.resources as resources
 import logging
 import os
 from pathlib import Path
 
 import yaml
+from pyaml_env import parse_config
+
+from tira_app.util import str2bool
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 custom_settings = {}
-for cfg in (BASE_DIR / "config").glob("*.yml"):
-    print(f"Load settings from {cfg}.")
-    custom_settings.update(yaml.load(open(cfg, "r").read(), Loader=yaml.FullLoader))
+cfgpath = os.environ.get("TIRA_CONFIG", str(BASE_DIR / "config" / "tira-application-config.yml"))
+logging.info(f"Load settings from {cfgpath}.")
+config = parse_config(cfgpath, default_value=None, loader=yaml.FullLoader)
+custom_settings.update(config)
 
-if "database" not in custom_settings:
-    custom_settings["database"] = {}
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = str2bool(custom_settings["debug"])
+
+if DEBUG:
+    logging.basicConfig(level=logging.DEBUG, force=True)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = custom_settings.get("django_secret", "not-so-secret")
+# https://docs.djangoproject.com/en/5.1/ref/settings/#std-setting-SECRET_KEY
+SECRET_KEY = custom_settings["django_secret"]
 
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = custom_settings.get("debug", True)
-ALLOWED_HOSTS = custom_settings.get("allowed_hosts", [])
+ALLOWED_HOSTS = custom_settings["allowed_hosts"]
 
-TIRA_ROOT = Path(custom_settings.get("tira_root", BASE_DIR.parents[1] / "model" / "src"))
+TIRA_ROOT = Path(custom_settings["tira_root"])
 if not TIRA_ROOT.is_dir():
     logging.warning(f"{TIRA_ROOT} does not exists and will be created now.")
 
 (TIRA_ROOT / "state").mkdir(parents=True, exist_ok=True)
 
-DEPLOYMENT = custom_settings.get("deployment", "disraptor")
-DISRAPTOR_SECRET_FILE = Path(custom_settings.get("disraptor_secret_file", "/etc/discourse/client-api-key"))
 HOST_GRPC_PORT = custom_settings.get("host_grpc_port", "50051")
 APPLICATION_GRPC_PORT = custom_settings.get("application_grpc_port", "50052")
 GRPC_HOST = custom_settings.get("grpc_host", "local")  # can be local or remote
 TIRA_DB_NAME = (
-    Path(TIRA_ROOT / "state") / f"{custom_settings['database'].get('name', 'tira')}.sqlite3"
-    if custom_settings["database"].get("engine", "django.db.backends.sqlite3") == "django.db.backends.sqlite3"
-    else custom_settings["database"].get("name", "tira")
+    Path(TIRA_ROOT / "state") / f"{custom_settings['database']['name']}.sqlite3"
+    if custom_settings["database"]["engine"] == "django.db.backends.sqlite3"
+    else custom_settings["database"]["name"]
 )
 TIRA_DB = {
-    "ENGINE": custom_settings["database"].get("engine", "django.db.backends.sqlite3"),
+    "ENGINE": custom_settings["database"]["engine"],
     "NAME": TIRA_DB_NAME,
-    "USER": custom_settings["database"].get("user", "tira"),
-    "PASSWORD": custom_settings["database"].get("password", "replace-with-db-password"),
-    "HOST": custom_settings["database"].get("host", "tira-mariadb"),
-    "PORT": int(custom_settings["database"].get("port", 3306)),
+    "USER": custom_settings["database"]["user"],
+    "PASSWORD": custom_settings["database"]["password"],
+    "HOST": custom_settings["database"]["host"],
+    "PORT": int(custom_settings["database"]["port"]),
     "TEST": {
         "NAME": "test_tira",
         "ENGINE": "django.db.backends.sqlite3",
@@ -69,7 +74,7 @@ TIRA_DB = {
 # Application definition
 
 INSTALLED_APPS = [
-    "tira.apps.TiraConfig",
+    "tira_app.apps.TiraConfig",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -77,7 +82,6 @@ INSTALLED_APPS = [
     "django_filters",
     "rest_framework",
     "rest_framework_json_api",
-    "webpack_loader",
 ]
 
 MIDDLEWARE = [
@@ -91,8 +95,9 @@ MIDDLEWARE = [
 ]
 
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": ("tira.authentication.TrustedHeaderAuthentication",),
+    "DEFAULT_AUTHENTICATION_CLASSES": ("tira_app.authentication.TrustedHeaderAuthentication",),
     "DEFAULT_FILTER_BACKENDS": ("rest_framework_json_api.django_filters.DjangoFilterBackend",),
+    "DEFAULT_RENDERER_CLASSES": ("rest_framework.renderers.JSONRenderer",),
 }
 
 ROOT_URLCONF = "django_admin.urls"
@@ -324,7 +329,7 @@ IR_MEASURES_COMMAND = custom_settings.get(
     ' ${inputDataset}/qrels.txt --output ${outputDir} --measures "P@10" "nDCG@10" "MRR"',
 )
 
-GITHUB_TOKEN = custom_settings.get("github_token", "<TOKEN>")
+GITHUB_TOKEN = custom_settings["github_token"]
 
 # Caching
 CACHES = {
@@ -336,8 +341,9 @@ CACHES = {
     }
 }
 
-# FIXME: I don't close my file handle :((((((((
-TIREX_COMPONENTS = yaml.load(open(BASE_DIR / "tirex-components.yml").read(), Loader=yaml.FullLoader)
+TIREX_COMPONENTS = yaml.load(
+    (resources.files("tira_app.res") / "tirex-components.yml").read_bytes(), Loader=yaml.FullLoader
+)
 
 # Logging
 ld = Path(custom_settings.get("logging_dir", TIRA_ROOT / "log" / "tira-application"))
@@ -356,24 +362,6 @@ else:
         raise PermissionError(f"Can not write to {ld} in production mode.")
 
 
-# Password validation
-# https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
-
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    },
-]
-
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
 
@@ -387,15 +375,8 @@ USE_L10N = True
 
 USE_TZ = True
 
-WEBPACK_LOADER = {
-    "DEFAULT": {
-        "CACHE": DEBUG,
-        "BUNDLE_DIR_NAME": "/bundles/",
-        "STATS_FILE": BASE_DIR / "tira" / "frontend" / "webpack-stats.json",
-    }
-}
-
-DISCOURSE_API_URL = "https://www.tira.io"
+DISCOURSE_API_URL = custom_settings["discourse_api_url"]
+DISRAPTOR_API_KEY = custom_settings["discourse_api_key"]
 PUBLIC_TRAINING_DATA = set(["jena-topics-20231026-test", "leipzig-topics-20231025-test"])
 
 CODE_SUBMISSION_REFERENCE_REPOSITORIES = {
@@ -418,7 +399,3 @@ REFERENCE_DATASETS = {
 }
 
 CODE_SUBMISSION_REPOSITORY_NAMESPACE = "tira-io"
-try:
-    DISRAPTOR_API_KEY = open(DISRAPTOR_SECRET_FILE, "r").read().strip()
-except Exception:
-    pass

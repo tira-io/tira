@@ -1,7 +1,7 @@
 from django.test import TestCase
 from utils_for_testing import mock_request, set_up_tira_environment
 
-from tira.authentication import auth
+from tira_app.authentication import auth
 
 submit_url_task_1 = "submit/task-of-organizer-1"
 overview_url_task_1 = "task-overview/task-of-organizer-1"

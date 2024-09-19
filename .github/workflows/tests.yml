@@ -8,7 +8,7 @@ jobs:
     timeout-minutes: 15
     strategy:
       matrix:
-        python-version: ["3.9", "3.10"]
+        python-version: ["3.11", "3.12"]
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python ${{ matrix.python-version }}
@@ -20,14 +20,16 @@ jobs:
         run: |
           # Install tira from the repository since the pip version may not be up-to-date enough.
           # The install musst be editable (-e) since importing from tira fails otherwise
-          pip3 install -e .[dev,test]
+          pip3 install .[dev,test]
       - name: Install dependencies
         working-directory: ${{github.workspace}}/application
         run: |
-          # Create a dummy DISRAPTOR_API_KEY
-          sudo bash -c 'mkdir -p "/etc/discourse/" && echo "I am so secret" > "/etc/discourse/client-api-key"'
-          pip3 install -e .[dev,test]
+          pip3 install .[dev,test]
           make setup
+        env:
+          TIRA_ROOT: ${{github.workspace}}/model/src
+          TIRA_CONFIG: ${{github.workspace}}/application/config/tira-application-config.yml
+          DISCOURSE_API_KEY: "I am so secret"
       - name: Run backend tests
         working-directory: ${{github.workspace}}/application/test
         run: pytest

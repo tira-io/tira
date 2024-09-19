@@ -3,14 +3,24 @@
 
 <head>
     <meta charset="UTF-8" />
-    <link rel="icon" href="/favicon.ico" />
+    <link rel="icon" href="./favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TIRA Reproducible Experiments</title>
 </head>
 
 <body>
     <div id="app"></div>
-    <script type="module" src="/src/main.ts"></script>
+    <script type="module" src="./src/main.ts"></script>
+
+    <!-- This is a work-around since otherwise back and forth buttons don't work with Disraptor TODO: find a better solution-->
+    <script>
+        setTimeout(function () {
+            try {
+                //this is intended to enable browser back/forth buttons
+                register_app()
+            } catch (Error) { }
+        }, 50);
+    </script>
 </body>
 
 </html>

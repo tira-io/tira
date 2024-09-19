@@ -16,9 +16,9 @@ from django.http.request import QueryDict
 from django.urls import URLPattern, URLResolver
 from rest_framework.test import APIRequestFactory
 
-import tira.model as modeldb
-from tira.authentication import TrustedHeaderAuthentication
-from tira.tira_model import model as tira_model
+import tira_app.model as modeldb
+from tira_app.authentication import TrustedHeaderAuthentication
+from tira_app.tira_model import model as tira_model
 
 auth_backend = TrustedHeaderAuthentication()  # There must be a way to get this from rest_framework right?
 

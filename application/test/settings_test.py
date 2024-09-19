@@ -10,49 +10,58 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
+import importlib.resources as resources
 import logging
 import os
 from pathlib import Path
 
 import yaml
+from pyaml_env import parse_config
+
+from tira_app.util import str2bool
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 custom_settings = {}
-for cfg in (BASE_DIR / "config").glob("*.yml"):
-    custom_settings.update(yaml.load(open(cfg, "r").read(), Loader=yaml.FullLoader))
+cfgpath = os.environ.get("TIRA_CONFIG", str(BASE_DIR / "config" / "tira-application-config.yml"))
+logging.info(f"Load settings from {cfgpath}.")
+config = parse_config(cfgpath, default_value=None, loader=yaml.FullLoader)
+custom_settings.update(config)
+
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = str2bool(custom_settings["debug"])
+
+if DEBUG:
+    logging.basicConfig(level=logging.DEBUG, force=True)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = custom_settings.get("django_secret", "not-so-secret")
+# https://docs.djangoproject.com/en/5.1/ref/settings/#std-setting-SECRET_KEY
+SECRET_KEY = custom_settings["django_secret"]
 
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = custom_settings.get("debug", True)
-ALLOWED_HOSTS = custom_settings.get("allowed_hosts", [])
+ALLOWED_HOSTS = custom_settings["allowed_hosts"]
 
-TIRA_ROOT = Path(custom_settings.get("tira_root", BASE_DIR / "test" / "tira-root"))
+TIRA_ROOT = Path(custom_settings["tira_root"])
 if not TIRA_ROOT.is_dir():
     logging.warning(f"{TIRA_ROOT} does not exists and will be created now.")
 
 (TIRA_ROOT / "state").mkdir(parents=True, exist_ok=True)
 
-DEPLOYMENT = "disraptor"
-DISRAPTOR_SECRET_FILE = Path(custom_settings.get("disraptor_secret_file", "/etc/discourse/client-api-key"))
 HOST_GRPC_PORT = custom_settings.get("host_grpc_port", "50051")
 APPLICATION_GRPC_PORT = custom_settings.get("application_grpc_port", "50052")
 GRPC_HOST = custom_settings.get("grpc_host", "local")  # can be local or remote
-
+TIRA_DB_NAME = custom_settings["database"]["name"]
 TIRA_DB = {
-    "ENGINE": "django.db.backends.sqlite3",
-    "NAME": "test-database/sqlite3",
-    "USER": "tira",
-    "PASSWORD": "replace-with-db-password",
-    "HOST": "tira-mariadb",
-    "PORT": 3306,
+    "ENGINE": custom_settings["database"]["engine"],
+    "NAME": TIRA_DB_NAME,
+    "USER": custom_settings["database"]["user"],
+    "PASSWORD": custom_settings["database"]["password"],
+    "HOST": custom_settings["database"]["host"],
+    "PORT": int(custom_settings["database"]["port"]),
     "TEST": {
         "NAME": "test_tira",
         "ENGINE": "django.db.backends.sqlite3",
@@ -61,7 +70,7 @@ TIRA_DB = {
 # Application definition
 
 INSTALLED_APPS = [
-    "tira.apps.TiraConfig",
+    "tira_app.apps.TiraConfig",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -69,7 +78,6 @@ INSTALLED_APPS = [
     "django_filters",
     "rest_framework",
     "rest_framework_json_api",
-    "webpack_loader",
 ]
 
 MIDDLEWARE = [
@@ -83,8 +91,9 @@ MIDDLEWARE = [
 ]
 
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": ("tira.authentication.TrustedHeaderAuthentication",),
+    "DEFAULT_AUTHENTICATION_CLASSES": ("tira_app.authentication.TrustedHeaderAuthentication",),
     "DEFAULT_FILTER_BACKENDS": ("rest_framework_json_api.django_filters.DjangoFilterBackend",),
+    "DEFAULT_RENDERER_CLASSES": ("rest_framework.renderers.JSONRenderer",),
 }
 
 ROOT_URLCONF = "django_admin.urls"
@@ -239,12 +248,28 @@ def logger_config(log_dir: Path):
     }
 
 
+# Git Integration
+GIT_CI_AVAILABLE_RESOURCES = {
+    "small-resources": {
+        "cores": 1,
+        "ram": 10,
+        "gpu": 0,
+        "data": "no",
+        "description": "Small (1 CPU Cores, 10GB of RAM)",
+        "key": "small-resources",
+    },
+}
+
+DEFAULT_GIT_INTEGRATION_URL = "https://git.webis.de/code-research/tira"
+
 IR_MEASURES_IMAGE = custom_settings.get("IR_MEASURES_IMAGE", "webis/tira-ir-measures-evaluator:0.0.1")
 IR_MEASURES_COMMAND = custom_settings.get(
     "IR_MEASURES_COMMAND",
     "/ir_measures_evaluator.py --run ${inputRun}/run.txt --topics ${inputDataset}/queries.jsonl --qrels"
     ' ${inputDataset}/qrels.txt --output ${outputDir} --measures "P@10" "nDCG@10" "MRR"',
 )
+
+GITHUB_TOKEN = custom_settings["github_token"]
 
 # Caching
 CACHES = {
@@ -255,6 +280,10 @@ CACHES = {
         "OPTIONS": {"MAX_ENTRIES": 100000},
     }
 }
+
+TIREX_COMPONENTS = yaml.load(
+    (resources.files("tira_app.res") / "tirex-components.yml").read_bytes(), Loader=yaml.FullLoader
+)
 
 # Logging
 ld = Path(custom_settings.get("logging_dir", TIRA_ROOT / "log" / "tira-application"))
@@ -273,24 +302,6 @@ else:
         raise PermissionError(f"Can not write to {ld} in production mode.")
 
 
-# Password validation
-# https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
-
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    },
-]
-
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
 
@@ -304,33 +315,15 @@ USE_L10N = True
 
 USE_TZ = True
 
-WEBPACK_LOADER = {
-    "DEFAULT": {
-        "CACHE": DEBUG,
-        "BUNDLE_DIR_NAME": "/bundles/",
-        "STATS_FILE": BASE_DIR / "src" / "tira" / "frontend" / "webpack-stats.json",
-    }
-}
-
-TIREX_COMPONENTS = yaml.load(open(BASE_DIR / "src" / "tirex-components.yml").read(), Loader=yaml.FullLoader)
-
-GIT_CI_AVAILABLE_RESOURCES = {
-    "small-resources": {
-        "cores": 1,
-        "ram": 10,
-        "gpu": 0,
-        "data": "no",
-        "description": "Small (1 CPU Cores, 10GB of RAM)",
-        "key": "small-resources",
-    }
-}
+DISCOURSE_API_URL = custom_settings["discourse_api_url"]
+DISRAPTOR_API_KEY = custom_settings["discourse_api_key"]
+PUBLIC_TRAINING_DATA = set(["jena-topics-20231026-test", "leipzig-topics-20231025-test"])
 
 CODE_SUBMISSION_REFERENCE_REPOSITORIES = {
     "ir-lab-jena-leipzig-wise-2023": "mam10eks/tira-software-submission-template",
     "webpage-classification": "OpenWebSearch/irixys23-tira-submission-template",
 }
-CODE_SUBMISSION_REPOSITORY_NAMESPACE = "tira-io"
-DISRAPTOR_API_KEY = ""
-DISCOURSE_API_URL = ""
-PUBLIC_TRAINING_DATA = set(["jena-topics-20231026-test", "leipzig-topics-20231025-test"])
+
 REFERENCE_DATASETS: dict[str, str] = {}
+
+CODE_SUBMISSION_REPOSITORY_NAMESPACE = "tira-io"

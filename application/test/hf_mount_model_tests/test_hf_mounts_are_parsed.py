@@ -2,7 +2,7 @@ import unittest
 
 from huggingface_hub import snapshot_download
 
-from tira.huggingface_hub_integration import _hf_repos, huggingface_model_mounts
+from tira_app.huggingface_hub_integration import _hf_repos, huggingface_model_mounts
 
 
 class TestHfMountsAreParsed(unittest.TestCase):

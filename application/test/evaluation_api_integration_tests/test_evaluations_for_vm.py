@@ -4,8 +4,8 @@ from api_access_matrix import ADMIN
 from django.test import TestCase
 from utils_for_testing import method_for_url_pattern, mock_request, now, set_up_tira_filesystem
 
-import tira.model as modeldb
-from tira.tira_model import model as tira_model
+import tira_app.model as modeldb
+from tira_app.tira_model import model as tira_model
 
 url = "api/evaluations-of-vm/<str:task_id>/<str:vm_id>"
 evaluations_function = method_for_url_pattern(url)

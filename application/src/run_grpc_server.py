@@ -2,7 +2,7 @@ import os
 
 import django
 
-from tira.grpc import grpc_server
+from tira_app.grpc import grpc_server
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "django_admin.settings")
 

@@ -3,7 +3,7 @@ from datetime import datetime
 from django.test import TestCase
 from utils_for_testing import set_up_tira_environment
 
-from tira.tira_model import model
+from tira_app.tira_model import model
 
 now = datetime.now().strftime("%Y%m%d")
 
