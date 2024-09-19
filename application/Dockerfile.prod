@@ -98,7 +98,7 @@ EOF
 ########################################################################################################################
 # Copy Data & Install Python and Dependencies                                                                          #
 ########################################################################################################################
-COPY --from=build --chown=tira:tira /tira/application/src/manage.py /home/tira/manage.py
+COPY --from=build --chown=tira:tira /tira/src/manage.py /home/tira/manage.py
 
 RUN <<EOF
 apt-get -qq install sudo podman
