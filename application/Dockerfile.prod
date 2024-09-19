@@ -125,7 +125,3 @@ EXPOSE 80
 
 # TODO: at some point it probably makes sense, not to use /tira/application/src as a working directory anymore
 CMD ["uwsgi", "--strict", "--master", "--enable-threads", "--module", "django_admin.wsgi:application", "--chdir", "/tira/application/src", "--processes", "50", "--http-socket", ":80", "--vacuum", "--max-requests", "5000"]
-
-
-
-uwsgi --strict --master --enable-threads --module django_admin.wsgi:application --chdir /tira/application/src --processes 50 --http-socket :80 --vacuum --max-requests 5000
