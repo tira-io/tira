@@ -94,6 +94,20 @@ mkdir -p /tira/application/src
 chown -R tira:tira /tira
 EOF
 
+
+########################################################################################################################
+# Copy Data & Install Python and Dependencies                                                                          #
+########################################################################################################################
+COPY --from=build --chown=tira:tira /tira/application/src/manage.py /home/tira/manage.py
+
+RUN <<EOF
+apt-get -qq install sudo podman
+useradd -ms /bin/bash tira
+# Change tira's password to tira
+echo 'tira:tira' | chpasswd
+usermod -aG sudo tira
+EOF
+
 ########################################################################################################################
 # Final Configuration Stuff                                                                                            #
 ########################################################################################################################
