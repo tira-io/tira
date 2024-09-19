@@ -10,7 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
-import errno
 import importlib.resources as resources
 import logging
 import os
@@ -52,7 +51,6 @@ if not TIRA_ROOT.is_dir():
 
 (TIRA_ROOT / "state").mkdir(parents=True, exist_ok=True)
 
-DISRAPTOR_SECRET_FILE = Path(custom_settings["disraptor_secret_file"])
 HOST_GRPC_PORT = custom_settings.get("host_grpc_port", "50051")
 APPLICATION_GRPC_PORT = custom_settings.get("application_grpc_port", "50052")
 GRPC_HOST = custom_settings.get("grpc_host", "local")  # can be local or remote
@@ -378,6 +376,7 @@ USE_L10N = True
 USE_TZ = True
 
 DISCOURSE_API_URL = custom_settings["discourse_api_url"]
+DISRAPTOR_API_KEY = custom_settings["discourse_api_key"]
 PUBLIC_TRAINING_DATA = set(["jena-topics-20231026-test", "leipzig-topics-20231025-test"])
 
 CODE_SUBMISSION_REFERENCE_REPOSITORIES = {
@@ -400,10 +399,3 @@ REFERENCE_DATASETS = {
 }
 
 CODE_SUBMISSION_REPOSITORY_NAMESPACE = "tira-io"
-if DISRAPTOR_SECRET_FILE.exists():
-    DISRAPTOR_API_KEY = DISRAPTOR_SECRET_FILE.read_text().strip()
-elif DEBUG:
-    logging.warning(f"The Disraptor Secret File, {DISRAPTOR_SECRET_FILE}, could not be found.")
-    DISRAPTOR_API_KEY = ""
-else:
-    raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), str(DISRAPTOR_SECRET_FILE))

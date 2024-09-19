@@ -2,10 +2,9 @@
 debug: !ENV ${TIRA_DEBUG:false}
 allowed_hosts:
   - "*"
-django_secret: "not-so-secret"
+django_secret: !ENV ${DJANGO_SECRET:change-me!}
 # ---
 tira_root: !ENV ${TIRA_ROOT:/tira}
-disraptor_secret_file: /etc/discourse/client-api-key
 # The directory where logs are written to. Defaults to TIRA_ROOT/log/tira-application
 # logging_dir: /mnt/ceph/tira/log/tira-application
 # grpc_host can be local or remote. If local, it will call localhost (i.e. for testing). If remote, it will call the vm-host
@@ -22,3 +21,4 @@ database:
   port: !ENV ${TIRA_DB_PORT:3306} # ignored when using sqlite3
 github_token: !ENV ${TIRA_GITHUB_TOKEN}
 discourse_api_url: !ENV ${DISCOURSE_API_URL:https://www.tira.io}
+discourse_api_key: !ENV ${DISCOURSE_API_KEY:""}
