@@ -9,7 +9,6 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from tira import __version__ as tira_version
 
-tira_version = "0.0.136"
 rest_api_version = "v1.0.0-draft"
 
 
