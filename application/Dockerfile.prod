@@ -107,8 +107,8 @@ useradd -ms /bin/bash tira
 echo 'tira:tira' | chpasswd
 usermod -aG sudo tira
 
-# apt-get install libmariadb-dev #############
-apt-get install mariadb-client #############
+# apt-get -qq install libmariadb-dev #############
+apt-get -qq install mariadb-client #############
 EOF
 
 ########################################################################################################################
