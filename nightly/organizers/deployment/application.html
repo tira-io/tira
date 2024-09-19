@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../../genindex.html" /><link rel="search" title="Search" href="../../search.html" /><link rel="next" title="Deploying the Frontend" href="frontend.html" /><link rel="prev" title="Deployment" href="index.html" />
 
     <!-- Generated with Sphinx 8.0.2 and Furo 2024.08.06 -->
-        <title>Deploying the Application Module - TIRA</title>
+        <title>Deploying the Backend - TIRA</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../../_static/umlet.css" />
@@ -220,7 +220,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../intro.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../organizing-tasks.html">Organizing Tasks</a></li>
 <li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">Deployment</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Deployment</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
-<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Deploying the Application Module</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Deploying the Backend</a></li>
 <li class="toctree-l2"><a class="reference internal" href="frontend.html">Deploying the Frontend</a></li>
 <li class="toctree-l2"><a class="reference internal" href="demo.html">Demo Deployment</a></li>
 <li class="toctree-l2"><a class="reference internal" href="frontend_legacy.html">Deploying the Frontend (Legacy)</a></li>
@@ -304,61 +304,114 @@
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="deploying-the-application-module">
-<h1>Deploying the Application Module<a class="headerlink" href="#deploying-the-application-module" title="Link to this heading">¶</a></h1>
-<section id="development-setup">
-<h2>Development Setup<a class="headerlink" href="#development-setup" title="Link to this heading">¶</a></h2>
-<p>The following steps will setup a self-contained, local tira application and a mockup tira host. See <a class="reference internal" href="#development">Development</a> for
-more detailed options.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Install Python3, pip and virtualenv</span>
-sudo<span class="w"> </span>apt-get<span class="w"> </span>update<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>python3<span class="w"> </span>python3-pip<span class="w"> </span>python3-venv<span class="w"> </span>libmysqlclient-dev
-<span class="c1"># Setup the local environment</span>
-make<span class="w"> </span>setup<span class="w">  </span><span class="c1"># This creates the virtual environment and prepares Django&#39;s database</span>
-<span class="c1"># Setup the local environment</span>
-make<span class="w"> </span>run-develop<span class="w">  </span><span class="c1"># This updates the config and runs the server within the venv.</span>
+          <section id="deploying-the-backend">
+<h1>Deploying the Backend<a class="headerlink" href="#deploying-the-backend" title="Link to this heading">¶</a></h1>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>TIRA makes greate use of the internet forum tool <a class="reference external" href="https://www.discourse.org/">Discourse</a>. Before you
+continue, please set up a Discourse instance and install the reverse proxy plugin
+<a class="reference external" href="https://www.disraptor.org">Disraptor</a>.</p>
+</div>
+<p>The TIRA backend is entirely contained within the official docker image,
+<a class="reference external" href="https://github.com/tira-io/tira/pkgs/container/tira-backend">ghcr.io/tira-io/tira-backend:latest</a>. To see, what a
+deployment using this container can look like, please have a look at our
+<a class="sd-sphinx-override sd-badge sd-bg-secondary sd-bg-text-secondary reference internal" href="demo.html#demo-deployment"><span class="std std-ref">demo deployment</span></a>.</p>
+<section id="configuring-tira">
+<h2>Configuring TIRA<a class="headerlink" href="#configuring-tira" title="Link to this heading">¶</a></h2>
+<p>TIRA can be configured using two ways (non-exclusive):</p>
+<ol class="arabic simple">
+<li><p>Environment variables</p></li>
+<li><p>A configuration file</p></li>
+</ol>
+<p>To kill two birds with one stone (only figuratively speaking), we refer you to the fully documented default
+configuration file (below). Any value of the form <code class="docutils literal notranslate"><span class="pre">!ENV</span> <span class="pre">${&lt;name&gt;:&lt;value&gt;}</span></code> indicates that the value is read from the
+environment variable <code class="docutils literal notranslate"><span class="pre">&lt;name&gt;</span></code> and, if that environment variable does not exist, the default value, <code class="docutils literal notranslate"><span class="pre">&lt;value&gt;</span></code> is
+assigned. This means, that, to set TIRA into debug mode, for example, you have two options:</p>
+<ol class="arabic simple">
+<li><p>The line <code class="docutils literal notranslate"><span class="pre">debug:</span> <span class="pre">!ENV</span> <span class="pre">${TIRA_DEBUG:false}</span></code> tells us that, per default, the debug mode is disabled but we can
+enable it by setting the environment variable <code class="docutils literal notranslate"><span class="pre">TIRA_DEBUG</span></code> to <code class="docutils literal notranslate"><span class="pre">true</span></code>.</p></li>
+<li><p>Copy the default configuration, replace <code class="docutils literal notranslate"><span class="pre">debug:</span> <span class="pre">!ENV</span> <span class="pre">${TIRA_DEBUG:false}</span></code> with <code class="docutils literal notranslate"><span class="pre">debug:</span> <span class="pre">true</span></code> and map the new
+configuration file into your container to <code class="docutils literal notranslate"><span class="pre">/tira/config/tira-application-config.yml</span></code> (this location can be
+changed using the <code class="docutils literal notranslate"><span class="pre">TIRA_CONFIG</span></code> environment variable).</p></li>
+</ol>
+<div class="literal-block-wrapper docutils container" id="id1">
+<div class="code-block-caption"><span class="caption-text">TIRA’s default configuration</span><a class="headerlink" href="#id1" title="Link to this code">¶</a></div>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># For your convenience, we marked secrets with [SECRET]. Make sure, you change these</span>
+<span class="c1"># values from their defaults!</span>
+
+<span class="c1">##########################################################################################</span>
+<span class="c1"># TIRA                                                                                   #</span>
+<span class="c1">##########################################################################################</span>
+<span class="c1"># Enables debug mode. This means more verbose output in the console and for the REST-API.</span>
+<span class="c1"># Settings this value to true in production is a security risk!</span>
+<span class="nt">debug</span><span class="p">:</span><span class="w"> </span><span class="kt">!ENV</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${TIRA_DEBUG:false}</span>
+
+<span class="nt">tira_root</span><span class="p">:</span><span class="w"> </span><span class="kt">!ENV</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${TIRA_ROOT:/tira}</span>
+<span class="c1"># The directory where logs are written to. Defaults to TIRA_ROOT/log/tira-application</span>
+<span class="c1"># logging_dir: /mnt/ceph/tira/log/tira-application</span>
+
+<span class="c1"># [SECRET]</span>
+<span class="nt">github_token</span><span class="p">:</span><span class="w"> </span><span class="kt">!ENV</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${TIRA_GITHUB_TOKEN}</span>
+
+<span class="c1">##########################################################################################</span>
+<span class="c1"># Database                                                                               #</span>
+<span class="c1">##########################################################################################</span>
+<span class="nt">database</span><span class="p">:</span>
+<span class="w">  </span><span class="c1"># django.db.backends.mysql or django.db.backends.sqlite3</span>
+<span class="w">  </span><span class="nt">engine</span><span class="p">:</span><span class="w"> </span><span class="kt">!ENV</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${TIRA_DB_ENGINE:django.db.backends.sqlite3}</span>
+<span class="w">  </span><span class="c1"># when backend is sqlite, this will be the name of the database below TIRA_ROOT/state</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="kt">!ENV</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${TIRA_DB_NAME:tira}</span>
+<span class="w">  </span><span class="nt">user</span><span class="p">:</span><span class="w"> </span><span class="kt">!ENV</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${TIRA_DB_USER:tira}</span><span class="w"> </span><span class="c1"># ignored when using sqlite3</span>
+<span class="w">  </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="kt">!ENV</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${TIRA_DB_PASSWORD}</span><span class="w"> </span><span class="c1"># ignored when using sqlite3</span>
+<span class="w">  </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="kt">!ENV</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${TIRA_DB_HOST:tira-mariadb}</span><span class="w"> </span><span class="c1"># ignored when using sqlite3</span>
+<span class="w">  </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="kt">!ENV</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${TIRA_DB_PORT:3306}</span><span class="w"> </span><span class="c1"># ignored when using sqlite3</span>
+
+<span class="c1">##########################################################################################</span>
+<span class="c1"># Discourse                                                                              #</span>
+<span class="c1">##########################################################################################</span>
+<span class="nt">discourse_api_url</span><span class="p">:</span><span class="w"> </span><span class="kt">!ENV</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${DISCOURSE_API_URL:https://www.tira.io}</span>
+
+<span class="c1"># [SECRET]</span>
+<span class="nt">discourse_api_key</span><span class="p">:</span><span class="w"> </span><span class="kt">!ENV</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${DISCOURSE_API_KEY:&quot;&quot;}</span>
+
+<span class="c1">##########################################################################################</span>
+<span class="c1"># Django                                                                                 #</span>
+<span class="c1">##########################################################################################</span>
+<span class="c1"># A list of hostnames using which the backend may be addressed. The value &quot;*&quot; denotes any</span>
+<span class="c1"># address. A value of [&quot;tira.example.com&quot;, &quot;example.com&quot;] would only allow requests made</span>
+<span class="c1"># addressing these hostnames. See</span>
+<span class="c1"># https://docs.djangoproject.com/en/5.1/ref/settings/#allowed-hosts for more information.</span>
+<span class="nt">allowed_hosts</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;*&quot;</span>
+
+<span class="c1"># [SECRET] See https://docs.djangoproject.com/en/5.1/ref/settings/#std-setting-SECRET_KEY</span>
+<span class="c1"># for more information.</span>
+<span class="nt">django_secret</span><span class="p">:</span><span class="w"> </span><span class="kt">!ENV</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${DJANGO_SECRET:change-me!}</span>
+
+<span class="c1">##########################################################################################</span>
+<span class="c1"># Deprecated and removed soon (we hope)                                                  #</span>
+<span class="c1">##########################################################################################</span>
+<span class="c1"># grpc_host can be local or remote. If local, it will call localhost (i.e., for testing).</span>
+<span class="c1"># If remote, it will call the vm-host. When developing, set this option to local,</span>
+<span class="c1"># otherwise you might accidentally remote-control the live-vms.</span>
+<span class="nt">grpc_host</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">local</span>
+<span class="nt">host_grpc_port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">50051</span>
+<span class="nt">application_grpc_port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">50052</span>
 </pre></div>
+</div>
+</div>
+<div class="admonition attention">
+<p class="admonition-title">Attention</p>
+<p>Some of these configuration parameters are <strong>secrets</strong> and should stay <em>secret</em>. Do not use their
+default values for production and use <a class="reference external" href="https://docs.docker.com/engine/swarm/secrets/">Docker secrets</a>
+to set them.</p>
 </div>
 </section>
-<section id="docker">
-<h2>Docker<a class="headerlink" href="#docker" title="Link to this heading">¶</a></h2>
-<p>You can run tira in a docker container for a simple deployment.</p>
-<p>You need to run two docker containers for a tira-application:</p>
-<ul class="simple">
-<li><p><code class="code docutils literal notranslate"><span class="pre">registry.webis.de/code-lib/public-images/tira-application</span></code> and</p></li>
-<li><p><code class="code docutils literal notranslate"><span class="pre">registry.webis.de/code-lib/public-images/tira-application-grpc</span></code>.</p></li>
-</ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>~$<span class="w"> </span>docker<span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </span>--rm<span class="w"> </span>--name<span class="o">=</span>tira-application<span class="w"> </span><span class="se">\</span>
-<span class="w">              </span>-p<span class="w"> </span><span class="m">8080</span>:80<span class="w"> </span><span class="se">\</span>
-<span class="w">              </span>-v<span class="o">=</span><span class="s2">&quot;&lt;/path/to/model&gt;&quot;</span>:/mnt/ceph/tira<span class="w"> </span><span class="se">\</span>
-<span class="w">              </span>registry.webis.de/code-lib/public-images/tira-application:latest
-
-~$<span class="w"> </span>docker<span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </span>--rm<span class="w"> </span>--name<span class="o">=</span>tira-application-grpc<span class="w"> </span><span class="se">\</span>
-<span class="w">             </span>-p<span class="w"> </span><span class="m">50052</span>:50052<span class="w"> </span><span class="se">\</span>
-<span class="w">              </span>-v<span class="o">=</span><span class="s2">&quot;&lt;/path/to/model&gt;&quot;</span>:/mnt/ceph/tira<span class="w"> </span><span class="se">\</span>
-<span class="w">              </span>registry.webis.de/code-lib/public-images/tira-application-grpc:latest
-</pre></div>
-</div>
-<section id="use-tira-with-discourse-via-disraptor">
-<h3>Use TIRA with Discourse via Disraptor<a class="headerlink" href="#use-tira-with-discourse-via-disraptor" title="Link to this heading">¶</a></h3>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This step is, in theory, optional but, if left out, user credentials will be transmitted and stored in
-plaintext and can be read by anyone using the public REST-API.</p>
-</div>
-<p>If you set up Discourse with <a class="reference external" href="https://www.disraptor.org">Disraptor</a>, this will be useful information on how to
-make TIRA work with it.</p>
-<ol class="arabic">
-<li><p>Since TIRA has a legacy and a Disraptor <code class="code docutils literal notranslate"><span class="pre">deployment</span></code> mode first change that to <code class="code docutils literal notranslate"><span class="pre">disraptor</span></code> in the
-development config file <code class="code docutils literal notranslate"><span class="pre">application/config/tira-application-config.dev.yml</span></code>.</p></li>
-<li><p>When you set up Disraptor you set a <code class="code docutils literal notranslate"><span class="pre">Disraptor</span> <span class="pre">App</span> <span class="pre">Secret</span> <span class="pre">Key</span></code> that allows Disraptor to communicate with your
-web application. Since TIRA has to evaluate that this secret is correct we have to supply it to it. TIRA expects
-that secret in an environment variable called <code class="code docutils literal notranslate"><span class="pre">DISRAPTOR_APP_SECRET_KEY</span></code>, so before starting your development
-TIRA environment with <code class="code docutils literal notranslate"><span class="pre">make</span> <span class="pre">run-develop</span></code> or <code class="code docutils literal notranslate"><span class="pre">make</span> <span class="pre">run-git-develop</span></code> always remember to
-<code class="code docutils literal notranslate"><span class="pre">export</span> <span class="pre">DISRAPTOR_APP_SECRET_KEY=&lt;your-secret-key&gt;</span></code>.</p></li>
-<li><p>Lastly, of course, Disraptor has to be supplied with the routes for TIRA at <code class="code docutils literal notranslate"><span class="pre">Settings</span> <span class="pre">&gt;</span> <span class="pre">Plugins</span> <span class="pre">&gt;</span> <span class="pre">Disraptor</span></code>.
+<section id="endpoints">
+<h2>Endpoints<a class="headerlink" href="#endpoints" title="Link to this heading">¶</a></h2>
+<p>Lastly, of course, Disraptor has to be supplied with the routes for TIRA at <code class="code docutils literal notranslate"><span class="pre">Settings</span> <span class="pre">&gt;</span> <span class="pre">Plugins</span> <span class="pre">&gt;</span> <span class="pre">Disraptor</span></code>.
 Since routes may change in the future and depending on what you want to test you maybe do no need the full set of
-routes arranged it is recommended to take a look at <code class="code docutils literal notranslate"><span class="pre">application/src/tira/urls.py</span></code>.  Here is an example of
+routes arranged it is recommended to take a look at <code class="code docutils literal notranslate"><span class="pre">application/src/tira/urls.py</span></code>. Here is an example of
 what can be used to have access to most of the <strong>current</strong> TIRA:</p>
 <div class="table-wrapper docutils container">
 <table class="docutils align-default">
@@ -417,132 +470,41 @@ what can be used to have access to most of the <strong>current</strong> TIRA:</p
 <td><p><cite>http://127.0.0.1:8080/tira/static/*wildcard</cite></p></td>
 <td><p>GET</p></td>
 </tr>
+<tr class="row-even"><td><p><cite>/health</cite></p></td>
+<td><p><cite>http://127.0.0.1:8080/health</cite></p></td>
+<td><p>GET</p></td>
+</tr>
+<tr class="row-odd"><td><p><cite>/info</cite></p></td>
+<td><p><cite>http://127.0.0.1:8080/info</cite></p></td>
+<td><p>GET</p></td>
+</tr>
+<tr class="row-even"><td><p><cite>/v1/*wildcard</cite></p></td>
+<td><p><cite>http://127.0.0.1:8080/v1/*wildcard</cite></p></td>
+<td><p>GET</p></td>
+</tr>
+<tr class="row-odd"><td><p><cite>/v1/*wildcard</cite></p></td>
+<td><p><cite>http://127.0.0.1:8080/v1/*wildcard</cite></p></td>
+<td><p>POST</p></td>
+</tr>
+<tr class="row-even"><td><p><cite>/v1/*wildcard</cite></p></td>
+<td><p><cite>http://127.0.0.1:8080/v1/*wildcard</cite></p></td>
+<td><p>DELETE</p></td>
+</tr>
+<tr class="row-odd"><td><p><cite>/v1/*wildcard</cite></p></td>
+<td><p><cite>http://127.0.0.1:8080/v1/*wildcard</cite></p></td>
+<td><p>UPDATE</p></td>
+</tr>
 </tbody>
 </table>
 </div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Let’s say route A gets added here first and then route B. Rails will evaluate them from latest to earliest. So
-when checking for a destination Rails will first look if route B matches before it checks route A and so on.
-This can lead to states where you might see unexpected behavior if your routes (namely these with wildcards)
-have interseting “To”-pools.</p>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>Routes that were added later take precedence over those added before when multiple rules match.</p>
 </div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Sometimes Rails does not instantly take in new routes so when adding new routes you might want to restart the
-Rails server.</p>
+<div class="admonition hint">
+<p class="admonition-title">Hint</p>
+<p>You may need to restart the Rails server to apply your changes.</p>
 </div>
-</li>
-</ol>
-</section>
-</section>
-<section id="build-and-deploy">
-<h2>Build and Deploy<a class="headerlink" href="#build-and-deploy" title="Link to this heading">¶</a></h2>
-<section id="run-the-tests">
-<h3>Run the tests<a class="headerlink" href="#run-the-tests" title="Link to this heading">¶</a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># run all tests in application/src/tira/tests</span>
-application/src~$<span class="w"> </span>python3<span class="w"> </span>manage.py<span class="w"> </span><span class="nb">test</span><span class="w"> </span><span class="nb">test</span><span class="w"> </span>tira/tests/
-<span class="c1"># run an individual test module</span>
-application/src~$<span class="w"> </span>python3<span class="w"> </span>manage.py<span class="w"> </span><span class="nb">test</span><span class="w"> </span><span class="nb">test</span><span class="w"> </span>tira/tests/tests.py
-</pre></div>
-</div>
-</section>
-<section id="deploy-on-kubernetes">
-<h3>Deploy on Kubernetes<a class="headerlink" href="#deploy-on-kubernetes" title="Link to this heading">¶</a></h3>
-<div class="admonition-todo admonition" id="id1">
-<p class="admonition-title">Todo</p>
-<p>This step is deprecated and the documentation must be updated</p>
-</div>
-<p>Add the discourse secret in the namespace via:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>???<span class="w"> </span>TODO?
-</pre></div>
-</div>
-</section>
-<section id="re-build-the-docker-images">
-<h3>Re-build the docker images<a class="headerlink" href="#re-build-the-docker-images" title="Link to this heading">¶</a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Build the protobuf libraries from source.</span>
-make<span class="w"> </span>build
-<span class="c1"># This creates the virtual environment and prepares Django&#39;s database</span>
-make<span class="w"> </span>setup
-<span class="c1"># Build the docker image (deploy mode with nginx)</span>
-make<span class="w"> </span>docker-build-tira-application
-<span class="c1"># Run the docker container with the make command (deploy mode)</span>
-make<span class="w"> </span>docker-run-tira-application
-<span class="c1"># (optional) Publish a new version</span>
-make<span class="w"> </span>docker-publish-tira-application
-</pre></div>
-</div>
-<p>These make targets from the deployment configuration: <code class="code docutils literal notranslate"><span class="pre">tira/application/config/settings-deploy.yml</span></code>.</p>
-</section>
-<section id="development">
-<h3>Development<a class="headerlink" href="#development" title="Link to this heading">¶</a></h3>
-<p>The settings used for the development setup are: <code class="code docutils literal notranslate"><span class="pre">tira/application/config/settings-dev.yml</span></code>.</p>
-<p>Frequently used development commands are:</p>
-<ul>
-<li><p>Start the application without any grpc server</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>application/src~$<span class="w"> </span>python3<span class="w"> </span>manage.py<span class="w"> </span>runserver<span class="w"> </span><span class="m">8080</span>
-</pre></div>
-</div>
-</li>
-<li><p>Start only the application’s grpc server</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>application/src~$<span class="w"> </span>python3<span class="w"> </span>manage.py<span class="w"> </span>grpc_server
-</pre></div>
-</div>
-</li>
-<li><p>Start the application and  the application’s grpc server. This is used in make run-develop and the container</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>application/src~$<span class="w"> </span>python3<span class="w"> </span>manage.py<span class="w"> </span>run_develop
-</pre></div>
-</div>
-</li>
-<li><p>Start the application, the application’s grpc server, and a mock host grpc server that will reply to the application
-with fake commands. This is the simplest way to develop the application.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>application/src~$<span class="w"> </span>python3<span class="w"> </span>manage.py<span class="w"> </span>run_mockup
-</pre></div>
-</div>
-</li>
-</ul>
-</section>
-</section>
-<section id="troubleshooting">
-<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading">¶</a></h2>
-<p>If there are problems with the precompiled protobuf parser, you can recompile them from the <code class="code docutils literal notranslate"><span class="pre">tira/protocol</span></code>
-repository and copy them to <code class="code docutils literal notranslate"><span class="pre">tira/application/src/tira/proto</span></code>.</p>
-<section id="setup-on-macos-monterey-m1">
-<h3>Setup on MacOS (Monterey/M1)<a class="headerlink" href="#setup-on-macos-monterey-m1" title="Link to this heading">¶</a></h3>
-<div class="admonition attention">
-<p class="admonition-title">Attention</p>
-<p>This part of the documentation is experimental and may not work for everyone.</p>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>We will assume that <a class="reference external" href="https://brew.sh/">brew</a> is installed.</p>
-</div>
-<ol class="arabic">
-<li><p>Install required software</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>brew<span class="w"> </span>install<span class="w"> </span>python@3.10<span class="w"> </span>pipenv<span class="w"> </span>pyvenv<span class="w"> </span>mariadb<span class="w"> </span>uwsgi
-</pre></div>
-</div>
-</li>
-<li><p>Inside <code class="code docutils literal notranslate"><span class="pre">tira/application/config/tira-application-config.dev.yml</span></code> change <code class="code docutils literal notranslate"><span class="pre">tira_root</span></code> to the model you
-want to use.</p></li>
-<li><p>From within <code class="code docutils literal notranslate"><span class="pre">tira/application</span></code> execute the makefile at least once. This copies the config and runs
-<code class="code docutils literal notranslate"><span class="pre">manage.py</span> <span class="pre">index_model</span></code> once.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>setup
-</pre></div>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>If above command did not work, you may try to build the venv and install the requirements manually by executing
-the following commands within <code class="code docutils literal notranslate"><span class="pre">tira/application</span></code></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3.10<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv
-<span class="nb">source</span><span class="w"> </span>venv/bin/activat
-pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
-</pre></div>
-</div>
-</div>
-</li>
-</ol>
-</section>
 </section>
 </section>
 
@@ -608,23 +570,9 @@ pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </s
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#">Deploying the Application Module</a><ul>
-<li><a class="reference internal" href="#development-setup">Development Setup</a></li>
-<li><a class="reference internal" href="#docker">Docker</a><ul>
-<li><a class="reference internal" href="#use-tira-with-discourse-via-disraptor">Use TIRA with Discourse via Disraptor</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#build-and-deploy">Build and Deploy</a><ul>
-<li><a class="reference internal" href="#run-the-tests">Run the tests</a></li>
-<li><a class="reference internal" href="#deploy-on-kubernetes">Deploy on Kubernetes</a></li>
-<li><a class="reference internal" href="#re-build-the-docker-images">Re-build the docker images</a></li>
-<li><a class="reference internal" href="#development">Development</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#troubleshooting">Troubleshooting</a><ul>
-<li><a class="reference internal" href="#setup-on-macos-monterey-m1">Setup on MacOS (Monterey/M1)</a></li>
-</ul>
-</li>
+<li><a class="reference internal" href="#">Deploying the Backend</a><ul>
+<li><a class="reference internal" href="#configuring-tira">Configuring TIRA</a></li>
+<li><a class="reference internal" href="#endpoints">Endpoints</a></li>
 </ul>
 </li>
 </ul>
