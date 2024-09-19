@@ -1,0 +1,701 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../../">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../../genindex.html" /><link rel="search" title="Search" href="../../search.html" /><link rel="next" title="&lt;no title&gt;" href="../../development/index.html" /><link rel="prev" title="Demo Deployment" href="demo.html" />
+
+    <!-- Generated with Sphinx 8.0.2 and Furo 2024.08.06 -->
+        <title>Deploying the Frontend (Legacy) - TIRA</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=354aac6f" />
+    <link rel="stylesheet" type="text/css" href="../../_static/umlet.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?v=302659d7" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=55730460" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../index.html"><div class="brand">TIRA</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../index.html">
+  
+  <div class="sidebar-logo-container">
+    <img class="sidebar-logo" src="https://assets.tira.io/tira-icons/tira-logo.svg" alt="Logo"/>
+  </div>
+  
+  
+</a><form class="sidebar-search-container" method="get" action="../../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">For Participants</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../participants/intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../participants/participate.html">Participating in a Shared Task</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../participants/tiracli.html">TIRA CLI</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../participants/python-client.html">Python Client</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Python Client</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../participants/python-client/tiraclient.html">TIRA Client</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../participants/python-client/pyterrier.html">Pyterrier Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../participants/python-client/ir-datasets.html">IR-Datasets Integration</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">For Organizers</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../organizing-tasks.html">Organizing Tasks</a></li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">Deployment</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Deployment</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="application.html">Deploying the Backend</a></li>
+<li class="toctree-l2"><a class="reference internal" href="frontend.html">Deploying the Frontend</a></li>
+<li class="toctree-l2"><a class="reference internal" href="demo.html">Demo Deployment</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Deploying the Frontend (Legacy)</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../development/contributing/index.html">Contributing</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Contributing</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../development/contributing/internals.html">Internals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../development/contributing/guidelines.html">Code Guidelines</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../development/devenvironment.html">Development Environment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../development/frontend/index.html">Frontend Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../development/backend/index.html">Backend Development</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../development/python-client/index.html">Developing the Python Client</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of Developing the Python Client</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../development/python-client/workflow.html">Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../development/python-client/subcommands.html">CLI Commands</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../development/documentation.html">Documentation</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../development/specification/index.html">Specification</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of Specification</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../development/specification/userstories.html">User Stories</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../development/specification/architecture.html">Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../development/specification/restapi.html">REST-API</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../development/specification/technology/index.html">Technology</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of Technology</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../development/specification/technology/jwt.html">JSON Web Token (JWT)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../development/changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../development/license.html">License</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Indices</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../genindex.html">Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../glossary.html">Glossary</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="https://github.com/tira-io/tira/blob/development/documentation/organizers/deployment/frontend_legacy.rst?plain=true" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div><div class="edit-this-page">
+  <a class="muted-link" href="https://github.com/tira-io/tira/edit/development/documentation/organizers/deployment/frontend_legacy.rst" title="Edit this page">
+    <svg><use href="#svg-pencil"></use></svg>
+    <span class="visually-hidden">Edit this page</span>
+  </a>
+</div><div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="deploying-the-frontend-legacy">
+<h1>Deploying the Frontend (Legacy)<a class="headerlink" href="#deploying-the-frontend-legacy" title="Link to this heading">¶</a></h1>
+<div class="admonition attention">
+<p class="admonition-title">Attention</p>
+<p>This page is in the process of being reworked. Please find the new version in <a class="sd-sphinx-override sd-badge sd-bg-secondary sd-bg-text-secondary reference internal" href="frontend.html"><span class="doc">Deploying the Frontend</span></a>.</p>
+</div>
+<section id="deploy-discourse-on-kubernetes">
+<h2>Deploy Discourse on Kubernetes<a class="headerlink" href="#deploy-discourse-on-kubernetes" title="Link to this heading">¶</a></h2>
+<section id="prerequisites">
+<h3>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading">¶</a></h3>
+<p>Software &amp; Packages</p>
+<ul class="simple">
+<li><p>awk</p></li>
+<li><p>curl</p></li>
+<li><p>docker</p></li>
+<li><p>kubernetes</p></li>
+<li><p>git</p></li>
+</ul>
+<p>Misc</p>
+<ul class="simple">
+<li><p>webis Ceph Secret</p></li>
+</ul>
+</section>
+<section id="production-environment">
+<h3>Production environment<a class="headerlink" href="#production-environment" title="Link to this heading">¶</a></h3>
+<p>The discourse production environent contains:</p>
+<ul class="simple">
+<li><p>1 Service                 (<a class="reference external" href="https://git.webis.de/code-generic/code-admin-knowledge-base/-/tree/master/services/tira/tira-discourse/prod/discourse-prod.yml">prod/discourse-prod.yml</a>)</p></li>
+<li><p>1 Deployment              (<a class="reference external" href="https://git.webis.de/code-generic/code-admin-knowledge-base/-/tree/master/services/tira/tira-discourse/prod/discourse-prod.yml">prod/discourse-prod.yml</a>)</p></li>
+<li><p>2 PersistentVolumeClaims  (<a class="reference external" href="https://git.webis.de/code-generic/code-admin-knowledge-base/-/tree/master/services/tira/tira-discourse/prod/discourse-prod-volumes.yml">prod/discourse-prod-volumes.yml</a>)</p></li>
+<li><p>1 Secret                  (file not stored in this repository)</p></li>
+</ul>
+<p>To deploy the files named basic scripts are provided.</p>
+</section>
+<section id="by-script">
+<h3>By Script<a class="headerlink" href="#by-script" title="Link to this heading">¶</a></h3>
+<p>To deploy via script all you have to do by hand is fill the information sufficient for your service into
+<code class="code docutils literal notranslate"><span class="pre">prod/data.yml</span></code>. Best create a copy with name <code class="code docutils literal notranslate"><span class="pre">your_service_name.yml</span></code> for that.</p>
+<div class="admonition danger">
+<p class="admonition-title">Danger</p>
+<p><strong>BE SURE THAT THIS INFORMATION IS NEVER LEAKED TO THE PUBLIC!</strong> The SMTP user <strong>WILL</strong> be highjacked.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <code class="code docutils literal notranslate"><span class="pre">developer_emails</span></code> should be a comma-separated list of mails, not a yaml-list.</p>
+</div>
+<div class="admonition caution">
+<p class="admonition-title">Caution</p>
+<p>Not giving all the information may lead to unexpected behavior.</p>
+</div>
+<p>It should look something like:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">service</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;my_service&quot;</span>
+<span class="nt">hostname</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;service.domain.io&quot;</span>
+<span class="nt">developer_emails</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;first@gmail.com,second@gmail.com&quot;</span>
+<span class="nt">smtp</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">address</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;smtp.amazonaws.com&quot;</span>
+<span class="w">    </span><span class="nt">username</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;AKFHAKJSFJBKVAWUHFIA&quot;</span>
+<span class="w">    </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;KAWFdjwdjahWAHkaFHJwhja&quot;</span>
+<span class="w">    </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">587</span>
+</pre></div>
+</div>
+<p>Next manipulate the information in the service configuration :code::<cite>prod/discourse-prod.yml</cite>. Especially you may need
+to change NodePorts and image description.</p>
+<p>After filling the information issue</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>prod
+./setup-discourse<span class="w"> </span>-u<span class="w"> </span>&lt;DOCKERHUB_USER&gt;<span class="w"> </span>-i<span class="w"> </span>&lt;DOCKERHUB_IMAGENAME&gt;<span class="w"> </span>-f<span class="w"> </span>&lt;your_service_name.yml&gt;
+</pre></div>
+</div>
+<p>Everything should be set up now and the container should be running soon.</p>
+</section>
+<section id="by-hand">
+<h3>By Hand<a class="headerlink" href="#by-hand" title="Link to this heading">¶</a></h3>
+<section id="id2">
+<h4>Prerequisites<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h4>
+<section id="secret">
+<h5>Secret<a class="headerlink" href="#secret" title="Link to this heading">¶</a></h5>
+<p>Before the deployment itself can be applied the secret containing SMTP information has to exist.</p>
+<p>For the deployment a SMTP server and a Domain Name are needed. The secret stores information about concerning SMTP.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Secret</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">discourse-prod-secret</span>
+<span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Opaque</span>
+<span class="nt">stringData</span><span class="p">:</span>
+<span class="nt">discourse_developer_emails</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;&lt;DEVELOPER_MAIL_1&gt;,&lt;DEVELOPER_MAIL_2&gt;,...&quot;</span>
+<span class="nt">discourse_smtp_address</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;&lt;SMTP_SERVER&gt;&quot;</span>
+<span class="nt">discourse_smtp_user_name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;&lt;SMTP_USERNAME&gt;&quot;</span>
+<span class="nt">discourse_smtp_password</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;&lt;SMTP_PASSWORD&gt;&quot;</span>
+</pre></div>
+</div>
+<p>Currently AWS SES provides mailing for us. For the information log into the AWS Console, find
+<code class="code docutils literal notranslate"><span class="pre">Simple</span> <span class="pre">Email</span> <span class="pre">Service</span></code> and under <code class="code docutils literal notranslate"><span class="pre">Domains</span></code> check if there is an entry for the domain that the Discourse
+instance is referring to.</p>
+<p>If this is the case, click <code class="code docutils literal notranslate"><span class="pre">SMTP</span> <span class="pre">Settings</span></code> on the left. Here you find SMTP server adress and port.</p>
+<p>Now only username and passwort are needed to use the SES server. If there already has been an entry for the domain, you
+are working with chances are, that there also is an existing user. Best ask around your team (User + Password are in the
+<code class="code docutils literal notranslate"><span class="pre">passdb</span></code>).</p>
+<p>When there is no user yet you can create one at
+<code class="code docutils literal notranslate"><span class="pre">Create</span> <span class="pre">My</span> <span class="pre">SMTP</span> <span class="pre">Credentials</span> <span class="pre">&gt;</span> <span class="pre">Create</span> <span class="pre">&gt;</span> <span class="pre">Show</span> <span class="pre">User</span> <span class="pre">SMTP</span> <span class="pre">Credentials</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This information is not shown again, so be sure to note it down in a safe place.</p>
+</div>
+<p>Lastly developer mails are mails of your choice used for signin in as an admin after startup.
+You may now fill in the gaps in the YAML above, save it under <code class="code docutils literal notranslate"><span class="pre">&lt;name_of_your_choice&gt;.yml</span></code> and apply it to
+Kubernetes via</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>&lt;name_of_your_choice&gt;.yml
+</pre></div>
+</div>
+<p>Be aware that the name in <code class="code docutils literal notranslate"><span class="pre">discourse-prod.yml</span></code> concerning the secret has to match that
+<code class="code docutils literal notranslate"><span class="pre">&lt;name_of_your_choice&gt;</span></code>.</p>
+</section>
+<section id="image">
+<h5>Image<a class="headerlink" href="#image" title="Link to this heading">¶</a></h5>
+<p>The image for the Discourse instance gets created following the tutorial for
+<a class="reference external" href="https://github.com/discourse/discourse/blob/master/docs/INSTALL-cloud.md#Install-Discourse">discourse_docker</a>. I will
+repeat the steps here since there will be some differences.</p>
+<p>First clone the related repository.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>-s
+<span class="c1"># git clone https://github.com/discourse/discourse_docker.git /var/discourse</span>
+<span class="c1"># cd /var/discourse</span>
+</pre></div>
+</div>
+<p>Next use discourse_dockers launcher to setup the configuration for image creation. Here a file is created at
+<code class="code docutils literal notranslate"><span class="pre">containers/app.yml</span></code>.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># ./discourse-setup</span>
+</pre></div>
+</div>
+<p>You will be asked for the following information. You do not actually have to give the information here, since Discourse
+will pull the information from the <a class="reference external" href="#secret">earlier created secret</a>. You may just supply dummy information.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Hostname for your Discourse? [discourse.example.com]:
+Email address for admin account(s)? [me@example.com,you@example.com]:
+SMTP server address? [smtp.example.com]:
+SMTP port? [587]:
+SMTP user name? [user@example.com]:
+SMTP password? [pa$$word]:
+Let&#39;s Encrypt account email? (ENTER to skip) [me@example.com]:
+</pre></div>
+</div>
+<p>When filling these be sure to also overwrite the <code class="code docutils literal notranslate"><span class="pre">SMTP</span> <span class="pre">port</span></code> with <code class="code docutils literal notranslate"><span class="pre">587</span></code> (if your SMTP server listens to
+that), even when it seems to default to <code class="code docutils literal notranslate"><span class="pre">587</span></code>. If you don’t there might be problems with sending mail, because
+Discourse (sometimes) uses <code class="code docutils literal notranslate"><span class="pre">25</span></code> else. Requests on port <code class="code docutils literal notranslate"><span class="pre">25</span></code> cannot reach AWS SES servers from the Webis
+network (for some reason).</p>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>If there occurs any error (which is very likely already at the domain check) you have to edit
+<code class="code docutils literal notranslate"><span class="pre">containers/app.yml</span></code> yourself. If so, enter the information which is mentioned aboee at the position you find
+it in the file. When you entered them restart the building process via <code class="code docutils literal notranslate"><span class="pre">./launcher</span> <span class="pre">rebuild</span> <span class="pre">app</span></code>. Do not skip
+this!</p>
+</div>
+<p>After the setup edit the file at <code class="code docutils literal notranslate"><span class="pre">containers/app.yml</span></code> as follows:</p>
+<ul class="simple">
+<li><p>rename the file to <code class="code docutils literal notranslate"><span class="pre">&lt;your_service_name&gt;.yml</span></code></p></li>
+<li><p>make sure the information at <code class="code docutils literal notranslate"><span class="pre">env</span></code>, which got asked for in the setup was entered correctly. Else please correct
+it.</p></li>
+<li><dl class="simple">
+<dt>at <code class="code docutils literal notranslate"><span class="pre">hooks.after_code.exec.cmd</span></code> enter another listentry for Disraptor</dt><dd><ul>
+<li><p><code class="code docutils literal notranslate"><span class="pre">-</span> <span class="pre">git</span> <span class="pre">clone</span> <span class="pre">https://github.com/disraptor/disraptor.git</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+<p>Everything is ready for image creation now. So leave the previously edited file and start the image and container
+creation.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>docker<span class="w"> </span>stop<span class="w"> </span>app<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>docker<span class="w"> </span>rm<span class="w"> </span>app
+<span class="c1"># ./launcher rebuild &lt;your_service_name&gt;</span>
+</pre></div>
+</div>
+<p>An image will be created and a corresponding container will also be started. This might take a while.</p>
+<p>You can now retag the image by your choice and push it to your docker registry.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>docker<span class="w"> </span>tag<span class="w"> </span>local_discourse/&lt;your_service_name&gt;:latest<span class="w"> </span>&lt;USER&gt;/&lt;NAME&gt;:&lt;TAG&gt;
+$<span class="w"> </span>docker<span class="w"> </span>push<span class="w"> </span>&lt;USER&gt;/&lt;NAME&gt;:&lt;TAG&gt;
+</pre></div>
+</div>
+<p>You may need to change the image information in the Deployment configuration at
+<code class="code docutils literal notranslate"><span class="pre">spec.template.spec.containers.image</span></code> accordingly.</p>
+</section>
+<section id="ceph">
+<h5>Ceph<a class="headerlink" href="#ceph" title="Link to this heading">¶</a></h5>
+<p>To mount certain boot-specific resources into the container we use a
+<a class="reference external" href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#cephfsvolumesource-v1-core">CephFSVolumeSource</a>.
+Be sure CephFS mounted with the correct permissions (webisstud or webis). For information how to mount ceph follow
+<a class="reference external" href="https://git.webis.de/code-generic/code-admin-knowledgebase/blob/master/services/ceph/cephfs-usage.md">this</a>.</p>
+<p>Copy the corresponding files by:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>~/discourse-k8s-deploy
+cp<span class="w"> </span>/var/discourse/shared/standalone<span class="w"> </span>/mnt/ceph/storage/data-in-production/disraptor/boot/resource
+</pre></div>
+</div>
+<p>Also the setup file from this repository is needed to setup permissions for the files.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cp<span class="w"> </span>prod/setup<span class="w"> </span>/mnt/ceph/storage/data-in-production/disraptor/boot/setup
+</pre></div>
+</div>
+<p>Now everything is perfectly set up to deploy your Discourse production instance.</p>
+</section>
+</section>
+<section id="deployment">
+<h4>Deployment<a class="headerlink" href="#deployment" title="Link to this heading">¶</a></h4>
+<p>Complete deployment will be done by:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>prod/k8s-deploy-discourse-prod.sh
+</pre></div>
+</div>
+</section>
+<section id="undeploying">
+<h4>Undeploying<a class="headerlink" href="#undeploying" title="Link to this heading">¶</a></h4>
+<p>Remove the deployment by:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>prod/k8s-undeploy-discourse-prod.sh
+</pre></div>
+</div>
+<p>Your volumes will not be removed by this. Only <code class="code docutils literal notranslate"><span class="pre">Service</span></code> and <code class="code docutils literal notranslate"><span class="pre">Deployment</span></code> are defined in
+<code class="code docutils literal notranslate"><span class="pre">prod/discourse-prod.yml</span></code> and therefore only these will be deleted here. This secures persistent data to be
+persistent across deploys.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you really want to remove them, use the following command, as it will remove all your Discourse-related data:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl<span class="w"> </span>delete<span class="w"> </span>-f<span class="w"> </span>prod/discourse-prod-volumes.yml
+</pre></div>
+</div>
+</div>
+<section id="updating">
+<h5>Updating<a class="headerlink" href="#updating" title="Link to this heading">¶</a></h5>
+<p>After having done all the manual steps above one does not have to repeat them for updating the Discourse instance.
+This can be done via script, issueing:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># prod/update-discourse.sh -u &lt;DOCKERHUB_USER&gt; -i &lt;DOCKERHUB_IMAGENAME&gt; -t &lt;TAG&gt; -s &lt;SERVICE_NAME&gt;</span>
+</pre></div>
+</div>
+<p>which will rebuild the image for the given service with given Dockerhub imagename and tag. It will proceed to push the
+image to Dockerhub once with the tag you gave and once tagged as latest. The script will fail if the given tag already
+exists for the image so you don’t override images.</p>
+</section>
+</section>
+</section>
+<section id="development-environment">
+<h3>Development environment<a class="headerlink" href="#development-environment" title="Link to this heading">¶</a></h3>
+<div class="admonition-todo admonition" id="id3">
+<p class="admonition-title">Todo</p>
+<p>This section should be moved to an appropriate location in the developer-documentation instead of the
+organizer-documentation</p>
+</div>
+<p>The discourse development environent contains:</p>
+<ul class="simple">
+<li><p>1 Service                 (<a class="reference external" href="https://git.webis.de/code-generic/code-admin-knowledge-base/-/tree/master/services/tira/tira-discourse/dev/discourse-dev.yml">dev/discourse-dev.yml</a>)</p></li>
+<li><p>1 Deployment              (<a class="reference external" href="https://git.webis.de/code-generic/code-admin-knowledge-base/-/tree/master/services/tira/tira-discourse/dev/discourse-dev.yml">dev/discourse-dev.yml</a>)</p></li>
+<li><p>1 PersistentVolumeClaims  (<a class="reference external" href="https://git.webis.de/code-generic/code-admin-knowledge-base/-/tree/master/services/tira/tira-discourse/dev/discourse-dev-volumes.yml">dev/discourse-dev-volumes.yml</a>)</p></li>
+</ul>
+<p>To deploy the files named basic scripts are provided.</p>
+<section id="deploying">
+<h4>Deploying<a class="headerlink" href="#deploying" title="Link to this heading">¶</a></h4>
+<p>First, to prevent collision with other development instances you have to choose a port <code class="code docutils literal notranslate"><span class="pre">&lt;PORT&gt;</span></code> for your instance.
+Or rather 2. One for http and one for the mailcatcher. Do this by editing the Service in
+([dev/discourse-dev.yml](dev/discourse-dev.yml)) at spec.ports accordingly (from 3080X to something you choose).
+If the nodePorts you choose are already occupied in the cluster the pod won’t be able to start up and you have to choose
+others.</p>
+<p>After that deployment of the development environment is as simple as running</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./k8s-deploy-discourse-dev.sh<span class="w"> </span>-n<span class="w"> </span>&lt;NAMESPACE&gt;
+</pre></div>
+</div>
+<p>where <code class="code docutils literal notranslate"><span class="pre">&lt;NAMESPACE&gt;</span></code> refers to the namespace you want to deploy in. All the heavy lifting is then done by the
+configs and the commands executed there. After the pod started, you have the possibility to read through the (pretty
+short) logs produces while starting up by using</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./logs.sh<span class="w"> </span>-n<span class="w"> </span>&lt;NAMESPACE&gt;
+</pre></div>
+</div>
+<p>This is also very handy for unexpected issues.</p>
+<p>Right after startup a admin account for the Discourse instance needs to be created. Because this instance is in
+production mode, and emails can therefore not be sent this has to be done manually with the <code class="code docutils literal notranslate"><span class="pre">create-admin</span></code> script
+via</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./create-admin.sh<span class="w"> </span>-n<span class="w"> </span>&lt;NAMESPACE&gt;
+</pre></div>
+</div>
+<p>Now the instance is visitable on any betaweb machine at port <code class="code docutils literal notranslate"><span class="pre">30804</span></code>. Be aware that
+<code class="code docutils literal notranslate"><span class="pre">betawebXXX.medien.uni-weimar.de:30804</span></code> does not work, but only <code class="code docutils literal notranslate"><span class="pre">betawebXXX:30804</span></code> does.</p>
+</section>
+<section id="id5">
+<h4>Undeploying<a class="headerlink" href="#id5" title="Link to this heading">¶</a></h4>
+<p>This works the same way, as for the production instance basically.
+Remove the deployment by:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>prod/k8s-undeploy-discourse-dev.sh
+</pre></div>
+</div>
+<p>Your volumes will not be removed by this. Only <code class="code docutils literal notranslate"><span class="pre">Service</span></code> and <code class="code docutils literal notranslate"><span class="pre">Deployment</span></code> are defined in
+<code class="code docutils literal notranslate"><span class="pre">prod/discourse-prod.yml</span></code> and therefore only these will be deleted here. This secures persistent data to be
+persistent across deploys.</p>
+</section>
+</section>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="../../development/index.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">&lt;no title&gt;</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="demo.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Demo Deployment</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2024, Webis
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            <div class="icons">
+              <a class="muted-link " href="https://github.com/tira-io/tira" aria-label="GitHub">
+                <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path>
+                </svg>
+            </a>
+              
+            </div>
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Deploying the Frontend (Legacy)</a><ul>
+<li><a class="reference internal" href="#deploy-discourse-on-kubernetes">Deploy Discourse on Kubernetes</a><ul>
+<li><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
+<li><a class="reference internal" href="#production-environment">Production environment</a></li>
+<li><a class="reference internal" href="#by-script">By Script</a></li>
+<li><a class="reference internal" href="#by-hand">By Hand</a><ul>
+<li><a class="reference internal" href="#id2">Prerequisites</a><ul>
+<li><a class="reference internal" href="#secret">Secret</a></li>
+<li><a class="reference internal" href="#image">Image</a></li>
+<li><a class="reference internal" href="#ceph">Ceph</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#deployment">Deployment</a></li>
+<li><a class="reference internal" href="#undeploying">Undeploying</a><ul>
+<li><a class="reference internal" href="#updating">Updating</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#development-environment">Development environment</a><ul>
+<li><a class="reference internal" href="#deploying">Deploying</a></li>
+<li><a class="reference internal" href="#id5">Undeploying</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../../_static/documentation_options.js?v=8a448e45"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/scripts/furo.js?v=5fa4622c"></script>
+    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    </body>
+</html>
