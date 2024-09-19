@@ -89,9 +89,15 @@ echo "en_US.UTF-8 UTF-8" | tee -a /etc/locale.gen && locale-gen
 
 # Tools
 apt-get -qq install -y python3 python3-dev
+# For MariaDB
+apt-get -qq install -y mariadb-client
 #
 mkdir -p /tira/application/src
 chown -R tira:tira /tira
+
+# Allow binding port 80
+apt-get -qq install libcap2-bin
+setcap CAP_NET_BIND_SERVICE=+eip /home/tira/.local/bin/uwsgi
 EOF
 
 
@@ -106,9 +112,6 @@ useradd -ms /bin/bash tira
 # Change tira's password to tira
 echo 'tira:tira' | chpasswd
 usermod -aG sudo tira
-
-# apt-get -qq install libmariadb-dev #############
-apt-get -qq install mariadb-client #############
 EOF
 
 ########################################################################################################################
