@@ -8,7 +8,7 @@ In science, shared tasks are crucial for collecting diverse approaches to tackle
    :gutter: 1
 
    .. grid-item-card:: :octicon:`person` For Users
-      :link: users/intro
+      :link: participants/intro
       :link-type: doc
       
       How to use tira.io or other hosted instances of TIRA
@@ -28,13 +28,13 @@ In science, shared tasks are crucial for collecting diverse approaches to tackle
 
 .. toctree::
    :maxdepth: 5
-   :caption: For Users
+   :caption: For Participants
    :hidden:
 
-   users/intro
-   users/participate
-   users/tiracli
-   users/python-client
+   participants/intro
+   participants/participate
+   participants/tiracli
+   participants/python-client
 
 .. toctree::
    :maxdepth: 5

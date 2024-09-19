@@ -1,8 +1,0 @@
-{
-  "image": "webis/tira:vuetify-dev-0.0.1",
-  "customizations": {
-    "vscode": {
-      "extensions": []
-    }
-  }
-}

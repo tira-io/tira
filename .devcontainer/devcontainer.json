@@ -1,0 +1,152 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/docker-existing-docker-compose
+{
+	"name": "Existing Docker Compose (Extend)",
+
+	// Update the 'dockerComposeFile' list if you have more compose files or use different names.
+	// The .devcontainer/docker-compose.yml file contains any overrides you need/want to make.
+	"dockerComposeFile": [
+		"./docker-compose.dev.yml",
+		"docker-compose.yml"
+	],
+
+	// The 'service' property is the name of the service for the container that VS Code should
+	// use. Update this value and .devcontainer/docker-compose.yml to the real service name.
+	"service": "devenv",
+
+	// The optional 'workspaceFolder' property is the path VS Code should open by default when
+	// connected. This is typically a file mount in .devcontainer/docker-compose.yml
+	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+
+	// Features to add to the dev container. More info: https://containers.dev/features.
+	// "features": {},
+
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	"forwardPorts": [
+		"nginx:8080",
+		"nginx:8081",
+		"nginx:8082"
+	],
+
+	"portsAttributes": {
+		"nginx:8080": {
+			"label": "TIRA Backend",
+			"protocol": "https"
+		},
+		"nginx:8081": {
+			"label": "Authentication",
+			"protocol": "https"
+		},
+		"nginx:8082": {
+			"label": "TIRA Frontend",
+			"protocol": "https"
+		}
+	},
+
+	// Uncomment the next line if you want start specific services in your Docker Compose config.
+	// "runServices": [],
+
+	// Uncomment the next line if you want to keep your containers running after VS Code shuts down.
+	// "shutdownAction": "none",
+
+	// Uncomment the next line to run commands after the container is created.
+	"postCreateCommand": "cd frontend; yarn; cd ../python-client; pip install -e .[test,dev]; cd ../application/; pip install -e .[test,dev]; make setup; make import-mock-data",
+
+	// Configure tool-specific properties.
+	"customizations": {
+		"vscode": {
+			"settings": {
+				"editor.formatOnSave": true,
+				"json.format.keepLines": true,
+				"livePreview.portNumber": 3080,
+				"remote.autoForwardPorts": false,
+				"files.exclude": {
+					"**/__pycache__": true,
+					"**/.mypy_cache": true,
+					"**/.pytest_cache": true,
+					"**/*.egg-info": true,
+					"**/node_modules": true,
+					"application/.data-dumps": true
+				},
+				"launch": {
+					"version": "0.2.0",
+					"configurations": [
+						{
+							"name": "TIRA Frontend",
+							"type": "node",
+							"request": "launch",
+							"runtimeExecutable": "yarn",
+							"cwd": "${workspaceFolder:Frontend}/",
+							"runtimeArgs": [
+								"dev"
+							]
+						},
+						{
+							"name": "TIRA Backend",
+							"type": "debugpy",
+							"request": "launch",
+							"args": [
+								"run_develop"
+							],
+							"django": true,
+							"autoStartBrowser": false,
+							"program": "${workspaceFolder:Backend}/src/manage.py"
+						},
+						{
+							"name": "TIRA Backend Tests",
+							"type": "debugpy",
+							"request": "launch",
+							"program": "${workspaceFolder:Backend}/src/manage.py",
+							"cwd": "${workspaceFolder:Backend}/test",
+							"args": [ "test", "--failfast", "--settings=settings_test" ],
+							"django": true,
+							"env": { "PYTHONPATH": ":../src:.", "DJANGO_SETTINGS_MODULE": "settings_test" },
+							"justMyCode": false
+						},
+						{
+							"name": "Frontend Tests",
+							"type": "node",
+							"request": "launch",
+							"runtimeExecutable": "yarn",
+							"args": [ "test" ],
+							"cwd": "${workspaceFolder:Frontend}"
+						}
+					],
+					"compounds": [
+						{
+							"name": "TIRA Stack",
+							"configurations": [
+								"TIRA Backend",
+								"TIRA Frontend"
+							],
+							"stopAll": true
+						}
+					]
+				},
+				"[python]": {
+					"editor.codeActionsOnSave": { "source.organizeImports": "explicit" }
+				},
+				"python.formatting.provider": "black",
+				"isort.args": [ "--profile", "black" ]
+			},
+			"extensions": [
+				"Vue.volar",
+				"ms-vscode.live-server",
+				"ms-python.python",
+				"ms-python.isort",
+				"ms-python.black-formatter",
+				"ms-python.flake8",
+				"ms-python.mypy-type-checker",
+				"42Crunch.vscode-openapi",
+				"vuetifyjs.vuetify-vscode"
+			]
+		}
+	},
+
+	// Uncomment to connect as an existing user other than the container default. More info: https://aka.ms/dev-containers-non-root.
+	// "remoteUser": "devcontainer"
+
+	// Needed for parts of the python-client that build and run docker containers
+	"privileged": true,
+	"mounts": [ "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind" ]
+}
