@@ -106,6 +106,9 @@ useradd -ms /bin/bash tira
 # Change tira's password to tira
 echo 'tira:tira' | chpasswd
 usermod -aG sudo tira
+
+# apt-get install libmariadb-dev #############
+apt-get install mariadb-client #############
 EOF
 
 ########################################################################################################################
@@ -122,3 +125,7 @@ EXPOSE 80
 
 # TODO: at some point it probably makes sense, not to use /tira/application/src as a working directory anymore
 CMD ["uwsgi", "--strict", "--master", "--enable-threads", "--module", "django_admin.wsgi:application", "--chdir", "/tira/application/src", "--processes", "50", "--http-socket", ":80", "--vacuum", "--max-requests", "5000"]
+
+
+
+uwsgi --strict --master --enable-threads --module django_admin.wsgi:application --chdir /tira/application/src --processes 50 --http-socket :80 --vacuum --max-requests 5000
