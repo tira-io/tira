@@ -1,11 +1,10 @@
-openapi: '3.0.2'
+openapi: "3.0.2"
 info:
   title: TIRA API
   version: "1.0.0-draft"
 servers:
   - url: https://www.tira.io/api
   # - url: https://api.tira.io/ <-- maybe for the future?
-  - url: http://127.0.0.1:8080/api
 security:
   - bearerAuth: []
 
@@ -21,7 +20,7 @@ paths:
       security:
         - LegacyApiKeyAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy, "dead?"]
   /tira-admin/reload/datasets:
@@ -34,7 +33,7 @@ paths:
       security:
         - LegacyApiKeyAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy, "dead?"]
   /tira-admin/reload/tasks:
@@ -47,7 +46,7 @@ paths:
       security:
         - LegacyApiKeyAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy, "dead?"]
   /tira-admin/reload-data:
@@ -60,7 +59,7 @@ paths:
       security:
         - LegacyApiKeyAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy, "dead?"]
   /tira-admin/reload-runs/{vmId}:
@@ -73,7 +72,7 @@ paths:
       security:
         - LegacyApiKeyAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy, "dead?"]
   /tira-admin/create-vm:
@@ -86,7 +85,7 @@ paths:
       security:
         - LegacyApiKeyAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy, "dead?"]
   /tira-admin/archive-vm:
@@ -99,7 +98,7 @@ paths:
       security:
         - LegacyApiKeyAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy, "dead?"]
   /tira-admin/modify-vm:
@@ -112,7 +111,7 @@ paths:
       security:
         - LegacyApiKeyAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy, "dead?"]
   /tira-admin/export-participants/{taskId}.csv:
@@ -125,7 +124,7 @@ paths:
       security:
         - LegacyApiKeyAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy]
   /tira-admin/{organizerId}/create-task:
@@ -138,7 +137,7 @@ paths:
       security:
         - LegacyApiKeyAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy]
   /tira-admin/edit-task/{taskId}:
@@ -151,7 +150,7 @@ paths:
       security:
         - LegacyApiKeyAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy]
   /tira-admin/delete-task/{taskId}:
@@ -164,7 +163,7 @@ paths:
       security:
         - LegacyApiKeyAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy]
   /tira-admin/add-dataset/{taskId}:
@@ -177,7 +176,7 @@ paths:
       security:
         - LegacyApiKeyAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy]
   /tira-admin/upload-dataset/{taskId}/{datasetId}/{datasetType}:
@@ -190,7 +189,7 @@ paths:
       security:
         - LegacyApiKeyAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy]
   /tira-admin/imports-irds-dataset/{taskId}:
@@ -203,7 +202,7 @@ paths:
       security:
         - LegacyApiKeyAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy]
   /tira-admin/edit-dataset/{datasetId}:
@@ -216,7 +215,7 @@ paths:
       security:
         - LegacyApiKeyAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy]
   /tira-admin/delete-dataset/{datasetId}:
@@ -229,7 +228,7 @@ paths:
       security:
         - LegacyApiKeyAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy]
   /tira-admin/add-organizer/{organizerId}:
@@ -242,7 +241,7 @@ paths:
       security:
         - LegacyApiKeyAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy]
   /tira-admin/edit-organizer/{organizerId}:
@@ -255,7 +254,7 @@ paths:
       security:
         - LegacyApiKeyAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy]
   /tira-admin/edit-review/{datasetId}/{vmId}/{runId}:
@@ -268,7 +267,7 @@ paths:
       security:
         - LegacyApiKeyAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy]
   /tira-admin/create-group/{vmId}:
@@ -281,7 +280,7 @@ paths:
       security:
         - LegacyApiKeyAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy, "dead?"]
 
@@ -295,7 +294,7 @@ paths:
       security:
         - LegacyApiKeyAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy]
   /blind/{vmId}/{datasetId}/{runId}/{value}:
@@ -308,7 +307,7 @@ paths:
       security:
         - LegacyApiKeyAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy]
 
@@ -323,7 +322,7 @@ paths:
       deprecated: true
       security: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy]
   /evaluations-of-vm/{taskId}/{vmId}:
@@ -335,7 +334,7 @@ paths:
       security:
         - LegacyApiKeyAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy]
   /evaluation/{vmId}/{runId}:
@@ -346,7 +345,7 @@ paths:
       security:
         - LegacyApiKeyAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy, "dead?"]
   /submissions/{taskId}/{datasetId}:
@@ -355,7 +354,7 @@ paths:
       deprecated: true
       security: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy]
   /docker-softwares-details/{vmId}/{dockerSoftwareId}:
@@ -376,7 +375,7 @@ paths:
       security:
         - LegacyApiKeyAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy]
   /upload-group-details/{taskId}/{vmId}/{uploadId}:
@@ -384,7 +383,7 @@ paths:
       security:
         - LegacyApiKeyAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy]
   /evaluations_of_run/{vmId}/{runId}:
@@ -395,7 +394,7 @@ paths:
       security:
         - LegacyApiKeyAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy]
   /configuration-of-evaluation/{taskId}/{datasetId}:
@@ -420,7 +419,7 @@ paths:
       deprecated: true
       security: []
       responses:
-        '200':
+        "200":
           description: TODO
           content:
             application/json:
@@ -462,7 +461,7 @@ paths:
                             /ir_measures_evaluator.py --run ${inputRun}/run.txt --topics ${inputDataset}/queries.jsonl
                             --qrels ${inputDataset}/qrels.txt --output_path ${outputDir} --measures "P@10" "nDCG@10"
                             "MRR"
-      tags: [legacy,redundant]
+      tags: [legacy, redundant]
   /list-runs/{taskId}/{datasetId}/{vmId}/{softwareId}:
     get:
       summary: |
@@ -472,7 +471,7 @@ paths:
       deprecated: true
       security: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy]
   /ova-list:
@@ -482,19 +481,9 @@ paths:
       security:
         - LegacyApiKeyAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy, "dead?"]
-  /host-list:
-    get:
-      summary: Deprecated, use /v1/hosts instead.
-      deprecated: true
-      security:
-        - LegacyApiKeyAuth: []
-      responses:
-        '200':
-          description: TODO
-      tags: [legacy]
   /organizer-list:
     get:
       summary: Deprecated, use /v1/organizers instead.
@@ -502,7 +491,7 @@ paths:
       security:
         - LegacyApiKeyAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy]
   /task-list:
@@ -511,7 +500,7 @@ paths:
       deprecated: true
       security: []
       responses:
-        '200':
+        "200":
           description: TODO
           content:
             application/json:
@@ -533,7 +522,7 @@ paths:
                         enum:
                           - "guest"
                       organizer_teams:
-                        type: string  # TODO: this is really odd that it is a string and not a list
+                        type: string # TODO: this is really odd that it is a string and not a list
                       task_list:
                         type: array
                         items:
@@ -552,7 +541,7 @@ paths:
       deprecated: true
       security: []
       responses:
-        '200':
+        "200":
           description: TODO
           content:
             application/json:
@@ -574,17 +563,17 @@ paths:
                         enum:
                           - "guest"
                       organizer_teams:
-                        type: string  # TODO: this is really odd that it is a string and not a list
+                        type: string # TODO: this is really odd that it is a string and not a list
                       task:
                         $ref: "#/components/schemas/TaskLegacy"
-        '404':
-           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+        "404":
+          $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [legacy]
   /registration_formular/{taskId}:
     get:
       security: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy]
   /dataset/{datasetId}:
@@ -593,7 +582,7 @@ paths:
       deprecated: true
       security: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy]
   /datasets_by_task/{taskId}:
@@ -602,7 +591,7 @@ paths:
       deprecated: true
       security: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy]
   /organizer/{organizerId}:
@@ -618,7 +607,7 @@ paths:
             type: string
       security: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy]
   /role:
@@ -627,12 +616,12 @@ paths:
       deprecated: true
       security: []
       responses:
-        '200':
+        "200":
           description: TODO
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Role'
+                $ref: "#/components/schemas/Role"
       tags: [legacy]
   /task/{taskId}/user/{userId}:
     get:
@@ -641,36 +630,36 @@ paths:
       deprecated: true
       security: []
       responses:
-        '200':
+        "200":
           description: TODO
-        '404':
-           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+        "404":
+          $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [legacy]
   /task/{taskId}/user/{userId}/refresh-docker-images:
     get:
       security: []
       responses:
-        '200':
+        "200":
           description: TODO
-        '404':
-           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+        "404":
+          $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [legacy]
   /count-of-missing-reviews/{taskId}:
     get:
       security:
         - LegacyApiKeyAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy]
   /task/{taskId}/user/{userId}/software/running/{forceCacheRefresh}:
     get:
       security: []
       responses:
-        '200':
+        "200":
           description: TODO
-        '404':
-           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+        "404":
+          $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [legacy]
   /task/{taskId}/public-submissions:
     get:
@@ -679,19 +668,19 @@ paths:
       deprecated: true
       security: []
       responses:
-        '200':
+        "200":
           description: TODO
-        '404':
-           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+        "404":
+          $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [legacy]
   /task/{taskId}/submission-details/{userId}/{software}:
     get:
       security: []
       responses:
-        '200':
+        "200":
           description: TODO
-        '404':
-           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+        "404":
+          $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [legacy]
   /review/{datasetId}/{vmId}/{runId}:
     get:
@@ -701,10 +690,10 @@ paths:
       security:
         - LegacyApiKeyAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
-        '404':
-           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+        "404":
+          $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [legacy]
   /registration/add_registration/{vmId}/{taskId}:
     parameters:
@@ -720,7 +709,7 @@ paths:
         required: true
         schema:
           type: string
-    post:  # FIXME: why is this endpoint not protected?
+    post: # FIXME: why is this endpoint not protected?
       summary: Deprecated, use a POST on `/v1/tasks/{taskId}/registrations` instead
       description: TODO
       deprecated: true
@@ -757,7 +746,7 @@ paths:
                 questions:
                   type: string
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy]
   /submissions-for-task/{taskId}/{userId}/{submissionType}:
@@ -791,7 +780,7 @@ paths:
       security:
         - LegacyApiKeyAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy]
   /tirex-components:
@@ -800,7 +789,7 @@ paths:
       deprecated: true
       security: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy]
   /tirex-snippet:
@@ -809,7 +798,7 @@ paths:
       deprecated: true
       security: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy]
   /snippets-for-tirex-components:
@@ -818,7 +807,7 @@ paths:
       deprecated: true
       security: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy, "dead?"]
   /re-ranking-datasets/{taskId}:
@@ -836,7 +825,7 @@ paths:
       deprecated: true
       security: []
       responses:
-        '200':
+        "200":
           description: TODO
           content:
             application/json:
@@ -887,7 +876,7 @@ paths:
       security:
         - LegacyApiKeyAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy]
   /add_software_submission_git_repository/{taskId}/{userId}:
@@ -898,7 +887,7 @@ paths:
       security:
         - LegacyApiKeyAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy]
   /get_software_submission_git_repository/{taskId}/{vmId}:
@@ -909,7 +898,7 @@ paths:
       security:
         - LegacyApiKeyAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy]
   /import-submission/{taskId}/{vmId}/{submissionType}/{softwareId}:
@@ -921,7 +910,7 @@ paths:
       security:
         - LegacyApiKeyAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy]
   /diffir/{taskId}/{topk}/{runId1}/{runId2}:
@@ -932,7 +921,7 @@ paths:
       security:
         - LegacyApiKeyAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy]
   /serp/{taskId}/user/{vmId}/dataset/{datasetId}/{topk}/{runId}:
@@ -943,26 +932,44 @@ paths:
       security:
         - LegacyApiKeyAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
       tags: [legacy]
-
-
 
   # V1 API
   /health:
     get:
+      summary: Check if TIRA is up and running
       security: []
       responses:
-        '200':
+        "204":
+          description: Empty 2xx response to signal that the REST-API is being served.
+      tags: [v1]
+  /info:
+    get:
+      summary: General information about the running server
+      security: []
+      responses:
+        "200":
           description: TODO
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  version:
+                    type: string
+                    description: The version of the TIRA server
+                  restApiVersion:
+                    type: string
+                    description: The version of the REST-API that is served.
       tags: [v1]
   /v1: {}
   /v1/datasets:
     get:
       summary: Returns a (optionally filtered) list of all datasets
       parameters:
-        - name: filter  # https://jsonapi.org/recommendations/#filtering
+        - name: filter # https://jsonapi.org/recommendations/#filtering
           in: query
           style: deepObject
           schema:
@@ -970,18 +977,18 @@ paths:
             properties:
               taskId:
                 type: string
-        - $ref: '#/components/parameters/cursor'
-        - $ref: '#/components/parameters/limit'
+        - $ref: "#/components/parameters/cursor"
+        - $ref: "#/components/parameters/limit"
       security:
         - {}
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
-        '204':
-           $ref: "#/components/responses/PaginationEmpty"
-        '400':
-           $ref: "#/components/responses/PaginationError"
+        "204":
+          $ref: "#/components/responses/PaginationEmpty"
+        "400":
+          $ref: "#/components/responses/PaginationError"
       tags: [v1]
     post:
       summary: Creates a new dataset and returns it
@@ -1007,10 +1014,10 @@ paths:
                     irDatasetsName:
                       type: string
       responses:
-        '201':
+        "201":
           description: TODO
-        '401':
-           $ref: "#/components/responses/UnauthorizedError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
       tags: [v1]
   /v1/datasets/{datasetId}:
     parameters:
@@ -1026,14 +1033,14 @@ paths:
         - {}
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Task'
-        '404':
-           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+                $ref: "#/components/schemas/Task"
+        "404":
+          $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [v1]
     patch:
       summary: Updates the specified dataset
@@ -1041,35 +1048,35 @@ paths:
         content:
           application/json-patch+json: {}
       responses:
-        '204':
+        "204":
           description: TODO
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Task'
-        '401':
-           $ref: "#/components/responses/UnauthorizedError"
-        '404':
-           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+                $ref: "#/components/schemas/Task"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [v1]
     delete:
       summary: Deletes the specified dataset
       responses:
-        '204':
+        "204":
           description: TODO
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Task'
-        '401':
-           $ref: "#/components/responses/UnauthorizedError"
-        '404':
-           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+                $ref: "#/components/schemas/Task"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [v1]
   /v1/evaluations:
     get:
       parameters:
-        - name: filter  # https://jsonapi.org/recommendations/#filtering
+        - name: filter # https://jsonapi.org/recommendations/#filtering
           in: query
           style: deepObject
           schema:
@@ -1083,57 +1090,41 @@ paths:
                 type: string
               vmId:
                 type: string
-        - $ref: '#/components/parameters/cursor'
-        - $ref: '#/components/parameters/limit'
+        - $ref: "#/components/parameters/cursor"
+        - $ref: "#/components/parameters/limit"
       responses:
-        '200':
+        "200":
           description: TODO
-        '204':
-           $ref: "#/components/responses/PaginationEmpty"
-        '400':
-           $ref: "#/components/responses/PaginationError"
-        '401':
-           $ref: "#/components/responses/UnauthorizedError"
-      tags: [v1]
-  /v1/hosts:
-    get:
-      parameters:
-        - $ref: '#/components/parameters/cursor'
-        - $ref: '#/components/parameters/limit'
-      responses:
-        '200':
-          description: TODO
-        '204':
-           $ref: "#/components/responses/PaginationEmpty"
-        '400':
-           $ref: "#/components/responses/PaginationError"
-        '401':
-           $ref: "#/components/responses/UnauthorizedError"
+        "204":
+          $ref: "#/components/responses/PaginationEmpty"
+        "400":
+          $ref: "#/components/responses/PaginationError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
       tags: [v1]
   /v1/organizers:
     get:
       summary: Returns a (optionally filtered) list of all organizers
       parameters:
-        - $ref: '#/components/parameters/cursor'
-        - $ref: '#/components/parameters/limit'
+        - $ref: "#/components/parameters/cursor"
+        - $ref: "#/components/parameters/limit"
       responses:
-        '201':
+        "201":
           description: TODO
-        '204':
-           $ref: "#/components/responses/PaginationEmpty"
-        '400':
-           $ref: "#/components/responses/PaginationError"
-        '401':
-           $ref: "#/components/responses/UnauthorizedError"
+        "204":
+          $ref: "#/components/responses/PaginationEmpty"
+        "400":
+          $ref: "#/components/responses/PaginationError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
       tags: [v1]
     post:
       summary: Creates a new organizer and returns its URL
       responses:
-        
-        '200':
+        "200":
           description: TODO
-        '401':
-           $ref: "#/components/responses/UnauthorizedError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
       tags: [v1]
   /v1/organizers/{organizerId}:
     parameters:
@@ -1146,12 +1137,12 @@ paths:
     get:
       summary: Returns the specified organizer
       responses:
-        '204':
+        "204":
           description: TODO
-        '401':
-           $ref: "#/components/responses/UnauthorizedError"
-        '404':
-           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [v1]
     patch:
       summary: Updates the specified organizer
@@ -1159,18 +1150,18 @@ paths:
         content:
           application/json-patch+json: {}
       responses:
-        '204':
+        "204":
           description: TODO
-        '401':
-           $ref: "#/components/responses/UnauthorizedError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
       tags: [v1]
     delete:
       summary: Deletes the specified organizer
       responses:
-        '200':
+        "200":
           description: TODO
-        '401':
-           $ref: "#/components/responses/UnauthorizedError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
       tags: [v1]
   /v1/runs: {}
   /v1/runs/{runId}:
@@ -1184,7 +1175,7 @@ paths:
     get:
       summary: Returns a (optionally filtered) list of all runs
       parameters:
-        - name: filter  # https://jsonapi.org/recommendations/#filtering
+        - name: filter # https://jsonapi.org/recommendations/#filtering
           in: query
           style: deepObject
           schema:
@@ -1202,12 +1193,12 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: TODO
-        '401':
-           $ref: "#/components/responses/UnauthorizedError"
-        '404':
-           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [v1]
     patch:
       summary: Updates the specified organizer
@@ -1215,22 +1206,22 @@ paths:
         content:
           application/json-patch+json: {}
       responses:
-        '204':
+        "204":
           description: TODO
-        '401':
-           $ref: "#/components/responses/UnauthorizedError"
-        '404':
-           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [v1]
     delete:
       summary: Deletes the specified organizer
       responses:
-        '200':
+        "200":
           description: TODO
-        '401':
-           $ref: "#/components/responses/UnauthorizedError"
-        '404':
-           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [v1]
   /v1/runs/{runId}/review:
     parameters:
@@ -1243,12 +1234,12 @@ paths:
     get:
       summary: Returns the review of the specified run.
       responses:
-        '200':
+        "200":
           description: TODO
-        '401':
-           $ref: "#/components/responses/UnauthorizedError"
-        '404':
-           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [v1]
     patch:
       summary: Updates the specified review
@@ -1256,45 +1247,45 @@ paths:
         content:
           application/json-patch+json: {}
       responses:
-        '200':
+        "200":
           description: TODO
-        '401':
-           $ref: "#/components/responses/UnauthorizedError"
-        '404':
-           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [v1]
   /v1/tasks:
     get:
       summary: Returns a (optionally filtered) list of all tasks
       parameters:
-        - $ref: '#/components/parameters/cursor'
-        - $ref: '#/components/parameters/limit'
+        - $ref: "#/components/parameters/cursor"
+        - $ref: "#/components/parameters/limit"
       security:
         - {}
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Task'
-        '204':
-           $ref: "#/components/responses/PaginationEmpty"
-        '400':
-           $ref: "#/components/responses/PaginationError"
-        '404':
-           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+                  $ref: "#/components/schemas/Task"
+        "204":
+          $ref: "#/components/responses/PaginationEmpty"
+        "400":
+          $ref: "#/components/responses/PaginationError"
+        "404":
+          $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [v1]
     post:
       summary: Creates a new task and returns its URL
       responses:
-        '201':
+        "201":
           description: TODO
-        '401':
-           $ref: "#/components/responses/UnauthorizedError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
       tags: [v1]
   /v1/tasks/{taskId}:
     parameters:
@@ -1310,24 +1301,24 @@ paths:
         - {}
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Task'
-        '404':
-           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+                $ref: "#/components/schemas/Task"
+        "404":
+          $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [v1]
     delete:
       summary: Deletes the specified task
       responses:
-        '204':
+        "204":
           description: TODO
-        '401':
-           $ref: "#/components/responses/UnauthorizedError"
-        '404':
-           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [v1]
   /v1/tasks/{taskId}/evaluations:
     parameters:
@@ -1353,12 +1344,12 @@ paths:
               runId:
                 type: string
       responses:
-        '200':
+        "200":
           description: TODO
-        '401':
-           $ref: "#/components/responses/UnauthorizedError"
-        '404':
-           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [v1]
   /v1/tasks/{taskId}/registrations:
     parameters:
@@ -1371,19 +1362,19 @@ paths:
     get:
       summary: Returns a list of all users registered for the task referenced by `taskId`
       responses:
-        '200':
+        "200":
           description: TODO
           content:
             text/csv: {}
-        '401':
-           $ref: "#/components/responses/UnauthorizedError"
-        '404':
-           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [v1]
     post:
       summary: Registers a new user for the task referenced by `taskId`
       responses:
-        '201':
+        "201":
           description: The registrations was created successfully
           content:
             application/json:
@@ -1399,10 +1390,10 @@ paths:
                     description: |
                       The newly created registration object. This should be identical to the one returned from the URI
                       field.
-        '401':
-           $ref: "#/components/responses/UnauthorizedError"
-        '404':
-           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [v1]
   /v1/tasks/{taskId}/submissions:
     parameters:
@@ -1437,18 +1428,18 @@ paths:
         - {}
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: TODO
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Submission'
-        '204':
+                  $ref: "#/components/schemas/Submission"
+        "204":
           description: The request was successful but no submissions satisfy the filter criteria for the given task.
-        '404':
-           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+        "404":
+          $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [v1]
     post:
       summary: Submits a new submission for the authenticated user
@@ -1468,7 +1459,7 @@ paths:
                       enum:
                         - create
                     submission:
-                      $ref: '#/components/schemas/Submission'
+                      $ref: "#/components/schemas/Submission"
                 - type: object
                   properties:
                     action:
@@ -1477,15 +1468,15 @@ paths:
                         - import
 
       responses:
-        '201':
+        "201":
           description: The submission was successfully added.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Submission'
-        '202':
+                $ref: "#/components/schemas/Submission"
+        "202":
           description: The submission was successfully enqueued and will be processed later. It may not be successful.
-        '401':
+        "401":
           $ref: "#/components/responses/UnauthorizedError"
       tags: [v1]
   /v1/tirex: {}
@@ -1494,7 +1485,7 @@ paths:
       summary: Returns a description of all tirex components
       security: []
       responses:
-        '200':
+        "200":
           description: |
             The request was fulfilled successfully and the response contains a serialized list of all the components
             installed into this instance of TIREx.
@@ -1514,14 +1505,14 @@ paths:
       summary: Returns a snippet demonstrating the usage of the specified TIREx component
       security: []
       responses:
-        '200':
+        "200":
           description: |
             The request was fulfilled successfully and the response contains a plain-text snippet demonstrating the
             usage of the TIREx component uniquely identified by the query parameter `componentId`.
           content:
             text/plain: {}
-        '404':
-           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+        "404":
+          $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [v1]
   /v1/tools:
     get:
@@ -1530,11 +1521,11 @@ paths:
         - {}
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: |
             The request was fulfilled successfully and the response contains a list of the installed tools and a
             description of each.
-        '204':
+        "204":
           description: |
             The request was fulfilled successfully but the response is empty since there are no tools installed.
       tags: [v1]
@@ -1545,17 +1536,17 @@ paths:
         - {}
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: The tool was invoked successfully and its response is attached.
       tags: [v1]
   /v1/user:
     get:
       summary: The user associated with the authenticated state
       responses:
-        '200':
+        "200":
           description: TODO
-        '401':
-           $ref: "#/components/responses/UnauthorizedError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
       tags: [v1]
   /v1/users: {}
   /v1/users/{userId}: {}
@@ -1573,15 +1564,15 @@ paths:
       description: Returns all submissions of the specified user.
       security: []
       responses:
-        '200':
+        "200":
           description: |
             The request was fulfilled successfully and the response contains a list of the user's submissions.
           content:
             application/json: {}
-        '204':
+        "204":
           description: The user was found but does not have any submissions yet.
-        '404':
-           $ref: "#/components/responses/UnauthorizedOrNotFoundError"
+        "404":
+          $ref: "#/components/responses/UnauthorizedOrNotFoundError"
       tags: [v1]
 
 components:
@@ -1702,7 +1693,7 @@ components:
         url:
           type: string
           format: url
-    TaskLegacy:  # Field names don't follow the naming guidelines (they are snake_case instead of camelCase)
+    TaskLegacy: # Field names don't follow the naming guidelines (they are snake_case instead of camelCase)
       type: object
       properties:
         task_id:
@@ -1720,7 +1711,7 @@ components:
           format: uri
         year:
           type: string
-          pattern: '^\d{4}(?:-\d{4})?$'  # YEAR or YEAR-YEAR
+          pattern: '^\d{4}(?:-\d{4})?$' # YEAR or YEAR-YEAR
         featured:
           type: boolean
         require_registration:
@@ -1736,11 +1727,11 @@ components:
           type: string
         is_ir_task:
           type: boolean
-        irds_re_ranking_image:  # TODO: is this only necessary for ir_tasks? Consider polymorphism
+        irds_re_ranking_image: # TODO: is this only necessary for ir_tasks? Consider polymorphism
           type: string
-        irds_re_ranking_command:  # TODO: is this only necessary for ir_tasks? Consider polymorphism
+        irds_re_ranking_command: # TODO: is this only necessary for ir_tasks? Consider polymorphism
           type: string
-        irds_re_ranking_resource:  # TODO: is this only necessary for ir_tasks? Consider polymorphism
+        irds_re_ranking_resource: # TODO: is this only necessary for ir_tasks? Consider polymorphism
           type: string
         dataset_count:
           type: integer
@@ -1764,7 +1755,7 @@ components:
           type: integer
         max_file_list_chars_on_test_data_eval:
           type: integer
-    Task:  # Updated version of TaskLegacy. Not yet done. TODO: complete
+    Task: # Updated version of TaskLegacy. Not yet done. TODO: complete
       type: object
       properties:
         id:
@@ -1780,7 +1771,7 @@ components:
           format: uri
         year:
           type: string
-          pattern: '^\d{4}(?:-\d{4})?$'  # YEAR or YEAR-YEAR
+          pattern: '^\d{4}(?:-\d{4})?$' # YEAR or YEAR-YEAR
       oneOf:
         - $ref: "#/components/schemas/BaseTask"
         - $ref: "#/components/schemas/IRTask"
@@ -1819,7 +1810,7 @@ components:
         application/json:
           schema:
             allOf:
-              - $ref: '#/components/schemas/ProblemJSON'
+              - $ref: "#/components/schemas/ProblemJSON"
               - type: object
                 properties:
                   title:
@@ -1838,14 +1829,14 @@ components:
         application/json:
           schema:
             allOf:
-              - $ref: '#/components/schemas/ProblemJSON'
+              - $ref: "#/components/schemas/ProblemJSON"
               - type: object
                 properties:
                   title:
                     default: "Unauthorized"
                   status:
                     default: 401
-    UnauthorizedOrNotFoundError:  # https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.2
+    UnauthorizedOrNotFoundError: # https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.2
       description: |
         The resource was not found or the service does not want to disclose if the resource exists but the user does not
         have access to it. As per W3C this should be a 404 but can fulfill the purpose of a 403 internally.
@@ -1853,20 +1844,20 @@ components:
         application/json:
           schema:
             allOf:
-              - $ref: '#/components/schemas/ProblemJSON'
+              - $ref: "#/components/schemas/ProblemJSON"
               - type: object
                 properties:
                   title:
                     default: "Not Found"
                   status:
                     default: 404
-    ForbiddenError:  # https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.4
+    ForbiddenError: # https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.4
       description: The service refuses to fulfill the request. Authorization would not help.
       content:
         application/json:
           schema:
             allOf:
-              - $ref: '#/components/schemas/ProblemJSON'
+              - $ref: "#/components/schemas/ProblemJSON"
               - type: object
                 properties:
                   title:

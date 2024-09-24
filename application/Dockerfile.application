@@ -1,13 +1,3 @@
-#Build Vuetify in first stage: Only change in case of new / updated dependencies
-FROM webis/tira-application:basis-0.0.97
-
-COPY application/src/tira/frontend-vuetify /src/tira/frontend-vuetify
-
-RUN cd /src/tira/frontend-vuetify \
-	&& ln -s /usr/local/lib/node_modules node_modules \
-	&& yarn build
-
-
 # Only change in case of new / updated dependencies
 FROM webis/tira-application:basis-0.0.96
 
@@ -27,9 +17,6 @@ RUN cd /tira/application/src && \
 	chmod +x /tira/application/src/tira/endpoints/aha && \
 	cp /tira/application/src/tira/management/commands/irds_cli.sh /irds_cli.sh && \
 	rm -f ./config/settings.yml ./config/config.yml ./config/tira-application-config.dev.yml && \
-	rm -Rf tira/static/tira/frontend-vuetify/ && rm -Rf /tira/application/src/tira/static/tira/frontend-vuetify/
-
-COPY --from=0 /src/tira/static/tira/frontend-vuetify/ /tira/application/src/tira/static/tira/frontend-vuetify/
 
 RUN cd /tira/application/ && \
 	./test/run_all_tests.sh

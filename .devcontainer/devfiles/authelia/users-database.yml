@@ -1,0 +1,37 @@
+# https://www.authelia.com/reference/guides/passwords/#yaml-format
+
+# All passwords in this file are "password"
+
+users:
+  admin:
+    disabled: false
+    displayname: 'Ed Ministraitor'
+    password: '$argon2id$v=19$m=65536,t=3,p=4$965dgqVamsIBA0SOboHemw$wa3VhfmAjrzTc17yDiKLsjodVCR62REwNkctxyuFIc4'
+    email: 'admin@tira.local'
+    groups:
+      - 'admins'
+      - 'tira_reviewer'
+  organizer1:
+    disabled: false
+    displayname: 'Big Wig'
+    password: '$argon2id$v=19$m=65536,t=3,p=4$965dgqVamsIBA0SOboHemw$wa3VhfmAjrzTc17yDiKLsjodVCR62REwNkctxyuFIc4'
+    email: 'org1@tira.local'
+    groups: []
+  organizer2:
+    disabled: false
+    displayname: 'Even Longer'
+    password: '$argon2id$v=19$m=65536,t=3,p=4$965dgqVamsIBA0SOboHemw$wa3VhfmAjrzTc17yDiKLsjodVCR62REwNkctxyuFIc4'
+    email: 'org2@tira.local'
+    groups: []
+  user1:
+    disabled: false
+    displayname: 'John Doe'
+    password: '$argon2id$v=19$m=65536,t=3,p=4$965dgqVamsIBA0SOboHemw$wa3VhfmAjrzTc17yDiKLsjodVCR62REwNkctxyuFIc4'
+    email: 'user1@tira.local'
+    groups: []
+  user2:
+    disabled: false
+    displayname: 'Jane Doe'
+    password: '$argon2id$v=19$m=65536,t=3,p=4$965dgqVamsIBA0SOboHemw$wa3VhfmAjrzTc17yDiKLsjodVCR62REwNkctxyuFIc4'
+    email: 'user2@tira.local'
+    groups: []

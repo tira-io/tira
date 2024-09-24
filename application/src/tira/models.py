@@ -1,1 +1,0 @@
-from tira.model import *

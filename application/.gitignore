@@ -3,15 +3,12 @@ src/tira_vm_states.sqlite3
 src/venv
 src/__init__.py
 src/config
-src/tira/migrations/*.py
+src/tira_app/migrations/*.py
 test/test-database
 
-src/tira/frontend/node_modules/
-src/tira/static/tira/dist/*
+src/tira_app/static/tira/dist/*
 package-lock.json
-src/tira/frontend/webpack-stats.json
 test/tira-root/
 **/*.received.txt
 
 .data-dumps/
-src/tira/static/tira/frontend-vuetify/

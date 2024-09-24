@@ -1,0 +1,46 @@
+########################
+# Build Container      #
+########################
+FROM node:latest AS build
+WORKDIR /project
+COPY package.json yarn.lock ./
+RUN yarn
+
+ARG VITE_TIRA_REST_BASE_URL=""
+ARG VITE_TIRA_GRPC_BASE_URL=""
+COPY tsconfig.json tsconfig.node.json index.html babel.config.js vite.config.ts ./
+COPY public/ public
+COPY src/ src
+RUN yarn build-light
+
+
+########################
+# Production Container #
+########################
+FROM alpine:latest
+RUN apk add --update --no-cache lighttpd
+
+COPY --from=build /project/static/ /var/www/localhost/htdocs
+
+ENV TIRA_GRPC_BASE_URL="https://127.0.0.1:8080"
+ENV TIRA_REST_BASE_URL="https://127.0.0.1:8080"
+
+
+COPY <<EOF lighttpd.conf
+server.document-root = "/var/www/localhost/htdocs"
+server.port = 80
+server.error-handler-404   = "/index.html"
+EOF
+
+# The startup script replaces the values of the configuration variables "grpc_endpoint" and "rest_endpoint" (see
+# src/tira.conf.js) with the respective environment variable's value.
+COPY --chmod=0755 <<EOF startup.sh
+#!/usr/bin/env sh
+sed -i 's@grpc_endpoint:\s*"[^"]*"@grpc_endpoint:"'"\$TIRA_GRPC_BASE_URL"'"@' /var/www/localhost/htdocs/tfr-static/entries/index.js
+sed -i 's@rest_endpoint:\s*"[^"]*"@rest_endpoint:"'"\$TIRA_REST_BASE_URL"'"@' /var/www/localhost/htdocs/tfr-static/entries/index.js
+lighttpd -D -f lighttpd.conf
+EOF
+
+EXPOSE 80
+
+CMD ["/startup.sh"]
