@@ -13,12 +13,14 @@ from typing import Dict, List, Optional, Union
 
 import pandas as pd
 import requests
-from tqdm import tqdm
-
 from tira.local_execution_integration import LocalExecutionIntegration
 from tira.pandas_integration import PandasIntegration
 from tira.profiling_integration import ProfilingIntegration
-from tira.pyterrier_integration import PyTerrierAnceIntegration, PyTerrierIntegration, PyTerrierSpladeIntegration
+from tira.pyterrier_integration import (
+    PyTerrierAnceIntegration,
+    PyTerrierIntegration,
+    PyTerrierSpladeIntegration,
+)
 from tira.tira_redirects import (
     RESOURCE_REDIRECTS,
     TASKS_WITH_REDIRECT_MERGING,
@@ -26,6 +28,7 @@ from tira.tira_redirects import (
     mirror_url,
     redirects,
 )
+from tqdm import tqdm
 
 from .tira_client import TiraClient
 
@@ -131,7 +134,7 @@ class Client(TiraClient):
         ]
 
     def all_tasks(self):
-        return self.json_response(f'/tira-backend/api/task-list')['context']['task_list']
+        return self.json_response(f"/tira-backend/api/task-list")["context"]["task_list"]
 
     def docker_software(self, approach):
         task, team, software = approach.split("/")
@@ -400,6 +403,11 @@ class Client(TiraClient):
         public_runs = self.public_runs(task, dataset, team, software)
         if public_runs:
             return {"task": task, "dataset": dataset, "team": team, "run_id": public_runs["runs"][0]}
+
+        if not self.api_key_is_valid():
+            raise ValueError(
+                f'No public submissions for "{approach} on "{dataset}" and you are not authenticated. Please authenticate to access private submissions'
+            )
 
         df_eval = self.submissions_of_team(task=task, dataset=dataset, team=team)
         if len(df_eval) <= 0:
