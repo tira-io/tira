@@ -8,12 +8,12 @@
     <div v-if="datasets !== undefined">
       <div class="d-flex">
         <v-responsive min-width="220px" id="task-search">
-          <v-text-field class="px-4" clearable label="Type here to filter &hellip;" prepend-inner-icon="mdi-magnify" variant="underlined" v-model="dataset_filter" />
+          <v-text-field class="px-4" clearable label="Type here to filter &hellip;" prepend-inner-icon="mdi-magnify" variant="underlined" v-model="query" />
         </v-responsive>
       </div>
       <div class="py-2"></div>
 
-      <v-data-table :headers="headers_xs" :items="datasets" :itemsPerPage="10" :search="dataset_filter" density="compact" fixed-footer>
+      <v-data-table :headers="headers_xs" :items="datasets" :itemsPerPage="10" :search="query" density="compact" fixed-footer>
         <template #item.display_name="{ item }">
             <a v-if="item.default_task" :href="'/task-overview/' + item.default_task.task_name + '/' + item.id" style="text-decoration: none !important;">{{ item.display_name }}</a>
             <span v-if="!item.default_task">{{ item.display_name }}</span>
@@ -51,7 +51,7 @@
     data() {
       return {
         userinfo: { role: 'guest', organizer_teams: [] } as UserInfo,
-        dataset_filter: undefined,
+        query: undefined,
         datasets: undefined,
         headers_xs: [
         { title: 'Dataset', key: 'display_name' },
@@ -70,13 +70,23 @@
       }
     },
     beforeMount() {
+      this.query = this.$route.query.query
       get(inject("REST base URL") + '/v1/datasets/')
         .then(
             (result) => { this.logData(result); this.$data.datasets = result}
         )
         .catch(reportError("Problem While Loading the Overview of the Datasets.", "This might be a short-term hiccup, please try again. We got the following error: "))
       fetchUserInfo().then((result) => { this.$data.userinfo = result })
-    }
+    },
+    watch: {
+      query(old_value, new_value) {
+        if (this.query) {
+          this.$router.push({ path: 'datasets', query: { query: this.query }})
+        } else {
+          this.$router.push({ path: 'datasets', query: { }})
+        }
+      },
+    },
   }
   
   </script>
