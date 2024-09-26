@@ -281,7 +281,7 @@ export async function get(url: string, credentials = true) {
         throw new Error(`Error fetching endpoint: ${url} with ${response.status}`);
     }
     let results = await response.json()
-    if (results.status !== 0 && results.status !== '0') {
+    if (results.status !== undefined && results.status !== 0 && results.status !== '0') {
         throw new Error(`${results.message}`);
     }
     return results
