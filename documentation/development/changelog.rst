@@ -18,6 +18,12 @@ Removed
 
 
 
-Alpha
------
-- Initial release
+
+
+
+
+0.0.136
+-------
+For more information, we refer to the `Release Page <https://github.com/tira-io/tira/releases/tag/0.0.136>`_.
+
+- First Release using the Release Pipeline

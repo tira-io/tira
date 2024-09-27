@@ -14,7 +14,7 @@ Specification
       :link-type: doc
 
    .. grid-item-card:: :octicon:`broadcast` REST API
-      :link: restapi
+      :link: restapi/index
       :link-type: doc
 
    .. grid-item-card:: :octicon:`plug` Technology
@@ -28,5 +28,5 @@ Specification
 
     userstories
     architecture
-    restapi
+    restapi/index
     technology/index
