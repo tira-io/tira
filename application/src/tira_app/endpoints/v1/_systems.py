@@ -1,8 +1,8 @@
-from django.http import JsonResponse
+from django.http import HttpRequest, JsonResponse
 from django.urls import path
 
 
-def public_submissions(request):
+def public_submissions(request: HttpRequest) -> JsonResponse:
     ret = [
         {"team": "team-1", "name": "foo1", "type": "Docker", "tasks": ["ir-benchmarks", "reneuir"]},
         {"team": "team-1", "name": "foo2", "type": "Docker", "tasks": ["ir-benchmarks", "reneuir"]},

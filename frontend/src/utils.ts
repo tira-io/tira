@@ -10,6 +10,14 @@ export interface UserInfo {
     organizer_teams: Object[];
 }
 
+export interface ServerInfo {
+    version: string;
+    restApiVersion: string;
+    publicSystemCount: number;
+    datasetCount: number;
+    taskCount: number;
+}
+
 export function extractTaskFromCurrentUrl() {
     let loc = ref(window.location).value.href.split('#')[0].split('?')[0]
 
@@ -82,6 +90,13 @@ export function extractDatasetFromCurrentUrl(options: Array<any> = [], default_c
     }
 
     return ret
+}
+
+export async function fetchServerInfo(): Promise<ServerInfo> {
+    const response = await fetch(inject("REST base URL") + '/info')
+
+    let result: ServerInfo = await response.json()
+    return result
 }
 
 export async function fetchUserInfo(): Promise<UserInfo> {
