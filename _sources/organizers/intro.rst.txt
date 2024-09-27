@@ -59,4 +59,5 @@ How do I...
 
 .. _orgfaq:
 .. rubric:: Frequently Asked Questions
+
 No questions yet :material-regular:`mood;1.5em;sd-text-success`.

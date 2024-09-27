@@ -8,6 +8,7 @@ Participating in a Shared Task
 
 
 .. _JoinTask:
+
 Joining a Task and preparing your Environment
 ---------------------------------------------
 
@@ -59,6 +60,7 @@ out more):
 
 
 .. _SubmitSubmission:
+
 Submitting your Submission
 --------------------------
 At this point, you came up with a brilliant idea and would like to submit it to TIRA for evaluation and to take pride in

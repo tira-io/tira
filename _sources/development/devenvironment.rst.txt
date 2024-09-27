@@ -87,7 +87,7 @@ The development environment is quite similar to the production environment and c
 .. umlet-figure:: images/devenv.uxf
 
 Lookup Tables for Useful Information
------------------------------------
+------------------------------------
 Root Password
 ~~~~~~~~~~~~~
 You may occasionally need root privileges in the development container. The password for the root user is ``1234`` (if
