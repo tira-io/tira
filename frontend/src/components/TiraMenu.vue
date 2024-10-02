@@ -36,7 +36,7 @@
               <v-icon>mdi-menu</v-icon>
             </v-btn>
   
-            <v-menu>
+            <v-menu v-if="userinfo !== undefined">
               <template v-slot:activator="{ props }">
                 <v-btn icon v-bind="props">
                   <img width="48" height="48" src="https://api.tira.io/user_avatar/api.tira.io/maik_froebe/96/5_2.png" style="border-radius: 50%;">
@@ -96,20 +96,9 @@
   
           <v-card-actions>
             <v-spacer></v-spacer>
-  
-            <v-btn
-              variant="text"
-              @click="menu = false"
-            >
-              Cancel
-            </v-btn>
-            <v-btn
-              color="primary"
-              variant="text"
-              @click="menu = false"
-            >
-              Save
-            </v-btn>
+            <v-btn variant="text">Cancel</v-btn>
+            <v-btn color="primary" v-if="userinfo.context.role !== 'guest'" variant="text" @click="logout">Logout</v-btn>
+            <v-btn color="primary" v-if="userinfo.context.role === 'guest'" variant="text" href="https://api.tira.io/login" target="_blank">Login</v-btn>
           </v-card-actions>
         </v-card>
             </v-menu>
@@ -118,15 +107,18 @@
         </v-container>
     </v-app-bar>
 </template>
-  
+
 <script lang="ts">
- import { fetchUserInfo, type UserInfo } from '../utils';
+ import { fetchUserInfo, type UserInfo, logout } from '../utils';
   export default {
     name: "tira-menu",
     data() {
         return {
-        userinfo: { role: 'guest', organizer_teams: [] } as UserInfo,
+          userinfo: { role: 'guest', organizer_teams: [], context: {user_id: 'anonymous'} } as UserInfo,
         }
+    },
+    methods: {
+      logout() {logout(this.userinfo.context.user_id)}
     },
     beforeMount() {
         fetchUserInfo().then((result) => { this.$data.userinfo = result })

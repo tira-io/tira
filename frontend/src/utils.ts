@@ -5,9 +5,14 @@ export interface DatasetInfo {
     display_name: string;
 }
 
+export interface UserContext {
+    user_id: string;
+}
+
 export interface UserInfo {
     role: string;
     organizer_teams: Object[];
+    context: UserContext;
 }
 
 export interface ServerInfo {
@@ -16,6 +21,14 @@ export interface ServerInfo {
     publicSystemCount: number;
     datasetCount: number;
     taskCount: number;
+}
+
+export interface WellKnownAPI {
+    apiEndpoint: string;
+    archivedEndpoint: string;
+    login: string;
+    logout: string;
+    notifications: string;
 }
 
 export function extractTaskFromCurrentUrl() {
@@ -99,15 +112,57 @@ export async function fetchServerInfo(): Promise<ServerInfo> {
     return result
 }
 
+
+let _well_known: WellKnownAPI | undefined = undefined
+let _user_info: UserInfo | undefined = undefined
+
+export async function api_csrf_token(): Promise<string> {
+    let endpoints = await fetchWellKnownAPIs()
+    let headers = new Headers({ 'Accept': 'application/json' })
+    const response = await fetch(endpoints.apiEndpoint + 'session/csrf', { headers, credentials: 'include' })
+    return (await response.json()).csrf
+
+}
+
+export async function logout(username: string): Promise<Boolean> {
+    let endpoints = await fetchWellKnownAPIs()
+    let csrf_token = await api_csrf_token()
+
+    let headers = new Headers({
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRF-        Token': csrf_token
+    })
+    console.log(csrf_token)
+    console.log(document.cookie)
+    console.log(await fetch(endpoints.logout + 'session/' + username, { headers, credentials: 'include', method: 'DELETE' }))
+    return Promise.resolve(true)
+}
+
 export async function fetchUserInfo(): Promise<UserInfo> {
-    const response = await fetch(inject("REST base URL") + '/api/role', { credentials: 'include' })
-    // TODO: better error handling (to be implemented with the new REST API with problem+json; and the overhauled UI)
-    if (!response.ok) {
-        throw new Error(`Error and I should be handled better`);
+    if (_user_info === undefined) {
+        let endpoint = (await fetchWellKnownAPIs()).apiEndpoint
+        const response = await fetch(endpoint + '/api/role', { credentials: 'include' })
+        // TODO: better error handling (to be implemented with the new REST API with problem+json; and the overhauled UI)
+        if (!response.ok) {
+            throw new Error(`Error and I should be handled better`);
+        }
+        // TODO: maybe check here if the response json is actually valid
+        _user_info = await response.json() as UserInfo
     }
-    // TODO: maybe check here if the response json is actually valid
-    let result: UserInfo = await response.json()
-    return result
+
+    return Promise.resolve(_user_info)
+}
+
+export async function fetchWellKnownAPIs(): Promise<WellKnownAPI> {
+    if (_well_known === undefined) {
+        const response = await fetch(inject("REST base URL") + '/.well-known/tira/client')
+
+        _well_known = await response.json() as WellKnownAPI
+
+    }
+
+    return Promise.resolve(_well_known)
 }
 
 export function extractCsrf(doc: Document = document): string {

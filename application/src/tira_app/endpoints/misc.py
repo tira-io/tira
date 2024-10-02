@@ -47,7 +47,21 @@ def info_endpoint(request: Request) -> Response:
     )
 
 
+@api_view(["GET"])
+def well_known_endpoint(request: Request) -> Response:
+    return Response(
+        {
+            "apiEndpoint": "https://api.tira.io/",
+            "archivedEndpoint": "https://tira.io/",
+            "login": "https://api.tira.io/login",
+            "logout": "https://api.tira.io/",
+            "notifications": "fooo",
+        }
+    )
+
+
 endpoints = [
     path("health", health_endpoint),
     path("info", info_endpoint),
+    path(".well-known/tira/client", well_known_endpoint),
 ]
