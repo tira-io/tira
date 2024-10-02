@@ -1,9 +1,19 @@
 <template>
   <tira-breadcrumb />
-  <loading :loading="task_list === undefined" />
 
-  <v-container v-if="task_list !== undefined">
-    <h3 class="text-h3 py-5">Choose a Task</h3>
+  <v-skeleton-loader type="card" v-if="task_list === undefined || serverinfo === undefined" />
+
+  <v-container v-if="task_list !== undefined && serverinfo !== undefined">
+    <h3 class="text-h3 py-5">Featured Tasks</h3>
+    <v-row>
+      <v-col cols="4" v-for="t in featured_tasks">
+        <v-card :text="t.task_description" :title="t.task_name" :href="'/task-overview/' + t.task_id" />
+      </v-col>
+    </v-row>
+
+    <div class="pt-5">TIRA hosts {{ task_list.length }} tasks with <a href="/systems">{{ serverinfo.publicSystemCount }} public systems</a> and <a href="/datasets">{{ serverinfo.datasetCount }} datasets</a>.</div>
+
+    <h3 class="text-h3 py-5">All Task</h3>
     <div class="py-5"></div>
     <div class="d-flex">
       <v-responsive min-width="220px" id="task-search">
@@ -43,8 +53,8 @@
 <script lang="ts">
 import { inject } from 'vue'
 
-import { get, reportError, inject_response, fetchUserInfo, type UserInfo } from './utils';
-import { Loading, TiraBreadcrumb, EditTask } from './components'
+import { get, reportError, inject_response, fetchUserInfo, type UserInfo, fetchServerInfo, ServerInfo } from './utils';
+import { TiraBreadcrumb, EditTask } from './components'
 
 interface Task {
   "task_id": String,
@@ -81,7 +91,7 @@ interface Task {
 
 export default {
   name: "tasks",
-  components: { Loading, TiraBreadcrumb, EditTask },
+  components: { TiraBreadcrumb, EditTask },
   data() {
     return {
       userinfo: { role: 'guest', organizer_teams: [] } as UserInfo,
@@ -102,18 +112,26 @@ export default {
         { text: 'Description', value: 'data-table-expand' },
       ],
       task_list: undefined as (Task[] | undefined),
+      serverinfo: undefined as (ServerInfo | undefined),
     }
   },
-  methods: {
-    logData(toLog: any) {
-      console.log(toLog)
-    }
+  computed: {
+    featured_tasks() { 
+      let desc = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
+      return [
+      {task_name: 'WOWS-Eval 25', task_description: desc, task_id: 'foo' },
+      {task_name: 'PAN 25', task_description: desc, task_id: 'foo' },
+      {task_name: 'Touche 25', task_description: desc, task_id: 'foo' },
+      {task_name: 'ReNeuIR', task_description: desc, task_id: 'foo' },
+      {task_name: 'IR Lab', task_description: desc, task_id: 'foo' },
+    ]},
   },
   beforeMount() {
     get(inject("REST base URL") + '/api/task-list')
       .then(inject_response(this))
       .catch(reportError("Problem While Loading the Overview of the Tasks.", "This might be a short-term hiccup, please try again. We got the following error: "))
     fetchUserInfo().then((result) => { this.$data.userinfo = result })
+    fetchServerInfo().then((result) => { this.$data.serverinfo = result })
   }
 }
 

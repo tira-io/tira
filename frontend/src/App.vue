@@ -1,50 +1,6 @@
 <template>
   <v-app>
-    <v-app-bar style="background-color: #323232; color: white;">
-
-      <v-container style="max-width: 1110px;" class="d-md-none">
-        <v-row>
-          <v-col>
-            <a href="/">
-              <img id="site-logo" src="https://assets.tira.io/tira-icons/tira-banner-120x360-dark.png" alt="TIRA" style="height: 2.667em">
-            </a>
-          </v-col>
-
-          <v-col class="text-right">
-            <v-btn icon>
-              <v-icon>mdi-menu</v-icon>
-            </v-btn>
-          </v-col>
-        </v-row>
-
-      </v-container>
-      
-      <v-container style="max-width: 1110px;" class="d-none d-md-block">
-        <v-row>
-          <v-col>
-        <a href="/">
-          <img id="site-logo" src="https://assets.tira.io/tira-icons/tira-banner-120x360-dark.png" alt="TIRA" style="height: 2.667em">
-        </a>
-      </v-col>
-
-        <v-col class="text-right">
-          <v-btn>
-            API
-          </v-btn>
-          <v-btn>
-            Forum
-          </v-btn>
-          <v-btn icon>
-            <v-icon>mdi-menu</v-icon>
-          </v-btn>
-
-          <v-btn icon>
-            <img width="48" height="48" src="https://api.tira.io/user_avatar/api.tira.io/maik_froebe/96/5_2.png" style="border-radius: 50%;">
-          </v-btn>
-        </v-col>
-      </v-row>
-      </v-container>
-    </v-app-bar>
+    <tira-menu/>
     <v-main class="position-relative">
       <tira-alert class="position-absolute"/>
       <router-view></router-view>
@@ -90,8 +46,9 @@
 
 <script lang="ts">
 import TiraAlert from './components/TiraAlert.vue'
+import TiraMenu from './components/TiraMenu.vue'
 export default {
   name: "app",
-  components: {TiraAlert},
+  components: {TiraAlert, TiraMenu},
 }
 </script>
