@@ -1,7 +1,8 @@
 <template>
   <tira-breadcrumb />
 
-  <h3 class="text-h3 py-5">Published Systems</h3>
+  <h3 class="text-h3 py-5" v-if="team === undefined">Published Systems</h3>
+  <h3 class="text-h3 py-5" v-if="team !== undefined">Published Systems by {{ team }}</h3>
   We show systems that have at least one positively validated and published submission.
   <div class="py-5"></div>
   <v-skeleton-loader type="card" v-if="systems === undefined"/>
@@ -15,6 +16,20 @@
     <div class="py-2"></div>
 
     <v-data-table :headers="headers" :items="systems" :itemsPerPage="10" :search="query" density="compact" fixed-footer>
+
+      <template #item.team="{ item }">
+        <a :href="'/systems/' + item.team" style="text-decoration: none !important;">{{ item.team }}</a>
+      </template>
+
+      <template #item.name="{ item }">
+        <a :href="'/systems/' + item.team + '/' + item.name " style="text-decoration: none !important;">{{ item.name }}</a>
+      </template>
+
+      <template #item.tasks="{ item }">
+        <span v-for="task in item.tasks">
+          <a :href="'/task-overview/' + task" style="text-decoration: none !important;">{{ task }}</a>
+        </span>
+      </template>
 
     </v-data-table>
   </div>
@@ -32,11 +47,12 @@
     data() {
       return {
         userinfo: { role: 'guest', organizer_teams: [] } as UserInfo,
+        team: undefined as undefined | string,
         query: undefined,
         systems: undefined,
         headers: [
-        { title: 'System', key: 'name' },
         { title: 'Team', value: 'team' },
+        { title: 'System', key: 'name' },
         { title: 'Type', value: 'type' },
         { title: 'Tasks', key: 'tasks' },
       ],
@@ -49,9 +65,19 @@
     },
     beforeMount() {
       this.query = this.$route.query.query
+      if (this.$route.params.team) {
+        this.team = this.$route.params.team
+      }
+
       get(inject("REST base URL") + '/v1/systems/')
         .then(
-            (result) => { this.logData(result); this.$data.systems = result}
+            (result) => { 
+              if (this.team) {
+                result = result.filter(i => i.team.toLowerCase() == this.team?.toLowerCase())
+              }
+
+              this.$data.systems = result
+            }
         )
         .catch(reportError("Problem While Loading the Overview of the Systems.", "This might be a short-term hiccup, please try again. We got the following error: "))
       fetchUserInfo().then((result) => { this.$data.userinfo = result })

@@ -12,11 +12,26 @@ export default {
   name: "tira-breadcrumb",
   computed: {
     items() {
-      var ret = [{title: 'TIRA', disabled: false, href: '/'}, {title: 'Tasks', disabled: false, href: '/tasks'}]
-      let task = extractTaskFromCurrentUrl()
+      var ret = [{title: 'TIRA', disabled: false, href: '/'}]
 
-      if (task) {
-        ret.push({title: task, disabled: false, href: '/task-overview/' + task})
+      if (this.$route.path.startsWith('/datasets')) {
+        ret.push({title: 'Datasets', disabled: false, href: '/datasets'})
+      } else if (this.$route.path.startsWith('/systems')) {
+        ret.push({title: 'Systems', disabled: false, href: '/systems'})
+        if (this.$route.params.team) {
+          ret.push({title: this.$route.params.team, disabled: false, href: '/systems/' + this.$route.params.team})
+
+          if (this.$route.params.system) {
+            ret.push({title: this.$route.params.system, disabled: false, href: '/systems/' + this.$route.params.team + '/' + this.$route.params.system})
+          }
+        }
+      } else {
+        ret.push({title: 'Tasks', disabled: false, href: '/tasks'})
+        let task = extractTaskFromCurrentUrl()
+
+        if (task) {
+          ret.push({title: task, disabled: false, href: '/task-overview/' + task})
+        }
       }
 
       return ret;

@@ -869,6 +869,91 @@ class HybridDatabase(object):
                 ret += [{"team": team, "reviewed": 0, "to_review": 0, "total": 0, "link": link_to_discourse_team(team)}]
         return ret
 
+    def all_runs(self):
+        prepared_statement = """SELECT
+                    tira_run.run_id, tira_run.task_id, tira_run.input_dataset_id,
+                    tira_software.software_id, tira_software.vm_id, tira_dockersoftware.docker_software_id,
+                    tira_dockersoftware.vm_id, tira_dockersoftware.display_name,
+                    tira_upload.id, tira_upload.vm_id, tira_upload.display_name,
+                    tira_run_review.published, tira_run_review.blinded
+            FROM
+                tira_run as evaluation_run
+            INNER JOIN
+                tira_run as tira_run ON evaluation_run.input_run_id = tira_run.run_id
+            LEFT JOIN
+                tira_upload ON tira_run.upload_id = tira_upload.id
+            LEFT JOIN
+                tira_software ON tira_run.software_id = tira_software.id
+            LEFT JOIN
+                tira_dockersoftware ON tira_run.docker_software_id = tira_dockersoftware.docker_software_id
+            LEFT JOIN
+                tira_review as tira_run_review ON evaluation_run.run_id = tira_run_review.run_id
+            LEFT JOIN
+                tira_softwareclone AS software_clone ON
+                        tira_dockersoftware.docker_software_id = software_clone.docker_software_id
+            LEFT JOIN
+                tira_softwareclone AS upload_clone ON tira_run.upload_id = upload_clone.upload_id
+
+            ORDER BY
+                tira_run.run_id ASC;
+        """
+        ret = {}
+        for (
+            run_id,
+            task_id,
+            dataset_id,
+            software_id,
+            software_vm,
+            docker_id,
+            docker_vm,
+            docker_title,
+            upload_id,
+            upload_vm,
+            upload_title,
+            published,
+            blinded,
+        ) in self.execute_raw_sql_statement(prepared_statement, []):
+            vm = None
+            title = None
+            if software_vm is not None:
+                assert docker_vm is None and upload_vm is None
+                vm = software_vm
+                title = software_id
+                t = "VM"
+            if docker_vm is not None:
+                assert software_vm is None and upload_vm is None
+                vm = docker_vm
+                title = docker_title
+                t = "Docker"
+            if upload_vm is not None:
+                assert software_vm is None and docker_id is None
+                vm = upload_vm
+                title = upload_title
+                t = "Upload"
+
+            if vm is None:
+                continue
+            assert vm is not None and title is not None
+
+            if vm not in ret:
+                ret[vm] = {}
+            if title not in ret[vm]:
+                ret[vm][title] = {}
+
+            if run_id in ret[vm][title]:
+                blinded = ret[vm][title][run_id]["blinded"] and blinded
+                published = ret[vm][title][run_id]["published"] or published
+
+            ret[vm][title][run_id] = {
+                "type": t,
+                "published": published,
+                "blinded": blinded,
+                "task": task_id,
+                "dataset": dataset_id,
+            }
+
+        return ret
+
     def runs(self, task_id, dataset_id, vm_id, software_id):
         prepared_statement = """
                 SELECT

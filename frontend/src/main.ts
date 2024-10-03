@@ -12,6 +12,7 @@ import Tasks from './Tasks.vue'
 import Tirex from './Tirex.vue'
 import Datasets from './Datasets.vue'
 import Systems from './Systems.vue'
+import SystemDetails from './SystemDetails.vue'
 import TaskOverview from './TaskOverview.vue'
 import RunUpload from './RunUpload.vue'
 import tiraConf from './tira.conf'
@@ -36,6 +37,8 @@ export default function register_app() {
     { path: '/tasks', component: Tasks },
     { path: '/datasets', component: Datasets },
     { path: '/systems', component: Systems },
+    { path: '/systems/:team?', component: Systems },
+    { path: '/systems/:team/:system', component: SystemDetails },
     { path: '/task-overview/:task_id?/:dataset_id?', component: TaskOverview },
     { path: '/task/:task_id?/:dataset_id?', component: TaskOverview },
     { path: '/submit/:task/user/:user/:submission_type?/:selected_step?', name: 'submission', component: RunUpload },
