@@ -841,6 +841,11 @@ class Client(TiraClient):
         except Exception:
             return []
 
+
+    def _well_known(self):
+        pass
+
+
     def input_run_in_sandbox(self, approach: str):
         """
         Returns the directory with the outputs of an approach in mounted into the sandbox. returns None if not in the
