@@ -127,7 +127,7 @@ export default {
     ]},
   },
   beforeMount() {
-    get(inject("REST base URL") + '/api/task-list')
+    get(inject("Archived base URL") + '/api/task-list')
       .then(inject_response(this))
       .catch(reportError("Problem While Loading the Overview of the Tasks.", "This might be a short-term hiccup, please try again. We got the following error: "))
     fetchUserInfo().then((result) => { this.$data.userinfo = result })

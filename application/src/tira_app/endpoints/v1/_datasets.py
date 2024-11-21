@@ -1,6 +1,6 @@
 from django.urls import path
 from rest_framework import pagination
-from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import AllowAny
 from rest_framework.serializers import CharField, ModelSerializer
 from rest_framework_json_api.views import ModelViewSet
 
@@ -34,10 +34,9 @@ class _DatasetView(ModelViewSet):
     serializer_class = DatasetSerializer
     pagination_class = pagination.CursorPagination
     lookup_field = "dataset_id"
-    permission_classes = [IsAdminUser]  # TODO: set to something sensible
+    permission_classes = [AllowAny]
 
 
 endpoints = [
     path("", _DatasetView.as_view({"get": "list"})),
-    path("<str:dataset_id>/", _DatasetView.as_view({"get": "retrieve", "delete": "destroy"})),
 ]

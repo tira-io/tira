@@ -24,11 +24,13 @@ export interface ServerInfo {
 }
 
 export interface WellKnownAPI {
-    apiEndpoint: string;
-    archivedEndpoint: string;
+    api: string;
+    grpc: string;
+    archived: string;
     login: string;
     logout: string;
     notifications: string;
+    disraptorURL: string;
 }
 
 export function extractTaskFromCurrentUrl() {
@@ -106,7 +108,7 @@ export function extractDatasetFromCurrentUrl(options: Array<any> = [], default_c
 }
 
 export async function fetchServerInfo(): Promise<ServerInfo> {
-    const response = await fetch(inject("REST base URL") + '/info')
+    const response = await fetch(inject("Archived base URL") + '/info')
 
     let result: ServerInfo = await response.json()
     return result
@@ -119,7 +121,7 @@ let _user_info: UserInfo | undefined = undefined
 export async function api_csrf_token(): Promise<string> {
     let endpoints = await fetchWellKnownAPIs()
     let headers = new Headers({ 'Accept': 'application/json' })
-    const response = await fetch(endpoints.apiEndpoint + 'session/csrf', { headers, credentials: 'include' })
+    const response = await fetch(endpoints.api + 'session/csrf', { headers, credentials: 'include' })
     return (await response.json()).csrf
 
 }
@@ -128,10 +130,10 @@ export async function logout(username: string): Promise<Boolean> {
     let endpoints = await fetchWellKnownAPIs()
     let csrf_token = await api_csrf_token()
 
-    let headers = new Headers({
+    const headers = new Headers({
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'X-CSRF-        Token': csrf_token
+        'X-CSRF-Token': csrf_token
     })
     console.log(csrf_token)
     console.log(document.cookie)
@@ -141,25 +143,29 @@ export async function logout(username: string): Promise<Boolean> {
 
 export async function fetchUserInfo(): Promise<UserInfo> {
     if (_user_info === undefined) {
-        let endpoint = (await fetchWellKnownAPIs()).apiEndpoint
-        const response = await fetch(endpoint + '/api/role', { credentials: 'include' })
-        // TODO: better error handling (to be implemented with the new REST API with problem+json; and the overhauled UI)
-        if (!response.ok) {
-            throw new Error(`Error and I should be handled better`);
+        let endpoint = (await fetchWellKnownAPIs()).api
+        try {
+            const response = await fetch(endpoint + '/api/role', { credentials: 'include' })
+            // TODO: better error handling (to be implemented with the new REST API with problem+json; and the overhauled UI)
+            if (!response.ok) {
+                _user_info = { role: 'guest', organizer_teams: [] } as UserInfo
+            }
+            // TODO: maybe check here if the response json is actually valid
+            _user_info = await response.json() as UserInfo
+        } catch (Exception) {
+            _user_info = { role: 'guest', organizer_teams: [] } as UserInfo
         }
-        // TODO: maybe check here if the response json is actually valid
-        _user_info = await response.json() as UserInfo
     }
 
     return Promise.resolve(_user_info)
 }
 
-export async function fetchWellKnownAPIs(): Promise<WellKnownAPI> {
+export async function fetchWellKnownAPIs(endpoint: string | undefined = undefined): Promise<WellKnownAPI> {
     if (_well_known === undefined) {
-        const response = await fetch(inject("REST base URL") + '/.well-known/tira/client')
+        const url = endpoint ? endpoint : inject("REST base URL")
+        const response = await fetch(url + '/.well-known/tira/client')
 
         _well_known = await response.json() as WellKnownAPI
-
     }
 
     return Promise.resolve(_well_known)

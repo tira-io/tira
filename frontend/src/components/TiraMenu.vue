@@ -1,5 +1,5 @@
 <template>
-    <v-app-bar style="background-color: #323232; color: white;">
+    <v-app-bar style="background-color: #323232; color: white;" v-if="showMenu">
         <v-container style="max-width: 1110px;" class="d-md-none">
           <v-row>
             <v-col>
@@ -39,14 +39,14 @@
             <v-menu v-if="userinfo !== undefined">
               <template v-slot:activator="{ props }">
                 <v-btn icon v-bind="props">
-                  <img width="48" height="48" src="https://api.tira.io/user_avatar/api.tira.io/maik_froebe/96/5_2.png" style="border-radius: 50%;">
+                  <img width="48" height="48" src="https://webis.de/weimar/people/img/silhouette-female.jpg" style="border-radius: 50%;">
                 </v-btn>
               </template>
   
               <v-card min-width="300">
           <v-list>
             <v-list-item href="foo"
-              prepend-avatar="https://api.tira.io/user_avatar/api.tira.io/maik_froebe/96/5_2.png"
+              prepend-avatar="https://webis.de/weimar/people/img/silhouette-female.jpg"
               subtitle="Short description..."
               :title="userinfo.context.user_id"
             >
@@ -98,7 +98,7 @@
             <v-spacer></v-spacer>
             <v-btn variant="text">Cancel</v-btn>
             <v-btn color="primary" v-if="userinfo.context.role !== 'guest'" variant="text" @click="logout">Logout</v-btn>
-            <v-btn color="primary" v-if="userinfo.context.role === 'guest'" variant="text" href="https://api.tira.io/login" target="_blank">Login</v-btn>
+            <v-btn color="primary" v-if="userinfo.context.role === 'guest'" variant="text" href="https://www.tira.io/login" target="_blank">Login</v-btn>
           </v-card-actions>
         </v-card>
             </v-menu>
@@ -109,19 +109,26 @@
 </template>
 
 <script lang="ts">
- import { fetchUserInfo, type UserInfo, logout } from '../utils';
+ import { fetchUserInfo, fetchWellKnownAPIs, type UserInfo, logout } from '../utils';
   export default {
     name: "tira-menu",
     data() {
         return {
           userinfo: { role: 'guest', organizer_teams: [], context: {user_id: 'anonymous'} } as UserInfo,
+          showMenu: false as Boolean
         }
     },
     methods: {
       logout() {logout(this.userinfo.context.user_id)}
     },
     beforeMount() {
-        fetchUserInfo().then((result) => { this.$data.userinfo = result })
+      fetchWellKnownAPIs().then((wellKnown) => {
+        this.$data.showMenu = !wellKnown.disraptorURL.toLowerCase().includes(location.host.toLowerCase())
+
+        if (this.$data.showMenu) {
+          fetchUserInfo().then((result) => { this.$data.userinfo = result })
+        }
+      })
     }
 
 }

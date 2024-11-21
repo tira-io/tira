@@ -71,7 +71,7 @@
     },
     beforeMount() {
       this.query = this.$route.query.query
-      get(inject("REST base URL") + '/v1/datasets/')
+      get(inject("Archived base URL") + '/v1/datasets/')
         .then(
             (result) => { this.logData(result); this.$data.datasets = result}
         )

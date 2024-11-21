@@ -16,6 +16,7 @@ import SystemDetails from './SystemDetails.vue'
 import TaskOverview from './TaskOverview.vue'
 import RunUpload from './RunUpload.vue'
 import tiraConf from './tira.conf'
+import { fetchWellKnownAPIs } from './utils';
 
 // Composables
 import { createApp } from 'vue'
@@ -54,12 +55,17 @@ export default function register_app() {
   })
 
   const app = createApp(App)
-  app.provide("gRPC base URL", tiraConf.grpc_endpoint)
-  app.provide("REST base URL", tiraConf.rest_endpoint)
-  app.use(router)
 
-  registerPlugins(app)
-  app.mount(app_selector)
+  fetchWellKnownAPIs(tiraConf.rest_endpoint).then(wellKnown => {
+    app.provide("gRPC base URL", wellKnown.grpc)
+    app.provide("REST base URL", wellKnown.api)
+    app.provide("Archived base URL", wellKnown.archived)
+    app.use(router)
+
+    registerPlugins(app)
+    app.mount(app_selector)
+  })
+
 }
 
 declare global { interface Window { register_app: any; push_message: any } }

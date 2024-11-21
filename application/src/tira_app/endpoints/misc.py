@@ -9,6 +9,8 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.request import Request
 from rest_framework.response import Response
+from django.conf import settings
+
 from tira import __version__ as tira_version
 
 from .. import model as modeldb
@@ -16,9 +18,17 @@ from .v1._systems import public_submissions
 
 rest_api_version = "v1.0.0-draft"
 
-SOFTWARE_COUNT = len(json.loads(public_submissions(None).content.decode("UTF-8")))
-DATASET_COUNT = len(modeldb.Dataset.objects.all())
-TASK_COUNT = len(modeldb.Task.objects.all())
+WELL_KNOWN = {i: settings.WELL_KNOWN[i] for i in ["api", "archived", "login", "logout", "disraptorURL", "grpc"]}
+
+
+try:
+    SOFTWARE_COUNT = len(json.loads(public_submissions(None).content.decode("UTF-8")))
+    DATASET_COUNT = len(modeldb.Dataset.objects.all())
+    TASK_COUNT = len(modeldb.Task.objects.all())
+except:
+    SOFTWARE_COUNT = 0
+    DATASET_COUNT = 0
+    TASK_COUNT = 0
 
 
 @api_view(["GET"])
@@ -49,15 +59,7 @@ def info_endpoint(request: Request) -> Response:
 
 @api_view(["GET"])
 def well_known_endpoint(request: Request) -> Response:
-    return Response(
-        {
-            "apiEndpoint": "https://api.tira.io/",
-            "archivedEndpoint": "https://tira.io/",
-            "login": "https://api.tira.io/login",
-            "logout": "https://api.tira.io/",
-            "notifications": "fooo",
-        }
-    )
+    return Response(WELL_KNOWN)
 
 
 endpoints = [
