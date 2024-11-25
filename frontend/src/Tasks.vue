@@ -94,7 +94,7 @@ export default {
   components: { TiraBreadcrumb, EditTask },
   data() {
     return {
-      userinfo: { role: 'guest', organizer_teams: [] } as UserInfo,
+      userinfo: { role: 'guest', organizer_teams: [], context: {user_id: 'guest'}} as UserInfo,
       task_filter: '',
       expanded: [],
       headers_md: [

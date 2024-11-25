@@ -97,8 +97,8 @@
           <v-card-actions>
             <v-spacer></v-spacer>
             <v-btn variant="text">Cancel</v-btn>
-            <v-btn color="primary" v-if="userinfo.context.role !== 'guest'" variant="text" @click="logout">Logout</v-btn>
-            <v-btn color="primary" v-if="userinfo.context.role === 'guest'" variant="text" href="https://www.tira.io/login" target="_blank">Login</v-btn>
+            <v-btn color="primary" v-if="userinfo.role !== 'guest'" variant="text" @click="logout">Logout</v-btn>
+            <v-btn color="primary" v-if="userinfo.role === 'guest'" variant="text" href="https://www.tira.io/login" target="_blank">Login</v-btn>
           </v-card-actions>
         </v-card>
             </v-menu>

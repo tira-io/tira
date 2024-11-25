@@ -101,7 +101,7 @@ export default {
   components: { TiraBreadcrumb, RunList, Loading, VAutocomplete, SubmitButton, TiraTaskAdmin, TaskDocumentation, RunUpload },
   data() {
     return {
-      userinfo: { role: 'guest', organizer_teams: [] } as UserInfo,
+      userinfo: { role: 'guest', organizer_teams: [], context: {user_id: 'guest'}} as UserInfo,
       task_id: extractTaskFromCurrentUrl(),
       loading: true,
       selectedDataset: '',
@@ -113,7 +113,7 @@ export default {
       vm: '',
       user_id: '',
       user_vms_for_task: [],
-      datasets: [{ 'dataset_id': 'loading...', 'display_name': 'loading...' }],
+      datasets: [{ 'dataset_id': 'loading...', 'display_name': 'loading...', 'default_task': undefined }],
       tab: "test",
     }
   },

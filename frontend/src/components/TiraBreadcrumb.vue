@@ -19,10 +19,10 @@ export default {
       } else if (this.$route.path.startsWith('/systems')) {
         ret.push({title: 'Systems', disabled: false, href: '/systems'})
         if (this.$route.params.team) {
-          ret.push({title: this.$route.params.team, disabled: false, href: '/systems/' + this.$route.params.team})
+          ret.push({title: this.$route.params.team as string, disabled: false, href: '/systems/' + this.$route.params.team})
 
           if (this.$route.params.system) {
-            ret.push({title: this.$route.params.system, disabled: false, href: '/systems/' + this.$route.params.team + '/' + this.$route.params.system})
+            ret.push({title: this.$route.params.system as string, disabled: false, href: '/systems/' + this.$route.params.team + '/' + this.$route.params.system})
           }
         }
       } else {

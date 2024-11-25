@@ -38,7 +38,7 @@
 <script lang="ts">
   import { inject } from 'vue'
   
-  import { get, reportError, fetchUserInfo, type UserInfo } from './utils';
+  import { get, reportError, fetchUserInfo, type UserInfo, type SystemInfo } from './utils';
   import { Loading, TiraBreadcrumb } from './components'
   
   export default {
@@ -46,10 +46,10 @@
     components: { Loading, TiraBreadcrumb },
     data() {
       return {
-        userinfo: { role: 'guest', organizer_teams: [] } as UserInfo,
+        userinfo: { role: 'guest', organizer_teams: [], context: {user_id: 'guest'}} as UserInfo,
         team: undefined as undefined | string,
-        query: undefined,
-        systems: undefined,
+        query: undefined as undefined | string,
+        systems: [] as SystemInfo[],
         headers: [
         { title: 'Team', value: 'team' },
         { title: 'System', key: 'name' },
@@ -64,16 +64,16 @@
       }
     },
     beforeMount() {
-      this.query = this.$route.query.query
+      this.query = this.$route.query.query as undefined | string
       if (this.$route.params.team) {
-        this.team = this.$route.params.team
+        this.team = this.$route.params.team as undefined | string
       }
 
       get(inject("Archived base URL") + '/v1/systems/')
         .then(
             (result) => { 
               if (this.team) {
-                result = result.filter(i => i.team.toLowerCase() == this.team?.toLowerCase())
+                result = (result as SystemInfo[]).filter(i => i.team.toLowerCase() == this.team?.toLowerCase())
               }
 
               this.$data.systems = result

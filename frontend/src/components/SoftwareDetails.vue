@@ -118,7 +118,7 @@ export default {
   components: { Loading, TiraDataExport, RunActions, SubmissionIcon },
   data() {
     return {
-      userinfo: { role: 'guest', organizer_teams: [] } as UserInfo,
+      userinfo: { role: 'guest', organizer_teams: [], context: {user_id: 'guest'}} as UserInfo,
       loading: true,
       task_id: extractTaskFromCurrentUrl(),
       description: 'No description available.',

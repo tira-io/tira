@@ -15,7 +15,7 @@
 
       <v-data-table :headers="headers_xs" :items="datasets" :itemsPerPage="10" :search="query" density="compact" fixed-footer>
         <template #item.display_name="{ item }">
-            <a v-if="item.default_task" :href="'/task-overview/' + item.default_task.task_name + '/' + item.id" style="text-decoration: none !important;">{{ item.display_name }}</a>
+            <a v-if="item.default_task" :href="'/task-overview/' + item.default_task.task_name + '/' + item.dataset_id" style="text-decoration: none !important;">{{ item.display_name }}</a>
             <span v-if="!item.default_task">{{ item.display_name }}</span>
         </template>
         <template #item.default_task="{ item }">
@@ -42,7 +42,7 @@
   <script lang="ts">
   import { inject } from 'vue'
   
-  import { get, reportError, fetchUserInfo, type UserInfo } from './utils';
+  import { get, reportError, fetchUserInfo, type UserInfo, type DatasetInfo } from './utils';
   import { Loading, TiraBreadcrumb } from './components'
   
   export default {
@@ -50,9 +50,9 @@
     components: { Loading, TiraBreadcrumb },
     data() {
       return {
-        userinfo: { role: 'guest', organizer_teams: [] } as UserInfo,
-        query: undefined,
-        datasets: undefined,
+        userinfo: { role: 'guest', organizer_teams: [], context: {user_id: 'guest'}} as UserInfo,
+        query: undefined as string|undefined,
+        datasets: [] as DatasetInfo[],
         headers_xs: [
         { title: 'Dataset', key: 'display_name' },
         { title: 'Task', value: 'default_task' },
@@ -70,7 +70,7 @@
       }
     },
     beforeMount() {
-      this.query = this.$route.query.query
+      this.query = this.$route.query.query as string|undefined
       get(inject("Archived base URL") + '/v1/datasets/')
         .then(
             (result) => { this.logData(result); this.$data.datasets = result}

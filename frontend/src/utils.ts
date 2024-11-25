@@ -1,8 +1,13 @@
 import { inject, ref } from 'vue'
 
+export interface TaskInfo {
+    task_name: string;
+}
+
 export interface DatasetInfo {
     dataset_id: string;
     display_name: string;
+    default_task: TaskInfo | undefined;
 }
 
 export interface UserContext {
@@ -14,6 +19,13 @@ export interface UserInfo {
     organizer_teams: Object[];
     context: UserContext;
 }
+
+export interface SystemInfo {
+    name: string;
+    team: string;
+    tasks: string;
+}
+
 
 export interface ServerInfo {
     version: string;
@@ -148,12 +160,12 @@ export async function fetchUserInfo(): Promise<UserInfo> {
             const response = await fetch(endpoint + '/api/role', { credentials: 'include' })
             // TODO: better error handling (to be implemented with the new REST API with problem+json; and the overhauled UI)
             if (!response.ok) {
-                _user_info = { role: 'guest', organizer_teams: [] } as UserInfo
+                _user_info = { role: 'guest', organizer_teams: [], context: { user_id: 'guest' } } as UserInfo
             }
             // TODO: maybe check here if the response json is actually valid
             _user_info = await response.json() as UserInfo
         } catch (Exception) {
-            _user_info = { role: 'guest', organizer_teams: [] } as UserInfo
+            _user_info = { role: 'guest', organizer_teams: [], context: { user_id: 'guest' } } as UserInfo
         }
     }
 
