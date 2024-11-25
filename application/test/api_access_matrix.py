@@ -2037,6 +2037,39 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
         },
     ),
+    route_to_test(
+        url_pattern=".well-known/tira/client",
+        params={},
+        group_to_expected_status_code={
+            GUEST: 200,
+            PARTICIPANT: 200,
+            ORGANIZER_WRONG_TASK: 200,
+            ORGANIZER: 200,
+            ADMIN: 200,
+        },
+    ),
+    route_to_test(
+        url_pattern="v1/systems/",
+        params={},
+        group_to_expected_status_code={
+            GUEST: 200,
+            PARTICIPANT: 200,
+            ORGANIZER_WRONG_TASK: 200,
+            ORGANIZER: 200,
+            ADMIN: 200,
+        },
+    ),
+    route_to_test(
+        url_pattern="v1/systems/<str:user_id>/<str:software>",
+        params={'user_id': 'does-not-exist', 'software': 'does-not-exist'},
+        group_to_expected_status_code={
+            GUEST: 200,
+            PARTICIPANT: 200,
+            ORGANIZER_WRONG_TASK: 200,
+            ORGANIZER: 200,
+            ADMIN: 200,
+        },
+    ),
     # The following v1/ endpoints should be restricted to only allow admin-access for now
     route_to_test(
         url_pattern="v1/evaluations/",
