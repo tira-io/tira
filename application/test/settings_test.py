@@ -337,4 +337,3 @@ WELL_KNOWN = {
     "notifications": "fooo",
     "disraptorURL": "https://127.0.0.1:8081",
 }
-

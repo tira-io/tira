@@ -4,13 +4,12 @@ This file contains miscellaneous and **unversioned** endpoints (e.g., the /healt
 
 import json
 
+from django.conf import settings
 from django.urls import path
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.request import Request
 from rest_framework.response import Response
-from django.conf import settings
-
 from tira import __version__ as tira_version
 
 from .. import model as modeldb
