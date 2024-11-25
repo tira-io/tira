@@ -2026,42 +2026,18 @@ API_ACCESS_MATRIX = [
             ADMIN: 200,
         },
     ),
-    # The following v1/ endpoints should be restricted to only allow admin-access for now
     route_to_test(
         url_pattern="v1/datasets/",
         params={},
         group_to_expected_status_code={
-            GUEST: 403,
-            PARTICIPANT: 403,
-            ORGANIZER_WRONG_TASK: 403,
-            ORGANIZER: 403,
+            GUEST: 200,
+            PARTICIPANT: 200,
+            ORGANIZER_WRONG_TASK: 200,
+            ORGANIZER: 200,
             ADMIN: 200,
         },
     ),
-    route_to_test(
-        url_pattern="v1/datasets/<str:dataset_id>/",
-        params={"dataset_id": "i-do-not-exist"},
-        method="GET",
-        group_to_expected_status_code={
-            GUEST: 403,
-            PARTICIPANT: 403,
-            ORGANIZER_WRONG_TASK: 403,
-            ORGANIZER: 403,
-            ADMIN: 404,
-        },
-    ),
-    route_to_test(
-        url_pattern="v1/datasets/<str:dataset_id>/",
-        params={"dataset_id": "i-do-not-exist"},
-        method="DELETE",
-        group_to_expected_status_code={
-            GUEST: 403,
-            PARTICIPANT: 403,
-            ORGANIZER_WRONG_TASK: 403,
-            ORGANIZER: 403,
-            ADMIN: 404,
-        },
-    ),
+    # The following v1/ endpoints should be restricted to only allow admin-access for now
     route_to_test(
         url_pattern="v1/evaluations/",
         params={},
