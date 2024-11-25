@@ -920,13 +920,11 @@ class HybridDatabase(object):
                 vm = software_vm
                 title = software_id
                 t = "VM"
-            if docker_vm is not None:
-                assert software_vm is None and upload_vm is None
+            if docker_vm is not None and software_vm is None and upload_vm is None:
                 vm = docker_vm
                 title = docker_title
                 t = "Docker"
-            if upload_vm is not None:
-                assert software_vm is None and docker_id is None
+            if upload_vm is not None and software_vm is None and docker_id is None:
                 vm = upload_vm
                 title = upload_title
                 t = "Upload"
