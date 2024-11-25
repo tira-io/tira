@@ -13,14 +13,12 @@ from typing import Dict, List, Optional, Union
 
 import pandas as pd
 import requests
+from tqdm import tqdm
+
 from tira.local_execution_integration import LocalExecutionIntegration
 from tira.pandas_integration import PandasIntegration
 from tira.profiling_integration import ProfilingIntegration
-from tira.pyterrier_integration import (
-    PyTerrierAnceIntegration,
-    PyTerrierIntegration,
-    PyTerrierSpladeIntegration,
-)
+from tira.pyterrier_integration import PyTerrierAnceIntegration, PyTerrierIntegration, PyTerrierSpladeIntegration
 from tira.tira_redirects import (
     RESOURCE_REDIRECTS,
     TASKS_WITH_REDIRECT_MERGING,
@@ -28,7 +26,6 @@ from tira.tira_redirects import (
     mirror_url,
     redirects,
 )
-from tqdm import tqdm
 
 from .tira_client import TiraClient
 
@@ -841,10 +838,8 @@ class Client(TiraClient):
         except Exception:
             return []
 
-
     def _well_known(self):
         pass
-
 
     def input_run_in_sandbox(self, approach: str):
         """
