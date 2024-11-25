@@ -327,3 +327,14 @@ CODE_SUBMISSION_REFERENCE_REPOSITORIES = {
 REFERENCE_DATASETS: dict[str, str] = {}
 
 CODE_SUBMISSION_REPOSITORY_NAMESPACE = "tira-io"
+
+WELL_KNOWN = {
+    "api": "https://127.0.0.1:8081",
+    "grpc": "https://127.0.0.1:8081",
+    "archived": "https://127.0.0.1:8080",
+    "login": "https://127.0.0.1:8081",
+    "logout": "https://127.0.0.1:8081",
+    "notifications": "fooo",
+    "disraptorURL": "https://127.0.0.1:8081",
+}
+

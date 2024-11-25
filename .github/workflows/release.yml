@@ -1,9 +1,9 @@
-name: Unit Tests
+name: Release Frontend
 
 on: [push]
 
 jobs:
-  frontend-tests:
+  release-frontend:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
