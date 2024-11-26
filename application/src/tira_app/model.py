@@ -154,6 +154,7 @@ class Dataset(models.Model):
     irds_import_command = models.CharField(max_length=150, null=True, default=None)
     irds_import_truth_command = models.CharField(max_length=150, null=True, default=None)
     meta_dataset_of = models.TextField(default=None, null=True)
+    format = models.CharField(max_length=50, null=True, default=None)
 
 
 class TaskHasDataset(models.Model):

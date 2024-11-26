@@ -1,5 +1,6 @@
 import json
 import logging
+import uuid
 from functools import wraps
 from http import HTTPStatus
 
@@ -486,6 +487,41 @@ def upload(request, task_id, vm_id, dataset_id, upload_id):
 
             return JsonResponse({"status": 0, "message": "ok", "new_run": new_run, "started_evaluation": True})
         return JsonResponse({"status": 0, "message": "ok", "new_run": new_run, "started_evaluation": False})
+    else:
+        return JsonResponse({"status": 1, "message": "GET is not allowed here."})
+
+
+@csrf_exempt
+def anonymous_upload(request, dataset_id):
+    if request.method == "POST":
+        if not dataset_id or dataset_id is None or dataset_id == "None":
+            return JsonResponse({"status": 1, "message": "Please specify the associated dataset."})
+
+        dataset = model.get_dataset(dataset_id)
+        if (
+            not dataset
+            or "format" not in dataset
+            or not dataset["format"]
+            or "task" not in dataset
+            or not dataset["task"]
+        ):
+            return JsonResponse({"status": 1, "message": f"Uploads are not allowed for the dataset {dataset_id}."})
+
+        if dataset["is_deprecated"]:
+            return JsonResponse(
+                {"status": 1, "message": f"The dataset {dataset_id} is deprecated and therefore allows no uploads."}
+            )
+
+        task = model.get_task(dataset["task"], False)
+        if not task or not task["featured"]:
+            return JsonResponse(
+                {"status": 1, "message": f"The dataset {dataset_id} is deprecated and therefore allows no uploads."}
+            )
+
+        uploaded_file = request.FILES["file"]
+        upload_id = str(uuid.uuid4())
+
+        return JsonResponse({"status": 0, "message": "ok", "uuid": upload_id})
     else:
         return JsonResponse({"status": 1, "message": "GET is not allowed here."})
 
