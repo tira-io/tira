@@ -49,14 +49,15 @@ export default function register_app() {
     // Fallback: everything matches to home.
     { path: '/:pathMatch(.*)*', component: Home },
   ]
-  const router = createRouter({
-    history: createWebHistory(),
-    routes: routes,
-  })
-
-  const app = createApp(App)
 
   fetchWellKnownAPIs(tiraConf.rest_endpoint).then(wellKnown => {
+    const router = createRouter({
+      history: createWebHistory(),
+      routes: routes,
+    })
+
+    const app = createApp(App)
+
     app.provide("gRPC base URL", wellKnown.grpc)
     app.provide("REST base URL", wellKnown.api)
     app.provide("Archived base URL", wellKnown.archived)

@@ -129,7 +129,7 @@
         irds_docker_image: "", irds_import_command: "", irds_import_truth_command: "",
         git_runner_image: "ubuntu:18.04", git_runner_command: "echo 'this is no real evaluator'", evaluation_type: "eval-1",
         systemFileHandle: undefined, truthFileHandle: undefined,
-        git_repository_id: ''
+        git_repository_id: '', rest_endpoint: inject("REST base URL") as string
       }),
       computed: {
         title() {
@@ -144,7 +144,7 @@
           if (this.newDataset()) {
             this.loading = false
           } else {
-            get(inject("REST base URL")+`/api/dataset/${this.dataset_id_from_props}`)
+            get(this.rest_endpoint + `/api/dataset/${this.dataset_id_from_props}`)
               .then(inject_response(this, {'loading': false}, true, ['dataset', 'evaluator']))
               .catch(reportError("Problem loading the dataset.", "This might be a short-term hiccup, please try again. We got the following error: "))
               .then(() => {this.is_confidential = '' + this.is_confidential; this.evaluation_type = 'eval-3'})

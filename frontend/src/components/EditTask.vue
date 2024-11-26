@@ -167,7 +167,7 @@ export default {
     loading: true, valid: false, step: 1, submitInProgress: false, selected_organizer: '', organizer_id: '',
     task_name: '', featured: false, web: '', task_description: '', command_description: '', command_placeholder: '',
     require_registration: false, require_groups: false, restrict_groups: false, allowed_task_teams: '',
-    is_ir_task: false, irds_re_ranking_image: '', irds_re_ranking_command: '', irds_re_ranking_resource: ''
+    is_ir_task: false, irds_re_ranking_image: '', irds_re_ranking_command: '', irds_re_ranking_resource: '', rest_endpoint: inject("REST base URL") as string
   }),
   computed: {
     title() {
@@ -179,7 +179,7 @@ export default {
       if (this.task_id_for_edit === '') {
         this.loading = false
       } else {
-        get(inject("REST base URL") + '/api/task/' + this.task_id_for_edit)
+        get(this.rest_endpoint + '/api/task/' + this.task_id_for_edit)
           .then(inject_response(this, { 'loading': false }, true, 'task'))
           .catch(reportError("Problem loading the data of the task.", "This might be a short-term hiccup, please try again. We got the following error: "))
           .then(() => console.log(this.$data))
@@ -234,7 +234,7 @@ export default {
         }).catch(reportError("Problem While Adding/Editing a Shared Task.", "This might be a short-term hiccup, please try again. We got the following error: "))
     },
     url: function () {
-      return this.task_id_for_edit === '' ? '/tira-admin/' + this.selected_organizer + '/create-task' : '/tira-admin/edit-task/' + this.task_id_for_edit
+      return this.rest_endpoint + (this.task_id_for_edit === '' ? '/tira-admin/' + this.selected_organizer + '/create-task' : '/tira-admin/edit-task/' + this.task_id_for_edit)
     },
     task_representation: function () {
       const task_id = this.task_id_for_edit === '' ? slugify(this.task_name) : this.task_id_for_edit

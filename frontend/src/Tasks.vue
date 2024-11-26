@@ -117,14 +117,8 @@ export default {
   },
   computed: {
     featured_tasks() { 
-      let desc = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
-      return [
-      {task_name: 'WOWS-Eval 25', task_description: desc, task_id: 'foo' },
-      {task_name: 'PAN 25', task_description: desc, task_id: 'foo' },
-      {task_name: 'Touche 25', task_description: desc, task_id: 'foo' },
-      {task_name: 'ReNeuIR', task_description: desc, task_id: 'foo' },
-      {task_name: 'IR Lab', task_description: desc, task_id: 'foo' },
-    ]},
+      return this.task_list?.filter(i => i.featured)
+    },
   },
   beforeMount() {
     get(inject("Archived base URL") + '/api/task-list')

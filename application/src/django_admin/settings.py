@@ -399,13 +399,13 @@ REFERENCE_DATASETS = {
 }
 
 WELL_KNOWN = {
-    "api": "https://127.0.0.1:8081",
-    "grpc": "https://127.0.0.1:8081",
+    "api": "https://127.0.0.1:8080",
+    "grpc": "https://127.0.0.1:8080",
     "archived": "https://127.0.0.1:8080",
-    "login": "https://127.0.0.1:8081",
-    "logout": "https://127.0.0.1:8081",
+    "login": "https://127.0.0.1:8080",
+    "logout": "https://127.0.0.1:8080",
     "notifications": "fooo",
-    "disraptorURL": "https://127.0.0.1:8081",
+    "disraptorURL": "https://127.0.0.1:8080",
 }
 
 CODE_SUBMISSION_REPOSITORY_NAMESPACE = "tira-io"
