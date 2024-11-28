@@ -25,6 +25,8 @@
 
                 <v-text-field v-model="default_upload_name" label="Default Upload Name" :rules="[v => v && v.length > 2 || 'Please provide a name.']" required/>
 
+                <v-select v-model="format" :items="serverinfo.supportedFormats" label="Dataset Format" clearable multiple/>
+
                 <v-radio-group v-if="newDataset()" v-model="dataset_type">
                   <v-radio label="This is a training dataset (participants see their outputs/evaluations)" value="training"></v-radio>
   <v-radio label="This is a test dataset (participants see only explicitly unblinded outputs/evaluations)" value="test"></v-radio>
@@ -115,7 +117,7 @@
 
     import { Loading } from '.'
     import {VAutocomplete} from "vuetify/components";
-    import { get, post, post_file, reportError, slugify, reportSuccess, inject_response, type UserInfo } from '../utils'
+    import { get, post, post_file, reportError, slugify, reportSuccess, inject_response, type UserInfo, type ServerInfo } from '../utils'
     
     export default {
       name: "edit-dataset",
@@ -125,12 +127,12 @@
       data: () => ({
         loading: true, valid: false, submitInProgress: false, dataset_id: '',
         display_name: '', is_confidential: 'true', dataset_type: 'test', upload_type: 'upload-1',
-        irds_image: '', irds_command: '',is_deprecated: false, default_upload_name: "predictions.jsonl",
+        irds_image: '', irds_command: '', format: undefined, is_deprecated: false, default_upload_name: "predictions.jsonl",
         irds_docker_image: "", irds_import_command: "", irds_import_truth_command: "",
         git_runner_image: "ubuntu:18.04", git_runner_command: "echo 'this is no real evaluator'", evaluation_type: "eval-1",
         systemFileHandle: undefined, truthFileHandle: undefined,
         git_repository_id: '', rest_endpoint: inject("REST base URL") as string,
-        userinfo: inject('userinfo') as UserInfo
+        userinfo: inject('userinfo') as UserInfo, serverinfo: inject("serverInfo") as ServerInfo,
       }),
       computed: {
         title() {
@@ -194,14 +196,14 @@
               'is_confidential': this.is_confidential !== 'false',
               'irds_docker_image': this.irds_docker_image, 'irds_import_command': this.irds_import_command, 'irds_import_truth_command': this.irds_import_truth_command, 
               'git_runner_image': this.git_runner_image,'git_runner_command': this.git_runner_command, 'is_git_runner': true, 'use_existing_repository': false,
-              'working_directory': 'obsolete', 'command': 'obsolete', 'publish': this.is_confidential === 'false', 'evaluator_command': 'obsolete', 'evaluator_image': 'obsolete', 'evaluator_working_directory': 'obsolete',
+              'working_directory': 'obsolete', 'command': 'obsolete', 'publish': this.is_confidential === 'false', 'evaluator_command': 'obsolete', 'evaluator_image': 'obsolete', 'evaluator_working_directory': 'obsolete', 'format': this.format
           }
 
           if (!this.newDataset()) {
             params['git_repository_id'] = this.git_repository_id
           }
 
-          const url = this.newDataset() ? '/tira-admin/add-dataset/' + this.task_id : '/tira-admin/edit-dataset/' + this.dataset_id_from_props
+          const url = this.rest_endpoint + (this.newDataset() ? '/tira-admin/add-dataset/' + this.task_id : '/tira-admin/edit-dataset/' + this.dataset_id_from_props)
           post(url, params, this.userinfo)
           .then(this.fileUpload(this.systemFileHandle, 'input', this.userinfo))
           .then(this.fileUpload(this.truthFileHandle, 'truth', this.userinfo))

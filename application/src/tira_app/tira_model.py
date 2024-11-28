@@ -737,6 +737,7 @@ def add_dataset(
     irds_docker_image: Optional[str] = None,
     irds_import_command: Optional[str] = None,
     irds_import_truth_command: Optional[str] = None,
+    dataset_format: Optional[str] = None,
 ) -> list:
     """returns a list of paths of newly created datasets as string."""
     return model.add_dataset(
@@ -748,6 +749,7 @@ def add_dataset(
         irds_docker_image=irds_docker_image,
         irds_import_command=irds_import_command,
         irds_import_truth_command=irds_import_truth_command,
+        dataset_format=dataset_format,
     )
 
 
@@ -911,6 +913,7 @@ def edit_dataset(
     git_runner_image: Optional[str] = None,
     git_runner_command: Optional[str] = None,
     git_repository_id: Optional[str] = None,
+    dataset_format: Optional[str] = None,
 ):
     """Update the datasets's data"""
     return model.edit_dataset(
@@ -926,6 +929,7 @@ def edit_dataset(
         git_runner_image,
         git_runner_command,
         git_repository_id,
+        dataset_format,
     )
 
 

@@ -240,6 +240,7 @@ def admin_add_dataset(request, task_id):
         irds_import_command = None if not irds_import_command else irds_import_command
         irds_import_truth_command = data.get("irds_import_truth_command", None)
         irds_import_truth_command = None if not irds_import_truth_command else irds_import_truth_command
+        dataset_format = data.get("format", None)
 
         if not data.get("use_existing_repository", True):
             git_repository_id = model.get_git_integration(task_id=task_id).create_task_repository(task_id)
@@ -262,6 +263,7 @@ def admin_add_dataset(request, task_id):
                     irds_docker_image,
                     irds_import_command,
                     irds_import_truth_command,
+                    dataset_format,
                 )
             elif data["type"] == "test":
                 ds, paths = model.add_dataset(
@@ -273,6 +275,7 @@ def admin_add_dataset(request, task_id):
                     irds_docker_image,
                     irds_import_command,
                     irds_import_truth_command,
+                    dataset_format,
                 )
 
             model.add_evaluator(
@@ -344,9 +347,8 @@ def admin_edit_dataset(request, dataset_id):
         git_runner_image = data["git_runner_image"]
         git_runner_command = data["git_runner_command"]
         git_repository_id = data["git_repository_id"]
+        dataset_format = data["format"]
 
-        print(data["use_existing_repository"])
-        print(data["git_repository_id"])
         if not data["use_existing_repository"]:
             git_repository_id = model.get_git_integration(task_id=task_id).create_task_repository(task_id)
 
@@ -368,6 +370,7 @@ def admin_edit_dataset(request, dataset_id):
             git_runner_image,
             git_runner_command,
             git_repository_id,
+            dataset_format,
         )
 
         from django.core.cache import cache

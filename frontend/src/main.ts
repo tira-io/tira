@@ -16,7 +16,7 @@ import SystemDetails from './SystemDetails.vue'
 import TaskOverview from './TaskOverview.vue'
 import RunUpload from './RunUpload.vue'
 import tiraConf from './tira.conf'
-import { fetchWellKnownAPIs, fetchUserInfo } from './utils';
+import { fetchWellKnownAPIs, fetchUserInfo, fetchServerInfo } from './utils';
 
 // Composables
 import { createApp } from 'vue'
@@ -52,22 +52,24 @@ export default function register_app() {
 
   fetchWellKnownAPIs(tiraConf.rest_endpoint).then(wellKnown => {
     fetchUserInfo(wellKnown.api).then(userInfo => {
-      const router = createRouter({
-        history: createWebHistory(),
-        routes: routes,
+      fetchServerInfo(wellKnown.api).then(serverInfo => {
+        const router = createRouter({
+          history: createWebHistory(),
+          routes: routes,
+        })
+
+        const app = createApp(App)
+        app.provide("gRPC base URL", wellKnown.grpc)
+        app.provide("REST base URL", wellKnown.api)
+        app.provide("userinfo", userInfo)
+        app.provide(".wellKnown", wellKnown)
+        app.provide("Archived base URL", wellKnown.archived)
+        app.provide("serverInfo", serverInfo)
+        app.use(router)
+
+        registerPlugins(app)
+        app.mount(app_selector)
       })
-
-      const app = createApp(App)
-
-      app.provide("gRPC base URL", wellKnown.grpc)
-      app.provide("REST base URL", wellKnown.api)
-      app.provide("userinfo", userInfo)
-      app.provide(".wellKnown", wellKnown)
-      app.provide("Archived base URL", wellKnown.archived)
-      app.use(router)
-
-      registerPlugins(app)
-      app.mount(app_selector)
     })
   })
 

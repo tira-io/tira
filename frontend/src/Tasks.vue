@@ -53,7 +53,7 @@
 <script lang="ts">
 import { inject } from 'vue'
 
-import { get, reportError, inject_response, type UserInfo, fetchServerInfo, ServerInfo } from './utils';
+import { get, reportError, inject_response, type UserInfo, ServerInfo } from './utils';
 import { TiraBreadcrumb, EditTask } from './components'
 
 interface Task {
@@ -112,7 +112,7 @@ export default {
         { text: 'Description', value: 'data-table-expand' },
       ],
       task_list: undefined as (Task[] | undefined),
-      serverinfo: undefined as (ServerInfo | undefined),
+      serverinfo: inject("serverInfo") as ServerInfo,
     }
   },
   computed: {
@@ -124,7 +124,6 @@ export default {
     get(inject("Archived base URL") + '/api/task-list')
       .then(inject_response(this))
       .catch(reportError("Problem While Loading the Overview of the Tasks.", "This might be a short-term hiccup, please try again. We got the following error: "))
-    fetchServerInfo().then((result) => { this.$data.serverinfo = result })
   }
 }
 

@@ -11,6 +11,7 @@ from rest_framework.decorators import api_view
 from rest_framework.request import Request
 from rest_framework.response import Response
 from tira import __version__ as tira_version
+from tira.check_format import SUPPORTED_FORMATS
 
 from .. import model as modeldb
 from .v1._systems import public_submissions
@@ -52,6 +53,7 @@ def info_endpoint(request: Request) -> Response:
             "publicSystemCount": SOFTWARE_COUNT,
             "datasetCount": DATASET_COUNT,
             "taskCount": TASK_COUNT,
+            "supportedFormats": SUPPORTED_FORMATS,
         }
     )
 

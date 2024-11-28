@@ -11,6 +11,7 @@ import randomname
 from django.conf import settings
 from django.db import IntegrityError
 from google.protobuf.text_format import Parse
+from tira.check_format import SUPPORTED_FORMATS
 
 from .. import model as modeldb
 from ..proto import TiraClientWebMessages_pb2 as modelpb
@@ -323,6 +324,13 @@ class HybridDatabase(object):
         evaluator_id = None if not dataset.evaluator else dataset.evaluator.evaluator_id
 
         runs = modeldb.Run.objects.filter(input_dataset__dataset_id=dataset.dataset_id, deleted=False)
+        dataset_format = None
+        try:
+            dataset_format = json.loads(dataset.format)
+            dataset_format = [i for i in dataset_format if i in SUPPORTED_FORMATS]
+        except:
+            pass
+
         return {
             "display_name": dataset.display_name,
             "evaluator_id": evaluator_id,
@@ -349,7 +357,7 @@ class HybridDatabase(object):
             "irds_import_truth_command": dataset.irds_import_truth_command,
             "evaluator_git_runner_image": dataset.evaluator.git_runner_image if evaluator_id else None,
             "evaluator_git_runner_command": dataset.evaluator.git_runner_command if evaluator_id else None,
-            "format": dataset.format,
+            "format": dataset_format,
         }
 
     def get_dataset(self, dataset_id: str) -> dict[str, Any]:
@@ -1810,6 +1818,7 @@ class HybridDatabase(object):
         irds_docker_image=None,
         irds_import_command=None,
         irds_import_truth_command=None,
+        dataset_format=None,
     ):
         """Add a new dataset to a task
         CAUTION: This function does not do any sanity (existence) checks and will OVERWRITE existing datasets"""
@@ -1831,6 +1840,7 @@ class HybridDatabase(object):
                 "irds_docker_image": irds_docker_image,
                 "irds_import_command": irds_import_command,
                 "irds_import_truth_command": irds_import_truth_command,
+                "format": None if not dataset_format else json.dumps(dataset_format),
             },
         )
 
@@ -2476,6 +2486,7 @@ class HybridDatabase(object):
         git_runner_image,
         git_runner_command,
         git_repository_id,
+        dataset_format,
     ):
         """
 
@@ -2491,6 +2502,7 @@ class HybridDatabase(object):
             display_name=dataset_name,
             default_upload_name=upload_name,
             is_confidential=is_confidential,
+            format=None if not dataset_format else json.dumps(dataset_format),
         )
 
         ds = modeldb.Dataset.objects.get(dataset_id=dataset_id)

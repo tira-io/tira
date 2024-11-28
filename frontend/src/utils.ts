@@ -34,6 +34,7 @@ export interface ServerInfo {
     publicSystemCount: number;
     datasetCount: number;
     taskCount: number;
+    supportedFormats: string[];
 }
 
 export interface WellKnownAPI {
@@ -120,8 +121,8 @@ export function extractDatasetFromCurrentUrl(options: Array<any> = [], default_c
     return ret
 }
 
-export async function fetchServerInfo(): Promise<ServerInfo> {
-    const response = await fetch(inject("Archived base URL") + '/info')
+export async function fetchServerInfo(endpoint: string): Promise<ServerInfo> {
+    const response = await fetch(endpoint + '/info')
 
     let result: ServerInfo = await response.json()
     return result
