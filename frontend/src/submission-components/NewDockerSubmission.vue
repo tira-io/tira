@@ -163,7 +163,7 @@
 import { inject } from 'vue'
 
 import {VAutocomplete} from "vuetify/components";
-import {extractTaskFromCurrentUrl, get, post, inject_response, reportError, extractUserFromCurrentUrl} from "@/utils";
+import {extractTaskFromCurrentUrl, get, post, inject_response, reportError, extractUserFromCurrentUrl, type UserInfo} from "@/utils";
 import CodeSnippet from "../components/CodeSnippet.vue"
 import Loading from "../components/Loading.vue"
 import ImportSubmission from "./ImportSubmission.vue"
@@ -198,7 +198,8 @@ export default {
       stepperTitles: ['Local Tests of your Docker Submission', 'Add the Docker Submission', 'Final Checks'],
       stepperModel: 1,
       token: 'YOUR-TOKEN-HERE',
-      steps: 3
+      steps: 3,
+      userinfo: inject('userinfo') as UserInfo,
     }
   },
   computed: {
@@ -245,7 +246,7 @@ export default {
     },
     addImage() {
       this.addSoftwareInProgress = true;
-      post(inject("REST base URL")+`/task/${this.task_id}/vm/${this.user_id_for_submission}/add_software/docker`, {"command": this.runCommand, "image": this.selectedDockerImage, "inputJob": this.selectedDockerSoftware})
+      post(inject("REST base URL")+`/task/${this.task_id}/vm/${this.user_id_for_submission}/add_software/docker`, {"command": this.runCommand, "image": this.selectedDockerImage, "inputJob": this.selectedDockerSoftware}, this.userinfo)
         .then(message => {
           this.$emit('addNewDockerImage', {'display_name': message.context.display_name, 'docker_software_id': message.context.docker_software_id});
         })

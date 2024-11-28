@@ -145,13 +145,10 @@ export default {
   emits: ['review-run'],
   data() {
     return {
-      userinfo: { role: 'guest', organizer_teams: [], context: {user_id: 'guest'}} as UserInfo,
+      userinfo: inject('userinfo') as UserInfo,
       start_evaluation_is_pending: false,
       delete_is_pending: false,
     }
-  },
-  beforeMount() {
-    fetchUserInfo().then((result) => { this.$data.userinfo = result })
   },
   computed: {
     link_code() {

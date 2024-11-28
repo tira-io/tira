@@ -206,7 +206,7 @@
 import { inject } from 'vue'
 
 import { VAutocomplete } from 'vuetify/components'
-import { extractTaskFromCurrentUrl, extractUserFromCurrentUrl, get, inject_response, reportError, post_file, reportSuccess, handleModifiedSubmission, fetchUserInfo, get_link_to_organizer, get_contact_link_to_organizer } from "@/utils";
+import { extractTaskFromCurrentUrl, extractUserFromCurrentUrl, get, inject_response, reportError, post_file, reportSuccess, handleModifiedSubmission, get_link_to_organizer, get_contact_link_to_organizer } from "@/utils";
 import { Loading, LoginToSubmit, RunList } from "@/components";
 import EditSubmissionDetails from "@/submission-components/EditSubmissionDetails.vue";
 import ImportSubmission from "./ImportSubmission.vue";
@@ -219,7 +219,7 @@ export default {
   emits: ['refresh_running_submissions'],
   data() {
     return {
-      userinfo: { role: 'guest', organizer_teams: [] },
+      userinfo: inject('userinfo'),
       loading: true,
       task_id: extractTaskFromCurrentUrl(),
       user_id_for_task: extractUserFromCurrentUrl(),
@@ -363,8 +363,6 @@ export default {
 
     get(inject("REST base URL") + '/api/token/' + this.user_id_for_task)
       .then(inject_response(this))
-
-    fetchUserInfo().then((result) => { this.$data.userinfo = result })
 
     this.tab = this.all_uploadgroups[0].display_name
   },

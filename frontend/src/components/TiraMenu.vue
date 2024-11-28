@@ -109,12 +109,13 @@
 </template>
 
 <script lang="ts">
- import { fetchUserInfo, fetchWellKnownAPIs, type UserInfo, logout } from '../utils';
+ import { inject } from 'vue';
+import { fetchUserInfo, WellKnownAPI, type UserInfo, logout } from '../utils';
   export default {
     name: "tira-menu",
     data() {
         return {
-          userinfo: { role: 'guest', organizer_teams: [], context: {user_id: 'anonymous'} } as UserInfo,
+          userinfo: inject('userinfo') as UserInfo,
           showMenu: false as Boolean
         }
     },
@@ -122,14 +123,12 @@
       logout() {logout(this.userinfo.context.user_id)}
     },
     beforeMount() {
-      fetchWellKnownAPIs().then((wellKnown) => {
-        this.$data.showMenu = !wellKnown.disraptorURL.toLowerCase().includes(location.host.toLowerCase())
+      let wellKnown = inject('.wellKnown') as WellKnownAPI
+      this.$data.showMenu = !wellKnown.disraptorURL.toLowerCase().includes(location.host.toLowerCase())
 
-        if (this.$data.showMenu) {
-          fetchUserInfo().then((result) => { this.$data.userinfo = result })
-        }
-      })
+      if (this.$data.showMenu) {
+        this.$data.userinfo = inject('userinfo') as UserInfo
+      }
     }
-
 }
 </script>

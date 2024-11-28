@@ -118,7 +118,7 @@ export default {
   components: { Loading, TiraDataExport, RunActions, SubmissionIcon },
   data() {
     return {
-      userinfo: { role: 'guest', organizer_teams: [], context: {user_id: 'guest'}} as UserInfo,
+      userinfo: inject('userinfo') as UserInfo,
       loading: true,
       task_id: extractTaskFromCurrentUrl(),
       description: 'No description available.',
@@ -162,7 +162,6 @@ export default {
   },
   beforeMount() {
     this.fetchData()
-    fetchUserInfo().then((result) => { this.$data.userinfo = result })
   },
   watch: {
     run(o, n) { this.fetchData() },

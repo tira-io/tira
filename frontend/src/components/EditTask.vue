@@ -225,7 +225,7 @@ export default {
       }
 
       this.submitInProgress = true
-      post(this.url(), this.task_representation())
+      post(this.url(), this.task_representation(), this.userinfo)
         .then(() => {
           isActive.value = false
           this.step = 1

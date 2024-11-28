@@ -66,7 +66,7 @@ import { inject } from 'vue'
 import Loading from './Loading.vue'
 import CodeSnippet from "@/components/CodeSnippet.vue";
 import MetadataItems from './MetadataItems.vue'
-import { get, post, reportError, reportSuccess, inject_response, extractDatasetFromCurrentUrl } from '../utils'
+import { get, post, reportError, reportSuccess, inject_response, extractDatasetFromCurrentUrl, type UserInfo } from '../utils'
     
 export default {
   name: "run-review-form",
@@ -87,6 +87,7 @@ export default {
       edit_review_in_progress: false,
       toggle_publish_in_progress: false,
       toggle_visible_in_progress: false,
+      userinfo: inject('userinfo') as UserInfo,
     }
   },
   computed: {
@@ -121,7 +122,7 @@ export default {
             'output_error': this.review.invalidOutput,
             'software_error': this.review.otherErrors,
             'comment': this.review.comment,
-        }, true)
+        }, this.userinfo, true)
         .then(reportSuccess('The review was successfully saved.'))
         .catch(reportError("Problem while Saving the Review.", "This might be a short-term hiccup, please try again. We got the following error: "))
         .then(() => { this.edit_review_in_progress = false })

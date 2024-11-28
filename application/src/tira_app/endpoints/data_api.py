@@ -8,6 +8,7 @@ from http import HTTPStatus
 from io import StringIO
 from typing import Any, Union
 
+import django.middleware.csrf as csrf
 from django.conf import settings
 from django.core.cache import cache
 from django.core.serializers.json import DjangoJSONEncoder
@@ -337,7 +338,13 @@ def get_organizer(request, context, organizer_id):
 @add_context
 def get_role(request, context):
     return JsonResponse(
-        {"status": 0, "role": context["role"], "organizer_teams": auth.get_organizer_ids(request), "context": context}
+        {
+            "status": 0,
+            "role": context["role"],
+            "csrf": csrf.get_token(request),
+            "organizer_teams": auth.get_organizer_ids(request),
+            "context": context,
+        }
     )
 
 

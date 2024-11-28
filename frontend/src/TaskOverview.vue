@@ -101,7 +101,7 @@ export default {
   components: { TiraBreadcrumb, RunList, Loading, VAutocomplete, SubmitButton, TiraTaskAdmin, TaskDocumentation, RunUpload },
   data() {
     return {
-      userinfo: { role: 'guest', organizer_teams: [], context: {user_id: 'guest'}} as UserInfo,
+      userinfo: inject('userinfo') as UserInfo,
       task_id: extractTaskFromCurrentUrl(),
       loading: true,
       selectedDataset: '',
@@ -161,7 +161,6 @@ export default {
       .then(inject_response(this, { 'loading': false }, true))
       .then(this.updateDataset)
       .catch(reportError("Problem While Loading the Details of the Task " + this.task_id, "This might be a short-term hiccup, please try again. We got the following error: "))
-    fetchUserInfo().then((result) => { this.$data.userinfo = result })
   },
   watch: {
     selectedDataset(old_value, new_value) { this.newDatasetSelected() },

@@ -81,7 +81,7 @@ export default {
   props: ['task_id', 'dataset_id', 'organizer', 'organizer_id', 'vm_id', 'docker_software_id', 'upload_id', 'show_only_unreviewed'],
   data() {
     return {
-      userinfo: { role: 'guest', organizer_teams: [], context: {user_id: 'guest'}} as UserInfo,
+      userinfo: inject('userinfo') as UserInfo,
       selected_runs: [],
       loading: true,
       runs: [{ 'run_id': 'loading...', 'review_state': 'no-review', 'vm_id': '1', 'link_to_team': 'link', 'dataset_id': '1' }],
@@ -152,7 +152,6 @@ export default {
   },
   beforeMount() {
     this.fetchData()
-    fetchUserInfo().then((result) => { this.$data.userinfo = result })
   },
   watch: {
     dataset_id(old_id, new_id) { this.fetchData() },

@@ -18,6 +18,7 @@ export interface UserInfo {
     role: string;
     organizer_teams: Object[];
     context: UserContext;
+    csrf: string;
 }
 
 export interface SystemInfo {
@@ -126,14 +127,9 @@ export async function fetchServerInfo(): Promise<ServerInfo> {
     return result
 }
 
-
-let _well_known: WellKnownAPI | undefined = undefined
-let _user_info: UserInfo | undefined = undefined
-
 export async function api_csrf_token(): Promise<string> {
-    let endpoints = await fetchWellKnownAPIs()
     let headers = new Headers({ 'Accept': 'application/json' })
-    const response = await fetch(endpoints.api + 'session/csrf', { headers, credentials: 'include' })
+    const response = await fetch(inject("REST base URL") + 'session/csrf', { headers, credentials: 'include' })
     return (await response.json()).csrf
 
 }
@@ -153,45 +149,26 @@ export async function logout(username: string): Promise<Boolean> {
     return Promise.resolve(true)
 }
 
-export async function fetchUserInfo(): Promise<UserInfo> {
-    if (_user_info === undefined) {
-        let endpoint = (await fetchWellKnownAPIs()).api
-        try {
-            const response = await fetch(endpoint + '/api/role', { credentials: 'include' })
-            // TODO: better error handling (to be implemented with the new REST API with problem+json; and the overhauled UI)
-            if (!response.ok) {
-                _user_info = { role: 'guest', organizer_teams: [], context: { user_id: 'guest' } } as UserInfo
-            }
-            // TODO: maybe check here if the response json is actually valid
-            _user_info = await response.json() as UserInfo
-        } catch (Exception) {
-            _user_info = { role: 'guest', organizer_teams: [], context: { user_id: 'guest' } } as UserInfo
+export async function fetchUserInfo(endpoint: string): Promise<UserInfo> {
+    try {
+        const response = await fetch(endpoint + '/api/role', { credentials: 'include' })
+        // TODO: better error handling (to be implemented with the new REST API with problem+json; and the overhauled UI)
+        if (!response.ok) {
+            return Promise.resolve({ role: 'guest', organizer_teams: [], csrf: '', context: { user_id: 'guest' } } as UserInfo)
         }
+        // TODO: maybe check here if the response json is actually valid
+        return Promise.resolve(await response.json() as UserInfo)
+    } catch (Exception) {
+        return Promise.resolve({ role: 'guest', organizer_teams: [], csrf: '', context: { user_id: 'guest' } } as UserInfo)
     }
-
-    return Promise.resolve(_user_info)
 }
 
 export async function fetchWellKnownAPIs(endpoint: string | undefined = undefined): Promise<WellKnownAPI> {
-    if (_well_known === undefined) {
-        const url = endpoint ? endpoint : inject("REST base URL")
-        const response = await fetch(url + '/.well-known/tira/client')
+    const url = endpoint ? endpoint : inject("REST base URL")
+    const response = await fetch(url + '/.well-known/tira/client')
 
-        _well_known = await response.json() as WellKnownAPI
-    }
-
+    let _well_known = await response.json() as WellKnownAPI
     return Promise.resolve(_well_known)
-}
-
-export function extractCsrf(doc: Document = document): string {
-    try {
-        var ret = doc.querySelector('input[type="hidden"][name="csrfmiddlewaretoken"][value]')
-        if (ret && 'value' in ret) {
-            return "" + ret['value']
-        }
-    } catch { }
-
-    return ''
 }
 
 export function reportSuccess(title: string = "", text: string = "") {
@@ -376,11 +353,11 @@ export async function get(url: string, credentials = true) {
 }
 
 /* TODO: credentials=true can be called the legacy behavior when frontend and backend were on the same URL. This should maybe be limited more */
-export async function post(url: string, params: any, debug = false, credentials = true) {
+export async function post(url: string, params: any, user: UserInfo, debug = false, credentials = true) {
     const headers = new Headers({
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'X-CSRFToken': extractCsrf(),
+        'X-CSRFToken': user.csrf,
     })
     params = JSON.stringify(params)
 
@@ -388,10 +365,10 @@ export async function post(url: string, params: any, debug = false, credentials 
 }
 
 /* TODO: credentials=true can be called the legacy behavior when frontend and backend were on the same URL. This should maybe be limited more */
-export async function post_file(url: string, params: any, debug = false, credentials = true) {
+export async function post_file(url: string, params: any, user: UserInfo, debug = false, credentials = true) {
     const headers = new Headers({
         'Accept': 'application/json',
-        'X-CSRFToken': extractCsrf(),
+        'X-CSRFToken': user.csrf,
     })
 
     return post_raw(url, headers, params, debug, credentials)

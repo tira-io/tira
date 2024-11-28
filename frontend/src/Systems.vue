@@ -46,7 +46,7 @@
     components: { Loading, TiraBreadcrumb },
     data() {
       return {
-        userinfo: { role: 'guest', organizer_teams: [], context: {user_id: 'guest'}} as UserInfo,
+        userinfo: inject('userinfo') as UserInfo,
         team: undefined as undefined | string,
         query: undefined as undefined | string,
         systems: [] as SystemInfo[],
@@ -80,7 +80,6 @@
             }
         )
         .catch(reportError("Problem While Loading the Overview of the Systems.", "This might be a short-term hiccup, please try again. We got the following error: "))
-      fetchUserInfo().then((result) => { this.$data.userinfo = result })
     },
     watch: {
       query(old_value, new_value) {

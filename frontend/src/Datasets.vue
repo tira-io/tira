@@ -42,7 +42,7 @@
   <script lang="ts">
   import { inject } from 'vue'
   
-  import { get, reportError, fetchUserInfo, type UserInfo, type DatasetInfo } from './utils';
+  import { get, reportError, type UserInfo, type DatasetInfo } from './utils';
   import { Loading, TiraBreadcrumb } from './components'
   
   export default {
@@ -50,7 +50,7 @@
     components: { Loading, TiraBreadcrumb },
     data() {
       return {
-        userinfo: { role: 'guest', organizer_teams: [], context: {user_id: 'guest'}} as UserInfo,
+        userinfo: inject('userinfo') as UserInfo,
         query: undefined as string|undefined,
         datasets: [] as DatasetInfo[],
         headers_xs: [
@@ -76,7 +76,6 @@
             (result) => { this.logData(result); this.$data.datasets = result}
         )
         .catch(reportError("Problem While Loading the Overview of the Datasets.", "This might be a short-term hiccup, please try again. We got the following error: "))
-      fetchUserInfo().then((result) => { this.$data.userinfo = result })
     },
     watch: {
       query(old_value, new_value) {

@@ -53,13 +53,13 @@
 <script lang="ts">
 import { inject } from 'vue'
 
-import { get, reportError, inject_response, fetchUserInfo, type UserInfo, fetchServerInfo, ServerInfo } from './utils';
+import { get, reportError, inject_response, type UserInfo, fetchServerInfo, ServerInfo } from './utils';
 import { TiraBreadcrumb, EditTask } from './components'
 
 interface Task {
   "task_id": String,
-  "task_name": String,
-  "task_description": String,
+  "task_name": string,
+  "task_description": string,
   "organizer": String,
   "organizer_id": String,
   "web": String,
@@ -94,7 +94,7 @@ export default {
   components: { TiraBreadcrumb, EditTask },
   data() {
     return {
-      userinfo: { role: 'guest', organizer_teams: [], context: {user_id: 'guest'}} as UserInfo,
+      userinfo: inject('userinfo') as UserInfo,
       task_filter: '',
       expanded: [],
       headers_md: [
@@ -116,15 +116,14 @@ export default {
     }
   },
   computed: {
-    featured_tasks() { 
-      return this.task_list?.filter(i => i.featured)
+    featured_tasks(): Task[] {
+      return this.task_list === undefined ? [] : this.task_list?.filter(i => i.featured)
     },
   },
   beforeMount() {
     get(inject("Archived base URL") + '/api/task-list')
       .then(inject_response(this))
       .catch(reportError("Problem While Loading the Overview of the Tasks.", "This might be a short-term hiccup, please try again. We got the following error: "))
-    fetchUserInfo().then((result) => { this.$data.userinfo = result })
     fetchServerInfo().then((result) => { this.$data.serverinfo = result })
   }
 }

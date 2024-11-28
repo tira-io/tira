@@ -115,7 +115,7 @@
 
     import { Loading } from '.'
     import {VAutocomplete} from "vuetify/components";
-    import { get, post, post_file, reportError, slugify, reportSuccess, inject_response } from '../utils'
+    import { get, post, post_file, reportError, slugify, reportSuccess, inject_response, type UserInfo } from '../utils'
     
     export default {
       name: "edit-dataset",
@@ -129,7 +129,8 @@
         irds_docker_image: "", irds_import_command: "", irds_import_truth_command: "",
         git_runner_image: "ubuntu:18.04", git_runner_command: "echo 'this is no real evaluator'", evaluation_type: "eval-1",
         systemFileHandle: undefined, truthFileHandle: undefined,
-        git_repository_id: '', rest_endpoint: inject("REST base URL") as string
+        git_repository_id: '', rest_endpoint: inject("REST base URL") as string,
+        userinfo: inject('userinfo') as UserInfo
       }),
       computed: {
         title() {
@@ -161,7 +162,7 @@
     
           return await form.validate()
         },
-        fileUpload(fileHandle: any, dataset_type: string) {
+        fileUpload(fileHandle: any, dataset_type: string, userinfo: UserInfo) {
           const task_id = this.task_id
           return function(message: any) {
             const dataset_id = message['context']['dataset_id']
@@ -172,7 +173,7 @@
 
             let formData = new FormData()
             formData.append("file", fileHandle[0]);
-            return post_file(`/tira-admin/upload-dataset/${task_id}/${dataset_id}/${dataset_type}`, formData)
+            return post_file(`/tira-admin/upload-dataset/${task_id}/${dataset_id}/${dataset_type}`, formData, userinfo)
             .then(reportSuccess("Uploaded File"))
             .then(() => {return message})
           }
@@ -201,9 +202,9 @@
           }
 
           const url = this.newDataset() ? '/tira-admin/add-dataset/' + this.task_id : '/tira-admin/edit-dataset/' + this.dataset_id_from_props
-          post(url, params)
-          .then(this.fileUpload(this.systemFileHandle, 'input'))
-          .then(this.fileUpload(this.truthFileHandle, 'truth'))
+          post(url, params, this.userinfo)
+          .then(this.fileUpload(this.systemFileHandle, 'input', this.userinfo))
+          .then(this.fileUpload(this.truthFileHandle, 'truth', this.userinfo))
           .then(newDataset => {
             if(this.newDataset()) {
               this.$emit('add-dataset', {'dataset_id': newDataset['context']['dataset_id'], 'display_name': newDataset['context']['display_name']})
