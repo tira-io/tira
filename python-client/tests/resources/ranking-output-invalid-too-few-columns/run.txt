@@ -1,7 +1,7 @@
 1 Q0 doc-1 1 10 tag
 1 Q0 doc-2 2 9 tag
 3 Q0 doc-3 1 1 tag
-5 Q0 doc-1 1 10 tag
+5 doc-1 10 tag
 5 Q0 doc-2 2 9 tag
 5 Q0 doc-3 3 8 tag
 5 Q0 doc-4 4 7 tag
