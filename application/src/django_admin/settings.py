@@ -409,5 +409,4 @@ WELL_KNOWN = {
 }
 
 CODE_SUBMISSION_REPOSITORY_NAMESPACE = "tira-io"
-CSRF_TRUSTED_ORIGINS = ['https://127.0.0.1:8082', 'https://127.0.0.1:8080', 'https://127.0.0.1:8081']
-
+CSRF_TRUSTED_ORIGINS = ["https://127.0.0.1:8082", "https://127.0.0.1:8080", "https://127.0.0.1:8081"]
