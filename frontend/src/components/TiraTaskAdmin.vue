@@ -90,7 +90,7 @@ export default {
   components: { OverviewMissingReviews, OverviewRegisteredTeams, EditTask, VAutocomplete, EditDataset, ConfirmDelete },
   props: {
     'datasets': {
-      type: Object as () => DatasetInfo[], // TODO: add type info
+      type: Object as () => DatasetInfo[],
       required: true,
     },
     'task': {

@@ -95,7 +95,7 @@ import { inject } from 'vue'
 import { TiraBreadcrumb, TiraTaskAdmin, RunList, Loading, SubmitButton, TaskDocumentation } from './components'
 import RunUpload from "@/RunUpload.vue";
 import { VAutocomplete } from 'vuetify/components'
-import { extractTaskFromCurrentUrl, get_link_to_organizer, get_contact_link_to_organizer, extractDatasetFromCurrentUrl, changeCurrentUrlToDataset, get, inject_response, reportError, fetchUserInfo, type UserInfo } from './utils'
+import { extractTaskFromCurrentUrl, get_link_to_organizer, get_contact_link_to_organizer, extractDatasetFromCurrentUrl, changeCurrentUrlToDataset, get, inject_response, reportError, fetchUserInfo, type UserInfo, DatasetInfo } from './utils'
 export default {
   name: "task-list",
   components: { TiraBreadcrumb, RunList, Loading, VAutocomplete, SubmitButton, TiraTaskAdmin, TaskDocumentation, RunUpload },
@@ -113,7 +113,7 @@ export default {
       vm: '',
       user_id: '',
       user_vms_for_task: [],
-      datasets: [{ 'dataset_id': 'loading...', 'display_name': 'loading...', 'default_task': undefined }],
+      datasets: [{ 'dataset_id': 'loading...', 'id': 'loading...', 'display_name': 'loading...', 'default_task': undefined }] as DatasetInfo[],
       tab: "test",
     }
   },
