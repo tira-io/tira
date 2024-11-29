@@ -399,14 +399,19 @@ REFERENCE_DATASETS = {
 }
 
 WELL_KNOWN = {
-    "api": "https://127.0.0.1:8080",
-    "grpc": "https://127.0.0.1:8080",
-    "archived": "https://127.0.0.1:8080",
-    "login": "https://127.0.0.1:8080",
-    "logout": "https://127.0.0.1:8080",
+    "api": "https://www.tira.io",
+    "grpc": "https://www.tira.io",
+    "archived": "https://tira.io",
+    "login": "https://www.tira.io",
+    "logout": "https://www.tira.io",
     "notifications": "fooo",
-    "disraptorURL": "https://127.0.0.1:8080",
+    "disraptorURL": "https://www.tira.io",
 }
+
+if 'well_known' in custom_settings:
+    for k in list(WELL_KNOWN.keys()):
+        if k in custom_settings['well_known']:
+            WELL_KNOWN[k] = custom_settings['well_known'][k]
 
 CODE_SUBMISSION_REPOSITORY_NAMESPACE = "tira-io"
 CSRF_TRUSTED_ORIGINS = ["https://127.0.0.1:8082", "https://127.0.0.1:8080", "https://127.0.0.1:8081"]
