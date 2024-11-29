@@ -3,8 +3,8 @@ src/tira_vm_states.sqlite3
 src/venv
 src/__init__.py
 src/config
-src/tira_app/migrations/*.py
 test/test-database
+src/tira_app/migrations/__pycache__
 
 src/tira_app/static/tira/dist/*
 package-lock.json

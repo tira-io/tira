@@ -121,7 +121,7 @@ export default {
     },
   },
   beforeMount() {
-    get(inject("Archived base URL") + '/api/task-list')
+    get(inject("Archived base URL") + '/api/task-list', false)
       .then(inject_response(this))
       .catch(reportError("Problem While Loading the Overview of the Tasks.", "This might be a short-term hiccup, please try again. We got the following error: "))
   }
