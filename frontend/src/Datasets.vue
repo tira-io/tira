@@ -71,7 +71,7 @@
     },
     beforeMount() {
       this.query = this.$route.query.query as string|undefined
-      get(inject("Archived base URL") + '/v1/datasets/')
+      get(inject("Archived base URL") + '/v1/datasets/all')
         .then(
             (result) => { this.$data.datasets = result.filter((i: DatasetInfo) => i.id && i.id.length > 2)}
         )

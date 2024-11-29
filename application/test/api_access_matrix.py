@@ -2093,6 +2093,17 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
+        url_pattern="v1/systems/all",
+        params={},
+        group_to_expected_status_code={
+            GUEST: 200,
+            PARTICIPANT: 200,
+            ORGANIZER_WRONG_TASK: 200,
+            ORGANIZER: 200,
+            ADMIN: 200,
+        },
+    ),
+    route_to_test(
         url_pattern="v1/systems/<str:user_id>/<str:software>",
         params={"user_id": "does-not-exist", "software": "does-not-exist"},
         group_to_expected_status_code={

@@ -69,7 +69,7 @@
         this.team = this.$route.params.team as undefined | string
       }
 
-      get(inject("Archived base URL") + '/v1/systems/')
+      get(inject("Archived base URL") + '/v1/systems/all')
         .then(
             (result) => { 
               if (this.team) {
