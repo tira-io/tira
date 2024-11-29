@@ -116,17 +116,13 @@ class TiraClient(ABC):
             task_identifier, dataset_in_task = dataset_identifier.split("/")
 
             for dataset in datasets:
-                if (
-                    "default_task" not in dataset
-                    or not dataset["default_task"]
-                    or "task_id" not in dataset["default_task"]
-                ):
+                if "default_task" not in dataset or not dataset["default_task"]:
                     continue
 
                 if not task_identifier or not dataset_in_task:
                     continue
 
-                if task_identifier == dataset["default_task"]["task_id"] and dataset_in_task == dataset["id"]:
+                if task_identifier == dataset["default_task"] and dataset_in_task == dataset["id"]:
                     return dataset
 
         for dataset in datasets:

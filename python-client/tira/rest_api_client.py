@@ -131,7 +131,7 @@ class Client(TiraClient):
         """
 
         dataset_identifier = dataset
-        datasets = self.json_response("/v1/datasets/")
+        datasets = self.archived_json_response("/v1/datasets/all")
 
         ret = self._TiraClient__matching_dataset(datasets, dataset_identifier)
         if ret is not None:
@@ -823,7 +823,25 @@ class Client(TiraClient):
         return resp.json()
 
     @lru_cache(maxsize=None)
-    def json_response(self, endpoint: str, params: Optional[Union[Dict, List[tuple], bytes]] = None):
+    def archived_json_response(self, endpoint: str, force_reload: bool = False):
+        out = Path(self.tira_cache_dir) / ".archived" / Path(endpoint[1:])
+        if endpoint.endswith("/"):
+            out = out / "index.json"
+
+        if out.exists() and not force_reload:
+            return json.load(open(out, "r"))
+
+        out.parent.mkdir(exist_ok=True, parents=True)
+
+        response = self.json_response(endpoint, base_url="https://tira.io")
+
+        with open(out, "w") as f:
+            f.write(json.dumps(response))
+
+        return json.load(open(out, "r"))
+
+    @lru_cache(maxsize=None)
+    def json_response(self, endpoint: str, params: Optional[Union[Dict, List[tuple], bytes]] = None, base_url=None):
         assert endpoint.startswith("/")
         headers = {"Accept": "application/json"}
 
@@ -831,10 +849,11 @@ class Client(TiraClient):
             headers["Api-Key"] = self.api_key
         if self.api_user_name != "no-api-key-user":
             headers["Api-Username"] = self.api_user_name
+        base_url = base_url if base_url else self.base_url
 
         for _ in range(self.failsave_retries):
             try:
-                resp = requests.get(url=f"{self.base_url}{endpoint}", headers=headers, params=params)
+                resp = requests.get(url=f"{base_url}{endpoint}", headers=headers, params=params)
                 if resp.status_code not in {200, 202}:
                     raise ValueError(f"Got statuscode {resp.status_code} for {endpoint}. Got {resp}")
                 else:
