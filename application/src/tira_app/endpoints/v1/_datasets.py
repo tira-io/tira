@@ -5,27 +5,20 @@ from rest_framework.serializers import CharField, ModelSerializer
 from rest_framework_json_api.views import ModelViewSet
 
 from ... import model as modeldb
-from ._tasks import TaskSerializer
 
 
 class DatasetSerializer(ModelSerializer):
     id = CharField(source="dataset_id")
-    default_task = TaskSerializer()
 
     class Meta:
         model = modeldb.Dataset
         fields = [
             "id",
+            "dataset_id",
             "default_task",
             "display_name",
-            "evaluator",
             "is_confidential",
             "is_deprecated",
-            "data_server",
-            "released",
-            "default_upload_name",
-            "created",
-            "last_modified",
             "ir_datasets_id",
             "chatnoir_id",
         ]
