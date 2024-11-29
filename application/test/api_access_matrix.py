@@ -2060,6 +2060,17 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
+        url_pattern="v1/datasets/all",
+        params={},
+        group_to_expected_status_code={
+            GUEST: 200,
+            PARTICIPANT: 200,
+            ORGANIZER_WRONG_TASK: 200,
+            ORGANIZER: 200,
+            ADMIN: 200,
+        },
+    ),
+    route_to_test(
         url_pattern=".well-known/tira/client",
         params={},
         group_to_expected_status_code={
