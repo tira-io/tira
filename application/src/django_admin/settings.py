@@ -408,10 +408,10 @@ WELL_KNOWN = {
     "disraptorURL": "https://www.tira.io",
 }
 
-if 'well_known' in custom_settings:
+if "well_known" in custom_settings:
     for k in list(WELL_KNOWN.keys()):
-        if k in custom_settings['well_known']:
-            WELL_KNOWN[k] = custom_settings['well_known'][k]
+        if k in custom_settings["well_known"]:
+            WELL_KNOWN[k] = custom_settings["well_known"][k]
 
 CODE_SUBMISSION_REPOSITORY_NAMESPACE = "tira-io"
 CSRF_TRUSTED_ORIGINS = ["https://127.0.0.1:8082", "https://127.0.0.1:8080", "https://127.0.0.1:8081"]
