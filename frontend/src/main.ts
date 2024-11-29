@@ -51,6 +51,12 @@ export default function register_app() {
   ]
 
   fetchWellKnownAPIs(tiraConf.rest_endpoint).then(wellKnown => {
+    if (wellKnown.archived.toLowerCase().includes('://' + location.host.toLowerCase())) {
+      console.log('This client only works on the archived backup of TIRA.')
+      wellKnown.grpc = wellKnown.archived
+      wellKnown.api = wellKnown.archived
+    }
+
     fetchUserInfo(wellKnown.api).then(userInfo => {
       fetchServerInfo(wellKnown.api).then(serverInfo => {
         const router = createRouter({
@@ -60,16 +66,6 @@ export default function register_app() {
 
         const app = createApp(App)
 
-        console.log('://' + location.host.toLowerCase())
-        console.log(wellKnown.archived.toLowerCase())
-        console.log(wellKnown.archived.toLowerCase().includes('://' + location.host.toLowerCase()))
-        if (wellKnown.archived.toLowerCase().includes('://' + location.host.toLowerCase())) {
-          console.log('This client only works on the archived backup of TIRA.')
-          wellKnown.grpc = wellKnown.archived
-          wellKnown.api = wellKnown.archived
-        }
-
-        console.log(wellKnown)
         app.provide("gRPC base URL", wellKnown.grpc)
         app.provide("REST base URL", wellKnown.api)
         app.provide("userinfo", userInfo)
