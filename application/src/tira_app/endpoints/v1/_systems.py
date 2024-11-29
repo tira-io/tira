@@ -37,4 +37,8 @@ def software_details(request: HttpRequest, user_id: str, software: str) -> JsonR
     return JsonResponse({"DockerImage": "dasda", "tbd": ret}, safe=False)
 
 
-endpoints = [path("", public_submissions), path("<str:user_id>/<str:software>", software_details)]
+endpoints = [
+    path("", public_submissions),
+    path("all", public_submissions),
+    path("<str:user_id>/<str:software>", software_details),
+]
