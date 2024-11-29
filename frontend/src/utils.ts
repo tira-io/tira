@@ -168,7 +168,7 @@ export async function fetchUserInfo(endpoint: string): Promise<UserInfo> {
 }
 
 export async function fetchWellKnownAPIs(endpoint: string | undefined = undefined): Promise<WellKnownAPI> {
-    const url = endpoint ? endpoint : inject("REST base URL")
+    const url = endpoint ? endpoint : ''
     const response = await fetch(url + '/.well-known/tira/client')
 
     let _well_known = await response.json() as WellKnownAPI
