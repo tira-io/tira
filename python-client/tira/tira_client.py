@@ -95,3 +95,43 @@ class TiraClient(ABC):
         false  otherwise.
         """
         pass
+
+    def __matching_dataset(self, datasets, dataset_identifier) -> "Optional[dict]":
+        """Find the dataset identified by the passed dataset_identifier in all passed datasets.
+
+        Args:
+            datasets (List[dict]): TIRA representations of datasets.
+            dataset_identifier (_type_): identifier of the dataset to be found.
+
+        Returns:
+            Optional[dict]: The TIRA representation of the dataset if found in the datasets.
+        """
+        datasets = [i for i in datasets if "id" in i and len(i["id"]) > 2]
+
+        for dataset in datasets:
+            if dataset_identifier and dataset["id"] == dataset_identifier:
+                return dataset
+
+        if len(dataset_identifier.split("/")) == 2:
+            task_identifier, dataset_in_task = dataset_identifier.split("/")
+
+            for dataset in datasets:
+                if (
+                    "default_task" not in dataset
+                    or not dataset["default_task"]
+                    or "task_id" not in dataset["default_task"]
+                ):
+                    continue
+
+                if not task_identifier or not dataset_in_task:
+                    continue
+
+                if task_identifier == dataset["default_task"]["task_id"] and dataset_in_task == dataset["id"]:
+                    return dataset
+
+        for dataset in datasets:
+            if "ir_datasets_id" not in dataset or not dataset["ir_datasets_id"] or len(dataset["ir_datasets_id"]) < 3:
+                continue
+
+            if dataset_identifier and dataset_identifier == dataset["ir_datasets_id"]:
+                return dataset

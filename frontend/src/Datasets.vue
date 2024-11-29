@@ -23,17 +23,17 @@
             <span v-if="!item.default_task"> No Task </span>
         </template>
         <template #item.ir_datasets_id="{ item }">
-            <a v-if="item.default_task" href="https://ir-datasets.com/" style="text-decoration: none !important;">clueweb09/en/trec-web-2009</a>
+            <a v-if="item.ir_datasets_id" :href="'https://ir-datasets.com/' + item.ir_datasets_id.split('/')[0] + '.html#' + item.ir_datasets_id" style="text-decoration: none !important;" target="_blank">{{item.ir_datasets_id}}</a>
         </template>
         <template #item.search="{ item }">
-            <a v-if="item.default_task" href="https://chatnoir.web.webis.de" style="text-decoration: none !important;">ChatNoir</a>
+            <a v-if="item.chatnoir_id" :href="'https://chatnoir.web.webis.de/?index=' + item.chatnoir_id" style="text-decoration: none !important;" target="_blank">ChatNoir</a>
         </template>
         <template #item.type="{ item }">
           Public Training
         </template>
         <template #item.mirrors="{ item }">
-          <a v-if="item.default_task" href="https://chatnoir.web.webis.de" style="text-decoration: none !important;">Zenodo</a>
-          <a v-if="!item.default_task" href="https://chatnoir.web.webis.de" style="text-decoration: none !important;">Huggingface</a>
+          <!--<a v-if="item.default_task" href="https://chatnoir.web.webis.de" style="text-decoration: none !important;">Zenodo</a>
+          <a v-if="!item.default_task" href="https://chatnoir.web.webis.de" style="text-decoration: none !important;">Huggingface</a>-->
         </template>
       </v-data-table>
     </div>
@@ -73,7 +73,7 @@
       this.query = this.$route.query.query as string|undefined
       get(inject("Archived base URL") + '/v1/datasets/')
         .then(
-            (result) => { this.logData(result); this.$data.datasets = result}
+            (result) => { this.$data.datasets = result.filter((i: DatasetInfo) => i.id && i.id.length > 2)}
         )
         .catch(reportError("Problem While Loading the Overview of the Datasets.", "This might be a short-term hiccup, please try again. We got the following error: "))
     },

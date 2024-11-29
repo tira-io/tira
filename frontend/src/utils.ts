@@ -6,6 +6,9 @@ export interface TaskInfo {
 
 export interface DatasetInfo {
     dataset_id: string;
+    id: string;
+    ir_datasets_id: string | undefined;
+    chatnoir_id: string | undefined;
     display_name: string;
     default_task: TaskInfo | undefined;
 }

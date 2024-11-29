@@ -155,6 +155,8 @@ class Dataset(models.Model):
     irds_import_truth_command = models.CharField(max_length=150, null=True, default=None)
     meta_dataset_of = models.TextField(default=None, null=True)
     format = models.CharField(max_length=50, null=True, default=None)
+    chatnoir_id = models.CharField(max_length=100, null=True, default=None)
+    ir_datasets_id = models.CharField(max_length=100, null=True, default=None)
 
 
 class TaskHasDataset(models.Model):

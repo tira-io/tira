@@ -26,6 +26,8 @@ class DatasetSerializer(ModelSerializer):
             "default_upload_name",
             "created",
             "last_modified",
+            "ir_datasets_id",
+            "chatnoir_id",
         ]
 
 
