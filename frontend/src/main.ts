@@ -59,6 +59,12 @@ export default function register_app() {
         })
 
         const app = createApp(App)
+
+        if (wellKnown.archived.toLowerCase().includes('://' + location.host.toLowerCase())) {
+          wellKnown.grpc = wellKnown.archived
+          wellKnown.api = wellKnown.archived
+        }
+
         app.provide("gRPC base URL", wellKnown.grpc)
         app.provide("REST base URL", wellKnown.api)
         app.provide("userinfo", userInfo)
