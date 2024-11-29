@@ -88,6 +88,7 @@ export default {
       table_headers: [],
       table_headers_small_layout: [],
       table_sort_by: [],
+      rest_url: inject("REST base URL")
     }
   },
   computed: {
@@ -115,13 +116,13 @@ export default {
       this.loading = true
       var rest_endpoint = ''
       if (this.task_id && this.dataset_id) {
-        rest_endpoint = inject("REST base URL") + '/api/evaluations/' + this.task_id + '/' + this.dataset_id
+        rest_endpoint = this.rest_url + '/api/evaluations/' + this.task_id + '/' + this.dataset_id
 
         if (this.show_only_unreviewed) {
           rest_endpoint += '?show_only_unreviewed=true'
         }
       } else if (this.task_id && this.vm_id) {
-        rest_endpoint = inject("REST base URL") + '/api/evaluations-of-vm/' + this.task_id + '/' + this.vm_id
+        rest_endpoint = this.rest_url + '/api/evaluations-of-vm/' + this.task_id + '/' + this.vm_id
 
         if (this.docker_software_id) {
           rest_endpoint += '?docker_software_id=' + this.docker_software_id
