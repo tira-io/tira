@@ -40,9 +40,12 @@ class Client(TiraClient):
         failsave_retries: int = 5,
         failsave_max_delay: int = 15,
         api_user_name: Optional[str] = None,
+        tira_cache_dir: Optional[str] = None,
     ):
         self.base_url = base_url or "https://www.tira.io"
-        self.tira_cache_dir = os.environ.get("TIRA_CACHE_DIR", os.path.expanduser("~") + "/.tira")
+        self.tira_cache_dir = (
+            tira_cache_dir if tira_cache_dir else os.environ.get("TIRA_CACHE_DIR", os.path.expanduser("~") + "/.tira")
+        )
         self.json_cache = {}
 
         if api_key is None:
@@ -117,6 +120,26 @@ class Client(TiraClient):
 
     def datasets(self, task):
         return json.loads(self.json_response(f"/api/datasets_by_task/{task}")["context"]["datasets"])
+
+    def get_dataset(self, dataset) -> dict:
+        """Get the TIRA representation of an dataset identified by the passed dataset argument.
+
+        Args:
+            dataset (Union[str, IrDataset, PyTerrierDataset): The dataset that is either the string id of the dataset in TIRA, the string id of an ir_dataset, the string id of an PyTerrier dataset, or an instantiation of an ir_dataset or an PyTerrier dataset.
+        Returns:
+            dict: The TIRA representation of the dataset.
+        """
+
+        dataset_identifier = dataset
+        datasets = self.json_response("/v1/datasets/")
+
+        ret = self._TiraClient__matching_dataset(datasets, dataset_identifier)
+        if ret is not None:
+            return ret
+
+        msg = f'The dataset "{dataset_identifier}" is not publicly available in TIRA. Please visit https://tira.io/datasets for an overview of all public datasets.'
+        print(msg)
+        raise ValueError(msg)
 
     def docker_software_id(self, approach):
         return self.docker_software(approach)["docker_software_id"]
