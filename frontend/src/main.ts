@@ -10,6 +10,7 @@ import IrComponents from './IrComponents.vue'
 import Home from './Home.vue'
 import Tasks from './Tasks.vue'
 import Tirex from './Tirex.vue'
+import ClaimSubmission from './ClaimSubmission.vue'
 import Datasets from './Datasets.vue'
 import Systems from './Systems.vue'
 import SystemDetails from './SystemDetails.vue'
@@ -17,6 +18,12 @@ import TaskOverview from './TaskOverview.vue'
 import RunUpload from './RunUpload.vue'
 import tiraConf from './tira.conf'
 import { fetchWellKnownAPIs, fetchUserInfo, fetchServerInfo } from './utils';
+import { useDisplay } from 'vuetify'
+
+export function is_mobile() {
+  const { mobile } = useDisplay()
+  return mobile.value
+}
 
 // Composables
 import { createApp } from 'vue'
@@ -37,6 +44,7 @@ export default function register_app() {
     { path: '/', component: Home },
     { path: '/tasks', component: Tasks },
     { path: '/datasets', component: Datasets },
+    { path: '/claim-submission/:uuid', component: ClaimSubmission },
     { path: '/systems', component: Systems },
     { path: '/systems/:team?', component: Systems },
     { path: '/systems/:team/:system', component: SystemDetails },

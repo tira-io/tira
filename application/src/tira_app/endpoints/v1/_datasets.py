@@ -35,4 +35,5 @@ class _DatasetView(ModelViewSet):
 endpoints = [
     path("", _DatasetView.as_view({"get": "list"})),
     path("all", _DatasetView.as_view({"get": "list"})),
+    path("view/<str:dataset_id>", _DatasetView.as_view({"get": "retrieve"})),
 ]

@@ -1,5 +1,6 @@
 from django.urls import include, path
 
+from ._anonymous import endpoints as anonymous_endpoints
 from ._datasets import endpoints as dataset_endpoints
 from ._evaluations import endpoints as evaluation_endpoints
 from ._organizers import endpoints as organizer_endpoints
@@ -9,6 +10,7 @@ from ._tasks import endpoints as task_endpoints
 from ._user import endpoints as user_endpoints
 
 endpoints = [
+    path("anonymous/", include(anonymous_endpoints)),
     path("datasets/", include(dataset_endpoints)),
     path("systems/", include(system_endpoints)),
     path("evaluations/", include(evaluation_endpoints)),

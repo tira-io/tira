@@ -13,6 +13,12 @@ export interface DatasetInfo {
     default_task: TaskInfo | undefined;
 }
 
+export interface ClaimSubmissionInfo {
+    uuid: string;
+    dataset_id: string;
+    created: string;
+}
+
 export interface UserContext {
     user_id: string;
 }
@@ -48,6 +54,25 @@ export interface WellKnownAPI {
     logout: string;
     notifications: string;
     disraptorURL: string;
+}
+
+export function irDatasetsUrl(dataset: DatasetInfo | undefined) {
+    if (!dataset || !dataset.ir_datasets_id) {
+        return undefined
+    } else {
+        return 'https://ir-datasets.com/' + dataset.ir_datasets_id.split('/')[0] + '.html#' + dataset.ir_datasets_id
+    }
+}
+
+export function chatNoirUrl(dataset: DatasetInfo | undefined, document_id: string | undefined = undefined) {
+    if (!dataset || !dataset.chatnoir_id) {
+        return undefined
+    } else if (document_id) {
+        return 'https://chatnoir-webcontent.web.webis.de/?index=' + dataset.chatnoir_id + '&trec-id=' + document_id
+    }
+    else {
+        return 'https://chatnoir.web.webis.de/?index=' + dataset.chatnoir_id
+    }
 }
 
 export function extractTaskFromCurrentUrl() {

@@ -23,10 +23,10 @@
             <span v-if="!item.default_task"> No Task </span>
         </template>
         <template #item.ir_datasets_id="{ item }">
-            <a v-if="item.ir_datasets_id" :href="'https://ir-datasets.com/' + item.ir_datasets_id.split('/')[0] + '.html#' + item.ir_datasets_id" style="text-decoration: none !important;" target="_blank">{{item.ir_datasets_id}}</a>
+            <a v-if="ir_datasets_url(item)" :href="ir_datasets_url(item)" style="text-decoration: none !important;" target="_blank">{{item.ir_datasets_id}}</a>
         </template>
         <template #item.search="{ item }">
-            <a v-if="item.chatnoir_id" :href="'https://chatnoir.web.webis.de/?index=' + item.chatnoir_id" style="text-decoration: none !important;" target="_blank">ChatNoir</a>
+            <a v-if="chatnoir_url(item)" :href="chatnoir_url(item)" style="text-decoration: none !important;" target="_blank">ChatNoir</a>
         </template>
         <template #item.type="{ item }">
           Public Training
@@ -42,7 +42,7 @@
   <script lang="ts">
   import { inject } from 'vue'
   
-  import { get, reportError, type UserInfo, type DatasetInfo } from './utils';
+  import { get, reportError, chatNoirUrl, irDatasetsUrl, type UserInfo, type DatasetInfo } from './utils';
   import { Loading, TiraBreadcrumb } from './components'
   
   export default {
@@ -65,9 +65,8 @@
       }
     },
     methods: {
-      logData(toLog: any) {
-        console.log(toLog)
-      }
+      chatnoir_url(dataset: DatasetInfo) { return chatNoirUrl(dataset)},
+      ir_datasets_url(dataset: DatasetInfo) { return irDatasetsUrl(dataset)},
     },
     beforeMount() {
       this.query = this.$route.query.query as string|undefined
