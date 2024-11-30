@@ -2049,8 +2049,30 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
+        url_pattern="v1/anonymous/<str:submission_uuid>",
+        params={"submission_uuid": "12345"},
+        group_to_expected_status_code={
+            GUEST: 200,
+            PARTICIPANT: 200,
+            ORGANIZER_WRONG_TASK: 200,
+            ORGANIZER: 200,
+            ADMIN: 200,
+        },
+    ),
+    route_to_test(
         url_pattern="v1/datasets/",
         params={},
+        group_to_expected_status_code={
+            GUEST: 200,
+            PARTICIPANT: 200,
+            ORGANIZER_WRONG_TASK: 200,
+            ORGANIZER: 200,
+            ADMIN: 200,
+        },
+    ),
+    route_to_test(
+        url_pattern="v1/datasets/view/<str:dataset_id>",
+        params={"dataset_id": f"dataset-of-organizer-{now}-training"},
         group_to_expected_status_code={
             GUEST: 200,
             PARTICIPANT: 200,
