@@ -50,6 +50,8 @@ USER tira
 RUN <<EOF
 export PATH="/home/tira/.local/bin:$PATH"
 
+cp -R ./application/src/tira_app/templates /home/tira/.local/lib/python3.11/site-packages/tira_app/templates
+
 # Install dependencies
 pip3 install -q --no-cache-dir --user ../python-client .[test,deploy,postgreqsql]
 
