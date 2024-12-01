@@ -63,7 +63,7 @@ def load_mirrored_resource(md5_sum):
 
 
 def mirrors_for_dataset(dataset_id: str):
-    ret = {'truths': {}, 'inputs': {}}
+    ret = {"truths": {}, "inputs": {}}
     for i in modeldb.DatasetHasMirroredResource.objects.filter(dataset__dataset_id=dataset_id):
         resource_type = i.resource_type
         i = load_mirrored_resource(i.mirrored_resource.md5_sum)
@@ -93,7 +93,7 @@ def add_mirrored_resource(dataset_id: str, url_inputs: str, url_truths: str, nam
     dataset = modeldb.Dataset.objects.filter(dataset_id=dataset_id).first()
 
     for url in urls:
-        resource_type = 'inputs' if url == url_inputs else 'truths'
+        resource_type = "inputs" if url == url_inputs else "truths"
         response = requests.get(url)
 
         if response.status_code != 200 or not response.ok:
@@ -127,8 +127,12 @@ def add_mirrored_resource(dataset_id: str, url_inputs: str, url_truths: str, nam
             modeldb.MirroredResource.objects.update(md5_sum=md5_sum, mirrors=json.dumps(mirrors))
 
         mirror = modeldb.MirroredResource.objects.filter(md5_sum=md5_sum).first()
-        if not modeldb.DatasetHasMirroredResource.objects.filter(dataset=dataset, mirrored_resource=mirror, resource_type=resource_type):
-            modeldb.DatasetHasMirroredResource.objects.create(dataset=dataset, mirrored_resource=mirror, resource_type=resource_type)
+        if not modeldb.DatasetHasMirroredResource.objects.filter(
+            dataset=dataset, mirrored_resource=mirror, resource_type=resource_type
+        ):
+            modeldb.DatasetHasMirroredResource.objects.create(
+                dataset=dataset, mirrored_resource=mirror, resource_type=resource_type
+            )
 
         print(load_mirrored_resource(md5_sum))
 
