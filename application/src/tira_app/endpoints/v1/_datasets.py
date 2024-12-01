@@ -63,63 +63,74 @@ def load_mirrored_resource(md5_sum):
 
 
 def mirrors_for_dataset(dataset_id: str):
-    ret = {}
+    ret = {'truths': {}, 'inputs': {}}
     for i in modeldb.DatasetHasMirroredResource.objects.filter(dataset__dataset_id=dataset_id):
+        resource_type = i.resource_type
         i = load_mirrored_resource(i.mirrored_resource.md5_sum)
-        if not i or not i["mirrors"]:
+        if not i or not i["mirrors"] or not resource_type or resource_type not in ret:
             continue
+
         for k, v in i["mirrors"].items():
-            ret[k] = v
+            ret[resource_type][k] = v
+
     return ret
 
 
-def add_mirrored_resource(dataset_id: str, url: str, name: str):
-    for i in modeldb.DatasetHasMirroredResource.objects.filter(dataset__dataset_id=dataset_id):
-        i = load_mirrored_resource(i.mirrored_resource.md5_sum)
-        if not i:
-            raise ValueError("could not read existing resources")
-        if url in i["mirrors"].values():
-            print(f"Mirrored URL {url} already exists: {i}")
-            return
+def add_mirrored_resource(dataset_id: str, url_inputs: str, url_truths: str, name: str):
+    urls = []
+    for url in [url_inputs, url_truths]:
+        found = False
+        for i in modeldb.DatasetHasMirroredResource.objects.filter(dataset__dataset_id=dataset_id):
+            i = load_mirrored_resource(i.mirrored_resource.md5_sum)
+            if not i:
+                raise ValueError("could not read existing resources")
+            if url_inputs in i["mirrors"].values():
+                print(f"Mirrored URL {url_inputs} already exists: {i}")
+                found = True
+        if not found:
+            urls += [url]
 
     dataset = modeldb.Dataset.objects.filter(dataset_id=dataset_id).first()
-    response = requests.get(url)
 
-    if response.status_code != 200 or not response.ok:
-        raise ValueError(f"Failed to load {url}. Response code {response.status_code}.")
+    for url in urls:
+        resource_type = 'inputs' if url == url_inputs else 'truths'
+        response = requests.get(url)
 
-    md5_sum = str(md5(response.content).hexdigest())
-    md5_first_kilobyte = str(md5(response.content[:1024]).hexdigest())
-    size = len(response.content)
+        if response.status_code != 200 or not response.ok:
+            raise ValueError(f"Failed to load {url}. Response code {response.status_code}.")
 
-    target_dir = Path(settings.TIRA_ROOT) / "data" / "mirrored-resources"
-    target_dir.mkdir(exist_ok=True, parents=True)
-    target_dir = target_dir / md5_sum
+        md5_sum = str(md5(response.content).hexdigest())
+        md5_first_kilobyte = str(md5(response.content[:1024]).hexdigest())
+        size = len(response.content)
 
-    mirrors = {}
-    existing_resource = load_mirrored_resource(md5_sum)
+        target_dir = Path(settings.TIRA_ROOT) / "data" / "mirrored-resources"
+        target_dir.mkdir(exist_ok=True, parents=True)
+        target_dir = target_dir / md5_sum
 
-    if not existing_resource:
-        with open(target_dir, "wb") as f:
-            f.write(response.content)
+        mirrors = {}
+        existing_resource = load_mirrored_resource(md5_sum)
 
-    if existing_resource and "mirrors" in existing_resource and existing_resource["mirrors"]:
-        mirrors = existing_resource["mirrors"]
+        if not existing_resource:
+            with open(target_dir, "wb") as f:
+                f.write(response.content)
 
-    mirrors[name] = url
+        if existing_resource and "mirrors" in existing_resource and existing_resource["mirrors"]:
+            mirrors = existing_resource["mirrors"]
 
-    if not existing_resource:
-        modeldb.MirroredResource.objects.create(
-            md5_sum=md5_sum, md5_first_kilobyte=md5_first_kilobyte, size=size, mirrors=json.dumps(mirrors)
-        )
-    else:
-        modeldb.MirroredResource.objects.update(md5_sum=md5_sum, mirrors=json.dumps(mirrors))
+        mirrors[name] = url
 
-    mirror = modeldb.MirroredResource.objects.filter(md5_sum=md5_sum).first()
-    if not modeldb.DatasetHasMirroredResource.objects.filter(dataset=dataset, mirrored_resource=mirror):
-        modeldb.DatasetHasMirroredResource.objects.create(dataset=dataset, mirrored_resource=mirror)
+        if not existing_resource:
+            modeldb.MirroredResource.objects.create(
+                md5_sum=md5_sum, md5_first_kilobyte=md5_first_kilobyte, size=size, mirrors=json.dumps(mirrors)
+            )
+        else:
+            modeldb.MirroredResource.objects.update(md5_sum=md5_sum, mirrors=json.dumps(mirrors))
 
-    print(load_mirrored_resource(md5_sum))
+        mirror = modeldb.MirroredResource.objects.filter(md5_sum=md5_sum).first()
+        if not modeldb.DatasetHasMirroredResource.objects.filter(dataset=dataset, mirrored_resource=mirror, resource_type=resource_type):
+            modeldb.DatasetHasMirroredResource.objects.create(dataset=dataset, mirrored_resource=mirror, resource_type=resource_type)
+
+        print(load_mirrored_resource(md5_sum))
 
 
 endpoints = [

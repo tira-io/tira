@@ -33,7 +33,7 @@
           <span v-if="!item.is_confidential">Public Training</span>
         </template>
         <template #item.mirrors="{ item }">
-          <p v-for="[k, v] of Object.entries(item.mirrors)">
+          <p v-for="[k, v] of Object.entries(mirrored_resources(item.mirrors))">
             <a :href="v + ''"  style="text-decoration: none !important;" target="_blank">{{k}}</a>
           </p>
         </template>
@@ -69,6 +69,16 @@
     methods: {
       chatnoir_url(dataset: DatasetInfo) { return chatNoirUrl(dataset)},
       ir_datasets_url(dataset: DatasetInfo) { return irDatasetsUrl(dataset)},
+      mirrored_resources(mirrors: any) {
+        let ret : Record<string, string> = {}
+        for (let resource_type of Object.keys(mirrors)) {
+          for (let resource_name of Object.keys(mirrors[resource_type])) {
+            ret[resource_name + ' (' + resource_type + ')'] = mirrors[resource_type][resource_name]
+          }
+        }
+
+        return ret
+      }
     },
     beforeMount() {
       this.query = this.$route.query.query as string|undefined

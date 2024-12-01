@@ -178,6 +178,7 @@ class MirroredResource(models.Model):
 class DatasetHasMirroredResource(models.Model):
     dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE)
     mirrored_resource = models.ForeignKey(MirroredResource, on_delete=models.CASCADE)
+    resource_type = models.CharField(max_length=15)
 
 
 class Software(models.Model):
