@@ -1,19 +1,17 @@
 <template>
     <div @mouseover="make_this_run_active(true)" @mouseleave="make_this_run_active(false)">
-      <h3>{{ title }}</h3>
-      <br>
+      <h3 v-if="run && run.title">{{ run.title }}<br></h3>
       <diff-ir 
-        :docs="topic_details['docs']" :run="serp_run" :ir_dataset="run.split('____')[0]" :qrels="qrel_data" v-if="topic_details"/>
+        :docs="topic_details.docs" :run="serp_run" chatnoir_id="chatnoir_id" :qrels="qrel_data" v-if="topic_details"/>
     </div>
   </template>
   
   <script lang="ts">
-  import { get } from '@/utils'
-  import DiffIr from '@/components/DiffIr.vue'
+  import DiffIr from './DiffIr.vue'
   
   export default {
     name: "serp",
-    props: ['run', 'topic', 'run_id', 'reference_run_id', 'topic_details', 'topics'],
+    props: ['run', 'topic', 'run_id', 'reference_run_id', 'topic_details', 'topics', 'chatnoir_id'],
     components: {DiffIr},
     data() {
       return {
@@ -32,15 +30,14 @@
       }
     },
     computed: {
-      title() {
-        return this.run.split('____')[1].split('/')[2]
-      },
       serp_run() {
         //return [{'rank': 1, 'score': 3, 'doc_id': '1'}, {'rank': 2, 'score': 2, 'doc_id': '3'}, {'rank': 23, 'score': 1, 'doc_id': '2'}]
-        for (let i of this.topic_details['runs']) {
-          if (i['name'] == this.run.split('____')[1]) {
-            console.log(i)
-            return i['ranking'];
+
+        console.log(this.topic_details.runs)
+        for (let i of this.topic_details.runs) {
+          if (i.tira_run == this.run && this.topic_details.qid && i.ranking && i.ranking[this.topic_details.qid]) {
+            console.log(i.ranking[this.topic_details.qid])
+            return i.ranking[this.topic_details.qid];
           }
         }
   

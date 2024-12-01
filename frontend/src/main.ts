@@ -58,13 +58,8 @@ export default function register_app() {
     { path: '/:pathMatch(.*)*', component: Home },
   ]
 
-  console.log(tiraConf.rest_endpoint)
-  fetchWellKnownAPIs(tiraConf.rest_endpoint).then(wellKnown => { console.log(tiraConf.rest_endpoint + ' -> ' + wellKnown) })
-  fetchWellKnownAPIs('https://tira.io').then(wellKnown => { console.log('https://tira.io -> ' + wellKnown) })
-
   fetchWellKnownAPIs(tiraConf.rest_endpoint).then(wellKnown => {
     if (wellKnown.archived.toLowerCase().includes('://' + location.host.toLowerCase())) {
-      console.log('This client only works on the archived backup of TIRA.')
       wellKnown.grpc = wellKnown.archived
       wellKnown.api = wellKnown.archived
     }

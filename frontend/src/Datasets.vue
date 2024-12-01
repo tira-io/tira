@@ -15,12 +15,12 @@
 
       <v-data-table :headers="headers_xs" :items="datasets" :itemsPerPage="10" :search="query" density="compact" fixed-footer>
         <template #item.display_name="{ item }">
-            <a v-if="item.default_task" :href="'/task-overview/' + item.default_task.task_name + '/' + item.dataset_id" style="text-decoration: none !important;">{{ item.display_name }}</a>
+            <a v-if="item.default_task" :href="'/task-overview/' + item.default_task + '/' + item.dataset_id" style="text-decoration: none !important;">{{ item.display_name }}</a>
             <span v-if="!item.default_task">{{ item.display_name }}</span>
         </template>
         <template #item.default_task="{ item }">
-          <a v-if="item.default_task" :href="'/task-overview/' + item.default_task.task_name" style="text-decoration: none !important;">{{ item.default_task.task_name }}</a>
-            <span v-if="!item.default_task"> No Task </span>
+            <a v-if="item.default_task" :href="'/task-overview/' + item.default_task + '/' + item.dataset_id" style="text-decoration: none !important;">{{ item.default_task_name }}</a>
+            <span v-if="!item.default_task">No Task</span>
         </template>
         <template #item.ir_datasets_id="{ item }">
             <a v-if="ir_datasets_url(item)" :href="ir_datasets_url(item)" style="text-decoration: none !important;" target="_blank">{{item.ir_datasets_id}}</a>
@@ -29,11 +29,13 @@
             <a v-if="chatnoir_url(item)" :href="chatnoir_url(item)" style="text-decoration: none !important;" target="_blank">ChatNoir</a>
         </template>
         <template #item.type="{ item }">
-          Public Training
+          <span v-if="item.is_confidential">Private Test</span>
+          <span v-if="!item.is_confidential">Public Training</span>
         </template>
         <template #item.mirrors="{ item }">
-          <!--<a v-if="item.default_task" href="https://chatnoir.web.webis.de" style="text-decoration: none !important;">Zenodo</a>
-          <a v-if="!item.default_task" href="https://chatnoir.web.webis.de" style="text-decoration: none !important;">Huggingface</a>-->
+          <p v-for="[k, v] of Object.entries(item.mirrors)">
+            <a :href="v + ''"  style="text-decoration: none !important;" target="_blank">{{k}}</a>
+          </p>
         </template>
       </v-data-table>
     </div>

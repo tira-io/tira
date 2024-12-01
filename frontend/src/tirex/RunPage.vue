@@ -69,7 +69,7 @@
           Rendered with <a href="https://github.com/capreolus-ir/diffir" target="_blank">DiffIR</a>:
         </v-col>
         <v-col cols="8" class="ma-0 pa-0">
-          <v-select class="ma-0 pa-0" :items="filtered_topics" item-value="identifier" item-title="default_text" v-model="selected_topic" label="Topic" @update:modelValue="fetch_run_data"/>
+          <v-select class="ma-0 pa-0" :items="filtered_topics" item-value="client_side_identifier" item-title="default_text" v-model="selected_topic" label="Topic" @update:modelValue="fetch_run_data"/>
         </v-col>
       </v-row>
     </div>
@@ -78,13 +78,14 @@
     <div class="d-flex" v-if="selected_runs">
       <v-row v-if="topic" class="justify-center mx-2">
         <v-col :cols="columns" v-for="selected_run of selected_runs">
-          <serp :run="selected_run" :topic="topic" :topic_details="topic" :reference_run_id="reference_run_id" @activate_run="activate_run"/>
+          <serp :run="selected_run" :topic="topic" :topic_details="topic" :reference_run_id="reference_run_id" @activate_run="activate_run" :chatnoir_id="chatnoir_id"/>
         </v-col>
       </v-row>
     </div>
   </template>
     
   <script lang="ts">
+    import { inject } from 'vue'
     import { get } from "@/utils"
     import { type Topic, type RunDetails, uniqueElements } from "./utils"
     import Serp from './Serp.vue'
@@ -94,7 +95,7 @@
     
     export default {
       components: {Serp, DiffIr},
-      props: {dataset_id: {type: String}, chatnoir_id: {type: String}},
+      props: {dataset_id: {type: String}, chatnoir_id: {type: String}, run_id: {type: String}, run_uuid: {type: String}},
       data: () => ({
         topics: [] as Topic[],
         runs: [] as RunDetails[],
@@ -121,6 +122,7 @@
           {name: 'P@10', value: 'P@10'},
         ],
         'reference_run_id': undefined as string|undefined,
+        rest_url: inject("REST base URL"),
       }),
       methods: {
         uniqueElements(element: any[], key: string) {
@@ -129,13 +131,32 @@
         activate_run(run: string) {
           this.reference_run_id = run
         },
+        fetch_data() {
+          this.topics = []
+          this.runs = []
+
+          if (this.dataset_id) {
+            get(this.rest_url + '/v1/tirex/topics/' + this.dataset_id).then((i) => { this.topics = i})
+
+            if (this.run_uuid) {
+              get(this.rest_url + '/v1/tirex/runs-by-uuid/' + this.run_uuid).then((i) => {
+                this.runs = [i]
+
+                this.selected_runs = [i.tira_run]
+              })
+            }
+          }
+        },
         fetch_run_data(i: any) {
-            throw Error('Re-Implement...')
+          
+          console.log('fetch_run_data->' + i)
+            //throw Error('Re-Implement...')
             /*get(this.topic['run_details'], this)
           get(this.topic['qrel_details'], this)*/
         },
         update_manual_run(i: any) {
-          throw Error('Re-Implement...')
+          console.log('update_manual_run->' + i)
+          //throw Error('Re-Implement...')
           /*get(this.topic['run_details'], this)
           get(this.topic['qrel_details'], this)*/
         },
@@ -145,7 +166,47 @@
       },
       computed: {
         topic() {
-          return this.selected_topic ? this.filtered_topics_map[this.selected_topic] : undefined;
+          if (!this.selected_topic || !this.filtered_topics_map[this.selected_topic]) {
+            return undefined
+          }
+          
+          let ret = {...this.filtered_topics_map[this.selected_topic]}
+          if (!ret.runs) {
+            ret.runs = []
+          }
+
+          let covered_runs = new Set()
+          for (let run of ret.runs) {
+            if (run && run.tira_run) {
+              covered_runs.add(run.tira_run)
+            }
+          }
+
+          for (let run of this.filtered_runs) {
+            if (run && run.tira_run && !covered_runs.has(run.tira_run)) {
+              covered_runs.add(run.tira_run)
+              ret.runs.push(run)
+            }
+          }
+
+          if (!ret.docs) {
+            get(this.rest_url + '/v1/tirex/topic/' + this.dataset_id + '/' + ret.qid).then((i) => {
+              for (let t of this.topics) {
+                if (t.qid == ret.qid) {
+                  t.docs = i.docs;
+                  if (i.narrative) {
+                    t.narrative = i.narrative
+                  }
+                  if (i.description) {
+                    t.description = i.description
+                  }
+                }
+              }
+            })
+            return undefined;
+          }
+
+          return ret;
         },
         filtered_topics() {
           let ret = []
@@ -199,7 +260,7 @@
           }
   
           for (let i of this.filtered_topics) {
-            if (i.dataset_id == this.dataset_filter && topics.has(i.qid)) {
+            if ((!this.dataset_filter || i.dataset_id == this.dataset_filter) && (!topics || topics.has(i.qid))) {
               ret.push(i)
             }
            }
@@ -211,7 +272,7 @@
           let datasets = new Set()
 
           for (let run of this.filtered_runs) {
-            datasets.add(run['dataset'])
+            datasets.add(run.dataset)
           }
 
           for (let topic of this.topics) {
@@ -249,6 +310,15 @@
   
           return headers
         },
+        filtered_runs_map() {
+          let ret : Record<string, RunDetails> = {}
+
+          for (let run of this.filtered_runs) {
+            ret[run.tira_run] = run
+          }
+
+          return ret
+        },
         filtered_runs() {
           let ret = []
   
@@ -258,18 +328,18 @@
             if (this.dataset_filter && !this.dataset_filter.includes(run.dataset)) {
               continue
             }
-  
+
             if (this.team_filter && !run['team'].includes(this.team_filter)) {
               continue
             }
-  
+
             if (this.system_filter && !run['run'].includes(this.system_filter)) {
               continue
             }
 
             ret.push(run)
           }
-  
+
           return ret;
         },
         columns() {
@@ -281,9 +351,12 @@
         },
       },
       watch: {
-        ir_dataset: function () {}
+        dataset_id: function () { this.fetch_data() },
+        chatnoir_id: function () { this.fetch_data() },
+        run_id: function () { this.fetch_data() },
+        run_uuid: function () { this.fetch_data() },
       },
-      beforeMount() {},
+      beforeMount() { this.fetch_data() },
     }
   </script>
     

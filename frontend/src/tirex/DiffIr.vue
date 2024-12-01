@@ -6,19 +6,26 @@
       <div class="col">
         <h6 id="Run2Name" style="text-align: center;"></h6>
       </div>
+    
+    <div class="d-flex">
+      <v-row class="justify-center mx-2">
+        <v-col cols="12">
+          <div class="row" v-for="run in rendered_run">
+            <div class="card" style="width: 95%" @click="open_chatnoir(run.doc_id)">
+              <div class="card-header">
+                <div class="docid" :style="'right: 0px; width=100%; background-color: ' + run.relevanceColor"><div class="docid-value">{{ run.doc_id }}</div></div>
+                <h6 class="badge badge-info" title="Relevant" :style="'cursor: help; background-color:' + run.relevanceColor">Rel: {{run.relevance}}</h6>
+                <h6 class="badge">Score: {{run.score}}</h6>
+                <div class="snippet">
+                  <div><span style="color: #999;" v-html="run.snippet"/></div>
+                </div>
+              </div>
+            </div>
+         </div>
+        </v-col>
+      </v-row>
     </div>
-    <div class="row" v-for="run in rendered_run">
-      <div class="card" style="width: 95%" :href="chatnoir_url(run.doc_id)" target="_blank">
-        <div class="card-header">
-          <div class="docid" :style="'right: 0px; width=100%; background-color: ' + run.relevanceColor"><div class="docid-value">{{ run.doc_id }}</div></div>
-          <h6 class="badge badge-info" title="Relevant" :style="'cursor: help; background-color:' + run.relevanceColor">Rel: {{run.relevance}}</h6>
-          <h6 class="badge">Score: {{run.score}}</h6>
-          <div class="snippet">
-            <div><span style="color: #999;" v-html="run.snippet"/></div>
-          </div>
-        </div>
-      </div>
-    </div>
+  </div>
   </template>
   
   <script lang="ts">
@@ -76,7 +83,7 @@
       }
     },
     methods: {
-        chatnoir_url(docid: string) {return chatNoirUrl({'chatnoir_id': this.chatnoir_id} as DatasetInfo, docid)}
+        open_chatnoir(docid: string) {window.open(chatNoirUrl({'chatnoir_id': this.chatnoir_id} as DatasetInfo, docid), '_blank')}
     },
     computed: {
       rendered_run() {
@@ -85,15 +92,14 @@
           let doc = this.docs[i.doc_id]
           let judgment = 'Unjudged'
           if (doc === undefined) {
-            ret.push({'score': i['score'], 'doc_id': i['doc_id'], 'snippet': 'no snippet available', 'relevance': judgment})
+            ret.push({'score': i['score'], 'doc_id': i['doc_id'], 'snippet': 'no snippet available', 'relevance': judgment, 'relevanceColor': 'gray'})
             continue
           }
   
           if (this.qrels && this.qrels[i.doc_id] !== undefined) {
             judgment = this.qrels[i.doc_id]
           }
-  
-          let relevanceColor : string | undefined = undefined
+
           if (judgment in this.meta.relevanceColors) {
             relevanceColor = this.meta.relevanceColors[judgment]
           }
@@ -231,6 +237,7 @@
       .card-header {
         min-height: 128px;
         cursor: pointer;
+        background-color: rgba(0,0,0,.03);
       }
   
       .swatch {

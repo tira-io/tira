@@ -10,7 +10,8 @@ export interface DatasetInfo {
     ir_datasets_id: string | undefined;
     chatnoir_id: string | undefined;
     display_name: string;
-    default_task: TaskInfo | undefined;
+    default_task: string | undefined;
+    default_task_name: string | undefined;
 }
 
 export interface ClaimSubmissionInfo {

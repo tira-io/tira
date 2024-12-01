@@ -49,6 +49,8 @@
           <v-btn>Claim Ownersip</v-btn>
           <div class="py-2"></div>
           <v-divider/>
+          <!--<h3 class="my-1">Inspect Submission</h3>
+          <run-page :dataset_id="dataset.dataset_id" :chatnoir_id="dataset.chatnoir_id" :run_uuid="uuid"/>-->
         </div>
       </div>
     </v-container>
@@ -59,10 +61,11 @@ import { inject } from 'vue'
   
 import { get, chatNoirUrl, irDatasetsUrl, type UserInfo, type DatasetInfo, type ClaimSubmissionInfo } from './utils';
 import { Loading, TiraBreadcrumb } from './components'
-  
+import RunPage from './tirex/RunPage.vue'
+
 export default {
   name: "claim-submission",
-  components: { Loading, TiraBreadcrumb },
+  components: { Loading, TiraBreadcrumb, RunPage },
   data() {
     return {
       userinfo: inject('userinfo') as UserInfo,

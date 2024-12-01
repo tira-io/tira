@@ -168,6 +168,18 @@ class TaskHasDataset(models.Model):
         unique_together = (("task_id", "dataset_id"),)
 
 
+class MirroredResource(models.Model):
+    md5_sum = models.CharField(max_length=150, primary_key=True)
+    md5_first_kilobyte = models.CharField(max_length=150)
+    size = models.BigIntegerField()
+    mirrors = models.CharField(max_length=500, null=True, default=None)
+
+
+class DatasetHasMirroredResource(models.Model):
+    dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE)
+    mirrored_resource = models.ForeignKey(MirroredResource, on_delete=models.CASCADE)
+
+
 class Software(models.Model):
     software_id = models.CharField(max_length=150)
     vm = models.ForeignKey(VirtualMachine, on_delete=models.CASCADE)
