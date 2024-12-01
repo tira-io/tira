@@ -9,9 +9,11 @@ export interface DatasetInfo {
     id: string;
     ir_datasets_id: string | undefined;
     chatnoir_id: string | undefined;
+    is_confidential: boolean;
     display_name: string;
     default_task: string | undefined;
     default_task_name: string | undefined;
+    mirrors: Record<string, string>;
 }
 
 export interface ClaimSubmissionInfo {

@@ -99,6 +99,7 @@
           if (this.qrels && this.qrels[i.doc_id] !== undefined) {
             judgment = this.qrels[i.doc_id]
           }
+          let relevanceColor
 
           if (judgment in this.meta.relevanceColors) {
             relevanceColor = this.meta.relevanceColors[judgment]
