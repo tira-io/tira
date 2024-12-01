@@ -59,7 +59,7 @@
 <script lang="ts">
 import { inject } from 'vue'
   
-import { get, chatNoirUrl, irDatasetsUrl, type UserInfo, type DatasetInfo, type ClaimSubmissionInfo } from './utils';
+import { get, chatNoirUrl, irDatasetsUrls, type UserInfo, type DatasetInfo, type ClaimSubmissionInfo } from './utils';
 import { Loading, TiraBreadcrumb } from './components'
 import RunPage from './tirex/RunPage.vue'
 
@@ -94,7 +94,15 @@ export default {
   
   computed: {
     link_chatnoir() { return  chatNoirUrl(this.dataset) },
-    link_ir_datasets() { return irDatasetsUrl(this.dataset) },
+    link_ir_datasets() { 
+      let ret = irDatasetsUrls(this.dataset)
+
+      if (ret && Object.keys(ret).length == 1) {
+        return ret[Object.keys(ret)[0]]
+      } else {
+        return undefined
+      }
+    },
   },
   beforeMount() {
     this.uuid = this.$route.params.uuid as string

@@ -23,7 +23,9 @@
             <span v-if="!item.default_task">No Task</span>
         </template>
         <template #item.ir_datasets_id="{ item }">
-            <a v-if="ir_datasets_url(item)" :href="ir_datasets_url(item)" style="text-decoration: none !important;" target="_blank">{{item.ir_datasets_id}}</a>
+            <div v-for="[name, url] of Object.entries(ir_datasets_urls(item))">
+              <a :href="url" style="text-decoration: none !important;" target="_blank">{{name}}</a>
+            </div>
         </template>
         <template #item.search="{ item }">
             <a v-if="chatnoir_url(item)" :href="chatnoir_url(item)" style="text-decoration: none !important;" target="_blank">ChatNoir</a>
@@ -44,7 +46,7 @@
   <script lang="ts">
   import { inject } from 'vue'
   
-  import { get, reportError, chatNoirUrl, irDatasetsUrl, type UserInfo, type DatasetInfo } from './utils';
+  import { get, reportError, chatNoirUrl, irDatasetsUrls, type UserInfo, type DatasetInfo } from './utils';
   import { Loading, TiraBreadcrumb } from './components'
   
   export default {
@@ -68,7 +70,7 @@
     },
     methods: {
       chatnoir_url(dataset: DatasetInfo) { return chatNoirUrl(dataset)},
-      ir_datasets_url(dataset: DatasetInfo) { return irDatasetsUrl(dataset)},
+      ir_datasets_urls(dataset: DatasetInfo) { return irDatasetsUrls(dataset)},
       mirrored_resources(mirrors: any) {
         let ret : Record<string, string> = {}
         for (let resource_type of Object.keys(mirrors)) {

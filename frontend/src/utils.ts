@@ -7,7 +7,7 @@ export interface TaskInfo {
 export interface DatasetInfo {
     dataset_id: string;
     id: string;
-    ir_datasets_id: string | undefined;
+    ir_datasets_id: string | undefined | string[];
     chatnoir_id: string | undefined;
     is_confidential: boolean;
     display_name: string;
@@ -59,12 +59,25 @@ export interface WellKnownAPI {
     disraptorURL: string;
 }
 
-export function irDatasetsUrl(dataset: DatasetInfo | undefined) {
+export function irDatasetsUrls(dataset: DatasetInfo | undefined): Record<string, string> {
     if (!dataset || !dataset.ir_datasets_id) {
-        return undefined
-    } else {
-        return 'https://ir-datasets.com/' + dataset.ir_datasets_id.split('/')[0] + '.html#' + dataset.ir_datasets_id
+        return {}
     }
+
+    let dataset_ids: string[] = []
+
+    if (typeof (dataset.ir_datasets_id) == 'string') {
+        dataset_ids = [dataset.ir_datasets_id]
+    } else {
+        dataset_ids = dataset.ir_datasets_id
+    }
+
+    let ret: Record<string, string> = {}
+    for (let ir_dataset_id of dataset_ids) {
+        ret[ir_dataset_id] = 'https://ir-datasets.com/' + ir_dataset_id.split('/')[0] + '.html#' + ir_dataset_id
+    }
+
+    return ret
 }
 
 export function chatNoirUrl(dataset: DatasetInfo | undefined, document_id: string | undefined = undefined) {

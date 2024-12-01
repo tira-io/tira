@@ -17,6 +17,7 @@ class DatasetSerializer(ModelSerializer):
     id = CharField(source="dataset_id")
     mirrors = SerializerMethodField()
     default_task_name = SerializerMethodField()
+    ir_datasets_id = SerializerMethodField()
 
     class Meta:
         model = modeldb.Dataset
@@ -38,6 +39,12 @@ class DatasetSerializer(ModelSerializer):
 
     def get_default_task_name(self, obj):
         return obj.default_task.task_name if obj.default_task else None
+
+    def get_ir_datasets_id(self, obj):
+        if obj.ir_datasets_id and obj.ir_datasets_id_2:
+            return [obj.ir_datasets_id, obj.ir_datasets_id_2]
+        else:
+            return obj.ir_datasets_id
 
 
 class _DatasetView(ModelViewSet):

@@ -157,6 +157,7 @@ class Dataset(models.Model):
     format = models.CharField(max_length=50, null=True, default=None)
     chatnoir_id = models.CharField(max_length=100, null=True, default=None)
     ir_datasets_id = models.CharField(max_length=100, null=True, default=None)
+    ir_datasets_id_2 = models.CharField(max_length=100, null=True, default=None)
 
 
 class TaskHasDataset(models.Model):
