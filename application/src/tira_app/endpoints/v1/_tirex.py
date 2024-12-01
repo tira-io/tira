@@ -20,7 +20,10 @@ def topics(request: Request, dataset_id: str) -> Response:
     ret = []
     import ir_datasets
 
-    dataset = modeldb.Dataset.objects.get(dataset_id=dataset_id)
+    try:
+        dataset = modeldb.Dataset.objects.get(dataset_id=dataset_id)
+    except:
+        return Response()
 
     if not dataset.ir_datasets_id:
         raise ValueError(f'No ir dataset id specified for TIRA dataset "{dataset_id}".')
@@ -48,10 +51,13 @@ def topic(request: Request, dataset_id: str, qid: str) -> Response:
     ret = []
     import ir_datasets
 
-    dataset = modeldb.Dataset.objects.get(dataset_id=dataset_id)
+    try:
+        dataset = modeldb.Dataset.objects.get(dataset_id=dataset_id)
 
-    if not dataset.ir_datasets_id:
-        raise ValueError(f'No ir dataset id specified for TIRA dataset "{dataset_id}".')
+        if not dataset.ir_datasets_id:
+            raise ValueError(f'No ir dataset id specified for TIRA dataset "{dataset_id}".')
+    except:
+        return Response()
 
     ir_dataset = ir_datasets.load(dataset.ir_datasets_id)
     queries_iter = ir_dataset.queries_iter()

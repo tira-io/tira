@@ -47,6 +47,39 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
+        url_pattern="v1/tirex/topics/<str:dataset_id>",
+        params={"dataset_id": "does-not-exist"},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 200,
+            PARTICIPANT: 200,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 200,
+        },
+    ),
+    route_to_test(
+        url_pattern="v1/tirex/topic/<str:dataset_id>/<str:qid>",
+        params={"dataset_id": "does-not-exist", "qid": "does-not-exist"},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 200,
+            PARTICIPANT: 200,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 200,
+        },
+    ),
+    route_to_test(
+        url_pattern="v1/tirex/runs-by-uuid/<str:run_uuid>",
+        params={"run_uuid": "does-not-exist"},
+        group_to_expected_status_code={
+            ADMIN: 200,
+            GUEST: 200,
+            PARTICIPANT: 200,
+            ORGANIZER: 200,
+            ORGANIZER_WRONG_TASK: 200,
+        },
+    ),
+    route_to_test(
         url_pattern="api/v1/anonymous-uploads/<str:dataset_id>",
         params={"dataset_id": 1},
         group_to_expected_status_code={
