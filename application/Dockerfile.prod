@@ -88,7 +88,7 @@ apt-get -qq update && apt-get -qq install -y locales
 echo "en_US.UTF-8 UTF-8" | tee -a /etc/locale.gen && locale-gen
 
 # Tools
-apt-get -qq install -y python3 python3-dev
+apt-get -qq install -y python3 python3-dev git
 # For MariaDB
 apt-get -qq install -y mariadb-client
 #

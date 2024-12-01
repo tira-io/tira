@@ -51,10 +51,13 @@ class _DatasetView(ModelViewSet):
 def load_mirrored_resource(md5_sum):
     ret = None
 
-    obj = modeldb.MirroredResource.objects.filter(md5_sum=md5_sum).first()
-    ret = {"md5_sum": obj.md5_sum, "md5_first_kilobyte": obj.md5_first_kilobyte, "size": obj.size}
-    ret["mirrors"] = {}
-    ret["mirrors"] = json.loads(obj.mirrors)
+    try:
+        obj = modeldb.MirroredResource.objects.filter(md5_sum=md5_sum).first()
+        ret = {"md5_sum": obj.md5_sum, "md5_first_kilobyte": obj.md5_first_kilobyte, "size": obj.size}
+        ret["mirrors"] = {}
+        ret["mirrors"] = json.loads(obj.mirrors)
+    except:
+        pass
 
     return ret
 
