@@ -534,8 +534,9 @@ def anonymous_upload(request, dataset_id):
         uploaded_file = request.FILES["file"]
         upload_id = str(uuid.uuid4())
 
-        result_dir = tempfile.TemporaryDirectory(prefix="tira-upload", delete=False).name
+        result_dir = tempfile.TemporaryDirectory(prefix="tira-upload").name
         result_dir = Path(result_dir)
+        result_dir.mkdir(parents=True, exist_ok=True)
 
         with open(result_dir / "upload.zip", "wb+") as destination:
             for chunk in uploaded_file.chunks():
