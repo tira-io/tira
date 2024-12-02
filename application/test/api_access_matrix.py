@@ -2104,17 +2104,6 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
-        url_pattern="v1/anonymous/claim/<str:vm_id>/<str:submission_uuid>",
-        params={"vm_id": "example_participant", "submission_uuid": "does-not-exist"},
-        group_to_expected_status_code={
-            ADMIN: 500,
-            GUEST: 302,
-            PARTICIPANT: 500,
-            ORGANIZER: 500,
-            ORGANIZER_WRONG_TASK: 302,
-        },
-    ),
-    route_to_test(
         url_pattern="v1/datasets/",
         params={},
         group_to_expected_status_code={

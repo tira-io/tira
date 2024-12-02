@@ -38,7 +38,6 @@ def read_anonymous_submission(request: Request, submission_uuid: str) -> Respons
 
 
 @check_permissions
-@check_resources_exist("json")
 def claim_submission(request: Request, vm_id: str, submission_uuid: str) -> Response:
 
     try:
