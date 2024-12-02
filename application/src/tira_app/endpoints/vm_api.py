@@ -1,17 +1,22 @@
 import json
 import logging
+import shutil
+import tempfile
 import uuid
+import zipfile
 from functools import wraps
 from http import HTTPStatus
+from pathlib import Path
 
 from discourse_client_in_disraptor.discourse_api_client import get_disraptor_user
 from django.conf import settings
 from django.core.cache import cache
 from django.db.utils import IntegrityError
-from django.http import HttpResponseNotAllowed, JsonResponse
+from django.http import HttpResponseNotAllowed, HttpResponseServerError, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from grpc import RpcError, StatusCode
 from markdown import markdown
+from tira.check_format import _fmt, check_format
 
 from .. import tira_model as model
 from ..authentication import auth
@@ -495,7 +500,9 @@ def upload(request, task_id, vm_id, dataset_id, upload_id):
 def anonymous_upload(request, dataset_id):
     if request.method == "POST":
         if not dataset_id or dataset_id is None or dataset_id == "None":
-            return JsonResponse({"status": 1, "message": "Please specify the associated dataset."})
+            return HttpResponseServerError(
+                json.dumps({"status": 1, "message": "Please specify the associated dataset."})
+            )
 
         dataset = model.get_dataset(dataset_id)
         if (
@@ -505,25 +512,52 @@ def anonymous_upload(request, dataset_id):
             or "task" not in dataset
             or not dataset["task"]
         ):
-            return JsonResponse({"status": 1, "message": f"Uploads are not allowed for the dataset {dataset_id}."})
+            return HttpResponseServerError(
+                json.dumps({"status": 1, "message": f"Uploads are not allowed for the dataset {dataset_id}."})
+            )
 
         if dataset["is_deprecated"]:
-            return JsonResponse(
-                {"status": 1, "message": f"The dataset {dataset_id} is deprecated and therefore allows no uploads."}
+            return HttpResponseServerError(
+                json.dumps(
+                    {"status": 1, "message": f"The dataset {dataset_id} is deprecated and therefore allows no uploads."}
+                )
             )
 
         task = model.get_task(dataset["task"], False)
         if not task or not task["featured"]:
-            return JsonResponse(
-                {"status": 1, "message": f"The dataset {dataset_id} is deprecated and therefore allows no uploads."}
+            return HttpResponseServerError(
+                json.dumps(
+                    {"status": 1, "message": f"The dataset {dataset_id} is deprecated and therefore allows no uploads."}
+                )
             )
 
         uploaded_file = request.FILES["file"]
         upload_id = str(uuid.uuid4())
 
+        result_dir = tempfile.TemporaryDirectory(prefix="tira-upload", delete=False).name
+        result_dir = Path(result_dir)
+
+        with open(result_dir / "upload.zip", "wb+") as destination:
+            for chunk in uploaded_file.chunks():
+                destination.write(chunk)
+
+        with zipfile.ZipFile(result_dir / "upload.zip", "r") as zip_ref:
+            zip_ref.extractall(result_dir / "extracted")
+
+        status_code, message = check_format(result_dir / "extracted", dataset["format"][0])
+
+        if status_code != _fmt.OK:
+            JsonResponse({"status": 1, "message": message}, status_code=500)
+        from .. import model as modeldb
+
+        (Path(settings.TIRA_ROOT) / "data" / "anonymous-uploads").mkdir(exist_ok=True, parents=True)
+        shutil.move(result_dir / "extracted", Path(settings.TIRA_ROOT) / "data" / "anonymous-uploads" / upload_id)
+        dataset = modeldb.Dataset.objects.get(dataset_id=dataset_id)
+        modeldb.AnonymousUploads.objects.create(uuid=upload_id, dataset=dataset)
+
         return JsonResponse({"status": 0, "message": "ok", "uuid": upload_id})
     else:
-        return JsonResponse({"status": 1, "message": "GET is not allowed here."})
+        return HttpResponseServerError(json.dumps({"status": 1, "message": "GET is not allowed here."}))
 
 
 @check_permissions

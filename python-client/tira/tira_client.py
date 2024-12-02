@@ -96,6 +96,21 @@ class TiraClient(ABC):
         """
         pass
 
+    def __extract_dataset_identifier(self, dataset: any):
+        """Extract the dataset identifier from a passed object.
+
+        Args:
+            dataset (any): Some representation of dataset.
+
+        Returns:
+            Optional[dict]: The dataset identifier if available.
+        """
+        if hasattr(dataset, "irds_ref"):
+            return self.__extract_dataset_identifier(dataset.irds_ref())
+        if hasattr(dataset, "dataset_id"):
+            return dataset.dataset_id()
+        return dataset
+
     def __matching_dataset(self, datasets, dataset_identifier) -> "Optional[dict]":
         """Find the dataset identified by the passed dataset_identifier in all passed datasets.
 

@@ -3,6 +3,7 @@ import io
 import json
 import logging
 import os
+import tempfile
 import time
 import zipfile
 from functools import lru_cache
@@ -15,6 +16,7 @@ import pandas as pd
 import requests
 from tqdm import tqdm
 
+from tira.check_format import check_format
 from tira.local_execution_integration import LocalExecutionIntegration
 from tira.pandas_integration import PandasIntegration
 from tira.profiling_integration import ProfilingIntegration
@@ -130,7 +132,7 @@ class Client(TiraClient):
             dict: The TIRA representation of the dataset.
         """
 
-        dataset_identifier = dataset
+        dataset_identifier = self._TiraClient__extract_dataset_identifier(dataset)
         datasets = self.archived_json_response("/v1/datasets/all")
 
         ret = self._TiraClient__matching_dataset(datasets, dataset_identifier)
@@ -517,17 +519,29 @@ class Client(TiraClient):
         if "/" in dataset:
             dataset = dataset.split("/")[-1]
 
-        dataset = dataset_ir_redirects(dataset)
+        meta_data = self.get_dataset(f"{task}/{dataset}")
+        data_type = "training" if dataset.endswith("-training") else "test"
+        suffix = "inputs" if not truth_dataset else "truths"
+        url = None
+        if (
+            not meta_data
+            or "mirrors" not in meta_data
+            or suffix not in meta_data["mirrors"]
+            or not meta_data["mirrors"][suffix]
+        ):
+            dataset = dataset_ir_redirects(dataset)
+        else:
+            url = list(meta_data["mirrors"][suffix].values())[0]
 
         target_dir = f"{self.tira_cache_dir}/extracted_datasets/{task}/{dataset}/"
         suffix = "input-data" if not truth_dataset else "truth-data"
         if os.path.isdir(target_dir + suffix):
             return target_dir + suffix
-        data_type = "training" if dataset.endswith("-training") else "test"
-        self.download_and_extract_zip(
-            f'{self.base_url}/data-download/{data_type}/input-{("" if not truth_dataset else "truth")}/{dataset}.zip',
-            target_dir,
-        )
+
+        if not url:
+            url = f'{self.base_url}/data-download/{data_type}/input-{("" if not truth_dataset else "truth")}/{dataset}.zip'
+
+        self.download_and_extract_zip(url, target_dir)
 
         os.rename(target_dir + f"/{dataset}", target_dir + suffix)
 
@@ -742,6 +756,51 @@ class Client(TiraClient):
 
         logging.debug(f"Created new upload with id {ret['upload']}")
         return ret["upload"]
+
+    def upload_run_anonymous(self, file_path: Path, dataset_id: str):
+        upload_to_tira = self.get_dataset(dataset_id)
+
+        if isinstance(file_path, str):
+            file_path = Path(file_path)
+
+        # TODO use format from upload_to_tira instead of hard-coded run.txt
+        check_format(file_path, "run.txt")
+
+        zip_file = tempfile.TemporaryDirectory(prefix="tira-upload", delete=False).name
+        zip_file = Path(zip_file)
+        zip_file.mkdir(parents=True, exist_ok=True)
+        zip_file = zip_file / "tira-upload.zip"
+
+        zf = zipfile.ZipFile(zip_file, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9)
+        for root, _, files in os.walk(file_path):
+            for name in files:
+                filePath = os.path.join(root, name)
+                zf.write(filePath, arcname=name)
+
+        zf.close()
+        headers = {"Accept": "application/json"}
+        files = {"file": open(zip_file, "rb")}
+
+        resp = requests.post(
+            url=f"{self.base_url}/api/v1/anonymous-uploads/{upload_to_tira['dataset_id']}",
+            files=files,
+            headers=headers,
+            verify=False,
+        )
+
+        if resp.status_code not in {200, 202}:
+            message = resp.content.decode()
+            try:
+                message = json.loads(message)
+                message = message["message"]
+            except:
+                pass
+            message = f"Failed to upload to TIRA, got statuscode {resp.status_code}. Details: {message}"
+            print(message)
+            raise ValueError(message)
+
+        resp = resp.json()
+        print(f'Run uploaded to TIRA. Claim ownership via: {self.base_url}/claim-submission/{resp["uuid"]}')
 
     def upload_run(
         self,

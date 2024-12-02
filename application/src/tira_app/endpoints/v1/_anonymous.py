@@ -3,6 +3,8 @@ from rest_framework.decorators import api_view
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from ... import model as modeldb
+
 
 @api_view(["GET"])
 def read_anonymous_submission(request: Request, submission_uuid: str) -> Response:
@@ -15,9 +17,9 @@ def read_anonymous_submission(request: Request, submission_uuid: str) -> Respons
     Returns:
         Response: The information about the anonymous submission
     """
-    return Response(
-        {"uuid": submission_uuid, "dataset_id": "clueweb09-en-trec-web-2009-20230107-training", "created": "fooo"}
-    )
+    ret = modeldb.AnonymousUploads.objects.get(uuid=submission_uuid)
+
+    return Response({"uuid": ret.uuid, "dataset_id": ret.dataset.dataset_id, "created": ret.created})
 
 
 endpoints = [

@@ -127,7 +127,7 @@ def register_rerank_data_to_ir_datasets(path_to_rerank_file, ir_dataset_id, orig
     register_dataset_from_re_rank_file(ir_dataset_id, default_input, original_ir_datasets_id)
 
 
-def persist_and_normalize_run(run, system_name, default_output=None, output_file=None, depth=1000):
+def persist_and_normalize_run(run, system_name, default_output=None, output_file=None, depth=1000, upload_to_tira=None):
     if output_file is None and default_output is None:
         print(
             'I use the environment variable "TIRA_OUTPUT_DIR" to determine where I should store the run file using "."'
@@ -145,8 +145,21 @@ def persist_and_normalize_run(run, system_name, default_output=None, output_file
 
     if not output_file.endswith("run.txt"):
         output_file = output_file + "/run.txt"
+    if upload_to_tira and not in_tira_sandbox():
+        from tira.rest_api_client import Client as RestClient
+
+        tira = RestClient()
+        upload_to_tira = tira.get_dataset(upload_to_tira)
+    else:
+        upload_to_tira = None
+
+    if upload_to_tira and tira:
+        output_file = output_file + ".gz"
     normalize_run(run, system_name, depth).to_csv(output_file, sep=" ", header=False, index=False)
     print(f'Done. run file is stored under "{output_file}".')
+    if upload_to_tira and tira:
+        output_file = Path(output_file).parent
+        tira.upload_run_anonymous(output_file, upload_to_tira["dataset_id"])
 
 
 def normalize_run(run, system_name, depth=1000):
@@ -329,14 +342,17 @@ def extract_previous_stages_from_docker_image(image: str, command: str = None):
     return extract_previous_stages_from_notebook(Path(local_file))
 
 
+def in_tira_sandbox():
+    return "TIRA_INPUT_DATASET" in os.environ
+
+
 def load_ir_datasets():
     try:
         from ir_datasets.datasets.base import Dataset  # noqa: F401
     except Exception:
         return None
 
-    # Detect if we are in the TIRA sandbox
-    if "TIRA_INPUT_DATASET" in os.environ:
+    if in_tira_sandbox():
         from tira.ir_datasets_util import static_ir_dataset
 
         if os.path.isfile(os.path.join(os.environ["TIRA_INPUT_DATASET"], "rerank.jsonl.gz")) or os.path.isfile(

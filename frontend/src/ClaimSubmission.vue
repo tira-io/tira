@@ -16,7 +16,10 @@
 
       <h3>Details</h3>
       <div class="py-2"></div>
-      <v-skeleton-loader type="card" v-if="dataset === undefined || submissionToClaim === undefined"/>
+      <v-skeleton-loader type="card" v-if="(dataset === undefined || submissionToClaim === undefined) && !error"/>
+      <div v-if="error">
+        No submission with ownership UUID {{ uuid }} exists.
+      </div>
       <div v-if="dataset !== undefined && submissionToClaim !== undefined">
         <p>
         The run was submitted on {{ submissionToClaim.created }} to the dataset <a :href="'/datasets?query=' + dataset.dataset_id">{{ dataset.display_name }}</a>
@@ -72,6 +75,7 @@ export default {
       uuid: '' as string,
       dataset: undefined as DatasetInfo | undefined,
       submissionToClaim: undefined as ClaimSubmissionInfo | undefined,
+      error: false,
       rest_url: inject("REST base URL"),
       new_software: false,
     }
@@ -80,6 +84,7 @@ export default {
     loadData() {
       this.dataset = undefined
       this.submissionToClaim = undefined
+      this.error = false
       this.$router.push({ path: '/claim-submission/' + this.uuid})
 
       get(this.rest_url + '/v1/anonymous/' + this.uuid)
@@ -88,7 +93,7 @@ export default {
           if (this.submissionToClaim && this.submissionToClaim.dataset_id) {
             get(this.rest_url + '/v1/datasets/view/' + this.submissionToClaim.dataset_id).then((i) => this.dataset = i as DatasetInfo)
           }
-        })
+        }).catch(() => { this.error = true })
     },
   },
   

@@ -214,6 +214,12 @@ class Upload(models.Model):
     rename_to = models.TextField(default=None, null=True)
 
 
+class AnonymousUploads(models.Model):
+    uuid = models.CharField(max_length=150, primary_key=True)
+    dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE)
+    created = models.DateField(auto_now_add=True)
+
+
 class DockerSoftware(models.Model):
     docker_software_id = models.AutoField(primary_key=True)
     vm = models.ForeignKey(VirtualMachine, on_delete=models.CASCADE)
