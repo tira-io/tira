@@ -1,7 +1,6 @@
 import json
 import logging
 import shutil
-import tempfile
 import uuid
 import zipfile
 from functools import wraps
@@ -17,6 +16,7 @@ from django.views.decorators.csrf import csrf_exempt
 from grpc import RpcError, StatusCode
 from markdown import markdown
 from tira.check_format import _fmt, check_format
+from tira.third_party_integrations import temporary_directory
 
 from .. import tira_model as model
 from ..authentication import auth
@@ -534,9 +534,7 @@ def anonymous_upload(request, dataset_id):
         uploaded_file = request.FILES["file"]
         upload_id = str(uuid.uuid4())
 
-        result_dir = tempfile.TemporaryDirectory(prefix="tira-upload").name
-        result_dir = Path(result_dir)
-        result_dir.mkdir(parents=True, exist_ok=True)
+        result_dir = temporary_directory()
 
         with open(result_dir / "upload.zip", "wb+") as destination:
             for chunk in uploaded_file.chunks():

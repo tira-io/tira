@@ -590,7 +590,7 @@ def get_software_by_task(task_id, vm_id):
 
 
 def add_upload(task_id, vm_id, rename_to: Optional[str] = None):
-    """ " Add empty new upload"""
+    """Add empty new upload"""
     return model.add_upload(task_id, vm_id, rename_to)
 
 

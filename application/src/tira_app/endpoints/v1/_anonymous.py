@@ -1,12 +1,18 @@
 import json
+from pathlib import Path
 
+from django.conf import settings
+from django.core.cache import cache
 from django.http import HttpResponseServerError
 from django.urls import path
 from rest_framework.decorators import api_view
 from rest_framework.request import Request
 from rest_framework.response import Response
+from tira.check_format import _fmt, check_format, lines_if_valid
+from tira.third_party_integrations import temporary_directory
 
 from ... import model as modeldb
+from ... import tira_model as model
 
 
 @api_view(["GET"])
@@ -30,6 +36,64 @@ def read_anonymous_submission(request: Request, submission_uuid: str) -> Respons
         )
 
 
+@api_view(["POST"])
+def claim_submission(request: Request, submission_uuid: str) -> Response:
+
+    try:
+        upload = modeldb.AnonymousUploads.objects.get(uuid=submission_uuid)
+    except:
+        return HttpResponseServerError(
+            json.dumps({"status": 1, "message": f"Run with uuid {submission_uuid} does not exist."})
+        )
+
+    if (
+        not upload
+        or not upload.dataset
+        or not upload.dataset.format
+        or not upload.dataset.default_task
+        or not upload.dataset.default_task.task_id
+    ):
+        return HttpResponseServerError(json.dumps({"status": 1, "message": f"Unexpected format."}))
+
+    body = request.body.decode("utf-8")
+    body = json.loads(body)
+    result_dir = Path(settings.TIRA_ROOT) / "data" / "anonymous-uploads" / submission_uuid
+    format = json.loads(upload.dataset.format)[0]
+    status_code, message = check_format(result_dir, format)
+
+    if status_code != _fmt.OK:
+        HttpResponseServerError(json.dumps({"status": 1, "message": message}))
+
+    task_id = upload.dataset.default_task.task_id
+    dataset_id = upload.dataset.dataset_id
+    vm_id = body["vm_id"]
+
+    if "upload_group" not in body:
+        body["upload_group"] = model.add_upload(
+            task_id,
+        )
+        model.model.update_upload_metadata(
+            task_id, vm_id, body["upload_group"], body["display_name"], body["description"], body["paper_link"]
+        )
+
+    tmp_dir = temporary_directory()
+    uploaded_file = tmp_dir / format
+    with open(uploaded_file, "w") as f:
+        for l in lines_if_valid(result_dir, format):
+            f.write(l + "\n")
+
+    status_code, message = check_format(tmp_dir, format)
+    if status_code != _fmt.OK:
+        HttpResponseServerError(json.dumps({"status": 1, "message": message}))
+
+    new_run = model.model.add_uploaded_run(task_id, vm_id, dataset_id, body["upload_group"], uploaded_file)
+    if model.model.git_pipeline_is_enabled_for_task(task_id, cache):
+        model.run_eval(request=request, vm_id=vm_id, dataset_id=dataset_id, run_id=new_run["run"]["run_id"])
+
+    return Response({"upload_group": body["upload_group"]})
+
+
 endpoints = [
+    path("claim/<str:submission_uuid>", claim_submission),
     path("<str:submission_uuid>", read_anonymous_submission),
 ]

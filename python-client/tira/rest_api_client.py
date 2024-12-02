@@ -15,7 +15,7 @@ import pandas as pd
 import requests
 from tqdm import tqdm
 
-from tira.check_format import check_format
+from tira.check_format import _fmt, check_format
 from tira.local_execution_integration import LocalExecutionIntegration
 from tira.pandas_integration import PandasIntegration
 from tira.profiling_integration import ProfilingIntegration
@@ -43,6 +43,7 @@ class Client(TiraClient):
         failsave_max_delay: int = 15,
         api_user_name: Optional[str] = None,
         tira_cache_dir: Optional[str] = None,
+        verify: bool = True,
     ):
         self.base_url = base_url or "https://www.tira.io"
         self.tira_cache_dir = (
@@ -69,6 +70,7 @@ class Client(TiraClient):
 
         self.failsave_retries = failsave_retries
         self.failsave_max_delay = failsave_max_delay
+        self.verify = verify
 
     def load_settings(self):
         try:
@@ -764,7 +766,11 @@ class Client(TiraClient):
             file_path = Path(file_path)
 
         # TODO use format from upload_to_tira instead of hard-coded run.txt
-        check_format(file_path, "run.txt")
+        status_code, msg = check_format(file_path, "run.txt")
+
+        if status_code != _fmt.OK:
+            print(msg)
+            raise ValueError(msg)
 
         zip_file = temporary_directory()
         zip_file = zip_file / "tira-upload.zip"
@@ -780,7 +786,10 @@ class Client(TiraClient):
         files = {"file": open(zip_file, "rb")}
 
         resp = requests.post(
-            url=f"{self.base_url}/api/v1/anonymous-uploads/{upload_to_tira['dataset_id']}", files=files, headers=headers
+            url=f"{self.base_url}/api/v1/anonymous-uploads/{upload_to_tira['dataset_id']}",
+            files=files,
+            headers=headers,
+            verify=self.verify,
         )
 
         if resp.status_code not in {200, 202}:
