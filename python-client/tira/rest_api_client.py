@@ -784,8 +784,7 @@ class Client(TiraClient):
         resp = requests.post(
             url=f"{self.base_url}/api/v1/anonymous-uploads/{upload_to_tira['dataset_id']}",
             files=files,
-            headers=headers,
-            verify=False,
+            headers=headers
         )
 
         if resp.status_code not in {200, 202}:
