@@ -13,6 +13,7 @@ from tira.third_party_integrations import temporary_directory
 
 from ... import model as modeldb
 from ... import tira_model as model
+from ...checks import check_permissions, check_resources_exist
 
 
 @api_view(["GET"])
@@ -36,8 +37,10 @@ def read_anonymous_submission(request: Request, submission_uuid: str) -> Respons
         )
 
 
+@check_permissions
 @api_view(["POST"])
-def claim_submission(request: Request, submission_uuid: str) -> Response:
+@check_resources_exist("json")
+def claim_submission(request: Request, vm_id: str, submission_uuid: str) -> Response:
 
     try:
         upload = modeldb.AnonymousUploads.objects.get(uuid=submission_uuid)
@@ -66,7 +69,6 @@ def claim_submission(request: Request, submission_uuid: str) -> Response:
 
     task_id = upload.dataset.default_task.task_id
     dataset_id = upload.dataset.dataset_id
-    vm_id = body["vm_id"]
 
     if "upload_group" not in body:
         body["upload_group"] = model.add_upload(
@@ -94,6 +96,6 @@ def claim_submission(request: Request, submission_uuid: str) -> Response:
 
 
 endpoints = [
-    path("claim/<str:submission_uuid>", claim_submission),
+    path("claim/<str:vm_id>/<str:submission_uuid>", claim_submission),
     path("<str:submission_uuid>", read_anonymous_submission),
 ]
