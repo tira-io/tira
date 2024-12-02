@@ -766,26 +766,27 @@ class Client(TiraClient):
         # TODO use format from upload_to_tira instead of hard-coded run.txt
         check_format(file_path, "run.txt")
 
-        zip_file = tempfile.TemporaryDirectory(prefix="tira-upload", delete=False).name
-        zip_file = Path(zip_file)
-        zip_file.mkdir(parents=True, exist_ok=True)
-        zip_file = zip_file / "tira-upload.zip"
+        with TemporaryDirectory(prefix="tira-upload") as tmp_dir:
+            zip_file = tmp_dir.name
+            zip_file = Path(zip_file)
+            zip_file.mkdir(parents=True, exist_ok=True)
+            zip_file = zip_file / "tira-upload.zip"
 
-        zf = zipfile.ZipFile(zip_file, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9)
-        for root, _, files in os.walk(file_path):
-            for name in files:
-                filePath = os.path.join(root, name)
-                zf.write(filePath, arcname=name)
+            zf = zipfile.ZipFile(zip_file, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9)
+            for root, _, files in os.walk(file_path):
+                for name in files:
+                    filePath = os.path.join(root, name)
+                    zf.write(filePath, arcname=name)
+    
+            zf.close()
+            headers = {"Accept": "application/json"}
+            files = {"file": open(zip_file, "rb")}
 
-        zf.close()
-        headers = {"Accept": "application/json"}
-        files = {"file": open(zip_file, "rb")}
-
-        resp = requests.post(
-            url=f"{self.base_url}/api/v1/anonymous-uploads/{upload_to_tira['dataset_id']}",
-            files=files,
-            headers=headers
-        )
+            resp = requests.post(
+                url=f"{self.base_url}/api/v1/anonymous-uploads/{upload_to_tira['dataset_id']}",
+                files=files,
+                headers=headers
+            )
 
         if resp.status_code not in {200, 202}:
             message = resp.content.decode()
