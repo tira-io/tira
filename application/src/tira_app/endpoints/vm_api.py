@@ -547,7 +547,7 @@ def anonymous_upload(request, dataset_id):
         status_code, message = check_format(result_dir / "extracted", dataset["format"][0])
 
         if status_code != _fmt.OK:
-            JsonResponse({"status": 1, "message": message}, status_code=500)
+            HttpResponseServerError(json.dumps({"status": 1, "message": message}))
         from .. import model as modeldb
 
         (Path(settings.TIRA_ROOT) / "data" / "anonymous-uploads").mkdir(exist_ok=True, parents=True)

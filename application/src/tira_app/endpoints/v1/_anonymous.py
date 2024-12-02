@@ -1,3 +1,6 @@
+import json
+
+from django.http import HttpResponseServerError
 from django.urls import path
 from rest_framework.decorators import api_view
 from rest_framework.request import Request
@@ -17,9 +20,14 @@ def read_anonymous_submission(request: Request, submission_uuid: str) -> Respons
     Returns:
         Response: The information about the anonymous submission
     """
-    ret = modeldb.AnonymousUploads.objects.get(uuid=submission_uuid)
+    try:
+        ret = modeldb.AnonymousUploads.objects.get(uuid=submission_uuid)
 
-    return Response({"uuid": ret.uuid, "dataset_id": ret.dataset.dataset_id, "created": ret.created})
+        return Response({"uuid": ret.uuid, "dataset_id": ret.dataset.dataset_id, "created": ret.created})
+    except:
+        return HttpResponseServerError(
+            json.dumps({"status": 1, "message": f"Run with uuid {submission_uuid} does not exist."})
+        )
 
 
 endpoints = [

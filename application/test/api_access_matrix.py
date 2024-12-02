@@ -2085,11 +2085,11 @@ API_ACCESS_MATRIX = [
         url_pattern="v1/anonymous/<str:submission_uuid>",
         params={"submission_uuid": "12345"},
         group_to_expected_status_code={
-            GUEST: 200,
-            PARTICIPANT: 200,
-            ORGANIZER_WRONG_TASK: 200,
-            ORGANIZER: 200,
-            ADMIN: 200,
+            GUEST: 500,
+            PARTICIPANT: 500,
+            ORGANIZER_WRONG_TASK: 500,
+            ORGANIZER: 500,
+            ADMIN: 500,
         },
     ),
     route_to_test(
