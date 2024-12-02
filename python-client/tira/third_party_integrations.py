@@ -162,6 +162,20 @@ def persist_and_normalize_run(run, system_name, default_output=None, output_file
         tira.upload_run_anonymous(output_file, upload_to_tira["dataset_id"])
 
 
+def temporary_directory():
+    import tempfile
+
+    try:
+        ret = tempfile.TemporaryDirectory(prefix="tira-", delete=False)
+        ret = Path(ret.name)
+    except:
+        ret = tempfile.TemporaryDirectory(prefix="tira-")
+        ret = Path(ret.name)
+
+    ret.mkdir(parents=True, exist_ok=True)
+    return ret
+
+
 def normalize_run(run, system_name, depth=1000):
     try:
         run["qid"] = run["qid"].astype(int)
