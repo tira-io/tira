@@ -591,7 +591,6 @@ def admin_create_group(request, vm_id):
         return JsonResponse({"status": 1, "message": repr(e)})
 
 
-
 @check_conditional_permissions(restricted=True)
 @check_resources_exist("json")
 def admin_edit_review(request, dataset_id, vm_id, run_id):
