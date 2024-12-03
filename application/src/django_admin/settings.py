@@ -401,7 +401,7 @@ REFERENCE_DATASETS = {
 WELL_KNOWN = {
     "api": "https://www.tira.io",
     "grpc": "https://www.tira.io",
-    "archived": "https://tira.io",
+    "archived": "https://archive.tira.io",
     "login": "https://www.tira.io",
     "logout": "https://www.tira.io",
     "notifications": "fooo",
