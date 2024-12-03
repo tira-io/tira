@@ -9,7 +9,7 @@ from http import HTTPStatus
 
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
-from django.http import JsonResponse
+from django.http import HttpResponseNotAllowed, JsonResponse
 from slugify import slugify
 
 from .. import tira_model as model
@@ -577,6 +577,8 @@ def admin_edit_organizer(request, organizer_id):
 @check_conditional_permissions(restricted=True)
 def admin_create_group(request, vm_id):
     """this is a rest endpoint to grant a user permissions on a vm"""
+    if auth.get_role(request=request) != "admin":
+        return HttpResponseNotAllowed("Access forbidden.")
 
     vm_id = slugify(vm_id)
     model.model.create_model(vm_id)
