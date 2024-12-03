@@ -580,10 +580,16 @@ def admin_create_group(request, vm_id):
     if auth.get_role(request=request) != "admin":
         return HttpResponseNotAllowed("Access forbidden.")
 
-    vm_id = slugify(vm_id)
-    model.model.create_model(vm_id)
-    context = auth.create_group(vm_id)
-    return JsonResponse({"status": 0, "context": context})
+    try:
+        vm_id = slugify(vm_id)
+        model.model.create_model(vm_id)
+        context = auth.create_group(vm_id)
+
+        return JsonResponse({"status": 0, "context": context})
+    except Exception as e:
+        logger.exception(e)
+        return JsonResponse({"status": 1, "message": repr(e)})
+
 
 
 @check_conditional_permissions(restricted=True)
