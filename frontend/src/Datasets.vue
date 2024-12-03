@@ -46,7 +46,7 @@
   <script lang="ts">
   import { inject } from 'vue'
   
-  import { get, reportError, chatNoirUrl, irDatasetsUrls, type UserInfo, type DatasetInfo } from './utils';
+  import { get_from_archive, reportError, chatNoirUrl, irDatasetsUrls, type UserInfo, type DatasetInfo } from './utils';
   import { Loading, TiraBreadcrumb } from './components'
   
   export default {
@@ -84,7 +84,7 @@
     },
     beforeMount() {
       this.query = this.$route.query.query as string|undefined
-      get(inject("Archived base URL") + '/v1/datasets/all', false)
+      get_from_archive('/v1/datasets/all')
         .then(
             (result) => { this.$data.datasets = result.filter((i: DatasetInfo) => i.id && i.id.length > 2)}
         )

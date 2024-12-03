@@ -53,7 +53,7 @@
 <script lang="ts">
 import { inject } from 'vue'
 
-import { get, reportError, inject_response, type UserInfo, ServerInfo } from './utils';
+import { get_from_archive, reportError, inject_response, type UserInfo, ServerInfo } from './utils';
 import { TiraBreadcrumb, EditTask } from './components'
 
 interface Task {
@@ -121,7 +121,7 @@ export default {
     },
   },
   beforeMount() {
-    get(inject("Archived base URL") + '/api/task-list', false)
+    get_from_archive('/api/task-list')
       .then(inject_response(this))
       .catch(reportError("Problem While Loading the Overview of the Tasks.", "This might be a short-term hiccup, please try again. We got the following error: "))
   }

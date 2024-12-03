@@ -83,7 +83,7 @@
       <v-autocomplete label="Dataset" :items="datasets" item-title="display_name" item-value="dataset_id"
         v-model="selectedDataset" variant="underlined" clearable />
 
-      <run-list v-if="selectedDataset" :task_id="task_id" :organizer="task.organizer" :organizer_id="task.organizer_id"
+      <run-list v-if="selectedDataset" :task_id="task_id" :from_archive="from_archive" :organizer="task.organizer" :organizer_id="task.organizer_id"
         :dataset_id="selectedDataset" />
     </v-container>
   </div>
@@ -95,7 +95,7 @@ import { inject } from 'vue'
 import { TiraBreadcrumb, TiraTaskAdmin, RunList, Loading, SubmitButton, TaskDocumentation } from './components'
 import RunUpload from "@/RunUpload.vue";
 import { VAutocomplete } from 'vuetify/components'
-import { extractTaskFromCurrentUrl, get_link_to_organizer, get_contact_link_to_organizer, extractDatasetFromCurrentUrl, changeCurrentUrlToDataset, get, inject_response, reportError, fetchUserInfo, type UserInfo, DatasetInfo } from './utils'
+import { extractTaskFromCurrentUrl, get_link_to_organizer, get_contact_link_to_organizer, extractDatasetFromCurrentUrl, changeCurrentUrlToDataset, get_from_archive, inject_response, reportError, type UserInfo, DatasetInfo, TaskInfo } from './utils'
 export default {
   name: "task-list",
   components: { TiraBreadcrumb, RunList, Loading, VAutocomplete, SubmitButton, TiraTaskAdmin, TaskDocumentation, RunUpload },
@@ -115,9 +115,7 @@ export default {
       user_vms_for_task: [],
       datasets: [{ 'dataset_id': 'loading...', 'id': 'loading...', 'display_name': 'loading...', 'default_task': undefined }] as DatasetInfo[],
       tab: "test",
-      archive_url: inject("Archived base URL"),
-      production_url: inject("REST base URL"),
-      url: inject("Archived base URL"),
+      from_archive: true
     }
   },
   computed: {
@@ -160,14 +158,15 @@ export default {
     }
   },
   beforeMount() {
-    get(this.archive_url + '/api/task-list').then(task_list => {
+    get_from_archive('/api/task-list').then(task_list => {
+      let task_to_show: undefined|TaskInfo = undefined
       for (let task of task_list['context']['task_list']) {
-        if (task && task['featured'] && task['task_id'] && this.task_id == task['task_id']) {
-          this.url = this.production_url
+        if (task && task['task_id'] && this.task_id == task['task_id']) {
+          this.from_archive = !task['featured']
         }
       }
 
-      get(this.url + '/api/task/' + this.task_id)
+      get_from_archive('/api/task/' + this.task_id, this.from_archive)
         .then(inject_response(this, { 'loading': false }, true))
         .then(this.updateDataset)
         .catch(reportError("Problem While Loading the Details of the Task " + this.task_id, "This might be a short-term hiccup, please try again. We got the following error: "))

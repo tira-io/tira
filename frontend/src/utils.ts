@@ -2,6 +2,8 @@ import { inject, ref } from 'vue'
 
 export interface TaskInfo {
     task_name: string;
+    featured: boolean | undefined;
+
 }
 
 export interface DatasetInfo {
@@ -43,7 +45,6 @@ export interface SystemInfo {
     team: string;
     tasks: string;
 }
-
 
 export interface ServerInfo {
     version: string;
@@ -420,6 +421,26 @@ export function inject_response(obj: any, default_values: any = {}, debug = fals
         }
     }
 }
+
+
+let ARCHIVE_URL: undefined | string = undefined
+let PRODUCTION_URL: undefined | string = undefined
+let USER_INFO: undefined | UserInfo = undefined
+
+export async function get_from_archive(url: string, from_archive: boolean = true) {
+    if (!ARCHIVE_URL || !PRODUCTION_URL || !USER_INFO) {
+        ARCHIVE_URL = inject("Archived base URL")
+        PRODUCTION_URL = inject("REST base URL")
+        USER_INFO = inject('userinfo') as UserInfo
+    }
+
+    let use_prod = USER_INFO.role === 'admin' || USER_INFO.organizer_teams.length > 0 || !from_archive
+
+    console.log('use-prod (' + use_prod + '): ' + url)
+    url = (use_prod ? PRODUCTION_URL : ARCHIVE_URL) + url
+    return get(url, use_prod)
+}
+
 
 /* TODO: credentials=true can be called the legacy behavior when frontend and backend were on the same URL. This should maybe be limited more */
 export async function get(url: string, credentials = true) {

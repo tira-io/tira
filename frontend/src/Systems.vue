@@ -38,7 +38,7 @@
 <script lang="ts">
   import { inject } from 'vue'
   
-  import { get, reportError, type UserInfo, type SystemInfo } from './utils';
+  import { get_from_archive, reportError, type UserInfo, type SystemInfo } from './utils';
   import { Loading, TiraBreadcrumb } from './components'
   
   export default {
@@ -69,7 +69,7 @@
         this.team = this.$route.params.team as undefined | string
       }
 
-      get(inject("Archived base URL") + '/v1/systems/all', false)
+      get_from_archive('/v1/systems/all')
         .then(
             (result) => { 
               if (this.team) {
