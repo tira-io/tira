@@ -582,7 +582,7 @@ def admin_create_group(request, vm_id):
 
     try:
         vm_id = slugify(vm_id)
-        model.model.create_model(vm_id)
+        model.model.modeldb.VirtualMachine.objects.create(vm_id=vm_id, user_password="no-password", roles="user")
         context = auth.create_group(vm_id)
 
         return JsonResponse({"status": 0, "context": context})
