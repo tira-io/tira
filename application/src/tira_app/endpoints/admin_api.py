@@ -16,6 +16,7 @@ from ..authentication import auth
 from ..checks import check_conditional_permissions, check_permissions, check_resources_exist
 from ..git_runner import check_that_git_integration_is_valid
 from ..ir_datasets_loader import run_irds_command
+from slugify import slugify
 
 logger = logging.getLogger("tira")
 logger.info("ajax_routes: Logger active")
@@ -574,9 +575,11 @@ def admin_edit_organizer(request, organizer_id):
 
 
 @check_conditional_permissions(restricted=True)
-@check_resources_exist("json")
 def admin_create_group(request, vm_id):
     """this is a rest endpoint to grant a user permissions on a vm"""
+
+    vm_id = slugify(vm_id)
+    model.model.create_model(vm_id)
     context = auth.create_group(vm_id)
     return JsonResponse({"status": 0, "context": context})
 
