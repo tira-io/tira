@@ -10,13 +10,13 @@ from http import HTTPStatus
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import JsonResponse
+from slugify import slugify
 
 from .. import tira_model as model
 from ..authentication import auth
 from ..checks import check_conditional_permissions, check_permissions, check_resources_exist
 from ..git_runner import check_that_git_integration_is_valid
 from ..ir_datasets_loader import run_irds_command
-from slugify import slugify
 
 logger = logging.getLogger("tira")
 logger.info("ajax_routes: Logger active")
