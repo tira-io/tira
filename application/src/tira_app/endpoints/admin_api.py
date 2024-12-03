@@ -577,9 +577,8 @@ def admin_edit_organizer(request, organizer_id):
 @check_resources_exist("json")
 def admin_create_group(request, vm_id):
     """this is a rest endpoint to grant a user permissions on a vm"""
-    vm = model.get_vm(vm_id)
-    message = auth.create_group(vm)
-    return JsonResponse({"status": 0, "message": message})
+    context = auth.create_group(vm_id)
+    return JsonResponse({"status": 0, "context": context})
 
 
 @check_conditional_permissions(restricted=True)

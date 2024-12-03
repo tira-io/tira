@@ -37,7 +37,7 @@ def read_anonymous_submission(request: Request, submission_uuid: str) -> Respons
         )
 
 
-@api_view(["POST"])
+@api_view(["POST", "GET"])
 @check_permissions
 def claim_submission(request: Request, vm_id: str, submission_uuid: str) -> Response:
 
