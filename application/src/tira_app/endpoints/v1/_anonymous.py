@@ -37,6 +37,7 @@ def read_anonymous_submission(request: Request, submission_uuid: str) -> Respons
         )
 
 
+@api_view(["POST"])
 @check_permissions
 def claim_submission(request: Request, vm_id: str, submission_uuid: str) -> Response:
 
@@ -69,9 +70,7 @@ def claim_submission(request: Request, vm_id: str, submission_uuid: str) -> Resp
     dataset_id = upload.dataset.dataset_id
 
     if "upload_group" not in body:
-        body["upload_group"] = model.add_upload(
-            task_id,
-        )
+        body["upload_group"] = model.add_upload(task_id, vm_id)["id"]
         model.model.update_upload_metadata(
             task_id, vm_id, body["upload_group"], body["display_name"], body["description"], body["paper_link"]
         )
@@ -86,11 +85,20 @@ def claim_submission(request: Request, vm_id: str, submission_uuid: str) -> Resp
     if status_code != _fmt.OK:
         HttpResponseServerError(json.dumps({"status": 1, "message": message}))
 
-    new_run = model.model.add_uploaded_run(task_id, vm_id, dataset_id, body["upload_group"], uploaded_file)
+    class MockedResponse:
+        name = uploaded_file.name
+
+        def chunks(self):
+            with open(uploaded_file, "rb") as f:
+                all_bytes = f.read()
+
+            return [all_bytes]
+
+    new_run = model.model.add_uploaded_run(task_id, vm_id, dataset_id, body["upload_group"], MockedResponse())
     if model.model.git_pipeline_is_enabled_for_task(task_id, cache):
         model.run_eval(request=request, vm_id=vm_id, dataset_id=dataset_id, run_id=new_run["run"]["run_id"])
 
-    return Response({"upload_group": body["upload_group"]})
+    return Response({"upload_group": body["upload_group"], "status": "0"})
 
 
 endpoints = [

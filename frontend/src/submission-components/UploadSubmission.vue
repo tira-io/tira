@@ -1,5 +1,6 @@
 <template>
   <loading :loading="loading" />
+
   <login-to-submit v-if="!loading && userinfo.role === 'guest'" />
   <v-row v-if="!loading && userinfo.role !== 'guest'">
     <v-col :cols="$vuetify.display.mdAndUp ? '9' : '12'">
@@ -9,13 +10,13 @@
     <v-col v-if="!$vuetify.display.smAndDown" :cols="$vuetify.display.mdAndUp ? '3' : '0'">
       <v-btn color="primary" v-if="!$vuetify.display.mdAndUp" icon="mdi-plus" @click="this.tab = 'newUploadGroup'" />
       <v-btn color="primary" v-if="$vuetify.display.mdAndUp" prepend-icon="mdi-plus" size="large"
-        @click="this.tab = 'newUploadGroup'" block>New Uploadgroup</v-btn>
+        @click="this.tab = 'newUploadGroup'" block>New Approach</v-btn>
     </v-col>
   </v-row>
   <v-row v-if="$vuetify.display.smAndDown">
     <v-col :cols="12">
       <v-btn color="primary" prepend-icon="mdi-plus" size="large" @click="this.tab = 'newUploadGroup'" block rounded>New
-        Uploadgroup</v-btn>
+        Approach</v-btn>
     </v-col>
   </v-row>
   <v-row v-if="!loading && userinfo.role !== 'guest'">
@@ -35,7 +36,6 @@
     </v-col>
   </v-row>
   <v-window v-model="tab" v-if="!loading && userinfo.role !== 'guest'" :touch="{ left: null, right: null }">
-
     <v-window-item value="newUploadGroup">
       <h2>New Upload</h2>
       <v-stepper :items="['About', 'Specify Metadata', 'Upload']" v-model="stepperModel" hide-actions="true" flat
@@ -163,24 +163,6 @@
         </div>
 
       </div>
-      <v-form v-if="description !== 'no-description'">
-        <h2>Upload new Submissions for Approach {{ us.display_name }}</h2>
-        <v-radio-group v-model="upload_type_next_upload">
-          <v-radio :label="'I want to upload a new run for approach ' + us.display_name + ' via the web UI'"
-            value="upload-via-ui" />
-          <v-radio :label="'I want to batch upload runs for approach ' + us.display_name + ' via a script'"
-            value="upload-via-script" />
-        </v-radio-group>
-        <div v-if="upload_type_next_upload == 'upload-via-ui'">
-          <v-file-input v-model="fileHandle" :rules="[v => !!v || 'File is required']" label="Click to add run file" />
-          <v-autocomplete label="Input Dataset" :items="datasets" item-title="display_name" item-value="dataset_id"
-            prepend-icon="mdi-file-document-multiple-outline" v-model="selectedDataset" variant="underlined"
-            clearable />
-          <v-text-field v-if="'' + rename_to !== 'null' && '' + rename_to !== '' && '' + rename_to !== 'undefined'"
-            v-model="rename_to" label="Uploaded Files are renamed to (immutable for reproducibility)" disabled="true" />
-        </div>
-      </v-form>
-
       <v-btn v-if="description !== 'no-description' && upload_type_next_upload == 'upload-via-ui'" color="primary"
         :loading="uploading" :disabled="uploading || fileHandle === null || selectedDataset === ''"
         @click="fileUpload(us.id)">Upload Run</v-btn>
@@ -198,6 +180,27 @@
       <h2>Your Existing Submissions for Approach {{ us.display_name }}</h2>
       <run-list :task_id="task_id" :organizer="organizer" :organizer_id="organizer_id" :vm_id="user_id_for_task"
         :upload_id="us.id" ref="upload-run-list" />
+
+    
+      <v-btn class="my-5" v-if="description !== 'no-description' && !upload_for_approach" color="primary" prepend-icon="mdi-plus" size="large"
+        @click="this.upload_for_approach = true" block>Upload New Submission for Approach {{ us.display_name }}</v-btn>
+      <v-form class="my-5"  v-if="description !== 'no-description' && upload_for_approach">
+        <h2>Upload new Submissions for Approach {{ us.display_name }}</h2>
+        <v-radio-group v-model="upload_type_next_upload">
+          <v-radio :label="'I want to upload a new run for approach ' + us.display_name + ' via the web UI'"
+            value="upload-via-ui" />
+          <v-radio :label="'I want to batch upload runs for approach ' + us.display_name + ' via a script'"
+            value="upload-via-script" />
+        </v-radio-group>
+        <div v-if="upload_type_next_upload == 'upload-via-ui'">
+          <v-file-input v-model="fileHandle" :rules="[v => !!v || 'File is required']" label="Click to add run file" />
+          <v-autocomplete label="Input Dataset" :items="datasets" item-title="display_name" item-value="dataset_id"
+            prepend-icon="mdi-file-document-multiple-outline" v-model="selectedDataset" variant="underlined"
+            clearable />
+          <v-text-field v-if="'' + rename_to !== 'null' && '' + rename_to !== '' && '' + rename_to !== 'undefined'"
+            v-model="rename_to" label="Uploaded Files are renamed to (immutable for reproducibility)" disabled="true" />
+        </div>
+      </v-form>
     </v-window-item>
   </v-window>
 </template>
@@ -206,7 +209,7 @@
 import { inject } from 'vue'
 
 import { VAutocomplete } from 'vuetify/components'
-import { extractTaskFromCurrentUrl, extractUserFromCurrentUrl, get, inject_response, reportError, post_file, reportSuccess, handleModifiedSubmission, get_link_to_organizer, get_contact_link_to_organizer } from "@/utils";
+import { extractTaskFromCurrentUrl, extractUserFromCurrentUrl, extractSoftwareIdFromCurrentUrl, get, inject_response, reportError, post_file, reportSuccess, handleModifiedSubmission, get_link_to_organizer, get_contact_link_to_organizer } from "@/utils";
 import { Loading, LoginToSubmit, RunList } from "@/components";
 import EditSubmissionDetails from "@/submission-components/EditSubmissionDetails.vue";
 import ImportSubmission from "./ImportSubmission.vue";
@@ -243,6 +246,7 @@ export default {
       all_uploadgroups: [{ "id": null, "display_name": 'loading...' }],
       selectedDataset: '',
       showImportSubmission: false,
+      upload_for_approach: false,
       token: 'YOUR-TOKEN-HERE',
       datasets: [{ "dataset_id": "loading...", "display_name": "loading...", }],
       rest_url: inject("REST base URL"),
@@ -360,6 +364,11 @@ export default {
   beforeMount() {
     get(this.rest_url + '/api/submissions-for-task/' + this.task_id + '/' + this.user_id_for_task + '/upload')
       .then(inject_response(this, { 'loading': false }, true))
+      .then((i) => {
+        if(extractSoftwareIdFromCurrentUrl() !== null) {
+          this.tab = extractSoftwareIdFromCurrentUrl()
+        }
+      })
       .catch(reportError("Problem While Loading The Submissions of the Task " + this.task_id, "This might be a short-term hiccup, please try again. We got the following error: "))
 
     get(this.rest_url + '/api/token/' + this.user_id_for_task)

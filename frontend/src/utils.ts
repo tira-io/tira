@@ -336,6 +336,23 @@ export function extractSearchQueryFromCurrentUrl() {
     return search_query ? search_query.toLowerCase() : search_query
 }
 
+export function extractSoftwareIdFromCurrentUrl() {
+    let url = ref(window.location).value.href
+    let to_split = 'submit/' + extractTaskFromCurrentUrl() + '/user/' + extractUserFromCurrentUrl() + '/'
+
+    if (url.includes(to_split)) {
+        url = url.split(to_split)[1]
+    } else {
+        return null
+    }
+
+    if (url.includes('upload-submission/')) {
+        url = url.split('upload-submission/')[1].split('/')[0].split('?')[0].split('#')[0]
+    }
+
+    return parseInt(url) > 0 ? parseInt(url) : null
+}
+
 export function extractSubmissionTypeFromCurrentUrl() {
     let url = ref(window.location).value.href
     let to_split = 'submit/' + extractTaskFromCurrentUrl() + '/user/' + extractUserFromCurrentUrl() + '/'

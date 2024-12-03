@@ -59,7 +59,7 @@
           <v-autocomplete v-if="new_software !== undefined && ('' + new_software) == 'false'" clearable auto-select-first label="Choose approach &hellip;" prepend-inner-icon="mdi-magnify"
           :items="upload_groups" item-title="display_name" item-value="id" variant="underlined" v-model="selected_upload_group" :rules="[select_rule]"/>
         </v-form>
-          <v-btn :disabled="new_software === undefined" @click="submitForm()">Claim Ownersip</v-btn>
+          <v-btn :disabled="new_software === undefined || claim_in_progress" :loading="claim_in_progress" @click="submitForm()">Claim Ownersip</v-btn>
           <div class="py-2"></div>
           <v-divider/>
           <!--<h3 class="my-1">Inspect Submission</h3>
@@ -72,7 +72,7 @@
 <script lang="ts">
 import { inject } from 'vue'
   
-import { get, post, vm_id, inject_response, chatNoirUrl, irDatasetsUrls, type UserInfo, type DatasetInfo, type ClaimSubmissionInfo, type UploadGroupInfo } from './utils';
+import { get, post, vm_id, inject_response, reportError, chatNoirUrl, irDatasetsUrls, type UserInfo, type DatasetInfo, type ClaimSubmissionInfo, type UploadGroupInfo } from './utils';
 import { Loading, TiraBreadcrumb } from './components'
 import RunPage from './tirex/RunPage.vue'
 
@@ -98,6 +98,7 @@ export default {
       display_name: '' as string,
       description: '' as string,
       paper_link: '' as string,
+      claim_in_progress: false
     }
   },
   methods: {
@@ -120,7 +121,7 @@ export default {
                 .then(() => {
                   this.dataset = i as DatasetInfo
                   if (this.vm_id) {
-                    get(this.rest_url + '/api/submissions-for-task/tira-tutorial/' + this.vm_id + '/upload')
+                    get(this.rest_url + '/api/submissions-for-task/' + this.dataset.default_task + '/' + this.vm_id + '/upload')
                     .then((uploads) => {
                       this.upload_groups = uploads['context']['all_uploadgroups']
                     })
@@ -133,8 +134,9 @@ export default {
     async submitForm() {
       const form = this.$refs.form as any
       const { valid } = await form.validate()
-      if (valid) {
+      if (valid && this.dataset) {
         let params : Record<string, string> = {}
+        let task_id = this.dataset.default_task
         if (this.new_software !== undefined && ('' + this.new_software) == 'true') {
           params['display_name'] = this.display_name + ''
           params['description'] = this.description + ''
@@ -142,7 +144,11 @@ export default {
         } else {
           params['upload_group'] = this.selected_upload_group + ''
         }
+        this.claim_in_progress = true
         post(this.rest_url + `/v1/anonymous/claim/` + this.vm_id + '/' + this.uuid, params, this.userinfo)
+        .then((i) => {this.$router.push({ path: '/submit/' +  task_id + '/user/' + this.vm_id + '/upload-submission/' + i['upload_group']})})
+        .catch(reportError("Could not claim submission."))
+        .finally(() => this.claim_in_progress = false)
       }
     }
   },
