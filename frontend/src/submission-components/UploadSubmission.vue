@@ -244,7 +244,8 @@ export default {
       selectedDataset: '',
       showImportSubmission: false,
       token: 'YOUR-TOKEN-HERE',
-      datasets: [{ "dataset_id": "loading...", "display_name": "loading...", }]
+      datasets: [{ "dataset_id": "loading...", "display_name": "loading...", }],
+      rest_url: inject("REST base URL"),
     }
   },
   computed: {
@@ -291,7 +292,7 @@ export default {
         upload_type_var += this.rename_file_to
       }
 
-      get(inject("REST base URL") + `/task/${this.task_id}/vm/${this.user_id_for_task}/add_software/upload${upload_type_var}`).then(message => {
+      get(this.rest_url + `/task/${this.task_id}/vm/${this.user_id_for_task}/add_software/upload${upload_type_var}`).then(message => {
         this.all_uploadgroups.push({ "id": message.context.upload.id, "display_name": message.context.upload.display_name })
         this.tab = message.context.upload.id
         this.upload_type = 'upload-1'
@@ -322,14 +323,14 @@ export default {
       }
       else if (this.stepperModel == 2 && this.upload_configuration === 'upload-config-2') {
         this.hf_model_available = 'loading'
-        get(inject("REST base URL") + '/api/huggingface_model_mounts/vm/' + this.user_id_for_task + '/' + this.hugging_face_model.replace('/', '--'))
+        get(this.rest_url + '/api/huggingface_model_mounts/vm/' + this.user_id_for_task + '/' + this.hugging_face_model.replace('/', '--'))
           .then(inject_response(this))
           .catch(reportError("Problem While importing the Hugging Face model " + this.hugging_face_model, "This might be a short-term hiccup, please try again. We got the following error: "))
         this.stepperModel = 3;
       }
     },
     deleteUpload(id_to_delete) {
-      get(inject("REST base URL") + `/task/${this.task_id}/vm/${this.user_id_for_task}/upload-delete/${this.tab}`)
+      get(this.rest_url + `/task/${this.task_id}/vm/${this.user_id_for_task}/upload-delete/${this.tab}`)
         .then(message => {
           this.all_uploadgroups = this.all_uploadgroups.filter(i => i.id !== id_to_delete)
           this.tab = this.all_uploadgroups.length > 0 ? this.all_uploadgroups[0].display_name : null
@@ -357,11 +358,11 @@ export default {
     }
   },
   beforeMount() {
-    get(inject("REST base URL") + '/api/submissions-for-task/' + this.task_id + '/' + this.user_id_for_task + '/upload')
+    get(this.rest_url + '/api/submissions-for-task/' + this.task_id + '/' + this.user_id_for_task + '/upload')
       .then(inject_response(this, { 'loading': false }, true))
       .catch(reportError("Problem While Loading The Submissions of the Task " + this.task_id, "This might be a short-term hiccup, please try again. We got the following error: "))
 
-    get(inject("REST base URL") + '/api/token/' + this.user_id_for_task)
+    get(this.rest_url + '/api/token/' + this.user_id_for_task)
       .then(inject_response(this))
 
     this.tab = this.all_uploadgroups[0].display_name
@@ -371,7 +372,7 @@ export default {
       this.description = 'no-description'
       this.rename_to = ''
       if (new_value !== 'newUploadGroup' && '' + new_value !== 'null' && '' + new_value !== 'undefined' && '' + new_value !== 'loading...') {
-        get(inject("REST base URL") + `/api/upload-group-details/${this.task_id}/${this.user_id_for_task}/${new_value}`).then(message => {
+        get(this.rest_url + `/api/upload-group-details/${this.task_id}/${this.user_id_for_task}/${new_value}`).then(message => {
           this.description = message.context.upload_group_details.description
           this.rename_to = message.context.upload_group_details.rename_to
         })

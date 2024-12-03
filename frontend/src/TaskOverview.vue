@@ -115,6 +115,9 @@ export default {
       user_vms_for_task: [],
       datasets: [{ 'dataset_id': 'loading...', 'id': 'loading...', 'display_name': 'loading...', 'default_task': undefined }] as DatasetInfo[],
       tab: "test",
+      archive_url: inject("Archived base URL"),
+      production_url: inject("REST base URL"),
+      url: inject("Archived base URL"),
     }
   },
   computed: {
@@ -157,10 +160,18 @@ export default {
     }
   },
   beforeMount() {
-    get(inject("Archived base URL") + '/api/task/' + this.task_id, false)
-      .then(inject_response(this, { 'loading': false }, true))
-      .then(this.updateDataset)
-      .catch(reportError("Problem While Loading the Details of the Task " + this.task_id, "This might be a short-term hiccup, please try again. We got the following error: "))
+    get(this.archive_url + '/api/task-list').then(task_list => {
+      for (let task of task_list['context']['task_list']) {
+        if (task && task['featured'] && task['task_id'] && this.task_id == task['task_id']) {
+          this.url = this.production_url
+        }
+      }
+
+      get(this.url + '/api/task/' + this.task_id)
+        .then(inject_response(this, { 'loading': false }, true))
+        .then(this.updateDataset)
+        .catch(reportError("Problem While Loading the Details of the Task " + this.task_id, "This might be a short-term hiccup, please try again. We got the following error: "))
+    }).catch(reportError("Problem While Loading the Details of the Task " + this.task_id, "This might be a short-term hiccup, please try again. We got the following error: "))
   },
   watch: {
     selectedDataset(old_value, new_value) { this.newDatasetSelected() },

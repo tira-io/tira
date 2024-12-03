@@ -7,14 +7,39 @@
                 <img id="site-logo" src="https://assets.tira.io/tira-icons/tira-banner-120x360-dark.png" alt="TIRA" style="height: 2.667em">
               </a>
             </v-col>
-  
+
             <v-col class="text-right">
-              <v-btn icon>
-                <v-icon>mdi-menu</v-icon>
-              </v-btn>
+              <v-menu>
+                <template v-slot:activator="{ props }">
+                  <v-btn v-bind="props" class="text-red">
+                    <v-icon>mdi-menu</v-icon>Archive
+                  </v-btn>
+                </template>
+                <v-card min-width="300">
+                <v-list>
+                  <v-list-item href="https://archive.tira.io" prepend-avatar="https://webis.de/weimar/people/img/silhouette-female.jpg" subtitle="Read only archive of TIRA." title="archive.tira.io">
+                    <template v-slot:append>
+                      <v-btn class="text-red" icon="mdi-database" variant="text"/>
+                    </template>
+                  </v-list-item>
+                </v-list>
+
+                <v-divider></v-divider>
+                <p style="max-width: 400px;" class="pa-2">
+                  You are at <a href="https://archive.tira.io">archive.tira.io</a> which hosts a read-only archive of previous shared tasks. Visit <a href="https://www.tira.io">www.tira.io</a> to make submissions.
+                </p>
+
+                <v-card-actions>
+                  <v-spacer/>
+                  <v-btn variant="text">Cancel</v-btn>
+                  <v-btn color="primary" v-if="userinfo.role !== 'guest'" variant="text" @click="logout">Logout</v-btn>
+                  <v-btn color="primary" v-if="userinfo.role === 'guest'" variant="text" href="https://www.tira.io/login" target="_blank">Login</v-btn>
+                </v-card-actions>
+              </v-card>
+              </v-menu>
             </v-col>
           </v-row>
-  
+
         </v-container>
         
         <v-container style="max-width: 1110px;" class="d-none d-md-block">
@@ -26,81 +51,37 @@
         </v-col>
   
           <v-col class="text-right">
-            <v-btn>
-              API
-            </v-btn>
-            <v-btn>
-              Forum
-            </v-btn>
-            <v-btn icon>
-              <v-icon>mdi-menu</v-icon>
-            </v-btn>
-  
-            <v-menu v-if="userinfo !== undefined">
+            <v-btn href="https://pypi.org/project/tira/">API</v-btn>
+            <v-btn href="https://www.tira.io/categories">Forum</v-btn>
+            <v-menu>
               <template v-slot:activator="{ props }">
-                <v-btn icon v-bind="props">
-                  <img width="48" height="48" src="https://webis.de/weimar/people/img/silhouette-female.jpg" style="border-radius: 50%;">
+                <v-btn v-bind="props" class="text-red">
+                  <v-icon>mdi-menu</v-icon>Archive
                 </v-btn>
               </template>
-  
+
               <v-card min-width="300">
-          <v-list>
-            <v-list-item href="foo"
-              prepend-avatar="https://webis.de/weimar/people/img/silhouette-female.jpg"
-              subtitle="Short description..."
-              :title="userinfo.context.user_id"
-            >
-              <template v-slot:append>
-                <v-btn
-                  :class="'text-red'"
-                  icon="mdi-heart"
-                  variant="text"
-                ></v-btn>
-              </template>
-            </v-list-item>
-          </v-list>
-  
-          <v-divider></v-divider>
-  
+                <v-list>
+                  <v-list-item href="https://archive.tira.io" prepend-avatar="https://webis.de/weimar/people/img/silhouette-female.jpg" subtitle="Read only archive of TIRA." title="archive.tira.io">
+                    <template v-slot:append>
+                      <v-btn class="text-red" icon="mdi-database" variant="text"/>
+                    </template>
+                  </v-list-item>
+                </v-list>
 
-          <v-list>
-            <v-list-item>
-                <a href="/foo">{{ userinfo.organizer_teams.length }} Teams</a>
-            </v-list-item>
-
-            <v-list-item>
-                Role: <a href="/foo">{{ userinfo.role }}</a>
-            </v-list-item>
-          </v-list>
-
-
-          <v-divider></v-divider>
-
-          <v-list>
-            <v-list-item>
-              <v-switch
-                color="purple"
-                label="Enable messages"
-                hide-details
-              ></v-switch>
-            </v-list-item>
-  
-            <v-list-item>
-              <v-switch
-                color="purple"
-                label="Enable hints"
-                hide-details
-              ></v-switch>
-            </v-list-item>
-          </v-list>
-  
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn variant="text">Cancel</v-btn>
-            <v-btn color="primary" v-if="userinfo.role !== 'guest'" variant="text" @click="logout">Logout</v-btn>
-            <v-btn color="primary" v-if="userinfo.role === 'guest'" variant="text" href="https://www.tira.io/login" target="_blank">Login</v-btn>
-          </v-card-actions>
-        </v-card>
+                <v-divider></v-divider>
+                
+                <p style="max-width: 400px;" class="pa-2">
+                  You are at <a href="https://archive.tira.io">archive.tira.io</a> which hosts a read-only archive of previous shared tasks. Visit <a href="https://www.tira.io">www.tira.io</a> to make submissions.
+                </p>
+                
+                <v-card-actions>
+                  <v-spacer/>
+                  <v-btn variant="text">Cancel</v-btn>
+                  <v-btn color="primary" v-if="userinfo.role !== 'guest'" variant="text" @click="logout">Logout</v-btn>
+                  <v-btn color="primary" v-if="userinfo.role === 'guest'" variant="text" href="https://www.tira.io/login" target="_blank">Login</v-btn>
+                </v-card-actions>
+              </v-card>
             </v-menu>
           </v-col>
         </v-row>

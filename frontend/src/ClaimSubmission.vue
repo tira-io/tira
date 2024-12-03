@@ -40,16 +40,26 @@
         <p v-if="userinfo.role === 'guest'">
           Please <a href='/login'>login</a> to claim ownership.
         </p>
-        <div v-if="userinfo.role !== 'guest'">
+        <div v-if="userinfo.role !== 'guest' && vm_id !== undefined">
           <v-divider/>
-          <h3 class="my-1">Public Access to the Data and Submissions</h3>
-          <p>You can make the data public so that users can download the data and submissions, e.g., after the shared task is finished or for participants to verify their software.</p>
+          <h3 class="my-1">Please Describe Your Run</h3>
+          <p>We need a description of your submission, specifically on the approach that produced the run:</p>
 
           <v-radio-group v-model="new_software">
-            <v-radio label="This dataset is public (users can access the data and published submissions)" value="false"></v-radio>
-            <v-radio label="This dataset is confidential (only organizers can access the data and submissions)" value="true"></v-radio>
+            <v-radio label="I have submitted a run from the approach before (I.e., the approach is already described in TIRA)" value="false"></v-radio>
+            <v-radio label="I have not yet submitted a run from the approach (I.e., the approach has not yet a description in TIRA)" value="true"></v-radio>
           </v-radio-group>
-          <v-btn>Claim Ownersip</v-btn>
+
+        <v-form ref="form">
+          <div v-if="new_software !== undefined && ('' + new_software) == 'true'">
+            <v-text-field v-model="display_name" label="Name" counter="30" required="True" :rules="[title_rule]"/>
+            <v-textarea v-model="description" label="Description" counter="500" :rules="[description_rule]"/>
+            <v-text-field v-model="paper_link" label="Link your Paper"/>
+          </div>
+          <v-autocomplete v-if="new_software !== undefined && ('' + new_software) == 'false'" clearable auto-select-first label="Choose approach &hellip;" prepend-inner-icon="mdi-magnify"
+          :items="upload_groups" item-title="display_name" item-value="id" variant="underlined" v-model="selected_upload_group" :rules="[select_rule]"/>
+        </v-form>
+          <v-btn :disabled="new_software === undefined" @click="submitForm()">Claim Ownersip</v-btn>
           <div class="py-2"></div>
           <v-divider/>
           <!--<h3 class="my-1">Inspect Submission</h3>
@@ -62,7 +72,7 @@
 <script lang="ts">
 import { inject } from 'vue'
   
-import { get, chatNoirUrl, irDatasetsUrls, type UserInfo, type DatasetInfo, type ClaimSubmissionInfo } from './utils';
+import { get, post, vm_id, inject_response, chatNoirUrl, irDatasetsUrls, type UserInfo, type DatasetInfo, type ClaimSubmissionInfo, type UploadGroupInfo } from './utils';
 import { Loading, TiraBreadcrumb } from './components'
 import RunPage from './tirex/RunPage.vue'
 
@@ -77,10 +87,23 @@ export default {
       submissionToClaim: undefined as ClaimSubmissionInfo | undefined,
       error: false,
       rest_url: inject("REST base URL"),
-      new_software: false,
+      new_software: undefined,
+      vm: undefined,
+      user_vms_for_task: [] as string[],
+      additional_vms: undefined,
+      user_id: undefined,
+      task: undefined,
+      upload_groups: [] as UploadGroupInfo[],
+      selected_upload_group: undefined,
+      display_name: '' as string,
+      description: '' as string,
+      paper_link: '' as string,
     }
   },
   methods: {
+    title_rule(v: any) {if (v && v.length < 30 && v.length > 0) return true; return 'Please enter a name for your approach'},
+    select_rule(v: any) {if (v) return true; return 'Please select an approach'},
+    description_rule(v: any) {if (v && v.length < 500 && v.length > 0) return true; return 'Please enter a description for your approach (less than 500 characters)'},
     loadData() {
       this.dataset = undefined
       this.submissionToClaim = undefined
@@ -91,12 +114,38 @@ export default {
         .then((i) => {this.submissionToClaim = i as ClaimSubmissionInfo})
         .then(() => {
           if (this.submissionToClaim && this.submissionToClaim.dataset_id) {
-            get(this.rest_url + '/v1/datasets/view/' + this.submissionToClaim.dataset_id).then((i) => this.dataset = i as DatasetInfo)
-          }
-        }).catch(() => { this.error = true })
+            get(this.rest_url + '/v1/datasets/view/' + this.submissionToClaim.dataset_id).then((i) => {
+              get(this.rest_url + '/api/task/' + i.default_task)
+                .then(inject_response(this, { 'loading': false }, true))
+                .then(() => {
+                  this.dataset = i as DatasetInfo
+                  if (this.vm_id) {
+                    get(this.rest_url + '/api/submissions-for-task/tira-tutorial/' + this.vm_id + '/upload')
+                    .then((uploads) => {
+                      this.upload_groups = uploads['context']['all_uploadgroups']
+                    })
+                  }
+                })
+          })
+        }
+      }).catch(() => { this.error = true })
     },
+    async submitForm() {
+      const form = this.$refs.form as any
+      const { valid } = await form.validate()
+      if (valid) {
+        let params : Record<string, string> = {}
+        if (this.new_software !== undefined && ('' + this.new_software) == 'true') {
+          params['display_name'] = this.display_name + ''
+          params['description'] = this.description + ''
+          params['paper_link'] = this.paper_link + ''
+        } else {
+          params['upload_group'] = this.selected_upload_group + ''
+        }
+        post(this.rest_url + `/v1/anonymous/claim/` + this.vm_id + '/' + this.uuid, params, this.userinfo)
+      }
+    }
   },
-  
   computed: {
     link_chatnoir() { return  chatNoirUrl(this.dataset) },
     link_ir_datasets() { 
@@ -107,6 +156,12 @@ export default {
       } else {
         return undefined
       }
+    },
+    vm_id() {
+      return vm_id(this.vm_ids, this.vm, this.user_vms_for_task, this.additional_vms, this.user_id, this.task)
+    },
+    vm_ids() {
+      return this.user_vms_for_task.length > 1 ? this.user_vms_for_task : null;
     },
   },
   beforeMount() {

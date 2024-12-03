@@ -16,6 +16,11 @@ export interface DatasetInfo {
     mirrors: Record<string, string>;
 }
 
+export interface UploadGroupInfo {
+    id: string;
+    display_name: string
+}
+
 export interface ClaimSubmissionInfo {
     uuid: string;
     dataset_id: string;
@@ -239,9 +244,24 @@ export function reportError(title: string = "", text: string = "") {
             title = 'Error.'
         }
         window.push_message(title, text + ' ' + error, "error")
+        console.log(error)
 
         return error
     }
+}
+
+export function vm_id(vm_ids: any, vm: any, user_vms_for_task: any, additional_vms: any, user_id: any, task: any) {
+    if (!vm_ids && vm) {
+        return vm
+    } else if (user_vms_for_task && user_vms_for_task.length == 1) {
+        return user_vms_for_task[0]
+    } else if (additional_vms && additional_vms.length > 0 && additional_vms[0]) {
+        return additional_vms[0]
+    } else if (!vm_ids && user_id && !task.require_groups && !task.restrict_groups) {
+        return user_id + '-default'
+    }
+
+    return null;
 }
 
 export function extractUserFromCurrentUrl() {
