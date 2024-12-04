@@ -162,7 +162,9 @@ export default {
       poll_in_progress: false,
       selectedRuns: null,
       pollSoftwareInterval: null,
-      abortedProcesses: []
+      abortedProcesses: [],
+      grpc_url: inject("gRPC base URL"),
+      rest_url: inject("REST base URL")
     }
   },
   computed: {
@@ -174,7 +176,7 @@ export default {
     stopRun(run_id) {
       if (!(this.abortedProcesses.includes(run_id))) {
         this.abortedProcesses.push(run_id)
-        get(inject("gRPC base URL") + `/grpc/${this.task_id}/${this.user_id_for_task}/stop_docker_software/${run_id}`)
+        get(this.grpc_url + `/grpc/${this.task_id}/${this.user_id_for_task}/stop_docker_software/${run_id}`)
           .then(reportSuccess('Run with the id ' + run_id + " was successfully aborted!"))
           .catch(reportError("Problem while trying to abort the process with id: " + run_id))
       }
@@ -188,7 +190,7 @@ export default {
       }
 
       this.poll_in_progress = true
-      get(inject("REST base URL") + `/api/task/${this.task_id}/user/${this.user_id_for_task}/software/running/${force_cache_refresh}`)
+      get(this.rest_url + `/api/task/${this.task_id}/user/${this.user_id_for_task}/software/running/${force_cache_refresh}`)
         .then(inject_response(this, { 'loading': false }))
         .catch(reportError("Problem While polling running software."))
         .then(message => {

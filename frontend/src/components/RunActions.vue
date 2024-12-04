@@ -148,6 +148,7 @@ export default {
       userinfo: inject('userinfo') as UserInfo,
       start_evaluation_is_pending: false,
       delete_is_pending: false,
+      grpc_url: inject("gRPC base URL")
     }
   },
   computed: {
@@ -170,14 +171,14 @@ export default {
   methods: {
     runEvaluation(isActive: any) {
       this.start_evaluation_is_pending = true;
-      get(inject("gRPC base URL") + `/grpc/${this.run.vm_id}/run_eval/${this.run.dataset_id}/${this.run.run_id}`)
+      get(this.grpc_url + `/grpc/${this.run.vm_id}/run_eval/${this.run.dataset_id}/${this.run.run_id}`)
         .then(reportSuccess('Successfully started the evaluation of run with id ' + this.run.run_id))
         .catch(reportError('Failed to start the evaluation of run with id ' + this.run.run_id, 'Maybe this is a short hiccupp, please try again.'))
         .then(() => { this.start_evaluation_is_pending = false; isActive.value = false })
     },
     deleteRun(isActive: any) {
       this.delete_is_pending = true;
-      get(inject("gRPC base URL") + `/grpc/${this.run.vm_id}/run_delete/${this.run.dataset_id}/${this.run.run_id}`)
+      get(this.grpc_url + `/grpc/${this.run.vm_id}/run_delete/${this.run.dataset_id}/${this.run.run_id}`)
         .then(reportSuccess('Successfully deleted the run with id ' + this.run.run_id))
         .catch(reportError('Failed to delete the run with id ' + this.run.run_id, 'Maybe this is a short hiccupp, please try again.'))
         .then(() => { this.delete_is_pending = false; isActive.value = false })
