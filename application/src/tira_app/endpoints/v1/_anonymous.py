@@ -97,7 +97,7 @@ def claim_submission(request: Request, vm_id: str, submission_uuid: str) -> Resp
 
     new_run = model.model.add_uploaded_run(task_id, vm_id, dataset_id, body["upload_group"], MockedResponse())
     if model.git_pipeline_is_enabled_for_task(task_id, cache):
-        run_eval(vm_id=vm_id, dataset_id=dataset_id, run_id=new_run["run"]["run_id"])
+        run_eval(request=request, vm_id=vm_id, dataset_id=dataset_id, run_id=new_run["run"]["run_id"])
 
     return Response({"upload_group": body["upload_group"], "status": "0"})
 
