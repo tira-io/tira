@@ -833,23 +833,28 @@ class Client(TiraClient):
         questions="",
     ):
 
+        self.fail_if_api_key_is_invalid()
+        user_id = self.json_response("/api/role")["context"]["user_id"]
+
         endpoint = f"/api/registration/add_registration/{vm_id}/{task_id}"
         body = {
             "group": vm_id,
             "team_members": team_members,
+            "team": team_members,
             "registered_on_task": task_id,
+            "username": user_id,
             "name": name,
             "email": email,
             "affiliation": affiliation,
             "country": country,
             "employment": employment,
-            "participates_for": participates_for,
-            "instructor_name": instructor_name,
-            "instructor_email": instructor_email,
+            "participation": participates_for,
+            "instructorName": instructor_name,
+            "instructorEmail": instructor_email,
             "questions": questions,
         }
 
-        return self.execute_post_return_json(url=endpoint, json_payload=body)
+        return self.execute_post_return_json(endpoint, json_payload=body)
 
     def modify_task(self, task_id, to_rename):
         task = self.metadata_for_task(task_id)["context"]["task"]
@@ -869,7 +874,9 @@ class Client(TiraClient):
             assert k in task, k
             task[k] = v
 
-        print(self.execute_post_return_json("/tira-admin/edit-task/" + task_id, json_payload=task))
+        ret = self.execute_post_return_json("/tira-admin/edit-task/" + task_id, json_payload=task)
+        if "status" not in ret or ret["status"] != 0:
+            raise ValueError(f"Could not edit task: {ret}")
 
     def upload_run(
         self,
