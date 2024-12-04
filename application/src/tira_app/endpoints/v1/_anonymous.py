@@ -14,6 +14,7 @@ from tira.third_party_integrations import temporary_directory
 from ... import model as modeldb
 from ... import tira_model as model
 from ...checks import check_permissions, check_resources_exist
+from ..vm_api import run_eval
 
 
 @api_view(["GET"])
@@ -95,8 +96,8 @@ def claim_submission(request: Request, vm_id: str, submission_uuid: str) -> Resp
             return [all_bytes]
 
     new_run = model.model.add_uploaded_run(task_id, vm_id, dataset_id, body["upload_group"], MockedResponse())
-    if model.model.git_pipeline_is_enabled_for_task(task_id, cache):
-        model.run_eval(request=request, vm_id=vm_id, dataset_id=dataset_id, run_id=new_run["run"]["run_id"])
+    if model.git_pipeline_is_enabled_for_task(task_id, cache):
+        run_eval(vm_id=vm_id, dataset_id=dataset_id, run_id=new_run["run"]["run_id"])
 
     return Response({"upload_group": body["upload_group"], "status": "0"})
 
