@@ -134,6 +134,7 @@ export default {
       selectedComponentTab: 'details',
       tab: '',
       component_tab: '',
+      rest_url: inject("REST base URL")
     }
   },
   computed: {
@@ -152,7 +153,7 @@ export default {
   methods: {
     fetchData() {
       this.loading = true
-      get(inject("REST base URL") + '/task/' + this.task_id + '/vm/' + this.run.vm_id + '/run_details/' + this.run.run_id)
+      get(this.rest_url + '/task/' + this.task_id + '/vm/' + this.run.vm_id + '/run_details/' + this.run.run_id)
         .then(inject_response(this, { 'loading': false }))
         .catch(() => { this.details_not_visible = true; this.loading = false })
     },

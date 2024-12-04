@@ -94,7 +94,8 @@ export default {
       showInstructorClasses: ['Undergraduate Student', 'Course', 'Thesis'],
       nameRules: [validateTeamName], notEmptyRules: [validateNotEmpty], emailRules: [validateEmail],
       remaining_team_names: [''],
-      userinfo: inject('userinfo') as UserInfo
+      userinfo: inject('userinfo') as UserInfo,
+      rest_url: inject("REST base URL")
     }),
   methods: {
     async submitRegistration (isActive: any) {
@@ -102,7 +103,7 @@ export default {
 
       if (valid) {
         this.loading = true
-        post(inject("REST base URL")+'/api/registration/add_registration/vm/'+ this.task.task_id, {
+        post(this.rest_url +'/api/registration/add_registration/vm/'+ this.task.task_id, {
           'username': this.username, 'email': this.email, 'affiliation': this.affiliation, 'country': this.country,
           'employment': this.selectedEmployment, 'group': this.username, 'participation': this.selectedParticipation,
           'instructorName': this.instructorName, 'instructorEmail': this.instructorEmail,
@@ -138,7 +139,7 @@ export default {
     contact_organizer() {return get_contact_link_to_organizer(this.task.organizer_id);},
   },
   beforeMount() {
-    get(inject("REST base URL")+'/api/registration_formular/' + this.task.task_id)
+    get(this.rest_url +'/api/registration_formular/' + this.task.task_id)
       .then(inject_response(this, {'loading': false}))
       .catch(reportError("Problem While Loading the registration formular.", "This might be a short-term hiccup, please try again. We got the following error: "))
   },

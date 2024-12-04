@@ -108,6 +108,7 @@ export default {
       task_id: extractTaskFromCurrentUrl() as string,
       selectedDataset: '',
       selectedDatasetForDelete: '',
+      rest_url: inject("REST base URL")
     }
   },
   methods: {
@@ -117,7 +118,7 @@ export default {
     },
     deleteDataset(x: any) {
       if (x['action'] == 'delete_dataset') {
-        get(inject("REST base URL") + '/tira-admin/delete-dataset/' + x['dataset_id'])
+        get(this.rest_url + '/tira-admin/delete-dataset/' + x['dataset_id'])
           .then(() => {
             this.$emit('delete-dataset', x['dataset_id'])
             this.selectedDatasetForDelete = ''
