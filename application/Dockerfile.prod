@@ -115,6 +115,7 @@ EOF
 # Final Configuration Stuff                                                                                            #
 ########################################################################################################################
 USER tira
+ENV LC_ALL=en_US.UTF-8
 ENV PATH=/home/tira/.local/bin:$PATH
 # CONFIGURE THE FOLLOWING ENVIRONMENT VARIABLES IN YOUR DOCKER-COMPOSE FILE
 ENV HF_HOME=/home/tira/data/publicly-shared-datasets/huggingface/
