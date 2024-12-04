@@ -40,7 +40,10 @@
         <p v-if="userinfo.role === 'guest'">
           Please <a href='/login'>login</a> to claim ownership.
         </p>
-        <div v-if="userinfo.role !== 'guest' && vm_id !== undefined">
+        <p v-if="userinfo.role !== 'guest' && !registered">
+          You are not registered for the task, please <a :href="'/task-overview/' + dataset.default_task">register</a> to claim ownership.
+        </p>
+        <div v-if="userinfo.role !== 'guest' && registered">
           <v-divider/>
           <h3 class="my-1">Please Describe Your Run</h3>
           <p>We need a description of your submission, specifically on the approach that produced the run:</p>
@@ -120,7 +123,7 @@ export default {
                 .then(inject_response(this, { 'loading': false }, true))
                 .then(() => {
                   this.dataset = i as DatasetInfo
-                  if (this.vm_id) {
+                  if (this.registered) {
                     get(this.rest_url + '/api/submissions-for-task/' + this.dataset.default_task + '/' + this.vm_id + '/upload')
                     .then((uploads) => {
                       this.upload_groups = uploads['context']['all_uploadgroups']
@@ -154,6 +157,7 @@ export default {
   },
   computed: {
     link_chatnoir() { return  chatNoirUrl(this.dataset) },
+    registered() { return this.vm_id && this.vm_id !== undefined && ('' + this.vm_id) !== 'undefined' && ('' + this.vm_id) !== 'null'},
     link_ir_datasets() { 
       let ret = irDatasetsUrls(this.dataset)
 
