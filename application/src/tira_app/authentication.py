@@ -342,6 +342,12 @@ Best regards"""
         group_id = self.discourse_client.create_group(f"tira_vm_{slugify(team_name)}", group_bio, 0)
         model.get_vm(team_name, create_if_none=True)
         self.discourse_client.add_user_as_owner_to_group(group_id, user_name)
+        invite_link = self.discourse_client.create_invite_link(group_id)
+        return {
+            "group_id": group_id,
+            "invite_link": invite_link,
+            "group_link": f"https://www.tira.io/g/tira_vm_{slugify(team_name)}",
+        }
 
     def user_is_organizer_for_endpoint(
         self,

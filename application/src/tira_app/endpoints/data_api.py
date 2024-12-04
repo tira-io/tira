@@ -473,7 +473,7 @@ def add_registration(request, context, task_id, vm_id):
         data["task_id"] = task_id
         model.add_registration(data)
 
-        auth.create_docker_group(data["group"], data["initial_owner"])
+        context["created_group"] = auth.create_docker_group(data["group"], data["initial_owner"])
         auth.notify_organizers_of_new_participants(data, task_id)
 
         context["user_is_registered"] = True
