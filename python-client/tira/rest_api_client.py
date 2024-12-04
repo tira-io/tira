@@ -109,6 +109,8 @@ class Client(TiraClient):
             role
             and "status" in role
             and "role" in role
+            and "csrf" in role
+            and role["csrf"]
             and 0 == role["status"]
             and "user_id" in role["context"]
             and role["context"]["user_id"]
@@ -806,6 +808,69 @@ class Client(TiraClient):
         resp = resp.json()
         print(f'Run uploaded to TIRA. Claim ownership via: {self.base_url}/claim-submission/{resp["uuid"]}')
 
+    def create_group(self, vm_id):
+        if not vm_id or vm_id != vm_id.lower() or len(vm_id.split()) > 1:
+            raise ValueError("The name of the group must be slugified: " + str(vm_id))
+
+        if "tira" in vm_id:
+            raise ValueError('The phrase "tira" should not be in the name of the group, got: ' + str(vm_id))
+
+        return self.json_response("/tira-admin/create-group/" + vm_id)
+
+    def register_group(
+        self,
+        vm_id,
+        task_id,
+        team_members="",
+        name="",
+        email="",
+        affiliation="",
+        country="",
+        employment="",
+        participates_for="",
+        instructor_name="",
+        instructor_email="",
+        questions="",
+    ):
+
+        endpoint = f"/api/registration/add_registration/{vm_id}/{task_id}"
+        body = {
+            "group": vm_id,
+            "team_members": team_members,
+            "registered_on_task": task_id,
+            "name": name,
+            "email": email,
+            "affiliation": affiliation,
+            "country": country,
+            "employment": employment,
+            "participates_for": participates_for,
+            "instructor_name": instructor_name,
+            "instructor_email": instructor_email,
+            "questions": questions,
+        }
+
+        return self.execute_post_return_json(url=endpoint, json_payload=body)
+
+    def modify_task(self, task_id, to_rename):
+        task = self.metadata_for_task(task_id)["context"]["task"]
+        fields_to_rename = {
+            "name": "task_name",
+            "description": "task_description",
+            "website": "web",
+            "help_text": "command_description",
+            "help_command": "command_placeholder",
+            "task_teams": "allowed_task_teams",
+        }
+        for k, v in fields_to_rename.items():
+            task[k] = task[v]
+            del task[v]
+
+        for k, v in to_rename.items():
+            assert k in task, k
+            task[k] = v
+
+        print(self.execute_post_return_json("/tira-admin/edit-task/" + task_id, json_payload=task))
+
     def upload_run(
         self,
         file_path: Path,
@@ -853,23 +918,34 @@ class Client(TiraClient):
         )
 
     def get_csrf_token(self):
-        ret = requests.get(f"{self.base_url}/", headers={"Api-Key": self.api_key})
-        return ret.content.decode("utf-8").split('name="csrfmiddlewaretoken" value="')[1].split('"')[0]
+        self.fail_if_api_key_is_invalid()
+        ret = self.json_response("/api/role")
+        return ret["csrf"]
 
     def execute_post_return_json(
-        self, endpoint: str, params: Optional[Union[Dict, List[tuple], bytes]] = None, file_path: Path = None
+        self,
+        endpoint: str,
+        params: Optional[Union[Dict, List[tuple], bytes]] = None,
+        file_path: Path = None,
+        json_payload: any = None,
     ) -> Dict:
         assert endpoint.startswith("/")
+        csrf = self.get_csrf_token()
+
         headers = {
             "Api-Key": self.api_key,
             "Api-Username": self.api_user_name,
             "Accept": "application/json",
+            "x-csrftoken": csrf,
+            "Cookie": f"csrftoken={csrf}",
         }
         for _ in range(self.failsave_retries):
             try:
-                files = {"file": open(file_path, "rb")}
+                files = None if not file_path else {"file": open(file_path, "rb")}
 
-                resp = requests.post(url=f"{self.base_url}{endpoint}", files=files, headers=headers, params=params)
+                resp = requests.post(
+                    url=f"{self.base_url}{endpoint}", files=files, headers=headers, params=params, json=json_payload
+                )
                 if resp.status_code not in {200, 202}:
                     raise ValueError(f"Got statuscode {resp.status_code} for {endpoint}. Got {resp.content}")
                 else:

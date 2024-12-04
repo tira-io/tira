@@ -45,6 +45,10 @@ class TiraClient(ABC):
     def docker_registry(self):
         return "registry.webis.de"
 
+    def modify_task(self, task_id, to_rename):
+        # .. todo:: typehint
+        pass
+
     @overload
     def download_run(
         self,
