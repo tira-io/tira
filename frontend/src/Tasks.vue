@@ -5,11 +5,20 @@
 
   <v-container v-if="task_list !== undefined && serverinfo !== undefined">
     <h3 class="text-h3 py-5">Featured Tasks</h3>
-    <v-row>
-      <v-col cols="4" v-for="t in featured_tasks">
-        <v-card :text="t.task_description" :title="t.task_name" :href="'/task-overview/' + t.task_id" />
-      </v-col>
-    </v-row>
+    <div class="d-none d-md-block">
+      <v-row>
+        <v-col cols="4" v-for="t in featured_tasks">
+          <v-card :text="t.task_description" :title="t.task_name" :href="'/task-overview/' + t.task_id" />
+        </v-col>
+      </v-row>
+    </div>
+    <div class="d-md-none">
+      <v-row>
+        <v-col cols="12" v-for="t in featured_tasks">
+          <v-card :text="t.task_description" :title="t.task_name" :href="'/task-overview/' + t.task_id" />
+        </v-col>
+      </v-row>
+    </div>
 
     <div class="pt-5">TIRA hosts {{ task_list.length }} tasks with <a href="/systems">{{ serverinfo.publicSystemCount }} public systems</a> and <a href="/datasets">{{ serverinfo.datasetCount }} datasets</a>.</div>
 
