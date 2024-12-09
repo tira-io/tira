@@ -45,16 +45,16 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Publish PyPi Package
-        id: meta-frontend
-        if: startsWith(github.ref, 'refs/tags/')
-        working-directory: ${{github.workspace}}/python-client
-        run:
-          sudo apt-get install -y openjdk-11-jdk
-          pip3 install .[test,dev]
-          export TWINE_NON_INTERACTIVE=True
-          export TWINE_PASSWORD=${{ secrets.PYPI_API_KEY}}
-          make build-pypi-package
+#      - name: Publish PyPi Package
+#        id: meta-frontend
+#        if: startsWith(github.ref, 'refs/tags/')
+#        working-directory: ${{github.workspace}}/python-client
+#        run:
+#          sudo apt-get install -y openjdk-11-jdk
+#          pip3 install .[test,dev]
+#          export TWINE_NON_INTERACTIVE=True
+#          export TWINE_PASSWORD=${{ secrets.PYPI_API_KEY}}
+#          make build-pypi-package
       - name: Extract metadata (tags, labels) for Docker
         id: meta-frontend
         if: startsWith(github.ref, 'refs/tags/')

@@ -83,9 +83,9 @@ class RunFormat(FormatBase):
 
     def all_lines(self, run_output):
         if (run_output / "run.txt").exists():
-            return super().all_lines(run_output / "run.txt")
+            return [i.strip() for i in super().all_lines(run_output / "run.txt")]
         if (run_output / "run.txt.gz").exists():
-            return super().all_lines(run_output / "run.txt.gz")
+            return [i.strip() for i in super().all_lines(run_output / "run.txt.gz")]
         else:
             raise ValueError("Could not find a file run.txt or run.txt.gz")
 
