@@ -80,7 +80,7 @@ def claim_submission(request: Request, vm_id: str, submission_uuid: str) -> Resp
     uploaded_file = tmp_dir / format
     with open(uploaded_file, "w") as f:
         for l in lines_if_valid(result_dir, format):
-            f.write(l + "\n")
+            f.write(l.strip() + "\n")
 
     status_code, message = check_format(tmp_dir, format)
     if status_code != _fmt.OK:
