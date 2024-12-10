@@ -580,7 +580,7 @@ def admin_edit_organizer(request, organizer_id):
 def admin_create_group(request, vm_id):
     """this is a rest endpoint to grant a user permissions on a vm"""
     if auth.get_role(request=request) != "admin":
-        return HttpResponseNotAllowed("Access forbidden.")
+        return HttpResponseNotAllowed("Access forbidden.", status_code=403)
 
     try:
         vm_id = slugify(vm_id)

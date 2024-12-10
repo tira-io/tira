@@ -276,7 +276,7 @@ class DisraptorAuthentication(Authentication):
 
         return vms if len(vms) >= 1 else [Authentication.get_default_vm_id(user_id)]
 
-    def _create_discourse_vm_group(self, team_name):
+    def _create_discourse_vm_group(self, team_name: str):
         """Create the vm group in the distaptor. Members of this group will be owners of the vm and
         have all permissions.
 
@@ -312,16 +312,16 @@ Best regards"""
             "tira_org_" + slugify(task["organizer"].lower()),
         )
 
-    def create_group(self, vm_id):
+    def create_group(self, team_name: str) -> dict[str, str]:
         """Create the vm group in the distaptor. Members of this group will be owners of the vm and
             have all permissions.
-        :param vm_id: the name of the team.
+        :param team_name: the name of the team.
         """
-        vm_group = self._create_discourse_vm_group(vm_id)
+        vm_group = self._create_discourse_vm_group(team_name)
         invite_link = self.discourse_client.create_invite_link(vm_group)
         message = f"""Invite Mail: Please use this link to create your login for TIRA: {invite_link}.
                       After login to TIRA, you can find the credentials and usage examples for your
-                      dedicated virtual machine {vm_id} here: https://www.tira.io/g/tira_vm_{vm_id}"""
+                      dedicated virtual machine {team_name} here: https://www.tira.io/g/tira_vm_{team_name}"""
 
         return {"message": message, "invite_link": invite_link}
 

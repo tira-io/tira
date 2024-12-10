@@ -13,11 +13,11 @@ from ._user import endpoints as user_endpoints
 endpoints = [
     path("anonymous/", include(anonymous_endpoints)),
     path("datasets/", include(dataset_endpoints)),
-    path("systems/", include(system_endpoints)),
-    path("tirex/", include(tirex_endpoints)),
     path("evaluations/", include(evaluation_endpoints)),
     path("organizers/", include(organizer_endpoints)),
     path("runs/", include(run_endpoints)),
+    path("systems/", include(system_endpoints)),
+    path("tirex/", include(tirex_endpoints)),
     path("tasks/", include(task_endpoints)),
     path("user/", include(user_endpoints)),
 ]

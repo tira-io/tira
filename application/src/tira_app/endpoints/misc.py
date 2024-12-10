@@ -23,8 +23,8 @@ WELL_KNOWN = {i: settings.WELL_KNOWN[i] for i in ["api", "archived", "login", "l
 
 try:
     SOFTWARE_COUNT = len(json.loads(public_submissions(None).content.decode("UTF-8")))
-    DATASET_COUNT = len(modeldb.Dataset.objects.all())
-    TASK_COUNT = len(modeldb.Task.objects.all())
+    DATASET_COUNT = modeldb.Dataset.objects.count()
+    TASK_COUNT = modeldb.Task.objects.count()
 except:
     SOFTWARE_COUNT = 0
     DATASET_COUNT = 0
