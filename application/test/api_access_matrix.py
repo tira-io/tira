@@ -47,7 +47,7 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
-        url_pattern="v1/tirex/topics/<str:dataset_id>",
+        url_pattern="v1/tirex/<str:dataset_id>/topics",
         params={"dataset_id": "does-not-exist"},
         group_to_expected_status_code={
             ADMIN: 200,
@@ -58,7 +58,7 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
-        url_pattern="v1/tirex/topic/<str:dataset_id>/<str:qid>",
+        url_pattern="v1/tirex/<str:dataset_id>/topic/<str:qid>",
         params={"dataset_id": "does-not-exist", "qid": "does-not-exist"},
         group_to_expected_status_code={
             ADMIN: 200,
@@ -69,7 +69,7 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
-        url_pattern="v1/tirex/runs-by-uuid/<str:run_uuid>",
+        url_pattern="v1/tirex/runs/<str:run_uuid>",
         params={"run_uuid": "does-not-exist"},
         group_to_expected_status_code={
             ADMIN: 200,
