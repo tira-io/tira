@@ -326,11 +326,12 @@ class HybridDatabase(object):
 
         runs = modeldb.Run.objects.filter(input_dataset__dataset_id=dataset.dataset_id, deleted=False)
         dataset_format = None
-        try:
-            dataset_format = json.loads(dataset.format)
-            dataset_format = [i for i in dataset_format if i in SUPPORTED_FORMATS]
-        except JSONDecodeError:
-            pass
+        if dataset and dataset.format:
+            try:
+                dataset_format = json.loads(dataset.format)
+                dataset_format = [i for i in dataset_format if i in SUPPORTED_FORMATS]
+            except JSONDecodeError:
+                pass
 
         return {
             "display_name": dataset.display_name,
