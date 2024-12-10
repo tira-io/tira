@@ -1,10 +1,12 @@
 import html
+import io
 import json
+import zipfile
 from pathlib import Path
 
 from django.conf import settings
 from django.core.cache import cache
-from django.http import HttpResponseServerError
+from django.http import FileResponse, HttpResponseServerError
 from django.urls import path
 from rest_framework.decorators import api_view
 from rest_framework.request import Request
@@ -38,6 +40,51 @@ def read_anonymous_submission(request: Request, submission_uuid: str) -> Respons
         return HttpResponseServerError(
             json.dumps({"status": 1, "message": f"Run with uuid {html.escape(submission_uuid)} does not exist."})
         )
+
+
+@api_view(["GET"])
+def download_anonymous_submission(request: Request, submission_uuid: str) -> Response:
+    """Download an anonymous submission identified by the ownership uuid.
+
+    Args:
+        request (Request): The request that triggered the REST API call.
+        submission_uuid (str): The ownership uuid of the anonymous submission
+
+    Returns:
+        Response: The uploaded data
+    """
+    submission_uuid = secure_filename(submission_uuid)
+    try:
+        upload = modeldb.AnonymousUploads.objects.get(uuid=submission_uuid)
+    except:
+        return HttpResponseServerError(
+            json.dumps({"status": 1, "message": f"Run with uuid {html.escape(submission_uuid)} does not exist."})
+        )
+
+    if (
+        not upload
+        or not upload.dataset
+        or not upload.dataset.format
+        or not upload.dataset.default_task
+        or not upload.dataset.default_task.task_id
+    ):
+        return HttpResponseServerError(json.dumps({"status": 1, "message": f"Unexpected format."}))
+
+    result_dir = Path(settings.TIRA_ROOT) / "data" / "anonymous-uploads" / submission_uuid
+    format = json.loads(upload.dataset.format)[0]
+    format = secure_filename(format)
+    status_code, message = check_format(result_dir, format)
+
+    if status_code != _fmt.OK:
+        HttpResponseServerError(json.dumps({"status": 1, "message": message}))
+
+    ret = io.BytesIO()
+    with zipfile.ZipFile(ret, "w") as zipf:
+        for f in result_dir.rglob("*"):
+            zipf.write(f, arcname=f.relative_to(result_dir.parent))
+
+    ret.seek(0)
+    return FileResponse(ret, as_attachment=True, filename=f"{submission_uuid}.zip")
 
 
 @api_view(["POST", "GET"])
@@ -108,4 +155,5 @@ def claim_submission(request: Request, vm_id: str, submission_uuid: str) -> Resp
 endpoints = [
     path("claim/<str:vm_id>/<str:submission_uuid>", claim_submission),
     path("<str:submission_uuid>", read_anonymous_submission),
+    path("download/<str:submission_uuid>", download_anonymous_submission),
 ]

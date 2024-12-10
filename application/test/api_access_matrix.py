@@ -2093,6 +2093,17 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
+        url_pattern="v1/anonymous/download/<str:submission_uuid>",
+        params={"submission_uuid": "12345"},
+        group_to_expected_status_code={
+            GUEST: 500,
+            PARTICIPANT: 500,
+            ORGANIZER_WRONG_TASK: 500,
+            ORGANIZER: 500,
+            ADMIN: 500,
+        },
+    ),
+    route_to_test(
         url_pattern="v1/anonymous/claim/<str:vm_id>/<str:submission_uuid>",
         params={"vm_id": "does-not-exist", "submission_uuid": "does-not-exist"},
         group_to_expected_status_code={

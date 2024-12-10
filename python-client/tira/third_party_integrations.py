@@ -127,7 +127,7 @@ def register_rerank_data_to_ir_datasets(path_to_rerank_file, ir_dataset_id, orig
     register_dataset_from_re_rank_file(ir_dataset_id, default_input, original_ir_datasets_id)
 
 
-def persist_and_normalize_run(run, system_name, default_output=None, output_file=None, depth=1000, upload_to_tira=None):
+def persist_and_normalize_run(run, system_name, default_output=None, output_file=None, depth=1000, upload_to_tira=None, tira_client=None):
     if output_file is None and default_output is None:
         print(
             'I use the environment variable "TIRA_OUTPUT_DIR" to determine where I should store the run file using "."'
@@ -148,7 +148,10 @@ def persist_and_normalize_run(run, system_name, default_output=None, output_file
     if upload_to_tira and not in_tira_sandbox():
         from tira.rest_api_client import Client as RestClient
 
-        tira = RestClient()
+        if tira_client:
+            tira = tira_client
+        else:
+            tira = RestClient()
         upload_to_tira = tira.get_dataset(upload_to_tira)
     else:
         upload_to_tira = None

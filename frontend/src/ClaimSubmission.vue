@@ -32,7 +32,7 @@
           <span v-if="link_chatnoir === undefined && link_ir_datasets !== undefined">
             (browse in <a :href="link_ir_datasets" target="_blank">ir_datasets</a>)
           </span>
-          for task <a :href="'/task-overview/' + dataset.default_task">{{ dataset.default_task }}</a>.
+          for task <a :href="'/task-overview/' + dataset.default_task">{{ dataset.default_task }}</a> <span v-if="download_link !== undefined">(<a :href="download_link" target="_blank">Download</a></span>).
         </p>
 
         <div class="py-2"></div>
@@ -157,6 +157,11 @@ export default {
   },
   computed: {
     link_chatnoir() { return  chatNoirUrl(this.dataset) },
+    download_link() { 
+      if (this.submissionToClaim && this.submissionToClaim.dataset_id && this.dataset) {
+        return this.rest_url + `/v1/anonymous/download/` + this.submissionToClaim.uuid
+      }
+    },
     registered() { return this.vm_id && this.vm_id !== undefined && ('' + this.vm_id) !== 'undefined' && ('' + this.vm_id) !== 'null'},
     link_ir_datasets() { 
       let ret = irDatasetsUrls(this.dataset)
