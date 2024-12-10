@@ -76,7 +76,7 @@ def download_anonymous_submission(request: Request, submission_uuid: str) -> Res
     status_code, message = check_format(result_dir, format)
 
     if status_code != _fmt.OK:
-        HttpResponseServerError(json.dumps({"status": 1, "message": message}))
+        return HttpResponseServerError(json.dumps({"status": 1, "message": message}))
 
     ret = io.BytesIO()
     with zipfile.ZipFile(ret, "w") as zipf:
@@ -115,7 +115,7 @@ def claim_submission(request: Request, vm_id: str, submission_uuid: str) -> Resp
     status_code, message = check_format(result_dir, format)
 
     if status_code != _fmt.OK:
-        HttpResponseServerError(json.dumps({"status": 1, "message": message}))
+        return HttpResponseServerError(json.dumps({"status": 1, "message": message}))
 
     task_id = upload.dataset.default_task.task_id
     dataset_id = upload.dataset.dataset_id
