@@ -1,4 +1,5 @@
 import json
+import html
 import logging
 import shutil
 import uuid
@@ -513,13 +514,13 @@ def anonymous_upload(request, dataset_id):
             or not dataset["task"]
         ):
             return HttpResponseServerError(
-                json.dumps({"status": 1, "message": f"Uploads are not allowed for the dataset {dataset_id}."})
+                json.dumps({"status": 1, "message": f"Uploads are not allowed for the dataset {html.escape(dataset_id)}."})
             )
 
         if dataset["is_deprecated"]:
             return HttpResponseServerError(
                 json.dumps(
-                    {"status": 1, "message": f"The dataset {dataset_id} is deprecated and therefore allows no uploads."}
+                    {"status": 1, "message": f"The dataset {html.escape(dataset_id)} is deprecated and therefore allows no uploads."}
                 )
             )
 
@@ -527,7 +528,7 @@ def anonymous_upload(request, dataset_id):
         if not task or not task["featured"]:
             return HttpResponseServerError(
                 json.dumps(
-                    {"status": 1, "message": f"The dataset {dataset_id} is deprecated and therefore allows no uploads."}
+                    {"status": 1, "message": f"The dataset {html.escape(dataset_id)} is deprecated and therefore allows no uploads."}
                 )
             )
 
