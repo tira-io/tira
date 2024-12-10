@@ -856,7 +856,7 @@ class Client(TiraClient):
 
         return self.execute_post_return_json(endpoint, json_payload=body)
 
-    def modify_task(self, task_id, to_rename):
+    def modify_task(self, task_id: str, to_rename: dict[str, str]):
         task = self.metadata_for_task(task_id)["context"]["task"]
         fields_to_rename = {
             "name": "task_name",
