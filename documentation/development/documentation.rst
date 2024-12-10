@@ -1,5 +1,5 @@
-Documentation
-=============
+Adding Documentation
+====================
 General
 -------
 All files relevant to TIRA's documentation can be found in the `documentation` subdirectory of the

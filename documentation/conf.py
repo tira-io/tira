@@ -12,14 +12,16 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../'))
+
+sys.path.insert(0, os.path.abspath("./sphinxext"))
+sys.path.insert(0, os.path.abspath("../"))
 
 
 # -- Project information -----------------------------------------------------
 
-project = 'TIRA'
-copyright = '2024, Webis'
-author = 'Webis'
+project = "TIRA"
+copyright = "2024, Webis"
+author = "Webis"
 
 
 # -- General configuration ---------------------------------------------------
@@ -28,32 +30,33 @@ author = 'Webis'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.todo',
-    'sphinx.ext.doctest',
-    'sphinx.ext.viewcode',
-    'sphinx_design',
-    'sphinxcontrib.plantuml',
-    'sphinxcontrib.umlet',
-    'myst_parser',
+    "sphinx.ext.autodoc",
+    "sphinx.ext.todo",
+    "sphinx.ext.doctest",
+    "sphinx.ext.viewcode",
+    "sphinx_design",
+    "sphinxcontrib.plantuml",
+    "sphinxcontrib.umlet",
+    "myst_parser",
+    "openapi",
 ]
 
-todo_include_todos=True
-python_display_short_literal_types=True
-python_use_unqualified_type_names=True
-viewcode_line_numbers=True
+todo_include_todos = True
+python_display_short_literal_types = True
+python_use_unqualified_type_names = True
+viewcode_line_numbers = True
 
-doctest_global_setup = '''
+doctest_global_setup = """
 from tira.io_utils import *
-'''
+"""
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -61,9 +64,9 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'furo'
-html_title = 'TIRA'
-language = 'en'
+html_theme = "furo"
+html_title = "TIRA"
+language = "en"
 
 html_logo = "https://assets.tira.io/tira-icons/tira-logo.svg"
 html_theme_options: Dict[str, Any] = {
@@ -87,15 +90,15 @@ html_theme_options: Dict[str, Any] = {
 }
 
 
-plantuml_output_format = 'svg_img'
+plantuml_output_format = "svg_img"
 
 umlet_binary_path = "/usr/share/umlet/Umlet/umlet.sh"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = ["_static"]
 
 html_css_files = [
-    'custom.css',
+    "custom.css",
 ]
