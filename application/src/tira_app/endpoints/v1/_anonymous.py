@@ -134,7 +134,7 @@ def claim_submission(request: Request, vm_id: str, submission_uuid: str) -> Resp
 
     status_code, message = check_format(tmp_dir, format)
     if status_code != _fmt.OK:
-        HttpResponseServerError(json.dumps({"status": 1, "message": message}))
+        return HttpResponseServerError(json.dumps({"status": 1, "message": message}))
 
     class MockedResponse:
         name = uploaded_file.name
