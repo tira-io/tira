@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-
+import html
 from django.conf import settings
 from django.core.cache import cache
 from django.http import HttpResponseServerError
@@ -34,7 +34,7 @@ def read_anonymous_submission(request: Request, submission_uuid: str) -> Respons
         return Response({"uuid": ret.uuid, "dataset_id": ret.dataset.dataset_id, "created": ret.created})
     except:
         return HttpResponseServerError(
-            json.dumps({"status": 1, "message": f"Run with uuid {submission_uuid} does not exist."})
+            json.dumps({"status": 1, "message": f"Run with uuid {html.escape(submission_uuid)} does not exist."})
         )
 
 
@@ -46,7 +46,7 @@ def claim_submission(request: Request, vm_id: str, submission_uuid: str) -> Resp
         upload = modeldb.AnonymousUploads.objects.get(uuid=submission_uuid)
     except:
         return HttpResponseServerError(
-            json.dumps({"status": 1, "message": f"Run with uuid {submission_uuid} does not exist."})
+            json.dumps({"status": 1, "message": f"Run with uuid {html.escape(submission_uuid)} does not exist."})
         )
 
     if (
