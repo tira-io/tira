@@ -4,6 +4,7 @@ import logging
 import os
 import zipfile
 from datetime import datetime as dt
+from json.decoder import JSONDecodeError
 from pathlib import Path
 from typing import Any, Optional
 
@@ -328,7 +329,7 @@ class HybridDatabase(object):
         try:
             dataset_format = json.loads(dataset.format)
             dataset_format = [i for i in dataset_format if i in SUPPORTED_FORMATS]
-        except:
+        except JSONDecodeError:
             pass
 
         return {
