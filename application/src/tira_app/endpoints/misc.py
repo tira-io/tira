@@ -18,8 +18,6 @@ from .v1._systems import public_submissions
 
 rest_api_version = "v1.0.0-draft"
 
-WELL_KNOWN = {i: settings.WELL_KNOWN[i] for i in ["api", "archived", "login", "logout", "disraptorURL", "grpc"]}
-
 
 try:
     SOFTWARE_COUNT = len(json.loads(public_submissions(None).content.decode("UTF-8")))
@@ -60,7 +58,7 @@ def info_endpoint(request: Request) -> Response:
 
 @api_view(["GET"])
 def well_known_endpoint(request: Request) -> Response:
-    return Response(WELL_KNOWN)
+    return Response(settings.WELL_KNOWN)
 
 
 endpoints = [
