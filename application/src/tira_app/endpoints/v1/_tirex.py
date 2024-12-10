@@ -95,7 +95,7 @@ def run_by_uuid(request: Request, run_uuid: str) -> Response:
 
 
 endpoints = [
-    path("tirex/<str:dataset_id>/topics/", topics),
-    path("tirex/<str:dataset_id>/topic/<str:qid>", topic),
-    path("tirex/runs/<str:run_uuid>", run_by_uuid),
+    path("<str:dataset_id>/topics", topics),
+    path("<str:dataset_id>/topic/<str:qid>", topic),
+    path("runs/<str:run_uuid>", run_by_uuid),
 ]
