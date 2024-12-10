@@ -1,6 +1,7 @@
+import html
 import json
 from pathlib import Path
-import html
+
 from django.conf import settings
 from django.core.cache import cache
 from django.http import HttpResponseServerError
