@@ -10,6 +10,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from tira.check_format import _fmt, check_format, lines_if_valid
 from tira.third_party_integrations import temporary_directory
+from werkzeug.utils import secure_filename
 
 from ... import model as modeldb
 from ... import tira_model as model
@@ -62,6 +63,7 @@ def claim_submission(request: Request, vm_id: str, submission_uuid: str) -> Resp
     body = json.loads(body)
     result_dir = Path(settings.TIRA_ROOT) / "data" / "anonymous-uploads" / submission_uuid
     format = json.loads(upload.dataset.format)[0]
+    format = secure_filename(format)
     status_code, message = check_format(result_dir, format)
 
     if status_code != _fmt.OK:
