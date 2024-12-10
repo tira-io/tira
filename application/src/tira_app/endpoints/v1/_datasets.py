@@ -55,7 +55,7 @@ class _DatasetView(ModelViewSet):
     permission_classes = [AllowAny]
 
 
-def load_mirrored_resource(md5_sum):
+def load_mirrored_resource(md5_sum: str) -> dict[str, str]:
     ret = None
 
     try:
@@ -69,7 +69,7 @@ def load_mirrored_resource(md5_sum):
     return ret
 
 
-def mirrors_for_dataset(dataset_id: str):
+def mirrors_for_dataset(dataset_id: str) -> dict[str, str]:
     ret = {"truths": {}, "inputs": {}}
     for i in modeldb.DatasetHasMirroredResource.objects.filter(dataset__dataset_id=dataset_id):
         resource_type = i.resource_type
