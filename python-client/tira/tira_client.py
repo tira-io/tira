@@ -45,7 +45,7 @@ class TiraClient(ABC):
     def docker_registry(self):
         return "registry.webis.de"
 
-    def modify_task(self, task_id: str, to_rename: dict[str, str]):
+    def modify_task(self, task_id: str, to_rename: "Dict[str, Any]"):
         # .. todo:: typehint
         pass
 
