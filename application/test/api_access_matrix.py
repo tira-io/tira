@@ -2093,7 +2093,7 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
-        url_pattern="v1/anonymous/download/<str:submission_uuid>",
+        url_pattern="v1/anonymous/<str:submission_uuid>.zip",
         params={"submission_uuid": "12345"},
         group_to_expected_status_code={
             GUEST: 500,
