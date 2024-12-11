@@ -53,7 +53,7 @@ def download_anonymous_submission(request: Request, submission_uuid: str) -> Res
     Returns:
         Response: The uploaded data
     """
-    submission_uuid = secure_filename(submission_uuid)
+    submission_uuid = secure_filename(submission_uuid).replace(".zip", "")
     try:
         upload = modeldb.AnonymousUploads.objects.get(uuid=submission_uuid)
     except:
@@ -154,6 +154,6 @@ def claim_submission(request: Request, vm_id: str, submission_uuid: str) -> Resp
 
 endpoints = [
     path("claim/<str:vm_id>/<str:submission_uuid>", claim_submission),
+    path("<str:submission_uuid>.zip", download_anonymous_submission),
     path("<str:submission_uuid>", read_anonymous_submission),
-    path("download/<str:submission_uuid>", download_anonymous_submission),
 ]

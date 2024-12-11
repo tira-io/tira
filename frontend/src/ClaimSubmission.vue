@@ -159,7 +159,7 @@ export default {
     link_chatnoir() { return  chatNoirUrl(this.dataset) },
     download_link() { 
       if (this.submissionToClaim && this.submissionToClaim.dataset_id && this.dataset) {
-        return this.rest_url + `/v1/anonymous/download/` + this.submissionToClaim.uuid
+        return this.rest_url + `/v1/anonymous/` + this.submissionToClaim.uuid + `.zip`
       }
     },
     registered() { return this.vm_id && this.vm_id !== undefined && ('' + this.vm_id) !== 'undefined' && ('' + this.vm_id) !== 'null'},
