@@ -1,4 +1,6 @@
-from django.http import HttpRequest, JsonResponse
+import json
+
+from django.http import HttpRequest, HttpResponseNotFound, JsonResponse
 from django.urls import path
 
 from ...model import DockerSoftware
@@ -30,11 +32,25 @@ def public_submissions(request: HttpRequest) -> JsonResponse:
 def software_details(request: HttpRequest, user_id: str, software: str) -> JsonResponse:
     ret = []
     for i in DockerSoftware.objects.filter(vm_id=user_id, display_name=software):
-        if not i.public_image_name:
+        if not i.public_image_name or i.deleted:
             continue
-        ret += [{"PublicDockerImage": i.public_image_name, "Command": i.command}]
+        ret += [
+            {
+                "public_image_name": i.public_image_name,
+                "command": i.command,
+                "display_name": i.display_name,
+                "deleted": i.deleted,
+                "description": i.description,
+                "paper_link": i.paper_link,
+            }
+        ]
 
-    return JsonResponse({"DockerImage": "dasda", "tbd": ret}, safe=False)
+    if len(ret) == 1:
+        return JsonResponse(ret[0], safe=False)
+    else:
+        return HttpResponseNotFound(
+            json.dumps({"status": 1, "message": f"Could not find a software '{software}' by user '{user_id}'."})
+        )
 
 
 endpoints = [
