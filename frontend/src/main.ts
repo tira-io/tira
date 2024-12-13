@@ -67,6 +67,10 @@ export default function register_app() {
     fetchUserInfo(wellKnown.api).then(userInfo => {
       fetchServerInfo(wellKnown.api).then(serverInfo => {
         const router = createRouter({
+          scrollBehavior(to, from, savedPosition) {
+            // always scroll to top
+            return { left: 0, top: 0 }
+          },
           history: createWebHistory(),
           routes: routes,
         })
