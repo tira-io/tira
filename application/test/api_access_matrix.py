@@ -2184,11 +2184,11 @@ API_ACCESS_MATRIX = [
         url_pattern="v1/systems/<str:user_id>/<str:software>",
         params={"user_id": "does-not-exist", "software": "does-not-exist"},
         group_to_expected_status_code={
-            GUEST: 200,
-            PARTICIPANT: 200,
-            ORGANIZER_WRONG_TASK: 200,
-            ORGANIZER: 200,
-            ADMIN: 200,
+            GUEST: 404,
+            PARTICIPANT: 404,
+            ORGANIZER_WRONG_TASK: 404,
+            ORGANIZER: 404,
+            ADMIN: 404,
         },
     ),
     # The following v1/ endpoints should be restricted to only allow admin-access for now
