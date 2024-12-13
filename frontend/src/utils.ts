@@ -97,8 +97,16 @@ export function chatNoirUrl(dataset: DatasetInfo | undefined, document_id: strin
     }
 }
 
+export function location() {
+    return ref(window.location).value
+}
+
+export function href() {
+    return location().href
+}
+
 export function extractTaskFromCurrentUrl() {
-    let loc = ref(window.location).value.href.split('#')[0].split('?')[0]
+    let loc = href().split('#')[0].split('?')[0]
 
     if (loc.includes('task-overview/')) {
         return loc.split('task-overview/')[1].split('/')[0]
@@ -140,7 +148,7 @@ export function get_contact_link_to_organizer(organizer_id: string) {
 }
 
 export function extractDatasetFromCurrentUrl(options: Array<any> = [], default_choice: string = '') {
-    var loc = ref(window.location).value.href.split('#')[0].split('?')[0]
+    var loc = href().split('#')[0].split('?')[0]
     var dataset_from_url = ''
     let to_split = 'task-overview/' + extractTaskFromCurrentUrl() + '/'
 
@@ -266,7 +274,7 @@ export function vm_id(vm_ids: any, vm: any, user_vms_for_task: any, additional_v
 }
 
 export function extractUserFromCurrentUrl() {
-    let url = ref(window.location).value.href
+    let url = href()
     let to_split = 'submit/' + extractTaskFromCurrentUrl() + '/user/'
     let user = ''
     if (url.includes(to_split)) {
@@ -280,7 +288,7 @@ export function compareArrays(a: string[] | null, b: string[] | null): boolean {
 }
 
 export function extractComponentTypesFromCurrentUrl() {
-    let url = ref(window.location).value.href
+    let url = href()
     let to_split = 'components/'
     let component_types = null
     let component_types_array: string[] | [] = []
@@ -304,7 +312,7 @@ export function extractComponentTypesFromCurrentUrl() {
 }
 
 export function extractFocusTypesFromCurrentUrl() {
-    let url = ref(window.location).value.href
+    let url = href()
     let to_split: string = 'components/' + extractComponentTypesFromCurrentUrl().join() + '/'
     let focus_type = null
     let focus_types_array: string[] | [] = []
@@ -325,7 +333,7 @@ export function extractFocusTypesFromCurrentUrl() {
 }
 
 export function extractSearchQueryFromCurrentUrl() {
-    let url = ref(window.location).value.href
+    let url = href()
     let to_split = 'components/' + extractComponentTypesFromCurrentUrl().join() + '/' + extractFocusTypesFromCurrentUrl().join() + '/'
     let search_query = ''
     if (url.includes(to_split)) {
@@ -338,7 +346,7 @@ export function extractSearchQueryFromCurrentUrl() {
 }
 
 export function extractSoftwareIdFromCurrentUrl() {
-    let url = ref(window.location).value.href
+    let url = href()
     let to_split = 'submit/' + extractTaskFromCurrentUrl() + '/user/' + extractUserFromCurrentUrl() + '/'
 
     if (url.includes(to_split)) {
@@ -355,7 +363,7 @@ export function extractSoftwareIdFromCurrentUrl() {
 }
 
 export function extractSubmissionTypeFromCurrentUrl() {
-    let url = ref(window.location).value.href
+    let url = href()
     let to_split = 'submit/' + extractTaskFromCurrentUrl() + '/user/' + extractUserFromCurrentUrl() + '/'
     let submission_type = null
 
@@ -366,7 +374,7 @@ export function extractSubmissionTypeFromCurrentUrl() {
 }
 
 export function extractCurrentStepFromCurrentUrl() {
-    let url = ref(window.location).value.href
+    let url = href()
     let to_split = 'submit/' + extractTaskFromCurrentUrl() + '/user/' + extractUserFromCurrentUrl() + '/' + extractSubmissionTypeFromCurrentUrl()
     let step = null
     if (url.includes(to_split)) {
@@ -376,7 +384,7 @@ export function extractCurrentStepFromCurrentUrl() {
 }
 
 export function changeCurrentUrlToDataset(dataset: string) {
-    var loc = ref(window.location).value.href
+    var loc = href()
 
     if (loc.includes('task-overview/')) {
         loc = loc.split('task-overview/')[0] + 'task-overview/' + loc.split('task-overview/')[1].split('/')[0] + '/' + dataset

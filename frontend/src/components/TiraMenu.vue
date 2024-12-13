@@ -4,7 +4,7 @@
           <v-row>
             <v-col>
               <a href="/">
-                <img id="site-logo" src="https://assets.tira.io/tira-icons/tira-banner-120x360-dark.png" alt="TIRA" style="height: 2.667em">
+                <img id="site-logo" src="https://assets.tira.io/tira-icons/tira-archive-banner-120x360-dark.png" alt="TIRA" style="height: 2.667em">
               </a>
             </v-col>
 
@@ -19,7 +19,7 @@
                 <v-list>
                   <v-list-item href="https://archive.tira.io" prepend-avatar="https://webis.de/weimar/people/img/silhouette-female.jpg" subtitle="Read only archive of TIRA." title="archive.tira.io">
                     <template v-slot:append>
-                      <v-btn class="text-red" icon="mdi-database" variant="text"/>
+                      <v-btn icon="mdi-database" variant="text"/>
                     </template>
                   </v-list-item>
                 </v-list>
@@ -46,7 +46,7 @@
           <v-row>
             <v-col>
           <a href="/">
-            <img id="site-logo" src="https://assets.tira.io/tira-icons/tira-banner-120x360-dark.png" alt="TIRA" style="height: 2.667em">
+            <img id="site-logo" src="https://assets.tira.io/tira-icons/tira-archive-banner-120x360-dark.png" alt="TIRA" style="height: 2.667em">
           </a>
         </v-col>
   
@@ -55,7 +55,7 @@
             <v-btn href="https://www.tira.io/categories">Forum</v-btn>
             <v-menu>
               <template v-slot:activator="{ props }">
-                <v-btn v-bind="props" class="text-red">
+                <v-btn v-bind="props">
                   <v-icon>mdi-menu</v-icon>Archive
                 </v-btn>
               </template>
@@ -64,7 +64,7 @@
                 <v-list>
                   <v-list-item href="https://archive.tira.io" prepend-avatar="https://webis.de/weimar/people/img/silhouette-female.jpg" subtitle="Read only archive of TIRA." title="archive.tira.io">
                     <template v-slot:append>
-                      <v-btn class="text-red" icon="mdi-database" variant="text"/>
+                      <v-btn icon="mdi-database" variant="text"/>
                     </template>
                   </v-list-item>
                 </v-list>
@@ -72,7 +72,7 @@
                 <v-divider></v-divider>
                 
                 <p style="max-width: 400px;" class="pa-2">
-                  You are at <a href="https://archive.tira.io">archive.tira.io</a> which hosts a read-only archive of previous shared tasks. Visit <a href="https://www.tira.io">www.tira.io</a> to make submissions.
+                  You are at <a href="https://archive.tira.io">archive.tira.io</a> which hosts a read-only archive of previous shared tasks. Visit <a :href="tira_href">www.tira.io</a> to make submissions.
                 </p>
                 
                 <v-card-actions>
@@ -91,7 +91,7 @@
 
 <script lang="ts">
  import { inject } from 'vue';
-import { fetchUserInfo, WellKnownAPI, type UserInfo, logout } from '../utils';
+import { WellKnownAPI, type UserInfo, logout } from '../utils';
   export default {
     name: "tira-menu",
     data() {
@@ -100,8 +100,12 @@ import { fetchUserInfo, WellKnownAPI, type UserInfo, logout } from '../utils';
           showMenu: false as Boolean
         }
     },
+    computed: {
+      tira_href() {
+        return 'https://www.tira.io' + location.pathname}
+    },
     methods: {
-      logout() {logout(this.userinfo.context.user_id)}
+      logout() {logout(this.userinfo.context.user_id)},
     },
     beforeMount() {
       let wellKnown = inject('.wellKnown') as WellKnownAPI
