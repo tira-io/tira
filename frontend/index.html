@@ -6,52 +6,26 @@
     <link rel="icon" href="./favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TIRA Reproducible Experiments</title>
+    <style>
+        @keyframes loadingpulse {
+            0% {
+                transform: scale(90%);
+                opacity: 0.8;
+            }
+
+            100% {
+                transform: scale(50%);
+                opacity: 0.3;
+            }
+        }
+    </style>
 </head>
 
 <body>
     <div id="app">
-        <div style="display: flex; justify-content: center; align-items: center; height: 50vh;">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid" width="200"
-                height="200" style="shape-rendering: auto; display: block; background: transparent;"
-                xmlns:xlink="http://www.w3.org/1999/xlink">
-                <g>
-                    <g>
-                        <circle fill="#4e81e4" r="4" cy="50" cx="60">
-                            <animate begin="-0.67s" keyTimes="0;1" values="95;35" dur="1s" repeatCount="indefinite"
-                                attributeName="cx">
-                            </animate>
-                            <animate begin="-0.67s" keyTimes="0;0.2;1" values="0;1;1" dur="1s" repeatCount="indefinite"
-                                attributeName="fill-opacity"></animate>
-                        </circle>
-                        <circle fill="#4e81e4" r="4" cy="50" cx="60">
-                            <animate begin="-0.33s" keyTimes="0;1" values="95;35" dur="1s" repeatCount="indefinite"
-                                attributeName="cx">
-                            </animate>
-                            <animate begin="-0.33s" keyTimes="0;0.2;1" values="0;1;1" dur="1s" repeatCount="indefinite"
-                                attributeName="fill-opacity"></animate>
-                        </circle>
-                        <circle fill="#4e81e4" r="4" cy="50" cx="60">
-                            <animate begin="0s" keyTimes="0;1" values="95;35" dur="1s" repeatCount="indefinite"
-                                attributeName="cx">
-                            </animate>
-                            <animate begin="0s" keyTimes="0;0.2;1" values="0;1;1" dur="1s" repeatCount="indefinite"
-                                attributeName="fill-opacity"></animate>
-                        </circle>
-                    </g>
-                    <g transform="translate(-15 0)">
-                        <path transform="rotate(90 50 50)" fill="#b9cdf4" d="M50 50L20 50A30 30 0 0 0 80 50Z"></path>
-                        <path fill="#b9cdf4" d="M50 50L20 50A30 30 0 0 0 80 50Z">
-                            <animateTransform keyTimes="0;0.5;1" values="0 50 50;45 50 50;0 50 50" dur="1s"
-                                repeatCount="indefinite" type="rotate" attributeName="transform"></animateTransform>
-                        </path>
-                        <path fill="#b9cdf4" d="M50 50L20 50A30 30 0 0 1 80 50Z">
-                            <animateTransform keyTimes="0;0.5;1" values="0 50 50;-45 50 50;0 50 50" dur="1s"
-                                repeatCount="indefinite" type="rotate" attributeName="transform"></animateTransform>
-                        </path>
-                    </g>
-                    <g></g>
-                </g>
-            </svg>
+        <div style="display: flex; justify-content: center; align-items: center; height: 40vh;">
+            <img style="animation: loadingpulse 1s ease-in-out 0s infinite alternate;" width=300pt
+                src="https://assets.tira.io/tira-icons/tira-logo.svg"></img>
         </div>
 
 
