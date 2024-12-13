@@ -18,16 +18,16 @@
     <v-data-table :headers="headers" :items="systems" :itemsPerPage="10" :search="query" density="compact" fixed-footer>
 
       <template #item.team="{ item }">
-        <a :href="'/systems/' + item.team" style="text-decoration: none !important;">{{ item.team }}</a>
+        <router-link :to="'/systems/' + item.team">{{ item.team }}</router-link>
       </template>
 
       <template #item.name="{ item }">
-        <a :href="'/systems/' + item.team + '/' + item.name " style="text-decoration: none !important;">{{ item.name }}</a>
+        <router-link :to="'/systems/' + item.team + '/' + item.name ">{{ item.name }}</router-link>
       </template>
 
       <template #item.tasks="{ item }">
         <span v-for="task in item.tasks">
-          <a :href="'/task-overview/' + task" style="text-decoration: none !important;">{{ task }}</a>
+          <router-link :to="'/task-overview/' + task">{{ task }}</router-link>
         </span>
       </template>
 

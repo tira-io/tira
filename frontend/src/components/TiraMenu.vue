@@ -3,9 +3,9 @@
         <v-container style="max-width: 1110px;" class="d-md-none">
           <v-row>
             <v-col>
-              <a href="/">
+              <router-link to="/">
                 <img id="site-logo" src="https://assets.tira.io/tira-icons/tira-archive-banner-120x360-dark.png" alt="TIRA" style="height: 2.667em">
-              </a>
+              </router-link>
             </v-col>
 
             <v-col class="text-right">
@@ -45,10 +45,10 @@
         <v-container style="max-width: 1110px;" class="d-none d-md-block">
           <v-row>
             <v-col>
-          <a href="/">
-            <img id="site-logo" src="https://assets.tira.io/tira-icons/tira-archive-banner-120x360-dark.png" alt="TIRA" style="height: 2.667em">
-          </a>
-        </v-col>
+            <router-link to="/">
+              <img id="site-logo" src="https://assets.tira.io/tira-icons/tira-archive-banner-120x360-dark.png" alt="TIRA" style="height: 2.667em">
+            </router-link>
+          </v-col>
   
           <v-col class="text-right">
             <v-btn href="https://pypi.org/project/tira/">API</v-btn>

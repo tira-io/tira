@@ -8,19 +8,23 @@
     <div class="d-none d-md-block">
       <v-row>
         <v-col cols="4" v-for="t in featured_tasks">
-          <v-card :text="t.task_description" :title="t.task_name" :href="'/task-overview/' + t.task_id" />
+          <router-link :to="'/task-overview/' + t.task_id" style="text-decoration: none;">
+            <v-card :text="t.task_description" :title="t.task_name" />
+          </router-link>
         </v-col>
       </v-row>
     </div>
     <div class="d-md-none">
       <v-row>
         <v-col cols="12" v-for="t in featured_tasks">
-          <v-card :text="t.task_description" :title="t.task_name" :href="'/task-overview/' + t.task_id" />
+          <router-link :to="'/task-overview/' + t.task_id" style="text-decoration: none;">
+            <v-card :text="t.task_description" :title="t.task_name"/>
+          </router-link>
         </v-col>
       </v-row>
     </div>
 
-    <div class="pt-5">TIRA hosts {{ task_list.length }} tasks with <a href="/systems">{{ serverinfo.publicSystemCount }} public systems</a> and <a href="/datasets">{{ serverinfo.datasetCount }} datasets</a>.</div>
+    <div class="pt-5">TIRA hosts {{ task_list.length }} tasks with <router-link to="/systems">{{ serverinfo.publicSystemCount }} public systems</router-link> and <router-link to="/datasets">{{ serverinfo.datasetCount }} datasets</router-link>.</div>
 
     <h3 class="text-h3 py-5">All Task</h3>
     <div class="py-5"></div>
@@ -40,7 +44,7 @@
         </tr>
       </template>
       <template #item.task_name="{ item }">
-        <a :href="'/task-overview/' + item.task_id" style="text-decoration: none !important;">{{ item.task_name }}</a>
+        <router-link :to="'/task-overview/' + item.task_id" style="text-decoration: none !important;">{{ item.task_name }}</router-link>
       </template>
     </v-data-table>
 
@@ -53,7 +57,7 @@
         </tr>
       </template>
       <template #item.task_name="{ item }">
-        <a :href="'/task-overview/' + item.task_id" style="text-decoration: none !important;">{{ item.task_name }}</a>
+        <router-link :to="'/task-overview/' + item.task_id" style="text-decoration: none !important;">{{ item.task_name }}</router-link>
       </template>
     </v-data-table>
   </v-container>

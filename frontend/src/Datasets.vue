@@ -15,11 +15,11 @@
 
       <v-data-table :headers="headers_xs" :items="datasets" :itemsPerPage="10" :search="query" density="compact" fixed-footer>
         <template #item.display_name="{ item }">
-            <a v-if="item.default_task" :href="'/task-overview/' + item.default_task + '/' + item.dataset_id" style="text-decoration: none !important;">{{ item.display_name }}</a>
+            <router-link v-if="item.default_task" :to="'/task-overview/' + item.default_task + '/' + item.dataset_id" style="text-decoration: none !important;">{{ item.display_name }}</router-link>
             <span v-if="!item.default_task">{{ item.display_name }}</span>
         </template>
         <template #item.default_task="{ item }">
-            <a v-if="item.default_task" :href="'/task-overview/' + item.default_task + '/' + item.dataset_id" style="text-decoration: none !important;">{{ item.default_task_name }}</a>
+            <router-link v-if="item.default_task" :to="'/task-overview/' + item.default_task + '/' + item.dataset_id" style="text-decoration: none !important;">{{ item.default_task_name }}</router-link>
             <span v-if="!item.default_task">No Task</span>
         </template>
         <template #item.ir_datasets_id="{ item }">

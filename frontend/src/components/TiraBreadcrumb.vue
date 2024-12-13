@@ -1,7 +1,7 @@
 <template>
   <v-breadcrumbs :items="items" :class="!$vuetify.display.mdAndUp ? 'px-3' : 'px-10'">
     <template v-slot:title="{ item }">
-      {{ item.title.toUpperCase() }}
+      <router-link :to="item.href" style="text-decoration: none;">{{ item.title.toUpperCase() }}</router-link>
     </template>
   </v-breadcrumbs>
 </template>
