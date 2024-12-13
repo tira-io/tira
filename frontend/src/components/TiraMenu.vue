@@ -101,8 +101,7 @@ import { WellKnownAPI, type UserInfo, logout } from '../utils';
         }
     },
     computed: {
-      tira_href() {
-        return 'https://www.tira.io' + location.pathname}
+      tira_href() {return 'https://www.tira.io' + location.pathname}
     },
     methods: {
       logout() {logout(this.userinfo.context.user_id)},
