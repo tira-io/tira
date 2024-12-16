@@ -9,7 +9,7 @@
       <v-row>
         <v-col cols="4" v-for="t in featured_tasks">
           <router-link :to="'/task-overview/' + t.task_id" style="text-decoration: none;">
-            <v-card :text="t.task_description" :title="t.task_name" />
+            <v-card :text="t.task_description" :title="t.task_name" style="max-height: 100px; min-height: 100px"/>
           </router-link>
         </v-col>
       </v-row>
@@ -18,7 +18,7 @@
       <v-row>
         <v-col cols="12" v-for="t in featured_tasks">
           <router-link :to="'/task-overview/' + t.task_id" style="text-decoration: none;">
-            <v-card :text="t.task_description" :title="t.task_name"/>
+            <v-card :text="t.task_description" :title="t.task_name" style="max-height: 100px; min-height: 100px"/>
           </router-link>
         </v-col>
       </v-row>
