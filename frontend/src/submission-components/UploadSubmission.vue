@@ -179,7 +179,7 @@
 
       <h2>Your Existing Submissions for Approach {{ us.display_name }}</h2>
       <run-list :task_id="task_id" :organizer="organizer" :organizer_id="organizer_id" :vm_id="user_id_for_task"
-        :upload_id="us.id" ref="upload-run-list" from_archive="False"/>
+        :upload_id="us.id" ref="upload-run-list" from_archive="false"/>
 
     
       <v-btn class="my-5" v-if="description !== 'no-description' && !upload_for_approach" color="primary" prepend-icon="mdi-plus" size="large"
