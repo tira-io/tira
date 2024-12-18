@@ -3,7 +3,9 @@
 
   <register-form v-if="show_register" :task="task"  @update-user-vms-for-task="(newUserVm) => additional_vms = [newUserVm]"/>
 
-  <v-btn v-if="!show_register && !show_login && vm_id" :href="'/submit/' + task.task_id + '/user/' + vm_id" variant="outlined" block>Submit</v-btn>
+  <router-link v-if="!show_register && !show_login && vm_id" :to="'/submit/' + task.task_id + '/user/' + vm_id">
+    <v-btn variant="outlined" block>Submit</v-btn>
+  </router-link>
 
   <v-menu v-if="!show_register && !show_login && vm_ids" transition="slide-y-transition">
     <template v-slot:activator="{ props }">
@@ -11,7 +13,9 @@
     </template>
     <v-list>
       <v-list-item v-for="(item, i) in vm_ids" :key="i">
-        <v-btn :href="'/submit/' + task.task_id + '/user/' + item" variant="outlined" block>Submit as {{ item }}</v-btn>
+        <router-link :to="'/submit/' + task.task_id + '/user/' + item">
+          <v-btn variant="outlined" block>Submit as {{ item }}</v-btn>
+        </router-link>
       </v-list-item>
     </v-list>
   </v-menu>
