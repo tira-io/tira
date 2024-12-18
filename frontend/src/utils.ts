@@ -442,7 +442,7 @@ export async function get_from_archive(url: string, from_archive: boolean = true
         USER_INFO = inject('userinfo') as UserInfo
     }
 
-    let use_prod = USER_INFO.role === 'admin' || USER_INFO.organizer_teams.length > 0 || !from_archive
+    let use_prod = USER_INFO.role === 'admin' || USER_INFO.organizer_teams.length > 0 || (from_archive + '').toLowerCase() === 'false'
 
     console.log('use-prod (' + use_prod + '): ' + url)
     url = (use_prod ? PRODUCTION_URL : ARCHIVE_URL) + url
