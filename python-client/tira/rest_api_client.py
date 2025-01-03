@@ -228,6 +228,11 @@ class Client(TiraClient):
 
         return pd.DataFrame(ret)
 
+    def submissions_of_team(self, task, dataset, team):
+        submissions = self.submissions(task, dataset)
+        filtered_submissions = submissions[submissions['team'] == team]
+        return filtered_submissions
+
     def upload_submissions(self, task_id, vm_id, upload_id, dataset=None):
         ret = self.json_response(f"/api/upload-group-details/{task_id}/{vm_id}/{upload_id}")
         ret = ret["context"]["upload_group_details"]["runs"]
