@@ -143,6 +143,12 @@ class Client(TiraClient):
         if ret is not None:
             return ret
 
+        # retry with force_reload.
+        datasets = self.archived_json_response("/v1/datasets/all", force_reload=True)
+        ret = self._TiraClient__matching_dataset(datasets, dataset_identifier)
+        if ret is not None:
+            return ret
+
         msg = f'The dataset "{dataset_identifier}" is not publicly available in TIRA. Please visit https://tira.io/datasets for an overview of all public datasets.'
         print(msg)
         raise ValueError(msg)
