@@ -20,10 +20,11 @@ class FormatBase:
     def all_lines(self, f: Path):
         try:
             f_size = f.stat().st_size
-            if f_size > self.max_size():
-                raise ValueError(f"File {f} is too large (size {f_size} exceeds configured {self.max_size()}).")
         except:
             raise ValueError(f"File {f} is not readable.")
+
+        if f_size > self.max_size():
+            raise ValueError(f"File {f} is too large (size {f_size} exceeds configured {self.max_size()}).")
 
         if str(f).endswith(".gz"):
             with gzip.open(f, "rt") as o:
@@ -33,7 +34,7 @@ class FormatBase:
                 return o.readlines()
 
     def max_size(self):
-        return 10 * 1024 * 1024
+        return 25 * 1024 * 1024
 
 
 class RunFormat(FormatBase):
