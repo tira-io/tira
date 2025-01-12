@@ -160,7 +160,7 @@ class Dataset(models.Model):
     chatnoir_id = models.CharField(max_length=100, null=True, default=None)
     ir_datasets_id = models.CharField(max_length=100, null=True, default=None)
     ir_datasets_id_2 = models.CharField(max_length=100, null=True, default=None)
-    description = models.TextField(default="")
+    description = models.TextField(default="", null=True)
     file_listing = models.TextField(default=None, null=True)
 
 
