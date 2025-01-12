@@ -1,3 +1,4 @@
+import hashlib
 import json
 import logging
 import os
@@ -6,6 +7,8 @@ import traceback
 import zipfile
 from datetime import datetime as dt
 from http import HTTPStatus
+from pathlib import Path
+from shutil import copyfile
 
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
@@ -17,6 +20,7 @@ from ..authentication import auth
 from ..checks import check_conditional_permissions, check_permissions, check_resources_exist
 from ..git_runner import check_that_git_integration_is_valid
 from ..ir_datasets_loader import run_irds_command
+from .v1._datasets import download_mirrored_resource
 
 logger = logging.getLogger("tira")
 from .. import model as modeldb
@@ -208,6 +212,29 @@ def admin_delete_task(request, task_id):
     return JsonResponse({"status": 0, "message": f"Deleted task {task_id}"})
 
 
+def update_file_listing_for_dataset(dataset_id: str):
+    dataset = modeldb.Dataset.objects.get(dataset_id=dataset_id)
+    dataset_type = "test" if dataset.is_confidential else "training"
+    task_id = model.get_dataset(dataset_id)["task"]
+    listing = []
+
+    for k, v in [("", "$inputDir"), ("-truth", "$inputDataset")]:
+        children = []
+        path = model.model.data_path / f"{dataset_type}-datasets{k}" / task_id / dataset_id
+        for f in os.listdir(path):
+            md5 = hashlib.md5(open(path / f, "rb").read()).hexdigest()
+            size = os.path.getsize(path / f)
+            children += [{"title": f + f" (size: {size}; md5sum: {md5})", "size": size, "md5sum": md5}]
+
+        current_item = {"title": v}
+        if len(children) > 0:
+            current_item["children"] = children
+        listing.append(current_item)
+
+    dataset.file_listing = json.dumps(listing)
+    dataset.save()
+
+
 @check_permissions
 def admin_add_dataset(request, task_id):
     """Create an entry in the model for the task. Use data supplied by a model.
@@ -244,6 +271,35 @@ def admin_add_dataset(request, task_id):
         irds_import_truth_command = data.get("irds_import_truth_command", None)
         irds_import_truth_command = None if not irds_import_truth_command else irds_import_truth_command
         dataset_format = data.get("format", None)
+        description = data.get("description", None)
+        chatnoir_id = data.get("chatnoir_id", None)
+        ir_datasets_id = data.get("ir_datasets_id", None)
+
+        systemUrlHandle = data.get("systemUrlHandle")
+        truthUrlHandle = data.get("truthUrlHandle")
+        if systemUrlHandle is not None or truthUrlHandle is not None:
+            if systemUrlHandle is None or truthUrlHandle is None:
+                return JsonResponse(
+                    {
+                        "status": 1,
+                        "message": "If the dataset is to be downloaded, you must provide both,"
+                        + "a URL for the system inputs and for the ground truth data, but one is missing. "
+                        + f"I got systemUrlHandle: '{systemUrlHandle}' and truthUrlHandle: '{truthUrlHandle}'.",
+                    }
+                )
+
+            for url in [systemUrlHandle, truthUrlHandle]:
+                if "://zenodo.org" not in url:
+                    return JsonResponse(
+                        {
+                            "status": 1,
+                            "message": "Only Zenodo is currently enabled as source for data imports, "
+                            + f"but I got '{url}' as import url.",
+                        }
+                    )
+
+            system_inputs = download_mirrored_resource(systemUrlHandle, "Zenodo")
+            truth_data = download_mirrored_resource(truthUrlHandle, "Zenodo")
 
         if not data.get("use_existing_repository", True):
             git_repository_id = model.get_git_integration(task_id=task_id).create_task_repository(task_id)
@@ -267,6 +323,9 @@ def admin_add_dataset(request, task_id):
                     irds_import_command,
                     irds_import_truth_command,
                     dataset_format,
+                    description,
+                    chatnoir_id,
+                    ir_datasets_id,
                 )
             elif data["type"] == "test":
                 ds, paths = model.add_dataset(
@@ -279,6 +338,9 @@ def admin_add_dataset(request, task_id):
                     irds_import_command,
                     irds_import_truth_command,
                     dataset_format,
+                    description,
+                    chatnoir_id,
+                    ir_datasets_id,
                 )
 
             model.add_evaluator(
@@ -293,7 +355,63 @@ def admin_add_dataset(request, task_id):
                 git_runner_command,
                 git_repository_id,
             )
+
+            if system_inputs or truth_data:
+                dataset = modeldb.Dataset.objects.get(dataset_id=ds["dataset_id"])
+                input_path, truth_path = [Path(i) for i in paths]
+
+                for target_path, mirror in [(input_path, system_inputs), (truth_path, truth_data)]:
+                    print(mirror)
+                    url = list(json.loads(mirror.mirrors).values())[0]
+                    resource_type = "inputs" if target_path == input_path else "truths"
+
+                    if resource_type == "inputs":
+                        zipDirectory = data.get("systemUrlDirectory")
+                        rename_to = data.get("systemFileRename")
+                    else:
+                        zipDirectory = data.get("truthUrlDirectory")
+                        rename_to = data.get("truthFileRename")
+
+                    if ".zip" in url:
+                        rename_to = None
+                        with zipfile.ZipFile(mirror.get_path_in_file_system(), "r") as zip_ref:
+                            for file_info in zip_ref.infolist():
+                                target_file = target_path / Path(file_info.filename)
+
+                                if file_info.filename.endswith("/"):
+                                    continue
+
+                                if zipDirectory:
+                                    target_file = target_path / Path(file_info.filename[len(zipDirectory) + 1 :])
+                                    if not file_info.filename.startswith(zipDirectory + "/"):
+                                        continue
+
+                                target_file.parent.mkdir(parents=True, exist_ok=True)
+                                with zip_ref.open(file_info) as source_file:
+                                    with open(target_file, "wb") as t:
+                                        t.write(source_file.read())
+                    else:
+                        zipDirectory = None
+                        if not rename_to:
+                            rename_to = url
+
+                        rename_to = rename_to.split("/")[-1].split("#")[0].split("?")[0].split("&")[0]
+                        target_path = target_path / rename_to
+
+                        copyfile(mirror.get_path_in_file_system(), target_path)
+
+                    print(target_path)
+
+                    modeldb.DatasetHasMirroredResource.objects.create(
+                        dataset=dataset,
+                        mirrored_resource=mirror,
+                        resource_type=resource_type,
+                        subdirectory=zipDirectory,
+                        rename_to=rename_to,
+                    )
+
             path_string = "\n ".join(paths)
+            update_file_listing_for_dataset(ds["dataset_id"])
             return JsonResponse(
                 {
                     "status": 0,
@@ -351,6 +469,9 @@ def admin_edit_dataset(request, dataset_id):
         git_runner_command = data["git_runner_command"]
         git_repository_id = data["git_repository_id"]
         dataset_format = data["format"]
+        description = data.get("description", "")
+        chatnoir_id = data.get("chatnoir_id", None)
+        ir_datasets_id = data.get("ir_datasets_id", None)
 
         if not data["use_existing_repository"]:
             git_repository_id = model.get_git_integration(task_id=task_id).create_task_repository(task_id)
@@ -374,12 +495,16 @@ def admin_edit_dataset(request, dataset_id):
             git_runner_command,
             git_repository_id,
             dataset_format,
+            description,
+            chatnoir_id,
+            ir_datasets_id,
         )
 
         from django.core.cache import cache
 
         model.git_pipeline_is_enabled_for_task(task_id, cache, force_cache_refresh=True)
 
+        update_file_listing_for_dataset(dataset_id)
         return JsonResponse({"status": 0, "context": ds, "message": f"Updated Dataset {ds['dataset_id']}."})
 
     return JsonResponse({"status": 1, "message": "GET is not implemented for add dataset"})

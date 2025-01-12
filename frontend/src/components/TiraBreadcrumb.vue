@@ -1,7 +1,7 @@
 <template>
   <v-breadcrumbs :items="items" :class="!$vuetify.display.mdAndUp ? 'px-3' : 'px-10'">
     <template v-slot:title="{ item }">
-      <router-link :to="item.href" style="text-decoration: none;">{{ item.title.toUpperCase() }}</router-link>
+      <router-link :to="item.href + ''" style="text-decoration: none;">{{ item.title.toUpperCase() }}</router-link>
     </template>
   </v-breadcrumbs>
 </template>
@@ -11,7 +11,7 @@ import { extractTaskFromCurrentUrl } from '../utils'
 export default {
   name: "tira-breadcrumb",
   computed: {
-    items() {
+    items(): {title: string, href: string}[] {
       var ret = [{title: 'TIRA', disabled: false, href: '/'}]
 
       if (this.$route.path.startsWith('/datasets')) {

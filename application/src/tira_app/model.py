@@ -1,5 +1,7 @@
 import logging
+from pathlib import Path
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 
@@ -158,6 +160,8 @@ class Dataset(models.Model):
     chatnoir_id = models.CharField(max_length=100, null=True, default=None)
     ir_datasets_id = models.CharField(max_length=100, null=True, default=None)
     ir_datasets_id_2 = models.CharField(max_length=100, null=True, default=None)
+    description = models.TextField(default="")
+    file_listing = models.TextField(default=None, null=True)
 
 
 class TaskHasDataset(models.Model):
@@ -175,11 +179,16 @@ class MirroredResource(models.Model):
     size = models.BigIntegerField()
     mirrors = models.CharField(max_length=500, null=True, default=None)
 
+    def get_path_in_file_system(self):
+        return Path(settings.TIRA_ROOT) / "data" / "mirrored-resources" / self.md5_sum
+
 
 class DatasetHasMirroredResource(models.Model):
     dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE)
     mirrored_resource = models.ForeignKey(MirroredResource, on_delete=models.CASCADE)
     resource_type = models.CharField(max_length=15)
+    subdirectory = models.TextField(default=None, null=True)
+    rename_to = models.TextField(default=None, null=True)
 
 
 class Software(models.Model):

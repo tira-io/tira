@@ -360,6 +360,9 @@ class HybridDatabase(object):
             "evaluator_git_runner_image": dataset.evaluator.git_runner_image if evaluator_id else None,
             "evaluator_git_runner_command": dataset.evaluator.git_runner_command if evaluator_id else None,
             "format": dataset_format,
+            "description": dataset.description,
+            "chatnoir_id": dataset.chatnoir_id,
+            "ir_datasets_id": dataset.ir_datasets_id,
         }
 
     def get_dataset(self, dataset_id: str) -> dict[str, Any]:
@@ -1821,6 +1824,9 @@ class HybridDatabase(object):
         irds_import_command=None,
         irds_import_truth_command=None,
         dataset_format=None,
+        description=None,
+        chatnoir_id=None,
+        ir_datasets_id=None,
     ):
         """Add a new dataset to a task
         CAUTION: This function does not do any sanity (existence) checks and will OVERWRITE existing datasets"""
@@ -1843,6 +1849,9 @@ class HybridDatabase(object):
                 "irds_import_command": irds_import_command,
                 "irds_import_truth_command": irds_import_truth_command,
                 "format": None if not dataset_format else json.dumps(dataset_format),
+                "description": None if not description else description,
+                "chatnoir_id": None if not chatnoir_id else chatnoir_id,
+                "ir_datasets_id": None if not ir_datasets_id else ir_datasets_id,
             },
         )
 
@@ -2489,6 +2498,9 @@ class HybridDatabase(object):
         git_runner_command,
         git_repository_id,
         dataset_format,
+        description,
+        chatnoir_id=None,
+        ir_datasets_id=None,
     ):
         """
 
@@ -2505,6 +2517,9 @@ class HybridDatabase(object):
             default_upload_name=upload_name,
             is_confidential=is_confidential,
             format=None if not dataset_format else json.dumps(dataset_format),
+            description=description,
+            chatnoir_id=None if not chatnoir_id else chatnoir_id,
+            ir_datasets_id=None if not ir_datasets_id else ir_datasets_id,
         )
 
         ds = modeldb.Dataset.objects.get(dataset_id=dataset_id)

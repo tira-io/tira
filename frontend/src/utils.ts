@@ -15,7 +15,9 @@ export interface DatasetInfo {
     display_name: string;
     default_task: string | undefined;
     default_task_name: string | undefined;
+    description: string | undefined;
     mirrors: Record<string, string>;
+    file_listing: any | undefined;
 }
 
 export interface UploadGroupInfo {

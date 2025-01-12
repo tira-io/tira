@@ -12,6 +12,10 @@
           <loading :loading="loading" />
           <card-title>
             <v-toolbar color="primary" :title="title"/>
+
+            <v-row>
+              <v-col cols="12"><v-alert v-if="error_message" title="Creating/Editing the Dataset failed. Maybe a short hiccup?" type="error" closable :text="error_message"/></v-col>
+            </v-row>
           </card-title>
         
           <v-card-text>
@@ -23,9 +27,23 @@
                 <v-text-field v-if="!newDataset()" v-model="dataset_id" :disabled="!newDataset()" label="Dataset ID" :rules="[v => v && v.length > 2 || 'Please provide a name.']" required/>
                 <v-text-field v-model="display_name" label="Dataset Name" :rules="[v => v && v.length > 2 || 'Please provide a name.']" required/>
 
+                <v-textarea v-model="description" label="Dataset Description" :rules="[v => v && v.length > 2 || 'Please provide a description of the dataset.']" required/>
+
                 <v-text-field v-model="default_upload_name" label="Default Upload Name" :rules="[v => v && v.length > 2 || 'Please provide a name.']" required/>
 
                 <v-select v-model="format" :items="serverinfo.supportedFormats" label="Dataset Format" clearable multiple/>
+
+                <div>
+                  Consider to integrate the data into <a href="https://ir-datasets.com/" target="_blank">ir-datasets</a> and <a href="https://www.chatnoir.eu/" target="_blank">ChatNoir</a> for simplified access and improved visibility.
+                </div>
+                <v-row>
+                  <v-col cols="6">
+                    <v-text-field v-model="ir_datasets_id" label="IR-Datasets ID (Optional)"/>
+                  </v-col>
+                  <v-col cols="6">
+                    <v-text-field v-model="chatnoir_id" label="Chatnoir ID (Optional)"/>
+                  </v-col>
+                </v-row>
 
                 <v-radio-group v-if="newDataset()" v-model="dataset_type">
                   <v-radio label="This is a training dataset (participants see their outputs/evaluations)" value="training"></v-radio>
@@ -58,10 +76,39 @@
                 <v-divider/>
                 <h2 class="my-1">Provide the Actual Data</h2>
                 <v-radio-group v-if="newDataset()" v-model="upload_type">
+                  <v-radio label="Import from Zenodo (recommended)" value="upload-0"></v-radio>
                   <v-radio label="I want to provide the data later" value="upload-1"></v-radio>
                   <v-radio label="I want to manually upload the data now" value="upload-2"></v-radio>
                   <v-radio label="I want to use the ir_datasets integration" value="upload-3"></v-radio>
                 </v-radio-group>
+
+                <div v-if="newDataset() && upload_type === 'upload-0'">
+                  <v-row>
+                    <v-col cols="6">
+                      <v-text-field v-model="systemUrlHandle" label="Zenodo Download URL of Inputs for Systems" :rules="[v => v && v.length > 2 || 'Please provide a URL.']"/>
+                      </v-col>
+                      <v-col cols="6">
+                        <v-text-field v-if="!is_zip(systemUrlHandle)" v-model="systemFileRename" label="Rename input for systems for unified access (optional)"/>
+                        <div v-if="is_zip(systemUrlHandle)">
+                        The URL for the system inputs looks like a .zip file. In case a subdirectory of the zip contains the data, please specify it next (Leave empty otherwise).
+                        <v-text-field  v-model="systemUrlDirectory" label="Subdirectory in Zip (optional)"/>
+                      </div>
+                    </v-col>
+                  </v-row>
+
+                  <v-row>
+                    <v-col cols="6">
+                      <v-text-field v-model="truthUrlHandle" label="Zenodo Download URL for Ground Truth Data." :rules="[v => v && v.length > 2 || 'Please provide a URL.']"/>
+                    </v-col>
+                    <v-col cols="6">
+                      <v-text-field v-if="!is_zip(truthUrlHandle)" v-model="truthFileRename" label="Rename truth file for unified access (optional)"/>
+                      <div v-if="is_zip(truthUrlHandle)">
+                        The ground truth data URL looks like a .zip file. In case a subdirectory of the zip contains the data, please specify it next (Leave empty otherwise).
+                        <v-text-field v-model="truthUrlDirectory" label="Subdirectory in Zip (optional)"/>
+                      </div>
+                    </v-col>
+                  </v-row>
+                </div>
 
                 <v-file-input v-model="systemFileHandle" v-if="(newDataset() && upload_type === 'upload-2') || !newDataset()" label="Input Data for Systems (.zip file)"></v-file-input>
                 <v-file-input  v-model="truthFileHandle" v-if="(newDataset() && upload_type === 'upload-2') || !newDataset()" label="Ground Truth for Evaluation (.zip file)"></v-file-input>
@@ -103,9 +150,9 @@
           </v-card-text>
           <v-card-actions class="justify-end">
             <v-row>
-            <v-col cols="6"><v-btn variant="outlined" @click="isActive.value = false" block>Close</v-btn></v-col>
-            <v-col cols="6" v-if="!loading"><v-btn variant="outlined" :loading="submitInProgress" @click="submit(isActive)" block>Submit</v-btn></v-col>
-          </v-row>
+              <v-col cols="6"><v-btn variant="outlined" @click="isActive.value = false" block>Close</v-btn></v-col>
+              <v-col cols="6" v-if="!loading"><v-btn variant="outlined" :loading="submitInProgress" @click="submit(isActive)" block>Submit</v-btn></v-col>
+            </v-row>
           </v-card-actions>
         </v-card>
       </template>
@@ -126,9 +173,10 @@
       props: {task_id: {}, dataset_id_from_props: {type: String, default: ''}, disabled: {type: Boolean, default: false}, is_ir_task: {type: Boolean, default: false}},
       data: () => ({
         loading: true, valid: false, submitInProgress: false, dataset_id: '',
-        display_name: '', is_confidential: 'true', dataset_type: 'test', upload_type: 'upload-1',
+        display_name: '', description: '', is_confidential: 'true', dataset_type: 'test', upload_type: 'upload-0',
         irds_image: '', irds_command: '', format: undefined, is_deprecated: false, default_upload_name: "predictions.jsonl",
         irds_docker_image: "", irds_import_command: "", irds_import_truth_command: "",
+        systemUrlHandle: "", systemUrlDirectory: "", truthUrlHandle: "", truthUrlDirectory: "", systemFileRename: "inputs.jsonl", truthFileRename: "labels.jsonl", error_message: "", chatnoir_id: "", ir_datasets_id: "",
         git_runner_image: "ubuntu:18.04", git_runner_command: "echo 'this is no real evaluator'", evaluation_type: "eval-1",
         systemFileHandle: undefined, truthFileHandle: undefined,
         git_repository_id: '', rest_endpoint: inject("REST base URL") as string,
@@ -137,6 +185,22 @@
       computed: {
         title() {
           return this.newDataset() ? 'Add New Dataset' : 'Edit Dataset ' + this.dataset_id_from_props;
+        }
+      },
+      watch: {
+        evaluation_type(new_value, old_value) {
+          if (new_value != old_value && new_value == 'eval-1') {
+            this.git_runner_image = "ubuntu:18.04"
+            this.git_runner_command = "echo 'this is no real evaluator'"
+          }
+          else if (new_value != old_value && new_value == 'eval-2') {
+            this.git_runner_image = "fschlatt/tira-hf-evaulator:0.0.5"
+            this.git_runner_command = "python3 /evaluation.py --metrics precision recall f1 --predictions $inputRun/predictions.jsonl --references $inputDataset/labels.jsonl"
+          }
+          else if (new_value != old_value && new_value == 'eval-3') {
+            this.git_runner_image = "webis/ir_measures_evaluator:1.0.5"
+            this.git_runner_command = '/ir_measures_evaluator.py --run ${inputRun}/run.txt --topics ${inputDataset}/queries.jsonl --qrels ${inputDataset}/qrels.txt --output_path ${outputDir} --measures "P@10" "nDCG@10" "MRR"'
+          }
         }
       },
       methods: {
@@ -152,6 +216,9 @@
               .catch(reportError("Problem loading the dataset.", "This might be a short-term hiccup, please try again. We got the following error: "))
               .then(() => {this.is_confidential = '' + this.is_confidential; this.evaluation_type = 'eval-3'})
           }
+        },
+        is_zip: function(s: string) {
+          return s && s.includes('.zip')
         },
         newDataset: function() {
           return !this.disabled && this.dataset_id_from_props === '';
@@ -188,6 +255,7 @@
           }
         
           this.submitInProgress = true
+          this.error_message = ''
           this.dataset_id = this.newDataset() ? slugify(this.display_name) : this.dataset_id_from_props
           
           let params: any = {
@@ -196,7 +264,25 @@
               'is_confidential': this.is_confidential !== 'false',
               'irds_docker_image': this.irds_docker_image, 'irds_import_command': this.irds_import_command, 'irds_import_truth_command': this.irds_import_truth_command, 
               'git_runner_image': this.git_runner_image,'git_runner_command': this.git_runner_command, 'is_git_runner': true, 'use_existing_repository': false,
-              'working_directory': 'obsolete', 'command': 'obsolete', 'publish': this.is_confidential === 'false', 'evaluator_command': 'obsolete', 'evaluator_image': 'obsolete', 'evaluator_working_directory': 'obsolete', 'format': this.format
+              'working_directory': 'obsolete', 'command': 'obsolete', 'publish': this.is_confidential === 'false', 'evaluator_command': 'obsolete', 'evaluator_image': 'obsolete', 'evaluator_working_directory': 'obsolete', 'format': this.format, 'description': this.description,
+              'chatnoir_id': this.chatnoir_id, 'ir_datasets_id': this.ir_datasets_id,
+          }
+
+          if (this.newDataset() && this.upload_type === 'upload-0') {
+            params['systemUrlHandle'] = this.systemUrlHandle
+            params['truthUrlHandle'] = this.truthUrlHandle
+
+            if (this.is_zip(this.systemUrlHandle) && this.systemUrlDirectory) {
+              params['systemUrlDirectory'] = this.systemUrlDirectory
+            } else {
+              params['systemFileRename'] = this.systemFileRename
+            }
+
+            if (this.is_zip(this.truthUrlHandle) && this.truthUrlDirectory) {
+              params['truthUrlDirectory'] = this.truthUrlDirectory
+            } else {
+              params['truthFileRename'] = this.truthFileRename
+            }
           }
 
           if (!this.newDataset()) {
@@ -214,10 +300,14 @@
             isActive.value = false
             this.submitInProgress = false
             this.display_name = ''
-            
+            this.error_message = ''
           })
           .then(reportSuccess("Creation of dataset was successfull."))
-          .catch(reportError("Problem While Adding the Details of the Task " + this.task_id, "This might be a short-term hiccup, please try again. We got the following error: "))
+          .catch(error => {
+            this.error_message = '' + error
+            this.submitInProgress = false
+            reportError("Problem While Adding the Details of the Task " + this.task_id, "This might be a short-term hiccup, please try again. We got the following error: ")(error)
+          })
         },
       },
     }

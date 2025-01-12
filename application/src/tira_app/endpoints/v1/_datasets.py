@@ -2,6 +2,7 @@ import json
 from hashlib import md5
 from pathlib import Path
 
+import markdown
 import requests
 from django.conf import settings
 from django.urls import path
@@ -18,12 +19,15 @@ class DatasetSerializer(ModelSerializer):
     mirrors = SerializerMethodField()
     default_task_name = SerializerMethodField()
     ir_datasets_id = SerializerMethodField()
+    description = SerializerMethodField()
+    file_listing = SerializerMethodField()
 
     class Meta:
         model = modeldb.Dataset
         fields = [
             "id",
             "dataset_id",
+            "description",
             "default_task",
             "default_task_name",
             "display_name",
@@ -32,13 +36,25 @@ class DatasetSerializer(ModelSerializer):
             "ir_datasets_id",
             "chatnoir_id",
             "mirrors",
+            "file_listing",
         ]
 
     def get_mirrors(self, obj):
         return mirrors_for_dataset(obj.dataset_id)
 
+    def get_description(self, obj):
+        return markdown.markdown(obj.description) if obj.description else None
+
     def get_default_task_name(self, obj):
         return obj.default_task.task_name if obj.default_task else None
+
+    def get_file_listing(self, obj):
+        if not obj or not obj.file_listing:
+            return None
+        try:
+            return json.loads(obj.file_listing)
+        except json.JSONDecodeError:
+            return None
 
     def get_ir_datasets_id(self, obj):
         if obj.ir_datasets_id and obj.ir_datasets_id_2:
@@ -48,7 +64,7 @@ class DatasetSerializer(ModelSerializer):
 
 
 class _DatasetView(ModelViewSet):
-    queryset = modeldb.Dataset.objects.all()
+    queryset = modeldb.Dataset.objects.filter(is_deprecated=False)
     serializer_class = DatasetSerializer
     pagination_class = pagination.CursorPagination
     lookup_field = "dataset_id"
@@ -83,6 +99,45 @@ def mirrors_for_dataset(dataset_id: str) -> dict[str, str]:
     return ret
 
 
+def download_mirrored_resource(url: str, name: str):
+    response = requests.get(url)
+
+    if response.status_code != 200 or not response.ok:
+        raise ValueError(f"Failed to load {url}. Response code {response.status_code}.")
+
+    md5_sum = str(md5(response.content).hexdigest())
+    md5_first_kilobyte = str(md5(response.content[:1024]).hexdigest())
+    size = len(response.content)
+
+    target_dir = Path(settings.TIRA_ROOT) / "data" / "mirrored-resources"
+    target_dir.mkdir(exist_ok=True, parents=True)
+    target_dir = target_dir / md5_sum
+
+    mirrors = {}
+    existing_resource = load_mirrored_resource(md5_sum)
+
+    if not existing_resource:
+        with open(target_dir, "wb") as f:
+            f.write(response.content)
+
+    if existing_resource and "mirrors" in existing_resource and existing_resource["mirrors"]:
+        mirrors = existing_resource["mirrors"]
+
+    mirrors[name] = url
+
+    if not existing_resource:
+        modeldb.MirroredResource.objects.create(
+            md5_sum=md5_sum,
+            md5_first_kilobyte=md5_first_kilobyte,
+            size=size,
+            mirrors=json.dumps(mirrors),
+        )
+    else:
+        modeldb.MirroredResource.objects.filter(md5_sum=md5_sum).update(mirrors=json.dumps(mirrors))
+
+    return modeldb.MirroredResource.objects.filter(md5_sum=md5_sum).first()
+
+
 def add_mirrored_resource(dataset_id: str, url_inputs: str, url_truths: str, name: str):
     urls = []
     for url in [url_inputs, url_truths]:
@@ -101,39 +156,8 @@ def add_mirrored_resource(dataset_id: str, url_inputs: str, url_truths: str, nam
 
     for url in urls:
         resource_type = "inputs" if url == url_inputs else "truths"
-        response = requests.get(url)
+        mirror = download_mirrored_resource(url, name)
 
-        if response.status_code != 200 or not response.ok:
-            raise ValueError(f"Failed to load {url}. Response code {response.status_code}.")
-
-        md5_sum = str(md5(response.content).hexdigest())
-        md5_first_kilobyte = str(md5(response.content[:1024]).hexdigest())
-        size = len(response.content)
-
-        target_dir = Path(settings.TIRA_ROOT) / "data" / "mirrored-resources"
-        target_dir.mkdir(exist_ok=True, parents=True)
-        target_dir = target_dir / md5_sum
-
-        mirrors = {}
-        existing_resource = load_mirrored_resource(md5_sum)
-
-        if not existing_resource:
-            with open(target_dir, "wb") as f:
-                f.write(response.content)
-
-        if existing_resource and "mirrors" in existing_resource and existing_resource["mirrors"]:
-            mirrors = existing_resource["mirrors"]
-
-        mirrors[name] = url
-
-        if not existing_resource:
-            modeldb.MirroredResource.objects.create(
-                md5_sum=md5_sum, md5_first_kilobyte=md5_first_kilobyte, size=size, mirrors=json.dumps(mirrors)
-            )
-        else:
-            modeldb.MirroredResource.objects.update(md5_sum=md5_sum, mirrors=json.dumps(mirrors))
-
-        mirror = modeldb.MirroredResource.objects.filter(md5_sum=md5_sum).first()
         if not modeldb.DatasetHasMirroredResource.objects.filter(
             dataset=dataset, mirrored_resource=mirror, resource_type=resource_type
         ):
@@ -141,7 +165,7 @@ def add_mirrored_resource(dataset_id: str, url_inputs: str, url_truths: str, nam
                 dataset=dataset, mirrored_resource=mirror, resource_type=resource_type
             )
 
-        print(load_mirrored_resource(md5_sum))
+        print(load_mirrored_resource(mirror.md5_sum))
 
 
 endpoints = [

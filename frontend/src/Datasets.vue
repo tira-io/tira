@@ -13,7 +13,7 @@
       </div>
       <div class="py-2"></div>
 
-      <v-data-table :headers="headers_xs" :items="datasets" :itemsPerPage="10" :search="query" density="compact" fixed-footer>
+      <v-data-table :headers="headers_xs" :items="datasets" :itemsPerPage="10" :search="query" density="compact" fixed-footer show-expand>
         <template #item.display_name="{ item }">
             <router-link v-if="item.default_task" :to="'/task-overview/' + item.default_task + '/' + item.dataset_id" style="text-decoration: none !important;">{{ item.display_name }}</router-link>
             <span v-if="!item.default_task">{{ item.display_name }}</span>
@@ -29,6 +29,17 @@
         </template>
         <template #item.search="{ item }">
             <a v-if="chatnoir_url(item)" :href="chatnoir_url(item)" style="text-decoration: none !important;" target="_blank">ChatNoir</a>
+        </template>
+        <template v-slot:expanded-row="{ columns, item }">
+          <tr>
+            <td :colspan="columns.length">
+              <div v-if="!item.description">No description is available.</div>
+              <div v-if="item.description" v-html="item.description"/>
+              <div v-if="item.file_listing">
+                <v-treeview :items="item.file_listing" item-value="title" activatable open-on-click open-all density="compact"/>
+              </div>
+            </td>
+          </tr>
         </template>
         <template #item.type="{ item }">
           <span v-if="item.is_confidential">Private Test</span>

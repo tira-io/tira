@@ -738,6 +738,9 @@ def add_dataset(
     irds_import_command: Optional[str] = None,
     irds_import_truth_command: Optional[str] = None,
     dataset_format: Optional[str] = None,
+    description: Optional[str] = None,
+    chatnoir_id: Optional[str] = None,
+    ir_datasets_id: Optional[str] = None,
 ) -> list:
     """returns a list of paths of newly created datasets as string."""
     return model.add_dataset(
@@ -750,6 +753,9 @@ def add_dataset(
         irds_import_command=irds_import_command,
         irds_import_truth_command=irds_import_truth_command,
         dataset_format=dataset_format,
+        description=description,
+        chatnoir_id=chatnoir_id,
+        ir_datasets_id=ir_datasets_id,
     )
 
 
@@ -914,6 +920,9 @@ def edit_dataset(
     git_runner_command: Optional[str] = None,
     git_repository_id: Optional[str] = None,
     dataset_format: Optional[str] = None,
+    description: Optional[str] = None,
+    chatnoir_id: Optional[str] = None,
+    ir_datasets_id: Optional[str] = None,
 ):
     """Update the datasets's data"""
     return model.edit_dataset(
@@ -930,6 +939,9 @@ def edit_dataset(
         git_runner_command,
         git_repository_id,
         dataset_format,
+        description,
+        chatnoir_id,
+        ir_datasets_id,
     )
 
 
