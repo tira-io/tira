@@ -2,7 +2,6 @@ import gzip
 import os
 import re
 from enum import Enum
-from glob import glob
 from pathlib import Path
 from typing import Sequence, Union
 
@@ -104,7 +103,45 @@ class JsonlFormat(FormatBase):
             return [_fmt.OK, "The jsonl file has the correct format."]
 
 
-FORMAT_TO_CHECK = {"run.txt": lambda: RunFormat(), "*.jsonl": lambda: JsonlFormat()}
+class TsvFormat(FormatBase):
+    """Checks if a given output is a valid tsv file."""
+
+    def check_format(self, run_output: Path):
+        try:
+            lines = self.all_lines(run_output)
+        except Exception as e:
+            return [_fmt.ERROR, str(e)]
+
+        if len(lines) < 5:
+            return [_fmt.ERROR, f"The *.tsv file contains only {len(lines)} lines, this is likely an error."]
+
+        if len(lines[0]) < 2:
+            return [_fmt.ERROR, "The *.tsv file contains only one column, this is likely an error."]
+
+        return [_fmt.OK, "The tsv file has the correct format."]
+
+    def all_lines(self, run_output):
+        matches = [i for i in os.listdir(run_output) if i.endswith(".tsv")]
+        if len(matches) != 1:
+            msg = "No unique *.tsv file was found, only the files "
+            msg += str(os.listdir(run_output)) + " were available."
+            raise ValueError(msg)
+
+        f = run_output / matches[0]
+        with open(f, "r") as tsv_file:
+            columns = None
+            ret = []
+            for l in tsv_file:
+                l_parsed = l.strip().split("\t")
+                if columns is None:
+                    columns = len(l_parsed)
+                if len(l_parsed) != columns:
+                    raise ValueError("The *.tsv file is invalid: The number of columns varies.")
+                ret += [l_parsed]
+            return ret
+
+
+FORMAT_TO_CHECK = {"run.txt": lambda: RunFormat(), "*.jsonl": lambda: JsonlFormat(), "*.tsv": lambda: TsvFormat()}
 
 SUPPORTED_FORMATS = set(sorted(list(FORMAT_TO_CHECK.keys())))
 

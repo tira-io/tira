@@ -12,4 +12,6 @@ RUN_OUTPUT_WITH_TOO_FEW_QUERIES = RESOURCES / "ranking-output-invalid-too-few-qu
 RUN_OUTPUT_WITH_DUPLICATE_DOCUMENTS = RESOURCES / "ranking-output-invalid-duplicate-documents"
 RUN_OUTPUT_WITH_TOO_FEW_COLUMNS = RESOURCES / "ranking-output-invalid-too-few-columns"
 EMPTY_OUTPUT = RESOURCES / "input-run-01" / "1"
+TSV_OUTPUT_WITH_VARYING_COLUMNS = RESOURCES / "tsv-varying-columns"
+TSV_OUTPUT_VALID = RESOURCES / "tsv-valid"
 IR_QUERY_OUTPUT = RESOURCES / "query-processing-outputs" / "query-segmentation"
