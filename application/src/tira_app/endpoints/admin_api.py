@@ -374,14 +374,19 @@ def admin_add_dataset(request, task_id):
 
                     if ".zip" in url:
                         rename_to = None
+                        imported_files = 0
                         with zipfile.ZipFile(mirror.get_path_in_file_system(), "r") as zip_ref:
+                            directories = []
                             for file_info in zip_ref.infolist():
                                 target_file = target_path / Path(file_info.filename)
 
                                 if file_info.filename.endswith("/"):
+                                    directories += [file_info.filename]
                                     continue
 
                                 if zipDirectory:
+                                    zipDirectory = [i for i in zipDirectory.split("/") if i]
+                                    zipDirectory = "/".join(zipDirectory)
                                     target_file = target_path / Path(file_info.filename[len(zipDirectory) + 1 :])
                                     if not file_info.filename.startswith(zipDirectory + "/"):
                                         continue
@@ -390,6 +395,16 @@ def admin_add_dataset(request, task_id):
                                 with zip_ref.open(file_info) as source_file:
                                     with open(target_file, "wb") as t:
                                         t.write(source_file.read())
+                                        imported_files += 1
+                        if imported_files == 0:
+                            return JsonResponse(
+                                {
+                                    "status": 1,
+                                    "message": f"No files were extracted from the subdirectory '{zipDirectory}' "
+                                    f" of the zip file at '{url}'. "
+                                    + f"The following directories exist in the zip file: {directories}.",
+                                }
+                            )
                     else:
                         zipDirectory = None
                         if not rename_to:
