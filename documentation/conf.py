@@ -39,6 +39,7 @@ extensions = [
     "sphinxcontrib.umlet",
     "myst_parser",
     "openapi",
+    "sphinx_tabs.tabs",
 ]
 
 todo_include_todos = True
@@ -102,3 +103,4 @@ html_static_path = ["_static"]
 html_css_files = [
     "custom.css",
 ]
+

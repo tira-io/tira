@@ -91,6 +91,56 @@ Organizing Tasks
       This command should create the following output in `tira-output`: <TODO_ADD_EXAMPLE_OUTPUT>
 
 
+------
+
+Add a new Dataset
+~~~~~~~~~~~~~~~~~
+
+.. note:: TIRA can run evaluations on confidential and public datasets. Shared tasks on confidential datasets require software submissions whereas shared tasks on public datasets can enable run submissions.
+
+TIRA expects that every dataset is partitioned into two parts:
+
+1. **System inputs**: This partition is passed as input to the systems that are expected to make predictions based on those inputs. Systems submitted to TIRA only have access to this part of the dataset. The system inputs should be easy to process, for instance, we recommend to use `.jsonl <https://jsonlines.org/>`_ as this data format is well supported in many diverse frameworks.
+2. **Truth labels**: This partition contains the ground truth labels used to evaluate system predictions. Submitted systems do not have access to the truth labels, only the evaluator of the organizer can process the ground truth labels, to calculate evaluation measures for the output of systems. It is possible to upload the truth labels after the shared task, e.g., when the truth labels require to annotate outputs of all submitted systems.
+
+
+If your dataset allows it and is final, we recommend that you upload it to `Zenodo <https://zenodo.org>`_ and import it to TIRA from Zenodo. Zenodo allows per-request access to datasets, so you can make the inputs publicly available to participants and leave the ground truth labels in a private record (potentially publishing it after the shared task). Zenodo aims to `operate for the next 20+ years <https://help.zenodo.org/faq>`_, making it a perfect choice for research data produced for/in shared tasks. It is fine to have non-final datasets only in TIRA, but for final datasets, uploading them to Zenodo and importing them to TIRA from Zenodo has major benefits. TIRA can either import .zip files from Zenodo (e.g., like `zenodo.org/records/12722918/dl-top-10-docs-20240701-inputs.zip <https://zenodo.org/records/12722918/files/dl-top-10-docs-20240701-inputs.zip>`_) or the files directly.
+
+As soon as the system inputs are ready, you can define the expected output format in which systems should produce their predictions. TIRA has a set of (optional) validators (currently `.run, .jsonl, and .tsv format <https://github.com/tira-io/tira/blob/pyterrier-artifacts/python-client/tira/check_format.py>`_)  for standard output formats that allow to give participants fast feedback in case their predictions have an invalid format. We recommend to use .jsonl as output format for NLP tasks and .run files for IR tasks (if a format that you would like to use is not yet supported, `please create an issue <https://github.com/tira-io/tira/issues>`_, we are able to include new formats fastly during the setup of a shared task).
+
+
+.. note:: Starting from here the documentation is WIP, Remaining TODOS:
+          1. Screenshot of the form +  what was filled out
+          2. Access of newly created dataset (one tab for python, one for bash, one for ir_datasets).
+
+
+We recommend that you add a tiny and public smoke test dataset with ca. 10 instances so that participants can easily test their approaches. For instance, if you named your public smoke test dataset `<dataset-id>` in the task `<task-id>`, participants can process the dataset via:
+
+.. tabs::
+
+   .. tab:: Python
+
+      .. code:: python
+
+      # dependencies installed via: pip3 install tira
+      TBD
+
+   .. tab:: Bash
+
+      .. code:: bash
+
+      # the tira command is installed via pip3 install tira
+      TBD
+
+   .. tab:: ir_datasets
+
+      .. code:: python
+
+      # dependencies installed via: pip3 install tira ir_datasets
+      TBD
+      
+This code will work inside and outside the TIRA sandbox (within the sandbox thst has no access to the internet, the code above will use the dataset mou ted read only into the container as anounced via environment variables).
+
 
 ------
 
