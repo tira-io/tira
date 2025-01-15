@@ -398,6 +398,19 @@ This command should create the following output in `tira-output`: &lt;TODO_ADD_E
 
 <section id="add-a-new-dataset">
 <h2>Tutorial: Add a new Dataset</h2>
+
+TIRA can run evaluations on confidential and public datasets. Shared tasks on confidential datasets require software submissions whereas shared tasks on public datasets can enable run submissions.
+
+TIRA expects that every dataset is partitioned into two parts:
+
+<ol>
+<li>System inputs: This partition is passed as input to the systems that are expected to make predictions based on those inputs. Systems submitted to TIRA only have access to this part of the dataset. The system inputs should be easy to process, for instance, we recommend to use <a href="https://jsonlines.org/">.jsonl</a> as this data format is well supported in many diverse frameworks.</li>
+<li>Truth labels: This partition contains the ground truth labels used to evaluate system predictions. Submitted systems do not have access to the truth labels, only the evaluator of the organizer can process the ground truth labels, to calculate evaluation measures for the output of systems. It is possible to upload the truth labels after the shared task, e.g., when the truth labels require to annotate outputs of all submitted systems.</li>
+</ol>
+
+If your dataset allows it, we recommend that you upload it to <a href="https://zenodo.org">Zenodo</a> and import it to TIRA from Zenodo. Zenodo allows per-request access to datasets, this way, you can make the inputs publicly available to participants and leave the ground truth labels in a private record (that you potentially make public after the shared task). Zenodo aims to <a href="https://help.zenodo.org/faq">operate for the next 20+ years</a>, making it a perfect choice for research data produced for/in shared tasks.
+
+
 TBD
 </section>
 
