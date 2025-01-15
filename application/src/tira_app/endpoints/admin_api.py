@@ -277,6 +277,8 @@ def admin_add_dataset(request, task_id):
 
         systemUrlHandle = data.get("systemUrlHandle")
         truthUrlHandle = data.get("truthUrlHandle")
+        system_inputs = None
+        truth_data = None
         if systemUrlHandle is not None or truthUrlHandle is not None:
             if systemUrlHandle is None or truthUrlHandle is None:
                 return JsonResponse(
