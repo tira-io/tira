@@ -35,9 +35,7 @@
             <td :colspan="columns.length">
               <div v-if="!item.description">No description is available.</div>
               <div v-if="item.description" v-html="item.description"/>
-              <div v-if="item.file_listing">
-                <v-treeview :items="item.file_listing" item-value="title" activatable open-on-click open-all density="compact"/>
-              </div>
+              <directory-inspector :file_listing="item.file_listing"/>
             </td>
           </tr>
         </template>
@@ -58,11 +56,11 @@
   import { inject } from 'vue'
   
   import { get_from_archive, reportError, chatNoirUrl, irDatasetsUrls, type UserInfo, type DatasetInfo } from './utils';
-  import { Loading, TiraBreadcrumb } from './components'
+  import { Loading, TiraBreadcrumb, DirectoryInspector } from './components'
   
   export default {
     name: "datasets",
-    components: { Loading, TiraBreadcrumb },
+    components: { Loading, TiraBreadcrumb, DirectoryInspector },
     data() {
       return {
         userinfo: inject('userinfo') as UserInfo,

@@ -333,6 +333,13 @@ class HybridDatabase(object):
             except JSONDecodeError:
                 pass
 
+        file_listing = None
+        if dataset and dataset.file_listing:
+            try:
+                file_listing = json.loads(dataset.file_listing)
+            except json.JSONDecodeError:
+                pass
+
         return {
             "display_name": dataset.display_name,
             "evaluator_id": evaluator_id,
@@ -363,6 +370,7 @@ class HybridDatabase(object):
             "description": dataset.description,
             "chatnoir_id": dataset.chatnoir_id,
             "ir_datasets_id": dataset.ir_datasets_id,
+            "file_listing": file_listing,
         }
 
     def get_dataset(self, dataset_id: str) -> dict[str, Any]:

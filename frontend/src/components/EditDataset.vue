@@ -74,53 +74,58 @@
                 </v-radio-group>
 
                 <v-divider/>
-                <h2 class="my-1">Provide the Actual Data</h2>
-                <v-radio-group v-if="newDataset()" v-model="upload_type">
-                  <v-radio label="Import from Zenodo (recommended)" value="upload-0"></v-radio>
-                  <v-radio label="I want to provide the data later" value="upload-1"></v-radio>
-                  <v-radio label="I want to manually upload the data now" value="upload-2"></v-radio>
-                  <v-radio label="I want to use the ir_datasets integration" value="upload-3"></v-radio>
-                </v-radio-group>
+                <div v-if="file_listing">
+                  <h2 class="my-1">Overview of the Actual Data</h2>
+                  <directory-inspector :file_listing="file_listing"/>
+                </div>
+                <div v-if="!file_listing">
+                  <h2 class="my-1">Provide the Actual Data</h2>
+                  <v-radio-group v-if="newDataset()" v-model="upload_type">
+                    <v-radio label="Import from Zenodo (recommended)" value="upload-0"></v-radio>
+                    <v-radio label="I want to provide the data later" value="upload-1"></v-radio>
+                    <v-radio label="I want to manually upload the data now" value="upload-2"></v-radio>
+                    <v-radio label="I want to use the ir_datasets integration" value="upload-3"></v-radio>
+                  </v-radio-group>
 
-                <div v-if="newDataset() && upload_type === 'upload-0'">
-                  <v-row>
-                    <v-col cols="6">
-                      <v-text-field v-model="systemUrlHandle" label="Zenodo Download URL of Inputs for Systems" :rules="[v => v && v.length > 2 || 'Please provide a URL.']"/>
+                  <div v-if="newDataset() && upload_type === 'upload-0'">
+                    <v-row>
+                      <v-col cols="6">
+                        <v-text-field v-model="systemUrlHandle" label="Zenodo Download URL of Inputs for Systems" :rules="[v => v && v.length > 2 || 'Please provide a URL.']"/>
+                        </v-col>
+                        <v-col cols="6">
+                          <v-text-field v-if="!is_zip(systemUrlHandle)" v-model="systemFileRename" label="Rename input for systems for unified access (optional)"/>
+                          <div v-if="is_zip(systemUrlHandle)">
+                          The URL for the system inputs looks like a .zip file. In case a subdirectory of the zip contains the data, please specify it next (Leave empty otherwise).
+                          <v-text-field  v-model="systemUrlDirectory" label="Subdirectory in Zip (optional)"/>
+                        </div>
+                      </v-col>
+                    </v-row>
+
+                    <v-row>
+                      <v-col cols="6">
+                        <v-text-field v-model="truthUrlHandle" label="Zenodo Download URL for Ground Truth Data." :rules="[v => v && v.length > 2 || 'Please provide a URL.']"/>
                       </v-col>
                       <v-col cols="6">
-                        <v-text-field v-if="!is_zip(systemUrlHandle)" v-model="systemFileRename" label="Rename input for systems for unified access (optional)"/>
-                        <div v-if="is_zip(systemUrlHandle)">
-                        The URL for the system inputs looks like a .zip file. In case a subdirectory of the zip contains the data, please specify it next (Leave empty otherwise).
-                        <v-text-field  v-model="systemUrlDirectory" label="Subdirectory in Zip (optional)"/>
-                      </div>
-                    </v-col>
-                  </v-row>
+                        <v-text-field v-if="!is_zip(truthUrlHandle)" v-model="truthFileRename" label="Rename truth file for unified access (optional)"/>
+                        <div v-if="is_zip(truthUrlHandle)">
+                          The ground truth data URL looks like a .zip file. In case a subdirectory of the zip contains the data, please specify it next (Leave empty otherwise).
+                          <v-text-field v-model="truthUrlDirectory" label="Subdirectory in Zip (optional)"/>
+                        </div>
+                      </v-col>
+                    </v-row>
+                  </div>
 
-                  <v-row>
-                    <v-col cols="6">
-                      <v-text-field v-model="truthUrlHandle" label="Zenodo Download URL for Ground Truth Data." :rules="[v => v && v.length > 2 || 'Please provide a URL.']"/>
-                    </v-col>
-                    <v-col cols="6">
-                      <v-text-field v-if="!is_zip(truthUrlHandle)" v-model="truthFileRename" label="Rename truth file for unified access (optional)"/>
-                      <div v-if="is_zip(truthUrlHandle)">
-                        The ground truth data URL looks like a .zip file. In case a subdirectory of the zip contains the data, please specify it next (Leave empty otherwise).
-                        <v-text-field v-model="truthUrlDirectory" label="Subdirectory in Zip (optional)"/>
-                      </div>
-                    </v-col>
-                  </v-row>
+                  <v-file-input v-model="systemFileHandle" v-if="(newDataset() && upload_type === 'upload-2') || !newDataset()" label="Input Data for Systems (.zip file)"></v-file-input>
+                  <v-file-input  v-model="truthFileHandle" v-if="(newDataset() && upload_type === 'upload-2') || !newDataset()" label="Ground Truth for Evaluation (.zip file)"></v-file-input>
+
+                  <v-text-field v-if="irds_image !== '' || upload_type === 'upload-3'" v-model="irds_image" label="Docker Image of the ir_datasets integration" :rules="[v => v && v.length > 2 || 'Please provide a docker image.']" required/>
+                  <v-text-field v-if="irds_image !== '' || upload_type === 'upload-3'" v-model="irds_command" label="Command of the ir_datasets integration" :rules="[v => v && v.length > 2 || 'Please provide a command.']" required/>
+
+                  <p v-if="!newDataset()">
+                    ToDo: Short description how access data via CephFS.
+                    <br><br>
+                  </p>
                 </div>
-
-                <v-file-input v-model="systemFileHandle" v-if="(newDataset() && upload_type === 'upload-2') || !newDataset()" label="Input Data for Systems (.zip file)"></v-file-input>
-                <v-file-input  v-model="truthFileHandle" v-if="(newDataset() && upload_type === 'upload-2') || !newDataset()" label="Ground Truth for Evaluation (.zip file)"></v-file-input>
-
-                <v-text-field v-if="irds_image !== '' || upload_type === 'upload-3'" v-model="irds_image" label="Docker Image of the ir_datasets integration" :rules="[v => v && v.length > 2 || 'Please provide a docker image.']" required/>
-                <v-text-field v-if="irds_image !== '' || upload_type === 'upload-3'" v-model="irds_command" label="Command of the ir_datasets integration" :rules="[v => v && v.length > 2 || 'Please provide a command.']" required/>
-
-                <p v-if="!newDataset()">
-                  ToDo: Short description how access data via CephFS.
-                  <br><br>
-                </p>
-
                 <v-divider/>
                 <h2 class="my-1">Evaluation</h2>
                 <p v-if="newDataset()">Please specify how you want to evaluate submissions. An evaluator has a submissions and the ground truth as input to produce an evaluation. We have prepared evaluators covering common evaluation scenarious.
@@ -162,13 +167,13 @@
     <script lang="ts">
     import { inject } from 'vue'
 
-    import { Loading } from '.'
+    import { Loading, DirectoryInspector } from '.'
     import {VAutocomplete} from "vuetify/components";
     import { get, post, post_file, reportError, slugify, reportSuccess, inject_response, type UserInfo, type ServerInfo } from '../utils'
     
     export default {
       name: "edit-dataset",
-      components: {Loading, VAutocomplete},
+      components: {Loading, VAutocomplete, DirectoryInspector},
       emits: ['add-dataset'],
       props: {task_id: {}, dataset_id_from_props: {type: String, default: ''}, disabled: {type: Boolean, default: false}, is_ir_task: {type: Boolean, default: false}},
       data: () => ({
@@ -179,7 +184,7 @@
         systemUrlHandle: "", systemUrlDirectory: "", truthUrlHandle: "", truthUrlDirectory: "", systemFileRename: "inputs.jsonl", truthFileRename: "labels.jsonl", error_message: "", chatnoir_id: "", ir_datasets_id: "",
         git_runner_image: "ubuntu:18.04", git_runner_command: "echo 'this is no real evaluator'", evaluation_type: "eval-1",
         systemFileHandle: undefined, truthFileHandle: undefined,
-        git_repository_id: '', rest_endpoint: inject("REST base URL") as string,
+        git_repository_id: '', rest_endpoint: inject("REST base URL") as string, file_listing: '',
         userinfo: inject('userinfo') as UserInfo, serverinfo: inject("serverInfo") as ServerInfo,
       }),
       computed: {
