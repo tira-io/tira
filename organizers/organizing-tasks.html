@@ -11,7 +11,6 @@
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../_static/umlet.css" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
-    <link rel="stylesheet" type="text/css" href="../_static/tabs.css?v=a5c4661c" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
     <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=55730460" />
     
@@ -326,23 +325,7 @@
 </details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
 <summary class="sd-summary-title sd-card-header">
 <span class="sd-summary-text"><svg version="4.0.0.63c5cb3" width="1.5em" height="1.5em" class="sd-material-icon sd-material-icon-looks_3" viewBox="0 0 24 24" aria-hidden="true"><path d="M.01 0h24v24h-24z" fill="none"></path><path d="M19.01 3h-14c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-4 7.5c0 .83-.67 1.5-1.5 1.5.83 0 1.5.67 1.5 1.5V15c0 1.11-.9 2-2 2h-4v-2h4v-2h-2v-2h2V9h-4V7h4c1.1 0 2 .89 2 2v1.5z"></path></svg> Create a Docker Image for the Evaluator</span><span class="sd-summary-state-marker sd-summary-chevron-down"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-down" viewBox="0 0 24 24" aria-hidden="true"><path d="M5.22 8.22a.749.749 0 0 0 0 1.06l6.25 6.25a.749.749 0 0 0 1.06 0l6.25-6.25a.749.749 0 1 0-1.06-1.06L12 13.939 6.28 8.22a.749.749 0 0 0-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
-<p class="sd-card-text">An evaluator is a software that gets a system’s run and the truth data as input to create the run’s evaluation.</p>
-<p class="sd-card-text">Evaluators get three variables as input in TIRA:</p>
-<ol class="arabic simple">
-<li><p class="sd-card-text">the <code class="code docutils literal notranslate"><span class="pre">$inputDataset</span></code> variable contains the ground-truth data,</p></li>
-<li><p class="sd-card-text">the <code class="code docutils literal notranslate"><span class="pre">$inputRun</span></code> variable contains the to-be-evaluated run, and</p></li>
-<li><p class="sd-card-text">the <code class="code docutils literal notranslate"><span class="pre">$outputDir</span></code> variable points to the directory at which the evaluator should create the
-<code class="code docutils literal notranslate"><span class="pre">evaluation.prototext</span></code> file containing the evaluation results.</p></li>
-</ol>
-<p class="sd-card-text">Evaluators should produce helpful guidance for runs that are not valid (e.g., clarify the inconsistency with a message printed to stdout instead of failing with an exception). Users can see the output (stdout and stderr) and the evaluation results of unblinded evaluations (in case it is a test dataset an admin manually unblinds the evaluation after ensuring it does not leak confidential data) or all training/validation evaluations (i.e., evaluations that use a training or validation dataset as input).</p>
-<p class="sd-card-text">Your evaluator must be compiled as a docker image and uploaded to Docker Hub so that TIRA can load your image. Here are some recent evaluators that you can use as blueprint for your own evaluator:</p>
-<ul class="simple">
-<li><p class="sd-card-text">The <a class="reference external" href="https://github.com/tira-io/hf-evaluator">huggingface evaluator</a> is an evaluator that supports all evaluations in huggingface evaluate. This should be the default evaluator in most cases.</p></li>
-<li><p class="sd-card-text">The <a class="reference external" href="https://github.com/touche-webis-de/touche-code/blob/main/clef23/multilingual-stance-classification/evaluation/evaluation.py">evaluator for multilingual stance detection of Touché23</a> together with <a class="reference external" href="https://github.com/touche-webis-de/touche-code/tree/main/clef23/multilingual-stance-classification#build-the-evaluator">instructions on how to build the docker image</a></p></li>
-<li><p class="sd-card-text">The <a class="reference external" href="https://github.com/pan-webis-de/pan-code/blob/master/semeval23/clickbait-spoiling-eval.py">clickbait-spoiling-eval.py</a> script used in the Clickbait Spoiling task at SemEval 23 together with <a class="reference external" href="https://github.com/pan-webis-de/pan-code/tree/master/semeval23#development">instructions on how to build the docker image</a> and the <a class="reference external" href="https://github.com/pan-webis-de/pan-code/tree/master/semeval23#integration-in-tira">command to add in TIRA</a>.</p></li>
-<li><p class="sd-card-text">The <a class="reference external" href="https://github.com/touche-webis-de/touche-code/tree/main/semeval23/human-value-detection/evaluator">ValueEval 2023 evaluator</a> used in SemEval-2023.</p></li>
-<li><p class="sd-card-text"><a class="reference external" href="https://github.com/tira-io/ir-experiment-platform/tree/main/ir-measures">ir_measures</a> for the evaluation of IR experiments.</p></li>
-</ul>
+<p class="sd-card-text">An evaluator is a software that gets a system’s run and the truth data as input to create the run’s evaluation. A step-by-step guide is available in the <a class="reference external" href="#add-an-evaluator">Add a new Evaluator section</a>.</p>
 </div>
 </details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
 <summary class="sd-summary-title sd-card-header">
@@ -352,8 +335,8 @@
 <li><p class="sd-card-text">Visit the overview of all tasks at <a class="reference external" href="https://www.tira.io/">tira.io</a></p></li>
 <li><p class="sd-card-text">Click on “Add Task” and fill out the corresponding form (use the Master VM Id that you received during registration, e.g., <code class="code docutils literal notranslate"><span class="pre">princess-knight</span></code> was a baseline in Touché)</p></li>
 <li><p class="sd-card-text">Click on your newly created task</p></li>
-<li><p class="sd-card-text">Click on “Add a new Dataset” and fill out the corresponding form</p></li>
-<li><p class="sd-card-text">Navigate to the Evaluator section of your new dataset. Click on “Git CI” to use the CI backend and specify the Docker image of the evaluator and the <a class="reference external" href="#create-a-docker-image-for-your-evaluator">evaluation command</a>.</p></li>
+<li><p class="sd-card-text">Click on “Add a new Dataset” and fill out the corresponding form. A step-by-step guide is available in the <a class="reference external" href="#add-a-new-dataset">Add a new Dataset section</a>.</p></li>
+<li><p class="sd-card-text">Navigate to the Evaluator section of your new dataset. Click on “Git CI” to use the CI backend and specify the Docker image of the evaluator and the <a class="reference external" href="#add-an-evaluator">evaluation command</a>.</p></li>
 </ol>
 </div>
 </details><details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
@@ -395,6 +378,29 @@ This command should create the following output in `tira-output`: &lt;TODO_ADD_E
 </div>
 </div>
 </details><hr class="docutils" />
+<section id="add-an-evaluator">
+<h2>Add an Evaluator<a class="headerlink" href="#add-an-evaluator" title="Link to this heading">¶</a></h2>
+<p>Evaluators get three variables as input in TIRA:</p>
+<ol class="arabic simple">
+<li><p>the <code class="code docutils literal notranslate"><span class="pre">$inputDataset</span></code> variable contains the ground-truth data,</p></li>
+<li><p>the <code class="code docutils literal notranslate"><span class="pre">$inputRun</span></code> variable contains the to-be-evaluated run, and</p></li>
+<li><dl class="simple">
+<dt>the <code class="code docutils literal notranslate"><span class="pre">$outputDir</span></code> variable points to the directory at which the evaluator should create the</dt><dd><p><code class="code docutils literal notranslate"><span class="pre">evaluation.prototext</span></code> file containing the evaluation results.</p>
+</dd>
+</dl>
+</li>
+</ol>
+<p>Evaluators should produce helpful guidance for runs that are not valid (e.g., clarify the inconsistency with a message printed to stdout instead of failing with an exception). Users can see the output (stdout and stderr) and the evaluation results of unblinded evaluations (in case it is a test dataset an admin manually unblinds the evaluation after ensuring it does not leak confidential data) or all training/validation evaluations (i.e., evaluations that use a training or validation dataset as input).</p>
+<p>Your evaluator must be compiled as a docker image and uploaded to Docker Hub so that TIRA can load your image. Here are some recent evaluators that you can use as blueprint for your own evaluator:</p>
+<ul class="simple">
+<li><p>The <a class="reference external" href="https://github.com/tira-io/hf-evaluator">huggingface evaluator</a> is an evaluator that supports all evaluations in huggingface evaluate. This should be the default evaluator in most cases.</p></li>
+<li><p>The <a class="reference external" href="https://github.com/touche-webis-de/touche-code/blob/main/clef23/multilingual-stance-classification/evaluation/evaluation.py">evaluator for multilingual stance detection of Touché23</a> together with <a class="reference external" href="https://github.com/touche-webis-de/touche-code/tree/main/clef23/multilingual-stance-classification#build-the-evaluator">instructions on how to build the docker image</a></p></li>
+<li><p>The <a class="reference external" href="https://github.com/pan-webis-de/pan-code/blob/master/semeval23/clickbait-spoiling-eval.py">clickbait-spoiling-eval.py</a> script used in the Clickbait Spoiling task at SemEval 23 together with <a class="reference external" href="https://github.com/pan-webis-de/pan-code/tree/master/semeval23#development">instructions on how to build the docker image</a> and the <a class="reference external" href="https://github.com/pan-webis-de/pan-code/tree/master/semeval23#integration-in-tira">command to add in TIRA</a>.</p></li>
+<li><p>The <a class="reference external" href="https://github.com/touche-webis-de/touche-code/tree/main/semeval23/human-value-detection/evaluator">ValueEval 2023 evaluator</a> used in SemEval-2023.</p></li>
+<li><p><a class="reference external" href="https://github.com/tira-io/ir-experiment-platform/tree/main/ir-measures">ir_measures</a> for the evaluation of IR experiments.</p></li>
+</ul>
+</section>
+<hr class="docutils" />
 <section id="add-a-new-dataset">
 <h2>Add a new Dataset<a class="headerlink" href="#add-a-new-dataset" title="Link to this heading">¶</a></h2>
 <div class="admonition note">
@@ -406,51 +412,43 @@ This command should create the following output in `tira-output`: &lt;TODO_ADD_E
 <li><p><strong>System inputs</strong>: This partition is passed as input to the systems that are expected to make predictions based on those inputs. Systems submitted to TIRA only have access to this part of the dataset. The system inputs should be easy to process, for instance, we recommend to use <a class="reference external" href="https://jsonlines.org/">.jsonl</a> as this data format is well supported in many diverse frameworks.</p></li>
 <li><p><strong>Truth labels</strong>: This partition contains the ground truth labels used to evaluate system predictions. Submitted systems do not have access to the truth labels, only the evaluator of the organizer can process the ground truth labels, to calculate evaluation measures for the output of systems. It is possible to upload the truth labels after the shared task, e.g., when the truth labels require to annotate outputs of all submitted systems.</p></li>
 </ol>
-<p>If your dataset allows it and is final, we recommend that you upload it to <a class="reference external" href="https://zenodo.org">Zenodo</a> and import it to TIRA from Zenodo. Zenodo allows per-request access to datasets, so you can make the inputs publicly available to participants and leave the ground truth labels in a private record (potentially publishing it after the shared task). Zenodo aims to <a class="reference external" href="https://help.zenodo.org/faq">operate for the next 20+ years</a>, making it a perfect choice for research data produced for/in shared tasks. It is fine to have non-final datasets only in TIRA, but for final datasets, uploading them to Zenodo and importing them to TIRA from Zenodo has major benefits. TIRA can either import .zip files from Zenodo (e.g., like <a class="reference external" href="https://zenodo.org/records/12722918/files/dl-top-10-docs-20240701-inputs.zip">zenodo.org/records/12722918/dl-top-10-docs-20240701-inputs.zip</a>) or the files directly.</p>
+<p>If your dataset allows it and is final, we recommend that you upload it to <a class="reference external" href="https://zenodo.org">Zenodo</a> and import it to TIRA from Zenodo. Zenodo allows per-request access to datasets, so you can make the inputs publicly available to participants and leave the ground truth labels in a private record (potentially publishing it after the shared task). Zenodo aims to <a class="reference external" href="https://about.zenodo.org/policies/">operate for the next 20+ years</a>, making it a perfect choice for research data produced for/in shared tasks. It is fine to have non-final datasets only in TIRA, but for final datasets, uploading them to Zenodo and importing them to TIRA from Zenodo has major benefits. TIRA can either import .zip files from Zenodo (e.g., like <a class="reference external" href="https://zenodo.org/records/12722918/files/dl-top-10-docs-20240701-inputs.zip">zenodo.org/records/12722918/dl-top-10-docs-20240701-inputs.zip</a>) or the files directly.</p>
 <p>As soon as the system inputs are ready, you can define the expected output format in which systems should produce their predictions. TIRA has a set of (optional) validators (currently <a class="reference external" href="https://github.com/tira-io/tira/blob/pyterrier-artifacts/python-client/tira/check_format.py">.run, .jsonl, and .tsv format</a>)  for standard output formats that allow to give participants fast feedback in case their predictions have an invalid format. We recommend to use .jsonl as output format for NLP tasks and .run files for IR tasks (if a format that you would like to use is not yet supported, <a class="reference external" href="https://github.com/tira-io/tira/issues">please create an issue</a>, we are able to include new formats fastly during the setup of a shared task).</p>
+<p>To add a new Dataset, navigate to your task in TIRA, if you are authenticated as task admin, you see the Admin panel. Please expand “Manage Datasets” and click on “New Dataset”.</p>
+<img alt="../_images/add-dataset-01.png" src="../_images/add-dataset-01.png" />
+<p>This will open the form for creating a new dataset:</p>
+<img alt="../_images/add-dataset-02.png" src="../_images/add-dataset-02.png" />
+<p>It is important that datasets for the same task use the same format for their system inputs, including the structure and names of the files so that software submissions can run on different datasets without modification. For that reason, we renamed the <code class="code docutils literal notranslate"><span class="pre">arguments-training.tsv</span></code> and the <code class="code docutils literal notranslate"><span class="pre">labels-training.tsv</span></code> that we import from Zenodo into <code class="code docutils literal notranslate"><span class="pre">inputs.tsv</span></code> respectively <code class="code docutils literal notranslate"><span class="pre">labels.tsv</span></code>.</p>
+<p>After you have created the dataset, you can verify and modify it by clicking on “Edit existing Dataset”, the form will show the imported files and allow to modify the meta data:</p>
+<img alt="../_images/add-dataset-03.png" src="../_images/add-dataset-03.png" />
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Starting from here the documentation is WIP, Remaining TODOS:
-1. Screenshot of the form +  what was filled out
-2. Access of newly created dataset (one tab for python, one for bash, one for ir_datasets).</p>
+1. Access of newly created dataset (one tab for python, one for bash, one for ir_datasets).</p>
 </div>
 <p>We recommend that you add a tiny and public smoke test dataset with ca. 10 instances so that participants can easily test their approaches. For instance, if you named your public smoke test dataset <cite>&lt;dataset-id&gt;</cite> in the task <cite>&lt;task-id&gt;</cite>, participants can process the dataset via:</p>
-<div class="sphinx-tabs docutils container">
-<div class="docutils container">
-<div class="docutils container">
-<div class="docutils container">
-<p>Python</p>
-</div>
-</div>
-<div class="docutils container">
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-0">
+Python</label><div class="sd-tab-content docutils">
 <p># dependencies installed via: pip3 install tira
 TBD</p>
 </div>
-</div>
-<div class="docutils container">
-<div class="docutils container">
-<div class="docutils container">
-<p>Bash</p>
-</div>
-</div>
-<div class="docutils container">
+<input id="sd-tab-item-1" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-1">
+Bash</label><div class="sd-tab-content docutils">
 <p># the tira command is installed via pip3 install tira
 TBD</p>
 </div>
-</div>
-<div class="docutils container">
-<div class="docutils container">
-<div class="docutils container">
-<p>ir_datasets</p>
-</div>
-</div>
-<div class="docutils container">
+<input id="sd-tab-item-2" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-2">
+ir_datasets</label><div class="sd-tab-content docutils">
 <p># dependencies installed via: pip3 install tira ir_datasets
 TBD</p>
 </div>
 </div>
-</div>
 <p>This code will work inside and outside the TIRA sandbox (within the sandbox thst has no access to the internet, the code above will use the dataset mou ted read only into the container as anounced via environment variables).</p>
+<p>Now that the data is available, please configure next its evaluation by adding an <a class="reference external" href="#add-an-evaluator">Evaluator</a>.</p>
 <hr class="docutils" />
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -679,6 +677,7 @@ On betaweb020:</span><span class="sd-summary-state-marker sd-summary-chevron-rig
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">Organizing Tasks</a><ul>
+<li><a class="reference internal" href="#add-an-evaluator">Add an Evaluator</a></li>
 <li><a class="reference internal" href="#add-a-new-dataset">Add a new Dataset</a></li>
 <li><a class="reference internal" href="#modifying-virtual-machines">Modifying virtual machines</a><ul>
 <li><a class="reference internal" href="#moderate-a-task">Moderate a Task:</a></li>
@@ -702,6 +701,5 @@ On betaweb020:</span><span class="sd-summary-state-marker sd-summary-chevron-rig
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
-    <script src="../_static/tabs.js?v=3030b3cb"></script>
     </body>
 </html>
