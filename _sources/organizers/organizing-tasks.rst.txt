@@ -144,22 +144,22 @@ We recommend that you add a tiny and public smoke test dataset with ca. 10 insta
 
       .. code:: python
 
-      # dependencies installed via: pip3 install tira
-      TBD
+       # dependencies installed via: pip3 install tira
+       TBD
 
    .. tab-item:: Bash
 
       .. code:: bash
 
-      # the tira command is installed via pip3 install tira
-      TBD
+       # the tira command is installed via pip3 install tira
+       TBD
 
    .. tab-item:: ir_datasets
 
       .. code:: python
 
-      # dependencies installed via: pip3 install tira ir_datasets
-      TBD
+       # dependencies installed via: pip3 install tira ir_datasets
+       TBD
       
 This code will work inside and outside the TIRA sandbox (within the sandbox thst has no access to the internet, the code above will use the dataset mou ted read only into the container as anounced via environment variables).
 
