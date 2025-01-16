@@ -20,7 +20,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y python3-pip plantuml
-          pip install sphinx furo myst-parser sphinx-design sphinxcontrib-plantuml sphinxcontrib-umlet sphinx-tabs
+          pip install sphinx furo myst-parser sphinx-design sphinxcontrib-plantuml sphinxcontrib-umlet
           pip install pandas pyterrier ir_datasets
           cd documentation
           # sphinx-apidoc -o . ../python-client/tira

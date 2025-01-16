@@ -39,7 +39,6 @@ extensions = [
     "sphinxcontrib.umlet",
     "myst_parser",
     "openapi",
-    "sphinx_tabs.tabs",
 ]
 
 todo_include_todos = True

@@ -17,24 +17,7 @@ Organizing Tasks
 .. dropdown:: :material-regular:`looks_3;1.5em` Create a Docker Image for the Evaluator
    :chevron: down-up
 
-   An evaluator is a software that gets a system's run and the truth data as input to create the run's evaluation.
-
-   Evaluators get three variables as input in TIRA:
-
-   (1) the :code:`$inputDataset` variable contains the ground-truth data,
-   (2) the :code:`$inputRun` variable contains the to-be-evaluated run, and
-   (3) the :code:`$outputDir` variable points to the directory at which the evaluator should create the
-       :code:`evaluation.prototext` file containing the evaluation results.
-
-   Evaluators should produce helpful guidance for runs that are not valid (e.g., clarify the inconsistency with a message printed to stdout instead of failing with an exception). Users can see the output (stdout and stderr) and the evaluation results of unblinded evaluations (in case it is a test dataset an admin manually unblinds the evaluation after ensuring it does not leak confidential data) or all training/validation evaluations (i.e., evaluations that use a training or validation dataset as input).
-
-   Your evaluator must be compiled as a docker image and uploaded to Docker Hub so that TIRA can load your image. Here are some recent evaluators that you can use as blueprint for your own evaluator:
-
-   - The `huggingface evaluator <https://github.com/tira-io/hf-evaluator>`__ is an evaluator that supports all evaluations in huggingface evaluate. This should be the default evaluator in most cases.
-   - The `evaluator for multilingual stance detection of Touché23 <https://github.com/touche-webis-de/touche-code/blob/main/clef23/multilingual-stance-classification/evaluation/evaluation.py>`__ together with `instructions on how to build the docker image <https://github.com/touche-webis-de/touche-code/tree/main/clef23/multilingual-stance-classification#build-the-evaluator>`__
-   - The `clickbait-spoiling-eval.py <https://github.com/pan-webis-de/pan-code/blob/master/semeval23/clickbait-spoiling-eval.py>`__ script used in the Clickbait Spoiling task at SemEval 23 together with `instructions on how to build the docker image <https://github.com/pan-webis-de/pan-code/tree/master/semeval23#development>`__ and the `command to add in TIRA <https://github.com/pan-webis-de/pan-code/tree/master/semeval23#integration-in-tira>`__.
-   - The `ValueEval 2023 evaluator <https://github.com/touche-webis-de/touche-code/tree/main/semeval23/human-value-detection/evaluator>`__ used in SemEval-2023.
-   - `ir_measures <https://github.com/tira-io/ir-experiment-platform/tree/main/ir-measures>`__ for the evaluation of IR experiments.
+   An evaluator is a software that gets a system's run and the truth data as input to create the run's evaluation. A step-by-step guide is available in the `Add a new Evaluator section <#add-an-evaluator>`_. 
 
 
 .. dropdown:: :material-regular:`looks_4;1.5em` Add the new Task and Dataset to TIRA
@@ -45,8 +28,8 @@ Organizing Tasks
    (1) Visit the overview of all tasks at `tira.io <https://www.tira.io/>`__
    (2) Click on "Add Task" and fill out the corresponding form (use the Master VM Id that you received during registration, e.g., :code:`princess-knight` was a baseline in Touché)
    (3) Click on your newly created task
-   (4) Click on "Add a new Dataset" and fill out the corresponding form
-   (5) Navigate to the Evaluator section of your new dataset. Click on "Git CI" to use the CI backend and specify the Docker image of the evaluator and the `evaluation command <#create-a-docker-image-for-your-evaluator>`__.
+   (4) Click on "Add a new Dataset" and fill out the corresponding form. A step-by-step guide is available in the `Add a new Dataset section <#add-a-new-dataset>`_.
+   (5) Navigate to the Evaluator section of your new dataset. Click on "Git CI" to use the CI backend and specify the Docker image of the evaluator and the `evaluation command <#add-an-evaluator>`__.
 
 
 .. dropdown:: :material-regular:`looks_4;1.5em` Upload Public Baselines
@@ -91,6 +74,31 @@ Organizing Tasks
       This command should create the following output in `tira-output`: <TODO_ADD_EXAMPLE_OUTPUT>
 
 
+
+------
+
+Add an Evaluator
+~~~~~~~~~~~~~~~~
+
+Evaluators get three variables as input in TIRA:
+
+(1) the :code:`$inputDataset` variable contains the ground-truth data,
+(2) the :code:`$inputRun` variable contains the to-be-evaluated run, and
+(3) the :code:`$outputDir` variable points to the directory at which the evaluator should create the
+     :code:`evaluation.prototext` file containing the evaluation results.
+
+Evaluators should produce helpful guidance for runs that are not valid (e.g., clarify the inconsistency with a message printed to stdout instead of failing with an exception). Users can see the output (stdout and stderr) and the evaluation results of unblinded evaluations (in case it is a test dataset an admin manually unblinds the evaluation after ensuring it does not leak confidential data) or all training/validation evaluations (i.e., evaluations that use a training or validation dataset as input).
+
+Your evaluator must be compiled as a docker image and uploaded to Docker Hub so that TIRA can load your image. Here are some recent evaluators that you can use as blueprint for your own evaluator:
+
+- The `huggingface evaluator <https://github.com/tira-io/hf-evaluator>`__ is an evaluator that supports all evaluations in huggingface evaluate. This should be the default evaluator in most cases.
+- The `evaluator for multilingual stance detection of Touché23 <https://github.com/touche-webis-de/touche-code/blob/main/clef23/multilingual-stance-classification/evaluation/evaluation.py>`__ together with `instructions on how to build the docker image <https://github.com/touche-webis-de/touche-code/tree/main/clef23/multilingual-stance-classification#build-the-evaluator>`__
+- The `clickbait-spoiling-eval.py <https://github.com/pan-webis-de/pan-code/blob/master/semeval23/clickbait-spoiling-eval.py>`__ script used in the Clickbait Spoiling task at SemEval 23 together with `instructions on how to build the docker image <https://github.com/pan-webis-de/pan-code/tree/master/semeval23#development>`__ and the `command to add in TIRA <https://github.com/pan-webis-de/pan-code/tree/master/semeval23#integration-in-tira>`__.
+- The `ValueEval 2023 evaluator <https://github.com/touche-webis-de/touche-code/tree/main/semeval23/human-value-detection/evaluator>`__ used in SemEval-2023.
+- `ir_measures <https://github.com/tira-io/ir-experiment-platform/tree/main/ir-measures>`__ for the evaluation of IR experiments.
+
+
+
 ------
 
 Add a new Dataset
@@ -104,35 +112,49 @@ TIRA expects that every dataset is partitioned into two parts:
 2. **Truth labels**: This partition contains the ground truth labels used to evaluate system predictions. Submitted systems do not have access to the truth labels, only the evaluator of the organizer can process the ground truth labels, to calculate evaluation measures for the output of systems. It is possible to upload the truth labels after the shared task, e.g., when the truth labels require to annotate outputs of all submitted systems.
 
 
-If your dataset allows it and is final, we recommend that you upload it to `Zenodo <https://zenodo.org>`_ and import it to TIRA from Zenodo. Zenodo allows per-request access to datasets, so you can make the inputs publicly available to participants and leave the ground truth labels in a private record (potentially publishing it after the shared task). Zenodo aims to `operate for the next 20+ years <https://help.zenodo.org/faq>`_, making it a perfect choice for research data produced for/in shared tasks. It is fine to have non-final datasets only in TIRA, but for final datasets, uploading them to Zenodo and importing them to TIRA from Zenodo has major benefits. TIRA can either import .zip files from Zenodo (e.g., like `zenodo.org/records/12722918/dl-top-10-docs-20240701-inputs.zip <https://zenodo.org/records/12722918/files/dl-top-10-docs-20240701-inputs.zip>`_) or the files directly.
+If your dataset allows it and is final, we recommend that you upload it to `Zenodo <https://zenodo.org>`_ and import it to TIRA from Zenodo. Zenodo allows per-request access to datasets, so you can make the inputs publicly available to participants and leave the ground truth labels in a private record (potentially publishing it after the shared task). Zenodo aims to `operate for the next 20+ years <https://about.zenodo.org/policies/>`_, making it a perfect choice for research data produced for/in shared tasks. It is fine to have non-final datasets only in TIRA, but for final datasets, uploading them to Zenodo and importing them to TIRA from Zenodo has major benefits. TIRA can either import .zip files from Zenodo (e.g., like `zenodo.org/records/12722918/dl-top-10-docs-20240701-inputs.zip <https://zenodo.org/records/12722918/files/dl-top-10-docs-20240701-inputs.zip>`_) or the files directly.
 
 As soon as the system inputs are ready, you can define the expected output format in which systems should produce their predictions. TIRA has a set of (optional) validators (currently `.run, .jsonl, and .tsv format <https://github.com/tira-io/tira/blob/pyterrier-artifacts/python-client/tira/check_format.py>`_)  for standard output formats that allow to give participants fast feedback in case their predictions have an invalid format. We recommend to use .jsonl as output format for NLP tasks and .run files for IR tasks (if a format that you would like to use is not yet supported, `please create an issue <https://github.com/tira-io/tira/issues>`_, we are able to include new formats fastly during the setup of a shared task).
 
+To add a new Dataset, navigate to your task in TIRA, if you are authenticated as task admin, you see the Admin panel. Please expand "Manage Datasets" and click on "New Dataset".
+
+.. image:: add-dataset-01.png
+
+This will open the form for creating a new dataset:
+
+.. image:: add-dataset-02.png
+
+It is important that datasets for the same task use the same format for their system inputs, including the structure and names of the files so that software submissions can run on different datasets without modification. For that reason, we renamed the :code:`arguments-training.tsv` and the :code:`labels-training.tsv` that we import from Zenodo into :code:`inputs.tsv` respectively :code:`labels.tsv`.
+
+After you have created the dataset, you can verify and modify it by clicking on "Edit existing Dataset", the form will show the imported files and allow to modify the meta data:
+
+.. image:: add-dataset-03.png
+
+
 
 .. note:: Starting from here the documentation is WIP, Remaining TODOS:
-          1. Screenshot of the form +  what was filled out
-          2. Access of newly created dataset (one tab for python, one for bash, one for ir_datasets).
+          1. Access of newly created dataset (one tab for python, one for bash, one for ir_datasets).
 
 
 We recommend that you add a tiny and public smoke test dataset with ca. 10 instances so that participants can easily test their approaches. For instance, if you named your public smoke test dataset `<dataset-id>` in the task `<task-id>`, participants can process the dataset via:
 
-.. tabs::
+.. tab-set::
 
-   .. tab:: Python
+   .. tab-item:: Python
 
       .. code:: python
 
       # dependencies installed via: pip3 install tira
       TBD
 
-   .. tab:: Bash
+   .. tab-item:: Bash
 
       .. code:: bash
 
       # the tira command is installed via pip3 install tira
       TBD
 
-   .. tab:: ir_datasets
+   .. tab-item:: ir_datasets
 
       .. code:: python
 
@@ -141,6 +163,8 @@ We recommend that you add a tiny and public smoke test dataset with ca. 10 insta
       
 This code will work inside and outside the TIRA sandbox (within the sandbox thst has no access to the internet, the code above will use the dataset mou ted read only into the container as anounced via environment variables).
 
+
+Now that the data is available, please configure next its evaluation by adding an `Evaluator <#add-an-evaluator>`_.
 
 ------
 
