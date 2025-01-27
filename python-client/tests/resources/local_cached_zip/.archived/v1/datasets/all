@@ -1,0 +1,29 @@
+[
+{
+    "id": "dataset-does-not-exist-20241201-training",
+    "dataset_id": "dataset-does-not-exist-20241201-training",
+    "default_task": "task-does-not-exist",
+    "default_task_name": "task-does-not-exist",
+    "display_name": "Display Name",
+    "is_confidential": false,
+    "is_deprecated": false,
+    "mirrors": {
+      "truths": {
+        "Zenodo": "URL does not exist"
+      },
+      "inputs": {
+        "Zenodo": "URL does not exist"
+      }
+    },
+    "dataset_extraction": {
+      "truths": {
+        "md5sum": "608b4b658c190d9c3bd840d43653f021",
+        "subdirectory": "pointwise/labels"
+      },
+      "inputs": {
+        "md5sum": "608b4b658c190d9c3bd840d43653f021",
+        "subdirectory": "pointwise/inputs"
+      }
+    }
+  }
+]

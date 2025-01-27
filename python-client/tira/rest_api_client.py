@@ -3,6 +3,8 @@ import io
 import json
 import logging
 import os
+import shutil
+import tempfile
 import time
 import zipfile
 from functools import lru_cache
@@ -533,6 +535,8 @@ class Client(TiraClient):
         data_type = "training" if dataset.endswith("-training") else "test"
         suffix = "inputs" if not truth_dataset else "truths"
         url = None
+        expected_md5 = None
+        subdirectory = None
         if (
             not meta_data
             or "mirrors" not in meta_data
@@ -543,6 +547,10 @@ class Client(TiraClient):
         else:
             url = list(meta_data["mirrors"][suffix].values())[0]
 
+            if "dataset_extraction" in meta_data and suffix in meta_data["dataset_extraction"]:
+                expected_md5 = meta_data["dataset_extraction"][suffix]["md5sum"]
+                subdirectory = meta_data["dataset_extraction"][suffix]["subdirectory"]
+
         target_dir = f"{self.tira_cache_dir}/extracted_datasets/{task}/{dataset}/"
         suffix = "input-data" if not truth_dataset else "truth-data"
         if os.path.isdir(target_dir + suffix):
@@ -551,9 +559,12 @@ class Client(TiraClient):
         if not url:
             url = f'{self.base_url}/data-download/{data_type}/input-{("" if not truth_dataset else "truth")}/{dataset}.zip'
 
-        self.download_and_extract_zip(url, target_dir)
+        if expected_md5 and subdirectory:
+            self.download_and_extract_zip_with_md5(url, target_dir + suffix, expected_md5, subdirectory)
+        else:
+            self.download_and_extract_zip(url, target_dir)
 
-        os.rename(target_dir + f"/{dataset}", target_dir + suffix)
+            os.rename(target_dir + f"/{dataset}", target_dir + suffix)
 
         return target_dir + suffix
 
@@ -625,6 +636,35 @@ class Client(TiraClient):
             raise ValueError(f"Failed to evaluate the run. Got {ret}")
 
         return ret
+
+    def download_and_extract_zip_with_md5(self, url, target_dir, expected_md5, subdirectory):
+        if expected_md5 is None or not expected_md5:
+            raise ValueError("foo")
+
+        if not (Path(self.tira_cache_dir) / ".archived" / expected_md5).exists():
+            raise ValueError("foo")
+
+        z = zipfile.ZipFile((Path(self.tira_cache_dir) / ".archived" / expected_md5))
+
+        members_to_extract = []
+        for i in z.namelist():
+            if i and not i.endswith("/") and (not subdirectory or i.startswith(subdirectory)):
+                members_to_extract.append(i)
+
+        if len(members_to_extract) == 0:
+            raise ValueError("I found no files in te zip.")
+
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            for i in members_to_extract:
+                z._extract_member(i, Path(tmpdirname), pwd=None)
+
+            src_dir = Path(tmpdirname)
+            if subdirectory:
+                src_dir = src_dir / subdirectory
+            Path(target_dir).parent.mkdir(exist_ok=True, parents=True)
+            shutil.move(src=src_dir, dst=target_dir)
+
+        return
 
     def download_and_extract_zip(self, url, target_dir, extract=True):
         url = redirects(url=url)["urls"][0]
