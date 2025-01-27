@@ -377,7 +377,9 @@ USE_TZ = True
 
 DISCOURSE_API_URL = custom_settings["discourse_api_url"]
 DISRAPTOR_API_KEY = custom_settings["discourse_api_key"]
-PUBLIC_TRAINING_DATA = set(["jena-topics-20231026-test", "leipzig-topics-20231025-test", "subsampled-ms-marco-ir-lab-20250105-test"])
+PUBLIC_TRAINING_DATA = set(
+    ["jena-topics-20231026-test", "leipzig-topics-20231025-test", "subsampled-ms-marco-ir-lab-20250105-test"]
+)
 
 CODE_SUBMISSION_REFERENCE_REPOSITORIES = {
     "ir-lab-jena-leipzig-wise-2023": "tira-io/tira-ir-lab-wise-submission-template",
