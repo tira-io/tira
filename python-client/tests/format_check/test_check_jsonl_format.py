@@ -7,10 +7,10 @@ from . import (
     _OK,
     EMPTY_OUTPUT,
     IR_QUERY_OUTPUT,
+    JSONL_OUTPUT_INVALID,
+    JSONL_OUTPUT_VALID,
     TSV_OUTPUT_VALID,
     VALID_RUN_OUTPUT,
-    JSONL_OUTPUT_VALID,
-    JSONL_OUTPUT_INVALID
 )
 
 
@@ -21,24 +21,24 @@ class TestCheckJsonlForNonExistingFormats(unittest.TestCase):
         self.assertEqual(expected, actual)
 
     def test_valid_jsonl_output_directory(self):
-        expected = [_OK, 'The jsonl file has the correct format.']
+        expected = [_OK, "The jsonl file has the correct format."]
         actual = check_format(JSONL_OUTPUT_VALID, "*.jsonl")
         self.assertEqual(expected, actual)
 
     def test_valid_jsonl_output_file(self):
-        expected = [_OK, 'The jsonl file has the correct format.']
+        expected = [_OK, "The jsonl file has the correct format."]
         actual = check_format(JSONL_OUTPUT_VALID / "predictions.jsonl", "*.jsonl")
         self.assertEqual(expected, actual)
 
     def test_invalid_jsonl_output_directory(self):
         actual = check_format(JSONL_OUTPUT_INVALID, "*.jsonl")
         self.assertEqual(actual[0], _ERROR)
-        self.assertTrue('contains a line that could not be parsed' in actual[1])
+        self.assertTrue("contains a line that could not be parsed" in actual[1])
 
     def test_invalid_jsonl_output_file(self):
         actual = check_format(JSONL_OUTPUT_INVALID / "predictions.jsonl", "*.jsonl")
         self.assertEqual(actual[0], _ERROR)
-        self.assertTrue('contains a line that could not be parsed' in actual[1])
+        self.assertTrue("contains a line that could not be parsed" in actual[1])
 
     def test_invalid_on_query_output_directory(self):
         actual = check_format(IR_QUERY_OUTPUT, "*.jsonl")

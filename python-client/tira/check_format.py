@@ -1,9 +1,9 @@
 import gzip
+import json
 import os
 import re
 from enum import Enum
 from pathlib import Path
-import json
 from typing import Sequence, Union
 
 
@@ -105,16 +105,16 @@ class JsonlFormat(FormatBase):
         except Exception as e:
             return [_fmt.ERROR, str(e)]
 
-
     def all_lines(self, run_output):
-        if str(run_output).endswith('.jsonl') and run_output.is_file():
+        if str(run_output).endswith(".jsonl") and run_output.is_file():
             matches = [run_output]
         else:
-            matches = [run_output/i for i in os.listdir(run_output) if i.endswith(".jsonl")]
+            matches = [run_output / i for i in os.listdir(run_output) if i.endswith(".jsonl")]
 
         if len(matches) != 1:
-            raise ValueError("No unique *.jsonl file was found, only the files "
-            + str(os.listdir(run_output)) + " were available.")
+            raise ValueError(
+                "No unique *.jsonl file was found, only the files " + str(os.listdir(run_output)) + " were available."
+            )
 
         ret_raw = [i.strip() for i in super().all_lines(matches[0])]
         ret = []
@@ -125,10 +125,11 @@ class JsonlFormat(FormatBase):
                 raise ValueError(f'The file {matches[0]} contains a line that could not be parsed: "{i}".')
 
         for i in ret:
-            if not i or 'id' not in i:
+            if not i or "id" not in i:
                 raise ValueError(f'The file {matches[0]} contains a line without an "id" field: "{json.dumps(i)}".')
 
         return ret
+
 
 class TsvFormat(FormatBase):
     """Checks if a given output is a valid tsv file."""
