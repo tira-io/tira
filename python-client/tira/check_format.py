@@ -94,6 +94,9 @@ class RunFormat(FormatBase):
 class JsonlFormat(FormatBase):
     """Checks if a given output is a valid jsonl file."""
 
+    def __init__(self, required_fields=("id",)):
+        self.required_fields = required_fields
+
     def check_format(self, run_output: Path):
         try:
             lines = self.all_lines(run_output)
@@ -125,8 +128,11 @@ class JsonlFormat(FormatBase):
                 raise ValueError(f'The file {matches[0]} contains a line that could not be parsed: "{i}".')
 
         for i in ret:
-            if not i or "id" not in i:
-                raise ValueError(f'The file {matches[0]} contains a line without an "id" field: "{json.dumps(i)}".')
+            for field in self.required_fields:
+                if not i or field not in i:
+                    raise ValueError(
+                        f'The file {matches[0]} contains a line without an "{field}" field: "{json.dumps(i)}".'
+                    )
 
         return ret
 
