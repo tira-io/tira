@@ -3,6 +3,7 @@ import os
 import re
 from enum import Enum
 from pathlib import Path
+import json
 from typing import Sequence, Union
 
 
@@ -94,14 +95,40 @@ class JsonlFormat(FormatBase):
     """Checks if a given output is a valid jsonl file."""
 
     def check_format(self, run_output: Path):
-        matches = [i for i in os.listdir(run_output) if i.endswith(".jsonl")]
-        if len(matches) != 1:
-            msg = "No unique *.jsonl file was found, only the files "
-            msg += str(os.listdir(run_output)) + " were available."
-            return [_fmt.ERROR, msg]
-        else:
-            return [_fmt.OK, "The jsonl file has the correct format."]
+        try:
+            lines = self.all_lines(run_output)
 
+            if len(lines) < 3:
+                return [_fmt.ERROR, f"The *.jsonl file contains only {len(lines)} lines, this is likely an error."]
+
+            return [_fmt.OK, "The jsonl file has the correct format."]
+        except Exception as e:
+            return [_fmt.ERROR, str(e)]
+
+
+    def all_lines(self, run_output):
+        if str(run_output).endswith('.jsonl') and run_output.is_file():
+            matches = [run_output]
+        else:
+            matches = [run_output/i for i in os.listdir(run_output) if i.endswith(".jsonl")]
+
+        if len(matches) != 1:
+            raise ValueError("No unique *.jsonl file was found, only the files "
+            + str(os.listdir(run_output)) + " were available.")
+
+        ret_raw = [i.strip() for i in super().all_lines(matches[0])]
+        ret = []
+        for i in ret_raw:
+            try:
+                ret.append(json.loads(i))
+            except:
+                raise ValueError(f'The file {matches[0]} contains a line that could not be parsed: "{i}".')
+
+        for i in ret:
+            if not i or 'id' not in i:
+                raise ValueError(f'The file {matches[0]} contains a line without an "id" field: "{json.dumps(i)}".')
+
+        return ret
 
 class TsvFormat(FormatBase):
     """Checks if a given output is a valid tsv file."""
