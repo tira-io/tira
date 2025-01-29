@@ -820,7 +820,7 @@ class Client(TiraClient):
         error_msg = ""
 
         if isinstance(upload_to_tira.get("format"), list):
-            accepted_formats.append(upload_to_tira.get("format"))
+            accepted_formats = upload_to_tira.get("format")
         if len(accepted_formats) == 0:
             accepted_formats = ["run.txt"]  # default format
 
