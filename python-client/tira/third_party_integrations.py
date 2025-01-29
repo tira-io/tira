@@ -148,23 +148,42 @@ def persist_and_normalize_run(
     if not output_file.endswith("run.txt"):
         output_file = output_file + "/run.txt"
     if upload_to_tira and not in_tira_sandbox():
-        from tira.rest_api_client import Client as RestClient
-
-        if tira_client:
-            tira = tira_client
-        else:
-            tira = RestClient()
-        upload_to_tira = tira.get_dataset(upload_to_tira)
+        tira = _tira_client(tira_client)
+        tmp = tira.get_dataset(upload_to_tira)
+        if not tmp or 'dataset_id' not in tmp:
+            upload_to_tira = None
     else:
         upload_to_tira = None
 
     if upload_to_tira and tira:
         output_file = output_file + ".gz"
     normalize_run(run, system_name, depth).to_csv(output_file, sep=" ", header=False, index=False)
+
     print(f'Done. run file is stored under "{output_file}".')
+
     if upload_to_tira and tira:
         output_file = Path(output_file).parent
-        tira.upload_run_anonymous(output_file, upload_to_tira["dataset_id"])
+        upload_run_anonymous(output_file, tira, upload_to_tira)
+
+def _tira_client(default_tira_client=None):
+    if in_tira_sandbox():
+        return None
+
+    from tira.rest_api_client import Client as RestClient
+
+    if default_tira_client:
+        return default_tira_client
+    else:
+        return RestClient()
+
+
+def upload_run_anonymous(directory: Path=None, tira_client=None, dataset_id=None):
+    tira = _tira_client(tira_client)
+    if not tira:
+        return
+
+    upload_to_tira = tira.get_dataset(dataset_id)
+    tira.upload_run_anonymous(directory, upload_to_tira["dataset_id"])
 
 
 def temporary_directory():
