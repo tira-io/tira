@@ -15,13 +15,15 @@ from typing import Dict, List, Optional, Union
 
 import pandas as pd
 import requests
-from tqdm import tqdm
-
 from tira.check_format import _fmt, check_format
 from tira.local_execution_integration import LocalExecutionIntegration
 from tira.pandas_integration import PandasIntegration
 from tira.profiling_integration import ProfilingIntegration
-from tira.pyterrier_integration import PyTerrierAnceIntegration, PyTerrierIntegration, PyTerrierSpladeIntegration
+from tira.pyterrier_integration import (
+    PyTerrierAnceIntegration,
+    PyTerrierIntegration,
+    PyTerrierSpladeIntegration,
+)
 from tira.third_party_integrations import temporary_directory
 from tira.tira_redirects import (
     RESOURCE_REDIRECTS,
@@ -30,6 +32,7 @@ from tira.tira_redirects import (
     mirror_url,
     redirects,
 )
+from tqdm import tqdm
 
 from .tira_client import TiraClient
 
@@ -813,12 +816,26 @@ class Client(TiraClient):
         if isinstance(file_path, str):
             file_path = Path(file_path)
 
-        # TODO use format from upload_to_tira instead of hard-coded run.txt
-        status_code, msg = check_format(file_path, "run.txt")
+        accepted_formats = []
+        error_msg = ""
 
-        if status_code != _fmt.OK:
-            print(msg)
-            raise ValueError(msg)
+        if isinstance(upload_to_tira.get("format"), list):
+            accepted_formats.append(upload_to_tira.get("format"))
+        if len(accepted_formats) == 0:
+            accepted_formats = ["run.txt"]  # default format
+
+        for format in accepted_formats:
+            status_code, msg = check_format(file_path, str(format))
+
+            if status_code != _fmt.OK:
+                error_msg += "\n" + msg
+            else:
+                error_msg = ""
+                break
+
+        if error_msg:
+            print(error_msg.strip())
+            raise ValueError(error_msg.strip())
 
         zip_file = temporary_directory()
         zip_file = zip_file / "tira-upload.zip"
