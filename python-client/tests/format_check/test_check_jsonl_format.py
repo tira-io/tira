@@ -7,6 +7,7 @@ from . import (
     _OK,
     EMPTY_OUTPUT,
     IR_QUERY_OUTPUT,
+    JSONL_GZ_OUTPUT_VALID,
     JSONL_OUTPUT_INVALID,
     JSONL_OUTPUT_VALID,
     TSV_OUTPUT_VALID,
@@ -28,6 +29,16 @@ class TestCheckJsonlForNonExistingFormats(unittest.TestCase):
     def test_valid_jsonl_output_file(self):
         expected = [_OK, "The jsonl file has the correct format."]
         actual = check_format(JSONL_OUTPUT_VALID / "predictions.jsonl", "*.jsonl")
+        self.assertEqual(expected, actual)
+
+    def test_valid_jsonl_gz_output_directory(self):
+        expected = [_OK, "The jsonl file has the correct format."]
+        actual = check_format(JSONL_GZ_OUTPUT_VALID, "*.jsonl")
+        self.assertEqual(expected, actual)
+
+    def test_valid_jsonl_gz_output_file(self):
+        expected = [_OK, "The jsonl file has the correct format."]
+        actual = check_format(JSONL_GZ_OUTPUT_VALID / "predictions.jsonl.gz", "*.jsonl")
         self.assertEqual(expected, actual)
 
     def test_invalid_jsonl_output_directory(self):

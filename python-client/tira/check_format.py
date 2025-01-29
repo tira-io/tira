@@ -109,10 +109,12 @@ class JsonlFormat(FormatBase):
             return [_fmt.ERROR, str(e)]
 
     def all_lines(self, run_output):
-        if str(run_output).endswith(".jsonl") and run_output.is_file():
+        if (str(run_output).endswith(".jsonl") or str(run_output).endswith(".jsonl.gz")) and run_output.is_file():
             matches = [run_output]
         else:
-            matches = [run_output / i for i in os.listdir(run_output) if i.endswith(".jsonl")]
+            matches = [
+                run_output / i for i in os.listdir(run_output) if i.endswith(".jsonl") or i.endswith(".jsonl.gz")
+            ]
 
         if len(matches) != 1:
             raise ValueError(

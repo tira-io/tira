@@ -43,6 +43,7 @@ class PandasIntegration:
             pd.DataFrame: The run file parsed to a pandas DataFrame.
         """
         import pandas as pd
+
         from tira.ir_datasets_util import translate_irds_id_to_tirex
 
         task, team, software = approach.split("/")

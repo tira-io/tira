@@ -150,7 +150,7 @@ def persist_and_normalize_run(
     if upload_to_tira and not in_tira_sandbox():
         tira = _tira_client(tira_client)
         tmp = tira.get_dataset(upload_to_tira)
-        if not tmp or 'dataset_id' not in tmp:
+        if not tmp or "dataset_id" not in tmp:
             upload_to_tira = None
     else:
         upload_to_tira = None
@@ -165,6 +165,7 @@ def persist_and_normalize_run(
         output_file = Path(output_file).parent
         upload_run_anonymous(output_file, tira, upload_to_tira)
 
+
 def _tira_client(default_tira_client=None):
     if in_tira_sandbox():
         return None
@@ -177,7 +178,7 @@ def _tira_client(default_tira_client=None):
         return RestClient()
 
 
-def upload_run_anonymous(directory: Path=None, tira_client=None, dataset_id=None):
+def upload_run_anonymous(directory: Path = None, tira_client=None, dataset_id=None):
     tira = _tira_client(tira_client)
     if not tira:
         return
