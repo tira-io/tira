@@ -21,6 +21,7 @@ class DatasetSerializer(ModelSerializer):
     ir_datasets_id = SerializerMethodField()
     description = SerializerMethodField()
     file_listing = SerializerMethodField()
+    format = SerializerMethodField()
 
     class Meta:
         model = modeldb.Dataset
@@ -37,6 +38,7 @@ class DatasetSerializer(ModelSerializer):
             "chatnoir_id",
             "mirrors",
             "file_listing",
+            "format",
         ]
 
     def get_mirrors(self, obj):
@@ -53,6 +55,14 @@ class DatasetSerializer(ModelSerializer):
             return None
         try:
             return json.loads(obj.file_listing)
+        except json.JSONDecodeError:
+            return None
+
+    def get_format(self, obj):
+        if not obj or not obj.format:
+            return None
+        try:
+            return json.loads(obj.format)
         except json.JSONDecodeError:
             return None
 
