@@ -8,6 +8,7 @@ from functools import wraps
 from http import HTTPStatus
 from pathlib import Path
 
+from auto_ir_metadata import load_ir_metadata
 from discourse_client_in_disraptor.discourse_api_client import get_disraptor_user
 from django.conf import settings
 from django.core.cache import cache
@@ -558,10 +559,30 @@ def anonymous_upload(request, dataset_id):
             HttpResponseServerError(json.dumps({"status": 1, "message": message}))
         from .. import model as modeldb
 
-        (Path(settings.TIRA_ROOT) / "data" / "anonymous-uploads").mkdir(exist_ok=True, parents=True)
-        shutil.move(result_dir / "extracted", Path(settings.TIRA_ROOT) / "data" / "anonymous-uploads" / upload_id)
+        anon_uploads_dir = Path(settings.TIRA_ROOT) / "data" / "anonymous-uploads"
+        (anon_uploads_dir).mkdir(exist_ok=True, parents=True)
+        upload_dir = anon_uploads_dir / upload_id
+        shutil.move(result_dir / "extracted", upload_dir)
+        has_metadata = False
+        metadata_git_repo = None
+        metadata_has_notebook = False
+
+        try:
+            metadata = load_ir_metadata(upload_dir)
+            has_metadata = True
+            metadata_git_repo = metadata["git_url"] if "git_url" in metadata else None
+            metadata_has_notebook = "notebook" in metadata and "notebook_html" in metadata
+        except:
+            pass
+
         dataset = modeldb.Dataset.objects.get(dataset_id=dataset_id)
-        modeldb.AnonymousUploads.objects.create(uuid=upload_id, dataset=dataset)
+        modeldb.AnonymousUploads.objects.create(
+            uuid=upload_id,
+            dataset=dataset,
+            has_metadata=has_metadata,
+            metadata_git_repo=metadata_git_repo,
+            metadata_has_notebook=metadata_has_notebook,
+        )
 
         return JsonResponse({"status": 0, "message": "ok", "uuid": upload_id})
     else:

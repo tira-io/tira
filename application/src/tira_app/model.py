@@ -227,6 +227,12 @@ class AnonymousUploads(models.Model):
     uuid = models.CharField(max_length=150, primary_key=True)
     dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE)
     created = models.DateField(auto_now_add=True)
+    has_metadata = models.BooleanField(default=False)
+    metadata_git_repo = models.CharField(max_length=500, default=None, null=True)
+    metadata_has_notebook = models.BooleanField(default=False)
+
+    def get_path_in_file_system(self):
+        return Path(settings.TIRA_ROOT) / "data" / "anonymous-uploads" / self.uuid
 
 
 class DockerSoftware(models.Model):

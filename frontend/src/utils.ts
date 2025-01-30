@@ -29,6 +29,9 @@ export interface ClaimSubmissionInfo {
     uuid: string;
     dataset_id: string;
     created: string;
+    has_metadata: boolean | undefined;
+    metadata_git_repo: string | undefined;
+    metadata_has_notebook: string | undefined;
 }
 
 export interface UserContext {

@@ -2093,6 +2093,17 @@ API_ACCESS_MATRIX = [
         },
     ),
     route_to_test(
+        url_pattern="v1/anonymous/view/<str:submission_uuid>/jupyter-notebook.html",
+        params={"submission_uuid": "12345"},
+        group_to_expected_status_code={
+            GUEST: 500,
+            PARTICIPANT: 500,
+            ORGANIZER_WRONG_TASK: 500,
+            ORGANIZER: 500,
+            ADMIN: 500,
+        },
+    ),
+    route_to_test(
         url_pattern="v1/anonymous/<str:submission_uuid>.zip",
         params={"submission_uuid": "12345"},
         group_to_expected_status_code={

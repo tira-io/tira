@@ -4,9 +4,10 @@ import json
 import zipfile
 from pathlib import Path
 
+from auto_ir_metadata import load_ir_metadata
 from django.conf import settings
 from django.core.cache import cache
-from django.http import FileResponse, HttpResponseServerError
+from django.http import FileResponse, HttpResponse, HttpResponseServerError
 from django.urls import path
 from rest_framework.decorators import api_view
 from rest_framework.request import Request
@@ -34,9 +35,20 @@ def read_anonymous_submission(request: Request, submission_uuid: str) -> Respons
     """
     try:
         ret = modeldb.AnonymousUploads.objects.get(uuid=submission_uuid)
+        ret = {
+            "uuid": ret.uuid,
+            "dataset_id": ret.dataset.dataset_id,
+            "created": ret.created,
+            "has_metadata": ret.has_metadata,
+            "metadata_git_repo": ret.metadata_git_repo,
+            "metadata_has_notebook": ret.metadata_has_notebook,
+        }
+        if not ret["has_metadata"]:
+            del ret["metadata_git_repo"]
+            del ret["metadata_has_notebook"]
 
-        return Response({"uuid": ret.uuid, "dataset_id": ret.dataset.dataset_id, "created": ret.created})
-    except:
+        return Response(ret)
+    except Exception as e:
         return HttpResponseServerError(
             json.dumps({"status": 1, "message": f"Run with uuid {html.escape(submission_uuid)} does not exist."})
         )
@@ -72,7 +84,6 @@ def download_anonymous_submission(request: Request, submission_uuid: str) -> Res
 
     result_dir = Path(settings.TIRA_ROOT) / "data" / "anonymous-uploads" / submission_uuid
     format = json.loads(upload.dataset.format)[0]
-    format = secure_filename(format)
     status_code, message = check_format(result_dir, format)
 
     if status_code != _fmt.OK:
@@ -111,7 +122,6 @@ def claim_submission(request: Request, vm_id: str, submission_uuid: str) -> Resp
     body = json.loads(body)
     result_dir = Path(settings.TIRA_ROOT) / "data" / "anonymous-uploads" / submission_uuid
     format = json.loads(upload.dataset.format)[0]
-    format = secure_filename(format)
     status_code, message = check_format(result_dir, format)
 
     if status_code != _fmt.OK:
@@ -152,8 +162,48 @@ def claim_submission(request: Request, vm_id: str, submission_uuid: str) -> Resp
     return Response({"upload_group": body["upload_group"], "status": "0"})
 
 
+@api_view(["GET"])
+def render_notebook_of_submission(request: Request, submission_uuid: str) -> Response:
+    """Read information about an anonymous submission identified by the ownership uuid.
+
+    Args:
+        request (Request): The request that triggered the REST API call.
+        submission_uuid (str): The ownership uuid of the anonymous submission
+
+    Returns:
+        Response: The rendered jupyter notebook.
+    """
+    try:
+        upload = modeldb.AnonymousUploads.objects.get(uuid=submission_uuid)
+    except:
+        return HttpResponseServerError(
+            json.dumps({"status": 1, "message": f"Run with uuid {html.escape(submission_uuid)} does not exist."})
+        )
+
+    if not upload.has_metadata or not upload.metadata_has_notebook:
+        return HttpResponseServerError(
+            json.dumps(
+                {"status": 1, "message": f"Run with uuid {html.escape(submission_uuid)} has no jupyter notebook."}
+            )
+        )
+    metadata = load_ir_metadata(upload.get_path_in_file_system())
+
+    if not metadata or "notebook_html" not in metadata:
+        return HttpResponseServerError(
+            json.dumps(
+                {
+                    "status": 1,
+                    "message": f"Could not render Jupyter Notebook of run with uuid {html.escape(submission_uuid)}.",
+                }
+            )
+        )
+
+    return HttpResponse(metadata["notebook_html"])
+
+
 endpoints = [
     path("claim/<str:vm_id>/<str:submission_uuid>", claim_submission),
+    path("view/<str:submission_uuid>/jupyter-notebook.html", render_notebook_of_submission),
     path("<str:submission_uuid>.zip", download_anonymous_submission),
     path("<str:submission_uuid>", read_anonymous_submission),
 ]

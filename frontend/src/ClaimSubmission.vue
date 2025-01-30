@@ -34,6 +34,9 @@
           </span>
           for task <a :href="'/task-overview/' + dataset.default_task">{{ dataset.default_task }}</a> <span v-if="download_link !== undefined">(<a :href="download_link" target="_blank">Download</a></span>).
         </p>
+        <p v-if="has_metadata && metadata_git_repo !== undefined && jupyter_notebook_link !== undefined">
+          Metadata on the run in the <a target='_blank' href="https://github.com/irgroup/ir_metadata">ir_metadata</a> format is available, including <a :href="metadata_git_repo" target='_blank' >the git repository</a> and the <a :href="jupyter_notebook_link" target='_blank' >jupyter notebook</a> that produced this run.
+        </p>
 
         <div class="py-2"></div>
 
@@ -157,6 +160,15 @@ export default {
   },
   computed: {
     link_chatnoir() { return  chatNoirUrl(this.dataset) },
+    has_metadata() { return this.submissionToClaim && this.submissionToClaim.has_metadata },
+    metadata_git_repo() { if (this.submissionToClaim && this.has_metadata && this.submissionToClaim.metadata_git_repo) {
+      return this.submissionToClaim.metadata_git_repo
+    }},
+    jupyter_notebook_link() {
+      if (this.submissionToClaim && this.has_metadata && this.submissionToClaim.metadata_has_notebook) {
+        return this.rest_url + `/v1/anonymous/view/` + this.uuid + '/jupyter-notebook.html'
+      }
+    },
     download_link() { 
       if (this.submissionToClaim && this.submissionToClaim.dataset_id && this.dataset) {
         return this.rest_url + `/v1/anonymous/` + this.submissionToClaim.uuid + `.zip`
