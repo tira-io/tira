@@ -88,7 +88,7 @@ COPY --from=build /tira/src/tira_app/management/commands/irds_cli.sh /irds_cli.s
 
 RUN <<EOF
 ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-apt-get -qq update && apt-get -qq install -y locales
+apt-get -qq update && apt-get -qq install -y locales python3-setuptools
 echo "en_US.UTF-8 UTF-8" | tee -a /etc/locale.gen && locale-gen
 
 # Tools
