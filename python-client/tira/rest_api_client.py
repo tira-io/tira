@@ -15,15 +15,13 @@ from typing import Dict, List, Optional, Union
 
 import pandas as pd
 import requests
+from tqdm import tqdm
+
 from tira.check_format import _fmt, check_format
 from tira.local_execution_integration import LocalExecutionIntegration
 from tira.pandas_integration import PandasIntegration
 from tira.profiling_integration import ProfilingIntegration
-from tira.pyterrier_integration import (
-    PyTerrierAnceIntegration,
-    PyTerrierIntegration,
-    PyTerrierSpladeIntegration,
-)
+from tira.pyterrier_integration import PyTerrierAnceIntegration, PyTerrierIntegration, PyTerrierSpladeIntegration
 from tira.third_party_integrations import temporary_directory
 from tira.tira_redirects import (
     RESOURCE_REDIRECTS,
@@ -32,7 +30,6 @@ from tira.tira_redirects import (
     mirror_url,
     redirects,
 )
-from tqdm import tqdm
 
 from .tira_client import TiraClient
 
@@ -1041,8 +1038,8 @@ class Client(TiraClient):
             return json.load(open(out, "r"))
 
         out.parent.mkdir(exist_ok=True, parents=True)
-
-        response = self.json_response(endpoint, base_url="https://tira.io")
+        base_url = "https://tira.io" if not force_reload else self.base_url
+        response = self.json_response(endpoint, base_url=base_url)
 
         with open(out, "w") as f:
             f.write(json.dumps(response))
@@ -1062,7 +1059,7 @@ class Client(TiraClient):
 
         for _ in range(self.failsave_retries):
             try:
-                resp = requests.get(url=f"{base_url}{endpoint}", headers=headers, params=params)
+                resp = requests.get(url=f"{base_url}{endpoint}", headers=headers, verify=self.verify, params=params)
                 if resp.status_code not in {200, 202}:
                     raise ValueError(f"Got statuscode {resp.status_code} for {endpoint}. Got {resp}")
                 else:
