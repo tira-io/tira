@@ -77,7 +77,7 @@
 <script lang="ts">
 import { inject } from 'vue'
 
-import {validateEmail, validateTeamName, validateNotEmpty, post, reportError, reportSuccess, inject_response, get, get_link_to_organizer, get_contact_link_to_organizer} from "../utils"
+import {validateEmail, validateTeamName, validateNotEmpty, post, reportError, reportSuccess, inject_response, get, get_link_to_organizer, get_contact_link_to_organizer, type UserInfo} from "../utils"
 import Loading from "./Loading.vue"
 
 
@@ -93,7 +93,9 @@ export default {
       participationList: ["", "Course", "Thesis", "Academic Research", "Industry Research", "Private Interest"],
       showInstructorClasses: ['Undergraduate Student', 'Course', 'Thesis'],
       nameRules: [validateTeamName], notEmptyRules: [validateNotEmpty], emailRules: [validateEmail],
-      remaining_team_names: ['']
+      remaining_team_names: [''],
+      userinfo: inject('userinfo') as UserInfo,
+      rest_url: inject("REST base URL")
     }),
   methods: {
     async submitRegistration (isActive: any) {
@@ -101,12 +103,12 @@ export default {
 
       if (valid) {
         this.loading = true
-        post(inject("REST base URL")+'/api/registration/add_registration/vm/'+ this.task.task_id, {
+        post(this.rest_url +'/api/registration/add_registration/vm/'+ this.task.task_id, {
           'username': this.username, 'email': this.email, 'affiliation': this.affiliation, 'country': this.country,
           'employment': this.selectedEmployment, 'group': this.username, 'participation': this.selectedParticipation,
           'instructorName': this.instructorName, 'instructorEmail': this.instructorEmail,
           'questions': this.questions, 'team': this.team
-        }).then(message => {
+        }, this.userinfo).then(message => {
           reportSuccess('You are now registered for the team "' + message.context.vm_id + '" and can submit runs.')
           this.$emit('updateUserVmsForTask', message.context.vm_id)
           isActive.value = false
@@ -137,7 +139,7 @@ export default {
     contact_organizer() {return get_contact_link_to_organizer(this.task.organizer_id);},
   },
   beforeMount() {
-    get(inject("REST base URL")+'/api/registration_formular/' + this.task.task_id)
+    get(this.rest_url +'/api/registration_formular/' + this.task.task_id)
       .then(inject_response(this, {'loading': false}))
       .catch(reportError("Problem While Loading the registration formular.", "This might be a short-term hiccup, please try again. We got the following error: "))
   },

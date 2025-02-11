@@ -4,6 +4,7 @@ import logging
 import os
 import zipfile
 from datetime import datetime as dt
+from json.decoder import JSONDecodeError
 from pathlib import Path
 from typing import Any, Optional
 
@@ -11,6 +12,7 @@ import randomname
 from django.conf import settings
 from django.db import IntegrityError
 from google.protobuf.text_format import Parse
+from tira.check_format import SUPPORTED_FORMATS
 
 from .. import model as modeldb
 from ..proto import TiraClientWebMessages_pb2 as modelpb
@@ -323,6 +325,21 @@ class HybridDatabase(object):
         evaluator_id = None if not dataset.evaluator else dataset.evaluator.evaluator_id
 
         runs = modeldb.Run.objects.filter(input_dataset__dataset_id=dataset.dataset_id, deleted=False)
+        dataset_format = None
+        if dataset and dataset.format:
+            try:
+                dataset_format = json.loads(dataset.format)
+                dataset_format = [i for i in dataset_format if i in SUPPORTED_FORMATS]
+            except JSONDecodeError:
+                pass
+
+        file_listing = None
+        if dataset and dataset.file_listing:
+            try:
+                file_listing = json.loads(dataset.file_listing)
+            except json.JSONDecodeError:
+                pass
+
         return {
             "display_name": dataset.display_name,
             "evaluator_id": evaluator_id,
@@ -349,6 +366,11 @@ class HybridDatabase(object):
             "irds_import_truth_command": dataset.irds_import_truth_command,
             "evaluator_git_runner_image": dataset.evaluator.git_runner_image if evaluator_id else None,
             "evaluator_git_runner_command": dataset.evaluator.git_runner_command if evaluator_id else None,
+            "format": dataset_format,
+            "description": dataset.description,
+            "chatnoir_id": dataset.chatnoir_id,
+            "ir_datasets_id": dataset.ir_datasets_id,
+            "file_listing": file_listing,
         }
 
     def get_dataset(self, dataset_id: str) -> dict[str, Any]:
@@ -867,6 +889,89 @@ class HybridDatabase(object):
         for team in all_teams_on_task:
             if team not in [t["team"] for t in ret]:
                 ret += [{"team": team, "reviewed": 0, "to_review": 0, "total": 0, "link": link_to_discourse_team(team)}]
+        return ret
+
+    def all_runs(self):
+        prepared_statement = """SELECT
+                    tira_run.run_id, tira_run.task_id, tira_run.input_dataset_id,
+                    tira_software.software_id, tira_software.vm_id, tira_dockersoftware.docker_software_id,
+                    tira_dockersoftware.vm_id, tira_dockersoftware.display_name,
+                    tira_upload.id, tira_upload.vm_id, tira_upload.display_name,
+                    tira_run_review.published, tira_run_review.blinded
+            FROM
+                tira_run as evaluation_run
+            INNER JOIN
+                tira_run as tira_run ON evaluation_run.input_run_id = tira_run.run_id
+            LEFT JOIN
+                tira_upload ON tira_run.upload_id = tira_upload.id
+            LEFT JOIN
+                tira_software ON tira_run.software_id = tira_software.id
+            LEFT JOIN
+                tira_dockersoftware ON tira_run.docker_software_id = tira_dockersoftware.docker_software_id
+            LEFT JOIN
+                tira_review as tira_run_review ON evaluation_run.run_id = tira_run_review.run_id
+            LEFT JOIN
+                tira_softwareclone AS software_clone ON
+                        tira_dockersoftware.docker_software_id = software_clone.docker_software_id
+            LEFT JOIN
+                tira_softwareclone AS upload_clone ON tira_run.upload_id = upload_clone.upload_id
+
+            ORDER BY
+                tira_run.run_id ASC;
+        """
+        ret = {}
+        for (
+            run_id,
+            task_id,
+            dataset_id,
+            software_id,
+            software_vm,
+            docker_id,
+            docker_vm,
+            docker_title,
+            upload_id,
+            upload_vm,
+            upload_title,
+            published,
+            blinded,
+        ) in self.execute_raw_sql_statement(prepared_statement, []):
+            vm = None
+            title = None
+            if software_vm is not None:
+                assert docker_vm is None and upload_vm is None
+                vm = software_vm
+                title = software_id
+                t = "VM"
+            if docker_vm is not None and software_vm is None and upload_vm is None:
+                vm = docker_vm
+                title = docker_title
+                t = "Docker"
+            if upload_vm is not None and software_vm is None and docker_id is None:
+                vm = upload_vm
+                title = upload_title
+                t = "Upload"
+
+            if vm is None:
+                continue
+            assert vm is not None and title is not None
+
+            if vm not in ret:
+                ret[vm] = {}
+            if title not in ret[vm]:
+                ret[vm][title] = {}
+
+            if run_id in ret[vm][title]:
+                blinded = ret[vm][title][run_id]["blinded"] and blinded
+                published = ret[vm][title][run_id]["published"] or published
+
+            ret[vm][title][run_id] = {
+                "type": t,
+                "published": published,
+                "blinded": blinded,
+                "task": task_id,
+                "dataset": dataset_id,
+            }
+
         return ret
 
     def runs(self, task_id, dataset_id, vm_id, software_id):
@@ -1726,6 +1831,10 @@ class HybridDatabase(object):
         irds_docker_image=None,
         irds_import_command=None,
         irds_import_truth_command=None,
+        dataset_format=None,
+        description=None,
+        chatnoir_id=None,
+        ir_datasets_id=None,
     ):
         """Add a new dataset to a task
         CAUTION: This function does not do any sanity (existence) checks and will OVERWRITE existing datasets"""
@@ -1747,6 +1856,10 @@ class HybridDatabase(object):
                 "irds_docker_image": irds_docker_image,
                 "irds_import_command": irds_import_command,
                 "irds_import_truth_command": irds_import_truth_command,
+                "format": None if not dataset_format else json.dumps(dataset_format),
+                "description": None if not description else description,
+                "chatnoir_id": None if not chatnoir_id else chatnoir_id,
+                "ir_datasets_id": None if not ir_datasets_id else ir_datasets_id,
             },
         )
 
@@ -2392,6 +2505,10 @@ class HybridDatabase(object):
         git_runner_image,
         git_runner_command,
         git_repository_id,
+        dataset_format,
+        description,
+        chatnoir_id=None,
+        ir_datasets_id=None,
     ):
         """
 
@@ -2407,6 +2524,10 @@ class HybridDatabase(object):
             display_name=dataset_name,
             default_upload_name=upload_name,
             is_confidential=is_confidential,
+            format=None if not dataset_format else json.dumps(dataset_format),
+            description=description,
+            chatnoir_id=None if not chatnoir_id else chatnoir_id,
+            ir_datasets_id=None if not ir_datasets_id else ir_datasets_id,
         )
 
         ds = modeldb.Dataset.objects.get(dataset_id=dataset_id)

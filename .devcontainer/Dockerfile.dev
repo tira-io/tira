@@ -1,3 +1,4 @@
+#docker build -t webis/tira:dev-container-0.0.1 -f .devcontainer/Dockerfile.dev .
 FROM ubuntu:24.04
 
 ENV TZ=Europe/Berlin
@@ -20,7 +21,11 @@ RUN <<EOF
 	useradd -ms /bin/bash dev
     echo 'dev:1234' | chpasswd
     usermod -aG sudo dev
-	usermod -aG docker dev
+    usermod -aG docker dev
+	# Sometimes, the ubuntu user is used in the dev container
+	echo 'ubuntu:1234' | chpasswd
+    usermod -aG sudo ubuntu
+    usermod -aG docker ubuntu
 EOF
 
 
@@ -90,3 +95,4 @@ RUN mkdir -p /usr/share/umlet \
 	&& unzip download.zip
 USER dev
 RUN pip3 install sphinx furo myst-parser sphinx-toolbox sphinx-design sphinxcontrib-plantuml sphinxcontrib-umlet
+

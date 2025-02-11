@@ -1702,6 +1702,15 @@ def mirror_url(url):
     return url
 
 
+def mirror_urls_for_run_output(task, team, dataset, run_id):
+    system = RUN_ID_TO_SYSTEM.get(run_id, None)
+    ret = STATIC_REDIRECTS.get(task, {}).get(team, {}).get(system, {}).get(dataset)
+    if ret is None:
+        return []
+    else:
+        return ret["urls"]
+
+
 def redirects(approach=None, dataset=None, url=None):
     default_ret = {"urls": [url]}
     if url is not None:

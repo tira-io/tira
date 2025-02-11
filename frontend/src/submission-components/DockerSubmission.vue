@@ -42,7 +42,7 @@
 import { inject } from 'vue'
 
 import { VAutocomplete } from 'vuetify/components'
-import { get, reportError, extractTaskFromCurrentUrl, extractUserFromCurrentUrl, fetchUserInfo, inject_response, filterByDisplayName, handleModifiedSubmission } from "@/utils";
+import { get, reportError, extractTaskFromCurrentUrl, extractUserFromCurrentUrl, inject_response, handleModifiedSubmission } from "@/utils";
 import { Loading, LoginToSubmit, ExistingDockerSubmission, NewDockerSubmission } from "@/components";
 
 export default {
@@ -52,7 +52,7 @@ export default {
   props: ['step_prop', 'organizer', 'organizer_id', 'is_ir_task'],
   data() {
     return {
-      userinfo: { role: 'guest', organizer_teams: [] },
+      userinfo: inject('userinfo'),
       tab: null,
       task_id: extractTaskFromCurrentUrl(),
       user_id_for_submission: extractUserFromCurrentUrl(),
@@ -117,7 +117,6 @@ export default {
       .catch(reportError("Problem While Loading the Docker Details of the Task " + this.task_id, "This might be a short-term hiccup, please try again. We got the following error: "))
     this.load_re_ranking_datasets()
     this.step === '' ? this.tab = this.docker.docker_softwares[0].display_name : this.tab = "newDockerImage"
-    fetchUserInfo().then((result) => { this.$data.userinfo = result })
   },
   watch: {
     step(old_value, new_value) {

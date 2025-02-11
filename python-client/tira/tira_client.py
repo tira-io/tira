@@ -45,6 +45,10 @@ class TiraClient(ABC):
     def docker_registry(self):
         return "registry.webis.de"
 
+    def modify_task(self, task_id: str, to_rename: "Dict[str, Any]"):
+        # .. todo:: typehint
+        pass
+
     @overload
     def download_run(
         self,
@@ -95,3 +99,54 @@ class TiraClient(ABC):
         false  otherwise.
         """
         pass
+
+    def __extract_dataset_identifier(self, dataset: any):
+        """Extract the dataset identifier from a passed object.
+
+        Args:
+            dataset (any): Some representation of dataset.
+
+        Returns:
+            Optional[dict]: The dataset identifier if available.
+        """
+        if hasattr(dataset, "irds_ref"):
+            return self.__extract_dataset_identifier(dataset.irds_ref())
+        if hasattr(dataset, "dataset_id"):
+            return dataset.dataset_id()
+        return dataset
+
+    def __matching_dataset(self, datasets, dataset_identifier) -> "Optional[dict]":
+        """Find the dataset identified by the passed dataset_identifier in all passed datasets.
+
+        Args:
+            datasets (List[dict]): TIRA representations of datasets.
+            dataset_identifier (_type_): identifier of the dataset to be found.
+
+        Returns:
+            Optional[dict]: The TIRA representation of the dataset if found in the datasets.
+        """
+        datasets = [i for i in datasets if "id" in i and len(i["id"]) > 2]
+
+        for dataset in datasets:
+            if dataset_identifier and dataset["id"] == dataset_identifier:
+                return dataset
+
+        if len(dataset_identifier.split("/")) == 2:
+            task_identifier, dataset_in_task = dataset_identifier.split("/")
+
+            for dataset in datasets:
+                if "default_task" not in dataset or not dataset["default_task"]:
+                    continue
+
+                if not task_identifier or not dataset_in_task:
+                    continue
+
+                if task_identifier == dataset["default_task"] and dataset_in_task == dataset["id"]:
+                    return dataset
+
+        for dataset in datasets:
+            if "ir_datasets_id" not in dataset or not dataset["ir_datasets_id"] or len(dataset["ir_datasets_id"]) < 3:
+                continue
+
+            if dataset_identifier and dataset_identifier == dataset["ir_datasets_id"]:
+                return dataset

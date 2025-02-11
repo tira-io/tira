@@ -1,5 +1,6 @@
 <template>
   <v-app>
+    <tira-menu/>
     <v-main class="position-relative">
       <tira-alert class="position-absolute"/>
       <router-view></router-view>
@@ -45,8 +46,9 @@
 
 <script lang="ts">
 import TiraAlert from './components/TiraAlert.vue'
+import TiraMenu from './components/TiraMenu.vue'
 export default {
   name: "app",
-  components: {TiraAlert},
+  components: {TiraAlert, TiraMenu},
 }
 </script>

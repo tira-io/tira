@@ -88,6 +88,11 @@
 							"args": [
 								"run_develop"
 							],
+							"env": {
+								"TIRA_API_BASE_URL": "https://127.0.0.1:8080",
+								"TIRA_GRPC_BASE_URL": "https://127.0.0.1:8080",
+								"TIRA_ARCHIVED_URL": "https://127.0.0.1:8080"
+							},
 							"django": true,
 							"autoStartBrowser": false,
 							"program": "${workspaceFolder:Backend}/src/manage.py"
@@ -144,7 +149,7 @@
 	},
 
 	// Uncomment to connect as an existing user other than the container default. More info: https://aka.ms/dev-containers-non-root.
-	// "remoteUser": "devcontainer"
+	"remoteUser": "ubuntu",
 
 	// Needed for parts of the python-client that build and run docker containers
 	"privileged": true,

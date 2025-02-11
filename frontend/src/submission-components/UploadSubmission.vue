@@ -1,5 +1,6 @@
 <template>
   <loading :loading="loading" />
+
   <login-to-submit v-if="!loading && userinfo.role === 'guest'" />
   <v-row v-if="!loading && userinfo.role !== 'guest'">
     <v-col :cols="$vuetify.display.mdAndUp ? '9' : '12'">
@@ -9,13 +10,13 @@
     <v-col v-if="!$vuetify.display.smAndDown" :cols="$vuetify.display.mdAndUp ? '3' : '0'">
       <v-btn color="primary" v-if="!$vuetify.display.mdAndUp" icon="mdi-plus" @click="this.tab = 'newUploadGroup'" />
       <v-btn color="primary" v-if="$vuetify.display.mdAndUp" prepend-icon="mdi-plus" size="large"
-        @click="this.tab = 'newUploadGroup'" block>New Uploadgroup</v-btn>
+        @click="this.tab = 'newUploadGroup'" block>New Approach</v-btn>
     </v-col>
   </v-row>
   <v-row v-if="$vuetify.display.smAndDown">
     <v-col :cols="12">
       <v-btn color="primary" prepend-icon="mdi-plus" size="large" @click="this.tab = 'newUploadGroup'" block rounded>New
-        Uploadgroup</v-btn>
+        Approach</v-btn>
     </v-col>
   </v-row>
   <v-row v-if="!loading && userinfo.role !== 'guest'">
@@ -35,7 +36,6 @@
     </v-col>
   </v-row>
   <v-window v-model="tab" v-if="!loading && userinfo.role !== 'guest'" :touch="{ left: null, right: null }">
-
     <v-window-item value="newUploadGroup">
       <h2>New Upload</h2>
       <v-stepper :items="['About', 'Specify Metadata', 'Upload']" v-model="stepperModel" hide-actions="true" flat
@@ -163,24 +163,6 @@
         </div>
 
       </div>
-      <v-form v-if="description !== 'no-description'">
-        <h2>Upload new Submissions for Approach {{ us.display_name }}</h2>
-        <v-radio-group v-model="upload_type_next_upload">
-          <v-radio :label="'I want to upload a new run for approach ' + us.display_name + ' via the web UI'"
-            value="upload-via-ui" />
-          <v-radio :label="'I want to batch upload runs for approach ' + us.display_name + ' via a script'"
-            value="upload-via-script" />
-        </v-radio-group>
-        <div v-if="upload_type_next_upload == 'upload-via-ui'">
-          <v-file-input v-model="fileHandle" :rules="[v => !!v || 'File is required']" label="Click to add run file" />
-          <v-autocomplete label="Input Dataset" :items="datasets" item-title="display_name" item-value="dataset_id"
-            prepend-icon="mdi-file-document-multiple-outline" v-model="selectedDataset" variant="underlined"
-            clearable />
-          <v-text-field v-if="'' + rename_to !== 'null' && '' + rename_to !== '' && '' + rename_to !== 'undefined'"
-            v-model="rename_to" label="Uploaded Files are renamed to (immutable for reproducibility)" disabled="true" />
-        </div>
-      </v-form>
-
       <v-btn v-if="description !== 'no-description' && upload_type_next_upload == 'upload-via-ui'" color="primary"
         :loading="uploading" :disabled="uploading || fileHandle === null || selectedDataset === ''"
         @click="fileUpload(us.id)">Upload Run</v-btn>
@@ -197,7 +179,28 @@
 
       <h2>Your Existing Submissions for Approach {{ us.display_name }}</h2>
       <run-list :task_id="task_id" :organizer="organizer" :organizer_id="organizer_id" :vm_id="user_id_for_task"
-        :upload_id="us.id" ref="upload-run-list" />
+        :upload_id="us.id" ref="upload-run-list" from_archive="false"/>
+
+    
+      <v-btn class="my-5" v-if="description !== 'no-description' && !upload_for_approach" color="primary" prepend-icon="mdi-plus" size="large"
+        @click="this.upload_for_approach = true" block>Upload New Submission for Approach {{ us.display_name }}</v-btn>
+      <v-form class="my-5"  v-if="description !== 'no-description' && upload_for_approach">
+        <h2>Upload new Submissions for Approach {{ us.display_name }}</h2>
+        <v-radio-group v-model="upload_type_next_upload">
+          <v-radio :label="'I want to upload a new run for approach ' + us.display_name + ' via the web UI'"
+            value="upload-via-ui" />
+          <v-radio :label="'I want to batch upload runs for approach ' + us.display_name + ' via a script'"
+            value="upload-via-script" />
+        </v-radio-group>
+        <div v-if="upload_type_next_upload == 'upload-via-ui'">
+          <v-file-input v-model="fileHandle" :rules="[v => !!v || 'File is required']" label="Click to add run file" />
+          <v-autocomplete label="Input Dataset" :items="datasets" item-title="display_name" item-value="dataset_id"
+            prepend-icon="mdi-file-document-multiple-outline" v-model="selectedDataset" variant="underlined"
+            clearable />
+          <v-text-field v-if="'' + rename_to !== 'null' && '' + rename_to !== '' && '' + rename_to !== 'undefined'"
+            v-model="rename_to" label="Uploaded Files are renamed to (immutable for reproducibility)" disabled="true" />
+        </div>
+      </v-form>
     </v-window-item>
   </v-window>
 </template>
@@ -206,7 +209,7 @@
 import { inject } from 'vue'
 
 import { VAutocomplete } from 'vuetify/components'
-import { extractTaskFromCurrentUrl, extractUserFromCurrentUrl, get, inject_response, reportError, post_file, reportSuccess, handleModifiedSubmission, fetchUserInfo, get_link_to_organizer, get_contact_link_to_organizer } from "@/utils";
+import { extractTaskFromCurrentUrl, extractUserFromCurrentUrl, extractSoftwareIdFromCurrentUrl, get, inject_response, reportError, post_file, reportSuccess, handleModifiedSubmission, get_link_to_organizer, get_contact_link_to_organizer } from "@/utils";
 import { Loading, LoginToSubmit, RunList } from "@/components";
 import EditSubmissionDetails from "@/submission-components/EditSubmissionDetails.vue";
 import ImportSubmission from "./ImportSubmission.vue";
@@ -219,7 +222,7 @@ export default {
   emits: ['refresh_running_submissions'],
   data() {
     return {
-      userinfo: { role: 'guest', organizer_teams: [] },
+      userinfo: inject('userinfo'),
       loading: true,
       task_id: extractTaskFromCurrentUrl(),
       user_id_for_task: extractUserFromCurrentUrl(),
@@ -243,8 +246,10 @@ export default {
       all_uploadgroups: [{ "id": null, "display_name": 'loading...' }],
       selectedDataset: '',
       showImportSubmission: false,
+      upload_for_approach: false,
       token: 'YOUR-TOKEN-HERE',
-      datasets: [{ "dataset_id": "loading...", "display_name": "loading...", }]
+      datasets: [{ "dataset_id": "loading...", "display_name": "loading...", }],
+      rest_url: inject("REST base URL"),
     }
   },
   computed: {
@@ -291,7 +296,7 @@ export default {
         upload_type_var += this.rename_file_to
       }
 
-      get(inject("REST base URL") + `/task/${this.task_id}/vm/${this.user_id_for_task}/add_software/upload${upload_type_var}`).then(message => {
+      get(this.rest_url + `/task/${this.task_id}/vm/${this.user_id_for_task}/add_software/upload${upload_type_var}`).then(message => {
         this.all_uploadgroups.push({ "id": message.context.upload.id, "display_name": message.context.upload.display_name })
         this.tab = message.context.upload.id
         this.upload_type = 'upload-1'
@@ -322,14 +327,14 @@ export default {
       }
       else if (this.stepperModel == 2 && this.upload_configuration === 'upload-config-2') {
         this.hf_model_available = 'loading'
-        get(inject("REST base URL") + '/api/huggingface_model_mounts/vm/' + this.user_id_for_task + '/' + this.hugging_face_model.replace('/', '--'))
+        get(this.rest_url + '/api/huggingface_model_mounts/vm/' + this.user_id_for_task + '/' + this.hugging_face_model.replace('/', '--'))
           .then(inject_response(this))
           .catch(reportError("Problem While importing the Hugging Face model " + this.hugging_face_model, "This might be a short-term hiccup, please try again. We got the following error: "))
         this.stepperModel = 3;
       }
     },
     deleteUpload(id_to_delete) {
-      get(inject("REST base URL") + `/task/${this.task_id}/vm/${this.user_id_for_task}/upload-delete/${this.tab}`)
+      get(this.rest_url + `/task/${this.task_id}/vm/${this.user_id_for_task}/upload-delete/${this.tab}`)
         .then(message => {
           this.all_uploadgroups = this.all_uploadgroups.filter(i => i.id !== id_to_delete)
           this.tab = this.all_uploadgroups.length > 0 ? this.all_uploadgroups[0].display_name : null
@@ -357,14 +362,17 @@ export default {
     }
   },
   beforeMount() {
-    get(inject("REST base URL") + '/api/submissions-for-task/' + this.task_id + '/' + this.user_id_for_task + '/upload')
+    get(this.rest_url + '/api/submissions-for-task/' + this.task_id + '/' + this.user_id_for_task + '/upload')
       .then(inject_response(this, { 'loading': false }, true))
+      .then((i) => {
+        if(extractSoftwareIdFromCurrentUrl() !== null) {
+          this.tab = extractSoftwareIdFromCurrentUrl()
+        }
+      })
       .catch(reportError("Problem While Loading The Submissions of the Task " + this.task_id, "This might be a short-term hiccup, please try again. We got the following error: "))
 
-    get(inject("REST base URL") + '/api/token/' + this.user_id_for_task)
+    get(this.rest_url + '/api/token/' + this.user_id_for_task)
       .then(inject_response(this))
-
-    fetchUserInfo().then((result) => { this.$data.userinfo = result })
 
     this.tab = this.all_uploadgroups[0].display_name
   },
@@ -373,7 +381,7 @@ export default {
       this.description = 'no-description'
       this.rename_to = ''
       if (new_value !== 'newUploadGroup' && '' + new_value !== 'null' && '' + new_value !== 'undefined' && '' + new_value !== 'loading...') {
-        get(inject("REST base URL") + `/api/upload-group-details/${this.task_id}/${this.user_id_for_task}/${new_value}`).then(message => {
+        get(this.rest_url + `/api/upload-group-details/${this.task_id}/${this.user_id_for_task}/${new_value}`).then(message => {
           this.description = message.context.upload_group_details.description
           this.rename_to = message.context.upload_group_details.rename_to
         })

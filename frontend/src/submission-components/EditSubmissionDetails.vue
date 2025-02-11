@@ -45,7 +45,8 @@ export default {
       showModal: false, loading: true, submit_in_progress: false,
       task_id: extractTaskFromCurrentUrl(), display_name: 'loading ...',
       description: 'loading ...', paper_link: 'loading...',
-      ir_re_ranker: false, ir_re_ranking_input: false
+      ir_re_ranker: false, ir_re_ranking_input: false,
+      rest_url: inject("REST base URL")
     }
   },
   computed: {
@@ -56,10 +57,10 @@ export default {
       this.loading = true
       let url = null
       if (this.type === 'docker') {
-        url = inject("REST base URL")+'/api/docker-softwares-details/' + this.user_id + '/' + this.id
+        url = this.rest_url + '/api/docker-softwares-details/' + this.user_id + '/' + this.id
       }
       if (this.type === 'upload') {
-        url = inject("REST base URL")+`/api/upload-group-details/${this.task_id}/${this.user_id}/${this.id}`
+        url = this.rest_url + `/api/upload-group-details/${this.task_id}/${this.user_id}/${this.id}`
       }
 
       get(url)

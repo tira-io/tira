@@ -327,3 +327,13 @@ CODE_SUBMISSION_REFERENCE_REPOSITORIES = {
 REFERENCE_DATASETS: dict[str, str] = {}
 
 CODE_SUBMISSION_REPOSITORY_NAMESPACE = "tira-io"
+
+WELL_KNOWN = {
+    "api": custom_settings["tira_rest_api"]["base_url"],
+    "grpc": custom_settings["tira_rest_api"]["grpc_url"],
+    "archived": custom_settings["tira_rest_api"]["archived_url"],
+    "login": custom_settings["tira_rest_api"]["login_url"],
+    "logout": custom_settings["tira_rest_api"]["logout_url"],
+    "notifications": custom_settings["tira_rest_api"]["notifications_url"],
+    "disraptorURL": custom_settings["tira_rest_api"]["disraptor_url"],
+}

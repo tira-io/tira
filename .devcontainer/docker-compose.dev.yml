@@ -1,8 +1,6 @@
 services:
   devenv:
-    build:
-      context: ./
-      dockerfile: Dockerfile.dev
+    image: webis/tira:dev-container-0.0.1
     restart: unless-stopped
     environment:
       # TIRA Frontend Environment Variables

@@ -48,13 +48,19 @@ EOF
 
 USER tira
 RUN <<EOF
+set -e
 export PATH="/home/tira/.local/bin:$PATH"
 
 # Install dependencies
 pip3 install -q --no-cache-dir --user ../python-client .[test,deploy,postgreqsql]
 
 chmod +x ./src/tira_app/endpoints/aha  # FIXME; aha is not copied to the Production Container
+EOF
 
+
+RUN <<EOF
+set -e
+export PATH="/home/tira/.local/bin:$PATH"
 # Run tests
 export TIRA_CONFIG="/tira/config/tira-application-config.yml"
 export TIRA_DEBUG=true
@@ -62,8 +68,6 @@ make setup
 cd test
 pytest
 EOF
-
-
 
 ########################################################################################################################
 # Production Container                                                                                                 #
@@ -84,11 +88,11 @@ COPY --from=build /tira/src/tira_app/management/commands/irds_cli.sh /irds_cli.s
 
 RUN <<EOF
 ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-apt-get -qq update && apt-get -qq install -y locales
+apt-get -qq update && apt-get -qq install -y locales python3-setuptools
 echo "en_US.UTF-8 UTF-8" | tee -a /etc/locale.gen && locale-gen
 
 # Tools
-apt-get -qq install -y python3 python3-dev
+apt-get -qq install -y python3 python3-dev git
 # For MariaDB
 apt-get -qq install -y mariadb-client
 #
@@ -114,6 +118,7 @@ EOF
 # Final Configuration Stuff                                                                                            #
 ########################################################################################################################
 USER tira
+ENV LC_ALL=en_US.UTF-8
 ENV PATH=/home/tira/.local/bin:$PATH
 # CONFIGURE THE FOLLOWING ENVIRONMENT VARIABLES IN YOUR DOCKER-COMPOSE FILE
 ENV HF_HOME=/home/tira/data/publicly-shared-datasets/huggingface/

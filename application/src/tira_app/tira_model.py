@@ -590,7 +590,7 @@ def get_software_by_task(task_id, vm_id):
 
 
 def add_upload(task_id, vm_id, rename_to: Optional[str] = None):
-    """ " Add empty new upload"""
+    """Add empty new upload"""
     return model.add_upload(task_id, vm_id, rename_to)
 
 
@@ -737,6 +737,10 @@ def add_dataset(
     irds_docker_image: Optional[str] = None,
     irds_import_command: Optional[str] = None,
     irds_import_truth_command: Optional[str] = None,
+    dataset_format: Optional[str] = None,
+    description: Optional[str] = None,
+    chatnoir_id: Optional[str] = None,
+    ir_datasets_id: Optional[str] = None,
 ) -> list:
     """returns a list of paths of newly created datasets as string."""
     return model.add_dataset(
@@ -748,6 +752,10 @@ def add_dataset(
         irds_docker_image=irds_docker_image,
         irds_import_command=irds_import_command,
         irds_import_truth_command=irds_import_truth_command,
+        dataset_format=dataset_format,
+        description=description,
+        chatnoir_id=chatnoir_id,
+        ir_datasets_id=ir_datasets_id,
     )
 
 
@@ -911,6 +919,10 @@ def edit_dataset(
     git_runner_image: Optional[str] = None,
     git_runner_command: Optional[str] = None,
     git_repository_id: Optional[str] = None,
+    dataset_format: Optional[str] = None,
+    description: Optional[str] = None,
+    chatnoir_id: Optional[str] = None,
+    ir_datasets_id: Optional[str] = None,
 ):
     """Update the datasets's data"""
     return model.edit_dataset(
@@ -926,6 +938,10 @@ def edit_dataset(
         git_runner_image,
         git_runner_command,
         git_repository_id,
+        dataset_format,
+        description,
+        chatnoir_id,
+        ir_datasets_id,
     )
 
 

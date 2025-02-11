@@ -100,7 +100,7 @@
 <script lang="ts">
 import { inject } from 'vue'
 
-import {get, post, inject_response, reportError, reportSuccess, get_link_to_organizer} from "@/utils";
+import {get, post, inject_response, reportError, reportSuccess, get_link_to_organizer, type UserInfo} from "@/utils";
 import {Loading, CodeSnippet} from '../components'
 
 export default {
@@ -120,7 +120,8 @@ export default {
         owner_url: '',
         http_owner_url: '',
         disabled: false,
-        token: '<ADD-YOUR-TOKEN-HERE>'
+        token: '<ADD-YOUR-TOKEN-HERE>',
+        userinfo: inject('userinfo') as UserInfo
     }
   },
   methods: {
@@ -132,7 +133,7 @@ export default {
       }
 
       this.submit_in_progress = true
-      post(inject("REST base URL")+`/api/add_software_submission_git_repository/${this.task_id}/${this.user_id}`, {"external_owner": this.new_git_account, "allow_public_repo": this.allow_public_repo})
+      post(inject("REST base URL")+`/api/add_software_submission_git_repository/${this.task_id}/${this.user_id}`, {"external_owner": this.new_git_account, "allow_public_repo": this.allow_public_repo}, this.userinfo)
         .then(reportSuccess('Your git repository was created.'))
         .then(inject_response(this))
         .catch(reportError("Problem while adding your git repository.", "This might be a short-term hiccup, please try again. We got the following error: "))

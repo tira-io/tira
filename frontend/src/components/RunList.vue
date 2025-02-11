@@ -72,22 +72,22 @@ import RunActions from './RunActions.vue'
 import SoftwareDetails from './SoftwareDetails.vue'
 import Loading from "./Loading.vue"
 import SubmissionIcon from "./SubmissionIcon.vue"
-import { get, reportError, inject_response, fetchUserInfo, type UserInfo } from '../utils'
+import { get_from_archive, reportError, inject_response, type UserInfo } from '../utils'
 
 
 export default {
   name: "run-list",
   components: { RunActions, SoftwareDetails, Loading, SubmissionIcon },
-  props: ['task_id', 'dataset_id', 'organizer', 'organizer_id', 'vm_id', 'docker_software_id', 'upload_id', 'show_only_unreviewed'],
+  props: ['task_id', 'dataset_id', 'organizer', 'organizer_id', 'vm_id', 'docker_software_id', 'upload_id', 'show_only_unreviewed', 'from_archive'],
   data() {
     return {
-      userinfo: { role: 'guest', organizer_teams: [] } as UserInfo,
+      userinfo: inject('userinfo') as UserInfo,
       selected_runs: [],
       loading: true,
       runs: [{ 'run_id': 'loading...', 'review_state': 'no-review', 'vm_id': '1', 'link_to_team': 'link', 'dataset_id': '1' }],
       table_headers: [],
       table_headers_small_layout: [],
-      table_sort_by: [],
+      table_sort_by: []
     }
   },
   computed: {
@@ -115,13 +115,13 @@ export default {
       this.loading = true
       var rest_endpoint = ''
       if (this.task_id && this.dataset_id) {
-        rest_endpoint = inject("REST base URL") + '/api/evaluations/' + this.task_id + '/' + this.dataset_id
+        rest_endpoint = '/api/evaluations/' + this.task_id + '/' + this.dataset_id
 
         if (this.show_only_unreviewed) {
           rest_endpoint += '?show_only_unreviewed=true'
         }
       } else if (this.task_id && this.vm_id) {
-        rest_endpoint = inject("REST base URL") + '/api/evaluations-of-vm/' + this.task_id + '/' + this.vm_id
+        rest_endpoint = '/api/evaluations-of-vm/' + this.task_id + '/' + this.vm_id
 
         if (this.docker_software_id) {
           rest_endpoint += '?docker_software_id=' + this.docker_software_id
@@ -130,7 +130,7 @@ export default {
         }
       }
 
-      get(rest_endpoint)
+      get_from_archive(rest_endpoint, this.from_archive)
         .then(inject_response(this, { 'loading': false }))
         .catch(reportError("Problem While Loading the List of Runs", "This might be a short-term hiccup, please try again. We got the following error: "))
     },
@@ -152,7 +152,6 @@ export default {
   },
   beforeMount() {
     this.fetchData()
-    fetchUserInfo().then((result) => { this.$data.userinfo = result })
   },
   watch: {
     dataset_id(old_id, new_id) { this.fetchData() },
