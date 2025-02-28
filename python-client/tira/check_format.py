@@ -2,6 +2,7 @@ import gzip
 import json
 import os
 import re
+import xml.dom.minidom
 from enum import Enum
 from glob import glob
 from pathlib import Path
@@ -178,8 +179,89 @@ class TsvFormat(FormatBase):
             return ret
 
 
-class TextAlignmentFormat(FormatBase):
-    """Checks if a given directory contains a valid PAN text alignment corpus"""
+class TextAlignmentFeaturesFormat(FormatBase):
+    """
+    The code was refactored from https://github.com/pan-webis-de/pan-code/blob/master/sepln09/pan09-plagiarism-detection-performance-measures.py#L276
+    """
+
+    def check_format(self, run_output: Path):
+        try:
+            lines = self.all_lines(run_output)
+        except Exception as e:
+            return [_fmt.ERROR, str(e)]
+
+        if len(lines) < 3:
+            return [
+                _fmt.ERROR,
+                f"The text-alignment-feature directory contains only {len(lines)} instances, this is likely an error.",
+            ]
+
+        return [_fmt.OK, "The directory has the correct format."]
+
+    def all_lines(self, run_output):
+        return self.extract_annotations_from_files(run_output, ["plagiarism", "detected-plagiarism"])
+
+    def extract_annotations_from_file(self, xmlfile, tagnames):
+        """Returns a set of plagiarism annotations from an XML file."""
+        doc = xml.dom.minidom.parse(xmlfile)
+        annotations = []
+        if not doc.documentElement.hasAttribute("reference"):
+            return annotations
+        t_ref = doc.documentElement.getAttribute("reference")
+        for node in doc.documentElement.childNodes:
+            for tagname in tagnames:
+                if (
+                    node.nodeType == xml.dom.Node.ELEMENT_NODE
+                    and node.hasAttribute("name")
+                    and node.getAttribute("name").endswith(tagname)
+                ):
+                    ann = self.extract_annotation_from_node(node, t_ref)
+                    if ann:
+                        ann["type"] = tagname
+                        annotations.append(ann)
+        return annotations
+
+    def extract_annotation_from_node(self, xmlnode, t_ref):
+        """Returns a plagiarism annotation from an XML feature tag node."""
+        if not (xmlnode.hasAttribute("this_offset") and xmlnode.hasAttribute("this_length")):
+            return False
+        t_off = int(xmlnode.getAttribute("this_offset"))
+        t_len = int(xmlnode.getAttribute("this_length"))
+        s_ref, s_off, s_len, ext = "", 0, 0, False
+        if (
+            xmlnode.hasAttribute("source_reference")
+            and xmlnode.hasAttribute("source_offset")
+            and xmlnode.hasAttribute("source_length")
+        ):
+            s_ref = xmlnode.getAttribute("source_reference")
+            s_off = int(xmlnode.getAttribute("source_offset"))
+            s_len = int(xmlnode.getAttribute("source_length"))
+            ext = True
+        return {
+            "this_reference": t_ref,
+            "this_offset": t_off,
+            "this_length": t_len,
+            "source_reference": s_ref,
+            "source_offset": s_off,
+            "source_length": s_len,
+            "is_external": ext,
+        }
+
+    def extract_annotations_from_files(self, path: Path, tagnames: list[str]):
+        """Returns a set of plagiarism annotations from XML files below path."""
+        if not os.path.exists(path):
+            raise ValueError(f"Path not accessible: {path}")
+
+        annotations = []
+        xmlfiles = glob(os.path.join(path, "*.xml"))
+        xmlfiles.extend(glob(os.path.join(path, os.path.join("*", "*.xml"))))
+        for xmlfile in xmlfiles:
+            annotations += self.extract_annotations_from_file(xmlfile, tagnames)
+        return annotations
+
+
+class TextAlignmentCorpusFormat(FormatBase):
+    """Checks if a given directory contains a valid PAN text alignment corpus. The code was refactored from https://github.com/pan-webis-de/pan-code/blob/master/clef12/text-alignment/pan12-text-alignment-baseline.py#L202"""
 
     def check_format(self, run_output: Path):
         try:
@@ -237,7 +319,8 @@ FORMAT_TO_CHECK = {
     "run.txt": lambda: RunFormat(),
     "*.jsonl": lambda: JsonlFormat(),
     "*.tsv": lambda: TsvFormat(),
-    "text-alignment": lambda: TextAlignmentFormat(),
+    "text-alignment-corpus": lambda: TextAlignmentCorpusFormat(),
+    "text-alignment-features": lambda: TextAlignmentFeaturesFormat(),
 }
 
 SUPPORTED_FORMATS = set(sorted(list(FORMAT_TO_CHECK.keys())))

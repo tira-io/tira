@@ -13,13 +13,13 @@ from . import (
 def check_format(dir):
     from tira.check_format import check_format as cf
 
-    return cf(dir, "text-alignment")
+    return cf(dir, "text-alignment-corpus")
 
 
 def lines_if_valid(dir):
     from tira.check_format import lines_if_valid as lf
 
-    return lf(dir, "text-alignment")
+    return lf(dir, "text-alignment-corpus")
 
 
 class TestCheckJsonlForNonExistingFormats(unittest.TestCase):
