@@ -3,6 +3,7 @@ import json
 import os
 import re
 from enum import Enum
+from glob import glob
 from pathlib import Path
 from typing import Sequence, Union
 
@@ -177,7 +178,67 @@ class TsvFormat(FormatBase):
             return ret
 
 
-FORMAT_TO_CHECK = {"run.txt": lambda: RunFormat(), "*.jsonl": lambda: JsonlFormat(), "*.tsv": lambda: TsvFormat()}
+class TextAlignmentFormat(FormatBase):
+    """Checks if a given directory contains a valid PAN text alignment corpus"""
+
+    def check_format(self, run_output: Path):
+        try:
+            lines = [i for i in self.yield_lines(run_output, False)]
+        except Exception as e:
+            return [_fmt.ERROR, str(e)]
+
+        if len(lines) < 3:
+            return [
+                _fmt.ERROR,
+                f"The text-alignment directory contains only {len(lines)} instances, this is likely an error.",
+            ]
+
+        return [_fmt.OK, "The directory file has the correct format."]
+
+    def all_lines(self, run_output):
+        return [i for i in self.yield_lines(run_output, True)]
+
+    def yield_lines(self, run_output, load_content):
+        matches = [i for i in os.listdir(run_output) if i.endswith("pairs")]
+        if len(matches) != 1:
+            msg = "No unique pair file was found, only the files "
+            msg += str(os.listdir(run_output)) + " were available."
+            raise ValueError(msg)
+
+        f = run_output / matches[0]
+        with open(f, "r") as tsv_file:
+            for l in tsv_file:
+                l_parsed = l.strip().split()
+                if len(l_parsed) != 2:
+                    raise ValueError("The pair file is invalid: I expect always two lines per entry.")
+                entry = {}
+                for k, v in zip(l_parsed, ["suspicious", "source"]):
+                    entry[f"{v}_document_id"] = k.replace(".txt", "")
+                    matches = (
+                        glob(f"{run_output}/{k}")
+                        + glob(f"{run_output}/{k}.txt")
+                        + glob(f"{run_output}/*/{k}")
+                        + glob(f"{run_output}/*/{k}.txt")
+                    )
+
+                    if len(matches) != 1:
+                        msg = f"No unique text file was found for id {k}. Only "
+                        msg += str(os.listdir(run_output)) + " were available."
+
+                        raise ValueError(msg)
+                    if load_content:
+                        with open(matches[0]) as f:
+                            entry[f"{v}_document_text"] = f.read()
+
+                yield entry
+
+
+FORMAT_TO_CHECK = {
+    "run.txt": lambda: RunFormat(),
+    "*.jsonl": lambda: JsonlFormat(),
+    "*.tsv": lambda: TsvFormat(),
+    "text-alignment": lambda: TextAlignmentFormat(),
+}
 
 SUPPORTED_FORMATS = set(sorted(list(FORMAT_TO_CHECK.keys())))
 
