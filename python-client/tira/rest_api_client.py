@@ -434,7 +434,7 @@ class Client(TiraClient):
         ret = None
 
         try:
-            ret = self.archived_json_response(endpoint, force_reload=True)
+            ret = self.archived_json_response(endpoint)
         except:
             pass
 
