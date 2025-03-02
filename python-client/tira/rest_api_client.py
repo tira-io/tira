@@ -46,6 +46,7 @@ class Client(TiraClient):
         api_user_name: Optional[str] = None,
         tira_cache_dir: Optional[str] = None,
         verify: bool = True,
+        allow_local_execution: bool = False
     ):
         self.base_url = base_url or "https://www.tira.io"
         self.tira_cache_dir = (
@@ -69,6 +70,7 @@ class Client(TiraClient):
         self.pt_ance = PyTerrierAnceIntegration(self)
         self.pt_splade = PyTerrierSpladeIntegration(self)
         self.local_execution = LocalExecutionIntegration(self)
+        self.allow_local_execution = allow_local_execution
 
         self.failsave_retries = failsave_retries
         self.failsave_max_delay = failsave_max_delay
@@ -427,8 +429,31 @@ class Client(TiraClient):
         else:
             return None
 
+    def public_system_details(self, team_name, system_name):
+        endpoint = f'/v1/systems/{team_name}/{system_name}'.replace(" ", "%20")
+        ret = None
+
+        try:
+            ret = self.archived_json_response(endpoint)
+        except:
+            pass
+
+        if ret is None:
+            try:
+                ret = self.archived_json_response(endpoint, force_reload=True)
+            except:
+                pass
+
+        if ret is None:
+            msg = f'The software "{system_name}" by team {team_name} is not publicly available in TIRA. Please visit https://tira.io/systems for an overview of all public systems.'
+            print(msg)
+            raise ValueError(msg)
+
+        return ret
+
     def get_run_execution_or_none(self, approach, dataset, previous_stage_run_id=None):
         task, team, software = approach.split("/")
+        system_details = self.public_system_details(team, software)
         redirect = redirects(approach, dataset)
 
         if redirect is not None and "run_id" in redirect and redirect["run_id"] is not None:
@@ -437,6 +462,9 @@ class Client(TiraClient):
         public_runs = self.public_runs(task, dataset, team, software)
         if public_runs:
             return {"task": task, "dataset": dataset, "team": team, "run_id": public_runs["runs"][0]}
+
+        if self.allow_local_execution:
+            return self.local_execution.run_and_return_tira_execution(task, dataset, team, system_details['public_image_name'], system_details['command'])
 
         if not self.api_key_is_valid():
             raise ValueError(
@@ -1039,7 +1067,7 @@ class Client(TiraClient):
 
         out.parent.mkdir(exist_ok=True, parents=True)
         base_url = "https://tira.io" if not force_reload else self.base_url
-        response = self.json_response(endpoint, base_url=base_url)
+        response = self.json_response(endpoint, base_url=base_url, failsave_retries=1)
 
         with open(out, "w") as f:
             f.write(json.dumps(response))
@@ -1047,7 +1075,9 @@ class Client(TiraClient):
         return json.load(open(out, "r"))
 
     @lru_cache(maxsize=None)
-    def json_response(self, endpoint: str, params: Optional[Union[Dict, List[tuple], bytes]] = None, base_url=None):
+    def json_response(self, endpoint: str, params: Optional[Union[Dict, List[tuple], bytes]] = None, base_url=None, failsave_retries=None):
+        if failsave_retries is None:
+            failsave_retries = self.failsave_retries
         assert endpoint.startswith("/")
         headers = {"Accept": "application/json"}
 
@@ -1057,7 +1087,7 @@ class Client(TiraClient):
             headers["Api-Username"] = self.api_user_name
         base_url = base_url if base_url else self.base_url
 
-        for _ in range(self.failsave_retries):
+        for _ in range(failsave_retries):
             try:
                 resp = requests.get(url=f"{base_url}{endpoint}", headers=headers, verify=self.verify, params=params)
                 if resp.status_code not in {200, 202}:
@@ -1076,7 +1106,9 @@ class Client(TiraClient):
                     " and continue.",
                     exc_info=e,
                 )
-                time.sleep(sleep_time)
+
+                if failsave_retries > 1:
+                    time.sleep(sleep_time)
 
         return resp.json()
 
