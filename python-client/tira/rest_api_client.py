@@ -468,9 +468,7 @@ class Client(TiraClient):
             return {"task": task, "dataset": dataset, "team": team, "run_id": redirect["run_id"]}
 
         if self.dataset_only_available_locally(dataset) and self.allow_local_execution:
-            return self.local_execution.run_and_return_tira_execution(
-                task, dataset, team, system_details
-            )
+            return self.local_execution.run_and_return_tira_execution(task, dataset, team, system_details)
 
         public_runs = self.public_runs(task, dataset, team, software)
         if public_runs:
@@ -528,7 +526,7 @@ class Client(TiraClient):
             )
         run_id = ret["run_id"]
 
-        ret = self.download_zip_to_cache_directory(**{i: ret[i] for i in ['task', 'dataset', 'team', 'run_id']})
+        ret = self.download_zip_to_cache_directory(**{i: ret[i] for i in ["task", "dataset", "team", "run_id"]})
         ret = pd.read_csv(
             ret + "/run.txt",
             sep="\\s+",

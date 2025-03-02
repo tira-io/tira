@@ -258,11 +258,15 @@ class LocalExecutionIntegration:
 
         if input_docker_software:
             for i in input_docker_software:
-                if i['docker_software_id'] not in docker_software_id_to_output:
-                    docker_software_id_to_output[i['docker_software_id']] = self.run_and_return_tira_execution(task, dataset_directory, team, i)
+                if i["docker_software_id"] not in docker_software_id_to_output:
+                    docker_software_id_to_output[i["docker_software_id"]] = self.run_and_return_tira_execution(
+                        task, dataset_directory, team, i
+                    )
 
         run_id = str(uuid.uuid4())
-        output_dir = Path(self.tira_client.tira_cache_dir) / "extracted_runs" / task / dataset_name / team / run_id / "output"
+        output_dir = (
+            Path(self.tira_client.tira_cache_dir) / "extracted_runs" / task / dataset_name / team / run_id / "output"
+        )
 
         ret = {
             "task": task,
@@ -273,11 +277,17 @@ class LocalExecutionIntegration:
             "image": image,
             "command": command,
             "docker_software_id_to_output": docker_software_id_to_output,
-            "output_dir": str(output_dir)
+            "output_dir": str(output_dir),
         }
 
         output_dir.mkdir(parents=True)
-        self.run(image=image, command=command, input_dir=dataset_directory, output_dir=output_dir, docker_software_id_to_output={k: v['output_dir'] for k, v in docker_software_id_to_output.items()})
+        self.run(
+            image=image,
+            command=command,
+            input_dir=dataset_directory,
+            output_dir=output_dir,
+            docker_software_id_to_output={k: v["output_dir"] for k, v in docker_software_id_to_output.items()},
+        )
 
         with open(log_file, "a") as f:
             f.write(json.dumps(ret) + "\n")
