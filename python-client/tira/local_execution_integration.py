@@ -5,9 +5,9 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+import uuid
 from copy import deepcopy
 from pathlib import Path
-import uuid
 
 import docker
 import pandas as pd
@@ -229,18 +229,24 @@ class LocalExecutionIntegration:
         return True
 
     def run_and_return_tira_execution(self, task, dataset_directory, team, image, command):
-        dataset_name = dataset_directory.split('/')[-1]
+        dataset_name = dataset_directory.split("/")[-1]
         log_file = Path(f"{self.tira_client.tira_cache_dir}/.archived/local-executions.jsonl")
 
         if not log_file.exists():
-            with open(log_file, 'w') as f:
-                f.write('')
+            with open(log_file, "w") as f:
+                f.write("")
 
-        with open(log_file, 'r') as f:
+        with open(log_file, "r") as f:
             for l in f:
                 try:
                     l = json.loads(l)
-                    if l['dataset_directory'] == dataset_directory and l['team'] == team and l['task'] == task and l['image'] == image and l['command'] == command:
+                    if (
+                        l["dataset_directory"] == dataset_directory
+                        and l["team"] == team
+                        and l["task"] == task
+                        and l["image"] == image
+                        and l["command"] == command
+                    ):
                         return l
                 except:
                     pass
@@ -253,15 +259,15 @@ class LocalExecutionIntegration:
             "team": team,
             "run_id": run_id,
             "image": image,
-            "command": command
+            "command": command,
         }
 
         output_dir = Path(f"{self.tira_client.tira_cache_dir}/extracted_runs/{task}/{dataset_name}/{team}/" + run_id)
         output_dir.mkdir(parents=True)
         self.run(image=image, command=command, input_dir=dataset_directory, output_dir=output_dir)
 
-        with open(log_file, 'w') as f:
-            f.write(json.dumps(ret) + '\n')
+        with open(log_file, "w") as f:
+            f.write(json.dumps(ret) + "\n")
 
         return ret
 

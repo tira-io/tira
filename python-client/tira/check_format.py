@@ -247,7 +247,7 @@ class TextAlignmentFeaturesFormat(FormatBase):
             "is_external": ext,
         }
 
-    def extract_annotations_from_files(self, path: Path, tagnames: list[str]):
+    def extract_annotations_from_files(self, path, tagnames):
         """Returns a set of plagiarism annotations from XML files below path."""
         if not os.path.exists(path):
             raise ValueError(f"Path not accessible: {path}")

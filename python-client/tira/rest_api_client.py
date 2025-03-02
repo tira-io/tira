@@ -46,7 +46,7 @@ class Client(TiraClient):
         api_user_name: Optional[str] = None,
         tira_cache_dir: Optional[str] = None,
         verify: bool = True,
-        allow_local_execution: bool = False
+        allow_local_execution: bool = False,
     ):
         self.base_url = base_url or "https://www.tira.io"
         self.tira_cache_dir = (
@@ -430,7 +430,7 @@ class Client(TiraClient):
             return None
 
     def public_system_details(self, team_name, system_name):
-        endpoint = f'/v1/systems/{team_name}/{system_name}'.replace(" ", "%20")
+        endpoint = f"/v1/systems/{team_name}/{system_name}".replace(" ", "%20")
         ret = None
 
         try:
@@ -464,7 +464,9 @@ class Client(TiraClient):
             return {"task": task, "dataset": dataset, "team": team, "run_id": public_runs["runs"][0]}
 
         if self.allow_local_execution:
-            return self.local_execution.run_and_return_tira_execution(task, dataset, team, system_details['public_image_name'], system_details['command'])
+            return self.local_execution.run_and_return_tira_execution(
+                task, dataset, team, system_details["public_image_name"], system_details["command"]
+            )
 
         if not self.api_key_is_valid():
             raise ValueError(
@@ -1075,7 +1077,13 @@ class Client(TiraClient):
         return json.load(open(out, "r"))
 
     @lru_cache(maxsize=None)
-    def json_response(self, endpoint: str, params: Optional[Union[Dict, List[tuple], bytes]] = None, base_url=None, failsave_retries=None):
+    def json_response(
+        self,
+        endpoint: str,
+        params: Optional[Union[Dict, List[tuple], bytes]] = None,
+        base_url=None,
+        failsave_retries=None,
+    ):
         if failsave_retries is None:
             failsave_retries = self.failsave_retries
         assert endpoint.startswith("/")

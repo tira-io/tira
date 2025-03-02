@@ -29,21 +29,35 @@ def public_submissions(request: HttpRequest) -> JsonResponse:
     return JsonResponse(ret, safe=False)
 
 
+def serialize_docker_software(ds):
+    input_docker_software = []
+
+    if ds and ds.input_docker_software:
+        input_docker_software.append(serialize_docker_software(ds.input_docker_software))
+        for i in model.get_ordered_additional_input_runs_of_software({"docker_software_id": ds.docker_software_id}):
+            matches = DockerSoftware.objects.filter(docker_software_id=i)
+            assert len(matches) == 1
+            for ds_inp in matches:
+                input_docker_software.append(serialize_docker_software(ds_inp))
+
+    return {
+        "public_image_name": ds.public_image_name,
+        "command": ds.command,
+        "display_name": ds.display_name,
+        "deleted": ds.deleted,
+        "description": ds.description,
+        "paper_link": ds.paper_link,
+        "docker_software_id": ds.docker_software_id,
+        "input_docker_software": input_docker_software,
+    }
+
+
 def software_details(request: HttpRequest, user_id: str, software: str) -> JsonResponse:
     ret = []
     for i in DockerSoftware.objects.filter(vm_id=user_id, display_name=software):
         if not i.public_image_name or i.deleted:
             continue
-        ret += [
-            {
-                "public_image_name": i.public_image_name,
-                "command": i.command,
-                "display_name": i.display_name,
-                "deleted": i.deleted,
-                "description": i.description,
-                "paper_link": i.paper_link,
-            }
-        ]
+        ret.append(serialize_docker_software(i))
 
     if len(ret) == 1:
         return JsonResponse(ret[0], safe=False)
