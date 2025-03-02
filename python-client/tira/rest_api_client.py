@@ -434,7 +434,7 @@ class Client(TiraClient):
         ret = None
 
         try:
-            ret = self.archived_json_response(endpoint)
+            ret = self.archived_json_response(endpoint, force_reload=True)
         except:
             pass
 
@@ -465,7 +465,7 @@ class Client(TiraClient):
 
         if self.allow_local_execution:
             return self.local_execution.run_and_return_tira_execution(
-                task, dataset, team, system_details["public_image_name"], system_details["command"]
+                task, dataset, team, system_details
             )
 
         if not self.api_key_is_valid():
