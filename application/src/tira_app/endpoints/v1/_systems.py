@@ -39,6 +39,8 @@ def serialize_docker_software(ds):
             assert len(matches) == 1
             for ds_inp in matches:
                 input_docker_software.append(serialize_docker_software(ds_inp))
+    vm = ds.vm
+    task = ds.task
 
     return {
         "public_image_name": ds.public_image_name,
@@ -47,6 +49,10 @@ def serialize_docker_software(ds):
         "deleted": ds.deleted,
         "description": ds.description,
         "paper_link": ds.paper_link,
+        "ir_re_ranker": ds.ir_re_ranker,
+        "ir_re_ranking_input": ds.ir_re_ranking_input,
+        "team": vm.vm_id if vm else None,
+        "task": task.task_id if task else None,
         "docker_software_id": ds.docker_software_id,
         "input_docker_software": input_docker_software,
     }
