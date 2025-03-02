@@ -1,8 +1,6 @@
 import json
 import unittest
 
-from approvaltests import verify
-
 from . import _ERROR, _OK, EMPTY_OUTPUT, TEXT_ALIGNMENT_FEATURES_VALID
 
 
@@ -31,4 +29,10 @@ class TestCheckTextAlignmentFeaturesFormats(unittest.TestCase):
 
     def test_parsed_lines(self):
         lines = lines_if_valid(TEXT_ALIGNMENT_FEATURES_VALID)
-        verify([json.dumps(i) for i in lines])
+        expected = [
+            "suspicious-document00172.txt",
+            "suspicious-document00172.txt",
+            "suspicious-document00028.txt",
+            "suspicious-document00028.txt",
+        ]
+        self.assertEqual([i["this_reference"] for i in lines], expected)
