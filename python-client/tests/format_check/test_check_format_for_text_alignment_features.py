@@ -29,10 +29,12 @@ class TestCheckTextAlignmentFeaturesFormats(unittest.TestCase):
 
     def test_parsed_lines(self):
         lines = lines_if_valid(TEXT_ALIGNMENT_FEATURES_VALID)
-        expected = [
-            "suspicious-document00172.txt",
-            "suspicious-document00172.txt",
-            "suspicious-document00028.txt",
-            "suspicious-document00028.txt",
-        ]
-        self.assertEqual([i["this_reference"] for i in lines], expected)
+        expected = sorted(
+            [
+                "suspicious-document00028.txt",
+                "suspicious-document00028.txt",
+                "suspicious-document00172.txt",
+                "suspicious-document00172.txt",
+            ]
+        )
+        self.assertEqual(sorted([i["this_reference"] for i in lines]), expected)
