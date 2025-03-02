@@ -131,6 +131,14 @@ class Client(TiraClient):
     def datasets(self, task):
         return json.loads(self.json_response(f"/api/datasets_by_task/{task}")["context"]["datasets"])
 
+    def dataset_only_available_locally(self, dataset):
+        if not Path(dataset).exists():
+            return False
+        dataset_identifier = self._TiraClient__extract_dataset_identifier(dataset)
+        datasets = self.archived_json_response("/v1/datasets/all")
+
+        return self._TiraClient__matching_dataset(datasets, dataset_identifier) is None
+
     def get_dataset(self, dataset) -> dict:
         """Get the TIRA representation of an dataset identified by the passed dataset argument.
 
@@ -459,14 +467,14 @@ class Client(TiraClient):
         if redirect is not None and "run_id" in redirect and redirect["run_id"] is not None:
             return {"task": task, "dataset": dataset, "team": team, "run_id": redirect["run_id"]}
 
-        public_runs = self.public_runs(task, dataset, team, software)
-        if public_runs:
-            return {"task": task, "dataset": dataset, "team": team, "run_id": public_runs["runs"][0]}
-
-        if self.allow_local_execution:
+        if self.dataset_only_available_locally(dataset) and self.allow_local_execution:
             return self.local_execution.run_and_return_tira_execution(
                 task, dataset, team, system_details
             )
+
+        public_runs = self.public_runs(task, dataset, team, software)
+        if public_runs:
+            return {"task": task, "dataset": dataset, "team": team, "run_id": public_runs["runs"][0]}
 
         if not self.api_key_is_valid():
             raise ValueError(
