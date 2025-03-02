@@ -262,7 +262,7 @@ class LocalExecutionIntegration:
                     docker_software_id_to_output[i['docker_software_id']] = self.run_and_return_tira_execution(task, dataset_directory, team, i)
 
         run_id = str(uuid.uuid4())
-        output_dir = Path(f"{self.tira_client.tira_cache_dir}/extracted_runs/{task}/{dataset_name}/{team}/" + run_id)
+        output_dir = Path(self.tira_client.tira_cache_dir) / "extracted_runs" / task / dataset_name / team / run_id / "output"
 
         ret = {
             "task": task,
@@ -279,7 +279,7 @@ class LocalExecutionIntegration:
         output_dir.mkdir(parents=True)
         self.run(image=image, command=command, input_dir=dataset_directory, output_dir=output_dir, docker_software_id_to_output={k: v['output_dir'] for k, v in docker_software_id_to_output.items()})
 
-        with open(log_file, "w") as f:
+        with open(log_file, "a") as f:
             f.write(json.dumps(ret) + "\n")
 
         return ret

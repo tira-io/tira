@@ -520,7 +520,7 @@ class Client(TiraClient):
             )
         run_id = ret["run_id"]
 
-        ret = self.download_zip_to_cache_directory(**ret)
+        ret = self.download_zip_to_cache_directory(**{i: ret[i] for i in ['task', 'dataset', 'team', 'run_id']})
         ret = pd.read_csv(
             ret + "/run.txt",
             sep="\\s+",
