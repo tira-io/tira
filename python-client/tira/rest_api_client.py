@@ -518,7 +518,7 @@ class Client(TiraClient):
             else:
                 return ret
 
-        if "/" in dataset:
+        if "/" in dataset and not Path(dataset).exists():
             dataset = dataset.split("/")[-1]
         ret = self.get_run_execution_or_none(f"{task}/{team}/{software}", dataset, previous_stage)
         if not ret:
