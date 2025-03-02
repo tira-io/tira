@@ -1,6 +1,7 @@
+import json
 import unittest
 
-from approvaltests import verify_as_json
+from approvaltests import verify
 
 from . import _ERROR, _OK, EMPTY_OUTPUT, TEXT_ALIGNMENT_FEATURES_VALID
 
@@ -30,4 +31,4 @@ class TestCheckTextAlignmentFeaturesFormats(unittest.TestCase):
 
     def test_parsed_lines(self):
         lines = lines_if_valid(TEXT_ALIGNMENT_FEATURES_VALID)
-        verify_as_json(lines)
+        verify([json.dumps(i) for i in lines])
