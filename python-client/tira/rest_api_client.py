@@ -15,13 +15,15 @@ from typing import Dict, List, Optional, Union
 
 import pandas as pd
 import requests
-from tqdm import tqdm
-
 from tira.check_format import _fmt, check_format
 from tira.local_execution_integration import LocalExecutionIntegration
 from tira.pandas_integration import PandasIntegration
 from tira.profiling_integration import ProfilingIntegration
-from tira.pyterrier_integration import PyTerrierAnceIntegration, PyTerrierIntegration, PyTerrierSpladeIntegration
+from tira.pyterrier_integration import (
+    PyTerrierAnceIntegration,
+    PyTerrierIntegration,
+    PyTerrierSpladeIntegration,
+)
 from tira.third_party_integrations import temporary_directory
 from tira.tira_redirects import (
     RESOURCE_REDIRECTS,
@@ -30,6 +32,7 @@ from tira.tira_redirects import (
     mirror_url,
     redirects,
 )
+from tqdm import tqdm
 
 from .tira_client import TiraClient
 
@@ -98,7 +101,10 @@ class Client(TiraClient):
             self.api_key = settings["api_key"]
 
     def api_key_is_valid(self):
-        role = self.json_response("/api/role")
+        try:
+            role = self.json_response("/api/role")
+        except:
+            return False
 
         if (
             (self.api_user_name is None or self.api_user_name == "no-api-key-user")
@@ -760,8 +766,9 @@ class Client(TiraClient):
         self.api_key = token
 
         if not self.api_key_is_valid():
-            print("The api key {token} is not valid")
-            raise ValueError(f"The api key {token} is invalid.")
+            msg = f"The api key {token} is not valid"
+            print(msg)
+            raise ValueError(msg)
 
         self.update_settings("api_key", token)
 
@@ -1109,6 +1116,9 @@ class Client(TiraClient):
                 else:
                     break
             except Exception as e:
+                if resp.status_code in {403, 404}:
+                    raise e
+
                 sleep_time = randint(1, self.failsave_max_delay)
                 response_code = "'unknown response code, maybe there was a timeout?'"
                 try:
