@@ -15,6 +15,8 @@ from typing import Dict, List, Optional, Union
 
 import pandas as pd
 import requests
+from tqdm import tqdm
+
 from tira.check_format import _fmt, check_format
 from tira.local_execution_integration import LocalExecutionIntegration
 from tira.pandas_integration import PandasIntegration
@@ -32,7 +34,6 @@ from tira.tira_redirects import (
     mirror_url,
     redirects,
 )
-from tqdm import tqdm
 
 from .tira_client import TiraClient
 

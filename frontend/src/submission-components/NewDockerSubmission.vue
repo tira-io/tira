@@ -200,6 +200,7 @@ export default {
       token: 'YOUR-TOKEN-HERE',
       steps: 3,
       userinfo: inject('userinfo') as UserInfo,
+      rest_url: inject("REST base URL"),
     }
   },
   computed: {
@@ -246,7 +247,7 @@ export default {
     },
     addImage() {
       this.addSoftwareInProgress = true;
-      post(inject("REST base URL")+`/task/${this.task_id}/vm/${this.user_id_for_submission}/add_software/docker`, {"command": this.runCommand, "image": this.selectedDockerImage, "inputJob": this.selectedDockerSoftware}, this.userinfo)
+      post(this.rest_url+`/task/${this.task_id}/vm/${this.user_id_for_submission}/add_software/docker`, {"command": this.runCommand, "image": this.selectedDockerImage, "inputJob": this.selectedDockerSoftware}, this.userinfo)
         .then(message => {
           this.$emit('addNewDockerImage', {'display_name': message.context.display_name, 'docker_software_id': message.context.docker_software_id});
         })
@@ -255,7 +256,7 @@ export default {
     },
     refreshImages() {
       this.refreshingInProgress = true
-      get(inject("REST base URL")+`/api/task/${this.task_id}/user/${this.user_id_for_task}/refresh-docker-images`)
+      get(this.rest_url+`/api/task/${this.task_id}/user/${this.user_id_for_task}/refresh-docker-images`)
         .then(inject_response(this, {"refreshingInProgress": false}, false, 'docker'))
         .then(this.refreshTitles)
     },
@@ -268,15 +269,15 @@ export default {
   beforeMount() {
     this.loading = true
 
-    get(inject("REST base URL")+'/api/token/' + this.user_id_for_task)
+    get(this.rest_url+'/api/token/' + this.user_id_for_task)
       .then(inject_response(this))
       .catch(reportError("Problem While Loading The Metadata for the team of the Task " + this.user_id_for_task, "This might be a short-term hiccup, please try again. We got the following error: "))
 
-    get(inject("REST base URL")+'/api/submissions-for-task/' + this.task_id + '/' + this.user_id_for_task + '/upload')
+    get(this.rest_url+'/api/submissions-for-task/' + this.task_id + '/' + this.user_id_for_task + '/upload')
       .then(inject_response(this))
       .catch(reportError("Problem While Loading The Submissions of the Task " + this.task_id, "This might be a short-term hiccup, please try again. We got the following error: "))
       .then(() => {
-        get(inject("REST base URL")+'/api/task/' + this.task_id + '/user/' + this.user_id_for_task)
+        get(this.rest_url+'/api/task/' + this.task_id + '/user/' + this.user_id_for_task)
           .then(inject_response(this, {'loading': false}, false, 'docker'))
           .then(this.refreshTitles)
           .catch(reportError("Problem While Loading the Docker Images.", "This might be a short-term hiccup, please try again. We got the following error: "))

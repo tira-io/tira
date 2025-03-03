@@ -289,7 +289,7 @@ class PanStyleChangeDetectionCorpusFormat(FormatBase):
         )
 
         for i in matches:
-            entry = {"id": i.split('/')[-1].replace('.txt', '')}
+            entry = {"id": i.split("/")[-1].replace(".txt", "")}
 
             if load_content:
                 with open(i, "r", newline="") as f:

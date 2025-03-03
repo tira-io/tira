@@ -2,12 +2,7 @@ import unittest
 
 from tira.check_format import check_format, lines_if_valid
 
-from . import (
-    _ERROR,
-    _OK,
-    EMPTY_OUTPUT,
-    STYLE_CHANGE_CORPUS_VALID
-)
+from . import _ERROR, _OK, EMPTY_OUTPUT, STYLE_CHANGE_CORPUS_VALID
 
 
 class TestPan24StyleChangeDetectionFormats(unittest.TestCase):
@@ -23,9 +18,9 @@ class TestPan24StyleChangeDetectionFormats(unittest.TestCase):
 
     def test_valid_style_change_detection_corpus(self):
         expected = [
-            {'id': 'problem-1', 'text': 'problem 1 text\n'},
-            {'id': 'problem-2', 'text': 'problem-2 text\n'},
-            {'id': 'problem-3', 'text': 'problem-3 text\n'},
+            {"id": "problem-1", "text": "problem 1 text\n"},
+            {"id": "problem-2", "text": "problem-2 text\n"},
+            {"id": "problem-3", "text": "problem-3 text\n"},
         ]
         actual = lines_if_valid(STYLE_CHANGE_CORPUS_VALID, "style-change-detection-corpus")
 
