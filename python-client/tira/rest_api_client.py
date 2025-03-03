@@ -53,6 +53,7 @@ class Client(TiraClient):
         allow_local_execution: bool = False,
     ):
         self.base_url = base_url or "https://www.tira.io"
+        self.verify = verify
         self.tira_cache_dir = (
             tira_cache_dir if tira_cache_dir else os.environ.get("TIRA_CACHE_DIR", os.path.expanduser("~") + "/.tira")
         )
@@ -78,7 +79,6 @@ class Client(TiraClient):
 
         self.failsave_retries = failsave_retries
         self.failsave_max_delay = failsave_max_delay
-        self.verify = verify
 
     def load_settings(self):
         try:
