@@ -37,12 +37,12 @@ class TestCheckJsonlForNonExistingFormats(unittest.TestCase):
         self.assertEqual(expected, actual)
 
     def test_valid_text_alignment_corpus_01(self):
-        expected = [_OK, "The directory file has the correct format."]
+        expected = [_OK, "The directory has the correct format."]
         actual = check_format(TEXT_ALIGNMENT_CORPUS_VALID_1)
         self.assertEqual(expected, actual)
 
     def test_valid_text_alignment_corpus_02(self):
-        expected = [_OK, "The directory file has the correct format."]
+        expected = [_OK, "The directory has the correct format."]
         actual = check_format(TEXT_ALIGNMENT_CORPUS_VALID_2)
         self.assertEqual(expected, actual)
 

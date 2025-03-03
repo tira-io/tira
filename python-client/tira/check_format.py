@@ -260,6 +260,44 @@ class TextAlignmentFeaturesFormat(FormatBase):
         return annotations
 
 
+class PanStyleChangeDetectionCorpusFormat(FormatBase):
+    """Checks if a given directory contains a valid style-change-detection PAN corpus. An example is located here: https://pan.webis.de/clef24/pan24-web/style-change-detection.html"""
+
+    def check_format(self, run_output: Path):
+        try:
+            lines = [i for i in self.yield_lines(run_output, False)]
+        except Exception as e:
+            return [_fmt.ERROR, str(e)]
+
+        if len(lines) < 3:
+            return [
+                _fmt.ERROR,
+                f"The style-change-detection directory contains only {len(lines)} instances, this is likely an error.",
+            ]
+
+        return [_fmt.OK, "The directory has the correct format."]
+
+    def all_lines(self, run_output):
+        return [i for i in self.yield_lines(run_output, True)]
+
+    def yield_lines(self, directory, load_content):
+        matches = (
+            glob(f"{directory}/problem-*.txt")
+            + glob(f"{directory}/*/problem-*.txt")
+            + glob(f"{directory}/*/*/problem-*.txt")
+            + glob(f"{directory}/*/*/*/problem-*.txt")
+        )
+
+        for i in matches:
+            entry = {"id": i.split('/')[-1].replace('.txt', '')}
+
+            if load_content:
+                with open(i, "r", newline="") as f:
+                    entry["text"] = f.read()
+
+            yield entry
+
+
 class TextAlignmentCorpusFormat(FormatBase):
     """Checks if a given directory contains a valid PAN text alignment corpus. The code was refactored from https://github.com/pan-webis-de/pan-code/blob/master/clef12/text-alignment/pan12-text-alignment-baseline.py#L202"""
 
@@ -275,7 +313,7 @@ class TextAlignmentCorpusFormat(FormatBase):
                 f"The text-alignment directory contains only {len(lines)} instances, this is likely an error.",
             ]
 
-        return [_fmt.OK, "The directory file has the correct format."]
+        return [_fmt.OK, "The directory has the correct format."]
 
     def all_lines(self, run_output):
         return [i for i in self.yield_lines(run_output, True)]
@@ -321,6 +359,7 @@ FORMAT_TO_CHECK = {
     "*.tsv": lambda: TsvFormat(),
     "text-alignment-corpus": lambda: TextAlignmentCorpusFormat(),
     "text-alignment-features": lambda: TextAlignmentFeaturesFormat(),
+    "style-change-detection-corpus": lambda: PanStyleChangeDetectionCorpusFormat(),
 }
 
 SUPPORTED_FORMATS = set(sorted(list(FORMAT_TO_CHECK.keys())))
