@@ -1,3 +1,6 @@
+import os
+import tempfile
+import zipfile
 from abc import ABC
 from pathlib import Path
 from typing import TYPE_CHECKING, Union, overload
@@ -101,6 +104,37 @@ class TiraClient(ABC):
         """
         pass
 
+    def _git_repo(self, path: Path):
+        import git
+
+        msg = f"No valid git repository found at {path}."
+
+        for i in range(4):
+            try:
+                return git.Repo(path)
+            except git.exc.InvalidGitRepositoryError:
+                path = path.parent
+
+        print(msg)
+        raise ValueError(msg)
+
+    def _zip_tracked_files(self, repo: "git.Repo", directory: str):
+        """
+        Creates a zip archive containing all tracked files in a given Git repository.
+
+        :param repo: The Git repository.
+        :param zip_filename: Name of the output zip file.
+        """
+        tracked_files = [i.path for i in repo.commit().tree.traverse() if i.path.startswith(f"{directory}/")]
+        zip_path = Path(tempfile.TemporaryDirectory().name) / "repo.zip"
+        zip_path.parent.mkdir(exist_ok=True, parents=True)
+
+        with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zipf:
+            for file in tracked_files:
+                file_path = os.path.join(repo.working_tree_dir, file)
+                zipf.write(file_path, arcname=file)
+        return zip_path
+
     def submit_code(
         self,
         path: Path,
@@ -118,7 +152,14 @@ class TiraClient(ABC):
             user_id (str, optional): The ID of the TIRA team that makes the submission. Is only required if a user has multiple teams.
             docker_file (Path, optional): The Dockerfile to build the submission within the repository. Defaults to None to use path/Dockerfile.
         """
-        raise ValueError("no git repository....")
+
+        repo = self._git_repo(path)
+        directory_in_path = str(Path(path).absolute()).replace(str(Path(repo.working_tree_dir).absolute()) + "/", "")
+        if repo.is_dirty(untracked_files=True):
+            raise ValueError("foo")
+        zipped_code = self._zip_tracked_files(repo, directory_in_path)
+
+        return {"code": zipped_code}
 
     def __extract_dataset_identifier(self, dataset: any):
         """Extract the dataset identifier from a passed object.

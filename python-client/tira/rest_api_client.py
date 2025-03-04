@@ -51,6 +51,7 @@ class Client(TiraClient):
     ):
         self.base_url = base_url or "https://www.tira.io"
         self.verify = verify
+        self.failsave_max_delay = failsave_max_delay
         self.tira_cache_dir = (
             tira_cache_dir if tira_cache_dir else os.environ.get("TIRA_CACHE_DIR", os.path.expanduser("~") + "/.tira")
         )
@@ -66,6 +67,7 @@ class Client(TiraClient):
         self.failsave_retries = 1
         if self.api_key != "no-api-key":
             self.fail_if_api_key_is_invalid()
+        self.failsave_retries = failsave_retries
         self.pd = PandasIntegration(self)
         self.pt = PyTerrierIntegration(self)
         self.trectools = TrecToolsIntegration(self)
@@ -75,8 +77,6 @@ class Client(TiraClient):
         self.local_execution = LocalExecutionIntegration(self)
         self.allow_local_execution = allow_local_execution
 
-        self.failsave_retries = failsave_retries
-        self.failsave_max_delay = failsave_max_delay
 
     def load_settings(self):
         try:
