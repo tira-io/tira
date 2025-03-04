@@ -615,6 +615,8 @@ class Client(TiraClient):
 
     def download_zip_to_cache_directory(self, task, dataset, team, run_id):
         target_dir = f"{self.tira_cache_dir}/extracted_runs/{task}/{dataset}/{team}"
+        if "/" in dataset:
+            dataset = dataset.split("/")[-1]
 
         if os.path.isdir(target_dir + f"/{run_id}"):
             return target_dir + f"/{run_id}/output"
