@@ -419,7 +419,7 @@ class Client(TiraClient):
             return mounted_output_in_sandbox
 
         task, team, software = approach.split("/")
-        if "/" in dataset:
+        if "/" in dataset and not Path(dataset).exists():
             dataset = dataset.split("/")[-1]
 
         run_execution = self.get_run_execution_or_none(approach, dataset)
@@ -573,7 +573,7 @@ class Client(TiraClient):
         """
         if "TIRA_INPUT_DATASET" in os.environ:
             return os.environ["TIRA_INPUT_DATASET"]
-        if "/" in dataset:
+        if "/" in dataset and not Path(dataset).exists():
             dataset = dataset.split("/")[-1]
 
         meta_data = self.get_dataset(f"{task}/{dataset}")
