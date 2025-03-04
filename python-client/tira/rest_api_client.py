@@ -30,6 +30,7 @@ from tira.tira_redirects import (
     mirror_url,
     redirects,
 )
+from tira.trectools_integration import TrecToolsIntegration
 
 from .tira_client import TiraClient
 
@@ -67,6 +68,7 @@ class Client(TiraClient):
             self.fail_if_api_key_is_invalid()
         self.pd = PandasIntegration(self)
         self.pt = PyTerrierIntegration(self)
+        self.trectools = TrecToolsIntegration(self)
         self.profiling = ProfilingIntegration(self)
         self.pt_ance = PyTerrierAnceIntegration(self)
         self.pt_splade = PyTerrierSpladeIntegration(self)

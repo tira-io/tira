@@ -10,12 +10,14 @@ from tira.pandas_integration import PandasIntegration
 from tira.pyterrier_integration import PyTerrierIntegration
 from tira.rest_api_client import Client as RestClient
 from tira.tira_client import TiraClient
+from tira.trectools_integration import TrecToolsIntegration
 
 
 class Client(TiraClient):
     def __init__(self, directory=".", rest_client=None):
         self.pd = PandasIntegration(self)
         self.pt = PyTerrierIntegration(self)
+        self.trectools = TrecToolsIntegration(self)
         self.directory = directory + "/"
         self.tira_cache_dir = os.environ.get("TIRA_CACHE_DIR", os.path.expanduser("~") + "/.tira")
         self.rest_client = rest_client if rest_client else RestClient()
