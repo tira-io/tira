@@ -1,4 +1,5 @@
 from abc import ABC
+from pathlib import Path
 from typing import TYPE_CHECKING, Union, overload
 
 if TYPE_CHECKING:
@@ -99,6 +100,25 @@ class TiraClient(ABC):
         false  otherwise.
         """
         pass
+
+    def submit_code(
+        self,
+        path: Path,
+        task_id: str,
+        dataset_id: "Optional[str]" = None,
+        user_id: "Optional[str]" = None,
+        docker_file: "Optional[Path]" = None,
+    ):
+        """Build a tira submission from a git repository.
+
+        Args:
+            path (Path): The path to the directory that contains the submission. The path points to the directory used as root for the docker build and must be in a git repository.
+            task_id (str): The ID of the TIRA task to which the submissions should be made.
+            dataset_id (str, optional): The ID of the TIRA dataset on which the submission is to be tested. If no dataset is passed, the submission will be tested on a small publicly available smoke test dataset for the task.
+            user_id (str, optional): The ID of the TIRA team that makes the submission. Is only required if a user has multiple teams.
+            docker_file (Path, optional): The Dockerfile to build the submission within the repository. Defaults to None to use path/Dockerfile.
+        """
+        raise ValueError("no git repository....")
 
     def __extract_dataset_identifier(self, dataset: any):
         """Extract the dataset identifier from a passed object.
