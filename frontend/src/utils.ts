@@ -1,17 +1,117 @@
 import { inject, ref } from 'vue'
 
+export interface TaskInfo {
+    task_name: string;
+    featured: boolean | undefined;
+
+}
+
 export interface DatasetInfo {
     dataset_id: string;
+    id: string;
+    ir_datasets_id: string | undefined | string[];
+    chatnoir_id: string | undefined;
+    is_confidential: boolean;
     display_name: string;
+    default_task: string | undefined;
+    default_task_name: string | undefined;
+    description: string | undefined;
+    mirrors: Record<string, string>;
+    file_listing: any | undefined;
+}
+
+export interface UploadGroupInfo {
+    id: string;
+    display_name: string
+}
+
+export interface ClaimSubmissionInfo {
+    uuid: string;
+    dataset_id: string;
+    created: string;
+    has_metadata: boolean | undefined;
+    metadata_git_repo: string | undefined;
+    metadata_has_notebook: string | undefined;
+}
+
+export interface UserContext {
+    user_id: string;
 }
 
 export interface UserInfo {
     role: string;
     organizer_teams: Object[];
+    context: UserContext;
+    csrf: string;
+}
+
+export interface SystemInfo {
+    name: string;
+    team: string;
+    tasks: string;
+}
+
+export interface ServerInfo {
+    version: string;
+    restApiVersion: string;
+    publicSystemCount: number;
+    datasetCount: number;
+    taskCount: number;
+    supportedFormats: string[];
+}
+
+export interface WellKnownAPI {
+    api: string;
+    grpc: string;
+    archived: string;
+    login: string;
+    logout: string;
+    notifications: string;
+    disraptorURL: string;
+}
+
+export function irDatasetsUrls(dataset: DatasetInfo | undefined): Record<string, string> {
+    if (!dataset || !dataset.ir_datasets_id) {
+        return {}
+    }
+
+    let dataset_ids: string[] = []
+
+    if (typeof (dataset.ir_datasets_id) == 'string') {
+        dataset_ids = [dataset.ir_datasets_id]
+    } else {
+        dataset_ids = dataset.ir_datasets_id
+    }
+
+    let ret: Record<string, string> = {}
+    for (let ir_dataset_id of dataset_ids) {
+        ret[ir_dataset_id] = 'https://ir-datasets.com/' + ir_dataset_id.split('/')[0] + '.html#' + ir_dataset_id
+    }
+
+    return ret
+}
+
+export function chatNoirUrl(dataset: DatasetInfo | undefined, document_id: string | undefined = undefined) {
+    if (!dataset || !dataset.chatnoir_id) {
+        return undefined
+    } else if (document_id) {
+        return 'https://chatnoir-webcontent.web.webis.de/?index=' + dataset.chatnoir_id + '&trec-id=' + document_id
+    }
+    else {
+        return 'https://chatnoir.web.webis.de/?index=' + dataset.chatnoir_id
+    }
+}
+
+export function location() {
+    return ref(window.location).value
+}
+
+export function href() {
+    return location().href
 }
 
 export function extractTaskFromCurrentUrl() {
-    let loc = ref(window.location).value.href.split('#')[0].split('?')[0]
+    let loc = href().split('#')[0].split('?')[0]
 
     if (loc.includes('task-overview/')) {
         return loc.split('task-overview/')[1].split('/')[0]
@@ -53,7 +153,7 @@ export function get_contact_link_to_organizer(organizer_id: string) {
 }
 
 export function extractDatasetFromCurrentUrl(options: Array<any> = [], default_choice: string = '') {
-    var loc = ref(window.location).value.href.split('#')[0].split('?')[0]
+    var loc = href().split('#')[0].split('?')[0]
     var dataset_from_url = ''
     let to_split = 'task-overview/' + extractTaskFromCurrentUrl() + '/'
 
@@ -84,26 +184,55 @@ export function extractDatasetFromCurrentUrl(options: Array<any> = [], default_c
     return ret
 }
 
-export async function fetchUserInfo(): Promise<UserInfo> {
-    const response = await fetch(inject("REST base URL") + '/api/role', { credentials: 'include' })
-    // TODO: better error handling (to be implemented with the new REST API with problem+json; and the overhauled UI)
-    if (!response.ok) {
-        throw new Error(`Error and I should be handled better`);
-    }
-    // TODO: maybe check here if the response json is actually valid
-    let result: UserInfo = await response.json()
+export async function fetchServerInfo(endpoint: string): Promise<ServerInfo> {
+    const response = await fetch(endpoint + '/info')
+
+    let result: ServerInfo = await response.json()
     return result
 }
 
-export function extractCsrf(doc: Document = document): string {
-    try {
-        var ret = doc.querySelector('input[type="hidden"][name="csrfmiddlewaretoken"][value]')
-        if (ret && 'value' in ret) {
-            return "" + ret['value']
-        }
-    } catch { }
+export async function api_csrf_token(): Promise<string> {
+    let headers = new Headers({ 'Accept': 'application/json' })
+    const response = await fetch(inject("REST base URL") + 'session/csrf', { headers, credentials: 'include' })
+    return (await response.json()).csrf
 
-    return ''
+}
+
+export async function logout(username: string): Promise<Boolean> {
+    let endpoints = await fetchWellKnownAPIs()
+    let csrf_token = await api_csrf_token()
+
+    const headers = new Headers({
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': csrf_token
+    })
+    console.log(csrf_token)
+    console.log(document.cookie)
+    console.log(await fetch(endpoints.logout + 'session/' + username, { headers, credentials: 'include', method: 'DELETE' }))
+    return Promise.resolve(true)
+}
+
+export async function fetchUserInfo(endpoint: string): Promise<UserInfo> {
+    try {
+        const response = await fetch(endpoint + '/api/role', { credentials: 'include' })
+        // TODO: better error handling (to be implemented with the new REST API with problem+json; and the overhauled UI)
+        if (!response.ok) {
+            return Promise.resolve({ role: 'guest', organizer_teams: [], csrf: '', context: { user_id: 'guest' } } as UserInfo)
+        }
+        // TODO: maybe check here if the response json is actually valid
+        return Promise.resolve(await response.json() as UserInfo)
+    } catch (Exception) {
+        return Promise.resolve({ role: 'guest', organizer_teams: [], csrf: '', context: { user_id: 'guest' } } as UserInfo)
+    }
+}
+
+export async function fetchWellKnownAPIs(endpoint: string | undefined = undefined): Promise<WellKnownAPI> {
+    const url = endpoint ? endpoint : ''
+    const response = await fetch(url + '/.well-known/tira/client')
+
+    let _well_known = await response.json() as WellKnownAPI
+    return Promise.resolve(_well_known)
 }
 
 export function reportSuccess(title: string = "", text: string = "") {
@@ -129,13 +258,28 @@ export function reportError(title: string = "", text: string = "") {
             title = 'Error.'
         }
         window.push_message(title, text + ' ' + error, "error")
+        console.log(error)
 
         return error
     }
 }
 
+export function vm_id(vm_ids: any, vm: any, user_vms_for_task: any, additional_vms: any, user_id: any, task: any) {
+    if (!vm_ids && vm) {
+        return vm
+    } else if (user_vms_for_task && user_vms_for_task.length == 1) {
+        return user_vms_for_task[0]
+    } else if (additional_vms && additional_vms.length > 0 && additional_vms[0]) {
+        return additional_vms[0]
+    } else if (!vm_ids && user_id && !task.require_groups && !task.restrict_groups) {
+        return user_id + '-default'
+    }
+
+    return null;
+}
+
 export function extractUserFromCurrentUrl() {
-    let url = ref(window.location).value.href
+    let url = href()
     let to_split = 'submit/' + extractTaskFromCurrentUrl() + '/user/'
     let user = ''
     if (url.includes(to_split)) {
@@ -149,7 +293,7 @@ export function compareArrays(a: string[] | null, b: string[] | null): boolean {
 }
 
 export function extractComponentTypesFromCurrentUrl() {
-    let url = ref(window.location).value.href
+    let url = href()
     let to_split = 'components/'
     let component_types = null
     let component_types_array: string[] | [] = []
@@ -173,7 +317,7 @@ export function extractComponentTypesFromCurrentUrl() {
 }
 
 export function extractFocusTypesFromCurrentUrl() {
-    let url = ref(window.location).value.href
+    let url = href()
     let to_split: string = 'components/' + extractComponentTypesFromCurrentUrl().join() + '/'
     let focus_type = null
     let focus_types_array: string[] | [] = []
@@ -194,7 +338,7 @@ export function extractFocusTypesFromCurrentUrl() {
 }
 
 export function extractSearchQueryFromCurrentUrl() {
-    let url = ref(window.location).value.href
+    let url = href()
     let to_split = 'components/' + extractComponentTypesFromCurrentUrl().join() + '/' + extractFocusTypesFromCurrentUrl().join() + '/'
     let search_query = ''
     if (url.includes(to_split)) {
@@ -206,8 +350,25 @@ export function extractSearchQueryFromCurrentUrl() {
     return search_query ? search_query.toLowerCase() : search_query
 }
 
+export function extractSoftwareIdFromCurrentUrl() {
+    let url = href()
+    let to_split = 'submit/' + extractTaskFromCurrentUrl() + '/user/' + extractUserFromCurrentUrl() + '/'
+
+    if (url.includes(to_split)) {
+        url = url.split(to_split)[1]
+    } else {
+        return null
+    }
+
+    if (url.includes('upload-submission/')) {
+        url = url.split('upload-submission/')[1].split('/')[0].split('?')[0].split('#')[0]
+    }
+
+    return parseInt(url) > 0 ? parseInt(url) : null
+}
+
 export function extractSubmissionTypeFromCurrentUrl() {
-    let url = ref(window.location).value.href
+    let url = href()
     let to_split = 'submit/' + extractTaskFromCurrentUrl() + '/user/' + extractUserFromCurrentUrl() + '/'
     let submission_type = null
 
@@ -218,7 +379,7 @@ export function extractSubmissionTypeFromCurrentUrl() {
 }
 
 export function extractCurrentStepFromCurrentUrl() {
-    let url = ref(window.location).value.href
+    let url = href()
     let to_split = 'submit/' + extractTaskFromCurrentUrl() + '/user/' + extractUserFromCurrentUrl() + '/' + extractSubmissionTypeFromCurrentUrl()
     let step = null
     if (url.includes(to_split)) {
@@ -228,7 +389,7 @@ export function extractCurrentStepFromCurrentUrl() {
 }
 
 export function changeCurrentUrlToDataset(dataset: string) {
-    var loc = ref(window.location).value.href
+    var loc = href()
 
     if (loc.includes('task-overview/')) {
         loc = loc.split('task-overview/')[0] + 'task-overview/' + loc.split('task-overview/')[1].split('/')[0] + '/' + dataset
@@ -274,6 +435,26 @@ export function inject_response(obj: any, default_values: any = {}, debug = fals
     }
 }
 
+
+let ARCHIVE_URL: undefined | string = undefined
+let PRODUCTION_URL: undefined | string = undefined
+let USER_INFO: undefined | UserInfo = undefined
+
+export async function get_from_archive(url: string, from_archive: boolean = true) {
+    if (!ARCHIVE_URL || !PRODUCTION_URL || !USER_INFO) {
+        ARCHIVE_URL = inject("Archived base URL")
+        PRODUCTION_URL = inject("REST base URL")
+        USER_INFO = inject('userinfo') as UserInfo
+    }
+
+    let use_prod = USER_INFO.role === 'admin' || USER_INFO.organizer_teams.length > 0 || (from_archive + '').toLowerCase() === 'false'
+
+    console.log('use-prod (' + use_prod + '): ' + url)
+    url = (use_prod ? PRODUCTION_URL : ARCHIVE_URL) + url
+    return get(url, use_prod)
+}
+
+
 /* TODO: credentials=true can be called the legacy behavior when frontend and backend were on the same URL. This should maybe be limited more */
 export async function get(url: string, credentials = true) {
     const response = await fetch(url, { credentials: credentials ? 'include' : 'omit' })
@@ -281,18 +462,18 @@ export async function get(url: string, credentials = true) {
         throw new Error(`Error fetching endpoint: ${url} with ${response.status}`);
     }
     let results = await response.json()
-    if (results.status !== 0 && results.status !== '0') {
+    if (results.status !== undefined && results.status !== 0 && results.status !== '0') {
         throw new Error(`${results.message}`);
     }
     return results
 }
 
 /* TODO: credentials=true can be called the legacy behavior when frontend and backend were on the same URL. This should maybe be limited more */
-export async function post(url: string, params: any, debug = false, credentials = true) {
+export async function post(url: string, params: any, user: UserInfo, debug = false, credentials = true) {
     const headers = new Headers({
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'X-CSRFToken': extractCsrf(),
+        'X-CSRFToken': user.csrf,
     })
     params = JSON.stringify(params)
 
@@ -300,10 +481,10 @@ export async function post(url: string, params: any, debug = false, credentials 
 }
 
 /* TODO: credentials=true can be called the legacy behavior when frontend and backend were on the same URL. This should maybe be limited more */
-export async function post_file(url: string, params: any, debug = false, credentials = true) {
+export async function post_file(url: string, params: any, user: UserInfo, debug = false, credentials = true) {
     const headers = new Headers({
         'Accept': 'application/json',
-        'X-CSRFToken': extractCsrf(),
+        'X-CSRFToken': user.csrf,
     })
 
     return post_raw(url, headers, params, debug, credentials)

@@ -58,7 +58,7 @@
 import { inject } from 'vue'
 
 import {Loading, RunList} from "../components"
-import { get, post, reportError, reportSuccess, inject_response, extractTaskFromCurrentUrl } from '../utils'
+import { get, post, reportError, reportSuccess, inject_response, extractTaskFromCurrentUrl, type UserInfo } from '../utils'
 import {VAutocomplete} from 'vuetify/components'
 import EditSubmissionDetails from "@/submission-components/EditSubmissionDetails.vue";
 
@@ -73,7 +73,9 @@ export default {
         'display_name': 'loading ...', 'user_image_name': 'loading', 'command': 'loading',
         'description': 'loading ...', 'previous_stages': 'loading ...', 'paper_link': 'loading ...', 'ir_re_ranker': false, 'mount_hf_model_display': [{'href': 'loading...', 'display_name': 'loading...', }]
       },
-      task_id: extractTaskFromCurrentUrl(), selectedRerankingDataset: ''
+      task_id: extractTaskFromCurrentUrl(), selectedRerankingDataset: '',
+      rest_url: inject("gRPC base URL"),
+      userinfo: inject('userinfo') as UserInfo
     }
   },
   methods: {
@@ -98,7 +100,7 @@ export default {
           }
         }
 
-        post(inject("gRPC base URL")+`/grpc/${this.task_id}/${this.user_id}/run_execute/docker/${this.selectedDataset}/${this.docker_software_id}/${this.selectedResource}/${reranking_dataset}`, {})
+        post(this.rest_url + `/grpc/${this.task_id}/${this.user_id}/run_execute/docker/${this.selectedDataset}/${this.docker_software_id}/${this.selectedResource}/${reranking_dataset}`, {}, this.userinfo)
         .then(reportSuccess("Software was scheduled in the cluster. It might take a few minutes until the execution starts.", "Started run on: " + this.selectedDataset + " dataset with " + this.selectedResource))
         .catch(reportError("Problem starting the software.", "This might be a short-term hiccup, please try again. We got the following error: "))
         .then(() => {this.$emit('refresh_running_submissions'); this.runSoftwareInProgress = false; })

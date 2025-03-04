@@ -5,6 +5,7 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+import uuid
 from copy import deepcopy
 from pathlib import Path
 
@@ -226,6 +227,72 @@ class LocalExecutionIntegration:
             raise ValueError(f"Login was not successfull, got: {login_response}")
 
         return True
+
+    def run_and_return_tira_execution(self, task, dataset_directory, team, system_details):
+        image = system_details["public_image_name"]
+        command = system_details["command"]
+        input_docker_software = system_details["input_docker_software"]
+        docker_software_id_to_output = {}
+
+        dataset_name = dataset_directory.split("/")[-1]
+        log_file = Path(f"{self.tira_client.tira_cache_dir}/.archived/local-executions.jsonl")
+
+        if not log_file.exists():
+            with open(log_file, "w") as f:
+                f.write("")
+
+        with open(log_file, "r") as f:
+            for l in f:
+                try:
+                    l = json.loads(l)
+                    if (
+                        l["dataset_directory"] == dataset_directory
+                        and l["team"] == team
+                        and l["task"] == task
+                        and l["image"] == image
+                        and l["command"] == command
+                    ):
+                        return l
+                except:
+                    pass
+
+        if input_docker_software:
+            for i in input_docker_software:
+                if i["docker_software_id"] not in docker_software_id_to_output:
+                    docker_software_id_to_output[i["docker_software_id"]] = self.run_and_return_tira_execution(
+                        task, dataset_directory, team, i
+                    )
+
+        run_id = str(uuid.uuid4())
+        output_dir = (
+            Path(self.tira_client.tira_cache_dir) / "extracted_runs" / task / dataset_name / team / run_id / "output"
+        )
+
+        ret = {
+            "task": task,
+            "dataset": dataset_name,
+            "dataset_directory": dataset_directory,
+            "team": team,
+            "run_id": run_id,
+            "image": image,
+            "command": command,
+            "docker_software_id_to_output": docker_software_id_to_output,
+            "output_dir": str(output_dir),
+        }
+
+        output_dir.mkdir(parents=True)
+        self.run(
+            image=image,
+            command=command,
+            input_dir=dataset_directory,
+            output_dir=output_dir,
+            docker_software_id_to_output={k: v["output_dir"] for k, v in docker_software_id_to_output.items()},
+        )
+
+        with open(log_file, "a") as f:
+            f.write(json.dumps(ret) + "\n")
+
+        return ret
 
     def run(
         self,

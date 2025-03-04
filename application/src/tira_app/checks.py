@@ -2,7 +2,7 @@ import logging
 from functools import wraps
 
 from django.conf import settings
-from django.http import Http404, HttpRequest, HttpResponseNotAllowed, HttpResponseRedirect, JsonResponse
+from django.http import Http404, HttpRequest, HttpResponse, HttpResponseNotAllowed, HttpResponseRedirect, JsonResponse
 from django.shortcuts import redirect
 from django.urls import resolve
 
@@ -34,6 +34,9 @@ def check_permissions(func):
 
     @wraps(func)
     def func_wrapper(request: HttpRequest, *args, **kwargs):
+        if request.method == "OPTIONS":
+            return HttpResponse("allowed")
+
         vm_id = kwargs.get("vm_id", None)
         user_id = kwargs.get("user_id", None)
         if vm_id is None and user_id is not None:  # some endpoints say user_id instead of vm_id

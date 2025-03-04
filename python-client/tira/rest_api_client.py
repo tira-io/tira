@@ -3,6 +3,8 @@ import io
 import json
 import logging
 import os
+import shutil
+import tempfile
 import time
 import zipfile
 from functools import lru_cache
@@ -15,10 +17,12 @@ import pandas as pd
 import requests
 from tqdm import tqdm
 
+from tira.check_format import _fmt, check_format
 from tira.local_execution_integration import LocalExecutionIntegration
 from tira.pandas_integration import PandasIntegration
 from tira.profiling_integration import ProfilingIntegration
 from tira.pyterrier_integration import PyTerrierAnceIntegration, PyTerrierIntegration, PyTerrierSpladeIntegration
+from tira.third_party_integrations import temporary_directory
 from tira.tira_redirects import (
     RESOURCE_REDIRECTS,
     TASKS_WITH_REDIRECT_MERGING,
@@ -26,6 +30,7 @@ from tira.tira_redirects import (
     mirror_url,
     redirects,
 )
+from tira.trectools_integration import TrecToolsIntegration
 
 from .tira_client import TiraClient
 
@@ -40,9 +45,15 @@ class Client(TiraClient):
         failsave_retries: int = 5,
         failsave_max_delay: int = 15,
         api_user_name: Optional[str] = None,
+        tira_cache_dir: Optional[str] = None,
+        verify: bool = True,
+        allow_local_execution: bool = False,
     ):
         self.base_url = base_url or "https://www.tira.io"
-        self.tira_cache_dir = os.environ.get("TIRA_CACHE_DIR", os.path.expanduser("~") + "/.tira")
+        self.verify = verify
+        self.tira_cache_dir = (
+            tira_cache_dir if tira_cache_dir else os.environ.get("TIRA_CACHE_DIR", os.path.expanduser("~") + "/.tira")
+        )
         self.json_cache = {}
 
         if api_key is None:
@@ -57,10 +68,12 @@ class Client(TiraClient):
             self.fail_if_api_key_is_invalid()
         self.pd = PandasIntegration(self)
         self.pt = PyTerrierIntegration(self)
+        self.trectools = TrecToolsIntegration(self)
         self.profiling = ProfilingIntegration(self)
         self.pt_ance = PyTerrierAnceIntegration(self)
         self.pt_splade = PyTerrierSpladeIntegration(self)
         self.local_execution = LocalExecutionIntegration(self)
+        self.allow_local_execution = allow_local_execution
 
         self.failsave_retries = failsave_retries
         self.failsave_max_delay = failsave_max_delay
@@ -87,7 +100,10 @@ class Client(TiraClient):
             self.api_key = settings["api_key"]
 
     def api_key_is_valid(self):
-        role = self.json_response("/api/role")
+        try:
+            role = self.json_response("/api/role")
+        except:
+            return False
 
         if (
             (self.api_user_name is None or self.api_user_name == "no-api-key-user")
@@ -102,6 +118,8 @@ class Client(TiraClient):
             role
             and "status" in role
             and "role" in role
+            and "csrf" in role
+            and role["csrf"]
             and 0 == role["status"]
             and "user_id" in role["context"]
             and role["context"]["user_id"]
@@ -118,6 +136,40 @@ class Client(TiraClient):
     def datasets(self, task):
         return json.loads(self.json_response(f"/api/datasets_by_task/{task}")["context"]["datasets"])
 
+    def dataset_only_available_locally(self, dataset):
+        if not Path(dataset).exists():
+            return False
+        dataset_identifier = self._TiraClient__extract_dataset_identifier(dataset)
+        datasets = self.archived_json_response("/v1/datasets/all")
+
+        return self._TiraClient__matching_dataset(datasets, dataset_identifier) is None
+
+    def get_dataset(self, dataset) -> dict:
+        """Get the TIRA representation of an dataset identified by the passed dataset argument.
+
+        Args:
+            dataset (Union[str, IrDataset, PyTerrierDataset): The dataset that is either the string id of the dataset in TIRA, the string id of an ir_dataset, the string id of an PyTerrier dataset, or an instantiation of an ir_dataset or an PyTerrier dataset.
+        Returns:
+            dict: The TIRA representation of the dataset.
+        """
+
+        dataset_identifier = self._TiraClient__extract_dataset_identifier(dataset)
+        datasets = self.archived_json_response("/v1/datasets/all")
+
+        ret = self._TiraClient__matching_dataset(datasets, dataset_identifier)
+        if ret is not None:
+            return ret
+
+        # retry with force_reload.
+        datasets = self.archived_json_response("/v1/datasets/all", force_reload=True)
+        ret = self._TiraClient__matching_dataset(datasets, dataset_identifier)
+        if ret is not None:
+            return ret
+
+        msg = f'The dataset "{dataset_identifier}" is not publicly available in TIRA. Please visit https://tira.io/datasets for an overview of all public datasets.'
+        print(msg)
+        raise ValueError(msg)
+
     def docker_software_id(self, approach):
         return self.docker_software(approach)["docker_software_id"]
 
@@ -129,6 +181,9 @@ class Client(TiraClient):
             task_id + "/" + i["vm_id"] + "/" + i["display_name"]
             for i in self.json_response(f"/api/task/{task_id}/public-submissions")["context"]["public_submissions"]
         ]
+
+    def all_tasks(self):
+        return self.json_response(f"/tira-backend/api/task-list")["context"]["task_list"]
 
     def docker_software(self, approach):
         task, team, software = approach.split("/")
@@ -387,16 +442,47 @@ class Client(TiraClient):
         else:
             return None
 
+    def public_system_details(self, team_name, system_name):
+        endpoint = f"/v1/systems/{team_name}/{system_name}".replace(" ", "%20")
+        ret = None
+
+        try:
+            ret = self.archived_json_response(endpoint)
+        except:
+            pass
+
+        if ret is None:
+            try:
+                ret = self.archived_json_response(endpoint, force_reload=True)
+            except:
+                pass
+
+        if ret is None:
+            msg = f'The software "{system_name}" by team {team_name} is not publicly available in TIRA. Please visit https://tira.io/systems for an overview of all public systems.'
+            print(msg)
+            raise ValueError(msg)
+
+        return ret
+
     def get_run_execution_or_none(self, approach, dataset, previous_stage_run_id=None):
         task, team, software = approach.split("/")
+        system_details = self.public_system_details(team, software)
         redirect = redirects(approach, dataset)
 
         if redirect is not None and "run_id" in redirect and redirect["run_id"] is not None:
             return {"task": task, "dataset": dataset, "team": team, "run_id": redirect["run_id"]}
 
+        if self.dataset_only_available_locally(dataset) and self.allow_local_execution:
+            return self.local_execution.run_and_return_tira_execution(task, dataset, team, system_details)
+
         public_runs = self.public_runs(task, dataset, team, software)
         if public_runs:
             return {"task": task, "dataset": dataset, "team": team, "run_id": public_runs["runs"][0]}
+
+        if not self.api_key_is_valid():
+            raise ValueError(
+                f'No public submissions for "{approach} on "{dataset}" and you are not authenticated. Please authenticate to access private submissions'
+            )
 
         df_eval = self.submissions_of_team(task=task, dataset=dataset, team=team)
         if len(df_eval) <= 0:
@@ -435,7 +521,7 @@ class Client(TiraClient):
             else:
                 return ret
 
-        if "/" in dataset:
+        if "/" in dataset and not Path(dataset).exists():
             dataset = dataset.split("/")[-1]
         ret = self.get_run_execution_or_none(f"{task}/{team}/{software}", dataset, previous_stage)
         if not ret:
@@ -445,7 +531,7 @@ class Client(TiraClient):
             )
         run_id = ret["run_id"]
 
-        ret = self.download_zip_to_cache_directory(**ret)
+        ret = self.download_zip_to_cache_directory(**{i: ret[i] for i in ["task", "dataset", "team", "run_id"]})
         ret = pd.read_csv(
             ret + "/run.txt",
             sep="\\s+",
@@ -486,19 +572,40 @@ class Client(TiraClient):
         if "/" in dataset:
             dataset = dataset.split("/")[-1]
 
-        dataset = dataset_ir_redirects(dataset)
+        meta_data = self.get_dataset(f"{task}/{dataset}")
+        data_type = "training" if dataset.endswith("-training") else "test"
+        suffix = "inputs" if not truth_dataset else "truths"
+        url = None
+        expected_md5 = None
+        subdirectory = None
+        if (
+            not meta_data
+            or "mirrors" not in meta_data
+            or suffix not in meta_data["mirrors"]
+            or not meta_data["mirrors"][suffix]
+        ):
+            dataset = dataset_ir_redirects(dataset)
+        else:
+            url = list(meta_data["mirrors"][suffix].values())[0]
+
+            if "dataset_extraction" in meta_data and suffix in meta_data["dataset_extraction"]:
+                expected_md5 = meta_data["dataset_extraction"][suffix]["md5sum"]
+                subdirectory = meta_data["dataset_extraction"][suffix]["subdirectory"]
 
         target_dir = f"{self.tira_cache_dir}/extracted_datasets/{task}/{dataset}/"
         suffix = "input-data" if not truth_dataset else "truth-data"
         if os.path.isdir(target_dir + suffix):
             return target_dir + suffix
-        data_type = "training" if dataset.endswith("-training") else "test"
-        self.download_and_extract_zip(
-            f'{self.base_url}/data-download/{data_type}/input-{("" if not truth_dataset else "truth")}/{dataset}.zip',
-            target_dir,
-        )
 
-        os.rename(target_dir + f"/{dataset}", target_dir + suffix)
+        if not url:
+            url = f'{self.base_url}/data-download/{data_type}/input-{("" if not truth_dataset else "truth")}/{dataset}.zip'
+
+        if expected_md5 and subdirectory:
+            self.download_and_extract_zip_with_md5(url, target_dir + suffix, expected_md5, subdirectory)
+        else:
+            self.download_and_extract_zip(url, target_dir)
+
+            os.rename(target_dir + f"/{dataset}", target_dir + suffix)
 
         return target_dir + suffix
 
@@ -571,6 +678,35 @@ class Client(TiraClient):
 
         return ret
 
+    def download_and_extract_zip_with_md5(self, url, target_dir, expected_md5, subdirectory):
+        if expected_md5 is None or not expected_md5:
+            raise ValueError("foo")
+
+        if not (Path(self.tira_cache_dir) / ".archived" / expected_md5).exists():
+            raise ValueError("foo")
+
+        z = zipfile.ZipFile((Path(self.tira_cache_dir) / ".archived" / expected_md5))
+
+        members_to_extract = []
+        for i in z.namelist():
+            if i and not i.endswith("/") and (not subdirectory or i.startswith(subdirectory)):
+                members_to_extract.append(i)
+
+        if len(members_to_extract) == 0:
+            raise ValueError("I found no files in te zip.")
+
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            for i in members_to_extract:
+                z._extract_member(i, Path(tmpdirname), pwd=None)
+
+            src_dir = Path(tmpdirname)
+            if subdirectory:
+                src_dir = src_dir / subdirectory
+            Path(target_dir).parent.mkdir(exist_ok=True, parents=True)
+            shutil.move(src=src_dir, dst=target_dir)
+
+        return
+
     def download_and_extract_zip(self, url, target_dir, extract=True):
         url = redirects(url=url)["urls"][0]
         if url.split("://")[1].startswith("files.webis.de"):
@@ -629,8 +765,9 @@ class Client(TiraClient):
         self.api_key = token
 
         if not self.api_key_is_valid():
-            print("The api key {token} is not valid")
-            raise ValueError(f"The api key {token} is invalid.")
+            msg = f"The api key {token} is not valid"
+            print(msg)
+            raise ValueError(msg)
 
         self.update_settings("api_key", token)
 
@@ -712,6 +849,137 @@ class Client(TiraClient):
         logging.debug(f"Created new upload with id {ret['upload']}")
         return ret["upload"]
 
+    def upload_run_anonymous(self, file_path: Path, dataset_id: str):
+        upload_to_tira = self.get_dataset(dataset_id)
+
+        if isinstance(file_path, str):
+            file_path = Path(file_path)
+
+        accepted_formats = []
+        error_msg = ""
+
+        if isinstance(upload_to_tira.get("format"), list):
+            accepted_formats = upload_to_tira.get("format")
+        if len(accepted_formats) == 0:
+            accepted_formats = ["run.txt"]  # default format
+
+        for format in accepted_formats:
+            status_code, msg = check_format(file_path, str(format))
+
+            if status_code != _fmt.OK:
+                error_msg += "\n" + msg
+            else:
+                error_msg = ""
+                break
+
+        if error_msg:
+            print(error_msg.strip())
+            raise ValueError(error_msg.strip())
+
+        zip_file = temporary_directory()
+        zip_file = zip_file / "tira-upload.zip"
+
+        zf = zipfile.ZipFile(zip_file, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9)
+        for root, _, files in os.walk(file_path):
+            for name in files:
+                filePath = os.path.join(root, name)
+                zf.write(filePath, arcname=name)
+
+        zf.close()
+        headers = {"Accept": "application/json"}
+        files = {"file": open(zip_file, "rb")}
+
+        resp = requests.post(
+            url=f"{self.base_url}/api/v1/anonymous-uploads/{upload_to_tira['dataset_id']}",
+            files=files,
+            headers=headers,
+            verify=self.verify,
+        )
+
+        if resp.status_code not in {200, 202}:
+            message = resp.content.decode()
+            try:
+                message = json.loads(message)
+                message = message["message"]
+            except:
+                pass
+            message = f"Failed to upload to TIRA, got statuscode {resp.status_code}. Details: {message}"
+            print(message)
+            raise ValueError(message)
+
+        resp = resp.json()
+        print(f'Run uploaded to TIRA. Claim ownership via: {self.base_url}/claim-submission/{resp["uuid"]}')
+
+    def create_group(self, vm_id):
+        if not vm_id or vm_id != vm_id.lower() or len(vm_id.split()) > 1:
+            raise ValueError("The name of the group must be slugified: " + str(vm_id))
+
+        if "tira" in vm_id:
+            raise ValueError('The phrase "tira" should not be in the name of the group, got: ' + str(vm_id))
+
+        return self.json_response("/tira-admin/create-group/" + vm_id)
+
+    def register_group(
+        self,
+        vm_id,
+        task_id,
+        team_members="",
+        name="",
+        email="",
+        affiliation="",
+        country="",
+        employment="",
+        participates_for="",
+        instructor_name="",
+        instructor_email="",
+        questions="",
+    ):
+
+        self.fail_if_api_key_is_invalid()
+        user_id = self.json_response("/api/role")["context"]["user_id"]
+
+        endpoint = f"/api/registration/add_registration/{vm_id}/{task_id}"
+        body = {
+            "group": vm_id,
+            "team_members": team_members,
+            "team": team_members,
+            "registered_on_task": task_id,
+            "username": user_id,
+            "name": name,
+            "email": email,
+            "affiliation": affiliation,
+            "country": country,
+            "employment": employment,
+            "participation": participates_for,
+            "instructorName": instructor_name,
+            "instructorEmail": instructor_email,
+            "questions": questions,
+        }
+
+        return self.execute_post_return_json(endpoint, json_payload=body)
+
+    def modify_task(self, task_id: str, to_rename: "Dict[str, Any]"):
+        task = self.metadata_for_task(task_id)["context"]["task"]
+        fields_to_rename = {
+            "name": "task_name",
+            "description": "task_description",
+            "website": "web",
+            "help_text": "command_description",
+            "help_command": "command_placeholder",
+            "task_teams": "allowed_task_teams",
+        }
+        for k, v in fields_to_rename.items():
+            task[k] = task[v]
+            del task[v]
+
+        for k, v in to_rename.items():
+            assert k in task, k
+            task[k] = v
+
+        ret = self.execute_post_return_json("/tira-admin/edit-task/" + task_id, json_payload=task)
+        if "status" not in ret or ret["status"] != 0:
+            raise ValueError(f"Could not edit task: {ret}")
+
     def upload_run(
         self,
         file_path: Path,
@@ -759,23 +1027,34 @@ class Client(TiraClient):
         )
 
     def get_csrf_token(self):
-        ret = requests.get(f"{self.base_url}/", headers={"Api-Key": self.api_key})
-        return ret.content.decode("utf-8").split('name="csrfmiddlewaretoken" value="')[1].split('"')[0]
+        self.fail_if_api_key_is_invalid()
+        ret = self.json_response("/api/role")
+        return ret["csrf"]
 
     def execute_post_return_json(
-        self, endpoint: str, params: Optional[Union[Dict, List[tuple], bytes]] = None, file_path: Path = None
+        self,
+        endpoint: str,
+        params: Optional[Union[Dict, List[tuple], bytes]] = None,
+        file_path: Path = None,
+        json_payload: any = None,
     ) -> Dict:
         assert endpoint.startswith("/")
+        csrf = self.get_csrf_token()
+
         headers = {
             "Api-Key": self.api_key,
             "Api-Username": self.api_user_name,
             "Accept": "application/json",
+            "x-csrftoken": csrf,
+            "Cookie": f"csrftoken={csrf}",
         }
         for _ in range(self.failsave_retries):
             try:
-                files = {"file": open(file_path, "rb")}
+                files = None if not file_path else {"file": open(file_path, "rb")}
 
-                resp = requests.post(url=f"{self.base_url}{endpoint}", files=files, headers=headers, params=params)
+                resp = requests.post(
+                    url=f"{self.base_url}{endpoint}", files=files, headers=headers, params=params, json=json_payload
+                )
                 if resp.status_code not in {200, 202}:
                     raise ValueError(f"Got statuscode {resp.status_code} for {endpoint}. Got {resp.content}")
                 else:
@@ -792,7 +1071,33 @@ class Client(TiraClient):
         return resp.json()
 
     @lru_cache(maxsize=None)
-    def json_response(self, endpoint: str, params: Optional[Union[Dict, List[tuple], bytes]] = None):
+    def archived_json_response(self, endpoint: str, force_reload: bool = False):
+        out = Path(self.tira_cache_dir) / ".archived" / Path(endpoint[1:])
+        if endpoint.endswith("/"):
+            out = out / "index.json"
+
+        if out.exists() and not force_reload:
+            return json.load(open(out, "r"))
+
+        out.parent.mkdir(exist_ok=True, parents=True)
+        base_url = "https://tira.io" if not force_reload else self.base_url
+        response = self.json_response(endpoint, base_url=base_url, failsave_retries=1)
+
+        with open(out, "w") as f:
+            f.write(json.dumps(response))
+
+        return json.load(open(out, "r"))
+
+    @lru_cache(maxsize=None)
+    def json_response(
+        self,
+        endpoint: str,
+        params: Optional[Union[Dict, List[tuple], bytes]] = None,
+        base_url=None,
+        failsave_retries=None,
+    ):
+        if failsave_retries is None:
+            failsave_retries = self.failsave_retries
         assert endpoint.startswith("/")
         headers = {"Accept": "application/json"}
 
@@ -800,15 +1105,19 @@ class Client(TiraClient):
             headers["Api-Key"] = self.api_key
         if self.api_user_name != "no-api-key-user":
             headers["Api-Username"] = self.api_user_name
+        base_url = base_url if base_url else self.base_url
 
-        for _ in range(self.failsave_retries):
+        for _ in range(failsave_retries):
             try:
-                resp = requests.get(url=f"{self.base_url}{endpoint}", headers=headers, params=params)
+                resp = requests.get(url=f"{base_url}{endpoint}", headers=headers, verify=self.verify, params=params)
                 if resp.status_code not in {200, 202}:
                     raise ValueError(f"Got statuscode {resp.status_code} for {endpoint}. Got {resp}")
                 else:
                     break
             except Exception as e:
+                if resp.status_code in {403, 404}:
+                    raise e
+
                 sleep_time = randint(1, self.failsave_max_delay)
                 response_code = "'unknown response code, maybe there was a timeout?'"
                 try:
@@ -820,7 +1129,9 @@ class Client(TiraClient):
                     " and continue.",
                     exc_info=e,
                 )
-                time.sleep(sleep_time)
+
+                if failsave_retries > 1:
+                    time.sleep(sleep_time)
 
         return resp.json()
 
@@ -829,6 +1140,9 @@ class Client(TiraClient):
             return os.listdir(path)
         except Exception:
             return []
+
+    def _well_known(self):
+        pass
 
     def input_run_in_sandbox(self, approach: str):
         """

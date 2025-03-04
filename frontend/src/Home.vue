@@ -10,10 +10,12 @@
       </p>
       <v-row class="d-flex justify-center py-4">
         <v-col cols="auto">
-          <v-btn color="primary" href="/tasks" min-width="228" rel="noopener noreferrer" size="x-large" variant="flat">
+          <router-link to="/tasks">
+            <v-btn color="primary" min-width="228" rel="noopener noreferrer" size="x-large" variant="flat">
             <v-icon icon="mdi-speedometer" size="large" start/>
             Get Started
-          </v-btn>
+            </v-btn>
+          </router-link>
         </v-col>
         <v-col cols="auto text-primary">
           <v-btn href="https://webis.de/downloads/publications/papers/potthast_2019p.pdf" min-width="228" rel="noopener noreferrer" size="x-large" variant="outlined">
@@ -47,10 +49,12 @@
 
       <v-row class="d-flex align-center justify-center">
         <v-col cols="auto text-primary">
-          <v-btn href="/tirex" min-width="228"  rel="noopener noreferrer" size="x-large" variant="text">
-            <v-icon size="large" start><v-img src="@/assets/tirex.png"/></v-icon>
-            TIREx
-          </v-btn>
+          <router-link to="/tirex" style="text-decoration: none;">
+            <v-btn href="/tirex" min-width="228"  rel="noopener noreferrer" size="x-large" variant="text">
+              <v-icon size="large" start><v-img src="@/assets/tirex.png"/></v-icon>
+              TIREx
+            </v-btn>
+          </router-link>
         </v-col>
       </v-row>
     </section>

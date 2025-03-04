@@ -388,7 +388,7 @@ def __django_url_patterns(resolver: URLResolver, prefix: str = "") -> Iterable[t
 
 
 def get_django_url_patterns(
-    urlpatterns: Optional[list[Union[URLResolver, URLPattern]]] = None
+    urlpatterns: Optional[list[Union[URLResolver, URLPattern]]] = None,
 ) -> Iterable[tuple[str, URLPattern]]:
     """Returns an iterable of all configured django endpoints.
 

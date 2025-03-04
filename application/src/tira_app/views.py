@@ -181,11 +181,11 @@ def download_repo_template(request, task_id, vm_id):
         ).open(
             "w"
         ) as ci:
-            readme.write(render_to_string("tira/git-repo-template/README.md", context=context))
-            dockerfile.write(render_to_string("tira/git-repo-template/Dockerfile", context=context))
+            readme.write(render_to_string("tira/git_repo_template/README.md", context=context))
+            dockerfile.write(render_to_string("tira/git_repo_template/Dockerfile", context=context))
             requirements.write("argparse")
-            script.write(render_to_string("tira/git-repo-template/script.py", context=context))
-            ci.write(render_to_string("tira/git-repo-template/github-action.yml", context=context))
+            script.write(render_to_string("tira/git_repo_template/script.py", context=context))
+            ci.write(render_to_string("tira/git_repo_template/github-action.yml", context=context))
 
         zipped = Path(tmpdirname) / f"{task_id}.zip"
         with zipfile.ZipFile(zipped, "w") as zipf:
