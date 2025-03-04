@@ -43,12 +43,15 @@ def dataset_as_iterator(
     Yields:
         ANY: the entries in the dataset parsed in the specified format.
     """
-    if tira_client is None:
-        from tira.rest_api_client import Client
+    if Path(dataset_id_or_path).exists():
+        dataset = Path(dataset_id_or_path)
+    else:
+        if tira_client is None:
+            from tira.rest_api_client import Client
 
-        tira_client = Client()
+            tira_client = Client()
 
-    dataset = Path(tira_client.download_dataset(dataset=dataset_id_or_path, task=None, allow_local_dataset=True))
+        dataset = Path(tira_client.download_dataset(dataset=dataset_id_or_path, task=None, allow_local_dataset=True))
     from tira.check_format import lines_if_valid
 
     for i in lines_if_valid(dataset, dataset_format):
