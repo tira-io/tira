@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../../genindex.html" /><link rel="search" title="Search" href="../../search.html" /><link rel="next" title="Deploying the Frontend" href="frontend.html" /><link rel="prev" title="Deployment" href="index.html" />
 
-    <!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
+    <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
         <title>Deploying the Backend - TIRA</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=354aac6f" />
@@ -400,6 +400,15 @@ changed using the <code class="docutils literal notranslate"><span class="pre">T
 <span class="nt">grpc_host</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">local</span>
 <span class="nt">host_grpc_port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">50051</span>
 <span class="nt">application_grpc_port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">50052</span>
+
+<span class="nt">tira_rest_api</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">base_url</span><span class="p">:</span><span class="w"> </span><span class="kt">!ENV</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${TIRA_API_BASE_URL:https://www.tira.io}</span>
+<span class="w">  </span><span class="nt">grpc_url</span><span class="p">:</span><span class="w"> </span><span class="kt">!ENV</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${TIRA_GRPC_BASE_URL:https://www.tira.io}</span>
+<span class="w">  </span><span class="nt">archived_url</span><span class="p">:</span><span class="w"> </span><span class="kt">!ENV</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${TIRA_ARCHIVED_URL:https://archive.tira.io}</span>
+<span class="w">  </span><span class="nt">login_url</span><span class="p">:</span><span class="w"> </span><span class="kt">!ENV</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${TIRA_LOGIN_URL:https://www.tira.io}</span>
+<span class="w">  </span><span class="nt">logout_url</span><span class="p">:</span><span class="w"> </span><span class="kt">!ENV</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${TIRA_LOGOUT_URL:https://www.tira.io}</span>
+<span class="w">  </span><span class="nt">disraptor_url</span><span class="p">:</span><span class="w"> </span><span class="kt">!ENV</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${TIRA_DISRAPTOR_URL:https://www.tira.io}</span>
+<span class="w">  </span><span class="nt">notifications_url</span><span class="p">:</span><span class="w"> </span><span class="kt">!ENV</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${TIRA_NOTIFICATIONS_URL:https://www.tira.io}</span>
 </pre></div>
 </div>
 </div>
