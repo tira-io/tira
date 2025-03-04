@@ -567,16 +567,18 @@ class Client(TiraClient):
 
         return self.download_zip_to_cache_directory(task, dataset, team, submissions.iloc[0].to_dict()["run_id"])
 
-    def download_dataset(self, task, dataset, truth_dataset=False):
+    def download_dataset(self, task, dataset, truth_dataset=False, allow_local_dataset=False):
         """
         Download the dataset. Set truth_dataset to true to load the truth used for evaluations.
         """
         if "TIRA_INPUT_DATASET" in os.environ:
             return os.environ["TIRA_INPUT_DATASET"]
+        if allow_local_dataset and Path(dataset).exists():
+            return dataset
         if "/" in dataset and not Path(dataset).exists():
             dataset = dataset.split("/")[-1]
 
-        meta_data = self.get_dataset(f"{task}/{dataset}")
+        meta_data = self.get_dataset(f"{task}/{dataset}" if task else dataset)
         data_type = "training" if dataset.endswith("-training") else "test"
         suffix = "inputs" if not truth_dataset else "truths"
         url = None

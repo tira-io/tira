@@ -4,9 +4,55 @@ import logging
 import os
 from glob import glob
 from pathlib import Path
-from typing import Any, Dict, Generator, Iterable, List, Union
+from typing import Any, Dict, Generator, Iterable, List, Optional, Union
 
 import pandas as pd
+
+from tira.tira_client import TiraClient
+
+
+def dataset_as_dataframe(
+    dataset_id_or_path: Union[str, Path], dataset_format: str, tira_client: Optional[TiraClient] = None
+):
+    """Load all entries in a dataset (either a local directory passed as Path or the TIRA ID of a dataset) in the specified format.
+
+    Args:
+        dataset_id_or_path (Union[str, Path]): the dataset that should be iterated, either as a path to a local dataset directory or the ID of a TIRA dataset.
+        dataset_format (str): The format of the dataset.
+        tira_client (TiraClient, optional): The rest API client to load the dataset in case the dataset is provided as ID. Defaults to None to use the default REST API.
+
+    Returns:
+        pd.DataFrame: The entries in the dataset parsed into a pandas DataFrame.
+    """
+    import pandas as pd
+
+    ret = [i for i in dataset_as_iterator(dataset_id_or_path, dataset_format, tira_client)]
+    return pd.DataFrame(ret)
+
+
+def dataset_as_iterator(
+    dataset_id_or_path: Union[str, Path], dataset_format: str, tira_client: Optional[TiraClient] = None
+):
+    """Load all entries in a dataset (either a local directory passed as Path or the TIRA ID of a dataset) in the specified format.
+
+    Args:
+        dataset_id_or_path (Union[str, Path]): the dataset that should be iterated, either as a path to a local dataset directory or the ID of a TIRA dataset.
+        dataset_format (str): The format of the dataset.
+        tira_client (TiraClient, optional): The rest API client to load the dataset in case the dataset is provided as ID. Defaults to None to use the default REST API.
+
+    Yields:
+        ANY: the entries in the dataset parsed in the specified format.
+    """
+    if tira_client is None:
+        from tira.rest_api_client import Client
+
+        tira_client = Client()
+
+    dataset = Path(tira_client.download_dataset(dataset=dataset_id_or_path, task=None, allow_local_dataset=True))
+    from tira.check_format import lines_if_valid
+
+    for i in lines_if_valid(dataset, dataset_format):
+        yield i
 
 from tira.check_format import _fmt, log_message
 
