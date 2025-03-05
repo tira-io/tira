@@ -157,6 +157,17 @@ class TiraClient(ABC):
             docker_file (Path, optional): The Dockerfile to build the submission within the repository. Defaults to None to use path/Dockerfile.
         """
 
+        all_messages = []
+
+        def print_message(message, level):
+            from tira.check_format import log_message
+
+            all_messages.append((message, level))
+            os.system("cls" if os.name == "nt" else "clear")
+            print("TIRA Code Submission:")
+            for m, l in all_messages:
+                log_message(m, l)
+
         if dataset_id is None:
             for k, v in self.datasets(task_id).items():
                 if (
@@ -187,6 +198,7 @@ class TiraClient(ABC):
             raise ValueError("foo")
 
         dataset_path = self.download_dataset(task_id, dataset_id)
+        print_message(f"The dataset {dataset_id} is available locally.", _fmt.OK)
 
         repo = self._git_repo(path)
 
@@ -208,6 +220,9 @@ class TiraClient(ABC):
         except:
             raise ValueError("No branch in the git repository")
 
+        print_message(f"The git repository is {repo.working_tree_dir} is clean.", _fmt.OK)
+        print("Build Docker image...")
+
         if docker_file is None:
             docker_file = path / "Dockerfile"
 
@@ -216,12 +231,16 @@ class TiraClient(ABC):
             raise ValueError(f"No dockerfile {docker_file} exists.")
 
         directory_in_path = str(Path(path).absolute()).replace(str(Path(repo.working_tree_dir).absolute()) + "/", "")
-        docker_tag = directory_in_path.replace("/", "-") + "-" + str(uuid.uuid4())[:5]
+        submission_name = directory_in_path.replace("/", "-")
+        docker_tag = submission_name + "-" + str(uuid.uuid4())[:5]
         if repo.is_dirty(untracked_files=True):
-            raise ValueError("foo")
+            raise ValueError("The git repository is not clean.")
         zipped_code = self._zip_tracked_files(repo, directory_in_path)
 
         self.local_execution.build_docker_image(path, docker_tag, docker_file)
+
+        print_message(f"The code is embedded into the docker image {docker_tag}.", _fmt.OK)
+        print("Test Docker image...")
 
         if command is None:
             command = self.local_execution.extract_entrypoint(docker_tag)
@@ -232,6 +251,16 @@ class TiraClient(ABC):
             if result != _fmt.OK:
                 print(msg)
                 raise ValueError(msg)
+            print_message(f"The docker image produced valid outputs on the dataset {dataset_id}.", _fmt.OK)
+
+        print("Upload Code Submission image...")
+        print_message(f"The code submission is uploaded to TIRA.", _fmt.OK)
+
+        print("\nResult:")
+        print_message(
+            f"Your code submission is available at https://tira.io/submit/{task_id}/user/your-team/code-submission/{submission_name}",
+            _fmt.OK,
+        )
 
         return {
             "code": zipped_code,

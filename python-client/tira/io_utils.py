@@ -7,6 +7,56 @@ from pathlib import Path
 from typing import Any, Dict, Generator, Iterable, List, Union
 
 import pandas as pd
+from tira.check_format import _fmt, log_message
+
+
+def verify_docker_installation():
+    try:
+        from tira.local_execution_integration import LocalExecutionIntegration
+
+        local_execution = LocalExecutionIntegration()
+        assert local_execution.docker_is_installed_failsave()
+        return _fmt.OK, "Docker/Podman is installed."
+    except:
+        return _fmt.ERROR, "Docker/Podman is not installed. You can not run dockerized TIRA submissions."
+
+
+def tira_home_exists():
+    try:
+        from tira.rest_api_client import Client
+
+        assert Path(Client().tira_cache_dir).exists()
+        return _fmt.OK, "TIRA home is writable."
+    except:
+        return _fmt.ERROR, "TIRA can not write data to disk, ensure that TIRA_CACHE_DIR is writable."
+
+
+def api_key_is_valid():
+    try:
+        from tira.rest_api_client import Client
+
+        assert Client().api_key_is_valid()
+        return _fmt.OK, "You are authenticated against www.tira.io."
+    except:
+        return _fmt.WARN, "Your TIRA client is not authenticated. Please run 'tira-cli login'."
+
+
+def verify_tirex_tracker():
+    return _fmt.OK, "The tirex-tracker works and will track experimental metadata."
+
+
+def verify_tira_installation():
+    ret = _fmt.OK
+
+    for i in [api_key_is_valid, tira_home_exists, verify_docker_installation, verify_tirex_tracker]:
+        status, msg = i()
+        log_message(msg, status)
+        if status == _fmt.ERROR:
+            ret = _fmt.ERROR
+        if status == _fmt.WARN and ret != _fmt.ERROR:
+            ret = _fmt.WARN
+
+    return ret
 
 
 def parse_jsonl_line(input: Union[str, bytearray, bytes], load_default_text: bool) -> Dict:

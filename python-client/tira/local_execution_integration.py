@@ -163,6 +163,13 @@ class LocalExecutionIntegration:
 
         return ret + ["/var/run/docker.sock"]
 
+    def docker_is_installed_failsave(self):
+        try:
+            assert self.__docker_client is not None
+            return True
+        except:
+            return False
+
     def __docker_client(self):
         try:
             environ = os.environ.copy()

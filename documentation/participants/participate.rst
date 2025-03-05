@@ -83,7 +83,22 @@ your leaderboard position.
         .. tab-item:: Code Submission
             :sync: code-submission
 
-            .. todo:: TODO
+            (1) Please install the TIRA client via ``pip3 install tira``.
+
+            (2) Please authenticate your tira client using your API key. You get your API key after registration on TIRA on your submit page.
+
+            (3) Ensure that your TIRA installation is valid by running ``tira-cli verify-installation``. A valid output should look like:
+
+            .. figure:: images/tira-verify-installation.png
+                :width: 700
+                :align: center
+
+            (4) Now you are ready to upload your code submission to TIRA. Assuming that you want to upload to your code in a directory ``approach-xyz`` to the task ``wows-eval``, the command ``tira-cli code-submission --path some-directory/ --task wows-eval`` would do the code submission. A valid output should look like:
+
+            .. figure:: images/tira-code-submission.png
+                :width: 900
+                :align: center
+            
 
         .. tab-item:: Docker Submission
             :sync: docker-submission
@@ -96,7 +111,17 @@ your leaderboard position.
             .. todo:: TODO
 
 
-.. todo:: For development: The "Country" field should probably be a dropdown
 
-.. todo:: The upload of artifacts should not be inside the file-upload-submission since it indicates that it would not
-    apply to docker- or code submissions, which it does.
+.. _ExecuteSubmission:
+
+Execute Your Submission
+-----------------------
+
+Now that you have uploaded your code or docker submission, you can execute it within TIRA (this is not needed for run uploads). Navigate to your task page and select your submission. Then, select the resources and dataset on which your submission should, and click "RUN":
+
+
+.. figure:: images/tira-execute-sandboxed.png
+   :width: 700
+   :align: center
+
+After your software was executed, you can directly see the outputs and evaluation scores for public training datasets. For private or test datasets, the organizers will manually review the output of your system and will contact you and in case there are errors.
