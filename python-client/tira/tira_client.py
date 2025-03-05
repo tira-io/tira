@@ -1,5 +1,4 @@
 import os
-import shutil
 import tempfile
 import uuid
 import zipfile
@@ -7,7 +6,7 @@ from abc import ABC
 from pathlib import Path
 from typing import TYPE_CHECKING, Union, overload
 
-from tira.check_format import _fmt, check_format, log_message
+from tira.check_format import _fmt, check_format
 
 if TYPE_CHECKING:
     import io
@@ -110,10 +109,17 @@ class TiraClient(ABC):
 
     def _git_repo(self, path: Path):
         import git
-        try:
-                return git.Repo(path, search_parent_directories=True)
-        except git.exc.InvalidGitRepositoryError as e:
-                raise ValueError(f"No git repository found at {path}") from e
+
+        msg = f"No valid git repository found at {path}."
+
+        for i in range(4):
+            try:
+                return git.Repo(path)
+            except git.exc.InvalidGitRepositoryError:
+                path = path.parent
+
+        print(msg)
+        raise ValueError(msg)
 
     def _zip_tracked_files(self, repo: "git.Repo", directory: str):
         """
@@ -140,7 +146,6 @@ class TiraClient(ABC):
         dataset_id: "Optional[str]" = None,
         user_id: "Optional[str]" = None,
         docker_file: "Optional[Path]" = None,
-        dry_run: "Optional[bool]" = False,
     ):
         """Build a tira submission from a git repository.
 
@@ -199,7 +204,6 @@ class TiraClient(ABC):
             raise ValueError("foo")
 
         dataset_path = self.download_dataset(task_id, dataset_id)
-        print_message(f"The dataset {dataset_id} is available locally.", _fmt.OK)
 
         repo = self._git_repo(path)
 
@@ -232,16 +236,12 @@ class TiraClient(ABC):
             raise ValueError(f"No dockerfile {docker_file} exists.")
 
         directory_in_path = str(Path(path).absolute()).replace(str(Path(repo.working_tree_dir).absolute()) + "/", "")
-        submission_name = directory_in_path.replace("/", "-")
-        docker_tag = submission_name + "-" + str(uuid.uuid4())[:5]
+        docker_tag = directory_in_path.replace("/", "-") + "-" + str(uuid.uuid4())[:5]
         if repo.is_dirty(untracked_files=True):
-            raise ValueError("The git repository is not clean.")
+            raise ValueError("foo")
         zipped_code = self._zip_tracked_files(repo, directory_in_path)
 
         self.local_execution.build_docker_image(path, docker_tag, docker_file)
-
-        print_message(f"The code is embedded into the docker image {docker_tag}.", _fmt.OK)
-        print("Test Docker image...")
 
         if command is None:
             command = self.local_execution.extract_entrypoint(docker_tag)
