@@ -1,4 +1,5 @@
 import os
+import shutil
 import tempfile
 import uuid
 import zipfile
@@ -6,7 +7,7 @@ from abc import ABC
 from pathlib import Path
 from typing import TYPE_CHECKING, Union, overload
 
-from tira.check_format import _fmt, check_format
+from tira.check_format import _fmt, check_format, log_message
 
 if TYPE_CHECKING:
     import io
@@ -146,6 +147,7 @@ class TiraClient(ABC):
         dataset_id: "Optional[str]" = None,
         user_id: "Optional[str]" = None,
         docker_file: "Optional[Path]" = None,
+        dry_run: "Optional[bool]" = False,
     ):
         """Build a tira submission from a git repository.
 
