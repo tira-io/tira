@@ -31,7 +31,30 @@ out more):
 
 .. tab-set::
 
-    .. tab-item:: Upload
+    .. tab-item:: Code Submission
+        :sync: code-submission
+
+        Code submission is the recommended form of submitting to TIRA. Code submissions are compatible with CI/CD systems like `Github Actions <https://github.com/features/actions>`_ and build a docker image from a git repository while collecting important experimental metadata to improve transparency and reproducibility.
+
+        The requirements for code submissions are:
+
+        (1) Your approach is in a git repository.
+        (2) Your git repository is complete, i.e., contains all code and a Dockerfile to bundle the code.
+        (3) Your git repository is clean.
+            E.g., ``git status`` reports "nothing to commit, working tree clean".
+
+        When those requirements are fulfilled, code submissions perform the following steps:
+
+        (1) Build the docker image from the git repository while `tracking  important experimental meta data <https://github.com/tira-io/tirex-tracker>`_ (e.g., on git, code, etc.).
+        (2) Run the docker image on a small spot check dataset to ensure it produces valid outputs.
+        (3) Upload the docker image together with the meta data to TIRA.
+
+    .. tab-item:: Docker Submission
+        :sync: docker-submission
+
+        .. todo:: TODO
+
+    .. tab-item:: Run Upload
         :sync: upload-submission
 
         The upload submission is the simplest form of submitting and requires you to run the evaluation yourself and
@@ -41,22 +64,7 @@ out more):
             (e.g., to avoid that future models profit from the author's analysis of the dataset).
         (2) The result is not verifiable -- the organizer can not ensure that your model actually produced the runfile.
 
-    .. tab-item:: Docker Submission
-        :sync: docker-submission
-
-        .. todo:: TODO
-
-    .. tab-item:: Code Submission
-        :sync: code-submission
-
-        The code submission is the simplest (recommended) form of submitting.
-        
-        .. todo:: TODO
-
-.. hint:: If you want to use the simplest type of submission, we recommend a **Code Submission**. Note however, that the
-    Code Submission requires some access to your GitHub Account to perform all the setup steps for you. Submissions via
-    uploads are generally discouraged since they can not be verified. Such that we *highly recommend*, you either go for
-    a **Code Submission** or a **Docker Submission**.
+.. hint:: If you want to use the simplest type of submission, we recommend a **Code Submission** as this works with Github Actions or other CI/CD automations.
 
 
 .. _SubmitSubmission:
@@ -72,8 +80,8 @@ your leaderboard position.
 
     .. tab-set::
 
-        .. tab-item:: Upload
-            :sync: upload-submission
+        .. tab-item:: Code Submission
+            :sync: code-submission
 
             .. todo:: TODO
 
@@ -82,10 +90,11 @@ your leaderboard position.
 
             .. todo:: TODO
 
-        .. tab-item:: Code Submission
-            :sync: code-submission
+        .. tab-item:: Run Upload
+            :sync: upload-submission
 
             .. todo:: TODO
+
 
 .. todo:: For development: The "Country" field should probably be a dropdown
 
