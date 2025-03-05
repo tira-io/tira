@@ -1,9 +1,12 @@
 import os
 import tempfile
+import uuid
 import zipfile
 from abc import ABC
 from pathlib import Path
 from typing import TYPE_CHECKING, Union, overload
+
+from tira.check_format import _fmt, check_format
 
 if TYPE_CHECKING:
     import io
@@ -139,6 +142,7 @@ class TiraClient(ABC):
         self,
         path: Path,
         task_id: str,
+        command: "Optional[str]" = None,
         dataset_id: "Optional[str]" = None,
         user_id: "Optional[str]" = None,
         docker_file: "Optional[Path]" = None,
@@ -153,13 +157,89 @@ class TiraClient(ABC):
             docker_file (Path, optional): The Dockerfile to build the submission within the repository. Defaults to None to use path/Dockerfile.
         """
 
+        if dataset_id is None:
+            for k, v in self.datasets(task_id).items():
+                if (
+                    "is_confidential" not in v
+                    or v["is_confidential"]
+                    or "is_deprecated" not in v
+                    or v["is_deprecated"]
+                    or "format" not in v
+                    or len(v["format"]) == 0
+                ):
+                    continue
+                candidate = self.get_dataset(f"{task_id}/{k}")
+                if not candidate or "mirrors" not in candidate or "inputs" not in candidate["mirrors"]:
+                    continue
+                dataset_id = k
+
+            if dataset_id is None:
+                raise ValueError("foo")
+
+        dataset_handle = self.get_dataset(f"{task_id}/{dataset_id}")
+        if (
+            not dataset_handle
+            or "mirrors" not in dataset_handle
+            or "inputs" not in dataset_handle["mirrors"]
+            or "format" not in dataset_handle
+            or len(dataset_handle["format"]) == 0
+        ):
+            raise ValueError("foo")
+
+        dataset_path = self.download_dataset(task_id, dataset_id)
+
         repo = self._git_repo(path)
+
+        try:
+            remotes = {remote.name: remote.url for remote in repo.remotes}
+        except:
+            raise ValueError("No remotes found for the git repository.")
+
+        if len(remotes) == 0:
+            raise ValueError("No remotes found for the git repository.")
+
+        try:
+            commit = repo.commit().hexsha
+        except:
+            raise ValueError("No commits in the git repository")
+
+        try:
+            active_branch = repo.active_branch.name
+        except:
+            raise ValueError("No branch in the git repository")
+
+        if docker_file is None:
+            docker_file = path / "Dockerfile"
+
+        docker_file = Path(docker_file)
+        if not docker_file.exists():
+            raise ValueError(f"No dockerfile {docker_file} exists.")
+
         directory_in_path = str(Path(path).absolute()).replace(str(Path(repo.working_tree_dir).absolute()) + "/", "")
+        docker_tag = directory_in_path.replace("/", "-") + "-" + str(uuid.uuid4())[:5]
         if repo.is_dirty(untracked_files=True):
             raise ValueError("foo")
         zipped_code = self._zip_tracked_files(repo, directory_in_path)
 
-        return {"code": zipped_code}
+        self.local_execution.build_docker_image(path, docker_tag, docker_file)
+
+        if command is None:
+            command = self.local_execution.extract_entrypoint(docker_tag)
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            self.local_execution.run(image=docker_tag, command=command, input_dir=dataset_path, output_dir=tmp_dir)
+            result, msg = check_format(Path(tmp_dir), dataset_handle["format"][0])
+            if result != _fmt.OK:
+                print(msg)
+                raise ValueError(msg)
+
+        return {
+            "code": zipped_code,
+            "remotes": remotes,
+            "commit": commit,
+            "active_branch": active_branch,
+            "image": docker_tag,
+        }
 
     def __extract_dataset_identifier(self, dataset: any):
         """Extract the dataset identifier from a passed object.

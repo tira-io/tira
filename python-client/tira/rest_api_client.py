@@ -15,13 +15,15 @@ from typing import Dict, List, Optional, Union
 
 import pandas as pd
 import requests
-from tqdm import tqdm
-
 from tira.check_format import _fmt, check_format
 from tira.local_execution_integration import LocalExecutionIntegration
 from tira.pandas_integration import PandasIntegration
 from tira.profiling_integration import ProfilingIntegration
-from tira.pyterrier_integration import PyTerrierAnceIntegration, PyTerrierIntegration, PyTerrierSpladeIntegration
+from tira.pyterrier_integration import (
+    PyTerrierAnceIntegration,
+    PyTerrierIntegration,
+    PyTerrierSpladeIntegration,
+)
 from tira.third_party_integrations import temporary_directory
 from tira.tira_redirects import (
     RESOURCE_REDIRECTS,
@@ -31,6 +33,7 @@ from tira.tira_redirects import (
     redirects,
 )
 from tira.trectools_integration import TrecToolsIntegration
+from tqdm import tqdm
 
 from .tira_client import TiraClient
 
@@ -76,7 +79,6 @@ class Client(TiraClient):
         self.pt_splade = PyTerrierSpladeIntegration(self)
         self.local_execution = LocalExecutionIntegration(self)
         self.allow_local_execution = allow_local_execution
-
 
     def load_settings(self):
         try:
@@ -134,7 +136,7 @@ class Client(TiraClient):
             raise ValueError("It seems like the api key is invalid. Got: ", role)
 
     def datasets(self, task):
-        return json.loads(self.json_response(f"/api/datasets_by_task/{task}")["context"]["datasets"])
+        return json.loads(self.archived_json_response(f"/api/datasets_by_task/{task}")["context"]["datasets"])
 
     def dataset_only_available_locally(self, dataset):
         if not Path(dataset).exists():

@@ -19,9 +19,18 @@ class CodeSubmissionTest(unittest.TestCase):
             tira.submit_code(Path("tests") / "resources" / "git-repo-dirty" / "some-directory", "wows-eval")
 
     def test_code_submission_works(self):
-        tira = Client()
+        tira = Client(tira_cache_dir="./tests/resources/local_cached_zip")
         expected_code_files = ["some-directory/.gitignore", "some-directory/Dockerfile", "some-directory/script.sh"]
-        actual = tira.submit_code(Path("tests") / "resources" / "git-repo-clean" / "some-directory", "wows-eval")
+        actual = tira.submit_code(
+            Path("tests") / "resources" / "git-repo-clean" / "some-directory", "task-does-not-exist"
+        )
+
         zipObj = ZipFile(actual["code"])
         files_in_zip = [i.filename for i in zipObj.infolist()]
+
+        self.assertEqual({"origin": "foo"}, actual["remotes"])
+        self.assertEqual("976c6949b9992aabc785ccb8544652dc3b149fb5", actual["commit"])
+        self.assertEqual("main", actual["active_branch"])
+        self.assertTrue(actual["image"].startswith("some-directory"))
+
         self.assertEqual(files_in_zip, expected_code_files)
