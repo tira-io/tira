@@ -26,7 +26,7 @@ class CodeSubmissionTest(unittest.TestCase):
         tira = Client(tira_cache_dir="./tests/resources/local_cached_zip")
         expected_code_files = ["some-directory/.gitignore", "some-directory/Dockerfile", "some-directory/script.sh"]
 
-        with tempfile.TemporaryDirectory(delete=False) as tmp_file:
+        with tempfile.TemporaryDirectory() as tmp_file:
             with ZipFile(Path("tests") / "resources" / "example-git-repositories.zip", "r") as zip_ref:
                 zip_ref.extractall(tmp_file)
 
