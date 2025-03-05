@@ -1,5 +1,12 @@
+import os
+import tempfile
+import uuid
+import zipfile
 from abc import ABC
+from pathlib import Path
 from typing import TYPE_CHECKING, Union, overload
+
+from tira.check_format import _fmt, check_format
 
 if TYPE_CHECKING:
     import io
@@ -99,6 +106,169 @@ class TiraClient(ABC):
         false  otherwise.
         """
         pass
+
+    def _git_repo(self, path: Path):
+        import git
+
+        msg = f"No valid git repository found at {path}."
+
+        for i in range(4):
+            try:
+                return git.Repo(path)
+            except git.exc.InvalidGitRepositoryError:
+                path = path.parent
+
+        print(msg)
+        raise ValueError(msg)
+
+    def _zip_tracked_files(self, repo: "git.Repo", directory: str):
+        """
+        Creates a zip archive containing all tracked files in a given Git repository.
+
+        :param repo: The Git repository.
+        :param zip_filename: Name of the output zip file.
+        """
+        tracked_files = [i.path for i in repo.commit().tree.traverse() if i.path.startswith(f"{directory}/")]
+        zip_path = Path(tempfile.TemporaryDirectory().name) / "repo.zip"
+        zip_path.parent.mkdir(exist_ok=True, parents=True)
+
+        with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zipf:
+            for file in tracked_files:
+                file_path = os.path.join(repo.working_tree_dir, file)
+                zipf.write(file_path, arcname=file)
+        return zip_path
+
+    def submit_code(
+        self,
+        path: Path,
+        task_id: str,
+        command: "Optional[str]" = None,
+        dataset_id: "Optional[str]" = None,
+        user_id: "Optional[str]" = None,
+        docker_file: "Optional[Path]" = None,
+    ):
+        """Build a tira submission from a git repository.
+
+        Args:
+            path (Path): The path to the directory that contains the submission. The path points to the directory used as root for the docker build and must be in a git repository.
+            task_id (str): The ID of the TIRA task to which the submissions should be made.
+            dataset_id (str, optional): The ID of the TIRA dataset on which the submission is to be tested. If no dataset is passed, the submission will be tested on a small publicly available smoke test dataset for the task.
+            user_id (str, optional): The ID of the TIRA team that makes the submission. Is only required if a user has multiple teams.
+            docker_file (Path, optional): The Dockerfile to build the submission within the repository. Defaults to None to use path/Dockerfile.
+        """
+
+        all_messages = []
+
+        def print_message(message, level):
+            from tira.check_format import log_message
+
+            all_messages.append((message, level))
+            os.system("cls" if os.name == "nt" else "clear")
+            print("TIRA Code Submission:")
+            for m, l in all_messages:
+                log_message(m, l)
+
+        if dataset_id is None:
+            for k, v in self.datasets(task_id).items():
+                if (
+                    "is_confidential" not in v
+                    or v["is_confidential"]
+                    or "is_deprecated" not in v
+                    or v["is_deprecated"]
+                    or "format" not in v
+                    or len(v["format"]) == 0
+                ):
+                    continue
+                candidate = self.get_dataset(f"{task_id}/{k}")
+                if not candidate or "mirrors" not in candidate or "inputs" not in candidate["mirrors"]:
+                    continue
+                dataset_id = k
+
+            if dataset_id is None:
+                raise ValueError("foo")
+
+        dataset_handle = self.get_dataset(f"{task_id}/{dataset_id}")
+        if (
+            not dataset_handle
+            or "mirrors" not in dataset_handle
+            or "inputs" not in dataset_handle["mirrors"]
+            or "format" not in dataset_handle
+            or len(dataset_handle["format"]) == 0
+        ):
+            raise ValueError("foo")
+
+        dataset_path = self.download_dataset(task_id, dataset_id)
+        print_message(f"The dataset {dataset_id} is available locally.", _fmt.OK)
+
+        repo = self._git_repo(path)
+
+        try:
+            remotes = {remote.name: remote.url for remote in repo.remotes}
+        except:
+            raise ValueError("No remotes found for the git repository.")
+
+        if len(remotes) == 0:
+            raise ValueError("No remotes found for the git repository.")
+
+        try:
+            commit = repo.commit().hexsha
+        except:
+            raise ValueError("No commits in the git repository")
+
+        try:
+            active_branch = repo.active_branch.name
+        except:
+            raise ValueError("No branch in the git repository")
+
+        print_message(f"The git repository is {repo.working_tree_dir} is clean.", _fmt.OK)
+        print("Build Docker image...")
+
+        if docker_file is None:
+            docker_file = path / "Dockerfile"
+
+        docker_file = Path(docker_file)
+        if not docker_file.exists():
+            raise ValueError(f"No dockerfile {docker_file} exists.")
+
+        directory_in_path = str(Path(path).absolute()).replace(str(Path(repo.working_tree_dir).absolute()) + "/", "")
+        submission_name = directory_in_path.replace("/", "-")
+        docker_tag = submission_name + "-" + str(uuid.uuid4())[:5]
+        if repo.is_dirty(untracked_files=True):
+            raise ValueError("The git repository is not clean.")
+        zipped_code = self._zip_tracked_files(repo, directory_in_path)
+
+        self.local_execution.build_docker_image(path, docker_tag, docker_file)
+
+        print_message(f"The code is embedded into the docker image {docker_tag}.", _fmt.OK)
+        print("Test Docker image...")
+
+        if command is None:
+            command = self.local_execution.extract_entrypoint(docker_tag)
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            self.local_execution.run(image=docker_tag, command=command, input_dir=dataset_path, output_dir=tmp_dir)
+            result, msg = check_format(Path(tmp_dir), dataset_handle["format"][0])
+            if result != _fmt.OK:
+                print(msg)
+                raise ValueError(msg)
+            print_message(f"The docker image produced valid outputs on the dataset {dataset_id}.", _fmt.OK)
+
+        print("Upload Code Submission image...")
+        print_message(f"The code submission is uploaded to TIRA.", _fmt.OK)
+
+        print("\nResult:")
+        print_message(
+            f"Your code submission is available at https://tira.io/submit/{task_id}/user/your-team/code-submission/{submission_name}",
+            _fmt.OK,
+        )
+
+        return {
+            "code": zipped_code,
+            "remotes": remotes,
+            "commit": commit,
+            "active_branch": active_branch,
+            "image": docker_tag,
+        }
 
     def __extract_dataset_identifier(self, dataset: any):
         """Extract the dataset identifier from a passed object.

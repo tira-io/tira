@@ -15,13 +15,15 @@ from typing import Dict, List, Optional, Union
 
 import pandas as pd
 import requests
-from tqdm import tqdm
-
 from tira.check_format import _fmt, check_format
 from tira.local_execution_integration import LocalExecutionIntegration
 from tira.pandas_integration import PandasIntegration
 from tira.profiling_integration import ProfilingIntegration
-from tira.pyterrier_integration import PyTerrierAnceIntegration, PyTerrierIntegration, PyTerrierSpladeIntegration
+from tira.pyterrier_integration import (
+    PyTerrierAnceIntegration,
+    PyTerrierIntegration,
+    PyTerrierSpladeIntegration,
+)
 from tira.third_party_integrations import temporary_directory
 from tira.tira_redirects import (
     RESOURCE_REDIRECTS,
@@ -31,6 +33,7 @@ from tira.tira_redirects import (
     redirects,
 )
 from tira.trectools_integration import TrecToolsIntegration
+from tqdm import tqdm
 
 from .tira_client import TiraClient
 
@@ -51,6 +54,7 @@ class Client(TiraClient):
     ):
         self.base_url = base_url or "https://www.tira.io"
         self.verify = verify
+        self.failsave_max_delay = failsave_max_delay
         self.tira_cache_dir = (
             tira_cache_dir if tira_cache_dir else os.environ.get("TIRA_CACHE_DIR", os.path.expanduser("~") + "/.tira")
         )
@@ -66,6 +70,7 @@ class Client(TiraClient):
         self.failsave_retries = 1
         if self.api_key != "no-api-key":
             self.fail_if_api_key_is_invalid()
+        self.failsave_retries = failsave_retries
         self.pd = PandasIntegration(self)
         self.pt = PyTerrierIntegration(self)
         self.trectools = TrecToolsIntegration(self)
@@ -74,9 +79,6 @@ class Client(TiraClient):
         self.pt_splade = PyTerrierSpladeIntegration(self)
         self.local_execution = LocalExecutionIntegration(self)
         self.allow_local_execution = allow_local_execution
-
-        self.failsave_retries = failsave_retries
-        self.failsave_max_delay = failsave_max_delay
 
     def load_settings(self):
         try:
@@ -134,7 +136,7 @@ class Client(TiraClient):
             raise ValueError("It seems like the api key is invalid. Got: ", role)
 
     def datasets(self, task):
-        return json.loads(self.json_response(f"/api/datasets_by_task/{task}")["context"]["datasets"])
+        return json.loads(self.archived_json_response(f"/api/datasets_by_task/{task}")["context"]["datasets"])
 
     def dataset_only_available_locally(self, dataset):
         if not Path(dataset).exists():

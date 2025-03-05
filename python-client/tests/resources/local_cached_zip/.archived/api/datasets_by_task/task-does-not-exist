@@ -1,0 +1,13 @@
+{
+  "status": "0",
+  "context": {
+    "include_navigation": false,
+    "user_id": null,
+    "role": "guest",
+    "organizer_teams": "[]",
+    "datasets": "{\"dataset-does-not-exist-20241201-training\": {\"display_name\": \"pairwise-smoke-test\", \"evaluator_id\": \"pairwise-smoke-test-20250210-training-evaluator\", \"dataset_id\": \"dataset-does-not-exist-20241201-training\", \"is_confidential\": false, \"is_deprecated\": false, \"year\": \"2025-02-10 14:31:11.079033\", \"task\": \"wows-eval\", \"organizer\": \"Webis\", \"organizer_id\": \"webis\", \"software_count\": 0, \"runs_count\": 0, \"evaluations_count\": 0, \"evaluations_public_count\": 0, \"default_upload_name\": \"predictions.jsonl\", \"created\": \"2025-02-10\", \"last_modified\": \"2025-02-10\", \"irds_docker_image\": null, \"irds_import_command\": null, \"irds_import_truth_command\": null, \"evaluator_git_runner_image\": \"ubuntu:18.04\", \"evaluator_git_runner_command\": \"echo 'this is no real evaluator'\", \"format\": [\"*.jsonl\"], \"description\": \"A pairwise smoke test dataset.\", \"chatnoir_id\": null, \"ir_datasets_id\": null, \"file_listing\": [{\"title\": \"$inputDir\", \"children\": [{\"title\": \"inputs.jsonl (size: 33549; md5sum: d7852dfdf100a3304c9786f1b7179d0b)\", \"size\": 33549, \"md5sum\": \"d7852dfdf100a3304c9786f1b7179d0b\"}]}, {\"title\": \"$inputDataset\", \"children\": [{\"title\": \"labels.jsonl (size: 37522; md5sum: 6f597478dbfc15fa787ba317b6612248)\", \"size\": 37522, \"md5sum\": \"6f597478dbfc15fa787ba317b6612248\"}]}]}}",
+    "selected_dataset_id": "",
+    "test_dataset_ids": "[]",
+    "training_dataset_ids": "[\"dataset-does-not-exist-20241201-training\"]"
+  }
+}

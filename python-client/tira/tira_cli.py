@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 import argparse
 import logging
+from pathlib import Path
 from platform import python_version
 from typing import TYPE_CHECKING, Optional
 
-from tira import __version__
+from tira.io_utils import _fmt, log_message, verify_tira_installation
 from tira.rest_api_client import Client as RestClient
+
+from tira import __version__
 
 if TYPE_CHECKING:
     from .tira_client import TiraClient
@@ -61,6 +64,24 @@ def setup_login_command(parser: argparse.ArgumentParser) -> None:
     parser.set_defaults(executable=login_command)
 
 
+def setup_code_submission_command(parser: argparse.ArgumentParser) -> None:
+    setup_logging_args(parser)
+    parser.add_argument(
+        "--path",
+        required=True,
+        default=None,
+        help="The path used to build the docker image, must be in a clean git repository.",
+    )
+    parser.add_argument("--task", required=True, default=None, help="The task to which the code should be submitted.")
+
+    parser.set_defaults(executable=code_submission_command)
+
+
+def setup_verify_installation(parser: argparse.ArgumentParser) -> None:
+    setup_logging_args(parser)
+    parser.set_defaults(executable=verify_installation_command)
+
+
 def setup_upload_command(parser: argparse.ArgumentParser) -> None:
     setup_logging_args(parser)
     parser.set_defaults(executable=upload_command)
@@ -89,6 +110,28 @@ def login_command(token: str, print_docker_auth: bool, **kwargs) -> int:
     return 0
 
 
+def code_submission_command(path: Path, task: str, **kwargs) -> int:
+    client: "TiraClient" = RestClient()
+    client.submit_code(Path(path), task)
+
+    return 0
+
+
+def verify_installation_command(**kwards) -> int:
+    status = verify_tira_installation()
+
+    print("\nResult:")
+    msg = "Your TIRA installation is valid."
+    if status == _fmt.WARN:
+        msg = "There are some warnings, you might not use all features."
+
+    if status == _fmt.ERROR:
+        msg = "Your installation is not valid, you might not use all features."
+
+    log_message(msg, status)
+    return 0 if status == _fmt.OK else 1
+
+
 def upload_command() -> None:
     pass
 
@@ -108,6 +151,12 @@ def parse_args():
     setup_download_command(subparsers.add_parser("download", help="Download runs or datasets from TIRA.io"))
     setup_upload_command(subparsers.add_parser("upload", help="Upload runs or datasets to TIRA.io"))
     setup_login_command(subparsers.add_parser("login", help="Login your TIRA client to the tira server."))
+    setup_verify_installation(
+        subparsers.add_parser("verify-installation", help="Verify that your local TIRA client is correctly installed.")
+    )
+    setup_code_submission_command(
+        subparsers.add_parser("code-submission", help="Make a code submission via Docker from a git repository.")
+    )
 
     return parser.parse_args()
 
