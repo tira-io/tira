@@ -11,18 +11,20 @@ class CodeSubmissionTest(unittest.TestCase):
         tira = Client()
         with tempfile.TemporaryDirectory() as tmp_file:
             with self.assertRaises(ValueError):
-                tira.submit_code(Path(tmp_file), "wows-eval")
+                tira.submit_code(Path(tmp_file), "wows-eval", dry_run=True)
 
     def test_code_submission_fails_for_dirty_git_repo(self):
         tira = Client()
         with self.assertRaises(ValueError):
-            tira.submit_code(Path("tests") / "resources" / "git-repo-dirty" / "some-directory", "wows-eval")
+            tira.submit_code(
+                Path("tests") / "resources" / "git-repo-dirty" / "some-directory", "wows-eval", dry_run=True
+            )
 
     def test_code_submission_works(self):
         tira = Client(tira_cache_dir="./tests/resources/local_cached_zip")
         expected_code_files = ["some-directory/.gitignore", "some-directory/Dockerfile", "some-directory/script.sh"]
         actual = tira.submit_code(
-            Path("tests") / "resources" / "git-repo-clean" / "some-directory", "task-does-not-exist"
+            Path("tests") / "resources" / "git-repo-clean" / "some-directory", "task-does-not-exist", dry_run=True
         )
 
         zipObj = ZipFile(actual["code"])
