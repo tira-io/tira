@@ -5,10 +5,9 @@ from pathlib import Path
 from platform import python_version
 from typing import TYPE_CHECKING, Optional
 
+from tira import __version__
 from tira.io_utils import _fmt, log_message, verify_tira_installation
 from tira.rest_api_client import Client as RestClient
-
-from tira import __version__
 
 if TYPE_CHECKING:
     from .tira_client import TiraClient

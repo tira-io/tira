@@ -15,6 +15,8 @@ from typing import Dict, List, Optional, Union
 
 import pandas as pd
 import requests
+from tqdm import tqdm
+
 from tira.check_format import _fmt, check_format
 from tira.local_execution_integration import LocalExecutionIntegration
 from tira.pandas_integration import PandasIntegration
@@ -33,7 +35,6 @@ from tira.tira_redirects import (
     redirects,
 )
 from tira.trectools_integration import TrecToolsIntegration
-from tqdm import tqdm
 
 from .tira_client import TiraClient
 
@@ -267,6 +268,7 @@ class Client(TiraClient):
             f"Please visit {self.base_url}/submit/{tira_task_id}/user/{tira_vm_id}/docker-submission to run your"
             " software."
         )
+        return ret["context"]
 
     def submissions(self, task, dataset):
         response = self.json_response(f"/api/submissions/{task}/{dataset}")["context"]
@@ -911,6 +913,7 @@ class Client(TiraClient):
 
         resp = resp.json()
         print(f'Run uploaded to TIRA. Claim ownership via: {self.base_url}/claim-submission/{resp["uuid"]}')
+        return resp
 
     def create_group(self, vm_id):
         if not vm_id or vm_id != vm_id.lower() or len(vm_id.split()) > 1:

@@ -1,4 +1,5 @@
 import os
+import shutil
 import tempfile
 import uuid
 import zipfile
@@ -6,7 +7,7 @@ from abc import ABC
 from pathlib import Path
 from typing import TYPE_CHECKING, Union, overload
 
-from tira.check_format import _fmt, check_format
+from tira.check_format import _fmt, check_format, log_message
 
 if TYPE_CHECKING:
     import io
@@ -146,6 +147,7 @@ class TiraClient(ABC):
         dataset_id: "Optional[str]" = None,
         user_id: "Optional[str]" = None,
         docker_file: "Optional[Path]" = None,
+        dry_run: "Optional[bool]" = False,
     ):
         """Build a tira submission from a git repository.
 
@@ -160,13 +162,19 @@ class TiraClient(ABC):
         all_messages = []
 
         def print_message(message, level):
-            from tira.check_format import log_message
-
             all_messages.append((message, level))
             os.system("cls" if os.name == "nt" else "clear")
             print("TIRA Code Submission:")
             for m, l in all_messages:
                 log_message(m, l)
+
+        if not dry_run:
+            print(f"Ensure that you are registed for task {task_id}.")
+            from tira.tira_run import guess_vm_id_of_user
+
+            user_id = guess_vm_id_of_user(task_id, self, user_id)
+            assert user_id
+            print_message(f"You are registered and will submit as team {user_id} to task {task_id}.", _fmt.OK)
 
         if dataset_id is None:
             for k, v in self.datasets(task_id).items():
@@ -220,7 +228,7 @@ class TiraClient(ABC):
         except:
             raise ValueError("No branch in the git repository")
 
-        print_message(f"The git repository is {repo.working_tree_dir} is clean.", _fmt.OK)
+        print_message(f"The git repository {repo.working_tree_dir} is clean.", _fmt.OK)
         print("Build Docker image...")
 
         if docker_file is None:
@@ -252,15 +260,35 @@ class TiraClient(ABC):
                 print(msg)
                 raise ValueError(msg)
             print_message(f"The docker image produced valid outputs on the dataset {dataset_id}.", _fmt.OK)
+            shutil.copy(zipped_code, Path(tmp_dir) / "source-code.zip")
 
-        print("Upload Code Submission image...")
-        print_message(f"The code submission is uploaded to TIRA.", _fmt.OK)
+            if not dry_run:
+                print("Upload Code Submission image...")
+                metadata_uuid = self.upload_run_anonymous(tmp_dir, dataset_id)["uuid"]
 
-        print("\nResult:")
-        print_message(
-            f"Your code submission is available at https://tira.io/submit/{task_id}/user/your-team/code-submission/{submission_name}",
-            _fmt.OK,
-        )
+                print_message(f"The meta data is uploaded to TIRA.", _fmt.OK)
+
+                print("Push Docker image to TIRA...")
+                from tira.tira_run import push_image
+
+                pushed_image = push_image(self, docker_tag, task_id, user_id)
+
+                print_message(f"The Docker image is pushed to TIRA.", _fmt.OK)
+                print("Configure code submission in TIRA...")
+                upload = self.add_docker_software(
+                    pushed_image,
+                    command,
+                    user_id,
+                    task_id,
+                    None,
+                    dict(os.environ),
+                )
+                print_message(f"The code submission is uploaded to TIRA.", _fmt.OK)
+                print("\nResult:")
+                log_message(
+                    f"Your code submission is available in TIRA as {upload['display_name']}.",
+                    _fmt.OK,
+                )
 
         return {
             "code": zipped_code,
