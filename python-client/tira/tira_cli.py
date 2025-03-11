@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING, Optional
 
 from tira import __version__
 from tira.io_utils import _fmt, log_message, verify_tira_installation
-from tira.io_utils import _fmt, log_message, verify_tira_installation
 from tira.rest_api_client import Client as RestClient
 
 if TYPE_CHECKING:

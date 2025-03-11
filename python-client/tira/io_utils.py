@@ -59,6 +59,7 @@ def verify_tira_installation():
 
     return ret
 
+
 from tira.tira_client import TiraClient
 
 
@@ -107,6 +108,7 @@ def dataset_as_iterator(
 
     for i in lines_if_valid(dataset, dataset_format):
         yield i
+
 
 from tira.check_format import _fmt, log_message
 

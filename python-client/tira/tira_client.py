@@ -110,6 +110,7 @@ class TiraClient(ABC):
 
     def _git_repo(self, path: Path):
         import git
+
         try:
             # TODO: Replace with call to tirex_tracker.
             return git.Repo(path, search_parent_directories=True)
