@@ -2,7 +2,6 @@ import os
 import unittest
 
 import ir_datasets
-
 from tira.third_party_integrations import (
     ensure_pyterrier_is_loaded,
     load_ir_datasets,
@@ -230,9 +229,8 @@ class TestIRDatasets(unittest.TestCase):
         queries = {str(i["qid"]): i["query"] for _, i in dataset.get_topics().iterrows()}
 
         assert len(dataset.get_topics()) == 225
-        assert (
-            queries["269"] == "has a criterion been established for determining the axial compressor choking line"
-        ), queries.keys()
+        raise ValueError(queries.keys())
+        assert queries["269"] == "has a criterion been established for determining the axial compressor choking line"
 
     def test_patching_for_pyterrier_datasets_01(self):
         ensure_pyterrier_is_loaded(patch_ir_datasets=False)
