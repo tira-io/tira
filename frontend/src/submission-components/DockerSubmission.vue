@@ -69,6 +69,7 @@ export default {
       selectedDataset: '',
       datasets: [{ "dataset_id": null, "display_name": "loading..." }],
       re_ranking_datasets: [{ "dataset_id": null, "display_name": "loading..." }],
+      rest_url: inject("REST base URL"),
     }
   },
   computed: {
@@ -91,13 +92,13 @@ export default {
     },
     load_re_ranking_datasets() {
       if (this.is_ir_task) {
-        get(inject("REST base URL") + '/api/re-ranking-datasets/' + this.task_id)
+        get(this.rest_url + '/api/re-ranking-datasets/' + this.task_id)
           .then(inject_response(this))
           .catch(reportError("Problem While Loading the re-rankign datasets for " + this.task_id, "This might be a short-term hiccup, please try again. We got the following error: "))
       }
     },
     handleDeleteDockerImage() {
-      get(inject("REST base URL") + `/task/${this.task_id}/vm/${this.user_id_for_submission}/delete_software/docker/${this.tab}`)
+      get(this.rest_url + `/task/${this.task_id}/vm/${this.user_id_for_submission}/delete_software/docker/${this.tab}`)
         .then(message => {
           this.docker.images = this.docker.images.filter(i => i.id != this.docker.images.find(i => i.display_name === this.tab).id)
           this.tab = this.docker.images.length > 0 ? this.docker.images[0].display_name : null
@@ -112,7 +113,7 @@ export default {
     handleModifiedSubmission
   },
   beforeMount() {
-    get(inject("REST base URL") + '/api/submissions-for-task/' + this.task_id + '/' + this.user_id_for_submission + '/docker')
+    get(this.rest_url + '/api/submissions-for-task/' + this.task_id + '/' + this.user_id_for_submission + '/docker')
       .then(inject_response(this, { 'loading': false }, true))
       .catch(reportError("Problem While Loading the Docker Details of the Task " + this.task_id, "This might be a short-term hiccup, please try again. We got the following error: "))
     this.load_re_ranking_datasets()

@@ -278,6 +278,10 @@ class TiraClient(ABC):
                     task_id,
                     None,
                     dict(os.environ),
+                    source_code_remotes=remotes,
+                    source_code_commit=commit,
+                    source_code_active_branch=active_branch,
+                    try_run_metadata_uuid=metadata_uuid,
                 )
                 print_message(f"The code submission is uploaded to TIRA.", _fmt.OK)
                 print("\nResult:")

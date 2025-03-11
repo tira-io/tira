@@ -1144,8 +1144,13 @@ class HybridDatabase(object):
         return docker_softwares
 
     @staticmethod
-    def get_docker_softwares(task_id, vm_id, return_only_names=True):
-        ret = modeldb.DockerSoftware.objects.filter(vm__vm_id=vm_id, task__task_id=task_id, deleted=False)
+    def get_docker_softwares(task_id, vm_id, return_only_names=True, return_code_submissions=False):
+        ret = modeldb.DockerSoftware.objects.filter(
+            vm__vm_id=vm_id,
+            task__task_id=task_id,
+            deleted=False,
+            source_code_commit__isnull=not return_code_submissions,
+        )
 
         if return_only_names:
             return [{"docker_software_id": i.docker_software_id, "display_name": i.display_name} for i in ret]
@@ -2305,12 +2310,18 @@ class HybridDatabase(object):
         input_upload=None,
         submission_git_repo=None,
         build_environment=None,
+        source_code_remotes=None,
+        commit=None,
+        active_branch=None,
+        try_run_metadata_uuid=None,
     ):
-        input_docker_software, input_upload_software = None, None
+        input_docker_software, input_upload_software, try_run_metadata = None, None, None
         if input_docker_job and 0 in input_docker_job:
             input_docker_software = modeldb.DockerSoftware.objects.get(docker_software_id=input_docker_job[0])
         if input_upload is not None and 0 in input_upload:
             input_upload_software = modeldb.Upload.objects.get(id=int(input_upload[0]))
+        if try_run_metadata_uuid is not None:
+            try_run_metadata = modeldb.AnonymousUploads.objects.get(uuid=try_run_metadata_uuid)
 
         docker_software = modeldb.DockerSoftware.objects.create(
             vm=modeldb.VirtualMachine.objects.get(vm_id=vm_id),
@@ -2321,6 +2332,10 @@ class HybridDatabase(object):
             display_name=randomname.get_name(),
             input_docker_software=input_docker_software,
             input_upload=input_upload_software,
+            source_code_remotes=source_code_remotes,
+            source_code_commit=commit,
+            source_code_active_branch=active_branch,
+            try_run_metadata=try_run_metadata,
         )
 
         additional_inputs = range(

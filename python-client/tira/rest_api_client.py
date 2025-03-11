@@ -21,11 +21,7 @@ from tira.check_format import _fmt, check_format
 from tira.local_execution_integration import LocalExecutionIntegration
 from tira.pandas_integration import PandasIntegration
 from tira.profiling_integration import ProfilingIntegration
-from tira.pyterrier_integration import (
-    PyTerrierAnceIntegration,
-    PyTerrierIntegration,
-    PyTerrierSpladeIntegration,
-)
+from tira.pyterrier_integration import PyTerrierAnceIntegration, PyTerrierIntegration, PyTerrierSpladeIntegration
 from tira.third_party_integrations import temporary_directory
 from tira.tira_redirects import (
     RESOURCE_REDIRECTS,
@@ -224,6 +220,10 @@ class Client(TiraClient):
         build_environment,
         previous_stages=[],
         mount_hf_model=[],
+        source_code_remotes=None,
+        source_code_commit=None,
+        source_code_active_branch=None,
+        try_run_metadata_uuid=None,
     ):
         headers = {
             "Api-Key": self.api_key,
@@ -246,6 +246,18 @@ class Client(TiraClient):
 
         if mount_hf_model and len(mount_hf_model) > 0:
             content["mount_hf_model"] = mount_hf_model
+
+        if source_code_remotes:
+            content["source_code_remotes"] = json.dumps(source_code_remotes)
+
+        if source_code_commit:
+            content["source_code_commit"] = source_code_commit
+
+        if source_code_active_branch:
+            content["source_code_active_branch"] = source_code_active_branch
+
+        if try_run_metadata_uuid:
+            content["try_run_metadata_uuid"] = try_run_metadata_uuid
 
         ret = requests.post(url, headers=headers, json=content)
         response_code = ret.status_code

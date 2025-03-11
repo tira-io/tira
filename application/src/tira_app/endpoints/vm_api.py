@@ -637,6 +637,25 @@ def docker_software_add(request, task_id, vm_id):
         if not data.get("command"):
             return JsonResponse({"status": 1, "message": "Please specify the associated docker command."})
 
+        source_code_remotes = data.get("source_code_remotes")
+        commit = data.get("source_code_commit")
+        active_branch = data.get("source_code_active_branch")
+
+        if (source_code_remotes or commit or active_branch) and (
+            not source_code_remotes or not commit or not active_branch
+        ):
+            return JsonResponse(
+                {
+                    "status": 1,
+                    "message": "You must either specify always all three of source_code_remotes, "
+                    + "commit, and active_branch or none of them. Got source_code_remotes="
+                    + f"'{source_code_remotes}', commit='{commit}', active_branch='{active_branch}'.",
+                }
+            )
+
+        if source_code_remotes:
+            source_code_remotes = json.dumps(json.loads(source_code_remotes))
+
         submission_git_repo = None
         build_environment = None
         if data.get("code_repository_id"):
@@ -664,6 +683,10 @@ def docker_software_add(request, task_id, vm_id):
             data.get("inputJob", None),
             submission_git_repo,
             build_environment,
+            source_code_remotes,
+            commit,
+            active_branch,
+            data.get("try_run_metadata_uuid", None),
         )
 
         if data.get("mount_hf_model"):
