@@ -671,8 +671,13 @@ def submissions_for_task(request, context, task_id, user_id, submission_type):
     if submission_type == "upload":
         context["all_uploadgroups"] = model.get_uploads(task_id, user_id)
         context["all_uploadgroups"] += [i for i in cloned_submissions if i["type"] == "upload"]
+    elif submission_type == "code":
+        context["code"] = {"submissions": model.get_docker_softwares(task_id, user_id, return_code_submissions=True)}
+        context["resources"] = settings.GIT_CI_AVAILABLE_RESOURCES
     elif submission_type == "docker":
-        context["docker"] = {"docker_softwares": model.get_docker_softwares(task_id, user_id)}
+        context["docker"] = {
+            "docker_softwares": model.get_docker_softwares(task_id, user_id, return_code_submissions=False)
+        }
         context["docker"]["docker_softwares"] += [i for i in cloned_submissions if i["type"] == "docker"]
         context["resources"] = settings.GIT_CI_AVAILABLE_RESOURCES
     elif submission_type == "vm":

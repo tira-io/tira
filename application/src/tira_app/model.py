@@ -253,6 +253,10 @@ class DockerSoftware(models.Model):
     ir_re_ranking_input = models.BooleanField(default=False)
     public_image_name = models.TextField(default=None, null=True)
     public_image_size = models.BigIntegerField(default=None, null=True)
+    source_code_remotes = models.TextField(default=None, null=True)
+    source_code_commit = models.TextField(default=None, null=True)
+    source_code_active_branch = models.TextField(default=None, null=True)
+    try_run_metadata = models.ForeignKey(AnonymousUploads, on_delete=models.RESTRICT, null=True, default=None)
 
 
 class DockerSoftwareHasAdditionalInput(models.Model):
