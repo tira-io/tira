@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import shutil
 import subprocess
 import sys
 import tarfile
@@ -11,6 +12,7 @@ from pathlib import Path
 
 import docker
 import pandas as pd
+from tira.tirex_tracker import tirex_tracker_mounts_or_none
 
 
 class LocalExecutionIntegration:
@@ -301,13 +303,44 @@ class LocalExecutionIntegration:
             command=command,
             input_dir=dataset_directory,
             output_dir=output_dir,
+            input_run=(
+                None
+                if len(docker_software_id_to_output) != 1
+                else list(docker_software_id_to_output.values())[0]["output_dir"]
+            ),
             docker_software_id_to_output={k: v["output_dir"] for k, v in docker_software_id_to_output.items()},
         )
+
+        if (output_dir / ".tracking-results.yml").exists():
+            shutil.move(output_dir / ".tracking-results.yml", output_dir.parent / ".tracking-results.yml")
 
         with open(log_file, "a") as f:
             f.write(json.dumps(ret) + "\n")
 
         return ret
+
+    def tirex_tracker_available_in_docker_image(self, image: str, client: "Optional[DockerClient]" = None) -> bool:
+        if client is None:
+            client = self.__docker_client()
+
+        volumes = tirex_tracker_mounts_or_none()
+        if not volumes:
+            return False
+
+        try:
+            help_response = client.containers.run(
+                image,
+                entrypoint="sh",
+                command="-c './tracked --help'",
+                volumes=volumes,
+                detach=False,
+                remove=True,
+                network_disabled=True,
+            ).decode("UTF-8")
+        except docker.errors.ContainerError:
+            return False
+
+        return "Measures runtime, energy, and many other" in help_response
 
     def run(
         self,
@@ -424,10 +457,17 @@ class LocalExecutionIntegration:
         if gpu_count != 0:
             device_requests = [docker.types.DeviceRequest(count=gpu_count, capabilities=[["gpu"]])]
 
+        entrypoint = "sh"
+        entrypoint_flags = "-c"
+        if self.tirex_tracker_available_in_docker_image(image, client):
+            volumes.update(tirex_tracker_mounts_or_none())
+            entrypoint = "/tracked"
+            entrypoint_flags = "-o /tira-data/output/.tracking-results.yml -f irmetadata"
+
         container = client.containers.run(
             image,
-            entrypoint="sh",
-            command=f'-c "{command}; sleep .1"',
+            entrypoint=entrypoint,
+            command=f'{entrypoint_flags} "{command}; sleep .1"',
             environment=environment,
             volumes=volumes,
             detach=True,
