@@ -110,17 +110,10 @@ class TiraClient(ABC):
 
     def _git_repo(self, path: Path):
         import git
-
-        msg = f"No valid git repository found at {path}."
-
-        for i in range(4):
-            try:
-                return git.Repo(path)
-            except git.exc.InvalidGitRepositoryError:
-                path = path.parent
-
-        print(msg)
-        raise ValueError(msg)
+        try:
+                return git.Repo(path, search_parent_directories=True)
+        except git.exc.InvalidGitRepositoryError as e:
+                raise ValueError(f"No git repository found at {path}") from e
 
     def _zip_tracked_files(self, repo: "git.Repo", directory: str):
         """
