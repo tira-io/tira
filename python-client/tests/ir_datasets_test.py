@@ -2,6 +2,7 @@ import os
 import unittest
 
 import ir_datasets
+
 from tira.third_party_integrations import (
     ensure_pyterrier_is_loaded,
     load_ir_datasets,
