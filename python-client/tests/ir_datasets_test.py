@@ -218,7 +218,9 @@ class TestIRDatasets(unittest.TestCase):
         queries = {str(i["qid"]): i["query"] for _, i in dataset.get_topics().iterrows()}
 
         assert len(dataset.get_topics()) == 225
-        assert queries["269"] == "has a criterion been established for determining the axial compressor choking line"
+        assert (
+            queries["269"] == "has a criterion been established for determining the axial compressor choking line"
+        ), queries.keys()
 
     def test_no_patching_for_pyterrier_datasets_02(self):
         ensure_pyterrier_is_loaded(patch_ir_datasets=False)
@@ -228,7 +230,9 @@ class TestIRDatasets(unittest.TestCase):
         queries = {str(i["qid"]): i["query"] for _, i in dataset.get_topics().iterrows()}
 
         assert len(dataset.get_topics()) == 225
-        assert queries["269"] == "has a criterion been established for determining the axial compressor choking line"
+        assert (
+            queries["269"] == "has a criterion been established for determining the axial compressor choking line"
+        ), queries.keys()
 
     def test_patching_for_pyterrier_datasets_01(self):
         ensure_pyterrier_is_loaded(patch_ir_datasets=False)
